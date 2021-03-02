@@ -1,6 +1,11 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
 .contents {
-  margin-left: 4rem;
-  margin-right: 3rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 
 .nav-bar{
@@ -9,9 +14,9 @@
   margin-bottom: 1rem;
 }
 
-.nav-bar-title {
-  color: white;
-  margin-right: 2rem;
+.tabs {
+  margin: 0;
+  padding: 0;
 }
 
 .tabs li{
@@ -26,6 +31,10 @@
 .tabs a {
   color: #ffffff;
   text-decoration: none;
+}
+
+.nav-bar-title {
+  margin-right: 2rem;
 }
 
 .tabs li.active{
