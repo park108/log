@@ -42,3 +42,14 @@ body {
   background-color: #391a6b;
   height: 100%;
 }
+
+.textarea--article-normal {
+  width: 100%;
+  height: 3em;
+  resize: none;
+}
+
+.button--submit-normal {
+  width: 100%;
+  height: 2em;
+}
