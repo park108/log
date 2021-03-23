@@ -23,8 +23,7 @@ const Writer = (props) => {
 		else {
 
 			event.preventDefault();
-			console.log(`Submitted contents: ${article}`);
-			props.onSubmit(article);
+			props.writerSubmit(article);
 
 			sleep(1000).then(() => {
 				console.log("done");
