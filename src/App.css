@@ -20,7 +20,11 @@ body {
   padding: 0;
 }
 
-.div--nav-tabs li{
+ul {
+  padding: 0;
+}
+
+.ul--nav-tabs li{
   font-size: 1rem;
   font-weight: bold;
   display: inline-block;
@@ -29,18 +33,23 @@ body {
   cursor: pointer;
 }
 
-.div--nav-tabs a {
+.ul--nav-tabs a {
   color: #ffffff;
   text-decoration: none;
 }
 
-.div--nav-title {
+.ul--nav-tabs li.active{
+  background-color: #391a6b;
+  height: 100%;
+}
+
+li.li--nav-title {
   margin-right: 2rem;
 }
 
-.div--nav-tabs li.active{
-  background-color: #391a6b;
-  height: 100%;
+li.li--nav-user  {
+  font-size: 0.5em;
+  font-weight: normal;
 }
 
 .textarea--article-normal {

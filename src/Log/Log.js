@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import LogItem from './LogItem';
 import Writer from './Writer';
 
-const Log = () => {
+const Log = (props) => {
 
 	const [logs, setLogs] = useState([
 		{
@@ -46,7 +46,7 @@ const Log = () => {
 			))}
 			<Writer writerSubmit={handleSubmit} />
 		</div>
-	)
+	);
 }
 
 export default Log;

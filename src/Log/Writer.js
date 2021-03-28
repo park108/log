@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import * as common from '../common';
 
 function sleep(ms) {
 	console.log("Processing...");
@@ -32,23 +33,28 @@ const Writer = (props) => {
 		}
 	}
 
-	return (
-		<form onSubmit={handleSubmit}>
-			<textarea
-				className="textarea--article-normal"
-				type="text"
-				name="article"
-				value={article}
-				onChange={handleChange}
-				placeholder="Take your note"
-			/>
-			<button
-				className="button--submit-normal"
-				type="submit"
-				disabled={disabled}
-			>Post</button>
-		</form>
-	);
+	if(common.isLoggedIn()) {
+		return (
+			<form onSubmit={handleSubmit}>
+				<textarea
+					className="textarea--article-normal"
+					type="text"
+					name="article"
+					value={article}
+					onChange={handleChange}
+					placeholder="Take your note"
+				/>
+				<button
+					className="button--submit-normal"
+					type="submit"
+					disabled={disabled}
+				>Post</button>
+			</form>
+		);
+	}
+	else {
+		return ("");
+	}
 }
 
 export default Writer;
