@@ -1,9 +1,9 @@
 import React from "react";
-import Converter from './Converter';
+import * as common from '../common';
 
 const LogItem = ({item}) => {
 
-	let output = Converter(item.contents);
+	let output = common.convertToHTML(item.contents);
 
 	let dateText = "";
 

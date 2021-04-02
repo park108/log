@@ -18,6 +18,15 @@ export const getUrl = () => {
 	}
 }
 
+export const getAPI = () => {
+	if (process.env.NODE_ENV === 'production') {
+		return "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/test"; // TODO: Deploy prod API gateway
+	}
+	else if (process.env.NODE_ENV === 'development') {
+		return "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/test";
+	}
+}
+
 export function getCookie(name) {
 	let matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -85,4 +94,9 @@ export function isLoggedIn() {
 	else {
 		return true;
 	}
+}
+
+export function convertToHTML (input) {
+
+	return input.replace(/(\n|\r\n)/g, "<br />");
 }
