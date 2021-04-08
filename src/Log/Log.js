@@ -8,11 +8,14 @@ const Log = (props) => {
 	const [logs, setLogs] = useState([]);
 
 	async function fetchData() {
-		const res = await fetch(common.getAPI());
+
+		let apiURL = common.getAPI();
+		const res = await fetch(apiURL);
+		
 		res.json()
 			.then(res => {
 				console.log("DATA FETCHED from AWS!!");
-				setLogs(res.Items);
+				setLogs(res.body.Items);
 			})
 			.catch(err => {
 				console.log(err);
@@ -25,17 +28,29 @@ const Log = (props) => {
 
 	const handleSubmit = (contents) => {
 
-		let timestamp = Math.floor(new Date().getTime());
+		const timestamp = Math.floor(new Date().getTime());
 
-		let log = {
-			"id": logs.length,
+		let apiURL = common.getAPI();
+
+		const item = {
 			"contents": contents,
-			"timestamp": timestamp,
-			"author": "Jongkil Park"
-		};
+			"timestamp": timestamp
+		}
 
-		// TODO: Create API
-		setLogs([...logs, log]);
+		const res = fetch(apiURL, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(item)
+		})
+			.then(res => {
+				console.log("DATA POSTED to AWS!!");
+				fetchData();
+			})
+			.catch(err => {
+				console.log(err);
+			});
 	}
 
 	return (
