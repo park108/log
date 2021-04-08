@@ -1,10 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as common from '../common';
-
-function sleep(ms) {
-	console.log("Processing...");
-	return new Promise((r) => setTimeout(r, ms));
-}
 
 const Writer = (props) => {
 
@@ -14,8 +9,6 @@ const Writer = (props) => {
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
 	const handleSubmit = (event) => {
-		
-		setDisabled(true);
 
 		if(article.length < 5) {
 
@@ -25,13 +18,13 @@ const Writer = (props) => {
 
 			event.preventDefault();
 			props.writerSubmit(article);
-
-			sleep(1000).then(() => {
-				console.log("done");
-				setDisabled(false);
-			});
 		}
 	}
+
+	useEffect(() => {
+		setDisabled(!props.isPostSuccess);
+		setArticle("");
+	}, [props.isPostSuccess]);
 
 	if(common.isLoggedIn()) {
 		return (

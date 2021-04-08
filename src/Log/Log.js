@@ -6,20 +6,19 @@ import Writer from './Writer';
 const Log = (props) => {
 
 	const [logs, setLogs] = useState([]);
+	const [isPostSuccess, setIsPostSuccess] = useState(true);
 
 	async function fetchData() {
 
-		let apiURL = common.getAPI();
-		const res = await fetch(apiURL);
+		// Call GET API
+		const res = await fetch(common.getAPI());
 		
-		res.json()
-			.then(res => {
-				console.log("DATA FETCHED from AWS!!");
-				setLogs(res.body.Items);
-			})
-			.catch(err => {
-				console.log(err);
-			});
+		res.json().then(res => {
+			console.log("DATA FETCHED from AWS!!");
+			setLogs(res.body.Items);
+		}).catch(err => {
+			console.error(err);
+		});
 	}
 
 	useEffect(() => {
@@ -28,29 +27,26 @@ const Log = (props) => {
 
 	const handleSubmit = (contents) => {
 
-		const timestamp = Math.floor(new Date().getTime());
+		setIsPostSuccess(false);
 
-		let apiURL = common.getAPI();
-
-		const item = {
-			"contents": contents,
-			"timestamp": timestamp
-		}
-
-		const res = fetch(apiURL, {
+		// Call POST API
+		fetch(common.getAPI(), {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(item)
-		})
-			.then(res => {
-				console.log("DATA POSTED to AWS!!");
-				fetchData();
+			body: JSON.stringify({
+				"contents": contents,
+				"timestamp": Math.floor(new Date().getTime())
 			})
-			.catch(err => {
-				console.log(err);
-			});
+		}).then(res => {
+			console.log("DATA POSTED to AWS!!");
+			fetchData();
+			setIsPostSuccess(true);
+		}).catch(err => {
+			console.error(err);
+			setIsPostSuccess(false);
+		});
 	}
 
 	return (
@@ -58,7 +54,7 @@ const Log = (props) => {
 			{logs.map(data => (
 				<LogItem key={data.timestamp} item={data} />
 			))}
-			<Writer writerSubmit={handleSubmit} />
+			<Writer writerSubmit={handleSubmit} isPostSuccess={isPostSuccess} />
 		</div>
 	);
 }
