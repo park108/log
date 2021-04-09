@@ -17,11 +17,13 @@ const Writer = (props) => {
 		else {
 
 			event.preventDefault();
-			props.writerSubmit(article);
+			props.submit(article);
 		}
 	}
 
 	useEffect(() => {
+
+		// Button disable by POST result
 		setDisabled(!props.isPostSuccess);
 		setArticle("");
 	}, [props.isPostSuccess]);

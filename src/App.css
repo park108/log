@@ -10,7 +10,7 @@ body {
 }
 
 .div--nav-bar{
-  background: #000000;
+  background: #ffffff;
   width: 100%;
   margin-bottom: 1rem;
 }
@@ -27,21 +27,20 @@ ul {
 
 .ul--nav-tabs li{
   font-size: 1rem;
-  font-weight: bold;
   display: inline-block;
-  color: #ffffff;
+  color: #000000;
   padding: 1rem;
   cursor: pointer;
 }
 
 .ul--nav-tabs a {
-  color: #ffffff;
+  color: #000000;
   text-decoration: none;
 }
 
 .ul--nav-tabs li.active{
-  background-color: #391a6b;
   height: 100%;
+  border-bottom: 1px solid;
 }
 
 li.li--nav-title {
@@ -70,4 +69,26 @@ li.li--nav-user  {
   border-width: 0 0 1px 0 ;
   border-style: dashed;
   border-color: lightgrey;
+}
+
+.p--article-info {
+  font-size: 0.9em;
+}
+
+.p--article-toolbar {
+  padding: 0;
+  margin: 0;
+}
+
+.span--article-toolbar {
+  font-size: 0.5em;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.span--article-separator {
+  font-size: 0.5em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }

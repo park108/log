@@ -29,6 +29,8 @@ const Log = (props) => {
 
 		setIsPostSuccess(false);
 
+		const now = Math.floor(new Date().getTime());
+
 		// Call POST API
 		fetch(common.getAPI(), {
 			method: "POST",
@@ -36,8 +38,12 @@ const Log = (props) => {
 				"Content-Type": "application/json"
 			},
 			body: JSON.stringify({
-				"contents": contents,
-				"timestamp": Math.floor(new Date().getTime())
+				"timestamp": now,
+				"isDeleted": " ",
+				"logs": [{
+					"contents": contents,
+					"timestamp": now
+				}]
 			})
 		}).then(res => {
 			console.log("DATA POSTED to AWS!!");
@@ -51,10 +57,17 @@ const Log = (props) => {
 
 	return (
 		<div>
+			<Writer
+				submit={handleSubmit}
+				isPostSuccess={isPostSuccess}
+			/>
 			{logs.map(data => (
-				<LogItem key={data.timestamp} item={data} />
+				<LogItem
+					key={data.timestamp}
+					item={data}
+					delete={fetchData}
+				/>
 			))}
-			<Writer writerSubmit={handleSubmit} isPostSuccess={isPostSuccess} />
 		</div>
 	);
 }

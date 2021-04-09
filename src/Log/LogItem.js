@@ -1,9 +1,11 @@
 import React from "react";
 import * as common from '../common';
 
-const LogItem = ({item}) => {
+const LogItem = (props) => {
 
-	let output = common.convertToHTML(item.contents);
+	const item = props.item;
+
+	let output = common.convertToHTML(item.logs[0].contents);
 
 	let dateText = "";
 
@@ -26,10 +28,47 @@ const LogItem = ({item}) => {
 			+ (ss < 10 ? "0" + ss : ss);
 	}
 
+	const editLogItem = (e) => {
+		console.log("EDIT = " + item.timestamp);
+	}
+
+	const deleteLogItem = (e) => {
+
+		const deleteAPI = common.getAPI() + "/timestamp/" + item.timestamp;
+
+		const body = {
+			author: item.author,
+			timestamp: item.timestamp
+		}
+
+		// Call DELETE API
+		fetch(deleteAPI, {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		}).then(res => {
+			console.log("DATA DELETED from AWS!!");
+			props.delete();
+		}).catch(err => {
+			console.error(err);
+		});
+	}
+
 	return (
 		<div className="div div--article-logitem">
 			<p dangerouslySetInnerHTML={{__html: output}}></p>
-			<p>{item.author}, {dateText}</p>
+			{common.isAdmin() &&
+			<div>
+			<p className="p p--article-info">{item.author}, {dateText}</p>
+			<p className="p p--article-toolbar">
+				<span onClick={editLogItem} className="span span--article-toolbar">Edit</span>
+				<span className="span span--article-separator">|</span>
+				<span onClick={deleteLogItem} className="span span--article-toolbar">Delete</span>
+			</p>
+			</div>
+			}
 		</div>
 	)
 }

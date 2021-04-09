@@ -96,6 +96,27 @@ export function isLoggedIn() {
 	}
 }
 
+// TODO: change hard coding to IAM authorization
+export function isAdmin() {
+
+	if(!isLoggedIn()) {
+		return false;
+	}
+
+	const userId = parseJwt(getCookie("access_token")).username;
+
+	if ('production' === process.env.NODE_ENV
+		&& "df256e56-7c24-4b19-9172-10acc47ab8f4" === userId) {
+		return true;
+	}
+	else if ('development' === process.env.NODE_ENV
+		&& "051fd5f9-a336-4055-96e5-6e1e125ebd15" === userId) {
+		return true;
+	}
+
+	return false;
+}
+
 export function convertToHTML (input) {
 
 	return input.replace(/(\n|\r\n)/g, "<br />");

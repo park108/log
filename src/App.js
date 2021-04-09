@@ -19,10 +19,10 @@ const App = () => {
 		setMenu(e.target.getAttribute("index") * 1);
 	}
 
-	let userName = "";
+	let userId = "";
 
 	if(common.isLoggedIn()) {
-		userName = common.parseJwt(common.getCookie("access_token")).username;
+		userId = common.parseJwt(common.getCookie("access_token")).username;
 	}
 
 	return (
@@ -32,7 +32,7 @@ const App = () => {
 					<li className="li--nav-title"><a href={common.getUrl()}>park108.net</a></li>
 					<li index="0" className={`${menu === 0? 'active': ''}`} onClick={openMenu}>log</li>
 					<UserLogin />
-					<li className="li--nav-user">{userName}</li>
+					<li className="li--nav-user">{userId}</li>
 				</ul>
 			</div>
 			<div className="div--main-contents">
