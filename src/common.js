@@ -96,7 +96,7 @@ export function isLoggedIn() {
 	}
 }
 
-// TODO: change hard coding to IAM authorization
+// TODO: change user id hard coding to IAM authorization
 export function isAdmin() {
 
 	if(!isLoggedIn()) {

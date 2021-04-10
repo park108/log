@@ -57,10 +57,12 @@ const Log = (props) => {
 
 	return (
 		<div>
-			<Writer
-				submit={handleSubmit}
-				isPostSuccess={isPostSuccess}
-			/>
+			{common.isAdmin() && 
+				<Writer
+					submit={handleSubmit}
+					isPostSuccess={isPostSuccess}
+				/>
+			}
 			{logs.map(data => (
 				<LogItem
 					key={data.timestamp}

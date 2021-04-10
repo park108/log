@@ -22,7 +22,7 @@ const App = () => {
 	let userId = "";
 
 	if(common.isLoggedIn()) {
-		userId = common.parseJwt(common.getCookie("access_token")).username;
+		userId = common.isAdmin() ? "Admin" : "Common User";
 	}
 
 	return (
