@@ -53,17 +53,26 @@ li.li--nav-user  {
 }
 
 .textarea--article-normal {
+  font-size: 0.9em;
+  font-family:'Times New Roman', Times, serif;
+  box-sizing: border-box;
   width: 100%;
+  padding: 10px;
   height: 10em;
   resize: none;
+  border-color: lightgrey;
 }
 
 .button--submit-normal {
   width: 100%;
   height: 2em;
+  border: none;
+  background-color: lightgrey;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .div--article-logitem {
+  font-size: 0.9em;
   padding-bottom: 10px;
   margin-bottom: 10px;
   border-width: 0 0 1px 0 ;
@@ -73,6 +82,7 @@ li.li--nav-user  {
 
 .p--article-info {
   font-size: 0.9em;
+  color: grey;
 }
 
 .p--article-toolbar {
@@ -81,7 +91,8 @@ li.li--nav-user  {
 }
 
 .span--article-toolbar {
-  font-size: 0.5em;
+  font-size: 0.7em;
+  color: grey;
   padding: 0;
   margin: 0;
   cursor: pointer;
@@ -89,6 +100,7 @@ li.li--nav-user  {
 
 .span--article-separator {
   font-size: 0.5em;
+  color: lightgrey;
   padding-left: 0.5em;
   padding-right: 0.5em;
 }

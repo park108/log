@@ -39,7 +39,6 @@ const Log = (props) => {
 			},
 			body: JSON.stringify({
 				"timestamp": now,
-				"isDeleted": " ",
 				"logs": [{
 					"contents": contents,
 					"timestamp": now

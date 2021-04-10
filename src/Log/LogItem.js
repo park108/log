@@ -28,13 +28,14 @@ const LogItem = (props) => {
 			+ (ss < 10 ? "0" + ss : ss);
 	}
 
-	const editLogItem = (e) => {
-		console.log("EDIT = " + item.timestamp);
+	const editLogItem = () => {
+
+		// Go to Edit URL
 	}
 
-	const deleteLogItem = (e) => {
+	const deleteLogItem = () => {
 
-		const deleteAPI = common.getAPI() + "/timestamp/" + item.timestamp;
+		const api = common.getAPI() + "/timestamp/" + item.timestamp;
 
 		const body = {
 			author: item.author,
@@ -42,7 +43,7 @@ const LogItem = (props) => {
 		}
 
 		// Call DELETE API
-		fetch(deleteAPI, {
+		fetch(api, {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json"
