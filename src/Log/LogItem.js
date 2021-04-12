@@ -89,9 +89,9 @@ const LogItem = (props) => {
 					pathname: "/log/write",
 					state: {item}
 				}}>
-					<span className="span span--article-toolbar">Edit</span>
+					<span className="span span--article-toolbarmenu">Edit</span>
 				</Link>;
-			deleteButton = <span onClick={deleteLogItem} className="span span--article-toolbar">Delete</span>;
+			deleteButton = <span onClick={deleteLogItem} className="span span--article-toolbarmenu">Delete</span>;
 		}
 	}
 	else {
@@ -100,17 +100,17 @@ const LogItem = (props) => {
 
 	return (
 		<div className={itemClass}>
+			<p dangerouslySetInnerHTML={{__html: outputContents}}></p>
 			<p className="p p--article-info">
 				{outputDate}
 				{outputTime}
 				{infoSeparator}
 				{outputAuthor}
-			</p>
-			<p dangerouslySetInnerHTML={{__html: outputContents}}></p>
-			<p className="p p--article-toolbar">
-				{editButton}
-				{infoSeparator}
-				{deleteButton}
+				<span className="span span--article-toolbar">
+					{editButton}
+					{infoSeparator}
+					{deleteButton}
+				</span>
 			</p>
 		</div>
 	)

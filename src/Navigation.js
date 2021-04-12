@@ -6,18 +6,16 @@ import UserLogin from './UserLogin'
 const Navigation = (props) => {
 
 	return (
-		<div>
-			<div className="div--nav-bar">
-				<ul className="ul--nav-tabs">
-					<li className="li--nav-title">
-						<a href={common.getUrl()}>park108.net</a>
-					</li>
-					<li className="active">
-						<Link to="/log">log</Link>
-					</li>
-					<UserLogin />
-				</ul>
-			</div>
+		<div className="div div--nav-bar">
+			<ul className="ul ul--nav-tabs">
+				<li className="li li--nav-title">
+					<a href={common.getUrl()}>park108.net</a>
+				</li>
+				<li className="active">
+					<Link to="/log">log</Link>
+				</li>
+				<UserLogin />
+			</ul>
 		</div>
 	)
 }
