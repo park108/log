@@ -1,20 +1,35 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
 import * as common from '../common';
 
 const LogItem = (props) => {
 
-	const editLogItem = () => {
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [itemClass, setItemClass] = useState("div div--article-logitem");
 
-		// Go to Edit URL
-	}
+	const item = props.item;
+	const author = props.author;
+	const contents = props.contents;
+	const timestamp = props.timestamp;
+
+	useEffect(() => {
+		if(isDeleting) {
+			setItemClass("div div--article-logitem div--article-delete");
+		}
+		else {
+			setItemClass("div div--article-logitem");
+		}
+	}, [isDeleting]);
 
 	const deleteLogItem = () => {
 
-		const api = common.getAPI() + "/timestamp/" + item.timestamp;
+		setIsDeleting(true);
+
+		const api = common.getAPI() + "/timestamp/" + timestamp;
 
 		const body = {
-			author: item.author,
-			timestamp: item.timestamp
+			author: author,
+			timestamp: timestamp
 		}
 
 		// Call DELETE API
@@ -32,16 +47,14 @@ const LogItem = (props) => {
 		});
 	}
 
-	const item = props.item;
-
-	const outputContents = common.convertToHTML(item.logs[0].contents);
+	const outputContents = common.convertToHTML(contents);
 
 	let outputDate = "";
 	let outputTime = "";
 
-	if(item.timestamp > 0) {
+	if(timestamp > 0) {
 
-		let date = new Date(item.timestamp);
+		let date = new Date(timestamp);
 
 		let yyyy = date.getFullYear();
 		let mm = date.getMonth() + 1;
@@ -65,30 +78,40 @@ const LogItem = (props) => {
 
 	let outputAuthor = "";
 	let infoSeparator = "";
+	let editButton = "";
+	let deleteButton = "";
+
 	if(common.isAdmin()) {
-		outputAuthor = <span>{item.author}</span>;
-		infoSeparator = <span className="span span--article-separator">|</span>;
+		if(undefined !== item) {
+			outputAuthor = <span>{author}</span>;
+			infoSeparator = <span className="span span--article-separator">|</span>;
+			editButton = <Link to={{
+					pathname: "/log/write",
+					state: {item}
+				}}>
+					<span className="span span--article-toolbar">Edit</span>
+				</Link>;
+			deleteButton = <span onClick={deleteLogItem} className="span span--article-toolbar">Delete</span>;
+		}
 	}
 	else {
 		outputTime = "";
 	}
 
 	return (
-		<div className="div div--article-logitem">
-			<p dangerouslySetInnerHTML={{__html: outputContents}}></p>
+		<div className={itemClass}>
 			<p className="p p--article-info">
-				{outputAuthor}
-				{infoSeparator}
 				{outputDate}
 				{outputTime}
+				{infoSeparator}
+				{outputAuthor}
 			</p>
-			{common.isAdmin() &&
+			<p dangerouslySetInnerHTML={{__html: outputContents}}></p>
 			<p className="p p--article-toolbar">
-				<span onClick={editLogItem} className="span span--article-toolbar">Edit</span>
-				<span className="span span--article-separator">|</span>
-				<span onClick={deleteLogItem} className="span span--article-toolbar">Delete</span>
+				{editButton}
+				{infoSeparator}
+				{deleteButton}
 			</p>
-			}
 		</div>
 	)
 }

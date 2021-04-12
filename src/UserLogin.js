@@ -31,14 +31,20 @@ const UserLogin = () => {
 		window.location.href = getLoginUrl();
 	}
 
+	let userId = "";
+
+	if(common.isLoggedIn()) {
+		userId = common.isAdmin() ? "Admin" : "Common User";
+	}
+
 	if(common.isLoggedIn()) {
 		return (
-			<li onClick={logout}>logout</li>
+			<li className="li--nav-user li--nav-right" onClick={logout}>{userId}</li>
 		);
 	}
 	else {
 		return (
-			<li onClick={login}>login</li>
+			<li className="li--nav-user li--nav-right" onClick={login}>login</li>
 		);
 	}
 }

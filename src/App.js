@@ -1,44 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import * as common from './common';
-import UserLogin from './UserLogin'
+import Navigation from "./Navigation";
 import Log from "./Log/Log";
 import './App.css';
-
-const menuList = {
-	0: <Log />,
-};
   
 const App = () => {
 
 	common.auth();
-	
-	const [menu, setMenu] = useState(0);
-	
-	const openMenu = (e) => {
-		console.log(e.target.getAttribute("index"));
-		setMenu(e.target.getAttribute("index") * 1);
-	}
 
-	let userId = "";
-
-	if(common.isLoggedIn()) {
-		userId = common.isAdmin() ? "Admin" : "Common User";
+	if("/" === window.location.pathname) {
+		window.location.href = "/log";
 	}
 
 	return (
-		<div>
-			<div className="div--nav-bar">
-				<ul className="ul--nav-tabs">
-					<li className="li--nav-title"><a href={common.getUrl()}>park108.net</a></li>
-					<li index="0" className={`${menu === 0? 'active': ''}`} onClick={openMenu}>log</li>
-					<UserLogin />
-					<li className="li--nav-user">{userId}</li>
-				</ul>
-			</div>
-			<div className="div--main-contents">
-				{menuList[menu]}
-			</div>
-		</div>
+		<Router>
+			<Navigation />
+			<Switch>
+				<Route path="/log" component={Log} />
+			</Switch>
+		</Router>
 	)
 }
 

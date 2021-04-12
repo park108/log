@@ -3,6 +3,10 @@ body {
   padding: 0;
 }
 
+a {
+  text-decoration: none;
+}
+
 .div--main-contents {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -52,13 +56,17 @@ li.li--nav-user  {
   font-weight: normal;
 }
 
+.li--nav-right {
+  float:right;
+}
+
 .textarea--article-normal {
   font-size: 0.9em;
   font-family:'Times New Roman', Times, serif;
   box-sizing: border-box;
   width: 100%;
   padding: 10px;
-  height: 10em;
+  height: 30em;
   resize: vertical;
   border-color: lightgrey;
 }
@@ -74,14 +82,11 @@ li.li--nav-user  {
 .div--article-logitem {
   font-size: 0.9em;
   margin-top: 3em;
-  /* border-width: 1px 0 0 0 ; */
-  /* border-style: dashed; */
   border-color: lightgrey;
 }
 
 .p--article-info {
-  font-size: 0.9em;
-  color: grey;
+  font-size: 1em;
 }
 
 .p--article-toolbar {
@@ -90,7 +95,7 @@ li.li--nav-user  {
 }
 
 .span--article-toolbar {
-  font-size: 0.7em;
+  font-size: 0.9em;
   color: grey;
   padding: 0;
   margin: 0;
@@ -98,8 +103,12 @@ li.li--nav-user  {
 }
 
 .span--article-separator {
-  font-size: 0.5em;
   color: lightgrey;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.div--article-delete {
+  color: white;
+  transition: color 0.5s ease;
 }

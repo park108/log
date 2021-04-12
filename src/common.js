@@ -11,10 +11,10 @@ export function parseJwt (token) {
 
 export const getUrl = () => {
 	if (process.env.NODE_ENV === 'production') {
-		return "https://park108.net/";
+		return "https://park108.net/log";
 	}
 	else if (process.env.NODE_ENV === 'development') {
-		return "http://localhost:3000/";
+		return "http://localhost:3000/log";
 	}
 }
 

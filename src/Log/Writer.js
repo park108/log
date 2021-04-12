@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from "react";
 import * as common from '../common';
+import LogItem from './LogItem';
 
 const Writer = (props) => {
 
 	const [article, setArticle] = useState("");
 	const [disabled, setDisabled] = useState(false);
+	const [mode, setMode] = useState("POST");
+	const [buttonText, setButtonText] = useState("Post");
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
+	
+	const data = props.location.state;
+
+	let contents = "";
+	if(undefined !== data) {
+		contents = data.item.logs[0].contents;
+	}
 
 	const handleSubmit = (event) => {
 
@@ -14,21 +24,36 @@ const Writer = (props) => {
 
 			alert("Please note at least 5 characters.");
 		}
-		else {
+		else if("POST" === mode) {
 
 			event.preventDefault();
-			props.submit(article);
+			props.post(article);
+		}
+		else if("EDIT" === mode) {
+
+			event.preventDefault();
+			props.edit(data.item, article);
 		}
 	}
 
 	useEffect(() => {
-
-		// Button disable by POST result
 		setDisabled(!props.isPostSuccess);
-		setArticle("");
 	}, [props.isPostSuccess]);
 
-	if(common.isLoggedIn()) {
+	useEffect(() => {
+		setArticle(contents);
+
+		if("" === contents) {
+			setMode("POST");
+			setButtonText("Post");
+		}
+		else {
+			setMode("EDIT");
+			setButtonText("Edit");
+		}
+	}, [contents]);
+	
+	if(common.isAdmin()) {
 		return (
 			<form onSubmit={handleSubmit}>
 				<textarea
@@ -38,12 +63,25 @@ const Writer = (props) => {
 					value={article}
 					onChange={handleChange}
 					placeholder="Take your note"
+					disabled={disabled}
 				/>
 				<button
 					className="button--submit-normal"
 					type="submit"
 					disabled={disabled}
-				>Post</button>
+				>{buttonText}</button>
+				{"EDIT" === mode &&
+					<div className="div--old-versions" >
+						{data.item.logs.map(log => (
+							<LogItem
+								key={log.timestamp}
+								author={data.item.author}
+								timestamp={log.timestamp}
+								contents={log.contents}
+							/>
+						))}
+					</div>
+				}
 			</form>
 		);
 	}
