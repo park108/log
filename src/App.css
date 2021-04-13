@@ -1,8 +1,7 @@
-@import url(//fonts.googleapis.com/earlyaccess/jejumyeongjo.css);
-
 body {
   margin: 0;
   padding: 0;
+  font-family: 'Jeju Myeongjo', Helvetica;
 }
 
 a {
@@ -41,7 +40,7 @@ div#root {
   cursor: pointer;
   padding-top: 2em;
   padding-left: 1em;
-  padding-bottom: 2em;
+  padding-bottom: 1em;
   padding-right: 1em;
 }
 
@@ -70,18 +69,18 @@ div#root {
 .div--main-contents {
   margin-left: 1em;
   margin-right: 1em;
-  font-family: 'Jeju Myeongjo', Helvetica;
 }
 
 .textarea {
+  font-family: 'Jeju Myeongjo', Helvetica;
   box-sizing: border-box;
   width: 100%;
   line-height: 2em;
-  font-family: 'Jeju Myeongjo', Helvetica;
 }
 
 .textarea--writer-article {
   font-size: 1em;
+  margin-top: 2em;
   padding: 10px;
   height: 30em;
   resize: vertical;
@@ -89,26 +88,37 @@ div#root {
 }
 
 .button {
+  font-family: 'Jeju Myeongjo', Helvetica;
   width: 100%;
-  border: none;
+  border: 1px;
+  border-style: solid;
+  border-color: #eeeeee;
+  background-color: white;
+  font-size: 1em;
+}
+
+.button:hover {
+  color: white;
+  background-color: #666666;
+  border-color: white;
+  font-weight: bold;
 }
 
 .button--writer-submit {
-  height: 5em;
-  background-color:#eeeeee;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding-top: 2em;
+  padding-bottom: 2em;
+  margin-top: 2em;
 }
 
 .button--logs-newlog {
-  height: 5em;
-  margin-top: 3em;
-  background-color:#eeeeee;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding-top: 2em;
+  padding-bottom: 2em;
+  margin-top: 2em;
 }
 
 .div--article-logitem {
-  margin-top: 5em;
-  margin-bottom: 3em;
+  margin-top: 3em;
+  margin-bottom: 5em;
 }
 
 .p {
@@ -117,7 +127,6 @@ div#root {
 
 .p--article-info {
   color: #666666;
-  font-size: 1em;
 }
 
 .span--article-toolbar {
@@ -154,9 +163,7 @@ div#root {
 }
 
 .div--footer-contents {
-  color: white;
   padding-top: 1em;
-  font-family:'Times New Roman', Times, serif;
   font-size: 0.9em;
   width: 100%;
 }
