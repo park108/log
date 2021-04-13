@@ -80,7 +80,7 @@ const Log = (props) => {
 	}
 
 	return (
-		<div className="div--main-contents">
+		<div className="div div--main-contents">
 			<Route exact path="/log" component={Logs} />
 			<Route path="/log/write" render={(props) => <Writer 
 					post={handlePostSubmit}

@@ -34,17 +34,17 @@ const UserLogin = () => {
 	let userId = "";
 
 	if(common.isLoggedIn()) {
-		userId = common.isAdmin() ? "Admin" : "Common User";
+		userId = common.isAdmin() ? "A" : "C";
 	}
 
 	if(common.isLoggedIn()) {
 		return (
-			<li className="li--nav-user li--nav-right" onClick={logout}>{userId}</li>
+			<li className="li li--nav-user" onClick={logout}>{userId}</li>
 		);
 	}
 	else {
 		return (
-			<li className="li--nav-user li--nav-right" onClick={login}>login</li>
+			<li className="li li--nav-user" onClick={login}>login</li>
 		);
 	}
 }

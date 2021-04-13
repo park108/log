@@ -100,7 +100,7 @@ const LogItem = (props) => {
 
 	return (
 		<div className={itemClass}>
-			<p dangerouslySetInnerHTML={{__html: outputContents}}></p>
+			<p className="p p--article-main" dangerouslySetInnerHTML={{__html: outputContents}}></p>
 			<p className="p p--article-info">
 				{outputDate}
 				{outputTime}

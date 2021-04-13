@@ -11,7 +11,7 @@ const Navigation = (props) => {
 				<li className="li li--nav-title">
 					<a href={common.getUrl()}>park108.net</a>
 				</li>
-				<li className="active">
+				<li className="li li--nav-active">
 					<Link to="/log">log</Link>
 				</li>
 				<UserLogin />

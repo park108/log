@@ -57,7 +57,7 @@ const Writer = (props) => {
 		return (
 			<form onSubmit={handleSubmit}>
 				<textarea
-					className="textarea--article-normal"
+					className="textarea textarea--writer-article"
 					type="text"
 					name="article"
 					value={article}
@@ -66,12 +66,12 @@ const Writer = (props) => {
 					disabled={disabled}
 				/>
 				<button
-					className="button--submit-normal"
+					className="button button--writer-submit"
 					type="submit"
 					disabled={disabled}
 				>{buttonText}</button>
 				{"EDIT" === mode &&
-					<div className="div--old-versions" >
+					<div className="div div--writer-archive" >
 						{data.item.logs.map(log => (
 							<LogItem
 								key={log.timestamp}

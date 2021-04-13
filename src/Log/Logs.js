@@ -25,11 +25,11 @@ const Logs = (props) => {
 	}, [props.isPostSuccess]);
 
 	const writeLink = common.isAdmin() ? <Link to="/log/write">
-		<button className="button--submit-normal">New log</button
+		<button className="button button--logs-newlog">New log</button
 	></Link> : null;
 
 	return (
-		<div className="div--logs-main">
+		<div className="div div--logs-main">
 			{writeLink}
 		{logs.map(data => (
 			<LogItem
