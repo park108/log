@@ -1,3 +1,5 @@
+@import url(//fonts.googleapis.com/earlyaccess/jejumyeongjo.css);
+
 body {
   margin: 0;
   padding: 0;
@@ -68,14 +70,14 @@ div#root {
 .div--main-contents {
   margin-left: 1em;
   margin-right: 1em;
-  font-family:'Times New Roman', Times, serif;
+  font-family: 'Jeju Myeongjo', Helvetica;
 }
 
 .textarea {
   box-sizing: border-box;
   width: 100%;
   line-height: 2em;
-  font-family:'Times New Roman', Times, serif;
+  font-family: 'Jeju Myeongjo', Helvetica;
 }
 
 .textarea--writer-article {
