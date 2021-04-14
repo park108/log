@@ -76,14 +76,14 @@ const LogItem = (props) => {
 		outputTime = <span>{outputTime}</span>;
 	}
 
-	let outputAuthor = "";
+	// let outputAuthor = "";
 	let infoSeparator = "";
 	let editButton = "";
 	let deleteButton = "";
 
 	if(common.isAdmin()) {
 		if(undefined !== item) {
-			outputAuthor = <span>{author}</span>;
+			// outputAuthor = <span>{author}</span>;
 			infoSeparator = <span className="span span--article-separator">|</span>;
 			editButton = <Link to={{
 					pathname: "/log/write",
