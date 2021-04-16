@@ -64,6 +64,11 @@ const Writer = (props) => {
 	if(common.isAdmin()) {
 		return (
 			<form onSubmit={handleSubmit}>
+				<button
+					className="button button--writer-submit"
+					type="submit"
+					disabled={disabled}
+				>{buttonText}</button>
 				<textarea
 					className="textarea textarea--writer-article"
 					type="text"
@@ -80,11 +85,6 @@ const Writer = (props) => {
 				>
 					<p className="p p--article-main" dangerouslySetInnerHTML={{__html: convertedArticle}}></p>
 				</div>
-				<button
-					className="button button--writer-submit"
-					type="submit"
-					disabled={disabled}
-				>{buttonText}</button>
 				{"EDIT" === mode &&
 					<div className="div div--writer-archive" >
 						{data.item.logs.map(log => (

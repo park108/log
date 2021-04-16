@@ -20,7 +20,9 @@ div#root {
 
 blockquote {
   background-color: white;
-  border-bottom: 1px solid #666666;
+  font-style: italic;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 blockquote:before {
@@ -145,6 +147,10 @@ blockquote:before {
 .div--article-logitem {
   margin-top: 3em;
   margin-bottom: 5em;
+}
+
+.div--article-logitem a {
+  text-decoration: underline;
 }
 
 .p {
