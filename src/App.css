@@ -18,6 +18,20 @@ div#root {
   margin-right: auto;
 }
 
+blockquote {
+  background-color: white;
+  border-bottom: 1px solid #666666;
+}
+
+blockquote:before {
+  content: "\201C";
+  font-size: 3em;
+  font-family: Georgia;
+  color: #666666;
+  float: left;
+  margin: -5px 10px 0px -10px;
+}
+
 .div--nav-bar {
   background: #ffffff;
   margin-left: 1em;
@@ -86,6 +100,15 @@ div#root {
   padding: 10px;
   height: 30em;
   resize: vertical;
+  border-color: #eeeeee;
+}
+
+.div--writer-html {
+  font-size: 1em;
+  background-color: #eeeeee;
+  margin-top: 2em;
+  padding: 10px;
+  height: 30em;
   border-color: #eeeeee;
 }
 

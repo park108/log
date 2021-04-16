@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import * as common from '../common';
+import * as parser from '../markdownParser';
 import LogItem from './LogItem';
 
 const Writer = (props) => {
@@ -8,6 +9,8 @@ const Writer = (props) => {
 	const [disabled, setDisabled] = useState(false);
 	const [mode, setMode] = useState("POST");
 	const [buttonText, setButtonText] = useState("Post");
+
+	const [convertedArticle, setConvertedArticle] = useState("");
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 	
@@ -35,6 +38,11 @@ const Writer = (props) => {
 			props.edit(data.item, article);
 		}
 	}
+
+	useEffect(() => {
+		let html = parser.markdownToHtml(article);
+		setConvertedArticle(html);
+	}, [article]);
 
 	useEffect(() => {
 		setDisabled(!props.isPostSuccess);
@@ -65,6 +73,13 @@ const Writer = (props) => {
 					placeholder="Take your note"
 					disabled={disabled}
 				/>
+				<div
+					className="div div--writer-html"
+					name="html"
+					disabled="disabled"
+				>
+					<p className="p p--article-main" dangerouslySetInnerHTML={{__html: convertedArticle}}></p>
+				</div>
 				<button
 					className="button button--writer-submit"
 					type="submit"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import * as common from '../common';
+import * as parser from '../markdownParser';
 
 const LogItem = (props) => {
 
@@ -47,7 +48,7 @@ const LogItem = (props) => {
 		});
 	}
 
-	const outputContents = common.convertToHTML(contents);
+	const outputContents = parser.markdownToHtml(contents);
 
 	let outputDate = "";
 	let outputTime = "";
