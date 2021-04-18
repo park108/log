@@ -121,3 +121,8 @@ export function convertToHTML (input) {
 
 	return input.replace(/(\n|\r\n)/g, "<br />");
 }
+
+export function decodeHTML (input) {
+
+	return input.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+}

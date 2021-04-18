@@ -9,10 +9,6 @@ a {
   color: black;
 }
 
-div {
-  max-width: 720px;
-}
-
 div#root {
   margin-left: auto;
   margin-right: auto;
@@ -98,20 +94,52 @@ blockquote:before {
 
 .textarea--writer-article {
   font-size: 1em;
-  margin-top: 2em;
-  padding: 10px;
-  height: 30em;
-  resize: vertical;
+  width: 50%;
+  margin: 2em 0 0 0;
+  padding: 10px 5px 100px 5px;
+  overflow-y: hidden;
+  resize: none;
   border-color: #eeeeee;
+  border-width: 0 1px 0 0;
 }
 
-.div--writer-html {
+.div--writer-converted {
   font-size: 1em;
-  background-color: #eeeeee;
-  margin-top: 2em;
-  padding: 10px;
-  height: 30em;
-  border-color: #eeeeee;
+  width: calc(50% - 11.5px);
+  line-height: 2em;
+  float: right;
+  /* background-color: #eeeeee; */
+  margin: 2em 0 0 0;
+  padding: 10px 5px 0 6.5px;
+  word-wrap: break-word;
+  vertical-align: top;
+}
+
+.div--writer-converted a {
+  text-decoration: underline;
+}
+
+.div--writer-statusbar {
+  width: 100%;
+  font-size: 0.8em;
+  padding: 5px 0 5px 0;
+}
+
+.span--writer-statusbarbutton {
+  cursor: pointer;
+  float: right;
+  padding-right: 30px;
+}
+
+.div--writer-archive {
+  max-width: 100%;
+}
+
+.div--writer-archivetitle {
+  max-width: 100%;
+  font-size: 1.5em;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .button {
@@ -135,7 +163,7 @@ blockquote:before {
 .button--writer-submit {
   padding-top: 2em;
   padding-bottom: 2em;
-  margin-top: 2em;
+  margin-bottom: 2em;
 }
 
 .button--logs-newlog {
@@ -149,12 +177,16 @@ blockquote:before {
   margin-bottom: 5em;
 }
 
-.div--article-logitem a {
-  text-decoration: underline;
-}
-
 .p {
   line-height: 2em;
+}
+
+.p--article-main {
+  word-wrap: break-word;
+}
+
+.p--article-main a {
+  text-decoration: underline;
 }
 
 .p--article-info {

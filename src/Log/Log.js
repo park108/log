@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Route, useHistory } from 'react-router-dom';
 import * as common from '../common';
 import Logs from './Logs';
@@ -78,6 +78,17 @@ const Log = (props) => {
 			setIsPostSuccess(false);
 		});
 	}
+	
+	// Initialize
+	useEffect(() => {
+
+		// Change view mode
+		const div = document.getElementsByTagName("div");
+
+		for(let node of div) {
+			node.style.maxWidth = "800px";
+		}
+	}, []);
 
 	return (
 		<div className="div div--main-contents">
