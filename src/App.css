@@ -87,30 +87,30 @@ blockquote:before {
 
 .textarea {
   font-family: 'Jeju Myeongjo', Helvetica;
-  box-sizing: border-box;
   width: 100%;
-  line-height: 2em;
 }
 
 .textarea--writer-article {
   font-size: 1em;
-  width: 50%;
+  line-height: 2em;
+  box-sizing: border-box;
+  width: calc(50%);
+  height: auto;
   margin: 2em 0 0 0;
-  padding: 10px 5px 100px 5px;
-  overflow-y: hidden;
-  resize: none;
-  border-color: #eeeeee;
+  padding: 10px 5px 10px 5px;
   border-width: 0 1px 0 0;
+  border-color: #eeeeee;
+  overflow: hidden;
+  resize: vertical;
 }
 
 .div--writer-converted {
   font-size: 1em;
-  width: calc(50% - 11.5px);
+  width: calc(50% - 11px);
   line-height: 2em;
   float: right;
-  /* background-color: #eeeeee; */
   margin: 2em 0 0 0;
-  padding: 10px 5px 0 6.5px;
+  padding: 10px 5px 10px 6px;
   word-wrap: break-word;
   vertical-align: top;
 }

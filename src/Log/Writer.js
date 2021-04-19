@@ -11,6 +11,7 @@ const Writer = (props) => {
 
 	const [article, setArticle] = useState("");
 	const [articleStatus, setArticleStatus] = useState("");
+	const [rows, setRows] = useState("1");
 
 	const [convertedArticle, setConvertedArticle] = useState("");
 	const [convertedArticleStatus, setConvertedArticleStatus] = useState("");
@@ -22,34 +23,23 @@ const Writer = (props) => {
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
-	const handlePanelWidth = () => {
+	const setTextAreaRows = (e) => {
 
-		// Correct textarea size to converted div panel
-		if(common.isAdmin()) {
-
-			const textArea = document.getElementById("textarea--writer-article");
-			const htmlDiv = document.getElementById("div--writer-converted");
-			textArea.style.width = htmlDiv.offsetWidth + 'px';
+		const getScrollHeight = (e) => {
+	
+			let savedValue = e.value;
+			e.value = "";
+			e._baseScrollHeight = e.scrollHeight;
+			e.value = savedValue;
 		}
-	}
 
-	const handlePanelHeight = () => {
+		let minRows = e.getAttribute('data-min-rows') | 0, rows;
+		!e._baseScrollHeight && getScrollHeight(e);
 
-		// Correct textarea size to converted div panel
-		if(common.isAdmin()) {
+		setRows(minRows);
 
-			const textArea = document.getElementById("textarea--writer-article");
-			const htmlDiv = document.getElementById("div--writer-converted");
-
-			// textArea.style.height = htmlDiv.offsetHeight + 'px';
-			textArea.style.width = htmlDiv.offsetWidth + 'px';
-
-			var taLineHeight = 32; // This should match the line-height in the CSS
-			var taHeight = textArea.scrollHeight; // Get the scroll height of the textarea
-			var numberOfLines = Math.floor(taHeight/taLineHeight);
-			console.log( "there are " + numberOfLines + " lines in the text area");
-			textArea.style.height = (numberOfLines * taLineHeight) + "px";
-		}
+		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32);
+		setRows(minRows + rows);
 	}
 
 	const handleSubmit = (event) => {
@@ -79,16 +69,6 @@ const Writer = (props) => {
 		for(let node of div) {
 			node.style.maxWidth = "100%";
 		}
-
-		// Resize panels
-		handlePanelWidth();
-
-		// Add window resize listener
-		const handleResize = () => handlePanelWidth();
-		window.addEventListener('resize', handleResize);
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		}
 	}, []);
 
 	useEffect(() => {
@@ -112,9 +92,30 @@ const Writer = (props) => {
 	}, [contents]);
 
 	useEffect(() => {
+
+		const setTextarealHeight = ({target: e}) => {
+	
+			if( !e.nodeName === 'TEXTAREA' || !e.classList.contains('auto-expand')  ) return
+			if(common.isAdmin()) setTextAreaRows(e);
+		}
+
 		let html = parser.markdownToHtml(article);
+
 		setConvertedArticle(html);
 		setArticleStatus("Markdown length = " + article.length);
+
+		// Initialize editor rows
+		let textArea = document.getElementById("textarea--writer-article");
+		if(undefined !== textArea && 1 === textArea.rows) {
+			setTextAreaRows(textArea);
+		}
+
+		window.addEventListener('input', setTextarealHeight);
+
+		return () => {
+			window.removeEventListener('input', setTextarealHeight);
+		}
+
 	}, [article]);
 
 	useEffect(() => {
@@ -126,10 +127,6 @@ const Writer = (props) => {
 	}, [props.isPostSuccess]);
 
 	const Converted = () => {
-
-		useEffect(() => {
-			handlePanelHeight();
-		}, []);
 
 		if(!isConvertedHTML) {
 			return <div
@@ -146,11 +143,11 @@ const Writer = (props) => {
 		}
 	}
 
-	const changeMode = () => {
-		setIsConvertedHTML(!isConvertedHTML);
-	}
-
 	const ConvertModeButton = () => {
+
+		const changeMode = () => {
+			setIsConvertedHTML(!isConvertedHTML);
+		}
 
 		const buttonTitle = isConvertedHTML ? "Show Web" : "Show HTML";
 		return <span
@@ -184,12 +181,14 @@ const Writer = (props) => {
 				<div style={{overflow: "auto"}}>
 					<textarea
 						id="textarea--writer-article"
-						className="textarea textarea--writer-article"
+						className="textarea textarea--writer-article auto-expand"
 						type="text"
 						name="article"
 						value={article}
 						onChange={handleChange}
 						placeholder="Take your note in markdown"
+						rows={rows}
+						data-min-rows="1"
 						disabled={disabled}
 					/>
 					<Converted />
