@@ -59,20 +59,9 @@ const Writer = (props) => {
 			props.edit(data.item, article);
 		}
 	}
-	
-	// Initialize
-	useEffect(() => {
-
-		// Change fullscreen mode
-		const div = document.getElementsByTagName("div");
-
-		for(let node of div) {
-			node.style.maxWidth = "100%";
-		}
-	}, []);
 
 	useEffect(() => {
-		if(undefined !== data) {
+		if(undefined !== data && undefined !== data.item) {
 			setContents(data.item.logs[0].contents);
 		}
 	}, [data]);

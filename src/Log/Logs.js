@@ -24,9 +24,14 @@ const Logs = (props) => {
 		fetchData();
 	}, [props.isPostSuccess]);
 
-	const writeLink = common.isAdmin() ? <Link to="/log/write">
-		<button className="button button--logs-newlog">New log</button
-	></Link> : null;
+	const writeLink = common.isAdmin() ? <Link
+			to={{pathname: "/log/write"
+				, state: {
+					from: props.location.pathname
+				}}}
+		>
+			<button className="button button--logs-newlog">New log</button>
+		</Link> : null;
 
 	return (
 		<div className="div div--logs-main">

@@ -1,22 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Route, useHistory } from 'react-router-dom';
+import { Route, useHistory, useLocation } from 'react-router-dom';
 import * as common from '../common';
 import Logs from './Logs';
 import Writer from './Writer';
 
-// 구조
-// 	App
-//		Navigation
-// 		Log
-// 			Logs: GET
-// 				LogItem: DELETE -> Logs
-// 			Writer: POST/PUT -> Log
-
 const Log = (props) => {
 
 	const [isPostSuccess, setIsPostSuccess] = useState(true);
-
 	const history = useHistory();
+	const location = useLocation();
 
 	const handlePostSubmit = (contents) => {
 
@@ -79,16 +71,22 @@ const Log = (props) => {
 		});
 	}
 	
-	// Initialize
+	// Change width by location
 	useEffect(() => {
 
-		// Change view mode
+		// Change width
 		const div = document.getElementsByTagName("div");
 
 		for(let node of div) {
-			node.style.maxWidth = "800px";
+
+			if("/log/write" === location.pathname) {
+				node.style.maxWidth = "100%";
+			}
+			else {
+				node.style.maxWidth = "800px";
+			}
 		}
-	}, []);
+	}, [location.pathname]);
 
 	return (
 		<div className="div div--main-contents">
