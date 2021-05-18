@@ -235,3 +235,10 @@ blockquote:before {
   font-size: 0.9em;
   width: 100%;
 }
+
+.span--footer-left {
+  float:left;
+}
+.span--footer-right {
+  float:right;
+}
