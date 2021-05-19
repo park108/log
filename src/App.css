@@ -129,6 +129,11 @@ blockquote:before {
   text-decoration: underline;
 }
 
+.div--writer-converted img {
+  width: 100%;
+  object-fit: scale-down;
+}
+
 .div--writer-statusbar {
   width: 100%;
   font-size: 0.8em;
@@ -202,6 +207,11 @@ blockquote:before {
 
 .p--article-main a {
   text-decoration: underline;
+}
+
+.p--article-main img {
+  width: 100%;
+  object-fit: scale-down;
 }
 
 .p--article-info {

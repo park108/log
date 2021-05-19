@@ -32,6 +32,9 @@ export function markdownToHtml (input) {
 	parsed = parser("em", str, indexes);
 	str = stringify(parsed);
 
+	// img
+	str = parseImg(str);
+
 	// anchor
 	str = parseAnchor(str);
 
@@ -295,6 +298,129 @@ function parseAnchor(input) {
 
 			output.push({text: input.substring(prevIndex, openText)});
 			output.push({text: "<a href='" + address + "' title='" + title + "'>" + text + "</a>"});
+			output.push({text: input.substring(closeParams + 1, input.length)});
+
+			prevIndex = closeParams + 1;
+			openText = closeText = openParams = closeParams = -1;
+		}
+	}
+
+	if(output.length > 0) {
+		return stringify(output);
+	}
+	else {
+		return input;
+	}
+}
+
+function parseImg(input) {
+
+	if(0 === input.length) return "";
+
+	let text = "";
+	let params = "";
+	let paramDelimeter = 0;
+	let address = "";
+	let title = "";
+	let output = [];
+
+	let startImg = -1;
+	let openText = -1;
+	let closeText = -1;
+	let openParams = -1;
+	let closeParams = -1;
+
+	let prevIndex = 0;
+
+	for(let i = 0; i < input.length; i++) {
+
+		if('!' === input.charAt(i)) {
+			startImg = i;
+		}
+		else if('[' === input.charAt(i)
+			&& -1 === openText) {
+			if(startImg === i - 1) {
+				openText = i;
+			}
+			else {
+				startImg = -1;
+			}
+		}
+		else if(-1 < startImg
+			&& 0 < openText
+			&& -1 === closeText
+			&& ']' === input.charAt(i)) {
+			closeText = i;
+		}
+		else if(-1 < startImg
+			&& 0 < openText
+			&& 0 < closeText
+			&& -1 === openParams) {
+
+			if('(' === input.charAt(i) && closeText === i - 1) {
+				openParams = i;
+			}
+			else {
+				startImg = openText = closeText = -1;
+			}
+		}
+		else if(-1 < startImg
+			&& 0 < openText
+			&& 0 < closeText
+			&& 0 < openParams
+			&& -1 === closeParams) {
+
+			if(')' === input.charAt(i)) {
+				closeParams = i;
+			}
+		}
+
+		console.log("startImg = " + startImg);
+		console.log("openText = " + openText);
+		console.log("closeText = " + closeText);
+		console.log("openParams = " + openParams);
+		console.log("closeParams = " + closeParams);
+
+		if(-1 < startImg
+			&& 0 < openText
+			&& 0 < closeText
+			&& 0 < openParams
+			&& 0 < closeParams) {
+
+			params = input.substring(openParams + 1, closeParams).trim();
+
+			if(0 === params.length) {
+				startImg = openText = closeText = openParams = closeParams = -1;
+				continue;
+			}
+
+			params = params.replace(/ +/g, " ");
+			paramDelimeter = params.indexOf(" ");
+
+			if(-1 === paramDelimeter) {
+				address = params;
+			}
+			else {
+				address = params.substring(0, paramDelimeter);
+				title = params.substring(paramDelimeter + 1, params.length);
+
+				if('"' !== title.charAt(0) || '"' !== title.charAt(title.length - 1)) {
+					startImg = openText = closeText = openParams = closeParams = -1;
+					continue;
+				}
+				else {
+					title = title.substr(1, title.length - 2);
+				}
+			}
+
+			text = input.substring(openText + 1, closeText);
+
+			if(output.length > 0) {
+				output.splice(output.length - 1, 1);
+			}
+
+			output.push({text: input.substring(prevIndex, startImg)});
+			output.push({text: "<img src='" + address + "' alt='" + text + "' title='" + title + "' />"});
 			output.push({text: input.substring(closeParams + 1, input.length)});
 
 			prevIndex = closeParams + 1;
