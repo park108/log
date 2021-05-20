@@ -32,6 +32,11 @@ export function markdownToHtml (input) {
 	parsed = parser("em", str, indexes);
 	str = stringify(parsed);
 
+	// pre
+	indexes = findPre(str);
+	parsed = parser("pre", str, indexes);
+	str = stringify(parsed);
+
 	// img
 	str = parseImg(str);
 
@@ -451,6 +456,7 @@ function trimSize(tag) {
 		case("strong"): return [2, 2]; // **strong**
 		case("del"): return [2, 2]; // ~~del~~
 		case("em"): return [1, 1]; // *em*
+		case("pre"): return [1, 1]; // `pre`
 		default: return [0, 0];
 	}
 }
@@ -675,6 +681,41 @@ function findItalic(input) {
 			else if(-1 < astrk1) {
 				indexes.push(i + 1);
 				astrk1 = -1;
+				isStarted = false;
+			}
+		}
+	}
+
+	if(isStarted) {
+		indexes.splice(indexes.length - 1, 1);
+	}
+	if(indexes.length > 0) {
+		indexes.push(input.length);
+	}
+
+	return indexes;
+}
+
+function findPre(input) {
+
+	if(0 === input.length) return [];
+
+	let indexes = [];
+	let grave1 = -1;
+	let isStarted = false;
+
+	for(let i = 0; i < input.length; i++) {
+		
+		if('`' === input.charAt(i)) {
+
+			if(-1 === grave1) {
+				grave1 = i;
+				indexes.push(i);
+				isStarted = true;
+			}
+			else if(-1 < grave1) {
+				indexes.push(i + 1);
+				grave1 = -1;
 				isStarted = false;
 			}
 		}
