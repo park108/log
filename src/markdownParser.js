@@ -380,12 +380,6 @@ function parseImg(input) {
 			}
 		}
 
-		console.log("startImg = " + startImg);
-		console.log("openText = " + openText);
-		console.log("closeText = " + closeText);
-		console.log("openParams = " + openParams);
-		console.log("closeParams = " + closeParams);
-
 		if(-1 < startImg
 			&& 0 < openText
 			&& 0 < closeText
