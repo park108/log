@@ -37,6 +37,11 @@ export function markdownToHtml (input) {
 	parsed = parser("pre", str, indexes);
 	str = stringify(parsed);
 
+	// code
+	indexes = findCode(str);
+	parsed = parser("code", str, indexes);
+	str = stringify(parsed);
+
 	// img
 	str = parseImg(str);
 
@@ -450,7 +455,8 @@ function trimSize(tag) {
 		case("strong"): return [2, 2]; // **strong**
 		case("del"): return [2, 2]; // ~~del~~
 		case("em"): return [1, 1]; // *em*
-		case("pre"): return [1, 1]; // `pre`
+		case("pre"): return [3, 3]; // ```pre```
+		case("code"): return [1, 1]; // `code`
 		default: return [0, 0];
 	}
 }
@@ -691,6 +697,80 @@ function findItalic(input) {
 }
 
 function findPre(input) {
+
+	if(0 === input.length) return [];
+
+	let indexes = [];
+	let grave1 = -1;
+	let grave2 = -1;
+	let grave3 = -1;
+	let grave4 = -1;
+	let grave5 = -1;
+	let isStarted = false;
+
+	for(let i = 0; i < input.length; i++) {
+		
+		if('`' === input.charAt(i)) {
+
+			if(-1 === grave1) {
+				grave1 = i;
+			}
+			else if(-1 < grave1
+				&& i === grave1 + 1) {
+				grave2 = i;
+			}
+			else if(-1 < grave1
+				&& 0 < grave2 &&
+				i === grave2 + 1) {
+				grave3 = i;
+				indexes.push(i - 2);
+				isStarted = true;
+			}
+			else if(0 < grave3
+				&& -1 === grave4) {
+				grave4 = i;
+			}
+			else if(0 < grave4
+				&& i === grave4 + 1) {
+				grave5 = i;
+			}
+			else if(0 < grave4
+				&& 0 < grave5
+				&& i === grave5 + 1) {
+
+				indexes.push(i + 1);
+				grave1 = grave2 = grave3 = grave4 = grave5 = -1;
+				isStarted = false;
+			}
+		}
+		else {
+
+			if(i === grave1 + 1) {
+				grave1 = -1;
+			}
+			if(i === grave2 + 1) {
+				grave1 = grave2 = -1;
+			}
+			if(i === grave4 + 1) {
+				grave4 = -1;
+			}
+			if(i === grave5 + 1) {
+				grave4 = grave5 = -1;
+			}
+		}
+	}
+
+	if(isStarted) {
+		indexes.splice(indexes.length - 1, 1);
+	}
+	if(indexes.length > 0) {
+		indexes.push(input.length);
+	}
+
+	return indexes;
+}
+
+function findCode(input) {
 
 	if(0 === input.length) return [];
 

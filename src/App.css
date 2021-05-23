@@ -214,6 +214,18 @@ blockquote:before {
   object-fit: scale-down;
 }
 
+code {
+  border-radius: 3px;
+  color: darkorange;
+}
+
+pre {
+  background-color: #eeeeee;
+  border-radius: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 .p--article-info {
   color: #666666;
 }
