@@ -88,7 +88,7 @@ const Writer = (props) => {
 			if(common.isAdmin()) setTextAreaRows(e);
 		}
 
-		let html = parser.markdownToHtml_new(article);
+		let html = parser.markdownToHtml(article);
 
 		setConvertedArticle(html);
 		setArticleStatus("Markdown length = " + article.length);
