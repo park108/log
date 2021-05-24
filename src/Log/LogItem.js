@@ -50,7 +50,7 @@ const LogItem = (props) => {
 
 	const ArticleMain = () => {
 
-		const outputContents = parser.markdownToHtml(contents);
+		const outputContents = parser.markdownToHtml_new(contents);
 		return <p className="p p--article-main" dangerouslySetInnerHTML={{__html: outputContents}}></p>;
 	}
 
