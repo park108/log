@@ -6,12 +6,15 @@ export function markdownToHtml (input) {
 
 	// Separate line by line
 	for(let i = 0; i < input.length; i++) {
+
 		if('\n' === input.charAt(i)) {
+
 			parsed.push({type: "value", text: input.substring(prev, i), closure: ""});
 			prev = i + 1;
 		}
 	}
 	if(prev < input.length) {
+		
 		parsed.push({type: "value", text: input.substring(prev, input.length), closure: ""});
 	}
 
@@ -19,6 +22,7 @@ export function markdownToHtml (input) {
 	let index = 0;
 	let isPreStarted = false;
 	for(let node of parsed) {
+
 		if("value" === node.type
 			&& "" === node.closure
 			&& 2 < node.text.trim().length
@@ -49,12 +53,14 @@ export function markdownToHtml (input) {
 	}
 	if(isPreStarted) {
 		parsed.push({type: "tag", text: "</pre>", closure: "pre"});
+
 		isPreStarted = false;
 	}
 
 	// hr
 	index = 0;
 	for(let node of parsed) {
+
 		if("value" === node.type
 			&& "" === node.closure
 			&& 3 === node.text.trim().length
@@ -69,6 +75,7 @@ export function markdownToHtml (input) {
 	// blockquote
 	index = 0;
 	for(let node of parsed) {
+
 		if("value" === node.type
 			&& "" === node.closure
 			&& node.text.length > 0
@@ -85,6 +92,7 @@ export function markdownToHtml (input) {
 	// unordered list
 	index = 0;
 	for(let node of parsed) {
+
 		if("value" === node.type
 			&& "" === node.closure
 			&& node.text.length > 1
@@ -106,6 +114,7 @@ export function markdownToHtml (input) {
 	index = 0;
 	let isDot = false;
 	for(let node of parsed) {
+
 		if("value" === node.type
 			&& "" === node.closure
 			&& node.text.length > 2
@@ -138,6 +147,7 @@ export function markdownToHtml (input) {
 	// headers
 	index = 0;
 	for(let node of parsed) {
+
 		if("value" === node.type && "" === node.closure) {
 
 			if(node.text.length > 1 && "# " === node.text.substr(0, 2)) {
@@ -205,10 +215,12 @@ export function markdownToHtml (input) {
 				image4 = node.text.indexOf("\")", searchIndex);
 
 				if(-1 < image1 && image1 < image2 && image2 < image3 && image3 < image4) {
+
 					let searchedText = node.text.substring(image1, image4 + 2);
 					let alt = node.text.substring(image1 + 2, image2);
 					let url = node.text.substring(image2 + 2, image3);
 					let title = node.text.substring(image3 + 2 + image4);
+
 					node.text = node.text.replace(searchedText,
 						"<img src='" + url + "' alt='" + alt + "' title='" + title + "' />");
 					searchIndex = image4 + 20;
@@ -240,10 +252,12 @@ export function markdownToHtml (input) {
 				a4 = node.text.indexOf("\")", searchIndex);
 
 				if(-1 < a1 && a1 < a2 && a2 < a3 && a3 < a4) {
+
 					let searchedText = node.text.substring(a1, a4 + 2);
 					let text = node.text.substring(a1 + 1, a2);
 					let url = node.text.substring(a2 + 2, a3);
 					let title = node.text.substring(a3 + 2 + a4);
+
 					node.text = node.text.replace(searchedText,
 						"<a href='" + url + "' title='" + title + "' target='_blank' rel='noreferrer'>" + text + "</a>");
 					searchIndex = a4 + 48;
@@ -325,17 +339,6 @@ function inlineParsing(parsed, delimeter, tag) {
 	return parsed;
 }
 
-function stringify(arr) {
-
-	let str = "";
-
-	for(let node of arr) {
-		str += node.text;
-	}
-
-	return str;
-}
-
 function bindListItem(parsed, listType) {
 
 	let isStarted = false;
@@ -363,6 +366,17 @@ function bindListItem(parsed, listType) {
 	}
 
 	return output;
+}
+
+function stringify(arr) {
+
+	let str = "";
+
+	for(let node of arr) {
+		str += node.text;
+	}
+
+	return str;
 }
 
 function isNumeric(str) {

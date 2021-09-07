@@ -11,10 +11,10 @@ export function parseJwt (token) {
 
 export const getUrl = () => {
 	if (process.env.NODE_ENV === 'production') {
-		return "https://park108.net/log";
+		return "https://park108.net/";
 	}
 	else if (process.env.NODE_ENV === 'development') {
-		return "http://localhost:3000/log";
+		return "http://localhost:3000/";
 	}
 }
 
@@ -66,10 +66,14 @@ export function deleteCookie(name) {
 }
 
 export function auth() {
+	
+	const accessToken = new URLSearchParams(window.location.href).get("access_token");
 
-	const token = new URLSearchParams(window.location.href).get("access_token");
+	const idTokenStart = window.location.href.indexOf("#id_token=");
+	const idTokenEnd = window.location.href.indexOf("&", idTokenStart);
+	const idToken = window.location.href.substring(idTokenStart + 10, idTokenEnd);
 
-	if(null != token) {
+	if(null != accessToken) {
 
 		let site = "";
 		if ('production' === process.env.NODE_ENV) {
@@ -79,7 +83,12 @@ export function auth() {
 			site = "localhost:3000";
 		}
 
-		setCookie("access_token", token, {
+		setCookie("access_token", accessToken, {
+			secure: true,
+			site: site
+		});
+
+		setCookie("id_token", idToken, {
 			secure: true,
 			site: site
 		});

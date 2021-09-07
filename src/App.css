@@ -73,6 +73,10 @@ blockquote:before {
   font-weight: bold;
 }
 
+.li--nav-inactive {
+  color: black;
+}
+
 .li--nav-user  {
   font-weight: bold;
   color: white;
