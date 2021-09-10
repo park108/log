@@ -277,3 +277,34 @@ pre {
 .span--footer-right {
   float:right;
 }
+
+.div--files-loading {
+  width: 100%;
+  height: 10em;
+  margin-top: 5em;
+  margin-bottom: 5em;
+  text-align: center;
+  /* background-color: red; */
+}
+
+.div--files-list {
+  margin-top: 3em;
+  margin-bottom: 5em;
+}
+
+.div--fileitem {
+  padding: 0.5em 1em;
+  background-color: white;
+  border-width: 0px 0px 1px 0px;
+  border-style: solid;
+  border-color: #eeeeee;
+}
+
+.div--fileitem-filename {
+  float: left;
+  min-width: 20%;
+}
+
+.div--fileitem-lastmodified {
+  color: #666666;
+}

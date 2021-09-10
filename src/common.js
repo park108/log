@@ -18,15 +18,6 @@ export const getUrl = () => {
 	}
 }
 
-export const getAPI = () => {
-	if (process.env.NODE_ENV === 'production') {
-		return "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/prod";
-	}
-	else if (process.env.NODE_ENV === 'development') {
-		return "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/test";
-	}
-}
-
 export function getCookie(name) {
 	let matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([$?*|{}^])/g, '\\$1') + "=([^;]*)"

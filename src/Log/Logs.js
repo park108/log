@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import * as common from '../common';
+import * as commonLog from './commonLog';
 import LogItem from './LogItem';
 
 const Logs = (props) => {
@@ -14,10 +15,10 @@ const Logs = (props) => {
 		setIsLoading(true);
 
 		// Call GET API
-		const res = await fetch(common.getAPI());
+		const res = await fetch(commonLog.getAPI());
 		
 		res.json().then(res => {
-			console.log("DATA FETCHED from AWS!!");
+			console.log("Logs are FETCHED from AWS successfully.");
 			setIsLoading(false);
 			setLogs(res.body.Items);
 		}).catch(err => {

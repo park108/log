@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import * as common from '../common';
+import * as commonLog from './commonLog';
 import * as parser from '../markdownParser';
 
 const LogItem = (props) => {
@@ -26,7 +27,7 @@ const LogItem = (props) => {
 
 		setIsDeleting(true);
 
-		const api = common.getAPI() + "/timestamp/" + timestamp;
+		const api = commonLog.getAPI() + "/timestamp/" + timestamp;
 
 		const body = {
 			author: author,
@@ -41,7 +42,7 @@ const LogItem = (props) => {
 			},
 			body: JSON.stringify(body)
 		}).then(res => {
-			console.log("DATA DELETED from AWS!!");
+			console.log("A log is DELETED from AWS successfully.");
 			props.delete();
 		}).catch(err => {
 			console.error(err);

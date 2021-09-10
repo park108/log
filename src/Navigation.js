@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from 'react-router-dom';
 import * as common from './common';
 import UserLogin from './UserLogin'
   
@@ -8,16 +8,18 @@ const Navigation = (props) => {
 	const [logClass, setLogClass] = useState("li li--nav-active");
 	const [fileClass, setFileClass] = useState("li li--nav-inactive");
 
-	const setApp = (app) => {
+	const location = useLocation();
 
-		switch(app) {
+	useEffect(() => {
 
-			case "log":
+		switch(location.pathname) {
+
+			case "/log":
 				setLogClass("li li--nav-active");
 				setFileClass("li li--nav-inactive");
 				break;
 
-			case "file":
+			case "/file":
 				setLogClass("li li--nav-inactive");
 				setFileClass("li li--nav-active");
 				break;
@@ -27,11 +29,12 @@ const Navigation = (props) => {
 				setFileClass("li li--nav-inactive");
 				break;
 		}
-	}
+
+	}, [location.pathname]);
 
 	const file = common.isAdmin() ?
 		<li className={fileClass}>
-			<Link to="/file" onClick={() => setApp("file")} >file</Link>
+			<Link to="/file" >file</Link>
 		</li> : "";
 
 	return (
@@ -41,7 +44,7 @@ const Navigation = (props) => {
 					<a href={common.getUrl()} >park108.net</a>
 				</li>
 				<li className={logClass}>
-					<Link to="/log" onClick={() => setApp("log")} >log</Link>
+					<Link to="/log" >log</Link>
 				</li>
 				{file}
 				<UserLogin />

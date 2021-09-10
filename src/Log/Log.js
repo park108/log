@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Route, useHistory, useLocation } from 'react-router-dom';
-import * as common from '../common';
+import * as commonLog from './commonLog';
 import Logs from './Logs';
 import Writer from './Writer';
 
@@ -17,7 +17,7 @@ const Log = (props) => {
 		const now = Math.floor(new Date().getTime());
 
 		// Call POST API
-		fetch(common.getAPI(), {
+		fetch(commonLog.getAPI(), {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
@@ -30,7 +30,7 @@ const Log = (props) => {
 				}]
 			})
 		}).then(res => {
-			console.log("DATA POSTED to AWS!!");
+			console.log("A log is POSTED to AWS successfully.");
 			setIsPostSuccess(true);
 			history.push("/log");
 		}).catch(err => {
@@ -52,7 +52,7 @@ const Log = (props) => {
 
 		newItem.logs = changedLogs;
 
-		const api = common.getAPI() + "/timestamp/" + newItem.timestamp;
+		const api = commonLog.getAPI() + "/timestamp/" + newItem.timestamp;
 
 		// Call PUT API
 		fetch(api, {
@@ -62,7 +62,7 @@ const Log = (props) => {
 			},
 			body: JSON.stringify(newItem)
 		}).then(res => {
-			console.log("DATA PUTTED to AWS!!");
+			console.log("A log is PUTTED to AWS successfully.");
 			setIsPostSuccess(true);
 			history.push("/log");
 		}).catch(err => {
