@@ -64,6 +64,7 @@ const File = (props) => {
 						key={data.Key}
 						fileName={data.Key}
 						lastModified={data.LastModified}
+						delete={fetchData}
 					/>
 				))}
 				{loading}

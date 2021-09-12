@@ -293,18 +293,43 @@ pre {
 }
 
 .div--fileitem {
-  padding: 0.5em 1em;
   background-color: white;
   border-width: 0px 0px 1px 0px;
   border-style: solid;
   border-color: #eeeeee;
 }
 
+.div--fileitem-fileinfo {
+  padding: 0.5em 1em;
+  height: 1em;
+}
+
 .div--fileitem-filename {
   float: left;
   min-width: 20%;
+  text-decoration: underline; 
+  cursor: pointer;
 }
 
-.div--fileitem-lastmodified {
+.div--fileitem-statusbar {
+  float: right;
   color: #666666;
+}
+
+.span--fileitem-lastmodified {
+  margin-right: 1em;
+}
+
+.span--fileitem-delete {
+  margin-right: 1em;
+  cursor: pointer;
+}
+
+.div--fileitem-filedetail {
+  padding: 0.5em 1em;
+  color: #666666;
+}
+
+.div--fileitem-filedetailhide {
+  display: none;
 }

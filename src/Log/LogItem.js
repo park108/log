@@ -56,32 +56,13 @@ const LogItem = (props) => {
 	}
 
 	const ArticleInfo = () => {
-	
-		let outputDate = "";
-		let outputTime = "";
+
+		let outputDate, outputTime;
 	
 		if(timestamp > 0) {
 	
-			let date = new Date(timestamp);
-	
-			let yyyy = date.getFullYear();
-			let mm = date.getMonth() + 1;
-			let dd = date.getDate();
-			let hh = date.getHours();
-			let min = date.getMinutes();
-			let ss = date.getSeconds();
-	
-			outputDate = yyyy + "-"
-				+ (mm < 10 ? "0" + mm : mm) + "-"
-				+ (dd < 10 ? "0" + dd : dd);
-			outputTime = " "
-				+ (hh < 10 ? "0" + hh : hh) + ":"
-				+ (min < 10 ? "0" + min : min) + ":"
-				+ (ss < 10 ? "0" + ss : ss);
-	
-	
-			outputDate = <span>{outputDate}</span>;
-			outputTime = <span>{outputTime}</span>;
+			outputDate = <span>{common.getFormattedDate(timestamp)}</span>;
+			outputTime = <span>{common.getFormattedTime(timestamp)}</span>;
 		}
 	
 		// let outputAuthor = "";

@@ -126,3 +126,34 @@ export function decodeHTML (input) {
 
 	return input.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
+
+export function getFormattedDate(timestamp) {
+
+	const date = new Date(timestamp);
+	
+	const yyyy = date.getFullYear();
+	const mm = date.getMonth() + 1;
+	const dd = date.getDate();
+	
+	const formattedDate = yyyy + "-"
+		+ (mm < 10 ? "0" + mm : mm) + "-"
+		+ (dd < 10 ? "0" + dd : dd);
+
+	return formattedDate;
+}
+
+export function getFormattedTime(timestamp) {
+
+	const time = new Date(timestamp);
+
+	const hh = time.getHours();
+	const min = time.getMinutes();
+	const ss = time.getSeconds();
+
+	const formattedTime = " "
+		+ (hh < 10 ? "0" + hh : hh) + ":"
+		+ (min < 10 ? "0" + min : min) + ":"
+		+ (ss < 10 ? "0" + ss : ss);
+
+	return formattedTime;
+}
