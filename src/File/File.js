@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import * as commonFile from './commonFile';
 import FileItem from './FileItem';
+import FileDrop from './FileDrop';
 
 const File = (props) => {
 
@@ -58,6 +59,7 @@ const File = (props) => {
 
 	return (
 		<div className="div div--main-contents">
+			<FileDrop />
 			<div className="div div--files-list">
 				{files.map(data => (				
 					<FileItem
