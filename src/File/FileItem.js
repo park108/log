@@ -83,7 +83,7 @@ const FileItem = (props) => {
 			body: JSON.stringify(body)
 		}).then(res => {
 			console.log("A file is DELETED from AWS successfully.");
-			props.delete();
+			props.deleted();
 		}).catch(err => {
 			console.error(err);
 		});

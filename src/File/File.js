@@ -59,14 +59,16 @@ const File = (props) => {
 
 	return (
 		<div className="div div--main-contents">
-			<FileDrop />
+			<FileDrop 
+				uploaded={fetchData}
+			/>
 			<div className="div div--files-list">
 				{files.map(data => (				
 					<FileItem
 						key={data.Key}
 						fileName={data.Key}
 						lastModified={data.LastModified}
-						delete={fetchData}
+						deleted={fetchData}
 					/>
 				))}
 				{loading}
