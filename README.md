@@ -23,3 +23,8 @@ This project uses Lambda for high availability and cost efficiency.
 ### DynamoDB
 DynamoDB is a NoSQL DB that sutable for serverless architecture.  
 According to the MSA philosophy, it uses only one table.
+
+### S3
+HTML file uploader for personal purpose.  
+When a file dragged into the drop zone, API Gateway w/ Lambda gets the S3 pre-signed URL.  
+Upload multiple files directly into S3 bucket using pre-signed URLs.
