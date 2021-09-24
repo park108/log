@@ -29,8 +29,9 @@ const FileDrop = (props) => {
 	}, [isUploading, resfreshFiles]);
 
 	const handleDrop = (e) => {
-		e.preventDefault();
 
+		e.preventDefault();
+	
 		let newFiles = [];
 
 		for(let file of e.dataTransfer.files) {
