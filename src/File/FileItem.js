@@ -37,13 +37,13 @@ const FileItem = (props) => {
 
 	const FileDetail = (data) => {
 
-		const size = data.size;
-		const type = data.type;
+		const size = (data.size * 1).toLocaleString();
 		const unit = data.unit;
+		const type = data.type;
 
 		return <div className={fileDetailClass}>
-			<div>{"Size : "} {size} {unit}</div>
-			<div>{"Type : "} {type}</div>
+			<div className="div div--fileitem-type">{type}</div>
+			<div className="div div--fileitem-size">{size} {unit}</div>
 		</div>
 	}
 

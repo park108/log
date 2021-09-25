@@ -4,8 +4,9 @@ import * as commonFile from './commonFile';
 const FileDrop = (props) => {
 
 	const [files, setFiles] = useState([]);
+	const [dropzoneStyle, setDropzoneStyle] = useState("div div--filedrop-ready")
+	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
 	const [isUploading, setIsUploading] = useState(0);
-	const [uploading, setUploading] = useState(null);
 
 	const resfreshFiles = props.uploaded;
 
@@ -18,13 +19,21 @@ const FileDrop = (props) => {
 	}, [files]);
 
 	useEffect(() => {
-		if(1 === isUploading) {
-			setUploading(<div>Uploading...</div>);
+		if(0 === isUploading) {
+			setDropzoneStyle("div div--filedrop-ready");
+			setDropzoneText(<span>Drop files here!</span>);
+		}
+		else if(1 === isUploading) {
+			setDropzoneStyle("div div--filedrop-uploading");
+			setDropzoneText(<span>Uploading...</span>);
 		}
 		else if(2 === isUploading) {
-			setUploading(null);
-			resfreshFiles();
-			setIsUploading(0);
+			setDropzoneStyle("div div--filedrop-complete");
+			setDropzoneText(<span>Upload complete.</span>);
+			setTimeout(function() {
+				resfreshFiles();
+				setIsUploading(0);
+			}, 1000);
 		}
 	}, [isUploading, resfreshFiles]);
 
@@ -50,7 +59,7 @@ const FileDrop = (props) => {
 
 	async function uploadFile(item, isLast) {
 
-		setIsUploading(true);
+		setIsUploading(1);
 
 		let name = item.name;
 		let type = encodeURIComponent(item.type);
@@ -92,13 +101,12 @@ const FileDrop = (props) => {
 		});
 	}
 
-	return <div className="div div--filedrop-dropzone"
+	return <div className={dropzoneStyle}
 		onDrop={(event) => handleDrop(event)}
 		onDragOver={(event) => handleDragOver(event)}
 		onDragEnter={(event) => handleDragEnter(event)}
 		>
-		Drop files here!
-		{uploading}
+		{dropzoneText}
 	</div>;
 }
 

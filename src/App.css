@@ -286,7 +286,13 @@ pre {
   text-align: center;
 }
 
-.div--filedrop-dropzone {
+.div--filedrop-filename {
+  color: black;
+  font-weight: normal;
+  margin-top: 1em;
+}
+
+.div--filedrop-ready {
   color: pink;
   text-align: center;
   font-weight: bold;
@@ -298,10 +304,30 @@ pre {
   width :100%;
 }
 
-.div--filedrop-filename {
-  color: black;
-  font-weight: normal;
-  margin-top: 1em;
+.div--filedrop-uploading {
+  color: darkred;
+  background-color: darksalmon;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 3em;
+  padding-top: 2em;
+  padding-bottom: 2em;
+  border-width: 3px;
+  border-style: solid;
+  width :100%;
+}
+
+.div--filedrop-complete {
+  color: darkgreen;
+  background-color: lightgreen;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 3em;
+  padding-top: 2em;
+  padding-bottom: 2em;
+  border-width: 3px;
+  border-style: solid;
+  width :100%;
 }
 
 .div--files-list {
@@ -342,11 +368,25 @@ pre {
   cursor: pointer;
 }
 
+.div--fileitem-filedetailhide {
+  display: none;
+}
+
 .div--fileitem-filedetail {
   padding: 0.5em 1em;
+  height: 1em;
   color: #666666;
 }
 
-.div--fileitem-filedetailhide {
-  display: none;
+.div--fileitem-type {
+  float: left;
+  min-width: 50%;
+  height: 1em;
+  margin-right: 1em;
+}
+
+.div--fileitem-size {
+  float: right;
+  height: 1em;
+  margin-right: 1em;
 }
