@@ -4,11 +4,11 @@ import * as commonFile from './commonFile';
 const FileDrop = (props) => {
 
 	const [files, setFiles] = useState([]);
+	const [isUploading, setIsUploading] = useState(0);
 	const [dropzoneStyle, setDropzoneStyle] = useState("div div--filedrop-ready")
 	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
-	const [isUploading, setIsUploading] = useState(0);
 
-	const resfreshFiles = props.uploaded;
+	const refreshFiles = props.uploaded;
 
 	useEffect(() => {
 
@@ -19,23 +19,43 @@ const FileDrop = (props) => {
 	}, [files]);
 
 	useEffect(() => {
+
+		// 0: Ready
 		if(0 === isUploading) {
 			setDropzoneStyle("div div--filedrop-ready");
 			setDropzoneText(<span>Drop files here!</span>);
 		}
+
+		// 1: Uploading
 		else if(1 === isUploading) {
 			setDropzoneStyle("div div--filedrop-uploading");
 			setDropzoneText(<span>Uploading...</span>);
 		}
+
+		// 2: Complete
 		else if(2 === isUploading) {
 			setDropzoneStyle("div div--filedrop-complete");
 			setDropzoneText(<span>Upload complete.</span>);
 			setTimeout(function() {
-				resfreshFiles();
 				setIsUploading(0);
+				refreshFiles();
 			}, 1000);
 		}
-	}, [isUploading, resfreshFiles]);
+
+		// 3: Failed
+		else if(3 === isUploading) {
+			setDropzoneStyle("div div--filedrop-uploading");
+			setDropzoneText(<span>Upload failed.</span>);
+			setTimeout(function() {
+				setIsUploading(0);
+				refreshFiles();
+			}, 1000);
+		}
+
+	}, [isUploading, refreshFiles]);
+
+	const handleDragOver = (e) => e.preventDefault();
+	const handleDragEnter = (e) => e.preventDefault();
 
 	const handleDrop = (e) => {
 
@@ -49,14 +69,6 @@ const FileDrop = (props) => {
 		setFiles(newFiles);
 	}
 
-	const handleDragOver = (e) => {
-		e.preventDefault();
-	}
-
-	const handleDragEnter = (e) => {
-		e.preventDefault();
-	}
-
 	async function uploadFile(item, isLast) {
 
 		setIsUploading(1);
@@ -64,6 +76,7 @@ const FileDrop = (props) => {
 		let name = item.name;
 		let type = encodeURIComponent(item.type);
 		
+		// Get pre-signed URL
 		const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
 
 		res.json().then(res => {
@@ -78,26 +91,19 @@ const FileDrop = (props) => {
 				body: item
 			};
 
+			// Upload a file using pre-signed URL into S3
 			fetch(res.body.UploadUrl, params).then(res => {
-
 				console.log("File [" + name + "] PUTTED into AWS S3 successfully.");
-				if(isLast) {
-					setIsUploading(2);
-				}
+				if(isLast) setIsUploading(2);
 
 			}).catch(err => {
-
 				console.log(err);
-				if(isLast) {
-					setIsUploading(2);
-				}
+				if(isLast) setIsUploading(3);
 			});
 
 		}).catch(err => {
 			console.log(err);
-			if(isLast) {
-				setIsUploading(2);
-			}
+			if(isLast) setIsUploading(3);
 		});
 	}
 

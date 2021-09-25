@@ -95,7 +95,6 @@ blockquote:before {
   margin-top: 5em;
   margin-bottom: 5em;
   text-align: center;
-  /* background-color: red; */
 }
 
 .textarea {
@@ -366,6 +365,12 @@ pre {
 .span--fileitem-delete {
   margin-right: 1em;
   cursor: pointer;
+}
+
+.div--fileitem-delete {
+  color: #fafafa;
+  background-color: #fafafa;
+  transition: color 0.5s ease;
 }
 
 .div--fileitem-filedetailhide {

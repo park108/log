@@ -5,10 +5,21 @@ import confirm from './confirm';
 
 const FileItem = (props) => {
 
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [itemClass, setItemClass] = useState("div div--fileitem");
 	const [hasFileDetail, setHasFileDetail] = useState(false);
 	const [showFileDetail, setShowFileDetail] = useState(false);
 	const [fileDetail, setFileDetail] = useState({});
 	const [fileDetailClass, setFileDetailClass] = useState("div div--fileitem-filedetailhide");
+
+	useEffect(() => {
+		if(isDeleting) {
+			setItemClass("div div--fileitem div--fileitem-delete")
+		}
+		else {
+			setItemClass("div div--fileitem")
+		}
+	}, [isDeleting]);
 
 	useEffect(() => {
 		if(hasFileDetail && showFileDetail) {
@@ -68,6 +79,8 @@ const FileItem = (props) => {
 
 	const deleteFileItem = () => {
 
+		setIsDeleting(true);
+
 		const api = commonFile.getAPI() + "/key/" + props.fileName;
 
 		const body = {
@@ -94,7 +107,7 @@ const FileItem = (props) => {
 	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
 
 	return (
-		<div className="div div--fileitem">
+		<div className={itemClass}>
 			<div className="div div--fileitem-fileinfo">
 				<FileName />
 				<div className="div div--fileitem-statusbar">
