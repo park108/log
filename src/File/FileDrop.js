@@ -5,7 +5,7 @@ const FileDrop = (props) => {
 
 	const [files, setFiles] = useState([]);
 	const [isUploading, setIsUploading] = useState(0);
-	const [dropzoneStyle, setDropzoneStyle] = useState("div div--filedrop-ready")
+	const [dropzoneStyle, setDropzoneStyle] = useState("div div--filedrop-dropzone div--filedrop-ready")
 	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
 
 	const refreshFiles = props.uploaded;
@@ -22,19 +22,19 @@ const FileDrop = (props) => {
 
 		// 0: Ready
 		if(0 === isUploading) {
-			setDropzoneStyle("div div--filedrop-ready");
+			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-ready");
 			setDropzoneText(<span>Drop files here!</span>);
 		}
 
 		// 1: Uploading
 		else if(1 === isUploading) {
-			setDropzoneStyle("div div--filedrop-uploading");
+			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-uploading");
 			setDropzoneText(<span>Uploading...</span>);
 		}
 
 		// 2: Complete
 		else if(2 === isUploading) {
-			setDropzoneStyle("div div--filedrop-complete");
+			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-complete");
 			setDropzoneText(<span>Upload complete.</span>);
 			setTimeout(function() {
 				setIsUploading(0);
@@ -44,7 +44,7 @@ const FileDrop = (props) => {
 
 		// 3: Failed
 		else if(3 === isUploading) {
-			setDropzoneStyle("div div--filedrop-uploading");
+			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-uploading");
 			setDropzoneText(<span>Upload failed.</span>);
 			setTimeout(function() {
 				setIsUploading(0);
