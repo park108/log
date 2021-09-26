@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import * as common from '../common';
 import * as commonFile from './commonFile';
-import confirm from './confirm';
 
 const FileItem = (props) => {
 
@@ -104,7 +103,7 @@ const FileItem = (props) => {
 
 	const abort = () => console.log("Deleting aborted");
 
-	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
+	const confirmDelete = common.confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
 
 	return (
 		<div className={itemClass}>

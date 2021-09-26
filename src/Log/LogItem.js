@@ -49,6 +49,9 @@ const LogItem = (props) => {
 		});
 	}
 
+	const abort = () => console.log("Deleting aborted");
+	const confirmDelete = common.confirm("Are you sure delete a article?", deleteLogItem, abort);
+
 	const ArticleMain = () => {
 
 		const outputContents = parser.markdownToHtml(contents);
@@ -69,7 +72,7 @@ const LogItem = (props) => {
 		let infoSeparator = "";
 		let editButton = "";
 		let deleteButton = "";
-	
+
 		if(common.isAdmin()) {
 			if(undefined !== item) {
 				// outputAuthor = <span>{author}</span>;
@@ -80,7 +83,7 @@ const LogItem = (props) => {
 					}}>
 						<span className="span span--article-toolbarmenu">Edit</span>
 					</Link>;
-				deleteButton = <span onClick={deleteLogItem} className="span span--article-toolbarmenu">Delete</span>;
+				deleteButton = <span onClick={confirmDelete} className="span span--article-toolbarmenu">Delete</span>;
 			}
 		}
 		else {
