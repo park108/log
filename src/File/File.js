@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from 'react-router-dom';
+import { useLocation, Redirect } from 'react-router-dom';
 import * as commonFile from './commonFile';
+import * as common from '../common';
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
 
@@ -57,24 +58,29 @@ const File = (props) => {
 		}
 	}, [location.pathname]);
 
-	return (
-		<div className="div div--main-contents">
-			<FileDrop 
-				uploaded={fetchData}
-			/>
-			<div className="div div--files-list">
-				{files.map(data => (				
-					<FileItem
-						key={data.Key}
-						fileName={data.Key}
-						lastModified={data.LastModified}
-						deleted={fetchData}
-					/>
-				))}
-				{loading}
+	if(!common.isAdmin()) {
+		return <Redirect to="/log" />;
+	}
+	else {
+		return (
+			<div className="div div--main-contents">
+				<FileDrop 
+					uploaded={fetchData}
+				/>
+				<div className="div div--files-list">
+					{files.map(data => (				
+						<FileItem
+							key={data.Key}
+							fileName={data.Key}
+							lastModified={data.LastModified}
+							deleted={fetchData}
+						/>
+					))}
+					{loading}
+				</div>
 			</div>
-		</div>
-	);
+		);
+	}
 }
 
 export default File;

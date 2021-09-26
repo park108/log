@@ -58,7 +58,7 @@ const Logs = (props) => {
 					timestamp={data.timestamp}
 					contents={data.logs[0].contents}
 					item = {data}
-					delete={fetchData}
+					deleted={fetchData}
 				/>
 			))}
 			{loading}

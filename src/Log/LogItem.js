@@ -43,7 +43,7 @@ const LogItem = (props) => {
 			body: JSON.stringify(body)
 		}).then(res => {
 			console.log("A log is DELETED from AWS successfully.");
-			props.delete();
+			props.deleted();
 		}).catch(err => {
 			console.error(err);
 		});
