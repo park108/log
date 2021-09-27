@@ -40,9 +40,36 @@ const FileItem = (props) => {
 			{common.getFormattedDate(props.lastModified) + " " + common.getFormattedTime(props.lastModified)}
 		</span>;
 	}
+	
 
 	const Toolbar = () => {
-		return <span className="span span--fileitem-delete" onClick={confirmDelete} >Delete</span>
+
+		let infoSeparator = <span className="span span--fileitem-separator">|</span>;
+
+		let deleteButton = <span onClick={confirmDelete} className="span span--fileitem-delete">Delete</span>;
+		
+		let copyUrlButton = <span onClick={copyToClipboard} className="span span--fileitem-copyurl">URL</span>;
+
+		return <span className="span span--fileitem-toolbar">
+			{deleteButton}
+			{infoSeparator}
+			{copyUrlButton}
+		</span>
+	}
+
+	const copyToClipboard = () => {
+
+		let url = commonFile.getFileUrl() + "/" + props.fileName;
+
+		let tempElem = document.createElement('textarea');
+		tempElem.value = url;  
+		document.body.appendChild(tempElem);
+	  
+		tempElem.select();
+		document.execCommand("copy");
+		document.body.removeChild(tempElem);
+
+		console.log("URL " + url + " copied.")
 	}
 
 	const FileDetail = (data) => {

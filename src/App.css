@@ -353,7 +353,25 @@ pre {
   margin-right: 1em;
 }
 
+.span-fileitem-toolbar {
+  float:right;
+  padding: 0;
+  margin: 0;
+  margin-bottom: 1em;
+}
+
+.span--fileitem-separator {
+  color: #aaaaaa;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
 .span--fileitem-delete {
+  margin-left: 1em;
+  cursor: pointer;
+}
+
+.span--fileitem-copyurl {
   margin-right: 1em;
   cursor: pointer;
 }
