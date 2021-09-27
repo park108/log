@@ -9,7 +9,7 @@ export const getAPI = () => {
 
 export const getFileUrl = () => {
 	if (process.env.NODE_ENV === 'production') {
-		return "https://park108-log-dev.s3.ap-northeast-2.amazonaws.com";
+		return "https://park108-log-prod.s3.ap-northeast-2.amazonaws.com";
 	}
 	else if (process.env.NODE_ENV === 'development') {
 		return "https://park108-log-dev.s3.ap-northeast-2.amazonaws.com";
