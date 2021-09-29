@@ -3,6 +3,7 @@ import { Redirect } from "react-router";
 import * as common from '../common';
 import * as parser from '../markdownParser';
 import LogItem from './LogItem';
+import ImageSelector from "../Image/ImageSelector";
 
 const Writer = (props) => {
 
@@ -132,6 +133,14 @@ const Writer = (props) => {
 		}
 	}
 
+	const ImageSelectorButton = () => {
+
+		return <span
+			className="span span--writer-statusbarbutton">
+			Include Image
+			</span>;
+	}
+
 	const ConvertModeButton = () => {
 
 		const changeMode = () => {
@@ -167,6 +176,14 @@ const Writer = (props) => {
 	if(common.isAdmin()) {
 		return (
 			<form onSubmit={handleSubmit}>
+				<div className="div div--writer-statusbar">
+					<span>{articleStatus}</span>
+					
+					<span style={{float: "right"}}>{convertedArticleStatus}</span>
+					<ConvertModeButton />
+					<ImageSelectorButton />
+				</div>
+				<ImageSelector />
 				<div style={{overflow: "auto"}}>
 					<textarea
 						id="textarea--writer-article"
@@ -181,11 +198,6 @@ const Writer = (props) => {
 						disabled={disabled}
 					/>
 					<Converted />
-				</div>
-				<div className="div div--writer-statusbar">
-					<span>{articleStatus}</span>
-					<span style={{float: "right"}}>{convertedArticleStatus}</span>
-					<ConvertModeButton />
 				</div>
 				<button
 					className="button button--writer-submit"

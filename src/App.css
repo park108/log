@@ -160,6 +160,10 @@ blockquote:before {
   vertical-align: middle;
 }
 
+.div--image-selector {
+  background-color: pink;
+}
+
 .button {
   font-family: 'Jeju Myeongjo', Helvetica;
   width: 100%;

@@ -28,3 +28,7 @@ According to the MSA philosophy, it uses only one table.
 HTML file uploader for personal purpose.  
 When a file dragged into the drop zone, API Gateway w/ Lambda gets the S3 pre-signed URL.  
 Upload multiple files directly into S3 bucket using pre-signed URLs.  
+
+### Simple Notification Service(SNS)
+S3 object create events publish topic to make resized image.  
+Lambda function subscribe the topic, then resize image file for web hosting.
