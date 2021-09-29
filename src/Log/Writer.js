@@ -22,6 +22,8 @@ const Writer = (props) => {
 	const [mode, setMode] = useState("POST");
 	const [buttonText, setButtonText] = useState("Post");
 
+	const [isShowImageSelector, setIsShowImageSelector] = useState(0);
+
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
 	const setTextAreaRows = (e) => {
@@ -135,10 +137,24 @@ const Writer = (props) => {
 
 	const ImageSelectorButton = () => {
 
+		const changeMode = () => {
+			if(0 === isShowImageSelector) {
+				setIsShowImageSelector(1);
+			}
+			if(1 === isShowImageSelector) {
+				setIsShowImageSelector(2);
+			}
+			if(2 === isShowImageSelector) {
+				setIsShowImageSelector(1);
+			}
+		}
+
 		return <span
-			className="span span--writer-statusbarbutton">
-			Include Image
-			</span>;
+			className="span span--writer-statusbarbutton"
+			onClick={changeMode}
+			>
+			ImageSelector
+		</span>;
 	}
 
 	const ConvertModeButton = () => {
@@ -147,7 +163,7 @@ const Writer = (props) => {
 			setIsConvertedHTML(!isConvertedHTML);
 		}
 
-		const buttonTitle = isConvertedHTML ? "Show Web" : "Show HTML";
+		const buttonTitle = isConvertedHTML ? "[HTML]" : "[WEB]";
 		return <span
 			onClick={changeMode}
 			className="span span--writer-statusbarbutton"
@@ -177,13 +193,14 @@ const Writer = (props) => {
 		return (
 			<form onSubmit={handleSubmit}>
 				<div className="div div--writer-statusbar">
-					<span>{articleStatus}</span>
-					
+					<span>{articleStatus}</span>					
 					<span style={{float: "right"}}>{convertedArticleStatus}</span>
 					<ConvertModeButton />
 					<ImageSelectorButton />
 				</div>
-				<ImageSelector />
+				<ImageSelector
+					show={isShowImageSelector}
+				/>
 				<div style={{overflow: "auto"}}>
 					<textarea
 						id="textarea--writer-article"
