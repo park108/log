@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Route, useHistory, useLocation } from 'react-router-dom';
 import * as commonLog from './commonLog';
+import Toaster from "../Toaster/Toaster";
 import Logs from './Logs';
 import Writer from './Writer';
 
 const Log = (props) => {
 
 	const [isPostSuccess, setIsPostSuccess] = useState(true);
+
+	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [toasterMessage ,setToasterMessage] = useState("");
+
 	const history = useHistory();
 	const location = useLocation();
 
@@ -32,6 +37,10 @@ const Log = (props) => {
 		}).then(res => {
 			console.log("A log is POSTED to AWS successfully.");
 			setIsPostSuccess(true);
+		
+			setToasterMessage("A log is posted successfully.");
+			setIsShowToaster(1);
+
 			history.push("/log");
 		}).catch(err => {
 			console.error(err);
@@ -64,6 +73,10 @@ const Log = (props) => {
 		}).then(res => {
 			console.log("A log is PUTTED to AWS successfully.");
 			setIsPostSuccess(true);
+		
+			setToasterMessage("A log is posted successfully.");
+			setIsShowToaster(1);
+
 			history.push("/log");
 		}).catch(err => {
 			console.error(err);
@@ -79,14 +92,25 @@ const Log = (props) => {
 
 		for(let node of div) {
 
+			console.log(node.className);
+
+			// Writer: 100%
 			if("/log/write" === location.pathname) {
 				node.style.maxWidth = "100%";
 			}
+			// Toaster: skip
+			else if(node.className.includes("div--toaster")) {
+			}
+			// Else: to 800px;
 			else {
 				node.style.maxWidth = "800px";
 			}
 		}
 	}, [location.pathname]);
+
+	const initToaster = () => {
+		setIsShowToaster(0);
+	}
 
 	return (
 		<div className="div div--main-contents">
@@ -98,6 +122,15 @@ const Log = (props) => {
 					{ ... props }
 				/>
 			} />
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={"success"}
+				duration={1000}
+				
+				completed={initToaster}
+			/>
 		</div>
 	);
 }

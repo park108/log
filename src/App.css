@@ -424,3 +424,53 @@ pre {
   height: 1em;
   margin-right: 1em;
 }
+
+.div--toaster-information {
+  color: white;
+  background-color: #666666;
+  font-weight: bold;
+  opacity: 0.8;
+
+  z-index: 10000;
+}
+
+.div--toaster-success {
+  color: white;
+  background-color: #255725;
+  font-weight: bold;
+  opacity: 1;
+
+  z-index: 10000;
+}
+
+.div--toaster-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 300px;
+  overflow: hidden;
+
+  padding: 1em 5em;
+  border-radius: 3px;
+}
+
+.div--toaster-bottom {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 1em;
+  width: 100%;
+  overflow: hidden;
+
+  padding: 1em 1em;
+}
+
+.div--toaster-fadeout {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.div--toaster-hide {
+  display: none;
+  visibility: hidden;
+}

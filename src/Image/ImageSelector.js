@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import * as commonImage from './commonImage';
+import Toaster from "../Toaster/Toaster";
 
 const ImageSelector = (props) => {
 
@@ -7,6 +8,9 @@ const ImageSelector = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [loading, setLoading] = useState(null);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selector");
+
+	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [toasterMessage ,setToasterMessage] = useState("");
 
 	async function fetchData() {
 
@@ -69,6 +73,13 @@ const ImageSelector = (props) => {
 		document.body.removeChild(tempElem);
 
 		console.log("MarkDown Img " + imageForMarkdown + " copied.");
+		
+		setToasterMessage("Markdown string copied.");
+		setIsShowToaster(1);
+	}
+
+	const initToaster = () => {
+		setIsShowToaster(0);
 	}
 
 	const ImageItem = (item) => {
@@ -98,6 +109,15 @@ const ImageSelector = (props) => {
 				/>
 			))}
 			{loading}
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={"success"}
+				duration={1000}
+				
+				completed={initToaster}
+			/>
 		</div>
 	}
 }

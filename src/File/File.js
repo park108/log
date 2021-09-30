@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, Redirect } from 'react-router-dom';
 import * as commonFile from './commonFile';
 import * as common from '../common';
+import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
 
@@ -9,7 +10,9 @@ const File = (props) => {
 
 	const [files, setFiles] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [loading, setLoading] = useState(null);
+
+	const [isShowToaster, setIsShowToaster] = useState(0);
+	const [toasterMessage ,setToasterMessage] = useState("");
 
 	const location = useLocation();
 
@@ -35,12 +38,17 @@ const File = (props) => {
 
 	useEffect(() => {
 		if(isLoading) {
-			setLoading(<div className="div div--files-loading">Loading...</div>);
+			setToasterMessage("Loading files...");
+			setIsShowToaster(1);
 		}
 		else {
-			setLoading(null);
+			setIsShowToaster(2);
 		}
 	}, [isLoading]);
+
+	const initToaster = () => {
+		setIsShowToaster(0);
+	}
 	
 	useEffect(() => {
 
@@ -64,6 +72,11 @@ const File = (props) => {
 	else {
 		return (
 			<div className="div div--main-contents">
+				<Toaster 
+					show={isShowToaster}
+					message={toasterMessage}
+					completed={initToaster}
+				/>
 				<FileDrop 
 					uploaded={fetchData}
 				/>
@@ -76,7 +89,6 @@ const File = (props) => {
 							deleted={fetchData}
 						/>
 					))}
-					{loading}
 				</div>
 			</div>
 		);

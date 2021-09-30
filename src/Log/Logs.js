@@ -2,13 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import * as common from '../common';
 import * as commonLog from './commonLog';
+import Toaster from "../Toaster/Toaster";
 import LogItem from './LogItem';
 
 const Logs = (props) => {
 
 	const [logs, setLogs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [loading, setLoading] = useState(null);
+
+	const [isShowToaster, setIsShowToaster] = useState(0);
+	const [toasterMessage ,setToasterMessage] = useState("");
 
 	async function fetchData() {
 
@@ -32,12 +35,17 @@ const Logs = (props) => {
 
 	useEffect(() => {
 		if(isLoading) {
-			setLoading(<div className="div div--logs-loading">Loading...</div>);
+			setToasterMessage("Loading logs...");
+			setIsShowToaster(1);
 		}
 		else {
-			setLoading(null);
+			setIsShowToaster(2);
 		}
 	}, [isLoading]);
+
+	const initToaster = () => {
+		setIsShowToaster(0);
+	}
 
 	const writeLink = common.isAdmin() ? <Link
 			to={{pathname: "/log/write"
@@ -50,6 +58,11 @@ const Logs = (props) => {
 
 	return (
 		<div className="div div--logs-main">
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				completed={initToaster}
+			/>
 			{writeLink}
 			{logs.map(data => (
 				<LogItem
@@ -61,7 +74,6 @@ const Logs = (props) => {
 					deleted={fetchData}
 				/>
 			))}
-			{loading}
 		</div>
 	);
 }
