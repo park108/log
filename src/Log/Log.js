@@ -92,8 +92,6 @@ const Log = (props) => {
 
 		for(let node of div) {
 
-			console.log(node.className);
-
 			// Writer: 100%
 			if("/log/write" === location.pathname) {
 				node.style.maxWidth = "100%";
@@ -127,7 +125,7 @@ const Log = (props) => {
 				message={toasterMessage}
 				position={"bottom"}
 				type={"success"}
-				duration={1000}
+				duration={2000}
 				
 				completed={initToaster}
 			/>
