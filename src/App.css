@@ -50,12 +50,12 @@ blockquote:before {
 .li {
   display: inline-block;
   cursor: pointer;
-  padding-top: 2em;
+  padding-top: 0.5em;
   padding-left: 1em;
-  padding-bottom: 1em;
+  padding-bottom: 0.75em;
   padding-right: 1em;
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
+  border-bottom-left-radius: 0.5em;
+  border-bottom-right-radius: 0.5em;
 }
 
 .li--nav-title {
