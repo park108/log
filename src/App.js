@@ -11,7 +11,6 @@ const App = () => {
 
 	common.auth();
 
-	// Temp for get S3 object list
 	if("/" === window.location.pathname) {
 		window.location.href = "/log";
 	}

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Redirect } from "react-router";
+import { useLocation } from 'react-router-dom';
 import * as common from '../common';
 import * as parser from '../markdownParser';
 import LogItem from './LogItem';
 import ImageSelector from "../Image/ImageSelector";
 
 const Writer = (props) => {
+
+	console.log(props);
 
 	const [data] = useState(props.location.state);
 	const [contents, setContents] = useState("");
@@ -23,6 +26,8 @@ const Writer = (props) => {
 	const [buttonText, setButtonText] = useState("Post");
 
 	const [isShowImageSelector, setIsShowImageSelector] = useState(0);
+
+	const location = useLocation();
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
@@ -62,6 +67,28 @@ const Writer = (props) => {
 			props.edit(data.item, article);
 		}
 	}
+	
+	// Change width by location
+	useEffect(() => {
+
+		// Change width
+		const div = document.getElementsByTagName("div");
+
+		for(let node of div) {
+
+			// Writer: 100%
+			if("/write" === location.pathname) {
+				node.style.maxWidth = "100%";
+			}
+			// Toaster: skip
+			else if(node.className.includes("div--toaster")) {
+			}
+			// Else: to 800px;
+			else {
+				node.style.maxWidth = "800px";
+			}
+		}
+	}, [location.pathname]);
 
 	useEffect(() => {
 		if(undefined !== data && undefined !== data.item) {
@@ -153,7 +180,7 @@ const Writer = (props) => {
 			className="span span--writer-statusbarbutton"
 			onClick={changeMode}
 			>
-			ImageSelector
+			[IMAGE]
 		</span>;
 	}
 

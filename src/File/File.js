@@ -67,7 +67,7 @@ const File = (props) => {
 	}, [location.pathname]);
 
 	if(!common.isAdmin()) {
-		return <Redirect to="/log" />;
+		return <Redirect to="/" />;
 	}
 	else {
 		return (

@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import * as common from './common';
 import UserLogin from './UserLogin'
   
-const Navigation = (props) => {
+const Navigation = () => {
 
 	const [logClass, setLogClass] = useState("li li--nav-active");
 	const [fileClass, setFileClass] = useState("li li--nav-inactive");

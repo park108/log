@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Route, useHistory, useLocation } from 'react-router-dom';
+import { Switch, Route, Link, useHistory, useLocation } from 'react-router-dom';
+import * as common from '../common';
 import * as commonLog from './commonLog';
 import Toaster from "../Toaster/Toaster";
 import Logs from './Logs';
@@ -38,7 +39,7 @@ const Log = (props) => {
 			console.log("A log is POSTED to AWS successfully.");
 			setIsPostSuccess(true);
 		
-			setToasterMessage("A log is posted successfully.");
+			setToasterMessage("A log has been posted.");
 			setIsShowToaster(1);
 
 			history.push("/log");
@@ -74,7 +75,7 @@ const Log = (props) => {
 			console.log("A log is PUTTED to AWS successfully.");
 			setIsPostSuccess(true);
 		
-			setToasterMessage("A log is posted successfully.");
+			setToasterMessage("A log has been changed.");
 			setIsShowToaster(1);
 
 			history.push("/log");
@@ -110,16 +111,33 @@ const Log = (props) => {
 		setIsShowToaster(0);
 	}
 
+	const writeLink = common.isAdmin() ? <Link
+		to={{
+			pathname: "/log/write",
+			state: { 
+				from: location.pathname
+			}
+		}}
+	>
+		<button className="button button--logs-newlog">New log</button>
+	</Link> : null;
+
 	return (
-		<div className="div div--main-contents">
-			<Route exact path="/log" component={Logs} />
-			<Route path="/log/write" render={(props) => <Writer 
-					post={handlePostSubmit}
-					edit={handleEditSubmit}
-					isPostSuccess={isPostSuccess}
-					{ ... props }
+		<div className="div div--main-contents">			
+			<Switch>
+				<Route exact path="/log">
+					{writeLink}
+					<Logs />
+				</Route>
+				<Route path="/log/write" render={(props) => <Writer
+							post={handlePostSubmit}
+							edit={handleEditSubmit}
+							isPostSuccess={isPostSuccess}
+							{ ... props }
+						/>
+					}
 				/>
-			} />
+			</Switch>
 			<Toaster 
 				show={isShowToaster}
 				message={toasterMessage}

@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Link } from 'react-router-dom';
-import * as common from '../common';
 import * as commonLog from './commonLog';
 import Toaster from "../Toaster/Toaster";
 import LogItem from './LogItem';
@@ -11,7 +9,10 @@ const Logs = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage ,setToasterMessage] = useState("");
+	const [toasterMessage, setToasterMessage] = useState("");
+
+	const [isShowToaster2, setIsShowToaster2] = useState(0);
+	const [toasterMessage2, setToasterMessage2] = useState("");
 
 	async function fetchData() {
 
@@ -47,14 +48,16 @@ const Logs = (props) => {
 		setIsShowToaster(0);
 	}
 
-	const writeLink = common.isAdmin() ? <Link
-			to={{pathname: "/log/write"
-				, state: {
-					from: props.location.pathname
-				}}}
-		>
-			<button className="button button--logs-newlog">New log</button>
-		</Link> : null;
+	const callbackDeleteItem = () => {
+		fetchData();
+		
+		setToasterMessage2("A log has been deleted.");
+		setIsShowToaster2(1);
+	}
+
+	const initToaster2 = () => {
+		setIsShowToaster(0);
+	}
 
 	return (
 		<div className="div div--logs-main">
@@ -63,7 +66,15 @@ const Logs = (props) => {
 				message={toasterMessage}
 				completed={initToaster}
 			/>
-			{writeLink}
+			<Toaster 
+				show={isShowToaster2}
+				message={toasterMessage2}
+				position={"bottom"}
+				type={"success"}
+				duration={2000}
+				
+				completed={initToaster2}
+			/>
 			{logs.map(data => (
 				<LogItem
 					key={data.timestamp}
@@ -71,7 +82,7 @@ const Logs = (props) => {
 					timestamp={data.timestamp}
 					contents={data.logs[0].contents}
 					item = {data}
-					deleted={fetchData}
+					deleted={callbackDeleteItem}
 				/>
 			))}
 		</div>

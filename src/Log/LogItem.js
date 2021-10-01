@@ -93,8 +93,6 @@ const LogItem = (props) => {
 		return <p className="p p--article-info">
 			{outputDate}
 			{outputTime}
-			{/* {infoSeparator}
-			{outputAuthor} */}
 			<span className="span span--article-toolbar">
 				{editButton}
 				{infoSeparator}

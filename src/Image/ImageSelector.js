@@ -50,12 +50,14 @@ const ImageSelector = (props) => {
 		}
 	}, [props.show]);
 
-	const enlageImage = (e) => {
+	const enlargeImage = (e) => {
 		e.target.src = e.target.getAttribute("imageurl");
+		e.target.setAttribute("enlarged", "Y");
 	}
 
 	const shrinkImage = (e) => {
 		e.target.src = e.target.getAttribute("thumbnailurl");
+		e.target.setAttribute("enlarged", "N");
 	}
 
 	const imgMarkdownCopyToClipboard = (e) => {
@@ -74,8 +76,21 @@ const ImageSelector = (props) => {
 
 		console.log("MarkDown Img " + imageForMarkdown + " copied.");
 		
-		setToasterMessage("Markdown string copied.");
+		setToasterMessage("A markdown string has been copied to clipboard. Paste it!");
 		setIsShowToaster(1);
+	}
+
+	const clickImage = (e) => {
+
+		let isEnlarged = e.target.getAttribute("enlarged");
+
+		if("Y" === isEnlarged) {
+			imgMarkdownCopyToClipboard(e);
+			shrinkImage(e);
+		}
+		else {
+			enlargeImage(e);
+		}
 	}
 
 	const initToaster = () => {
@@ -89,9 +104,9 @@ const ImageSelector = (props) => {
 			alt={item.fileName}
 			imageurl={item.imageUrl}
 			thumbnailurl={item.thumbnailUrl}
-			onMouseOver={enlageImage}
+			enlarged={"N"}
 			onMouseOut={shrinkImage}
-			onClick={imgMarkdownCopyToClipboard}
+			onClick={clickImage}
 		/>;
 	}
 
@@ -114,7 +129,7 @@ const ImageSelector = (props) => {
 				message={toasterMessage}
 				position={"bottom"}
 				type={"success"}
-				duration={1000}
+				duration={2000}
 				
 				completed={initToaster}
 			/>
