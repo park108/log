@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import Toaster from './Toaster';
+import Toaster from '../Toaster/Toaster';
 
 it('render message text correctly', () => {
   render(<Toaster 
