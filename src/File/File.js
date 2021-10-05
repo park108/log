@@ -56,13 +56,7 @@ const File = (props) => {
 		const div = document.getElementsByTagName("div");
 
 		for(let node of div) {
-
-			if("/log/write" === location.pathname) {
-				node.style.maxWidth = "100%";
-			}
-			else {
-				node.style.maxWidth = "800px";
-			}
+			node.style.maxWidth = "800px";
 		}
 	}, [location.pathname]);
 
