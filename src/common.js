@@ -177,3 +177,8 @@ export const confirm = (message = "", onConfirm, onCancel) => {
 
 	return confirmAction;
 }
+
+export const isMobile = () => {
+	let hasTouchPoint = navigator.maxTouchPoints;
+	return hasTouchPoint > 0;
+}

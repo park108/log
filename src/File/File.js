@@ -71,9 +71,13 @@ const File = (props) => {
 					message={toasterMessage}
 					completed={initToaster}
 				/>
-				<FileDrop 
-					uploaded={fetchData}
-				/>
+				{
+					!common.isMobile()
+					? <FileDrop 
+						uploaded={fetchData}
+					/>
+					: ""
+				}
 				<div className="div div--files-list">
 					{files.map(data => (				
 						<FileItem
