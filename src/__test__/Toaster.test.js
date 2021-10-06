@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import Toaster from '../Toaster/Toaster';
 
-it('render message text correctly', () => {
+it('render message text "Test message" correctly', () => {
   render(<Toaster 
     message="Test message"
   />);
@@ -9,7 +9,7 @@ it('render message text correctly', () => {
   expect(title).toBeInTheDocument();
 });
 
-it('render no show', () => {
+it('render Toaster no show', () => {
   render(<Toaster 
     message={"Test message"}
     show={0}
@@ -18,7 +18,7 @@ it('render no show', () => {
   expect(toaster).toHaveAttribute('class', 'div div--toaster-hide');
 });
 
-it('render information in center', () => {
+it('render information Toaster in center', () => {
   render(<Toaster 
     message={"Test message"}
     position={"center"}
@@ -28,7 +28,7 @@ it('render information in center', () => {
   expect(toaster).toHaveAttribute('class', 'div div--toaster-center div--toaster-information ');
 });
 
-it('render success in bottom', () => {
+it('render success Toaster in bottom', () => {
   render(<Toaster 
     message={"Test message"}
     position={"bottom"}

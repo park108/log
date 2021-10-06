@@ -8,7 +8,7 @@ beforeAll(() => {
   };
 });
 
-it('render title text correctly', () => {
+it('render title text "park108.net" correctly', () => {
   render(<App />);
   const title = screen.getByText(/park108.net/i);
   expect(title).toBeInTheDocument();
