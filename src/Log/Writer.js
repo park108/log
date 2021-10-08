@@ -7,9 +7,7 @@ import LogItem from './LogItem';
 import ImageSelector from "../Image/ImageSelector";
 
 const Writer = (props) => {
-
-	console.log(props);
-
+	
 	const [data] = useState(props.location.state);
 	const [contents, setContents] = useState("");
 

@@ -7,5 +7,5 @@ it('render file item name "TestKey.zip" correctly', () => {
     fileName={"TestKey.zip"}
   />);
   const title = screen.getByText("TestKey.zip");
-  expect(title).toBeInTheDocument();
-});
+  expect(title).ㄸ();
+})
