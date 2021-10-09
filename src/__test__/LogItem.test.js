@@ -43,6 +43,28 @@ it('parse unordered list tag correctly', () => {
   expect(html).toStrictEqual(expected);
 });
 
+it('parse ordered list tag correctly', () => {
+
+  const contents = "list item test contents";
+  const markdownText = "1. " + contents;
+
+  render(<LogItem 
+    key={"20211008195400"}
+    author={"park108@gmail.com"}
+    stamp={"20211008195400"}
+    contents={markdownText}    
+  />);
+  
+  const html = screen.getByText(contents).closest('ol');
+
+  const expected = document.createElement("ol");
+  const expectedChild = document.createElement("li");
+  expectedChild.innerHTML = " " + contents;
+  expected.appendChild(expectedChild);
+
+  expect(html).toStrictEqual(expected);
+});
+
 it('parse image tag correctly', () => {
 
   const url = "https://www.iana.org/_img/2022/iana-logo-header.svg"
@@ -63,6 +85,32 @@ it('parse image tag correctly', () => {
   expected.setAttribute("src", url);
   expected.setAttribute("alt", altText);
   expected.setAttribute("title", titleText);
+
+  expect(html).toStrictEqual(expected);
+});
+
+it('parse anchor tag correctly', () => {
+
+  const url = "https://exmaple.com"
+  const titleText = "title text";
+  const text = "linked text";
+  const markdownText = "[" + text + "](" + url + " \"" + titleText + "\")";
+
+  render(<LogItem 
+    key={"20211008195400"}
+    author={"park108@gmail.com"}
+    stamp={"20211008195400"}
+    contents={markdownText}    
+  />);
+  
+  const html = screen.getByText(text).closest('a');
+
+  const expected = document.createElement("a");
+  expected.setAttribute("href", url);
+  expected.setAttribute("rel", "noreferrer");
+  expected.setAttribute("target", "_blank");
+  expected.setAttribute("title", titleText);
+  expected.innerHTML = text;
 
   expect(html).toStrictEqual(expected);
 });

@@ -256,7 +256,7 @@ export function markdownToHtml (input) {
 					let searchedText = node.text.substring(a1, a4 + 2);
 					let text = node.text.substring(a1 + 1, a2);
 					let url = node.text.substring(a2 + 2, a3);
-					let title = node.text.substring(a3 + 2 + a4);
+					let title = node.text.substring(a3 + 2, a4);
 
 					node.text = node.text.replace(searchedText,
 						"<a href='" + url + "' title='" + title + "' target='_blank' rel='noreferrer'>" + text + "</a>");

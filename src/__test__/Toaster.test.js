@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 import Toaster from '../Toaster/Toaster';
 
 it('render message text "Test message" correctly', () => {
@@ -37,4 +38,33 @@ it('render success Toaster in bottom', () => {
   />);
   const toaster = screen.getByText("Test message");
   expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success ');
+});
+
+it('render success Toaster in bottom with duration', () => {
+  
+  jest.useFakeTimers();
+
+  render(<Toaster 
+    message={"Test message"}
+    position={"center"}
+    duration={1000}
+    show={1}
+  />);
+
+  act(() => {
+    jest.advanceTimersByTime(1000);
+    const toaster = screen.getByText("Test message");
+    expect(toaster).toHaveAttribute('class', 'div div--toaster-center div--toaster-information ');
+  });
+});
+
+it('render success Toaster faded out', () => {
+  render(<Toaster 
+    message={"Test message"}
+    position={"bottom"}
+    type={"success"}
+    show={2}
+  />);
+  const toaster = screen.getByText("Test message");
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success  div--toaster-fadeout');
 });
