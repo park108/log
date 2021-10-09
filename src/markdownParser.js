@@ -219,7 +219,7 @@ export function markdownToHtml (input) {
 					let searchedText = node.text.substring(image1, image4 + 2);
 					let alt = node.text.substring(image1 + 2, image2);
 					let url = node.text.substring(image2 + 2, image3);
-					let title = node.text.substring(image3 + 2 + image4);
+					let title = node.text.substring(image3 + 2, image4);
 
 					node.text = node.text.replace(searchedText,
 						"<img src='" + url + "' alt='" + alt + "' title='" + title + "' />");
