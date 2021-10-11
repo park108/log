@@ -33,21 +33,21 @@ const Toaster = (props) => {
 		// Class by show mode
 		if(0 === show) {
 			// 0: hide
-			setClassName("div div--toaster-hide");
+			setClassName("div div--toaster-hide ");
 		}
 		else if(1 === show) {
 			// 1: show
 			setClassName(className);
 			if(duration > 0) {
 				setTimeout(function() {
-					setClassName(className + " div--toaster-fadeout");
+					setClassName(className + "div--toaster-fadeout ");
 					setTimeout(props.completed, 300);
 				}, duration);
 			}
 		}
 		else if(2 === show) {
 			// 2: fade-out
-			setClassName(className + " div--toaster-fadeout");
+			setClassName(className + "div--toaster-fadeout ");
 			setTimeout(props.completed, 300);
 		}
 	}, [show, duration, position, type, props.completed]);

@@ -18,7 +18,7 @@ it('parse header tag correctly', () => {
   const expected = document.createElement("h2");
   expected.innerHTML = contents;
 
-  expect(html).toStrictEqual(expected);
+  expect(expected).toStrictEqual(html);
 });
 
 it('parse unordered list tag correctly', () => {
@@ -40,7 +40,7 @@ it('parse unordered list tag correctly', () => {
   expectedChild.innerHTML = contents;
   expected.appendChild(expectedChild);
 
-  expect(html).toStrictEqual(expected);
+  expect(expected).toStrictEqual(html);
 });
 
 it('parse ordered list tag correctly', () => {
@@ -62,7 +62,7 @@ it('parse ordered list tag correctly', () => {
   expectedChild.innerHTML = " " + contents;
   expected.appendChild(expectedChild);
 
-  expect(html).toStrictEqual(expected);
+  expect(expected).toStrictEqual(html);
 });
 
 it('parse image tag correctly', () => {
@@ -86,7 +86,7 @@ it('parse image tag correctly', () => {
   expected.setAttribute("alt", altText);
   expected.setAttribute("title", titleText);
 
-  expect(html).toStrictEqual(expected);
+  expect(expected).toStrictEqual(html);
 });
 
 it('parse anchor tag correctly', () => {
@@ -112,5 +112,5 @@ it('parse anchor tag correctly', () => {
   expected.setAttribute("title", titleText);
   expected.innerHTML = text;
 
-  expect(html).toStrictEqual(expected);
+  expect(expected).toStrictEqual(html);
 });

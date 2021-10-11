@@ -16,7 +16,7 @@ it('render Toaster no show', () => {
     show={0}
   />);
   const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-hide');
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-hide ');
 });
 
 it('render information Toaster in center', () => {
@@ -46,7 +46,7 @@ it('render success Toaster in bottom with duration', () => {
 
   render(<Toaster 
     message={"Test message"}
-    position={"center"}
+    position={"bottom"}
     duration={1000}
     show={1}
   />);
@@ -54,7 +54,7 @@ it('render success Toaster in bottom with duration', () => {
   act(() => {
     jest.advanceTimersByTime(1000);
     const toaster = screen.getByText("Test message");
-    expect(toaster).toHaveAttribute('class', 'div div--toaster-center div--toaster-information ');
+    expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-information ');
   });
 });
 
@@ -66,5 +66,5 @@ it('render success Toaster faded out', () => {
     show={2}
   />);
   const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success  div--toaster-fadeout');
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout ');
 });
