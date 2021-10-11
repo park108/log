@@ -5,6 +5,7 @@ import * as common from '../common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
+import FileUpload from "./FileUpload";
 
 const File = (props) => {
 
@@ -72,11 +73,14 @@ const File = (props) => {
 					completed={initToaster}
 				/>
 				{
-					!common.isMobile()
-					? <FileDrop 
+					// for test
+					common.isMobile()
+					? <FileUpload
 						uploaded={fetchData}
 					/>
-					: ""
+					: <FileDrop 
+						uploaded={fetchData}
+					/>
 				}
 				<div className="div div--files-list">
 					{files.map(data => (				
