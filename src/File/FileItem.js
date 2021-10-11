@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Toaster from "../Toaster/Toaster";
 import * as common from '../common';
 import * as commonFile from './commonFile';
 
@@ -10,6 +11,9 @@ const FileItem = (props) => {
 	const [showFileDetail, setShowFileDetail] = useState(false);
 	const [fileDetail, setFileDetail] = useState({});
 	const [fileDetailClass, setFileDetailClass] = useState("div div--fileitem-filedetailhide");
+
+	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [toasterMessage ,setToasterMessage] = useState("");
 
 	useEffect(() => {
 		if(isDeleting) {
@@ -69,7 +73,14 @@ const FileItem = (props) => {
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
 
-		console.log("URL " + url + " copied.")
+		console.log("URL " + url + " copied.");
+
+		setToasterMessage("A file URL has been copied to the clipboard.");
+		setIsShowToaster(1);
+	}
+
+	const initToaster = () => {
+		setIsShowToaster(0);
 	}
 
 	const FileDetail = (data) => {
@@ -145,6 +156,15 @@ const FileItem = (props) => {
 				size={fileDetail.ContentLength}
 				unit={fileDetail.AcceptRanges}
 				type={fileDetail.ContentType}
+			/>
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={"success"}
+				duration={2000}
+				
+				completed={initToaster}
 			/>
 		</div>
 	)
