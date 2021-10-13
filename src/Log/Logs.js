@@ -60,7 +60,7 @@ const Logs = (props) => {
 	}
 
 	return (
-		<div className="div div--logs-main">
+		<div className="div div--logs-main" role="item">
 			<Toaster 
 				show={isShowToaster}
 				message={toasterMessage}

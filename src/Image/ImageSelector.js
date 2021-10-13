@@ -114,7 +114,7 @@ const ImageSelector = (props) => {
 		return "";
 	}
 	else {
-		return <div className={imageSelectorClass}>
+		return <div className={imageSelectorClass} >
 			{images.map(data => (
 				<ImageItem
 					key={data.key}

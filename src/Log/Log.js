@@ -123,7 +123,7 @@ const Log = (props) => {
 	</Link> : null;
 
 	return (
-		<div className="div div--main-contents">			
+		<div className="div div--main-contents" role="main-contents">			
 			<Switch>
 				<Route exact path="/log">
 					{writeLink}

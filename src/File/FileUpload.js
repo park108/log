@@ -128,6 +128,7 @@ const FileUpload = (props) => {
 			id="file-upload-for-mobile"
 			type="file"
 			accept="image/*"
+			aria-label="file-upload"
 			multiple
 			onChange={(event) => handleSelectedFiles(event)}
 		/>
