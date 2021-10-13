@@ -20,18 +20,67 @@ describe('get URL by stage', () => {
   });
 });
 
+describe('handling cookie correctly', () => {
+
+  it("set cookie", () => {
+
+    let expireDate = new Date();
+    expireDate.setDate(expireDate.getDate() + 1);
+    
+    common.setCookie("set_test", "TEST_TOKEN", {'expires': expireDate});
+    const cookie = common.getCookie("set_test");
+
+    expect("TEST_TOKEN").toEqual(cookie);
+
+    common.deleteCookie("set_test");
+  })
+
+  it("delete cookie", () => {
+
+    common.setCookie("delete_test", "TEST_TOKEN");
+    common.deleteCookie("delete_test");
+    const cookie = common.getCookie("delete_test");
+
+    expect(undefined).toEqual(cookie);
+  });
+});
+
+it('test auth', () => {
+  let location;
+  const mockLocation = new URL("http://localhost:3000?access_token=12345#id_token=12345&abcde=abcde");
+
+  location = window.location;
+  mockLocation.replace = jest.fn();
+  // You might need to mock other functions as well
+  // location.assign = jest.fn();
+  // location.reload = jest.fn();
+  delete window.location;
+  window.location = mockLocation;
+
+  process.env.NODE_ENV = "development";
+  const spyFn = jest.spyOn(common, "auth");
+  common.auth();
+
+  expect(spyFn).toBeCalled();
+
+  window.location = location;
+});
+
 describe('login test', () => {
 
   it("is not logged", () => {
-    expect(common.isLoggedIn()).toBe(false);
+    expect(false).toBe(common.isLoggedIn());
   });
 
-  // it("is logged", () => {
-  //   common.setCookie("access_token", "TEST_TOKEN", {secure: true, site: "localhost:3000"});
-  //   common.setCookie("id_token", "TEST_ID", {secure: true, site: "localhost:3000"});
-  //   common.auth();
-  //   expect(common.isLoggedIn()).toBe(true);
-  // });
+  it("is logged", () => {
+    common.setCookie("access_token", "TEST_TOKEN", {site: "localhost:3000", expires: 3600});
+    common.setCookie("id_token", "TEST_ID", {site: "localhost:3000"});
+    
+    expect(true).toBe(common.isLoggedIn());
+
+    common.deleteCookie("access_token");
+    common.deleteCookie("id_token");
+  });
 });
 
 it('test formatted date', () => {

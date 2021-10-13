@@ -1,7 +1,7 @@
 import React from "react";
 import * as common from './common';
 
-const getLoginUrl = () => {
+export const getLoginUrl = () => {
 	if ('production' === process.env.NODE_ENV) {
 		return "https://log.auth.ap-northeast-2.amazoncognito.com/login?client_id=5obtheulb7olv5uhnkubuldgqj&response_type=token&scope=aws.cognito.signin.user.admin+email+openid+profile&redirect_uri=https://park108.net";
 	}
@@ -10,7 +10,7 @@ const getLoginUrl = () => {
 	}
 }
 
-const getLogoutUrl = () => {
+export const getLogoutUrl = () => {
 
 	if ('production' === process.env.NODE_ENV) {
 		return "https://log.auth.ap-northeast-2.amazoncognito.com/logout?client_id=5obtheulb7olv5uhnkubuldgqj&logout_uri=https://park108.net";
