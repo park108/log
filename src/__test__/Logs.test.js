@@ -5,7 +5,7 @@ it('render logs correctly', () => {
 
   render(<Logs />);
 
-  const div = screen.getByRole("item");
+  const div = screen.getByRole("list");
 
   expect(div).toBeInTheDocument();
 });

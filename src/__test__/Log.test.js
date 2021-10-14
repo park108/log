@@ -22,7 +22,7 @@ it('render log if it logged in', () => {
     <Log />
   </Router>);
 
-  const div = screen.getByRole("main-contents");
+  const div = screen.getByRole("application");
 
   expect(div).toBeInTheDocument();
 });
