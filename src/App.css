@@ -434,7 +434,7 @@ pre {
 
 .div--toaster-information {
   color: white;
-  background-color: #666666;
+  background-color: #999999;
   font-weight: bold;
   opacity: 0.8;
 
@@ -457,8 +457,10 @@ pre {
   top: 300px;
   overflow: hidden;
 
+  box-shadow: 5px 5px 10px #aaaaaa;
+
   padding: 1em 1em;
-  border-radius: 3px;
+  border-radius: 5px;
 }
 
 .div--toaster-bottom {
@@ -468,6 +470,8 @@ pre {
   height: 1em;
   width: 100%;
   overflow: hidden;
+
+  box-shadow: -20px 0px 20px #aaaaaa;
 
   padding: 1em 1em;
 }
