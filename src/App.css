@@ -293,6 +293,7 @@ pre {
 }
 .span--footer-right {
   float:right;
+  padding-left: 1em;
 }
 
 .div--files-loading {
