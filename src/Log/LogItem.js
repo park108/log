@@ -50,7 +50,7 @@ const LogItem = (props) => {
 	}
 
 	const abort = () => console.log("Deleting aborted");
-	const confirmDelete = common.confirm("Are you sure delete a article?", deleteLogItem, abort);
+	const confirmDelete = common.confirm("Are you sure delete the log?", deleteLogItem, abort);
 
 	const ArticleMain = () => {
 

@@ -1,8 +1,31 @@
+:root {
+  --navigation-active-background-color: #666666;
+  --navigation-active-text-color: white;
+
+  --normal-text-color: black;
+  --normal-background-color: #fafafa;
+  --normal-border-color: #eeeeee;
+
+  --sub-text-color: #666666;
+  --sub-sub-text-color: #999999;
+  
+  --shadow-color: #aaaaaa;
+
+  --success-text-color: #345030;
+  --success-background-color: #90ca88;
+
+  --warning-text-color: #504d30;
+  --warning-background-color: #cac488;
+
+  --error-text-color: #503030;
+  --error-background-color: #ca8888;
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: 'Jeju Myeongjo', Helvetica;
-  background-color: #fafafa;
+  background-color: var(--normal-background-color);
 }
 
 a {
@@ -26,7 +49,7 @@ blockquote:before {
   content: "\201C";
   font-size: 3em;
   font-family: Georgia;
-  color: #666666;
+  color: var(--sub-text-color);
   float: left;
   margin: -5px 10px 0px -10px;
 }
@@ -79,8 +102,8 @@ blockquote:before {
 
 .li--nav-user  {
   font-weight: bold;
-  color: white;
-  background-color: #666666;
+  color: var(--navigation-active-text-color);
+  background-color: var(--navigation-active-background-color);
   float: right;
 }
 
@@ -111,7 +134,7 @@ blockquote:before {
   margin: 0 0 0 0;
   padding: 10px 5px 10px 5px;
   border-width: 0 1px 0 0;
-  border-color: #eeeeee;
+  border-color: var(--normal-border-color);
   overflow: hidden;
   resize: none;
 }
@@ -185,7 +208,7 @@ blockquote:before {
   width: 100%;
   border: 1px;
   border-style: solid;
-  border-color: #eeeeee;
+  border-color: var(--normal-border-color);
   background-color: white;
   font-size: 1em;
 }
@@ -259,14 +282,14 @@ pre {
 }
 
 .span--article-toolbarmenu {
-  color: #666666;
+  color: var(--sub-text-color);
   padding: 0;
   margin: 0;
   cursor: pointer;
 }
 
 .span--article-separator {
-  color: #aaaaaa;
+  color: var(--sub-sub-text-color);
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
@@ -305,7 +328,7 @@ pre {
 }
 
 .div--filedrop-filename {
-  color: black;
+  color: var(--normal-text-color);
   font-weight: normal;
   margin-top: 1em;
 }
@@ -321,20 +344,26 @@ pre {
 }
 
 .div--filedrop-ready {
-  color: pink;
-  background-color: white;
+  color: var(--normal-text-color);
+  background-color: var(--normal-background-color);
   border-style: dashed;
 }
 
+.div--filedrop-dragenter {
+  color: var(--warning-text-color);
+  background-color: var(--warning-background-color);
+  border-style: solid;
+}
+
 .div--filedrop-uploading {
-  color: darkred;
-  background-color: darksalmon;
+  color: var(--error-text-color);
+  background-color: var(--error-background-color);
   border-style: solid;
 }
 
 .div--filedrop-complete {
-  color: darkgreen;
-  background-color: lightgreen;
+  color: var(--success-text-color);
+  background-color: var(--success-background-color);
   border-style: solid;
 }
 
@@ -404,8 +433,8 @@ pre {
 }
 
 .div--fileitem-delete {
-  color: #fafafa;
-  background-color: #fafafa;
+  color: var(--normal-background-color);
+  background-color: var(--normal-background-color);
   transition: color 0.5s ease;
 }
 
@@ -416,7 +445,7 @@ pre {
 .div--fileitem-filedetail {
   padding: 0.5em 1em;
   height: 1em;
-  color: #666666;
+  color: var(--sub-text-color);
 }
 
 .div--fileitem-type {
@@ -433,8 +462,8 @@ pre {
 }
 
 .div--toaster-information {
-  color: white;
-  background-color: #999999;
+  color: var(--normal-text-color);
+  background-color: var(--normal-background-color);
   font-weight: bold;
   opacity: 0.8;
 
@@ -442,8 +471,26 @@ pre {
 }
 
 .div--toaster-success {
-  color: white;
-  background-color: #255725;
+  color: var(--success-text-color);
+  background-color: var(--success-background-color);
+  font-weight: bold;
+  opacity: 1;
+
+  z-index: 10000;
+}
+
+.div--toaster-warning {
+  color: var(--warning-text-color);
+  background-color: var(--warning-background-color);
+  font-weight: bold;
+  opacity: 1;
+
+  z-index: 10000;
+}
+
+.div--toaster-error {
+  color: var(--error-text-color);
+  background-color: var(--error-background-color);
   font-weight: bold;
   opacity: 1;
 
@@ -457,7 +504,7 @@ pre {
   top: 300px;
   overflow: hidden;
 
-  box-shadow: 5px 5px 10px #aaaaaa;
+  box-shadow: 5px 5px 10px var(--shadow-color);
 
   padding: 1em 1em;
   border-radius: 5px;
@@ -471,7 +518,7 @@ pre {
   width: 100%;
   overflow: hidden;
 
-  box-shadow: -20px 0px 20px #aaaaaa;
+  box-shadow: -20px 0px 20px var(--shadow-color);
 
   padding: 1em 1em;
 }

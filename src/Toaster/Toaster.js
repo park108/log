@@ -29,6 +29,12 @@ const Toaster = (props) => {
 		else if("success" === type) {
 			className += "div--toaster-success ";
 		}
+		else if("warning" === type) {
+			className += "div--toaster-warning ";
+		}
+		else if("error" === type) {
+			className += "div--toaster-error ";
+		}
 
 		// Class by show mode
 		if(0 === show) {

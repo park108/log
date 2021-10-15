@@ -55,11 +55,19 @@ const FileDrop = (props) => {
 	}, [isUploading, refreshFiles]);
 
 	const handleDragOver = (e) => e.preventDefault();
-	const handleDragEnter = (e) => e.preventDefault();
+	const handleDragEnter = (e) => {
+		e.preventDefault();
+		e.target.classList.add("div--filedrop-dragenter");
+	}
+	const handleDragLeave = (e) => {
+		e.preventDefault();
+		e.target.classList.remove("div--filedrop-dragenter");
+	}
 
 	const handleDrop = (e) => {
 
 		e.preventDefault();
+		e.target.classList.remove("div--filedrop-dragenter");
 	
 		let newFiles = [];
 
@@ -111,6 +119,7 @@ const FileDrop = (props) => {
 		onDrop={(event) => handleDrop(event)}
 		onDragOver={(event) => handleDragOver(event)}
 		onDragEnter={(event) => handleDragEnter(event)}
+		onDragLeave={(event) => handleDragLeave(event)}
 		>
 		{dropzoneText}
 	</div>;

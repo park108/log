@@ -128,7 +128,7 @@ const ImageSelector = (props) => {
 				show={isShowToaster}
 				message={toasterMessage}
 				position={"bottom"}
-				type={"success"}
+				type={"warning"}
 				duration={2000}
 				
 				completed={initToaster}
