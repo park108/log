@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Redirect } from "react-router";
-import { useLocation } from 'react-router-dom';
 import * as common from '../common';
 import * as parser from '../markdownParser';
 import LogItem from './LogItem';
@@ -24,8 +23,6 @@ const Writer = (props) => {
 	const [buttonText, setButtonText] = useState("Post");
 
 	const [isShowImageSelector, setIsShowImageSelector] = useState(0);
-
-	const location = useLocation();
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
@@ -66,27 +63,17 @@ const Writer = (props) => {
 		}
 	}
 	
-	// Change width by location
+	// Change width
 	useEffect(() => {
 
 		// Change width
 		const div = document.getElementsByTagName("div");
 
 		for(let node of div) {
-
-			// Writer: 100%
-			if("/write" === location.pathname) {
-				node.style.maxWidth = "100%";
-			}
-			// Toaster: skip
-			else if(node.className.includes("div--toaster")) {
-			}
-			// Else: to 800px;
-			else {
-				node.style.maxWidth = "800px";
-			}
+			node.style.maxWidth = "100%";
 		}
-	}, [location.pathname]);
+
+	}, []);
 
 	useEffect(() => {
 		if(undefined !== data && undefined !== data.item) {

@@ -182,3 +182,7 @@ export const isMobile = () => {
 	let hasTouchPoint = navigator.maxTouchPoints;
 	return hasTouchPoint > 0;
 }
+
+export const CONSTANTS = {
+	"MAX_DIV_WIDTH": "800px"
+};

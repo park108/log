@@ -40,6 +40,17 @@ it('render success Toaster in bottom', () => {
   expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success ');
 });
 
+it('render error Toaster in bottom', () => {
+  render(<Toaster 
+    message={"Test message"}
+    position={"bottom"}
+    type={"error"}
+    show={1}
+  />);
+  const toaster = screen.getByText("Test message");
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-error ');
+});
+
 it('render success Toaster in bottom with duration', () => {
   
   jest.useFakeTimers();

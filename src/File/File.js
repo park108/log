@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, Redirect } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import * as commonFile from './commonFile';
 import * as common from '../common';
 import Toaster from "../Toaster/Toaster";
@@ -14,8 +14,6 @@ const File = (props) => {
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
-
-	const location = useLocation();
 
 	async function fetchData() {
 
@@ -57,9 +55,15 @@ const File = (props) => {
 		const div = document.getElementsByTagName("div");
 
 		for(let node of div) {
-			node.style.maxWidth = "800px";
+			if(node.className.includes("div--toaster")) {
+				node.style.maxWidth = "100%";
+			}
+			else {
+				node.style.maxWidth = common.CONSTANTS.MAX_DIV_WIDTH;
+			}
 		}
-	}, [location.pathname]);
+
+	}, []);
 
 	if(!common.isAdmin()) {
 		return <Redirect to="/" />;

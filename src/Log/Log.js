@@ -94,15 +94,14 @@ const Log = (props) => {
 		for(let node of div) {
 
 			// Writer: 100%
-			if("/log/write" === location.pathname) {
+			if("/log/write" === location.pathname ||
+				node.className.includes("div--toaster")) {
+
 				node.style.maxWidth = "100%";
-			}
-			// Toaster: skip
-			else if(node.className.includes("div--toaster")) {
 			}
 			// Else: to 800px;
 			else {
-				node.style.maxWidth = "800px";
+				node.style.maxWidth = common.CONSTANTS.MAX_DIV_WIDTH;
 			}
 		}
 	}, [location.pathname]);
