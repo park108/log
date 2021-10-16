@@ -5,6 +5,7 @@ import Navigation from "./Navigation";
 import Footer from "./Footer";
 import Log from "./Log/Log";
 import File from "./File/File";
+import Monitor from "./Monitor/Monitor";
 import './App.css';
   
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
 			<Switch>
 				<Route path="/log" component={Log} />
 				<Route path="/file" component={File} />
+				<Route path="/monitor" component={Monitor} />
 			</Switch>
 			<Footer />
 		</Router>

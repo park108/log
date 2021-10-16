@@ -7,6 +7,7 @@ const Navigation = () => {
 
 	const [logClass, setLogClass] = useState("li li--nav-active");
 	const [fileClass, setFileClass] = useState("li li--nav-inactive");
+	const [monitorClass, setMonitorClass] = useState("li li--nav-inactive");
 
 	const location = useLocation();
 
@@ -17,16 +18,25 @@ const Navigation = () => {
 			case "/log":
 				setLogClass("li li--nav-active");
 				setFileClass("li li--nav-inactive");
+				setMonitorClass("li li--nav-inactive");
 				break;
 
 			case "/file":
 				setLogClass("li li--nav-inactive");
 				setFileClass("li li--nav-active");
+				setMonitorClass("li li--nav-inactive");
+				break;
+
+			case "/monitor":
+				setLogClass("li li--nav-inactive");
+				setFileClass("li li--nav-inactive");
+				setMonitorClass("li li--nav-active");
 				break;
 
 			default:
 				setLogClass("li li--nav-active");
 				setFileClass("li li--nav-inactive");
+				setMonitorClass("li li--nav-inactive");
 				break;
 		}
 
@@ -36,6 +46,11 @@ const Navigation = () => {
 		<li className={fileClass}>
 			<Link to="/file" >file</Link>
 		</li> : "";
+
+const monitor = common.isAdmin() ?
+	<li className={monitorClass}>
+		<Link to="/monitor" >monitor</Link>
+	</li> : "";
 
 	return (
 		<div className="div div--nav-bar">
@@ -47,6 +62,7 @@ const Navigation = () => {
 					<Link to="/log" >log</Link>
 				</li>
 				{file}
+				{monitor}
 				<UserLogin />
 			</ul>
 		</div>

@@ -4,6 +4,7 @@
 
   --normal-text-color: black;
   --normal-background-color: #fafafa;
+  --normal-contents-background-color: white;
   --normal-border-color: #eeeeee;
 
   --sub-text-color: #666666;
@@ -39,7 +40,7 @@ div#root {
 }
 
 blockquote {
-  background-color: white;
+  background-color: var(--normal-contents-background-color);
   font-style: italic;
   padding-left: 0.5em;
   padding-right: 0.5em;
@@ -88,16 +89,16 @@ blockquote:before {
 
 .li--nav-active {
   font-weight: bold;
-  background-color: #666666;
+  background-color: var(--navigation-active-background-color);
 }
 
 .li--nav-active a {
-  color: white;
+  color: var(--navigation-active-text-color);
   font-weight: bold;
 }
 
 .li--nav-inactive {
-  color: black;
+  color: var(--normal-text-color);
 }
 
 .li--nav-user  {
@@ -148,7 +149,7 @@ blockquote:before {
   padding: 10px 5px 10px 6px;
   word-wrap: break-word;
   vertical-align: top;
-  background-color: white;
+  background-color: var(--normal-contents-background-color);
 }
 
 .div--writer-converted a {
@@ -209,14 +210,14 @@ blockquote:before {
   border: 1px;
   border-style: solid;
   border-color: var(--normal-border-color);
-  background-color: white;
+  background-color: var(--normal-contents-background-color);
   font-size: 1em;
 }
 
 .button:hover {
-  color: white;
-  background-color: #666666;
-  border-color: white;
+  color: var(--normal-contents-background-color);
+  background-color: var(--normal-border-color);
+  border-color: var(--normal-contents-background-color);
   font-weight: bold;
 }
 
@@ -235,10 +236,10 @@ blockquote:before {
   margin-top: 1em;
   margin-bottom: 1em;
   padding: 0 1em;
-  background-color: white;
+  background-color: var(--normal-contents-background-color);
   border-width: 1px;
   border-style: solid;
-  border-color: #eeeeee;
+  border-color: var(--normal-border-color);
 }
 
 .p {
@@ -271,7 +272,7 @@ pre {
 }
 
 .p--article-info {
-  color: #666666;
+  color: var(--sub-text-color);
 }
 
 .span--article-toolbar {
@@ -295,7 +296,7 @@ pre {
 }
 
 .div--article-delete {
-  color: white;
+  color: var(--normal-contents-background-color);
   transition: color 0.5s ease;
 }
 
@@ -381,10 +382,10 @@ pre {
 }
 
 .div--fileitem {
-  background-color: white;
+  background-color: var(--normal-contents-background-color);
   border-width: 0px 0px 1px 0px;
   border-style: solid;
-  border-color: #eeeeee;
+  border-color: var(--normal-border-color);
   overflow-y: auto;
 }
 
@@ -417,7 +418,7 @@ pre {
 }
 
 .span--fileitem-separator {
-  color: #aaaaaa;
+  color: var(--sub-sub-text-color);
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
