@@ -42,25 +42,29 @@ const Navigation = () => {
 
 	}, [location.pathname]);
 
+	const title = <li className="li li--nav-title">
+			<a href={common.getUrl()} >park108.net</a>
+		</li>;
+
+	const log = <li className={logClass}>
+			<Link to="/log" >log</Link>
+		</li>;
+
 	const file = common.isAdmin() ?
 		<li className={fileClass}>
 			<Link to="/file" >file</Link>
 		</li> : "";
 
-const monitor = common.isAdmin() ?
-	<li className={monitorClass}>
-		<Link to="/monitor" >monitor</Link>
-	</li> : "";
+	const monitor = common.isAdmin() ?
+		<li className={monitorClass}>
+			<Link to="/monitor" >mon</Link>
+		</li> : "";
 
 	return (
 		<div className="div div--nav-bar">
 			<ul className="ul ul--nav-tabs">
-				<li className="li li--nav-title">
-					<a href={common.getUrl()} >park108.net</a>
-				</li>
-				<li className={logClass}>
-					<Link to="/log" >log</Link>
-				</li>
+				{title}
+				{log}
 				{file}
 				{monitor}
 				<UserLogin />
