@@ -533,3 +533,7 @@ pre {
   display: none;
   visibility: hidden;
 }
+
+.div--monitor-item {
+  margin-bottom: 2em;
+}
