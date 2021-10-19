@@ -165,7 +165,7 @@ const Writer = (props) => {
 			className="span span--writer-statusbarbutton"
 			onClick={changeMode}
 			>
-			[IMAGE]
+			[IMG]
 		</span>;
 	}
 
@@ -205,8 +205,8 @@ const Writer = (props) => {
 		return (
 			<form onSubmit={handleSubmit}>
 				<div className="div div--writer-statusbar">
-					<span>{articleStatus}</span>					
-					<span style={{float: "right"}}>{convertedArticleStatus}</span>
+					<span className="span span--writer-statusbaritem">{articleStatus}</span>					
+					<span className="span span--writer-statusbaritem span--writer-statusbaritemright">{convertedArticleStatus}</span>
 					<ConvertModeButton />
 					<ImageSelectorButton />
 				</div>

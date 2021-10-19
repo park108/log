@@ -29,8 +29,10 @@ const ImageSelector = (props) => {
 	}
 
 	useEffect(() => {
-		fetchData();
-	}, []);
+		if(props.show) {
+			fetchData();
+		}
+	}, [props.show]);
 
 	useEffect(() => {
 		if(isLoading) {

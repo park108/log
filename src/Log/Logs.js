@@ -83,14 +83,10 @@ const Logs = (props) => {
 		setIsShowToaster(0);
 	}
 
-	const nextLogButtonClass = (isLoading)
-		? "button button--logs-nextlog button-logs-nextlogloading"
-		: "button button--logs-nextlog";
-
 	const nextLogButton = (lastTimestamp === undefined)
 		? ""
 		: <button
-			className={nextLogButtonClass}
+			className="button button--logs-seemore"
 			onClick={(e) => fetchData(lastTimestamp)}
 			>
 				See more
