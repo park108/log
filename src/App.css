@@ -3,7 +3,7 @@
   --navigation-active-text-color: white;
 
   --normal-text-color: black;
-  --normal-background-color: #fafafa;
+  --normal-background-color: white;
   --normal-contents-background-color: white;
   --normal-border-color: #eeeeee;
 
@@ -237,7 +237,7 @@ blockquote:before {
   margin-bottom: 1em;
   padding: 0 1em;
   background-color: var(--normal-contents-background-color);
-  border-width: 1px;
+  border-width: 0 0 1px 0;
   border-style: solid;
   border-color: var(--normal-border-color);
 }

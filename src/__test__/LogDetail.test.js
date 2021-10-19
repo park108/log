@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import LogItem from '../Log/LogItem';
+import LogDetail from '../Log/LogDetail';
 
 it('parse header tag correctly', () => {
 
   const contents = "header test contents";
   const markdownText = "## " + contents;
 
-  render(<LogItem 
+  render(<LogDetail 
     key={"20211008195400"}
     author={"park108@gmail.com"}
     stamp={"20211008195400"}
@@ -26,7 +26,7 @@ it('parse unordered list tag correctly', () => {
   const contents = "list item test contents";
   const markdownText = "- " + contents;
 
-  render(<LogItem 
+  render(<LogDetail 
     key={"20211008195400"}
     author={"park108@gmail.com"}
     stamp={"20211008195400"}
@@ -48,7 +48,7 @@ it('parse ordered list tag correctly', () => {
   const contents = "list item test contents";
   const markdownText = "1. " + contents;
 
-  render(<LogItem 
+  render(<LogDetail 
     key={"20211008195400"}
     author={"park108@gmail.com"}
     stamp={"20211008195400"}
@@ -72,7 +72,7 @@ it('parse image tag correctly', () => {
   const altText = "alternated text";
   const markdownText = "![" + altText + "](" + url + " \"" + titleText + "\")";
 
-  render(<LogItem 
+  render(<LogDetail 
     key={"20211008195400"}
     author={"park108@gmail.com"}
     stamp={"20211008195400"}
@@ -96,7 +96,7 @@ it('parse anchor tag correctly', () => {
   const text = "linked text";
   const markdownText = "[" + text + "](" + url + " \"" + titleText + "\")";
 
-  render(<LogItem 
+  render(<LogDetail 
     key={"20211008195400"}
     author={"park108@gmail.com"}
     stamp={"20211008195400"}

@@ -1,112 +1,95 @@
-import React, { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
-import * as common from '../common';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import * as commonLog from './commonLog';
-import * as parser from '../markdownParser';
+import Toaster from "../Toaster/Toaster";
+import LogDetail from './LogDetail';
 
-const LogItem = (props) => {
+const Logs = (props) => {
 
-	const [isDeleting, setIsDeleting] = useState(false);
-	const [itemClass, setItemClass] = useState("div div--article-logitem");
+	const [logs, setLogs] = useState([]);
+	const [isLoading, setIsLoading] = useState(false);
 
-	const item = props.item;
-	const author = props.author;
-	const contents = props.contents;
-	const timestamp = props.timestamp;
+	const [isShowToaster, setIsShowToaster] = useState(0);
+	const [toasterMessage, setToasterMessage] = useState("");
 
-	useEffect(() => {
-		if(isDeleting) {
-			setItemClass("div div--article-logitem div--article-delete");
-		}
-		else {
-			setItemClass("div div--article-logitem");
-		}
-	}, [isDeleting]);
+	const [isShowToaster2, setIsShowToaster2] = useState(0);
+	const [toasterMessage2, setToasterMessage2] = useState("");
 
-	const deleteLogItem = () => {
+	let logTimestamp = useParams()["timestamp"];
 
-		setIsDeleting(true);
+	async function fetchData(timestamp) {
 
-		const api = commonLog.getAPI() + "/timestamp/" + timestamp;
+		setIsLoading(true);
 
-		const body = {
-			author: author,
-			timestamp: timestamp
-		}
-
-		// Call DELETE API
-		fetch(api, {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(body)
-		}).then(res => {
-			console.log("A log is DELETED from AWS successfully.");
-			props.deleted();
+		// Call GET API
+		const res = await fetch(commonLog.getAPI() + "/timestamp/" + timestamp);
+		
+		res.json().then(res => {
+			console.log("The log is FETCHED from AWS successfully.");
+			setIsLoading(false);
+			setLogs(res.body.Items);
 		}).catch(err => {
 			console.error(err);
 		});
 	}
 
-	const abort = () => console.log("Deleting aborted");
-	const confirmDelete = common.confirm("Are you sure delete the log?", deleteLogItem, abort);
+	useEffect(() => {
+		fetchData(logTimestamp);
+	}, [props.isPostSuccess, logTimestamp]);	
 
-	const ArticleMain = () => {
-
-		const outputContents = parser.markdownToHtml(contents);
-		return <p className="p p--article-main" dangerouslySetInnerHTML={{__html: outputContents}}></p>;
-	}
-
-	const ArticleInfo = () => {
-
-		let outputDate, outputTime;
-	
-		if(timestamp > 0) {
-	
-			outputDate = <span>{common.getFormattedDate(timestamp)}</span>;
-			outputTime = <span>{common.getFormattedTime(timestamp)}</span>;
-		}
-	
-		// let outputAuthor = "";
-		let infoSeparator = "";
-		let editButton = "";
-		let deleteButton = "";
-
-		if(common.isAdmin()) {
-			if(undefined !== item) {
-				// outputAuthor = <span>{author}</span>;
-				infoSeparator = <span className="span span--article-separator">|</span>;
-				editButton = <Link to={{
-						pathname: "/log/write",
-						state: {item}
-					}}>
-						<span className="span span--article-toolbarmenu">Edit</span>
-					</Link>;
-				deleteButton = <span onClick={confirmDelete} className="span span--article-toolbarmenu">Delete</span>;
-			}
+	useEffect(() => {
+		if(isLoading) {
+			setToasterMessage("Loading a log...");
+			setIsShowToaster(1);
 		}
 		else {
-			outputTime = "";
+			setIsShowToaster(2);
 		}
+	}, [isLoading]);
 
-		return <p className="p p--article-info">
-			{outputDate}
-			{outputTime}
-			<span className="span span--article-toolbar">
-				{editButton}
-				{infoSeparator}
-				{deleteButton}
-			</span>
-		</p>;
+	const initToaster = () => {
+		setIsShowToaster(0);
+	}
+
+	const callbackDeleteItem = () => {
+		fetchData(logTimestamp);
+		
+		setToasterMessage2("A log has been deleted.");
+		setIsShowToaster2(1);
+	}
+
+	const initToaster2 = () => {
+		setIsShowToaster(0);
 	}
 
 	return (
-		<div className={itemClass}>
-			<ArticleMain />
-			<ArticleInfo />
+		<div className="div div--logs-main" role="list">
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				completed={initToaster}
+			/>
+			<Toaster 
+				show={isShowToaster2}
+				message={toasterMessage2}
+				position={"bottom"}
+				type={"success"}
+				duration={2000}
+				
+				completed={initToaster2}
+			/>
+			{logs.map(data => (
+				<LogDetail
+					key={data.timestamp}
+					author={data.author}
+					timestamp={data.timestamp}
+					contents={data.logs[0].contents}
+					item = {data}
+					deleted={callbackDeleteItem}
+				/>
+			))}
 		</div>
-	)
+	);
 }
 
-export default LogItem;
+export default Logs;

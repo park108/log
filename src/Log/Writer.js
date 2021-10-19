@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Redirect } from "react-router";
 import * as common from '../common';
 import * as parser from '../markdownParser';
-import LogItem from './LogItem';
+import LogDetail from './LogDetail';
 import ImageSelector from "../Image/ImageSelector";
 
 const Writer = (props) => {
@@ -189,7 +189,7 @@ const Writer = (props) => {
 			return <div className="div div--writer-archive" >
 					<div className="div div--writer-archivetitle">Change History</div>
 					{data.item.logs.map(log => (
-						<LogItem
+						<LogDetail
 							key={log.timestamp}
 							author={data.item.author}
 							timestamp={log.timestamp}

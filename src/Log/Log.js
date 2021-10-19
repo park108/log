@@ -4,6 +4,7 @@ import * as common from '../common';
 import * as commonLog from './commonLog';
 import Toaster from "../Toaster/Toaster";
 import Logs from './Logs';
+import LogItem from './LogItem';
 import Writer from './Writer';
 
 const Log = (props) => {
@@ -136,6 +137,9 @@ const Log = (props) => {
 						/>
 					}
 				/>
+				<Route path="/log/:timestamp">
+					<LogItem />
+				</Route>
 			</Switch>
 			<Toaster 
 				show={isShowToaster}

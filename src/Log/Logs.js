@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as commonLog from './commonLog';
 import Toaster from "../Toaster/Toaster";
-import LogItem from './LogItem';
+import LogDetail from './LogDetail';
 
 const Logs = (props) => {
 
@@ -76,7 +76,7 @@ const Logs = (props) => {
 				completed={initToaster2}
 			/>
 			{logs.map(data => (
-				<LogItem
+				<LogDetail
 					key={data.timestamp}
 					author={data.author}
 					timestamp={data.timestamp}
