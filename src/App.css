@@ -5,7 +5,7 @@
   --normal-text-color: black;
   --normal-background-color: white;
   --normal-contents-background-color: white;
-  --normal-border-color: #eeeeee;
+  --normal-border-color: #dddddd;
 
   --sub-text-color: #666666;
   --sub-sub-text-color: #999999;
@@ -215,9 +215,7 @@ blockquote:before {
 }
 
 .button:hover {
-  color: var(--normal-contents-background-color);
   background-color: var(--normal-border-color);
-  border-color: var(--normal-contents-background-color);
   font-weight: bold;
 }
 
@@ -232,10 +230,21 @@ blockquote:before {
   height: 5em;
 }
 
-.div--article-logitem {
+.button--logs-nextlog {
   margin-top: 1em;
-  margin-bottom: 1em;
-  padding: 0 1em;
+  height: 5em;
+}
+
+.button--logs-nextlogloading {
+  color: var(--warning-text-color);
+  background-color: var(--warning-background-color);
+}
+
+.div--article-logitem {
+  margin-top: 2em;
+  margin-bottom: 2em;
+  padding-top: 1em;
+  padding-bottom: 2em;
   background-color: var(--normal-contents-background-color);
   border-width: 0 0 1px 0;
   border-style: solid;
@@ -301,8 +310,8 @@ pre {
 }
 
 .div--footer {
-  height: 3em;
-  margin-top: 2em;
+  height: 5em;
+  margin-top: 4em;
   margin-left: 1em;
   margin-right: 1em;
 }
@@ -502,7 +511,7 @@ pre {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 300px;
+  top: 50%;
   overflow: hidden;
 
   box-shadow: 5px 5px 10px var(--shadow-color);

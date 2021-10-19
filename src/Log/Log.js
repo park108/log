@@ -111,7 +111,7 @@ const Log = (props) => {
 		setIsShowToaster(0);
 	}
 
-	const writeLink = common.isAdmin() ? <Link
+	const writeButton = common.isAdmin() ? <Link
 		to={{
 			pathname: "/log/write",
 			state: { 
@@ -126,7 +126,7 @@ const Log = (props) => {
 		<div className="div div--main-contents" role="application">			
 			<Switch>
 				<Route exact path="/log">
-					{writeLink}
+					{writeButton}
 					<Logs />
 				</Route>
 				<Route path="/log/write" render={(props) => <Writer

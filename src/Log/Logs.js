@@ -14,17 +14,41 @@ const Logs = (props) => {
 	const [isShowToaster2, setIsShowToaster2] = useState(0);
 	const [toasterMessage2, setToasterMessage2] = useState("");
 
-	async function fetchData() {
+	const [lastTimestamp, setLastTimestamp] = useState(undefined);
+
+	async function fetchData(timestamp) {
 
 		setIsLoading(true);
 
+		const apiUrl = (timestamp === undefined)
+			? commonLog.getAPI()
+			: commonLog.getAPI() + "?lastTimestamp=" + timestamp;
+
 		// Call GET API
-		const res = await fetch(commonLog.getAPI());
+		const res = await fetch(apiUrl);
 		
 		res.json().then(res => {
 			console.log("Logs are FETCHED from AWS successfully.");
+
+			// Set log array
+			if(timestamp === undefined) {
+				setLogs(res.body.Items);
+			}
+			else {
+				let newLogs = logs;
+				newLogs = newLogs.concat(res.body.Items);
+				setLogs(newLogs);
+			}
+
+			// Last item
+			if(res.body.LastEvaluatedKey === undefined) {
+				setLastTimestamp(undefined);
+			}
+			else {
+				setLastTimestamp(res.body.LastEvaluatedKey.timestamp);
+			}
+
 			setIsLoading(false);
-			setLogs(res.body.Items);
 		}).catch(err => {
 			console.error(err);
 		});
@@ -59,8 +83,35 @@ const Logs = (props) => {
 		setIsShowToaster(0);
 	}
 
+	const nextLogButtonClass = (isLoading)
+		? "button button--logs-nextlog button-logs-nextlogloading"
+		: "button button--logs-nextlog";
+
+	const nextLogButton = (lastTimestamp === undefined)
+		? ""
+		: <button
+			className={nextLogButtonClass}
+			onClick={(e) => fetchData(lastTimestamp)}
+			>
+				See more
+			</button>;
+
 	return (
 		<div className="div div--logs-main" role="list">
+
+			{logs.map(data => (
+				<LogDetail
+					key={data.timestamp}
+					author={data.author}
+					timestamp={data.timestamp}
+					contents={data.logs[0].contents}
+					item = {data}
+					deleted={callbackDeleteItem}
+				/>
+			))}
+			
+			{nextLogButton}
+
 			<Toaster 
 				show={isShowToaster}
 				message={toasterMessage}
@@ -75,16 +126,6 @@ const Logs = (props) => {
 				
 				completed={initToaster2}
 			/>
-			{logs.map(data => (
-				<LogDetail
-					key={data.timestamp}
-					author={data.author}
-					timestamp={data.timestamp}
-					contents={data.logs[0].contents}
-					item = {data}
-					deleted={callbackDeleteItem}
-				/>
-			))}
 		</div>
 	);
 }
