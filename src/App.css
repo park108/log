@@ -22,6 +22,10 @@
   --error-background-color: #ca8888;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  margin-block-start: 1.8em;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -35,11 +39,11 @@ a {
 }
 
 ul {
-  padding-inline-start: 1.2em;
+  padding-inline-start: 1.5em;
 }
 
 ol {
-  padding-inline-start: 1.2em;
+  padding-inline-start: 1.5em;
 }
 
 div#root {
@@ -241,23 +245,28 @@ blockquote:before {
 
 .button:hover {
   background-color: var(--normal-border-color);
-  font-weight: bold;
+  border-color: var(--normal-text-color);
 }
 
 .button--writer-submit {
   margin-top: 1em;
-  height: 5em;
+  height: 3em;
   margin-bottom: 1em;
 }
 
 .button--logs-newlog {
   margin-top: 1em;
-  height: 5em;
+  height: 3em;
 }
 
 .button--logs-seemore {
-  margin-top: 4em;
-  height: 5em;
+  margin-top: 3em;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  display: block;
+  border-radius: 1em;
+  height: 2em;
 }
 
 .div--article-logitem {
@@ -364,8 +373,8 @@ pre {
   text-align: center;
   font-weight: bold;
   margin-top: 1em;
-  padding-top: 2em;
-  padding-bottom: 2em;
+  padding-top: 4em;
+  padding-bottom: 4em;
   border-width: 3px;
   width :100%;
 }
