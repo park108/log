@@ -240,6 +240,7 @@ blockquote:before {
 .button {
   font-family: 'Jeju Myeongjo', Helvetica;
   width: 100%;
+  color: var(--normal-text-color);
   border: 1px;
   border-style: solid;
   border-color: var(--normal-border-color);
@@ -271,6 +272,14 @@ blockquote:before {
   display: block;
   border-radius: 1em;
   height: 2em;
+
+  background: linear-gradient(to left, var(--normal-background-color) 50%, var(--success-background-color) 50%) right;
+  background-size: 200%;
+  transition: .3s ease-out;
+}
+
+.button--logs-seemoreloading {
+  background-position: left;
 }
 
 .div--article-logitem {

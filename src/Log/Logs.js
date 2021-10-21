@@ -7,6 +7,8 @@ const Logs = (props) => {
 
 	const [logs, setLogs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
+	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--logs-seemore");
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
@@ -61,10 +63,14 @@ const Logs = (props) => {
 	useEffect(() => {
 		if(isLoading) {
 			setToasterMessage("Loading logs...");
+			setSeeMoreButtonText("Loading...");
+			setSeeMoreButtonClass("button button--logs-seemore button--logs-seemoreloading");
 			setIsShowToaster(1);
 		}
 		else {
 			setIsShowToaster(2);
+			setSeeMoreButtonText("See more");
+			setSeeMoreButtonClass("button button--logs-seemore");
 		}
 	}, [isLoading]);
 
@@ -86,10 +92,10 @@ const Logs = (props) => {
 	const nextLogButton = (lastTimestamp === undefined)
 		? ""
 		: <button
-			className="button button--logs-seemore"
+			className={seeMoreButtonClass}
 			onClick={(e) => fetchData(lastTimestamp)}
 			>
-				See more
+				{seeMoreButtonText}
 			</button>;
 
 	return (
