@@ -47,14 +47,14 @@ const Toaster = (props) => {
 			if(duration > 0) {
 				setTimeout(function() {
 					setClassName(className + "div--toaster-fadeout ");
-					setTimeout(props.completed, 300);
+					setTimeout(props.completed, 500);
 				}, duration);
 			}
 		}
 		else if(2 === show) {
 			// 2: fade-out
 			setClassName(className + "div--toaster-fadeout ");
-			setTimeout(props.completed, 300);
+			setTimeout(props.completed, 500);
 		}
 	}, [show, duration, position, type, props.completed]);
 
