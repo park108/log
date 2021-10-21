@@ -140,7 +140,7 @@ const LogDetail = (props) => {
 			<ArticleInfo />
 			<Toaster 
 				show={isShowToaster}
-				message={"The log link has been copied to the clipboard."}
+				message={"The Link has been copied to your clipboard."}
 				position={"bottom"}
 				type={"success"}
 				duration={2000}

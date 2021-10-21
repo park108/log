@@ -245,7 +245,7 @@ blockquote:before {
 
 .button:hover {
   background-color: var(--normal-border-color);
-  border-color: var(--normal-text-color);
+  border-color: var(--sub-text-color);
 }
 
 .button--writer-submit {
@@ -270,7 +270,7 @@ blockquote:before {
 }
 
 .div--article-logitem {
-  padding: 2em 1em;
+  padding: 1em 1em 2em 1em;
   background-color: var(--normal-contents-background-color);
   border-width: 0 0 1px 0;
   border-style: solid;
