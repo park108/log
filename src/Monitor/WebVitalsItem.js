@@ -26,7 +26,7 @@ const WebVitalsItem = (props) => {
 	const poorStyle = {width: 100 * poor / totalCount + "%"}
 
 	const evaluation = (0.75 <= good / totalCount) ? "GOOD"
-		: ((0.25 <= good / totalCount)? "NEED IMPROVEMENT"
+		: ((0.25 <= good / totalCount)? "NEEDS IMPROVEMENT"
 			: ((0 < totalCount)? "POOR"
 				: "NO EVALUATION METRIC"
 			)
@@ -34,7 +34,7 @@ const WebVitalsItem = (props) => {
 	
 		const headerStyle = ("GOOD" === evaluation) ? "h--monitor-good"
 			: (("POOR" === evaluation) ? "h--monitor-poor"
-				: (("NEED IMPROVEMENT" === evaluation) ? "h--monitor-warn"
+				: (("NEEDS IMPROVEMENT" === evaluation) ? "h--monitor-warn"
 					: "h--monitor-none"
 				)
 			);
