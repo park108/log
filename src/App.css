@@ -12,14 +12,14 @@
   
   --shadow-color: #aaaaaa;
 
-  --success-text-color: #345030;
-  --success-background-color: #90ca88;
+  --success-text-color: black;
+  --success-background-color: #559e4b;
 
-  --warning-text-color: #504d30;
-  --warning-background-color: #cac488;
+  --warning-text-color: #black;
+  --warning-background-color: #ffb24d;
 
-  --error-text-color: #503030;
-  --error-background-color: #ca8888;
+  --error-text-color: black;
+  --error-background-color: #fd5c5c;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -584,4 +584,53 @@ pre {
 
 .div--monitor-item {
   margin-bottom: 2em;
+}
+
+.h--monitor-good {
+  color: white;
+  background-color: var(--success-background-color);
+  margin-block-end: 0;
+}
+
+.h--monitor-warn {
+  color: white;
+  background-color: var(--warning-background-color);
+  margin-block-end: 0;
+}
+
+.h--monitor-poor {
+  color: white;
+  background-color: var(--error-background-color);
+  margin-block-end: 0;
+}
+
+.h--monitor-none {
+  background-color: var(--normal-background-color);
+  margin-block-end: 0;
+}
+
+.div--monitor-statusbar {
+  height: 2em;
+}
+
+.span--monitor-bar {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  text-align: center;
+  float: left;
+}
+
+.span--monitor-good {
+  color: var(--success-text-color);
+  background-color: var(--success-background-color);
+}
+
+.span--monitor-warn {
+  color: var(--warning-text-color);
+  background-color: var(--warning-background-color);
+}
+
+.span--monitor-poor {
+  color: var(--error-text-color);
+  background-color: var(--error-background-color);
 }

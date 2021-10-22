@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import ApiMon from "./ApiMon";
 import VisitorMon from "./VisitorMon";
+import WebVitalsMon from "./WebVitalsMon";
 import * as common from '../common';
 
 const Monitor = (props) => {
@@ -22,6 +23,7 @@ const Monitor = (props) => {
 	}, []);
 
 	return <div className="div div--main-contents">
+		<WebVitalsMon />
 		<VisitorMon />
 		<ApiMon />
 	</div>
