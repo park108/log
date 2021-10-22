@@ -15,7 +15,7 @@ const WebVitalsItem = (props) => {
 		if(name === item.name) {
 			if("GOOD" === item.evaluation) ++good;
 			else if("POOR" === item.evaluation) ++poor;
-			else if("GOOD" === item.evaluation) ++needImprovement;
+			else if("NEEDS IMPROVEMENT" === item.evaluation) ++needImprovement;
 		}
 	}
 
