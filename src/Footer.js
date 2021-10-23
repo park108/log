@@ -10,7 +10,7 @@ const Footer = (props) => {
 				</span>
 				<span className="span span--footer-right">
 					<a href="http://aws.amazon.com/what-is-cloud-computing" rel="noreferrer" target="_blank">
-						<img src="https://d0.awsstatic.com/logos/powered-by-aws.png" alt="Powered by AWS Cloud Computing" height="25" />
+						<img src="https://d0.awsstatic.com/logos/powered-by-aws.png" alt="Powered by AWS Cloud Computing" height="25" loading="lazy" />
 					</a>
 				</span>
 				<span className="span span--footer-right">
