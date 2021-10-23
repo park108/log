@@ -273,8 +273,8 @@ blockquote:before {
   font-weight: bold;
 
   position: fixed;
-  bottom: 8em;
-  left: calc(100% - 5em);
+  bottom: 5em;
+  left: calc(100% - 4em);
 
   width: 3em;
   height: 3em;
@@ -284,7 +284,7 @@ blockquote:before {
 }
 
 .button--logs-seemore {
-  margin-top: 3em;
+  margin-top: 2em;
   margin-left: auto;
   margin-right: auto;
   width: 60%;
@@ -367,10 +367,10 @@ pre {
 }
 
 .div--footer {
-  margin-top: 4em;
+  margin-top: 2em;
   margin-left: 1em;
   margin-right: 1em;
-  padding-bottom: 4em;
+  padding-bottom: 3em;
 }
 
 .div--footer-contents {
@@ -611,7 +611,7 @@ pre {
 .span--monitor-metric {
   padding: 0.3em 0;
   margin-right: 0.5em;
-  width: 20em;
+  width: 15em;
   display: inline-block;
 }
 
