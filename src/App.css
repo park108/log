@@ -142,7 +142,7 @@ blockquote:before {
 }
 
 .div--logs-main {
-  min-height: calc(100vh - 14em);
+  min-height: calc(100vh - 20em);
 }
 
 .div--logs-loading {

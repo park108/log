@@ -222,7 +222,7 @@ export function markdownToHtml (input) {
 					let title = node.text.substring(image3 + 2, image4);
 
 					node.text = node.text.replace(searchedText,
-						"<img src='" + url + "' alt='" + alt + "' title='" + title + "' />");
+						"<img src='" + url + "' alt='" + alt + "' title='" + title + "' loading='lazy' />");
 					searchIndex = image4 + 20;
 				}
 				else {
