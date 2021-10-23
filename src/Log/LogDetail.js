@@ -135,7 +135,7 @@ const LogDetail = (props) => {
 	}
 
 	return (
-		<div className={itemClass}>
+		<div className={itemClass} role="listitem">
 			<ArticleMain />
 			<ArticleInfo />
 			<Toaster 

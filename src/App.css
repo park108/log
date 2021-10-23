@@ -7,6 +7,7 @@
        url(//fonts.gstatic.com/ea/jejumyeongjo/v3/JejuMyeongjo-Regular.woff2) format('woff2'),
        url(//fonts.gstatic.com/ea/jejumyeongjo/v3/JejuMyeongjo-Regular.woff) format('woff'),
        url(//fonts.gstatic.com/ea/jejumyeongjo/v3/JejuMyeongjo-Regular.ttf) format('truetype');
+  font-display: swap;
 }
 
 :root {
@@ -394,7 +395,7 @@ pre {
 }
 .span--footer-right {
   float:right;
-  padding-left: 1em;
+  padding-left: 0.5em;
 }
 
 .div--files-loading {
