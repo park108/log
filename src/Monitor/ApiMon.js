@@ -2,12 +2,16 @@ import React from "react";
 
 const ApiMon = (props) => {
 	return <div className="div div--article-logitem">
-		<h3>APIs</h3>
+		<h4>APIs</h4>
 		<div className="div div--monitor-item">
-			<h4>Invocations</h4>
+			<div className="div div--monitor-subtitle">
+				<span className="span span--monitor-metric">Invocations</span>
+			</div>
 		</div>
 		<div className="div div--monitor-item">
-			<h4>Duration</h4>
+			<div className="div div--monitor-subtitle">
+				<span className="span span--monitor-metric">Duration</span>
+			</div>
 		</div>
 	</div>
 }

@@ -26,7 +26,7 @@ const WebVitalsMon = (props) => {
 	}, []);
 
 	return <div className="div div--article-logitem">
-		<h3>Web Vitals</h3>
+		<h4>Web Vitals</h4>
 		<WebVitalsItem title="LCP: Largest Contentful Paint" name="LCP" data={data} />
 		<WebVitalsItem title="FID: First Input Delay" name="FID" data={data} />
 		<WebVitalsItem title="CLS: Cumulative Layout Shift" name="CLS" data={data} />

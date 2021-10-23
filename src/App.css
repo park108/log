@@ -1,11 +1,14 @@
 :root {
-  --navigation-active-background-color: #666666;
-  --navigation-active-text-color: white;
-
   --normal-text-color: black;
   --normal-background-color: white;
   --normal-contents-background-color: white;
   --normal-border-color: #dddddd;
+
+  --hover-border-color: #666666;
+
+  --active-text-color: white;
+  --active-background-color: #666666;
+  --active-border-color: #666666;
 
   --sub-text-color: #666666;
   --sub-sub-text-color: #999999;
@@ -103,11 +106,11 @@ blockquote:before {
 
 .li--nav-active {
   font-weight: bold;
-  background-color: var(--navigation-active-background-color);
+  background-color: var(--active-background-color);
 }
 
 .li--nav-active a {
-  color: var(--navigation-active-text-color);
+  color: var(--active-text-color);
   font-weight: bold;
 }
 
@@ -117,8 +120,8 @@ blockquote:before {
 
 .li--nav-user  {
   font-weight: bold;
-  color: var(--navigation-active-text-color);
-  background-color: var(--navigation-active-background-color);
+  color: var(--active-text-color);
+  background-color: var(--active-background-color);
   float: right;
 }
 
@@ -246,11 +249,17 @@ blockquote:before {
   border-color: var(--normal-border-color);
   background-color: var(--normal-contents-background-color);
   font-size: 1em;
+  transition: 0.2s ease-out;
 }
 
 .button:hover {
-  background-color: var(--normal-border-color);
-  border-color: var(--sub-text-color);
+  border-color: var(--hover-border-color);
+}
+
+.button:active {
+  color: var(--active-text-color);
+  border-color: var(--active-border-color);
+  background-color: var(--active-background-color);
 }
 
 .button--writer-submit {
@@ -260,22 +269,31 @@ blockquote:before {
 }
 
 .button--logs-newlog {
-  margin-top: 1em;
+  font-size: 1em;
+  font-weight: bold;
+
+  position: fixed;
+  bottom: 8em;
+  left: calc(100% - 5em);
+
+  width: 3em;
   height: 3em;
+  color: var(--normal-text-color);
+  background-color: var(--normal-background-color);
+  border-radius: 1.5em;
 }
 
 .button--logs-seemore {
   margin-top: 3em;
   margin-left: auto;
   margin-right: auto;
-  width: 80%;
+  width: 60%;
   display: block;
-  border-radius: 1em;
-  height: 2em;
+  border-radius: 1.5em;
+  height: 3em;
 
   background: linear-gradient(to left, var(--normal-background-color) 50%, var(--success-background-color) 50%) right;
   background-size: 200%;
-  transition: .3s ease-out;
 }
 
 .button--logs-seemoreloading {
@@ -583,30 +601,22 @@ pre {
 }
 
 .div--monitor-item {
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
 }
 
-.h--monitor-good {
-  color: var(--success-background-color);
-  margin-block-end: 0;
+.div--monitor-subtitle {
+  font-size: 0.8em;
 }
 
-.h--monitor-warn {
-  color: var(--warning-background-color);
-  margin-block-end: 0;
-}
-
-.h--monitor-poor {
-  color: var(--error-background-color);
-  margin-block-end: 0;
-}
-
-.h--monitor-none {
-  background-color: var(--normal-background-color);
-  margin-block-end: 0;
+.span--monitor-metric {
+  padding: 0.3em 0;
+  margin-right: 0.5em;
+  width: 20em;
+  display: inline-block;
 }
 
 .div--monitor-statusbar {
+  font-size: 0.8em;
   height: 2em;
 }
 
@@ -630,4 +640,8 @@ pre {
 .span--monitor-poor {
   color: var(--error-text-color);
   background-color: var(--error-background-color);
+}
+
+.span--monitor-none {
+  background-color: var(--normal-background-color);
 }

@@ -119,7 +119,7 @@ const Log = (props) => {
 			}
 		}}
 	>
-		<button className="button button--logs-newlog">New log</button>
+		<button className="button button--logs-newlog">+</button>
 	</Link> : null;
 
 	return (
