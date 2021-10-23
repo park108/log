@@ -583,24 +583,21 @@ pre {
 }
 
 .div--monitor-item {
-  margin-bottom: 2em;
+  margin-bottom: 1em;
 }
 
 .h--monitor-good {
-  color: white;
-  background-color: var(--success-background-color);
+  color: var(--success-background-color);
   margin-block-end: 0;
 }
 
 .h--monitor-warn {
-  color: white;
-  background-color: var(--warning-background-color);
+  color: var(--warning-background-color);
   margin-block-end: 0;
 }
 
 .h--monitor-poor {
-  color: white;
-  background-color: var(--error-background-color);
+  color: var(--error-background-color);
   margin-block-end: 0;
 }
 
