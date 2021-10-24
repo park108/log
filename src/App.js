@@ -1,12 +1,13 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import * as common from './common';
-import Navigation from "./Navigation";
-import Footer from "./Footer";
-import Log from "./Log/Log";
-import File from "./File/File";
-import Monitor from "./Monitor/Monitor";
 import './App.css';
+
+const Navigation = lazy(() => import('./Navigation'));
+const Log = lazy(() => import('./Log/Log'));
+const File = lazy(() => import('./File/File'));
+const Monitor = lazy(() => import('./Monitor/Monitor'));
+const Footer = lazy(() => import('./Footer'));
   
 const App = () => {
 
@@ -18,13 +19,15 @@ const App = () => {
 
 	return (
 		<Router>
-			<Navigation />
-			<Switch>
-				<Route path="/log" component={Log} />
-				<Route path="/file" component={File} />
-				<Route path="/monitor" component={Monitor} />
-			</Switch>
-			<Footer />
+			<Suspense fallback={<div></div>}>
+				<Navigation />
+				<Switch>
+					<Route path="/log" component={Log} />
+					<Route path="/file" component={File} />
+					<Route path="/monitor" component={Monitor} />
+				</Switch>
+				<Footer />
+			</Suspense>
 		</Router>
 	)
 }

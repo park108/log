@@ -142,10 +142,6 @@ blockquote:before {
   margin-right: 0em;
 }
 
-.div--logs-main {
-  min-height: calc(100vh - 20em);
-}
-
 .div--logs-loading {
   width: 100%;
   height: 10em;
@@ -308,9 +304,9 @@ blockquote:before {
   background-size: 200%;
 }
 
-.button--logs-seemoreloading {
+/* .button--logs-seemoreloading {
   background-position: left;
-}
+} */
 
 .div--article-logitem {
   padding: 1em 1em 2em 1em;
@@ -333,8 +329,9 @@ blockquote:before {
 }
 
 .p--article-main img {
-  width: 100%;
   object-fit: scale-down;
+  width: 100%;
+  height: 100%;
 }
 
 code {

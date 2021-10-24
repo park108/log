@@ -26,9 +26,9 @@ const WebVitalsItem = (props) => {
 	const poorStyle = {width: 100 * poor / totalCount + "%"}
 
 	const evaluation = (0.75 <= good / totalCount) ? "GOOD"
-		: ((0.25 <= good / totalCount)? "NEEDS IMPROVEMENT"
-			: ((0 < totalCount)? "POOR"
-				: "NO EVALUATION METRIC"
+		: ((0.25 < poor / totalCount)? "POOR"
+			: ((0 < totalCount)? "NEEDS IMPROVEMENT"
+				: "Calculating..."
 			)
 		);
 	
