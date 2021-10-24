@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useHistory } from 'react-router-dom';
-import Toaster from "../Toaster/Toaster";
 import * as common from '../common';
 import * as commonLog from './commonLog';
 import * as parser from '../markdownParser';
+
+const Toaster = lazy(() => import('../Toaster/Toaster'));
 
 const LogDetail = (props) => {
 
@@ -138,15 +139,17 @@ const LogDetail = (props) => {
 		<div className={itemClass} role="listitem">
 			<ArticleMain />
 			<ArticleInfo />
-			<Toaster 
-				show={isShowToaster}
-				message={"The Link has been copied to your clipboard."}
-				position={"bottom"}
-				type={"success"}
-				duration={2000}
-				
-				completed={initToaster}
-			/>
+			<Suspense fallback={<div></div>}>
+				<Toaster 
+					show={isShowToaster}
+					message={"The Link has been copied to your clipboard."}
+					position={"bottom"}
+					type={"success"}
+					duration={2000}
+					
+					completed={initToaster}
+				/>
+			</Suspense>
 		</div>
 	)
 }

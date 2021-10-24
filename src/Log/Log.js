@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Switch, Route, Link, useHistory, useLocation } from 'react-router-dom';
 import * as common from '../common';
 import * as commonLog from './commonLog';
-import Toaster from "../Toaster/Toaster";
-import Logs from './Logs';
-import LogItem from './LogItem';
-import Writer from './Writer';
+
+const Toaster = lazy(() => import('../Toaster/Toaster'));
+const Logs = lazy(() => import('./Logs'));
+const LogItem = lazy(() => import('./LogItem'));
+const Writer = lazy(() => import('./Writer'));
 
 const Log = (props) => {
 
@@ -123,33 +124,35 @@ const Log = (props) => {
 	</Link> : null;
 
 	return (
-		<div className="div div--main-contents" role="application">			
-			<Switch>
-				<Route exact path="/log">
-					{writeButton}
-					<Logs />
-				</Route>
-				<Route path="/log/write" render={(props) => <Writer
-							post={handlePostSubmit}
-							edit={handleEditSubmit}
-							isPostSuccess={isPostSuccess}
-							{ ... props }
-						/>
-					}
+		<div className="div div--main-contents" role="application">
+			<Suspense fallback={<div></div>}>
+				<Switch>
+					<Route exact path="/log">
+						{writeButton}
+						<Logs />
+					</Route>
+					<Route path="/log/write" render={(props) => <Writer
+								post={handlePostSubmit}
+								edit={handleEditSubmit}
+								isPostSuccess={isPostSuccess}
+								{ ... props }
+							/>
+						}
+					/>
+					<Route path="/log/:timestamp">
+						<LogItem />
+					</Route>
+				</Switch>
+				<Toaster 
+					show={isShowToaster}
+					message={toasterMessage}
+					position={"bottom"}
+					type={"success"}
+					duration={2000}
+					
+					completed={initToaster}
 				/>
-				<Route path="/log/:timestamp">
-					<LogItem />
-				</Route>
-			</Switch>
-			<Toaster 
-				show={isShowToaster}
-				message={toasterMessage}
-				position={"bottom"}
-				type={"success"}
-				duration={2000}
-				
-				completed={initToaster}
-			/>
+			</Suspense>
 		</div>
 	);
 }

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useParams } from "react-router-dom";
 import * as commonLog from './commonLog';
-import Toaster from "../Toaster/Toaster";
-import LogDetail from './LogDetail';
+
+const LogDetail = lazy(() => import('./LogDetail'));
+const Toaster = lazy(() => import('../Toaster/Toaster'));
 
 const Logs = (props) => {
 
@@ -64,30 +65,32 @@ const Logs = (props) => {
 
 	return (
 		<div className="div div--logs-main" role="list">
-			<Toaster 
-				show={isShowToaster}
-				message={toasterMessage}
-				completed={initToaster}
-			/>
-			<Toaster 
-				show={isShowToaster2}
-				message={toasterMessage2}
-				position={"bottom"}
-				type={"success"}
-				duration={2000}
-				
-				completed={initToaster2}
-			/>
-			{logs.map(data => (
-				<LogDetail
-					key={data.timestamp}
-					author={data.author}
-					timestamp={data.timestamp}
-					contents={data.logs[0].contents}
-					item = {data}
-					deleted={callbackDeleteItem}
+			<Suspense fallback={<div></div>}>
+				<Toaster 
+					show={isShowToaster}
+					message={toasterMessage}
+					completed={initToaster}
 				/>
-			))}
+				<Toaster 
+					show={isShowToaster2}
+					message={toasterMessage2}
+					position={"bottom"}
+					type={"success"}
+					duration={2000}
+					
+					completed={initToaster2}
+				/>
+				{logs.map(data => (
+					<LogDetail
+						key={data.timestamp}
+						author={data.author}
+						timestamp={data.timestamp}
+						contents={data.logs[0].contents}
+						item = {data}
+						deleted={callbackDeleteItem}
+					/>
+				))}
+			</Suspense>
 		</div>
 	);
 }

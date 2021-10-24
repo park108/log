@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Redirect } from "react-router";
 import * as common from '../common';
 import * as parser from '../markdownParser';
-import LogDetail from './LogDetail';
-import ImageSelector from "../Image/ImageSelector";
+
+const LogDetail = lazy(() => import('./LogDetail'));
+const ImageSelector = lazy(() => import('../Image/ImageSelector'));
 
 const Writer = (props) => {
 	
@@ -189,12 +190,14 @@ const Writer = (props) => {
 			return <div className="div div--writer-archive" >
 					<div className="div div--writer-archivetitle">Change History</div>
 					{data.item.logs.map(log => (
-						<LogDetail
-							key={log.timestamp}
-							author={data.item.author}
-							timestamp={log.timestamp}
-							contents={log.contents}
-						/>
+						<Suspense fallback={<div></div>}>
+							<LogDetail	
+								key={log.timestamp}
+								author={data.item.author}
+								timestamp={log.timestamp}
+								contents={log.contents}
+							/>
+						</Suspense>
 					))}
 				</div>;
 		}
@@ -210,9 +213,11 @@ const Writer = (props) => {
 					<ConvertModeButton />
 					<ImageSelectorButton />
 				</div>
-				<ImageSelector
-					show={isShowImageSelector}
-				/>
+				<Suspense fallback={<div></div>}>
+					<ImageSelector
+						show={isShowImageSelector}
+					/>
+				</Suspense>
 				<div style={{overflow: "auto"}}>
 					<textarea
 						id="textarea--writer-article"
