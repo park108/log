@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Redirect } from 'react-router-dom';
 import * as commonFile from './commonFile';
-import * as common from '../common';
+import { log, isAdmin, isMobile, CONSTANTS } from '../common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
@@ -23,7 +23,7 @@ const File = (props) => {
 		const res = await fetch(commonFile.getAPI());
 
 		res.json().then(res => {
-			console.log("Files are FETCHED from AWS successfully.");
+			log("Files are FETCHED successfully.");
 			setIsLoading(false);
 			setFiles(res.body.Contents);
 		}).catch(err => {
@@ -59,13 +59,13 @@ const File = (props) => {
 				node.style.maxWidth = "100%";
 			}
 			else {
-				node.style.maxWidth = common.CONSTANTS.MAX_DIV_WIDTH;
+				node.style.maxWidth = CONSTANTS.MAX_DIV_WIDTH;
 			}
 		}
 
 	}, []);
 
-	if(!common.isAdmin()) {
+	if(!isAdmin()) {
 		return <Redirect to="/" />;
 	}
 	else {
@@ -78,7 +78,7 @@ const File = (props) => {
 				/>
 				{
 					// for test
-					common.isMobile()
+					isMobile()
 					? <FileUpload
 						uploaded={fetchData}
 					/>

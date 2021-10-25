@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Redirect } from "react-router";
-import * as common from '../common';
+import { isAdmin } from '../common';
 import * as parser from '../markdownParser';
 
 const LogDetail = lazy(() => import('./LogDetail'));
@@ -101,7 +101,7 @@ const Writer = (props) => {
 		const setTextarealHeight = ({target: e}) => {
 	
 			if( !e.nodeName === 'TEXTAREA' || !e.classList.contains('auto-expand')  ) return
-			if(common.isAdmin()) setTextAreaRows(e);
+			if(isAdmin()) setTextAreaRows(e);
 		}
 
 		let html = parser.markdownToHtml(article);
@@ -204,7 +204,7 @@ const Writer = (props) => {
 		else return "";
 	}
 	
-	if(common.isAdmin()) {
+	if(isAdmin()) {
 		return (
 			<form onSubmit={handleSubmit}>
 				<div className="div div--writer-statusbar">

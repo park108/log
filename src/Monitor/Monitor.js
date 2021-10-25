@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense, lazy } from "react";
-import * as common from '../common';
+import { CONSTANTS } from '../common';
 
 const ApiMon = lazy(() => import('./ApiMon'));
 const VisitorMon = lazy(() => import('./VisitorMon'));
@@ -17,7 +17,7 @@ const Monitor = (props) => {
 				node.style.maxWidth = "100%";
 			}
 			else {
-				node.style.maxWidth = common.CONSTANTS.MAX_DIV_WIDTH;
+				node.style.maxWidth = CONSTANTS.MAX_DIV_WIDTH;
 			}
 		}
 

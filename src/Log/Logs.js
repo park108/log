@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
+import { log } from '../common';
 import * as commonLog from './commonLog';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -31,7 +32,7 @@ const Logs = (props) => {
 		const res = await fetch(apiUrl);
 		
 		res.json().then(res => {
-			console.log("Logs are FETCHED from AWS successfully.");
+			log("Logs are FETCHED successfully.");
 
 			// Set log array
 			if(timestamp === undefined) {

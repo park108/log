@@ -183,6 +183,15 @@ export const isMobile = () => {
 	return hasTouchPoint > 0;
 }
 
+export const log = (wannaLogging) => {
+	if (process.env.NODE_ENV === 'production') {
+		// Nothing to do
+	}
+	else if (process.env.NODE_ENV === 'development') {
+		console.log(wannaLogging);
+	}
+}
+
 export const CONSTANTS = {
 	"MAX_DIV_WIDTH": "800px"
 };

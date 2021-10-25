@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { log } from '../common';
 import * as commonFile from './commonFile';
 
 const FileDrop = (props) => {
@@ -89,7 +90,7 @@ const FileDrop = (props) => {
 
 		res.json().then(res => {
 
-			console.log("Presigned URL FETCHED from AWS successfully.");
+			log("Presigned URL FETCHED successfully.");
 
 			let params = {
 				method: "PUT",
@@ -101,16 +102,16 @@ const FileDrop = (props) => {
 
 			// Upload a file using pre-signed URL into S3
 			fetch(res.body.UploadUrl, params).then(res => {
-				console.log("File [" + name + "] PUTTED into AWS S3 successfully.");
+				log("File [" + name + "] PUTTED successfully.");
 				if(isLast) setIsUploading(2);
 
 			}).catch(err => {
-				console.log(err);
+				console.error(err);
 				if(isLast) setIsUploading(3);
 			});
 
 		}).catch(err => {
-			console.log(err);
+			console.error(err);
 			if(isLast) setIsUploading(3);
 		});
 	}

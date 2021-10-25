@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useHistory } from 'react-router-dom';
-import * as common from '../common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
 import * as commonLog from './commonLog';
 import * as parser from '../markdownParser';
 
@@ -48,7 +48,7 @@ const LogDetail = (props) => {
 			},
 			body: JSON.stringify(body)
 		}).then(res => {
-			console.log("A log is DELETED from AWS successfully.");
+			log("A log is DELETED successfully.");
 			props.deleted();
 			history.push("/log");
 		}).catch(err => {
@@ -56,8 +56,8 @@ const LogDetail = (props) => {
 		});
 	}
 
-	const abort = () => console.log("Deleting aborted");
-	const confirmDelete = common.confirm("Are you sure delete the log?", deleteLogItem, abort);
+	const abort = () => log("Deleting aborted");
+	const confirmDelete = confirm("Are you sure delete the log?", deleteLogItem, abort);
 
 	const ArticleMain = () => {
 
@@ -67,7 +67,7 @@ const LogDetail = (props) => {
 
 	const copyToClipboard = () => {
 
-		let url = common.getUrl() + "log/" + timestamp;
+		let url = getUrl() + "log/" + timestamp;
 
 		let tempElem = document.createElement('textarea');
 		tempElem.value = url;  
@@ -77,7 +77,7 @@ const LogDetail = (props) => {
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
 
-		console.log("URL " + url + " copied.");
+		log("URL " + url + " copied.");
 
 		setIsShowToaster(1);
 	}
@@ -92,8 +92,8 @@ const LogDetail = (props) => {
 	
 		if(timestamp > 0) {
 	
-			outputDate = <span>{common.getFormattedDate(timestamp)}</span>;
-			outputTime = <span>{common.getFormattedTime(timestamp)}</span>;
+			outputDate = <span>{getFormattedDate(timestamp)}</span>;
+			outputTime = <span>{getFormattedTime(timestamp)}</span>;
 		}
 
 		let separator1 = <span className="span span--article-separator">|</span>;
@@ -105,7 +105,7 @@ const LogDetail = (props) => {
 		let editButton = "";
 		let deleteButton = "";
 
-		if(common.isAdmin()) {
+		if(isAdmin()) {
 			if(undefined !== item) {
 				// outputAuthor = <span>{author}</span>;
 				separator2 = <span className="span span--article-separator">|</span>;

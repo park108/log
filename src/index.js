@@ -26,3 +26,9 @@ function sendToAnalytics(metric) {
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals(sendToAnalytics);
+
+function sendCounter() {
+  console.log(navigator.userAgent)
+}
+
+sendCounter();

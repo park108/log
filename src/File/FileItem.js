@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Toaster from "../Toaster/Toaster";
-import * as common from '../common';
+import { log, getFormattedDate, getFormattedTime, confirm } from '../common';
 import * as commonFile from './commonFile';
 
 const FileItem = (props) => {
@@ -41,7 +41,7 @@ const FileItem = (props) => {
 
 	const LastModified = () => {
 		return <span className="span span--fileitem-lastmodified">
-			{common.getFormattedDate(props.lastModified) + " " + common.getFormattedTime(props.lastModified)}
+			{getFormattedDate(props.lastModified) + " " + getFormattedTime(props.lastModified)}
 		</span>;
 	}
 	
@@ -73,7 +73,7 @@ const FileItem = (props) => {
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
 
-		console.log("URL " + url + " copied.");
+		log("URL " + url + " copied.");
 
 		setToasterMessage(props.fileName + " URL has been copied to your clipboard.");
 		setIsShowToaster(1);
@@ -102,7 +102,7 @@ const FileItem = (props) => {
 			const res = await fetch(commonFile.getAPI() + "/key/" + props.fileName);
 
 			res.json().then(res => {			
-				console.log("A file detail is FETCHED from AWS successfully.");
+				log("A file detail is FETCHED successfully.");
 				setHasFileDetail(true);
 				setFileDetail(res.body);
 			}).catch(err => {
@@ -132,16 +132,16 @@ const FileItem = (props) => {
 			},
 			body: JSON.stringify(body)
 		}).then(res => {
-			console.log("A file is DELETED from AWS successfully.");
+			log("A file is DELETED successfully.");
 			props.deleted();
 		}).catch(err => {
 			console.error(err);
 		});
 	}
 
-	const abort = () => console.log("Deleting aborted");
+	const abort = () => log("Deleting aborted");
 
-	const confirmDelete = common.confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
+	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
 
 	return (
 		<div className={itemClass}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { log } from '../common';
 import * as commonImage from './commonImage';
 import Toaster from "../Toaster/Toaster";
 
@@ -20,7 +21,7 @@ const ImageSelector = (props) => {
 		const res = await fetch(commonImage.getAPI());
 
 		res.json().then(res => {
-			console.log("Images are FETCHED from AWS successfully.");
+			log("Images are FETCHED successfully.");
 			setIsLoading(false);
 			setImages(res.body);
 		}).catch(err => {
@@ -76,7 +77,7 @@ const ImageSelector = (props) => {
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
 
-		console.log("MarkDown Img " + imageForMarkdown + " copied.");
+		log("MarkDown Img " + imageForMarkdown + " copied.");
 		
 		setToasterMessage("A markdown string has been copied to clipboard. Paste it!");
 		setIsShowToaster(1);

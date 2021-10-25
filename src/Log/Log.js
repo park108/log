@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Switch, Route, Link, useHistory, useLocation } from 'react-router-dom';
-import * as common from '../common';
+import { log, isAdmin, CONSTANTS } from '../common';
 import * as commonLog from './commonLog';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -38,7 +38,7 @@ const Log = (props) => {
 				}]
 			})
 		}).then(res => {
-			console.log("A log is POSTED to AWS successfully.");
+			log("A log is POSTED uccessfully.");
 			setIsPostSuccess(true);
 		
 			setToasterMessage("A log has been posted.");
@@ -74,7 +74,7 @@ const Log = (props) => {
 			},
 			body: JSON.stringify(newItem)
 		}).then(res => {
-			console.log("A log is PUTTED to AWS successfully.");
+			log("A log is PUTTED successfully.");
 			setIsPostSuccess(true);
 		
 			setToasterMessage("A log has been changed.");
@@ -103,7 +103,7 @@ const Log = (props) => {
 			}
 			// Else: to 800px;
 			else {
-				node.style.maxWidth = common.CONSTANTS.MAX_DIV_WIDTH;
+				node.style.maxWidth = CONSTANTS.MAX_DIV_WIDTH;
 			}
 		}
 	}, [location.pathname]);
@@ -112,7 +112,7 @@ const Log = (props) => {
 		setIsShowToaster(0);
 	}
 
-	const writeButton = common.isAdmin() ? <Link
+	const writeButton = isAdmin() ? <Link
 		to={{
 			pathname: "/log/write",
 			state: { 

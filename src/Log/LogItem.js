@@ -1,5 +1,6 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useParams } from "react-router-dom";
+import { log } from '../common';
 import * as commonLog from './commonLog';
 
 const LogDetail = lazy(() => import('./LogDetail'));
@@ -26,7 +27,7 @@ const Logs = (props) => {
 		const res = await fetch(commonLog.getAPI() + "/timestamp/" + timestamp);
 		
 		res.json().then(res => {
-			console.log("The log is FETCHED from AWS successfully.");
+			log("The log is FETCHED successfully.");
 			setIsLoading(false);
 			setLogs(res.body.Items);
 		}).catch(err => {

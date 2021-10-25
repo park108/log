@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { log } from '../common';
 import * as commonMonitor from './commonMonitor';
 
 const WebVitalsItem = (props) => {
@@ -16,7 +17,7 @@ const WebVitalsItem = (props) => {
 		const res = await fetch(apiUrl);
 		
 		res.json().then(res => {
-			console.log("Web Vital " + name + " is FETCHED from AWS successfully.: " + res.body.Count);
+			log("Web Vital " + name + " is FETCHED successfully.: " + res.body.Count);
 			setData(res.body.Items);
 		}).catch(err => {
 			console.error(err);
