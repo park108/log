@@ -1,10 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import * as commonMonitor from './commonMonitor';
 
 const WebVitalsItem = (props) => {
 
 	const title = props.title;
 	const name = props.name;
-	const data = props.data;
+
+	const [data, setData] = useState([]);
+
+	async function fetchData(name) {
+
+		const apiUrl = commonMonitor.getAPI() + "?name=" + name;
+
+		// Call GET API
+		const res = await fetch(apiUrl);
+		
+		res.json().then(res => {
+			console.log("Web Vital " + name + " is FETCHED from AWS successfully.: " + res.body.Count);
+			setData(res.body.Items);
+		}).catch(err => {
+			console.error(err);
+		});
+	}
+
+	useEffect(() => {
+		fetchData(name);
+	}, [name]);
 
 	let good = 0;
 	let needImprovement = 0;
