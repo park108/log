@@ -34,7 +34,7 @@ const UserLogin = () => {
 	let userId = "";
 
 	if(common.isLoggedIn()) {
-		userId = common.isAdmin() ? "A" : "C";
+		userId = common.isAdmin() ? "park108" : "C";
 	}
 
 	if(common.isLoggedIn()) {
@@ -44,7 +44,7 @@ const UserLogin = () => {
 	}
 	else {
 		return (
-			<li className="li li--nav-user" onClick={login}>login</li>
+			<li className="li li--nav-user" onClick={login}>sign in</li>
 		);
 	}
 }

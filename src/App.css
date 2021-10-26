@@ -85,6 +85,7 @@ blockquote:before {
 }
 
 .div--nav-bar {
+  margin-top: 1em;
   margin-left: 1em;
   margin-right: 1em;
 }
@@ -103,12 +104,10 @@ blockquote:before {
 .li {
   display: inline-block;
   cursor: pointer;
-  padding-top: 1em;
+  padding-top: 0.75em;
   padding-bottom: 0.75em;
   padding-left: 0.75em;
   padding-right: 0.75em;
-  border-bottom-left-radius: 0.8em;
-  border-bottom-right-radius: 0.8em;
 }
 
 .li--nav-title {
@@ -117,13 +116,10 @@ blockquote:before {
 }
 
 .li--nav-active {
-  font-weight: bold;
-  background-color: var(--active-background-color);
-}
-
-.li--nav-active a {
-  color: var(--active-text-color);
-  font-weight: bold;
+  color: var(--normal-text-color);
+  border-color: var(--normal-border-color);
+  border-style: solid;
+  border-width: 0 0 1px 0;
 }
 
 .li--nav-inactive {
@@ -135,6 +131,7 @@ blockquote:before {
   color: var(--active-text-color);
   background-color: var(--active-background-color);
   float: right;
+  border-radius: 100px;
 }
 
 .div--main-contents {
@@ -574,16 +571,16 @@ pre {
 }
 
 .div--toaster-center {
-  position: absolute;
+  position: fixed;
   left: 50%;
+  top: 50%;
   transform: translateX(-50%);
-  top: 40%;
   overflow: hidden;
 
   box-shadow: 5px 5px 10px var(--shadow-color);
 
   padding: 1em 1em;
-  border-radius: 5px;
+  border-radius: 10px;
 }
 
 .div--toaster-bottom {

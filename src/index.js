@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as commonMonitor from './Monitor/commonMonitor';
+import { log } from './common';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
@@ -28,7 +29,7 @@ function sendToAnalytics(metric) {
 reportWebVitals(sendToAnalytics);
 
 function sendCounter() {
-  console.log(navigator.userAgent)
+  log(navigator.userAgent);
 }
 
 sendCounter();

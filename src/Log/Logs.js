@@ -20,47 +20,82 @@ const Logs = (props) => {
 
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
-	async function fetchData(timestamp) {
+	const fetchFirst = async () => {
 
 		setIsLoading(true);
 
-		const apiUrl = (timestamp === undefined)
-			? commonLog.getAPI()
-			: commonLog.getAPI() + "?lastTimestamp=" + timestamp;
+		const apiUrl = commonLog.getAPI();
 
 		// Call GET API
-		const res = await fetch(apiUrl);
-		
-		res.json().then(res => {
-			log("Logs are FETCHED successfully.");
+		try {
+			const res = await fetch(apiUrl);
+			const newData = await res.json();
 
-			// Set log array
-			if(timestamp === undefined) {
-				setLogs(res.body.Items);
+			if(undefined !== newData.errorType) {
+				console.error(res);
 			}
 			else {
-				let newLogs = logs;
-				newLogs = newLogs.concat(res.body.Items);
-				setLogs(newLogs);
-			}
+				log("Logs are FETCHED successfully.");
+				let newLog = newData.body.Items;
 
-			// Last item
-			if(res.body.LastEvaluatedKey === undefined) {
-				setLastTimestamp(undefined);
+				// Set log array
+				setLogs((undefined === newData.body.Items)
+					? []
+					: newLog
+				);
+
+				// Last item
+				setLastTimestamp((undefined === newData.body.LastEvaluatedKey)
+					? undefined
+					: newData.body.LastEvaluatedKey.timestamp
+				);
+			}
+			setIsLoading(false);
+		}
+		catch(err) {
+			console.error(err);
+		}
+	}
+
+	const fetchMore = async (timestamp) => {
+
+		setIsLoading(true);
+
+		const apiUrl = commonLog.getAPI() + "?lastTimestamp=" + timestamp;
+
+		// Call GET API
+		try {
+			const res = await fetch(apiUrl);
+			const nextData = await res.json();
+
+			if(undefined !== res.errorType) {
+				console.error(res);
 			}
 			else {
-				setLastTimestamp(res.body.LastEvaluatedKey.timestamp);
+				log("Next logs are FETCHED successfully.");
+				let newLog = logs.concat(nextData.body.Items);
+	
+				// Set log array
+				setLogs((undefined === nextData.body.Items)
+					? []
+					: newLog
+				);
+	
+				// Last item
+				setLastTimestamp((undefined === nextData.body.LastEvaluatedKey)
+					? undefined
+					: nextData.body.LastEvaluatedKey.timestamp
+				);
 			}
 
 			setIsLoading(false);
-		}).catch(err => {
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
 	}
 
-	useEffect(() => {
-		fetchData();
-	}, [props.isPostSuccess]);
+	useEffect(() => fetchFirst(), [props.isPostSucces]);
 
 	useEffect(() => {
 		if(isLoading) {
@@ -81,7 +116,7 @@ const Logs = (props) => {
 	}
 
 	const callbackDeleteItem = () => {
-		fetchData();
+		fetchFirst();
 		
 		setToasterMessage2("A log has been deleted.");
 		setIsShowToaster2(1);
@@ -91,11 +126,11 @@ const Logs = (props) => {
 		setIsShowToaster(0);
 	}
 
-	const nextLogButton = (lastTimestamp === undefined)
+	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
 		: <button
 			className={seeMoreButtonClass}
-			onClick={(e) => fetchData(lastTimestamp)}
+			onClick={(e) => fetchMore(lastTimestamp)}
 			>
 				{seeMoreButtonText}
 			</button>;
@@ -115,7 +150,7 @@ const Logs = (props) => {
 					/>
 				))}
 				
-				{nextLogButton}
+				{seeMoreButton}
 
 				<Toaster 
 					show={isShowToaster}

@@ -15,25 +15,26 @@ const File = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
-	async function fetchData() {
+	const fetchData = async () => {
 
 		setIsLoading(true);
 
 		// Call GET API
-		const res = await fetch(commonFile.getAPI());
+		try {
+			const res = await fetch(commonFile.getAPI());
+			const newData = await res.json();
 
-		res.json().then(res => {
 			log("Files are FETCHED successfully.");
+			setFiles(newData.body.Contents);
+
 			setIsLoading(false);
-			setFiles(res.body.Contents);
-		}).catch(err => {
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
 	}
 
-	useEffect(() => {
-		fetchData();
-	}, []);
+	useEffect(() => fetchData(), []);
 
 	useEffect(() => {
 		if(isLoading) {
