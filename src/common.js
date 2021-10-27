@@ -185,7 +185,7 @@ export const isMobile = () => {
 
 export const log = (wannaLogging) => {
 	if (process.env.NODE_ENV === 'production') {
-		// Nothing to do
+		console.log(wannaLogging);
 	}
 	else if (process.env.NODE_ENV === 'development') {
 		console.log(wannaLogging);
