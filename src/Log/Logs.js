@@ -111,19 +111,11 @@ const Logs = (props) => {
 		}
 	}, [isLoading]);
 
-	const initToaster = () => {
-		setIsShowToaster(0);
-	}
-
 	const callbackDeleteItem = () => {
 		fetchFirst();
 		
 		setToasterMessage2("A log has been deleted.");
 		setIsShowToaster2(1);
-	}
-
-	const initToaster2 = () => {
-		setIsShowToaster(0);
 	}
 
 	const seeMoreButton = (lastTimestamp === undefined)
@@ -155,7 +147,7 @@ const Logs = (props) => {
 				<Toaster 
 					show={isShowToaster}
 					message={toasterMessage}
-					completed={initToaster}
+					completed={() => setIsShowToaster(0)}
 				/>
 				<Toaster 
 					show={isShowToaster2}
@@ -164,7 +156,7 @@ const Logs = (props) => {
 					type={"success"}
 					duration={2000}
 					
-					completed={initToaster2}
+					completed={() => setIsShowToaster(0)}
 				/>
 			</Suspense>
 		</div>
