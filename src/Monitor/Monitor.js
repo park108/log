@@ -1,27 +1,10 @@
-import React, { useEffect, Suspense, lazy } from "react";
-import { CONSTANTS } from '../common';
+import React, { Suspense, lazy } from "react";
 
 const ApiMon = lazy(() => import('./ApiMon'));
 const VisitorMon = lazy(() => import('./VisitorMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 
 const Monitor = (props) => {
-	
-	useEffect(() => {
-
-		// Change width
-		const div = document.getElementsByTagName("div");
-
-		for(let node of div) {
-			if(node.className.includes("div--toaster")) {
-				node.style.maxWidth = "100%";
-			}
-			else {
-				node.style.maxWidth = CONSTANTS.MAX_DIV_WIDTH;
-			}
-		}
-
-	}, []);
 
 	return <div className="div div--main-contents">
 		<Suspense fallback={<div></div>}>

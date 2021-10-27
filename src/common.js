@@ -191,7 +191,3 @@ export const log = (wannaLogging) => {
 		console.log(wannaLogging);
 	}
 }
-
-export const CONSTANTS = {
-	"MAX_DIV_WIDTH": "800px"
-};

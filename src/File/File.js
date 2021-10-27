@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Redirect } from 'react-router-dom';
 import * as commonFile from './commonFile';
-import { log, isAdmin, isMobile, CONSTANTS } from '../common';
+import { log, isAdmin, isMobile } from '../common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
@@ -46,26 +46,6 @@ const File = (props) => {
 		}
 	}, [isLoading]);
 
-	const initToaster = () => {
-		setIsShowToaster(0);
-	}
-	
-	useEffect(() => {
-
-		// Change width
-		const div = document.getElementsByTagName("div");
-
-		for(let node of div) {
-			if(node.className.includes("div--toaster")) {
-				node.style.maxWidth = "100%";
-			}
-			else {
-				node.style.maxWidth = CONSTANTS.MAX_DIV_WIDTH;
-			}
-		}
-
-	}, []);
-
 	if(!isAdmin()) {
 		return <Redirect to="/" />;
 	}
@@ -75,7 +55,7 @@ const File = (props) => {
 				<Toaster 
 					show={isShowToaster}
 					message={toasterMessage}
-					completed={initToaster}
+					completed={() => setIsShowToaster(0)}
 				/>
 				{
 					// for test

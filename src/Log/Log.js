@@ -1,6 +1,6 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { Switch, Route, Link, useHistory, useLocation } from 'react-router-dom';
-import { log, isAdmin, CONSTANTS } from '../common';
+import { log, isAdmin } from '../common';
 import * as commonLog from './commonLog';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -86,27 +86,6 @@ const Log = (props) => {
 			setIsPostSuccess(false);
 		});
 	}
-	
-	// Change width by location
-	useEffect(() => {
-
-		// Change width
-		const div = document.getElementsByTagName("div");
-
-		for(let node of div) {
-
-			// Writer: 100%
-			if("/log/write" === location.pathname ||
-				node.className.includes("div--toaster")) {
-
-				node.style.maxWidth = "100%";
-			}
-			// Else: to 800px;
-			else {
-				node.style.maxWidth = CONSTANTS.MAX_DIV_WIDTH;
-			}
-		}
-	}, [location.pathname]);
 
 	const initToaster = () => {
 		setIsShowToaster(0);
