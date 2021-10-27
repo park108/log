@@ -47,7 +47,7 @@ const File = (props) => {
 	}, [isLoading]);
 
 	if(!isAdmin()) {
-		return <Redirect to="/" />;
+		return <Redirect to="/log" />;
 	}
 	else {
 		return (

@@ -9,7 +9,7 @@ const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 const Monitor = (props) => {
 
 	if(!isAdmin()) {
-		return <Redirect to="/" />;
+		return <Redirect to="/log" />;
 	}
 
 	return <div className="div div--main-contents">
