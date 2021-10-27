@@ -37,6 +37,14 @@
   --error-background-color: #fd5c5c;
 }
 
+div#root {
+  max-width: 800px;
+}
+
+div#root.fullscreen {
+  max-width: 100%;
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin-block-start: 1.8em;
 }

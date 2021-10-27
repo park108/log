@@ -19,7 +19,7 @@ const App = () => {
 
 	return (
 		<Router>
-			<Suspense fallback={<div></div>}>
+			<Suspense fallback={<div>...</div>}>
 				<Navigation />
 				<Switch>
 					<Route path="/log" component={Log} />

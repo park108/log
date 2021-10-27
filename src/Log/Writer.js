@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Redirect } from "react-router";
-import { isAdmin } from '../common';
+import { isAdmin, setFullscreen } from '../common';
 import * as parser from '../markdownParser';
 
 const LogDetail = lazy(() => import('./LogDetail'));
@@ -66,14 +66,8 @@ const Writer = (props) => {
 	
 	// Change width
 	useEffect(() => {
-
-		// Change width
-		const div = document.getElementsByTagName("div");
-
-		for(let node of div) {
-			node.style.maxWidth = "100%";
-		}
-
+		setFullscreen(true); // Enable fullscreen mode at mounted
+		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
 	}, []);
 
 	useEffect(() => {
@@ -188,18 +182,16 @@ const Writer = (props) => {
 	const ChangeHistory = () => {
 		if("EDIT" === mode) {
 			return <div className="div div--writer-archive" >
-					<div className="div div--writer-archivetitle">Change History</div>
-					{data.item.logs.map(log => (
-						<Suspense fallback={<div></div>}>
-							<LogDetail	
-								key={log.timestamp}
-								author={data.item.author}
-								timestamp={log.timestamp}
-								contents={log.contents}
-							/>
-						</Suspense>
-					))}
-				</div>;
+				<div className="div div--writer-archivetitle">Change History</div>
+				{data.item.logs.map(log => (
+					<LogDetail	
+						key={log.timestamp}
+						author={data.item.author}
+						timestamp={log.timestamp}
+						contents={log.contents}
+					/>
+				))}
+			</div>;
 		}
 		else return "";
 	}

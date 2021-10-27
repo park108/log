@@ -185,9 +185,21 @@ export const isMobile = () => {
 
 export const log = (wannaLogging) => {
 	if (process.env.NODE_ENV === 'production') {
-		console.log(wannaLogging);
+		// Nothing to do
 	}
 	else if (process.env.NODE_ENV === 'development') {
 		console.log(wannaLogging);
+	}
+}
+
+export const setFullscreen = (isFullscreen) => {
+
+	let root = document.getElementById("root");
+
+	if(isFullscreen) {
+		root.className = "div fullscreen"
+	}
+	else {
+		root.className = "div"
 	}
 }

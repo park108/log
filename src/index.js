@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import App from './App';
 import * as commonMonitor from './Monitor/commonMonitor';
 import { log } from './common';
