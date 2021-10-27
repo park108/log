@@ -46,9 +46,10 @@ const Navigation = () => {
 			<a href={common.getUrl()} >park108.net</a>
 		</li>;
 
-	const log = <li className={logClass}>
+	const log = common.isAdmin() ?
+		<li className={logClass}>
 			<Link to="/log" >log</Link>
-		</li>;
+		</li> : "";
 
 	const file = common.isAdmin() ?
 		<li className={fileClass}>
