@@ -11,8 +11,6 @@
 }
 
 :root {
-  --div-max-width: 800px;
-
   --normal-text-color: black;
   --normal-background-color: white;
   --normal-contents-background-color: white;
@@ -84,10 +82,6 @@ blockquote:before {
   color: var(--sub-text-color);
   float: left;
   margin: -5px 10px 0px -10px;
-}
-
-.div {
-  max-width: var(--div-max-width);
 }
 
 .div--nav-bar {
