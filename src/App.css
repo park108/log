@@ -11,6 +11,8 @@
 }
 
 :root {
+  --sub-font-size: 0.9em;
+
   --normal-text-color: black;
   --normal-background-color: white;
   --normal-contents-background-color: white;
@@ -22,8 +24,7 @@
   --active-background-color: white;
   --active-border-color: #666666;
 
-  --sub-text-color: #666666;
-  --sub-sub-text-color: #999999;
+  --sub-text-color: #999999;
   
   --shadow-color: #aaaaaa;
 
@@ -131,8 +132,8 @@ blockquote:before {
   border-width: 0 0 1px 0;
 }
 
-.li--nav-inactive {
-  color: var(--normal-text-color);
+.li--nav-inactive a {
+  color: var(--sub-text-color);
 }
 
 .li--nav-user  {
@@ -293,7 +294,7 @@ blockquote:before {
 
   position: fixed;
   bottom: 5em;
-  left: calc(100% - 4em);
+  left: calc(100% - 8em);
 
   width: 3em;
   height: 3em;
@@ -306,21 +307,19 @@ blockquote:before {
   margin-top: 2em;
   margin-left: auto;
   margin-right: auto;
-  width: 60%;
+  width: 10em;
   display: block;
   border-radius: 1.5em;
   height: 3em;
+  cursor: pointer;
 
   background: linear-gradient(to left, var(--normal-background-color) 50%, var(--success-background-color) 50%) right;
   background-size: 200%;
 }
 
-/* .button--logs-seemoreloading {
-  background-position: left;
-} */
-
 .div--article-logitem {
   padding: 1em 1em 2em 1em;
+  margin-bottom: 2em;
   background-color: var(--normal-contents-background-color);
   border-width: 0 0 1px 0;
   border-style: solid;
@@ -357,15 +356,24 @@ pre {
   padding-right: 10px;
 }
 
-.p--article-info {
+.div--article-info {
+  display: block;
+  font-size: var(--sub-font-size);
   color: var(--sub-text-color);
 }
 
-.span--article-toolbar {
-  float:right;
+.h1--article-title {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  font-size: 1.2em;
+  color: var(--normal-text-color);
+}
+
+.div--article-toolbar {
+  float: right;
   padding: 0;
   margin: 0;
-  margin-bottom: 1em;
 }
 
 .span--article-toolbarmenu {
@@ -376,7 +384,6 @@ pre {
 }
 
 .span--article-separator {
-  color: var(--sub-sub-text-color);
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
@@ -394,7 +401,7 @@ pre {
 }
 
 .div--footer-contents {
-  font-size: 0.9em;
+  font-size: var(--sub-font-size);
   width: 100%;
 }
 
@@ -488,6 +495,7 @@ pre {
 }
 
 .div--fileitem-statusbar {
+  font-size: var(--sub-font-size);
   float: right;
   color: #666666;
 }
@@ -504,7 +512,7 @@ pre {
 }
 
 .span--fileitem-separator {
-  color: var(--sub-sub-text-color);
+  color: var(--sub-text-color);
   padding-left: 0.5em;
   padding-right: 0.5em;
 }

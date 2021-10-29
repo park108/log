@@ -92,53 +92,48 @@ const LogDetail = (props) => {
 	
 		if(timestamp > 0) {
 	
-			outputDate = <span>{getFormattedDate(timestamp)}</span>;
-			outputTime = <span>{getFormattedTime(timestamp)}</span>;
+			outputDate = getFormattedDate(timestamp);
 		}
-
-		let separator1 = <span className="span span--article-separator">|</span>;
 
 		let linkButton = <span onClick={copyToClipboard} className="span span--article-toolbarmenu">Link</span>;
 	
-		// let outputAuthor = "";
-		let separator2 = "";
+		let separator = "";
 		let editButton = "";
 		let deleteButton = "";
 
 		if(isAdmin()) {
+			outputTime = "," + getFormattedTime(timestamp);
 			if(undefined !== item) {
-				// outputAuthor = <span>{author}</span>;
-				separator2 = <span className="span span--article-separator">|</span>;
+				separator = <span className="span span--article-separator">|</span>;
 				editButton = <Link to={{
 						pathname: "/log/write",
 						state: {item}
 					}}>
 						<span className="span span--article-toolbarmenu">Edit</span>
 					</Link>;
-				deleteButton = <span onClick={confirmDelete} className="span span--article-toolbarmenu">Delete</span>;
+				deleteButton = <span className="span span--article-toolbarmenu" onClick={confirmDelete}>Delete</span>;
 			}
 		}
 		else {
 			outputTime = "";
 		}
 
-		return <p className="p p--article-info">
-			{outputDate}
-			{outputTime}
-			{separator1}
-			{linkButton}
-			<span className="span span--article-toolbar">
+		return <div className="div div--article-info">
+			<h1 className="h1 h1--article-title">{outputDate} {outputTime}</h1>
+			<div className="div div--article-toolbar">
+				{linkButton}
+				{separator}
 				{editButton}
-				{separator2}
+				{separator}
 				{deleteButton}
-			</span>
-		</p>;
+			</div>
+		</div>;
 	}
 
 	return (
 		<div className={itemClass} role="listitem">
-			<ArticleMain />
 			<ArticleInfo />
+			<ArticleMain />
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}

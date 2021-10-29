@@ -34,7 +34,7 @@ const UserLogin = () => {
 	let userId = "";
 
 	if(common.isLoggedIn()) {
-		userId = common.isAdmin() ? "park108" : "C";
+		userId = common.isAdmin() ? "admin" : "cstm";
 	}
 
 	if(common.isLoggedIn()) {

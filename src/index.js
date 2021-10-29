@@ -27,7 +27,9 @@ function sendToAnalytics(metric) {
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals(sendToAnalytics);
 
+// Send visitor info to analytics endpoint.
 function sendCounter() {
+  // TODO: Send data through sendBeacon() to service endpoint.
   log(navigator.userAgent);
 }
 

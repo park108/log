@@ -87,10 +87,6 @@ const Log = (props) => {
 		});
 	}
 
-	const initToaster = () => {
-		setIsShowToaster(0);
-	}
-
 	const writeButton = isAdmin() ? <Link
 		to={{
 			pathname: "/log/write",
@@ -129,7 +125,7 @@ const Log = (props) => {
 					type={"success"}
 					duration={2000}
 					
-					completed={initToaster}
+					completed={() => setIsShowToaster(0)}
 				/>
 			</Suspense>
 		</div>
