@@ -383,6 +383,10 @@ pre {
   cursor: pointer;
 }
 
+.span--article-toolbarmenu:hover {
+  color: var(--normal-text-color);
+}
+
 .span--article-separator {
   padding-left: 0.5em;
   padding-right: 0.5em;

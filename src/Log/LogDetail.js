@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useHistory } from 'react-router-dom';
 import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
+import { ReactComponent as LinkButton } from '../static/link.svg';
 import * as commonLog from './commonLog';
 import * as parser from '../markdownParser';
 
@@ -95,7 +96,7 @@ const LogDetail = (props) => {
 			outputDate = getFormattedDate(timestamp);
 		}
 
-		let linkButton = <span onClick={copyToClipboard} className="span span--article-toolbarmenu">Link</span>;
+		let imgLink = <span onClick={copyToClipboard} className="span span--article-toolbarmenu"><LinkButton /></span>;
 	
 		let separator = "";
 		let editButton = "";
@@ -119,9 +120,9 @@ const LogDetail = (props) => {
 		}
 
 		return <div className="div div--article-info">
-			<h1 className="h1 h1--article-title">{outputDate} {outputTime}</h1>
+			<h1 className="h1 h1--article-title">{outputDate} {outputTime} </h1>
 			<div className="div div--article-toolbar">
-				{linkButton}
+				{imgLink}
 				{separator}
 				{editButton}
 				{separator}
