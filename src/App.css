@@ -24,7 +24,7 @@
   --active-background-color: white;
   --active-border-color: #666666;
 
-  --sub-text-color: #999999;
+  --sub-text-color: #666666;
   
   --shadow-color: #aaaaaa;
 
@@ -39,6 +39,7 @@
 }
 
 div#root {
+  min-height: 100vh;
   max-width: 800px;
 }
 
@@ -94,7 +95,7 @@ blockquote:before {
 }
 
 .div--nav-bar {
-  margin-top: 1em;
+  padding-top: 1em;
   margin-left: 1em;
   margin-right: 1em;
 }
@@ -134,6 +135,12 @@ blockquote:before {
 
 .li--nav-inactive a {
   color: var(--sub-text-color);
+  transition: 0.3s ease;
+}
+
+.li--nav-inactive:hover a {
+  color: var(--normal-text-color);
+  text-shadow: 0px 0px 3px var(--shadow-color);
 }
 
 .li--nav-user  {
@@ -154,12 +161,9 @@ blockquote:before {
 }
 
 .div--main-contents {
+  min-height: calc(100vh - 57px - 80px);
   margin-left: 0em;
   margin-right: 0em;
-}
-
-.div--logs-main {
-  min-height: calc(100vh - 8.5em);
 }
 
 .textarea {
@@ -269,11 +273,12 @@ blockquote:before {
   border-color: var(--normal-border-color);
   background-color: var(--normal-contents-background-color);
   font-size: 1em;
-  transition: 0.2s ease-out;
+  transition: 0.3s ease;
 }
 
 .button:hover {
   border-color: var(--hover-border-color);
+  transition: 0.3s ease;
 }
 
 .button:active {
@@ -293,8 +298,8 @@ blockquote:before {
   font-weight: bold;
 
   position: fixed;
-  bottom: 5em;
-  left: calc(100% - 8em);
+  bottom: 3em;
+  left: calc(100% - 6em);
 
   width: 3em;
   height: 3em;
@@ -312,9 +317,6 @@ blockquote:before {
   border-radius: 1.5em;
   height: 3em;
   cursor: pointer;
-
-  background: linear-gradient(to left, var(--normal-background-color) 50%, var(--success-background-color) 50%) right;
-  background-size: 200%;
 }
 
 .div--article-logitem {
@@ -366,7 +368,7 @@ pre {
   display: inline-block;
   margin: 0;
   padding: 0;
-  font-size: 1.2em;
+  font-size: 1.4em;
   color: var(--normal-text-color);
 }
 
@@ -376,15 +378,35 @@ pre {
   margin: 0;
 }
 
+.span--article-toolbarblank {
+  padding-left: 0.5em;
+}
+
 .span--article-toolbarmenu {
   color: var(--sub-text-color);
   padding: 0;
   margin: 0;
   cursor: pointer;
+  transition: 0.3s ease;
 }
 
 .span--article-toolbarmenu:hover {
   color: var(--normal-text-color);
+  text-shadow: 0px 0px 3px var(--shadow-color);
+}
+
+.span--article-toolbaricon {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.span--article-toolbaricon path {
+  fill: #999999;
+}
+
+
+.span--article-toolbaricon:hover path {
+  fill: black;
 }
 
 .span--article-separator {

@@ -92,18 +92,18 @@ const LogDetail = (props) => {
 		let outputDate, outputTime;
 	
 		if(timestamp > 0) {
-	
 			outputDate = getFormattedDate(timestamp);
 		}
 
-		let imgLink = <span onClick={copyToClipboard} className="span span--article-toolbarmenu"><LinkButton /></span>;
+		let blank = <span className="span span--article-toolbarblank"></span>
+		let linkIcon = <span onClick={copyToClipboard} className="span span--article-toolbaricon"><LinkButton /></span>;
 	
 		let separator = "";
 		let editButton = "";
 		let deleteButton = "";
 
 		if(isAdmin()) {
-			outputTime = "," + getFormattedTime(timestamp);
+			outputTime = getFormattedTime(timestamp);
 			if(undefined !== item) {
 				separator = <span className="span span--article-separator">|</span>;
 				editButton = <Link to={{
@@ -120,9 +120,11 @@ const LogDetail = (props) => {
 		}
 
 		return <div className="div div--article-info">
-			<h1 className="h1 h1--article-title">{outputDate} {outputTime} </h1>
+			<h1 className="h1 h1--article-title">{outputDate}</h1>
+			{blank}
+			{linkIcon}
 			<div className="div div--article-toolbar">
-				{imgLink}
+				{outputTime}
 				{separator}
 				{editButton}
 				{separator}
