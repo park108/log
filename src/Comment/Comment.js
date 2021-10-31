@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { isAdmin } from '../common';
 
 import './Comment.css';
+
+const CommentItem = lazy(() => import('../Comment/CommentItem'));
 
 const Comment = (props) => {
 
@@ -38,41 +40,31 @@ const Comment = (props) => {
 	if(!isAdmin()) return "";
 
 	return <div>
-		<span className="span span--comment-togglebutton">2 Comments</span>
+		<span className="span span--comment-togglebutton">3 Comments</span>
 		<div className="div div--comment-thread">
-			<div className="div div--comment-admin">
-				<div className="div div--comment-contents">
-					<div className="div div--comment-message">
-						궁금한것이 있으면 물어보세요.
-					</div>
-					<div className="div div--comment-timestamp">
-						<span>Jongkil Park, </span>
-						<span>2021-10-24 23:45:01</span>
-					</div>
-				</div>
-			</div>
-			<div className="div div--comment-visitor">
-				<div className="div div--comment-contents">
-					<div className="div div--comment-message">
-						의자 얼마에 사셨어요?
-					</div>
-					<div className="div div--comment-timestamp">
-						<span>Guest 1, </span>
-						<span>2021-10-25 12:34:56</span>
-					</div>
-				</div>
-			</div>
-			<div className="div div--comment-admin div--comment-reply">
-				<div className="div div--comment-contents">
-					<div className="div div--comment-message">
-						100원에 샀습니다. 링크 참고하세요.
-					</div>
-					<div className="div div--comment-timestamp">
-						<span>Jongkil Park, </span>
-						<span>2021-10-26 23:45:01</span>
-					</div>
-				</div>
-			</div>
+			<Suspense fallback={<div></div>}>
+				<CommentItem
+					isAdminComment={true}
+					isReply={false}
+					message={"궁금한것이 있으면 물어보세요."}
+					name={"Jongkil Park"}
+					timestamp={"2021-10-24 23:45:01"}
+				/>
+				<CommentItem
+					isAdminComment={false}
+					isReply={false}
+					message={"의자 얼마에 사셨어요?"}
+					name={"Guest 1"}
+					timestamp={"2021-10-25 12:34:56"}
+				/>
+				<CommentItem
+					isAdminComment={true}
+					isReply={true}
+					message={"100원에 샀습니다. 링크 참고하세요."}
+					name={"Jongkil Park"}
+					timestamp={"2021-10-26 23:45:01"}
+				/>
+			</Suspense>
 		</div>
 		<div className="div div--comment-writer">
 			<form onSubmit={handleSubmit}>
