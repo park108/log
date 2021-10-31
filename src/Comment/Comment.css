@@ -47,7 +47,6 @@
 	display: inline-block;
 	padding: 10px;
 	border-radius: 10px;
-	box-shadow: 1px 1px 5px var(--shadow-color);
 }
 
 .div--comment-visitor .div--comment-message {
@@ -64,7 +63,20 @@
 	color: var(--sub-text-color);
 }
 
+.div--comment-writer {
+	overflow: auto;
+}
+
+.div--comment-input {
+	float: left;
+	width: 80%;
+}
+
 .textarea--comment-writer {
+	display: block;
+	float: left;
+	width: calc(100% - 6px);
+	height: 30px;
 	font-size: var(--sub-font-size);
 	border-width: 1px;
 	border-color: var(--normal-border-color);
@@ -72,7 +84,17 @@
 	resize: none;
 }
 
+.input--comment-name {
+	font-family: 'Jeju Myeongjo', Helvetica;
+	display: block;
+	float: left;
+}
+
 .button--comment-submit {
+	display: block;
+	float: left;
+	width: 20%;
+	padding: 2px;
+	height: 56px;
 	font-size: var(--sub-font-size);
-	height: 2em;
 }
