@@ -6,6 +6,7 @@ import * as commonLog from './commonLog';
 import * as parser from '../markdownParser';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
+const Comment = lazy(() => import('../Comment/Comment'));
 
 const LogDetail = (props) => {
 
@@ -137,6 +138,7 @@ const LogDetail = (props) => {
 		<div className={itemClass} role="listitem">
 			<ArticleInfo />
 			<ArticleMain />
+			<Comment />
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}

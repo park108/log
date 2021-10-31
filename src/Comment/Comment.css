@@ -1,0 +1,78 @@
+@import url(../App.css);
+
+.span--comment-togglebutton {
+	font-size: var(--sub-font-size);
+	color: var(--sub-text-color);
+	cursor: pointer;
+}
+
+.span--comment-togglebutton:hover {
+	color: var(--normal-text-color);
+	text-shadow: 0px 0px 3px var(--shadow-color);
+}
+
+.div--comment-thread {
+	margin-bottom: 1em;
+}
+
+.div--comment-visitor {
+	display: block;
+	padding-top: 1em;
+}
+
+.div--comment-admin {
+	display: block;
+	padding-top: 1em;
+}
+
+.div--comment-reply {
+	text-align: right;
+}
+
+.div--comment-name {
+	width: 5em;
+	font-weight: bold;
+	font-size: var(--sub-font-size);
+
+	float: left;
+	padding-right: 1em;
+}
+
+.div--comment-contents {
+	font-size: var(--sub-font-size);
+	display: inline-block;
+}
+
+.div--comment-message {
+	display: inline-block;
+	padding: 10px;
+	border-radius: 10px;
+	box-shadow: 1px 1px 5px var(--shadow-color);
+}
+
+.div--comment-visitor .div--comment-message {
+	background-color: rgb(217, 231, 241);
+}
+
+.div--comment-admin .div--comment-message {
+	background-color: rgb(241, 221, 221);
+}
+
+.div--comment-timestamp {
+	padding: 5px;
+	font-size: var(--info-font-size);
+	color: var(--sub-text-color);
+}
+
+.textarea--comment-writer {
+	font-size: var(--sub-font-size);
+	border-width: 1px;
+	border-color: var(--normal-border-color);
+	overflow: hidden;
+	resize: none;
+}
+
+.button--comment-submit {
+	font-size: var(--sub-font-size);
+	height: 2em;
+}
