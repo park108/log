@@ -3,18 +3,15 @@ import { isAdmin, log } from '../common';
 
 import './Comment.css';
 
-const CommentItem = lazy(() => import('../Comment/CommentItem'));
+const CommentItem = lazy(() => import('./CommentItem'));
+const CommentForm = lazy(() => import('./CommentForm'));
 
 const Comment = (props) => {
 
 	const [comments, setComments] = useState([]);
-
 	const [isShow, setIsShow] = useState(false);
-	const [userComment, setUserComment] = useState("");
-	const [userName, setUserName] = useState("");
 
-	// TODO: Use after make backend services
-	// const timestamp = props.timestamp;
+	const logTimestamp = props.logTimestamp;
 
 	const fetchData = async() => {
 
@@ -28,12 +25,25 @@ const Comment = (props) => {
 			const newData = {
 				body: {
 					Contents: [
-						{isAdminComment: true, isReply: false, message: "궁금한것이 있으면 무엇이든지 물어보세요?", name: "Jongkil Park", timestamp: 1635611373000},
-						{isAdminComment: false, isReply: false, message: "안녕하세요. 물건에 관심이 있는데요. 얼마에 파실수 있나요?", name: "Buyer", timestamp: 1635652936000},
-						{isAdminComment: true, isReply: true, message: "100원입니다.", name: "Jongkil Park", timestamp: 1635739336000},
+						{isAdminComment: true, message: "궁금한것이 있으면 무엇이든지 물어보세요? 더 안됨?", name: "Jongkil Park", commentTimestamp: undefined, timestamp: 1635611373000, sortKey: "1635611373000-0000000000000"},
+						{isAdminComment: false, message: "안녕하세요. 물건에 관심이 있는데요. 얼마에 파실수 있나요? 좀 더 길게 이야기를 해 보는것이 어떨까요? 폭을 결정하기 위해서입니다.", name: "Buyer", commentTimestamp: undefined, timestamp: 1635652936000, sortKey: "1635652936000-0000000000000"},
+						{isAdminComment: true, message: "100원입니다.", name: "Jongkil Park", commentTimestamp: 1635652936000, timestamp: 1635739336000, sortKey: "1635652936000-1635739336000"},
 					]
 				}
 			}
+
+			// Sort by sortKey
+			newData.body.Contents.sort(function(a, b) {
+
+				const sortKeyA = a.sortKey;
+				const sortKeyB = b.sortKey;
+
+				const result = (sortKeyA < sortKeyB) ? -1
+					: (sortKeyA > sortKeyB) ? 1
+					: 0;
+
+				return result;
+			});
 
 			log("Comments are FETCHED successfully.");
 			setComments(newData.body.Contents);
@@ -43,33 +53,11 @@ const Comment = (props) => {
 		}
 	}
 
-	const handleSubmit = (event) => {
-
-		if(userComment.length < 5) {
-			alert("Please comment at least 5 characters.");
-		}
-		else if(0 === userName.length) {
-			alert("Please input your name.");
-		}
-
-		event.preventDefault();
-	}
-
-	const handleChangeComment = ({ target: { value } }) => setUserComment(value);
-	const handleChangeName = ({target: { value } }) => setUserName(value);
+	useEffect(() => fetchData(), []);
 
 	const toggleComments = (event) => {
 		setIsShow(!isShow);
 	}
-
-	const nameDisabled = isAdmin() ? "disabled" : "";
-
-	useEffect(() => {
-		fetchData();
-		if(isAdmin()) {
-			setUserName("Jongkil Park");
-		}
-	}, []);
 
 	const commentThread = isShow
 		? <div className="div div--comment-thread">
@@ -78,9 +66,10 @@ const Comment = (props) => {
 					<CommentItem
 						key={data.timestamp}
 						isAdminComment={data.isAdminComment}
-						isReply={data.isReply}
 						message={data.message}
 						name={data.name}
+						logTimestamp={logTimestamp}
+						commentTimestamp={data.commentTimestamp}
 						timestamp={data.timestamp}
 					/>
 				))}
@@ -89,30 +78,9 @@ const Comment = (props) => {
 		: "";
 
 	const commentForm = isShow
-		? <div className="div div--comment-writer">
-			<form onSubmit={handleSubmit}>
-				<div className="div div--comment-input">
-					<textarea
-						className="textarea textarea--comment-writer"
-						placeholder="Type your comment"
-						value={userComment}
-						onChange={handleChangeComment}
-					/>
-					<input 
-						className="input input--comment-name"
-						placeholder="Type your name"
-						onChange={handleChangeName}
-						type="text"
-						value={userName}
-						disabled={nameDisabled}
-					/>
-				</div>
-				<button
-					className="button button--comment-submit"
-					type="submit"
-				>Submit</button>
-			</form>
-		</div>
+		? <CommentForm
+			logTimestamp = {logTimestamp}
+		/>
 		: "";
 
 	// TODO: Remove after develop functions.

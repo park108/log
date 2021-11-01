@@ -170,6 +170,11 @@ blockquote:before {
 .textarea {
   font-family: 'Jeju Myeongjo', Helvetica;
   width: 100%;
+
+  outline: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
 }
 
 .textarea--writer-article {
@@ -279,6 +284,7 @@ blockquote:before {
 
 .button:hover {
   border-color: var(--hover-border-color);
+  background-color: rgb(255, 255, 210);
   transition: 0.3s ease;
 }
 

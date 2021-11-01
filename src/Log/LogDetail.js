@@ -138,7 +138,9 @@ const LogDetail = (props) => {
 		<div className={itemClass} role="listitem">
 			<ArticleInfo />
 			<ArticleMain />
-			<Comment />
+			<Comment
+				logTimestamp={timestamp}
+			/>
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}
