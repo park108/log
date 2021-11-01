@@ -90,7 +90,7 @@ it('test formatted date', () => {
 
 it('test formatted time', () => {
   const result = common.getFormattedTime(1633847332000);
-  expect(result).toBe(" 15:28:52");
+  expect(result).toBe("15:28:52");
 });
 
 it('is not mobile', () => {

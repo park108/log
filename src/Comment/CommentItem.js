@@ -1,4 +1,5 @@
 import React from "react";
+import { getFormattedDate, getFormattedTime } from '../common';
 
 const CommentItem = (props) => {
 
@@ -12,6 +13,8 @@ const CommentItem = (props) => {
 	wrapperClassName += (isAdminComment) ? " div--comment-admin" : " div--comment-visitor";
 	wrapperClassName += (isReply) ? " div--comment-reply" : "";
 
+	const timestampText = getFormattedDate(timestamp) + " " + getFormattedTime(timestamp);
+
 	return <div className={wrapperClassName}>
 		<div className="div div--comment-contents">
 			<div className="div div--comment-message">
@@ -19,7 +22,7 @@ const CommentItem = (props) => {
 			</div>
 			<div className="div div--comment-timestamp">
 				<span>{name}, </span>
-				<span>{timestamp}</span>
+				<span>{timestampText}</span>
 			</div>
 		</div>
 	</div>;

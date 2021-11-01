@@ -150,8 +150,7 @@ export function getFormattedTime(timestamp) {
 	const min = time.getMinutes();
 	const ss = time.getSeconds();
 
-	const formattedTime = " "
-		+ (hh < 10 ? "0" + hh : hh) + ":"
+	const formattedTime = (hh < 10 ? "0" + hh : hh) + ":"
 		+ (min < 10 ? "0" + min : min) + ":"
 		+ (ss < 10 ? "0" + ss : ss);
 

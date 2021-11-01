@@ -4,6 +4,7 @@
 	font-size: var(--sub-font-size);
 	color: var(--sub-text-color);
 	cursor: pointer;
+	transition: 0.3s ease;
 }
 
 .span--comment-togglebutton:hover {
