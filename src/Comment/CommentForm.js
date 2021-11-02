@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { isAdmin, log } from '../common';
+import { isAdmin } from '../common';
 
 import './Comment.css';
 
@@ -13,6 +13,7 @@ const CommentForm = (props) => {
 	const commentTimestamp = props.commentTimestamp;
 
 	useEffect(() => {
+
 		if(isAdmin()) {
 			setUserName("Jongkil Park");
 		}
@@ -35,15 +36,18 @@ const CommentForm = (props) => {
 			return;
 		}
 
-		const inputData = {
+		const comment = {
 			logTimestamp: logTimestamp,
-			commentTimestamp: commentTimestamp,
-			name: userName,
+			isAdminComment: isAdmin(),
 			message: message,
+			name: userName,
+			commentTimestamp: commentTimestamp,
 			isHidden: isHidden,
 		}
 
-		log(inputData);
+		props.post(comment);
+		setMessage("");
+		setUserName("");
 	}
 
 	const nameDisabled = isAdmin() ? "disabled" : "";
@@ -53,7 +57,10 @@ const CommentForm = (props) => {
 				<div className="div div--comment-input">
 					<textarea
 						className="textarea textarea--comment-form"
-						placeholder={undefined === commentTimestamp ? "Add your comment" : "Reply the comment"}
+						placeholder={undefined === commentTimestamp
+							? "Add your comment"
+							: "Reply the comment"
+						}
 						value={message}
 						onChange={handleChangeComment}
 					/>

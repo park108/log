@@ -16,14 +16,8 @@
 	margin-bottom: 1em;
 }
 
-.div--comment-visitor {
-	display: block;
-	padding-top: 1em;
-}
-
-.div--comment-admin {
-	display: block;
-	padding-top: 1em;
+.div--comment-item {
+	padding-top: 0.5em;
 }
 
 .div--comment-reply {
@@ -53,13 +47,26 @@
 	display: inline-block;
 	margin: 10px;
 }
+.div--comment-hidden {
+	max-width: 100%;
+	color: var(--sub-text-color);
+	font-style: italic;
+}
 
-.div--comment-visitor .div--comment-message {
+.div--comment-adminhidden {
+	max-width: calc(100% - 25px);
+}
+
+.div--comment-visitor {
 	background-color: rgb(217, 231, 241);
 }
 
-.div--comment-admin .div--comment-message {
+.div--comment-admin {
 	background-color: rgb(241, 221, 221);
+}
+
+.div--comment-reply .div--comment-message {
+	max-width: 100%;
 }
 
 .div--comment-replybutton {
@@ -105,6 +112,10 @@
 	resize: none;
 }
 
+.textarea--comment-reply {
+	text-align: right;
+}
+
 .input--comment-name {
 	font-family: 'Jeju Myeongjo', Helvetica;
 	display: block;
@@ -131,4 +142,10 @@
 .label--comment-hidden {
 	color: var(--sub-text-color);
 	font-size: var(--sub-font-size);
+}
+
+.div--comment-replyPosting {
+	height: 56px;
+	width: 100%;
+	text-align: center;
 }
