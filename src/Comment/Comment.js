@@ -10,6 +10,7 @@ const CommentForm = lazy(() => import('./CommentForm'));
 const Comment = (props) => {
 
 	const [comments, setComments] = useState([]);
+	const [buttonText, setButtonText] = useState("... comments");
 	const [isShow, setIsShow] = useState(false);
 
 	const logTimestamp = props.logTimestamp;
@@ -37,6 +38,14 @@ const Comment = (props) => {
 
 			log("Comments are FETCHED successfully.");
 
+			const count = newData.body.Items.length;
+			
+			// Set comment button text
+			1 < count ? setButtonText(count + " comments")
+				: 1 === count ?	setButtonText("1 comment")
+				: setButtonText("No comment");
+
+			// Set comment list
 			setComments(newData.body.Items);
 		}
 		catch(err) {
@@ -96,7 +105,7 @@ const Comment = (props) => {
 			className="span span--comment-togglebutton"
 			onClick={toggleComments}
 		>
-			{comments.length} Comments
+			{buttonText}
 		</span>
 		{commentThread}
 		{commentForm}

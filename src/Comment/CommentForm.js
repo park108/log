@@ -63,6 +63,7 @@ const CommentForm = (props) => {
 						}
 						value={message}
 						onChange={handleChangeComment}
+						autoFocus
 					/>
 					<input 
 						type="text"
