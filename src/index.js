@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import * as commonMonitor from './Monitor/commonMonitor';
-import { log } from './common';
+import { getUrl, log } from './common';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
@@ -65,6 +65,7 @@ function sendCounter() {
 
   // Make posting data
   const userAgentInfo = {
+    url: getUrl(),
     originalText: uaText,
     browser: browser,
     renderingEngine: renderingEngine,
