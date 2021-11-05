@@ -6,7 +6,10 @@ const VisitorMon = (props) => {
 
 	const [totalCount, setTotalCount] = useState("...");
 	const [dailyCount, setDailyCount] = useState([]);
-	const [userAgents, setUserAgents] = useState([]);
+	const [envTotalCount, setEnvTotalCount] = useState(0);
+	const [browsers, setBrowsers] = useState([]);
+	const [os, setOs] = useState([]);
+	const [engines, setEngines] = useState([]);
 
 	async function fetchData() {
 
@@ -34,6 +37,7 @@ const VisitorMon = (props) => {
 			let dailyCountList = [];
 			let startTimestamp = 0;
 			let endTimestamp = 0;
+			let max = 0;
 
 			for(let i = 0; i < 7; i++) {
 
@@ -45,12 +49,75 @@ const VisitorMon = (props) => {
 				for(let item of periodData) {
 					if(startTimestamp <= item.timestamp && item.timestamp < endTimestamp ) {
 						++dailyCountList[i].count;
+						if(max < dailyCountList[i].count) {
+							max = dailyCountList[i].count;
+						}
 					}
 				}
 			}
 
-			setUserAgents(periodData);
+			for(let item of dailyCountList) {
+				item.valueRate = item.count / max;
+			}
+
 			setDailyCount(dailyCountList);
+
+			// Analyze user agent
+			let browserList = [];
+			let osList = [];
+			let engineList = [];
+
+			let hasBrowser = false;
+			let hasOs = false
+			let hasEngine = false;
+
+			for(let item of periodData) {
+
+				// Set browser list
+				hasBrowser = false;
+				for(let browser of browserList) {
+					if(browser["name"].localeCompare(item.name)) {
+						++browser.count;
+						hasBrowser = true;
+						break;
+					}
+				}
+				if(!hasBrowser) {
+					browserList.push({"name": item.browser, "count": 1});
+				}
+
+				// Set os list
+				hasOs = false;
+				for(let os of osList) {
+					if(os["name"].localeCompare(item.name)) {
+						++os.count;
+						hasOs = true;
+						break;
+					}
+				}
+				if(!hasOs) {
+					osList.push({"name": item.operatingSystem, "count": 1});
+				}
+
+				// Set rendering engine list
+				hasEngine = false;
+				for(let engine of engineList) {
+					if(engine["name"].localeCompare(item.name)) {
+						++engine.count;
+						hasEngine = true;
+						break;
+					}
+				}
+				if(!hasEngine) {
+					engineList.push({"name": item.renderingEngine, "count": 1});
+				}
+			}
+
+			setEnvTotalCount(periodData.length);
+
+			setBrowsers(browserList);
+			setOs(osList);
+			setEngines(engineList);
 
 		}).catch(err => {
 			console.error(err);
@@ -61,33 +128,89 @@ const VisitorMon = (props) => {
 		fetchData();
 	}, []);
 
+	const CountPillar = (attr) => {
+
+		let blankHeight = {height: 100 * (1 - attr.valueRate) + "px"};
+		let valueHeight = {height: 100 * attr.valueRate + "px"};
+
+		return <div className="div div--monitor-7pillars" key={attr.date}>
+			<span style={blankHeight}>{attr.count}</span>
+			<div className="div div--monitor-pillar1" style={valueHeight}></div>
+			<div className="div div--monitor-pillarlegend" >{attr.date.substr(5, 5)}</div>
+		</div>
+	}
+
+	const EnvStack = (attr) => {
+
+		const r = Math.random() * 255;
+		const g = Math.random() * 255;
+		const b = Math.random() * 255;
+
+		const color = (r + g + b > 380) ? 'black' : 'white';
+
+		let stackStyle = {
+			height: 100 * (attr.count / envTotalCount) + "px",
+			color: color,
+			backgroundColor: 'rgb(' + r + ', ' + g + ', ' + b + ')'
+		};
+		
+		return <div className="div div--monitor-stackpillar" style={stackStyle} key={attr.name}>
+			<span>{(100 * (attr.count / envTotalCount)).toFixed(0) + ", "}</span>
+			<span>{attr.name}</span>
+		</div>
+	}
+
+	const EnvPillar = (attr) => {
+
+		return <div className="div div--monitor-3pillars">
+			{attr.data.map(item => (
+				<EnvStack
+					key={item.name}
+					name={item.name}
+					count={item.count}
+				/>
+			))}
+			<div className="div div--monitor-pillarlegend" >{attr.legend}</div>
+		</div>;
+	}
+
 	return <div className="div div--article-logitem">
 		<h4>Visitors</h4>
 		<div className="div div--monitor-item">
 			<div className="div div--monitor-subtitle">
-				<span className="span span--monitor-metric">Count = {totalCount}</span>
-
-				{dailyCount.map(data => (
-					<div key={data.date}>
-						<span>date={data.date}, </span>
-						<span>count={data.count}</span>
-					</div>
-				))}
+				<span className="span span--monitor-metric">Total Count = {totalCount}</span>
+			</div>
+			<div>
+			{dailyCount.map(data => (
+				<CountPillar
+					key={data.date}
+					date={data.date}
+					count={data.count}
+					valueRate={data.valueRate}
+				/>
+			))}
 			</div>
 		</div>
 		<div className="div div--monitor-item">
 			<div className="div div--monitor-subtitle">
-				<span className="span span--monitor-metric">User Environment</span>
-
-				{userAgents.map(data => (
-					<div key={data.timestamp}>
-						<span>date={data.date}, </span>
-						<span>time={data.time}, </span>
-						<span>browser={data.browser}, </span>
-						<span>operatingSystem={data.operatingSystem}, </span>
-						<span>renderingEngine={data.renderingEngine}</span>
-					</div>
-				))}
+				<span className="span span--monitor-metric">User Environment: {envTotalCount} cases</span>
+			</div>
+			<div>
+				<EnvPillar
+					legend="Browser"
+					length={envTotalCount}
+					data={browsers}
+				/>
+				<EnvPillar
+					legend="OS"
+					length={envTotalCount}
+					data={os}
+				/>
+				<EnvPillar
+					legend="Rendering Engine"
+					length={envTotalCount}
+					data={engines}
+				/>
 			</div>
 		</div>
 	</div>

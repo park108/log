@@ -1,0 +1,75 @@
+@import url(../App.css);
+
+.div--monitor-item {
+	margin-bottom: 0.5em;
+}
+
+.div--monitor-subtitle {
+	font-size: 0.8em;
+}
+
+.span--monitor-metric {
+	padding: 0.3em 0;
+	margin-right: 0.5em;
+	width: 15em;
+	display: inline-block;
+}
+
+.div--monitor-statusbar {
+	font-size: 0.8em;
+	height: 2em;
+}
+
+.span--monitor-bar {
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	text-align: center;
+	float: left;
+}
+
+.span--monitor-good {
+	color: var(--success-text-color);
+	background-color: var(--success-background-color);
+}
+
+.span--monitor-warn {
+	color: var(--warning-text-color);
+	background-color: var(--warning-background-color);
+}
+
+.span--monitor-poor {
+	color: var(--error-text-color);
+	background-color: var(--error-background-color);
+}
+
+.span--monitor-none {
+	background-color: var(--normal-background-color);
+}
+
+.div--monitor-7pillars {
+	font-size: 0.8em;
+	display: inline-block;
+	width: 14%;
+	text-align: center;
+}
+
+.div--monitor-3pillars {
+	font-size: 0.8em;
+	display: inline-block;
+	width: 33%;
+	text-align: center;
+}
+
+.div--monitor-pillar1 {
+	background-color: var(--error-background-color);
+	margin: 0 5%;
+}
+
+.div--monitor-stackpillar {
+	background-color: var(--warning-background-color);
+	margin: 0 5%;
+}
+
+.div--monitor-pillarlegend {
+	margin: 5px;
+}
