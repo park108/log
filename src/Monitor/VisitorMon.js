@@ -23,6 +23,7 @@ const VisitorMon = (props) => {
 		const res = await fetch(apiUrl);
 		
 		res.json().then(res => {
+			
 			log("Visitor information is FETCHED successfully.");
 			
 			setTotalCount(res.body.totalCount);
@@ -62,6 +63,7 @@ const VisitorMon = (props) => {
 			}
 
 			setDailyCount(dailyCountList);
+
 
 			// Analyze user agent
 			let browserList = [];
@@ -143,33 +145,40 @@ const VisitorMon = (props) => {
 		fetchData();
 	}, []);
 
+	const stackPallet = [
+		{color: "black", backgroundColor: "rgb(243, 129, 129)"},
+		{color: "black", backgroundColor: "rgb(248, 178, 134)"},
+		{color: "black", backgroundColor: "rgb(252, 227, 138)"},
+		{color: "black", backgroundColor: "rgb(243, 241, 173)"},
+		{color: "black", backgroundColor: "rgb(234, 255, 208)"},
+		{color: "black", backgroundColor: "rgb(190, 240, 210)"},
+		{color: "black", backgroundColor: "rgb(149, 225, 211)"},
+	];
+
 	const CountPillar = (attr) => {
 
 		let blankHeight = {height: 100 * (1 - attr.valueRate) + "px"};
-		let valueHeight = {height: 100 * attr.valueRate + "px"};
+		let pillarStyle = {
+			height: 100 * attr.valueRate + "px",
+			backgroundColor: stackPallet[attr.index].backgroundColor
+		};
 
 		return <div className="div div--monitor-7pillars" key={attr.date}>
 			<span style={blankHeight}>{attr.count}</span>
-			<div className="div div--monitor-pillar1" style={valueHeight}></div>
+			<div className="div div--monitor-pillar" style={pillarStyle}></div>
 			<div className="div div--monitor-pillarlegend" >{attr.date.substr(5, 5)}</div>
 		</div>
 	}
 
 	const EnvStack = (attr) => {
 
-		const r = Math.random() * 255;
-		const g = Math.random() * 255;
-		const b = Math.random() * 255;
-
-		const color = (r + g + b > 300) ? 'black' : '#cccccc';
-
 		let stackStyle = {
 			height: 100 * (attr.count / envTotalCount) + "px",
-			color: color,
-			backgroundColor: 'rgb(' + r + ', ' + g + ', ' + b + ')'
+			color: stackPallet[attr.totalCount - attr.index - 1].color,
+			backgroundColor: stackPallet[attr.totalCount - attr.index - 1].backgroundColor
 		};
 		
-		return <div className="div div--monitor-stackpillar" style={stackStyle} key={attr.name}>
+		return <div className="div div--monitor-pillar" style={stackStyle} key={attr.name}>
 			<div className="div div--monitor-stackvalue">
 				<span>{(100 * (attr.count / envTotalCount)).toFixed(0) + ", "}</span>
 				<span>{attr.name}</span>
@@ -179,17 +188,24 @@ const VisitorMon = (props) => {
 
 	const EnvPillar = (attr) => {
 
+		let index = 0;
+		let total = attr.data.length;
+
 		return <div className="div div--monitor-3pillars">
 			{attr.data.map(item => (
 				<EnvStack
 					key={item.name}
 					name={item.name}
 					count={item.count}
+					totalCount={total}
+					index={index++}
 				/>
 			))}
 			<div className="div div--monitor-pillarlegend" >{attr.legend}</div>
 		</div>;
 	}
+
+	let countPillarIndex = 0;
 
 	return <div className="div div--article-logitem">
 		<h4>Visitors</h4>
@@ -204,6 +220,7 @@ const VisitorMon = (props) => {
 					date={data.date}
 					count={data.count}
 					valueRate={data.valueRate}
+					index={countPillarIndex++}
 				/>
 			))}
 			</div>

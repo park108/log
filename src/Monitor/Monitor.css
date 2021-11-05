@@ -65,14 +65,8 @@
 	text-align: center;
 }
 
-.div--monitor-pillar1 {
-	background-color: var(--error-background-color);
-	margin: 0 5%;
-}
-
-.div--monitor-stackpillar {
-	background-color: var(--warning-background-color);
-	margin: 0 5%;
+.div--monitor-pillar {
+	margin: 0 10%;
 }
 
 .div--monitor-stackvalue {

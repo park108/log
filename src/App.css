@@ -30,13 +30,13 @@
   --shadow-color: #aaaaaa;
 
   --success-text-color: black;
-  --success-background-color: #559e4b;
+  --success-background-color: rgb(149, 225, 211);
 
-  --warning-text-color: #black;
-  --warning-background-color: #ffb24d;
+  --warning-text-color: black;
+  --warning-background-color: rgb(248, 178, 134);
 
   --error-text-color: black;
-  --error-background-color: #fd5c5c;
+  --error-background-color: rgb(243, 129, 129);
 }
 
 div#root {
