@@ -70,6 +70,14 @@
 	margin: 0 5%;
 }
 
+.div--monitor-stackvalue {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+
 .div--monitor-pillarlegend {
 	margin: 5px;
 }

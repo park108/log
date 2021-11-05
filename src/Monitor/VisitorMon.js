@@ -28,6 +28,7 @@ const VisitorMon = (props) => {
 			setTotalCount(res.body.totalCount);
 
 			let periodData = res.body.periodData.Items;
+			log(periodData);
 
 			for(let item of periodData) {
 				item.date = getFormattedDate(item.timestamp);
@@ -76,7 +77,7 @@ const VisitorMon = (props) => {
 				// Set browser list
 				hasBrowser = false;
 				for(let browser of browserList) {
-					if(browser["name"].localeCompare(item.name)) {
+					if(browser["name"] === item.browser) {
 						++browser.count;
 						hasBrowser = true;
 						break;
@@ -89,7 +90,7 @@ const VisitorMon = (props) => {
 				// Set os list
 				hasOs = false;
 				for(let os of osList) {
-					if(os["name"].localeCompare(item.name)) {
+					if(os["name"] === item.operatingSystem) {
 						++os.count;
 						hasOs = true;
 						break;
@@ -102,7 +103,7 @@ const VisitorMon = (props) => {
 				// Set rendering engine list
 				hasEngine = false;
 				for(let engine of engineList) {
-					if(engine["name"].localeCompare(item.name)) {
+					if(engine["name"] === item.renderingEngine) {
 						++engine.count;
 						hasEngine = true;
 						break;
@@ -112,6 +113,20 @@ const VisitorMon = (props) => {
 					engineList.push({"name": item.renderingEngine, "count": 1});
 				}
 			}
+
+			const countSort = (a, b) => {
+				const sortKeyA = a.count;
+				const sortKeyB = b.count;
+				const result
+					= (sortKeyA < sortKeyB) ? -1
+					: (sortKeyA > sortKeyB) ? 1
+					: 0;
+				return result;
+			}
+
+			browserList.sort(countSort);
+			osList.sort(countSort);
+			engineList.sort(countSort);
 
 			setEnvTotalCount(periodData.length);
 
@@ -146,7 +161,7 @@ const VisitorMon = (props) => {
 		const g = Math.random() * 255;
 		const b = Math.random() * 255;
 
-		const color = (r + g + b > 380) ? 'black' : 'white';
+		const color = (r + g + b > 300) ? 'black' : '#cccccc';
 
 		let stackStyle = {
 			height: 100 * (attr.count / envTotalCount) + "px",
@@ -155,8 +170,10 @@ const VisitorMon = (props) => {
 		};
 		
 		return <div className="div div--monitor-stackpillar" style={stackStyle} key={attr.name}>
-			<span>{(100 * (attr.count / envTotalCount)).toFixed(0) + ", "}</span>
-			<span>{attr.name}</span>
+			<div className="div div--monitor-stackvalue">
+				<span>{(100 * (attr.count / envTotalCount)).toFixed(0) + ", "}</span>
+				<span>{attr.name}</span>
+			</div>
 		</div>
 	}
 
