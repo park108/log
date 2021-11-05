@@ -16,7 +16,7 @@ describe('get URL by stage', () => {
   it("prod URL", () => {
     process.env.NODE_ENV = "production";
     const getUrl = common.getUrl();
-    expect(getUrl).toBe("https://park108.net/");
+    expect(getUrl).toBe("https://www.park108.net/");
   });
 });
 
