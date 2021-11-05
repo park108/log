@@ -211,6 +211,7 @@ export const userAgentParser = () => {
 	// Browser
 	let browser = uaText.indexOf("Firefox/") > -1? "Firefox"
 	  : uaText.indexOf("Seamonkey/") > -1 ? "Seamonkey"
+	  : uaText.indexOf("KAKAOTALK") > -1 ? "Kakaotalk"
 	  : uaText.indexOf("Chrome/") > -1 ? "Chrome"
 	  : uaText.indexOf("CriOS/") > -1 ? "Chrome"	  
 	  : uaText.indexOf("Chromium/") > -1 ? "Chromium"
