@@ -197,7 +197,7 @@ const VisitorMon = (props) => {
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">Total Count = {totalCount}</span>
 			</div>
-			<div>
+			<div className="div div--monitor-chart">
 			{dailyCount.map(data => (
 				<CountPillar
 					key={data.date}
@@ -212,7 +212,7 @@ const VisitorMon = (props) => {
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">User Environment: {envTotalCount} cases</span>
 			</div>
-			<div>
+			<div className="div div--monitor-chart">
 				<EnvPillar
 					legend="Browser"
 					length={envTotalCount}

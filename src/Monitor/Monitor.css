@@ -46,6 +46,11 @@
 	background-color: var(--normal-background-color);
 }
 
+.div--monitor-chart {
+	min-height: 136px;
+	margin-top: 9px;
+}
+
 .div--monitor-7pillars {
 	font-size: 0.8em;
 	display: inline-block;
