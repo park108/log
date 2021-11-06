@@ -4,7 +4,7 @@ import { isAdmin } from '../common';
 
 import './Monitor.css';
 
-const ApiMon = lazy(() => import('./ApiMon'));
+const LogMon = lazy(() => import('./LogMon'));
 const VisitorMon = lazy(() => import('./VisitorMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 
@@ -19,10 +19,10 @@ const Monitor = (props) => {
 			<VisitorMon />
 		</Suspense>
 		<Suspense fallback={<div></div>}>
-			<WebVitalsMon />
+			<LogMon />
 		</Suspense>
 		<Suspense fallback={<div></div>}>
-			<ApiMon />
+			<WebVitalsMon />
 		</Suspense>
 	</div>
 }
