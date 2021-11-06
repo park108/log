@@ -157,6 +157,21 @@ export function getFormattedTime(timestamp) {
 	return formattedTime;
 }
 
+export function getWeekday(timestamp) {
+
+	const time = new Date(timestamp);
+
+	const weekNo = time.getDay();
+
+	return 0 === weekNo ? "Sun"
+		: 1 === weekNo ? "Mon"
+		: 2 === weekNo ? "Tue"
+		: 3 === weekNo ? "Wed"
+		: 4 === weekNo ? "Thu"
+		: 5 === weekNo ? "Fri"
+		: "Sat";
+}
+
 export const confirm = (message = "", onConfirm, onCancel) => {
 
 	if (!onConfirm || typeof onConfirm !== "function") {

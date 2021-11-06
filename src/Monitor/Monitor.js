@@ -4,9 +4,19 @@ import { isAdmin } from '../common';
 
 import './Monitor.css';
 
-const LogMon = lazy(() => import('./LogMon'));
+const ContentMon = lazy(() => import('./ContentMon'));
 const VisitorMon = lazy(() => import('./VisitorMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
+
+const stackPallet = [
+	{color: "black", backgroundColor: "rgb(243, 129, 129)"},
+	{color: "black", backgroundColor: "rgb(248, 178, 134)"},
+	{color: "black", backgroundColor: "rgb(252, 227, 138)"},
+	{color: "black", backgroundColor: "rgb(243, 241, 173)"},
+	{color: "black", backgroundColor: "rgb(234, 255, 208)"},
+	{color: "black", backgroundColor: "rgb(190, 240, 210)"},
+	{color: "black", backgroundColor: "rgb(149, 225, 211)"},
+];
 
 const Monitor = (props) => {
 
@@ -16,13 +26,13 @@ const Monitor = (props) => {
 
 	return <div className="div div--main-contents">
 		<Suspense fallback={<div></div>}>
-			<VisitorMon />
+			<VisitorMon stackPallet={stackPallet} />
 		</Suspense>
 		<Suspense fallback={<div></div>}>
-			<LogMon />
+			<ContentMon stackPallet={stackPallet} />
 		</Suspense>
 		<Suspense fallback={<div></div>}>
-			<WebVitalsMon />
+			<WebVitalsMon stackPallet={stackPallet} />
 		</Suspense>
 	</div>
 }

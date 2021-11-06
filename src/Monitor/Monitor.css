@@ -65,6 +65,13 @@
 	text-align: center;
 }
 
+.div--monitor-5pillars {
+	font-size: 0.8em;
+	display: inline-block;
+	width: 20%;
+	text-align: center;
+}
+
 .div--monitor-pillar {
 	margin: 0 10%;
 }

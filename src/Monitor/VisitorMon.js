@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { log, getFormattedDate, getFormattedTime } from "../common";
+import { log, getFormattedDate, getFormattedTime, getWeekday } from "../common";
 import * as commonMonitor from './commonMonitor';
 
 const VisitorMon = (props) => {
@@ -10,6 +10,8 @@ const VisitorMon = (props) => {
 	const [browsers, setBrowsers] = useState([]);
 	const [os, setOs] = useState([]);
 	const [engines, setEngines] = useState([]);
+
+	const stackPallet = props.stackPallet;
 
 	async function fetchData() {
 
@@ -46,7 +48,7 @@ const VisitorMon = (props) => {
 				startTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * i);
 				endTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * (i + 1));
 
-				dailyCountList.push({"date": getFormattedDate(startTimestamp), "count": 0});
+				dailyCountList.push({"date": getFormattedDate(startTimestamp) + " (" + getWeekday(startTimestamp) +")", "count": 0});
 
 				for(let item of periodData) {
 					if(startTimestamp <= item.timestamp && item.timestamp < endTimestamp ) {
@@ -145,20 +147,15 @@ const VisitorMon = (props) => {
 		fetchData();
 	}, []);
 
-	const stackPallet = [
-		{color: "black", backgroundColor: "rgb(243, 129, 129)"},
-		{color: "black", backgroundColor: "rgb(248, 178, 134)"},
-		{color: "black", backgroundColor: "rgb(252, 227, 138)"},
-		{color: "black", backgroundColor: "rgb(243, 241, 173)"},
-		{color: "black", backgroundColor: "rgb(234, 255, 208)"},
-		{color: "black", backgroundColor: "rgb(190, 240, 210)"},
-		{color: "black", backgroundColor: "rgb(149, 225, 211)"},
-	];
-
 	const CountPillar = (attr) => {
 
-		let blankHeight = {height: 100 * (1 - attr.valueRate) + "px"};
-		let pillarStyle = {
+		const legend = 0 === attr.index ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
+			: "01" === attr.date.substr(8, 2) ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
+			: attr.date.substr(8, 8);
+
+		const blankHeight = {height: 100 * (1 - attr.valueRate) + "px"};
+
+		const pillarStyle = {
 			height: 100 * attr.valueRate + "px",
 			backgroundColor: stackPallet[attr.index].backgroundColor
 		};
@@ -166,7 +163,7 @@ const VisitorMon = (props) => {
 		return <div className="div div--monitor-7pillars" key={attr.date}>
 			<span style={blankHeight}>{attr.count}</span>
 			<div className="div div--monitor-pillar" style={pillarStyle}></div>
-			<div className="div div--monitor-pillarlegend" >{attr.date.substr(5, 5)}</div>
+			<div className="div div--monitor-pillarlegend" >{legend}</div>
 		</div>
 	}
 
@@ -208,7 +205,7 @@ const VisitorMon = (props) => {
 	let countPillarIndex = 0;
 
 	return <div className="div div--article-logitem">
-		<h4>Visitors</h4>
+		<h4>Visitors in 7 days</h4>
 		<div className="div div--monitor-item">
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">Total Count = {totalCount}</span>
