@@ -31,7 +31,6 @@ const VisitorMon = (props) => {
 			setTotalCount(res.body.totalCount);
 
 			let periodData = res.body.periodData.Items;
-			log(periodData);
 
 			for(let item of periodData) {
 				item.date = getFormattedDate(item.timestamp);
@@ -149,6 +148,14 @@ const VisitorMon = (props) => {
 
 	const CountPillar = (attr) => {
 
+		const palletIndex = 6/7 < attr.valueRate ? 0
+			: 5/7 < attr.valueRate ? 1
+			: 4/7 < attr.valueRate ? 2
+			: 3/7 < attr.valueRate ? 3
+			: 2/7 < attr.valueRate ? 4
+			: 1/7 < attr.valueRate ? 5
+			: 6;
+
 		const legend = 0 === attr.index ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
 			: "01" === attr.date.substr(8, 2) ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
 			: attr.date.substr(8, 8);
@@ -157,7 +164,7 @@ const VisitorMon = (props) => {
 
 		const pillarStyle = {
 			height: 100 * attr.valueRate + "px",
-			backgroundColor: stackPallet[attr.index].backgroundColor
+			backgroundColor: stackPallet[palletIndex].backgroundColor
 		};
 
 		return <div className="div div--monitor-7pillars" key={attr.date}>

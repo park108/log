@@ -4,8 +4,8 @@ import { isAdmin } from '../common';
 
 import './Monitor.css';
 
-const ContentMon = lazy(() => import('./ContentMon'));
 const VisitorMon = lazy(() => import('./VisitorMon'));
+const ContentMon = lazy(() => import('./ContentMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 
 const stackPallet = [
