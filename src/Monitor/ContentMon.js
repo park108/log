@@ -168,7 +168,7 @@ const ContentMon = (props) => {
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">Logs</span>
 			</div>
-			<div className="div div--monitor-chart">
+			<div className="div div--monitor-pillarchart">
 				{logCount.map(item =>(
 					<Pillars
 						key={item.from}
@@ -184,7 +184,7 @@ const ContentMon = (props) => {
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">Comments</span>
 			</div>
-			<div className="div div--monitor-chart">
+			<div className="div div--monitor-pillarchart">
 				{commentCount.map(item =>(
 					<Pillars
 						key={item.from}

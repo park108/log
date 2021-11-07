@@ -177,7 +177,7 @@ const VisitorMon = (props) => {
 	const EnvStack = (attr) => {
 
 		let stackStyle = {
-			height: 100 * (attr.count / envTotalCount) + "px",
+			height: 200 * (attr.count / envTotalCount) + "px",
 			color: stackPallet[attr.totalCount - attr.index - 1].color,
 			backgroundColor: stackPallet[attr.totalCount - attr.index - 1].backgroundColor
 		};
@@ -217,7 +217,7 @@ const VisitorMon = (props) => {
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">Total Count = {totalCount}</span>
 			</div>
-			<div className="div div--monitor-chart">
+			<div className="div div--monitor-pillarchart">
 			{dailyCount.map(data => (
 				<CountPillar
 					key={data.date}
@@ -233,7 +233,7 @@ const VisitorMon = (props) => {
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">User Environment: {envTotalCount} cases</span>
 			</div>
-			<div className="div div--monitor-chart">
+			<div className="div div--monitor-stackchart">
 				<EnvPillar
 					legend="Browser"
 					length={envTotalCount}

@@ -222,7 +222,9 @@ export const userAgentParser = () => {
 
 	let uaText = navigator.userAgent;
   
-	// Parser reference: https://developer.mozilla.org/ko/docs/Web/HTTP/Browser_detection_using_the_user_agent
+	// Parser reference
+	// 1. https://developer.mozilla.org/ko/docs/Web/HTTP/Browser_detection_using_the_user_agent
+	// 2. https://developers.whatismybrowser.com/useragents/explore
 	// Browser
 	let browser = uaText.indexOf("Firefox/") > -1? "Firefox"
 	  : uaText.indexOf("Seamonkey/") > -1 ? "Seamonkey"

@@ -46,9 +46,12 @@
 	background-color: var(--normal-background-color);
 }
 
-.div--monitor-chart {
-	min-height: 136px;
-	margin-top: 9px;
+.div--monitor-pillarchart {
+	min-height: 150px;
+}
+
+.div--monitor-stackchart {
+	min-height: 230px;
 }
 
 .div--monitor-7pillars {
