@@ -33,13 +33,17 @@ const LogItem = (props) => {
 			log("The log is FETCHED successfully.");
 
 			setIsLoading(false);
+			log(res);
 
-			if(res.body.Count > 0) {
+			// Page not found
+			if(undefined !== res.errorType || 0 === res.body.Count) {
+				setHasItem(2);
+			}
+
+			// Set log item data
+			else {
 				setLogItem(res.body.Items[0]);
 				setHasItem(1);
-			}
-			else {
-				setHasItem(2);
 			}
 		}).catch(err => {
 			console.error(err);
