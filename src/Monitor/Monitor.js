@@ -20,11 +20,13 @@ const stackPallet = [
 
 const Monitor = (props) => {
 
+	const contentHeight = props.contentHeight;
+
 	if(!isAdmin()) {
 		return <Redirect to="/log" />;
 	}
 
-	return <div className="div div--main-contents" role="application">
+	return <div className="div div--main-contents" style={contentHeight} role="application">
 		<Suspense fallback={<div></div>}>
 			<ContentMon stackPallet={stackPallet} />
 		</Suspense>

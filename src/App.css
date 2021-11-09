@@ -39,11 +39,6 @@
   --error-background-color: rgb(243, 129, 129);
 }
 
-html {
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  min-height: -moz-available;
-}
 div#root {
   max-width: 800px;
 }
@@ -206,7 +201,6 @@ pre {
 }
 
 .div--main-contents {
-  min-height: calc(100vh - 57px - 80px);
   margin-left: 0em;
   margin-right: 0em;
 }

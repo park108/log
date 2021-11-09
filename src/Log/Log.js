@@ -20,6 +20,8 @@ const Log = (props) => {
 	const history = useHistory();
 	const location = useLocation();
 
+	const contentHeight = props.contentHeight;
+	
 	const handlePostSubmit = (contents) => {
 
 		setIsPostSuccess(false);
@@ -101,7 +103,7 @@ const Log = (props) => {
 	</Link> : null;
 
 	return (
-		<div className="div div--main-contents" role="application">
+		<div className="div div--main-contents" style={contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
 				<Switch>
 					<Route exact path="/log">

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import * as common from './common';
 import './App.css';
@@ -12,6 +12,20 @@ const Footer = lazy(() => import('./Footer'));
   
 const App = () => {
 
+	const [contentHeight, setContentHeight] = useState();
+
+	const handleOnresize = (e) => {
+		if(undefined !== e) {
+			e.preventDefault();
+		}
+		setContentHeight({
+			minHeight: (window.innerHeight - 57 - 80) + "px"
+		});
+	}
+
+	useEffect(() => handleOnresize(), []);
+	window.onresize = handleOnresize;
+
 	common.auth();
 
 	if("/" === window.location.pathname) {
@@ -19,7 +33,7 @@ const App = () => {
 	}
 
 	const NoMatch = () => (
-		<div className="div div--main-contents">
+		<div className="div div--main-contents" style={contentHeight}>
 			<PageNotFound/>
 		</div>
 	);
@@ -29,9 +43,15 @@ const App = () => {
 			<Suspense fallback={<div></div>}>
 				<Navigation />
 				<Switch>
-					<Route path="/log" component={Log} />
-					<Route path="/file" component={File} />
-					<Route path="/monitor" component={Monitor} />
+					<Route path="/log">
+						<Log contentHeight={contentHeight} />
+					</Route>
+					<Route path="/file">
+						 <File contentHeight={contentHeight} />
+					</Route>
+					<Route path="/monitor">
+						<Monitor contentHeight={contentHeight} />
+					</Route>
 					<Route component={NoMatch} />
 				</Switch>
 				<Footer />

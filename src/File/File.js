@@ -17,6 +17,8 @@ const File = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
+	const contentHeight = props.contentHeight;
+
 	const fetchData = async () => {
 
 		setIsLoading(true);
@@ -53,7 +55,7 @@ const File = (props) => {
 	}
 	else {
 		return (
-			<div className="div div--main-contents" role="application">
+			<div className="div div--main-contents" style={contentHeight} role="application">
 				{
 					// for test
 					isMobile()
