@@ -39,8 +39,10 @@
   --error-background-color: rgb(243, 129, 129);
 }
 
-div#root {
+html {
   min-height: 100vh;
+}
+div#root {
   max-width: 800px;
 }
 

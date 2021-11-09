@@ -54,11 +54,6 @@ const File = (props) => {
 	else {
 		return (
 			<div className="div div--main-contents" role="application">
-				<Toaster 
-					show={isShowToaster}
-					message={toasterMessage}
-					completed={() => setIsShowToaster(0)}
-				/>
 				{
 					// for test
 					isMobile()
@@ -79,6 +74,11 @@ const File = (props) => {
 						/>
 					))}
 				</div>
+				<Toaster 
+					show={isShowToaster}
+					message={toasterMessage}
+					completed={() => setIsShowToaster(0)}
+				/>
 			</div>
 		);
 	}
