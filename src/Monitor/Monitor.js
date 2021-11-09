@@ -24,12 +24,12 @@ const Monitor = (props) => {
 		return <Redirect to="/log" />;
 	}
 
-	return <div className="div div--main-contents">
-		<Suspense fallback={<div></div>}>
-			<VisitorMon stackPallet={stackPallet} />
-		</Suspense>
+	return <div className="div div--main-contents" role="application">
 		<Suspense fallback={<div></div>}>
 			<ContentMon stackPallet={stackPallet} />
+		</Suspense>
+		<Suspense fallback={<div></div>}>
+			<VisitorMon stackPallet={stackPallet} />
 		</Suspense>
 		<Suspense fallback={<div></div>}>
 			<WebVitalsMon stackPallet={stackPallet} />

@@ -95,6 +95,55 @@ blockquote:before {
   margin: -5px 10px 0px -10px;
 }
 
+code {
+  border-radius: 3px;
+  color: darkorange;
+}
+
+pre {
+  background-color: #eeeeee;
+  border-radius: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.p {
+  line-height: 2em;
+}
+
+.li {
+  display: inline-block;
+  cursor: pointer;
+  padding-top: 0.75em;
+  padding-bottom: 0.75em;
+  padding-left: 0.75em;
+  padding-right: 0.75em;
+}
+
+.button {
+  font-family: 'Jeju Myeongjo', Helvetica;
+  width: 100%;
+  color: var(--normal-text-color);
+  border: 1px;
+  border-style: solid;
+  border-color: var(--normal-border-color);
+  background-color: var(--normal-contents-background-color);
+  font-size: 1em;
+  transition: 0.3s ease;
+}
+
+.button:hover {
+  border-color: var(--hover-border-color);
+  background-color: rgb(255, 255, 210);
+  transition: 0.3s ease;
+}
+
+.button:active {
+  color: var(--active-text-color);
+  border-color: var(--active-border-color);
+  background-color: var(--active-background-color);
+}
+
 .div--nav-bar {
   padding-top: 1em;
   margin-left: 1em;
@@ -110,15 +159,6 @@ blockquote:before {
 
 .ul--nav-tabs a {
   text-decoration: none;
-}
-
-.li {
-  display: inline-block;
-  cursor: pointer;
-  padding-top: 0.75em;
-  padding-bottom: 0.75em;
-  padding-left: 0.75em;
-  padding-right: 0.75em;
 }
 
 .li--nav-title {
@@ -167,166 +207,7 @@ blockquote:before {
   margin-right: 0em;
 }
 
-.textarea {
-  font-family: 'Jeju Myeongjo', Helvetica;
-  width: 100%;
-
-  outline: none;
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-}
-
-.textarea--writer-article {
-  font-size: 1em;
-  line-height: 2em;
-  box-sizing: border-box;
-  width: calc(50%);
-  height: auto;
-  margin: 0 0 0 0;
-  padding: 26px 5px 10px 5px;
-  border-width: 0 1px 0 0;
-  border-color: var(--normal-border-color);
-  overflow: hidden;
-  resize: none;
-}
-
-.div--writer-converted {
-  font-size: 1em;
-  width: calc(50% - 11px);
-  line-height: 2em;
-  float: right;
-  margin: 0 0 0 0;
-  padding: 10px 5px 10px 6px;
-  word-wrap: break-word;
-  vertical-align: top;
-  background-color: var(--normal-contents-background-color);
-}
-
-.div--writer-converted a {
-  text-decoration: underline;
-}
-
-.div--writer-converted img {
-  width: 100%;
-  object-fit: scale-down;
-}
-
-.div--writer-statusbar {
-  width: 100%;
-  font-size: 0.8em;
-  padding: 10px 0;
-  border-style: solid;
-  border-width: 0 0 1px 0;
-  border-color: var(--normal-border-color);
-}
-
-.span--writer-statusbaritem {
-  padding-left: 1em;
-}
-
-.span--writer-statusbaritemright {
-  float: right;
-  padding-right: 1em;
-}
-
-.span--writer-statusbarbutton {
-  cursor: pointer;
-  float: right;
-  padding-right: 1em;
-}
-
-.div--writer-archive {
-  max-width: 100%;
-}
-
-.div--writer-archivetitle {
-  max-width: 100%;
-  font-size: 1.5em;
-  text-align: center;
-  vertical-align: middle;
-}
-
-.div--image-selector {
-  z-index: 100;
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  height: 90px;
-  border-style: solid;
-  border-width: 0 0 1px 0;
-  border-color: var(--normal-border-color);
-}
-
-.div--image-selectorhide {
-  display: none;
-  visibility: hidden;
-}
-
-.img--image-imageitem {
-  max-width: 50%;
-  height: auto;
-  float: right;
-  cursor: pointer;
-}
-
-.button {
-  font-family: 'Jeju Myeongjo', Helvetica;
-  width: 100%;
-  color: var(--normal-text-color);
-  border: 1px;
-  border-style: solid;
-  border-color: var(--normal-border-color);
-  background-color: var(--normal-contents-background-color);
-  font-size: 1em;
-  transition: 0.3s ease;
-}
-
-.button:hover {
-  border-color: var(--hover-border-color);
-  background-color: rgb(255, 255, 210);
-  transition: 0.3s ease;
-}
-
-.button:active {
-  color: var(--active-text-color);
-  border-color: var(--active-border-color);
-  background-color: var(--active-background-color);
-}
-
-.button--writer-submit {
-  margin-top: 1em;
-  height: 3em;
-  margin-bottom: 1em;
-}
-
-.button--logs-newlog {
-  font-size: 1em;
-  font-weight: bold;
-
-  position: fixed;
-  bottom: 3em;
-  left: calc(100% - 6em);
-
-  width: 3em;
-  height: 3em;
-  color: var(--normal-text-color);
-  background-color: var(--normal-background-color);
-  border-radius: 1.5em;
-}
-
-.button--logs-seemore {
-  margin-top: 2em;
-  margin-left: auto;
-  margin-right: auto;
-  width: 10em;
-  display: block;
-  border-radius: 1.5em;
-  height: 3em;
-  cursor: pointer;
-}
-
-.div--article-logitem {
+.div--main-item {
   padding: 1em 1em 2em 1em;
   margin-bottom: 2em;
   background-color: var(--normal-contents-background-color);
@@ -335,95 +216,14 @@ blockquote:before {
   border-color: var(--normal-border-color);
 }
 
-.p {
-  line-height: 2em;
-}
-
-.p--article-main {
-  word-wrap: break-word;
-}
-
-.p--article-main a {
-  text-decoration: underline;
-}
-
-.p--article-main img {
-  object-fit: scale-down;
+.textarea {
+  font-family: 'Jeju Myeongjo', Helvetica;
   width: 100%;
-  height: 100%;
-}
 
-code {
-  border-radius: 3px;
-  color: darkorange;
-}
-
-pre {
-  background-color: #eeeeee;
-  border-radius: 5px;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.div--article-info {
-  display: block;
-  font-size: var(--sub-font-size);
-  color: var(--sub-text-color);
-}
-
-.h1--article-title {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-  font-size: 1.4em;
-  color: var(--normal-text-color);
-}
-
-.div--article-toolbar {
-  float: right;
-  padding: 0;
-  margin: 0;
-}
-
-.span--article-toolbarblank {
-  padding-left: 0.5em;
-}
-
-.span--article-toolbarmenu {
-  color: var(--sub-text-color);
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.span--article-toolbarmenu:hover {
-  color: var(--normal-text-color);
-  text-shadow: 0px 0px 3px var(--shadow-color);
-}
-
-.span--article-toolbaricon {
-  display: inline-block;
-  cursor: pointer;
-}
-
-.span--article-toolbaricon path {
-  fill: #999999;
-}
-
-
-.span--article-toolbaricon:hover path {
-  fill: black;
-}
-
-.span--article-separator {
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-}
-
-.div--article-delete {
-  color: var(--normal-contents-background-color);
-  transition: color 0.5s ease;
+  outline: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
 }
 
 .div--footer {
@@ -441,222 +241,8 @@ pre {
 .span--footer-left {
   float:left;
 }
+
 .span--footer-right {
   float:right;
   padding-left: 0.5em;
-}
-
-.div--files-loading {
-  width: 100%;
-  height: 10em;
-  margin-top: 5em;
-  margin-bottom: 5em;
-  text-align: center;
-}
-
-.div--filedrop-filename {
-  color: var(--normal-text-color);
-  font-weight: normal;
-  margin-top: 1em;
-}
-
-.div--filedrop-dropzone {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 1em;
-  padding-top: 4em;
-  padding-bottom: 4em;
-  border-width: 3px;
-  width :100%;
-}
-
-.div--filedrop-ready {
-  color: var(--normal-text-color);
-  background-color: var(--normal-background-color);
-  border-style: dashed;
-}
-
-.div--filedrop-dragenter {
-  color: var(--warning-text-color);
-  background-color: var(--warning-background-color);
-  border-style: solid;
-}
-
-.div--filedrop-uploading {
-  color: var(--error-text-color);
-  background-color: var(--error-background-color);
-  border-style: solid;
-}
-
-.div--filedrop-complete {
-  color: var(--success-text-color);
-  background-color: var(--success-background-color);
-  border-style: solid;
-}
-
-.div--fileupload-input {
-  text-align: center;
-  margin-top: 1em;
-  padding-top: 2em;
-  padding-bottom: 2em;
-  width: 100%;
-}
-
-.div--files-list {
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-
-.div--fileitem {
-  background-color: var(--normal-contents-background-color);
-  border-width: 0px 0px 1px 0px;
-  border-style: solid;
-  border-color: var(--normal-border-color);
-  overflow-y: auto;
-}
-
-.div--fileitem-fileinfo {
-  padding: 0.5em 1em;
-  height: 1em;
-}
-
-.div--fileitem-filename {
-  float: left;
-  min-width: 20%;
-  text-decoration: underline; 
-  cursor: pointer;
-}
-
-.div--fileitem-statusbar {
-  font-size: var(--sub-font-size);
-  float: right;
-  color: #666666;
-}
-
-.span--fileitem-lastmodified {
-  margin-right: 1em;
-}
-
-.span-fileitem-toolbar {
-  float:right;
-  padding: 0;
-  margin: 0;
-  margin-bottom: 1em;
-}
-
-.span--fileitem-separator {
-  color: var(--sub-text-color);
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-}
-
-.span--fileitem-delete {
-  margin-left: 1em;
-  cursor: pointer;
-}
-
-.span--fileitem-copyurl {
-  margin-right: 1em;
-  cursor: pointer;
-}
-
-.div--fileitem-delete {
-  color: var(--normal-background-color);
-  background-color: var(--normal-background-color);
-  transition: color 0.5s ease;
-}
-
-.div--fileitem-filedetailhide {
-  display: none;
-}
-
-.div--fileitem-filedetail {
-  padding: 0.5em 1em;
-  height: 1em;
-  color: var(--sub-text-color);
-}
-
-.div--fileitem-type {
-  float: left;
-  min-width: 50%;
-  height: 1em;
-  margin-right: 1em;
-}
-
-.div--fileitem-size {
-  float: right;
-  height: 1em;
-  margin-right: 1em;
-}
-
-.div--toaster-information {
-  color: var(--normal-text-color);
-  background-color: var(--normal-background-color);
-  font-weight: bold;
-  opacity: 0.8;
-
-  z-index: 10000;
-}
-
-.div--toaster-success {
-  color: var(--success-text-color);
-  background-color: var(--success-background-color);
-  font-weight: bold;
-  opacity: 1;
-
-  z-index: 10000;
-}
-
-.div--toaster-warning {
-  color: var(--warning-text-color);
-  background-color: var(--warning-background-color);
-  font-weight: bold;
-  opacity: 1;
-
-  z-index: 10000;
-}
-
-.div--toaster-error {
-  color: var(--error-text-color);
-  background-color: var(--error-background-color);
-  font-weight: bold;
-  opacity: 1;
-
-  z-index: 10000;
-}
-
-.div--toaster-center {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translateX(-50%);
-  overflow: hidden;
-
-  box-shadow: 5px 5px 10px var(--shadow-color);
-
-  padding: 1em 1em;
-  border-radius: 10px;
-}
-
-.div--toaster-bottom {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  height: 1em;
-  width: 100%;
-  overflow: hidden;
-
-  box-shadow: -20px 0px 20px var(--shadow-color);
-
-  padding: 1em 1em;
-}
-
-.div--toaster-fadeout {
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.div--toaster-hide {
-  display: none;
-  visibility: hidden;
 }

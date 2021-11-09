@@ -7,6 +7,8 @@ import FileItem from './FileItem';
 import FileDrop from './FileDrop';
 import FileUpload from "./FileUpload";
 
+import './File.css';
+
 const File = (props) => {
 
 	const [files, setFiles] = useState([]);
@@ -51,7 +53,7 @@ const File = (props) => {
 	}
 	else {
 		return (
-			<div className="div div--main-contents">
+			<div className="div div--main-contents" role="application">
 				<Toaster 
 					show={isShowToaster}
 					message={toasterMessage}
@@ -67,7 +69,7 @@ const File = (props) => {
 						uploaded={fetchData}
 					/>
 				}
-				<div className="div div--files-list">
+				<div className="div div--files-list" role="list">
 					{files.map(data => (				
 						<FileItem
 							key={data.Key}

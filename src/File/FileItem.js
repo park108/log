@@ -144,7 +144,7 @@ const FileItem = (props) => {
 	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
 
 	return (
-		<div className={itemClass}>
+		<div className={itemClass} role="listitem">
 			<div className="div div--fileitem-fileinfo">
 				<FileName />
 				<div className="div div--fileitem-statusbar">

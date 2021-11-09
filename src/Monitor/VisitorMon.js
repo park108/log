@@ -146,6 +146,8 @@ const VisitorMon = (props) => {
 		fetchData();
 	}, []);
 
+	const pillarHeight = 80;
+
 	const CountPillar = (attr) => {
 
 		const palletIndex = 6/7 < attr.valueRate ? 0
@@ -160,10 +162,10 @@ const VisitorMon = (props) => {
 			: "01" === attr.date.substr(8, 2) ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
 			: attr.date.substr(8, 8);
 
-		const blankHeight = {height: 100 * (1 - attr.valueRate) + "px"};
+		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
 
 		const pillarStyle = {
-			height: 100 * attr.valueRate + "px",
+			height: pillarHeight * attr.valueRate + "px",
 			backgroundColor: stackPallet[palletIndex].backgroundColor
 		};
 
@@ -184,8 +186,8 @@ const VisitorMon = (props) => {
 		
 		return <div className="div div--monitor-pillar" style={stackStyle} key={attr.name}>
 			<div className="div div--monitor-stackvalue">
-				<span>{(100 * (attr.count / envTotalCount)).toFixed(0) + ", "}</span>
-				<span>{attr.name}</span>
+				<span>{attr.name}, </span>
+				<span>{(100 * (attr.count / envTotalCount)).toFixed(0)}</span>				
 			</div>
 		</div>
 	}
@@ -211,11 +213,11 @@ const VisitorMon = (props) => {
 
 	let countPillarIndex = 0;
 
-	return <div className="div div--article-logitem">
-		<h4>Visitors in 7 days</h4>
+	return <div className="div div--main-item">
+		<h4>Visitors in the last 7 days</h4>
 		<div className="div div--monitor-item">
 			<div className="div div--monitor-subtitle">
-				<span className="span span--monitor-metric">Total Count = {totalCount}</span>
+				<span className="span span--monitor-metric">Total Count: {totalCount}</span>
 			</div>
 			<div className="div div--monitor-pillarchart">
 			{dailyCount.map(data => (
@@ -255,4 +257,3 @@ const VisitorMon = (props) => {
 }
 
 export default VisitorMon;
-

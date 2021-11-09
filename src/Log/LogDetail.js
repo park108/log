@@ -11,7 +11,7 @@ const Comment = lazy(() => import('../Comment/Comment'));
 const LogDetail = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [itemClass, setItemClass] = useState("div div--article-logitem");
+	const [itemClass, setItemClass] = useState("div div--main-item");
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
 
@@ -24,10 +24,10 @@ const LogDetail = (props) => {
 
 	useEffect(() => {
 		if(isDeleting) {
-			setItemClass("div div--article-logitem div--article-delete");
+			setItemClass("div div--main-item div--article-delete");
 		}
 		else {
-			setItemClass("div div--article-logitem");
+			setItemClass("div div--main-item");
 		}
 	}, [isDeleting]);
 

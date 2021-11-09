@@ -1,0 +1,144 @@
+@import url(../App.css);
+
+.div--files-loading {
+  width: 100%;
+  height: 10em;
+  margin-top: 5em;
+  margin-bottom: 5em;
+  text-align: center;
+}
+
+.div--filedrop-filename {
+  color: var(--normal-text-color);
+  font-weight: normal;
+  margin-top: 1em;
+}
+
+.div--filedrop-dropzone {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 1em;
+  padding-top: 4em;
+  padding-bottom: 4em;
+  border-width: 3px;
+  width :100%;
+}
+
+.div--filedrop-ready {
+  color: var(--normal-text-color);
+  background-color: var(--normal-background-color);
+  border-style: dashed;
+}
+
+.div--filedrop-dragenter {
+  color: var(--warning-text-color);
+  background-color: var(--warning-background-color);
+  border-style: solid;
+}
+
+.div--filedrop-uploading {
+  color: var(--error-text-color);
+  background-color: var(--error-background-color);
+  border-style: solid;
+}
+
+.div--filedrop-complete {
+  color: var(--success-text-color);
+  background-color: var(--success-background-color);
+  border-style: solid;
+}
+
+.div--fileupload-input {
+  text-align: center;
+  margin-top: 1em;
+  padding-top: 2em;
+  padding-bottom: 2em;
+  width: 100%;
+}
+
+.div--files-list {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.div--fileitem {
+  background-color: var(--normal-contents-background-color);
+  border-width: 0px 0px 1px 0px;
+  border-style: solid;
+  border-color: var(--normal-border-color);
+  overflow-y: auto;
+}
+
+.div--fileitem-fileinfo {
+  padding: 0.5em 1em;
+  height: 1em;
+}
+
+.div--fileitem-filename {
+  float: left;
+  min-width: 20%;
+  text-decoration: underline; 
+  cursor: pointer;
+}
+
+.div--fileitem-statusbar {
+  font-size: var(--sub-font-size);
+  float: right;
+  color: #666666;
+}
+
+.span--fileitem-lastmodified {
+  margin-right: 1em;
+}
+
+.span-fileitem-toolbar {
+  float:right;
+  padding: 0;
+  margin: 0;
+  margin-bottom: 1em;
+}
+
+.span--fileitem-separator {
+  color: var(--sub-text-color);
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.span--fileitem-delete {
+  margin-left: 1em;
+  cursor: pointer;
+}
+
+.span--fileitem-copyurl {
+  margin-right: 1em;
+  cursor: pointer;
+}
+
+.div--fileitem-delete {
+  color: var(--normal-background-color);
+  background-color: var(--normal-background-color);
+  transition: color 0.5s ease;
+}
+
+.div--fileitem-filedetailhide {
+  display: none;
+}
+
+.div--fileitem-filedetail {
+  padding: 0.5em 1em;
+  height: 1em;
+  color: var(--sub-text-color);
+}
+
+.div--fileitem-type {
+  float: left;
+  min-width: 50%;
+  height: 1em;
+  margin-right: 1em;
+}
+
+.div--fileitem-size {
+  float: right;
+  height: 1em;
+  margin-right: 1em;
+}

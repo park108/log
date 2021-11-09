@@ -131,6 +131,8 @@ const ContentMon = (props) => {
 		fetchCommentCount();
 	}, []);
 
+	const pillarHeight = 80;
+
 	const Pillars = (attr) => {
 
 		const palletIndex = 6/7 < attr.valueRate ? 0
@@ -145,10 +147,10 @@ const ContentMon = (props) => {
 			: "01" === attr.date.substr(5, 2) ? "'" + attr.date.substr(2, 2) + "." + attr.date.substr(5, 2)
 			: attr.date.substr(5, 2);
 
-		const blankHeight = {height: 100 * (1 - attr.valueRate) + "px"};
+		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
 
 		const pillarStyle = {
-			height: 100 * attr.valueRate + "px",
+			height: pillarHeight * attr.valueRate + "px",
 			backgroundColor: stackPallet[palletIndex].backgroundColor
 		};
 
@@ -162,8 +164,8 @@ const ContentMon = (props) => {
 	let logsPillarIndex = 0;
 	let commentsPillarIndex = 0;
 
-	return <div className="div div--article-logitem">
-		<h4>Contents in 6 months</h4>
+	return <div className="div div--main-item">
+		<h4>Contents in the last 6 months</h4>
 		<div className="div div--monitor-item">
 			<div className="div div--monitor-subtitle">
 				<span className="span span--monitor-metric">Logs</span>

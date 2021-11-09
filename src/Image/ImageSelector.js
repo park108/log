@@ -3,6 +3,8 @@ import { log } from '../common';
 import * as commonImage from './commonImage';
 import Toaster from "../Toaster/Toaster";
 
+import './ImageSelector.css';
+
 const ImageSelector = (props) => {
 
 	const [images, setImages] = useState([]);

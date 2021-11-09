@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import './Toaster.css';
+
 const Toaster = (props) => {
 
 	const [className, setClassName] = useState("div div--toaster-hide");

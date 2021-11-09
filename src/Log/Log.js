@@ -3,6 +3,8 @@ import { Switch, Route, Link, useHistory, useLocation } from 'react-router-dom';
 import { log, isAdmin } from '../common';
 import * as commonLog from './commonLog';
 
+import './Log.css';
+
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 const Logs = lazy(() => import('./Logs'));
 const LogItem = lazy(() => import('./LogItem'));
