@@ -1,15 +1,18 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useParams } from "react-router-dom";
 import { log } from '../common';
+import PageNotFound from "../PageNotFound";
 import * as commonLog from './commonLog';
 
 const LogDetail = lazy(() => import('./LogDetail'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 
-const Logs = (props) => {
+const LogItem = (props) => {
 
-	const [logs, setLogs] = useState([]);
+	const [logItem, setLogItem] = useState({});
 	const [isLoading, setIsLoading] = useState(false);
+
+	const [hasItem, setHasItem] = useState(0); // 0: Init, 1: has item, 2: item not found
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
@@ -28,8 +31,16 @@ const Logs = (props) => {
 		
 		res.json().then(res => {
 			log("The log is FETCHED successfully.");
+
 			setIsLoading(false);
-			setLogs(res.body.Items);
+
+			if(res.body.Count > 0) {
+				setLogItem(res.body.Items[0]);
+				setHasItem(1);
+			}
+			else {
+				setHasItem(2);
+			}
 		}).catch(err => {
 			console.error(err);
 		});
@@ -55,10 +66,22 @@ const Logs = (props) => {
 		setToasterMessage2("A log has been deleted.");
 		setIsShowToaster2(1);
 	}
+	
+	const logDetail = 1 === hasItem ? <LogDetail
+			author={logItem.author}
+			timestamp={logItem.timestamp}
+			contents={logItem.logs[0].contents}
+			item = {logItem}
+			deleted={callbackDeleteItem}
+		/>
+	: 2 === hasItem ? <PageNotFound />
+	: "";
+
 
 	return (
 		<div className="div div--logs-main" role="list">
 			<Suspense fallback={<div></div>}>
+				{logDetail}
 				<Toaster 
 					show={isShowToaster}
 					message={toasterMessage}
@@ -73,19 +96,9 @@ const Logs = (props) => {
 					
 					completed={() => setIsShowToaster2(0)}
 				/>
-				{logs.map(data => (
-					<LogDetail
-						key={data.timestamp}
-						author={data.author}
-						timestamp={data.timestamp}
-						contents={data.logs[0].contents}
-						item = {data}
-						deleted={callbackDeleteItem}
-					/>
-				))}
 			</Suspense>
 		</div>
 	);
 }
 
-export default Logs;
+export default LogItem;

@@ -7,6 +7,7 @@ const Navigation = lazy(() => import('./Navigation'));
 const Log = lazy(() => import('./Log/Log'));
 const File = lazy(() => import('./File/File'));
 const Monitor = lazy(() => import('./Monitor/Monitor'));
+const PageNotFound = lazy(() => import('./PageNotFound'));
 const Footer = lazy(() => import('./Footer'));
   
 const App = () => {
@@ -17,6 +18,12 @@ const App = () => {
 		window.location.href = "/log";
 	}
 
+	const NoMatch = () => (
+		<div className="div div--main-contents">
+			<PageNotFound/>
+		</div>
+	);
+
 	return (
 		<Router>
 			<Suspense fallback={<div></div>}>
@@ -25,6 +32,7 @@ const App = () => {
 					<Route path="/log" component={Log} />
 					<Route path="/file" component={File} />
 					<Route path="/monitor" component={Monitor} />
+					<Route component={NoMatch} />
 				</Switch>
 				<Footer />
 			</Suspense>
