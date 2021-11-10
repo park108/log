@@ -56,31 +56,33 @@ const File = (props) => {
 	else {
 		return (
 			<div className="div div--main-contents" style={contentHeight} role="application">
-				{
-					// for test
-					isMobile()
-					? <FileUpload
-						uploaded={fetchData}
-					/>
-					: <FileDrop 
-						uploaded={fetchData}
-					/>
-				}
-				<div className="div div--files-list" role="list">
-					{files.map(data => (				
-						<FileItem
-							key={data.Key}
-							fileName={data.Key}
-							lastModified={data.LastModified}
-							deleted={fetchData}
+				<div className="div div--main-item">
+					{
+						// for test
+						isMobile()
+						? <FileUpload
+							uploaded={fetchData}
 						/>
-					))}
+						: <FileDrop 
+							uploaded={fetchData}
+						/>
+					}
+					<div className="div div--files-list" role="list">
+						{files.map(data => (				
+							<FileItem
+								key={data.Key}
+								fileName={data.Key}
+								lastModified={data.LastModified}
+								deleted={fetchData}
+							/>
+						))}
+					</div>
+					<Toaster 
+						show={isShowToaster}
+						message={toasterMessage}
+						completed={() => setIsShowToaster(0)}
+					/>
 				</div>
-				<Toaster 
-					show={isShowToaster}
-					message={toasterMessage}
-					completed={() => setIsShowToaster(0)}
-				/>
 			</div>
 		);
 	}
