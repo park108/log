@@ -62,7 +62,7 @@ const Navigation = () => {
 		</li> : "";
 
 	return (
-		<div className="div div--nav-bar">
+		<nav className="nav nav--nav-bar">
 			<ul className="ul ul--nav-tabs">
 				{title}
 				{log}
@@ -70,7 +70,7 @@ const Navigation = () => {
 				{monitor}
 				<UserLogin />
 			</ul>
-		</div>
+		</nav>
 	)
 }
 

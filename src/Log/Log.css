@@ -55,20 +55,20 @@
   padding-right: 0.5em;
 }
 
-.div--article-delete {
+.section--article-delete {
   color: var(--normal-contents-background-color);
   transition: color 0.5s ease;
 }
 
-.p--article-main {
+.article--log-contents {
   word-wrap: break-word;
 }
 
-.p--article-main a {
+.article--log-contents a {
   text-decoration: underline;
 }
 
-.p--article-main img {
+.article--log-contents img {
   object-fit: scale-down;
   width: 100%;
   height: 100%;

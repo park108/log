@@ -103,7 +103,7 @@ const Log = (props) => {
 	</Link> : null;
 
 	return (
-		<div className="div div--main-contents" style={contentHeight} role="application">
+		<main className="main main--contents" style={contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
 				<Switch>
 					<Route exact path="/log">
@@ -132,7 +132,7 @@ const Log = (props) => {
 					completed={() => setIsShowToaster(0)}
 				/>
 			</Suspense>
-		</div>
+		</main>
 	);
 }
 

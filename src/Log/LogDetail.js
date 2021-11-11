@@ -24,10 +24,10 @@ const LogDetail = (props) => {
 
 	useEffect(() => {
 		if(isDeleting) {
-			setItemClass("div div--main-item div--article-delete");
+			setItemClass("section section--main-item section--article-delete");
 		}
 		else {
-			setItemClass("div div--main-item");
+			setItemClass("section section--main-item");
 		}
 	}, [isDeleting]);
 
@@ -64,7 +64,7 @@ const LogDetail = (props) => {
 	const ArticleMain = () => {
 
 		const outputContents = parser.markdownToHtml(contents);
-		return <p className="p p--article-main" dangerouslySetInnerHTML={{__html: outputContents}}></p>;
+		return <article className="article article--log-contents" dangerouslySetInnerHTML={{__html: outputContents}}></article>;
 	}
 
 	const copyToClipboard = () => {
@@ -135,7 +135,7 @@ const LogDetail = (props) => {
 	}
 
 	return (
-		<div className={itemClass} role="listitem">
+		<section className={itemClass} role="listitem">
 			<ArticleInfo />
 			<ArticleMain />
 			<Comment
@@ -152,7 +152,7 @@ const LogDetail = (props) => {
 					completed={initToaster}
 				/>
 			</Suspense>
-		</div>
+		</section>
 	)
 }
 

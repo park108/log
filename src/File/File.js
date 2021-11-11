@@ -55,8 +55,8 @@ const File = (props) => {
 	}
 	else {
 		return (
-			<div className="div div--main-contents" style={contentHeight} role="application">
-				<div className="div div--main-item">
+			<main className="main main--contents" style={contentHeight} role="application">
+				<section className="section section--main-item">
 					{
 						// for test
 						isMobile()
@@ -82,8 +82,8 @@ const File = (props) => {
 						message={toasterMessage}
 						completed={() => setIsShowToaster(0)}
 					/>
-				</div>
-			</div>
+				</section>
+			</main>
 		);
 	}
 }

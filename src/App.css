@@ -110,6 +110,10 @@ pre {
   line-height: 2em;
 }
 
+.article {
+  line-height: 2em;
+}
+
 .li {
   display: inline-block;
   cursor: pointer;
@@ -143,7 +147,7 @@ pre {
   background-color: var(--active-background-color);
 }
 
-.div--nav-bar {
+.nav--nav-bar {
   padding-top: 1em;
   margin-left: 1em;
   margin-right: 1em;
@@ -200,12 +204,12 @@ pre {
   border-width: 0 0 1px 0;
 }
 
-.div--main-contents {
+.main--contents {
   margin-left: 0em;
   margin-right: 0em;
 }
 
-.div--main-item {
+.section--main-item {
   padding: 1em 1em 2em 1em;
   margin-bottom: 2em;
   background-color: var(--normal-contents-background-color);
@@ -224,16 +228,12 @@ pre {
   box-shadow: none;
 }
 
-.div--footer {
+.footer {
+  font-size: var(--sub-font-size);
   margin-top: 2em;
   margin-left: 1em;
   margin-right: 1em;
   padding-bottom: 3em;
-}
-
-.div--footer-contents {
-  font-size: var(--sub-font-size);
-  width: 100%;
 }
 
 .span--footer-left {

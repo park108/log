@@ -164,7 +164,7 @@ const ContentMon = (props) => {
 	let logsPillarIndex = 0;
 	let commentsPillarIndex = 0;
 
-	return <div className="div div--main-item">
+	return <section className="section section--main-item">
 		<h4>Contents in the last 6 months</h4>
 		<div className="div div--monitor-item">
 			<div className="div div--monitor-subtitle">
@@ -198,7 +198,7 @@ const ContentMon = (props) => {
 				))}
 			</div>
 		</div>
-	</div>
+	</section>
 }
 
 export default ContentMon;

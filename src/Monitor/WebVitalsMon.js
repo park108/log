@@ -4,7 +4,7 @@ const WebVitalsItem = lazy(() => import('./WebVitalsItem'));
 
 const WebVitalsMon = (props) => {
 
-	return <div className="div div--main-item">
+	return <section className="section section--main-item">
 		<h4>Web Vitals in the last 24 hours</h4>
 		<Suspense fallback={<div></div>}>
 			<WebVitalsItem title="LCP: Largest Contentful Paint" name="LCP" />
@@ -16,7 +16,7 @@ const WebVitalsMon = (props) => {
 		<a href="https://web.dev/defining-core-web-vitals-thresholds/" rel="noreferrer" target="_blank">
 			Reference: Defining the Core Web Vitals metrics thresholds by Bryan McQuade
 		</a>
-	</div>
+	</section>
 }
 
 export default WebVitalsMon;

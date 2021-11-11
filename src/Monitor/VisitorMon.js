@@ -213,7 +213,7 @@ const VisitorMon = (props) => {
 
 	let countPillarIndex = 0;
 
-	return <div className="div div--main-item">
+	return <section className="section section--main-item">
 		<h4>Visitors in the last 7 days</h4>
 		<div className="div div--monitor-item">
 			<div className="div div--monitor-subtitle">
@@ -253,7 +253,7 @@ const VisitorMon = (props) => {
 				/>
 			</div>
 		</div>
-	</div>
+	</section>
 }
 
 export default VisitorMon;

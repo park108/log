@@ -26,7 +26,7 @@ const Monitor = (props) => {
 		return <Redirect to="/log" />;
 	}
 
-	return <div className="div div--main-contents" style={contentHeight} role="application">
+	return <main className="main main--contents" style={contentHeight} role="application">
 		<Suspense fallback={<div></div>}>
 			<ContentMon stackPallet={stackPallet} />
 		</Suspense>
@@ -36,7 +36,7 @@ const Monitor = (props) => {
 		<Suspense fallback={<div></div>}>
 			<WebVitalsMon stackPallet={stackPallet} />
 		</Suspense>
-	</div>
+	</main>
 }
 
 export default Monitor;
