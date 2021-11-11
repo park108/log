@@ -8,7 +8,7 @@
   color: var(--normal-text-color);
 }
 
-.div--article-info {
+.section--log-info {
   display: block;
   font-size: var(--sub-font-size);
   color: var(--sub-text-color);
@@ -55,20 +55,20 @@
   padding-right: 0.5em;
 }
 
-.section--article-delete {
+.article--log-delete {
   color: var(--normal-contents-background-color);
   transition: color 0.5s ease;
 }
 
-.article--log-contents {
+.section--log-contents {
   word-wrap: break-word;
 }
 
-.article--log-contents a {
+.section--log-contents a {
   text-decoration: underline;
 }
 
-.article--log-contents img {
+.section--log-contents img {
   object-fit: scale-down;
   width: 100%;
   height: 100%;

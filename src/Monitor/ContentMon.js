@@ -131,7 +131,7 @@ const ContentMon = (props) => {
 		fetchCommentCount();
 	}, []);
 
-	const pillarHeight = 80;
+	const pillarHeight = 50;
 
 	const Pillars = (attr) => {
 
@@ -164,12 +164,10 @@ const ContentMon = (props) => {
 	let logsPillarIndex = 0;
 	let commentsPillarIndex = 0;
 
-	return <section className="section section--main-item">
-		<h4>Contents in the last 6 months</h4>
-		<div className="div div--monitor-item">
-			<div className="div div--monitor-subtitle">
-				<span className="span span--monitor-metric">Logs</span>
-			</div>
+	return <article className="article article--main-item">
+		<h1 className="h1 h1--monitor-title">Contents in the last 6 months</h1>
+		<section className="section section--monitor-item">
+			<h2 className="h2 h2--monitor-subtitle">Logs</h2>
 			<div className="div div--monitor-pillarchart">
 				{logCount.map(item =>(
 					<Pillars
@@ -181,11 +179,9 @@ const ContentMon = (props) => {
 					/>
 				))}
 			</div>
-		</div>
-		<div className="div div--monitor-item">
-			<div className="div div--monitor-subtitle">
-				<span className="span span--monitor-metric">Comments</span>
-			</div>
+		</section>
+		<section className="section section--monitor-item">
+			<h2 className="h2 h2--monitor-subtitle">Comments</h2>
 			<div className="div div--monitor-pillarchart">
 				{commentCount.map(item =>(
 					<Pillars
@@ -197,8 +193,8 @@ const ContentMon = (props) => {
 					/>
 				))}
 			</div>
-		</div>
-	</section>
+		</section>
+	</article>
 }
 
 export default ContentMon;

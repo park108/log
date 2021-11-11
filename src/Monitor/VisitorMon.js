@@ -213,12 +213,10 @@ const VisitorMon = (props) => {
 
 	let countPillarIndex = 0;
 
-	return <section className="section section--main-item">
-		<h4>Visitors in the last 7 days</h4>
-		<div className="div div--monitor-item">
-			<div className="div div--monitor-subtitle">
-				<span className="span span--monitor-metric">Total Count: {totalCount}</span>
-			</div>
+	return <article className="article article--main-item">
+		<h1 className="h1 h1--monitor-title">Visitors in the last 7 days</h1>
+		<section className="section section--monitor-item">
+			<h2 className="h2 h2--monitor-subtitle">Total Count: {totalCount}</h2>
 			<div className="div div--monitor-pillarchart">
 			{dailyCount.map(data => (
 				<CountPillar
@@ -230,11 +228,9 @@ const VisitorMon = (props) => {
 				/>
 			))}
 			</div>
-		</div>
-		<div className="div div--monitor-item">
-			<div className="div div--monitor-subtitle">
-				<span className="span span--monitor-metric">User Environment: {envTotalCount} cases</span>
-			</div>
+		</section>
+		<section className="section section--monitor-item">
+			<h2 className="h2 h2--monitor-subtitle">User Environment: {envTotalCount} cases</h2>
 			<div className="div div--monitor-stackchart">
 				<EnvPillar
 					legend="Browser"
@@ -252,8 +248,8 @@ const VisitorMon = (props) => {
 					data={engines}
 				/>
 			</div>
-		</div>
-	</section>
+		</section>
+	</article>
 }
 
 export default VisitorMon;

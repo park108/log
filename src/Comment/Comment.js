@@ -100,7 +100,7 @@ const Comment = (props) => {
 		/>
 		: "";
 
-	return <div>
+	return <section>
 		<span
 			className="span span--comment-togglebutton"
 			onClick={toggleComments}
@@ -109,7 +109,7 @@ const Comment = (props) => {
 		</span>
 		{commentThread}
 		{commentForm}
-	</div>;
+	</section>;
 }
 
 export default Comment;

@@ -209,7 +209,7 @@ pre {
   margin-right: 0em;
 }
 
-.section--main-item {
+.article--main-item {
   padding: 1em 1em 2em 1em;
   margin-bottom: 2em;
   background-color: var(--normal-contents-background-color);

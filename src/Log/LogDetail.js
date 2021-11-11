@@ -24,10 +24,10 @@ const LogDetail = (props) => {
 
 	useEffect(() => {
 		if(isDeleting) {
-			setItemClass("section section--main-item section--article-delete");
+			setItemClass("article article--main-item article--log-delete");
 		}
 		else {
-			setItemClass("section section--main-item");
+			setItemClass("article article--main-item");
 		}
 	}, [isDeleting]);
 
@@ -64,7 +64,7 @@ const LogDetail = (props) => {
 	const ArticleMain = () => {
 
 		const outputContents = parser.markdownToHtml(contents);
-		return <article className="article article--log-contents" dangerouslySetInnerHTML={{__html: outputContents}}></article>;
+		return <section className="section section--log-contents" dangerouslySetInnerHTML={{__html: outputContents}}></section>;
 	}
 
 	const copyToClipboard = () => {
@@ -120,7 +120,7 @@ const LogDetail = (props) => {
 			outputTime = "";
 		}
 
-		return <div className="div div--article-info">
+		return <section className="section section--log-info">
 			<h1 className="h1 h1--article-title">{outputDate}</h1>
 			{blank}
 			{linkIcon}
@@ -131,11 +131,11 @@ const LogDetail = (props) => {
 				{separator}
 				{deleteButton}
 			</div>
-		</div>;
+		</section>;
 	}
 
 	return (
-		<section className={itemClass} role="listitem">
+		<article className={itemClass} role="listitem">
 			<ArticleInfo />
 			<ArticleMain />
 			<Comment
@@ -152,7 +152,7 @@ const LogDetail = (props) => {
 					completed={initToaster}
 				/>
 			</Suspense>
-		</section>
+		</article>
 	)
 }
 
