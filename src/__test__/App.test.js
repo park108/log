@@ -10,8 +10,13 @@ beforeAll(() => {
 
 it('render title text "park108.net" correctly', () => {
   render(<App />);
-  const title = screen.getByText(/park108.net/i);
-  expect(title).toBeInTheDocument();
+  
+  const html = screen.getByRole('body');
+
+  const expected = document.createElement("div");
+  expected.setAttribute("class", "div div--main-contents")
+
+  expect(expected).toStrictEqual(html);
 });
 
 it('render linkedin link correctly', () => { 

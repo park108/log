@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useHistory } from 'react-router-dom';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, isMobile } from '../common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import * as commonLog from './commonLog';
 import * as parser from '../markdownParser';
@@ -67,7 +67,9 @@ const LogDetail = (props) => {
 		return <section className="section section--log-contents" dangerouslySetInnerHTML={{__html: outputContents}}></section>;
 	}
 
-	const copyToClipboard = () => {
+	const copyToClipboard = (e) => {
+
+		e.preventDefault();
 
 		let url = getUrl() + "log/" + timestamp;
 
@@ -96,8 +98,12 @@ const LogDetail = (props) => {
 			outputDate = getFormattedDate(timestamp);
 		}
 
-		let blank = <span className="span span--article-toolbarblank"></span>
-		let linkIcon = <span onClick={copyToClipboard} className="span span--article-toolbaricon"><LinkButton /></span>;
+		const blank = <span className="span span--article-toolbarblank"></span>
+		const urlText = isMobile() ? "" : <a href={getUrl() + "log/" + timestamp} onClick={copyToClipboard}>{getUrl() + "log/" + timestamp}</a>;
+		const linkIcon = <span onClick={copyToClipboard} className="span span--article-toolbaricon">
+			<LinkButton />
+			{urlText}
+		</span>;
 	
 		let separator = "";
 		let editButton = "";
@@ -138,9 +144,11 @@ const LogDetail = (props) => {
 		<article className={itemClass} role="listitem">
 			<ArticleInfo />
 			<ArticleMain />
-			<Comment
-				logTimestamp={timestamp}
-			/>
+			<Suspense fallback={<div></div>}>
+				<Comment
+					logTimestamp={timestamp}
+				/>
+			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}

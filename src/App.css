@@ -25,6 +25,8 @@
   --active-background-color: white;
   --active-border-color: #666666;
 
+  --inactive-text-color: #dddddd;
+
   --sub-text-color: #666666;
   
   --shadow-color: #aaaaaa;
@@ -178,7 +180,7 @@ pre {
 }
 
 .li--nav-inactive a {
-  color: var(--sub-text-color);
+  color: var(--inactive-text-color);
   transition: 0.3s ease;
 }
 

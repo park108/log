@@ -22,7 +22,7 @@ it('render monitor if it logged in', () => {
     <Monitor />
   </Router>);
 
-  const title = screen.getByText("Visitors");
+  const main = screen.getByRole("application");
 
-  expect(title).toBeInTheDocument();
+  expect(main).toBeInTheDocument();
 });

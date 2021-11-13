@@ -7,10 +7,9 @@ it('parse header tag correctly', () => {
   const markdownText = "## " + contents;
 
   render(<LogDetail 
-    key={"20211008195400"}
     author={"park108@gmail.com"}
-    stamp={"20211008195400"}
-    contents={markdownText}    
+    timestamp={"20211008195400"}
+    contents={markdownText}
   />);
   
   const html = screen.getByText(contents).closest('h2');
@@ -27,9 +26,8 @@ it('parse unordered list tag correctly', () => {
   const markdownText = "- " + contents;
 
   render(<LogDetail 
-    key={"20211008195400"}
     author={"park108@gmail.com"}
-    stamp={"20211008195400"}
+    timestamp={"20211008195400"}
     contents={markdownText}    
   />);
   
@@ -49,9 +47,8 @@ it('parse ordered list tag correctly', () => {
   const markdownText = "1. " + contents;
 
   render(<LogDetail 
-    key={"20211008195400"}
     author={"park108@gmail.com"}
-    stamp={"20211008195400"}
+    timestamp={"20211008195400"}
     contents={markdownText}    
   />);
   
@@ -70,12 +67,12 @@ it('parse image tag correctly', () => {
   const url = "https://www.iana.org/_img/2022/iana-logo-header.svg"
   const titleText = "title text";
   const altText = "alternated text";
+  const lazyLoading = "lazy";
   const markdownText = "![" + altText + "](" + url + " \"" + titleText + "\")";
 
   render(<LogDetail 
-    key={"20211008195400"}
     author={"park108@gmail.com"}
-    stamp={"20211008195400"}
+    timestamp={"20211008195400"}
     contents={markdownText}    
   />);
   
@@ -84,6 +81,7 @@ it('parse image tag correctly', () => {
   const expected = document.createElement("img");
   expected.setAttribute("src", url);
   expected.setAttribute("alt", altText);
+  expected.setAttribute("loading", lazyLoading);
   expected.setAttribute("title", titleText);
 
   expect(expected).toStrictEqual(html);
@@ -97,9 +95,8 @@ it('parse anchor tag correctly', () => {
   const markdownText = "[" + text + "](" + url + " \"" + titleText + "\")";
 
   render(<LogDetail 
-    key={"20211008195400"}
     author={"park108@gmail.com"}
-    stamp={"20211008195400"}
+    timestamp={"20211008195400"}
     contents={markdownText}    
   />);
   

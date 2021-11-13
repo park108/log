@@ -16,7 +16,7 @@ it('render Toaster no show', () => {
     show={0}
   />);
   const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-hide ');
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-hide');
 });
 
 it('render information Toaster in center', () => {
@@ -26,7 +26,7 @@ it('render information Toaster in center', () => {
     show={1}
   />);
   const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-center div--toaster-information ');
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-center div--toaster-information');
 });
 
 it('render success Toaster in bottom', () => {
@@ -37,7 +37,7 @@ it('render success Toaster in bottom', () => {
     show={1}
   />);
   const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success ');
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success');
 });
 
 it('render error Toaster in bottom', () => {
@@ -48,7 +48,7 @@ it('render error Toaster in bottom', () => {
     show={1}
   />);
   const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-error ');
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-error');
 });
 
 it('render success Toaster in bottom with duration', () => {
@@ -65,7 +65,7 @@ it('render success Toaster in bottom with duration', () => {
   act(() => {
     jest.advanceTimersByTime(1000);
     const toaster = screen.getByText("Test message");
-    expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-information ');
+    expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-information');
   });
 });
 
@@ -77,5 +77,5 @@ it('render success Toaster faded out', () => {
     show={2}
   />);
   const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout ');
+  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
 });

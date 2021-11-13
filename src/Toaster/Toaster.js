@@ -14,53 +14,53 @@ const Toaster = (props) => {
 
 	useEffect(() => {
 
-		let className = "div ";
+		let className = "div";
 
 		// Class by position
 		if(undefined === position || "center" === position) {
-			className += "div--toaster-center ";
+			className += " div--toaster-center";
 		}
 		else if("bottom" === position) {
-			className += "div--toaster-bottom ";
+			className += " div--toaster-bottom";
 		}
 
 		// Class by type
 		if(undefined === type || "information" === type) {
-			className += "div--toaster-information ";
+			className += " div--toaster-information";
 		}
 		else if("success" === type) {
-			className += "div--toaster-success ";
+			className += " div--toaster-success";
 		}
 		else if("warning" === type) {
-			className += "div--toaster-warning ";
+			className += " div--toaster-warning";
 		}
 		else if("error" === type) {
-			className += "div--toaster-error ";
+			className += " div--toaster-error";
 		}
 
 		// Class by show mode
 		if(0 === show) {
 			// 0: hide
-			setClassName("div div--toaster-hide ");
+			setClassName("div div--toaster-hide");
 		}
 		else if(1 === show) {
 			// 1: show
 			setClassName(className);
 			if(duration > 0) {
 				setTimeout(function() {
-					setClassName(className + "div--toaster-fadeout ");
+					setClassName(className + " div--toaster-fadeout");
 					setTimeout(props.completed, 1000);
 				}, duration);
 			}
 		}
 		else if(2 === show) {
 			// 2: fade-out
-			setClassName(className + "div--toaster-fadeout ");
+			setClassName(className + " div--toaster-fadeout");
 			setTimeout(props.completed, 1000);
 		}
 	}, [show, duration, position, type, props.completed]);
 
-	return <div className={className}>
+	return <div className={className} role="alert">
 		{message}
 	</div>;
 }

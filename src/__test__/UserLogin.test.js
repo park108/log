@@ -9,7 +9,7 @@ describe('reder UserLogin by stage', () => {
     process.env.NODE_ENV = "development";
 
     render(<UserLogin />);
-    const menu = screen.getByText("login");
+    const menu = screen.getByText("sign in");
 
     expect(menu).toBeInTheDocument();
   });
@@ -18,7 +18,7 @@ describe('reder UserLogin by stage', () => {
     process.env.NODE_ENV = "production";
 
     render(<UserLogin />);
-    const menu = screen.getByText("login");
+    const menu = screen.getByText("sign in");
 
     expect(menu).toBeInTheDocument();
   });
@@ -30,7 +30,7 @@ describe('reder UserLogin by stage', () => {
     common.isAdmin = jest.fn().mockResolvedValue(true);
 
     render(<UserLogin />);
-    const menu = screen.getByText("A");
+    const menu = screen.getByText("admin");
 
     expect(menu).toBeInTheDocument();
   });
@@ -42,7 +42,7 @@ describe('reder UserLogin by stage', () => {
     common.isAdmin = jest.fn().mockResolvedValue(true);
 
     render(<UserLogin />);
-    const menu = screen.getByText("A");
+    const menu = screen.getByText("admin");
 
     expect(menu).toBeInTheDocument();
   });

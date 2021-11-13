@@ -3,6 +3,6 @@ import ImageSelector from '../Image/ImageSelector';
 
 it('render image selector loading text correctly', () => {
   render(<ImageSelector />);
-  const loading = screen.getByText('Loading...');
+  const loading = screen.getByText('');
   expect(loading).toBeInTheDocument();
 });

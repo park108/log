@@ -42,6 +42,7 @@
   top: 50%;
   transform: translateX(-50%);
   overflow: hidden;
+  line-height: 1em;
 
   box-shadow: 5px 5px 10px var(--shadow-color);
 
@@ -56,6 +57,7 @@
   height: 1em;
   width: 100%;
   overflow: hidden;
+  line-height: 1em;
 
   box-shadow: -20px 0px 20px var(--shadow-color);
 

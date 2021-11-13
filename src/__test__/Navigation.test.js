@@ -8,7 +8,7 @@ describe('render navigation menu correctly', () => {
   
   const history = createMemoryHistory();
 
-  it('render log menu correctly', () => {
+  it('render title menu correctly', () => {
 
     jest.mock("react-router-dom", () => ({
       ...jest.requireActual("react-router-dom"),
@@ -21,11 +21,10 @@ describe('render navigation menu correctly', () => {
       <Navigation />
     </Router>);
 
-    const html = screen.getByText("log").closest('a');
+    const html = screen.getByText("park108.net").closest('a');
 
     const expected = document.createElement("a");
-    expected.setAttribute("href", "/log");
-    expected.innerHTML = "log";
+    expected.innerHTML = "park108.net";
 
     expect(expected).toStrictEqual(html);
   });
