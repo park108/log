@@ -1,5 +1,9 @@
 @import url(../App.css);
 
+.section--logitem-comment {
+	line-height: 1em;
+}
+
 .span--comment-togglebutton {
 	font-size: var(--sub-font-size);
 	color: var(--sub-text-color);
@@ -132,11 +136,9 @@
 .button--comment-submit {
 	display: block;
 	float: left;
-	width: 4em;
-	padding: 2px;
-	height: 56px;
+	width: 45px;
+	height: 45px;
 	font-size: var(--sub-font-size);
-	border-radius: 30px;
 }
 
 .label--comment-hidden {

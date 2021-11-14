@@ -43,7 +43,7 @@ const Comment = (props) => {
 			// Set comment button text
 			1 < count ? setButtonText(count + " comments")
 				: 1 === count ?	setButtonText("1 comment")
-				: setButtonText("No comment");
+				: setButtonText("Add a comment");
 
 			// Set comment list
 			setComments(newData.body.Items);
@@ -100,7 +100,7 @@ const Comment = (props) => {
 		/>
 		: "";
 
-	return <section>
+	return <section class="section section--logitem-comment">
 		<span
 			className="span span--comment-togglebutton"
 			onClick={toggleComments}

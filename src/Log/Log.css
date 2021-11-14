@@ -1,81 +1,6 @@
 @import url(../App.css);
 
-.h1--article-title {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-  font-size: 1.4em;
-  color: var(--normal-text-color);
-}
-
-.section--log-info {
-  display: block;
-  font-size: var(--sub-font-size);
-  color: var(--sub-text-color);
-}
-
-.div--article-toolbar {
-  float: right;
-  padding: 0;
-  margin: 0;
-}
-
-.span--article-toolbarblank {
-  padding-left: 0.5em;
-}
-
-.span--article-toolbarmenu {
-  color: var(--sub-text-color);
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.span--article-toolbarmenu:hover {
-  color: var(--normal-text-color);
-  text-shadow: 0px 0px 3px var(--shadow-color);
-}
-
-.span--article-toolbaricon {
-  display: inline-block;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.span--article-toolbaricon path {
-  fill: #999999;
-}
-
-.span--article-toolbaricon:hover path {
-  fill: black;
-}
-
-.span--article-separator {
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-}
-
-.article--log-delete {
-  color: var(--normal-contents-background-color);
-  transition: color 0.5s ease;
-}
-
-.section--log-contents {
-  word-wrap: break-word;
-}
-
-.section--log-contents a {
-  text-decoration: underline;
-}
-
-.section--log-contents img {
-  object-fit: scale-down;
-  width: 100%;
-  height: 100%;
-}
-
-.button--logs-newlog {
+.button--log-newlog {
   font-size: 1em;
   font-weight: bold;
 
@@ -90,7 +15,82 @@
   border-radius: 1.5em;
 }
 
-.button--logs-seemore {
+.h1--logitem-title {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  font-size: 1.4em;
+  color: var(--normal-text-color);
+}
+
+.section--logitem-info {
+  display: block;
+  font-size: var(--sub-font-size);
+  color: var(--sub-text-color);
+}
+
+.div--logitem-toolbar {
+  float: right;
+  padding: 0;
+  margin: 0;
+}
+
+.span--logitem-toolbarblank {
+  padding-left: 0.5em;
+}
+
+.span--logitem-toolbarmenu {
+  color: var(--sub-text-color);
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.span--logitem-toolbarmenu:hover {
+  color: var(--normal-text-color);
+  text-shadow: 0px 0px 3px var(--shadow-color);
+}
+
+.span--logitem-toolbaricon {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.span--logitem-toolbaricon path {
+  fill: #999999;
+}
+
+.span--logitem-toolbaricon:hover path {
+  fill: black;
+}
+
+.span--logitem-separator {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.article--logitem-delete {
+  color: var(--normal-contents-background-color);
+  transition: color 0.5s ease;
+}
+
+.section--logitem-contents {
+  word-wrap: break-word;
+}
+
+.section--logitem-contents a {
+  text-decoration: underline;
+}
+
+.section--logitem-contents img {
+  object-fit: scale-down;
+  width: 100%;
+  height: 100%;
+}
+
+.button--loglist-seemore {
   margin-top: 2em;
   margin-left: auto;
   margin-right: auto;

@@ -10,7 +10,7 @@ const LogList = (props) => {
 	const [logs, setLogs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
-	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--logs-seemore");
+	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
@@ -101,13 +101,13 @@ const LogList = (props) => {
 		if(isLoading) {
 			setToasterMessage("Loading logs...");
 			setSeeMoreButtonText("Loading...");
-			setSeeMoreButtonClass("button button--logs-seemore button--logs-seemoreloading");
+			setSeeMoreButtonClass("button button--loglist-seemore button--loglist-seemoreloading");
 			setIsShowToaster(1);
 		}
 		else {
 			setIsShowToaster(2);
 			setSeeMoreButtonText("See more");
-			setSeeMoreButtonClass("button button--logs-seemore");
+			setSeeMoreButtonClass("button button--loglist-seemore");
 		}
 	}, [isLoading]);
 
@@ -128,7 +128,7 @@ const LogList = (props) => {
 			</button>;
 
 	return (
-		<div className="div div--logs-main" role="list">
+		<div role="list">
 			<Suspense fallback={<div></div>}>
 
 				{logs.map(data => (

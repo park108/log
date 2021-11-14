@@ -83,7 +83,7 @@ const LogSingle = (props) => {
 
 
 	return (
-		<div className="div div--logs-main" role="list">
+		<div role="list">
 			<Suspense fallback={<div></div>}>
 				{logItem}
 				<Toaster 

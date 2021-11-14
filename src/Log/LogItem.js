@@ -24,7 +24,7 @@ const LogItem = (props) => {
 
 	useEffect(() => {
 		if(isDeleting) {
-			setItemClass("article article--main-item article--log-delete");
+			setItemClass("article article--main-item article--logitem-delete");
 		}
 		else {
 			setItemClass("article article--main-item");
@@ -64,7 +64,7 @@ const LogItem = (props) => {
 	const ArticleMain = () => {
 
 		const outputContents = parser.markdownToHtml(contents);
-		return <section className="section section--log-contents" dangerouslySetInnerHTML={{__html: outputContents}}></section>;
+		return <section className="section section--logitem-contents" dangerouslySetInnerHTML={{__html: outputContents}}></section>;
 	}
 
 	const copyToClipboard = (e) => {
@@ -98,9 +98,9 @@ const LogItem = (props) => {
 			outputDate = getFormattedDate(timestamp);
 		}
 
-		const blank = <span className="span span--article-toolbarblank"></span>
+		const blank = <span className="span span--logitem-toolbarblank"></span>
 		const urlText = isMobile() ? "" : <a href={getUrl() + "log/" + timestamp} onClick={copyToClipboard}>{getUrl() + "log/" + timestamp}</a>;
-		const linkIcon = <span onClick={copyToClipboard} className="span span--article-toolbaricon">
+		const linkIcon = <span onClick={copyToClipboard} className="span span--logitem-toolbaricon">
 			<LinkButton />
 			{urlText}
 		</span>;
@@ -112,25 +112,25 @@ const LogItem = (props) => {
 		if(isAdmin()) {
 			outputTime = getFormattedTime(timestamp);
 			if(undefined !== item) {
-				separator = <span className="span span--article-separator">|</span>;
+				separator = <span className="span span--logitem-separator">|</span>;
 				editButton = <Link to={{
 						pathname: "/log/write",
 						state: {item}
 					}}>
-						<span className="span span--article-toolbarmenu">Edit</span>
+						<span className="span span--logitem-toolbarmenu">Edit</span>
 					</Link>;
-				deleteButton = <span className="span span--article-toolbarmenu" onClick={confirmDelete}>Delete</span>;
+				deleteButton = <span className="span span--logitem-toolbarmenu" onClick={confirmDelete}>Delete</span>;
 			}
 		}
 		else {
 			outputTime = "";
 		}
 
-		return <section className="section section--log-info">
-			<h1 className="h1 h1--article-title">{outputDate}</h1>
+		return <section className="section section--logitem-info">
+			<h1 className="h1 h1--logitem-title">{outputDate}</h1>
 			{blank}
 			{linkIcon}
-			<div className="div div--article-toolbar">
+			<div className="div div--logitem-toolbar">
 				{outputTime}
 				{separator}
 				{editButton}
