@@ -45,7 +45,7 @@ const Log = (props) => {
 			log("A log is POSTED uccessfully.");
 			setIsPostSuccess(true);
 		
-			setToasterMessage("A log has been posted.");
+			setToasterMessage("The log posted.");
 			setIsShowToaster(1);
 
 			history.push("/log");
@@ -81,7 +81,7 @@ const Log = (props) => {
 			log("A log is PUTTED successfully.");
 			setIsPostSuccess(true);
 		
-			setToasterMessage("A log has been changed.");
+			setToasterMessage("The log changed.");
 			setIsShowToaster(1);
 
 			history.push("/log");

@@ -114,7 +114,7 @@ const Logs = (props) => {
 	const callbackDeleteItem = () => {
 		fetchFirst();
 		
-		setToasterMessage2("A log has been deleted.");
+		setToasterMessage2("The log deleted.");
 		setIsShowToaster2(1);
 	}
 

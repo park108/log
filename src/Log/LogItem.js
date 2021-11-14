@@ -67,7 +67,7 @@ const LogItem = (props) => {
 	const callbackDeleteItem = () => {
 		fetchData(logTimestamp);
 		
-		setToasterMessage2("A log has been deleted.");
+		setToasterMessage2("The log deleted.");
 		setIsShowToaster2(1);
 	}
 	

@@ -152,7 +152,7 @@ const LogDetail = (props) => {
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}
-					message={"The Link has been copied to your clipboard."}
+					message={"The link URL copied."}
 					position={"bottom"}
 					type={"success"}
 					duration={2000}

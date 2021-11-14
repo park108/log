@@ -75,7 +75,7 @@ const FileItem = (props) => {
 
 		log("URL " + url + " copied.");
 
-		setToasterMessage(props.fileName + " URL has been copied to your clipboard.");
+		setToasterMessage(props.fileName + " URL copied.");
 		setIsShowToaster(1);
 	}
 

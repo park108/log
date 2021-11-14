@@ -81,7 +81,7 @@ const ImageSelector = (props) => {
 
 		log("MarkDown Img " + imageForMarkdown + " copied.");
 		
-		setToasterMessage("A markdown string has been copied to clipboard. Paste it!");
+		setToasterMessage("MD string copied.");
 		setIsShowToaster(1);
 	}
 
