@@ -1,108 +1,167 @@
-import React, { useEffect, useState, Suspense, lazy } from "react";
-import { useParams } from "react-router-dom";
-import { log } from '../common';
-import PageNotFound from "../PageNotFound";
+import React, { useState, useEffect, Suspense, lazy } from "react";
+import { Link, useHistory } from 'react-router-dom';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, isMobile } from '../common';
+import { ReactComponent as LinkButton } from '../static/link.svg';
 import * as commonLog from './commonLog';
+import * as parser from '../markdownParser';
 
-const LogDetail = lazy(() => import('./LogDetail'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));
+const Comment = lazy(() => import('../Comment/Comment'));
 
 const LogItem = (props) => {
 
-	const [logItem, setLogItem] = useState({});
-	const [isLoading, setIsLoading] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [itemClass, setItemClass] = useState("div div--main-item");
 
-	const [hasItem, setHasItem] = useState(0); // 0: Init, 1: has item, 2: item not found
+	const [isShowToaster, setIsShowToaster] = useState(false);
 
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage, setToasterMessage] = useState("");
+	const history = useHistory();
 
-	const [isShowToaster2, setIsShowToaster2] = useState(0);
-	const [toasterMessage2, setToasterMessage2] = useState("");
+	const item = props.item;
+	const author = props.author;
+	const contents = props.contents;
+	const timestamp = props.timestamp;
 
-	let logTimestamp = useParams()["timestamp"];
+	useEffect(() => {
+		if(isDeleting) {
+			setItemClass("article article--main-item article--log-delete");
+		}
+		else {
+			setItemClass("article article--main-item");
+		}
+	}, [isDeleting]);
 
-	async function fetchData(timestamp) {
+	const deleteLogItem = () => {
 
-		setIsLoading(true);
+		setIsDeleting(true);
 
-		// Call GET API
-		const res = await fetch(commonLog.getAPI() + "/timestamp/" + timestamp);
-		
-		res.json().then(res => {
-			log("The log is FETCHED successfully.");
+		const api = commonLog.getAPI() + "/timestamp/" + timestamp;
 
-			setIsLoading(false);
-			log(res);
+		const body = {
+			author: author,
+			timestamp: timestamp
+		}
 
-			// Page not found
-			if(undefined !== res.errorType || 0 === res.body.Count) {
-				setHasItem(2);
-			}
-
-			// Set log item data
-			else {
-				setLogItem(res.body.Items[0]);
-				setHasItem(1);
-			}
+		// Call DELETE API
+		fetch(api, {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		}).then(res => {
+			log("A log is DELETED successfully.");
+			props.deleted();
+			history.push("/log");
 		}).catch(err => {
 			console.error(err);
 		});
 	}
 
-	useEffect(() => {
-		fetchData(logTimestamp);
-	}, [props.isPostSuccess, logTimestamp]);	
+	const abort = () => log("Deleting aborted");
+	const confirmDelete = confirm("Are you sure delete the log?", deleteLogItem, abort);
 
-	useEffect(() => {
-		if(isLoading) {
-			setToasterMessage("Loading a log...");
-			setIsShowToaster(1);
+	const ArticleMain = () => {
+
+		const outputContents = parser.markdownToHtml(contents);
+		return <section className="section section--log-contents" dangerouslySetInnerHTML={{__html: outputContents}}></section>;
+	}
+
+	const copyToClipboard = (e) => {
+
+		e.preventDefault();
+
+		let url = getUrl() + "log/" + timestamp;
+
+		let tempElem = document.createElement('textarea');
+		tempElem.value = url;  
+		document.body.appendChild(tempElem);
+	  
+		tempElem.select();
+		document.execCommand("copy");
+		document.body.removeChild(tempElem);
+
+		log("URL " + url + " copied.");
+
+		setIsShowToaster(1);
+	}
+
+	const initToaster = () => {
+		setIsShowToaster(0);
+	}
+
+	const ArticleInfo = () => {
+
+		let outputDate, outputTime;
+	
+		if(timestamp > 0) {
+			outputDate = getFormattedDate(timestamp);
+		}
+
+		const blank = <span className="span span--article-toolbarblank"></span>
+		const urlText = isMobile() ? "" : <a href={getUrl() + "log/" + timestamp} onClick={copyToClipboard}>{getUrl() + "log/" + timestamp}</a>;
+		const linkIcon = <span onClick={copyToClipboard} className="span span--article-toolbaricon">
+			<LinkButton />
+			{urlText}
+		</span>;
+	
+		let separator = "";
+		let editButton = "";
+		let deleteButton = "";
+
+		if(isAdmin()) {
+			outputTime = getFormattedTime(timestamp);
+			if(undefined !== item) {
+				separator = <span className="span span--article-separator">|</span>;
+				editButton = <Link to={{
+						pathname: "/log/write",
+						state: {item}
+					}}>
+						<span className="span span--article-toolbarmenu">Edit</span>
+					</Link>;
+				deleteButton = <span className="span span--article-toolbarmenu" onClick={confirmDelete}>Delete</span>;
+			}
 		}
 		else {
-			setIsShowToaster(2);
+			outputTime = "";
 		}
-	}, [isLoading]);
 
-	const callbackDeleteItem = () => {
-		fetchData(logTimestamp);
-		
-		setToasterMessage2("The log deleted.");
-		setIsShowToaster2(1);
+		return <section className="section section--log-info">
+			<h1 className="h1 h1--article-title">{outputDate}</h1>
+			{blank}
+			{linkIcon}
+			<div className="div div--article-toolbar">
+				{outputTime}
+				{separator}
+				{editButton}
+				{separator}
+				{deleteButton}
+			</div>
+		</section>;
 	}
-	
-	const logDetail = 1 === hasItem ? <LogDetail
-			author={logItem.author}
-			timestamp={logItem.timestamp}
-			contents={logItem.logs[0].contents}
-			item = {logItem}
-			deleted={callbackDeleteItem}
-		/>
-	: 2 === hasItem ? <PageNotFound />
-	: "";
-
 
 	return (
-		<div className="div div--logs-main" role="list">
+		<article className={itemClass} role="listitem">
+			<ArticleInfo />
+			<ArticleMain />
 			<Suspense fallback={<div></div>}>
-				{logDetail}
+				<Comment
+					logTimestamp={timestamp}
+				/>
+			</Suspense>
+			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}
-					message={toasterMessage}
-					completed={() => setIsShowToaster(0)}
-				/>
-				<Toaster 
-					show={isShowToaster2}
-					message={toasterMessage2}
+					message={"The link URL copied."}
 					position={"bottom"}
 					type={"success"}
 					duration={2000}
 					
-					completed={() => setIsShowToaster2(0)}
+					completed={initToaster}
 				/>
 			</Suspense>
-		</div>
-	);
+		</article>
+	)
 }
 
 export default LogItem;

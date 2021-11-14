@@ -3,7 +3,7 @@ import { Redirect } from "react-router";
 import { isAdmin, setFullscreen } from '../common';
 import * as parser from '../markdownParser';
 
-const LogDetail = lazy(() => import('./LogDetail'));
+const LogItem = lazy(() => import('./LogItem'));
 const ImageSelector = lazy(() => import('../Image/ImageSelector'));
 
 const Writer = (props) => {
@@ -184,7 +184,7 @@ const Writer = (props) => {
 			return <div className="div div--writer-archive" >
 				<div className="div div--writer-archivetitle">Change History</div>
 				{data.item.logs.map(log => (
-					<LogDetail	
+					<LogItem	
 						key={log.timestamp}
 						author={data.item.author}
 						timestamp={log.timestamp}

@@ -3,9 +3,9 @@ import { log } from '../common';
 import * as commonLog from './commonLog';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
-const LogDetail = lazy(() => import('./LogDetail'));
+const LogItem = lazy(() => import('./LogItem'));
 
-const Logs = (props) => {
+const LogList = (props) => {
 
 	const [logs, setLogs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -132,7 +132,7 @@ const Logs = (props) => {
 			<Suspense fallback={<div></div>}>
 
 				{logs.map(data => (
-					<LogDetail
+					<LogItem
 						key={data.timestamp}
 						author={data.author}
 						timestamp={data.timestamp}
@@ -163,4 +163,4 @@ const Logs = (props) => {
 	);
 }
 
-export default Logs;
+export default LogList;

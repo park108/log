@@ -58,14 +58,9 @@ const File = (props) => {
 			<main className="main main--contents" style={contentHeight} role="application">
 				<article className="article article--main-item">
 					{
-						// for test
 						isMobile()
-						? <FileUpload
-							uploaded={fetchData}
-						/>
-						: <FileDrop 
-							uploaded={fetchData}
-						/>
+							? <FileUpload uploaded={fetchData} />
+							: <FileDrop uploaded={fetchData} />
 					}
 					<div className="div div--files-list" role="list">
 						{files.map(data => (				

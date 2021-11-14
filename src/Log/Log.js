@@ -6,8 +6,8 @@ import * as commonLog from './commonLog';
 import './Log.css';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
-const Logs = lazy(() => import('./Logs'));
-const LogItem = lazy(() => import('./LogItem'));
+const LogList = lazy(() => import('./LogList'));
+const LogSingle = lazy(() => import('./LogSingle'));
 const Writer = lazy(() => import('./Writer'));
 
 const Log = (props) => {
@@ -108,7 +108,7 @@ const Log = (props) => {
 				<Switch>
 					<Route exact path="/log">
 						{writeButton}
-						<Logs />
+						<LogList />
 					</Route>
 					<Route path="/log/write" render={(props) => <Writer
 								post={handlePostSubmit}
@@ -119,7 +119,7 @@ const Log = (props) => {
 						}
 					/>
 					<Route path="/log/:timestamp">
-						<LogItem />
+						<LogSingle />
 					</Route>
 				</Switch>
 				<Toaster 

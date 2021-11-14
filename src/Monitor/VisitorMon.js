@@ -146,7 +146,7 @@ const VisitorMon = (props) => {
 		fetchData();
 	}, []);
 
-	const pillarHeight = 80;
+	const pillarHeight = 50;
 
 	const CountPillar = (attr) => {
 
