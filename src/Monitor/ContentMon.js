@@ -6,6 +6,7 @@ const ContentMon = (props) => {
 
 	const [logCount, setLogCount] = useState([]);
 	const [commentCount, setCommentCount] = useState([]);
+	const [fileCount, setFileCount] = useState([]);
 
 	const stackPallet = props.stackPallet;
 
@@ -126,9 +127,46 @@ const ContentMon = (props) => {
 		});
 	}
 
+	async function fetchFileCount() {
+
+		const now = new Date();
+		const toTimestamp = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
+		const fromTimestamp = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
+
+		// Make timestamp for 6 months
+		const t = [
+			fromTimestamp,
+			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
+			toTimestamp
+		];
+
+		let fileCountList = [];
+		let i = 0;
+
+		fileCountList.push({"from": t[i], "to": t[++i], "count": 1, "deleted": 0});
+		fileCountList.push({"from": t[i], "to": t[++i], "count": 2, "deleted": 0});
+		fileCountList.push({"from": t[i], "to": t[++i], "count": 3, "deleted": 0});
+		fileCountList.push({"from": t[i], "to": t[++i], "count": 4, "deleted": 0});
+		fileCountList.push({"from": t[i], "to": t[++i], "count": 5, "deleted": 0});
+		fileCountList.push({"from": t[i], "to": t[++i], "count": 6, "deleted": 0});
+
+		let max = 6;
+
+		for(let item of fileCountList) {
+			item.valueRate = item.count / max;
+		}
+
+		setFileCount(fileCountList);
+	}
+
 	useEffect(() => {
 		fetchLogCount();
 		fetchCommentCount();
+		fetchFileCount();
 	}, []);
 
 	const pillarHeight = 50;
@@ -163,6 +201,7 @@ const ContentMon = (props) => {
 
 	let logsPillarIndex = 0;
 	let commentsPillarIndex = 0;
+	let filesPillarIndex = 0;
 
 	return <article className="article article--main-item">
 		<h1 className="h1 h1--monitor-title">Contents in the last 6 months</h1>
@@ -190,6 +229,20 @@ const ContentMon = (props) => {
 						count={item.count}
 						date={getFormattedDate(item.from)}
 						index={commentsPillarIndex++}
+					/>
+				))}
+			</div>
+		</section>
+		<section className="section section--monitor-item">
+			<h2 className="h2 h2--monitor-subtitle">Files</h2>
+			<div className="div div--monitor-pillarchart">
+				{fileCount.map(item =>(
+					<Pillars
+						key={item.from}
+						valueRate={item.valueRate}
+						count={item.count}
+						date={getFormattedDate(item.from)}
+						index={filesPillarIndex++}
 					/>
 				))}
 			</div>
