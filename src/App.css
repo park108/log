@@ -108,6 +108,11 @@ pre {
   padding-right: 10px;
 }
 
+input {
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
 .p {
   line-height: 2em;
 }

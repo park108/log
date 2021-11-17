@@ -20,7 +20,7 @@
 }
 
 .div--monitor-statusbar {
-	display: flex;
+	height: 2.5rem;
 	font-size: 0.8em;
 }
 
@@ -53,7 +53,7 @@
 }
 
 .div--monitor-stackchart {
-	min-height: 230px;
+	min-height: 240px;
 }
 
 .div--monitor-7pillars {

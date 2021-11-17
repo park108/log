@@ -3,7 +3,7 @@ import { log, getFormattedDate } from '../common';
 import * as commonMonitor from './commonMonitor';
 
 const ContentMon = (props) => {
-
+	
 	const [logCount, setLogCount] = useState([]);
 	const [commentCount, setCommentCount] = useState([]);
 	const [fileCount, setFileCount] = useState([]);
