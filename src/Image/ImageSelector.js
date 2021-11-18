@@ -25,6 +25,8 @@ const ImageSelector = (props) => {
 		res.json().then(res => {
 			log("Images are FETCHED successfully.");
 			setIsLoading(false);
+
+			// TODO: Get data from metadata table from in dynamodb
 			setImages(res.body);
 		}).catch(err => {
 			console.error(err);
