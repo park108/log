@@ -34,7 +34,7 @@ const App = () => {
 
 	const NoMatch = () => (
 		<div className="div div--main-contents" style={contentHeight}>
-			<PageNotFound/>
+			<PageNotFound />
 		</div>
 	);
 

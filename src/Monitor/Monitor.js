@@ -8,14 +8,24 @@ const VisitorMon = lazy(() => import('./VisitorMon'));
 const ContentMon = lazy(() => import('./ContentMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 
+// const stackPallet = [
+// 	{color: "black", backgroundColor: "rgb(243, 129, 129)"},
+// 	{color: "black", backgroundColor: "rgb(248, 178, 134)"},
+// 	{color: "black", backgroundColor: "rgb(252, 227, 138)"},
+// 	{color: "black", backgroundColor: "rgb(243, 241, 173)"},
+// 	{color: "black", backgroundColor: "rgb(234, 255, 208)"},
+// 	{color: "black", backgroundColor: "rgb(190, 240, 210)"},
+// 	{color: "black", backgroundColor: "rgb(149, 225, 211)"},
+// ];
+
 const stackPallet = [
-	{color: "black", backgroundColor: "rgb(243, 129, 129)"},
-	{color: "black", backgroundColor: "rgb(248, 178, 134)"},
-	{color: "black", backgroundColor: "rgb(252, 227, 138)"},
-	{color: "black", backgroundColor: "rgb(243, 241, 173)"},
-	{color: "black", backgroundColor: "rgb(234, 255, 208)"},
-	{color: "black", backgroundColor: "rgb(190, 240, 210)"},
-	{color: "black", backgroundColor: "rgb(149, 225, 211)"},
+	{color: "black", backgroundColor: "rgb(230, 230, 230)"},
+	{color: "black", backgroundColor: "rgb(200, 200, 200)"},
+	{color: "black", backgroundColor: "rgb(170, 170, 170)"},
+	{color: "black", backgroundColor: "rgb(140, 140, 140)"},
+	{color: "black", backgroundColor: "rgb(110, 110, 110)"},
+	{color: "black", backgroundColor: "rgb(80, 80, 80)"},
+	{color: "black", backgroundColor: "rgb(50, 50, 50)"},
 ];
 
 const Monitor = (props) => {
