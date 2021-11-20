@@ -5,8 +5,8 @@
   font-weight: bold;
 
   position: fixed;
-  bottom: 3em;
-  left: calc(100% - 6em);
+  bottom: 4.5em;
+  left: calc(100% - 4em);
 
   width: 3em;
   height: 3em;
@@ -122,9 +122,9 @@
 	border-color: var(--normal-border-color);
 	overflow: hidden;
 	resize: none;
-  }
+}
   
-  .div--writer-converted {
+.div--writer-converted {
 	font-size: 1em;
 	width: calc(50% - 11px);
 	line-height: 2em;
@@ -134,54 +134,54 @@
 	word-wrap: break-word;
 	vertical-align: top;
 	background-color: var(--normal-contents-background-color);
-  }
+}
 
-  .div--writer-converted a {
+.div--writer-converted a {
 	text-decoration: underline;
-  }
+}
   
-  .div--writer-converted img {
+.div--writer-converted img {
 	width: 100%;
 	object-fit: scale-down;
-  }
+}
   
-  .div--writer-statusbar {
+.div--writer-statusbar {
 	width: 100%;
 	font-size: 0.8em;
 	padding: 10px 0;
 	border-style: solid;
 	border-width: 0 0 1px 0;
 	border-color: var(--normal-border-color);
-  }
+}
   
-  .span--writer-statusbaritem {
+.span--writer-statusbaritem {
 	padding-left: 1em;
-  }
+}
   
-  .span--writer-statusbaritemright {
+.span--writer-statusbaritemright {
 	float: right;
-	padding-right: 1em;
-  }
+  padding-right: 1em;
+}
   
-  .span--writer-statusbarbutton {
+.span--writer-statusbarbutton {
 	cursor: pointer;
 	float: right;
 	padding-right: 1em;
-  }
+}
   
-  .div--writer-archive {
+.div--writer-archive {
 	max-width: 100%;
-  }
+}
   
-  .div--writer-archivetitle {
+.div--writer-archivetitle {
 	max-width: 100%;
 	font-size: 1.5em;
 	text-align: center;
 	vertical-align: middle;
-  }
+}
   
-  .button--writer-submit {
-	margin-top: 1em;
+.button--writer-submit {
+  margin-top: 1em;
 	height: 3em;
 	margin-bottom: 1em;
-  }
+}

@@ -47,7 +47,6 @@ const CommentForm = (props) => {
 
 		props.post(comment);
 		setMessage("");
-		setUserName("");
 	}
 
 	const nameDisabled = isAdmin() ? "disabled" : "";
@@ -66,6 +65,7 @@ const CommentForm = (props) => {
 					<input
 						type="checkbox"
 						id="hidden"
+						className="input input--comment-hidden"
 						onChange={handleChangeIsHidden}
 					/>
 					<label
