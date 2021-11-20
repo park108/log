@@ -39,9 +39,15 @@ const FileItem = (props) => {
 		</div>;
 	}
 
-	const LastModified = () => {
-		return <span className="span span--fileitem-lastmodified">
-			{getFormattedDate(props.lastModified) + " " + getFormattedTime(props.lastModified)}
+	const ModifiedDate = () => {
+		return <span className="span span--fileitem-modifieddate">
+			{getFormattedDate(props.lastModified)}
+		</span>;
+	}
+
+	const ModifiedTime = () => {
+		return <span className="span span--fileitem-modifiedtime">
+			{getFormattedTime(props.lastModified)}
 		</span>;
 	}
 	
@@ -89,10 +95,10 @@ const FileItem = (props) => {
 		const unit = data.unit;
 		const type = data.type;
 
-		return <div className={fileDetailClass}>
-			<div className="div div--fileitem-type">{type}</div>
-			<div className="div div--fileitem-size">{size} {unit}</div>
-		</div>
+		return <span className={fileDetailClass}>
+			<span className="div div--fileitem-type">{type}</span>
+			<span className="div div--fileitem-size">{size} {unit}</span>
+		</span>
 	}
 
 	async function fetchFileDetail() {
@@ -148,15 +154,16 @@ const FileItem = (props) => {
 			<div className="div div--fileitem-fileinfo">
 				<FileName />
 				<div className="div div--fileitem-statusbar">
-					<LastModified />
+					<ModifiedDate />
+					<ModifiedTime />
+					<FileDetail
+						size={fileDetail.ContentLength}
+						unit={fileDetail.AcceptRanges}
+						type={fileDetail.ContentType}
+					/>
 					<Toolbar />
 				</div>
 			</div>
-			<FileDetail
-				size={fileDetail.ContentLength}
-				unit={fileDetail.AcceptRanges}
-				type={fileDetail.ContentType}
-			/>
 			<Toaster 
 				show={isShowToaster}
 				message={toasterMessage}

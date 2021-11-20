@@ -55,7 +55,16 @@
 .span--logitem-toolbaricon {
   display: inline-block;
   cursor: pointer;
+}
+
+.a--logitem-loglink {
   font-size: 0.8rem;
+}
+
+@media screen and (max-width: 640px) {
+  .a--logitem-loglink {
+    display: none;
+  }
 }
 
 .span--logitem-toolbaricon path {

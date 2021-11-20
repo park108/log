@@ -61,36 +61,33 @@
 
 .div--fileitem {
   background-color: var(--normal-contents-background-color);
-  overflow-y: auto;
-}
-
-.div--fileitem-fileinfo {
-  padding: 0.5em 1em;
-  height: 1em;
 }
 
 .div--fileitem-filename {
-  float: left;
-  min-width: 20%;
   text-decoration: underline; 
   cursor: pointer;
+  word-wrap: break-word;
+  max-width: 100%;
+  line-height: 1em;
 }
 
 .div--fileitem-statusbar {
   font-size: var(--sub-font-size);
-  float: right;
   color: #666666;
 }
 
-.span--fileitem-lastmodified {
+.span--fileitem-modifieddate {
   margin-right: 1em;
 }
 
-.span-fileitem-toolbar {
+.span--fileitem-modifiedtime {
+  margin-right: 1em;
+}
+
+.span--fileitem-toolbar {
   float:right;
   padding: 0;
   margin: 0;
-  margin-bottom: 1em;
 }
 
 .span--fileitem-separator {
@@ -100,12 +97,10 @@
 }
 
 .span--fileitem-delete {
-  margin-left: 1em;
   cursor: pointer;
 }
 
 .span--fileitem-copyurl {
-  margin-right: 1em;
   cursor: pointer;
 }
 
@@ -120,20 +115,28 @@
 }
 
 .div--fileitem-filedetail {
-  padding: 0.5em 1em;
-  height: 1em;
   color: var(--sub-text-color);
 }
 
 .div--fileitem-type {
-  float: left;
   min-width: 50%;
   height: 1em;
   margin-right: 1em;
 }
 
 .div--fileitem-size {
-  float: right;
   height: 1em;
   margin-right: 1em;
+}
+
+@media screen and (max-width: 560px) {
+  .div--fileitem-size {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .div--fileitem-type {
+    display: none;
+  }
 }

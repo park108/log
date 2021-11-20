@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useHistory } from 'react-router-dom';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, isMobile } from '../common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import * as commonLog from './commonLog';
 import * as parser from '../markdownParser';
@@ -99,7 +99,10 @@ const LogItem = (props) => {
 		}
 
 		const blank = <span className="span span--logitem-toolbarblank"></span>
-		const urlText = isMobile() ? "" : <a href={getUrl() + "log/" + timestamp} onClick={copyToClipboard}>{getUrl() + "log/" + timestamp}</a>;
+		const linkUrl = getUrl() + "log/" + timestamp;
+		const urlText = <a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
+				{linkUrl}
+			</a>;
 		const linkIcon = <span onClick={copyToClipboard} className="span span--logitem-toolbaricon">
 			<LinkButton />
 			{urlText}
