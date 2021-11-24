@@ -28,7 +28,7 @@ const File = (props) => {
 			const res = await fetch(commonFile.getAPI());
 			const newData = await res.json();
 
-			// TODO: Get data from metadata table in dynamodb
+			// TODO: Get data from file-metadata table in dynamodb
 			log("Files are FETCHED successfully.");
 			setFiles(newData.body.Contents);
 
