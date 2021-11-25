@@ -7,10 +7,6 @@ const FileItem = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [itemClass, setItemClass] = useState("div div--fileitem");
-	const [hasFileDetail, setHasFileDetail] = useState(false);
-	const [showFileDetail, setShowFileDetail] = useState(false);
-	const [fileDetail, setFileDetail] = useState({});
-	const [fileDetailClass, setFileDetailClass] = useState("div div--fileitem-filedetailhide");
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
@@ -23,49 +19,6 @@ const FileItem = (props) => {
 			setItemClass("div div--fileitem")
 		}
 	}, [isDeleting]);
-
-	useEffect(() => {
-		if(hasFileDetail && showFileDetail) {
-			setFileDetailClass("div div--fileitem-filedetail");
-		}
-		else {
-			setFileDetailClass("div div--fileitem-filedetailhide");
-		}
-	}, [hasFileDetail, showFileDetail]);
-
-	const FileName = () => {
-		return <div className="div div--fileitem-filename" onClick={fetchFileDetail} >
-			{props.fileName}
-		</div>;
-	}
-
-	const ModifiedDate = () => {
-		return <span className="span span--fileitem-modifieddate">
-			{getFormattedDate(props.lastModified)}
-		</span>;
-	}
-
-	const ModifiedTime = () => {
-		return <span className="span span--fileitem-modifiedtime">
-			{getFormattedTime(props.lastModified)}
-		</span>;
-	}
-	
-
-	const Toolbar = () => {
-
-		let infoSeparator = <span className="span span--fileitem-separator">|</span>;
-
-		let deleteButton = <span onClick={confirmDelete} className="span span--fileitem-delete">Delete</span>;
-		
-		let copyUrlButton = <span onClick={copyToClipboard} className="span span--fileitem-copyurl">URL</span>;
-
-		return <span className="span span--fileitem-toolbar">
-			{deleteButton}
-			{infoSeparator}
-			{copyUrlButton}
-		</span>
-	}
 
 	const copyToClipboard = () => {
 
@@ -83,41 +36,6 @@ const FileItem = (props) => {
 
 		setToasterMessage(props.fileName + " URL copied.");
 		setIsShowToaster(1);
-	}
-
-	const initToaster = () => {
-		setIsShowToaster(0);
-	}
-
-	const FileDetail = (data) => {
-
-		const size = (data.size * 1).toLocaleString();
-		const unit = data.unit;
-		const type = data.type;
-
-		return <span className={fileDetailClass}>
-			<span className="div div--fileitem-type">{type}</span>
-			<span className="div div--fileitem-size">{size} {unit}</span>
-		</span>
-	}
-
-	async function fetchFileDetail() {
-
-		if(!hasFileDetail) {
-
-			const res = await fetch(commonFile.getAPI() + "/key/" + props.fileName);
-
-			res.json().then(res => {			
-				log("A file detail is FETCHED successfully.");
-				setHasFileDetail(true);
-				setFileDetail(res.body);
-			}).catch(err => {
-				console.error(err);
-				setHasFileDetail(false);
-			});
-		}
-
-		setShowFileDetail(!showFileDetail);
 	}
 
 	const deleteFileItem = () => {
@@ -146,22 +64,27 @@ const FileItem = (props) => {
 	}
 
 	const abort = () => log("Deleting aborted");
-
 	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
 
 	return (
 		<div className={itemClass} role="listitem">
 			<div className="div div--fileitem-fileinfo">
-				<FileName />
+				<div className="div div--fileitem-filename" onClick={copyToClipboard} >
+					{props.fileName}
+				</div>
 				<div className="div div--fileitem-statusbar">
-					<ModifiedDate />
-					<ModifiedTime />
-					<FileDetail
-						size={fileDetail.ContentLength}
-						unit={fileDetail.AcceptRanges}
-						type={fileDetail.ContentType}
-					/>
-					<Toolbar />
+					<span className="span span--fileitem-modifieddate">
+						{getFormattedDate(props.lastModified)}
+					</span>
+					<span className="span span--fileitem-modifiedtime">
+						{getFormattedTime(props.lastModified)}
+					</span>
+					<span className="span span--fileitem-size">
+						{(props.size * 1).toLocaleString()} bytes
+					</span>
+					<span className="span span--fileitem-toolbar">
+						<span onClick={confirmDelete} className="span span--fileitem-delete">✕</span>
+					</span>
 				</div>
 			</div>
 			<Toaster 
@@ -171,7 +94,7 @@ const FileItem = (props) => {
 				type={"success"}
 				duration={2000}
 				
-				completed={initToaster}
+				completed={() => setIsShowToaster(0)}
 			/>
 		</div>
 	)

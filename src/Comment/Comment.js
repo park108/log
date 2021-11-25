@@ -100,7 +100,7 @@ const Comment = (props) => {
 		/>
 		: "";
 
-	return <section class="section section--logitem-comment">
+	return <section className="section section--logitem-comment">
 		<span
 			className="span span--comment-togglebutton"
 			onClick={toggleComments}

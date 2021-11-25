@@ -110,33 +110,13 @@
   transition: color 0.5s ease;
 }
 
-.div--fileitem-filedetailhide {
-  display: none;
-}
-
-.div--fileitem-filedetail {
-  color: var(--sub-text-color);
-}
-
-.div--fileitem-type {
-  min-width: 50%;
+.span--fileitem-size {
   height: 1em;
   margin-right: 1em;
 }
 
-.div--fileitem-size {
-  height: 1em;
-  margin-right: 1em;
-}
-
-@media screen and (max-width: 560px) {
-  .div--fileitem-size {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 400px) {
-  .div--fileitem-type {
+@media screen and (max-width: 360px) {
+  .span--fileitem-size {
     display: none;
   }
 }

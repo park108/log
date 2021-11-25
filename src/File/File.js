@@ -28,9 +28,8 @@ const File = (props) => {
 			const res = await fetch(commonFile.getAPI());
 			const newData = await res.json();
 
-			// TODO: Get data from file-metadata table in dynamodb
 			log("Files are FETCHED successfully.");
-			setFiles(newData.body.Contents);
+			setFiles(newData.body.Items);
 
 			setIsLoading(false);
 		}
@@ -66,9 +65,10 @@ const File = (props) => {
 					<div className="div div--files-list" role="list">
 						{files.map(data => (				
 							<FileItem
-								key={data.Key}
-								fileName={data.Key}
-								lastModified={data.LastModified}
+								key={data.key}
+								fileName={data.key}
+								lastModified={data.timestamp}
+								size={data.size}
 								deleted={fetchData}
 							/>
 						))}
