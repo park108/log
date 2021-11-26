@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { log, getFormattedDate } from '../common';
+import { log, getFormattedDate, getFormattedSize } from '../common';
 import * as commonMonitor from './commonMonitor';
 
 const ContentMon = (props) => {
@@ -160,24 +160,22 @@ const ContentMon = (props) => {
 
 			for(let i = 0; i < t.length - 1; i++) {
 
-				fileCountList.push({"from": t[i], "to": t[i+1], "count": 0, "deleted": 0});
+				fileCountList.push({"from": t[i], "to": t[i+1], "count": 0, "size": 0});
 
 				for(let item of periodData) {
 					if(t[i] <= item.timestamp && item.timestamp < t[i+1]) {
 						++fileCountList[i].count;
-						if(item.sortKey < 0) {
-							++fileCountList[i].deleted;
-						}
+						fileCountList[i].size += item.size;
 					}
 				}
 
-				if(max < fileCountList[i].count) {
-					max = fileCountList[i].count;
+				if(max < fileCountList[i].size) {
+					max = fileCountList[i].size;
 				}
 			}
 
 			for(let item of fileCountList) {
-				item.valueRate = item.count / max;
+				item.valueRate = item.size / max;
 			}
 
 			setFileCount(fileCountList);
@@ -264,7 +262,7 @@ const ContentMon = (props) => {
 					<Pillars
 						key={item.from}
 						valueRate={item.valueRate}
-						count={item.count}
+						count={getFormattedSize(item.size)}
 						date={getFormattedDate(item.from)}
 						index={filesPillarIndex++}
 					/>
