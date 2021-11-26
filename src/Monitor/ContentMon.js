@@ -144,23 +144,47 @@ const ContentMon = (props) => {
 			toTimestamp
 		];
 
-		let fileCountList = [];
-		let i = 0;
+		const apiUrl = commonMonitor.getAPI() + "/file?fromTimestamp=" + fromTimestamp + "&toTimestamp=" + toTimestamp;
+		
+		// Call GET API
+		const res = await fetch(apiUrl);
+		
+		res.json().then(res => {
+			
+			log("File count is FETCHED successfully.");
+			
+			let periodData = res.body.Items;
 
-		fileCountList.push({"from": t[i], "to": t[++i], "count": 1, "deleted": 0});
-		fileCountList.push({"from": t[i], "to": t[++i], "count": 2, "deleted": 0});
-		fileCountList.push({"from": t[i], "to": t[++i], "count": 3, "deleted": 0});
-		fileCountList.push({"from": t[i], "to": t[++i], "count": 4, "deleted": 0});
-		fileCountList.push({"from": t[i], "to": t[++i], "count": 5, "deleted": 0});
-		fileCountList.push({"from": t[i], "to": t[++i], "count": 6, "deleted": 0});
+			let max = 0;
+			let fileCountList = [];
 
-		let max = 6;
+			for(let i = 0; i < t.length - 1; i++) {
 
-		for(let item of fileCountList) {
-			item.valueRate = item.count / max;
-		}
+				fileCountList.push({"from": t[i], "to": t[i+1], "count": 0, "deleted": 0});
 
-		setFileCount(fileCountList);
+				for(let item of periodData) {
+					if(t[i] <= item.timestamp && item.timestamp < t[i+1]) {
+						++fileCountList[i].count;
+						if(item.sortKey < 0) {
+							++fileCountList[i].deleted;
+						}
+					}
+				}
+
+				if(max < fileCountList[i].count) {
+					max = fileCountList[i].count;
+				}
+			}
+
+			for(let item of fileCountList) {
+				item.valueRate = item.count / max;
+			}
+
+			setFileCount(fileCountList);
+			
+		}).catch(err => {
+			console.error(err);
+		});
 	}
 
 	useEffect(() => {
