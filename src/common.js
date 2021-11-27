@@ -162,7 +162,10 @@ export function getFormattedSize(size) {
 	let unit = "";
 	let scaled = size;
 
-	if(1000 > scaled) {
+	if(0 === scaled) {
+		unit = "";
+	}
+	else if(1000 > scaled) {
 		unit = "bytes";
 	}
 	

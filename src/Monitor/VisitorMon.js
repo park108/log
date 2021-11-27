@@ -146,7 +146,7 @@ const VisitorMon = (props) => {
 		fetchData();
 	}, []);
 
-	const pillarHeight = 50;
+	const pillarHeight = 60;
 
 	const CountPillar = (attr) => {
 
@@ -162,6 +162,7 @@ const VisitorMon = (props) => {
 			: "01" === attr.date.substr(8, 2) ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
 			: attr.date.substr(8, 8);
 
+		const valueHeight = {height: "20px"}
 		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
 
 		const pillarStyle = {
@@ -170,7 +171,8 @@ const VisitorMon = (props) => {
 		};
 
 		return <div className="div div--monitor-7pillars" key={attr.date}>
-			<span style={blankHeight}>{attr.count}</span>
+			<div className="div div--monitor-blank" style={blankHeight}> </div>
+			<div className="div div--monitor-value" style={valueHeight}>{attr.count}</div>
 			<div className="div div--monitor-pillar" style={pillarStyle}></div>
 			<div className="div div--monitor-pillarlegend" >{legend}</div>
 		</div>

@@ -191,7 +191,7 @@ const ContentMon = (props) => {
 		fetchFileMetadata();
 	}, []);
 
-	const pillarHeight = 50;
+	const pillarHeight = 60;
 
 	const Pillars = (attr) => {
 
@@ -207,6 +207,7 @@ const ContentMon = (props) => {
 			: "01" === attr.date.substr(5, 2) ? "'" + attr.date.substr(2, 2) + "." + attr.date.substr(5, 2)
 			: attr.date.substr(5, 2);
 
+		const valueHeight = {height: "20px"}
 		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
 
 		const pillarStyle = {
@@ -215,7 +216,8 @@ const ContentMon = (props) => {
 		};
 
 		return <div className="div div--monitor-6pillars">
-			<span style={blankHeight}>{attr.value}</span>
+			<div className="div div--monitor-blank" style={blankHeight}> </div>
+			<div className="div div--monitor-value" style={valueHeight}>{attr.value}</div>
 			<div className="div div--monitor-pillar" style={pillarStyle}></div>
 			<div className="div div--monitor-pillarlegend" >{legend}</div>
 		</div>
@@ -262,7 +264,12 @@ const ContentMon = (props) => {
 					<Pillars
 						key={item.from}
 						valueRate={item.valueRate}
-						value={getFormattedSize(item.size) + " (" + item.count + (item.count > 1 ? " files)" : " file)") }
+						value={
+							getFormattedSize(item.size)
+								+ ((0 === item.count) ? ""
+								: (1 === item.count) ? " (" + item.count + " file)"
+								: " (" + item.count + " files)")
+						}
 						date={getFormattedDate(item.from)}
 						index={filesPillarIndex++}
 					/>
