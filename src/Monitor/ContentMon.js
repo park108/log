@@ -127,7 +127,7 @@ const ContentMon = (props) => {
 		});
 	}
 
-	async function fetchFileCount() {
+	async function fetchFileMetadata() {
 
 		const now = new Date();
 		const toTimestamp = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
@@ -188,7 +188,7 @@ const ContentMon = (props) => {
 	useEffect(() => {
 		fetchLogCount();
 		fetchCommentCount();
-		fetchFileCount();
+		fetchFileMetadata();
 	}, []);
 
 	const pillarHeight = 50;
@@ -215,7 +215,7 @@ const ContentMon = (props) => {
 		};
 
 		return <div className="div div--monitor-6pillars">
-			<span style={blankHeight}>{attr.count}</span>
+			<span style={blankHeight}>{attr.value}</span>
 			<div className="div div--monitor-pillar" style={pillarStyle}></div>
 			<div className="div div--monitor-pillarlegend" >{legend}</div>
 		</div>
@@ -234,7 +234,7 @@ const ContentMon = (props) => {
 					<Pillars
 						key={item.from}
 						valueRate={item.valueRate}
-						count={item.count}
+						value={item.count}
 						date={getFormattedDate(item.from)}
 						index={logsPillarIndex++}
 					/>
@@ -248,7 +248,7 @@ const ContentMon = (props) => {
 					<Pillars
 						key={item.from}
 						valueRate={item.valueRate}
-						count={item.count}
+						value={item.count}
 						date={getFormattedDate(item.from)}
 						index={commentsPillarIndex++}
 					/>
@@ -262,7 +262,7 @@ const ContentMon = (props) => {
 					<Pillars
 						key={item.from}
 						valueRate={item.valueRate}
-						count={getFormattedSize(item.size)}
+						value={getFormattedSize(item.size) + " (" + item.count + (item.count > 1 ? " files)" : " file)") }
 						date={getFormattedDate(item.from)}
 						index={filesPillarIndex++}
 					/>
