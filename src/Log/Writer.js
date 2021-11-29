@@ -23,7 +23,7 @@ const Writer = (props) => {
 	const [mode, setMode] = useState("POST");
 	const [buttonText, setButtonText] = useState("Post");
 
-	const [isShowImageSelector, setIsShowImageSelector] = useState(0);
+	const [isShowImageSelector, setIsShowImageSelector] = useState("READY");
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
@@ -145,14 +145,14 @@ const Writer = (props) => {
 	const ImageSelectorButton = () => {
 
 		const changeMode = () => {
-			if(0 === isShowImageSelector) {
-				setIsShowImageSelector(1);
+			if("READY" === isShowImageSelector) {
+				setIsShowImageSelector("SHOW");
 			}
-			if(1 === isShowImageSelector) {
-				setIsShowImageSelector(2);
+			if("SHOW" === isShowImageSelector) {
+				setIsShowImageSelector("HIDE");
 			}
-			if(2 === isShowImageSelector) {
-				setIsShowImageSelector(1);
+			if("HIDE" === isShowImageSelector) {
+				setIsShowImageSelector("SHOW");
 			}
 		}
 

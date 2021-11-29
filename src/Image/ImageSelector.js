@@ -10,7 +10,7 @@ const ImageSelector = (props) => {
 	const [images, setImages] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [loading, setLoading] = useState(null);
-	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selector");
+	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
@@ -34,28 +34,24 @@ const ImageSelector = (props) => {
 	}
 
 	useEffect(() => {
-		if(props.show) {
+		if("SHOW" === props.show) {
 			fetchData();
-		}
-	}, [props.show]);
-
-	useEffect(() => {
-		if(isLoading) {
-			setLoading(<div>Loading...</div>);
-		}
-		else {
-			setLoading(null);
-		}
-	}, [isLoading]);
-
-	useEffect(() => {
-		if(1 === props.show) {
 			setImageSelectorClass("div div--image-selector");
 		}
-		else if(2 === props.show) {
-			setImageSelectorClass("div div--image-selectorhide");
+		else {
+			setImages([]);
+
+			if("HIDE" === props.show) {
+				setImageSelectorClass("div div--image-selectorhide");
+			}
 		}
 	}, [props.show]);
+
+	useEffect(() => {
+		(isLoading)
+			? setLoading(<div className="div div--image-loading">Loading...</div>)
+			: setLoading(null);
+	}, [isLoading]);
 
 	const enlargeImage = (e) => {
 		e.target.src = e.target.getAttribute("imageurl");
@@ -100,10 +96,6 @@ const ImageSelector = (props) => {
 		}
 	}
 
-	const initToaster = () => {
-		setIsShowToaster(0);
-	}
-
 	const ImageItem = (item) => {
 
 		return <img className="img img--image-imageitem"
@@ -117,31 +109,28 @@ const ImageSelector = (props) => {
 		/>;
 	}
 
-	if(0 === props.show) {
-		return "";
-	}
-	else {
-		return <div className={imageSelectorClass} >
-			{images.map(data => (
-				<ImageItem
-					key={data.key}
-					fileName={data.key}
-					imageUrl={data.imageUrl}
-					thumbnailUrl={data.thumbnailUrl}
-				/>
-			))}
-			{loading}
-			<Toaster 
-				show={isShowToaster}
-				message={toasterMessage}
-				position={"bottom"}
-				type={"warning"}
-				duration={2000}
-				
-				completed={initToaster}
+	return <div className={imageSelectorClass} >
+		{loading}
+
+		{images.map(data => (
+			<ImageItem
+				key={data.key}
+				fileName={data.key}
+				imageUrl={data.imageUrl}
+				thumbnailUrl={data.thumbnailUrl}
 			/>
-		</div>
-	}
+		))}
+		
+		<Toaster 
+			show={isShowToaster}
+			message={toasterMessage}
+			position={"bottom"}
+			type={"warning"}
+			duration={2000}
+			
+			completed={() => setIsShowToaster(0)}
+		/>
+	</div>
 }
 
 export default ImageSelector;
