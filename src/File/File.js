@@ -29,8 +29,8 @@ const File = (props) => {
 			const newData = await res.json();
 
 			log("Files are FETCHED successfully.");
-			setFiles(newData.body.Items);
 
+			setFiles(newData.body.Items);
 			setIsLoading(false);
 		}
 		catch(err) {

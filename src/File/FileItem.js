@@ -12,12 +12,9 @@ const FileItem = (props) => {
 	const [toasterMessage ,setToasterMessage] = useState("");
 
 	useEffect(() => {
-		if(isDeleting) {
-			setItemClass("div div--fileitem div--fileitem-delete")
-		}
-		else {
-			setItemClass("div div--fileitem")
-		}
+		(isDeleting)
+			? setItemClass("div div--fileitem div--fileitem-delete")
+			: setItemClass("div div--fileitem");
 	}, [isDeleting]);
 
 	const copyToClipboard = () => {
@@ -48,14 +45,16 @@ const FileItem = (props) => {
 			key: props.fileName
 		}
 
-		// Call DELETE API
-		fetch(api, {
+		const params = {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json"
 			},
 			body: JSON.stringify(body)
-		}).then(res => {
+		}
+
+		// Call DELETE API
+		fetch(api, params).then(res => {
 			log("A file is DELETED successfully.");
 			props.deleted();
 		}).catch(err => {

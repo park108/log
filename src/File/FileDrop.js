@@ -5,7 +5,7 @@ import * as commonFile from './commonFile';
 const FileDrop = (props) => {
 
 	const [files, setFiles] = useState([]);
-	const [isUploading, setIsUploading] = useState(0);
+	const [isUploading, setIsUploading] = useState("READY");
 	const [dropzoneStyle, setDropzoneStyle] = useState("div div--filedrop-dropzone div--filedrop-ready")
 	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
 
@@ -21,34 +21,27 @@ const FileDrop = (props) => {
 
 	useEffect(() => {
 
-		// 0: Ready
-		if(0 === isUploading) {
+		if("READY" === isUploading) {
 			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-ready");
 			setDropzoneText(<span>Drop files here!</span>);
 		}
-
-		// 1: Uploading
-		else if(1 === isUploading) {
+		else if("UPLOADING" === isUploading) {
 			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-uploading");
 			setDropzoneText(<span>Uploading...</span>);
 		}
-
-		// 2: Complete
-		else if(2 === isUploading) {
+		else if("COMPLETE" === isUploading) {
 			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-complete");
 			setDropzoneText(<span>Upload complete.</span>);
 			setTimeout(function() {
-				setIsUploading(0);
+				setIsUploading("READY");
 				refreshFiles();
 			}, 1000);
 		}
-
-		// 3: Failed
-		else if(3 === isUploading) {
+		else if("FAILED" === isUploading) {
 			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-uploading");
 			setDropzoneText(<span>Upload failed.</span>);
 			setTimeout(function() {
-				setIsUploading(0);
+				setIsUploading("READY");
 				refreshFiles();
 			}, 1000);
 		}
@@ -56,10 +49,12 @@ const FileDrop = (props) => {
 	}, [isUploading, refreshFiles]);
 
 	const handleDragOver = (e) => e.preventDefault();
+
 	const handleDragEnter = (e) => {
 		e.preventDefault();
 		e.target.classList.add("div--filedrop-dragenter");
 	}
+
 	const handleDragLeave = (e) => {
 		e.preventDefault();
 		e.target.classList.remove("div--filedrop-dragenter");
@@ -80,7 +75,7 @@ const FileDrop = (props) => {
 
 	async function uploadFile(item, isLast) {
 
-		setIsUploading(1);
+		setIsUploading("UPLOADING");
 
 		let name = item.name;
 		let type = encodeURIComponent(item.type);
@@ -103,16 +98,15 @@ const FileDrop = (props) => {
 			// Upload a file using pre-signed URL into S3
 			fetch(res.body.UploadUrl, params).then(res => {
 				log("File [" + name + "] PUTTED successfully.");
-				if(isLast) setIsUploading(2);
-
+				if(isLast) setIsUploading("COMPLETE");
 			}).catch(err => {
 				console.error(err);
-				if(isLast) setIsUploading(3);
+				if(isLast) setIsUploading("FAILED");
 			});
 
 		}).catch(err => {
 			console.error(err);
-			if(isLast) setIsUploading(3);
+			if(isLast) setIsUploading("FAILED");
 		});
 	}
 

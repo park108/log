@@ -6,7 +6,7 @@ import * as commonFile from './commonFile';
 const FileUpload = (props) => {
 
 	const [files, setFiles] = useState([]);
-	const [isUploading, setIsUploading] = useState(0);
+	const [isUploading, setIsUploading] = useState("READY");
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterType, setToasterType] = useState("success");
@@ -24,18 +24,13 @@ const FileUpload = (props) => {
 
 	useEffect(() => {
 
-		// 0: Ready
-		if(0 === isUploading) {
+		if("READY" === isUploading) {
 			document.getElementById('file-upload-for-mobile').disabled = false;
 		}
-
-		// 1: Uploading
-		else if(1 === isUploading) {
+		else if("UPLOADING" === isUploading) {
 			document.getElementById('file-upload-for-mobile').disabled = true;
 		}
-
-		// 2: Complete
-		else if(2 === isUploading) {
+		else if("COMPLETE" === isUploading) {
 
 			// Delete selected files in input
 			document.getElementById('file-upload-for-mobile').value = "";
@@ -46,13 +41,11 @@ const FileUpload = (props) => {
 			setFiles([]);
 
 			setTimeout(function() {
-				setIsUploading(0);
+				setIsUploading("READY");
 				refreshFiles();
 			}, 1000);
 		}
-
-		// 3: Failed
-		else if(3 === isUploading) {
+		else if("FAILED" === isUploading) {
 
 			// Delete selected files in input
 			document.getElementById('file-upload-for-mobile').value = "";
@@ -63,7 +56,7 @@ const FileUpload = (props) => {
 			setFiles([]);
 
 			setTimeout(function() {
-				setIsUploading(0);
+				setIsUploading("READY");
 				refreshFiles();
 			}, 1000);
 		}
@@ -84,7 +77,7 @@ const FileUpload = (props) => {
 
 	async function uploadFile(item, isLast) {
 
-		setIsUploading(1);
+		setIsUploading("UPLOADING");
 
 		let name = item.name;
 		let type = encodeURIComponent(item.type);
@@ -107,21 +100,16 @@ const FileUpload = (props) => {
 			// Upload a file using pre-signed URL into S3
 			fetch(res.body.UploadUrl, params).then(res => {
 				log("File [" + name + "] PUTTED successfully.");
-				if(isLast) setIsUploading(2);
-
+				if(isLast) setIsUploading("COMPLETE");
 			}).catch(err => {
 				console.error(err);
-				if(isLast) setIsUploading(3);
+				if(isLast) setIsUploading("FAILED");
 			});
 
 		}).catch(err => {
 			console.error(err);
-			if(isLast) setIsUploading(3);
+			if(isLast) setIsUploading("FAILED");
 		});
-	}
-
-	const initToaster = () => {
-		setIsShowToaster(0);
 	}
 
 	return <div className="div div--fileupload-input">
@@ -140,7 +128,7 @@ const FileUpload = (props) => {
 			type={toasterType}
 			duration={2000}
 			
-			completed={initToaster}
+			completed={() => setIsShowToaster(0)}
 		/>
 	</div>;
 }
