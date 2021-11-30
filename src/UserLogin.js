@@ -1,5 +1,6 @@
 import React from "react";
 import * as common from './common';
+import { ReactComponent as EnterButton } from './static/enter.svg';
 
 export const getLoginUrl = () => {
 	if ('production' === process.env.NODE_ENV) {
@@ -34,17 +35,20 @@ const UserLogin = () => {
 	let userId = "";
 
 	if(common.isLoggedIn()) {
-		userId = common.isAdmin() ? "admin" : "cstm";
+		userId = common.isAdmin() ? "Jongkil Park ✓" : "Jongkil Park 客";
 	}
 
 	if(common.isLoggedIn()) {
 		return (
-			<li className="li li--nav-user" onClick={logout}>{userId}</li>
+			<span className="span span--login-loggedin" onClick={logout}>{userId}</span>
 		);
 	}
 	else {
 		return (
-			<li className="li li--nav-user" onClick={login}>sign in</li>
+			<span className="span span--login-loggedout" onClick={login}>
+				Jongkil Park 
+				<EnterButton />
+			</span>
 		);
 	}
 }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from 'react-router-dom';
 import * as common from './common';
-import UserLogin from './UserLogin'
   
 const Navigation = () => {
 
@@ -68,7 +67,6 @@ const Navigation = () => {
 				{log}
 				{file}
 				{monitor}
-				<UserLogin />
 			</ul>
 		</nav>
 	)

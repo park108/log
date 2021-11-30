@@ -189,23 +189,6 @@ pre {
   text-shadow: 0px 0px 3px var(--shadow-color);
 }
 
-.li--nav-user  {
-  color: var(--active-text-color);
-  background-color: var(--active-background-color);
-  float: right;
-  border-color: var(--normal-border-color);
-}
-
-.li--nav-user:hover {
-  border-style: solid;
-  border-width: 0 0 1px 0;
-}
-
-.li--nav-user:active {
-  border-style: solid;
-  border-width: 0 0 1px 0;
-}
-
 .main--contents {
   margin-left: 0em;
   margin-right: 0em;
@@ -251,4 +234,12 @@ pre {
   margin: 0;
   padding-top: 5rem;
   text-align: center;
+}
+
+.span--login-loggedin {
+  cursor: pointer;
+}
+
+.span--login-loggedout {
+  cursor: pointer;
 }
