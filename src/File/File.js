@@ -69,6 +69,7 @@ const File = (props) => {
 								fileName={data.key}
 								lastModified={data.timestamp}
 								size={data.size}
+								url={data.url}
 								deleted={fetchData}
 							/>
 						))}

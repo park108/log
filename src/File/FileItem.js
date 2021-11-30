@@ -19,17 +19,15 @@ const FileItem = (props) => {
 
 	const copyToClipboard = () => {
 
-		let url = commonFile.getFileUrl() + "/" + props.fileName;
-
 		let tempElem = document.createElement('textarea');
-		tempElem.value = url;  
+		tempElem.value = props.url;  
 		document.body.appendChild(tempElem);
 	  
 		tempElem.select();
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
 
-		log("URL " + url + " copied.");
+		log("URL " + props.url + " copied.");
 
 		setToasterMessage(props.fileName + " URL copied.");
 		setIsShowToaster(1);

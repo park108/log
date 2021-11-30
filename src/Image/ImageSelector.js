@@ -25,9 +25,8 @@ const ImageSelector = (props) => {
 		res.json().then(res => {
 			log("Images are FETCHED successfully.");
 			setIsLoading(false);
-
-			// TODO: Get data from file-metadata table from in dynamodb
-			setImages(res.body);
+			setImages(res.body.Items);
+			log(res.body.Items);
 		}).catch(err => {
 			console.error(err);
 		});
@@ -116,8 +115,8 @@ const ImageSelector = (props) => {
 			<ImageItem
 				key={data.key}
 				fileName={data.key}
-				imageUrl={data.imageUrl}
-				thumbnailUrl={data.thumbnailUrl}
+				imageUrl={data.url.replace("thumbnail/", "")}
+				thumbnailUrl={data.url}
 			/>
 		))}
 		
