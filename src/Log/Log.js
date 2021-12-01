@@ -13,9 +13,8 @@ const Writer = lazy(() => import('./Writer'));
 const Log = (props) => {
 
 	const [isPostSuccess, setIsPostSuccess] = useState(true);
-
 	const [isShowToaster, setIsShowToaster] = useState(false);
-	const [toasterMessage ,setToasterMessage] = useState("");
+	const [toasterMessage, setToasterMessage] = useState("");
 
 	const history = useHistory();
 	const location = useLocation();
@@ -91,16 +90,16 @@ const Log = (props) => {
 		});
 	}
 
-	const writeButton = isAdmin() ? <Link
-		to={{
-			pathname: "/log/write",
-			state: { 
-				from: location.pathname
-			}
-		}}
-	>
-		<button className="button button--log-newlog">+</button>
-	</Link> : null;
+	const writeButton = isAdmin()
+		? <Link to={{
+				pathname: "/log/write",
+				state: { 
+					from: location.pathname
+				}
+				}}>
+				<button className="button button--log-newlog">+</button>
+			</Link>
+		: null;
 
 	return (
 		<main className="main main--contents" style={contentHeight} role="application">

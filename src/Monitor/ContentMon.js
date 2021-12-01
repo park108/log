@@ -10,24 +10,9 @@ const ContentMon = (props) => {
 
 	const stackPallet = props.stackPallet;
 
-	async function fetchLogCount() {
+	async function fetchLogCount(from, to, t) {
 
-		const now = new Date();
-		const toTimestamp = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
-		const fromTimestamp = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
-
-		// Make timestamp for 6 months
-		const t = [
-			fromTimestamp,
-			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
-			toTimestamp
-		];
-
-		const apiUrl = commonMonitor.getAPI() + "/content/log?fromTimestamp=" + fromTimestamp + "&toTimestamp=" + toTimestamp;
+		const apiUrl = commonMonitor.getAPI() + "/content/log?fromTimestamp=" + from + "&toTimestamp=" + to;
 		
 		// Call GET API
 		const res = await fetch(apiUrl);
@@ -70,24 +55,9 @@ const ContentMon = (props) => {
 		});
 	}
 
-	async function fetchCommentCount() {
+	async function fetchCommentCount(from, to, t) {
 
-		const now = new Date();
-		const toTimestamp = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
-		const fromTimestamp = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
-
-		// Make timestamp for 6 months
-		const t = [
-			fromTimestamp,
-			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
-			toTimestamp
-		];
-
-		const apiUrl = commonMonitor.getAPI() + "/content/comment?fromTimestamp=" + fromTimestamp + "&toTimestamp=" + toTimestamp;
+		const apiUrl = commonMonitor.getAPI() + "/content/comment?fromTimestamp=" + from + "&toTimestamp=" + to;
 		
 		// Call GET API
 		const res = await fetch(apiUrl);
@@ -127,24 +97,9 @@ const ContentMon = (props) => {
 		});
 	}
 
-	async function fetchFileMetadata() {
+	async function fetchFileMetadata(from, to, t) {
 
-		const now = new Date();
-		const toTimestamp = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
-		const fromTimestamp = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
-
-		// Make timestamp for 6 months
-		const t = [
-			fromTimestamp,
-			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
-			toTimestamp
-		];
-
-		const apiUrl = commonMonitor.getAPI() + "/file?fromTimestamp=" + fromTimestamp + "&toTimestamp=" + toTimestamp;
+		const apiUrl = commonMonitor.getAPI() + "/file?fromTimestamp=" + from + "&toTimestamp=" + to;
 		
 		// Call GET API
 		const res = await fetch(apiUrl);
@@ -186,9 +141,25 @@ const ContentMon = (props) => {
 	}
 
 	useEffect(() => {
-		fetchLogCount();
-		fetchCommentCount();
-		fetchFileMetadata();
+
+		const now = new Date();
+		const toTimestamp = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
+		const fromTimestamp = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
+
+		// Make timestamp for 6 months
+		const t = [
+			fromTimestamp,
+			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
+			toTimestamp
+		];
+
+		fetchLogCount(fromTimestamp, toTimestamp, t);
+		fetchCommentCount(fromTimestamp, toTimestamp, t);
+		fetchFileMetadata(fromTimestamp, toTimestamp, t);
 	}, []);
 
 	const pillarHeight = 60;
