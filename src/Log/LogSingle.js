@@ -14,11 +14,11 @@ const LogSingle = (props) => {
 
 	const [hasItem, setHasItem] = useState(0); // 0: Init, 1: has item, 2: item not found
 
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage, setToasterMessage] = useState("");
+	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
+	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
 
-	const [isShowToaster2, setIsShowToaster2] = useState(0);
-	const [toasterMessage2, setToasterMessage2] = useState("");
+	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
+	const [toasterMessageBottom, setToasterMessageBottom] = useState("");
 
 	let logTimestamp = useParams()["timestamp"];
 
@@ -56,19 +56,19 @@ const LogSingle = (props) => {
 
 	useEffect(() => {
 		if(isLoading) {
-			setToasterMessage("Loading a log...");
-			setIsShowToaster(1);
+			setToasterMessageCenter("Loading a log...");
+			setIsShowToasterCenter(1);
 		}
 		else {
-			setIsShowToaster(2);
+			setIsShowToasterCenter(2);
 		}
 	}, [isLoading]);
 
 	const callbackDeleteItem = () => {
 		fetchData(logTimestamp);
 		
-		setToasterMessage2("The log deleted.");
-		setIsShowToaster2(1);
+		setToasterMessageBottom("The log deleted.");
+		setIsShowToasterBottom(1);
 	}
 	
 	const logItem = 1 === hasItem ? <LogItem
@@ -87,18 +87,19 @@ const LogSingle = (props) => {
 			<Suspense fallback={<div></div>}>
 				{logItem}
 				<Toaster 
-					show={isShowToaster}
-					message={toasterMessage}
-					completed={() => setIsShowToaster(0)}
+					show={isShowToasterCenter}
+					message={toasterMessageCenter}
+					
+					completed={() => setIsShowToasterCenter(0)}
 				/>
 				<Toaster 
-					show={isShowToaster2}
-					message={toasterMessage2}
+					show={isShowToasterBottom}
+					message={toasterMessageBottom}
 					position={"bottom"}
 					type={"success"}
 					duration={2000}
 					
-					completed={() => setIsShowToaster2(0)}
+					completed={() => setIsShowToasterBottom(0)}
 				/>
 			</Suspense>
 		</div>

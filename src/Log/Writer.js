@@ -117,13 +117,9 @@ const Writer = (props) => {
 
 	}, [article]);
 
-	useEffect(() => {
-		setConvertedArticleStatus("HTML length = " + convertedArticle.length);
-	}, [convertedArticle]);
+	useEffect(() => setConvertedArticleStatus("HTML length = " + convertedArticle.length), [convertedArticle]);
 
-	useEffect(() => {
-		setDisabled(!props.isPostSuccess);
-	}, [props.isPostSuccess]);
+	useEffect(() => setDisabled(!props.isPostSuccess), [props.isPostSuccess]);
 
 	const Converted = () => {
 
@@ -132,14 +128,16 @@ const Writer = (props) => {
 				id="div--writer-converted"
 				className="div div--writer-converted"
 				dangerouslySetInnerHTML={{__html: convertedArticle}}
-			></div>;
+			>
+			</div>;
 		}
-		else {
-			return <div
-				id="div--writer-converted"
-				className="div div--writer-converted"
-			>{convertedArticle}</div>;
-		}
+
+		return <div
+			id="div--writer-converted"
+			className="div div--writer-converted"
+		>
+			{convertedArticle}
+		</div>;
 	}
 
 	const ImageSelectorButton = () => {
@@ -159,84 +157,82 @@ const Writer = (props) => {
 		return <span
 			className="span span--writer-statusbarbutton"
 			onClick={changeMode}
-			>
+		>
 			[IMG]
 		</span>;
 	}
 
 	const ConvertModeButton = () => {
 
-		const changeMode = () => {
-			setIsConvertedHTML(!isConvertedHTML);
-		}
-
 		const buttonTitle = isConvertedHTML ? "[HTML]" : "[WEB]";
+
 		return <span
-			onClick={changeMode}
+			onClick={() => setIsConvertedHTML(!isConvertedHTML)}
 			className="span span--writer-statusbarbutton"
-			>
-				{buttonTitle}
-			</span>;
+		>
+			{buttonTitle}
+		</span>;
 	}
 
 	const ChangeHistory = () => {
-		if("EDIT" === mode) {
-			return <div className="div div--writer-archive" >
-				<div className="div div--writer-archivetitle">Change History</div>
-				{data.item.logs.map(log => (
-					<LogItem	
-						key={log.timestamp}
-						author={data.item.author}
-						timestamp={log.timestamp}
-						contents={log.contents}
-					/>
-				))}
-			</div>;
+
+		if("EDIT" !== mode) {
+			return "";
 		}
-		else return "";
+
+		return <div className="div div--writer-archive" >
+			<div className="div div--writer-archivetitle">Change History</div>
+			{data.item.logs.map(log => (
+				<LogItem	
+					key={log.timestamp}
+					author={data.item.author}
+					timestamp={log.timestamp}
+					contents={log.contents}
+				/>
+			))}
+		</div>;
 	}
 	
-	if(isAdmin()) {
-		return (
-			<form onSubmit={handleSubmit}>
-				<div className="div div--writer-statusbar">
-					<span className="span span--writer-statusbaritem">{articleStatus}</span>					
-					<span className="span span--writer-statusbaritem span--writer-statusbaritemright">{convertedArticleStatus}</span>
-					<ConvertModeButton />
-					<ImageSelectorButton />
-				</div>
-				<Suspense fallback={<div></div>}>
-					<ImageSelector
-						show={isShowImageSelector}
-					/>
-				</Suspense>
-				<div style={{overflow: "auto"}}>
-					<textarea
-						id="textarea--writer-article"
-						className="textarea textarea--writer-article auto-expand"
-						type="text"
-						name="article"
-						value={article}
-						onChange={handleChange}
-						placeholder="Take your note in markdown"
-						rows={rows}
-						data-min-rows="1"
-						disabled={disabled}
-					/>
-					<Converted />
-				</div>
-				<button
-					className="button button--writer-submit"
-					type="submit"
-					disabled={disabled}
-				>{buttonText}</button>
-				<ChangeHistory />
-			</form>
-		);
-	}
-	else {
+	if(!isAdmin()) {
 		return <Redirect to="/log" />;
 	}
+
+	return (
+		<form onSubmit={handleSubmit}>
+			<div className="div div--writer-statusbar">
+				<span className="span span--writer-statusbaritem">{articleStatus}</span>					
+				<span className="span span--writer-statusbaritem span--writer-statusbaritemright">{convertedArticleStatus}</span>
+				<ConvertModeButton />
+				<ImageSelectorButton />
+			</div>
+			<Suspense fallback={<div></div>}>
+				<ImageSelector
+					show={isShowImageSelector}
+				/>
+			</Suspense>
+			<div style={{overflow: "auto"}}>
+				<textarea
+					id="textarea--writer-article"
+					className="textarea textarea--writer-article auto-expand"
+					type="text"
+					name="article"
+					value={article}
+					onChange={handleChange}
+					placeholder="Take your note in markdown"
+					rows={rows}
+					data-min-rows="1"
+					disabled={disabled}
+				/>
+				<Converted />
+			</div>
+			<button
+				className="button button--writer-submit"
+				type="submit"
+				disabled={disabled}
+			>{buttonText}</button>
+			<ChangeHistory />
+		</form>
+	);
 }
 
 export default Writer;

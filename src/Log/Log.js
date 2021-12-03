@@ -109,7 +109,10 @@ const Log = (props) => {
 						{writeButton}
 						<LogList />
 					</Route>
-					<Route path="/log/write" render={(props) => <Writer
+					<Route
+						path="/log/write"
+						render={
+							(props) => <Writer
 								post={handlePostSubmit}
 								edit={handleEditSubmit}
 								isPostSuccess={isPostSuccess}

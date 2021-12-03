@@ -12,11 +12,11 @@ const LogList = (props) => {
 	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
 	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
 
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage, setToasterMessage] = useState("");
+	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
+	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
 
-	const [isShowToaster2, setIsShowToaster2] = useState(0);
-	const [toasterMessage2, setToasterMessage2] = useState("");
+	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
+	const [toasterMessageBottom, setToasterMessageBottom] = useState("");
 
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
@@ -99,13 +99,13 @@ const LogList = (props) => {
 
 	useEffect(() => {
 		if(isLoading) {
-			setToasterMessage("Loading logs...");
+			setToasterMessageCenter("Loading logs...");
 			setSeeMoreButtonText("Loading...");
 			setSeeMoreButtonClass("button button--loglist-seemore button--loglist-seemoreloading");
-			setIsShowToaster(1);
+			setIsShowToasterCenter(1);
 		}
 		else {
-			setIsShowToaster(2);
+			setIsShowToasterCenter(2);
 			setSeeMoreButtonText("See more");
 			setSeeMoreButtonClass("button button--loglist-seemore");
 		}
@@ -114,8 +114,8 @@ const LogList = (props) => {
 	const callbackDeleteItem = () => {
 		fetchFirst();
 		
-		setToasterMessage2("The log deleted.");
-		setIsShowToaster2(1);
+		setToasterMessageBottom("The log deleted.");
+		setIsShowToasterBottom(1);
 	}
 
 	const seeMoreButton = (lastTimestamp === undefined)
@@ -145,18 +145,18 @@ const LogList = (props) => {
 				{seeMoreButton}
 
 				<Toaster 
-					show={isShowToaster}
-					message={toasterMessage}
-					completed={() => setIsShowToaster(0)}
+					show={isShowToasterCenter}
+					message={toasterMessageCenter}
+					completed={() => setIsShowToasterCenter(0)}
 				/>
 				<Toaster 
-					show={isShowToaster2}
-					message={toasterMessage2}
+					show={isShowToasterBottom}
+					message={toasterMessageBottom}
 					position={"bottom"}
 					type={"success"}
 					duration={2000}
 					
-					completed={() => setIsShowToaster(0)}
+					completed={() => setIsShowToasterCenter(0)}
 				/>
 			</Suspense>
 		</div>

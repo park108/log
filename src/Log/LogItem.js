@@ -23,12 +23,9 @@ const LogItem = (props) => {
 	const timestamp = props.timestamp;
 
 	useEffect(() => {
-		if(isDeleting) {
-			setItemClass("article article--main-item article--logitem-delete");
-		}
-		else {
-			setItemClass("article article--main-item");
-		}
+		(isDeleting)
+			? setItemClass("article article--main-item article--logitem-delete")
+			: setItemClass("article article--main-item");
 	}, [isDeleting]);
 
 	const deleteLogItem = () => {
@@ -64,7 +61,12 @@ const LogItem = (props) => {
 	const ArticleMain = () => {
 
 		const outputContents = parser.markdownToHtml(contents);
-		return <section className="section section--logitem-contents" dangerouslySetInnerHTML={{__html: outputContents}}></section>;
+
+		return <section
+			className="section section--logitem-contents"
+			dangerouslySetInnerHTML={{__html: outputContents}}
+		>
+		</section>;
 	}
 
 	const copyToClipboard = (e) => {
@@ -84,10 +86,6 @@ const LogItem = (props) => {
 		log("URL " + url + " copied.");
 
 		setIsShowToaster(1);
-	}
-
-	const initToaster = () => {
-		setIsShowToaster(0);
 	}
 
 	const ArticleInfo = () => {
@@ -160,7 +158,7 @@ const LogItem = (props) => {
 					type={"success"}
 					duration={2000}
 					
-					completed={initToaster}
+					completed={() => setIsShowToaster(0)}
 				/>
 			</Suspense>
 		</article>
