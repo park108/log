@@ -17,26 +17,16 @@ const Toaster = (props) => {
 		let className = "div";
 
 		// Class by position
-		if(undefined === position || "center" === position) {
-			className += " div--toaster-center";
-		}
-		else if("bottom" === position) {
-			className += " div--toaster-bottom";
-		}
+		className += (undefined === position || "center" === position) ? " div--toaster-center"
+			: ("bottom" === position) ? " div--toaster-bottom"
+			: "";
 
 		// Class by type
-		if(undefined === type || "information" === type) {
-			className += " div--toaster-information";
-		}
-		else if("success" === type) {
-			className += " div--toaster-success";
-		}
-		else if("warning" === type) {
-			className += " div--toaster-warning";
-		}
-		else if("error" === type) {
-			className += " div--toaster-error";
-		}
+		className += (undefined === type || "information" === type) ? " div--toaster-information"
+			: ("success" === type) ? " div--toaster-success"
+			: ("warning" === type) ? " div--toaster-warning"
+			: ("error" === type) ? " div--toaster-error"
+			: "";
 
 		// Class by show mode
 		if(0 === show) {
