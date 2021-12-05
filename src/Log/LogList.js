@@ -39,13 +39,13 @@ const LogList = (props) => {
 				let newLog = newData.body.Items;
 
 				// Set log array
-				setLogs((undefined === newData.body.Items)
+				setLogs(undefined === newData.body.Items
 					? []
 					: newLog
 				);
 
 				// Last item
-				setLastTimestamp((undefined === newData.body.LastEvaluatedKey)
+				setLastTimestamp(undefined === newData.body.LastEvaluatedKey
 					? undefined
 					: newData.body.LastEvaluatedKey.timestamp
 				);
@@ -76,13 +76,13 @@ const LogList = (props) => {
 				let newLog = logs.concat(nextData.body.Items);
 	
 				// Set log array
-				setLogs((undefined === nextData.body.Items)
+				setLogs(undefined === nextData.body.Items
 					? []
 					: newLog
 				);
 	
 				// Last item
-				setLastTimestamp((undefined === nextData.body.LastEvaluatedKey)
+				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey
 					? undefined
 					: nextData.body.LastEvaluatedKey.timestamp
 				);
