@@ -33,7 +33,6 @@ const File = (props) => {
 			const res = await fetch(commonFile.getAPI());
 			const newData = await res.json();
 
-			log(newData);
 			if(undefined !== newData.errorType) {
 				console.error(res);
 			}
@@ -71,8 +70,6 @@ const File = (props) => {
 		try {
 			const res = await fetch(apiUrl);
 			const nextData = await res.json();
-
-			log(nextData);
 
 			if(undefined !== res.errorType) {
 				console.error(res);
@@ -118,6 +115,10 @@ const File = (props) => {
 		}
 	}, [isLoading]);
 
+	const fileUploadUI = isMobile() 
+		? <FileUpload uploaded={fetchData} />
+		: <FileDrop uploaded={fetchData} />;
+
 	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
 		: <button
@@ -133,11 +134,9 @@ const File = (props) => {
 	}
 	return <main className="main main--contents" style={contentHeight} role="application">
 		<article className="article article--main-item">
-			{
-				isMobile()
-					? <FileUpload uploaded={fetchData} />
-					: <FileDrop uploaded={fetchData} />
-			}
+
+			{fileUploadUI}
+
 			<div className="div div--files-list" role="list">
 				{files.map(data => (				
 					<FileItem
@@ -150,13 +149,15 @@ const File = (props) => {
 					/>
 				))}
 			</div>
+
 			{seeMoreButton}
-			<Toaster 
-				show={isShowToaster}
-				message={toasterMessage}
-				completed={() => setIsShowToaster(0)}
-			/>
 		</article>
+			
+		<Toaster 
+			show={isShowToaster}
+			message={toasterMessage}
+			completed={() => setIsShowToaster(0)}
+		/>
 	</main>
 }
 
