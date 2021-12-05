@@ -53,7 +53,7 @@
 .div--toaster-bottom {
   position: fixed;
   left: 0;
-  bottom: 1em;
+  bottom: calc(1em - 5px);
   height: 1em;
   width: 100%;
   overflow: hidden;
