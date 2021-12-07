@@ -55,7 +55,7 @@ const Navigation = () => {
 				{monitor}
 			</ul>
 		</nav>
-	)
+	);
 }
 
 export default Navigation;

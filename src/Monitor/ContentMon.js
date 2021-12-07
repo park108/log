@@ -198,56 +198,58 @@ const ContentMon = (props) => {
 	let commentsPillarIndex = 0;
 	let filesPillarIndex = 0;
 
-	return <article className="article article--main-item">
-		<h1 className="h1 h1--monitor-title">Contents in the last 6 months</h1>
-		<section className="section section--monitor-item">
-			<h2 className="h2 h2--monitor-subtitle">Logs</h2>
-			<div className="div div--monitor-pillarchart">
-				{logCount.map(item =>(
-					<Pillars
-						key={item.from}
-						valueRate={item.valueRate}
-						value={item.count}
-						date={getFormattedDate(item.from)}
-						index={logsPillarIndex++}
-					/>
-				))}
-			</div>
-		</section>
-		<section className="section section--monitor-item">
-			<h2 className="h2 h2--monitor-subtitle">Comments</h2>
-			<div className="div div--monitor-pillarchart">
-				{commentCount.map(item =>(
-					<Pillars
-						key={item.from}
-						valueRate={item.valueRate}
-						value={item.count}
-						date={getFormattedDate(item.from)}
-						index={commentsPillarIndex++}
-					/>
-				))}
-			</div>
-		</section>
-		<section className="section section--monitor-item">
-			<h2 className="h2 h2--monitor-subtitle">Files</h2>
-			<div className="div div--monitor-pillarchart">
-				{fileCount.map(item =>(
-					<Pillars
-						key={item.from}
-						valueRate={item.valueRate}
-						value={
-							getFormattedSize(item.size)
-								+ ((0 === item.count) ? ""
-								: (1 === item.count) ? " (" + item.count + " file)"
-								: " (" + item.count + " files)")
-						}
-						date={getFormattedDate(item.from)}
-						index={filesPillarIndex++}
-					/>
-				))}
-			</div>
-		</section>
-	</article>
+	return (
+		<article className="article article--main-item">
+			<h1 className="h1 h1--monitor-title">Contents in the last 6 months</h1>
+			<section className="section section--monitor-item">
+				<h2 className="h2 h2--monitor-subtitle">Logs</h2>
+				<div className="div div--monitor-pillarchart">
+					{logCount.map(item =>(
+						<Pillars
+							key={item.from}
+							valueRate={item.valueRate}
+							value={item.count}
+							date={getFormattedDate(item.from)}
+							index={logsPillarIndex++}
+						/>
+					))}
+				</div>
+			</section>
+			<section className="section section--monitor-item">
+				<h2 className="h2 h2--monitor-subtitle">Comments</h2>
+				<div className="div div--monitor-pillarchart">
+					{commentCount.map(item =>(
+						<Pillars
+							key={item.from}
+							valueRate={item.valueRate}
+							value={item.count}
+							date={getFormattedDate(item.from)}
+							index={commentsPillarIndex++}
+						/>
+					))}
+				</div>
+			</section>
+			<section className="section section--monitor-item">
+				<h2 className="h2 h2--monitor-subtitle">Files</h2>
+				<div className="div div--monitor-pillarchart">
+					{fileCount.map(item =>(
+						<Pillars
+							key={item.from}
+							valueRate={item.valueRate}
+							value={
+								getFormattedSize(item.size)
+									+ ((0 === item.count) ? ""
+									: (1 === item.count) ? " (" + item.count + " file)"
+									: " (" + item.count + " files)")
+							}
+							date={getFormattedDate(item.from)}
+							index={filesPillarIndex++}
+						/>
+					))}
+				</div>
+			</section>
+		</article>
+	);
 }
 
 export default ContentMon;

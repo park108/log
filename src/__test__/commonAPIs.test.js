@@ -28,18 +28,6 @@ describe('get API URL by stage', () => {
     expect(apiUrl).toBe("https://urruauaj81.execute-api.ap-northeast-2.amazonaws.com/prod");
   });
   
-  it("File app. test stage uploaded file URL", () => {
-    process.env.NODE_ENV = "development";
-    const apiUrl = commonFile.getFileUrl();
-    expect(apiUrl).toBe("https://park108-log-dev.s3.ap-northeast-2.amazonaws.com");
-  });
-  
-  it("File app. prod stage uploaded file URL", () => {
-    process.env.NODE_ENV = "production";
-    const apiUrl = commonFile.getFileUrl();
-    expect(apiUrl).toBe("https://park108-log-prod.s3.ap-northeast-2.amazonaws.com");
-  });
-  
   it("Image app. test stage API URL", () => {
     process.env.NODE_ENV = "development";
     const apiUrl = commonImage.getAPI();

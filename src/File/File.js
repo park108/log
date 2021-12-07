@@ -132,33 +132,36 @@ const File = (props) => {
 	if(!isAdmin()) {
 		return <Redirect to="/log" />;
 	}
-	return <main className="main main--contents" style={contentHeight} role="application">
-		<article className="article article--main-item">
 
-			{fileUploadUI}
+	return (
+		<main className="main main--contents" style={contentHeight} role="application">
+			<article className="article article--main-item">
 
-			<div className="div div--files-list" role="list">
-				{files.map(data => (				
-					<FileItem
-						key={data.key}
-						fileName={data.key}
-						lastModified={data.timestamp}
-						size={data.size}
-						url={data.url}
-						deleted={fetchData}
-					/>
-				))}
-			</div>
+				{fileUploadUI}
 
-			{seeMoreButton}
-		</article>
-			
-		<Toaster 
-			show={isShowToaster}
-			message={toasterMessage}
-			completed={() => setIsShowToaster(0)}
-		/>
-	</main>
+				<div className="div div--files-list" role="list">
+					{files.map(data => (				
+						<FileItem
+							key={data.key}
+							fileName={data.key}
+							lastModified={data.timestamp}
+							size={data.size}
+							url={data.url}
+							deleted={fetchData}
+						/>
+					))}
+				</div>
+
+				{seeMoreButton}
+			</article>
+				
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				completed={() => setIsShowToaster(0)}
+			/>
+		</main>
+	);
 }
 
 export default File;

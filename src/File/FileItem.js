@@ -94,7 +94,7 @@ const FileItem = (props) => {
 				completed={() => setIsShowToaster(0)}
 			/>
 		</div>
-	)
+	);
 }
 
 export default FileItem;

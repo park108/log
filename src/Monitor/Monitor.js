@@ -49,17 +49,19 @@ const Monitor = (props) => {
 		return <Redirect to="/log" />;
 	}
 
-	return <main className="main main--contents" style={contentHeight} role="application">
-		<Suspense fallback={<div></div>}>
-			<ContentMon stackPallet={stackPallet} />
-		</Suspense>
-		<Suspense fallback={<div></div>}>
-			<VisitorMon stackPallet={stackPallet} />
-		</Suspense>
-		<Suspense fallback={<div></div>}>
-			<WebVitalsMon stackPallet={stackPallet} />
-		</Suspense>
-	</main>
+	return (
+		<main className="main main--contents" style={contentHeight} role="application">
+			<Suspense fallback={<div></div>}>
+				<ContentMon stackPallet={stackPallet} />
+			</Suspense>
+			<Suspense fallback={<div></div>}>
+				<VisitorMon stackPallet={stackPallet} />
+			</Suspense>
+			<Suspense fallback={<div></div>}>
+				<WebVitalsMon stackPallet={stackPallet} />
+			</Suspense>
+		</main>
+	);
 }
 
 export default Monitor;

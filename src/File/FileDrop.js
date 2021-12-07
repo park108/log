@@ -110,14 +110,16 @@ const FileDrop = (props) => {
 		});
 	}
 
-	return <div className={dropzoneStyle}
-		onDrop={(event) => handleDrop(event)}
-		onDragOver={(event) => handleDragOver(event)}
-		onDragEnter={(event) => handleDragEnter(event)}
-		onDragLeave={(event) => handleDragLeave(event)}
+	return (
+		<div className={dropzoneStyle}
+			onDrop={(event) => handleDrop(event)}
+			onDragOver={(event) => handleDragOver(event)}
+			onDragEnter={(event) => handleDragEnter(event)}
+			onDragLeave={(event) => handleDragLeave(event)}
 		>
-		{dropzoneText}
-	</div>;
+			{dropzoneText}
+		</div>
+	);
 }
 
 export default FileDrop;

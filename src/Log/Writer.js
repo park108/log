@@ -124,20 +124,24 @@ const Writer = (props) => {
 	const Converted = () => {
 
 		if(!isConvertedHTML) {
-			return <div
-				id="div--writer-converted"
-				className="div div--writer-converted"
-				dangerouslySetInnerHTML={{__html: convertedArticle}}
-			>
-			</div>;
+			return (
+				<div
+					id="div--writer-converted"
+					className="div div--writer-converted"
+					dangerouslySetInnerHTML={{__html: convertedArticle}}
+				>
+				</div>
+			);
 		}
 
-		return <div
-			id="div--writer-converted"
-			className="div div--writer-converted"
-		>
-			{convertedArticle}
-		</div>;
+		return (
+			<div
+				id="div--writer-converted"
+				className="div div--writer-converted"
+			>
+				{convertedArticle}
+			</div>
+		);
 	}
 
 	const ImageSelectorButton = () => {
@@ -154,24 +158,28 @@ const Writer = (props) => {
 			}
 		}
 
-		return <span
-			className="span span--writer-statusbarbutton"
-			onClick={changeMode}
-		>
-			[IMG]
-		</span>;
+		return (
+			<span
+				className="span span--writer-statusbarbutton"
+				onClick={changeMode}
+			>
+				[IMG]
+			</span>
+		);
 	}
 
 	const ConvertModeButton = () => {
 
 		const buttonTitle = isConvertedHTML ? "[HTML]" : "[WEB]";
 
-		return <span
-			onClick={() => setIsConvertedHTML(!isConvertedHTML)}
-			className="span span--writer-statusbarbutton"
-		>
-			{buttonTitle}
-		</span>;
+		return (
+			<span
+				onClick={() => setIsConvertedHTML(!isConvertedHTML)}
+				className="span span--writer-statusbarbutton"
+			>
+				{buttonTitle}
+			</span>
+		);
 	}
 
 	const ChangeHistory = () => {
@@ -180,17 +188,19 @@ const Writer = (props) => {
 			return "";
 		}
 
-		return <div className="div div--writer-archive" >
-			<div className="div div--writer-archivetitle">Change History</div>
-			{data.item.logs.map(log => (
-				<LogItem	
-					key={log.timestamp}
-					author={data.item.author}
-					timestamp={log.timestamp}
-					contents={log.contents}
-				/>
-			))}
-		</div>;
+		return (
+			<div className="div div--writer-archive" >
+				<div className="div div--writer-archivetitle">Change History</div>
+				{data.item.logs.map(log => (
+					<LogItem	
+						key={log.timestamp}
+						author={data.item.author}
+						timestamp={log.timestamp}
+						contents={log.contents}
+					/>
+				))}
+			</div>
+		);
 	}
 	
 	if(!isAdmin()) {

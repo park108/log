@@ -100,16 +100,18 @@ const Comment = (props) => {
 		/>
 		: "";
 
-	return <section className="section section--logitem-comment">
-		<span
-			className="span span--comment-togglebutton"
-			onClick={toggleComments}
-		>
-			{buttonText}
-		</span>
-		{commentThread}
-		{commentForm}
-	</section>;
+	return (
+		<section className="section section--logitem-comment">
+			<span
+				className="span span--comment-togglebutton"
+				onClick={toggleComments}
+			>
+				{buttonText}
+			</span>
+			{commentThread}
+			{commentForm}
+		</section>
+	);
 }
 
 export default Comment;

@@ -112,25 +112,27 @@ const FileUpload = (props) => {
 		});
 	}
 
-	return <div className="div div--fileupload-input">
-		<input
-			id="file-upload-for-mobile"
-			type="file"
-			accept="image/*"
-			aria-label="file-upload"
-			multiple
-			onChange={(event) => handleSelectedFiles(event)}
-		/>
-		<Toaster 
-			show={isShowToaster}
-			message={toasterMessage}
-			position={"bottom"}
-			type={toasterType}
-			duration={2000}
-			
-			completed={() => setIsShowToaster(0)}
-		/>
-	</div>;
+	return (
+		<div className="div div--fileupload-input">
+			<input
+				id="file-upload-for-mobile"
+				type="file"
+				accept="image/*"
+				aria-label="file-upload"
+				multiple
+				onChange={(event) => handleSelectedFiles(event)}
+			/>
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={toasterType}
+				duration={2000}
+				
+				completed={() => setIsShowToaster(0)}
+			/>
+		</div>
+	);	
 }
 
 export default FileUpload;

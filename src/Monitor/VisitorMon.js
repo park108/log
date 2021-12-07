@@ -186,12 +186,14 @@ const VisitorMon = (props) => {
 			backgroundColor: stackPallet[attr.totalCount - attr.index - 1].backgroundColor
 		};
 		
-		return <div className="div div--monitor-pillar" style={stackStyle} key={attr.name}>
-			<div className="div div--monitor-stackvalue">
-				<span>{attr.name}, </span>
-				<span>{(100 * (attr.count / envTotalCount)).toFixed(0)}</span>				
+		return (
+			<div className="div div--monitor-pillar" style={stackStyle} key={attr.name}>
+				<div className="div div--monitor-stackvalue">
+					<span>{attr.name}, </span>
+					<span>{(100 * (attr.count / envTotalCount)).toFixed(0)}</span>				
+				</div>
 			</div>
-		</div>
+		);
 	}
 
 	const EnvPillar = (attr) => {
@@ -199,59 +201,63 @@ const VisitorMon = (props) => {
 		let index = 0;
 		let total = attr.data.length;
 
-		return <div className="div div--monitor-3pillars">
-			{attr.data.map(item => (
-				<EnvStack
-					key={item.name}
-					name={item.name}
-					count={item.count}
-					totalCount={total}
-					index={index++}
-				/>
-			))}
-			<div className="div div--monitor-pillarlegend" >{attr.legend}</div>
-		</div>;
+		return (
+			<div className="div div--monitor-3pillars">
+				{attr.data.map(item => (
+					<EnvStack
+						key={item.name}
+						name={item.name}
+						count={item.count}
+						totalCount={total}
+						index={index++}
+					/>
+				))}
+				<div className="div div--monitor-pillarlegend" >{attr.legend}</div>
+			</div>
+		);
 	}
 
 	let countPillarIndex = 0;
 
-	return <article className="article article--main-item">
-		<h1 className="h1 h1--monitor-title">Visitors in the last 7 days</h1>
-		<section className="section section--monitor-item">
-			<h2 className="h2 h2--monitor-subtitle">Total Count: {totalCount}</h2>
-			<div className="div div--monitor-pillarchart">
-			{dailyCount.map(data => (
-				<CountPillar
-					key={data.date}
-					date={data.date}
-					count={data.count}
-					valueRate={data.valueRate}
-					index={countPillarIndex++}
-				/>
-			))}
-			</div>
-		</section>
-		<section className="section section--monitor-item">
-			<h2 className="h2 h2--monitor-subtitle">User Environment: {envTotalCount} cases</h2>
-			<div className="div div--monitor-stackchart">
-				<EnvPillar
-					legend="Browser"
-					length={envTotalCount}
-					data={browsers}
-				/>
-				<EnvPillar
-					legend="OS"
-					length={envTotalCount}
-					data={os}
-				/>
-				<EnvPillar
-					legend="Rendering Engine"
-					length={envTotalCount}
-					data={engines}
-				/>
-			</div>
-		</section>
-	</article>
+	return (
+		<article className="article article--main-item">
+			<h1 className="h1 h1--monitor-title">Visitors in the last 7 days</h1>
+			<section className="section section--monitor-item">
+				<h2 className="h2 h2--monitor-subtitle">Total Count: {totalCount}</h2>
+				<div className="div div--monitor-pillarchart">
+				{dailyCount.map(data => (
+					<CountPillar
+						key={data.date}
+						date={data.date}
+						count={data.count}
+						valueRate={data.valueRate}
+						index={countPillarIndex++}
+					/>
+				))}
+				</div>
+			</section>
+			<section className="section section--monitor-item">
+				<h2 className="h2 h2--monitor-subtitle">User Environment: {envTotalCount} cases</h2>
+				<div className="div div--monitor-stackchart">
+					<EnvPillar
+						legend="Browser"
+						length={envTotalCount}
+						data={browsers}
+					/>
+					<EnvPillar
+						legend="OS"
+						length={envTotalCount}
+						data={os}
+					/>
+					<EnvPillar
+						legend="Rendering Engine"
+						length={envTotalCount}
+						data={engines}
+					/>
+				</div>
+			</section>
+		</article>
+	);
 }
 
 export default VisitorMon;

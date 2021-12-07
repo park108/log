@@ -50,9 +50,11 @@ const Toaster = (props) => {
 		}
 	}, [show, duration, position, type, props.completed]);
 
-	return <div className={className} role="alert">
-		{message}
-	</div>;
+	return (
+		<div className={className} role="alert">
+			{message}
+		</div>
+	);
 }
 
 export default Toaster;

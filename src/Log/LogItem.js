@@ -162,7 +162,7 @@ const LogItem = (props) => {
 				/>
 			</Suspense>
 		</article>
-	)
+	);
 }
 
 export default LogItem;

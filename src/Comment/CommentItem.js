@@ -57,19 +57,21 @@ const CommentItem = (props) => {
 	messageClassName += isAdmin() ? " div--comment-adminhidden" : "";
 	messageClassName += isAdminComment ? " div--comment-admin" : " div--comment-visitor";
 
-	return <div className={wrapperClassName}>
-		<div className="div div--comment-contents">
-			<div className={messageClassName}>
-				<p>{message}</p>
+	return (
+		<div className={wrapperClassName}>
+			<div className="div div--comment-contents">
+				<div className={messageClassName}>
+					<p>{message}</p>
+				</div>
+				{replyButton}
+				<div className="div div--comment-timestamp">
+					<span>{name}</span>
+					<span>{timestampText}</span>
+				</div>
 			</div>
-			{replyButton}
-			<div className="div div--comment-timestamp">
-				<span>{name}</span>
-				<span>{timestampText}</span>
-			</div>
+			{replyForm}
 		</div>
-		{replyForm}
-	</div>;
+	);
 }
 
 export default CommentItem;

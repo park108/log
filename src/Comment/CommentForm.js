@@ -51,7 +51,8 @@ const CommentForm = (props) => {
 
 	const nameDisabled = isAdmin() ? "disabled" : "";
 
-	return <div className="div div--comment-form">
+	return (
+		<div className="div div--comment-form">
 			<form onSubmit={handleSubmit}>
 				<div className="div div--comment-input">
 					<input 
@@ -90,7 +91,8 @@ const CommentForm = (props) => {
 					type="submit"
 				>↵</button>
 			</form>
-		</div>;
+		</div>
+	);
 }
 
 export default CommentForm;

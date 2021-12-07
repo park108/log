@@ -26,7 +26,7 @@ const Footer = (props) => {
 				<a href="https://www.linkedin.com/in/jongkil-park-48019576/" rel="noreferrer" target="_blank">[in]</a>
 			</span>
 		</footer>
-	)
+	);
 }
 
 export default Footer;

@@ -97,39 +97,44 @@ const ImageSelector = (props) => {
 
 	const ImageItem = (item) => {
 
-		return <img className="img img--image-imageitem"
-			src={item.thumbnailUrl}
-			alt={item.fileName}
-			imageurl={item.imageUrl}
-			thumbnailurl={item.thumbnailUrl}
-			enlarged={"N"}
-			onMouseOut={shrinkImage}
-			onClick={clickImage}
-		/>;
+		return (
+			<img className="img img--image-imageitem"
+				src={item.thumbnailUrl}
+				alt={item.fileName}
+				imageurl={item.imageUrl}
+				thumbnailurl={item.thumbnailUrl}
+				enlarged={"N"}
+				onMouseOut={shrinkImage}
+				onClick={clickImage}
+			/>
+		);
 	}
 
-	return <div className={imageSelectorClass} >
-		{loading}
-
-		{images.map(data => (
-			<ImageItem
-				key={data.key}
-				fileName={data.key}
-				imageUrl={data.url.replace("thumbnail/", "")}
-				thumbnailUrl={data.url}
-			/>
-		))}
-		
-		<Toaster 
-			show={isShowToaster}
-			message={toasterMessage}
-			position={"bottom"}
-			type={"warning"}
-			duration={2000}
+	return (
+		<div className={imageSelectorClass} >
 			
-			completed={() => setIsShowToaster(0)}
-		/>
-	</div>
+			{loading}
+
+			{images.map(data => (
+				<ImageItem
+					key={data.key}
+					fileName={data.key}
+					imageUrl={data.url.replace("thumbnail/", "")}
+					thumbnailUrl={data.url}
+				/>
+			))}
+			
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={"warning"}
+				duration={2000}
+				
+				completed={() => setIsShowToaster(0)}
+			/>
+		</div>
+	);
 }
 
 export default ImageSelector;
