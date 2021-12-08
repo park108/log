@@ -32,25 +32,21 @@ const UserLogin = () => {
 		window.location.href = getLoginUrl();
 	}
 
-	let userId = "";
-
 	if(common.isLoggedIn()) {
-		userId = common.isAdmin() ? "Jongkil Park ✓" : "Jongkil Park 客";
-	}
+		
+		const userId = common.isAdmin() ? "Jongkil Park ✓" : "Jongkil Park 客";
 
-	if(common.isLoggedIn()) {
 		return (
 			<span className="span span--login-loggedin" onClick={logout}>{userId}</span>
 		);
 	}
-	else {
-		return (
-			<span className="span span--login-loggedout" onClick={login}>
-				Jongkil Park 
-				<EnterButton />
-			</span>
-		);
-	}
+
+	return (
+		<span className="span span--login-loggedout" onClick={login}>
+			Jongkil Park 
+			<EnterButton />
+		</span>
+	);
 }
 
 export default UserLogin;
