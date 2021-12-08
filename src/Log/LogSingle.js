@@ -12,7 +12,7 @@ const LogSingle = (props) => {
 	const [data, setData] = useState({});
 	const [isLoading, setIsLoading] = useState(false);
 
-	const [hasItem, setHasItem] = useState(0); // 0: Init, 1: has item, 2: item not found
+	const [hasItem, setHasItem] = useState("NOW_LOADING");
 
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
@@ -37,13 +37,13 @@ const LogSingle = (props) => {
 
 			// Page not found
 			if(undefined !== res.errorType || 0 === res.body.Count) {
-				setHasItem(2);
+				setHasItem("NO");
 			}
 
 			// Set log item data
 			else {
 				setData(res.body.Items[0]);
-				setHasItem(1);
+				setHasItem("YES");
 			}
 		}).catch(err => {
 			console.error(err);
@@ -71,14 +71,15 @@ const LogSingle = (props) => {
 		setIsShowToasterBottom(1);
 	}
 	
-	const logItem = 1 === hasItem ? <LogItem
-			author={data.author}
-			timestamp={data.timestamp}
-			contents={data.logs[0].contents}
-			item = {data}
-			deleted={callbackDeleteItem}
-		/>
-	: 2 === hasItem ? <PageNotFound />
+	const logItem = ("YES" === hasItem)
+	? <LogItem
+		author={data.author}
+		timestamp={data.timestamp}
+		contents={data.logs[0].contents}
+		item = {data}
+		deleted={callbackDeleteItem}
+	/>
+	: ("NO" === hasItem) ? <PageNotFound />
 	: "";
 
 
@@ -86,22 +87,22 @@ const LogSingle = (props) => {
 		<div role="list">
 			<Suspense fallback={<div></div>}>
 				{logItem}
-				<Toaster 
-					show={isShowToasterCenter}
-					message={toasterMessageCenter}
-					
-					completed={() => setIsShowToasterCenter(0)}
-				/>
-				<Toaster 
-					show={isShowToasterBottom}
-					message={toasterMessageBottom}
-					position={"bottom"}
-					type={"success"}
-					duration={2000}
-					
-					completed={() => setIsShowToasterBottom(0)}
-				/>
 			</Suspense>
+			<Toaster 
+				show={isShowToasterCenter}
+				message={toasterMessageCenter}
+				
+				completed={() => setIsShowToasterCenter(0)}
+			/>
+			<Toaster 
+				show={isShowToasterBottom}
+				message={toasterMessageBottom}
+				position={"bottom"}
+				type={"success"}
+				duration={2000}
+				
+				completed={() => setIsShowToasterBottom(0)}
+			/>
 		</div>
 	);
 }

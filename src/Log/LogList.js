@@ -141,24 +141,24 @@ const LogList = (props) => {
 						deleted={callbackDeleteItem}
 					/>
 				))}
-				
-				{seeMoreButton}
-
-				<Toaster 
-					show={isShowToasterCenter}
-					message={toasterMessageCenter}
-					completed={() => setIsShowToasterCenter(0)}
-				/>
-				<Toaster 
-					show={isShowToasterBottom}
-					message={toasterMessageBottom}
-					position={"bottom"}
-					type={"success"}
-					duration={2000}
-					
-					completed={() => setIsShowToasterCenter(0)}
-				/>
 			</Suspense>
+				
+			{seeMoreButton}
+
+			<Toaster 
+				show={isShowToasterCenter}
+				message={toasterMessageCenter}
+				completed={() => setIsShowToasterCenter(0)}
+			/>
+			<Toaster 
+				show={isShowToasterBottom}
+				message={toasterMessageBottom}
+				position={"bottom"}
+				type={"success"}
+				duration={2000}
+				
+				completed={() => setIsShowToasterCenter(0)}
+			/>
 		</div>
 	);
 }
