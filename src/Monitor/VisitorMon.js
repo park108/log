@@ -217,21 +217,19 @@ const VisitorMon = (props) => {
 		);
 	}
 
-	let countPillarIndex = 0;
-
 	return (
 		<article className="article article--main-item">
 			<h1 className="h1 h1--monitor-title">Visitors in the last 7 days</h1>
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Total Count: {totalCount}</h2>
 				<div className="div div--monitor-pillarchart">
-				{dailyCount.map(data => (
+				{dailyCount.map((data, index) => (
 					<CountPillar
 						key={data.date}
 						date={data.date}
 						count={data.count}
 						valueRate={data.valueRate}
-						index={countPillarIndex++}
+						index={index}
 					/>
 				))}
 				</div>

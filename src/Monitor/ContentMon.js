@@ -194,23 +194,19 @@ const ContentMon = (props) => {
 		</div>
 	}
 
-	let logsPillarIndex = 0;
-	let commentsPillarIndex = 0;
-	let filesPillarIndex = 0;
-
 	return (
 		<article className="article article--main-item">
 			<h1 className="h1 h1--monitor-title">Contents in the last 6 months</h1>
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Logs</h2>
 				<div className="div div--monitor-pillarchart">
-					{logCount.map(item =>(
+					{logCount.map((item, index) => (
 						<Pillars
 							key={item.from}
 							valueRate={item.valueRate}
 							value={item.count}
 							date={getFormattedDate(item.from)}
-							index={logsPillarIndex++}
+							index={index}
 						/>
 					))}
 				</div>
@@ -218,13 +214,13 @@ const ContentMon = (props) => {
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Comments</h2>
 				<div className="div div--monitor-pillarchart">
-					{commentCount.map(item =>(
+					{commentCount.map((item, index) =>(
 						<Pillars
 							key={item.from}
 							valueRate={item.valueRate}
 							value={item.count}
 							date={getFormattedDate(item.from)}
-							index={commentsPillarIndex++}
+							index={index}
 						/>
 					))}
 				</div>
@@ -232,7 +228,7 @@ const ContentMon = (props) => {
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Files</h2>
 				<div className="div div--monitor-pillarchart">
-					{fileCount.map(item =>(
+					{fileCount.map((item, index) =>(
 						<Pillars
 							key={item.from}
 							valueRate={item.valueRate}
@@ -243,7 +239,7 @@ const ContentMon = (props) => {
 									: " (" + item.count + " files)")
 							}
 							date={getFormattedDate(item.from)}
-							index={filesPillarIndex++}
+							index={index}
 						/>
 					))}
 				</div>

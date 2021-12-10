@@ -35,9 +35,19 @@ const WebVitalsItem = (props) => {
 	for(let item of data) {
 		
 		if(name === item.name) {
-			if("GOOD" === item.evaluation) ++good;
-			else if("POOR" === item.evaluation) ++poor;
-			else if("NEEDS IMPROVEMENT" === item.evaluation) ++needImprovement;
+			switch(item.evaluation) {
+				case "GOOD":
+					++good;
+					break;
+				case "POOR":
+					++poor;
+					break;
+				case "NEEDS IMPROVEMENT":
+					++needImprovement;
+					break;
+				default:
+					break;
+			}
 		}
 	}
 
@@ -48,18 +58,14 @@ const WebVitalsItem = (props) => {
 	const poorStyle = {width: 100 * poor / totalCount + "%"}
 
 	const evaluation = (0.75 <= good / totalCount) ? "GOOD"
-		: ((0.25 < poor / totalCount)? "POOR"
-			: ((0 < totalCount)? "NEEDS IMPROVEMENT"
-				: "Calculating..."
-			)
-		);
+		: (0.25 < poor / totalCount) ? "POOR"
+		: (0 < totalCount) ? "NEEDS IMPROVEMENT"
+		: "Calculating...";
 	
-		const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-good"
-			: (("POOR" === evaluation) ? "span span--monitor-poor"
-				: (("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-warn"
-					: "span span--monitor-none"
-				)
-			);
+	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-good"
+		: ("POOR" === evaluation) ? "span span--monitor-poor"
+		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-warn"
+		: "span span--monitor-none";
 
 	return (
 		<section className="section section--monitor-item">
