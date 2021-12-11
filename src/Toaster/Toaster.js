@@ -29,13 +29,16 @@ const Toaster = (props) => {
 			: "";
 
 		// Class by show mode
+		// 0: hide
 		if(0 === show) {
-			// 0: hide
 			setClassName("div div--toaster-hide");
 		}
+		
+		// 1: show
 		else if(1 === show) {
-			// 1: show
+
 			setClassName(className);
+
 			if(duration > 0) {
 				setTimeout(function() {
 					setClassName(className + " div--toaster-fadeout");
@@ -43,11 +46,13 @@ const Toaster = (props) => {
 				}, duration);
 			}
 		}
+
+		// 2: fade-out
 		else if(2 === show) {
-			// 2: fade-out
 			setClassName(className + " div--toaster-fadeout");
 			setTimeout(props.completed, 1000);
 		}
+		
 	}, [show, duration, position, type, props.completed]);
 
 	return (

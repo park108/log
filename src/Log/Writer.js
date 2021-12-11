@@ -24,45 +24,6 @@ const Writer = (props) => {
 	const [buttonText, setButtonText] = useState("Post");
 
 	const [isShowImageSelector, setIsShowImageSelector] = useState("READY");
-
-	const handleChange = ({ target: { value } }) => setArticle(value);
-
-	const setTextAreaRows = (e) => {
-
-		const getScrollHeight = (e) => {
-	
-			let savedValue = e.value;
-			e.value = "";
-			e._baseScrollHeight = e.scrollHeight;
-			e.value = savedValue;
-		}
-
-		let minRows = e.getAttribute('data-min-rows') | 0, rows;
-		!e._baseScrollHeight && getScrollHeight(e);
-
-		setRows(minRows);
-
-		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32);
-		setRows(minRows + rows);
-	}
-
-	const handleSubmit = (event) => {
-
-		if(article.length < 5) {
-
-			alert("Please note at least 5 characters.");
-		}
-		else if("POST" === mode) {
-
-			event.preventDefault();
-			props.post(article);
-		}
-		else if("EDIT" === mode) {
-
-			event.preventDefault();
-			props.edit(data.item, article);
-		}
-	}
 	
 	// Change width
 	useEffect(() => {
@@ -70,12 +31,14 @@ const Writer = (props) => {
 		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
 	}, []);
 
+	// Set contents data
 	useEffect(() => {
 		if(undefined !== data && undefined !== data.item) {
 			setContents(data.item.logs[0].contents);
 		}
 	}, [data]);
 
+	// Set writer mode POST or EDIT
 	useEffect(() => {
 		
 		setArticle(contents);
@@ -120,6 +83,50 @@ const Writer = (props) => {
 	useEffect(() => setConvertedArticleStatus("HTML length = " + convertedArticle.length), [convertedArticle]);
 
 	useEffect(() => setDisabled(!props.isPostSuccess), [props.isPostSuccess]);
+
+	
+	if(!isAdmin()) {
+		return <Redirect to="/log" />;
+	}
+
+	const handleChange = ({ target: { value } }) => setArticle(value);
+
+	const setTextAreaRows = (e) => {
+
+		const getScrollHeight = (e) => {
+	
+			let savedValue = e.value;
+			e.value = "";
+			e._baseScrollHeight = e.scrollHeight;
+			e.value = savedValue;
+		}
+
+		let minRows = e.getAttribute('data-min-rows') | 0, rows;
+		!e._baseScrollHeight && getScrollHeight(e);
+
+		setRows(minRows);
+
+		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32);
+		setRows(minRows + rows);
+	}
+
+	const handleSubmit = (event) => {
+
+		if(article.length < 5) {
+
+			alert("Please note at least 5 characters.");
+		}
+		else if("POST" === mode) {
+
+			event.preventDefault();
+			props.post(article);
+		}
+		else if("EDIT" === mode) {
+
+			event.preventDefault();
+			props.edit(data.item, article);
+		}
+	}
 
 	const Converted = () => {
 
@@ -170,21 +177,19 @@ const Writer = (props) => {
 
 	const ConvertModeButton = () => {
 
-		const buttonTitle = isConvertedHTML ? "[HTML]" : "[WEB]";
-
 		return (
 			<span
 				onClick={() => setIsConvertedHTML(!isConvertedHTML)}
 				className="span span--writer-statusbarbutton"
 			>
-				{buttonTitle}
+				{isConvertedHTML ? "[HTML]" : "[WEB]"}
 			</span>
 		);
 	}
 
 	const ChangeHistory = () => {
 
-		if("EDIT" !== mode) {
+		if("POST" === mode) {
 			return "";
 		}
 
@@ -201,10 +206,6 @@ const Writer = (props) => {
 				))}
 			</div>
 		);
-	}
-	
-	if(!isAdmin()) {
-		return <Redirect to="/log" />;
 	}
 
 	return (
