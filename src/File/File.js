@@ -39,19 +39,14 @@ const File = (props) => {
 			else {
 
 				log("Files are FETCHED successfully.");
-				let newFiles = newData.body.Items;
+				const newFiles = newData.body.Items;
+				const lastEvaluatedKey = newData.body.LastEvaluatedKey;
 
 				// Set file array
-				setFiles(undefined === newData.body.Items
-					? []
-					: newFiles
-				);
+				setFiles(undefined === newFiles ? [] : newFiles);
 
-				// Last item
-				setLastTimestamp(undefined === newData.body.LastEvaluatedKey
-					? undefined
-					: newData.body.LastEvaluatedKey.timestamp
-				);
+				// Set last item
+				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
 
 			setIsLoading(false);
@@ -76,13 +71,10 @@ const File = (props) => {
 			}
 			else {
 				log("Next files are FETCHED successfully.");
-				let newFiles = files.concat(nextData.body.Items);
+				const newFiles = files.concat(nextData.body.Items);
 	
-				// Set log array
-				setFiles(undefined === nextData.body.Items
-					? []
-					: newFiles
-				);
+				// Set file array
+				setFiles(undefined === nextData.body.Items ? [] : newFiles);
 	
 				// Last item
 				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey

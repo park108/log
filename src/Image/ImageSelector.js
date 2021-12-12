@@ -15,26 +15,79 @@ const ImageSelector = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
-	async function fetchData() {
+	const [lastTimestamp, setLastTimestamp] = useState(undefined);
+
+	const fetchFirst = async () => {
 
 		setIsLoading(true);
 
 		// Call GET API
-		const res = await fetch(commonImage.getAPI());
+		try {
+			const res = await fetch(commonImage.getAPI());
+			const retrieved = await res.json();
 
-		res.json().then(res => {
-			log("Images are FETCHED successfully.");
+			if(undefined !== retrieved.errorType) {
+				console.error(res);
+			}
+			else {
+
+				log("Images are FETCHED successfully.");
+				log(retrieved);
+				const newImages = retrieved.body.Items;
+				const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
+
+				// Set file array
+				setImages(undefined === newImages ? [] : newImages);
+
+				// Set last item
+				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
+			}
+
 			setIsLoading(false);
-			setImages(res.body.Items);
-			log(res.body.Items);
-		}).catch(err => {
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
+	}
+
+	const fetchMore = async (timestamp) => {
+		setIsLoading(true);
+
+		const apiUrl = commonImage.getAPI() + "?lastTimestamp=" + timestamp;
+
+		// Call GET API
+		try {
+			const res = await fetch(apiUrl);
+			const nextData = await res.json();
+
+			if(undefined !== res.errorType) {
+				console.error(res);
+			}
+			else {
+				log("Next images are FETCHED successfully.");
+				const newImages = images.concat(nextData.body.Items);
+	
+				// Set log array
+				setImages(undefined === nextData.body.Items ? [] : newImages);
+	
+				// Last item
+				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey
+					? undefined
+					: nextData.body.LastEvaluatedKey.timestamp
+				);
+
+			}
+		}
+		catch(err) {
+			console.error(err);
+		}
+
+		setIsLoading(false);
 	}
 
 	useEffect(() => {
 		if("SHOW" === props.show) {
-			fetchData();
+			fetchFirst();
 			setImageSelectorClass("div div--image-selector");
 		}
 		else {
@@ -110,19 +163,39 @@ const ImageSelector = (props) => {
 		);
 	}
 
+	const seeMoreButton = (
+		<div
+		className="div div--image-seemorebutton"
+		onClick={(e) => fetchMore(lastTimestamp)}
+		>
+			See<br/>More
+		</div>
+	);
+
 	return (
 		<div className={imageSelectorClass} >
 			
 			{loading}
 
-			{images.map(data => (
-				<ImageItem
-					key={data.key}
-					fileName={data.key}
-					imageUrl={data.url.replace("thumbnail/", "")}
-					thumbnailUrl={data.url}
-				/>
-			))}
+			{
+				isLoading ? undefined :
+				images.map(
+					(data) => (
+						<ImageItem
+							key={data.key}
+							fileName={data.key}
+							imageUrl={data.url.replace("thumbnail/", "")}
+							thumbnailUrl={data.url}
+						/>
+					)
+				)
+			}
+
+			{
+				isLoading ? undefined
+					: undefined === lastTimestamp ? undefined
+					: seeMoreButton
+			}
 			
 			<Toaster 
 				show={isShowToaster}
