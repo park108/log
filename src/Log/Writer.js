@@ -202,6 +202,7 @@ const Writer = (props) => {
 						author={data.item.author}
 						timestamp={log.timestamp}
 						contents={log.contents}
+						showComments={false}
 					/>
 				))}
 			</div>

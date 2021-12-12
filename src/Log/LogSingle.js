@@ -77,6 +77,7 @@ const LogSingle = (props) => {
 		timestamp={data.timestamp}
 		contents={data.logs[0].contents}
 		item = {data}
+		showComments={true}
 		deleted={callbackDeleteItem}
 	/>
 	: ("NO" === hasItem) ? <PageNotFound />

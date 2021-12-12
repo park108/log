@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { log } from '../common';
 import * as commonImage from './commonImage';
+import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
 
 import './ImageSelector.css';
@@ -32,7 +33,6 @@ const ImageSelector = (props) => {
 			else {
 
 				log("Images are FETCHED successfully.");
-				log(retrieved);
 				const newImages = retrieved.body.Items;
 				const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 
@@ -51,6 +51,7 @@ const ImageSelector = (props) => {
 	}
 
 	const fetchMore = async (timestamp) => {
+		
 		setIsLoading(true);
 
 		const apiUrl = commonImage.getAPI() + "?lastTimestamp=" + timestamp;
@@ -66,16 +67,13 @@ const ImageSelector = (props) => {
 			else {
 				log("Next images are FETCHED successfully.");
 				const newImages = images.concat(nextData.body.Items);
+				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	
 				// Set log array
 				setImages(undefined === nextData.body.Items ? [] : newImages);
 	
 				// Last item
-				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey
-					? undefined
-					: nextData.body.LastEvaluatedKey.timestamp
-				);
-
+				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
 		}
 		catch(err) {
@@ -105,21 +103,10 @@ const ImageSelector = (props) => {
 			: setLoading(null);
 	}, [isLoading]);
 
-	const enlargeImage = (e) => {
-		e.target.src = e.target.getAttribute("imageurl");
-		e.target.setAttribute("enlarged", "Y");
-	}
-
-	const shrinkImage = (e) => {
-		e.target.src = e.target.getAttribute("thumbnailurl");
-		e.target.setAttribute("enlarged", "N");
-	}
-
 	const imgMarkdownCopyToClipboard = (e) => {
 
-		let url = e.target.getAttribute("imageurl");
-
-		let imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
+		const url = e.target.getAttribute("imageurl");
+		const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
 
 		let tempElem = document.createElement('textarea');
 		tempElem.value = imageForMarkdown;  
@@ -135,66 +122,34 @@ const ImageSelector = (props) => {
 		setIsShowToaster(1);
 	}
 
-	const clickImage = (e) => {
-
-		let isEnlarged = e.target.getAttribute("enlarged");
-
-		if("Y" === isEnlarged) {
-			imgMarkdownCopyToClipboard(e);
-			shrinkImage(e);
-		}
-		else {
-			enlargeImage(e);
-		}
-	}
-
-	const ImageItem = (item) => {
-
-		return (
-			<img className="img img--image-imageitem"
-				src={item.thumbnailUrl}
-				alt={item.fileName}
-				imageurl={item.imageUrl}
-				thumbnailurl={item.thumbnailUrl}
-				enlarged={"N"}
-				onMouseOut={shrinkImage}
-				onClick={clickImage}
-			/>
-		);
-	}
-
-	const seeMoreButton = (
-		<div
-		className="div div--image-seemorebutton"
-		onClick={(e) => fetchMore(lastTimestamp)}
-		>
-			See<br/>More
-		</div>
-	);
-
 	return (
 		<div className={imageSelectorClass} >
 			
 			{loading}
 
 			{
-				isLoading ? undefined :
-				images.map(
-					(data) => (
-						<ImageItem
-							key={data.key}
-							fileName={data.key}
-							imageUrl={data.url.replace("thumbnail/", "")}
-							thumbnailUrl={data.url}
-						/>
+				isLoading
+					? undefined
+					: images.map(
+						(data) => 
+							<ImageItem
+								key={data.key}
+								fileName={data.key}
+								url={data.url}
+								mdStringCopy={imgMarkdownCopyToClipboard}
+							/>
 					)
-				)
 			}
 
 			{
 				isLoading ? undefined
 					: undefined === lastTimestamp ? undefined
-					: seeMoreButton
+					: <div
+						className="div div--image-seemorebutton"
+						onClick={(e) => fetchMore(lastTimestamp)}
+						>
+							See<br/>More
+						</div>
 			}
 			
 			<Toaster 

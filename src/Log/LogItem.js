@@ -21,6 +21,7 @@ const LogItem = (props) => {
 	const author = props.author;
 	const contents = props.contents;
 	const timestamp = props.timestamp;
+	const showComments = props.showComments;
 
 	useEffect(() => {
 		(isDeleting)
@@ -145,11 +146,16 @@ const LogItem = (props) => {
 		<article className={itemClass} role="listitem">
 			<ArticleInfo />
 			<ArticleMain />
-			<Suspense fallback={<div></div>}>
-				<Comment
-					logTimestamp={timestamp}
-				/>
-			</Suspense>
+			{
+				showComments ? (
+						<Suspense fallback={<div></div>}>
+							<Comment
+								logTimestamp={timestamp}
+							/>
+						</Suspense>
+					)
+					: undefined
+			}
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}
