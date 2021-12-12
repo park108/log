@@ -99,6 +99,30 @@
   height: 100%;
 }
 
+.section--logitem-contents h1 {
+  font-size: 1.5rem;
+}
+
+.section--logitem-contents h2 {
+  font-size: 1.3rem;
+}
+
+.section--logitem-contents h3 {
+  font-size: 1.1rem;
+}
+
+.section--logitem-contents h4 {
+  font-size: 1.0rem;
+}
+
+.section--logitem-contents h5 {
+  font-size: 0.9rem;
+}
+
+.section--logitem-contents h6 {
+  font-size: 0.8rem;
+}
+
 .button--loglist-seemore {
   margin-top: 2em;
   margin-left: auto;
