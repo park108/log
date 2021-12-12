@@ -8,9 +8,15 @@ const ContentMon = (props) => {
 	const [commentCount, setCommentCount] = useState([]);
 	const [fileCount, setFileCount] = useState([]);
 
+	const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+	const [isLoadingComments, setIsLoadingComments] = useState(false);
+	const [isLoadingFiles, setIsLoadingFiles] = useState(false);
+
 	const stackPallet = props.stackPallet;
 
 	async function fetchLogCount(from, to, t) {
+
+		setIsLoadingLogs(true);
 
 		const apiUrl = commonMonitor.getAPI() + "/content/log?fromTimestamp=" + from + "&toTimestamp=" + to;
 		
@@ -49,6 +55,8 @@ const ContentMon = (props) => {
 			}
 
 			setLogCount(logCountList);
+
+			setIsLoadingLogs(false);
 			
 		}).catch(err => {
 			console.error(err);
@@ -56,6 +64,8 @@ const ContentMon = (props) => {
 	}
 
 	async function fetchCommentCount(from, to, t) {
+
+		setIsLoadingComments(true);
 
 		const apiUrl = commonMonitor.getAPI() + "/content/comment?fromTimestamp=" + from + "&toTimestamp=" + to;
 		
@@ -91,6 +101,8 @@ const ContentMon = (props) => {
 			}
 
 			setCommentCount(commentCountList);
+
+			setIsLoadingComments(false);
 			
 		}).catch(err => {
 			console.error(err);
@@ -98,6 +110,8 @@ const ContentMon = (props) => {
 	}
 
 	async function fetchFileMetadata(from, to, t) {
+
+		setIsLoadingFiles(true);
 
 		const apiUrl = commonMonitor.getAPI() + "/file?fromTimestamp=" + from + "&toTimestamp=" + to;
 		
@@ -134,6 +148,8 @@ const ContentMon = (props) => {
 			}
 
 			setFileCount(fileCountList);
+
+			setIsLoadingFiles(false);
 			
 		}).catch(err => {
 			console.error(err);
@@ -194,54 +210,73 @@ const ContentMon = (props) => {
 		</div>
 	}
 
+	const divLoading = <div className="div div--monitor-loading">
+		Loading...
+	</div>;
+
 	return (
 		<article className="article article--main-item">
 			<h1 className="h1 h1--monitor-title">Contents in the last 6 months</h1>
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Logs</h2>
 				<div className="div div--monitor-pillarchart">
-					{logCount.map((item, index) => (
-						<Pillars
-							key={item.from}
-							valueRate={item.valueRate}
-							value={item.count}
-							date={getFormattedDate(item.from)}
-							index={index}
-						/>
-					))}
+					{
+						isLoadingLogs ? divLoading
+						: logCount.map(
+							(item, index) => (
+								<Pillars
+									key={item.from}
+									valueRate={item.valueRate}
+									value={item.count}
+									date={getFormattedDate(item.from)}
+									index={index}
+								/>
+							)
+						)
+					}
 				</div>
 			</section>
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Comments</h2>
 				<div className="div div--monitor-pillarchart">
-					{commentCount.map((item, index) =>(
-						<Pillars
-							key={item.from}
-							valueRate={item.valueRate}
-							value={item.count}
-							date={getFormattedDate(item.from)}
-							index={index}
-						/>
-					))}
+					{
+						isLoadingComments ? divLoading
+						: commentCount.map(
+							(item, index) => (
+								<Pillars
+									key={item.from}
+									valueRate={item.valueRate}
+									value={item.count}
+									date={getFormattedDate(item.from)}
+									index={index}
+								/>
+							)
+						)
+					}
 				</div>
 			</section>
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Files</h2>
 				<div className="div div--monitor-pillarchart">
-					{fileCount.map((item, index) =>(
-						<Pillars
-							key={item.from}
-							valueRate={item.valueRate}
-							value={
-								getFormattedSize(item.size)
-									+ ((0 === item.count) ? ""
-									: (1 === item.count) ? " (" + item.count + " file)"
-									: " (" + item.count + " files)")
-							}
-							date={getFormattedDate(item.from)}
-							index={index}
-						/>
-					))}
+					{
+						isLoadingFiles ? divLoading
+						: fileCount.map(
+							(item, index) => (
+								<Pillars
+									key={item.from}
+									valueRate={item.valueRate}
+									value={
+										getFormattedSize(item.size)
+											+ ((0 === item.count) ? ""
+											: (1 === item.count) ? " (" + item.count + " file)"
+											: " (" + item.count + " files)")
+									}
+									date={getFormattedDate(item.from)}
+									index={index}
+								/>
+							)
+						)
+					}
 				</div>
 			</section>
 		</article>

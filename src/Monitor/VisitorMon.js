@@ -11,9 +11,13 @@ const VisitorMon = (props) => {
 	const [os, setOs] = useState([]);
 	const [engines, setEngines] = useState([]);
 
+	const [isLoading, setIsLoading] = useState(false);
+
 	const stackPallet = props.stackPallet;
 
 	async function fetchData() {
+
+		setIsLoading(true);
 
 		const today = new Date();
 		const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
@@ -137,6 +141,8 @@ const VisitorMon = (props) => {
 			setOs(osList);
 			setEngines(engineList);
 
+			setIsLoading(false);
+
 		}).catch(err => {
 			console.error(err);
 		});
@@ -181,7 +187,7 @@ const VisitorMon = (props) => {
 	const EnvStack = (attr) => {
 
 		let stackStyle = {
-			height: 200 * (attr.count / envTotalCount) + "px",
+			height: 150 * (attr.count / envTotalCount) + "px",
 			color: stackPallet[attr.totalCount - attr.index - 1].color,
 			backgroundColor: stackPallet[attr.totalCount - attr.index - 1].backgroundColor
 		};
@@ -217,41 +223,55 @@ const VisitorMon = (props) => {
 		);
 	}
 
+	const divLoading = <div className="div div--monitor-loading">
+		Loading...
+	</div>;
+
 	return (
 		<article className="article article--main-item">
 			<h1 className="h1 h1--monitor-title">Visitors in the last 7 days</h1>
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">Total Count: {totalCount}</h2>
 				<div className="div div--monitor-pillarchart">
-				{dailyCount.map((data, index) => (
-					<CountPillar
-						key={data.date}
-						date={data.date}
-						count={data.count}
-						valueRate={data.valueRate}
-						index={index}
-					/>
-				))}
+				{
+					isLoading ? divLoading
+					: dailyCount.map(
+						(data, index) => (
+							<CountPillar
+								key={data.date}
+								date={data.date}
+								count={data.count}
+								valueRate={data.valueRate}
+								index={index}
+							/>
+						)
+					)
+				}
 				</div>
 			</section>
 			<section className="section section--monitor-item">
 				<h2 className="h2 h2--monitor-subtitle">User Environment: {envTotalCount} cases</h2>
 				<div className="div div--monitor-stackchart">
-					<EnvPillar
-						legend="Browser"
-						length={envTotalCount}
-						data={browsers}
-					/>
-					<EnvPillar
-						legend="OS"
-						length={envTotalCount}
-						data={os}
-					/>
-					<EnvPillar
-						legend="Rendering Engine"
-						length={envTotalCount}
-						data={engines}
-					/>
+					{
+						isLoading ? divLoading
+						: <div>
+							<EnvPillar
+								legend="Browser"
+								length={envTotalCount}
+								data={browsers}
+							/>
+							<EnvPillar
+								legend="OS"
+								length={envTotalCount}
+								data={os}
+							/>
+							<EnvPillar
+								legend="Rendering Engine"
+								length={envTotalCount}
+								data={engines}
+							/>
+						</div>
+					}
 				</div>
 			</section>
 		</article>
