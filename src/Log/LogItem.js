@@ -110,6 +110,7 @@ const LogItem = (props) => {
 		let separator = "";
 		let editButton = "";
 		let deleteButton = "";
+		let version = item.logs.length;
 
 		if(isAdmin()) {
 			outputTime = getFormattedTime(timestamp);
@@ -133,6 +134,8 @@ const LogItem = (props) => {
 			{blank}
 			{linkIcon}
 			<div className="div div--logitem-toolbar">
+				{"v." + version}
+				{separator}
 				{outputTime}
 				{separator}
 				{editButton}
