@@ -14,6 +14,7 @@ const LogItem = (props) => {
 	const [itemClass, setItemClass] = useState("div div--main-item");
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
 
 	const history = useHistory();
 
@@ -89,6 +90,37 @@ const LogItem = (props) => {
 		setIsShowToaster(1);
 	}
 
+	const VersionHistory = () => {
+
+		if(!isShowVersionHistory) return "";
+
+		let length = item.logs.length;
+
+		if(1 === length) return "";
+
+		return (
+			<div
+				className="div div--logitem-versionhistory"
+			>
+				{
+					item.logs.map(
+						(data, index) => (
+							<div>
+								<span className="span span--logitem-historyverision">
+									{"v." + (length - index)}
+								</span>
+								{
+									" " + getFormattedDate(data.timestamp)
+									+ " " + getFormattedTime(data.timestamp)
+								}
+							</div>
+						)
+					)
+				}
+			</div>
+		);
+	}
+
 	const ArticleInfo = () => {
 
 		let outputDate, outputTime;
@@ -110,18 +142,34 @@ const LogItem = (props) => {
 		let separator = "";
 		let editButton = "";
 		let deleteButton = "";
-		let version = item.logs.length;
+		let version = "";
 
 		if(isAdmin()) {
+
 			outputTime = getFormattedTime(timestamp);
+
 			if(undefined !== item) {
+
 				separator = <span className="span span--logitem-separator">|</span>;
-				editButton = <Link to={{
+
+				version = (
+					<span
+						className="span span--logitem-version"
+						onClick={(e) => setIsShowVersionHistory(!isShowVersionHistory)}
+					>
+						{"v." + item.logs.length}
+					</span>
+				);
+
+				editButton = (
+					<Link to={{
 						pathname: "/log/write",
 						state: {item}
 					}}>
 						<span className="span span--logitem-toolbarmenu">Edit</span>
-					</Link>;
+					</Link>
+				);
+
 				deleteButton = <span className="span span--logitem-toolbarmenu" onClick={confirmDelete}>Delete</span>;
 			}
 		}
@@ -134,7 +182,7 @@ const LogItem = (props) => {
 			{blank}
 			{linkIcon}
 			<div className="div div--logitem-toolbar">
-				{"v." + version}
+				{version}
 				{separator}
 				{outputTime}
 				{separator}
@@ -148,6 +196,7 @@ const LogItem = (props) => {
 	return (
 		<article className={itemClass} role="listitem">
 			<ArticleInfo />
+			<VersionHistory />
 			<ArticleMain />
 			{
 				showComments ? (

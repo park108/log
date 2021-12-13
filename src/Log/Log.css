@@ -13,6 +13,7 @@
   color: var(--normal-text-color);
   background-color: var(--normal-background-color);
   border-radius: 1.5em;
+  z-index: 1;
 }
 
 .h1--logitem-title {
@@ -75,9 +76,27 @@
   fill: black;
 }
 
+.span--logitem-version {
+  cursor: pointer;
+}
+
 .span--logitem-separator {
   padding-left: 0.5em;
   padding-right: 0.5em;
+}
+
+.div--logitem-versionhistory {
+  position: absolute;
+  right: 1.5em;
+  
+  background-color: var(--normal-border-color);
+  font-size: var(--sub-font-size);
+  line-height: 1.5em;
+}
+
+.span--logitem-historyverision {
+  color: var(--sub-text-color);
+  font-size: var(--info-font-size);
 }
 
 .article--logitem-delete {
