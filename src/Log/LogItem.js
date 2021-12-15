@@ -182,9 +182,9 @@ const LogItem = (props) => {
 			{blank}
 			{linkIcon}
 			<div className="div div--logitem-toolbar">
-				{version}
-				{separator}
 				{outputTime}
+				{separator}
+				{version}
 				{separator}
 				{editButton}
 				{separator}
