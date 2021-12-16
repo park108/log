@@ -31,14 +31,25 @@ const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 // ];
 
 // Temperature colors
+// const stackPallet = [
+// 	{color: "black", backgroundColor: "#EB7373"},
+// 	{color: "black", backgroundColor: "#F08D57"},
+// 	{color: "black", backgroundColor: "#F5A63A"},
+// 	{color: "black", backgroundColor: "#FFD900"},
+// 	{color: "black", backgroundColor: "#958357"},
+// 	{color: "black", backgroundColor: "#605883"},
+// 	{color: "black", backgroundColor: "#2A2CAE"},
+// ];
+
+// Yellow to Purple
 const stackPallet = [
-	{color: "black", backgroundColor: "#EB7373"},
-	{color: "black", backgroundColor: "#F08D57"},
-	{color: "black", backgroundColor: "#F5A63A"},
-	{color: "black", backgroundColor: "#FFD900"},
-	{color: "black", backgroundColor: "#958357"},
-	{color: "black", backgroundColor: "#605883"},
-	{color: "black", backgroundColor: "#2A2CAE"},
+	{color: "black", backgroundColor: "#FFECB3"},
+	{color: "black", backgroundColor: "#FAC6A8"},
+	{color: "black", backgroundColor: "#F49F9C"},
+	{color: "black", backgroundColor: "#E85285"},
+	{color: "black", backgroundColor: "#A93790"},
+	{color: "black", backgroundColor: "#8A2995"},
+	{color: "black", backgroundColor: "#6A1B9A"},
 ];
 
 const Monitor = (props) => {

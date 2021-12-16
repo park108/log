@@ -156,13 +156,15 @@ const VisitorMon = (props) => {
 
 	const CountPillar = (attr) => {
 
-		const palletIndex = 6/7 < attr.valueRate ? 0
-			: 5/7 < attr.valueRate ? 1
-			: 4/7 < attr.valueRate ? 2
-			: 3/7 < attr.valueRate ? 3
-			: 2/7 < attr.valueRate ? 4
-			: 1/7 < attr.valueRate ? 5
-			: 6;
+		// const palletIndex = 6/7 < attr.valueRate ? 0
+		// 	: 5/7 < attr.valueRate ? 1
+		// 	: 4/7 < attr.valueRate ? 2
+		// 	: 3/7 < attr.valueRate ? 3
+		// 	: 2/7 < attr.valueRate ? 4
+		// 	: 1/7 < attr.valueRate ? 5
+		// 	: 6;
+
+		const palletIndex = attr.index;
 
 		const legend = 0 === attr.index ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
 			: "01" === attr.date.substr(8, 2) ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
