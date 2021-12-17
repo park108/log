@@ -22,7 +22,7 @@ const ImageItem = (props) => {
 		let isEnlarged = e.target.getAttribute("enlarged");
 
 		if("Y" === isEnlarged) {
-			props.mdStringCopy(e);
+			props.copyMarkdownString(e);
 			shrinkImage(e);
 		}
 		else {

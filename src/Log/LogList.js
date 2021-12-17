@@ -139,6 +139,7 @@ const LogList = (props) => {
 						contents={data.logs[0].contents}
 						item = {data}
 						showComments={true}
+						showLink={true}
 						deleted={callbackDeleteItem}
 					/>
 				))}

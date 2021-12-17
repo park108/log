@@ -194,8 +194,8 @@ const Writer = (props) => {
 		}
 
 		return (
-			<div className="div div--writer-archive" >
-				<div className="div div--writer-archivetitle">Change History</div>
+			<div className="div div--writer-history" >
+				<h1 className="h1 h1--writer-historytitle">Change History</h1>
 				{data.item.logs.map(log => (
 					<LogItem	
 						key={log.timestamp}
@@ -203,6 +203,7 @@ const Writer = (props) => {
 						timestamp={log.timestamp}
 						contents={log.contents}
 						showComments={false}
+						showLink={false}
 					/>
 				))}
 			</div>

@@ -23,6 +23,7 @@ const LogItem = (props) => {
 	const contents = props.contents;
 	const timestamp = props.timestamp;
 	const showComments = props.showComments;
+	const showLink = props.showLink;
 
 	useEffect(() => {
 		(isDeleting)
@@ -134,10 +135,12 @@ const LogItem = (props) => {
 		const urlText = <a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
 				{linkUrl}
 			</a>;
-		const linkIcon = <span onClick={copyToClipboard} className="span span--logitem-toolbaricon">
-			<LinkButton />
-			{urlText}
-		</span>;
+		const linkIcon = showLink
+			? <span onClick={copyToClipboard} className="span span--logitem-toolbaricon">
+				<LinkButton />
+				{urlText}
+			</span>
+			: undefined;
 	
 		let separator = "";
 		let editButton = "";
@@ -177,20 +180,22 @@ const LogItem = (props) => {
 			outputTime = "";
 		}
 
-		return <section className="section section--logitem-info">
-			<h1 className="h1 h1--logitem-title">{outputDate}</h1>
-			{blank}
-			{linkIcon}
-			<div className="div div--logitem-toolbar">
-				{outputTime}
-				{separator}
-				{version}
-				{separator}
-				{editButton}
-				{separator}
-				{deleteButton}
-			</div>
-		</section>;
+		return (
+			<section className="section section--logitem-info">
+				<h1 className="h1 h1--logitem-title">{outputDate}</h1>
+				{blank}
+				{linkIcon}
+				<div className="div div--logitem-toolbar">
+					{outputTime}
+					{separator}
+					{version}
+					{separator}
+					{editButton}
+					{separator}
+					{deleteButton}
+				</div>
+			</section>
+		);
 	}
 
 	return (

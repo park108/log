@@ -103,7 +103,7 @@ const ImageSelector = (props) => {
 			: setLoading(null);
 	}, [isLoading]);
 
-	const imgMarkdownCopyToClipboard = (e) => {
+	const copyMarkdownString = (e) => {
 
 		const url = e.target.getAttribute("imageurl");
 		const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
@@ -136,7 +136,7 @@ const ImageSelector = (props) => {
 								key={data.key}
 								fileName={data.key}
 								url={data.url}
-								mdStringCopy={imgMarkdownCopyToClipboard}
+								copyMarkdownString={copyMarkdownString}
 							/>
 					)
 			}
