@@ -27,27 +27,34 @@ const LogSingle = (props) => {
 		setIsLoading(true);
 
 		// Call GET API
-		const res = await fetch(commonLog.getAPI() + "/timestamp/" + timestamp);
-		
-		res.json().then(res => {
-			log("The log is FETCHED successfully.");
-
-			setIsLoading(false);
-			log(res);
-
-			// Page not found
-			if(undefined !== res.errorType || 0 === res.body.Count) {
-				setHasItem("NO");
+		try {
+			const res = await fetch(commonLog.getAPI() + "/timestamp/" + timestamp);
+			const fetchedData = await res.json();
+			
+			if(undefined !== fetchedData.errorType) {
+				console.error(res);
+				setHasItem("NO"); // Page not found
 			}
-
-			// Set log item data
 			else {
-				setData(res.body.Items[0]);
-				setHasItem("YES");
+				log("The log is FETCHED successfully.");
+
+				// Page not found
+				if(0 === fetchedData.body.Count) {
+					setHasItem("NO");
+				}
+
+				// Set log item data
+				else {
+					setData(fetchedData.body.Items[0]);
+					setHasItem("YES");
+				}
+
+				setIsLoading(false);
 			}
-		}).catch(err => {
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
 	}
 
 	useEffect(() => {
@@ -66,23 +73,22 @@ const LogSingle = (props) => {
 
 	const callbackDeleteItem = () => {
 		fetchData(logTimestamp);
-		
 		setToasterMessageBottom("The log deleted.");
 		setIsShowToasterBottom(1);
 	}
 	
 	const logItem = ("YES" === hasItem)
-	? <LogItem
-		author={data.author}
-		timestamp={data.timestamp}
-		contents={data.logs[0].contents}
-		item = {data}
-		showComments={true}
-		showLink={true}
-		deleted={callbackDeleteItem}
-	/>
-	: ("NO" === hasItem) ? <PageNotFound />
-	: "";
+		? <LogItem
+			author={data.author}
+			timestamp={data.timestamp}
+			contents={data.logs[0].contents}
+			item = {data}
+			showComments={true}
+			showLink={true}
+			deleted={callbackDeleteItem}
+		/>
+		: ("NO" === hasItem) ? <PageNotFound />
+		: "";
 
 
 	return (

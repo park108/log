@@ -124,25 +124,19 @@ const LogItem = (props) => {
 
 	const ArticleInfo = () => {
 
-		let outputDate, outputTime;
-	
-		if(timestamp > 0) {
-			outputDate = getFormattedDate(timestamp);
-			outputTime = "";
-		}
-
-		const blank = <span className="span span--logitem-toolbarblank"></span>
 		const linkUrl = getUrl() + "log/" + timestamp;
-		const urlText = <a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
-				{linkUrl}
-			</a>;
 		const linkIcon = showLink
-			? <span onClick={copyToClipboard} className="span span--logitem-toolbaricon">
-				<LinkButton />
-				{urlText}
-			</span>
+			? (
+				<span onClick={copyToClipboard} className="span span--logitem-toolbaricon">
+					<LinkButton />
+					<a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
+						{linkUrl}
+					</a>
+				</span>
+			)
 			: undefined;
-	
+				
+		let outputTime = "";
 		let separator = "";
 		let editButton = "";
 		let deleteButton = "";
@@ -180,8 +174,10 @@ const LogItem = (props) => {
 
 		return (
 			<section className="section section--logitem-info">
-				<h1 className="h1 h1--logitem-title">{outputDate}</h1>
-				{blank}
+				<h1 className="h1 h1--logitem-title">
+					{getFormattedDate(timestamp)}
+				</h1>
+				<span className="span span--logitem-toolbarblank"></span>
 				{linkIcon}
 				<div className="div div--logitem-toolbar">
 					{outputTime}

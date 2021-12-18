@@ -196,16 +196,20 @@ const Writer = (props) => {
 		return (
 			<div className="div div--writer-history" >
 				<h1 className="h1 h1--writer-historytitle">Change History</h1>
-				{data.item.logs.map(log => (
-					<LogItem	
-						key={log.timestamp}
-						author={data.item.author}
-						timestamp={log.timestamp}
-						contents={log.contents}
-						showComments={false}
-						showLink={false}
-					/>
-				))}
+				{
+					data.item.logs.map(
+						(log) => (
+							<LogItem
+								key={log.timestamp}
+								author={data.item.author}
+								timestamp={log.timestamp}
+								contents={log.contents}
+								showComments={false}
+								showLink={false}
+							/>
+						)
+					)
+				}
 			</div>
 		);
 	}
@@ -238,6 +242,16 @@ const Writer = (props) => {
 				/>
 				<Converted />
 			</div>
+			<input
+				type="checkbox"
+				id="temporary"
+			/>
+			<label
+				htmlFor="temporary"
+			>
+				Temporary Save
+			</label>
+				
 			<button
 				className="button button--writer-submit"
 				type="submit"
