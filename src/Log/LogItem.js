@@ -128,6 +128,7 @@ const LogItem = (props) => {
 	
 		if(timestamp > 0) {
 			outputDate = getFormattedDate(timestamp);
+			outputTime = "";
 		}
 
 		const blank = <span className="span span--logitem-toolbarblank"></span>
@@ -175,9 +176,6 @@ const LogItem = (props) => {
 
 				deleteButton = <span className="span span--logitem-toolbarmenu" onClick={confirmDelete}>Delete</span>;
 			}
-		}
-		else {
-			outputTime = "";
 		}
 
 		return (
