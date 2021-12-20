@@ -112,6 +112,7 @@ const Writer = (props) => {
 
 	const handleSubmit = (event) => {
 
+		// TODO: Make version control
 		if(article.length < 5) {
 
 			alert("Please note at least 5 characters.");
