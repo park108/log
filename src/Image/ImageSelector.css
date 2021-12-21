@@ -22,7 +22,7 @@
   height: 55px;
   padding-top: 35px;
   text-align: center;
-  background-color: cornsilk;
+  background-color: var(--info-background-color);
 }
 
 .img--image-imageitem {
@@ -40,5 +40,5 @@
   cursor: pointer;
   text-align: center;
   font-size: 0.8em;
-  background-color:cornsilk;
+  background-color:var(--info-background-color);
 }

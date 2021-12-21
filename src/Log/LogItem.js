@@ -15,6 +15,7 @@ const LogItem = (props) => {
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
+	const [isShowCopyToClipboardMessage, setIsShowCopyToClipboardMessage] = useState(false);
 
 	const history = useHistory();
 
@@ -122,12 +123,29 @@ const LogItem = (props) => {
 		);
 	}
 
+	const CopyToClipboardMessage = () => {
+
+		const messageBox = isShowCopyToClipboardMessage ? (
+				<div className="div--logitem-linkmessage">
+					Click to Clipboard
+				</div>
+			)
+			: "";
+
+		return messageBox;
+	}
+
 	const ArticleInfo = () => {
 
 		const linkUrl = getUrl() + "log/" + timestamp;
 		const linkIcon = showLink
 			? (
-				<span onClick={copyToClipboard} className="span span--logitem-toolbaricon">
+				<span
+					onClick={copyToClipboard}
+					onMouseOver={() => setIsShowCopyToClipboardMessage(true)}
+					onMouseOut={() => setIsShowCopyToClipboardMessage(false)}
+					className="span span--logitem-toolbaricon"
+				>
 					<LinkButton />
 					<a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
 						{linkUrl}
@@ -194,6 +212,7 @@ const LogItem = (props) => {
 
 	return (
 		<article className={itemClass} role="listitem">
+			<CopyToClipboardMessage />
 			<ArticleInfo />
 			<VersionHistory />
 			<ArticleMain />

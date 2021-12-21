@@ -39,6 +39,8 @@
 
   --error-text-color: black;
   --error-background-color: rgb(243, 129, 129);
+
+  --info-background-color: cornsilk;
 }
 
 div#root {
