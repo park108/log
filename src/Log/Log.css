@@ -166,6 +166,14 @@
   cursor: pointer;
 }
 
+.div--writer-editbox {
+  overflow: auto;
+  border-width: 1px 0;
+  border-style: solid;
+  margin-bottom: 1em;
+	border-color: var(--normal-border-color);
+}
+
 .textarea--writer-article {
 	font-size: 1em;
 	line-height: 2em;
@@ -205,9 +213,6 @@
 	width: 100%;
 	font-size: 0.8em;
 	padding: 10px 0;
-	border-style: solid;
-	border-width: 0 0 1px 0;
-	border-color: var(--normal-border-color);
 }
   
 .span--writer-statusbaritem {
@@ -246,4 +251,14 @@
   margin-top: 1em;
 	height: 3em;
 	margin-bottom: 1em;
+}
+
+.button--writer-img {
+  width: 5em;
+  margin-left: 1em;
+}
+
+.button--writer-a {
+  width: 5em;
+  margin-left: 1em;
 }

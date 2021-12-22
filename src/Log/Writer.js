@@ -1,7 +1,8 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Redirect } from "react-router";
-import { isAdmin, setFullscreen } from '../common';
+import { isAdmin, log, setFullscreen } from '../common';
 import * as parser from '../markdownParser';
+import Toaster from "../Toaster/Toaster";
 
 const LogItem = lazy(() => import('./LogItem'));
 const ImageSelector = lazy(() => import('../Image/ImageSelector'));
@@ -22,6 +23,9 @@ const Writer = (props) => {
 	const [isConvertedHTML, setIsConvertedHTML] = useState(false);
 	const [mode, setMode] = useState("POST");
 	const [buttonText, setButtonText] = useState("Post");
+
+	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [toasterMessage ,setToasterMessage] = useState("");
 
 	const [isShowImageSelector, setIsShowImageSelector] = useState("READY");
 	
@@ -129,6 +133,30 @@ const Writer = (props) => {
 		}
 	}
 
+	const copyToMDString = (e) => {
+
+		e.preventDefault();
+
+		const tag = e.target.innerText;
+
+		const markdownString = ("img" === tag) ? "![ALT_TEXT](url \"OPTIONAL_TITLE\")"
+			: ("a" === tag) ? "[LinkText](url \"TITLE\")"
+			: "";
+
+		let tempElem = document.createElement('textarea');
+		tempElem.value = markdownString;  
+		document.body.appendChild(tempElem);
+	  
+		tempElem.select();
+		document.execCommand("copy");
+		document.body.removeChild(tempElem);
+
+		log("MarkDown Img " + markdownString + " copied.");
+		
+		setToasterMessage("MD string copied.");
+		setIsShowToaster(1);
+	}
+
 	const Converted = () => {
 
 		if(!isConvertedHTML) {
@@ -228,7 +256,9 @@ const Writer = (props) => {
 					show={isShowImageSelector}
 				/>
 			</Suspense>
-			<div style={{overflow: "auto"}}>
+			<div
+				className="div div--writer-editbox"
+			>
 				<textarea
 					id="textarea--writer-article"
 					className="textarea textarea--writer-article auto-expand"
@@ -252,6 +282,20 @@ const Writer = (props) => {
 			>
 				Temporary Save
 			</label>
+
+			<button
+				className="button button--writer-img"
+				onClick={copyToMDString}
+			>
+				img
+			</button>
+
+			<button
+				className="button button--writer-a"
+				onClick={copyToMDString}
+			>
+				a
+			</button>
 				
 			<button
 				className="button button--writer-submit"
@@ -259,6 +303,16 @@ const Writer = (props) => {
 				disabled={disabled}
 			>{buttonText}</button>
 			<ChangeHistory />
+			
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={"warning"}
+				duration={2000}
+				
+				completed={() => setIsShowToaster(0)}
+			/>
 		</form>
 	);
 }
