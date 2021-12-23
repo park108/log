@@ -182,15 +182,14 @@
 	height: auto;
 	margin: 0 0 0 0;
 	padding: 26px 5px 10px 5px;
-	border-width: 0 1px 0 0;
-	border-color: var(--normal-border-color);
 	overflow: hidden;
+  border: 0;
 	resize: none;
 }
   
 .div--writer-converted {
 	font-size: 1em;
-	width: calc(50% - 11px);
+	width: calc(50% - 12px);
 	line-height: 2em;
 	float: right;
 	margin: 0 0 0 0;
@@ -198,6 +197,9 @@
 	word-wrap: break-word;
 	vertical-align: top;
 	background-color: var(--normal-contents-background-color);
+  border-style: solid;
+	border-width: 0 0 0 1px;
+	border-color: var(--normal-border-color);
 }
 
 .div--writer-converted a {

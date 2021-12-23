@@ -140,7 +140,7 @@ const Writer = (props) => {
 		const tag = e.target.innerText;
 
 		const markdownString = ("img" === tag) ? "![ALT_TEXT](url \"OPTIONAL_TITLE\")"
-			: ("a" === tag) ? "[LinkText](url \"TITLE\")"
+			: ("a" === tag) ? "[LinkText](https://example.com/ \"TITLE\")"
 			: "";
 
 		let tempElem = document.createElement('textarea');
