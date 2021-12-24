@@ -137,7 +137,7 @@ const Writer = (props) => {
 
 		e.preventDefault();
 
-		const tag = e.target.innerText;
+		const tag = e.target.value;
 
 		const markdownString = ("img" === tag) ? "![ALT_TEXT](url \"OPTIONAL_TITLE\")"
 			: ("a" === tag) ? "[LinkText](https://example.com/ \"TITLE\")"
@@ -273,29 +273,35 @@ const Writer = (props) => {
 				/>
 				<Converted />
 			</div>
-			<input
-				type="checkbox"
-				id="temporary"
-			/>
-			<label
-				htmlFor="temporary"
+			<div
+				className="div div--writer-toolbar"
 			>
-				Temporary Save
-			</label>
+				<input
+					type="checkbox"
+					id="temporary"
+				/>
+				<label
+					htmlFor="temporary"
+				>
+					Temporary Save
+				</label>
 
-			<button
-				className="button button--writer-img"
-				onClick={copyToMDString}
-			>
-				img
-			</button>
+				<button
+					className="button button--writer-mdcopy"
+					value="img"
+					onClick={copyToMDString}
+				>
+					Markdown: image
+				</button>
 
-			<button
-				className="button button--writer-a"
-				onClick={copyToMDString}
-			>
-				a
-			</button>
+				<button
+					className="button button--writer-mdcopy"
+					value="a"
+					onClick={copyToMDString}
+				>
+					Markdown: anchor
+				</button>
+			</div>
 				
 			<button
 				className="button button--writer-submit"
