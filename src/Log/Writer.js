@@ -246,8 +246,12 @@ const Writer = (props) => {
 	return (
 		<form onSubmit={handleSubmit}>
 			<div className="div div--writer-statusbar">
-				<span className="span span--writer-statusbaritem">{articleStatus}</span>					
-				<span className="span span--writer-statusbaritem span--writer-statusbaritemright">{convertedArticleStatus}</span>
+				<span className="span span--writer-statusbaritem">
+					{articleStatus}
+				</span>
+				<span className="span span--writer-statusbaritem span--writer-statusbaritemright">
+					{convertedArticleStatus}
+				</span>
 				<ConvertModeButton />
 				<ImageSelectorButton />
 			</div>
@@ -256,9 +260,7 @@ const Writer = (props) => {
 					show={isShowImageSelector}
 				/>
 			</Suspense>
-			<div
-				className="div div--writer-editbox"
-			>
+			<div className="div div--writer-editbox">
 				<textarea
 					id="textarea--writer-article"
 					className="textarea textarea--writer-article auto-expand"
@@ -273,9 +275,7 @@ const Writer = (props) => {
 				/>
 				<Converted />
 			</div>
-			<div
-				className="div div--writer-toolbar"
-			>
+			<div className="div div--writer-toolbar">
 				<input
 					type="checkbox"
 					id="temporary"
