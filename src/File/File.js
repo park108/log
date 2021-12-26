@@ -113,12 +113,14 @@ const File = (props) => {
 
 	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
-		: <button
+		: (
+			<button
 			className={seeMoreButtonClass}
 			onClick={(e) => fetchMore(lastTimestamp)}
 			>
 				{seeMoreButtonText}
-			</button>;
+			</button>
+		);
 	
 
 	if(!isAdmin()) {
@@ -132,16 +134,20 @@ const File = (props) => {
 				{fileUploadUI}
 
 				<div className="div div--files-list" role="list">
-					{files.map(data => (				
-						<FileItem
-							key={data.key}
-							fileName={data.key}
-							lastModified={data.timestamp}
-							size={data.size}
-							url={data.url}
-							deleted={fetchData}
-						/>
-					))}
+					{
+						files.map(
+							data => (				
+								<FileItem
+									key={data.key}
+									fileName={data.key}
+									lastModified={data.timestamp}
+									size={data.size}
+									url={data.url}
+									deleted={fetchData}
+								/>
+							)
+						)
+					}
 				</div>
 
 				{seeMoreButton}
