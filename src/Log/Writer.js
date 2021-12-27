@@ -3,6 +3,7 @@ import { Redirect } from "react-router";
 import { isAdmin, log, setFullscreen } from '../common';
 import * as parser from '../markdownParser';
 import Toaster from "../Toaster/Toaster";
+import './Writer.css';
 
 const LogItem = lazy(() => import('./LogItem'));
 const ImageSelector = lazy(() => import('../Image/ImageSelector'));
@@ -260,7 +261,8 @@ const Writer = (props) => {
 					show={isShowImageSelector}
 				/>
 			</Suspense>
-			<div className="div div--writer-editbox">
+			<div className="div div--writer-editbox"
+			>
 				<textarea
 					id="textarea--writer-article"
 					className="textarea textarea--writer-article auto-expand"
