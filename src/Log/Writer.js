@@ -70,14 +70,13 @@ const Writer = (props) => {
 
 		setConvertedArticle(html);
 		setArticleStatus("Markdown length = " + article.length);
+		window.addEventListener('input', setTextarealHeight);
 
 		// Initialize editor rows
 		let textArea = document.getElementById("textarea--writer-article");
-		if(undefined !== textArea && 1 === textArea.rows) {
+		if(2 > textArea.rows) {
 			setTextAreaRows(textArea);
 		}
-
-		window.addEventListener('input', setTextarealHeight);
 
 		return () => {
 			window.removeEventListener('input', setTextarealHeight);
@@ -98,21 +97,12 @@ const Writer = (props) => {
 
 	const setTextAreaRows = (e) => {
 
-		const getScrollHeight = (e) => {
-	
-			let savedValue = e.value;
-			e.value = "";
-			e._baseScrollHeight = e.scrollHeight;
-			e.value = savedValue;
-		}
-
 		let minRows = e.getAttribute('data-min-rows') | 0, rows;
-		!e._baseScrollHeight && getScrollHeight(e);
+		if(!e._baseScrollHeight) e._baseScrollHeight = e.scrollHeight;
 
-		setRows(minRows);
-
-		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32);
-		setRows(minRows + rows);
+		setRows(minRows); // Restore minimum rows
+		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32); // 32 px
+		setRows(minRows + rows); // Set current rows
 	}
 
 	const handleSubmit = (event) => {
@@ -212,7 +202,7 @@ const Writer = (props) => {
 				onClick={() => setIsConvertedHTML(!isConvertedHTML)}
 				className="span span--writer-statusbarbutton"
 			>
-				{isConvertedHTML ? "[HTML]" : "[WEB]"}
+				{isConvertedHTML ? "HTML" : "Markdown Converted"}
 			</span>
 		);
 	}
@@ -253,7 +243,6 @@ const Writer = (props) => {
 				<span className="span span--writer-statusbaritem span--writer-statusbaritemright">
 					{convertedArticleStatus}
 				</span>
-				<ConvertModeButton />
 				<ImageSelectorButton />
 			</div>
 			<Suspense fallback={<div></div>}>
@@ -261,8 +250,7 @@ const Writer = (props) => {
 					show={isShowImageSelector}
 				/>
 			</Suspense>
-			<div className="div div--writer-editbox"
-			>
+			<div className="div div--writer-editbox">
 				<textarea
 					id="textarea--writer-article"
 					className="textarea textarea--writer-article auto-expand"
@@ -275,7 +263,12 @@ const Writer = (props) => {
 					data-min-rows="1"
 					disabled={disabled}
 				/>
-				<Converted />
+				<div className="div div--writer-convertedbox">
+					<div className="div div--writer-convertedtag">
+						<ConvertModeButton />
+					</div>
+					<Converted />
+				</div>
 			</div>
 			<div className="div div--writer-toolbar">
 				<input
