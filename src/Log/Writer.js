@@ -97,11 +97,11 @@ const Writer = (props) => {
 
 	const setTextAreaRows = (e) => {
 
-		let minRows = e.getAttribute('data-min-rows') | 0, rows;
+		let minRows = e.getAttribute('data-min-rows') | 1, rows;
 		if(!e._baseScrollHeight) e._baseScrollHeight = e.scrollHeight;
 
 		setRows(minRows); // Restore minimum rows
-		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32); // 32 px
+		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32) ; // 32 px
 		setRows(minRows + rows); // Set current rows
 	}
 
@@ -235,7 +235,8 @@ const Writer = (props) => {
 	}
 
 	return (
-		<form onSubmit={handleSubmit}>
+		<div className="div div--writer">
+			
 			<div className="div div--writer-statusbar">
 				<span className="span span--writer-statusbaritem">
 					{articleStatus}
@@ -245,64 +246,69 @@ const Writer = (props) => {
 				</span>
 				<ImageSelectorButton />
 			</div>
+
 			<Suspense fallback={<div></div>}>
 				<ImageSelector
 					show={isShowImageSelector}
 				/>
 			</Suspense>
-			<div className="div div--writer-editbox">
-				<textarea
-					id="textarea--writer-article"
-					className="textarea textarea--writer-article auto-expand"
-					type="text"
-					name="article"
-					value={article}
-					onChange={handleChange}
-					placeholder="Take your note in markdown"
-					rows={rows}
-					data-min-rows="1"
-					disabled={disabled}
-				/>
-				<div className="div div--writer-convertedbox">
-					<div className="div div--writer-convertedtag">
-						<ConvertModeButton />
+
+			<form onSubmit={handleSubmit}>
+				<div className="div div--writer-editbox">
+					<textarea
+						id="textarea--writer-article"
+						className="textarea textarea--writer-article auto-expand"
+						type="text"
+						name="article"
+						value={article}
+						onChange={handleChange}
+						placeholder="Take your note in markdown"
+						rows={rows}
+						data-min-rows="1"
+						disabled={disabled}
+					/>
+					<div className="div div--writer-convertedbox">
+						<div className="div div--writer-convertedtag">
+							<ConvertModeButton />
+						</div>
+						<Converted />
 					</div>
-					<Converted />
 				</div>
-			</div>
-			<div className="div div--writer-toolbar">
-				<input
-					type="checkbox"
-					id="temporary"
-				/>
-				<label
-					htmlFor="temporary"
-				>
-					Temporary Save
-				</label>
+				<div className="div div--writer-toolbar">
+					<input
+						type="checkbox"
+						id="temporary"
+					/>
+					<label
+						htmlFor="temporary"
+					>
+						Temporary Save
+					</label>
 
-				<button
-					className="button button--writer-mdcopy"
-					value="img"
-					onClick={copyToMDString}
-				>
-					Markdown: image
-				</button>
+					<button
+						className="button button--writer-mdcopy"
+						value="img"
+						onClick={copyToMDString}
+					>
+						Markdown: image
+					</button>
 
+					<button
+						className="button button--writer-mdcopy"
+						value="a"
+						onClick={copyToMDString}
+					>
+						Markdown: anchor
+					</button>
+				</div>
+					
 				<button
-					className="button button--writer-mdcopy"
-					value="a"
-					onClick={copyToMDString}
-				>
-					Markdown: anchor
-				</button>
-			</div>
-				
-			<button
-				className="button button--writer-submit"
-				type="submit"
-				disabled={disabled}
-			>{buttonText}</button>
+					className="button button--writer-submit"
+					type="submit"
+					disabled={disabled}
+				>{buttonText}</button>
+			</form>
+
 			<ChangeHistory />
 			
 			<Toaster 
@@ -314,7 +320,7 @@ const Writer = (props) => {
 				
 				completed={() => setIsShowToaster(0)}
 			/>
-		</form>
+		</div>
 	);
 }
 

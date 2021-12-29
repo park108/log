@@ -1,5 +1,10 @@
 @import url(../App.css);
 
+.div--writer {
+	margin: 0;
+	padding: 0;
+}
+
 .div--writer-statusbar {
 	width: 100%;
 	font-size: 0.8em;
@@ -40,7 +45,7 @@
 	width: calc(50%);
 	height: 100%;
 	margin: 0 0 0 0;
-	padding: 26px 7px 10px 5px;
+	padding: 26px 7px 26px 5px;
 	overflow: hidden;
 	border: 0;
 	resize: none;
@@ -64,12 +69,13 @@
 	border-style: solid;
 	border-width: 0 1px 1px 0;
 	border-color: var(--normal-border-color);
+	border-bottom-right-radius: 5px;
 }
   
 .div--writer-converted {
 	font-size: 1em;
 	box-sizing: border-box;
-	min-height: 64px;
+	min-height: 84px;
 	line-height: 2em;
 	margin: 0 0 0 0;
 	padding: 10px 5px 10px 5px;
