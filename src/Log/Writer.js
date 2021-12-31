@@ -24,6 +24,8 @@ const Writer = (props) => {
 	const [isConvertedHTML, setIsConvertedHTML] = useState(false);
 	const [mode, setMode] = useState("POST");
 	const [buttonText, setButtonText] = useState("Post");
+	
+	const [changeHistory, setChangeHistory] = useState(undefined);
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
@@ -41,7 +43,30 @@ const Writer = (props) => {
 		if(undefined !== data && undefined !== data.item) {
 			setContents(data.item.logs[0].contents);
 		}
-	}, [data]);
+
+		// Set change history in useEffect for prevent flickering.
+		if("EDIT" === mode) {
+			setChangeHistory(
+				<div className="div div--writer-history" >
+					<h1 className="h1 h1--writer-historytitle">Change History</h1>
+					{
+						data.item.logs.map(
+							(log) => (
+								<LogItem
+									key={log.timestamp}
+									author={data.item.author}
+									timestamp={log.timestamp}
+									contents={log.contents}
+									showComments={false}
+									showLink={false}
+								/>
+							)
+						)
+					}
+				</div>
+			);
+		}
+	}, [data, mode]);
 
 	// Set writer mode POST or EDIT
 	useEffect(() => {
@@ -87,11 +112,6 @@ const Writer = (props) => {
 	useEffect(() => setConvertedArticleStatus("HTML length = " + convertedArticle.length), [convertedArticle]);
 
 	useEffect(() => setDisabled(!props.isPostSuccess), [props.isPostSuccess]);
-
-	
-	if(!isAdmin()) {
-		return <Redirect to="/log" />;
-	}
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
@@ -206,37 +226,14 @@ const Writer = (props) => {
 			</span>
 		);
 	}
-
-	const ChangeHistory = () => {
-
-		if("POST" === mode) {
-			return "";
-		}
-
-		return (
-			<div className="div div--writer-history" >
-				<h1 className="h1 h1--writer-historytitle">Change History</h1>
-				{
-					data.item.logs.map(
-						(log) => (
-							<LogItem
-								key={log.timestamp}
-								author={data.item.author}
-								timestamp={log.timestamp}
-								contents={log.contents}
-								showComments={false}
-								showLink={false}
-							/>
-						)
-					)
-				}
-			</div>
-		);
+	
+	if(!isAdmin()) {
+		return <Redirect to="/log" />;
 	}
 
 	return (
 		<div className="div div--writer">
-			
+
 			<div className="div div--writer-statusbar">
 				<span className="span span--writer-statusbaritem">
 					{articleStatus}
@@ -309,7 +306,7 @@ const Writer = (props) => {
 				>{buttonText}</button>
 			</form>
 
-			<ChangeHistory />
+			{changeHistory}
 			
 			<Toaster 
 				show={isShowToaster}
