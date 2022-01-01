@@ -147,9 +147,11 @@ const LogItem = (props) => {
 					className="span span--logitem-toolbaricon"
 				>
 					<LinkButton />
-					<a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
-						{linkUrl}
-					</a>
+					<span className="hidden--width-640px">
+						<a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
+							{linkUrl}
+						</a>
+					</span>
 				</span>
 			)
 			: undefined;
@@ -198,10 +200,14 @@ const LogItem = (props) => {
 				<span className="span span--logitem-toolbarblank"></span>
 				{linkIcon}
 				<div className="div div--logitem-toolbar">
-					{outputTime}
-					{separator}
-					{version}
-					{separator}
+					<span className="hidden--width-350px">
+						{outputTime}
+						{separator}
+					</span>
+					<span className="hidden--width-400px">
+						{version}
+						{separator}
+					</span>
 					{editButton}
 					{separator}
 					{deleteButton}

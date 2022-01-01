@@ -230,10 +230,10 @@ const VisitorMon = (props) => {
 	</div>;
 
 	return (
-		<article className="article article--main-item">
-			<h1 className="h1 h1--monitor-title">Visitors in the last 7 days</h1>
+		<article className="article article--main-item article--monitor-item">
+			<h1>Visitors in the last 7 days</h1>
 			<section className="section section--monitor-item">
-				<h2 className="h2 h2--monitor-subtitle">Total Count: {totalCount}</h2>
+				<h3>Total Count: {totalCount}</h3>
 				<div className="div div--monitor-pillarchart">
 				{
 					isLoading ? divLoading
@@ -252,7 +252,7 @@ const VisitorMon = (props) => {
 				</div>
 			</section>
 			<section className="section section--monitor-item">
-				<h2 className="h2 h2--monitor-subtitle">User Environment: {envTotalCount} cases</h2>
+				<h3>User Environment: {envTotalCount} cases</h3>
 				<div className="div div--monitor-stackchart">
 					{
 						isLoading ? divLoading

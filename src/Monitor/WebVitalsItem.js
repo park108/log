@@ -69,10 +69,10 @@ const WebVitalsItem = (props) => {
 
 	return (
 		<section className="section section--monitor-item">
-			<h2 className="h2 h2--monitor-subtitle">
+			<h3>
 				<span className="span span--monitor-metric">{title}</span>
 				<span className={headerStyle}>{evaluation}</span>
-			</h2>
+			</h3>
 			<div className="div div--monitor-statusbar">
 				<span className="span span--monitor-bar span--monitor-good" style={goodStyle}>{good > 0 ? (100*good/totalCount).toFixed(0): ""}</span>
 				<span className="span span--monitor-bar span--monitor-warn" style={needImprovementStyle}>{needImprovement > 0 ? (100*needImprovement/totalCount).toFixed(0) : ""}</span>

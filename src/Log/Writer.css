@@ -112,30 +112,6 @@
 	height: 100%;
 }
 
-.div--writer-converted h1 {
-  font-size: 1.5rem;
-}
-
-.div--writer-converted h2 {
-  font-size: 1.3rem;
-}
-
-.div--writer-converted h3 {
-  font-size: 1.1rem;
-}
-
-.div--writer-converted h4 {
-  font-size: 1.0rem;
-}
-
-.div--writer-converted h5 {
-  font-size: 0.9rem;
-}
-
-.div--writer-converted h6 {
-  font-size: 0.8rem;
-}
-
 .div--writer-toolbar {
   padding: 1em 0;
 }

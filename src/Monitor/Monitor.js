@@ -1,6 +1,6 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, useEffect, lazy } from "react";
 import { Redirect } from 'react-router-dom';
-import { isAdmin } from '../common';
+import { isAdmin, setFullscreen } from '../common';
 
 import './Monitor.css';
 
@@ -55,6 +55,12 @@ const stackPallet = [
 const Monitor = (props) => {
 
 	const contentHeight = props.contentHeight;
+	
+	// Change width
+	useEffect(() => {
+		setFullscreen(true); // Enable fullscreen mode at mounted
+		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
+	}, []);
 
 	if(!isAdmin()) {
 		return <Redirect to="/log" />;

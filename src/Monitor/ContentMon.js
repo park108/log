@@ -217,10 +217,10 @@ const ContentMon = (props) => {
 	</div>;
 
 	return (
-		<article className="article article--main-item">
-			<h1 className="h1 h1--monitor-title">Contents in the last 6 months</h1>
+		<article className="article article--main-item article--monitor-item">
+			<h1>Contents in the last 6 months</h1>
 			<section className="section section--monitor-item">
-				<h2 className="h2 h2--monitor-subtitle">Logs</h2>
+				<h3>Logs</h3>
 				<div className="div div--monitor-pillarchart">
 					{
 						isLoadingLogs ? divLoading
@@ -239,7 +239,7 @@ const ContentMon = (props) => {
 				</div>
 			</section>
 			<section className="section section--monitor-item">
-				<h2 className="h2 h2--monitor-subtitle">Comments</h2>
+				<h3>Comments</h3>
 				<div className="div div--monitor-pillarchart">
 					{
 						isLoadingComments ? divLoading
@@ -258,7 +258,7 @@ const ContentMon = (props) => {
 				</div>
 			</section>
 			<section className="section section--monitor-item">
-				<h2 className="h2 h2--monitor-subtitle">Files</h2>
+				<h3>Files</h3>
 				<div className="div div--monitor-pillarchart">
 					{
 						isLoadingFiles ? divLoading

@@ -5,8 +5,8 @@ const WebVitalsItem = lazy(() => import('./WebVitalsItem'));
 const WebVitalsMon = (props) => {
 
 	return (
-		<article className="article article--main-item">
-			<h1 className="h1 h1--monitor-title">Web Vitals in the last 24 hours</h1>
+		<article className="article article--main-item article--monitor-item">
+			<h1 >Web Vitals in the last 24 hours</h1>
 			<Suspense fallback={<div></div>}>
 				<WebVitalsItem title="LCP: Largest Contentful Paint" name="LCP" />
 				<WebVitalsItem title="FID: First Input Delay" name="FID" />

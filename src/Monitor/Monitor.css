@@ -1,17 +1,23 @@
 @import url(../App.css);
 
-.h1--monitor-title {
-	font-size: 1.1em;
+.article--monitor-item {
+	box-sizing: border-box;
+	float: left;
+	width: 50%;
+	min-height: 680px;
+	border: 0;
+}
+
+@media screen and (max-width: 800px) {
+	.article--monitor-item {
+		float: none;
+		width: 100%;
+		min-height: 0px;
+	}
 }
 
 .section--monitor-item {
 	margin-bottom: 0.5em;
-}
-
-.h2--monitor-subtitle {
-	font-size: 0.9em;
-	margin-top: 0.5em;
-	margin-bottom: 0;
 }
 
 .span--monitor-metric {
@@ -20,7 +26,6 @@
 }
 
 .div--monitor-statusbar {
-	height: 2.5rem;
 	font-size: 0.8em;
 }
 
