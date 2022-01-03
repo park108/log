@@ -4,7 +4,9 @@
 	box-sizing: border-box;
 	float: left;
 	width: 50%;
-	min-height: 680px;
+	min-height: 490px;
+	margin: 0;
+	padding-bottom: 1em;
 	border: 0;
 }
 
@@ -14,6 +16,11 @@
 		width: 100%;
 		min-height: 0px;
 	}
+}
+
+.article--monitor-item h1, h2, h3, h4, h5, h6 {
+	margin-block-start: 0;
+	margin-block-end: 0;
 }
 
 .section--monitor-item {
