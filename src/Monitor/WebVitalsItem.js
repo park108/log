@@ -62,14 +62,15 @@ const WebVitalsItem = (props) => {
 		: (0 < totalCount) ? "NEEDS IMPROVEMENT"
 		: "Calculating...";
 	
-	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-good"
-		: ("POOR" === evaluation) ? "span span--monitor-poor"
-		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-warn"
-		: "span span--monitor-none";
+	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-assessment span--monitor-good"
+		: ("POOR" === evaluation) ? "span span--monitor-assessment span--monitor-poor"
+		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-assessment span--monitor-warn"
+		: "span span--monitor-assessment span--monitor-none";
 
 	return (
 		<section className="section section--monitor-item">
 			<h3>
+				{name}
 				<span className="span span--monitor-metric">{title}</span>
 				<span className={headerStyle}>{evaluation}</span>
 			</h3>

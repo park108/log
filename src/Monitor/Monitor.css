@@ -4,10 +4,9 @@
 	box-sizing: border-box;
 	float: left;
 	width: 50%;
-	min-height: 490px;
+	min-height: 485px;
 	margin: 0;
 	padding-bottom: 1em;
-	border: 0;
 }
 
 @media screen and (max-width: 800px) {
@@ -28,8 +27,8 @@
 }
 
 .span--monitor-metric {
-	display: inline-block;
-	width: 15em;
+	font-size: var(--info-font-size);
+	margin: 0 1em;
 }
 
 .div--monitor-statusbar {
@@ -39,6 +38,13 @@
 .span--monitor-bar {
 	display: inline-block;
 	text-align: center;
+}
+
+.span--monitor-assessment {
+	float: right;
+	line-height: 1em;
+	margin-top: 0.8em;
+	font-size: var(--info-font-size);
 }
 
 .span--monitor-good {
@@ -123,4 +129,10 @@
 	width: 100%;
 	height: 100%;
 	padding-top: 40px;
+}
+
+.a--monitor-referencelink {
+	font-size: var(--info-font-size);
+	display: inline-block;
+	line-height: 1em;
 }
