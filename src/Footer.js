@@ -6,7 +6,7 @@ const Footer = (props) => {
 	return (
 		<footer className="footer">
 			<span className="span span--footer-left">
-				© 2021 <UserLogin />
+				© 2021. <UserLogin />
 			</span>
 			<span className="span span--footer-right">
 				<a href="http://aws.amazon.com/what-is-cloud-computing" rel="noreferrer" target="_blank">
