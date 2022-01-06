@@ -28,7 +28,7 @@
 
 .span--monitor-metric {
 	font-size: var(--info-font-size);
-	margin: 0 1em;
+	margin-left: 1em;
 }
 
 .div--monitor-statusbar {
@@ -43,7 +43,7 @@
 .span--monitor-assessment {
 	float: right;
 	line-height: 1em;
-	margin-top: 0.8em;
+	margin-top: 0.7em;
 	font-size: var(--info-font-size);
 }
 
