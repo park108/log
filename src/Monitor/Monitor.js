@@ -7,6 +7,7 @@ import './Monitor.css';
 const VisitorMon = lazy(() => import('./VisitorMon'));
 const ContentMon = lazy(() => import('./ContentMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
+const ApiCallMon = lazy(() => import('./ApiCallMon'));
 
 // Red to Green
 // const stackPallet = [
@@ -72,10 +73,13 @@ const Monitor = (props) => {
 				<ContentMon stackPallet={stackPallet} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<VisitorMon stackPallet={stackPallet} />
+				<ApiCallMon stackPallet={stackPallet} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<WebVitalsMon stackPallet={stackPallet} />
+			</Suspense>
+			<Suspense fallback={<div></div>}>
+				<VisitorMon stackPallet={stackPallet} />
 			</Suspense>
 		</main>
 	);
