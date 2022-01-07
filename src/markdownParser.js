@@ -1,3 +1,5 @@
+import { log } from "./common";
+
 export function markdownToHtml (input) {
 
 	let parsed = [];
@@ -127,6 +129,11 @@ export function markdownToHtml (input) {
 				}
 				else if(!isDot && '.' === node.text.charAt(i)) {
 					isDot = true;
+					continue;
+				}
+				else if(!isDot && !isNumeric(node.text.charAt(i))) {
+					log("Not numeric!");
+					break;
 				}
 				else if(isDot && ' ' === node.text.charAt(i)) {
 				
