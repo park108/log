@@ -62,24 +62,6 @@
   font-size: 0.8rem;
 }
 
-@media screen and (max-width: 640px) {
-  .hidden--width-640px {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 400px) {
-  .hidden--width-400px {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 350px) {
-  .hidden--width-350px {
-    display: none;
-  }
-}
-
 .span--logitem-toolbaricon path {
   fill: #999999;
 }

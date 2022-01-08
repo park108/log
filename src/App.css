@@ -275,3 +275,21 @@ pre {
 .span--login-loggedout {
   cursor: pointer;
 }
+
+@media screen and (max-width: 640px) {
+  .hidden--width-640px {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .hidden--width-400px {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 350px) {
+  .hidden--width-350px {
+    display: none;
+  }
+}

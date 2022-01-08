@@ -1,5 +1,3 @@
-import { log } from "./common";
-
 export function markdownToHtml (input) {
 
 	let parsed = [];
@@ -132,7 +130,6 @@ export function markdownToHtml (input) {
 					continue;
 				}
 				else if(!isDot && !isNumeric(node.text.charAt(i))) {
-					log("Not numeric!");
 					break;
 				}
 				else if(isDot && ' ' === node.text.charAt(i)) {
@@ -153,53 +150,30 @@ export function markdownToHtml (input) {
 		
 	// headers
 	index = 0;
+	let sharps = "";
+
 	for(let node of parsed) {
 
 		if("value" === node.type && "" === node.closure) {
 
-			if(node.text.length > 1 && "# " === node.text.substr(0, 2)) {
+			sharps = "";
 
-				parsed.splice(index, 1, 
-					{type: "tag", text: "<h1>"}
-					, {type: "value", text: node.text.substring(2), closure: "header"}
-					, {type: "tag", text: "</h1>"});
-			}
-			else if(node.text.length > 2 && "## " === node.text.substr(0, 3)) {
+			for(let i = 1; i < 7; i++) {
 
-				parsed.splice(index, 1, 
-					{type: "tag", text: "<h2>"}
-					, {type: "value", text: node.text.substring(3), closure: "header"}
-					, {type: "tag", text: "</h2>"});
-			}
-			else if(node.text.length > 3 && "### " === node.text.substr(0, 4)) {
+				sharps += "#";
 
-				parsed.splice(index, 1, 
-					{type: "tag", text: "<h3>"}
-					, {type: "value", text: node.text.substring(4), closure: "header"}
-					, {type: "tag", text: "</h3>"});
-			}
-			else if(node.text.length > 4 && "#### " === node.text.substr(0, 5)) {
+				if(node.text.length > i && (sharps + " ") === node.text.substr(0, i + 1)) {
+	
+					parsed.splice(index, 1, 
+						{type: "tag", text: "<h" + i + ">"}
+						, {type: "value", text: node.text.substring(i + 1), closure: "header"}
+						, {type: "tag", text: "</h" + i + ">"});
 
-				parsed.splice(index, 1, 
-					{type: "tag", text: "<h4>"}
-					, {type: "value", text: node.text.substring(5), closure: "header"}
-					, {type: "tag", text: "</h4>"});
-			}
-			else if(node.text.length > 5 && "##### " === node.text.substr(0, 6)) {
-
-				parsed.splice(index, 1, 
-					{type: "tag", text: "<h5>"}
-					, {type: "value", text: node.text.substring(6), closure: "header"}
-					, {type: "tag", text: "</h5>"});
-			}
-			else if(node.text.length > 6 && "###### " === node.text.substr(0, 7)) {
-
-				parsed.splice(index, 1, 
-					{type: "tag", text: "<h6>"}
-					, {type: "value", text: node.text.substring(7), closure: "header"}
-					, {type: "tag", text: "</h6>"});
+					break;
+				}
 			}
 		}
+
 		index++;
 	}
 
@@ -303,7 +277,7 @@ export function markdownToHtml (input) {
 	return str;
 }
 
-function inlineParsing(parsed, delimeter, tag) {
+function inlineParsing(parsed, delimeter, tagName) {
 
 	let searchFrom = 0;
 	let start = -1;
@@ -311,13 +285,12 @@ function inlineParsing(parsed, delimeter, tag) {
 	let currentText = "";
 	let searchedText = "";
 	let delimeterLength = delimeter.length;
-	let openTag = "<" + tag + ">";
-	let closeTag = "</" + tag + ">";
+	let openTag = "<" + tagName + ">";
+	let closeTag = "</" + tagName + ">";
 
 	for(let node of parsed) {
 
-		if("value" === node.type
-			&& "pre" !== node.closure) {
+		if("value" === node.type && "pre" !== node.closure) {
 
 			while(-1 < searchFrom) {
 
@@ -346,20 +319,20 @@ function inlineParsing(parsed, delimeter, tag) {
 	return parsed;
 }
 
-function bindListItem(parsed, listType) {
+function bindListItem(parsed, tagName) {
 
 	let isStarted = false;
 	let output = [];
 
 	for(let node of parsed) {
 
-		if(!isStarted && node.itemOf === listType) {
-			output.push({type: "tag", text: "<" + listType + ">", itemOf: listType});
+		if(!isStarted && node.itemOf === tagName) {
+			output.push({type: "tag", text: "<" + tagName + ">", itemOf: tagName});
 			output.push(node);
 			isStarted = true;
 		}
-		else if(isStarted && node.itemOf !== listType) {
-			output.push({type: "tag", text: "</" + listType + ">", itemOf: listType});
+		else if(isStarted && node.itemOf !== tagName) {
+			output.push({type: "tag", text: "</" + tagName + ">", itemOf: tagName});
 			output.push(node);
 			isStarted = false;
 		}
@@ -369,7 +342,7 @@ function bindListItem(parsed, listType) {
 	}
 
 	if(isStarted) {
-		output.push({type: "tag", text: "</" + listType + ">", itemOf: listType});
+		output.push({type: "tag", text: "</" + tagName + ">", itemOf: tagName});
 	}
 
 	return output;

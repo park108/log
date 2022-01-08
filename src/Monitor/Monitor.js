@@ -43,14 +43,25 @@ const ApiCallMon = lazy(() => import('./ApiCallMon'));
 // ];
 
 // Yellow to Purple
+// const stackPallet = [
+// 	{color: "black", backgroundColor: "#FFECB3"},
+// 	{color: "black", backgroundColor: "#FAC6A8"},
+// 	{color: "black", backgroundColor: "#F49F9C"},
+// 	{color: "black", backgroundColor: "#E85285"},
+// 	{color: "black", backgroundColor: "#A93790"},
+// 	{color: "black", backgroundColor: "#8A2995"},
+// 	{color: "black", backgroundColor: "#6A1B9A"},
+// ];
+
+// Olive
 const stackPallet = [
-	{color: "black", backgroundColor: "#FFECB3"},
-	{color: "black", backgroundColor: "#FAC6A8"},
-	{color: "black", backgroundColor: "#F49F9C"},
-	{color: "black", backgroundColor: "#E85285"},
-	{color: "black", backgroundColor: "#A93790"},
-	{color: "black", backgroundColor: "#8A2995"},
-	{color: "black", backgroundColor: "#6A1B9A"},
+	{color: "black", backgroundColor: "#CAD2C5"},
+	{color: "black", backgroundColor: "#A7BEA9"},
+	{color: "black", backgroundColor: "#84A98C"},
+	{color: "black", backgroundColor: "#6B917E"},
+	{color: "black", backgroundColor: "#52796F"},
+	{color: "black", backgroundColor: "#354F52"},
+	{color: "black", backgroundColor: "#2F3E46"},
 ];
 
 const Monitor = (props) => {

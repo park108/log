@@ -3,12 +3,14 @@ import UserLogin from './UserLogin'
   
 const Footer = (props) => {
 
+	const year = new Date().getFullYear();
+
 	return (
 		<footer className="footer">
 			<span className="span span--footer-left">
-				© 2021. <UserLogin />
+				© {year}. <UserLogin />. All rights reserved.
 			</span>
-			<span className="span span--footer-right">
+			<span className="span span--footer-right hidden--width-400px">
 				<a href="http://aws.amazon.com/what-is-cloud-computing" rel="noreferrer" target="_blank">
 					<img
 						src="https://d0.awsstatic.com/logos/powered-by-aws.png"

@@ -34,7 +34,8 @@ const UserLogin = () => {
 
 	if(common.isLoggedIn()) {
 		
-		const userId = common.isAdmin() ? "Jongkil Park ✓" : "Jongkil Park 客";
+		// Maybe use ✓ symbol
+		const userId = common.isAdmin() ? "Jongkil Park" : "Visitor";
 
 		return (
 			<span className="span span--login-loggedin" onClick={logout}>{userId}</span>
@@ -43,7 +44,7 @@ const UserLogin = () => {
 
 	return (
 		<span className="span span--login-loggedout" onClick={login}>
-			Jongkil Park 
+			Jongkil Park
 			<EnterButton />
 		</span>
 	);
