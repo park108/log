@@ -8,7 +8,7 @@ const Footer = (props) => {
 	return (
 		<footer className="footer">
 			<span className="span span--footer-left">
-				© {year}. <UserLogin />. All rights reserved.
+				© {year} <UserLogin />. All rights reserved.
 			</span>
 			<span className="span span--footer-right hidden--width-400px">
 				<a href="http://aws.amazon.com/what-is-cloud-computing" rel="noreferrer" target="_blank">

@@ -1,6 +1,6 @@
 import React from "react";
 import * as common from './common';
-import { ReactComponent as EnterButton } from './static/enter.svg';
+// import { ReactComponent as EnterButton } from './static/enter.svg';
 
 export const getLoginUrl = () => {
 	if ('production' === process.env.NODE_ENV) {
@@ -45,7 +45,7 @@ const UserLogin = () => {
 	return (
 		<span className="span span--login-loggedout" onClick={login}>
 			Jongkil Park
-			<EnterButton />
+			{/* Maybe use enter symbol <EnterButton /> */}
 		</span>
 	);
 }
