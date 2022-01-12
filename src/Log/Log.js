@@ -21,7 +21,7 @@ const Log = (props) => {
 
 	const contentHeight = props.contentHeight;
 	
-	const handlePostSubmit = (contents) => {
+	const postLog = (contents) => {
 
 		setIsPostSuccess(false);
 
@@ -54,7 +54,7 @@ const Log = (props) => {
 		});
 	}
 
-	const handleEditSubmit = (item, contents) => {
+	const editLog = (item, contents) => {
 
 		setIsPostSuccess(false);
 
@@ -113,8 +113,8 @@ const Log = (props) => {
 						path="/log/write"
 						render={
 							(props) => <Writer
-								post={handlePostSubmit}
-								edit={handleEditSubmit}
+								post={postLog}
+								edit={editLog}
 								isPostSuccess={isPostSuccess}
 								{ ... props }
 							/>

@@ -125,7 +125,7 @@ const Writer = (props) => {
 		setRows(minRows + rows); // Set current rows
 	}
 
-	const handleSubmit = (event) => {
+	const postLog = (event) => {
 
 		// TODO: Make version control
 		if(article.length < 5) {
@@ -250,7 +250,7 @@ const Writer = (props) => {
 				/>
 			</Suspense>
 
-			<form onSubmit={handleSubmit}>
+			<form onSubmit={postLog}>
 				<div className="div div--writer-editbox">
 					<textarea
 						id="textarea--writer-article"

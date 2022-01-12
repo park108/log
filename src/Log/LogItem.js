@@ -62,7 +62,7 @@ const LogItem = (props) => {
 	const abort = () => log("Deleting aborted");
 	const confirmDelete = confirm("Are you sure delete the log?", deleteLogItem, abort);
 
-	const ArticleMain = () => {
+	const Article = () => {
 
 		const outputContents = parser.markdownToHtml(contents);
 
@@ -135,9 +135,10 @@ const LogItem = (props) => {
 		return messageBox;
 	}
 
-	const ArticleInfo = () => {
+	const LogItemInfo = () => {
 
 		const linkUrl = getUrl() + "log/" + timestamp;
+		
 		const linkIcon = showLink
 			? (
 				<span
@@ -216,22 +217,26 @@ const LogItem = (props) => {
 		);
 	}
 
+	const Comments = () => {
+		return (
+			showComments ? (
+				<Suspense fallback={<div></div>}>
+					<Comment
+						logTimestamp={timestamp}
+					/>
+				</Suspense>
+			)
+			: undefined
+		);
+	}
+
 	return (
 		<article className={itemClass} role="listitem">
 			<CopyToClipboardMessage />
-			<ArticleInfo />
+			<LogItemInfo />
 			<VersionHistory />
-			<ArticleMain />
-			{
-				showComments ? (
-						<Suspense fallback={<div></div>}>
-							<Comment
-								logTimestamp={timestamp}
-							/>
-						</Suspense>
-					)
-					: undefined
-			}
+			<Article />
+			<Comments />
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}

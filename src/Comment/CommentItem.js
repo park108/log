@@ -19,7 +19,7 @@ const CommentItem = (props) => {
 		setIsShowReplyForm(!isShowReplyForm);
 	}
 
-	const handlePostReply = (comment) => {
+	const postReply = (comment) => {
 		props.reply(comment);
 		setIsShowReplyForm(false);
 	}
@@ -48,7 +48,7 @@ const CommentItem = (props) => {
 				isReply={true}
 				logTimestamp={logTimestamp}
 				commentTimestamp={timestamp}
-				post={handlePostReply}
+				post={postReply}
 			/>
 		: ""
 

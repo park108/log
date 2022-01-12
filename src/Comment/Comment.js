@@ -53,7 +53,7 @@ const Comment = (props) => {
 		}
 	}
 
-	const handlePostSubmit = (comment) => {
+	const postComment = (comment) => {
 
 		fetch(commonComment.getAPI(), {
 			method: "POST",
@@ -86,7 +86,7 @@ const Comment = (props) => {
 						commentTimestamp={data.commentTimestamp}
 						timestamp={data.timestamp}
 						isHidden={data.isHidden}
-						reply={handlePostSubmit}
+						reply={postComment}
 					/>
 				))}
 			</Suspense>
@@ -96,7 +96,7 @@ const Comment = (props) => {
 	const commentForm = isShow
 		? <CommentForm
 			logTimestamp={logTimestamp}
-			post={handlePostSubmit}
+			post={postComment}
 		/>
 		: "";
 

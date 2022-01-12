@@ -19,11 +19,11 @@ const CommentForm = (props) => {
 		}
 	}, []);
 
-	const handleChangeComment = ({ target: { value } }) => setMessage(value);
-	const handleChangeName = ({target: { value } }) => setUserName(value);
-	const handleChangeIsHidden = ({target: { checked } }) => setIsHidden(checked);
+	const changeComment = ({ target: { value } }) => setMessage(value);
+	const changeName = ({target: { value } }) => setUserName(value);
+	const changeIsHidden = ({target: { checked } }) => setIsHidden(checked);
 
-	const handleSubmit = (event) => {
+	const postComment = (event) => {
 
 		event.preventDefault();
 
@@ -53,13 +53,13 @@ const CommentForm = (props) => {
 
 	return (
 		<div className="div div--comment-form">
-			<form onSubmit={handleSubmit}>
+			<form onSubmit={postComment}>
 				<div className="div div--comment-input">
 					<input 
 						type="text"
 						className="input input--comment-name"
 						placeholder="Type your name"
-						onChange={handleChangeName}
+						onChange={changeName}
 						value={userName}
 						disabled={nameDisabled}
 					/>
@@ -67,7 +67,7 @@ const CommentForm = (props) => {
 						type="checkbox"
 						id="hidden"
 						className="input input--comment-hidden"
-						onChange={handleChangeIsHidden}
+						onChange={changeIsHidden}
 					/>
 					<label
 						htmlFor="hidden"
@@ -82,7 +82,7 @@ const CommentForm = (props) => {
 							: "Reply the comment"
 						}
 						value={message}
-						onChange={handleChangeComment}
+						onChange={changeComment}
 						autoFocus
 					/>
 				</div>
