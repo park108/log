@@ -12,6 +12,7 @@ const Comment = (props) => {
 	const [comments, setComments] = useState([]);
 	const [buttonText, setButtonText] = useState("... comments");
 	const [isShow, setIsShow] = useState(false);
+	const [isOpenReplyForm, setIsOpenReplyForm] = useState(false);
 
 	const logTimestamp = props.logTimestamp;
 
@@ -27,13 +28,7 @@ const Comment = (props) => {
 
 			// Sort by sortKey
 			newData.body.Items.sort((a, b) => {
-				const sortKeyA = a.sortKey;
-				const sortKeyB = b.sortKey;
-				const result
-					= (sortKeyA < sortKeyB) ? -1
-					: (sortKeyA > sortKeyB) ? 1
-					: 0;
-				return result;
+				return (a.sortKey < b.sortKey) ? -1 : 1
 			});
 
 			log("Comments are FETCHED successfully.");
@@ -69,36 +64,45 @@ const Comment = (props) => {
 		});
 	}
 
+	const openReplyForm = (isOpened) => {
+		setIsOpenReplyForm(isOpened);
+	}
+
 	useEffect(() => fetchData(logTimestamp), [logTimestamp]);
 
 	const toggleComments = (event) => setIsShow(!isShow)
 
 	const commentThread = isShow
-		? <div className="div div--comment-thread">
-			<Suspense fallback={<div></div>}>
-				{comments.map(data => (				
-					<CommentItem
-						key={data.timestamp}
-						isAdminComment={data.isAdminComment}
-						message={data.message}
-						name={data.name}
-						logTimestamp={logTimestamp}
-						commentTimestamp={data.commentTimestamp}
-						timestamp={data.timestamp}
-						isHidden={data.isHidden}
-						reply={postComment}
-					/>
-				))}
-			</Suspense>
-		</div>
+		? (
+			<div className="div div--comment-thread">
+				<Suspense fallback={<div></div>}>
+					{comments.map(data => (				
+						<CommentItem
+							key={data.timestamp}
+							isAdminComment={data.isAdminComment}
+							message={data.message}
+							name={data.name}
+							logTimestamp={logTimestamp}
+							commentTimestamp={data.commentTimestamp}
+							timestamp={data.timestamp}
+							isHidden={data.isHidden}
+							openReplyForm={openReplyForm}
+							reply={postComment}
+						/>
+					))}
+				</Suspense>
+			</div>
+		)
 		: "";
 
-	const commentForm = isShow
+	const commentForm = isShow && !isOpenReplyForm
 		? <CommentForm
 			logTimestamp={logTimestamp}
 			post={postComment}
 		/>
 		: "";
+
+	const commentDivisionLine = isShow && !isOpenReplyForm ? <hr /> : "";
 
 	return (
 		<section className="section section--logitem-comment">
@@ -109,6 +113,7 @@ const Comment = (props) => {
 				{buttonText}
 			</span>
 			{commentThread}
+			{commentDivisionLine}
 			{commentForm}
 		</section>
 	);

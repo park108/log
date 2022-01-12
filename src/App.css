@@ -51,6 +51,12 @@ div#root.fullscreen {
   max-width: 1600px;
 }
 
+hr {
+  border-width: 1px 0 0 0;
+  border-color: var(--normal-border-color);
+  border-style: solid;
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin-block-start: 1.8em;
 }

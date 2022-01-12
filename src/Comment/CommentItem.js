@@ -17,6 +17,7 @@ const CommentItem = (props) => {
 
 	const toggleReplyForm = () => {
 		setIsShowReplyForm(!isShowReplyForm);
+		props.openReplyForm(!isShowReplyForm);
 	}
 
 	const postReply = (comment) => {
@@ -40,7 +41,7 @@ const CommentItem = (props) => {
 			className="div div--comment-replybutton"
 			onClick={toggleReplyForm}
 		>
-			↩
+			↪
 		</div>;
 	
 	const replyForm = isHidden && !isAdmin() ? ""

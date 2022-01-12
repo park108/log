@@ -226,7 +226,7 @@ const LogItem = (props) => {
 					/>
 				</Suspense>
 			)
-			: undefined
+			: ""
 		);
 	}
 
