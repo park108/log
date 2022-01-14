@@ -11,6 +11,46 @@ const FileDrop = (props) => {
 
 	const refreshFiles = props.uploaded;
 
+	// Upload file into the S3 bucket
+	async function uploadFile(item, isLast) {
+
+		setIsUploading("UPLOADING");
+
+		let name = item.name;
+		let type = encodeURIComponent(item.type);
+		
+		// Get pre-signed URL
+		const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
+
+		res.json().then(res => {
+
+			log("Presigned URL FETCHED successfully.");
+
+			// Set parameter for file uploading
+			let params = {
+				method: "PUT",
+				headers: {
+					"Content-Type": item.type
+				},
+				body: item
+			};
+
+			// Upload a file using pre-signed URL into S3
+			fetch(res.body.UploadUrl, params).then(res => {
+				log("File [" + name + "] PUTTED successfully.");
+				if(isLast) setIsUploading("COMPLETE");
+			}).catch(err => {
+				console.error(err);
+				if(isLast) setIsUploading("FAILED");
+			});
+
+		}).catch(err => {
+			console.error(err);
+			if(isLast) setIsUploading("FAILED");
+		});
+	}
+
+	// Dropped files in the area
 	useEffect(() => {
 
 		for(let i = 0; i < files.length; i++) {
@@ -19,6 +59,7 @@ const FileDrop = (props) => {
 
 	}, [files]);
 
+	// Change dropzone style by upload status
 	useEffect(() => {
 
 		if("READY" === isUploading) {
@@ -48,8 +89,7 @@ const FileDrop = (props) => {
 
 	}, [isUploading, refreshFiles]);
 
-	const handleDragOver = (e) => e.preventDefault();
-
+	// Define drag event hanlders
 	const handleDragEnter = (e) => {
 		e.preventDefault();
 		e.target.classList.add("div--filedrop-dragenter");
@@ -70,52 +110,16 @@ const FileDrop = (props) => {
 		for(let file of e.dataTransfer.files) {
 			newFiles.push(file);
 		}
+
 		setFiles(newFiles);
-	}
-
-	async function uploadFile(item, isLast) {
-
-		setIsUploading("UPLOADING");
-
-		let name = item.name;
-		let type = encodeURIComponent(item.type);
-		
-		// Get pre-signed URL
-		const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
-
-		res.json().then(res => {
-
-			log("Presigned URL FETCHED successfully.");
-
-			let params = {
-				method: "PUT",
-				headers: {
-					"Content-Type": item.type
-				},
-				body: item
-			};
-
-			// Upload a file using pre-signed URL into S3
-			fetch(res.body.UploadUrl, params).then(res => {
-				log("File [" + name + "] PUTTED successfully.");
-				if(isLast) setIsUploading("COMPLETE");
-			}).catch(err => {
-				console.error(err);
-				if(isLast) setIsUploading("FAILED");
-			});
-
-		}).catch(err => {
-			console.error(err);
-			if(isLast) setIsUploading("FAILED");
-		});
 	}
 
 	return (
 		<div className={dropzoneStyle}
-			onDrop={(event) => handleDrop(event)}
-			onDragOver={(event) => handleDragOver(event)}
-			onDragEnter={(event) => handleDragEnter(event)}
-			onDragLeave={(event) => handleDragLeave(event)}
+			onDragOver={(e) => e.preventDefault()}
+			onDragEnter={(e) => handleDragEnter(e)}
+			onDragLeave={(e) => handleDragLeave(e)}
+			onDrop={(e) => handleDrop(e)}
 		>
 			{dropzoneText}
 		</div>

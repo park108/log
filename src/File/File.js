@@ -13,22 +13,20 @@ const File = (props) => {
 
 	const [files, setFiles] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
+	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
+	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
-	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
-	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
-
-	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-
 	const contentHeight = props.contentHeight;
 
+	// Get uploaded file list from API Gateway
 	const fetchData = async () => {
 
 		setIsLoading(true);
 
-		// Call GET API
 		try {
 			const res = await fetch(commonFile.getAPI());
 			const newData = await res.json();
@@ -42,10 +40,7 @@ const File = (props) => {
 				const newFiles = newData.body.Items;
 				const lastEvaluatedKey = newData.body.LastEvaluatedKey;
 
-				// Set file array
 				setFiles(undefined === newFiles ? [] : newFiles);
-
-				// Set last item
 				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
 
@@ -56,12 +51,13 @@ const File = (props) => {
 		}
 	}
 
+	// Get next file list from API Gateway
 	const fetchMore = async (timestamp) => {
+
 		setIsLoading(true);
 
 		const apiUrl = commonFile.getAPI() + "?lastTimestamp=" + timestamp;
 
-		// Call GET API
 		try {
 			const res = await fetch(apiUrl);
 			const nextData = await res.json();
@@ -73,15 +69,8 @@ const File = (props) => {
 				log("Next files are FETCHED successfully.");
 				const newFiles = files.concat(nextData.body.Items);
 	
-				// Set file array
-				setFiles(undefined === nextData.body.Items ? [] : newFiles);
-	
-				// Last item
-				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey
-					? undefined
-					: nextData.body.LastEvaluatedKey.timestamp
-				);
-
+				setFiles(undefined === nextData.body.Items ? [] : newFiles);	
+				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey ? undefined : nextData.body.LastEvaluatedKey.timestamp);
 			}
 		}
 		catch(err) {
