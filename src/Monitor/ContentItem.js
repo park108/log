@@ -6,19 +6,31 @@ const ContentItem = (props) => {
 
 	const title = props.title;
 	const path = props.path;
-	const timeline = props.timeline;
 	const stackPallet = props.stackPallet;
 
 	const [counts, setCounts] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 
 	// Get content counts from API Gateway
-	const fetchCounts = async (timeline, path) => {
+	const fetchCounts = async (path) => {
 
 		setIsLoading(true);
 
-		const from = timeline[0];
-		const to = timeline[timeline.length - 1];
+		// Make timestamp for 6 months
+		const now = new Date();
+		const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
+		const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
+
+		const timeline = [
+			from,
+			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
+			to
+		];
+
 		const apiUrl = commonMonitor.getAPI() + "/" + path + "?fromTimestamp=" + from + "&toTimestamp=" + to;
 
 		try {
@@ -76,7 +88,11 @@ const ContentItem = (props) => {
 	}
 
 	// Fetch counts at mount
-	useEffect(() => fetchCounts(timeline, path), [timeline, path]);
+	useEffect(() => {
+
+		fetchCounts(path)
+
+	}, [path]);
 
 	// Make pillar 
 	const Pillar = (attr) => {

@@ -152,44 +152,42 @@ const VisitorMon = (props) => {
 		fetchData();
 	}, []);
 
-	const pillarHeight = 60;
-
+	// Make pillar
 	const CountPillar = (attr) => {
 
-		// const palletIndex = 6/7 < attr.valueRate ? 0
-		// 	: 5/7 < attr.valueRate ? 1
-		// 	: 4/7 < attr.valueRate ? 2
-		// 	: 3/7 < attr.valueRate ? 3
-		// 	: 2/7 < attr.valueRate ? 4
-		// 	: 1/7 < attr.valueRate ? 5
-		// 	: 6;
+		const index = attr.index;
+		const mm = attr.date.substr(5, 2);
+		const dd = attr.date.substr(8, 2);
+		const ddWeek = attr.date.substr(8, 8);
 
-		const palletIndex = attr.index;
+		const legend = 0 === index ? mm + "." + ddWeek // 01.09 (Sun) (first pillar)
+			: "01" === dd ? mm + "." + ddWeek // 02.01 (Tue) (change month)
+			: ddWeek; // 15 (Sat)
 
-		const legend = 0 === attr.index ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
-			: "01" === attr.date.substr(8, 2) ? attr.date.substr(5, 2) + "." + attr.date.substr(8, 8)
-			: attr.date.substr(8, 8);
-
-		const valueHeight = {height: "20px"}
+		const pillarHeight = 60;
 		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
-
+		const valueHeight = {height: "20px"}
 		const pillarStyle = {
 			height: pillarHeight * attr.valueRate + "px",
-			backgroundColor: stackPallet[palletIndex].backgroundColor
+			backgroundColor: stackPallet[index].backgroundColor
 		};
 
-		return <div className="div div--monitor-7pillars" key={attr.date}>
-			<div className="div div--monitor-blank" style={blankHeight}> </div>
-			<div className="div div--monitor-value" style={valueHeight}>{attr.count}</div>
-			<div className="div div--monitor-pillar" style={pillarStyle}></div>
-			<div className="div div--monitor-pillarlegend" >{legend}</div>
-		</div>
+		return (
+			<div className="div div--monitor-7pillars">
+				<div className="div div--monitor-blank" style={blankHeight}> </div>
+				<div className="div div--monitor-value" style={valueHeight}>{attr.count}</div>
+				<div className="div div--monitor-pillar" style={pillarStyle}></div>
+				<div className="div div--monitor-pillarlegend" >{legend}</div>
+			</div>
+		);
 	}
 
+	// Make stacked pillar's stack
 	const EnvStack = (attr) => {
 
-		let stackStyle = {
-			height: 150 * (attr.count / envTotalCount) + "px",
+		const pillarHeight = 185; 
+		const stackStyle = {
+			height: pillarHeight * (attr.count / envTotalCount) + "px",
 			color: stackPallet[attr.totalCount - attr.index - 1].color,
 			backgroundColor: stackPallet[attr.totalCount - attr.index - 1].backgroundColor
 		};
@@ -204,6 +202,7 @@ const VisitorMon = (props) => {
 		);
 	}
 
+	// Make stacked pillar
 	const EnvPillar = (attr) => {
 
 		let index = 0;

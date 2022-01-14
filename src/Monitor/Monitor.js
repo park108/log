@@ -89,13 +89,13 @@ const Monitor = (props) => {
 	return (
 		<main className="main main--contents" style={contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
-				<ContentMon stackPallet={chartPallets[3].colors} />
+				<ContentMon stackPallet={chartPallets[1].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<ApiCallMon stackPallet={chartPallets[2].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<WebVitalsMon stackPallet={chartPallets[1].colors} />
+				<WebVitalsMon />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<VisitorMon stackPallet={chartPallets[1].colors} />
