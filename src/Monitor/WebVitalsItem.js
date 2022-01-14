@@ -71,7 +71,7 @@ const WebVitalsItem = (props) => {
 		<section className="section section--monitor-item">
 			<h3>
 				{name}
-				<span className="span span--monitor-metric">{title}</span>
+				<span className="span span--monitor-metric">{title + " (" + totalCount + ")"}</span>
 				<span className={headerStyle}>{evaluation}</span>
 			</h3>
 			<div className="div div--monitor-statusbar">
