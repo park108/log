@@ -217,7 +217,7 @@ const LogItem = (props) => {
 		);
 	}
 
-	const Comments = () => {
+	const comments = React.useMemo(() => {
 		return (
 			showComments ? (
 				<Suspense fallback={<div></div>}>
@@ -228,7 +228,7 @@ const LogItem = (props) => {
 			)
 			: ""
 		);
-	}
+	}, [showComments, timestamp]);
 
 	return (
 		<article className={itemClass} role="listitem">
@@ -236,7 +236,7 @@ const LogItem = (props) => {
 			<LogItemInfo />
 			<VersionHistory />
 			<Article />
-			<Comments />
+			{ comments }
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}
