@@ -7,6 +7,7 @@ const ImageItem = (props) => {
 	const imageUrl = props.url.replace("thumbnail/", "");
 	const thumbnailUrl = props.url;
 
+	// Event handlers for image
 	const enlargeImage = (e) => {
 		e.target.src = e.target.getAttribute("imageurl");
 		e.target.setAttribute("enlarged", "Y");

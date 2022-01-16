@@ -14,6 +14,46 @@ const FileUpload = (props) => {
 
 	const refreshFiles = props.uploaded;
 
+	// Upload files into the S3 bucket
+	async function uploadFile(item, isLast) {
+
+		setIsUploading("UPLOADING");
+
+		let name = item.name;
+		let type = encodeURIComponent(item.type);
+		
+		// Get pre-signed URL
+		const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
+
+		res.json().then(res => {
+
+			log("Presigned URL FETCHED successfully.");
+
+			// Set parameter for file uploading
+			let params = {
+				method: "PUT",
+				headers: {
+					"Content-Type": item.type
+				},
+				body: item
+			};
+
+			// Upload a file using pre-signed URL into S3
+			fetch(res.body.UploadUrl, params).then(res => {
+				log("File [" + name + "] PUTTED successfully.");
+				if(isLast) setIsUploading("COMPLETE");
+			}).catch(err => {
+				console.error(err);
+				if(isLast) setIsUploading("FAILED");
+			});
+
+		}).catch(err => {
+			console.error(err);
+			if(isLast) setIsUploading("FAILED");
+		});
+	}
+
+	// Upload files by changing files state
 	useEffect(() => {
 
 		for(let i = 0; i < files.length; i++) {
@@ -22,6 +62,7 @@ const FileUpload = (props) => {
 
 	}, [files]);
 
+	// Change by upload state
 	useEffect(() => {
 
 		if("READY" === isUploading) {
@@ -63,6 +104,7 @@ const FileUpload = (props) => {
 
 	}, [isUploading, refreshFiles]);
 
+	// Define input event handler
 	const handleSelectedFiles = (e) => {
 
 		e.preventDefault();
@@ -75,43 +117,7 @@ const FileUpload = (props) => {
 		setFiles(newFiles);
 	}
 
-	async function uploadFile(item, isLast) {
-
-		setIsUploading("UPLOADING");
-
-		let name = item.name;
-		let type = encodeURIComponent(item.type);
-		
-		// Get pre-signed URL
-		const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
-
-		res.json().then(res => {
-
-			log("Presigned URL FETCHED successfully.");
-
-			let params = {
-				method: "PUT",
-				headers: {
-					"Content-Type": item.type
-				},
-				body: item
-			};
-
-			// Upload a file using pre-signed URL into S3
-			fetch(res.body.UploadUrl, params).then(res => {
-				log("File [" + name + "] PUTTED successfully.");
-				if(isLast) setIsUploading("COMPLETE");
-			}).catch(err => {
-				console.error(err);
-				if(isLast) setIsUploading("FAILED");
-			});
-
-		}).catch(err => {
-			console.error(err);
-			if(isLast) setIsUploading("FAILED");
-		});
-	}
-
+	// Draw upload input
 	return (
 		<div className="div div--fileupload-input">
 			<input

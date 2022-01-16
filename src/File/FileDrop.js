@@ -59,7 +59,7 @@ const FileDrop = (props) => {
 
 	}, [files]);
 
-	// Change dropzone style by upload status
+	// Change dropzone style by upload state
 	useEffect(() => {
 
 		if("READY" === isUploading) {
@@ -114,6 +114,7 @@ const FileDrop = (props) => {
 		setFiles(newFiles);
 	}
 
+	// Draw dropzone
 	return (
 		<div className={dropzoneStyle}
 			onDragOver={(e) => e.preventDefault()}

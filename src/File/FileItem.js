@@ -11,12 +11,40 @@ const FileItem = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
+	// Delete file from the S3 bucket
+	const deleteFileItem = () => {
+
+		setIsDeleting(true);
+
+		const api = commonFile.getAPI() + "/key/" + props.fileName;
+		const body = { key: props.fileName }
+
+		// Set parameter for file deleting
+		const params = {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		}
+
+		// Delete a file
+		fetch(api, params).then(res => {
+			log("A file is DELETED successfully.");
+			props.deleted();
+		}).catch(err => {
+			console.error(err);
+		});
+	}
+
+	// Change file item style by delete state
 	useEffect(() => {
 		(isDeleting)
 			? setItemClass("div div--fileitem div--fileitem-delete")
 			: setItemClass("div div--fileitem");
 	}, [isDeleting]);
 
+	// Copy file URL into clipboard
 	const copyToClipboard = () => {
 
 		let tempElem = document.createElement('textarea');
@@ -33,36 +61,11 @@ const FileItem = (props) => {
 		setIsShowToaster(1);
 	}
 
-	const deleteFileItem = () => {
-
-		setIsDeleting(true);
-
-		const api = commonFile.getAPI() + "/key/" + props.fileName;
-
-		const body = {
-			key: props.fileName
-		}
-
-		const params = {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(body)
-		}
-
-		// Call DELETE API
-		fetch(api, params).then(res => {
-			log("A file is DELETED successfully.");
-			props.deleted();
-		}).catch(err => {
-			console.error(err);
-		});
-	}
-
+	// Define confirm popup for deleting
 	const abort = () => log("Deleting aborted");
 	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
 
+	// Draw file item
 	return (
 		<div className={itemClass} role="listitem">
 			<div className="div div--fileitem-fileinfo">

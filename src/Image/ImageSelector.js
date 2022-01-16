@@ -12,17 +12,16 @@ const ImageSelector = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [loading, setLoading] = useState(null);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
+	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
-	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-
+	// Get image list from API Gateway
 	const fetchFirst = async () => {
 
 		setIsLoading(true);
 
-		// Call GET API
 		try {
 			const res = await fetch(commonImage.getAPI());
 			const retrieved = await res.json();
@@ -36,10 +35,7 @@ const ImageSelector = (props) => {
 				const newImages = retrieved.body.Items;
 				const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 
-				// Set file array
 				setImages(undefined === newImages ? [] : newImages);
-
-				// Set last item
 				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
 
@@ -50,13 +46,13 @@ const ImageSelector = (props) => {
 		}
 	}
 
+	// Get next image list from API Gateway
 	const fetchMore = async (timestamp) => {
 		
 		setIsLoading(true);
 
 		const apiUrl = commonImage.getAPI() + "?lastTimestamp=" + timestamp;
 
-		// Call GET API
 		try {
 			const res = await fetch(apiUrl);
 			const nextData = await res.json();
@@ -69,10 +65,7 @@ const ImageSelector = (props) => {
 				const newImages = images.concat(nextData.body.Items);
 				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	
-				// Set log array
 				setImages(undefined === nextData.body.Items ? [] : newImages);
-	
-				// Last item
 				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
 		}
@@ -83,6 +76,7 @@ const ImageSelector = (props) => {
 		setIsLoading(false);
 	}
 
+	// Fetch data by event
 	useEffect(() => {
 		if("SHOW" === props.show) {
 			fetchFirst();
@@ -97,12 +91,14 @@ const ImageSelector = (props) => {
 		}
 	}, [props.show]);
 
+	// At isLoading state changed
 	useEffect(() => {
 		(isLoading)
 			? setLoading(<div className="div div--image-loading">Loading...</div>)
 			: setLoading(null);
 	}, [isLoading]);
 
+	// Copy markdown string into clipboard
 	const copyMarkdownString = (e) => {
 
 		const url = e.target.getAttribute("imageurl");
@@ -122,6 +118,7 @@ const ImageSelector = (props) => {
 		setIsShowToaster(1);
 	}
 
+	// Draw Image Selector
 	return (
 		<div className={imageSelectorClass} >
 			

@@ -68,9 +68,10 @@ const File = (props) => {
 			else {
 				log("Next files are FETCHED successfully.");
 				const newFiles = files.concat(nextData.body.Items);
+				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	
 				setFiles(undefined === nextData.body.Items ? [] : newFiles);	
-				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey ? undefined : nextData.body.LastEvaluatedKey.timestamp);
+				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
 		}
 		catch(err) {
@@ -80,8 +81,10 @@ const File = (props) => {
 		setIsLoading(false);
 	}
 
+	// Fetch data at mount
 	useEffect(() => fetchData(), []);
 
+	// Change by upload state
 	useEffect(() => {
 		if(isLoading) {
 			setToasterMessage("Loading files...");
@@ -96,10 +99,12 @@ const File = (props) => {
 		}
 	}, [isLoading]);
 
+	// Select file upload UI
 	const fileUploadUI = isMobile() 
 		? <FileUpload uploaded={fetchData} />
 		: <FileDrop uploaded={fetchData} />;
 
+	// Make See More button
 	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
 		: (
@@ -111,11 +116,13 @@ const File = (props) => {
 			</button>
 		);
 	
-
+	
+	// If not admin, redirect initial page
 	if(!isAdmin()) {
 		return <Redirect to="/log" />;
 	}
 
+	// Draw file app.
 	return (
 		<main className="main main--contents" style={contentHeight} role="application">
 			<article className="article article--main-item">
