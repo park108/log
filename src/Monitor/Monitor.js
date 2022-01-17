@@ -82,10 +82,12 @@ const Monitor = (props) => {
 		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
 	}, []);
 
+	// If not admin, redirect initial page
 	if(!isAdmin()) {
 		return <Redirect to="/log" />;
 	}
 
+	// Draw monitor app.
 	return (
 		<main className="main main--contents" style={contentHeight} role="application">
 			<Suspense fallback={<div></div>}>

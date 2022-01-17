@@ -10,7 +10,6 @@ const VisitorMon = (props) => {
 	const [browsers, setBrowsers] = useState([]);
 	const [os, setOs] = useState([]);
 	const [engines, setEngines] = useState([]);
-
 	const [isLoading, setIsLoading] = useState(false);
 
 	const stackPallet = props.stackPallet;
@@ -148,9 +147,8 @@ const VisitorMon = (props) => {
 		});
 	}
 
-	useEffect(() => {
-		fetchData();
-	}, []);
+	// Fetch data at mount
+	useEffect(() => fetchData(), []);
 
 	// Make pillar
 	const CountPillar = (attr) => {
@@ -228,6 +226,7 @@ const VisitorMon = (props) => {
 		Loading...
 	</div>;
 
+	// Draw visitor monitor
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1>Visitors in the last 7 days</h1>
