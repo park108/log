@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Redirect } from 'react-router-dom';
 import * as commonFile from './commonFile';
-import { log, isAdmin, isMobile } from '../common';
+import { log, isAdmin, isMobile, setTitle } from '../common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
@@ -82,7 +82,10 @@ const File = (props) => {
 	}
 
 	// Fetch data at mount
-	useEffect(() => fetchData(), []);
+	useEffect(() => {
+		setTitle("file");
+		fetchData();
+	}, []);
 
 	// Change by upload state
 	useEffect(() => {

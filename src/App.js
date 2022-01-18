@@ -14,6 +14,7 @@ const App = () => {
 
 	const [contentHeight, setContentHeight] = useState();
 
+	// Set content height for footer space
 	const handleOnresize = (e) => {
 		if(undefined !== e) {
 			e.preventDefault();
@@ -23,20 +24,19 @@ const App = () => {
 		});
 	}
 
-	useEffect(() => handleOnresize(), []);
+	// Set resized height at mount
+	useEffect(() => {
+		handleOnresize();
+	}, []);
+
 	window.onresize = handleOnresize;
 
 	common.auth();
 
+	// Redirect default app "log"
 	if("/" === window.location.pathname) {
 		window.location.href = "/log";
 	}
-
-	const NoMatch = () => (
-		<div className="div div--main-contents" style={contentHeight}>
-			<PageNotFound />
-		</div>
-	);
 
 	return (
 		<Router>
@@ -52,7 +52,11 @@ const App = () => {
 					<Route path="/monitor">
 						<Monitor contentHeight={contentHeight} />
 					</Route>
-					<Route component={NoMatch} />
+					<Route>
+						<div className="div div--main-contents" style={contentHeight}>
+							<PageNotFound />
+						</div>
+					</Route>
 				</Switch>
 				<Footer />
 			</Suspense>

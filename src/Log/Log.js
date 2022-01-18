@@ -1,6 +1,6 @@
-import React, { useState, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Switch, Route, Link, useHistory, useLocation } from 'react-router-dom';
-import { log, isAdmin } from '../common';
+import { log, isAdmin, setTitle } from '../common';
 import * as commonLog from './commonLog';
 
 import './Log.css';
@@ -89,6 +89,11 @@ const Log = (props) => {
 			setIsPostSuccess(false);
 		});
 	}
+
+	// Set title at mount
+	useEffect(() => {
+		setTitle("log");
+	}, []);
 
 	const writeButton = isAdmin()
 		? <Link to={{

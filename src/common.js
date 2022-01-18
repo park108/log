@@ -1,3 +1,12 @@
+export function setTitle (title) {
+	if (process.env.NODE_ENV === 'production') {
+		document.title = title + " - park108.net";
+	}
+	else if (process.env.NODE_ENV === 'development') {
+		document.title = "[DEV] " + title + " - park108.net";
+	}
+}
+
 export function parseJwt (token) {
 
 	var base64Url = token.split('.')[1];
