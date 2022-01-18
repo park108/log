@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { log, getFormattedDate } from '../common';
+import { log, getFormattedDate, getFormattedSize } from '../common';
 import * as commonMonitor from './commonMonitor';
 
 const ContentItem = (props) => {
@@ -54,6 +54,7 @@ const ContentItem = (props) => {
 					countList.push({
 						"from": timeline[i],
 						"to": timeline[i+1],
+						"value": 0,
 						"count": 0,
 						"deleted": 0
 					});
@@ -61,6 +62,12 @@ const ContentItem = (props) => {
 					for(let item of periodData) {
 						if(timeline[i] <= item.timestamp && item.timestamp < timeline[i+1]) {
 							++countList[i].count;
+							if(undefined !== item.size) {
+								countList[i].value += item.size;
+							}
+							else {
+								++countList[i].value;
+							}
 							if(item.sortKey < 0) {
 								++countList[i].deleted;
 							}
@@ -68,14 +75,14 @@ const ContentItem = (props) => {
 					}
 					
 					// Update max value
-					if(max < countList[i].count) {
-						max = countList[i].count;
+					if(max < countList[i].value) {
+						max = countList[i].value;
 					}
 				}
 
 				// Calculate value rate by max value
 				for(let item of countList) {
-					item.valueRate = item.count / max;
+					item.valueRate = item.value / max;
 				}
 
 				setCounts(countList);
@@ -139,7 +146,16 @@ const ContentItem = (props) => {
 							<Pillar
 								key={item.from}
 								valueRate={item.valueRate}
-								value={item.count}
+								value={
+									("capacity" === props.unit)
+									? (
+										getFormattedSize(item.value)
+											+ ((0 === item.count) ? ""
+											: (1 === item.count) ? " (" + item.count + " file)"
+											: " (" + item.count + " files)")
+									)
+									: item.value
+								}
 								date={getFormattedDate(item.from)}
 								index={index}
 							/>

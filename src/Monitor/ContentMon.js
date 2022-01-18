@@ -14,16 +14,19 @@ const ContentMon = (props) => {
 				<ContentItem
 					title="Logs"
 					path="content/log"
+					unit="count"
 					stackPallet={stackPallet}
 				/>
 				<ContentItem
 					title="Comments"
 					path="content/comment"
+					unit="count"
 					stackPallet={stackPallet}
 				/>
 				<ContentItem
 					title="Files"
 					path="file"
+					unit="capacity"
 					stackPallet={stackPallet}
 				/>
 			</Suspense>
