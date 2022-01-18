@@ -32,13 +32,13 @@
   --shadow-color: #aaaaaa;
 
   --success-text-color: black;
-  --success-background-color: rgb(149, 225, 211);
+  --success-background-color: #A7BEA9;
 
   --warning-text-color: black;
-  --warning-background-color: rgb(248, 178, 134);
+  --warning-background-color: #FFECB3;
 
   --error-text-color: black;
-  --error-background-color: rgb(243, 129, 129);
+  --error-background-color: #F49F9C;
 
   --info-background-color: cornsilk;
 }
