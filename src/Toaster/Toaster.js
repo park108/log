@@ -12,6 +12,7 @@ const Toaster = (props) => {
 	const message = props.message;
 	const type = props.type;
 
+	// Set toaster style
 	useEffect(() => {
 
 		let className = "div";
@@ -55,6 +56,7 @@ const Toaster = (props) => {
 		
 	}, [show, duration, position, type, props.completed]);
 
+	// Draw toaster
 	return (
 		<div className={className} role="alert">
 			{message}
