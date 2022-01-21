@@ -12,12 +12,9 @@ const FileItem = (props) => {
 	const [toasterMessage ,setToasterMessage] = useState("");
 
 	// Delete file from the S3 bucket
-	const deleteFileItem = () => {
+	const deleteFileItem = async() => {
 
 		setIsDeleting(true);
-
-		const api = commonFile.getAPI() + "/key/" + props.fileName;
-		const body = { key: props.fileName }
 
 		// Set parameter for file deleting
 		const params = {
@@ -25,16 +22,24 @@ const FileItem = (props) => {
 			headers: {
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(body)
+			body: JSON.stringify({ key: props.fileName })
 		}
 
 		// Delete a file
-		fetch(api, params).then(res => {
-			log("A file is DELETED successfully.");
-			props.deleted();
-		}).catch(err => {
+		try {
+			const res = await fetch(commonFile.getAPI() + "/key/" + props.fileName, params);
+
+			if(200 === res.status) {
+				log("A file is DELETED successfully.");
+				props.deleted();
+			}
+			else {
+				console.error(res);
+			}
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
 	}
 
 	// Change file item style by delete state

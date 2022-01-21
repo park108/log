@@ -15,7 +15,7 @@ const FileUpload = (props) => {
 	const refreshFiles = props.uploaded;
 
 	// Upload files into the S3 bucket
-	async function uploadFile(item, isLast) {
+	const uploadFile = async(item, isLast) => {
 
 		setIsUploading("UPLOADING");
 
@@ -23,11 +23,29 @@ const FileUpload = (props) => {
 		let type = encodeURIComponent(item.type);
 		
 		// Get pre-signed URL
-		const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
+		let preSignedUrlData = "";
+		let isSuccess = false;
 
-		res.json().then(res => {
+		try {
+			const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
+			preSignedUrlData = await res.json();
 
-			log("Presigned URL FETCHED successfully.");
+			if(undefined !== preSignedUrlData.errorType) {
+				console.error(res);
+			}
+			else {
+				log("Presigned URL FETCHED successfully.");
+				isSuccess = true;
+			}
+		}
+		catch(err) {
+			console.error(err);
+			if(isLast) setIsUploading("FAILED");
+		}
+
+
+		// Upload file
+		if(isSuccess) {
 
 			// Set parameter for file uploading
 			let params = {
@@ -38,19 +56,23 @@ const FileUpload = (props) => {
 				body: item
 			};
 
-			// Upload a file using pre-signed URL into S3
-			fetch(res.body.UploadUrl, params).then(res => {
-				log("File [" + name + "] PUTTED successfully.");
-				if(isLast) setIsUploading("COMPLETE");
-			}).catch(err => {
+			try {
+				const res = await fetch(preSignedUrlData.body.UploadUrl, params);
+
+				if(200 === res.status) {
+					log("File [" + name + "] PUTTED successfully.");
+					if(isLast) setIsUploading("COMPLETE");
+				}
+				else {
+					console.error(res);
+					if(isLast) setIsUploading("FAILED");
+				}
+			}
+			catch(err) {
 				console.error(err);
 				if(isLast) setIsUploading("FAILED");
-			});
-
-		}).catch(err => {
-			console.error(err);
-			if(isLast) setIsUploading("FAILED");
-		});
+			}
+		}
 	}
 
 	// Upload files by changing files state
@@ -114,6 +136,7 @@ const FileUpload = (props) => {
 		for(let file of e.target.files) {
 			newFiles.push(file);
 		}
+
 		setFiles(newFiles);
 	}
 
