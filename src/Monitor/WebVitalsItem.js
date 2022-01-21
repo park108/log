@@ -4,30 +4,34 @@ import * as commonMonitor from './commonMonitor';
 
 const WebVitalsItem = (props) => {
 
+	const [data, setData] = useState([]);
+
 	const title = props.title;
 	const name = props.name;
 
-	const [data, setData] = useState([]);
+	const fetchData = async(name) => {
 
-	async function fetchData(name) {
+		try {
+			const res = await fetch(commonMonitor.getAPI() + "?name=" + name);
+			const data = await res.json();
 
-		const apiUrl = commonMonitor.getAPI() + "?name=" + name;
-
-		// Call GET API
-		const res = await fetch(apiUrl);
-		
-		res.json().then(res => {
-			log("Web Vital " + name + " is FETCHED successfully.: " + res.body.Count);
-			setData(res.body.Items);
-		}).catch(err => {
+			if(undefined !== data.errorType) {
+				console.error(res);
+			}
+			else {
+				log("Web Vital " + name + " is FETCHED successfully.: " + data.body.Count);
+				setData(data.body.Items);
+			}
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
 	}
 
-	useEffect(() => {
-		fetchData(name);
-	}, [name]);
+	// Fetch data at mount
+	useEffect(() => fetchData(name), [name]);
 
+	// Count by metrics
 	let good = 0;
 	let needImprovement = 0;
 	let poor = 0;
@@ -62,11 +66,13 @@ const WebVitalsItem = (props) => {
 		: (0 < totalCount) ? "NEEDS IMPROVEMENT"
 		: "Calculating...";
 	
+	// Make style by metrics
 	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-assessment span--monitor-good"
 		: ("POOR" === evaluation) ? "span span--monitor-assessment span--monitor-poor"
 		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-assessment span--monitor-warn"
 		: "span span--monitor-assessment span--monitor-none";
 
+	// Draw web vital item
 	return (
 		<section className="section section--monitor-item">
 			<h3>

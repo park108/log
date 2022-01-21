@@ -14,137 +14,144 @@ const VisitorMon = (props) => {
 
 	const stackPallet = props.stackPallet;
 
-	async function fetchData() {
+	const fetchData = async() => {
 
 		setIsLoading(true);
 
+		// Make timestamp for 7 days
 		const today = new Date();
 		const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
 		const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
 
 		const apiUrl = commonMonitor.getAPI() + "/useragent?fromTimestamp=" + fromTimestamp + "&toTimestamp=" + toTimestamp;
 
-		// Call GET API
-		const res = await fetch(apiUrl);
-		
-		res.json().then(res => {
-			
-			log("Visitor information is FETCHED successfully.");
-			
-			setTotalCount(res.body.totalCount);
+		try {
 
-			let periodData = res.body.periodData.Items;
+			const res = await fetch(apiUrl);
+			const data = await res.json();
 
-			for(let item of periodData) {
-				item.date = getFormattedDate(item.timestamp);
-				item.time = getFormattedTime(item.timestamp);
+			if(undefined !== data.errorType) {
+				console.error(res);
 			}
+			else {
+			
+				log("Visitor information is FETCHED successfully.");
+			
+				setTotalCount(data.body.totalCount);
 
-			let dailyCountList = [];
-			let startTimestamp = 0;
-			let endTimestamp = 0;
-			let max = 0;
-
-			for(let i = 0; i < 7; i++) {
-
-				startTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * i);
-				endTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * (i + 1));
-
-				dailyCountList.push({"date": getFormattedDate(startTimestamp) + " (" + getWeekday(startTimestamp) +")", "count": 0});
-
+				let periodData = data.body.periodData.Items;
+	
 				for(let item of periodData) {
-					if(startTimestamp <= item.timestamp && item.timestamp < endTimestamp ) {
-						++dailyCountList[i].count;
-						if(max < dailyCountList[i].count) {
-							max = dailyCountList[i].count;
+					item.date = getFormattedDate(item.timestamp);
+					item.time = getFormattedTime(item.timestamp);
+				}
+
+				let dailyCountList = [];
+				let startTimestamp = 0;
+				let endTimestamp = 0;
+				let max = 0;
+	
+				for(let i = 0; i < 7; i++) {
+	
+					startTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * i);
+					endTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * (i + 1));
+	
+					dailyCountList.push({"date": getFormattedDate(startTimestamp) + " (" + getWeekday(startTimestamp) +")", "count": 0});
+	
+					for(let item of periodData) {
+						if(startTimestamp <= item.timestamp && item.timestamp < endTimestamp ) {
+							++dailyCountList[i].count;
+							if(max < dailyCountList[i].count) {
+								max = dailyCountList[i].count;
+							}
 						}
 					}
 				}
-			}
-
-			for(let item of dailyCountList) {
-				item.valueRate = item.count / max;
-			}
-
-			setDailyCount(dailyCountList);
-
-
-			// Analyze user agent
-			let browserList = [];
-			let osList = [];
-			let engineList = [];
-
-			let hasBrowser = false;
-			let hasOs = false
-			let hasEngine = false;
-
-			for(let item of periodData) {
-
-				// Set browser list
-				hasBrowser = false;
-				for(let browser of browserList) {
-					if(browser["name"] === item.browser) {
-						++browser.count;
-						hasBrowser = true;
-						break;
+	
+				for(let item of dailyCountList) {
+					item.valueRate = item.count / max;
+				}
+	
+				setDailyCount(dailyCountList);
+	
+	
+				// Analyze user agent
+				let browserList = [];
+				let osList = [];
+				let engineList = [];
+	
+				let hasBrowser = false;
+				let hasOs = false
+				let hasEngine = false;
+	
+				for(let item of periodData) {
+	
+					// Set browser list
+					hasBrowser = false;
+					for(let browser of browserList) {
+						if(browser["name"] === item.browser) {
+							++browser.count;
+							hasBrowser = true;
+							break;
+						}
+					}
+					if(!hasBrowser) {
+						browserList.push({"name": item.browser, "count": 1});
+					}
+	
+					// Set os list
+					hasOs = false;
+					for(let os of osList) {
+						if(os["name"] === item.operatingSystem) {
+							++os.count;
+							hasOs = true;
+							break;
+						}
+					}
+					if(!hasOs) {
+						osList.push({"name": item.operatingSystem, "count": 1});
+					}
+	
+					// Set rendering engine list
+					hasEngine = false;
+					for(let engine of engineList) {
+						if(engine["name"] === item.renderingEngine) {
+							++engine.count;
+							hasEngine = true;
+							break;
+						}
+					}
+					if(!hasEngine) {
+						engineList.push({"name": item.renderingEngine, "count": 1});
 					}
 				}
-				if(!hasBrowser) {
-					browserList.push({"name": item.browser, "count": 1});
+	
+				const countSort = (a, b) => {
+					const sortKeyA = a.count;
+					const sortKeyB = b.count;
+					const result
+						= (sortKeyA < sortKeyB) ? -1
+						: (sortKeyA > sortKeyB) ? 1
+						: 0;
+					return result;
 				}
-
-				// Set os list
-				hasOs = false;
-				for(let os of osList) {
-					if(os["name"] === item.operatingSystem) {
-						++os.count;
-						hasOs = true;
-						break;
-					}
-				}
-				if(!hasOs) {
-					osList.push({"name": item.operatingSystem, "count": 1});
-				}
-
-				// Set rendering engine list
-				hasEngine = false;
-				for(let engine of engineList) {
-					if(engine["name"] === item.renderingEngine) {
-						++engine.count;
-						hasEngine = true;
-						break;
-					}
-				}
-				if(!hasEngine) {
-					engineList.push({"name": item.renderingEngine, "count": 1});
-				}
+	
+				browserList.sort(countSort);
+				osList.sort(countSort);
+				engineList.sort(countSort);
+	
+				setEnvTotalCount(periodData.length);
+	
+				setBrowsers(browserList);
+				setOs(osList);
+				setEngines(engineList);
+	
+				setIsLoading(false);
 			}
-
-			const countSort = (a, b) => {
-				const sortKeyA = a.count;
-				const sortKeyB = b.count;
-				const result
-					= (sortKeyA < sortKeyB) ? -1
-					: (sortKeyA > sortKeyB) ? 1
-					: 0;
-				return result;
-			}
-
-			browserList.sort(countSort);
-			osList.sort(countSort);
-			engineList.sort(countSort);
-
-			setEnvTotalCount(periodData.length);
-
-			setBrowsers(browserList);
-			setOs(osList);
-			setEngines(engineList);
-
-			setIsLoading(false);
-
-		}).catch(err => {
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
 	}
 
 	// Fetch data at mount
@@ -222,10 +229,6 @@ const VisitorMon = (props) => {
 		);
 	}
 
-	const divLoading = <div className="div div--monitor-loading">
-		Loading...
-	</div>;
-
 	// Draw visitor monitor
 	return (
 		<article className="article article--main-item article--monitor-item">
@@ -234,7 +237,11 @@ const VisitorMon = (props) => {
 				<h3>Total Count: {totalCount}</h3>
 				<div className="div div--monitor-pillarchart">
 				{
-					isLoading ? divLoading
+					isLoading ? (
+						<div className="div div--monitor-loading">
+							Loading...
+						</div>
+					)
 					: dailyCount.map(
 						(data, index) => (
 							<CountPillar
@@ -253,7 +260,11 @@ const VisitorMon = (props) => {
 				<h3>User Environment: {envTotalCount} cases</h3>
 				<div className="div div--monitor-stackchart">
 					{
-						isLoading ? divLoading
+						isLoading ? (
+							<div className="div div--monitor-loading">
+								Loading...
+							</div>
+						)
 						: <div>
 							<EnvPillar
 								legend="Browser"
