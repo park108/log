@@ -125,6 +125,7 @@ const ImageSelector = (props) => {
 			{loading}
 
 			{
+				// Image list
 				isLoading
 					? undefined
 					: images.map(
@@ -139,14 +140,17 @@ const ImageSelector = (props) => {
 			}
 
 			{
+				// See More button
 				isLoading ? undefined
 					: undefined === lastTimestamp ? undefined
-					: <div
-						className="div div--image-seemorebutton"
-						onClick={(e) => fetchMore(lastTimestamp)}
+					: (
+						<div
+							className="div div--image-seemorebutton"
+							onClick={(e) => fetchMore(lastTimestamp)}
 						>
 							See<br/>More
 						</div>
+					)
 			}
 			
 			<Toaster 

@@ -112,8 +112,8 @@ const File = (props) => {
 		? ""
 		: (
 			<button
-			className={seeMoreButtonClass}
-			onClick={(e) => fetchMore(lastTimestamp)}
+				className={seeMoreButtonClass}
+				onClick={(e) => fetchMore(lastTimestamp)}
 			>
 				{seeMoreButtonText}
 			</button>

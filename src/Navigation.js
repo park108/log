@@ -6,12 +6,6 @@ const Navigation = () => {
 
 	const location = useLocation();
 
-	const title = (
-		<li className="li li--nav-title">
-			<a href={getUrl()}>park108.net</a>
-		</li>
-	);
-
 	let logMenu = undefined;
 	let fileMenu = undefined;
 	let monitorMenu = undefined;
@@ -40,7 +34,9 @@ const Navigation = () => {
 	return (
 		<nav className="nav nav--nav-bar">
 			<ul className="ul ul--nav-tabs">
-				{title}
+				<li className="li li--nav-title">
+					<a href={getUrl()}>park108.net</a>
+				</li>
 				{logMenu}
 				{fileMenu}
 				{monitorMenu}
