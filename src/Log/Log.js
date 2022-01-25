@@ -18,83 +18,103 @@ const Log = (props) => {
 
 	const history = useHistory();
 	const location = useLocation();
-
 	const contentHeight = props.contentHeight;
 	
+	// Post log
 	const postLog = (contents) => {
 
 		setIsPostSuccess(false);
 
-		const now = Math.floor(new Date().getTime());
+		try {
+			const now = Math.floor(new Date().getTime());
 
-		// Call POST API
-		fetch(commonLog.getAPI(), {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify({
-				"timestamp": now,
-				"logs": [{
-					"contents": contents,
-					"timestamp": now
-				}]
-			})
-		}).then(res => {
-			log("A log is POSTED uccessfully.");
-			setIsPostSuccess(true);
-		
-			setToasterMessage("The log posted.");
-			setIsShowToaster(1);
+			const params = {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					"timestamp": now,
+					"logs": [{
+						"contents": contents,
+						"timestamp": now
+					}]
+				})
+			};
 
-			history.push("/log");
-		}).catch(err => {
+			// Call API
+			const res = fetch(commonLog.getAPI(), params);
+
+			if(200 === res.status) {
+				log("A log is POSTED uccessfully.");
+				setIsPostSuccess(true);			
+				setToasterMessage("The log posted.");
+				setIsShowToaster(1);	
+				history.push("/log");
+			}
+			else {
+				console.error(res);
+				setIsPostSuccess(false);
+			}
+		}
+		catch(err) {
 			console.error(err);
 			setIsPostSuccess(false);
-		});
+		}
 	}
 
+	// Edit log
 	const editLog = (item, contents) => {
 
 		setIsPostSuccess(false);
 
-		let newItem = JSON.parse(JSON.stringify(item));
+		try {
+			let newItem = JSON.parse(JSON.stringify(item));
+	
+			const changedLogs = [{
+				contents: contents,
+				timestamp: Math.floor(new Date().getTime())
+			}, ...newItem.logs];
+	
+			newItem.logs = changedLogs;
 
-		const changedLogs = [{
-			contents: contents,
-			timestamp: Math.floor(new Date().getTime())
-		}, ...newItem.logs];
+			const params = {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(newItem)
+			}
+	
+			const api = commonLog.getAPI() + "/timestamp/" + newItem.timestamp;
 
-		newItem.logs = changedLogs;
+			// Call API
+			const res = fetch(api, params);
 
-		const api = commonLog.getAPI() + "/timestamp/" + newItem.timestamp;
-
-		// Call PUT API
-		fetch(api, {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(newItem)
-		}).then(res => {
-			log("A log is PUTTED successfully.");
-			setIsPostSuccess(true);
-		
-			setToasterMessage("The log changed.");
-			setIsShowToaster(1);
-
-			history.push("/log");
-		}).catch(err => {
+			if(200 === res.status) {
+				log("A log is PUTTED successfully.");
+				setIsPostSuccess(true);			
+				setToasterMessage("The log changed.");
+				setIsShowToaster(1);	
+				history.push("/log");
+			}
+			else {
+				console.error(res);
+				setIsPostSuccess(false);
+			}
+		}
+		catch(err) {
 			console.error(err);
 			setIsPostSuccess(false);
-		});
+		}
 	}
 
 	// Set title at mount
 	useEffect(() => {
 		setTitle("log");
 	}, []);
-
+	
+	// Make write button
 	const writeButton = isAdmin()
 		? <Link to={{
 				pathname: "/log/write",
@@ -106,6 +126,7 @@ const Log = (props) => {
 			</Link>
 		: null;
 
+	// Draw log app.
 	return (
 		<main className="main main--contents" style={contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
