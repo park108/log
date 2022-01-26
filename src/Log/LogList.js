@@ -11,23 +11,21 @@ const LogList = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
 	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
-
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
-
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
 	const [toasterMessageBottom, setToasterMessageBottom] = useState("");
-
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
+	// Get log list from API gateway
 	const fetchFirst = async () => {
 
 		setIsLoading(true);
 
 		const apiUrl = commonLog.getAPI();
 
-		// Call GET API
 		try {
+			// Call API
 			const res = await fetch(apiUrl);
 			const newData = await res.json();
 
@@ -57,14 +55,15 @@ const LogList = (props) => {
 		}
 	}
 
+	// Get next log list from API gateway
 	const fetchMore = async (timestamp) => {
 
 		setIsLoading(true);
 
 		const apiUrl = commonLog.getAPI() + "?lastTimestamp=" + timestamp;
 
-		// Call GET API
 		try {
+			// Call API
 			const res = await fetch(apiUrl);
 			const nextData = await res.json();
 
@@ -95,8 +94,10 @@ const LogList = (props) => {
 		}
 	}
 
+	// Fetch data at mount
 	useEffect(() => fetchFirst(), [props.isPostSucces]);
 
+	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
 			setToasterMessageCenter("Loading logs...");
@@ -111,13 +112,14 @@ const LogList = (props) => {
 		}
 	}, [isLoading]);
 
-	const callbackDeleteItem = () => {
-		fetchFirst();
-		
+	// Callback delete item from LogItem
+	const afterDelete = () => {
+		fetchFirst();	
 		setToasterMessageBottom("The log deleted.");
 		setIsShowToasterBottom(1);
 	}
 
+	// See more button
 	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
 		: <button
@@ -127,6 +129,7 @@ const LogList = (props) => {
 				{seeMoreButtonText}
 			</button>;
 
+	// Draw log list
 	return (
 		<div role="list">
 			<Suspense fallback={<div></div>}>
@@ -140,7 +143,7 @@ const LogList = (props) => {
 						item = {data}
 						showComments={true}
 						showLink={true}
-						deleted={callbackDeleteItem}
+						deleted={afterDelete}
 					/>
 				))}
 			</Suspense>
@@ -157,8 +160,7 @@ const LogList = (props) => {
 				message={toasterMessageBottom}
 				position={"bottom"}
 				type={"success"}
-				duration={2000}
-				
+				duration={2000}				
 				completed={() => setIsShowToasterCenter(0)}
 			/>
 		</div>

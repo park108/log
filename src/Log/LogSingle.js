@@ -11,23 +11,20 @@ const LogSingle = (props) => {
 
 	const [data, setData] = useState({});
 	const [isLoading, setIsLoading] = useState(false);
-
 	const [hasItem, setHasItem] = useState("NOW_LOADING");
-
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
-
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
 	const [toasterMessageBottom, setToasterMessageBottom] = useState("");
 
 	let logTimestamp = useParams()["timestamp"];
 
-	async function fetchData(timestamp) {
+	const fetchData = async (timestamp) => {
 
 		setIsLoading(true);
 
-		// Call GET API
 		try {
+			// Call API
 			const res = await fetch(commonLog.getAPI() + "/timestamp/" + timestamp);
 			const fetchedData = await res.json();
 			
@@ -57,10 +54,12 @@ const LogSingle = (props) => {
 		}
 	}
 
+	// Fetch data at mount
 	useEffect(() => {
 		fetchData(logTimestamp);
 	}, [props.isPostSuccess, logTimestamp]);	
 
+	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
 			setToasterMessageCenter("Loading a log...");
@@ -71,12 +70,14 @@ const LogSingle = (props) => {
 		}
 	}, [isLoading]);
 
-	const callbackDeleteItem = () => {
+	// Callback delete item from LogItem
+	const afterDelete = () => {
 		fetchData(logTimestamp);
 		setToasterMessageBottom("The log deleted.");
 		setIsShowToasterBottom(1);
 	}
 	
+	// Draw log item
 	const logItem = ("YES" === hasItem)
 		? <LogItem
 			author={data.author}
@@ -85,12 +86,13 @@ const LogSingle = (props) => {
 			item = {data}
 			showComments={true}
 			showLink={true}
-			deleted={callbackDeleteItem}
+			deleted={afterDelete}
 		/>
 		: ("NO" === hasItem) ? <PageNotFound />
 		: "";
 
 
+	// Draw a single log
 	return (
 		<div role="list">
 			<Suspense fallback={<div></div>}>
@@ -98,8 +100,7 @@ const LogSingle = (props) => {
 			</Suspense>
 			<Toaster 
 				show={isShowToasterCenter}
-				message={toasterMessageCenter}
-				
+				message={toasterMessageCenter}				
 				completed={() => setIsShowToasterCenter(0)}
 			/>
 			<Toaster 

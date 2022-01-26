@@ -47,9 +47,9 @@ const Log = (props) => {
 
 			if(200 === res.status) {
 				log("A log is POSTED uccessfully.");
-				setIsPostSuccess(true);			
+				setIsPostSuccess(true);
 				setToasterMessage("The log posted.");
-				setIsShowToaster(1);	
+				setIsShowToaster(1);
 				history.push("/log");
 			}
 			else {
@@ -121,7 +121,7 @@ const Log = (props) => {
 				state: { 
 					from: location.pathname
 				}
-				}}>
+			}}>
 				<button className="button button--log-newlog">+</button>
 			</Link>
 		: null;

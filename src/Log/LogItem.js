@@ -12,13 +12,11 @@ const LogItem = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [itemClass, setItemClass] = useState("div div--main-item");
-
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
 	const [isShowCopyToClipboardMessage, setIsShowCopyToClipboardMessage] = useState(false);
 
 	const history = useHistory();
-
 	const item = props.item;
 	const author = props.author;
 	const contents = props.contents;
@@ -26,53 +24,71 @@ const LogItem = (props) => {
 	const showComments = props.showComments;
 	const showLink = props.showLink;
 
+	// Delete log
+	const deleteLogItem = () => {
+
+		setIsDeleting(true);
+
+		try {
+
+			const api = commonLog.getAPI() + "/timestamp/" + timestamp;
+
+			const body = {
+				author: author,
+				timestamp: timestamp
+			};
+	
+			const params = {
+				method: "DELETE",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(body)
+			}
+
+			// Call API
+			const res = fetch(api, params);
+
+			if(200 === res.status) {
+				log("A log is DELETED successfully.");
+				props.deleted();
+				history.push("/log");
+			}
+			else {
+				console.error(res);
+			}
+		}
+		catch(err) {
+			console.error(err);
+		}
+	}
+
+	// Change style by delete item
 	useEffect(() => {
 		(isDeleting)
 			? setItemClass("article article--main-item article--logitem-delete")
 			: setItemClass("article article--main-item");
 	}, [isDeleting]);
 
-	const deleteLogItem = () => {
-
-		setIsDeleting(true);
-
-		const api = commonLog.getAPI() + "/timestamp/" + timestamp;
-
-		const body = {
-			author: author,
-			timestamp: timestamp
-		}
-
-		// Call DELETE API
-		fetch(api, {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(body)
-		}).then(res => {
-			log("A log is DELETED successfully.");
-			props.deleted();
-			history.push("/log");
-		}).catch(err => {
-			console.error(err);
-		});
-	}
-
+	// Confirm alert to delete
 	const abort = () => log("Deleting aborted");
 	const confirmDelete = confirm("Are you sure delete the log?", deleteLogItem, abort);
 
+	// Article parsed by Markdown
 	const Article = () => {
 
 		const outputContents = parser.markdownToHtml(contents);
 
-		return <section
-			className="section section--logitem-contents"
-			dangerouslySetInnerHTML={{__html: outputContents}}
-		>
-		</section>;
+		return (
+			<section
+				className="section section--logitem-contents"
+				dangerouslySetInnerHTML={{__html: outputContents}}
+			>
+			</section>
+		);
 	}
 
+	// URL copy
 	const copyToClipboard = (e) => {
 
 		e.preventDefault();
@@ -92,6 +108,7 @@ const LogItem = (props) => {
 		setIsShowToaster(1);
 	}
 
+	// Version history
 	const VersionHistory = () => {
 
 		if(!isShowVersionHistory) return "";
@@ -123,6 +140,7 @@ const LogItem = (props) => {
 		);
 	}
 
+	// Hover message for copy url
 	const CopyToClipboardMessage = () => {
 
 		const messageBox = isShowCopyToClipboardMessage ? (
@@ -135,6 +153,7 @@ const LogItem = (props) => {
 		return messageBox;
 	}
 
+	// Info header for item
 	const LogItemInfo = () => {
 
 		const linkUrl = getUrl() + "log/" + timestamp;
@@ -217,6 +236,7 @@ const LogItem = (props) => {
 		);
 	}
 
+	// Comments
 	const comments = React.useMemo(() => {
 		return (
 			showComments ? (
@@ -230,6 +250,7 @@ const LogItem = (props) => {
 		);
 	}, [showComments, timestamp]);
 
+	// Draw log item
 	return (
 		<article className={itemClass} role="listitem">
 			<CopyToClipboardMessage />
