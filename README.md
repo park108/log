@@ -10,11 +10,12 @@ It uses serverless architecture for performance and cost efficiency.
 Uses an Cognito user pool to identify administrators.
 
 ### Amplify with React
-The frontend was build with React and it used Amplify for CI/CD to connect the github repository.
+The frontend was built with React.   
+it used Amplify for CI/CD to connect the github repository.
 
 ### API Gateway
 Connect the backend and frontend using API Gateway.  
-Test and Prod are divided by operating multiple stages.
+It operates in multiple stages.
 
 ### Lambda
 Each REST API runs a Lambda function.  
@@ -25,8 +26,7 @@ DynamoDB is a NoSQL DB that suitable for serverless architecture.
 According to the MSA philosophy, it uses only one table for each app.
 
 ### S3
-HTML file uploader for personal purpose.  
-When a file dragged into the drop zone, API Gateway w/ Lambda gets the S3 pre-signed URL.  
+When a file dragged into the drop zone in frontend, API Gateway w/ Lambda gets the S3 pre-signed URL.  
 Upload multiple files directly into S3 bucket using pre-signed URLs.  
 
 ### File processing using SNS and SQS
