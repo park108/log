@@ -74,6 +74,8 @@ const ApiCallMon = (props) => {
 		);
 	}
 
+	// TODO: Make several chart components after make the backend.
+
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1>API Calls in the last 7 days</h1>
