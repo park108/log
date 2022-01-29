@@ -25,7 +25,7 @@ const LogItem = (props) => {
 	const showLink = props.showLink;
 
 	// Delete log
-	const deleteLogItem = () => {
+	const deleteLogItem = async () => {
 
 		setIsDeleting(true);
 
@@ -47,7 +47,7 @@ const LogItem = (props) => {
 			}
 
 			// Call API
-			const res = fetch(api, params);
+			const res = await fetch(api, params);
 
 			if(200 === res.status) {
 				log("A log is DELETED successfully.");

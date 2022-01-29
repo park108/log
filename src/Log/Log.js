@@ -21,7 +21,7 @@ const Log = (props) => {
 	const contentHeight = props.contentHeight;
 	
 	// Post log
-	const postLog = (contents) => {
+	const postLog = async (contents) => {
 
 		setIsPostSuccess(false);
 
@@ -43,7 +43,7 @@ const Log = (props) => {
 			};
 
 			// Call API
-			const res = fetch(commonLog.getAPI(), params);
+			const res = await fetch(commonLog.getAPI(), params);
 
 			if(200 === res.status) {
 				log("A log is POSTED uccessfully.");
@@ -64,7 +64,7 @@ const Log = (props) => {
 	}
 
 	// Edit log
-	const editLog = (item, contents) => {
+	const editLog = async (item, contents) => {
 
 		setIsPostSuccess(false);
 
@@ -89,7 +89,7 @@ const Log = (props) => {
 			const api = commonLog.getAPI() + "/timestamp/" + newItem.timestamp;
 
 			// Call API
-			const res = fetch(api, params);
+			const res = await fetch(api, params);
 
 			if(200 === res.status) {
 				log("A log is PUTTED successfully.");
