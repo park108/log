@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import LogDetail from '../Log/LogDetail';
+import LogItem from '../Log/LogItem';
 
 it('parse header tag correctly', () => {
 
   const contents = "header test contents";
   const markdownText = "## " + contents;
 
-  render(<LogDetail 
+  render(<LogItem 
     author={"park108@gmail.com"}
     timestamp={"20211008195400"}
     contents={markdownText}
@@ -25,7 +25,7 @@ it('parse unordered list tag correctly', () => {
   const contents = "list item test contents";
   const markdownText = "- " + contents;
 
-  render(<LogDetail 
+  render(<LogItem 
     author={"park108@gmail.com"}
     timestamp={"20211008195400"}
     contents={markdownText}    
@@ -46,7 +46,7 @@ it('parse ordered list tag correctly', () => {
   const contents = "list item test contents";
   const markdownText = "1. " + contents;
 
-  render(<LogDetail 
+  render(<LogItem 
     author={"park108@gmail.com"}
     timestamp={"20211008195400"}
     contents={markdownText}    
@@ -70,7 +70,7 @@ it('parse image tag correctly', () => {
   const lazyLoading = "lazy";
   const markdownText = "![" + altText + "](" + url + " \"" + titleText + "\")";
 
-  render(<LogDetail 
+  render(<LogItem 
     author={"park108@gmail.com"}
     timestamp={"20211008195400"}
     contents={markdownText}    
@@ -94,7 +94,7 @@ it('parse anchor tag correctly', () => {
   const text = "linked text";
   const markdownText = "[" + text + "](" + url + " \"" + titleText + "\")";
 
-  render(<LogDetail 
+  render(<LogItem 
     author={"park108@gmail.com"}
     timestamp={"20211008195400"}
     contents={markdownText}    
