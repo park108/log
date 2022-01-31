@@ -16,7 +16,7 @@ const WebVitalsMon = (props) => {
 			</Suspense>
 			<a
 				href="https://web.dev/defining-core-web-vitals-thresholds/"
-				rel="noreferrer" target="_blank"
+				rel="noreferrer noopener" target="_blank"
 				className="a a--monitor-referencelink"
 			>
 				Reference: Defining the Core Web Vitals metrics thresholds by Bryan McQuade
