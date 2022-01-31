@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import * as common from './common';
 import './App.css';
 
@@ -30,8 +30,13 @@ const App = () => {
 	}, []);
 
 	window.onresize = handleOnresize;
-
 	common.auth();
+
+	const pageNotFound = (
+		<div className="div div--main-contents" style={contentHeight}>
+			<PageNotFound />
+		</div>
+	);
 
 	// Redirect default app "log"
 	if("/" === window.location.pathname) {
@@ -39,28 +44,18 @@ const App = () => {
 	}
 
 	return (
-		<Router>
+		<BrowserRouter>
 			<Suspense fallback={<div></div>}>
 				<Navigation />
-				<Switch>
-					<Route path="/log">
-						<Log contentHeight={contentHeight} />
-					</Route>
-					<Route path="/file">
-						 <File contentHeight={contentHeight} />
-					</Route>
-					<Route path="/monitor">
-						<Monitor contentHeight={contentHeight} />
-					</Route>
-					<Route>
-						<div className="div div--main-contents" style={contentHeight}>
-							<PageNotFound />
-						</div>
-					</Route>
-				</Switch>
+				<Routes>
+					<Route path="/log/*" element={<Log contentHeight={contentHeight} />} />
+					<Route path="/file" element={<File contentHeight={contentHeight} />} />
+					<Route path="/monitor" element={<Monitor contentHeight={contentHeight} />} />
+					<Route element={pageNotFound} />
+				</Routes>
 				<Footer />
 			</Suspense>
-		</Router>
+		</BrowserRouter>
 	)
 }
 

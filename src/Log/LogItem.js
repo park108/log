@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import * as commonLog from './commonLog';
@@ -16,7 +16,7 @@ const LogItem = (props) => {
 	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
 	const [isShowCopyToClipboardMessage, setIsShowCopyToClipboardMessage] = useState(false);
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const item = props.item;
 	const author = props.author;
 	const contents = props.contents;
@@ -52,7 +52,7 @@ const LogItem = (props) => {
 			if(200 === res.status) {
 				log("A log is DELETED successfully.");
 				props.deleted();
-				history.push("/log");
+				navigate("/log");
 			}
 			else {
 				console.error(res);
@@ -200,10 +200,7 @@ const LogItem = (props) => {
 				);
 
 				editButton = (
-					<Link to={{
-						pathname: "/log/write",
-						state: {item}
-					}}>
+					<Link to="/log/write" state={{from: item}}>
 						<span className="span span--logitem-toolbarmenu">Edit</span>
 					</Link>
 				);

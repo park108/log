@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { Switch, Route, Link, useHistory, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { log, isAdmin, setTitle } from '../common';
 import * as commonLog from './commonLog';
 
@@ -16,7 +16,7 @@ const Log = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage, setToasterMessage] = useState("");
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const location = useLocation();
 	const contentHeight = props.contentHeight;
 	
@@ -50,7 +50,7 @@ const Log = (props) => {
 				setIsPostSuccess(true);
 				setToasterMessage("The log posted.");
 				setIsShowToaster(1);
-				history.push("/log");
+				navigate("/log");
 			}
 			else {
 				console.error(res);
@@ -96,7 +96,7 @@ const Log = (props) => {
 				setIsPostSuccess(true);			
 				setToasterMessage("The log changed.");
 				setIsShowToaster(1);	
-				history.push("/log");
+				navigate("/log");
 			}
 			else {
 				console.error(res);
@@ -130,33 +130,24 @@ const Log = (props) => {
 	return (
 		<main className="main main--contents" style={contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
-				<Switch>
-					<Route exact path="/log">
-						{writeButton}
-						<LogList />
-					</Route>
-					<Route
-						path="/log/write"
-						render={
-							(props) => <Writer
-								post={postLog}
-								edit={editLog}
-								isPostSuccess={isPostSuccess}
-								{ ... props }
-							/>
-						}
-					/>
-					<Route path="/log/:timestamp">
-						<LogSingle />
-					</Route>
-				</Switch>
+				{writeButton}
+				<Routes>
+					<Route path="/" element={<LogList />} />
+					<Route path="/write" element={
+						<Writer
+							post={postLog}
+							edit={editLog}
+							isPostSuccess={isPostSuccess}
+						/>
+					} />
+					<Route path="/:timestamp" element={<LogSingle />} />
+				</Routes>
 				<Toaster 
 					show={isShowToaster}
 					message={toasterMessage}
 					position={"bottom"}
 					type={"success"}
 					duration={2000}
-					
 					completed={() => setIsShowToaster(0)}
 				/>
 			</Suspense>

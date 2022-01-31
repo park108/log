@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, lazy } from "react";
-import { Redirect } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { isAdmin, setFullscreen, setTitle } from '../common';
 
 import './Monitor.css';
@@ -85,7 +85,7 @@ const Monitor = (props) => {
 
 	// If not admin, redirect initial page
 	if(!isAdmin()) {
-		return <Redirect to="/log" />;
+		return <Navigate to="/log" />;
 	}
 
 	// Draw monitor app.

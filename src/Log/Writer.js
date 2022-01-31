@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { Redirect } from "react-router";
+import { Navigate } from "react-router";
+import { useLocation } from "react-router-dom";
 import { isAdmin, log, setFullscreen } from '../common';
 import * as parser from '../markdownParser';
 import Toaster from "../Toaster/Toaster";
@@ -10,51 +11,52 @@ const ImageSelector = lazy(() => import('../Image/ImageSelector'));
 
 const Writer = (props) => {
 	
-	const [data] = useState(props.location.state);
-	const [contents, setContents] = useState("");
+	const location = useLocation();
 
+	const [data, setData] = useState(undefined);
+	const [contents, setContents] = useState("");
 	const [article, setArticle] = useState("");
 	const [articleStatus, setArticleStatus] = useState("");
 	const [rows, setRows] = useState("1");
-
 	const [convertedArticle, setConvertedArticle] = useState("");
 	const [convertedArticleStatus, setConvertedArticleStatus] = useState("");
-
 	const [disabled, setDisabled] = useState(false);
 	const [isConvertedHTML, setIsConvertedHTML] = useState(false);
 	const [mode, setMode] = useState("POST");
-	const [buttonText, setButtonText] = useState("Post");
-	
+	const [buttonText, setButtonText] = useState("Post");	
 	const [changeHistory, setChangeHistory] = useState(undefined);
-
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
-
 	const [isShowImageSelector, setIsShowImageSelector] = useState("READY");
 	
 	// Change width
 	useEffect(() => {
 		setFullscreen(true); // Enable fullscreen mode at mounted
+		if(null !== location.state) {
+			setData(location.state.from); // Set data from location state
+		}
 		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
-	}, []);
+	}, [location]);
 
 	// Set contents data
 	useEffect(() => {
-		if(undefined !== data && undefined !== data.item) {
-			setContents(data.item.logs[0].contents);
+		if(undefined !== data) {
+			setContents(data.logs[0].contents);
 		}
+	}, [data]);
 
-		// Set change history in useEffect for prevent flickering.
+	// Set change history in useEffect for prevent flickering.
+	useEffect(() => {
 		if("EDIT" === mode) {
 			setChangeHistory(
 				<div className="div div--writer-history" >
 					<h1 className="h1 h1--writer-historytitle">Change History</h1>
 					{
-						data.item.logs.map(
+						data.logs.map(
 							(log) => (
 								<LogItem
 									key={log.timestamp}
-									author={data.item.author}
+									author={data.author}
 									timestamp={log.timestamp}
 									contents={log.contents}
 									showComments={false}
@@ -66,7 +68,7 @@ const Writer = (props) => {
 				</div>
 			);
 		}
-	}, [data, mode]);
+	}, [mode, data]);
 
 	// Set writer mode POST or EDIT
 	useEffect(() => {
@@ -140,7 +142,7 @@ const Writer = (props) => {
 		else if("EDIT" === mode) {
 
 			event.preventDefault();
-			props.edit(data.item, article);
+			props.edit(data, article);
 		}
 	}
 
@@ -228,7 +230,7 @@ const Writer = (props) => {
 	}
 	
 	if(!isAdmin()) {
-		return <Redirect to="/log" />;
+		return <Navigate to="/log" />;
 	}
 
 	return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Redirect } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { getFiles, getNextFiles } from './commonFile';
 import { log, isAdmin, isMobile, setTitle } from '../common';
 import Toaster from "../Toaster/Toaster";
@@ -120,7 +120,7 @@ const File = (props) => {
 	
 	// If not admin, redirect initial page
 	if(!isAdmin()) {
-		return <Redirect to="/log" />;
+		return <Navigate to="/log" />;
 	}
 
 	// Draw file app.
