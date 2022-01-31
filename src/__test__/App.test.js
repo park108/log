@@ -8,15 +8,9 @@ beforeAll(() => {
   };
 });
 
-it('render title text "park108.net" correctly', () => {
+it('render title text "park108.net" correctly', async () => {
   render(<App />);
-  
-  const html = screen.getByRole('body');
-
-  const expected = document.createElement("div");
-  expected.setAttribute("class", "div div--main-contents")
-
-  expect(expected).toStrictEqual(html);
+  expect(await screen.findByText("park108.net", {}, { timeout: 0 })).toBeInTheDocument();
 });
 
 it('render linkedin link correctly', () => { 

@@ -16,17 +16,15 @@ describe('get API URL by stage', () => {
     expect(apiUrl).toBe("https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/prod");
   });
   
-  it("File app. test stage API URL", () => {
-    process.env.NODE_ENV = "development";
-    const apiUrl = commonFile.getAPI();
-    expect(apiUrl).toBe("https://urruauaj81.execute-api.ap-northeast-2.amazonaws.com/test");
-  });
-  
-  it("File app. prod stage API URL", () => {
-    process.env.NODE_ENV = "production";
-    const apiUrl = commonFile.getAPI();
-    expect(apiUrl).toBe("https://urruauaj81.execute-api.ap-northeast-2.amazonaws.com/prod");
-  });
+  // it("get files", async () => {
+  //   process.env.NODE_ENV = "development";
+  //   const res = await commonFile.defaultReplyHeaders({
+  //       'access-control-allow-origin': '*',
+  //       'access-control-allow-credentials': 'true' 
+  //     }).getFiles();
+  //   console.log(res);
+  //   expect(res).not.toBeNull();
+  // });
   
   it("Image app. test stage API URL", () => {
     process.env.NODE_ENV = "development";

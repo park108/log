@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import Logs from '../Log/Logs';
+import LogList from '../Log/LogList';
 
 it('render logs correctly', () => {
 
-  render(<Logs />);
+  render(<LogList />);
 
   const div = screen.getByRole("list");
 

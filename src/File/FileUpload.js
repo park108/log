@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Toaster from "../Toaster/Toaster";
 import { log } from '../common';
-import * as commonFile from './commonFile';
+import { getPreSignedUrl, putFile } from './commonFile';
 
 const FileUpload = (props) => {
 
 	const [files, setFiles] = useState([]);
 	const [isUploading, setIsUploading] = useState("READY");
-
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterType, setToasterType] = useState("success");
 	const [toasterMessage ,setToasterMessage] = useState("");
@@ -24,17 +23,20 @@ const FileUpload = (props) => {
 		
 		// Get pre-signed URL
 		let preSignedUrlData = "";
+		let uploadUrl = "";
 		let isSuccess = false;
 
 		try {
-			const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
+			const res = await getPreSignedUrl(name, type);
 			preSignedUrlData = await res.json();
 
 			if(undefined !== preSignedUrlData.errorType) {
 				console.error(res);
+				if(isLast) setIsUploading("FAILED");
 			}
 			else {
-				log("Presigned URL FETCHED successfully.");
+				uploadUrl = preSignedUrlData.body.UploadUrl;
+				log("Presigned URL FETCHED successfully -> " + uploadUrl);
 				isSuccess = true;
 			}
 		}
@@ -47,17 +49,8 @@ const FileUpload = (props) => {
 		// Upload file
 		if(isSuccess) {
 
-			// Set parameter for file uploading
-			let params = {
-				method: "PUT",
-				headers: {
-					"Content-Type": item.type
-				},
-				body: item
-			};
-
 			try {
-				const res = await fetch(preSignedUrlData.body.UploadUrl, params);
+				const res = await putFile(uploadUrl, item.type, item);
 
 				if(200 === res.status) {
 					log("File [" + name + "] PUTTED successfully.");
@@ -87,6 +80,8 @@ const FileUpload = (props) => {
 	// Change by upload state
 	useEffect(() => {
 
+		const refreshTimeout = 3000;
+
 		if("READY" === isUploading) {
 			document.getElementById('file-upload-for-mobile').disabled = false;
 		}
@@ -106,7 +101,7 @@ const FileUpload = (props) => {
 			setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
-			}, 1000);
+			}, refreshTimeout);
 		}
 		else if("FAILED" === isUploading) {
 
@@ -121,7 +116,7 @@ const FileUpload = (props) => {
 			setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
-			}, 1000);
+			}, refreshTimeout);
 		}
 
 	}, [isUploading, refreshFiles]);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { log } from '../common';
-import * as commonFile from './commonFile';
+import { getPreSignedUrl, putFile } from './commonFile';
 
 const FileDrop = (props) => {
 
@@ -10,6 +10,7 @@ const FileDrop = (props) => {
 	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
 
 	const refreshFiles = props.uploaded;
+	const refreshTimeout = 3000;
 
 	// Upload file into the S3 bucket
 	const uploadFile = async(item, isLast)  => {
@@ -21,10 +22,11 @@ const FileDrop = (props) => {
 		
 		// Get pre-signed URL
 		let preSignedUrlData = "";
+		let uploadUrl = "";
 		let isSuccess = false;
 
 		try {
-			const res = await fetch(commonFile.getAPI() + "/key/" + name + "/type/" + type);
+			const res = await getPreSignedUrl(name, type);
 			preSignedUrlData = await res.json();
 
 			if(undefined !== preSignedUrlData.errorType) {
@@ -32,7 +34,8 @@ const FileDrop = (props) => {
 				if(isLast) setIsUploading("FAILED");
 			}
 			else {
-				log("Presigned URL FETCHED successfully.");
+				uploadUrl = preSignedUrlData.body.UploadUrl;
+				log("Presigned URL FETCHED successfully -> " + uploadUrl);
 				isSuccess = true;
 			}
 		}
@@ -45,17 +48,8 @@ const FileDrop = (props) => {
 		// Upload file
 		if(isSuccess) {
 
-			// Set parameter for file uploading
-			let params = {
-				method: "PUT",
-				headers: {
-					"Content-Type": item.type
-				},
-				body: item
-			};
-
 			try {
-				const res = await fetch(preSignedUrlData.body.UploadUrl, params);
+				const res = await putFile(uploadUrl, item.type, item);
 
 				if(200 === res.status) {
 					log("File [" + name + "] PUTTED successfully.");
@@ -99,7 +93,7 @@ const FileDrop = (props) => {
 			setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
-			}, 1000);
+			}, refreshTimeout);
 		}
 		else if("FAILED" === isUploading) {
 			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-uploading");
@@ -107,7 +101,7 @@ const FileDrop = (props) => {
 			setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
-			}, 1000);
+			}, refreshTimeout);
 		}
 
 	}, [isUploading, refreshFiles]);

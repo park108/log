@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Redirect } from 'react-router-dom';
-import * as commonFile from './commonFile';
+import { getFiles, getNextFiles } from './commonFile';
 import { log, isAdmin, isMobile, setTitle } from '../common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
@@ -28,7 +28,7 @@ const File = (props) => {
 		setIsLoading(true);
 
 		try {
-			const res = await fetch(commonFile.getAPI());
+			const res = await getFiles();
 			const newData = await res.json();
 
 			if(undefined !== newData.errorType) {
@@ -56,10 +56,8 @@ const File = (props) => {
 
 		setIsLoading(true);
 
-		const apiUrl = commonFile.getAPI() + "?lastTimestamp=" + timestamp;
-
 		try {
-			const res = await fetch(apiUrl);
+			const res = await getNextFiles(timestamp);
 			const nextData = await res.json();
 
 			if(undefined !== res.errorType) {

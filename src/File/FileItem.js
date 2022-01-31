@@ -1,37 +1,30 @@
 import React, { useState, useEffect } from "react";
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm } from '../common';
-import * as commonFile from './commonFile';
+import { deleteFile } from './commonFile';
 
 const FileItem = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [itemClass, setItemClass] = useState("div div--fileitem");
-
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
+
+	const refreshFiles = props.deleted;
+	const refreshTimeout = 3000;
 
 	// Delete file from the S3 bucket
 	const deleteFileItem = async() => {
 
 		setIsDeleting(true);
 
-		// Set parameter for file deleting
-		const params = {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify({ key: props.fileName })
-		}
-
 		// Delete a file
 		try {
-			const res = await fetch(commonFile.getAPI() + "/key/" + props.fileName, params);
+			const res = await deleteFile(props.fileName);
 
 			if(200 === res.status) {
 				log("A file is DELETED successfully.");
-				props.deleted();
+				setTimeout(refreshFiles, refreshTimeout);
 			}
 			else {
 				console.error(res);

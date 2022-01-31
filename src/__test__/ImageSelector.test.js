@@ -1,8 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import ImageSelector from '../Image/ImageSelector';
 
-it('render image selector loading text correctly', () => {
-  render(<ImageSelector />);
-  const loading = screen.getByText('');
-  expect(loading).toBeInTheDocument();
+it('renders image selector loading text correctly', async () => {
+  render(<ImageSelector show={"SHOW"} />);
+  await waitFor(() => screen.findByText('Loading...'));
 });

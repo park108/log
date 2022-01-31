@@ -150,19 +150,21 @@ const LogList = (props) => {
 				
 			{seeMoreButton}
 
-			<Toaster 
-				show={isShowToasterCenter}
-				message={toasterMessageCenter}
-				completed={() => setIsShowToasterCenter(0)}
-			/>
-			<Toaster 
-				show={isShowToasterBottom}
-				message={toasterMessageBottom}
-				position={"bottom"}
-				type={"success"}
-				duration={2000}				
-				completed={() => setIsShowToasterCenter(0)}
-			/>
+			<Suspense fallback={<div></div>}>
+				<Toaster 
+					show={isShowToasterCenter}
+					message={toasterMessageCenter}
+					completed={() => setIsShowToasterCenter(0)}
+				/>
+				<Toaster 
+					show={isShowToasterBottom}
+					message={toasterMessageBottom}
+					position={"bottom"}
+					type={"success"}
+					duration={2000}				
+					completed={() => setIsShowToasterCenter(0)}
+				/>
+			</Suspense>
 		</div>
 	);
 }

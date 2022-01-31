@@ -259,11 +259,13 @@ export const setFullscreen = (isFullscreen) => {
 
 	let root = document.getElementById("root");
 
-	if(isFullscreen) {
-		root.className = "div fullscreen"
-	}
-	else {
-		root.className = "div"
+	if(undefined !== root) {
+		if(isFullscreen) {
+			root.setAttribute("class", "div fullscreen");
+		}
+		else {
+			root.setAttribute("class", "div");
+		}
 	}
 }
 

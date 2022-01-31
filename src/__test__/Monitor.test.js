@@ -1,10 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import {createMemoryHistory} from 'history'
-import { Router } from 'react-router-dom';
 import Monitor from '../Monitor/Monitor';
 import * as common from '../common';
 
-it('render monitor if it logged in', () => {
+beforeAll(() => {
+  delete window.location;
+  window.location = {
+      href: '/monitor',
+  };
+});
+
+it('render monitor if it logged in', async () => {
   
   const history = createMemoryHistory();
 
@@ -18,11 +24,10 @@ it('render monitor if it logged in', () => {
     })
   }));
 
-  render(<Router history={history}>
-    <Monitor />
-  </Router>);
-
-  const main = screen.getByRole("application");
-
-  expect(main).toBeInTheDocument();
+  render(
+      <div id="root" className="div">
+        <Monitor />
+      </div>
+  );
+  expect(await screen.findByText("Contents in the last 6 months", {}, { timeout: 0 })).toBeInTheDocument();
 });
