@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { log } from '../common';
-import * as commonImage from './commonImage';
+import { getImages, getNextImages } from './commonImage';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
 
@@ -13,7 +13,6 @@ const ImageSelector = (props) => {
 	const [loading, setLoading] = useState(null);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-
 	const [isShowToaster, setIsShowToaster] = useState(false);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
@@ -23,7 +22,7 @@ const ImageSelector = (props) => {
 		setIsLoading(true);
 
 		try {
-			const res = await fetch(commonImage.getAPI());
+			const res = await getImages();
 			const retrieved = await res.json();
 
 			if(undefined !== retrieved.errorType) {
@@ -51,10 +50,8 @@ const ImageSelector = (props) => {
 		
 		setIsLoading(true);
 
-		const apiUrl = commonImage.getAPI() + "?lastTimestamp=" + timestamp;
-
 		try {
-			const res = await fetch(apiUrl);
+			const res = await getNextImages(timestamp);
 			const nextData = await res.json();
 
 			if(undefined !== res.errorType) {
@@ -158,8 +155,7 @@ const ImageSelector = (props) => {
 				message={toasterMessage}
 				position={"bottom"}
 				type={"warning"}
-				duration={2000}
-				
+				duration={2000}				
 				completed={() => setIsShowToaster(0)}
 			/>
 		</div>
