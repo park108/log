@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { log } from '../common';
-import * as commonMonitor from './commonMonitor';
+import { getWebVitals } from './commonMonitor';
 
 const WebVitalsItem = (props) => {
 
@@ -12,7 +12,7 @@ const WebVitalsItem = (props) => {
 	const fetchData = async(name) => {
 
 		try {
-			const res = await fetch(commonMonitor.getAPI() + "?name=" + name);
+			const res = await getWebVitals(name);
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {

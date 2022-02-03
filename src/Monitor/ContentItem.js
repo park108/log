@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { log, getFormattedDate, getFormattedSize } from '../common';
-import * as commonMonitor from './commonMonitor';
+import { getContentItemCount } from './commonMonitor';
 
 const ContentItem = (props) => {
 
@@ -31,11 +31,9 @@ const ContentItem = (props) => {
 			to
 		];
 
-		const apiUrl = commonMonitor.getAPI() + "/" + path + "?fromTimestamp=" + from + "&toTimestamp=" + to;
-
 		try {
 
-			const res = await fetch(apiUrl);
+			const res = await getContentItemCount(path, from, to);
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {

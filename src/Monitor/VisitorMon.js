@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { log, getFormattedDate, getFormattedTime, getWeekday } from "../common";
-import * as commonMonitor from './commonMonitor';
+import { getVisitors } from "./commonMonitor";
 
 const VisitorMon = (props) => {
 
@@ -23,11 +23,9 @@ const VisitorMon = (props) => {
 		const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
 		const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
 
-		const apiUrl = commonMonitor.getAPI() + "/useragent?fromTimestamp=" + fromTimestamp + "&toTimestamp=" + toTimestamp;
-
 		try {
 
-			const res = await fetch(apiUrl);
+			const res = await getVisitors(fromTimestamp, toTimestamp);
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {
