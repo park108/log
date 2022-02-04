@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { log } from '../common';
-import { getImages, getNextImages } from './commonImage';
+import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
 

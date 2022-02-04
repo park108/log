@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navigate } from 'react-router-dom';
-import { getFiles, getNextFiles } from './commonFile';
+import { getFiles, getNextFiles } from './api';
 import { log, isAdmin, isMobile, setTitle } from '../common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';

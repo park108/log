@@ -1,8 +1,8 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useParams } from "react-router-dom";
 import { log } from '../common';
+import { getLog } from './api';
 import PageNotFound from "../PageNotFound";
-import * as commonLog from './commonLog';
 
 const LogItem = lazy(() => import('./LogItem'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -25,7 +25,7 @@ const LogSingle = (props) => {
 
 		try {
 			// Call API
-			const res = await fetch(commonLog.getAPI() + "/timestamp/" + timestamp);
+			const res = await getLog(timestamp);
 			const fetchedData = await res.json();
 			
 			if(undefined !== fetchedData.errorType) {

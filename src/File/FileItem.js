@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm } from '../common';
-import { deleteFile } from './commonFile';
+import { deleteFile } from './api';
 
 const FileItem = (props) => {
 

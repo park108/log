@@ -24,7 +24,7 @@ export const putFile = async(preSignedUrl, type, item) => {
 		method: "PUT",
 		headers: { "Content-Type": type },
 		body: item
-	})
+	});
 }
 
 export const deleteFile = async(fileName) => {

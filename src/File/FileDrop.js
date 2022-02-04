@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { log } from '../common';
-import { getPreSignedUrl, putFile } from './commonFile';
+import { getPreSignedUrl, putFile } from './api';
 
 const FileDrop = (props) => {
 

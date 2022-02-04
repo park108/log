@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { log } from '../common';
-import { getWebVitals } from './commonMonitor';
+import { getWebVitals } from './api';
 
 const WebVitalsItem = (props) => {
 

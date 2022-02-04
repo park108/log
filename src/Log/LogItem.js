@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
-import * as commonLog from './commonLog';
+import { deleteLog } from './api';
 import * as parser from '../markdownParser';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -30,24 +30,8 @@ const LogItem = (props) => {
 		setIsDeleting(true);
 
 		try {
-
-			const api = commonLog.getAPI() + "/timestamp/" + timestamp;
-
-			const body = {
-				author: author,
-				timestamp: timestamp
-			};
-	
-			const params = {
-				method: "DELETE",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify(body)
-			}
-
 			// Call API
-			const res = await fetch(api, params);
+			const res = await deleteLog(author, timestamp);
 
 			if(200 === res.status) {
 				log("A log is DELETED successfully.");

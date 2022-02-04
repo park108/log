@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { log } from '../common';
-import * as commonLog from './commonLog';
+import { getLogs, getNextLogs } from './api';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 const LogItem = lazy(() => import('./LogItem'));
@@ -22,11 +22,9 @@ const LogList = (props) => {
 
 		setIsLoading(true);
 
-		const apiUrl = commonLog.getAPI();
-
 		try {
 			// Call API
-			const res = await fetch(apiUrl);
+			const res = await getLogs();
 			const newData = await res.json();
 
 			if(undefined !== newData.errorType) {
@@ -60,11 +58,9 @@ const LogList = (props) => {
 
 		setIsLoading(true);
 
-		const apiUrl = commonLog.getAPI() + "?lastTimestamp=" + timestamp;
-
 		try {
 			// Call API
-			const res = await fetch(apiUrl);
+			const res = await getNextLogs(timestamp);
 			const nextData = await res.json();
 
 			if(undefined !== res.errorType) {

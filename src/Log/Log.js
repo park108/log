@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { log, isAdmin, setTitle } from '../common';
-import * as commonLog from './commonLog';
+import { postLog, putLog } from './api';
 
 import './Log.css';
 
@@ -20,30 +20,14 @@ const Log = (props) => {
 	const location = useLocation();
 	const contentHeight = props.contentHeight;
 	
-	// Post log
-	const postLog = async (contents) => {
+	// Create new log
+	const createLog = async (contents) => {
 
 		setIsPostSuccess(false);
 
 		try {
-			const now = Math.floor(new Date().getTime());
-
-			const params = {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify({
-					"timestamp": now,
-					"logs": [{
-						"contents": contents,
-						"timestamp": now
-					}]
-				})
-			};
-
 			// Call API
-			const res = await fetch(commonLog.getAPI(), params);
+			const res = await postLog(Math.floor(new Date().getTime()), contents);
 
 			if(200 === res.status) {
 				log("A log is POSTED uccessfully.");
@@ -78,18 +62,8 @@ const Log = (props) => {
 	
 			newItem.logs = changedLogs;
 
-			const params = {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify(newItem)
-			}
-	
-			const api = commonLog.getAPI() + "/timestamp/" + newItem.timestamp;
-
 			// Call API
-			const res = await fetch(api, params);
+			const res = await putLog(newItem);
 
 			if(200 === res.status) {
 				log("A log is PUTTED successfully.");
@@ -135,7 +109,7 @@ const Log = (props) => {
 					<Route path="/" element={<LogList />} />
 					<Route path="/write" element={
 						<Writer
-							post={postLog}
+							post={createLog}
 							edit={editLog}
 							isPostSuccess={isPostSuccess}
 						/>

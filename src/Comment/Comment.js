@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { log, isAdmin } from '../common';
-import * as commonComment from './commonComment';
+import { getComments, postComment } from './api';
 
 import './Comment.css';
 
@@ -22,8 +22,7 @@ const Comment = (props) => {
 
 		// Call GET API
 		try {
-			const apiUrl = commonComment.getAPI() + "?logTimestamp=" + timestamp + "&isAdmin=" + admin;
-			const res = await fetch(apiUrl);
+			const res = await getComments(timestamp, admin);
 			const newData = await res.json();
 
 			// Sort by sortKey
@@ -48,20 +47,22 @@ const Comment = (props) => {
 		}
 	}
 
-	const postComment = (comment) => {
+	const newComment = async(comment) => {
 
-		fetch(commonComment.getAPI(), {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(comment)
-		}).then(res => {
-			log("A comment is POSTED uccessfully.");
-			fetchData(comment.logTimestamp);
-		}).catch(err => {
+		try {
+			const res = await postComment(comment);
+
+			if(200 === res.status) {
+				log("A comment is POSTED successfully.");
+				fetchData(comment.logTimestamp);
+			}
+			else {
+				console.error(res);
+			}
+		}
+		catch(err) {
 			console.error(err);
-		});
+		}
 	}
 
 	const openReplyForm = (isOpened) => {
@@ -87,7 +88,7 @@ const Comment = (props) => {
 							timestamp={data.timestamp}
 							isHidden={data.isHidden}
 							openReplyForm={openReplyForm}
-							reply={postComment}
+							reply={newComment}
 						/>
 					))}
 				</Suspense>
@@ -98,7 +99,7 @@ const Comment = (props) => {
 	const commentForm = isShow && !isOpenReplyForm
 		? <CommentForm
 			logTimestamp={logTimestamp}
-			post={postComment}
+			post={newComment}
 		/>
 		: "";
 

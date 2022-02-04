@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import * as commonMonitor from './Monitor/commonMonitor';
+import * as commonMonitor from './Monitor/api';
 import { userAgentParser } from './common';
 import reportWebVitals from './reportWebVitals';
 
