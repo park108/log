@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 
 const WebVitalsItem = lazy(() => import('./WebVitalsItem'));
 
-const WebVitalsMon = (props) => {
+const WebVitalsMon = () => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">

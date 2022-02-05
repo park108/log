@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { getFiles, getNextFiles } from './api';
 import { log, isAdmin, isMobile, setTitle } from '../common';
 import Toaster from "../Toaster/Toaster";
@@ -110,7 +111,7 @@ const File = (props) => {
 		: (
 			<button
 				className={seeMoreButtonClass}
-				onClick={(e) => fetchMore(lastTimestamp)}
+				onClick={() => fetchMore(lastTimestamp)}
 			>
 				{seeMoreButtonText}
 			</button>
@@ -156,6 +157,10 @@ const File = (props) => {
 			/>
 		</main>
 	);
+}
+
+File.propTypes = {
+	contentHeight: PropTypes.object,
 }
 
 export default File;

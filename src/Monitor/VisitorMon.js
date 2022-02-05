@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from 'prop-types';
 import { log, getFormattedDate, getFormattedTime, getWeekday } from "../common";
 import { getVisitors } from "./api";
 
@@ -286,5 +287,9 @@ const VisitorMon = (props) => {
 		</article>
 	);
 }
+
+VisitorMon.propTypes = {
+	stackPallet: PropTypes.array
+};
 
 export default VisitorMon;

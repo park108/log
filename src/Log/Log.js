@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { log, isAdmin, setTitle } from '../common';
 import { postLog, putLog } from './api';
 
@@ -13,7 +14,7 @@ const Writer = lazy(() => import('./Writer'));
 const Log = (props) => {
 
 	const [isPostSuccess, setIsPostSuccess] = useState(true);
-	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
 
 	const navigate = useNavigate();
@@ -128,5 +129,9 @@ const Log = (props) => {
 		</main>
 	);
 }
+
+Log.propTypes = {
+	contentHeight: PropTypes.object,
+};
 
 export default Log;

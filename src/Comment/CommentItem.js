@@ -1,4 +1,5 @@
 import React, { useState, lazy } from "react";
+import PropTypes from 'prop-types';
 import { getFormattedDate, getFormattedTime, isAdmin } from '../common';
 
 const CommentForm = lazy(() => import('./CommentForm'));
@@ -74,5 +75,17 @@ const CommentItem = (props) => {
 		</div>
 	);
 }
+
+CommentItem.propTypes = {
+	isHidden: PropTypes.bool,
+	isAdminComment: PropTypes.bool,
+	message: PropTypes.string,
+	name: PropTypes.string,
+	logTimestamp: PropTypes.number,
+	commentTimestamp: PropTypes.number,
+	timestamp: PropTypes.number,
+	openReplyForm: PropTypes.func,
+	reply: PropTypes.func,
+};
 
 export default CommentItem;

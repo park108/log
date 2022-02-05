@@ -16,7 +16,7 @@ export function parseJwt (token) {
 	}).join(''));
 
 	return JSON.parse(jsonPayload);
-};
+}
 
 export const getUrl = () => {
 	if (process.env.NODE_ENV === 'production') {
@@ -278,43 +278,43 @@ export const userAgentParser = () => {
 	// 2. https://developers.whatismybrowser.com/useragents/explore
 	// Browser
 	let browser = uaText.indexOf("Firefox/") > -1? "Firefox"
-	  : uaText.indexOf("Seamonkey/") > -1 ? "Seamonkey"
-	  : uaText.indexOf("KAKAOTALK") > -1 ? "Kakaotalk"
-	  : uaText.indexOf("Chrome/") > -1 ? "Chrome"
-	  : uaText.indexOf("CriOS/") > -1 ? "Chrome"	  
-	  : uaText.indexOf("Chromium/") > -1 ? "Chromium"
-	  : uaText.indexOf("Safari/") > -1 ? "Safari"
-	  : uaText.indexOf("OPR/") > -1 ? "Opera"
-	  : uaText.indexOf("Opera/") > -1 ? "Opera"
-	  : uaText.indexOf("; MSIE ") > -1 ? "Internet Explorer"
-	  : "Others";
+		: uaText.indexOf("Seamonkey/") > -1 ? "Seamonkey"
+		: uaText.indexOf("KAKAOTALK") > -1 ? "Kakaotalk"
+		: uaText.indexOf("Chrome/") > -1 ? "Chrome"
+		: uaText.indexOf("CriOS/") > -1 ? "Chrome"	  
+		: uaText.indexOf("Chromium/") > -1 ? "Chromium"
+		: uaText.indexOf("Safari/") > -1 ? "Safari"
+		: uaText.indexOf("OPR/") > -1 ? "Opera"
+		: uaText.indexOf("Opera/") > -1 ? "Opera"
+		: uaText.indexOf("; MSIE ") > -1 ? "Internet Explorer"
+		: "Others";
   
   
 	// Rendering engine
 	let renderingEngine = uaText.indexOf("Gecko/") > -1 ? "Gecko"
-	  : uaText.indexOf("AppleWebKit/") > -1 ? "Webkit"
-	  : uaText.indexOf("Opera/") > -1 ? "Presto"
-	  : uaText.indexOf("Trident/") > -1 ? "Trident"
-	  : uaText.indexOf("Chrome/") > -1 ? "Blink"
-	  : "Others";
+		: uaText.indexOf("AppleWebKit/") > -1 ? "Webkit"
+		: uaText.indexOf("Opera/") > -1 ? "Presto"
+		: uaText.indexOf("Trident/") > -1 ? "Trident"
+		: uaText.indexOf("Chrome/") > -1 ? "Blink"
+		: "Others";
   
 	// Operating system
 	let operatingSystem = uaText.indexOf("Android") > -1? "Android"
-	  : uaText.indexOf("iPhone OS") > -1 ? "iOS"
-	  : uaText.indexOf("Windows") > -1 ? "Windows"
-	  : uaText.indexOf("Mac OS X") > -1 ? "Mac OS X"
-	  : uaText.indexOf("(X11; CrOS") > -1 ? "Chrome OS"
-	  : uaText.indexOf("X11") > -1 ? "Linux"
-	  : uaText.indexOf("Symbian") > -1 ? "Symbian"
-	  : "Others";
+		: uaText.indexOf("iPhone OS") > -1 ? "iOS"
+		: uaText.indexOf("Windows") > -1 ? "Windows"
+		: uaText.indexOf("Mac OS X") > -1 ? "Mac OS X"
+		: uaText.indexOf("(X11; CrOS") > -1 ? "Chrome OS"
+		: uaText.indexOf("X11") > -1 ? "Linux"
+		: uaText.indexOf("Symbian") > -1 ? "Symbian"
+		: "Others";
   
 	// Make posting data
 	const userAgentInfo = {
-	  url: getUrl(),
-	  originalText: uaText,
-	  browser: browser,
-	  renderingEngine: renderingEngine,
-	  operatingSystem: operatingSystem
+		url: getUrl(),
+		originalText: uaText,
+		browser: browser,
+		renderingEngine: renderingEngine,
+		operatingSystem: operatingSystem
 	}
 
 	return userAgentInfo;

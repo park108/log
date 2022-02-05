@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import { log } from '../common';
 import { getPreSignedUrl, putFile } from './api';
 
@@ -142,6 +143,10 @@ const FileDrop = (props) => {
 			{dropzoneText}
 		</div>
 	);
+}
+
+FileDrop.propTypes = {
+	uploaded: PropTypes.func,
 }
 
 export default FileDrop;

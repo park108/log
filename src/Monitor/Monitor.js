@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect, lazy } from "react";
+import PropTypes from 'prop-types';
 import { Navigate } from 'react-router-dom';
 import { isAdmin, setFullscreen, setTitle } from '../common';
 
@@ -106,5 +107,9 @@ const Monitor = (props) => {
 		</main>
 	);
 }
+
+Monitor.propTypes = {
+	contentHeight: PropTypes.object,
+};
 
 export default Monitor;

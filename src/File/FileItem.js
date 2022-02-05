@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm } from '../common';
 import { deleteFile } from './api';
@@ -7,7 +8,7 @@ const FileItem = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [itemClass, setItemClass] = useState("div div--fileitem");
-	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
 	const refreshFiles = props.deleted;
@@ -48,7 +49,7 @@ const FileItem = (props) => {
 		let tempElem = document.createElement('textarea');
 		tempElem.value = props.url;  
 		document.body.appendChild(tempElem);
-	  
+
 		tempElem.select();
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
@@ -97,5 +98,13 @@ const FileItem = (props) => {
 		</div>
 	);
 }
+
+FileItem.propTypes = {
+	deleted: PropTypes.func,
+	fileName: PropTypes.string,
+	url: PropTypes.string,
+	lastModified: PropTypes.number,
+	size: PropTypes.number,
+};
 
 export default FileItem;

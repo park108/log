@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from 'prop-types';
 
 const ApiCallMon = (props) => {
 
@@ -136,5 +137,9 @@ const ApiCallMon = (props) => {
 		</article>
 	);
 }
+
+ApiCallMon.propTypes = {
+	stackPallet: PropTypes.array,
+};
 
 export default ApiCallMon;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
 import { log } from '../common';
 import { getPreSignedUrl, putFile } from './api';
@@ -7,7 +8,7 @@ const FileUpload = (props) => {
 
 	const [files, setFiles] = useState([]);
 	const [isUploading, setIsUploading] = useState("READY");
-	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterType, setToasterType] = useState("success");
 	const [toasterMessage ,setToasterMessage] = useState("");
 
@@ -157,5 +158,9 @@ const FileUpload = (props) => {
 		</div>
 	);	
 }
+
+FileUpload.propTypes = {
+	uploaded: PropTypes.func,
+};
 
 export default FileUpload;

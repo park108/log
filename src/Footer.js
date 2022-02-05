@@ -1,7 +1,7 @@
 import React from "react";
 import UserLogin from './UserLogin'
   
-const Footer = (props) => {
+const Footer = () => {
 
 	const year = new Date().getFullYear();
 

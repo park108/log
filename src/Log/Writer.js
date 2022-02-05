@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Navigate } from "react-router";
 import { useLocation } from "react-router-dom";
+import PropTypes from 'prop-types';
 import { isAdmin, log, setFullscreen } from '../common';
 import * as parser from '../markdownParser';
 import Toaster from "../Toaster/Toaster";
@@ -25,7 +26,7 @@ const Writer = (props) => {
 	const [mode, setMode] = useState("POST");
 	const [buttonText, setButtonText] = useState("Post");	
 	const [changeHistory, setChangeHistory] = useState(undefined);
-	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [isShowImageSelector, setIsShowImageSelector] = useState("READY");
 	
@@ -159,7 +160,7 @@ const Writer = (props) => {
 		let tempElem = document.createElement('textarea');
 		tempElem.value = markdownString;  
 		document.body.appendChild(tempElem);
-	  
+
 		tempElem.select();
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
@@ -322,5 +323,11 @@ const Writer = (props) => {
 		</div>
 	);
 }
+
+Writer.propTypes = {
+	isPostSuccess: PropTypes.bool,
+	post: PropTypes.func,
+	edit: PropTypes.func,
+};
 
 export default Writer;

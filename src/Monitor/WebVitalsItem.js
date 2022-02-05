@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { log } from '../common';
 import { getWebVitals } from './api';
+import PropTypes from 'prop-types';
 
 const WebVitalsItem = (props) => {
 
@@ -88,5 +89,10 @@ const WebVitalsItem = (props) => {
 		</section>
 	);
 }
+
+WebVitalsItem.propTypes = {
+	title: PropTypes.string,
+	name: PropTypes.string,
+};
 
 export default WebVitalsItem;

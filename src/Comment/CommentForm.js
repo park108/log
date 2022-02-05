@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import { isAdmin } from '../common';
 
 import './Comment.css';
@@ -94,5 +95,11 @@ const CommentForm = (props) => {
 		</div>
 	);
 }
+
+CommentForm.propTypes = {
+	logTimestamp: PropTypes.number,
+	commentTimestamp: PropTypes.number,
+	post: PropTypes.func,
+};
 
 export default CommentForm;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import { deleteLog } from './api';
@@ -12,7 +13,7 @@ const LogItem = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [itemClass, setItemClass] = useState("div div--main-item");
-	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
 	const [isShowCopyToClipboardMessage, setIsShowCopyToClipboardMessage] = useState(false);
 
@@ -82,7 +83,7 @@ const LogItem = (props) => {
 		let tempElem = document.createElement('textarea');
 		tempElem.value = url;  
 		document.body.appendChild(tempElem);
-	  
+
 		tempElem.select();
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
@@ -108,7 +109,7 @@ const LogItem = (props) => {
 				{
 					item.logs.map(
 						(data, index) => (
-							<div>
+							<div key={index}>
 								<span className="span span--logitem-historyverision">
 									{"v." + (length - index)}
 								</span>
@@ -177,7 +178,7 @@ const LogItem = (props) => {
 				version = (
 					<span
 						className="span span--logitem-version"
-						onClick={(e) => setIsShowVersionHistory(!isShowVersionHistory)}
+						onClick={() => setIsShowVersionHistory(!isShowVersionHistory)}
 					>
 						{"v." + item.logs.length}
 					</span>
@@ -253,5 +254,15 @@ const LogItem = (props) => {
 		</article>
 	);
 }
+
+LogItem.propTypes = {
+	item: PropTypes.object,
+	author: PropTypes.string,
+	contents: PropTypes.string,
+	timestamp: PropTypes.number,
+	showComments: PropTypes.bool,
+	showLink: PropTypes.bool,
+	deleted: PropTypes.func,
+};
 
 export default LogItem;

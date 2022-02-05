@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 
 import './Toaster.css';
 
@@ -63,5 +64,14 @@ const Toaster = (props) => {
 		</div>
 	);
 }
+
+Toaster.propTypes = {
+	duration: PropTypes.number,
+	show: PropTypes.number,
+	position: PropTypes.string,
+	message: PropTypes.string,
+	type: PropTypes.string,
+	completed: PropTypes.func,
+};
 
 export default Toaster;

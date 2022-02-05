@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
+import PropTypes from 'prop-types';
 import { log } from '../common';
 import { getLogs, getNextLogs } from './api';
 
@@ -92,7 +93,7 @@ const LogList = (props) => {
 	}
 
 	// Fetch data at mount
-	useEffect(() => fetchFirst(), [props.isPostSucces]);
+	useEffect(() => fetchFirst(), [props.isPostSuccess]);
 
 	// Change by loading state
 	useEffect(() => {
@@ -121,7 +122,7 @@ const LogList = (props) => {
 		? ""
 		: <button
 			className={seeMoreButtonClass}
-			onClick={(e) => fetchMore(lastTimestamp)}
+			onClick={() => fetchMore(lastTimestamp)}
 			>
 				{seeMoreButtonText}
 			</button>;
@@ -165,5 +166,9 @@ const LogList = (props) => {
 		</div>
 	);
 }
+
+LogList.propTypes = {
+	isPostSuccess: PropTypes.bool,
+};
 
 export default LogList;

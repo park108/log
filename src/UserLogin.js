@@ -23,12 +23,12 @@ export const getLogoutUrl = () => {
 
 const UserLogin = () => {
 	
-	const logout = (e) => {
+	const logout = () => {
 		common.deleteCookie("access_token");
 		window.location.href = getLogoutUrl();
 	}
 
-	const login = (e) => {
+	const login = () => {
 		window.location.href = getLoginUrl();
 	}
 

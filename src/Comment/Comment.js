@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
+import PropTypes from 'prop-types';
 import { log, isAdmin } from '../common';
 import { getComments, postComment } from './api';
 
@@ -71,7 +72,7 @@ const Comment = (props) => {
 
 	useEffect(() => fetchData(logTimestamp), [logTimestamp]);
 
-	const toggleComments = (event) => setIsShow(!isShow)
+	const toggleComments = () => setIsShow(!isShow)
 
 	const commentThread = isShow
 		? (
@@ -118,6 +119,10 @@ const Comment = (props) => {
 			{commentForm}
 		</section>
 	);
+}
+
+Comment.propTypes = {
+	logTimestamp: PropTypes.number,
 }
 
 export default React.memo(Comment);

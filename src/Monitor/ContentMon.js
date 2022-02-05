@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from "react";
+import PropTypes from 'prop-types';
 
 const ContentItem = lazy(() => import('./ContentItem'));
 
@@ -33,5 +34,9 @@ const ContentMon = (props) => {
 		</article>
 	);
 }
+
+ContentMon.propTypes = {
+	stackPallet: PropTypes.array,
+};
 
 export default ContentMon;

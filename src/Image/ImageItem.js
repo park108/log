@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from 'prop-types';
 import './ImageSelector.css';
 
 const ImageItem = (props) => {
@@ -44,5 +45,11 @@ const ImageItem = (props) => {
 		/>
 	);
 }
+
+ImageItem.propTypes = {
+	fileName: PropTypes.string,
+	url: PropTypes.string,
+	copyMarkdownString: PropTypes.func,
+};
 
 export default ImageItem;

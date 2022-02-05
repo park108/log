@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from 'prop-types';
 import { log, getFormattedDate, getFormattedSize } from '../common';
 import { getContentItemCount } from './api';
 
@@ -165,5 +166,12 @@ const ContentItem = (props) => {
 		</section>
 	);
 }
+
+ContentItem.propTypes = {
+	stackPallet: PropTypes.array,
+	title: PropTypes.string,
+	path: PropTypes.string,
+	unit: PropTypes.string,
+};
 
 export default ContentItem;

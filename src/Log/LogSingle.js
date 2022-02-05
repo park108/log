@@ -1,5 +1,6 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useParams } from "react-router-dom";
+import PropTypes from 'prop-types';
 import { log } from '../common';
 import { getLog } from './api';
 import PageNotFound from "../PageNotFound";
@@ -117,5 +118,9 @@ const LogSingle = (props) => {
 		</div>
 	);
 }
+
+LogSingle.propTypes = {
+	isPostSuccess: PropTypes.bool,
+};
 
 export default LogSingle;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import { log } from '../common';
 import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
@@ -13,7 +14,7 @@ const ImageSelector = (props) => {
 	const [loading, setLoading] = useState(null);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-	const [isShowToaster, setIsShowToaster] = useState(false);
+	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
 	// Get image list from API Gateway
@@ -104,7 +105,7 @@ const ImageSelector = (props) => {
 		let tempElem = document.createElement('textarea');
 		tempElem.value = imageForMarkdown;  
 		document.body.appendChild(tempElem);
-	  
+		
 		tempElem.select();
 		document.execCommand("copy");
 		document.body.removeChild(tempElem);
@@ -143,7 +144,7 @@ const ImageSelector = (props) => {
 					: (
 						<div
 							className="div div--image-seemorebutton"
-							onClick={(e) => fetchMore(lastTimestamp)}
+							onClick={() => fetchMore(lastTimestamp)}
 						>
 							See<br/>More
 						</div>
@@ -161,5 +162,9 @@ const ImageSelector = (props) => {
 		</div>
 	);
 }
+
+ImageSelector.propTypes = {
+	show: PropTypes.string,
+};
 
 export default ImageSelector;
