@@ -51,7 +51,7 @@ const App = () => {
 					<Route path="/log/*" element={<Log contentHeight={contentHeight} />} />
 					<Route path="/file" element={<File contentHeight={contentHeight} />} />
 					<Route path="/monitor" element={<Monitor contentHeight={contentHeight} />} />
-					<Route element={pageNotFound} />
+					<Route path="*" element={pageNotFound} />
 				</Routes>
 				<Footer />
 			</Suspense>

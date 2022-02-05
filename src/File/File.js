@@ -31,7 +31,7 @@ const File = (props) => {
 			const newData = await res.json();
 
 			if(undefined !== newData.errorType) {
-				console.error(res);
+				console.error(newData);
 			}
 			else {
 
@@ -59,8 +59,8 @@ const File = (props) => {
 			const res = await getNextFiles(timestamp);
 			const nextData = await res.json();
 
-			if(undefined !== res.errorType) {
-				console.error(res);
+			if(undefined !== nextData.errorType) {
+				console.error(nextData);
 			}
 			else {
 				log("Next files are FETCHED successfully.");

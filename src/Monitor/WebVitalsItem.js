@@ -16,7 +16,7 @@ const WebVitalsItem = (props) => {
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {
-				console.error(res);
+				console.error(data);
 			}
 			else {
 				log("Web Vital " + name + " is FETCHED successfully.: " + data.body.Count);

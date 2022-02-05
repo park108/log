@@ -29,7 +29,7 @@ const LogSingle = (props) => {
 			const fetchedData = await res.json();
 			
 			if(undefined !== fetchedData.errorType) {
-				console.error(res);
+				console.error(fetchedData);
 				setHasItem("NO"); // Page not found
 			}
 			else {
@@ -45,13 +45,13 @@ const LogSingle = (props) => {
 					setData(fetchedData.body.Items[0]);
 					setHasItem("YES");
 				}
-
-				setIsLoading(false);
 			}
 		}
 		catch(err) {
 			console.error(err);
 		}
+
+		setIsLoading(false);
 	}
 
 	// Fetch data at mount

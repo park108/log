@@ -31,7 +31,7 @@ const FileUpload = (props) => {
 			preSignedUrlData = await res.json();
 
 			if(undefined !== preSignedUrlData.errorType) {
-				console.error(res);
+				console.error(preSignedUrlData);
 				if(isLast) setIsUploading("FAILED");
 			}
 			else {

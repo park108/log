@@ -28,7 +28,7 @@ const LogList = (props) => {
 			const newData = await res.json();
 
 			if(undefined !== newData.errorType) {
-				console.error(res);
+				console.error(newData);
 			}
 			else {
 				log("Logs are FETCHED successfully.");
@@ -63,8 +63,8 @@ const LogList = (props) => {
 			const res = await getNextLogs(timestamp);
 			const nextData = await res.json();
 
-			if(undefined !== res.errorType) {
-				console.error(res);
+			if(undefined !== nextData.errorType) {
+				console.error(nextData);
 			}
 			else {
 				log("Next logs are FETCHED successfully.");

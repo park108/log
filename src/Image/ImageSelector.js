@@ -26,7 +26,7 @@ const ImageSelector = (props) => {
 			const retrieved = await res.json();
 
 			if(undefined !== retrieved.errorType) {
-				console.error(res);
+				console.error(retrieved);
 			}
 			else {
 
@@ -54,8 +54,8 @@ const ImageSelector = (props) => {
 			const res = await getNextImages(timestamp);
 			const nextData = await res.json();
 
-			if(undefined !== res.errorType) {
-				console.error(res);
+			if(undefined !== nextData.errorType) {
+				console.error(nextData);
 			}
 			else {
 				log("Next images are FETCHED successfully.");

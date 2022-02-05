@@ -37,7 +37,7 @@ const ContentItem = (props) => {
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {
-				console.error(res);
+				console.error(data);
 			}
 			else {
 			
