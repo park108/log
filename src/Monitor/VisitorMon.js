@@ -143,13 +143,13 @@ const VisitorMon = (props) => {
 				setBrowsers(browserList);
 				setOs(osList);
 				setEngines(engineList);
-	
-				setIsLoading(false);
 			}
 		}
 		catch(err) {
 			console.error(err);
 		}
+	
+		setIsLoading(false);
 	}
 
 	// Fetch data at mount

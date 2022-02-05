@@ -42,12 +42,12 @@ const File = (props) => {
 				setFiles(undefined === newFiles ? [] : newFiles);
 				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
-
-			setIsLoading(false);
 		}
 		catch(err) {
 			console.error(err);
 		}
+
+		setIsLoading(false);
 	}
 
 	// Get next file list from API Gateway

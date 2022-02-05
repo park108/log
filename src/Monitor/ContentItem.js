@@ -84,12 +84,13 @@ const ContentItem = (props) => {
 				}
 
 				setCounts(countList);
-				setIsLoading(false);
 			}
 		}
 		catch(err) {
 			console.error(err);
 		}
+		
+		setIsLoading(false);
 	}
 
 	// Fetch counts at mount

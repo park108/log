@@ -46,11 +46,12 @@ const LogList = (props) => {
 					: newData.body.LastEvaluatedKey.timestamp
 				);
 			}
-			setIsLoading(false);
 		}
 		catch(err) {
 			console.error(err);
 		}
+		
+		setIsLoading(false);
 	}
 
 	// Get next log list from API gateway
@@ -82,12 +83,12 @@ const LogList = (props) => {
 					: nextData.body.LastEvaluatedKey.timestamp
 				);
 			}
-
-			setIsLoading(false);
 		}
 		catch(err) {
 			console.error(err);
 		}
+
+		setIsLoading(false);
 	}
 
 	// Fetch data at mount

@@ -37,12 +37,12 @@ const ImageSelector = (props) => {
 				setImages(undefined === newImages ? [] : newImages);
 				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
-
-			setIsLoading(false);
 		}
 		catch(err) {
 			console.error(err);
 		}
+
+		setIsLoading(false);
 	}
 
 	// Get next image list from API Gateway
