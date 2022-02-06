@@ -1,16 +1,25 @@
 import { render, screen } from '@testing-library/react';
 import LogItem from '../Log/LogItem';
 
+const mockedUsedNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+   ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockedUsedNavigate,
+}));
+
 it('parse header tag correctly', () => {
 
   const contents = "header test contents";
   const markdownText = "## " + contents;
 
-  render(<LogItem 
-    author={"park108@gmail.com"}
-    timestamp={"20211008195400"}
-    contents={markdownText}
-  />);
+  render(
+    <LogItem 
+      author={"park108@gmail.com"}
+      timestamp={20211008195400}
+      contents={markdownText}
+    />
+  );
   
   const html = screen.getByText(contents).closest('h2');
 
@@ -27,7 +36,7 @@ it('parse unordered list tag correctly', () => {
 
   render(<LogItem 
     author={"park108@gmail.com"}
-    timestamp={"20211008195400"}
+    timestamp={20211008195400}
     contents={markdownText}    
   />);
   
@@ -48,7 +57,7 @@ it('parse ordered list tag correctly', () => {
 
   render(<LogItem 
     author={"park108@gmail.com"}
-    timestamp={"20211008195400"}
+    timestamp={20211008195400}
     contents={markdownText}    
   />);
   
@@ -72,7 +81,7 @@ it('parse image tag correctly', () => {
 
   render(<LogItem 
     author={"park108@gmail.com"}
-    timestamp={"20211008195400"}
+    timestamp={20211008195400}
     contents={markdownText}    
   />);
   
@@ -96,7 +105,7 @@ it('parse anchor tag correctly', () => {
 
   render(<LogItem 
     author={"park108@gmail.com"}
-    timestamp={"20211008195400"}
+    timestamp={20211008195400}
     contents={markdownText}    
   />);
   

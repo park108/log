@@ -18,9 +18,11 @@ it('render log if it logged in', () => {
     })
   }));
 
-  render(<Router history={history}>
-    <Log />
-  </Router>);
+  render(
+    <Router location={history.location} navigator={history}>
+      <Log />
+    </Router>
+  );
 
   const div = screen.getByRole("application");
 

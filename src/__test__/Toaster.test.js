@@ -2,6 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import Toaster from '../Toaster/Toaster';
 
+jest.useFakeTimers();
+jest.spyOn(global, 'setTimeout');
+
 it('render message text "Test message" correctly', () => {
   render(<Toaster 
     message="Test message"
@@ -52,8 +55,6 @@ it('render error Toaster in bottom', () => {
 });
 
 it('render success Toaster in bottom with duration', () => {
-  
-  jest.useFakeTimers();
 
   render(<Toaster 
     message={"Test message"}
@@ -63,7 +64,7 @@ it('render success Toaster in bottom with duration', () => {
   />);
 
   act(() => {
-    jest.advanceTimersByTime(1000);
+    jest.setTimeout(1000);
     const toaster = screen.getByText("Test message");
     expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-information');
   });

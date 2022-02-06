@@ -15,7 +15,7 @@ it('render LogSingle', async () => {
   }));
 
   render(
-    <Router history={history}>
+    <Router location={history.location} navigator={history}>
       <LogSingle />
     </Router>
   );
