@@ -21,6 +21,7 @@ export function markdownToHtml (input) {
 	// pre
 	let index = 0;
 	let isPreStarted = false;
+	let language = "";
 	for(let node of parsed) {
 
 		if("value" === node.type
@@ -30,6 +31,8 @@ export function markdownToHtml (input) {
 			&& !isPreStarted) {
 
 			parsed.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre"});
+			
+			language = node.text.trim().substr(3);
 			
 			isPreStarted = true;
 		}
@@ -45,6 +48,8 @@ export function markdownToHtml (input) {
 		}
 		else if(isPreStarted) {
 
+			node.text = codeHighlighter(language, node.text);
+
 			parsed.splice(index, 1
 				, {type: "value", text: node.text + "<br />", closure: "pre"});
 		}
@@ -56,7 +61,6 @@ export function markdownToHtml (input) {
 
 		isPreStarted = false;
 	}
-
 	// hr
 	index = 0;
 	for(let node of parsed) {
@@ -277,7 +281,7 @@ export function markdownToHtml (input) {
 	return str;
 }
 
-function inlineParsing(parsed, delimeter, tagName) {
+const inlineParsing = (parsed, delimeter, tagName) => {
 
 	let searchFrom = 0;
 	let start = -1;
@@ -319,7 +323,7 @@ function inlineParsing(parsed, delimeter, tagName) {
 	return parsed;
 }
 
-function bindListItem(parsed, tagName) {
+const bindListItem = (parsed, tagName) => {
 
 	let isStarted = false;
 	let output = [];
@@ -348,7 +352,7 @@ function bindListItem(parsed, tagName) {
 	return output;
 }
 
-function stringify(arr) {
+const stringify = (arr) => {
 
 	let str = "";
 
@@ -359,6 +363,66 @@ function stringify(arr) {
 	return str;
 }
 
-function isNumeric(str) {
+const isNumeric = (str) => {
 	return /^\d+$/.test(str);
+}
+
+const codeHighlighter = (lang, code) => {
+
+	if("kotlin" === lang) {
+
+		code = code.replace("<", "&lt");
+		code = replaceLiteral(code);
+		
+		code = replaceReservedWord("", "package", " ", code);
+		code = replaceReservedWord("", "import", " ", code);
+		code = replaceReservedWord("", "class", " ", code);
+		code = replaceReservedWord("", "private", " ", code);
+		code = replaceReservedWord("", "val", " ", code);
+		code = replaceReservedWord("", "var", " ", code);
+		code = replaceReservedWord("", "fun", " ", code);
+		code = replaceReservedWord(" ", "try", "", code);
+		code = replaceReservedWord(" ", "catch", "", code);
+		code = replaceReservedWord(" ", "when", "", code);
+		code = replaceReservedWord(" ", "if", "", code);
+		code = replaceReservedWord(" ", "else", "", code);
+		code = replaceReservedWord("", "null", "", code);
+		code = replaceReservedWord("", "true", "", code);
+		code = replaceReservedWord("", "false", "", code);
+		code = replaceReservedWord("", "return", "", code)
+
+		code = replaceAnnotation("@GetMapping", code);
+		code = replaceAnnotation("@PostMapping", code);
+		code = replaceAnnotation("@PutMapping", code);
+		code = replaceAnnotation("@DeleteMapping", code);
+		code = replaceAnnotation("@PathVariable", code);
+		code = replaceAnnotation("@RestController", code);
+		code = replaceAnnotation("@RequestMapping", code);
+		code = replaceAnnotation("@RequestBody", code);
+	}
+
+	return code;
+}
+
+const replaceLiteral = (line) => {
+	const start = line.indexOf("\"");
+	if(start > -1) {
+		const next = line.indexOf("\"", start + 1);
+
+		if(next > start) {
+			const front = line.substring(0, start);
+			const literal = line.substring(start, next + 1);
+			const rear = line.substring(next + 1);
+			line = front + "<span class='span span-kotlin-literal'>" + literal + "</span>" + rear;
+		}
+	}
+	return line;
+}
+
+const replaceReservedWord = (frontSpace, word, rearSpace, line) => {
+	return line.replace(frontSpace + word + rearSpace, frontSpace + "<span class='span span-kotlin-reserved'>" + word + "</span>" + rearSpace);
+}
+
+const replaceAnnotation = (word, line) => {
+	return line.replace(word, "<span class='span span-kotlin-annotation'>" + word + "</span>");
 }

@@ -143,6 +143,19 @@ pre {
   border-radius: 5px;
   padding-left: 10px;
   padding-right: 10px;
+  word-wrap: break-word;
+}
+
+.span-kotlin-annotation {
+  color: #919b37;
+}
+
+.span-kotlin-reserved {
+  color: rgb(151, 98, 0);
+}
+
+.span-kotlin-literal {
+  color: rgb(0, 151, 75);
 }
 
 .p {
