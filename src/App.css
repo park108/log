@@ -147,16 +147,24 @@ pre {
   overflow-x: auto;
 }
 
-.span-kotlin-annotation {
+.span--kotlin-annotation {
   color: #919b37;
 }
 
-.span-kotlin-reserved {
-  color: rgb(151, 98, 0);
+.span--kotlin-reserved {
+	color: rgb(236, 134, 0);
 }
 
-.span-kotlin-literal {
+.span--kotlin-literal {
   color: rgb(0, 151, 75);
+}
+
+.span--yml-comment {
+	color:rgb(0, 151, 75);
+}
+
+.span--yml-key {
+	color: rgb(236, 134, 0);
 }
 
 .p {
