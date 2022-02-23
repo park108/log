@@ -148,7 +148,7 @@ pre {
 }
 
 .span--kotlin-annotation {
-  color: #919b37;
+	color:rgb(0, 151, 75);
 }
 
 .span--kotlin-reserved {
