@@ -255,21 +255,11 @@ export function markdownToHtml (input) {
 		}
 	}
 
-	// bold
-	parsed = inlineParsing(parsed, "**", "strong");
-	// parsed = inlineParsing(parsed, "__", "strong");
+	parsed = inlineParsing(parsed, "**", "strong"); // bold
+	parsed = inlineParsing(parsed, "~~", "del"); // stroke
+	parsed = inlineParsing(parsed, "*", "em"); // emphasis
+	parsed = inlineParsing(parsed, "`", "code"); // code
 
-	// stroke
-	parsed = inlineParsing(parsed, "~~", "del");
-
-	// italic
-	parsed = inlineParsing(parsed, "*", "em");
-	// parsed = inlineParsing(parsed, "_", "em");
-
-	// code
-	parsed = inlineParsing(parsed, "`", "code");
-
-	// paragraph
 	for(let node of parsed) {
 		if("value" === node.type && "" === node.closure) {
 			node.text = "<p>" + node.text + "</p>";
@@ -369,71 +359,80 @@ const isNumeric = (str) => {
 
 const codeHighlighter = (lang, code) => {
 
-	if("kotlin" === lang || "Kotlin" == lang) {
+	const laguage = lang.toLowerCase();
 
-		code = code.replace("<", "&lt");
-		code = replaceLiteral(code);
-		
-		code = replaceReservedWord("", "package", " ", code);
-		code = replaceReservedWord("", "import", " ", code);
-		code = replaceReservedWord("", "class", " ", code);
-		code = replaceReservedWord("", "private", " ", code);
-		code = replaceReservedWord("", "val", " ", code);
-		code = replaceReservedWord("", "var", " ", code);
-		code = replaceReservedWord("", "fun", " ", code);
-		code = replaceReservedWord(" ", "try", "", code);
-		code = replaceReservedWord(" ", "catch", "", code);
-		code = replaceReservedWord(" ", "when", "", code);
-		code = replaceReservedWord(" ", "if", "", code);
-		code = replaceReservedWord(" ", "else", "", code);
-		code = replaceReservedWord("", "null", "", code);
-		code = replaceReservedWord("", "true", "", code);
-		code = replaceReservedWord("", "false", "", code);
-		code = replaceReservedWord("", "return", "", code)
+	if("kotlin" === laguage) code = highlighterKotlin(code);
+	else if("yml" == laguage || "yaml" == laguage) code = highlighterYaml(code);
+	return code;
+}
 
-		code = replaceAnnotation("@GetMapping", code);
-		code = replaceAnnotation("@PostMapping", code);
-		code = replaceAnnotation("@PutMapping", code);
-		code = replaceAnnotation("@DeleteMapping", code);
-		code = replaceAnnotation("@PathVariable", code);
-		code = replaceAnnotation("@RestController", code);
-		code = replaceAnnotation("@RequestMapping", code);
-		code = replaceAnnotation("@RequestBody", code);
+const highlighterKotlin = (code) => {
+
+	code = code.replace("<", "&lt");
+	code = replaceLiteral(code);
+	
+	code = replaceReservedWord("", "package", " ", code);
+	code = replaceReservedWord("", "import", " ", code);
+	code = replaceReservedWord("", "class", " ", code);
+	code = replaceReservedWord("", "private", " ", code);
+	code = replaceReservedWord("", "val", " ", code);
+	code = replaceReservedWord("", "var", " ", code);
+	code = replaceReservedWord("", "fun", " ", code);
+	code = replaceReservedWord(" ", "try", "", code);
+	code = replaceReservedWord(" ", "catch", "", code);
+	code = replaceReservedWord(" ", "when", "", code);
+	code = replaceReservedWord(" ", "if", "", code);
+	code = replaceReservedWord(" ", "else", "", code);
+	code = replaceReservedWord("", "null", "", code);
+	code = replaceReservedWord("", "true", "", code);
+	code = replaceReservedWord("", "false", "", code);
+	code = replaceReservedWord("", "return", "", code)
+
+	code = replaceAnnotation("@GetMapping", code);
+	code = replaceAnnotation("@PostMapping", code);
+	code = replaceAnnotation("@PutMapping", code);
+	code = replaceAnnotation("@DeleteMapping", code);
+	code = replaceAnnotation("@PathVariable", code);
+	code = replaceAnnotation("@RestController", code);
+	code = replaceAnnotation("@RequestMapping", code);
+	code = replaceAnnotation("@RequestBody", code);
+
+	return code;
+}
+
+const highlighterYaml = (code) => {
+	
+	let lastChar = '';
+	let sharp = -1;
+	let start = -1;
+	let dash = -1;
+	let colon = -1;
+
+	sharp = code.indexOf("#");
+	dash = code.indexOf("- ");
+	colon = code.indexOf(": ");
+	lastChar = code.substr(code.length - 1, 1);
+
+	for(let i = 0; i < code.length; i++) {
+		if(' ' !== code.charAt(i)) {
+			start = i;
+			break;
+		}
 	}
-	else if("yml" == lang || "YML" == lang || "yaml" == lang || "YAML" == lang) {
 
-		let lastChar = '';
-		let sharp = -1;
-		let start = -1;
-		let dash = -1;
-		let colon = -1;
+	if(":" === lastChar) colon = code.length - 1;
+	if(start === dash && dash < colon) start = dash + 1;
 
-		sharp = code.indexOf("#");
-		dash = code.indexOf("- ");
-		colon = code.indexOf(": ");
-		lastChar = code.substr(code.length - 1, 1);
-
-		for(let i = 0; i < code.length; i++) {
-			if(' ' !== code.charAt(i)) {
-				start = i;
-				break;
-			}
-		}
-
-		if(":" === lastChar) colon = code.length - 1;
-		if(start === dash && dash < colon) start = dash + 1;
-
-		// Comment
-		if(start === sharp) {
-			code = "<span class='span--yml-comment'>" + code + "</span>";
-		}
-		else if(-1 < colon) {
-			code = code.substring(0, start)
-				+ "<span class='span--yml-key'>"
-				+ code.substring(start, colon)
-				+ "</span>"
-				+ code.substring(colon);
-		}
+	// Comment
+	if(start === sharp) {
+		code = "<span class='span--yml-comment'>" + code + "</span>";
+	}
+	else if(-1 < colon) {
+		code = code.substring(0, start)
+			+ "<span class='span--yml-key'>"
+			+ code.substring(start, colon)
+			+ "</span>"
+			+ code.substring(colon);
 	}
 
 	return code;
