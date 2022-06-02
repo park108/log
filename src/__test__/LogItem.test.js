@@ -76,7 +76,7 @@ it('parse image tag correctly', () => {
   const url = "https://www.iana.org/_img/2022/iana-logo-header.svg"
   const titleText = "title text";
   const altText = "alternated text";
-  const lazyLoading = "lazy";
+//   const lazyLoading = "lazy";
   const markdownText = "![" + altText + "](" + url + " \"" + titleText + "\")";
 
   render(<LogItem 
@@ -90,7 +90,7 @@ it('parse image tag correctly', () => {
   const expected = document.createElement("img");
   expected.setAttribute("src", url);
   expected.setAttribute("alt", altText);
-  expected.setAttribute("loading", lazyLoading);
+//   expected.setAttribute("loading", lazyLoading);
   expected.setAttribute("title", titleText);
 
   expect(expected).toStrictEqual(html);
