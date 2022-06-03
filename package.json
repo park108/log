@@ -61,7 +61,9 @@
     "ansi-html": "https://registry.yarnpkg.com/ansi-html-community/-/ansi-html-community-0.0.8.tgz#69fbc4d6ccbe383f9736934ae34c3f8290f1bf41",
     "nth-check": "^2.0.1",
     "postcss": "^8.4.5",
-    "css-select": "^4.2.1"
+    "css-select": "^4.2.1",
+    "minimist": "1.2.6",
+    "async": "2.6.4"
   },
   "devDependencies": {
     "eslint": "^8.8.0",
