@@ -1,12 +1,13 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log } from '../common';
+import { log, getFormattedDate } from '../common';
 import { getLogs, getNextLogs } from './api';
-
-const Toaster = lazy(() => import('../Toaster/Toaster'));
-const LogItem = lazy(() => import('./LogItem'));
+import { markdownToHtml } from '../markdownParser';
 
 const LogList = (props) => {
+
+	const itemPerPage = 10;
 
 	const [logs, setLogs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -14,9 +15,9 @@ const LogList = (props) => {
 	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
-	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
-	const [toasterMessageBottom, setToasterMessageBottom] = useState("");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
+
+	const Toaster = lazy(() => import('../Toaster/Toaster'));
 
 	// Get log list from API gateway
 	const fetchFirst = async () => {
@@ -25,7 +26,7 @@ const LogList = (props) => {
 
 		try {
 			// Call API
-			const res = await getLogs(1);
+			const res = await getLogs(itemPerPage);
 			const newData = await res.json();
 
 			if(undefined !== newData.errorType) {
@@ -62,7 +63,7 @@ const LogList = (props) => {
 
 		try {
 			// Call API
-			const res = await getNextLogs(timestamp);
+			const res = await getNextLogs(timestamp, itemPerPage);
 			const nextData = await res.json();
 
 			if(undefined !== nextData.errorType) {
@@ -110,13 +111,6 @@ const LogList = (props) => {
 		}
 	}, [isLoading]);
 
-	// Callback delete item from LogItem
-	const afterDelete = () => {
-		fetchFirst();	
-		setToasterMessageBottom("The log deleted.");
-		setIsShowToasterBottom(1);
-	}
-
 	// See more button
 	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
@@ -131,18 +125,22 @@ const LogList = (props) => {
 	return (
 		<div role="list">
 			<Suspense fallback={<div></div>}>
-
 				{logs.map(data => (
-					<LogItem
-						key={data.timestamp}
-						author={data.author}
-						timestamp={data.timestamp}
-						contents={data.logs[0].contents}
-						item = {data}
-						showComments={true}
-						showLink={true}
-						deleted={afterDelete}
-					/>
+					<div className="div--loglist-item" key={data.timestamp}>
+						<Link to={{
+							pathname: "/log/" + data.timestamp
+						}}>
+							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
+							<div className="div--loglist-contents">
+								{
+									markdownToHtml(data.logs[0].contents)
+										.replace(/(<([^>]+)>)/gi, '')
+										.substr(0, 50)
+								}
+								...
+							</div>
+						</Link>
+					</div>
 				))}
 			</Suspense>
 				
@@ -152,14 +150,6 @@ const LogList = (props) => {
 				<Toaster 
 					show={isShowToasterCenter}
 					message={toasterMessageCenter}
-					completed={() => setIsShowToasterCenter(0)}
-				/>
-				<Toaster 
-					show={isShowToasterBottom}
-					message={toasterMessageBottom}
-					position={"bottom"}
-					type={"success"}
-					duration={2000}				
 					completed={() => setIsShowToasterCenter(0)}
 				/>
 			</Suspense>

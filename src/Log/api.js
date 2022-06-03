@@ -7,12 +7,14 @@ const getApiUrl = () => {
 	}
 }
 
-export const getLogs = async() => {
-	return await fetch(getApiUrl());
+export const getLogs = async(limit) => {
+	limit = undefined === limit ? 1 : limit;
+	return await fetch(getApiUrl() + "?limit=" + limit);
 }
 
-export const getNextLogs = async(timestamp) => {
-	return await fetch(getApiUrl() + "?lastTimestamp=" + timestamp);
+export const getNextLogs = async(timestamp, limit) => {
+	limit = undefined === limit ? 1 : limit;
+	return await fetch(getApiUrl() + "?lastTimestamp=" + timestamp + "&limit=" + limit);
 }
 
 export const getLog = async(timestamp) => {

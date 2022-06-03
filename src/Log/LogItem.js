@@ -103,9 +103,7 @@ const LogItem = (props) => {
 		if(1 === length) return "";
 
 		return (
-			<div
-				className="div div--logitem-versionhistory"
-			>
+			<div className="div div--logitem-versionhistory">
 				{
 					item.logs.map(
 						(data, index) => (

@@ -7,7 +7,7 @@ import { postLog, putLog } from './api';
 import './Log.css';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
-const LogList = lazy(() => import('./LogList'));
+const LogList = lazy(() => import('./LogList2'));
 const LogSingle = lazy(() => import('./LogSingle'));
 const Writer = lazy(() => import('./Writer'));
 
