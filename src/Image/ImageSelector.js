@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { log } from '../common';
+import { log } from '../common/common';
 import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";

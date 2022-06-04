@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
-import { log, getFormattedDate, getFormattedTime, confirm } from '../common';
+import { log, getFormattedDate, getFormattedTime, confirm } from '../common/common';
 import { deleteFile } from './api';
 
 const FileItem = (props) => {

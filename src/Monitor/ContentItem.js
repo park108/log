@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
-import { log, getFormattedDate, getFormattedSize } from '../common';
+import { log, getFormattedDate, getFormattedSize } from '../common/common';
 import { getContentItemCount } from './api';
 
 const ContentItem = (props) => {

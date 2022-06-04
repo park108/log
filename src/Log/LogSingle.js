@@ -1,9 +1,9 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useParams } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { log } from '../common';
+import { log } from '../common/common';
 import { getLog } from './api';
-import PageNotFound from "../PageNotFound";
+import PageNotFound from "../common/PageNotFound";
 
 const LogItem = lazy(() => import('./LogItem'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));

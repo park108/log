@@ -1,6 +1,6 @@
 import React, { useState, lazy } from "react";
 import PropTypes from 'prop-types';
-import { getFormattedDate, getFormattedTime, isAdmin } from '../common';
+import { getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
 
 const CommentForm = lazy(() => import('./CommentForm'));
 

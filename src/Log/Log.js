@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, isAdmin, setTitle } from '../common';
+import { log, isAdmin, setTitle } from '../common/common';
 import { postLog, putLog } from './api';
 
 import './Log.css';

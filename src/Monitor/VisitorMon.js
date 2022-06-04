@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
-import { log, getFormattedDate, getFormattedTime, getWeekday } from "../common";
+import { log, getFormattedDate, getFormattedTime, getWeekday } from "../common/common";
 import { getVisitors } from "./api";
 
 const VisitorMon = (props) => {

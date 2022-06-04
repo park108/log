@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import PropTypes from 'prop-types';
-import { log } from '../common';
+import { log } from '../common/common';
 import { getLogs, getNextLogs } from './api';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));

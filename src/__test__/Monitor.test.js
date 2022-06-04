@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import Monitor from '../Monitor/Monitor';
-import * as common from '../common';
+import * as common from '../common/common';
 
 beforeAll(() => {
   delete window.location;

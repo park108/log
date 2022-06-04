@@ -1,14 +1,14 @@
 import React, { Suspense, lazy, useState, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import * as common from './common';
+import * as common from './common/common';
 import './App.css';
 
-const Navigation = lazy(() => import('./Navigation'));
+const Navigation = lazy(() => import('./common/Navigation'));
 const Log = lazy(() => import('./Log/Log'));
 const File = lazy(() => import('./File/File'));
 const Monitor = lazy(() => import('./Monitor/Monitor'));
-const PageNotFound = lazy(() => import('./PageNotFound'));
-const Footer = lazy(() => import('./Footer'));
+const PageNotFound = lazy(() => import('./common/PageNotFound'));
+const Footer = lazy(() => import('./common/Footer'));
   
 const App = () => {
 
@@ -24,12 +24,19 @@ const App = () => {
 		});
 	}
 
+	// Set reload event handler
+	const handleReload = () => {
+		// Clear sessionStorage
+		sessionStorage.clear();
+	}
+
 	// Set resized height at mount
 	useEffect(() => {
 		handleOnresize();
 	}, []);
 
 	window.onresize = handleOnresize;
+	window.onbeforeunload = handleReload;
 	common.auth();
 
 	const pageNotFound = (

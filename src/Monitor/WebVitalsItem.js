@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { log } from '../common';
+import { log } from '../common/common';
 import { getWebVitals } from './api';
 import PropTypes from 'prop-types';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Navigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getFiles, getNextFiles } from './api';
-import { log, isAdmin, isMobile, setTitle } from '../common';
+import { log, isAdmin, isMobile, setTitle } from '../common/common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import * as commonMonitor from './Monitor/api';
-import { userAgentParser } from './common';
+import { userAgentParser } from './common/common';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(

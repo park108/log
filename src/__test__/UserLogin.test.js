@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import UserLogin from '../UserLogin'
-import { getLoginUrl, getLogoutUrl } from '../UserLogin'
-import * as common from '../common';
+import UserLogin from '../common/UserLogin'
+import { getLoginUrl, getLogoutUrl } from '../common/UserLogin'
+import * as common from '../common/common';
 
 describe('reder UserLogin by stage', () => {
   

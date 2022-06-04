@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
-import { log } from '../common';
+import { log } from '../common/common';
 import { getPreSignedUrl, putFile } from './api';
 
 const FileUpload = (props) => {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import { deleteLog } from './api';
-import * as parser from '../markdownParser';
+import * as parser from '../common/markdownParser';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 const Comment = lazy(() => import('../Comment/Comment'));

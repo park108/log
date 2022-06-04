@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import {createMemoryHistory} from 'history'
 import { Router } from 'react-router-dom';
 import Log from '../Log/Log';
-import * as common from '../common';
+import * as common from '../common/common';
 
 it('render log if it logged in', () => {
   

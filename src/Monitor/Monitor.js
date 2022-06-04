@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, lazy } from "react";
 import PropTypes from 'prop-types';
 import { Navigate } from 'react-router-dom';
-import { isAdmin, setFullscreen, setTitle } from '../common';
+import { isAdmin, setFullscreen, setTitle } from '../common/common';
 
 import './Monitor.css';
 

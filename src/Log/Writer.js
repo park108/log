@@ -2,8 +2,8 @@ import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Navigate } from "react-router";
 import { useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { isAdmin, log, setFullscreen } from '../common';
-import * as parser from '../markdownParser';
+import { isAdmin, log, setFullscreen } from '../common/common';
+import * as parser from '../common/markdownParser';
 import Toaster from "../Toaster/Toaster";
 import './Writer.css';
 

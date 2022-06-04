@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { isAdmin } from '../common';
+import { isAdmin } from '../common/common';
 
 import './Comment.css';
 

@@ -1,5 +1,5 @@
 import React from "react";
-import * as common from './common';
+import * as common from '../common/common';
 // import { ReactComponent as EnterButton } from './static/enter.svg';
 
 export const getLoginUrl = () => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import PropTypes from 'prop-types';
-import { log, isAdmin } from '../common';
+import { log, isAdmin } from '../common/common';
 import { getComments, postComment } from './api';
 
 import './Comment.css';

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, getFormattedDate } from '../common';
+import { log, getFormattedDate } from '../common/common';
 import { getLogs, getNextLogs } from './api';
-import { markdownToHtml } from '../markdownParser';
+import { markdownToHtml } from '../common/markdownParser';
 
 const LogList = (props) => {
 
@@ -23,6 +23,22 @@ const LogList = (props) => {
 	const fetchFirst = async () => {
 
 		setIsLoading(true);
+
+		// Get log list from session
+		const listInSession = sessionStorage.getItem("logList");
+		if("undefined" !== listInSession && null !== listInSession) {
+			setLogs(JSON.parse(listInSession));
+
+			const lastTimestampInSession = sessionStorage.getItem("logListLastTimestamp");
+			if("undefined" !== lastTimestampInSession && null !== lastTimestampInSession) {
+				setLastTimestamp(JSON.parse(lastTimestampInSession));
+			}
+
+			log("Get logs from session.");
+
+			setIsLoading(false);
+			return;
+		}
 
 		try {
 			// Call API
@@ -110,6 +126,16 @@ const LogList = (props) => {
 			setSeeMoreButtonClass("button button--loglist-seemore");
 		}
 	}, [isLoading]);
+
+	// Set list in local stroage
+	useEffect(() => {
+		sessionStorage.setItem("logList", JSON.stringify(logs));
+	}, [logs]);
+
+	// Set lastTimestamp in local stroage
+	useEffect(() => {
+		sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestamp));
+	}, [lastTimestamp]);
 
 	// See more button
 	const seeMoreButton = (lastTimestamp === undefined)
