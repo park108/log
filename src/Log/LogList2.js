@@ -19,6 +19,8 @@ const LogList = (props) => {
 
 	const Toaster = lazy(() => import('../Toaster/Toaster'));
 
+	const ellipsis = " ...";
+
 	// Get log list from API gateway
 	const fetchFirst = async () => {
 
@@ -43,25 +45,44 @@ const LogList = (props) => {
 		try {
 			// Call API
 			const res = await getLogs(itemPerPage);
-			const newData = await res.json();
+			const fetchedData = await res.json();
 
-			if(undefined !== newData.errorType) {
-				console.error(newData);
+			if(undefined !== fetchedData.errorType) {
+				console.error(fetchedData);
 			}
 			else {
+				// Make data for log list
 				log("Logs are FETCHED successfully.");
-				let newLog = newData.body.Items;
 
-				// Set log array
-				setLogs(undefined === newData.body.Items
-					? []
-					: newLog
-				);
+				const newLogs = fetchedData.body.Items;
+
+				let trimmedContents = ""; 
+				let contentsLength = 0;
+				let logList = [];
+
+				if(undefined !== newLogs) {
+
+					for(const item of newLogs) {
+
+						trimmedContents = markdownToHtml(item.logs[0].contents).replace(/(<([^>]+)>)/gi, '');
+						contentsLength = trimmedContents.length;
+						trimmedContents = contentsLength > 50 ? trimmedContents.substr(0, 50) + ellipsis : trimmedContents;
+
+						logList.push({
+							"timestamp": item.timestamp,
+							"date": getFormattedDate(item.timestamp),
+							"contents": trimmedContents
+						});
+					}
+				}
+
+				// Set log list
+				setLogs(logList);
 
 				// Last item
-				setLastTimestamp(undefined === newData.body.LastEvaluatedKey
+				setLastTimestamp(undefined === fetchedData.body.LastEvaluatedKey
 					? undefined
-					: newData.body.LastEvaluatedKey.timestamp
+					: fetchedData.body.LastEvaluatedKey.timestamp
 				);
 			}
 		}
@@ -80,25 +101,47 @@ const LogList = (props) => {
 		try {
 			// Call API
 			const res = await getNextLogs(timestamp, itemPerPage);
-			const nextData = await res.json();
 
-			if(undefined !== nextData.errorType) {
-				console.error(nextData);
+
+
+			const fetchedData = await res.json();
+
+			if(undefined !== fetchedData.errorType) {
+				console.error(fetchedData);
 			}
 			else {
+				// Make data for log list
 				log("Next logs are FETCHED successfully.");
-				let newLog = logs.concat(nextData.body.Items);
-	
-				// Set log array
-				setLogs(undefined === nextData.body.Items
-					? []
-					: newLog
-				);
-	
+
+				const newLogs = fetchedData.body.Items;
+
+				let trimmedContents = ""; 
+				let contentsLength = 0;
+				let logList = [...logs]; // Copy to new array object
+
+				if(undefined !== newLogs) {
+
+					for(const item of newLogs) {
+
+						trimmedContents = markdownToHtml(item.logs[0].contents).replace(/(<([^>]+)>)/gi, '');
+						contentsLength = trimmedContents.length;
+						trimmedContents = contentsLength > 50 ? trimmedContents.substr(0, 50) + ellipsis : trimmedContents;
+
+						logList.push({
+							"timestamp": item.timestamp,
+							"date": getFormattedDate(item.timestamp),
+							"contents": trimmedContents
+						});
+					}
+				}
+
+				// Set log list
+				setLogs(logList);
+
 				// Last item
-				setLastTimestamp(undefined === nextData.body.LastEvaluatedKey
+				setLastTimestamp(undefined === fetchedData.body.LastEvaluatedKey
 					? undefined
-					: nextData.body.LastEvaluatedKey.timestamp
+					: fetchedData.body.LastEvaluatedKey.timestamp
 				);
 			}
 		}
@@ -156,15 +199,8 @@ const LogList = (props) => {
 						<Link to={{
 							pathname: "/log/" + data.timestamp
 						}}>
-							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
-							<div className="div--loglist-contents">
-								{
-									markdownToHtml(data.logs[0].contents)
-										.replace(/(<([^>]+)>)/gi, '')
-										.substr(0, 50)
-								}
-								...
-							</div>
+							<div className="div--loglist-date">{data.date}</div>
+							<div className="div--loglist-contents">{data.contents}</div>
 						</Link>
 					</div>
 				))}
