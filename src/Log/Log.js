@@ -24,18 +24,21 @@ const Log = (props) => {
 	// Create new log
 	const createLog = async (contents) => {
 
+		const newTimestamp = Math.floor(new Date().getTime());
+
 		setIsPostSuccess(false);
 
 		try {
 			// Call API
-			const res = await postLog(Math.floor(new Date().getTime()), contents);
+			const res = await postLog(newTimestamp, contents);
 
 			if(200 === res.status) {
 				log("A log is POSTED uccessfully.");
 				setIsPostSuccess(true);
 				setToasterMessage("The log posted.");
 				setIsShowToaster(1);
-				navigate("/log");
+				sessionStorage.clear();
+				navigate("/log/" + newTimestamp);
 			}
 			else {
 				console.error(res);
@@ -70,8 +73,9 @@ const Log = (props) => {
 				log("A log is PUTTED successfully.");
 				setIsPostSuccess(true);			
 				setToasterMessage("The log changed.");
-				setIsShowToaster(1);	
-				navigate("/log");
+				setIsShowToaster(1);
+				sessionStorage.clear();
+				navigate("/log/" + item.timestamp);
 			}
 			else {
 				console.error(res);

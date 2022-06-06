@@ -1,3 +1,5 @@
+import { markdownToHtml } from '../common/markdownParser';
+
 const getApiUrl = () => {
 	if (process.env.NODE_ENV === 'production') {
 		return "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/prod";
@@ -22,6 +24,11 @@ export const getLog = async(timestamp) => {
 }
 
 export const postLog = async(now, contents) => {
+
+	const trimmedContents = markdownToHtml(contents).replace(/(<([^>]+)>)/gi, '');
+	const contentsLength = trimmedContents.length;
+	const summary = contentsLength > 50 ? trimmedContents.substr(0, 50) + " ..." : trimmedContents;
+
 	return await fetch(getApiUrl(), {
 		method: "POST",
 		headers: {
@@ -29,6 +36,7 @@ export const postLog = async(now, contents) => {
 		},
 		body: JSON.stringify({
 			"timestamp": now,
+			"summary": summary,
 			"logs": [{
 				"contents": contents,
 				"timestamp": now
@@ -38,6 +46,13 @@ export const postLog = async(now, contents) => {
 }
 
 export const putLog = async(newItem) => {
+
+	const trimmedContents = markdownToHtml(newItem.logs[0].contents).replace(/(<([^>]+)>)/gi, '');
+	const contentsLength = trimmedContents.length;
+	const summary = contentsLength > 50 ? trimmedContents.substr(0, 50) + " ..." : trimmedContents;
+
+	newItem.summary = summary;
+
 	return await fetch(getApiUrl() + "/timestamp/" + newItem.timestamp, {
 		method: "PUT",
 		headers: {

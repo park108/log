@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { log, getFormattedDate } from '../common/common';
 import { getLogs, getNextLogs } from './api';
-import { markdownToHtml } from '../common/markdownParser';
 
 const LogList = (props) => {
 
@@ -18,8 +17,6 @@ const LogList = (props) => {
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
 	const Toaster = lazy(() => import('../Toaster/Toaster'));
-
-	const ellipsis = " ...";
 
 	// Get log list from API gateway
 	const fetchFirst = async () => {
@@ -53,31 +50,10 @@ const LogList = (props) => {
 			else {
 				// Make data for log list
 				log("Logs are FETCHED successfully.");
-
 				const newLogs = fetchedData.body.Items;
 
-				let trimmedContents = ""; 
-				let contentsLength = 0;
-				let logList = [];
-
-				if(undefined !== newLogs) {
-
-					for(const item of newLogs) {
-
-						trimmedContents = markdownToHtml(item.logs[0].contents).replace(/(<([^>]+)>)/gi, '');
-						contentsLength = trimmedContents.length;
-						trimmedContents = contentsLength > 50 ? trimmedContents.substr(0, 50) + ellipsis : trimmedContents;
-
-						logList.push({
-							"timestamp": item.timestamp,
-							"date": getFormattedDate(item.timestamp),
-							"contents": trimmedContents
-						});
-					}
-				}
-
 				// Set log list
-				setLogs(logList);
+				setLogs(newLogs);
 
 				// Last item
 				setLastTimestamp(undefined === fetchedData.body.LastEvaluatedKey
@@ -101,9 +77,6 @@ const LogList = (props) => {
 		try {
 			// Call API
 			const res = await getNextLogs(timestamp, itemPerPage);
-
-
-
 			const fetchedData = await res.json();
 
 			if(undefined !== fetchedData.errorType) {
@@ -112,31 +85,10 @@ const LogList = (props) => {
 			else {
 				// Make data for log list
 				log("Next logs are FETCHED successfully.");
-
-				const newLogs = fetchedData.body.Items;
-
-				let trimmedContents = ""; 
-				let contentsLength = 0;
-				let logList = [...logs]; // Copy to new array object
-
-				if(undefined !== newLogs) {
-
-					for(const item of newLogs) {
-
-						trimmedContents = markdownToHtml(item.logs[0].contents).replace(/(<([^>]+)>)/gi, '');
-						contentsLength = trimmedContents.length;
-						trimmedContents = contentsLength > 50 ? trimmedContents.substr(0, 50) + ellipsis : trimmedContents;
-
-						logList.push({
-							"timestamp": item.timestamp,
-							"date": getFormattedDate(item.timestamp),
-							"contents": trimmedContents
-						});
-					}
-				}
+				const newLogs = logs.concat(fetchedData.body.Items);
 
 				// Set log list
-				setLogs(logList);
+				setLogs(newLogs);
 
 				// Last item
 				setLastTimestamp(undefined === fetchedData.body.LastEvaluatedKey
@@ -180,6 +132,11 @@ const LogList = (props) => {
 		sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestamp));
 	}, [lastTimestamp]);
 
+	// Cleanup
+	useEffect(() => {
+		return () => setIsLoading(false);
+	}, []);
+
 	// See more button
 	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
@@ -199,7 +156,7 @@ const LogList = (props) => {
 						<Link to={{
 							pathname: "/log/" + data.timestamp
 						}}>
-							<div className="div--loglist-date">{data.date}</div>
+							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
 							<div className="div--loglist-contents">{data.contents}</div>
 						</Link>
 					</div>
