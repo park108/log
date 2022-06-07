@@ -23,10 +23,12 @@ export const getLog = async(timestamp) => {
 	return await fetch(getApiUrl() + "/timestamp/" + timestamp);
 }
 
+const trimSize = 100;
+
 const makeSummary = (contents) => {
 	const trimmedContents = markdownToHtml(contents).replace(/(<([^>]+)>)/gi, '');
 	const contentsLength = trimmedContents.length;
-	return contentsLength > 50 ? trimmedContents.substr(0, 50) + " ..." : trimmedContents;
+	return contentsLength > 50 ? trimmedContents.substr(0, trimSize) + " ..." : trimmedContents;
 }
 
 export const postLog = async(now, contents) => {

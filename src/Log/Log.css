@@ -160,3 +160,11 @@
 .div--loglist-date {
 	color: var(--sub-text-color);
 }
+
+.div--loglist-contents {
+	white-space: nowrap;
+	overflow: hidden;
+	background: -webkit-linear-gradient(left, var(--normal-text-color) 85%, transparent);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
