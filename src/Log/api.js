@@ -23,11 +23,13 @@ export const getLog = async(timestamp) => {
 	return await fetch(getApiUrl() + "/timestamp/" + timestamp);
 }
 
-export const postLog = async(now, contents) => {
-
+const makeSummary = (contents) => {
 	const trimmedContents = markdownToHtml(contents).replace(/(<([^>]+)>)/gi, '');
 	const contentsLength = trimmedContents.length;
-	const summary = contentsLength > 50 ? trimmedContents.substr(0, 50) + " ..." : trimmedContents;
+	return contentsLength > 50 ? trimmedContents.substr(0, 50) + " ..." : trimmedContents;
+}
+
+export const postLog = async(now, contents) => {
 
 	return await fetch(getApiUrl(), {
 		method: "POST",
@@ -36,7 +38,7 @@ export const postLog = async(now, contents) => {
 		},
 		body: JSON.stringify({
 			"timestamp": now,
-			"summary": summary,
+			"summary": makeSummary(contents),
 			"logs": [{
 				"contents": contents,
 				"timestamp": now
@@ -47,11 +49,7 @@ export const postLog = async(now, contents) => {
 
 export const putLog = async(newItem) => {
 
-	const trimmedContents = markdownToHtml(newItem.logs[0].contents).replace(/(<([^>]+)>)/gi, '');
-	const contentsLength = trimmedContents.length;
-	const summary = contentsLength > 50 ? trimmedContents.substr(0, 50) + " ..." : trimmedContents;
-
-	newItem.summary = summary;
+	newItem.summary = makeSummary(newItem.logs[0].contents);
 
 	return await fetch(getApiUrl() + "/timestamp/" + newItem.timestamp, {
 		method: "PUT",
