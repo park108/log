@@ -31,3 +31,6 @@ Upload multiple files directly into S3 bucket using pre-signed URLs.
 
 ### File processing using SNS and SQS
 ![S3 metadata management with serverless architecture](https://park108-image-prod.s3.ap-northeast-2.amazonaws.com/20211130-91339b77-5b21-4d38-8acb-a338296cee20.png "S3 metadata management with serverless architecture")
+
+### CQRS pattern for serverless architecture using DynamoDB Streams
+![CQRS pattern for serverless architecture](https://park108-image-prod.s3.ap-northeast-2.amazonaws.com/20220606-e1ace1d1-6428-4337-a175-6ed980d4189f.png "CQRS pattern for serverless architecture")
