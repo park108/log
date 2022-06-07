@@ -22,12 +22,12 @@ const LogSingle = (props) => {
 
 	const fetchData = async (timestamp) => {
 
-		setIsLoading(true);
-
 		try {
 			// Call API
+			setIsLoading(true);
 			const res = await getLog(timestamp);
 			const fetchedData = await res.json();
+			setIsLoading(false);
 			
 			if(undefined !== fetchedData.errorType) {
 				console.error(fetchedData);
@@ -51,8 +51,6 @@ const LogSingle = (props) => {
 		catch(err) {
 			console.error(err);
 		}
-
-		setIsLoading(false);
 	}
 
 	// Fetch data at mount
@@ -70,6 +68,11 @@ const LogSingle = (props) => {
 			setIsShowToasterCenter(2);
 		}
 	}, [isLoading]);
+
+	// Cleanup
+	useEffect(() => {
+		return () => setIsLoading(false);
+	}, []);
 
 	// Callback delete item from LogItem
 	const afterDelete = () => {

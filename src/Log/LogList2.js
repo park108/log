@@ -43,6 +43,7 @@ const LogList = (props) => {
 			// Call API
 			const res = await getLogs(itemPerPage);
 			const fetchedData = await res.json();
+			setIsLoading(false);
 
 			if(undefined !== fetchedData.errorType) {
 				console.error(fetchedData);
@@ -65,19 +66,17 @@ const LogList = (props) => {
 		catch(err) {
 			console.error(err);
 		}
-		
-		setIsLoading(false);
 	}
 
 	// Get next log list from API gateway
 	const fetchMore = async (timestamp) => {
 
-		setIsLoading(true);
-
 		try {
 			// Call API
+			setIsLoading(true);
 			const res = await getNextLogs(timestamp, itemPerPage);
 			const fetchedData = await res.json();
+			setIsLoading(false);
 
 			if(undefined !== fetchedData.errorType) {
 				console.error(fetchedData);
@@ -100,8 +99,6 @@ const LogList = (props) => {
 		catch(err) {
 			console.error(err);
 		}
-
-		setIsLoading(false);
 	}
 
 	// Fetch data at mount

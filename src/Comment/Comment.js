@@ -11,6 +11,7 @@ const CommentForm = lazy(() => import('./CommentForm'));
 const Comment = (props) => {
 
 	const [comments, setComments] = useState([]);
+	const [isLoading, setIsLoading] = useState(false);
 	const [buttonText, setButtonText] = useState("... comments");
 	const [isShow, setIsShow] = useState(false);
 	const [isOpenReplyForm, setIsOpenReplyForm] = useState(false);
@@ -23,8 +24,10 @@ const Comment = (props) => {
 
 		// Call GET API
 		try {
+			setIsLoading(true);
 			const res = await getComments(timestamp, admin);
 			const newData = await res.json();
+			setIsLoading(false);
 
 			// Sort by sortKey
 			newData.body.Items.sort((a, b) => {
@@ -32,13 +35,6 @@ const Comment = (props) => {
 			});
 
 			log("Comments are FETCHED successfully.");
-
-			const count = newData.body.Items.length;
-			
-			// Set comment button text
-			1 < count ? setButtonText(count + " comments")
-				: 1 === count ?	setButtonText("1 comment")
-				: setButtonText("Add a comment");
 
 			// Set comment list
 			setComments(newData.body.Items);
@@ -71,6 +67,24 @@ const Comment = (props) => {
 	}
 
 	useEffect(() => fetchData(logTimestamp), [logTimestamp]);
+
+	// Change by loading state
+	useEffect(() => {
+		if(isLoading) {
+			setButtonText("... comments");
+		}
+		else {
+			const count = comments.length;
+			1 < count ? setButtonText(count + " comments")
+				: 1 === count ?	setButtonText("1 comment")
+				: setButtonText("Add a comment");
+		}
+	}, [isLoading]);
+
+	// Cleanup
+	useEffect(() => {
+		return () => setIsLoading(false);
+	}, []);
 
 	const toggleComments = () => setIsShow(!isShow)
 
