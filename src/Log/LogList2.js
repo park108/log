@@ -146,10 +146,10 @@ const LogList = (props) => {
 
 	// Draw log list
 	return (
-		<div role="list">
+		<section className="section section--log-list" role="list">
 			<Suspense fallback={<div></div>}>
 				{logs.map(data => (
-					<div className="div--loglist-item" key={data.timestamp}>
+					<div className="div--loglist-item" key={data.timestamp} role="listitem">
 						<Link to={{
 							pathname: "/log/" + data.timestamp
 						}}>
@@ -169,7 +169,7 @@ const LogList = (props) => {
 					completed={() => setIsShowToasterCenter(0)}
 				/>
 			</Suspense>
-		</div>
+		</section>
 	);
 }
 
