@@ -28,7 +28,7 @@ const trimSize = 100;
 const makeSummary = (contents) => {
 	const trimmedContents = markdownToHtml(contents).replace(/(<([^>]+)>)/gi, '');
 	const contentsLength = trimmedContents.length;
-	return contentsLength > 50 ? trimmedContents.substr(0, trimSize) + " ..." : trimmedContents;
+	return contentsLength > trimSize ? trimmedContents.substr(0, trimSize) + " ..." : trimmedContents;
 }
 
 export const postLog = async(now, contents) => {
