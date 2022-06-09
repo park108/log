@@ -131,7 +131,8 @@
 }
 
 .button--loglist-seemore {
-  margin-top: 2em;
+  margin-top: 1em;
+  margin-bottom: 1em;
   margin-left: auto;
   margin-right: auto;
   width: 10em;
@@ -149,11 +150,11 @@
 
 .div--loglist-item:hover {
 	text-decoration: underline;
-	text-shadow: 0px 0px 3px var(--shadow-color);
-	background-color: var(--info-background-color);
+	/* text-shadow: 0px 0px 3px var(--shadow-color); */
+	background-color: var(--hover-background-color);
 	border-radius: 10px;
-	border: 1px solid var(--normal-border-color);
-	box-shadow: 0px 0px 10px var(--normal-border-color);
+	border: 1px solid var(--hover-border-color);
+	box-shadow: 0px 0px 10px var(--hover-border-color);
 	transition: 0.3s ease;
 }
 
@@ -164,7 +165,7 @@
 .div--loglist-contents {
 	white-space: nowrap;
 	overflow: hidden;
-	background: -webkit-linear-gradient(left, var(--normal-text-color) 85%, transparent);
+	background: -webkit-linear-gradient(left, var(--normal-text-color) 90%, transparent);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }

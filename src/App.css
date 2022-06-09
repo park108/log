@@ -19,6 +19,7 @@
   --normal-contents-background-color: white;
   --normal-border-color: #dddddd;
 
+  --hover-background-color: rgb(255, 255, 210);
   --hover-border-color: #666666;
 
   --active-text-color: black;
@@ -197,9 +198,11 @@ pre {
 }
 
 .button:hover {
-  border-color: var(--hover-border-color);
-  background-color: rgb(255, 255, 210);
-  transition: 0.3s ease;
+	text-decoration: underline;
+	border-color: var(--hover-border-color);
+	background-color: var(--hover-background-color);
+	box-shadow: 0px 0px 10px var(--hover-border-color);
+	transition: 0.3s ease;
 }
 
 .button:active {

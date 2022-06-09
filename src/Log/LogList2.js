@@ -6,8 +6,6 @@ import { getLogs, getNextLogs } from './api';
 
 const LogList = (props) => {
 
-	const itemPerPage = 10;
-
 	const [logs, setLogs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
@@ -17,6 +15,8 @@ const LogList = (props) => {
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
 	const Toaster = lazy(() => import('../Toaster/Toaster'));
+
+	const itemPerPage = 10;
 
 	// Get log list from API gateway
 	const fetchFirst = async () => {
@@ -69,12 +69,12 @@ const LogList = (props) => {
 	}
 
 	// Get next log list from API gateway
-	const fetchMore = async (timestamp) => {
+	const fetchMore = async (lastTimestamp) => {
 
 		try {
 			// Call API
 			setIsLoading(true);
-			const res = await getNextLogs(timestamp, itemPerPage);
+			const res = await getNextLogs(lastTimestamp, itemPerPage);
 			const fetchedData = await res.json();
 			setIsLoading(false);
 
@@ -137,12 +137,9 @@ const LogList = (props) => {
 	// See more button
 	const seeMoreButton = (lastTimestamp === undefined)
 		? ""
-		: <button
-			className={seeMoreButtonClass}
-			onClick={() => fetchMore(lastTimestamp)}
-			>
-				{seeMoreButtonText}
-			</button>;
+		: <button className={seeMoreButtonClass} onClick={() => fetchMore(lastTimestamp)}>
+			{seeMoreButtonText}
+		</button>;
 
 	// Draw log list
 	return (
