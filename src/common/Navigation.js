@@ -31,6 +31,12 @@ const Navigation = () => {
 		);
 	}
 
+	const searchInput = process.env.NODE_ENV === 'development' ? (
+		<li className="li li--nav-search">
+			<input className="input input--nav-search" placeholder="Search log..." />
+		</li>
+	) : undefined;
+
 	return (
 		<nav className="nav nav--nav-bar">
 			<ul className="ul ul--nav-tabs">
@@ -40,6 +46,7 @@ const Navigation = () => {
 				{logMenu}
 				{fileMenu}
 				{monitorMenu}
+				{searchInput}
 			</ul>
 		</nav>
 	);
