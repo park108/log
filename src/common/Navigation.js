@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from 'react-router-dom';
-import { getUrl, isAdmin } from './common';
+import { getUrl, isAdmin, log } from './common';
   
 const Navigation = () => {
 
@@ -31,9 +31,19 @@ const Navigation = () => {
 		);
 	}
 
-	const searchInput = process.env.NODE_ENV === 'development' ? (
+	const search = (e) => {
+		if(13 === window.event.keyCode) {
+			log("Search String = " + e.target.value);
+		}
+	}
+
+	const searchInput = (process.env.NODE_ENV === 'development') ? (
 		<li className="li li--nav-search">
-			<input className="input input--nav-search" placeholder="Search log..." />
+			<input
+				className="input input--nav-search"
+				placeholder="Search log..."
+				onKeyPress={search}
+			/>
 		</li>
 	) : undefined;
 
