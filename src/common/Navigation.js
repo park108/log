@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from 'react-router-dom';
-import { getUrl, isAdmin, log } from './common';
+import { getUrl, isAdmin } from './common';
+import Search from '../common/Search';
   
 const Navigation = () => {
 
@@ -31,22 +32,6 @@ const Navigation = () => {
 		);
 	}
 
-	const search = (e) => {
-		if(13 === window.event.keyCode) {
-			log("Search String = " + e.target.value);
-		}
-	}
-
-	const searchInput = (process.env.NODE_ENV === 'development') ? (
-		<li className="li li--nav-search">
-			<input
-				className="input input--nav-search"
-				placeholder="Search log..."
-				onKeyPress={search}
-			/>
-		</li>
-	) : undefined;
-
 	return (
 		<nav className="nav nav--nav-bar">
 			<ul className="ul ul--nav-tabs">
@@ -56,7 +41,7 @@ const Navigation = () => {
 				{logMenu}
 				{fileMenu}
 				{monitorMenu}
-				{searchInput}
+				<Search />
 			</ul>
 		</nav>
 	);
