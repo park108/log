@@ -3,14 +3,14 @@ import { log } from './common';
   
 const Search = () => {
 
-	if(process.env.NODE_ENV === 'production') return;
+	if(process.env.NODE_ENV === 'development') return "";
 
 	const search = (e) => {
 		if(13 === window.event.keyCode) {
 			log("Search String = " + e.target.value);
 		}
 	}
-	
+
 	return (
 		<li className="li li--nav-search">
 			<input
