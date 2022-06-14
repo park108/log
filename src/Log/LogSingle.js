@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { log } from '../common/common';
 import { getLog } from './api';
@@ -95,6 +95,14 @@ const LogSingle = (props) => {
 		: ("NO" === hasItem) ? <PageNotFound />
 		: "";
 
+	const navigate = useNavigate();
+
+	// To list button
+	const toListButton = !isLoading ? (
+		<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
+			To list
+		</button>
+	) : "";
 
 	// Draw a single log
 	return (
@@ -118,6 +126,7 @@ const LogSingle = (props) => {
 					completed={() => setIsShowToasterBottom(0)}
 				/>
 			</Suspense>
+			{toListButton}
 		</div>
 	);
 }

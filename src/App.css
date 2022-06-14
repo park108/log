@@ -258,7 +258,7 @@ pre {
 
 .input--nav-search {
 	border: 1px solid var(--normal-border-color);
-	font-size: 1em;
+	/* font-size: 1em; */
 	padding-left: 5px;
 	width: calc(100% - 6px);
 	color: var(--sub-text-color);
