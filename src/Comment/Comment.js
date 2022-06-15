@@ -27,7 +27,6 @@ const Comment = (props) => {
 			setIsLoading(true);
 			const res = await getComments(timestamp, admin);
 			const newData = await res.json();
-			setIsLoading(false);
 
 			// Sort by sortKey
 			newData.body.Items.sort((a, b) => {
@@ -42,6 +41,8 @@ const Comment = (props) => {
 		catch(err) {
 			console.error(err);
 		}
+
+		setIsLoading(false);
 	}
 
 	const newComment = async(comment) => {
