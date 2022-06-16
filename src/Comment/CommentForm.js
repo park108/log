@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from 'prop-types';
 import { isAdmin } from '../common/common';
 
@@ -24,16 +24,22 @@ const CommentForm = (props) => {
 	const changeName = ({target: { value } }) => setUserName(value);
 	const changeIsHidden = ({target: { checked } }) => setIsHidden(checked);
 
+	const userNameRef = useRef(null);
+	const messageRef = useRef(null);
+
 	const postComment = (event) => {
 
 		event.preventDefault();
 
-		if(message.length < 5) {
-			alert("Please comment at least 5 characters.");
+		if(0 === userName.length) {
+			alert("Please input your name.");
+			userNameRef.current.focus();
 			return;
 		}
-		else if(0 === userName.length) {
-			alert("Please input your name.");
+		
+		if(message.length < 5) {
+			alert("Please comment at least 5 characters.");
+			messageRef.current.focus();
 			return;
 		}
 
@@ -58,12 +64,14 @@ const CommentForm = (props) => {
 				<div className="div div--comment-input">
 					<div>
 					<input 
+						ref={userNameRef}
 						type="text"
 						className="input input--comment-name"
 						placeholder="Type your name"
 						onChange={changeName}
 						value={userName}
 						disabled={nameDisabled}
+						autoFocus
 					/>
 					<input
 						type="checkbox"
@@ -74,6 +82,7 @@ const CommentForm = (props) => {
 					<label htmlFor="hidden" className="label label--comment-hidden">Hidden</label>
 					</div>
 					<textarea
+						ref={messageRef}
 						className="textarea textarea--comment-form"
 						placeholder={undefined === commentTimestamp
 							? "Write your comment"
@@ -81,7 +90,6 @@ const CommentForm = (props) => {
 						}
 						value={message}
 						onChange={changeComment}
-						autoFocus
 					/>
 					<button type="submit" className="button button--comment-submit">Submit</button>
 				</div>
