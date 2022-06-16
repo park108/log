@@ -15,6 +15,7 @@ const Comment = (props) => {
 	const [buttonText, setButtonText] = useState("... comments");
 	const [isShow, setIsShow] = useState(false);
 	const [isOpenReplyForm, setIsOpenReplyForm] = useState(false);
+	const [isPosting, setIsPosting] = useState(false);
 
 	const logTimestamp = props.logTimestamp;
 
@@ -43,11 +44,13 @@ const Comment = (props) => {
 		}
 
 		setIsLoading(false);
+		setIsPosting(false);
 	}
 
 	const newComment = async(comment) => {
 
 		try {
+			setIsPosting(true);
 			const res = await postComment(comment);
 
 			if(200 === res.status) {
@@ -116,6 +119,7 @@ const Comment = (props) => {
 		? <CommentForm
 			logTimestamp={logTimestamp}
 			post={newComment}
+			isPosting={isPosting}
 		/>
 		: "";
 

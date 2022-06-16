@@ -113,7 +113,9 @@
 }
 
 .input--comment-name:disabled {
-	color: var(--sub-text-color);
+	color: var(--sub-font-size);
+	background-color: var(--disabled-background-color);
+	font-style: italic;
 }
 
 .input--comment-hidden {
@@ -137,6 +139,11 @@
 	line-height: 1.5em;
 	overflow: auto;
 	resize: none;
+}
+
+.textarea--comment-form:disabled {
+	background-color: var(--disabled-background-color);
+	font-style: italic;
 }
 
 .textarea--comment-reply {

@@ -9,6 +9,7 @@ const CommentForm = (props) => {
 	const [message, setMessage] = useState("");
 	const [userName, setUserName] = useState("");
 	const [isHidden, setIsHidden] = useState(false);
+	const [messageDisabled, setMessageDisabled] = useState("");
 
 	const logTimestamp = props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
@@ -19,6 +20,16 @@ const CommentForm = (props) => {
 			setUserName("Jongkil Park");
 		}
 	}, []);
+
+	useEffect(() => {
+		if(props.isPosting) {
+			setMessageDisabled("disabled");
+		}
+		else {
+			setMessageDisabled("");
+			setMessage("");
+		}
+	}, [props.isPosting]);
 
 	const changeComment = ({ target: { value } }) => setMessage(value);
 	const changeName = ({target: { value } }) => setUserName(value);
@@ -36,7 +47,7 @@ const CommentForm = (props) => {
 			userNameRef.current.focus();
 			return;
 		}
-		
+
 		if(message.length < 5) {
 			alert("Please comment at least 5 characters.");
 			messageRef.current.focus();
@@ -53,10 +64,9 @@ const CommentForm = (props) => {
 		}
 
 		props.post(comment);
-		setMessage("");
 	}
 
-	const nameDisabled = isAdmin() ? "disabled" : "";
+	const nameDisabled = isAdmin()||props.isPosting ? "disabled" : "";
 
 	return (
 		<div className="div div--comment-form">
@@ -89,6 +99,7 @@ const CommentForm = (props) => {
 							: "Write your Reply"
 						}
 						value={message}
+						disabled={messageDisabled}
 						onChange={changeComment}
 					/>
 					<button type="submit" className="button button--comment-submit">Submit</button>
@@ -102,6 +113,7 @@ CommentForm.propTypes = {
 	logTimestamp: PropTypes.number,
 	commentTimestamp: PropTypes.number,
 	post: PropTypes.func,
+	isPosting: PropTypes.bool,
 };
 
 export default CommentForm;

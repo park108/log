@@ -42,6 +42,7 @@
 	--error-background-color: #F49F9C;
 
 	--info-background-color: cornsilk;
+	--disabled-background-color: #FFECB3;
 }
 
 div#root {
