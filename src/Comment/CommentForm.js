@@ -56,6 +56,7 @@ const CommentForm = (props) => {
 		<div className="div div--comment-form">
 			<form onSubmit={postComment}>
 				<div className="div div--comment-input">
+					<div>
 					<input 
 						type="text"
 						className="input input--comment-name"
@@ -70,27 +71,20 @@ const CommentForm = (props) => {
 						className="input input--comment-hidden"
 						onChange={changeIsHidden}
 					/>
-					<label
-						htmlFor="hidden"
-						className="label label--comment-hidden"
-					>
-						hidden
-					</label>
+					<label htmlFor="hidden" className="label label--comment-hidden">Hidden</label>
+					</div>
 					<textarea
 						className="textarea textarea--comment-form"
 						placeholder={undefined === commentTimestamp
-							? "Add your comment"
-							: "Reply the comment"
+							? "Write your comment"
+							: "Write your Reply"
 						}
 						value={message}
 						onChange={changeComment}
 						autoFocus
 					/>
+					<button type="submit" className="button button--comment-submit">Submit</button>
 				</div>
-				<button
-					className="button button--comment-submit"
-					type="submit"
-				>↵</button>
 			</form>
 		</div>
 	);
