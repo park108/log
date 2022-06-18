@@ -123,8 +123,6 @@ const Comment = (props) => {
 		/>
 		: "";
 
-	const commentDivisionLine = isShow && !isOpenReplyForm ? <hr /> : "";
-
 	return (
 		<section className="section section--logitem-comment">
 			<span
@@ -134,7 +132,6 @@ const Comment = (props) => {
 				{buttonText}
 			</span>
 			{commentThread}
-			{commentDivisionLine}
 			{commentForm}
 		</section>
 	);
