@@ -38,11 +38,13 @@
 
 .div--toaster-center {
 	position: fixed;
-	left: 50%;
 	top: 50%;
-	transform: translateX(-50%);
+	left: 50%;
+	transform: translateX(-50%) translateY(-50%);
 	overflow: hidden;
 	line-height: 1em;
+
+	padding: 1em 2em;
 
 	background-color: var(--loading-background-color);
 
@@ -51,8 +53,6 @@
 	border-radius: 10px;
 	border-color: var(--hover-border-color);
 	box-shadow: 0px 0px 10px var(--hover-border-color);
-
-	padding: 1em 3em;
 }
 
 .div--toaster-bottom {
