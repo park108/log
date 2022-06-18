@@ -25,9 +25,9 @@ const App = () => {
 	}
 
 	// Set reload event handler
-	const handleReload = () => {
-		// Clear sessionStorage
-		sessionStorage.clear();
+	const handleReload = (e) => {
+		e.preventDefault();
+		sessionStorage.clear(); // Clear sessionStorage
 	}
 
 	// Set resized height at mount
