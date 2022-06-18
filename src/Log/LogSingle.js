@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { log } from '../common/common';
+import { log, hasValue } from '../common/common';
 import { getLog } from './api';
 import PageNotFound from "../common/PageNotFound";
 
@@ -29,27 +29,25 @@ const LogSingle = (props) => {
 			const fetchedData = await res.json();
 			setIsLoading(false);
 			
-			if(undefined !== fetchedData.errorType) {
+			if(hasValue(fetchedData.errorType)) {
 				console.error(fetchedData);
+				setHasItem("NO"); // Page not found
+				log("No log found.");
+				return;
+			}
+
+			if(0 === fetchedData.body.Count) {
 				setHasItem("NO"); // Page not found
 			}
 			else {
-				log("The log is FETCHED successfully.");
-
-				// Page not found
-				if(0 === fetchedData.body.Count) {
-					setHasItem("NO");
-				}
-
-				// Set log item data
-				else {
-					setData(fetchedData.body.Items[0]);
-					setHasItem("YES");
-				}
+				setData(fetchedData.body.Items[0]);
+				setHasItem("YES");
 			}
+
+			log("The log is FETCHED successfully.");
 		}
 		catch(err) {
-			console.error(err);
+			log(err, "ERROR");
 		}
 	}
 
@@ -95,9 +93,8 @@ const LogSingle = (props) => {
 		: ("NO" === hasItem) ? <PageNotFound />
 		: "";
 
-	const navigate = useNavigate();
-
 	// To list button
+	const navigate = useNavigate();
 	const toListButton = !isLoading ? (
 		<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
 			To list
@@ -126,7 +123,9 @@ const LogSingle = (props) => {
 					completed={() => setIsShowToasterBottom(0)}
 				/>
 			</Suspense>
+
 			{toListButton}
+			
 		</div>
 	);
 }

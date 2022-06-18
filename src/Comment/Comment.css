@@ -130,11 +130,11 @@
 }
 
 .textarea--comment-form {
-	width: calc(100% - 10px);
+	width: calc(100% - 12px);
 	font-size: 1em;
 	height: 5em;
 	border-color: var(--normal-border-color);
-	border-width: 0;
+	border-width: 1px;
 	padding: 5px;
 	line-height: 1.5em;
 	overflow: auto;

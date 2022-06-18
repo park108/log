@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, lazy } from "react";
 import PropTypes from 'prop-types';
 import { Navigate } from 'react-router-dom';
-import { isAdmin, setFullscreen, setTitle } from '../common/common';
+import { isAdmin, setFullscreen, setHtmlTitle } from '../common/common';
 
 import './Monitor.css';
 
@@ -79,7 +79,7 @@ const Monitor = (props) => {
 	
 	// Change width
 	useEffect(() => {
-		setTitle("monitor");
+		setHtmlTitle("monitor");
 		setFullscreen(true); // Enable fullscreen mode at mounted
 		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
 	}, []);

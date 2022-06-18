@@ -81,7 +81,7 @@
 	padding: 10px 16px 10px 16px;
 	word-wrap: break-word;
 	vertical-align: top;
-	background-color: var(--normal-contents-background-color);
+	background-color: var(--normal-background-color);
 }
 
 @media screen and (max-width: 800px) {

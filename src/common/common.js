@@ -1,9 +1,30 @@
-export function setTitle (title) {
-	if (process.env.NODE_ENV === 'production') {
+export const setHtmlTitle = (title) => {
+	if(process.env.NODE_ENV === 'production') {
 		document.title = title + " - park108.net";
 	}
-	else if (process.env.NODE_ENV === 'development') {
+	else if(process.env.NODE_ENV === 'development') {
 		document.title = "[DEV] " + title + " - park108.net";
+	}
+}
+
+export const hasValue = (obj) => {
+	return (undefined !== obj
+		&& null !== obj
+		&& "undefined" !== obj
+		&& "null" !== obj
+	);
+}
+
+export const log = (logText, type = "INFO") => {
+	if (process.env.NODE_ENV === 'production') {
+		// Nothing to do
+	}
+	else if (process.env.NODE_ENV === 'development') {
+		switch(type) {
+			case "INFO": console.log(logText); break;
+			case "ERROR": console.error(logText); break;
+			default: console.log(logText);
+		}
 	}
 }
 
@@ -96,13 +117,7 @@ export function auth() {
 }
 
 export function isLoggedIn() {
-
-	if(undefined === getCookie("access_token")) {
-		return false;
-	}
-	else {
-		return true;
-	}
+	return hasValue(getCookie("access_token"));
 }
 
 // TODO: change user id hard coding to IAM authorization
@@ -126,13 +141,11 @@ export function isAdmin() {
 	return false;
 }
 
-export function convertToHTML (input) {
-
+export function convertToHTML(input) {
 	return input.replace(/(\n|\r\n)/g, "<br />");
 }
 
-export function decodeHTML (input) {
-
+export function decodeHTML(input) {
 	return input.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
 
@@ -244,15 +257,6 @@ export const confirm = (message = "", onConfirm, onCancel) => {
 export const isMobile = () => {
 	let hasTouchPoint = navigator.maxTouchPoints;
 	return hasTouchPoint > 0;
-}
-
-export const log = (wannaLogging) => {
-	if (process.env.NODE_ENV === 'production') {
-		// Nothing to do
-	}
-	else if (process.env.NODE_ENV === 'development') {
-		console.log(wannaLogging);
-	}
 }
 
 export const setFullscreen = (isFullscreen) => {

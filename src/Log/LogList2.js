@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, getFormattedDate } from '../common/common';
+import { log, getFormattedDate, hasValue } from '../common/common';
 import { getLogs, getNextLogs } from './api';
 
 const LogList = (props) => {
@@ -25,46 +25,45 @@ const LogList = (props) => {
 
 		// Get log list from session
 		const listInSession = sessionStorage.getItem("logList");
-		if("undefined" !== listInSession && null !== listInSession) {
+
+		if(hasValue(listInSession)) {
+			
 			setLogs(JSON.parse(listInSession));
 
 			const lastTimestampInSession = sessionStorage.getItem("logListLastTimestamp");
-			if("undefined" !== lastTimestampInSession && null !== lastTimestampInSession) {
+
+			if(hasValue(lastTimestampInSession)) {
 				setLastTimestamp(JSON.parse(lastTimestampInSession));
 			}
 
+			setIsLoading(false);
 			log("Get logs from session.");
 
-			setIsLoading(false);
 			return;
 		}
 
+		// Call API
 		try {
-			// Call API
 			const res = await getLogs(itemPerPage);
 			const fetchedData = await res.json();
+
+			if(hasValue(fetchedData.errorType)) {
+				log(fetchedData, "ERROR");
+				setIsLoading(false);
+				return;
+			}
+
+			const newLogs = fetchedData.body.Items;
+			const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
+
+			setLogs(newLogs);
+			setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
 			setIsLoading(false);
-
-			if(undefined !== fetchedData.errorType) {
-				console.error(fetchedData);
-			}
-			else {
-				// Make data for log list
-				log("Logs are FETCHED successfully.");
-				const newLogs = fetchedData.body.Items;
-
-				// Set log list
-				setLogs(newLogs);
-
-				// Last item
-				setLastTimestamp(undefined === fetchedData.body.LastEvaluatedKey
-					? undefined
-					: fetchedData.body.LastEvaluatedKey.timestamp
-				);
-			}
+			log("Logs are FETCHED successfully.");
 		}
 		catch(err) {
-			console.error(err);
+			log(err, "ERROR");
 		}
 	}
 
@@ -76,28 +75,24 @@ const LogList = (props) => {
 			setIsLoading(true);
 			const res = await getNextLogs(lastTimestamp, itemPerPage);
 			const fetchedData = await res.json();
+
+			if(hasValue(fetchedData.errorType)) {
+				log(fetchedData, "ERROR");
+				setIsLoading(false);
+				return;
+			}
+
+			const newLogs = logs.concat(fetchedData.body.Items);
+			const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
+
+			setLogs(newLogs);
+			setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
 			setIsLoading(false);
-
-			if(undefined !== fetchedData.errorType) {
-				console.error(fetchedData);
-			}
-			else {
-				// Make data for log list
-				log("Next logs are FETCHED successfully.");
-				const newLogs = logs.concat(fetchedData.body.Items);
-
-				// Set log list
-				setLogs(newLogs);
-
-				// Last item
-				setLastTimestamp(undefined === fetchedData.body.LastEvaluatedKey
-					? undefined
-					: fetchedData.body.LastEvaluatedKey.timestamp
-				);
-			}
+			log("Next logs are FETCHED successfully.");
 		}
 		catch(err) {
-			console.error(err);
+			log(err, "ERROR");
 		}
 	}
 
@@ -108,26 +103,22 @@ const LogList = (props) => {
 	useEffect(() => {
 		if(isLoading) {
 			setToasterMessageCenter("Loading logs...");
+			setIsShowToasterCenter(1);
+
 			setSeeMoreButtonText("Loading...");
 			setSeeMoreButtonClass("button button--loglist-seemore button--loglist-seemoreloading");
-			setIsShowToasterCenter(1);
 		}
 		else {
 			setIsShowToasterCenter(2);
+
 			setSeeMoreButtonText("See more");
 			setSeeMoreButtonClass("button button--loglist-seemore");
 		}
 	}, [isLoading]);
 
-	// Set list in local stroage
-	useEffect(() => {
-		sessionStorage.setItem("logList", JSON.stringify(logs));
-	}, [logs]);
-
-	// Set lastTimestamp in local stroage
-	useEffect(() => {
-		sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestamp));
-	}, [lastTimestamp]);
+	// Set fetched data in local stroage
+	useEffect(() => sessionStorage.setItem("logList", JSON.stringify(logs)), [logs]);
+	useEffect(() => sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestamp)), [lastTimestamp]);
 
 	// Cleanup
 	useEffect(() => {
@@ -135,11 +126,11 @@ const LogList = (props) => {
 	}, []);
 
 	// See more button
-	const seeMoreButton = (lastTimestamp === undefined)
-		? ""
-		: <button className={seeMoreButtonClass} onClick={() => fetchMore(lastTimestamp)}>
+	const seeMoreButton = hasValue(lastTimestamp) ? (
+		<button className={seeMoreButtonClass} onClick={() => fetchMore(lastTimestamp)}>
 			{seeMoreButtonText}
-		</button>;
+		</button>
+	) : "";
 
 	// Draw log list
 	return (
@@ -156,8 +147,6 @@ const LogList = (props) => {
 					</div>
 				))}
 			</Suspense>
-				
-			{seeMoreButton}
 
 			<Suspense fallback={<div></div>}>
 				<Toaster 
@@ -166,6 +155,9 @@ const LogList = (props) => {
 					completed={() => setIsShowToasterCenter(0)}
 				/>
 			</Suspense>
+				
+			{seeMoreButton}
+
 		</section>
 	);
 }

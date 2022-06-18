@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, isAdmin, setTitle } from '../common/common';
+import { log, isAdmin, setHtmlTitle } from '../common/common';
 import { postLog, putLog } from './api';
 
 import './Log.css';
@@ -33,20 +33,22 @@ const Log = (props) => {
 			const res = await postLog(newTimestamp, contents);
 
 			if(200 === res.status) {
-				log("A log is POSTED uccessfully.");
 				setIsPostSuccess(true);
 				setToasterMessage("The log posted.");
 				setIsShowToaster(1);
+
 				sessionStorage.clear();
+				log("A log is POSTED uccessfully.");
+
 				navigate("/log/" + newTimestamp);
 			}
 			else {
-				console.error(res);
+				log(res, "ERROR");
 				setIsPostSuccess(false);
 			}
 		}
 		catch(err) {
-			console.error(err);
+			log(err, "ERROR");
 			setIsPostSuccess(false);
 		}
 	}
@@ -70,40 +72,40 @@ const Log = (props) => {
 			const res = await putLog(newItem);
 
 			if(200 === res.status) {
-				log("A log is PUTTED successfully.");
 				setIsPostSuccess(true);			
 				setToasterMessage("The log changed.");
 				setIsShowToaster(1);
+
 				sessionStorage.clear();
+				log("A log is PUTTED successfully.");
+				
 				navigate("/log/" + item.timestamp);
 			}
 			else {
-				console.error(res);
+				log(res, "ERROR");
 				setIsPostSuccess(false);
 			}
 		}
 		catch(err) {
-			console.error(err);
+			log(err, "ERROR");
 			setIsPostSuccess(false);
 		}
 	}
 
 	// Set title at mount
-	useEffect(() => {
-		setTitle("log");
-	}, []);
+	useEffect(() => setHtmlTitle("log"), []);
 	
 	// Make write button
-	const writeButton = isAdmin()
-		? <Link to={{
-				pathname: "/log/write",
-				state: { 
-					from: location.pathname
-				}
-			}}>
-				<button className="button button--log-newlog">+</button>
-			</Link>
-		: null;
+	const writeButton = isAdmin() ? (
+		<Link to={{
+			pathname: "/log/write",
+			state: { 
+				from: location.pathname
+			}
+		}}>
+			<button className="button button--log-newlog">+</button>
+		</Link>
+	) : null;
 
 	// Draw log app.
 	return (
