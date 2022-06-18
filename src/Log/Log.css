@@ -1,19 +1,19 @@
 @import url(../App.css);
 
 .button--log-newlog {
-  font-size: 1em;
-  font-weight: bold;
+	font-size: 1em;
+	font-weight: bold;
 
-  position: fixed;
-  bottom: 4.5em;
-  left: calc(100% - 4em);
+	position: fixed;
+	bottom: 4.5em;
+	left: calc(100% - 4em);
 
-  width: 3em;
-  height: 3em;
-  color: var(--normal-text-color);
-  background-color: var(--normal-background-color);
-  border-radius: 1.5em;
-  z-index: 1;
+	width: 3em;
+	height: 3em;
+	color: var(--normal-text-color);
+	background-color: var(--normal-background-color);
+	border-radius: 1.5em;
+	z-index: 1;
 }
 
 .h1--logitem-title {
@@ -85,16 +85,16 @@
 
 
 .div--logitem-linkmessage {
-  position: absolute;
-  margin-left: 10.5em;
-  margin-top: 2.5em;
-  padding: 0.5em 0.8em;
-  border-radius: 8px;
-  line-height: 1em;
+	position: absolute;
+	margin-left: 10.5em;
+	margin-top: -1.5em;
+	padding: 0.5em 0.8em;
+	border-radius: 8px;
+	line-height: 1em;
 
-  background-color: var(--info-background-color);
+	background-color: var(--info-background-color);
 
-  font-size: var(--info-font-size);
+	font-size: var(--info-font-size);
 }
 
 .div--logitem-versionhistory {
@@ -131,15 +131,12 @@
 }
 
 .button--loglist-seemore {
-  margin-top: 1em;
-  margin-bottom: 1em;
-  margin-left: auto;
-  margin-right: auto;
-  width: 10em;
-  display: block;
-  border-radius: 1.5em;
-  height: 3em;
-  cursor: pointer;
+	margin: 1em auto;
+	padding: 0.5em;
+	width: 10em;
+	display: block;
+	height: 3em;
+	cursor: pointer;
 }
 
 .div--loglist-item {
@@ -150,9 +147,9 @@
 
 .div--loglist-item:hover {
 	background-color: var(--normal-background-color);
-	border-radius: 10px;
 	border: 1px solid var(--hover-border-color);
 	box-shadow: 0px 0px 10px var(--hover-border-color);
+	border-radius: 10px;
 	transition: 0.3s ease;
 }
 

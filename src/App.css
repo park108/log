@@ -194,6 +194,7 @@ pre {
 	border: 1px;
 	border-style: solid;
 	border-color: var(--normal-border-color);
+	border-radius: 10px;
 	background-color: var(--normal-background-color);
 	font-size: 1em;
 	transition: 0.3s ease;

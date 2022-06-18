@@ -69,14 +69,20 @@ const LogSingle = (props) => {
 
 	// Cleanup
 	useEffect(() => {
-		return () => setIsLoading(false);
+		return () => {
+			setIsLoading(false);
+		}
 	}, []);
 
 	// Callback delete item from LogItem
+	const navigate = useNavigate();
 	const afterDelete = () => {
-		fetchData(logTimestamp);
 		setToasterMessageBottom("The log deleted.");
 		setIsShowToasterBottom(1);
+	}
+	const completed = () => {
+		setIsShowToasterBottom(0);
+		navigate("/log/");
 	}
 	
 	// Draw log item
@@ -94,7 +100,6 @@ const LogSingle = (props) => {
 		: "";
 
 	// To list button
-	const navigate = useNavigate();
 	const toListButton = !isLoading ? (
 		<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
 			To list
@@ -119,8 +124,7 @@ const LogSingle = (props) => {
 					position={"bottom"}
 					type={"success"}
 					duration={2000}
-					
-					completed={() => setIsShowToasterBottom(0)}
+					completed={completed}
 				/>
 			</Suspense>
 

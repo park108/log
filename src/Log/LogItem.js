@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, hasValue } from '../common/common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import { deleteLog } from './api';
 import * as parser from '../common/markdownParser';
@@ -17,7 +17,6 @@ const LogItem = (props) => {
 	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
 	const [isShowCopyToClipboardMessage, setIsShowCopyToClipboardMessage] = useState(false);
 
-	const navigate = useNavigate();
 	const item = props.item;
 	const author = props.author;
 	const contents = props.contents;
@@ -34,17 +33,27 @@ const LogItem = (props) => {
 			// Call API
 			const res = await deleteLog(author, timestamp);
 
-			if(200 === res.status) {
-				log("A log is DELETED successfully.");
-				props.deleted();
-				navigate("/log");
+			if(200 !== res.status) {
+				log(res, "ERROR");
+				return;
 			}
-			else {
-				console.error(res);
+
+			// Delete item in session list
+			let currentList = sessionStorage.getItem("logList");
+
+			if(hasValue(currentList)) {
+				currentList = JSON.parse(currentList);
+				const newList = currentList.filter(item => {return item.timestamp !== timestamp});
+				sessionStorage.setItem("logList", JSON.stringify(newList));
 			}
+
+			log("A log is DELETED successfully.");
+			setIsDeleting(false);
+
+			props.deleted();
 		}
 		catch(err) {
-			console.error(err);
+			log(err, "ERROR");
 		}
 	}
 
@@ -54,6 +63,11 @@ const LogItem = (props) => {
 			? setItemClass("article article--main-item article--logitem-delete")
 			: setItemClass("article article--main-item");
 	}, [isDeleting]);
+
+	// Cleanup
+	useEffect(() => {
+		return () => setIsDeleting(false);
+	}, []);
 
 	// Confirm alert to delete
 	const abort = () => log("Deleting aborted");
