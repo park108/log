@@ -11,8 +11,6 @@ const LogItem = lazy(() => import('./LogItem'));
 const ImageSelector = lazy(() => import('../Image/ImageSelector'));
 
 const Writer = (props) => {
-	
-	const location = useLocation();
 
 	const [data, setData] = useState(undefined);
 	const [contents, setContents] = useState("");
@@ -29,6 +27,8 @@ const Writer = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [isShowImageSelector, setIsShowImageSelector] = useState("READY");
+	
+	const location = useLocation();
 	
 	// Change width
 	useEffect(() => {
