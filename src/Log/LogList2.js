@@ -1,7 +1,8 @@
-import React, { useEffect, useState, Suspense, lazy } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { log, getFormattedDate, hasValue } from '../common/common';
+import Toaster from "../Toaster/Toaster";
 import { getLogs, getNextLogs } from './api';
 
 const LogList = (props) => {
@@ -12,8 +13,6 @@ const LogList = (props) => {
 	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-
-	const Toaster = lazy(() => import('../Toaster/Toaster'));
 
 	const itemPerPage = 10;
 
@@ -96,19 +95,18 @@ const LogList = (props) => {
 	}
 
 	// Fetch data at mount
+	useEffect(() => fetchFirst(), []);
 	useEffect(() => fetchFirst(), [props.isPostSuccess]);
 
 	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
-			setIsShowToasterCenter(1);
-
 			setSeeMoreButtonText("Loading...");
 			setSeeMoreButtonClass("button button--loglist-seemore button--loglist-seemoreloading");
+			setIsShowToasterCenter(1);
 		}
 		else {
 			setIsShowToasterCenter(2);
-
 			setSeeMoreButtonText("See more");
 			setSeeMoreButtonClass("button button--loglist-seemore");
 		}
@@ -130,6 +128,8 @@ const LogList = (props) => {
 		</button>
 	) : "";
 
+	console.log(isShowToasterCenter);
+
 	// Draw log list
 	return (
 		<section className="section section--log-list" role="list">
@@ -146,13 +146,10 @@ const LogList = (props) => {
 				))}
 			</Suspense>
 
-			<Suspense fallback={<div></div>}>
-				<Toaster 
-					show={isShowToasterCenter}
-					message={"Loading logs..."}
-					completed={() => setIsShowToasterCenter(0)}
-				/>
-			</Suspense>
+			<Toaster 
+				show={isShowToasterCenter}
+				message={"Loading logs..."}
+			/>
 				
 			{seeMoreButton}
 

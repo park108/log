@@ -81,7 +81,7 @@ const LogSingle = (props) => {
 		setIsShowToasterBottom(1);
 	}
 	const completed = () => {
-		setIsShowToasterBottom(0);
+		setIsShowToasterBottom(2);
 		navigate("/log/");
 	}
 	
@@ -116,7 +116,7 @@ const LogSingle = (props) => {
 				<Toaster 
 					show={isShowToasterCenter}
 					message={toasterMessageCenter}				
-					completed={() => setIsShowToasterCenter(0)}
+					completed={() => setIsShowToasterCenter(2)}
 				/>
 				<Toaster 
 					show={isShowToasterBottom}

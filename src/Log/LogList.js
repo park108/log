@@ -152,7 +152,7 @@ const LogList = (props) => {
 				<Toaster 
 					show={isShowToasterCenter}
 					message={toasterMessageCenter}
-					completed={() => setIsShowToasterCenter(0)}
+					completed={() => setIsShowToasterCenter(2)}
 				/>
 				<Toaster 
 					show={isShowToasterBottom}
@@ -160,7 +160,7 @@ const LogList = (props) => {
 					position={"bottom"}
 					type={"success"}
 					duration={2000}				
-					completed={() => setIsShowToasterCenter(0)}
+					completed={() => setIsShowToasterCenter(2)}
 				/>
 			</Suspense>
 		</div>

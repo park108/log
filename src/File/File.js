@@ -17,8 +17,7 @@ const File = (props) => {
 	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
 	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage ,setToasterMessage] = useState("");
+	const [isShowToaster, setIsShowToaster] = useState(1);
 
 	const contentHeight = props.contentHeight;
 
@@ -88,7 +87,6 @@ const File = (props) => {
 	// Change by upload state
 	useEffect(() => {
 		if(isLoading) {
-			setToasterMessage("Loading files...");
 			setSeeMoreButtonText("Loading...");
 			setSeeMoreButtonClass("button button--file-seemore button--file-seemoreloading");
 			setIsShowToaster(1);
@@ -152,8 +150,8 @@ const File = (props) => {
 				
 			<Toaster 
 				show={isShowToaster}
-				message={toasterMessage}
-				completed={() => setIsShowToaster(0)}
+				message={"Loading files..."}
+				completed={() => setIsShowToaster(2)}
 			/>
 		</main>
 	);

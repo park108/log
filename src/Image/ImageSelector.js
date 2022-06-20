@@ -157,7 +157,7 @@ const ImageSelector = (props) => {
 				position={"bottom"}
 				type={"warning"}
 				duration={2000}				
-				completed={() => setIsShowToaster(0)}
+				completed={() => setIsShowToaster(2)}
 			/>
 		</div>
 	);

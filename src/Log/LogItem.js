@@ -259,8 +259,7 @@ const LogItem = (props) => {
 					position={"bottom"}
 					type={"success"}
 					duration={2000}
-					
-					completed={() => setIsShowToaster(0)}
+					completed={() => setIsShowToaster(2)}
 				/>
 			</Suspense>
 		</article>
