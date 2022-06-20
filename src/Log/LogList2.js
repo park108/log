@@ -7,11 +7,10 @@ import { getLogs, getNextLogs } from './api';
 const LogList = (props) => {
 
 	const [logs, setLogs] = useState([]);
-	const [isLoading, setIsLoading] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
 	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
-	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
-	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
+	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
 	const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -102,7 +101,6 @@ const LogList = (props) => {
 	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
-			setToasterMessageCenter("Loading logs...");
 			setIsShowToasterCenter(1);
 
 			setSeeMoreButtonText("Loading...");
@@ -151,7 +149,7 @@ const LogList = (props) => {
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToasterCenter}
-					message={toasterMessageCenter}
+					message={"Loading logs..."}
 					completed={() => setIsShowToasterCenter(0)}
 				/>
 			</Suspense>

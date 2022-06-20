@@ -77,4 +77,5 @@
 .div--toaster-hide {
 	display: none;
 	visibility: hidden;
+	transition: opacity 0.5s ease;
 }
