@@ -128,8 +128,6 @@ const LogList = (props) => {
 		</button>
 	) : "";
 
-	console.log(isShowToasterCenter);
-
 	// Draw log list
 	return (
 		<section className="section section--log-list" role="list">
