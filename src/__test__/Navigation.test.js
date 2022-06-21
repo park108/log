@@ -5,64 +5,74 @@ import Navigation from '../common/Navigation';
 import * as common from '../common/common';
 
 describe('render navigation menu correctly', () => {
-  
-  const history = createMemoryHistory();
 
-  it('render title menu correctly', () => {
+	const history = createMemoryHistory();
 
-    render(
-      <Router location={history.location} navigator={history}>
-        <Navigation />
-      </Router>
-    );
+	it('render title menu correctly', () => {
 
-    const html = screen.getByText("park108.net").closest('a');
+		history.push({location: {pathname: "/log"}});
 
-    const expected = document.createElement("a");
-    expected.innerHTML = "park108.net";
+		// Mocking login and admin check
+		common.isLoggedIn = jest.fn().mockResolvedValue(false);
+		common.isAdmin = jest.fn().mockResolvedValue(false);
 
-    expect(expected).toStrictEqual(html);
-  });
+		render(
+			<Router location={history.location} navigator={history}>
+				<Navigation />
+			</Router>
+		);
 
-  it('render file menu correctly', () => {
+		const html = screen.getByText("park108.net").closest('a');
 
-    // Mocking login and admin check
-    common.isLoggedIn = jest.fn().mockResolvedValue(true);
-    common.isAdmin = jest.fn().mockResolvedValue(true);
+		const expected = document.createElement("a");
+		expected.innerHTML = "park108.net";
 
-    render(
-      <Router location={history.location} navigator={history}>
-        <Navigation />
-      </Router>
-    );
+		expect(expected).toStrictEqual(html);
+	});
 
-    const html = screen.getByText("file").closest('a');
+	it('render file menu correctly', () => {
 
-    const expected = document.createElement("a");
-    expected.setAttribute("href", "/file");
-    expected.innerHTML = "file";
+		history.push({location: {pathname: "/file"}});
 
-    expect(expected).toStrictEqual(html);
-  });
+		// Mocking login and admin check
+		common.isLoggedIn = jest.fn().mockResolvedValue(true);
+		common.isAdmin = jest.fn().mockResolvedValue(true);
 
-  it('render monitor menu correctly', () => {
+		render(
+			<Router location={history.location} navigator={history}>
+				<Navigation />
+			</Router>
+		);
 
-    // Mocking login and admin check
-    common.isLoggedIn = jest.fn().mockResolvedValue(true);
-    common.isAdmin = jest.fn().mockResolvedValue(true);
+		const html = screen.getByText("file").closest('a');
 
-    render(
-      <Router location={history.location} navigator={history}>
-        <Navigation />
-      </Router>
-    );
+		const expected = document.createElement("a");
+		expected.setAttribute("href", "/file");
+		expected.innerHTML = "file";
 
-    const html = screen.getByText("mon").closest('a');
+		expect(expected).toStrictEqual(html);
+	});
 
-    const expected = document.createElement("a");
-    expected.setAttribute("href", "/monitor");
-    expected.innerHTML = "mon";
+	it('render monitor menu correctly', () => {
 
-    expect(expected).toStrictEqual(html);
-  });
+		history.push({location: {pathname: "/monitor"}});
+
+		// Mocking login and admin check
+		common.isLoggedIn = jest.fn().mockResolvedValue(true);
+		common.isAdmin = jest.fn().mockResolvedValue(true);
+
+		render(
+			<Router location={history.location} navigator={history}>
+				<Navigation />
+			</Router>
+		);
+
+		const html = screen.getByText("mon").closest('a');
+
+		const expected = document.createElement("a");
+		expected.setAttribute("href", "/monitor");
+		expected.innerHTML = "mon";
+
+		expect(expected).toStrictEqual(html);
+	});
 });

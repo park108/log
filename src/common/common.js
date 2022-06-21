@@ -191,27 +191,27 @@ export function getFormattedSize(size) {
 		unit = "bytes";
 	}
 	
-	if(1000 < scaled) {
+	if(1000 <= scaled) {
 		scaled = (scaled / 1000).toFixed(2);
 		unit = "KB";
 	}
 
-	if(1000 < scaled) {
+	if(1000 <= scaled) {
 		scaled = (scaled / 1000).toFixed(2);
 		unit = "MB";
 	}
 
-	if(1000 < scaled) {
+	if(1000 <= scaled) {
 		scaled = (scaled / 1000).toFixed(2);
 		unit = "GB";
 	}
 
-	if(1000 < scaled) {
+	if(1000 <= scaled) {
 		scaled = (scaled / 1000).toFixed(2);
 		unit = "TB";
 	}
 
-	if(1000 < scaled) {
+	if(1000 <= scaled) {
 		scaled = (scaled / 1000).toFixed(1);
 		unit = "PB";
 	}
