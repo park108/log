@@ -30,26 +30,36 @@ const Toaster = (props) => {
 		setTimeout(hideToaster, 1000);
 	}
 
+	const CENTER = "div--toaster-center";
+	const BOTTOM = "div--toaster-bottom";
+
+	const INFO = "div--toaster-information";
+	const SUCCESS = "div--toaster-success";
+	const WARNING = "div--toaster-warning";
+	const ERROR = "div--toaster-error";
+
+	const HIDE = "div--toaster-hide";
+	const FADE_OUT = "div--toaster-fadeout";
+
 	return (
 		<div id={id} className={"div "
 				+ (
-					undefined === position ? "div--toaster-center"
-					: "center" === position ? "div--toaster-center"
-					: "bottom" === position ? "div--toaster-bottom"
-					: ""
+					"center" === position ? CENTER
+					: "bottom" === position ? BOTTOM
+					: CENTER
 				)
 				+ " "
 				+ (
-					undefined === type ? "div--toaster-information"
-					: "information" === type ? "div--toaster-information"
-					: "success" === type ? "div--toaster-success"
-					: "warning" === type ? "div--toaster-warning"
-					: "error" === type ? "div--toaster-error"
-					: ""
-				) + " "
+					"information" === type ? INFO
+					: "success" === type ? SUCCESS
+					: "warning" === type ? WARNING
+					: "error" === type ? ERROR
+					: INFO
+				)
+				+ " "
 				+ (
-					0 === show ? "div--toaster-hide"
-					: 2 === show ? "div--toaster-fadeout"
+					0 === show ? HIDE
+					: 2 === show ? FADE_OUT
 					: ""
 				)
 

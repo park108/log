@@ -8,7 +8,7 @@ import { getLogs, getNextLogs } from './api';
 const LogList = (props) => {
 
 	const [logs, setLogs] = useState([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(false);
 	const [seeMoreButtonText, setSeeMoreButtonText] = useState("See more");
 	const [seeMoreButtonClass, setSeeMoreButtonClass] = useState("button button--loglist-seemore");
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
@@ -18,8 +18,6 @@ const LogList = (props) => {
 
 	// Get log list from API gateway
 	const fetchFirst = async () => {
-
-		setIsLoading(true);
 
 		// Get log list from session
 		const listInSession = sessionStorage.getItem("logList");
@@ -42,6 +40,7 @@ const LogList = (props) => {
 
 		// Call API
 		try {
+			setIsLoading(true);
 			const res = await getLogs(itemPerPage);
 			const fetchedData = await res.json();
 
@@ -95,11 +94,11 @@ const LogList = (props) => {
 	}
 
 	// Fetch data at mount
-	useEffect(() => fetchFirst(), []);
 	useEffect(() => fetchFirst(), [props.isPostSuccess]);
 
 	// Change by loading state
 	useEffect(() => {
+		log("LOADING = " + isLoading)
 		if(isLoading) {
 			setSeeMoreButtonText("Loading...");
 			setSeeMoreButtonClass("button button--loglist-seemore button--loglist-seemoreloading");
