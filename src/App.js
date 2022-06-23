@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from "react";
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import * as common from './common/common';
 import './App.css';
 
@@ -45,16 +45,12 @@ const App = () => {
 		</div>
 	);
 
-	// Redirect default app "log"
-	if("/" === window.location.pathname) {
-		window.location.href = "/log";
-	}
-
 	return (
 		<BrowserRouter>
 			<Suspense fallback={<div></div>}>
 				<Navigation />
 				<Routes>
+					<Route path="/" element={<Navigate replace to="/log"/>} />
 					<Route path="/log/*" element={<Log contentHeight={contentHeight} />} />
 					<Route path="/file" element={<File contentHeight={contentHeight} />} />
 					<Route path="/monitor" element={<Monitor contentHeight={contentHeight} />} />

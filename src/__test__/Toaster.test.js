@@ -56,27 +56,31 @@ it('render error Toaster in bottom', () => {
 
 it('render success Toaster in bottom with duration', () => {
 
-  render(<Toaster 
-    message={"Test message"}
-    position={"bottom"}
-    duration={1000}
-    show={1}
-  />);
+	render(<Toaster 
+		message={"Test message"}
+		position={"bottom"}
+		duration={1000}
+		show={1}
+	/>);
 
-  act(() => {
-    jest.setTimeout(1000);
-    const toaster = screen.getByText("Test message");
-    expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-information ');
-  });
+	act(() => {
+		jest.setTimeout(1000);
+		const toaster = screen.getByText("Test message");
+		expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-information ');
+	});
 });
 
 it('render success Toaster faded out', () => {
-  render(<Toaster 
-    message={"Test message"}
-    position={"bottom"}
-    type={"success"}
-    show={2}
-  />);
-  const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
+	render(<Toaster 
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		show={2}
+	/>);
+
+	act(() => {
+		jest.setTimeout(1000);
+		const toaster = screen.getByText("Test message");
+		expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
+	});
 });

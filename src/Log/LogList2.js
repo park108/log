@@ -98,7 +98,6 @@ const LogList = (props) => {
 
 	// Change by loading state
 	useEffect(() => {
-		log("LOADING = " + isLoading)
 		if(isLoading) {
 			setSeeMoreButtonText("Loading...");
 			setSeeMoreButtonClass("button button--loglist-seemore button--loglist-seemoreloading");
