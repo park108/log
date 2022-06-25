@@ -73,6 +73,6 @@ it('render visitor monitor', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("06.18 (Sat)", {}, { timeout: 0});
+	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
 	expect(obj).toBeInTheDocument();
 });
