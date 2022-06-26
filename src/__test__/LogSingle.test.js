@@ -32,7 +32,7 @@ it('render LogSingle', async () => {
 	await getLog("1656034616036");
 
 	const history = createMemoryHistory();
-	history.push({location: {pathname: "/og"}});
+	history.push({location: {pathname: "/log"}});
 
 	render(
 		<Router location={history.location} navigator={history}>
