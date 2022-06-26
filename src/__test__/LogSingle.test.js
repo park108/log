@@ -5,6 +5,7 @@ import LogSingle from '../Log/LogSingle';
 import { getLog } from '../Log/api';
 
 const unmockedFetch = global.fetch;
+console.error = jest.fn();
 
 it('render LogSingle', async () => {
 	

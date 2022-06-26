@@ -63,6 +63,8 @@ it('render visitor monitor', async () => {
 	const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
 	const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
 
+	process.env.NODE_ENV = 'production';
+
 	const res = await getVisitors(toTimestamp, fromTimestamp);
 	const data = await res.json();
 	expect(data.body.periodData.Items.length).toBe(2);

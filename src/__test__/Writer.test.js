@@ -4,6 +4,8 @@ import Writer from '../Log/Writer';
 import { Router } from 'react-router-dom';
 import * as common from '../common/common';
 
+console.error = jest.fn();
+
 it('render empty text area correctly', () => {
   
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);

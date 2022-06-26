@@ -1,12 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import App from '../App';
 
-// beforeAll(() => {
-// 	delete window.location;
-// 	window.location = {
-// 		href: '/log',
-// 	};
-// });
+console.error = jest.fn();
 
 it('render title text "park108.net" correctly', async () => {
 	render(<App />);

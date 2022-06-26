@@ -6,7 +6,7 @@ const Search = () => {
 	if(process.env.NODE_ENV === 'production') return "";
 
 	const search = (e) => {
-		console.log("Key Code = " + window.event.keyCode);
+		log("Key Code = " + window.event.keyCode);
 		if(13 === window.event.keyCode) {
 			log("Search String = " + e.target.value);
 		}

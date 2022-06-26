@@ -1,5 +1,7 @@
 import * as common from '../common/common';
 
+console.error = jest.fn();
+
 describe('set HTML page title', () => {
   
 	it("dev title", () => {
@@ -69,24 +71,22 @@ describe('handling cookie correctly', () => {
 });
 
 it('test auth', () => {
-  let location;
-  const mockLocation = new URL("http://localhost:3000?access_token=12345#id_token=12345&abcde=abcde");
 
-  location = window.location;
-  mockLocation.replace = jest.fn();
-  // You might need to mock other functions as well
-  // location.assign = jest.fn();
-  // location.reload = jest.fn();
-  delete window.location;
-  window.location = mockLocation;
+	let currentLocation = window.location; // Backup current location
 
-  process.env.NODE_ENV = "development";
-  const spyFn = jest.spyOn(common, "auth");
-  common.auth();
+	const mockLocation = new URL("http://localhost:3000");
+	mockLocation.replace = jest.fn();
+	mockLocation.href += "?abcde=abcde&access_token=12345#id_token=67890&abcdef=abcdef";
+	delete window.location;
+	window.location = mockLocation;
 
-  expect(spyFn).toBeCalled();
+	process.env.NODE_ENV = "development";
+	common.auth();
 
-  window.location = location;
+	process.env.NODE_ENV = "production";
+	common.auth();
+
+	window.location = currentLocation; // Rollback location
 });
 
 describe('login test', () => {

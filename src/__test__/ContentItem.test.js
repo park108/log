@@ -45,6 +45,8 @@ it('render content item monitor', async () => {
 	const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
 	const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
 
+	process.env.NODE_ENV = 'development';
+	
 	const res = await getContentItemCount("content/log", from, to);
 	const data = await res.json();
 	expect(data.body.Items.length).toBe(5);

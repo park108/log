@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Search from '../Search/Search';
 
+console.log = jest.fn();
+
 it('Did not open production yet', () => {
 	process.env.NODE_ENV = 'production';
 	render(<Search />);
