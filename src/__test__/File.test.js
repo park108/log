@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
 import File from '../File/File';
-import { getFiles } from '../File/api';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
