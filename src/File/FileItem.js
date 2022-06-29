@@ -68,7 +68,7 @@ const FileItem = (props) => {
 	return (
 		<div className={itemClass} role="listitem">
 			<div className="div div--fileitem-fileinfo">
-				<div className="div div--fileitem-filename" onClick={copyToClipboard} >
+				<div className="div div--fileitem-filename" role="button" onClick={copyToClipboard} >
 					{props.fileName}
 				</div>
 				<div className="div div--fileitem-statusbar">
@@ -82,7 +82,7 @@ const FileItem = (props) => {
 						{(props.size * 1).toLocaleString()} bytes
 					</span>
 					<span className="span span--fileitem-toolbar">
-						<span onClick={confirmDelete} className="span span--fileitem-delete">✕</span>
+						<span onClick={confirmDelete} className="span span--fileitem-delete" role="button">✕</span>
 					</span>
 				</div>
 			</div>
@@ -91,8 +91,7 @@ const FileItem = (props) => {
 				message={toasterMessage}
 				position={"bottom"}
 				type={"success"}
-				duration={2000}
-				
+				duration={2000}				
 				completed={() => setIsShowToaster(2)}
 			/>
 		</div>
