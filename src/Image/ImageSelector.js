@@ -25,7 +25,6 @@ const ImageSelector = (props) => {
 		try {
 			const res = await getImages();
 			const retrieved = await res.json();
-			console.log(JSON.stringify(retrieved))
 
 			if(undefined !== retrieved.errorType) {
 				console.error(retrieved);

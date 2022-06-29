@@ -35,6 +35,7 @@ const ImageItem = (props) => {
 	// Draw image item
 	return (
 		<img className="img img--image-imageitem"
+			data-testid="imageItem"
 			src={thumbnailUrl}
 			alt={fileName}
 			imageurl={imageUrl}

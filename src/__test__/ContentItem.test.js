@@ -3,6 +3,7 @@ import ContentItem from '../Monitor/ContentItem';
 import { getContentItemCount } from '../Monitor/api';
 
 const unmockedFetch = global.fetch;
+console.log = jest.fn();
 
 beforeAll(() => {
 	global.fetch = () =>

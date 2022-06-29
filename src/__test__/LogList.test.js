@@ -6,7 +6,7 @@ import { getLogs } from '../Log/api';
 
 const unmockedFetch = global.fetch;
 
-describe('test fetch and next fetc', () => {
+describe('test fetch log list', () => {
 
 	it('render logs correctly', async () => {
 		
