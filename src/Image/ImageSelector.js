@@ -118,7 +118,7 @@ const ImageSelector = (props) => {
 
 	// Draw Image Selector
 	return (
-		<div className={imageSelectorClass} >
+		<div className={imageSelectorClass} role="list">
 			
 			{loading}
 
@@ -143,6 +143,7 @@ const ImageSelector = (props) => {
 					: undefined === lastTimestamp ? undefined
 					: (
 						<div
+							role="button"
 							className="div div--image-seemorebutton"
 							onClick={() => fetchMore(lastTimestamp)}
 						>

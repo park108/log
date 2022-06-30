@@ -1,9 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import ImageSelector from '../Image/ImageSelector';
-import { getImages } from '../Image/api';
+import { getImages, getNextImages } from '../Image/api';
+import userEvent from '@testing-library/user-event';
 
 const unmockedFetch = global.fetch;
-console.error = jest.fn();
+// console.error = jest.fn();
 
 it('render image selector loading images correctly', async () => {
 	global.fetch = () =>
@@ -53,10 +54,23 @@ it('render image selector loading images and hide correctly', async () => {
 		}),
 	});
 
+	process.env.NODE_ENV = 'development';
 	getImages();
 
-	render(<ImageSelector show={"HIDE"} />);
-	expect(await screen.findByRole("alert", {}, { timeout: 0 })).toBeInTheDocument();
+	render(<ImageSelector show={"SHOW"} />);
+	const list = await screen.findByRole("list", {}, { timeout: 0 });
+	expect(list).toBeInTheDocument();
+
+	const seeMoreButton = screen.getByRole("button");
+	expect(seeMoreButton).toBeDefined();
+
+	userEvent.click(seeMoreButton);
+	const imageItems = await screen.findAllByRole("listitem", {}, { timeout: 0 });
+	expect(imageItems).toBeDefined();
+
+	document.execCommand = jest.fn();
+	userEvent.click(imageItems[0]); // enlarge
+	userEvent.click(imageItems[0]); // shrink and copy url
 
 	global.fetch = unmockedFetch;
 });
@@ -68,13 +82,21 @@ it('render if it fetched error', async () => {
 		json: () => Promise.resolve({
 			errorType: "404"
 		}),
-	})
+	});
 
-	getImages();
-
+	process.env.NODE_ENV = 'production';
+	await getImages();
 	render(<ImageSelector show={"SHOW"} />);
 
 	expect(await screen.findByRole("alert", {}, { timeout: 0 })).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;
 });
+
+// it('render if API is down', async () => {
+	
+// 	global.fetch = () => Promise.reject("API is down");
+// 	await getImages();
+
+// 	global.fetch = unmockedFetch;
+// });

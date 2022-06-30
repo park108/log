@@ -36,6 +36,7 @@ const ImageItem = (props) => {
 	return (
 		<img className="img img--image-imageitem"
 			data-testid="imageItem"
+			role="listitem"
 			src={thumbnailUrl}
 			alt={fileName}
 			imageurl={imageUrl}
