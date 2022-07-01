@@ -4,7 +4,7 @@ import { getImages, getNextImages } from '../Image/api';
 import userEvent from '@testing-library/user-event';
 
 const unmockedFetch = global.fetch;
-// console.error = jest.fn();
+console.error = jest.fn();
 
 it('render image selector loading images correctly', async () => {
 	global.fetch = () =>
@@ -92,11 +92,3 @@ it('render if it fetched error', async () => {
 
 	global.fetch = unmockedFetch;
 });
-
-// it('render if API is down', async () => {
-	
-// 	global.fetch = () => Promise.reject("API is down");
-// 	await getImages();
-
-// 	global.fetch = unmockedFetch;
-// });
