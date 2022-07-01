@@ -108,6 +108,7 @@ const File = (props) => {
 		? ""
 		: (
 			<button
+				data-testId="seeMoreButton"
 				className={seeMoreButtonClass}
 				onClick={() => fetchMore(lastTimestamp)}
 			>

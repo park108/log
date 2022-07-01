@@ -43,6 +43,7 @@ const LogList = (props) => {
 			setIsLoading(true);
 			const res = await getLogs(itemPerPage);
 			const fetchedData = await res.json();
+			console.log(fetchedData);
 
 			if(hasValue(fetchedData.errorType)) {
 				log(fetchedData, "ERROR");
@@ -121,7 +122,11 @@ const LogList = (props) => {
 
 	// See more button
 	const seeMoreButton = hasValue(lastTimestamp) ? (
-		<button className={seeMoreButtonClass} onClick={() => fetchMore(lastTimestamp)}>
+		<button
+			data-testId="seeMoreButton"
+			className={seeMoreButtonClass}
+			onClick={() => fetchMore(lastTimestamp)}
+		>
 			{seeMoreButtonText}
 		</button>
 	) : "";

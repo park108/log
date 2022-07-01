@@ -5,7 +5,9 @@ import LogSingle from '../Log/LogSingle';
 import { getLog } from '../Log/api';
 
 const unmockedFetch = global.fetch;
+console.log = jest.fn();
 console.error = jest.fn();
+const errorMessage = "API is down";
 
 it('render LogSingle', async () => {
 	
@@ -30,6 +32,7 @@ it('render LogSingle', async () => {
 		}),
 	})
 
+	process.env.NODE_ENV = 'production';
 	await getLog("1656034616036");
 
 	const history = createMemoryHistory();
@@ -56,6 +59,7 @@ it('render "Page Not Found" page if it cannot fetch', async () => {
 		}),
 	})
 
+	process.env.NODE_ENV = 'development';
 	await getLog("1656034616036");
 
 	const history = createMemoryHistory();
@@ -97,6 +101,23 @@ it('render "Page Not Found" page if it has no log', async () => {
 
 	const obj = await screen.findByText("Page Not Found.", {}, { timeout: 0});
 	expect(obj).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
+});
+
+it('render "Page Not Found" page if API is down', async () => {
+
+	// fetchFirst -> Server error
+	global.fetch = () => Promise.reject(errorMessage);
+
+	const history = createMemoryHistory();
+	history.push({location: {pathname: "/log"}});
+
+	render(
+		<Router location={history.location} navigator={history}>
+			<LogSingle />
+		</Router>
+	);
 
 	global.fetch = unmockedFetch;
 });

@@ -103,7 +103,7 @@ const Log = (props) => {
 				from: location.pathname
 			}
 		}}>
-			<button className="button button--log-newlog">+</button>
+			<button role="button" className="button button--log-newlog">+</button>
 		</Link>
 	) : null;
 

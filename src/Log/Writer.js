@@ -257,6 +257,7 @@ const Writer = (props) => {
 				<div className="div div--writer-editbox">
 					<textarea
 						id="textarea--writer-article"
+						data-testId="writer-text-area"
 						className="textarea textarea--writer-article auto-expand"
 						type="text"
 						name="article"
