@@ -3,10 +3,13 @@ import WebVitalsItem from '../Monitor/WebVitalsItem';
 import { getWebVitals } from '../Monitor/api';
 
 const unmockedFetch = global.fetch;
+console.log = jest.fn();
+console.error = jest.fn();
+const errorMessage = "API is down";
 
-beforeAll(() => {
-	global.fetch = () =>
-		Promise.resolve({
+it('render web vitals monitor', async () => {
+
+	global.fetch = () => Promise.resolve({
 		json: () => Promise.resolve({
 			body: {
 				Count: 3,
@@ -43,21 +46,42 @@ beforeAll(() => {
 				ScannedCount: 12725
 			}
 		}),
-	})
-});
-
-afterAll(() => {
-	global.fetch = unmockedFetch;
-});
-
-it('render web vitals monitor', async () => {
-
-	const res = await getWebVitals("CLS");
-	const data = await res.json();
-	expect(data.body.Items.length).toBe(4);
+	});
 
 	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
 	const obj = await screen.findByText("POOR", {}, { timeout: 0});
 	expect(obj).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
+});
+
+it('render web vitals monitor when fetch failed', async () => {
+	
+	// fetchFirst -> return error
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			errorType: "404"
+		}),
+	});
+
+	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+
+	const obj = await screen.findByText("CLS", {}, { timeout: 0});
+	expect(obj).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
+});
+
+it('render web vitals if API is down', async () => {
+
+	// fetchFirst -> Server error
+	global.fetch = () => Promise.reject(errorMessage);
+
+	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+
+	const obj = await screen.findByText("CLS", {}, { timeout: 0});
+	expect(obj).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
 });

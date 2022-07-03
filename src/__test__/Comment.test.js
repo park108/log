@@ -3,11 +3,13 @@ import userEvent from '@testing-library/user-event';
 import Comment from '../Comment/Comment';;
 import CommentForm from '../Comment/CommentForm';
 import CommentItem from '../Comment/CommentItem';
-import { getComments, postComment } from '../Comment/api';
+import { postComment } from '../Comment/api';
 
 const unmockedFetch = global.fetch;
+console.log = jest.fn();
+console.error = jest.fn();
 
-it('render comment button text correctly', async () => {
+it('render comment list correctly', async () => {
 	
 	global.fetch = () =>
 		Promise.resolve({
@@ -31,10 +33,24 @@ it('render comment button text correctly', async () => {
 		}),
 	});
 
-	await getComments(1655302060414, true);
+	render(<Comment timestamp={1655302060414} />);
+	const togglebutton = await screen.findByText("10 comments", {}, { timeout: 0});
+	expect(togglebutton).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
+});
+
+it('render comment list if it has error', async () => {
+	
+	// fetchData -> return error
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			errorType: "404"
+		}),
+	});
 
 	render(<Comment timestamp={1655302060414} />);
-	const togglbutton = await screen.findByText("10 comments", {}, { timeout: 0});
+	const togglbutton = await screen.findByText("Add a comment", {}, { timeout: 0});
 	expect(togglbutton).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;

@@ -188,7 +188,7 @@ const LogItem = (props) => {
 				separator = <span className="span span--logitem-separator">|</span>;
 
 				version = (
-					<span
+					<span role="button"
 						className="span span--logitem-version"
 						onClick={() => setIsShowVersionHistory(!isShowVersionHistory)}
 					>
@@ -198,11 +198,11 @@ const LogItem = (props) => {
 
 				editButton = (
 					<Link to="/log/write" state={{from: item}}>
-						<span className="span span--logitem-toolbarmenu">Edit</span>
+						<span role="button" className="span span--logitem-toolbarmenu">Edit</span>
 					</Link>
 				);
 
-				deleteButton = <span className="span span--logitem-toolbarmenu" onClick={confirmDelete}>Delete</span>;
+				deleteButton = <span role="button" className="span span--logitem-toolbarmenu" onClick={confirmDelete}>Delete</span>;
 			}
 		}
 

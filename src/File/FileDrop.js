@@ -135,6 +135,7 @@ const FileDrop = (props) => {
 	// Draw dropzone
 	return (
 		<div className={dropzoneStyle}
+			data-testid="dropzone"
 			onDragOver={(e) => e.preventDefault()}
 			onDragEnter={(e) => handleDragEnter(e)}
 			onDragLeave={(e) => handleDragLeave(e)}

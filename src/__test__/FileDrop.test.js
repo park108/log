@@ -1,8 +1,87 @@
 import { render, screen } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom'
 import FileDrop from '../File/FileDrop';
 
-it('render dropzone text "Drop files here!" correctly', () => {
-  render(<FileDrop />);
-  const title = screen.getByText("Drop files here!");
-  expect(title).toBeInTheDocument();
+function isElement(obj) {
+	if (typeof obj !== 'object') {
+	  return false
+	}
+	let prototypeStr, prototype
+	do {
+	  prototype = Object.getPrototypeOf(obj)
+	  // to work in iframe
+	  prototypeStr = Object.prototype.toString.call(prototype)
+	  // '[object Document]' is used to detect document
+	  if (
+		prototypeStr === '[object Element]' ||
+		prototypeStr === '[object Document]'
+	  ) {
+		return true
+	  }
+	  obj = prototype
+	  // null is the terminal of object
+	} while (prototype !== null)
+	return false
+  }
+  
+  function getElementClientCenter(element) {
+	const {left, top, width, height} = element.getBoundingClientRect()
+	return {
+	  x: left + width / 2,
+	  y: top + height / 2,
+	}
+  }
+  
+  const getCoords = charlie =>
+	isElement(charlie) ? getElementClientCenter(charlie) : charlie
+  
+  const sleep = ms =>
+	new Promise(resolve => {
+	  setTimeout(resolve, ms)
+	})
+  
+  export default async function drag(
+	element,
+	{to: inTo, delta, steps = 20, duration = 500},
+  ) {
+	const from = getElementClientCenter(element)
+	const to = delta
+	  ? {
+		  x: from.x + delta.x,
+		  y: from.y + delta.y,
+		}
+	  : getCoords(inTo)
+  
+	const step = {
+	  x: (to.x - from.x) / steps,
+	  y: (to.y - from.y) / steps,
+	}
+  
+	const current = {
+	  clientX: from.x,
+	  clientY: from.y,
+	}
+  
+	fireEvent.mouseEnter(element, current)
+	fireEvent.mouseOver(element, current)
+	fireEvent.mouseMove(element, current)
+	fireEvent.mouseDown(element, current)
+	for (let i = 0; i < steps; i++) {
+	  current.clientX += step.x
+	  current.clientY += step.y
+	  await sleep(duration / steps)
+	  fireEvent.mouseMove(element, current)
+	}
+	fireEvent.mouseUp(element, current)
+  }
+
+it('render drop zone correctly', async () => {
+
+	render(<FileDrop />);
+	const dropZone = screen.getByTestId("dropzone");
+	expect(dropZone).toBeInTheDocument();
+
+	await drag(dropZone, {
+		delta: {x: 10, y: 10},
+	});
 });
