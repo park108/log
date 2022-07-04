@@ -165,7 +165,13 @@ const LogItem = (props) => {
 				>
 					<LinkButton />
 					<span className="hidden--width-640px">
-						<a href={linkUrl} onClick={copyToClipboard} className="a a--logitem-loglink">
+						<a
+							role="button"
+							data-testid="link-copy-button"
+							href={linkUrl}
+							onClick={copyToClipboard}
+							className="a a--logitem-loglink"
+						>
 							{linkUrl}
 						</a>
 					</span>
@@ -188,7 +194,9 @@ const LogItem = (props) => {
 				separator = <span className="span span--logitem-separator">|</span>;
 
 				version = (
-					<span role="button"
+					<span
+						role="button"
+						data-testid="versions-button"
 						className="span span--logitem-version"
 						onClick={() => setIsShowVersionHistory(!isShowVersionHistory)}
 					>
@@ -198,11 +206,26 @@ const LogItem = (props) => {
 
 				editButton = (
 					<Link to="/log/write" state={{from: item}}>
-						<span role="button" className="span span--logitem-toolbarmenu">Edit</span>
+						<span
+							role="button"
+							data-testid="edit-button"
+							className="span span--logitem-toolbarmenu"
+						>
+							Edit
+						</span>
 					</Link>
 				);
 
-				deleteButton = <span role="button" className="span span--logitem-toolbarmenu" onClick={confirmDelete}>Delete</span>;
+				deleteButton = (
+					<span
+						role="button"
+						data-testid="delete-button"
+						className="span span--logitem-toolbarmenu"
+						onClick={confirmDelete}
+					>
+						Delete
+					</span>
+				);
 			}
 		}
 
