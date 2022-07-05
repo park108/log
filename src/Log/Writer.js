@@ -210,6 +210,8 @@ const Writer = (props) => {
 
 		return (
 			<span
+				role="button"
+				data-testid="img-selector-button"
 				className="span span--writer-statusbarbutton"
 				onClick={changeMode}
 			>
@@ -222,6 +224,8 @@ const Writer = (props) => {
 
 		return (
 			<span
+				role="button"
+				data-testid="mode-button"
 				onClick={() => setIsConvertedHTML(!isConvertedHTML)}
 				className="span span--writer-statusbarbutton"
 			>
@@ -287,6 +291,8 @@ const Writer = (props) => {
 					</label>
 
 					<button
+						role="button"
+						data-testid="img-button"
 						className="button button--writer-mdcopy"
 						value="img"
 						onClick={copyToMDString}
@@ -295,6 +301,8 @@ const Writer = (props) => {
 					</button>
 
 					<button
+						role="button"
+						data-testid="a-button"
 						className="button button--writer-mdcopy"
 						value="a"
 						onClick={copyToMDString}
@@ -304,6 +312,8 @@ const Writer = (props) => {
 				</div>
 					
 				<button
+					role="button"
+					data-testid="submit-button"
 					className="button button--writer-submit"
 					type="submit"
 					disabled={disabled}
