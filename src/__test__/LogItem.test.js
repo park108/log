@@ -133,16 +133,17 @@ it('render log item and delete correctly', async () => {
 			/>
 		</Router>
 	);
-
+	
+	jest.useFakeTimers();
 	window.confirm = jest.fn(() => true);	
+
 	const deleteButton = screen.getByTestId("delete-button");
 	expect(deleteButton).toBeDefined();
 	userEvent.click(deleteButton);
 
-	// TODO: after delete test
-	// const afterDelete = await screen.findByTestId("delet1e-button");
-	// expect(afterDelete).toBeDefined();
-
+	jest.runOnlyPendingTimers();
+	
+	jest.useRealTimers();
 	sessionStorage.clear();
 	global.fetch = unmockedFetch;
 });
