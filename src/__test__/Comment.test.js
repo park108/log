@@ -56,14 +56,11 @@ it('render comment list if it has error', async () => {
 	global.fetch = unmockedFetch;
 });
 
-it('test call posting method', async () => {
+it('call posting method', async () => {
 	
-	global.fetch = () =>
-		Promise.resolve({
+	global.fetch = () => Promise.resolve({
 		json: () => Promise.resolve({
-			res: {
-				result: 200
-			}
+			result: 200
 		})
 	});
 

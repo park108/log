@@ -170,7 +170,6 @@ const LogItem = (props) => {
 							role="button"
 							data-testid="link-copy-button"
 							href={linkUrl}
-							onClick={copyToClipboard}
 							className="a a--logitem-loglink"
 						>
 							{linkUrl}

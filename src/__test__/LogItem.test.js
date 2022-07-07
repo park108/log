@@ -3,19 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
 import LogItem from '../Log/LogItem';
-import * as api from '../Log/api';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
-// console.log = jest.fn();
+console.log = jest.fn();
 console.error = jest.fn();
-
-const mockedUsedNavigate = jest.fn();
-
-jest.mock('react-router-dom', () => ({
-	...jest.requireActual('react-router-dom'),
-	useNavigate: () => mockedUsedNavigate,
-}));
 
 it('render log item correctly', async () => {
 
@@ -50,24 +42,17 @@ it('render log item correctly', async () => {
 			/>
 		</Router>
 	);
-  
-	const html = screen.getByText(contents).closest('h2');
-
-	const expected = document.createElement("h2");
-	expected.innerHTML = contents;
-
-	expect(expected).toStrictEqual(html);
 	
 	// Button click tests
-	const linkCopyButton = screen.getByTestId("link-copy-button");
+	const linkCopyButton = await screen.findByTestId("link-copy-button");
 	expect(linkCopyButton).toBeDefined();
 	userEvent.click(linkCopyButton);
 
-	const versionsButton = screen.getByTestId("versions-button");
+	const versionsButton = await screen.findByTestId("versions-button");
 	expect(versionsButton).toBeDefined();
 	userEvent.click(versionsButton);
 
-	const editButton = screen.getByTestId("edit-button");
+	const editButton = await screen.findByTestId("edit-button");
 	expect(editButton).toBeDefined();
 	userEvent.click(editButton);
 });
@@ -116,6 +101,7 @@ it('render log item and delete correctly', async () => {
 
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
+	// common.hasValue = jest.fn().mockResolvedValue(true);
 
 	process.env.NODE_ENV = 'development';
 
@@ -145,6 +131,62 @@ it('render log item and delete correctly', async () => {
 	
 	jest.useRealTimers();
 	sessionStorage.clear();
+	global.fetch = unmockedFetch;
+});
+
+it('render log item and delete failed correctly', async () => {
+		
+	// deleteLogItem -> failed
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			status: 404
+		}),
+	});
+
+	const contents = "header test contents";
+	const markdownText = "## " + contents;
+
+	const item = {
+		"logs":[
+			{"contents":markdownText,"timestamp":1655737033793}
+			,{"contents":"12345","timestamp":1655736946977}
+		]
+		,"summary":"123456"
+		,"sortKey":1655736946977
+		,"timestamp":1655736946977
+		,"author":"park108@gmail.com"
+	}
+
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+
+	process.env.NODE_ENV = 'production';
+
+	const history = createMemoryHistory();
+	history.push({location: {pathname: "/log"}});
+
+	render(
+		<Router location={history.location} navigator={history}>
+			<LogItem 
+				author={"park108@gmail.com"}
+				timestamp={1655736946977}
+				contents={markdownText}
+				item={item}
+				showLink={true}
+			/>
+		</Router>
+	);
+	
+	jest.useFakeTimers();
+	window.confirm = jest.fn(() => true);	
+
+	const deleteButton = await screen.findByTestId("delete-button");
+	expect(deleteButton).toBeDefined();
+	userEvent.click(deleteButton);
+
+	jest.runOnlyPendingTimers();
+	
+	jest.useRealTimers();
 	global.fetch = unmockedFetch;
 });
 
