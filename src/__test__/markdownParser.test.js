@@ -17,6 +17,12 @@ describe('MD parsing test', () => {
 		expect(result).toBe("<pre>Pre<br />Test<br /></pre>");
 	});
 
+	it("test parsing PRE and Text", () => {
+		const result = parser.markdownToHtml("```\nPre\nTest\n```\nText");
+		expect(result).toBe("<pre>Pre<br />Test<br /></pre><p>Text</p>");
+	});
+
+
 	it("test parsing HR", () => {
 		const result = parser.markdownToHtml("---");
 		expect(result).toBe("<hr />");
@@ -28,13 +34,13 @@ describe('MD parsing test', () => {
 	});
 
 	it("test parsing OL", () => {
-		const result = parser.markdownToHtml("1. item1\n2. item2");
-		expect(result).toBe("<ol><li> item1</li><li> item2</li></ol>");
+		const result = parser.markdownToHtml("1. item1\n2. item2\n11. item11\n123Common Text\n1.Has Not Space After Dot");
+		expect(result).toBe("<ol><li> item1</li><li> item2</li><li> item11</li></ol><p>123Common Text</p><p>1.Has Not Space After Dot</p>");
 	});
 
-	it("test parsing UL", () => {
-		const result = parser.markdownToHtml("- item1\n- item2");
-		expect(result).toBe("<ul><li>item1</li><li>item2</li></ul>");
+	it("test parsing UL and Text", () => {
+		const result = parser.markdownToHtml("- item1\n- item2\nCommon Text");
+		expect(result).toBe("<ul><li>item1</li><li>item2</li></ul><p>Common Text</p>");
 	});
 
 	it("test parsing IMG", () => {

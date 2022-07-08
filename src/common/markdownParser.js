@@ -146,6 +146,9 @@ export function markdownToHtml (input) {
 						, {type: "tag", text: "</li>", itemOf: "ol"});
 					break;
 				}
+				else {
+					break;
+				}
 			}
 		}
 		index++;
