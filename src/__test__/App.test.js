@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import App from '../App';
+import * as common from '../common/common';
 
 console.error = jest.fn();
 
@@ -48,4 +50,35 @@ it('reload page', () => {
 it('redirect page', () => {
 
 	render(<App />);
+});
+
+describe('click login button', () => {
+
+	it("test logout", async () => {
+	
+		common.isLoggedIn = jest.fn().mockResolvedValue(true);
+		common.isAdmin = jest.fn().mockResolvedValueOnce(true);
+
+		render(<App />);
+
+		const logoutButton = await screen.findByTestId("logout-button");
+		expect(logoutButton).toBeInTheDocument();
+		expect(logoutButton.getAttribute("class")).toBe("span span--login-loggedin");
+
+		userEvent.click(logoutButton);
+	});
+
+	it("test login", async () => {
+
+		common.isLoggedIn = jest.fn().mockResolvedValueOnce(false);
+		common.isAdmin = jest.fn().mockResolvedValueOnce(false);
+		
+		render(<App />);
+
+		const loginButton = await screen.findByTestId("login-button");
+		expect(loginButton).toBeInTheDocument();
+		expect(loginButton.getAttribute("class")).toBe("span span--login-loggedout");
+
+		userEvent.click(loginButton);
+	});
 });

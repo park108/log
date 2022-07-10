@@ -124,7 +124,7 @@ export function isLoggedIn() {
 export function isAdmin() {
 
 	if(!isLoggedIn()) {
-		return false;
+		return false;		
 	}
 
 	const userId = parseJwt(getCookie("access_token")).username;
@@ -262,8 +262,9 @@ export const isMobile = () => {
 export const setFullscreen = (isFullscreen) => {
 
 	let root = document.getElementById("root");
+	console.log(root);
 
-	if(undefined !== root) {
+	if(undefined !== root && null !== root) {
 		if(isFullscreen) {
 			root.setAttribute("class", "div fullscreen");
 		}
@@ -281,7 +282,7 @@ export const userAgentParser = () => {
 	// 1. https://developer.mozilla.org/ko/docs/Web/HTTP/Browser_detection_using_the_user_agent
 	// 2. https://developers.whatismybrowser.com/useragents/explore
 	// Browser
-	let browser = uaText.indexOf("Firefox/") > -1? "Firefox"
+	let browser = uaText.indexOf("Firefox/") > -1 ? "Firefox"
 		: uaText.indexOf("Seamonkey/") > -1 ? "Seamonkey"
 		: uaText.indexOf("KAKAOTALK") > -1 ? "Kakaotalk"
 		: uaText.indexOf("Chrome/") > -1 ? "Chrome"
@@ -303,7 +304,7 @@ export const userAgentParser = () => {
 		: "Others";
   
 	// Operating system
-	let operatingSystem = uaText.indexOf("Android") > -1? "Android"
+	let operatingSystem = uaText.indexOf("Android") > -1 ? "Android"
 		: uaText.indexOf("iPhone OS") > -1 ? "iOS"
 		: uaText.indexOf("Windows") > -1 ? "Windows"
 		: uaText.indexOf("Mac OS X") > -1 ? "Mac OS X"

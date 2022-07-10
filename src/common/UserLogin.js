@@ -38,12 +38,24 @@ const UserLogin = () => {
 		const userId = common.isAdmin() ? "Jongkil Park" : "Visitor";
 
 		return (
-			<span className="span span--login-loggedin" onClick={logout}>{userId}</span>
+			<span
+				role="button"
+				data-testid="logout-button"
+				className="span span--login-loggedin"
+				onClick={logout}
+			>
+				{userId}
+			</span>
 		);
 	}
 
 	return (
-		<span className="span span--login-loggedout" onClick={login}>
+		<span
+			role="button"
+			data-testid="login-button"
+			className="span span--login-loggedout"
+			onClick={login}
+		>
 			Jongkil Park
 			{/* Maybe use enter symbol <EnterButton /> */}
 		</span>
