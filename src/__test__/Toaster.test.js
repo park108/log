@@ -3,7 +3,6 @@ import { act } from 'react-dom/test-utils';
 import Toaster from '../Toaster/Toaster';
 
 jest.useFakeTimers();
-jest.spyOn(global, 'setTimeout');
 
 it('render message text "Test message" correctly', () => {
   render(<Toaster 
@@ -54,23 +53,10 @@ it('render error Toaster in bottom', () => {
   expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-error ');
 });
 
-it('render success Toaster in bottom with duration', () => {
+it('render success Toaster faded out', async () => {
 
-	render(<Toaster 
-		message={"Test message"}
-		position={"bottom"}
-		duration={1000}
-		show={1}
-	/>);
+	jest.useFakeTimers();
 
-	act(() => {
-		jest.setTimeout(1000);
-		const toaster = screen.getByText("Test message");
-		expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-information ');
-	});
-});
-
-it('render success Toaster faded out', () => {
 	render(<Toaster 
 		message={"Test message"}
 		position={"bottom"}
@@ -78,9 +64,12 @@ it('render success Toaster faded out', () => {
 		show={2}
 	/>);
 
-	act(() => {
-		jest.setTimeout(1000);
-		const toaster = screen.getByText("Test message");
-		expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
-	});
+	const toaster = await screen.findByText("Test message");
+
+	jest.advanceTimersByTime(2000);
+
+	expect(toaster).toHaveAttribute('class', 'div div--toaster-hide');
+	
+	jest.runOnlyPendingTimers();
+	jest.useRealTimers();
 });
