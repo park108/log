@@ -1,6 +1,7 @@
 import * as common from '../common/common';
 
 console.error = jest.fn();
+console.log = jest.fn();
 
 describe('set HTML page title', () => {
   
