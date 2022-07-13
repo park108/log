@@ -23,7 +23,7 @@ const stackPallet = {
 it('render visitor monitor', async () => {
 
 	const testTime = (new Date()).getTime() - 3600000;
-	let prevDay = 144000000
+	let prevDay = 144000000;
 
 	// fetchData -> ok
 	global.fetch = () => Promise.resolve({
@@ -45,62 +45,62 @@ it('render visitor monitor', async () => {
 						},
 						{
 							browser: "Firefox",
-							date: common.getFormattedDate(testTime - 144000000),
+							date: common.getFormattedDate(testTime - prevDay),
 							operatingSystem: "Windows",
 							originalText: "Test Text",
 							renderingEngine: "Gecko",
-							time: common.getFormattedTime(testTime - 144000000),
-							timestamp: (testTime - 144000000),
+							time: common.getFormattedTime(testTime - prevDay),
+							timestamp: (testTime - prevDay),
 							url: "http://localhost:3000/",
 						},
 						{
 							browser: "Chrome",
-							date: common.getFormattedDate(testTime - 144000000 * 2),
+							date: common.getFormattedDate(testTime - prevDay * 2),
 							operatingSystem: "Mac OS X",
 							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
 							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - 144000000 * 2),
-							timestamp: (testTime - 144000000 * 2),
+							time: common.getFormattedTime(testTime - prevDay * 2),
+							timestamp: (testTime - prevDay * 2),
 							url: "http://localhost:3000/",
 						},
 						{
 							browser: "Chrome",
-							date: common.getFormattedDate(testTime - 144000000 * 3),
+							date: common.getFormattedDate(testTime - prevDay * 3),
 							operatingSystem: "Mac OS X",
 							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
 							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - 144000000 * 3),
-							timestamp: (testTime - 144000000 * 3),
+							time: common.getFormattedTime(testTime - prevDay * 3),
+							timestamp: (testTime - prevDay * 3),
 							url: "http://localhost:3000/",
 						},
 						{
 							browser: "Chrome",
-							date: common.getFormattedDate(testTime - 144000000 * 4),
+							date: common.getFormattedDate(testTime - prevDay * 4),
 							operatingSystem: "Mac OS X",
 							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
 							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - 144000000 * 4),
-							timestamp: (testTime - 144000000 * 4),
+							time: common.getFormattedTime(testTime - prevDay * 4),
+							timestamp: (testTime - prevDay * 4),
 							url: "http://localhost:3000/",
 						},
 						{
 							browser: "Chrome",
-							date: common.getFormattedDate(testTime - 144000000 * 5),
+							date: common.getFormattedDate(testTime - prevDay * 5),
 							operatingSystem: "Mac OS X",
 							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
 							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - 144000000 * 5),
-							timestamp: (testTime - 144000000 * 5),
+							time: common.getFormattedTime(testTime - prevDay * 5),
+							timestamp: (testTime - prevDay * 5),
 							url: "http://localhost:3000/",
 						},
 						{
 							browser: "Chrome",
-							date: common.getFormattedDate(testTime - 144000000 * 6),
+							date: common.getFormattedDate(testTime - prevDay * 6),
 							operatingSystem: "Mac OS X",
 							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
 							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - 144000000 * 6),
-							timestamp: (testTime - 144000000 * 6),
+							time: common.getFormattedTime(testTime - prevDay * 6),
+							timestamp: (testTime - prevDay * 6),
 							url: "http://localhost:3000/",
 						}
 					]

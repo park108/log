@@ -1,4 +1,6 @@
 import { render, screen } from '@testing-library/react';
+import { createMemoryHistory } from 'history'
+import { Router } from 'react-router-dom';
 import Monitor from '../Monitor/Monitor';
 import * as api from '../Monitor/api';
 import * as common from '../common/common';
@@ -16,18 +18,17 @@ it('render monitor if it logged in', async () => {
 	common.isAdmin = jest.fn().mockResolvedValue(true);
 	common.setFullscreen = jest.fn().mockResolvedValue(true);
 
-	jest.mock("react-router-dom", () => ({
-		...jest.requireActual("react-router-dom"),
-		useLocation: () => ({
-			pathname: "/monitor"
-		})
-	}));
+	const history = createMemoryHistory();
+	history.push({location: {pathname: "/monitor"}});
 
 	render(
-		<Monitor />
+		<Router location={history.location} navigator={history}>
+			<Monitor />
+		</Router>
 	);
-
-	expect(await screen.findByText("Contents in the last 6 months", {}, { timeout: 0 })).toBeInTheDocument();
+	
+	const title = await screen.findByText("Contents in the last 6 months");
+	expect(title).toBeInTheDocument();
 });
 
 describe("get api url", () => {
