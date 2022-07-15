@@ -52,3 +52,12 @@ it('render log if it logged in', async () => {
 
 	global.fetch = unmockedFetch;
 });
+
+describe("get api url", () => {
+
+	it('get trimmed string', () => {
+
+		const testString = "test string";
+		// expect(testString).toBe("test string");
+	});
+});
