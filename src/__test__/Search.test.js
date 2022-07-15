@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import Search from '../Search/Search';
 
 console.log = jest.fn();
@@ -13,19 +13,35 @@ describe('Searching test', () => {
 
 	let inputElement = null;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		process.env.NODE_ENV = 'development';
 		render(<Search />);
-
 		inputElement = screen.getByPlaceholderText("Search log...");
-		inputElement.innerHTML = "SEARCH TEXT";
 	});
 
-	it('Test firing search', () => {
+	it('firing search when the search string is null', async () => {
+
+		jest.useFakeTimers();
+
+		inputElement.value = "";
+		fireEvent.keyUp(inputElement, { keyCode: 13 });
+	
+		act(() => {
+			jest.runOnlyPendingTimers();
+		});
+		jest.useRealTimers();
+	});
+
+	it('firing search when the search string is not null', async () => {
+
+		inputElement.value = "abcd";
 		fireEvent.keyUp(inputElement, { keyCode: 13 });
 	});
 
-	it('Test another key in', () => {
-		fireEvent.keyUp(inputElement, { keyCode: 12 });
+	it('firing keyUp event', async () => {
+
+		fireEvent.keyUp(inputElement, { keyCode: 97 });
+		fireEvent.keyUp(inputElement, { keyCode: 98 });
+		fireEvent.keyUp(inputElement, { keyCode: 99 });
 	});
 });
