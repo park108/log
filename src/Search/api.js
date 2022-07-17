@@ -11,6 +11,6 @@ export const getSearchList = async(searchString) => {
 	return await fetch(getApiUrl() + "?search=" + searchString);
 }
 
-export const getNextSearchList = async(searchString, timestamp) => {
-	return await fetch(getApiUrl() + "?search=" + searchString + "?lastTimestamp=" + timestamp);
-}
+// export const getNextSearchList = async(searchString, timestamp) => {
+// 	return await fetch(getApiUrl() + "?search=" + searchString + "?lastTimestamp=" + timestamp);
+// }

@@ -94,6 +94,7 @@ describe('test APIs', () => {
 			}),
 		});
 
+		process.env.NODE_ENV = 'production';
 		inputElement.value = "test string";
 		fireEvent.keyUp(inputElement, { keyCode: 13 });
 
