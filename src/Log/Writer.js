@@ -52,20 +52,22 @@ const Writer = (props) => {
 			setChangeHistory(
 				<div className="div div--writer-history" >
 					<h1 className="h1 h1--writer-historytitle">Change History</h1>
-					{
-						data.logs.map(
-							(log) => (
-								<LogItem
-									key={log.timestamp}
-									author={data.author}
-									timestamp={log.timestamp}
-									contents={log.contents}
-									showComments={false}
-									showLink={false}
-								/>
+					<Suspense fallback={<div></div>}>
+						{
+							data.logs.map(
+								(log) => (
+									<LogItem
+										key={log.timestamp}
+										author={data.author}
+										timestamp={log.timestamp}
+										contents={log.contents}
+										showComments={false}
+										showLink={false}
+									/>
+								)
 							)
-						)
-					}
+						}
+					</Suspense>
 				</div>
 			);
 		}

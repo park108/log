@@ -15,23 +15,23 @@ it('render text area correctly', async () => {
 	document.execCommand = jest.fn();
 
 	const history = createMemoryHistory();
-	history.push({
-		location: {
-			pathname: "/log/write",
-			state: {
-				from: {
-					logs: [
-						{"contents":"Current contents","timestamp":1655737033793}
-						,{"contents":"Previous contents","timestamp":1655736946977}
-					]
-				}
+	const location = {
+		pathname: "/log/write",
+		state: {
+			from: {
+				logs: [
+					{"contents":"Current contents","timestamp":1655737033793}
+					,{"contents":"Previous contents","timestamp":1655736946977}
+				]
 			}
 		}
-	});
+	};
+
+	history.push(location);
   
 	render(
 		<div id="root" className="div fullscreen">
-			<Router location={history.location} history={history}>
+			<Router location={location} history={history}>
 				<Writer />
 			</Router>
 		</div>
