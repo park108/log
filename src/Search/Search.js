@@ -6,7 +6,7 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
   
 const Search = () => {
 
-	// const [searchList, setSearchList] = useState([]);
+	const [searchList, setSearchList] = useState([]);
 	const [searchString, setSearchString] = useState("");
 	// const [lastTimestamp, setLastTimestamp] = useState(undefined);
 	const [isLoading, setIsLoading] = useState(false);
@@ -30,11 +30,13 @@ const Search = () => {
 			else {
 
 				log("Search list FETCHED successfully.");
-				// const newList = retrieved.body.Items;
+				const newList = retrieved.body.Items;
 				// const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 
-				// setSearchList(undefined === newList ? [] : newList);
+				setSearchList(undefined === newList ? [] : newList);
 				// setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
+
+				log(searchList);
 			}
 		}
 		catch(err) {
