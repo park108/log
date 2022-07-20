@@ -1,14 +1,16 @@
 const getApiUrl= () => {
 	if (process.env.NODE_ENV === 'production') {
-		return "https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/prod";
+		return "https://kw7u2k9pv4.execute-api.ap-northeast-2.amazonaws.com/prod";
 	}
 	else if (process.env.NODE_ENV === 'development') {
-		return "https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/test";
+		return "https://kw7u2k9pv4.execute-api.ap-northeast-2.amazonaws.com/test";
 	}
 }
 
 export const getSearchList = async(searchString) => {
-	return await fetch(getApiUrl() + "?search=" + searchString);
+	const query = getApiUrl() + "?q=" + encodeURI(searchString);
+	console.log(query);
+	return await fetch(query);
 }
 
 // export const getNextSearchList = async(searchString, timestamp) => {

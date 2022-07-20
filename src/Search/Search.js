@@ -7,7 +7,6 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
 const Search = () => {
 
 	const [searchList, setSearchList] = useState([]);
-	const [searchString, setSearchString] = useState("");
 	// const [lastTimestamp, setLastTimestamp] = useState(undefined);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isShowToaster, setIsShowToaster] = useState(0);
@@ -16,7 +15,7 @@ const Search = () => {
 	if(process.env.NODE_ENV === 'production') return "";
 
 	// Get image list from API Gateway
-	const fetchFirst = async () => {
+	const fetchFirst = async (searchString) => {
 
 		setIsLoading(true);
 
@@ -30,7 +29,7 @@ const Search = () => {
 			else {
 
 				log("Search list FETCHED successfully.");
-				const newList = retrieved.body.Items;
+				const newList = retrieved.body;
 				// const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 
 				setSearchList(undefined === newList ? [] : newList);
@@ -62,8 +61,7 @@ const Search = () => {
 				setIsShowToaster(1);
 			}
 			else {
-				setSearchString(inputString);
-				fetchFirst();
+				fetchFirst(inputString);
 			}
 		}
 	}
