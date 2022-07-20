@@ -1,18 +1,15 @@
-import React, { useState, lazy, Suspense } from "react";
-import { log } from '../common/common';
+import React, { useState, useEffect, lazy, Suspense } from "react";
+import { log, isMobile } from '../common/common';
 import { getSearchList } from './api';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
   
 const Search = () => {
 
-	const [searchList, setSearchList] = useState([]);
-	// const [lastTimestamp, setLastTimestamp] = useState(undefined);
+	const [searchedList, setSearchedList] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
-
-	if(process.env.NODE_ENV === 'production') return "";
 
 	// Get image list from API Gateway
 	const fetchFirst = async (searchString) => {
@@ -22,20 +19,15 @@ const Search = () => {
 		try {
 			const res = await getSearchList(searchString);
 			const retrieved = await res.json();
+			log(retrieved);
 
 			if(undefined !== retrieved.errorType) {
 				console.error(retrieved);
 			}
 			else {
-
+				const list = retrieved.body;
+				setSearchedList(list);
 				log("Search list FETCHED successfully.");
-				const newList = retrieved.body;
-				// const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
-
-				setSearchList(undefined === newList ? [] : newList);
-				// setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
-
-				log(searchList);
 			}
 		}
 		catch(err) {
@@ -45,7 +37,7 @@ const Search = () => {
 		setIsLoading(false);
 	}
 
-	const search = (e) => {
+	const search = async (e) => {
 
 		const inputKeyCode = window.event.keyCode; 
 
@@ -61,10 +53,22 @@ const Search = () => {
 				setIsShowToaster(1);
 			}
 			else {
-				fetchFirst(inputString);
+				await fetchFirst(inputString);
 			}
 		}
 	}
+
+	useEffect(() => {
+
+		if(0 < searchedList.TotalCount) {
+			log(searchedList);
+			// TODO: Decide to how to display search results
+			// sessionStorage.clear();
+			// sessionStorage.setItem("logList", JSON.stringify(searchedList.Items));
+		}
+	}, [searchedList]);
+
+	if(isMobile()) return "";
 
 	return (
 		<li className="li li--nav-search">

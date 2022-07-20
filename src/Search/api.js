@@ -8,11 +8,5 @@ const getApiUrl= () => {
 }
 
 export const getSearchList = async(searchString) => {
-	const query = getApiUrl() + "?q=" + encodeURI(searchString);
-	console.log(query);
-	return await fetch(query);
+	return await fetch(getApiUrl() + "?q=" + encodeURI(searchString));
 }
-
-// export const getNextSearchList = async(searchString, timestamp) => {
-// 	return await fetch(getApiUrl() + "?search=" + searchString + "?lastTimestamp=" + timestamp);
-// }

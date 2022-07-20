@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import * as common from "../common/common";
 import Search from '../Search/Search';
 
 const unmockedFetch = global.fetch;
@@ -6,8 +7,8 @@ console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
 
-it('Did not open production yet', () => {
-	process.env.NODE_ENV = 'production';
+it('Did not open mobile yet', () => {
+	common.isMobile = jest.fn().mockResolvedValueOnce(true);
 	render(<Search />);
 	expect(screen.queryByPlaceholderText("Search log...")).toBe(null);
 });
@@ -48,12 +49,13 @@ describe('test APIs', () => {
 	let inputElement = null;
 
 	beforeEach(async () => {
-		process.env.NODE_ENV = 'development';
 		render(<Search />);
 		inputElement = screen.getByPlaceholderText("Search log...");
 	});
 
 	it('fetch succeed', async () => {
+
+		process.env.NODE_ENV = 'development';
 		
 		// fetchFirst -> ok
 		global.fetch = () => Promise.resolve({
@@ -71,9 +73,7 @@ describe('test APIs', () => {
 						,{"contents":"New test ","author":"park108@gmail.com","timestamp":1654520347146}
 						,{"contents":"Noew Version 10! Can i success? Change once again! ...","author":"park108@gmail.com","timestamp":1654501373940}
 					],
-					"Count":10,
-					"ScannedCount":10,
-					"LastEvaluatedKey":{"author":"park108@gmail.com","timestamp":1654501373940}
+					"TotalCount":10,
 				}
 			}),
 		});
@@ -86,6 +86,7 @@ describe('test APIs', () => {
 
 
 	it('fetch failed', async () => {
+		process.env.NODE_ENV = 'production';
 		
 		// fetchFirst -> return error
 		global.fetch = () => Promise.resolve({
@@ -94,7 +95,6 @@ describe('test APIs', () => {
 			}),
 		});
 
-		process.env.NODE_ENV = 'production';
 		inputElement.value = "test string";
 		fireEvent.keyUp(inputElement, { keyCode: 13 });
 
@@ -102,6 +102,7 @@ describe('test APIs', () => {
 	});
 
 	it('API is down', async () => {
+		process.env.NODE_ENV = '';
 
 		// fetchFirst -> Server error
 		global.fetch = () => Promise.reject(errorMessage);
