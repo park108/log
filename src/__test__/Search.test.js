@@ -1,4 +1,6 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { createMemoryHistory } from 'history'
+import { Router } from 'react-router-dom';
 import * as common from "../common/common";
 import Search from '../Search/Search';
 
@@ -9,7 +11,15 @@ const errorMessage = "API is down";
 
 it('Did not open mobile yet', () => {
 	common.isMobile = jest.fn().mockResolvedValueOnce(true);
-	render(<Search />);
+
+	const history = createMemoryHistory();
+	history.push({location: {pathname: "/log"}});
+	render(
+		<Router location={history.location} navigator={history}>
+			<Search />
+		</Router>
+	);
+
 	expect(screen.queryByPlaceholderText("Search log...")).toBe(null);
 });
 
@@ -19,7 +29,15 @@ describe('test key up events', () => {
 
 	beforeEach(async () => {
 		process.env.NODE_ENV = 'development';
-		render(<Search />);
+
+		const history = createMemoryHistory();
+		history.push({location: {pathname: "/log"}});
+		render(
+			<Router location={history.location} navigator={history}>
+				<Search />
+			</Router>
+		);
+
 		inputElement = screen.getByPlaceholderText("Search log...");
 	});
 
@@ -49,7 +67,15 @@ describe('test APIs', () => {
 	let inputElement = null;
 
 	beforeEach(async () => {
-		render(<Search />);
+
+		const history = createMemoryHistory();
+		history.push({location: {pathname: "/log"}});
+		render(
+			<Router location={history.location} navigator={history}>
+				<Search />
+			</Router>
+		);
+		
 		inputElement = screen.getByPlaceholderText("Search log...");
 	});
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
+import { useNavigate } from "react-router-dom";
 import { log, isMobile } from '../common/common';
 import { getSearchList } from './api';
 
@@ -58,14 +59,21 @@ const Search = () => {
 		}
 	}
 
+	const navigate = useNavigate();
+
 	useEffect(() => {
 
+		sessionStorage.removeItem("queryString");
+		sessionStorage.removeItem("searchedList");
+
 		if(0 < searchedList.TotalCount) {
-			log(searchedList);
-			// TODO: Decide to how to display search results
-			// sessionStorage.clear();
-			// sessionStorage.setItem("logList", JSON.stringify(searchedList.Items));
+
+			sessionStorage.setItem("searchedKeyword", JSON.stringify(searchedList.QueryString));
+			sessionStorage.setItem("searchedList", JSON.stringify(searchedList.Items));
 		}
+
+		navigate("/log/search");
+		
 	}, [searchedList]);
 
 	if(isMobile()) return "";

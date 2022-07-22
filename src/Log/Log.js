@@ -114,6 +114,7 @@ const Log = (props) => {
 				{writeButton}
 				<Routes>
 					<Route path="/" element={<LogList />} />
+					<Route path="/search" element={<LogList />} />
 					<Route path="/write" element={
 						<Writer
 							post={createLog}
