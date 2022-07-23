@@ -1,0 +1,9 @@
+@import url(../App.css);
+
+.div--search-result {
+	color: var(--sub-text-color);
+	font-size: var(--info-font-size);
+
+	padding: 0.5em;
+	margin: 0.5em;
+}

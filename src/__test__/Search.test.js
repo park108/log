@@ -10,7 +10,7 @@ console.error = jest.fn();
 const errorMessage = "API is down";
 
 it('Did not open mobile yet', () => {
-	common.isMobile = jest.fn().mockResolvedValueOnce(true);
+	common.isMobile = jest.fn().mockResolvedValue(true);
 
 	const history = createMemoryHistory();
 	history.push({location: {pathname: "/log"}});

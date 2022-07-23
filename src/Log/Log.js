@@ -8,6 +8,7 @@ import './Log.css';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 const LogList = lazy(() => import('./LogList'));
+const SearchedList = lazy(() => import('../Search/SearchedList'));
 const LogSingle = lazy(() => import('./LogSingle'));
 const Writer = lazy(() => import('./Writer'));
 
@@ -114,7 +115,7 @@ const Log = (props) => {
 				{writeButton}
 				<Routes>
 					<Route path="/" element={<LogList />} />
-					<Route path="/search" element={<LogList />} />
+					<Route path="/search" element={<SearchedList />} />
 					<Route path="/write" element={
 						<Writer
 							post={createLog}

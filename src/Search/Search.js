@@ -9,8 +9,10 @@ const Search = () => {
 
 	const [searchedList, setSearchedList] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSeached, setIsSearched] = useState(false);
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
+	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 
 	// Get image list from API Gateway
 	const fetchFirst = async (searchString) => {
@@ -48,6 +50,7 @@ const Search = () => {
 
 			// TODO: Test Log... Delete before open
 			log("Search String = " + inputString);
+			setIsSearched(true);
 
 			if(0 === inputString.length) {
 				setToasterMessage("Enter a sentence to search for");
@@ -63,18 +66,29 @@ const Search = () => {
 
 	useEffect(() => {
 
-		sessionStorage.removeItem("queryString");
-		sessionStorage.removeItem("searchedList");
+		if(isSeached) {
 
-		if(0 < searchedList.TotalCount) {
+			sessionStorage.removeItem("searchResult");
 
-			sessionStorage.setItem("searchedKeyword", JSON.stringify(searchedList.QueryString));
-			sessionStorage.setItem("searchedList", JSON.stringify(searchedList.Items));
+			if(0 < searchedList.TotalCount) {
+
+				sessionStorage.setItem("searchResult", JSON.stringify(searchedList));
+			}
+
+			navigate("/log/search");
 		}
-
-		navigate("/log/search");
 		
 	}, [searchedList]);
+
+	// Change by loading state
+	useEffect(() => {
+		if(isLoading) {
+			setIsShowToasterCenter(1);
+		}
+		else {
+			setIsShowToasterCenter(2);
+		}
+	}, [isLoading]);
 
 	if(isMobile()) return "";
 
@@ -86,6 +100,10 @@ const Search = () => {
 				onKeyUp={search}
 			/>
 			<Suspense fallback={<div></div>}>
+				<Toaster 
+					show={isShowToasterCenter}
+					message={"Searching logs..."}
+				/>
 				<Toaster 
 					show={isShowToaster}
 					message={toasterMessage}
