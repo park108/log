@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from 'react-router-dom';
 import { getUrl, isAdmin } from './common';
-import Search from '../Search/Search';
+import SearchInput from '../Search/SearchInput';
   
 const Navigation = () => {
 
@@ -41,7 +41,7 @@ const Navigation = () => {
 				{logMenu}
 				{fileMenu}
 				{monitorMenu}
-				<Search />
+				<SearchInput />
 			</ul>
 		</nav>
 	);

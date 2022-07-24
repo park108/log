@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
-import * as common from "../common/common";
+import userEvent from '@testing-library/user-event'
 import Search from '../Search/Search';
 
 const unmockedFetch = global.fetch;
@@ -9,133 +9,130 @@ console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
 
-it('Did not open mobile yet', () => {
-	common.isMobile = jest.fn().mockResolvedValue(true);
+it('render search result', async () => {
+		
+	// search -> ok
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			body: {
+				QueryString:"테스트",
+				TotalCount:6,
+				ProcessingTime:1472,
+				Items:[
+					{"timestamp":1657811580864,"contents":"검색을 위해 추가 테스트를 해봅니다...과일 사과 복숭아 배","author":"park108@gmail.com"},
+					{"timestamp":1657805978568,"contents":"테스트 다시!!!!!!!!!v9","author":"park108@gmail.com"},
+					{"timestamp":1655302060414,"contents":"이노베이션 사이트의 연이은 인력 이탈, 무리한 사업 수주로 인한 외부 사업 투입, 강요된 거짓말, 실망스런 회사의 관리자들, 고객사에 들통나 버린 거짓말, 가시화되는 운영 조직의 붕괴, 엉망진창인 회사 일, 연봉 1억을 넘겼지만 so what?, 한번의 당근마켓 면접, 두번의 지마켓 글로벌 면접, 부끄러웠던 몇 개의 대답, 대답할 수 없었던 질문들, 실망스런 나의 전문성, 당혹스러웠던 시간들을 경험이라 자위하고, AWS Solutions Architect Professional 시험 합격, 떨어지는 자존감, 계속되는 회사에서의 거짓말, insecure working at KT&G, 한달째 왕복 세 시간의 출퇴근, 학여울역 열차 고장으로 귀가시간이 2시간 20분, 무거운 가방과 근육통에 시달리는 양 어깨, SKBM에서의 계약서 전달, 지겨운 페이퍼 워크의 시작, 회사 노트북 비밀번호 까먹어서 못하고, 짜증, 분노, 나는 왜 이러고 있나, 엉망이 되어 버린 나의 13년 6개월의 커리어, SAP, AWS, Salesforce, 어느것 하나 전문가라 할 수 없고, 돈버는 기계가 되어버린 나, 너무나 많은 일들, 제대로 마무리되지 못한 채로 널부러져 있는 일들, 스트레스, 매일같은 지각, 헛발질의 연속, 섀도우 복싱도 적당히 좀, 관리자가 되고싶지 않았지만 어쩔수 없이 되어버린 상황, 서비스를 만들줄 모르는 개발자, Java Spring 만 살아남은 작금의 현실, 나의 대무자는 정해지지도 않았고, 기약없는 일을 꾸역꾸역 하고 있는 하루하루, 그럼에도 월급은 꼬박꼬박, 일당은 대충 30만원, 버는 돈이 많아질 수록 가슴의 통증 주기는 빨라지고, 새벽에 잠에서 깰 때면 눈앞에 펼쳐진 만화경 같던 환시 hallucination, 이직을 할 수 없을 것 같은 불안감, 갑작스레 이직을 해버릴 것 같은 불안감, 지겨운 안정과 두려운 변화, 나이 40, 아직도 모르는 것이 너무 많고, 이렇게 세월이 가고 인생이 꺾이고 돌아보면 노인이 되는가 싶다.열한시가 넘었다. 잠이나 자자.오늘은 7/14... 테스트를 해본다.","author":"park108@gmail.com"},
+					{"timestamp":1645427917531,"contents":"Test ChangeGithub Actions를 통해 AWS ECR에 도커 이미지 푸시하기 Step 1.Kotlin으로 개발한 백엔드 서비스의 도커 이미지 로컬 테스트를 마치고,  ...","author":"park108@gmail.com"},
+					{"timestamp":1621831334975,"contents":"마크다운 작동 테스트 케이스입니다.예를들어 마크다운 문법을 사용하면 이렇습니다.헤더를 작성할 수 있고요.언오더 리스트1언오더 리스트 2 오더 리스트 작성 가능하며, 여기서 강조 같 ...","author":"park108@gmail.com"},
+					{"timestamp":1621414715601,"contents":"이미지 삽입 테스트","author":"park108@gmail.com"}
+				]
+			}
+		}),
+	});
+
+	process.env.NODE_ENV = 'production';
 
 	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	const location = {
+		pathname: "/log/search",
+		state: {
+			queryString: "테스트"
+		}
+	};
+
 	render(
-		<Router location={history.location} navigator={history}>
+		<Router location={location} navigator={history}>
 			<Search />
 		</Router>
 	);
 
-	expect(screen.queryByPlaceholderText("Search log...")).toBe(null);
+	const searchedItem = await screen.findByText("검색을 위해 추가 테스트를 해봅니다...과일 사과 복숭아 배");
+	expect(searchedItem).toBeInTheDocument();
+
+	const toListButton = await screen.findByText("To list");
+	userEvent.click(toListButton);
+
+	global.fetch = unmockedFetch;
 });
 
-describe('test key up events', () => {
-
-	let inputElement = null;
-
-	beforeEach(async () => {
-		process.env.NODE_ENV = 'development';
-
-		const history = createMemoryHistory();
-		history.push({location: {pathname: "/log"}});
-		render(
-			<Router location={history.location} navigator={history}>
-				<Search />
-			</Router>
-		);
-
-		inputElement = screen.getByPlaceholderText("Search log...");
-	});
-
-	it('firing keyUp event', async () => {
-
-		fireEvent.keyUp(inputElement, { keyCode: 97 });
-		fireEvent.keyUp(inputElement, { keyCode: 98 });
-		fireEvent.keyUp(inputElement, { keyCode: 99 });
-	});
-
-	it('firing search when the search string is null', async () => {
-
-		jest.useFakeTimers();
-
-		inputElement.value = "";
-		fireEvent.keyUp(inputElement, { keyCode: 13 });
+it('render search failed', async () => {
 	
-		act(() => {
-			jest.runOnlyPendingTimers();
-		});
-		jest.useRealTimers();
+	// search -> return error
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			errorType: "404"
+		}),
 	});
+
+	process.env.NODE_ENV = 'development';
+
+	const history = createMemoryHistory();
+	const location = {
+		pathname: "/log/search",
+		state: {
+			queryString: "테스트"
+		}
+	};
+
+	render(
+		<Router location={location} navigator={history}>
+			<Search />
+		</Router>
+	);
+
+	const searchedItem = await screen.findByText("0 result for \"테스트\" - 0 milliseconds");
+	expect(searchedItem).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
 });
 
-describe('test APIs', () => {
+it('render when API is down', async () => {
 
-	let inputElement = null;
+	// search -> Server error
+	global.fetch = () => Promise.reject(errorMessage);
 
-	beforeEach(async () => {
+	process.env.NODE_ENV = '';
 
-		const history = createMemoryHistory();
-		history.push({location: {pathname: "/log"}});
-		render(
-			<Router location={history.location} navigator={history}>
-				<Search />
-			</Router>
-		);
-		
-		inputElement = screen.getByPlaceholderText("Search log...");
-	});
+	const history = createMemoryHistory();
+	const location = {
+		pathname: "/log/search",
+		state: {
+			queryString: "테스트"
+		}
+	};
 
-	it('fetch succeed', async () => {
+	render(
+		<Router location={location} navigator={history}>
+			<Search />
+		</Router>
+	);
 
-		process.env.NODE_ENV = 'development';
-		
-		// fetchFirst -> ok
-		global.fetch = () => Promise.resolve({
-			json: () => Promise.resolve({
-				body:{
-					Items:[
-						{"contents":"123456","author":"park108@gmail.com","timestamp":1655736946977}
-						,{"contents":"이노베이션 사이트의 연이은 인력 이탈, 무리한 사업 수주로 인한 외부 사업 투입, 강요된 거짓말, 실망스런 회사의 관리자들, 고객사에 들통나 버린 거짓말, 가시화되는 운영 조직의  ...","author":"park108@gmail.com","timestamp":1655302060414}
-						,{"contents":"const makeSummary = (contents) => {\tconst trimmedContents = markdownToHtml(contents).replace(/(]+)>) ...","author":"park108@gmail.com","timestamp":1654639495093}
-						,{"contents":"Test over 50 characters.Is it make summary well???","author":"park108@gmail.com","timestamp":1654639469843}
-						,{"contents":"Test Now","author":"park108@gmail.com","timestamp":1654639443910}
-						,{"contents":"첫 화면을 목록 형태로 변경했다.이 블로그는 변경 이력을 모두 저장하도록 설계, 구현했다. 개별 건의 CRUD 뿐 만 아니라, 목록 조회를 할 때에도 동일한 테이블에서 쿼리를 했기 ...","author":"park108@gmail.com","timestamp":1654526208951}
-						,{"contents":"Ver 4.Real! New!!! and long string over the FIFTY! ...","author":"park108@gmail.com","timestamp":1654520402200}
-						,{"contents":"New!!!!!!","author":"park108@gmail.com","timestamp":1654520368510}
-						,{"contents":"New test ","author":"park108@gmail.com","timestamp":1654520347146}
-						,{"contents":"Noew Version 10! Can i success? Change once again! ...","author":"park108@gmail.com","timestamp":1654501373940}
-					],
-					"TotalCount":10,
-				}
-			}),
-		});
+	const searchedItem = await screen.findByText("0 result for \"테스트\" - 0 milliseconds");
+	expect(searchedItem).toBeInTheDocument();
 
-		inputElement.value = "test string";
-		fireEvent.keyUp(inputElement, { keyCode: 13 });
+	global.fetch = unmockedFetch;
+});
 
-		global.fetch = unmockedFetch;
-	});
+it('render if has no query string', async () => {
 
+	// search -> Server error
+	global.fetch = () => Promise.reject(errorMessage);
 
-	it('fetch failed', async () => {
-		process.env.NODE_ENV = 'production';
-		
-		// fetchFirst -> return error
-		global.fetch = () => Promise.resolve({
-			json: () => Promise.resolve({
-				errorType: "404"
-			}),
-		});
+	process.env.NODE_ENV = '';
 
-		inputElement.value = "test string";
-		fireEvent.keyUp(inputElement, { keyCode: 13 });
+	const history = createMemoryHistory();
+	const location = {
+		pathname: "/log/search"
+	};
 
-		global.fetch = unmockedFetch;
-	});
+	render(
+		<Router location={location} navigator={history}>
+			<Search />
+		</Router>
+	);
 
-	it('API is down', async () => {
-		process.env.NODE_ENV = '';
+	const searchedItem = await screen.findByText("0 result for \"\" - 0 milliseconds");
+	expect(searchedItem).toBeInTheDocument();
 
-		// fetchFirst -> Server error
-		global.fetch = () => Promise.reject(errorMessage);
-
-		inputElement.value = "test string";
-		fireEvent.keyUp(inputElement, { keyCode: 13 });
-
-		global.fetch = unmockedFetch;
-	});
+	global.fetch = unmockedFetch;
 });
