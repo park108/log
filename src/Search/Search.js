@@ -12,6 +12,7 @@ const Search = () => {
 	const [totalCount, setTotalCount] = useState(0);
 	const [queryString, setQueryString] = useState("");
 	const [processingTime, setProcessingTime] = useState(0);
+	const [loadingDots, setLoadingDots] = useState("");
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -62,6 +63,15 @@ const Search = () => {
 		}
 	}, [queryString]);
 
+	// Add dots in loading
+	useEffect(() => {
+		const tick = () => {
+			return setTimeout(() => setLoadingDots(loadingDots + "."), 500);
+		}
+		isLoading ? tick() : setLoadingDots("");
+		return () => clearTimeout(tick);
+	}, [loadingDots, isLoading]);
+
 	const toListButton = (
 		<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
 			To list
@@ -72,12 +82,13 @@ const Search = () => {
 
 		return (
 			<h1 className="h1 h1--notification-result">
-				Searching logs...
+				Searching logs...<span id="loading">{ loadingDots }</span>
 			</h1>
 		);
 	}
 
 	else if(0 === totalCount) {
+
 		return (
 			<section className="section section--log-list" role="list">
 				<h1 className="h1 h1--notification-result">
@@ -92,8 +103,7 @@ const Search = () => {
 		return (
 			<section className="section section--log-list" role="list">
 				<div className="div div--search-result">
-					{ totalCount } result{ totalCount > 1 ? "s" : "" } 
-					for &quot;{ queryString }&quot;
+					{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;{ queryString }&quot;
 					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
 				
