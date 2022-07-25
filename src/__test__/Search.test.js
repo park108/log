@@ -80,7 +80,7 @@ it('render search failed', async () => {
 		</Router>
 	);
 
-	const searchedItem = await screen.findByText("0 result for \"테스트\" - 0 milliseconds");
+	const searchedItem = await screen.findByText("No search results.");
 	expect(searchedItem).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;
@@ -107,7 +107,7 @@ it('render when API is down', async () => {
 		</Router>
 	);
 
-	const searchedItem = await screen.findByText("0 result for \"테스트\" - 0 milliseconds");
+	const searchedItem = await screen.findByText("No search results.");
 	expect(searchedItem).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;
@@ -131,7 +131,7 @@ it('render if has no query string', async () => {
 		</Router>
 	);
 
-	const searchedItem = await screen.findByText("0 result for \"\" - 0 milliseconds");
+	const searchedItem = await screen.findByText("No search results.");
 	expect(searchedItem).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;

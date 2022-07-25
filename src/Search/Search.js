@@ -1,9 +1,7 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { log, getFormattedDate, hasValue } from '../common/common';
 import { getSearchList } from './api';
-
-const Toaster = lazy(() => import('../Toaster/Toaster'));
 
 import './Search.css';
 
@@ -14,7 +12,6 @@ const Search = () => {
 	const [totalCount, setTotalCount] = useState(0);
 	const [queryString, setQueryString] = useState("");
 	const [processingTime, setProcessingTime] = useState(0);
-	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -65,60 +62,55 @@ const Search = () => {
 		}
 	}, [queryString]);
 
-	// Change by loading state
-	useEffect(() => {
-		if(isLoading) {
-			setIsShowToasterCenter(1);
-		}
-		else {
-			setIsShowToasterCenter(2);
-		}
-	}, [isLoading]);
-
 	const toListButton = (
 		<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
 			To list
 		</button>
 	);
+	
+	if(isLoading) {
 
-	const searchStatus = isLoading ? (
-			<div className="div div--search-result">
-				...
-			</div>
-		) : (
-			<div className="div div--search-result">
-				{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;{ queryString }&quot;
-				- { processingTime.toLocaleString() + " milliseconds" }
-			</div>
+		return (
+			<h1 className="h1 h1--notification-result">
+				Searching logs...
+			</h1>
 		);
+	}
 
-	return (
-		<section className="section section--log-list" role="list">
+	else if(0 === totalCount) {
+		return (
+			<section className="section section--log-list" role="list">
+				<h1 className="h1 h1--notification-result">
+					No search results.
+				</h1>
+				{ toListButton }
+			</section>
+		);
+	}
+	else {
 
-			{ searchStatus }
-			
-			{searchedList.map(data => (
-				<div className="div--loglist-item" key={data.timestamp} role="listitem">
-					<Link to={{
-						pathname: "/log/" + data.timestamp
-					}}>
-						<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
-						<div className="div--loglist-contents">{data.contents}</div>
-					</Link>
+		return (
+			<section className="section section--log-list" role="list">
+				<div className="div div--search-result">
+					{ totalCount } result{ totalCount > 1 ? "s" : "" } 
+					for &quot;{ queryString }&quot;
+					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
-			))}
+				
+				{searchedList.map(data => (
+					<div className="div--loglist-item" key={data.timestamp} role="listitem">
+						<Link to={{ pathname: "/log/" + data.timestamp }}>
+							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
+							<div className="div--loglist-contents">{data.contents}</div>
+						</Link>
+					</div>
+				))}
 
-			{ toListButton }
+				{ toListButton }
 
-			<Suspense fallback={<div></div>}>
-				<Toaster 
-					show={isShowToasterCenter}
-					message={"Searching logs..."}
-				/>
-			</Suspense>
-
-		</section>
-	);
+			</section>
+		);
+	}
 }
 
 export default Search;

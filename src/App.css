@@ -311,10 +311,11 @@ pre {
   padding-left: 0.5em;
 }
 
-.h1--error-notfound {
-  margin: 0;
-  padding-top: 5rem;
-  text-align: center;
+.h1--notification-result {
+	margin: 0;
+	padding-top: 5rem;
+	text-align: center;
+	padding-bottom: 5rem;
 }
 
 .span--login-loggedin {
