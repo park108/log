@@ -10,6 +10,7 @@ const Navigation = () => {
 	let logMenu = undefined;
 	let fileMenu = undefined;
 	let monitorMenu = undefined;
+	let searchMenu = undefined;
 	
 	if(isAdmin()) {
 
@@ -30,6 +31,10 @@ const Navigation = () => {
 				<Link to="/monitor">mon</Link>
 			</li>
 		);
+
+		searchMenu = (
+			<SearchInput />
+		);
 	}
 
 	return (
@@ -41,7 +46,7 @@ const Navigation = () => {
 				{logMenu}
 				{fileMenu}
 				{monitorMenu}
-				<SearchInput />
+				{searchMenu}
 			</ul>
 		</nav>
 	);

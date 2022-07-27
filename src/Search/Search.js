@@ -58,7 +58,6 @@ const Search = () => {
 	// Fetch when input query string
 	useEffect(() => {
 		if(queryString.length > 0 && !isLoading) {
-			log("QUERY = " + queryString);
 			search(queryString);
 		}
 	}, [queryString]);
@@ -66,7 +65,7 @@ const Search = () => {
 	// Add dots in loading
 	useEffect(() => {
 		const tick = () => {
-			return setTimeout(() => setLoadingDots(loadingDots + "."), 500);
+			return setTimeout(() => setLoadingDots(loadingDots + "."), 300);
 		}
 		isLoading ? tick() : setLoadingDots("");
 		return () => clearTimeout(tick);
@@ -82,7 +81,7 @@ const Search = () => {
 
 		return (
 			<h1 className="h1 h1--notification-result">
-				Searching logs...<span id="loading">{ loadingDots }</span>
+				Searching logs<span id="loading">{ loadingDots }</span>
 			</h1>
 		);
 	}

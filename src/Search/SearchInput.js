@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { log, isMobile } from '../common/common';
 
@@ -8,41 +8,91 @@ const SearchInput = () => {
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
+	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
 	const navigate = useNavigate();
 
-	const search = async (e) => {
+	const search = async (inputString) => {
+		log("Search String = " + inputString);
 
-		const inputKeyCode = window.event.keyCode; 
-
-		if(13 === inputKeyCode) {
-
-			const inputString = e.target.value;
-
-			if(0 === inputString.length) {
-				setIsShowToaster(1);
-				setToasterMessage("Enter a sentence to search for");
-			}
-			else {
-				log("Search String = " + inputString);
-				navigate("/log/search", {
-					state: {
-						queryString: inputString
-					}
-				});
-			}
+		if(0 === inputString.length) {
+			setIsShowToaster(1);
+			setToasterMessage("Enter a sentence to search for");
+		}
+		else {
+			navigate("/log/search", {
+				state: {
+					queryString: inputString
+				}
+			});
 		}
 	}
+
+	const searchByEnter = async (e) => {
+		const inputKeyCode = window.event.keyCode;
+		const inputString = e.target.value;
+		document.getElementById("queryString1").value = inputString;
+		document.getElementById("queryString2").value = inputString;
+		if(13 === inputKeyCode) {
+			search(inputString);
+		}
+	}
+
+	const searchByButton = async () => {
+		const inputString = document.getElementById("queryString2").value;
+		search(inputString);
+	}
+
+	const toggleMobileSearch = () => {
+		setIsMobileSearchOpen(!isMobileSearchOpen);
+	}
+
+	// Fetch when input query string
+	useEffect(() => {
+
+		const mobileSearch = document.getElementById("mobileSearch");
+
+		if(isMobileSearchOpen) {
+			mobileSearch.setAttribute("class", "div div--nav-mobilesearch show--width-400px");
+		}
+		else {
+			mobileSearch.setAttribute("class", "div div--nav-mobilesearchhide show--width-400px");
+		}
+	}, [isMobileSearchOpen]);
 
 	if(isMobile()) return "";
 
 	return (
 		<li className="li li--nav-search">
 			<input
-				className="input input--nav-search"
+				id="queryString1"
+				className="input input--nav-search hidden--width-400px"
 				placeholder="Search log..."
-				onKeyUp={search}
+				onKeyUp={searchByEnter}
 			/>
+			<span
+				className="span span--nav-searchbutton show--width-400px"
+				onClick={toggleMobileSearch}
+			>
+				🔍
+			</span>
+			<div
+				id="mobileSearch"
+				className="div div--nav-mobilesearch show--width-400px"
+			>
+				<input
+					id="queryString2"
+					className="input input--nav-mobilesearch"
+					placeholder="Search log..."
+					onKeyUp={searchByEnter}
+				/>
+				<button
+					className="button button--nav-mobilesearch"
+					onClick={searchByButton}
+				>
+					🔥
+				</button>
+			</div>
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToaster}
