@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { log, isMobile } from '../common/common';
+import { log } from '../common/common';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
   
@@ -59,8 +59,6 @@ const SearchInput = () => {
 			mobileSearch.setAttribute("class", "div div--nav-mobilesearchhide show--width-400px");
 		}
 	}, [isMobileSearchOpen]);
-
-	if(isMobile()) return "";
 
 	return (
 		<li className="li li--nav-search">

@@ -281,7 +281,7 @@ pre {
 	display: flex;
 	width: 100%;
 	left: 0;
-	margin: 1em 1em;
+	margin: 0em 1em;
 }
 
 .input--nav-mobilesearch {
