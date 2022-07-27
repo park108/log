@@ -20,6 +20,7 @@ const SearchInput = () => {
 			setToasterMessage("Enter a sentence to search for");
 		}
 		else {
+			setIsMobileSearchOpen(false);
 			navigate("/log/search", {
 				state: {
 					queryString: inputString
@@ -49,9 +50,7 @@ const SearchInput = () => {
 
 	// Fetch when input query string
 	useEffect(() => {
-
 		const mobileSearch = document.getElementById("mobileSearch");
-
 		if(isMobileSearchOpen) {
 			mobileSearch.setAttribute("class", "div div--nav-mobilesearch show--width-400px");
 		}
@@ -72,7 +71,7 @@ const SearchInput = () => {
 				className="span span--nav-searchbutton show--width-400px"
 				onClick={toggleMobileSearch}
 			>
-				🔍
+				search
 			</span>
 			<div
 				id="mobileSearch"
@@ -88,7 +87,7 @@ const SearchInput = () => {
 					className="button button--nav-mobilesearch"
 					onClick={searchByButton}
 				>
-					🔥
+					go
 				</button>
 			</div>
 			<Suspense fallback={<div></div>}>

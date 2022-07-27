@@ -300,7 +300,10 @@ pre {
 
 .button--nav-mobilesearch {
 	float: left;
+	margin-left: 0.5em;
+	padding: 0.2em 0;
 	width: 2em;
+	height: 1.5em;
 }
 
 .main--contents {

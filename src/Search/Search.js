@@ -81,7 +81,7 @@ const Search = () => {
 
 		return (
 			<h1 className="h1 h1--notification-result">
-				Searching logs<span id="loading">{ loadingDots }</span>
+				Searching &quot;{ queryString }&quot; in logs<span id="loading">{ loadingDots }</span>
 			</h1>
 		);
 	}
