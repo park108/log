@@ -1,5 +1,72 @@
 @import url(../App.css);
 
+.li--nav-search {
+	margin-top: 4px;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.span--nav-searchbutton {
+	display: inline-block;
+	margin-top: 0.75em;
+	margin-bottom: 0.75em;
+}
+
+@media screen and (min-width: 399px) {
+	.span--nav-searchbutton {
+		display: none;
+	}
+}
+
+.input--search-string {
+	height: 2em;
+	font-size: 1em;
+	border: 1px solid var(--normal-border-color);
+	padding-left: 5px;
+	width: calc(100% - 10px);
+	font-family: 'Jeju Myeongjo';
+}
+
+.input--search-string::placeholder {
+	color: var(--sub-text-color);
+	font-family: 'Jeju Myeongjo';
+}
+
+.div--search-mobilehide {
+	display: none;
+}
+
+.div--search-mobile {
+	position: fixed;
+	display: flex;
+	width: 100%;
+	left: 0;
+	margin: 0em 1em;
+}
+
+.input--search-mobile {
+	height: 2em;
+	font-size: 1em;
+	border: 1px solid var(--normal-border-color);
+	width: 80%;
+	color: var(--sub-text-color);
+	font-family: 'Jeju Myeongjo';
+}
+
+.input--search-mobile::placeholder {
+	color: var(--sub-text-color);
+	font-family: 'Jeju Myeongjo';
+	display: inline-block;
+}
+
+.button--search-submit {
+	float: left;
+	margin-left: 0.5em;
+	padding: 0.2em 0;
+	width: 2em;
+	height: 2em;
+}
+
 .div--search-result {
 	color: var(--sub-text-color);
 	font-size: var(--info-font-size);
