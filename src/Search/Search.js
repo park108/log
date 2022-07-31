@@ -22,10 +22,30 @@ const Search = () => {
 
 		setIsLoading(true);
 
+		// Get searched list from session
+		const listInSession = sessionStorage.getItem("searchList");
+
+		if(hasValue(listInSession)) {
+
+			const queryStringInSession = sessionStorage.getItem("searchQueryString");
+
+			if(hasValue(queryStringInSession) && searchString === queryStringInSession) {
+
+				setSearchedList(JSON.parse(listInSession));
+				setTotalCount(sessionStorage.getItem("searchTotalCount") * 1);
+				setQueryString(queryStringInSession);
+				setProcessingTime(sessionStorage.getItem("searchProcessingTime") * 1);
+
+				setIsLoading(false);
+				log("Get search list from session.");
+	
+				return;
+			}
+		}
+
 		try {
 			const res = await getSearchList(searchString);
 			const retrieved = await res.json();
-			log(retrieved);
 
 			if(undefined !== retrieved.errorType) {
 				console.error(retrieved);
@@ -37,6 +57,11 @@ const Search = () => {
 				setTotalCount(result.TotalCount * 1);
 				setQueryString(result.QueryString);
 				setProcessingTime(result.ProcessingTime * 1);
+
+				sessionStorage.setItem("searchList", JSON.stringify(result.Items));
+				sessionStorage.setItem("searchTotalCount", result.TotalCount * 1);
+				sessionStorage.setItem("searchQueryString", result.QueryString);
+				sessionStorage.setItem("searchProcessingTime", result.ProcessingTime * 1);
 
 				log("Search list FETCHED successfully.");
 			}
@@ -90,6 +115,10 @@ const Search = () => {
 
 		return (
 			<section className="section section--log-list" role="list">
+				<div className="div div--search-result">
+					0 result for &quot;{ queryString }&quot;
+					- { processingTime.toLocaleString() + " milliseconds" }
+				</div>
 				<h1 className="h1 h1--notification-result">
 					No search results.
 				</h1>
@@ -108,7 +137,9 @@ const Search = () => {
 				
 				{searchedList.map(data => (
 					<div className="div--loglist-item" key={data.timestamp} role="listitem">
-						<Link to={{ pathname: "/log/" + data.timestamp }}>
+						<Link to={{
+							pathname: "/log/" + data.timestamp + "?search=true"
+						}}>
 							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
 							<div className="div--loglist-contents">{data.contents}</div>
 						</Link>

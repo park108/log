@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { log, hasValue } from '../common/common';
 import { getLog } from './api';
@@ -99,11 +99,23 @@ const LogSingle = (props) => {
 		: ("NO" === hasItem) ? <PageNotFound />
 		: "";
 
+	const getQueryStringSearch = () => {
+		const query = new URLSearchParams(useLocation().search);
+		const result = query.get("search");
+		return result;
+	}
+
 	// To list button
 	const toListButton = !isLoading ? (
-		<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
-			To list
-		</button>
+		getQueryStringSearch() ? (
+			<button className="button button--loglist-seemore" onClick={() => navigate(-1)}>
+				To search result
+			</button>
+		) : (
+			<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
+				To list
+			</button>
+		)
 	) : "";
 
 	// Draw a single log
