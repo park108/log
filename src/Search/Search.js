@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { log, getFormattedDate, hasValue } from '../common/common';
+import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
 import { getSearchList } from './api';
 
 import './Search.css';
@@ -82,6 +82,7 @@ const Search = () => {
 
 	// Fetch when input query string
 	useEffect(() => {
+		setHtmlTitle("search results for " + queryString);
 		if(queryString.length > 0 && !isLoading) {
 			search(queryString);
 		}
@@ -97,7 +98,21 @@ const Search = () => {
 	}, [loadingDots, isLoading]);
 
 	const toListButton = (
-		<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
+		<button className="button button--loglist-seemore" onClick={() => {
+
+			const searchInput1 = document.getElementById("queryString1");
+			const searchInput2 = document.getElementById("queryString2");
+
+			if(hasValue(searchInput1)) {
+				searchInput1.value = "";
+			}
+
+			if(hasValue(searchInput2)) {
+				searchInput2.value = "";
+			}
+			
+			navigate("/log");
+		}}>
 			To list
 		</button>
 	);
@@ -131,7 +146,7 @@ const Search = () => {
 		return (
 			<section className="section section--log-list" role="list">
 				<div className="div div--search-result">
-					{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;{ queryString }&quot;
+					{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;<span className="span span--search-querystring">{ queryString }</span>&quot;
 					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
 				

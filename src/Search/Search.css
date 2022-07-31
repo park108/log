@@ -69,8 +69,14 @@
 
 .div--search-result {
 	color: var(--sub-text-color);
-	font-size: var(--info-font-size);
 
 	padding: 0.5em;
 	margin: 0.5em;
+	border: 1px solid transparent;
+}
+
+.span--search-querystring {
+	color: var(--normal-text-color);
+	font-weight: bold;
+	text-decoration: underline;
 }

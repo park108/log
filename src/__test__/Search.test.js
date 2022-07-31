@@ -170,9 +170,15 @@ it('render search list from session and get next logs correctly', async () => {
 
 	render(
 		<Router location={location} navigator={history}>
+			<input id="queryString1"></input>
+			<input id="queryString2"></input>
 			<Search />
 		</Router>
 	);
+	
+	// Test query string initializing
+	document.getElementById("queryString1").value = "테스트";
+	document.getElementById("queryString2").value = "테스트";
 
 	const toListButton = await screen.findByText("To list");
 	userEvent.click(toListButton);

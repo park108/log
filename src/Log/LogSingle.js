@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { log, hasValue } from '../common/common';
+import { log, hasValue, setHtmlTitle, getFormattedDate } from '../common/common';
 import { getLog } from './api';
 import PageNotFound from "../common/PageNotFound";
 
@@ -69,6 +69,7 @@ const LogSingle = (props) => {
 
 	// Cleanup
 	useEffect(() => {
+		setHtmlTitle("log of " + getFormattedDate(logTimestamp * 1, "date mon year"));
 		return () => {
 			setIsLoading(false);
 		}

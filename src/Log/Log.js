@@ -1,7 +1,7 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, isAdmin, setHtmlTitle } from '../common/common';
+import { log, isAdmin } from '../common/common';
 import { postLog, putLog } from './api';
 
 import './Log.css';
@@ -92,9 +92,6 @@ const Log = (props) => {
 			setIsPostSuccess(false);
 		}
 	}
-
-	// Set title at mount
-	useEffect(() => setHtmlTitle("log"), []);
 	
 	// Make write button
 	const writeButton = isAdmin() ? (

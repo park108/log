@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, getFormattedDate, hasValue } from '../common/common';
+import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
 import Toaster from "../Toaster/Toaster";
 import { getLogs, getNextLogs } from './api';
 
@@ -116,6 +116,7 @@ const LogList = (props) => {
 
 	// Cleanup
 	useEffect(() => {
+		setHtmlTitle("log");
 		return () => setIsLoading(false);
 	}, []);
 

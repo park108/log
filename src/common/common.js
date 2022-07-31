@@ -149,19 +149,26 @@ export function decodeHTML(input) {
 	return input.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
 
-export function getFormattedDate(timestamp) {
+export function getFormattedDate(timestamp, format = "yyyy-mm-dd") {
 
 	const date = new Date(timestamp);
 	
 	const yyyy = date.getFullYear();
 	const mm = date.getMonth() + 1;
 	const dd = date.getDate();
-	
-	const formattedDate = yyyy + "-"
-		+ (mm < 10 ? "0" + mm : mm) + "-"
-		+ (dd < 10 ? "0" + dd : dd);
 
-	return formattedDate;
+	if("date mon year" === format) {
+		const month = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+		return dd + " " + month[mm] + " '" + (yyyy % 100);
+	}
+	else {
+	
+		const formattedDate = yyyy + "-"
+			+ (mm < 10 ? "0" + mm : mm) + "-"
+			+ (dd < 10 ? "0" + dd : dd);
+
+		return formattedDate;
+	}
 }
 
 export function getFormattedTime(timestamp) {
