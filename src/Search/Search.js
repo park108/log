@@ -156,7 +156,17 @@ const Search = () => {
 							pathname: "/log/" + data.timestamp + "?search=true"
 						}}>
 							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
-							<div className="div--loglist-contents">{data.contents}</div>
+							<div className="div--loglist-contents">{
+								data.contents.split(queryString).map((parsed, index, arr) => (
+									<span key={index}>
+										{parsed}
+										{ index < arr.length - 1
+											? <span className="span span--search-keyword">{queryString}</span>
+											: ""
+										}
+									</span>
+								))
+							}</div>
 						</Link>
 					</div>
 				))}
