@@ -160,9 +160,9 @@ const Search = () => {
 								data.contents.split(queryString).map((parsed, index, arr) => (
 									<span key={index}>
 										{parsed}
-										{ index < arr.length - 1
-											? <span className="span span--search-keyword">{queryString}</span>
-											: ""
+										{ index == arr.length - 1
+											? ""
+											: <span className="span span--search-keyword">{queryString}</span>
 										}
 									</span>
 								))

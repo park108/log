@@ -22,8 +22,9 @@ const FileItem = (props) => {
 		// Delete a file
 		try {
 			const res = await deleteFile(props.fileName);
+			const status = await res.json();
 
-			if(200 === res.status) {
+			if(200 === status.status) {
 				log("A file is DELETED successfully.");
 				setTimeout(refreshFiles, refreshTimeout);
 			}

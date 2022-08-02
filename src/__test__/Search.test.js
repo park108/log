@@ -47,7 +47,7 @@ it('render search result', async () => {
 		</Router>
 	);
 
-	const searchedItem = await screen.findByText("검색을 위해 추가 테스트를 해봅니다...과일 사과 복숭아 배");
+	const searchedItem = await screen.findByText("검색을 위해 추가");
 	expect(searchedItem).toBeInTheDocument();
 
 	const toListButton = await screen.findByText("To list");

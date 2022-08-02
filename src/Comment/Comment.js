@@ -52,8 +52,9 @@ const Comment = (props) => {
 		try {
 			setIsPosting(true);
 			const res = await postComment(comment);
+			const status = await res.json();
 
-			if(200 === res.status) {
+			if(200 === status.status) {
 				log("A comment is POSTED successfully.");
 				fetchData(comment.logTimestamp);
 			}
@@ -116,12 +117,15 @@ const Comment = (props) => {
 		: "";
 
 	const commentForm = isShow && !isOpenReplyForm
-		? <CommentForm
-			logTimestamp={logTimestamp}
-			post={newComment}
-			isPosting={isPosting}
-		/>
-		: "";
+		? (
+			<Suspense fallback={<div></div>}>
+				<CommentForm
+					logTimestamp={logTimestamp}
+					post={newComment}
+					isPosting={isPosting}
+				/>
+			</Suspense>
+		) : "";
 
 	return (
 		<section className="section section--logitem-comment">

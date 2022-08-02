@@ -51,8 +51,9 @@ const FileDrop = (props) => {
 
 			try {
 				const res = await putFile(uploadUrl, item.type, item);
+				const status = await res.json();
 
-				if(200 === res.status) {
+				if(200 === status.status) {
 					log("File [" + name + "] PUTTED successfully.");
 					if(isLast) setIsUploading("COMPLETE");
 				}
