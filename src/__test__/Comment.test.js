@@ -1,13 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import Comment from '../Comment/Comment';;
-import CommentForm from '../Comment/CommentForm';
 import CommentItem from '../Comment/CommentItem';
-import { postComment } from '../Comment/api';
 
 const unmockedFetch = global.fetch;
 console.log = jest.fn();
-// console.error = jest.fn();
+console.error = jest.fn();
 const errorMessage = "API is down";
 
 describe('render comment list and post comment correctly', () => {
@@ -109,7 +107,7 @@ describe('render comment list and post comment correctly', () => {
 		const textArea = await screen.findByPlaceholderText("Write your comment");
 		expect(textArea).toBeDefined();
 		userEvent.type(textArea, 'Test comment');
-		
+
 		global.fetch = () => Promise.reject(errorMessage);
 		
 		const submitButton = await screen.findByText("Submit");
