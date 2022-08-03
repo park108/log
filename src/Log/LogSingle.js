@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { log, hasValue, setHtmlTitle, getFormattedDate } from '../common/common';
+import { log, hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '../common/common';
 import { getLog } from './api';
 import PageNotFound from "../common/PageNotFound";
 
@@ -33,6 +33,7 @@ const LogSingle = (props) => {
 				console.error(fetchedData);
 				setHasItem("NO"); // Page not found
 				log("No log found.");
+				setMetaDescription("Page not found");
 				return;
 			}
 
@@ -42,6 +43,9 @@ const LogSingle = (props) => {
 			else {
 				setData(fetchedData.body.Items[0]);
 				setHasItem("YES");
+				const metaDescription = fetchedData.body.Items[0].summary;
+				const length = fetchedData.body.Items[0].summary.length;
+				setMetaDescription(length > 100 ? metaDescription.substr(0, 100) + "..." : metaDescription);
 			}
 
 			log("The log is FETCHED successfully.");
@@ -69,9 +73,17 @@ const LogSingle = (props) => {
 
 	// Cleanup
 	useEffect(() => {
-		setHtmlTitle("log of " + getFormattedDate(logTimestamp * 1, "date mon year"));
+		const date = getFormattedDate(logTimestamp * 1, "date mon year");
+		if("NaN undefined 'NaN" === date) {
+			setHtmlTitle("log not found");
+		}
+		else {
+			setHtmlTitle("log of " + date);
+		}
+		
 		return () => {
 			setIsLoading(false);
+			setMetaDescription("park108.net is a personal journal of Jongkil Park the developer");
 		}
 	}, []);
 

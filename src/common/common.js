@@ -7,6 +7,11 @@ export const setHtmlTitle = (title) => {
 	}
 }
 
+export const setMetaDescription = (desc) => {
+	const meta = document.getElementsByTagName('meta');
+	meta.description.content = desc;
+}
+
 export const hasValue = (obj) => {
 	return (undefined !== obj
 		&& null !== obj
