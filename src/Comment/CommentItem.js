@@ -40,6 +40,7 @@ const CommentItem = (props) => {
 		: isReply ? ""
 		: <div
 			className="div div--comment-replybutton"
+			data-testid="reply-toggle-button"
 			onClick={toggleReplyForm}
 		>
 			↪

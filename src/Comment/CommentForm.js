@@ -73,23 +73,25 @@ const CommentForm = (props) => {
 			<form onSubmit={postComment}>
 				<div className="div div--comment-input">
 					<div>
-					<input 
-						ref={userNameRef}
-						type="text"
-						className="input input--comment-name"
-						placeholder="Type your name"
-						onChange={changeName}
-						value={userName}
-						disabled={nameDisabled}
-						autoFocus
-					/>
-					<input
-						type="checkbox"
-						id="hidden"
-						className="input input--comment-hidden"
-						onChange={changeIsHidden}
-					/>
-					<label htmlFor="hidden" className="label label--comment-hidden">Hidden</label>
+						<input 
+							ref={userNameRef}
+							type="text"
+							className="input input--comment-name"
+							placeholder="Type your name"
+							onChange={changeName}
+							value={userName}
+							disabled={nameDisabled}
+							autoFocus
+						/>
+						<input
+							type="checkbox"
+							id="hidden"
+							className="input input--comment-hidden"
+							onChange={changeIsHidden}
+						/>
+						<label htmlFor="hidden" className="label label--comment-hidden">
+							Hidden
+						</label>
 					</div>
 					<textarea
 						ref={messageRef}
@@ -102,7 +104,9 @@ const CommentForm = (props) => {
 						disabled={messageDisabled}
 						onChange={changeComment}
 					/>
-					<button type="submit" className="button button--comment-submit">Submit</button>
+					<button type="submit" className="button button--comment-submit">
+						Submit
+					</button>
 				</div>
 			</form>
 		</div>
