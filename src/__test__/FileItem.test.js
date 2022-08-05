@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'
 import FileItem from '../File/FileItem';
-import { deleteFile } from '../File/api';
 
 const unmockedFetch = global.fetch;
 console.log = jest.fn();
