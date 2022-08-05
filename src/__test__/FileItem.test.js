@@ -4,6 +4,8 @@ import FileItem from '../File/FileItem';
 import { deleteFile } from '../File/api';
 
 const unmockedFetch = global.fetch;
+console.log = jest.fn();
+console.error = jest.fn();
 const errorMessage = "API is down";
 
 describe('render file item name "20220606_log_CQRS.png" correctly', () => {
