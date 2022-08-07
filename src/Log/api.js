@@ -29,12 +29,6 @@ const trimmedContents = (contents) => {
 	return  markdownToHtml(contents).replace(/(<([^>]+)>)/gi, '');
 }
 
-// const makeSummary = (contents) => {
-// 	const trimmed = trimmedContents(contents);
-// 	const contentsLength = trimmed.length;
-// 	return contentsLength > trimSize ? trimmed.substr(0, trimSize) + " ..." : trimmed;
-// }
-
 export const postLog = async(now, contents) => {
 
 	return await fetch(getApiUrl(), {

@@ -121,9 +121,13 @@ it('render log item and delete correctly', async () => {
 	);
 	
 	jest.useFakeTimers();
-	window.confirm = jest.fn(() => true);	
+	window.confirm = jest.fn(() => false);
 
 	const deleteButton = screen.getByTestId("delete-button");
+	expect(deleteButton).toBeDefined();
+	userEvent.click(deleteButton);
+
+	window.confirm = jest.fn(() => true);
 	expect(deleteButton).toBeDefined();
 	userEvent.click(deleteButton);
 
