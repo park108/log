@@ -6,8 +6,8 @@ import Log from '../Log/Log';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
-console.log = jest.fn();
-console.error = jest.fn();
+// console.log = jest.fn();
+// console.error = jest.fn();
 
 it('render log if it logged in', async () => {
 		
@@ -49,6 +49,41 @@ it('render log if it logged in', async () => {
 
 	const div = await screen.findByRole("application");
 	expect(div).toBeInTheDocument();
+
+	const item = await screen.findByText("2022-06-20");
+	expect(item).toBeInTheDocument();
+	
+	global.fetch = () =>
+		Promise.resolve({
+		json: () => Promise.resolve({
+			body: {
+				Count: 1,
+				Items: [
+					{
+						author: "park108@gmail.com",
+						timestamp: 1656034616036,
+						logs: [
+							{
+								contents: "Test Contents",
+								timestamp: 1656034616036,
+							}
+						]
+					},
+				]
+			}
+		}),
+	});
+
+	console.log(item.parentNode);
+	userEvent.click(item.parentNode);
+
+	const textInput = await screen.findByTestId("writer-text-area");
+	const typedValue = "Posting test";
+	userEvent.type(textInput, typedValue);
+
+	// const submitButton = await screen.findByTestId("submit-button");
+	// expect(submitButton).toBeDefined();
+	// userEvent.click(submitButton);
 
 	global.fetch = unmockedFetch;
 });
