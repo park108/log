@@ -77,9 +77,9 @@ it('render log if it logged in', async () => {
 	console.log(item.parentNode);
 	userEvent.click(item.parentNode);
 
-	const textInput = await screen.findByTestId("writer-text-area");
-	const typedValue = "Posting test";
-	userEvent.type(textInput, typedValue);
+	// const textInput = await screen.findByTestId("writer-text-area");
+	// const typedValue = "Posting test";
+	// userEvent.type(textInput, typedValue);
 
 	// const submitButton = await screen.findByTestId("submit-button");
 	// expect(submitButton).toBeDefined();
