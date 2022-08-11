@@ -6,8 +6,8 @@ import Log from '../Log/Log';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
-// console.log = jest.fn();
-// console.error = jest.fn();
+console.log = jest.fn();
+console.error = jest.fn();
 
 it('render log if it logged in', async () => {
 		
