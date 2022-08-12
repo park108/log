@@ -67,7 +67,7 @@ const File = (props) => {
 				const newFiles = files.concat(nextData.body.Items);
 				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	
-				setFiles(undefined === nextData.body.Items ? [] : newFiles);	
+				setFiles(undefined === nextData.body.Items ? [] : newFiles);
 				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
 			}
 		}
@@ -152,7 +152,6 @@ const File = (props) => {
 			<Toaster 
 				show={isShowToaster}
 				message={"Loading files..."}
-				completed={() => setIsShowToaster(2)}
 			/>
 		</main>
 	);

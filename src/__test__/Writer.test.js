@@ -88,18 +88,19 @@ it('render text area correctly', async () => {
 
 it('render text area if not logged in', async () => {
 	
-	common.isLoggedIn = jest.fn().mockResolvedValue(false);
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(false);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	
+
 	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log/write"}});
+	const location = {
+		pathname: "/log/write",
+	};
+
+	history.push(location);
   
 	render(
-		<div id="root" className="div fullscreen">
-			<Router location={history.location} history={history}>
-				<Writer />
-			</Router>
-		</div>
+		<Router location={location} history={history}>
+			<Writer />
+		</Router>
 	);
 });

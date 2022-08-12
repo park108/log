@@ -5,13 +5,9 @@ import App from '../App';
 import Monitor from '../Monitor/Monitor';
 import * as api from '../Monitor/api';
 import * as common from '../common/common';
+import userEvent from '@testing-library/user-event';
 
-beforeAll(() => {
-	delete window.location;
-	window.location = {
-		href: '/monitor',
-	};
-});
+console.error = jest.fn();
 
 it('render monitor if it logged in', async () => {
 
@@ -33,24 +29,22 @@ it('render monitor if it logged in', async () => {
 });
 
 it('redirect if not admin', async () => {
-
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
+	
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(false);
 
 	const history = createMemoryHistory();
-	const location = { pathname: "/monitor" };
+	const location = {location: {pathname: "/monitor"}};
 	history.push(location);
 
-	// render(
-	// 	<App />
-	// );
+	render(
+		<Router location={location} navigator={history}>
+			<Monitor />
+		</Router>
+	);
 
-	// const monitorMenu = await screen.findByText("mon");
-	// expect(monitorMenu).toBeDefined();
-	// userEvent.click(monitorMenu);
-
-	// expect(history.location.pathname).toEqual('/log');
+	const title = screen.queryByText("Contents in the last 6 months");
+	expect(title).not.toBeInTheDocument();
 });
 
 describe("get api url", () => {

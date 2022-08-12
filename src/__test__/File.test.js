@@ -9,6 +9,23 @@ const unmockedFetch = global.fetch;
 console.error = jest.fn();
 const errorMessage = "API is down";
 
+it('redirect if not admin', async () => {
+	
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(false);
+  
+	const history = createMemoryHistory({ initialEntries: ["/file"]});
+
+	render(
+		<Router location={history.location} navigator={history}>
+			<File />
+		</Router>
+	);
+
+	const nothing = screen.queryByText("Nothing");
+	expect(nothing).not.toBeInTheDocument();
+});
+
 it('render files and get next files correctly', async () => {
 		
 	// fetchFirst -> ok
@@ -143,6 +160,7 @@ it('render files failed', async () => {
 
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
+	common.isMobile = jest.fn().mockResolvedValue(true);
 
 	process.env.NODE_ENV = 'development';
 
