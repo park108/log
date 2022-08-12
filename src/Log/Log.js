@@ -34,7 +34,7 @@ const Log = (props) => {
 			const res = await postLog(newTimestamp, contents);
 			const status = await res.json();
 
-			if(200 === status.status) {
+			if(200 === status.statusCode) {
 				setIsPostSuccess(true);
 				setToasterMessage("The log posted.");
 				setIsShowToaster(1);
@@ -74,7 +74,7 @@ const Log = (props) => {
 			const res = await putLog(newItem);
 			const status = await res.json();
 
-			if(200 === status.status) {
+			if(200 === status.statusCode) {
 				setIsPostSuccess(true);			
 				setToasterMessage("The log changed.");
 				setIsShowToaster(1);

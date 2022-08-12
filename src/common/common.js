@@ -274,7 +274,6 @@ export const isMobile = () => {
 export const setFullscreen = (isFullscreen) => {
 
 	let root = document.getElementById("root");
-	console.log(root);
 
 	if(undefined !== root && null !== root) {
 		if(isFullscreen) {

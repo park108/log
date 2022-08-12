@@ -34,7 +34,7 @@ const LogItem = (props) => {
 			const res = await deleteLog(author, timestamp);
 			const status = await res.json();
 
-			if(200 !== status.status) {
+			if(200 !== status.statusCode) {
 				log(res, "ERROR");
 				return;
 			}
