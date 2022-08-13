@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
@@ -31,6 +31,9 @@ it('render log item correctly', async () => {
 	const history = createMemoryHistory();
 	history.push({location: {pathname: "/log"}});
 
+	process.env.NODE_ENV = 'production';
+	document.execCommand = jest.fn();
+
 	render(
 		<Router location={history.location} navigator={history}>
 			<LogItem 
@@ -45,7 +48,7 @@ it('render log item correctly', async () => {
 	
 	// Button click tests
 	const linkCopyButton = await screen.findByTestId("link-copy-button");
-	expect(linkCopyButton).toBeDefined();
+	expect(linkCopyButton).toBeInTheDocument();
 	userEvent.click(linkCopyButton);
 
 	const versionsButton = await screen.findByTestId("versions-button");
@@ -55,6 +58,12 @@ it('render log item correctly', async () => {
 	const editButton = await screen.findByTestId("edit-button");
 	expect(editButton).toBeDefined();
 	userEvent.click(editButton);
+
+	// Mouse over/out event
+	const linkUrl = await screen.findByText("https://www.park108.net/log/1655736946977");
+	expect(linkUrl).toBeInTheDocument();
+	fireEvent.mouseOver(linkUrl);
+	fireEvent.mouseOut(linkUrl);
 });
 
 it('render log item and delete correctly', async () => {
@@ -62,7 +71,7 @@ it('render log item and delete correctly', async () => {
 	// deleteLogItem -> ok
 	global.fetch = () => Promise.resolve({
 		json: () => Promise.resolve({
-			status: 200
+			statusCode: 200
 		}),
 	});
 
@@ -101,7 +110,6 @@ it('render log item and delete correctly', async () => {
 
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
-	// common.hasValue = jest.fn().mockResolvedValue(true);
 
 	process.env.NODE_ENV = 'development';
 
@@ -143,7 +151,7 @@ it('render log item and delete failed correctly', async () => {
 	// deleteLogItem -> failed
 	global.fetch = () => Promise.resolve({
 		json: () => Promise.resolve({
-			status: 404
+			statusCode: 404
 		}),
 	});
 

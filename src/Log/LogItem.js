@@ -159,18 +159,24 @@ const LogItem = (props) => {
 		const linkIcon = showLink
 			? (
 				<span
+					data-testid="link-copy-button"
 					onClick={copyToClipboard}
-					onMouseOver={() => setIsShowCopyToClipboardMessage(true)}
-					onMouseOut={() => setIsShowCopyToClipboardMessage(false)}
 					className="span span--logitem-toolbaricon"
 				>
 					<LinkButton />
 					<span className="hidden--width-640px">
 						<a
 							role="button"
-							data-testid="link-copy-button"
 							href={linkUrl}
 							className="a a--logitem-loglink"
+							onMouseOver={(e) => {
+								e.preventDefault();
+								setIsShowCopyToClipboardMessage(true);
+							}}
+							onMouseOut={(e) => {
+								e.preventDefault();
+								setIsShowCopyToClipboardMessage(false);
+							}}
 						>
 							{linkUrl}
 						</a>
