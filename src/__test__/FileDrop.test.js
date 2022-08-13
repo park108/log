@@ -1,87 +1,126 @@
 import { render, screen } from '@testing-library/react';
-import { fireEvent } from '@testing-library/dom'
+import { fireEvent } from '@testing-library/dom';
 import FileDrop from '../File/FileDrop';
+import * as api from '../File/api';
 
-function isElement(obj) {
-	if (typeof obj !== 'object') {
-	  return false
-	}
-	let prototypeStr, prototype
-	do {
-	  prototype = Object.getPrototypeOf(obj)
-	  // to work in iframe
-	  prototypeStr = Object.prototype.toString.call(prototype)
-	  // '[object Document]' is used to detect document
-	  if (
-		prototypeStr === '[object Element]' ||
-		prototypeStr === '[object Document]'
-	  ) {
-		return true
-	  }
-	  obj = prototype
-	  // null is the terminal of object
-	} while (prototype !== null)
-	return false
-  }
-  
-  function getElementClientCenter(element) {
-	const {left, top, width, height} = element.getBoundingClientRect()
-	return {
-	  x: left + width / 2,
-	  y: top + height / 2,
-	}
-  }
-  
-  const getCoords = charlie =>
-	isElement(charlie) ? getElementClientCenter(charlie) : charlie
-  
-  const sleep = ms =>
-	new Promise(resolve => {
-	  setTimeout(resolve, ms)
-	})
-  
-  export default async function drag(
-	element,
-	{to: inTo, delta, steps = 20, duration = 500},
-  ) {
-	const from = getElementClientCenter(element)
-	const to = delta
-	  ? {
-		  x: from.x + delta.x,
-		  y: from.y + delta.y,
-		}
-	  : getCoords(inTo)
-  
-	const step = {
-	  x: (to.x - from.x) / steps,
-	  y: (to.y - from.y) / steps,
-	}
-  
-	const current = {
-	  clientX: from.x,
-	  clientY: from.y,
-	}
-  
-	fireEvent.mouseEnter(element, current)
-	fireEvent.mouseOver(element, current)
-	fireEvent.mouseMove(element, current)
-	fireEvent.mouseDown(element, current)
-	for (let i = 0; i < steps; i++) {
-	  current.clientX += step.x
-	  current.clientY += step.y
-	  await sleep(duration / steps)
-	  fireEvent.mouseMove(element, current)
-	}
-	fireEvent.mouseUp(element, current)
-  }
+const unmockedFetch = global.fetch;
+console.error = jest.fn();
+const errorMessage = "API is down";
 
-it('render drop zone correctly', async () => {
+it('render drop zone correctly and upload ok', async () => {
 
 	render(<FileDrop />);
+
 	const dropZone = screen.getByTestId("dropzone");
 	expect(dropZone).toBeInTheDocument();
 
-	await drag(dropZone, {
-		delta: {x: 10, y: 10},
+	const event = {
+		dataTransfer: {
+			files: [
+				{
+					name: "testfile1.txt",
+					type: "text"
+				}
+			]
+		}
+	};
+
+	// Fetch pre-signed URL -> error
+	global.fetch = () =>
+		Promise.resolve({
+		json: () => Promise.resolve({
+			errorType: "404"
+		}),
 	});
+
+	fireEvent.drop(dropZone, event);
+
+	// Fetch pre-signed URL -> Server Down
+	global.fetch = () => Promise.reject(errorMessage);
+
+	fireEvent.drop(dropZone, event);
+
+	// Fetch pre-signed URL -> OK & Upload -> OK
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			body:{
+				UploadUrl: "https://test.url.com/test"
+			}
+		}),
+	});
+
+	api.putFile = jest.fn().mockReturnValue({status: 200});
+
+	fireEvent.dragOver(dropZone, event);
+	fireEvent.drop(dropZone, event);
+	fireEvent.dragEnter(dropZone, event);
+	fireEvent.dragLeave(dropZone, event);
+
+	global.fetch = unmockedFetch;
+});
+
+it('render drop zone correctly and upload failed', async () => {
+
+	render(<FileDrop />);
+
+	const dropZone = screen.getByTestId("dropzone");
+	expect(dropZone).toBeInTheDocument();
+
+	const event = {
+		dataTransfer: {
+			files: [
+				{
+					name: "testfile1.txt",
+					type: "text"
+				}
+			]
+		}
+	}
+
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			body:{
+				UploadUrl: "https://test.url.com/test"
+			}
+		}),
+	});
+
+	api.putFile = jest.fn().mockReturnValue({status: 404});
+
+	fireEvent.drop(dropZone, event);
+
+	global.fetch = unmockedFetch;
+});
+
+it('render drop zone correctly and upload server error', async () => {
+
+	render(<FileDrop />);
+
+	const dropZone = screen.getByTestId("dropzone");
+	expect(dropZone).toBeInTheDocument();
+
+	const event = {
+		dataTransfer: {
+			files: [
+				{
+					name: "testfile1.txt",
+					type: "text"
+				}
+			]
+		}
+	}
+
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			body:{
+				UploadUrl: "https://test.url.com/test"
+			}
+		}),
+	});
+
+	api.putFile = jest.fn().mockRejectedValue();
+
+	fireEvent.drop(dropZone, event);
+
+	global.fetch = unmockedFetch;
 });
