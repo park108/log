@@ -246,6 +246,16 @@ describe('Size formatting test', () => {
 		const result = common.confirm("CONFIRM TEST", onConfirm, "HAHA");
 		expect(result).toBe(undefined);
 	});
+
+	it('failed test cancellation for no message', () => {
+		const result = common.confirm("CONFIRM TEST", "HAHA", onCancel);
+		expect(result).toBe(undefined);
+	});
+
+	it('failed test confirmation no arguments', () => {
+		const result = common.confirm();
+		expect(result).toBe(undefined);
+	});
 });
 
 it('is not mobile', () => {
@@ -280,5 +290,160 @@ describe('User Agent parsing test', () => {
 		process.env.NODE_ENV = "development";
 		const result = common.userAgentParser();
 		expect(result.url).toBe("http://localhost:3000/");
+	});
+
+	it('get User Agent Info', () => {
+
+		process.env.NODE_ENV = "development";
+		const result = common.userAgentParser();
+		expect(result.url).toBe("http://localhost:3000/");
+	});
+
+	it('test User Agent for Seamonkey, Webkit, Mac OS X', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Seamonkey/TestVersion",
+				configurable: true
+			}
+		);
+
+		const result = common.userAgentParser();
+		expect(result.browser).toBe("Seamonkey");
+		expect(result.renderingEngine).toBe("Webkit");
+		expect(result.operatingSystem).toBe("Mac OS X");
+	});
+
+	it('test User Agent for Firefox, Gecko, Windows', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0",
+  				configurable: true
+			}
+		);
+
+		const result = common.userAgentParser();
+		expect(result.browser).toBe("Firefox");
+		expect(result.renderingEngine).toBe("Gecko");
+		expect(result.operatingSystem).toBe("Windows");
+	});
+
+	it('test User Agent for Safari, Trident, iOS', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "Mozilla/5.0 (iPhone; CPU iPhone OS 15_6 like Mac OS X) Trident/testversion (KHTML, like Gecko) Version/15.6 Mobile/15E148 Safari/604.1",
+  				configurable: true
+			}
+		);
+
+		const result = common.userAgentParser();
+		expect(result.browser).toBe("Safari");
+		expect(result.renderingEngine).toBe("Trident");
+		expect(result.operatingSystem).toBe("iOS");
+	});
+
+	it('test User Agent for Opera, Presto, Linux', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "(X11; Linux x86_64) Opera/86.0.4363.59",
+  				configurable: true
+			}
+		);
+
+		const result = common.userAgentParser();
+		expect(result.browser).toBe("Opera");
+		expect(result.renderingEngine).toBe("Presto");
+		expect(result.operatingSystem).toBe("Linux");
+	});
+
+	it('test User Agent for Chrome, Blink, Android', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "Android Chrome/",
+  				configurable: true
+			}
+		);
+
+		const result = common.userAgentParser();
+		expect(result.browser).toBe("Chrome");
+		expect(result.renderingEngine).toBe("Blink");
+		expect(result.operatingSystem).toBe("Android");
+	});
+
+	it('test User Agent for Kakaotalk, Others, Chrome OS', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "(X11; CrOS KAKAOTALK",
+  				configurable: true
+			}
+		);
+
+		const result = common.userAgentParser();
+		expect(result.browser).toBe("Kakaotalk");
+		expect(result.renderingEngine).toBe("Others");
+		expect(result.operatingSystem).toBe("Chrome OS");
+	});
+
+	it('test User Agent for Chrome, Others, Symbian', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "Symbian CriOS/",
+  				configurable: true
+			}
+		);
+
+		const result = common.userAgentParser();
+		expect(result.browser).toBe("Chrome");
+		expect(result.renderingEngine).toBe("Others");
+		expect(result.operatingSystem).toBe("Symbian");
+	});
+
+	it('test User Agent for Chromium, Opera, Explorer on Browser', () => {
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "Chromium/",
+  				configurable: true
+			}
+		);
+
+		const result1 = common.userAgentParser();
+		expect(result1.browser).toBe("Chromium");
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "OPR/",
+  				configurable: true
+			}
+		);
+
+		const result2 = common.userAgentParser();
+		expect(result2.browser).toBe("Opera");
+
+		// Mocking user agent
+		Object.defineProperty(window.navigator, 'userAgent',
+			{
+				value : "; MSIE ",
+  				configurable: true
+			}
+		);
+
+		const result3 = common.userAgentParser();
+		expect(result3.browser).toBe("Internet Explorer");
 	});
 });

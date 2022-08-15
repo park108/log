@@ -13,6 +13,7 @@ describe('render file item name "20220606_log_CQRS.png" correctly', () => {
 	
 	it("test button click events", () => {
 
+		jest.useFakeTimers();
 		document.execCommand = jest.fn();
 		
 		render(<FileItem 
@@ -30,6 +31,9 @@ describe('render file item name "20220606_log_CQRS.png" correctly', () => {
 		const fileButton = buttons[0];
 		expect(fileButton).toBeInTheDocument();
 		userEvent.click(fileButton);
+
+		jest.runAllTimers();
+		jest.useRealTimers();
 	});
 
 	it("test delete file", async () => {
