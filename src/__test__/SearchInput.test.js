@@ -5,7 +5,7 @@ import { Router } from 'react-router-dom';
 import * as common from "../common/common";
 import SearchInput from '../Search/SearchInput';
 
-console.log = jest.fn();
+// console.log = jest.fn();
 console.error = jest.fn();
 
 describe('test key up events', () => {
@@ -14,9 +14,9 @@ describe('test key up events', () => {
 	let searchButton = null;
 	let mobileSearchButton = null;
 
-	beforeEach(async () => {
+	it('firing keyUp event', async () => {
 
-		common.isAdmin = jest.fn().mockResolvedValue(true);
+		common.isAdmin = jest.fn().mockReturnValue(true);
 
 		process.env.NODE_ENV = 'development';
 
@@ -31,9 +31,6 @@ describe('test key up events', () => {
 		inputElement = screen.getAllByPlaceholderText("Search logs...")[0];
 		searchButton = screen.getByText("go");
 		mobileSearchButton = screen.getByText("search");
-	});
-
-	it('firing keyUp event', async () => {
 
 		fireEvent.keyUp(inputElement, { keyCode: 97 });
 		fireEvent.keyUp(inputElement, { keyCode: 98 });
@@ -48,13 +45,24 @@ describe('test key up events', () => {
 		expect(mobileSearchButton).toBeDefined();
 		userEvent.click(mobileSearchButton);
 		userEvent.click(mobileSearchButton);
-
-		common.isAdmin = jest.fn().mockResolvedValue(false);
-		fireEvent.keyUp(inputElement, { keyCode: 13 });
 	});
 
 	it('firing search when the search string is null', async () => {
 
+		common.isAdmin = jest.fn().mockReturnValue(false);
+
+		process.env.NODE_ENV = 'production';
+
+		const history = createMemoryHistory();
+		history.push({location: {pathname: "/log"}});
+		render(
+			<Router location={history.location} navigator={history}>
+				<SearchInput />
+			</Router>
+		);
+
+		inputElement = screen.getAllByPlaceholderText("Search logs...")[0];
+		
 		jest.useFakeTimers();
 
 		inputElement.value = "";
@@ -64,5 +72,8 @@ describe('test key up events', () => {
 			jest.runOnlyPendingTimers();
 		});
 		jest.useRealTimers();
+
+		const nullStringAlert = screen.getByText("Enter a sentence to search for");
+		expect(nullStringAlert).toBeDefined();
 	});
 });
