@@ -23,7 +23,7 @@ const Log = (props) => {
 	const contentHeight = props.contentHeight;
 	
 	// Create new log
-	const createLog = async (contents) => {
+	const createLog = async (contents, isTemporary = false) => {
 
 		const newTimestamp = Math.floor(new Date().getTime());
 
@@ -31,7 +31,7 @@ const Log = (props) => {
 
 		try {
 			// Call API
-			const res = await postLog(newTimestamp, contents);
+			const res = await postLog(newTimestamp, contents, isTemporary);
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
@@ -56,7 +56,7 @@ const Log = (props) => {
 	}
 
 	// Edit log
-	const editLog = async (item, contents) => {
+	const editLog = async (item, contents, isTemporary = false) => {
 
 		setIsPostSuccess(false);
 
@@ -71,7 +71,7 @@ const Log = (props) => {
 			newItem.logs = changedLogs;
 
 			// Call API
-			const res = await putLog(newItem);
+			const res = await putLog(newItem, isTemporary);
 			const status = await res.json();
 
 			if(200 === status.statusCode) {

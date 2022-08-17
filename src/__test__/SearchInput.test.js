@@ -5,7 +5,7 @@ import { Router } from 'react-router-dom';
 import * as common from "../common/common";
 import SearchInput from '../Search/SearchInput';
 
-// console.log = jest.fn();
+console.log = jest.fn();
 console.error = jest.fn();
 
 describe('test key up events', () => {

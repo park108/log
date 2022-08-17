@@ -40,6 +40,11 @@
   margin: 0;
 }
 
+.span--loglist-temporary {
+	margin-right: 0.5em;
+	font-style: italic;
+}
+
 .span--logitem-toolbarblank {
   padding-left: 0.5em;
 }

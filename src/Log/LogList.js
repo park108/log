@@ -141,7 +141,14 @@ const LogList = (props) => {
 							pathname: "/log/" + data.timestamp
 						}}>
 							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
-							<div className="div--loglist-contents">{data.contents}</div>
+							<div className="div--loglist-contents">
+								{
+									true === data.temporary
+										? <span className="span--loglist-temporary">[TEMP]</span>
+										: ""
+								}
+								{data.contents}
+							</div>
 						</Link>
 					</div>
 				))}

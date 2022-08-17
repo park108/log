@@ -1,4 +1,5 @@
 import { markdownToHtml } from '../common/markdownParser';
+import { isAdmin } from "../common/common";
 
 const getApiUrl = () => {
 	if (process.env.NODE_ENV === 'production') {
@@ -11,7 +12,8 @@ const getApiUrl = () => {
 
 export const getLogs = async(limit) => {
 	limit = undefined === limit ? 1 : limit;
-	return await fetch(getApiUrl() + "?limit=" + limit);
+	const admin = isAdmin() ? "&admin=true" : "";
+	return await fetch(getApiUrl() + "?limit=" + limit + admin);
 }
 
 export const getNextLogs = async(timestamp, limit) => {
@@ -29,7 +31,7 @@ const trimmedContents = (contents) => {
 	return  markdownToHtml(contents).replace(/(<([^>]+)>)/gi, '');
 }
 
-export const postLog = async(now, contents) => {
+export const postLog = async(now, contents, isTemporary) => {
 
 	return await fetch(getApiUrl(), {
 		method: "POST",
@@ -39,6 +41,7 @@ export const postLog = async(now, contents) => {
 		body: JSON.stringify({
 			"timestamp": now,
 			"summary": trimmedContents(contents),
+			"temporary": isTemporary,
 			"logs": [{
 				"contents": contents,
 				"timestamp": now
@@ -47,9 +50,10 @@ export const postLog = async(now, contents) => {
 	});
 }
 
-export const putLog = async(newItem) => {
+export const putLog = async(newItem, isTemporary) => {
 
 	newItem.summary = trimmedContents(newItem.logs[0].contents);
+	newItem.temporary = isTemporary;
 
 	return await fetch(getApiUrl() + "/timestamp/" + newItem.timestamp, {
 		method: "PUT",

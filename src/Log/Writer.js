@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Navigate } from "react-router";
 import { useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { isAdmin, log, setFullscreen } from '../common/common';
+import { isAdmin, log, setFullscreen, hasValue } from '../common/common';
 import * as parser from '../common/markdownParser';
 import Toaster from "../Toaster/Toaster";
 import './Writer.css';
@@ -14,6 +14,7 @@ const Writer = (props) => {
 
 	const [data, setData] = useState(undefined);
 	const [contents, setContents] = useState("");
+	const [isTemporary, setIsTemporary] = useState(false);
 	const [article, setArticle] = useState("");
 	const [articleStatus, setArticleStatus] = useState("");
 	const [rows, setRows] = useState("1");
@@ -43,6 +44,9 @@ const Writer = (props) => {
 	useEffect(() => {
 		if(undefined !== data) {
 			setContents(data.logs[0].contents);
+			if(hasValue(data.temporary)) {
+				setIsTemporary(data.temporary);
+			}
 		}
 	}, [data]);
 
@@ -114,6 +118,10 @@ const Writer = (props) => {
 
 	}, [article]);
 
+	useEffect(() => {
+		console.log(isTemporary);
+	}, [isTemporary]);
+
 	useEffect(() => setConvertedArticleStatus("HTML length = " + convertedArticle.length), [convertedArticle]);
 
 	useEffect(() => setDisabled(!props.isPostSuccess), [props.isPostSuccess]);
@@ -140,12 +148,12 @@ const Writer = (props) => {
 		else if("POST" === mode) {
 
 			event.preventDefault();
-			props.post(article);
+			props.post(article, document.getElementById("temporary").checked);
 		}
 		else if("EDIT" === mode) {
 
 			event.preventDefault();
-			props.edit(data, article);
+			props.edit(data, article, document.getElementById("temporary").checked);
 		}
 	}
 
@@ -235,6 +243,10 @@ const Writer = (props) => {
 			</span>
 		);
 	}
+
+	const checkTemporary = () => {
+		setIsTemporary(!isTemporary);
+	}
 	
 	if(!isAdmin()) {
 		return <Navigate to="/log" />;
@@ -285,6 +297,8 @@ const Writer = (props) => {
 					<input
 						type="checkbox"
 						id="temporary"
+						onChange={checkTemporary}
+						checked={isTemporary}
 					/>
 					<label
 						htmlFor="temporary"
