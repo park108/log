@@ -119,7 +119,6 @@ const Writer = (props) => {
 	}, [article]);
 
 	useEffect(() => {
-		console.log(isTemporary);
 	}, [isTemporary]);
 
 	useEffect(() => setConvertedArticleStatus("HTML length = " + convertedArticle.length), [convertedArticle]);
