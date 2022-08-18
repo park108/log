@@ -23,7 +23,7 @@ it('render logs and get next logs correctly', async () => {
 					,{"contents":"Test Now","author":"park108@gmail.com","timestamp":1654639443910}
 					,{"contents":"첫 화면을 목록 형태로 변경했다.이 블로그는 변경 이력을 모두 저장하도록 설계, 구현했다. 개별 건의 CRUD 뿐 만 아니라, 목록 조회를 할 때에도 동일한 테이블에서 쿼리를 했기 ...","author":"park108@gmail.com","timestamp":1654526208951}
 					,{"contents":"Ver 4.Real! New!!! and long string over the FIFTY! ...","author":"park108@gmail.com","timestamp":1654520402200}
-					,{"contents":"New!!!!!!","author":"park108@gmail.com","timestamp":1654520368510}
+					,{"contents":"New!!!!!!","author":"park108@gmail.com","timestamp":1654520368510,"temporary":true}
 					,{"contents":"New test ","author":"park108@gmail.com","timestamp":1654520347146}
 					,{"contents":"Noew Version 10! Can i success? Change once again! ...","author":"park108@gmail.com","timestamp":1654501373940}
 				],

@@ -34,15 +34,16 @@
   color: var(--sub-text-color);
 }
 
+.span--loglist-temporary {
+	color: var(--shadow-color);
+	font-style: italic;
+	margin-left: 1em;
+}
+
 .div--logitem-toolbar {
   float: right;
   padding: 0;
   margin: 0;
-}
-
-.span--loglist-temporary {
-	margin-right: 0.5em;
-	font-style: italic;
 }
 
 .span--logitem-toolbarblank {
@@ -162,6 +163,15 @@
 	background: -webkit-linear-gradient(left, var(--normal-text-color) 90%, transparent);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.div--loglist-temporary {
+	background: -webkit-linear-gradient(left, var(--normal-text-color) 90%, transparent);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: var(--shadow-color);
+	font-style: italic;
 	white-space: nowrap;
 	overflow: hidden;
 }

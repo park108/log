@@ -140,15 +140,15 @@ const LogList = (props) => {
 						<Link to={{
 							pathname: "/log/" + data.timestamp
 						}}>
-							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
-							<div className="div--loglist-contents">
-								{
-									true === data.temporary
-										? <span className="span--loglist-temporary">[TEMP]</span>
-										: ""
-								}
-								{data.contents}
+							<div className="div--loglist-date">
+								{getFormattedDate(data.timestamp)}
+								{ true === data.temporary ? <span className="span--loglist-temporary">(temp)</span> : "" }
 							</div>
+							{
+								true === data.temporary
+									? <div className="div--loglist-temporary">{data.contents}</div>
+									: <div className="div--loglist-contents">{data.contents}</div>
+							}
 						</Link>
 					</div>
 				))}
