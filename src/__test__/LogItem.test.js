@@ -63,7 +63,6 @@ it('render log item correctly', async () => {
 	const linkUrl = await screen.findByText("https://www.park108.net/log/1655736946977");
 	expect(linkUrl).toBeInTheDocument();
 	fireEvent.mouseOver(linkUrl);
-	fireEvent.mouseOut(linkUrl);
 });
 
 it('render log item and delete correctly', async () => {
@@ -127,6 +126,11 @@ it('render log item and delete correctly', async () => {
 			/>
 		</Router>
 	);
+
+	// Mouse over/out event
+	const linkUrl = await screen.findByText("http://localhost:3000/log/1655736946977");
+	expect(linkUrl).toBeDefined();
+	fireEvent.mouseOut(linkUrl);
 	
 	jest.useFakeTimers();
 	window.confirm = jest.fn(() => false);
@@ -142,7 +146,6 @@ it('render log item and delete correctly', async () => {
 	jest.runOnlyPendingTimers();
 	
 	jest.useRealTimers();
-	sessionStorage.clear();
 	global.fetch = unmockedFetch;
 });
 
