@@ -2,12 +2,16 @@ import { render, screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
 import LogSingle from '../Log/LogSingle';
-import { getLog } from '../Log/api';
 
 const unmockedFetch = global.fetch;
-console.log = jest.fn();
+// console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
+	
+jest.mock('react-router-dom', () => ({
+	...jest.requireActual('react-router-dom'),
+	useParams: () => ({ timestamp: '1656034616036' }),
+}));
 
 it('render LogSingle', async () => {
 	
@@ -33,13 +37,13 @@ it('render LogSingle', async () => {
 	})
 
 	process.env.NODE_ENV = 'production';
-	await getLog("1656034616036");
 
 	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	const location = { pathname: "/log" };
+	history.push(location);
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<Router location={location} history={history} >
 			<LogSingle />
 		</Router>
 	);
@@ -60,10 +64,9 @@ it('render "Page Not Found" page if it cannot fetch', async () => {
 	})
 
 	process.env.NODE_ENV = 'development';
-	await getLog("1656034616036");
 
 	const history = createMemoryHistory();
-	history.push({location: {pathname: "/og"}});
+	history.push({location: {pathname: "/log/"}});
 
 	render(
 		<Router location={history.location} navigator={history}>
@@ -88,10 +91,8 @@ it('render "Page Not Found" page if it has no log', async () => {
 		}),
 	})
 
-	await getLog("1656034616036");
-
 	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	history.push({location: {pathname: "/log/"}});
 
 	render(
 		<Router location={history.location} navigator={history}>
@@ -111,7 +112,7 @@ it('render "Page Not Found" page if API is down', async () => {
 	global.fetch = () => Promise.reject(errorMessage);
 
 	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	history.push({location: {pathname: "/log/"}});
 
 	render(
 		<Router location={history.location} navigator={history}>
