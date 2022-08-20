@@ -4,7 +4,7 @@ import { Router } from 'react-router-dom';
 import LogSingle from '../Log/LogSingle';
 
 const unmockedFetch = global.fetch;
-// console.log = jest.fn();
+console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
 	
