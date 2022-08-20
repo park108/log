@@ -22,7 +22,8 @@ it('render text area correctly', async () => {
 				logs: [
 					{"contents":"Current contents","timestamp":1655737033793}
 					,{"contents":"Previous contents","timestamp":1655736946977}
-				]
+				],
+				temporary: true
 			}
 		}
 	};
@@ -56,6 +57,10 @@ it('render text area correctly', async () => {
 	const aButton = await screen.findByTestId("a-button");
 	expect(aButton).toBeDefined();
 	userEvent.click(aButton);
+
+	const tempCheckbox = await screen.findByText("Temporary Save");
+	expect(tempCheckbox).toBeDefined();
+	userEvent.click(tempCheckbox);
 	
 	// Image selector mode change tests
 	const selectorButton1 = await screen.findByTestId("img-selector-button");
@@ -87,20 +92,32 @@ it('render text area correctly', async () => {
 });
 
 it('render text area if not logged in', async () => {
-	
+  
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(false);
+	common.setFullscreen = jest.fn().mockResolvedValue(true);
+	document.execCommand = jest.fn();
 
 	const history = createMemoryHistory();
 	const location = {
 		pathname: "/log/write",
+		state: {
+			from: {
+				logs: [
+					{"contents":"Current contents","timestamp":1655737033793}
+					,{"contents":"Previous contents","timestamp":1655736946977}
+				]
+			}
+		}
 	};
 
 	history.push(location);
   
 	render(
-		<Router location={location} history={history}>
-			<Writer />
-		</Router>
+		<div id="root" className="div fullscreen">
+			<Router location={location} navigator={history}>
+				<Writer />
+			</Router>
+		</div>
 	);
 });
