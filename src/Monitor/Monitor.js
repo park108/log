@@ -96,7 +96,7 @@ const Monitor = (props) => {
 				<ContentMon stackPallet={chartPallets[1].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<ApiCallMon stackPallet={chartPallets[2].colors} />
+				<ApiCallMon stackPallet={chartPallets[1].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<WebVitalsMon />

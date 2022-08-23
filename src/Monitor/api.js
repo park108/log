@@ -27,3 +27,7 @@ export const getVisitors = async(from, to) => {
 export const getWebVitals = async(name) => {
 	return await fetch(getApiUrl() + "?name=" + name);
 }
+
+export const getApiCallStats = async(service, from, to) => {
+	return await fetch(getApiUrl() + "/api/" + service + "?fromTimestamp=" + from + "&toTimestamp=" + to);
+}

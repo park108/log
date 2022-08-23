@@ -23,8 +23,8 @@ describe('render comment list and post comment correctly', () => {
 						,{"sortKey":"1655392096432-0000000000000","logTimestamp":1655302060414,"timestamp":1655392096432,"message":"Posting Lock Test","isHidden":false,"isAdminComment":false,"name":"Posting!"}
 						,{"sortKey":"1655392348834-0000000000000","logTimestamp":1655302060414,"timestamp":1655392348834,"message":"Posting Test","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
 						,{"sortKey":"1655392394275-0000000000000","logTimestamp":1655302060414,"timestamp":1655392394275,"message":"Posting Test 2","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
-						,{"sortKey":"1655392407974-0000000000000","logTimestamp":1655302060414,"timestamp":1655392407974,"message":"Posting Test3","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
 						,{"sortKey":"1655392503660-0000000000000","logTimestamp":1655302060414,"timestamp":1655392503660,"message":"Posting Test4","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
+						,{"sortKey":"1655392407974-0000000000000","logTimestamp":1655302060414,"timestamp":1655392407974,"message":"Posting Test3","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
 						,{"sortKey":"1655589447546-0000000000000","logTimestamp":1655302060414,"timestamp":1655589447546,"message":"Admin comment","isHidden":false,"isAdminComment":true,"name":"Jongkil Park"}
 						,{"sortKey":"1655589469726-0000000000000","logTimestamp":1655302060414,"timestamp":1655589469726,"message":"Admin Hidden","isHidden":true,"isAdminComment":true,"name":"Jongkil Park"}
 					]
@@ -118,6 +118,32 @@ describe('render comment list and post comment correctly', () => {
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 	});
+});
+
+test('render only one comment', async () => {
+	
+	global.fetch = () =>
+		Promise.resolve({
+		json: () => Promise.resolve({
+			body:{
+				Items:[
+					{"sortKey":"1655392348834-0000000000000","logTimestamp":1655302060414,"timestamp":1655392348834,"message":"Posting Test","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
+				]
+				,"Count":1,
+				"ScannedCount":1
+			}
+		}),
+	});
+
+	process.env.NODE_ENV = 'production';
+
+	render(<Comment timestamp={1655392348834} />);
+
+	const togglebutton = await screen.findByText("1 comment", {}, { timeout: 0});
+	expect(togglebutton).toBeInTheDocument();
+	userEvent.click(togglebutton);
+
+	global.fetch = unmockedFetch;
 });
 
 describe('render comment list and post comment correctly if admin logged in', () => {
