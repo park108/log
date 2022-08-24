@@ -34,11 +34,12 @@ const ApiCallItem = (props) => {
 			else {
 			
 				log(service + " API call stats are FETCHED successfully.");
+				log(data);
 			
 				setTotalCount(data.body.totalCount);
 
 				const periodData = data.body.Items;
-				const maxCount = Math.max.apply(Math, periodData.map(item => { return item.count; }));
+				const maxCount = Math.max.apply(Math, periodData.map(item => { return item.total; }));
 
 				let statList = [];
 	
@@ -49,8 +50,9 @@ const ApiCallItem = (props) => {
 					statList.push(
 						{
 							"date": getFormattedDate(item.timestamp) + " (" + getWeekday(item.timestamp) +")",
-							"count": 1 * item.count,
-							"valueRate": 1 * item.count / maxCount
+							"count": (1 * item.total).toLocaleString(),
+							"valueRate": 1 * item.total / maxCount,
+							"successRate": 1 * item.succeed / item.total
 						}
 					);
 				}
@@ -95,7 +97,7 @@ const ApiCallItem = (props) => {
 		return (
 			<div className="div div--monitor-7pillars">
 				<div className="div div--monitor-blank" style={blankHeight}> </div>
-				<div className="div div--monitor-value" style={valueHeight}>{attr.count}</div>
+				<div className="div div--monitor-value" style={valueHeight}>{attr.count + "/" + Math.floor(100 * (attr.successRate)) + "%"}</div>
 				<div className="div div--monitor-pillar" style={pillarStyle}></div>
 				<div className="div div--monitor-pillarlegend" >{legend}</div>
 			</div>
@@ -105,7 +107,7 @@ const ApiCallItem = (props) => {
 	// Draw pillar chart
 	return (
 		<section className="section section--monitor-item">
-			<h3>{title}: {totalCount}</h3>
+			<h3>{title}: {totalCount.toLocaleString()}</h3>
 			<div className="div div--monitor-pillarchart">
 			{
 				isLoading ? (
@@ -120,6 +122,7 @@ const ApiCallItem = (props) => {
 							date={data.date}
 							count={data.count}
 							valueRate={data.valueRate}
+							successRate={data.successRate}
 							index={index}
 						/>
 					)

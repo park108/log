@@ -29,5 +29,8 @@ export const getWebVitals = async(name) => {
 }
 
 export const getApiCallStats = async(service, from, to) => {
-	return await fetch(getApiUrl() + "/api/" + service + "?fromTimestamp=" + from + "&toTimestamp=" + to);
+	return await fetch(getApiUrl() + "/api/log"
+		+ "?service=" + service
+		+ "&fromTimestamp=" + from
+		+ "&toTimestamp=" + to);
 }
