@@ -14,14 +14,14 @@ const chartPallets = [
 	{
 		pallet: "Red to Green",
 		colors: [
-			{color: "black", backgroundColor: "rgb(243, 129, 129)"},
-			{color: "black", backgroundColor: "rgb(248, 178, 134)"},
-			{color: "black", backgroundColor: "rgb(252, 227, 138)"},
-			{color: "black", backgroundColor: "rgb(243, 241, 173)"},
-			{color: "black", backgroundColor: "rgb(234, 255, 208)"},
-			{color: "black", backgroundColor: "rgb(190, 240, 210)"},
-			{color: "black", backgroundColor: "rgb(149, 225, 211)"},
-		]
+			{color: "#B8292B", backgroundColor: "#F8696B"},
+			{color: "#BB5534", backgroundColor: "#FB9574"},
+			{color: "#BD803C", backgroundColor: "#FDC07C"},
+			{color: "#BFAB44", backgroundColor: "#FFEB84"},
+			{color: "#9B9C41", backgroundColor: "#CBDC81"},
+			{color: "#578D3E", backgroundColor: "#97CD7E"},
+			{color: "#237E3B", backgroundColor: "#63BE7B"},
+		],
 	},
 	{
 		pallet: "Olive",
@@ -96,7 +96,7 @@ const Monitor = (props) => {
 				<ContentMon stackPallet={chartPallets[1].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<ApiCallMon stackPallet={chartPallets[1].colors} />
+				<ApiCallMon stackPallet={chartPallets[0].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<WebVitalsMon />

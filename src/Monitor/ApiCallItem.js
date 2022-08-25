@@ -89,15 +89,34 @@ const ApiCallItem = (props) => {
 		const pillarHeight = 60;
 		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
 		const valueHeight = {height: "20px"}
+		const successRateColor = attr.successRate < 0.6 ? 0
+			: attr.successRate < 0.7 ? 1
+			: attr.successRate < 0.8 ? 2
+			: attr.successRate < 0.9 ? 3
+			: attr.successRate < 0.95 ? 4
+			: attr.successRate < 0.98 ? 5
+			: 6;
+
 		const pillarStyle = {
 			height: pillarHeight * attr.valueRate + "px",
-			backgroundColor: stackPallet[index].backgroundColor
+			backgroundColor: stackPallet[successRateColor].backgroundColor
 		};
+
+		const textColor = {
+			color: stackPallet[successRateColor].color
+		}
 
 		return (
 			<div className="div div--monitor-7pillars">
 				<div className="div div--monitor-blank" style={blankHeight}> </div>
-				<div className="div div--monitor-value" style={valueHeight}>{attr.count + "/" + Math.floor(100 * (attr.successRate)) + "%"}</div>
+				<div className="div div--monitor-value" style={valueHeight}>
+					{attr.count}
+					(
+					<span style={textColor}>
+						{Math.floor(100 * (attr.successRate)) + "%"}
+					</span>
+					)
+				</div>
 				<div className="div div--monitor-pillar" style={pillarStyle}></div>
 				<div className="div div--monitor-pillarlegend" >{legend}</div>
 			</div>

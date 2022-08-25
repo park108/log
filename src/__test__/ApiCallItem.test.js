@@ -27,15 +27,15 @@ it('render api call monitor', async () => {
 		json: () => Promise.resolve({
             statusCode: 200,
             body: {
-                totalCount: 165,
+                totalCount: 700,
                 Items: [
-                    { timestamp: fromTimestamp, count: 10 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), count: 20 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, count: 25 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, count: 40 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, count: 45 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, count: 20 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, count: 5 },
+                    { timestamp: fromTimestamp, succeed: 50, failed: 50, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 71, failed: 29, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 81, failed: 19, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 91, failed: 9, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 96, failed: 4, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 100, failed: 200, total: 100 },
                 ],
             }
 		}),
