@@ -113,7 +113,7 @@ const ApiCallItem = (props) => {
 					{attr.count}
 					(
 					<span style={textColor}>
-						{Math.floor(100 * (attr.successRate)) + "%"}
+						{Math.round(100 * (attr.successRate)) + "%"}
 					</span>
 					)
 				</div>
