@@ -34,8 +34,10 @@ const ApiCallItem = (props) => {
 			else {
 			
 				log(service + " API call stats are FETCHED successfully.");
-				log(data);
-			
+				
+				if(undefined === data.body.totalCount) {
+					throw "totalCount is undefined";
+				}
 				setTotalCount(data.body.totalCount);
 
 				const periodData = data.body.Items;

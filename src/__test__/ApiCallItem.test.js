@@ -55,6 +55,38 @@ it('render api call monitor', async () => {
 	global.fetch = unmockedFetch;
 });
 
+it('render api call monitor when totalCount is undefined', async () => {
+
+	const fromTimestamp = 1643375805000; // 2022.01.28
+
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+            statusCode: 200,
+            body: {
+                Items: [
+                    { timestamp: fromTimestamp, succeed: 50, failed: 50, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 71, failed: 29, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 81, failed: 19, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 91, failed: 9, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 96, failed: 4, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 100, failed: 200, total: 100 },
+                ],
+            }
+		}),
+	});
+
+	render(
+		<ApiCallItem
+			title="log"
+			service="log"
+			stackPallet={stackPallet.colors}
+		/>
+	);
+
+	global.fetch = unmockedFetch;
+});
+
 it('render api call monitor when fetch failed', async () => {
 	
 	// fetchFirst -> return error
