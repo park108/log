@@ -3,6 +3,16 @@ import PropTypes from 'prop-types';
 import { log, getFormattedDate, getFormattedTime, getWeekday } from '../common/common';
 import { getApiCallStats } from './api';
 
+const getSuccessRateIndex = (rate) => {
+	return rate < 0.6 ? 0
+		: rate < 0.7 ? 1
+		: rate < 0.8 ? 2
+		: rate < 0.9 ? 3
+		: rate < 0.95 ? 4
+		: rate < 0.98 ? 5
+		: 6;
+}
+
 const ApiCallItem = (props) => {
 
 	const title = props.title;
@@ -10,6 +20,7 @@ const ApiCallItem = (props) => {
 	const stackPallet = props.stackPallet;
 
 	const [totalCount, setTotalCount] = useState("...");
+	const [successCount, setSuccessCount] = useState(0);
 	const [countList, setCountList] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -44,6 +55,7 @@ const ApiCallItem = (props) => {
 				const maxCount = Math.max.apply(Math, periodData.map(item => { return item.total; }));
 
 				let statList = [];
+				let successCount = 0;
 	
 				for(let item of periodData) {
 					item.date = getFormattedDate(item.timestamp);
@@ -57,8 +69,10 @@ const ApiCallItem = (props) => {
 							"successRate": 1 * item.succeed / item.total
 						}
 					);
+
+					successCount += item.succeed;
 				}
-	
+				setSuccessCount(successCount);
 				setCountList(statList);
 			}
 		}
@@ -91,13 +105,7 @@ const ApiCallItem = (props) => {
 		const pillarHeight = 60;
 		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
 		const valueHeight = {height: "20px"}
-		const successRateColor = attr.successRate < 0.6 ? 0
-			: attr.successRate < 0.7 ? 1
-			: attr.successRate < 0.8 ? 2
-			: attr.successRate < 0.9 ? 3
-			: attr.successRate < 0.95 ? 4
-			: attr.successRate < 0.98 ? 5
-			: 6;
+		const successRateColor = getSuccessRateIndex(attr.successRate);
 
 		const pillarStyle = {
 			height: pillarHeight * attr.valueRate + "px",
@@ -125,10 +133,18 @@ const ApiCallItem = (props) => {
 		);
 	}
 
+	const rate = Math.round(100 * (successCount / totalCount))
+	const rateColor = {
+		color: stackPallet[getSuccessRateIndex(rate)].color
+	}
+
 	// Draw pillar chart
 	return (
 		<section className="section section--monitor-item">
-			<h3>{title}: {totalCount.toLocaleString()}</h3>
+			<h3>
+				{title}: {totalCount.toLocaleString()} 
+				(<span style={rateColor}>{rate}%</span>)
+			</h3>
 			<div className="div div--monitor-pillarchart">
 			{
 				isLoading ? (
