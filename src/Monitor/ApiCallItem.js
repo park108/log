@@ -133,7 +133,7 @@ const ApiCallItem = (props) => {
 		);
 	}
 
-	const rate = Math.round(100 * (successCount / totalCount))
+	const rate = Math.round(100 * (successCount / totalCount));
 	const rateColor = {
 		color: stackPallet[getSuccessRateIndex(rate)].color
 	}
@@ -143,7 +143,7 @@ const ApiCallItem = (props) => {
 		<section className="section section--monitor-item">
 			<h3>
 				{title}: {totalCount.toLocaleString()} 
-				(<span style={rateColor}>{rate}%</span>)
+				(<span style={rateColor}>{"..." === totalCount ? "..." : rate}%</span>)
 			</h3>
 			<div className="div div--monitor-pillarchart">
 			{
