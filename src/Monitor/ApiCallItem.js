@@ -44,7 +44,7 @@ const ApiCallItem = (props) => {
 			}
 			else {
 			
-				log(service + " API call stats are FETCHED successfully.");
+				log(service + " API call stats are FETCHED successfully. Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms");
 				
 				if(undefined === data.body.totalCount) {
 					throw "totalCount is undefined";
@@ -66,7 +66,7 @@ const ApiCallItem = (props) => {
 							"date": getFormattedDate(item.timestamp) + " (" + getWeekday(item.timestamp) +")",
 							"count": (1 * item.total).toLocaleString(),
 							"valueRate": 1 * item.total / maxCount,
-							"successRate": 1 * item.succeed / item.total
+							"successRate":  0 === item.total ? 0 : 1 * item.succeed / item.total
 						}
 					);
 
@@ -112,7 +112,9 @@ const ApiCallItem = (props) => {
 			backgroundColor: stackPallet[successRateColor].backgroundColor
 		};
 
-		const textColor = {
+		const textColor = "0" === attr.count ? {
+			color: "black"
+		} : {
 			color: stackPallet[successRateColor].color
 		}
 

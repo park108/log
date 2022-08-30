@@ -9,7 +9,7 @@ const ApiCallMon = (props) => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">
-			<h1>[Dummy Data] API Calls in the last 7 days</h1>
+			<h1>API Calls in the last 7 days</h1>
 			<Suspense fallback={<div></div>}>
 				<ApiCallItem
 					title="log"
