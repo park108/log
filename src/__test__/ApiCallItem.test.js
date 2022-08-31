@@ -28,6 +28,7 @@ it('render api call monitor', async () => {
             statusCode: 200,
             body: {
                 totalCount: 700,
+				ProcessingTime: 1000,
                 Items: [
                     { timestamp: fromTimestamp, succeed: 50, failed: 50, total: 100 },
                     { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
@@ -63,6 +64,7 @@ it('render api call monitor when totalCount is undefined', async () => {
 		json: () => Promise.resolve({
             statusCode: 200,
             body: {
+				ProcessingTime: 1000,
                 Items: [
                     { timestamp: fromTimestamp, succeed: 50, failed: 50, total: 100 },
                     { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
