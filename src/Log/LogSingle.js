@@ -105,6 +105,7 @@ const LogSingle = (props) => {
 			timestamp={data.timestamp}
 			contents={data.logs[0].contents}
 			item = {data}
+			temporary = {data.temporary}
 			showComments={true}
 			showLink={true}
 			deleted={afterDelete}

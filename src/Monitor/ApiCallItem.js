@@ -38,6 +38,7 @@ const ApiCallItem = (props) => {
 
 			const res = await getApiCallStats(service, fromTimestamp, toTimestamp);
 			const data = await res.json();
+			console.log(JSON.stringify(data));
 
 			if(undefined !== data.errorType) {
 				console.error(data);

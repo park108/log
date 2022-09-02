@@ -21,6 +21,7 @@ const LogItem = (props) => {
 	const author = props.author;
 	const contents = props.contents;
 	const timestamp = props.timestamp;
+	const temporary = props.temporary;
 	const showComments = props.showComments;
 	const showLink = props.showLink;
 
@@ -238,7 +239,7 @@ const LogItem = (props) => {
 		return (
 			<section className="section section--logitem-info">
 				<h1 className="h1 h1--logitem-title">
-					{getFormattedDate(timestamp)}
+					{temporary ? "(temp)" : ""} {getFormattedDate(timestamp)}
 				</h1>
 				<span className="span span--logitem-toolbarblank"></span>
 				{linkIcon}
@@ -300,6 +301,7 @@ LogItem.propTypes = {
 	author: PropTypes.string,
 	contents: PropTypes.string,
 	timestamp: PropTypes.number,
+	temporary: PropTypes.bool,
 	showComments: PropTypes.bool,
 	showLink: PropTypes.bool,
 	deleted: PropTypes.func,
