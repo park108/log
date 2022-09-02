@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ApiCallItem from '../Monitor/ApiCallItem';
 
 const unmockedFetch = global.fetch;
@@ -52,6 +52,16 @@ it('render api call monitor', async () => {
 
 	const obj = await screen.findByText("02.01 (Tue)", {}, { timeout: 0});
 	expect(obj).toBeInTheDocument();
+
+	// Test mouse over, move and out events
+	const firstPillar = await screen.findByTestId("api-call-item-log-0");
+	expect(firstPillar).toBeInTheDocument();
+
+	fireEvent.mouseOver(firstPillar);
+	fireEvent.mouseOver(firstPillar); // Already class changed
+	fireEvent.mouseMove(firstPillar);
+	fireEvent.mouseOut(firstPillar);
+	fireEvent.mouseOut(firstPillar); // Already class changed
 
 	global.fetch = unmockedFetch;
 });

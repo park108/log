@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import WebVitalsItem from '../Monitor/WebVitalsItem';
-import { getWebVitals } from '../Monitor/api';
 
 const unmockedFetch = global.fetch;
 console.log = jest.fn();
@@ -52,6 +51,16 @@ it('render web vitals monitor', async () => {
 
 	const obj = await screen.findByText("POOR", {}, { timeout: 0});
 	expect(obj).toBeInTheDocument();
+
+	// Test mouse over, move and out events
+	const statusBar = await screen.findByTestId("status-bar-CLS");
+	expect(statusBar).toBeInTheDocument();
+
+	fireEvent.mouseOver(statusBar);
+	fireEvent.mouseOver(statusBar); // Already class changed
+	fireEvent.mouseMove(statusBar);
+	fireEvent.mouseOut(statusBar);
+	fireEvent.mouseOut(statusBar); // Already class changed
 
 	global.fetch = unmockedFetch;
 });

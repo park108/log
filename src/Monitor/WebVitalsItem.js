@@ -65,6 +65,7 @@ const WebVitalsItem = (props) => {
 	const evaluation = (0.75 <= good / totalCount) ? "GOOD"
 		: (0.25 < poor / totalCount) ? "POOR"
 		: (0 < totalCount) ? "NEEDS IMPROVEMENT"
+		: (0 === totalCount) ? "None"
 		: "Calculating...";
 	
 	// Make style by metrics
@@ -72,6 +73,29 @@ const WebVitalsItem = (props) => {
 		: ("POOR" === evaluation) ? "span span--monitor-assessment span--monitor-poor"
 		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-assessment span--monitor-warn"
 		: "span span--monitor-assessment span--monitor-none";
+
+	const hoverDetails = (e) => {
+
+		const pillarDetail = document.getElementById(name);
+		const classNames = pillarDetail.getAttribute("class");
+
+		if("mouseover" === e.type) {
+			if("div div--monitor-pillardetail" !== classNames) {
+				pillarDetail.setAttribute("class", "div div--monitor-pillardetail");
+			}
+		}
+		else if("mousemove" === e.type) {
+			const left  = e.clientX  + 5 + "px";
+			const top  = e.clientY  + 5 + "px";
+			pillarDetail.style.left = left;
+			pillarDetail.style.top = top;
+		}
+		else if("mouseout" === e.type) {
+			if("div div--monitor-pillardetailhide" !== classNames) {
+				pillarDetail.setAttribute("class", "div div--monitor-pillardetailhide");
+			}
+		}
+	}
 
 	// Draw web vital item
 	return (
@@ -81,10 +105,22 @@ const WebVitalsItem = (props) => {
 				<span className="span span--monitor-metric">{title + " (" + totalCount + ")"}</span>
 				<span className={headerStyle}>{evaluation}</span>
 			</h3>
-			<div className="div div--monitor-statusbar">
-				<span className="span span--monitor-bar span--monitor-good" style={goodStyle}>{good > 0 ? (100*good/totalCount).toFixed(0): ""}</span>
-				<span className="span span--monitor-bar span--monitor-warn" style={needImprovementStyle}>{needImprovement > 0 ? (100*needImprovement/totalCount).toFixed(0) : ""}</span>
-				<span className="span span--monitor-bar span--monitor-poor" style={poorStyle}>{poor > 0 ? (100*poor/totalCount).toFixed(0) : ""}</span>
+			<div data-testid={"status-bar-" + name} className="div div--monitor-statusbar" onMouseOver={hoverDetails} onMouseMove={hoverDetails} onMouseOut={hoverDetails}>
+				<span className="span span--monitor-bar span--monitor-good" style={goodStyle}>
+					{good > 0 ? (100*good/totalCount).toFixed(0): ""}
+				</span>
+				<span className="span span--monitor-bar span--monitor-warn" style={needImprovementStyle}>
+					{needImprovement > 0 ? (100*needImprovement/totalCount).toFixed(0) : ""}
+				</span>
+				<span className="span span--monitor-bar span--monitor-poor" style={poorStyle}>
+					{poor > 0 ? (100*poor/totalCount).toFixed(0) : ""}
+				</span>
+			</div>
+			<div id={name} className="div div--monitor-pillardetailhide">
+				<ul className="ul ul--monitor-detailpillaritem">
+					<li className="li li--monitor-detailpillaritem">{title}</li>
+					<li className="li li--monitor-detailpillaritem">🟢 {good} &nbsp;&nbsp; 🟡 {needImprovement} &nbsp;&nbsp; 🔴 {poor}</li>
+				</ul>
 			</div>
 		</section>
 	);

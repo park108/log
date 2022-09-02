@@ -38,7 +38,6 @@ const ApiCallItem = (props) => {
 
 			const res = await getApiCallStats(service, fromTimestamp, toTimestamp);
 			const data = await res.json();
-			console.log(JSON.stringify(data));
 
 			if(undefined !== data.errorType) {
 				console.error(data);
@@ -66,6 +65,8 @@ const ApiCallItem = (props) => {
 						{
 							"date": getFormattedDate(item.timestamp) + " (" + getWeekday(item.timestamp) +")",
 							"count": (1 * item.total).toLocaleString(),
+							"succeed": (1 * item.succeed).toLocaleString(),
+							"failed": (1 * item.failed).toLocaleString(),
 							"valueRate": 1 * item.total / maxCount,
 							"successRate":  0 === item.total ? 0 : 1 * item.succeed / item.total
 						}
@@ -95,6 +96,7 @@ const ApiCallItem = (props) => {
 	const Pillar = (attr) => {
 
 		const index = attr.index;
+		const detailId = "api-call-item-" + service + "-" + attr.index;
 		const mm = attr.date.substr(5, 2);
 		const dd = attr.date.substr(8, 2);
 		const ddWeek = attr.date.substr(8, 8);
@@ -119,6 +121,29 @@ const ApiCallItem = (props) => {
 			color: stackPallet[successRateColor].color
 		}
 
+		const hoverDetails = (e) => {
+
+			const pillarDetail = document.getElementById(detailId);
+			const classNames = pillarDetail.getAttribute("class");
+
+			if("mouseover" === e.type) {
+				if("div div--monitor-pillardetail" !== classNames) {
+					pillarDetail.setAttribute("class", "div div--monitor-pillardetail");
+				}
+			}
+			else if("mousemove" === e.type) {
+				const left  = e.clientX  + 5 + "px";
+				const top  = e.clientY  + 5 + "px";
+				pillarDetail.style.left = left;
+				pillarDetail.style.top = top;
+			}
+			else if("mouseout" === e.type) {
+				if("div div--monitor-pillardetailhide" !== classNames) {
+					pillarDetail.setAttribute("class", "div div--monitor-pillardetailhide");
+				}
+			}
+		}
+
 		return (
 			<div className="div div--monitor-7pillars">
 				<div className="div div--monitor-blank" style={blankHeight}> </div>
@@ -130,8 +155,14 @@ const ApiCallItem = (props) => {
 					</span>
 					)
 				</div>
-				<div className="div div--monitor-pillar" style={pillarStyle}></div>
+				<div data-testid={detailId} className="div div--monitor-pillar" style={pillarStyle} onMouseOver={hoverDetails} onMouseMove={hoverDetails} onMouseOut={hoverDetails} ></div>
 				<div className="div div--monitor-pillarlegend" >{legend}</div>
+				<div id={detailId} className="div div--monitor-pillardetailhide">
+					<ul className="ul ul--monitor-detailpillaritem">
+						<li className="li li--monitor-detailpillaritem">{attr.date.substr(0,10)}</li>
+						<li className="li li--monitor-detailpillaritem">🟢 {attr.succeed} &nbsp;&nbsp; 🔴 {attr.failed}</li>
+					</ul>
+				</div>
 			</div>
 		);
 	}
@@ -161,6 +192,8 @@ const ApiCallItem = (props) => {
 							key={data.date}
 							date={data.date}
 							count={data.count}
+							succeed={data.succeed}
+							failed={data.failed}
 							valueRate={data.valueRate}
 							successRate={data.successRate}
 							index={index}
