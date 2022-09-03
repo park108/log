@@ -19,4 +19,8 @@ Related article: https://www.park108.net/log/1656597254637
 
 ### Low cost serverless search archtecture using Athena
 Related article: https://www.park108.net/log/1658307816923
-![Serverless search archtecture using Athena](https://park108-image-prod.s3.ap-northeast-2.amazonaws.com/20220720-8119726a-1c61-4af1-a2b5-5cb7a30c558e.png "Serverless search archtecture using Athena")
+![Serverless search archtecture using Athena](https://park108-image-prod.s3.ap-northeast-2.amazonaws.com/20220720-8119726a-1c61-4af1-a2b5-5cb7a30c558e.png "Serverless search archtecture using Athena")   
+
+### Serverless search architecture for API call logs
+Related article: https://www.park108.net/log/1661931424720
+![Serverless search archtecture for API call logs](https://park108-log-prod.s3.ap-northeast-2.amazonaws.com/20220831_Serverless_search_architecture_for_API_call_logs.png "Serverless search archtecture for API call logs")   
