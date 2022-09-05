@@ -137,7 +137,7 @@ const ApiCallItem = (props) => {
 				pillarDetail.style.left = left;
 				pillarDetail.style.top = top;
 			}
-			else if("mouseout" === e.type) {
+			else {
 				if("div div--monitor-pillardetailhide" !== classNames) {
 					pillarDetail.setAttribute("class", "div div--monitor-pillardetailhide");
 				}

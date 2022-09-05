@@ -66,6 +66,47 @@ it('render api call monitor', async () => {
 	global.fetch = unmockedFetch;
 });
 
+it('render api call monitor for pillar of total count zero', async () => {
+
+	const fromTimestamp = 1643375805000; // 2022.01.28
+
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+            statusCode: 200,
+            body: {
+                totalCount: 600,
+				ProcessingTime: 1000,
+                Items: [
+                    { timestamp: fromTimestamp, succeed: 0, failed: 0, total: 0 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 71, failed: 29, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 81, failed: 19, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 91, failed: 9, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 96, failed: 4, total: 100 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 100, failed: 200, total: 100 },
+                ],
+            }
+		}),
+	});
+
+	render(
+		<ApiCallItem
+			title="log"
+			service="log"
+			stackPallet={stackPallet.colors}
+		/>
+	);
+
+	const obj = await screen.findByText("02.01 (Tue)", {}, { timeout: 0});
+	expect(obj).toBeInTheDocument();
+
+	// Test mouse over, move and out events
+	const firstPillar = await screen.findByTestId("api-call-item-log-0");
+	expect(firstPillar).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
+});
+
 it('render api call monitor when totalCount is undefined', async () => {
 
 	const fromTimestamp = 1643375805000; // 2022.01.28
