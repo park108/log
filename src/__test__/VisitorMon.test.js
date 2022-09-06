@@ -124,6 +124,164 @@ it('render visitor monitor', async () => {
 	global.fetch = unmockedFetch;
 });
 
+it('render visitor monitor for sort order test', async () => {
+
+	const testTime = (new Date()).getTime() - 3600000;
+	let prevDay = 144000000;
+
+	// fetchData -> ok
+	global.fetch = () => Promise.resolve({
+
+		json: () => Promise.resolve({
+			body: {
+				periodData: {
+					Count: 7,
+					Items: [
+						{
+							browser: "Firefox",
+							date: common.getFormattedDate(testTime - prevDay),
+							operatingSystem: "Windows",
+							originalText: "Test Text",
+							renderingEngine: "Gecko",
+							time: common.getFormattedTime(testTime - prevDay),
+							timestamp: (testTime - prevDay),
+							url: "http://localhost:3000/",
+						},
+						{
+							browser: "Chrome",
+							date: common.getFormattedDate(testTime),
+							operatingSystem: "Mac OS X",
+							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+							renderingEngine: "Webkit",
+							time: common.getFormattedTime(testTime),
+							timestamp: testTime,
+							url: "http://localhost:3000/",
+						},
+						{
+							browser: "Chrome",
+							date: common.getFormattedDate(testTime - prevDay * 2),
+							operatingSystem: "Mac OS X",
+							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+							renderingEngine: "Webkit",
+							time: common.getFormattedTime(testTime - prevDay * 2),
+							timestamp: (testTime - prevDay * 2),
+							url: "http://localhost:3000/",
+						},
+						{
+							browser: "Chrome",
+							date: common.getFormattedDate(testTime - prevDay * 3),
+							operatingSystem: "Mac OS X",
+							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+							renderingEngine: "Webkit",
+							time: common.getFormattedTime(testTime - prevDay * 3),
+							timestamp: (testTime - prevDay * 3),
+							url: "http://localhost:3000/",
+						},
+						{
+							browser: "Chrome",
+							date: common.getFormattedDate(testTime - prevDay * 4),
+							operatingSystem: "Mac OS X",
+							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+							renderingEngine: "Webkit",
+							time: common.getFormattedTime(testTime - prevDay * 4),
+							timestamp: (testTime - prevDay * 4),
+							url: "http://localhost:3000/",
+						},
+						{
+							browser: "Chrome",
+							date: common.getFormattedDate(testTime - prevDay * 5),
+							operatingSystem: "Mac OS X",
+							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+							renderingEngine: "Webkit",
+							time: common.getFormattedTime(testTime - prevDay * 5),
+							timestamp: (testTime - prevDay * 5),
+							url: "http://localhost:3000/",
+						},
+						{
+							browser: "Chrome",
+							date: common.getFormattedDate(testTime - prevDay * 6),
+							operatingSystem: "Mac OS X",
+							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+							renderingEngine: "Webkit",
+							time: common.getFormattedTime(testTime - prevDay * 6),
+							timestamp: (testTime - prevDay * 6),
+							url: "http://localhost:3000/",
+						}
+					]
+				},
+				totalCount: 2533
+			}
+		}),
+	});
+
+	process.env.NODE_ENV = 'production';
+
+	render(
+		<VisitorMon 
+			stackPallet={stackPallet.colors}
+		/>
+	);
+
+	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
+	expect(obj).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
+});
+
+it('render visitor monitor for sort order test - 2', async () => {
+
+	const testTime = (new Date()).getTime() - 3600000;
+	let prevDay = 144000000;
+
+	// fetchData -> ok
+	global.fetch = () => Promise.resolve({
+
+		json: () => Promise.resolve({
+			body: {
+				periodData: {
+					Count: 2,
+					Items: [
+						{
+							browser: "Firefox",
+							date: common.getFormattedDate(testTime - prevDay),
+							operatingSystem: "Windows",
+							originalText: "Test Text",
+							renderingEngine: "Gecko",
+							time: common.getFormattedTime(testTime - prevDay),
+							timestamp: (testTime - prevDay),
+							url: "http://localhost:3000/",
+						},
+						{
+							browser: "Chrome",
+							date: common.getFormattedDate(testTime),
+							operatingSystem: "Mac OS X",
+							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+							renderingEngine: "Webkit",
+							time: common.getFormattedTime(testTime),
+							timestamp: testTime,
+							url: "http://localhost:3000/",
+						}
+					]
+				},
+				totalCount: 2533
+			}
+		}),
+	});
+
+	process.env.NODE_ENV = 'production';
+
+	render(
+		<VisitorMon 
+			stackPallet={stackPallet.colors}
+		/>
+	);
+
+	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
+	expect(obj).toBeInTheDocument();
+
+	global.fetch = unmockedFetch;
+});
+
 it('render visitor monitor when fetch failed', async () => {
 	
 	// fetchFirst -> return error

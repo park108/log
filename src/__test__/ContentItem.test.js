@@ -1,9 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import ContentItem from '../Monitor/ContentItem';
-import { getContentItemCount } from '../Monitor/api';
 
 const unmockedFetch = global.fetch;
-console.log = jest.fn();
+// console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
 
@@ -26,7 +25,11 @@ afterAll(() => {
 
 it('render content item monitor', async () => {
 
-	const testTime = (new Date()).getTime() - 3600000;
+	jest
+		.useFakeTimers()
+		.setSystemTime(new Date('2022-01-28'));
+
+	const testTime = 1643375805000; // 2022.01.28
 	const day = 144000000;
 	const month = day * 30;
 
@@ -57,7 +60,47 @@ it('render content item monitor', async () => {
 		/>
 	);
 	
-	const text = await screen.findAllByText("1", {}, { timeout: 0 });
+	const text = await screen.findAllByText("1");
+	expect(text[0]).toBeInTheDocument();
+});
+
+it('render file content item monitor', async () => {
+
+	jest
+		.useFakeTimers()
+		.setSystemTime(new Date('2022-01-28'));
+
+	const testTime = 1643375805000; // 2022.01.28
+	const day = 144000000;
+	const month = day * 30;
+
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			Count: 6,
+			body: {
+				Items: [
+					{timestamp: testTime, size: 1000, sortKey: testTime},
+					{timestamp: testTime - month * 1, size: 100000, sortKey: -testTime},
+					{timestamp: testTime, size: 2222, sortkKey: testTime},
+					{timestamp: testTime - month * 4},
+					{timestamp: testTime - month * 5},
+				]
+			}
+		}),
+	});
+
+	process.env.NODE_ENV = 'production';
+
+	render(
+		<ContentItem 
+			title="Files"
+			path="content/file"
+			unit="capacity"
+			stackPallet={stackPallet.colors}
+		/>
+	);
+	
+	const text = await screen.findAllByText("3.22 KB (2 files)");
 	expect(text[0]).toBeInTheDocument();
 });
 
