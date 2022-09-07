@@ -126,7 +126,11 @@ it('render visitor monitor', async () => {
 
 it('render visitor monitor for sort order test', async () => {
 
-	const testTime = (new Date()).getTime() - 3600000;
+	jest
+		.useFakeTimers()
+		.setSystemTime(new Date('2022-02-01')); // Set date for month changing test
+
+	const testTime = 1643673600000; // 2022.02.01
 	let prevDay = 144000000;
 
 	// fetchData -> ok
@@ -222,10 +226,11 @@ it('render visitor monitor for sort order test', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
+	const obj = await screen.findByText("Rendering Engine");
 	expect(obj).toBeInTheDocument();
-
+	
 	global.fetch = unmockedFetch;
+	jest.useRealTimers();
 });
 
 it('render visitor monitor for sort order test - 2', async () => {

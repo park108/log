@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import ContentItem from '../Monitor/ContentItem';
 
 const unmockedFetch = global.fetch;
-// console.log = jest.fn();
+console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
 
@@ -21,6 +21,7 @@ const stackPallet = {
 
 afterAll(() => {
 	global.fetch = unmockedFetch;
+	jest.useRealTimers();
 });
 
 it('render content item monitor', async () => {

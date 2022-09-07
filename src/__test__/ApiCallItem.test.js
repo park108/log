@@ -107,7 +107,7 @@ it('render api call monitor for pillar of total count zero', async () => {
 	global.fetch = unmockedFetch;
 });
 
-it('render api call monitor when totalCount is undefined', async () => {
+it('render api call monitor when totalCount is zero', async () => {
 
 	const fromTimestamp = 1643375805000; // 2022.01.28
 

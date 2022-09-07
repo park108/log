@@ -38,21 +38,18 @@ const WebVitalsItem = (props) => {
 	let poor = 0;
 
 	for(let item of data) {
-		
-		if(name === item.name) {
-			switch(item.evaluation) {
-				case "GOOD":
-					++good;
-					break;
-				case "POOR":
-					++poor;
-					break;
-				case "NEEDS IMPROVEMENT":
-					++needImprovement;
-					break;
-				default:
-					break;
-			}
+		switch(item.evaluation) {
+			case "GOOD":
+				++good;
+				break;
+			case "POOR":
+				++poor;
+				break;
+			case "NEEDS IMPROVEMENT":
+				++needImprovement;
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -65,8 +62,7 @@ const WebVitalsItem = (props) => {
 	const evaluation = (0.75 <= good / totalCount) ? "GOOD"
 		: (0.25 < poor / totalCount) ? "POOR"
 		: (0 < totalCount) ? "NEEDS IMPROVEMENT"
-		: (0 === totalCount) ? "None"
-		: "Calculating...";
+		: "None";
 	
 	// Make style by metrics
 	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-assessment span--monitor-good"
@@ -90,7 +86,7 @@ const WebVitalsItem = (props) => {
 			pillarDetail.style.left = left;
 			pillarDetail.style.top = top;
 		}
-		else if("mouseout" === e.type) {
+		else {
 			if("div div--monitor-pillardetailhide" !== classNames) {
 				pillarDetail.setAttribute("class", "div div--monitor-pillardetailhide");
 			}
