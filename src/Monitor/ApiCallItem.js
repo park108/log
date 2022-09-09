@@ -106,7 +106,7 @@ const ApiCallItem = (props) => {
 			: ddWeek; // 15 (Sat)
 
 		const pillarHeight = 60;
-		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
+		const blankHeight = 0 === totalCount ? {height: "60px"} : {height: pillarHeight * (1 - attr.valueRate) + "px"};
 		const valueHeight = {height: "20px"}
 		const successRateColor = getSuccessRateIndex(attr.successRate);
 
