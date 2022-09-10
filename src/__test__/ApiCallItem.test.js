@@ -107,7 +107,7 @@ it('render api call monitor for pillar of total count zero', async () => {
 	global.fetch = unmockedFetch;
 });
 
-it('render api call monitor when totalCount is zero', async () => {
+it('render api call monitor when totalCount is undefined', async () => {
 
 	const fromTimestamp = 1643375805000; // 2022.01.28
 
@@ -124,6 +124,40 @@ it('render api call monitor when totalCount is zero', async () => {
                     { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 91, failed: 9, total: 100 },
                     { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 96, failed: 4, total: 100 },
                     { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 100, failed: 200, total: 100 },
+                ],
+            }
+		}),
+	});
+
+	render(
+		<ApiCallItem
+			title="log"
+			service="log"
+			stackPallet={stackPallet.colors}
+		/>
+	);
+
+	global.fetch = unmockedFetch;
+});
+
+it('render api call monitor when totalCount is zero', async () => {
+
+	const fromTimestamp = 1643375805000; // 2022.01.28
+
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+            statusCode: 200,
+            body: {
+				ProcessingTime: 1000,
+				totalCount: 0,
+                Items: [
+                    { timestamp: fromTimestamp, succeed: 0, failed: 0, total: 0 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 0, failed: 0, total: 0 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 0, failed: 0, total: 0 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 0, failed: 0, total: 0 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 0, failed: 0, total: 0 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 0, failed: 0, total: 0 },
+                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 0, failed: 0, total: 0 },
                 ],
             }
 		}),
