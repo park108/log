@@ -105,6 +105,33 @@ it('render file content item monitor', async () => {
 	expect(text[0]).toBeInTheDocument();
 });
 
+it('render file content item monitor when totalCount is zero', async () => {
+
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			Count: 0,
+			body: {
+				Items: [
+				]
+			}
+		}),
+	});
+
+	process.env.NODE_ENV = 'development';
+
+	render(
+		<ContentItem 
+			title="Log"
+			path="content/log"
+			unit="count"
+			stackPallet={stackPallet.colors}
+		/>
+	);
+	
+	const text = await screen.findAllByText("0");
+	expect(text[0]).toBeInTheDocument();
+});
+
 it('render content item monitor if it fetch error', async () => {
 
 	global.fetch = () => Promise.resolve({

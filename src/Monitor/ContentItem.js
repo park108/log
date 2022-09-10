@@ -9,6 +9,7 @@ const ContentItem = (props) => {
 	const path = props.path;
 	const stackPallet = props.stackPallet;
 
+	const [totalCount, setTotalCount] = useState("...");
 	const [counts, setCounts] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -43,6 +44,8 @@ const ContentItem = (props) => {
 			else {
 			
 				log("Content API " + path + " is FETCHED successfully.");
+
+				setTotalCount(data.Count);
 
 				let periodData = data.body.Items;
 				let max = 0; // Max value in array to calculate value rate
@@ -113,7 +116,7 @@ const ContentItem = (props) => {
 			: mm; // 02
 
 		const pillarHeight = 60;
-		const blankHeight = {height: pillarHeight * (1 - attr.valueRate) + "px"};
+		const blankHeight = 0 === totalCount ? {height: "60px"} : {height: pillarHeight * (1 - attr.valueRate) + "px"};
 		const valueHeight = {height: "20px"}
 		const pillarStyle = {
 			height: pillarHeight * attr.valueRate + "px",
