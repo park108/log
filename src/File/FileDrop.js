@@ -11,7 +11,7 @@ const FileDrop = (props) => {
 	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
 
 	const refreshFiles = props.uploaded;
-	const refreshTimeout = 3000;
+	const REFRESH_TIMEOUT = 3000;
 
 	// Upload file into the S3 bucket
 	const uploadFile = async(item, isLast)  => {
@@ -94,7 +94,7 @@ const FileDrop = (props) => {
 			setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
-			}, refreshTimeout);
+			}, REFRESH_TIMEOUT);
 		}
 		else if("FAILED" === isUploading) {
 			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-uploading");
@@ -102,7 +102,7 @@ const FileDrop = (props) => {
 			setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
-			}, refreshTimeout);
+			}, REFRESH_TIMEOUT);
 		}
 
 	}, [isUploading, refreshFiles]);

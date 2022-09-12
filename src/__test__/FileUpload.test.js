@@ -7,9 +7,16 @@ const unmockedFetch = global.fetch;
 console.error = jest.fn();
 const errorMessage = "API is down";
 
-it('render upload input correctly and upload ok', () => {
+it('render upload input correctly and upload ok', async () => {
 
-	render(<FileUpload />);
+	jest.useFakeTimers();
+
+	const uploadedCallbackFunction = jest.fn();
+
+	render(<
+		FileUpload
+		uploaded = {uploadedCallbackFunction}
+	/>);
 
 	const input = screen.getByLabelText('file-upload');
 	expect(input).toBeInTheDocument();
@@ -53,7 +60,20 @@ it('render upload input correctly and upload ok', () => {
 
 	fireEvent.change(input, event);
 
+	// First, upload completed.
+	jest.runOnlyPendingTimers();
+	
+	const toasterCompleted = await screen.findByText("Upload complete.");
+	expect(toasterCompleted.getAttribute("class")).toBe("div div--toaster-bottom div--toaster-success ");
+
+	// Second, initialize file selector.
+	jest.runOnlyPendingTimers();
+	
+	const toasterReady = await screen.findByText("Upload complete.");
+	expect(toasterReady.getAttribute("class")).toBe("div div--toaster-bottom div--toaster-success div--toaster-fadeout");
+
 	global.fetch = unmockedFetch;
+	jest.useRealTimers();
 });
 
 it('render upload input correctly and upload failed', () => {

@@ -9,7 +9,14 @@ const errorMessage = "API is down";
 
 it('render drop zone correctly and upload ok', async () => {
 
-	render(<FileDrop />);
+	jest.useFakeTimers();
+
+	const uploadedCallbackFunction = jest.fn();
+
+	render(<
+		FileDrop
+		uploaded = {uploadedCallbackFunction}
+	/>);
 
 	const dropZone = screen.getByTestId("dropzone");
 	expect(dropZone).toBeInTheDocument();
@@ -56,7 +63,22 @@ it('render drop zone correctly and upload ok', async () => {
 	fireEvent.dragEnter(dropZone, event);
 	fireEvent.dragLeave(dropZone, event);
 
+	// First, upload completed.
+	jest.runOnlyPendingTimers();
+	
+	const dropZoneTextComplete = await screen.findByText("Upload complete.");
+	expect(dropZoneTextComplete).toBeInTheDocument();
+
+	// Second, initialize dropzone.
+	jest.runOnlyPendingTimers();
+	
+	const dropZoneTextReady = await screen.findByText("Drop files here!");
+	expect(dropZoneTextReady).toBeInTheDocument();
+
+	expect(uploadedCallbackFunction).toBeCalledTimes(2);
+
 	global.fetch = unmockedFetch;
+	jest.useRealTimers();
 });
 
 it('render drop zone correctly and upload failed', async () => {
