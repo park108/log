@@ -45,7 +45,7 @@ const ContentItem = (props) => {
 			
 				log("Content API " + path + " is FETCHED successfully.");
 
-				setTotalCount(data.Count);
+				setTotalCount(data.body.Count);
 
 				let periodData = data.body.Items;
 				let max = 0; // Max value in array to calculate value rate
