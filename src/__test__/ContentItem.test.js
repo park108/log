@@ -109,8 +109,8 @@ it('render file content item monitor when totalCount is zero', async () => {
 
 	global.fetch = () => Promise.resolve({
 		json: () => Promise.resolve({
-			Count: 0,
 			body: {
+				Count: 0,
 				Items: [
 				]
 			}
