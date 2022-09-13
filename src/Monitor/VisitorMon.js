@@ -190,17 +190,48 @@ const VisitorMon = (props) => {
 	const EnvStack = (attr) => {
 
 		const pillarHeight = 185; 
+		const detailId = ("visitor-env-" + attr.legend + "-" + attr.index).replace(/\s/g, '');
 		const stackStyle = {
 			height: pillarHeight * (attr.count / envTotalCount) + "px",
 			color: stackPallet[attr.totalCount - attr.index - 1].color,
 			backgroundColor: stackPallet[attr.totalCount - attr.index - 1].backgroundColor
 		};
+
+		const rate = (100 * (attr.count / envTotalCount)).toFixed(0);
+
+		const hoverDetails = (e) => {
+
+			const pillarDetail = document.getElementById(detailId);
+			const classNames = pillarDetail.getAttribute("class");
+
+			if("mouseover" === e.type) {
+				if("div div--monitor-pillardetail" !== classNames) {
+					pillarDetail.setAttribute("class", "div div--monitor-pillardetail");
+				}
+			}
+			else if("mousemove" === e.type) {
+				const left  = e.clientX  + 5 + "px";
+				const top  = e.clientY  + 5 + "px";
+				pillarDetail.style.left = left;
+				pillarDetail.style.top = top;
+			}
+			else {
+				if("div div--monitor-pillardetailhide" !== classNames) {
+					pillarDetail.setAttribute("class", "div div--monitor-pillardetailhide");
+				}
+			}
+		}
 		
 		return (
-			<div className="div div--monitor-pillar" style={stackStyle} key={attr.name}>
+			<div data-testid={detailId} className="div div--monitor-pillar" style={stackStyle} key={attr.name} onMouseOver={hoverDetails} onMouseMove={hoverDetails} onMouseOut={hoverDetails} >
 				<div className="div div--monitor-stackvalue">
 					<span>{attr.name}, </span>
-					<span>{(100 * (attr.count / envTotalCount)).toFixed(0)}</span>				
+					<span>{rate}</span>				
+				</div>
+				<div id={detailId} className="div div--monitor-pillardetailhide">
+					<ul className="ul ul--monitor-detailpillaritem">
+						<li className="li li--monitor-detailpillaritem">{attr.name} &nbsp;&nbsp; {attr.count}({rate}%)</li>
+					</ul>
 				</div>
 			</div>
 		);
@@ -221,6 +252,7 @@ const VisitorMon = (props) => {
 						count={item.count}
 						totalCount={total}
 						index={index++}
+						legend={attr.legend}
 					/>
 				))}
 				<div className="div div--monitor-pillarlegend" >{attr.legend}</div>

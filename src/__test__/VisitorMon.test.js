@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import VisitorMon from '../Monitor/VisitorMon';
 import * as common from '../common/common';
 
@@ -120,6 +120,16 @@ it('render visitor monitor', async () => {
 
 	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
 	expect(obj).toBeInTheDocument();
+
+	// Test mouse over, move and out events
+	const statusBar = await screen.findByTestId("visitor-env-Browser-1");
+	expect(statusBar).toBeInTheDocument();
+
+	fireEvent.mouseOver(statusBar);
+	fireEvent.mouseOver(statusBar); // Already class changed
+	fireEvent.mouseMove(statusBar);
+	fireEvent.mouseOut(statusBar);
+	fireEvent.mouseOut(statusBar); // Already class changed
 
 	global.fetch = unmockedFetch;
 });
