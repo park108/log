@@ -47,9 +47,13 @@ it('render log item correctly', async () => {
 	);
 	
 	// Button click tests
+	jest.useFakeTimers();
+
 	const linkCopyButton = await screen.findByTestId("link-copy-button");
 	expect(linkCopyButton).toBeInTheDocument();
 	userEvent.click(linkCopyButton);
+
+	jest.runOnlyPendingTimers();
 
 	const versionsButton = await screen.findByTestId("versions-button");
 	expect(versionsButton).toBeDefined();
@@ -62,6 +66,8 @@ it('render log item correctly', async () => {
 	// Mouse over/out event
 	const linkUrl = await screen.findByText("https://www.park108.net/log/1655736946977");
 	expect(linkUrl).toBeInTheDocument();
+	
+	jest.useRealTimers();
 	fireEvent.mouseOver(linkUrl);
 });
 
