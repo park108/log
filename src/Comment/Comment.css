@@ -49,7 +49,7 @@
 	border-radius: 10px;
 }
 .div--comment-message p {
-	display: inline-block;
+	/* display: inline-block; */
 	margin: 10px;
 }
 .div--comment-hidden {

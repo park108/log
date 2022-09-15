@@ -10,7 +10,7 @@ const CommentItem = (props) => {
 
 	const isHidden = props.isHidden;
 	const isAdminComment = props.isAdminComment;
-	const message = isHidden && !isAdmin() ? "Hidden message" : props.message;
+	const message = isHidden && !isAdmin() ? ["Hidden message"] : props.message.split("\n");
 	const name = isHidden && !isAdmin() ? "" : props.name + ", ";
 	const logTimestamp = isHidden && !isAdmin() ? "" : props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
@@ -64,7 +64,11 @@ const CommentItem = (props) => {
 		<div className={wrapperClassName}>
 			<div className="div div--comment-contents">
 				<div className={messageClassName}>
-					<p>{message}</p>
+					{message.map(sentence => (
+						<p key={sentence.index}>
+							{sentence}
+						</p>
+					))}
 				</div>
 				{replyButton}
 				<div className="div div--comment-timestamp">
