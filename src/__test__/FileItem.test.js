@@ -68,7 +68,7 @@ describe('render file item name "20220606_log_CQRS.png" correctly', () => {
 		// Delete -> OK
 		global.fetch = () => Promise.resolve({
 			json: () => Promise.resolve({
-				status: 200
+				statusCode: 200
 			}),
 		});
 		process.env.NODE_ENV = 'production';

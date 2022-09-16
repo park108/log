@@ -54,7 +54,7 @@ const Comment = (props) => {
 			const res = await postComment(comment);
 			const status = await res.json();
 
-			if(200 === status.status) {
+			if(200 === status.statusCode) {
 				log("A comment is POSTED successfully.");
 				fetchData(comment.logTimestamp);
 			}

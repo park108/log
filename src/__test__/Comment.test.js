@@ -74,7 +74,7 @@ describe('render comment list and post comment correctly', () => {
 
 		global.fetch = () => Promise.resolve({
 			json: () => Promise.resolve({
-				status: 200
+				statusCode: 200
 			}),
 		});
 
@@ -215,7 +215,7 @@ describe('render comment list and post comment correctly if admin logged in', ()
 
 		global.fetch = () => Promise.resolve({
 			json: () => Promise.resolve({
-				status: 200
+				statusCode: 200
 			}),
 		});
 
