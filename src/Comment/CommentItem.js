@@ -64,8 +64,8 @@ const CommentItem = (props) => {
 		<div className={wrapperClassName}>
 			<div className="div div--comment-contents">
 				<div className={messageClassName}>
-					{message.map(sentence => (
-						<p key={sentence.index}>
+					{message.map((sentence, index) => (
+						<p key={index}>
 							{sentence}
 						</p>
 					))}

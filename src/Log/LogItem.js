@@ -15,7 +15,6 @@ const LogItem = (props) => {
 	const [itemClass, setItemClass] = useState("div div--main-item");
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
-	const [isShowCopyToClipboardMessage, setIsShowCopyToClipboardMessage] = useState(false);
 
 	const item = props.item;
 	const author = props.author;
@@ -139,23 +138,33 @@ const LogItem = (props) => {
 		);
 	}
 
-	// Hover message for copy url
-	const CopyToClipboardMessage = () => {
-
-		const messageBox = isShowCopyToClipboardMessage ? (
-				<div className="div--logitem-linkmessage">
-					Click to Clipboard
-				</div>
-			)
-			: "";
-
-		return messageBox;
-	}
-
 	// Info header for item
 	const LogItemInfo = () => {
 
 		const linkUrl = getUrl() + "log/" + timestamp;
+
+		const hoverPopup = (e) => {
+
+			const popup = document.getElementById("click-to-clipboard-box");
+			const classNames = popup.getAttribute("class");
+
+			if("mouseover" === e.type) {
+				if("div div--logitem-linkmessage" !== classNames) {
+					popup.setAttribute("class", "div div--logitem-linkmessage");
+				}
+			}
+			else if("mousemove" === e.type) {
+				const left  = e.clientX  + 5 + "px";
+				const top  = e.clientY  + 5 + "px";
+				popup.style.left = left;
+				popup.style.top = top;
+			}
+			else {
+				if("div div--logitem-linkmessagehide" !== classNames) {
+					popup.setAttribute("class", "div div--logitem-linkmessagehide");
+				}
+			}
+		}
 		
 		const linkIcon = showLink
 			? (
@@ -170,18 +179,16 @@ const LogItem = (props) => {
 							role="button"
 							href={linkUrl}
 							className="a a--logitem-loglink"
-							onMouseOver={(e) => {
-								e.preventDefault();
-								setIsShowCopyToClipboardMessage(true);
-							}}
-							onMouseOut={(e) => {
-								e.preventDefault();
-								setIsShowCopyToClipboardMessage(false);
-							}}
+							onMouseOver={hoverPopup}
+							onMouseMove={hoverPopup}
+							onMouseOut={hoverPopup}
 						>
 							{linkUrl}
 						</a>
 					</span>
+					<div id="click-to-clipboard-box" className="div div--logitem-linkmessagehide">
+						Click to Clipboard
+					</div>
 				</span>
 			)
 			: undefined;
@@ -277,7 +284,6 @@ const LogItem = (props) => {
 	// Draw log item
 	return (
 		<article className={itemClass} role="listitem">
-			<CopyToClipboardMessage />
 			<LogItemInfo />
 			<VersionHistory />
 			<Article />
