@@ -66,9 +66,14 @@ it('render log item correctly', async () => {
 	// Mouse over/out event
 	const linkUrl = await screen.findByText("https://www.park108.net/log/1655736946977");
 	expect(linkUrl).toBeInTheDocument();
+
+	fireEvent.mouseOver(linkUrl);
+	fireEvent.mouseOver(linkUrl); // Already class changed
+	fireEvent.mouseMove(linkUrl);
+	fireEvent.mouseOut(linkUrl);
+	fireEvent.mouseOut(linkUrl); // Already class changed
 	
 	jest.useRealTimers();
-	fireEvent.mouseOver(linkUrl);
 });
 
 it('render log item and delete correctly', async () => {
