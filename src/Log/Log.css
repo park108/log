@@ -81,7 +81,7 @@
 }
 
 .span--logitem-version {
-  cursor: pointer;
+  cursor: context-menu;
 }
 
 .span--logitem-separator {
@@ -106,13 +106,20 @@
 	font-weight: bold;
 }
 
+.div--logitem-versionhistoryhide {
+	display: none;
+}
+
 .div--logitem-versionhistory {
-  position: absolute;
-  right: 1.5em;
+	position: fixed;
+	display: block;
+	margin: 0;
+	padding: 8px;
+	border-radius: 8px;
+	line-height: 1.5em;
   
-  background-color: var(--normal-border-color);
-  font-size: var(--sub-font-size);
-  line-height: 1.5em;
+	background-color: var(--normal-border-color);
+	font-size: var(--sub-font-size);
 }
 
 .span--logitem-historyverision {

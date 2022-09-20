@@ -14,7 +14,6 @@ const LogItem = (props) => {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [itemClass, setItemClass] = useState("div div--main-item");
 	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [isShowVersionHistory, setIsShowVersionHistory] = useState(false);
 
 	const item = props.item;
 	const author = props.author;
@@ -108,36 +107,6 @@ const LogItem = (props) => {
 		setIsShowToaster(1);
 	}
 
-	// Version history
-	const VersionHistory = () => {
-
-		if(!isShowVersionHistory) return "";
-
-		let length = item.logs.length;
-
-		if(1 === length) return "";
-
-		return (
-			<div className="div div--logitem-versionhistory">
-				{
-					item.logs.map(
-						(data, index) => (
-							<div key={index}>
-								<span className="span span--logitem-historyverision">
-									{"v." + (length - index)}
-								</span>
-								{
-									" " + getFormattedDate(data.timestamp)
-									+ " " + getFormattedTime(data.timestamp)
-								}
-							</div>
-						)
-					)
-				}
-			</div>
-		);
-	}
-
 	// Info header for item
 	const LogItemInfo = () => {
 
@@ -203,6 +172,57 @@ const LogItem = (props) => {
 
 			outputTime = getFormattedTime(timestamp);
 
+			const hoverPopup = (e) => {
+	
+				const popup = document.getElementById("version-history");
+				const classNames = popup.getAttribute("class");
+	
+				if("mouseover" === e.type) {
+					if("div div--logitem-versionhistory" !== classNames) {
+						popup.setAttribute("class", "div div--logitem-versionhistory");
+					}
+				}
+				else if("mousemove" === e.type) {
+					const left  = e.clientX  + 5 + "px";
+					const top  = e.clientY  + 5 + "px";
+					popup.style.left = left;
+					popup.style.top = top;
+				}
+				else {
+					if("div div--logitem-versionhistoryhide" !== classNames) {
+						popup.setAttribute("class", "div div--logitem-versionhistoryhide");
+					}
+				}
+			}
+
+			// Version history
+			const VersionHistory = () => {
+
+				let length = item.logs.length;
+
+				if(1 === length) return "";
+
+				return (
+					<div id="version-history" className="div div--logitem-versionhistoryhide">
+						{
+							item.logs.map(
+								(data, index) => (
+									<div key={index}>
+										<span className="span span--logitem-historyverision">
+											{"v." + (length - index)}
+										</span>
+										{
+											" " + getFormattedDate(data.timestamp)
+											+ " " + getFormattedTime(data.timestamp)
+										}
+									</div>
+								)
+							)
+						}
+					</div>
+				);
+			}
+
 			if(undefined !== item) {
 
 				separator = <span className="span span--logitem-separator">|</span>;
@@ -212,9 +232,12 @@ const LogItem = (props) => {
 						role="button"
 						data-testid="versions-button"
 						className="span span--logitem-version"
-						onClick={() => setIsShowVersionHistory(!isShowVersionHistory)}
+						onMouseOver={hoverPopup}
+						onMouseMove={hoverPopup}
+						onMouseOut={hoverPopup}
 					>
 						{"v." + item.logs.length}
+						<VersionHistory />
 					</span>
 				);
 
@@ -285,7 +308,6 @@ const LogItem = (props) => {
 	return (
 		<article className={itemClass} role="listitem">
 			<LogItemInfo />
-			<VersionHistory />
 			<Article />
 			{ comments }
 			<Suspense fallback={<div></div>}>

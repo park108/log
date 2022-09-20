@@ -57,7 +57,12 @@ it('render log item correctly', async () => {
 
 	const versionsButton = await screen.findByTestId("versions-button");
 	expect(versionsButton).toBeDefined();
-	userEvent.click(versionsButton);
+
+	fireEvent.mouseOver(versionsButton);
+	fireEvent.mouseOver(versionsButton); // Already class changed
+	fireEvent.mouseMove(versionsButton);
+	fireEvent.mouseOut(versionsButton);
+	fireEvent.mouseOut(versionsButton); // Already class changed
 
 	const editButton = await screen.findByTestId("edit-button");
 	expect(editButton).toBeDefined();
