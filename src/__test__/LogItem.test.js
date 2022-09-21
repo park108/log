@@ -165,6 +165,74 @@ it('render log item and delete correctly', async () => {
 	global.fetch = unmockedFetch;
 });
 
+it('render log item with no session data, no version history, temporary and delete correctly', async () => {
+		
+	// deleteLogItem -> ok
+	global.fetch = () => Promise.resolve({
+		json: () => Promise.resolve({
+			statusCode: 200
+		}),
+	});
+
+	// Set session list is null
+	sessionStorage.clear();
+
+	const contents = "header test contents";
+	const markdownText = "## " + contents;
+
+	const item = {
+		"logs":[
+			{"contents":markdownText,"timestamp":1655737033793}
+		]
+		,"summary":"123456"
+		,"sortKey":1655736946977
+		,"timestamp":1655736946977
+		,"author":"park108@gmail.com"
+	}
+
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+
+	process.env.NODE_ENV = 'development';
+
+	const history = createMemoryHistory();
+	history.push({location: {pathname: "/log"}});
+
+	render(
+		<Router location={history.location} navigator={history}>
+			<LogItem 
+				author={"park108@gmail.com"}
+				timestamp={1655736946977}
+				contents={markdownText}
+				item={item}
+				showLink={true}
+				temporary={true}
+			/>
+		</Router>
+	);
+
+	// Mouse over/out event
+	const linkUrl = await screen.findByText("http://localhost:3000/log/1655736946977");
+	expect(linkUrl).toBeDefined();
+	fireEvent.mouseOut(linkUrl);
+	
+	jest.useFakeTimers();
+	window.confirm = jest.fn(() => false);
+
+	const deleteButton = screen.getByTestId("delete-button");
+	expect(deleteButton).toBeDefined();
+	userEvent.click(deleteButton);
+
+	window.confirm = jest.fn(() => true);
+	expect(deleteButton).toBeDefined();
+	userEvent.click(deleteButton);
+
+	jest.runOnlyPendingTimers();
+	
+	jest.useRealTimers();
+	global.fetch = unmockedFetch;
+});
+
 it('render log item and delete failed correctly', async () => {
 		
 	// deleteLogItem -> failed
