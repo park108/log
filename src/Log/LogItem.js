@@ -269,7 +269,7 @@ const LogItem = (props) => {
 		return (
 			<section className="section section--logitem-info">
 				<h1 className="h1 h1--logitem-title">
-					{temporary ? "(temp)" : ""} {getFormattedDate(timestamp)}
+					{temporary ? "✍️" : ""} {getFormattedDate(timestamp)}
 				</h1>
 				<span className="span span--logitem-toolbarblank"></span>
 				{linkIcon}

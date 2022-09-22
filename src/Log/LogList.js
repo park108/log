@@ -142,7 +142,7 @@ const LogList = (props) => {
 						}}>
 							<div className="div--loglist-date">
 								{getFormattedDate(data.timestamp)}
-								{ true === data.temporary ? <span className="span--loglist-temporary">(temp)</span> : "" }
+								{ true === data.temporary ? <span className="span--loglist-temporary">✍️</span> : "" }
 							</div>
 							{
 								true === data.temporary
