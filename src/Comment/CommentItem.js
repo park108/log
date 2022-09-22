@@ -1,6 +1,6 @@
 import React, { useState, lazy } from "react";
 import PropTypes from 'prop-types';
-import { getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
+import { getFormattedDate, getFormattedTime, hoverPopup, isAdmin } from '../common/common';
 
 const CommentForm = lazy(() => import('./CommentForm'));
 
@@ -10,7 +10,7 @@ const CommentItem = (props) => {
 
 	const isHidden = props.isHidden;
 	const isAdminComment = props.isAdminComment;
-	const message = isHidden && !isAdmin() ? ["Hidden message"] : props.message.split("\n");
+	const message = isHidden && !isAdmin() ? ["🥷 Hidden Message 🥷"] : props.message.split("\n");
 	const name = isHidden && !isAdmin() ? "" : props.name + ", ";
 	const logTimestamp = isHidden && !isAdmin() ? "" : props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
@@ -42,8 +42,15 @@ const CommentItem = (props) => {
 			className="div div--comment-replybutton"
 			data-testid="reply-toggle-button"
 			onClick={toggleReplyForm}
-		>
-			↪
+			onMouseOver={event => hoverPopup(event, "reply-popup-" + timestamp)}
+			onMouseMove={event => hoverPopup(event, "reply-popup-" + timestamp)}
+			onMouseOut={event => hoverPopup(event, "reply-popup-" + timestamp)}
+		>	
+			🪃
+
+			<div data-testid={"reply-popup-" + timestamp} id={"reply-popup-" + timestamp} className="div div--logitem-linkmessage" style={{display: "none"}}>
+				Reply this message
+			</div>
 		</div>;
 	
 	const replyForm = isHidden && !isAdmin() ? ""
@@ -58,6 +65,7 @@ const CommentItem = (props) => {
 	let messageClassName = "div div--comment-message";
 	messageClassName += isHidden ? " div--comment-hidden" : "";
 	messageClassName += isAdmin() ? " div--comment-adminhidden" : "";
+	messageClassName += isAdmin() && isHidden ? " div--comment-revealhidden" : "";
 	messageClassName += isAdminComment ? " div--comment-admin" : " div--comment-visitor";
 
 	return (

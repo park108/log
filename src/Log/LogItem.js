@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, hasValue } from '../common/common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, hasValue, hoverPopup } from '../common/common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import { deleteLog } from './api';
 import * as parser from '../common/markdownParser';
@@ -111,30 +111,9 @@ const LogItem = (props) => {
 	const LogItemInfo = () => {
 
 		const linkUrl = getUrl() + "log/" + timestamp;
-
-		const hoverPopup = (e) => {
-
-			const popup = document.getElementById("click-to-clipboard-box");
-			const classNames = popup.getAttribute("class");
-
-			if("mouseover" === e.type) {
-				if("div div--logitem-linkmessage" !== classNames) {
-					popup.setAttribute("class", "div div--logitem-linkmessage");
-				}
-			}
-			else if("mousemove" === e.type) {
-				const left  = e.clientX  + 5 + "px";
-				const top  = e.clientY  + 5 + "px";
-				popup.style.left = left;
-				popup.style.top = top;
-			}
-			else {
-				if("div div--logitem-linkmessagehide" !== classNames) {
-					popup.setAttribute("class", "div div--logitem-linkmessagehide");
-				}
-			}
-		}
 		
+		const hoverPopupId = "click-to-clipboard-box";
+
 		const linkIcon = showLink
 			? (
 				<span
@@ -148,14 +127,14 @@ const LogItem = (props) => {
 							role="button"
 							href={linkUrl}
 							className="a a--logitem-loglink"
-							onMouseOver={hoverPopup}
-							onMouseMove={hoverPopup}
-							onMouseOut={hoverPopup}
+							onMouseOver={(event) => hoverPopup(event, hoverPopupId)}
+							onMouseMove={(event) => hoverPopup(event, hoverPopupId)}
+							onMouseOut={(event) => hoverPopup(event, hoverPopupId)}
 						>
 							{linkUrl}
 						</a>
 					</span>
-					<div id="click-to-clipboard-box" className="div div--logitem-linkmessagehide">
+					<div id={hoverPopupId} className="div div--logitem-linkmessage" style={{display: "none"}}>
 						Click to Clipboard
 					</div>
 				</span>
@@ -172,29 +151,6 @@ const LogItem = (props) => {
 
 			outputTime = getFormattedTime(timestamp);
 
-			const hoverPopup = (e) => {
-	
-				const popup = document.getElementById("version-history");
-				const classNames = popup.getAttribute("class");
-	
-				if("mouseover" === e.type) {
-					if("div div--logitem-versionhistory" !== classNames) {
-						popup.setAttribute("class", "div div--logitem-versionhistory");
-					}
-				}
-				else if("mousemove" === e.type) {
-					const left  = e.clientX  + 5 + "px";
-					const top  = e.clientY  + 5 + "px";
-					popup.style.left = left;
-					popup.style.top = top;
-				}
-				else {
-					if("div div--logitem-versionhistoryhide" !== classNames) {
-						popup.setAttribute("class", "div div--logitem-versionhistoryhide");
-					}
-				}
-			}
-
 			// Version history
 			const VersionHistory = () => {
 
@@ -203,7 +159,7 @@ const LogItem = (props) => {
 				if(1 === length) return "";
 
 				return (
-					<div id="version-history" className="div div--logitem-versionhistoryhide">
+					<div id="version-history" className="div div--logitem-versionhistory">
 						{
 							item.logs.map(
 								(data, index) => (
@@ -232,9 +188,9 @@ const LogItem = (props) => {
 						role="button"
 						data-testid="versions-button"
 						className="span span--logitem-version"
-						onMouseOver={hoverPopup}
-						onMouseMove={hoverPopup}
-						onMouseOut={hoverPopup}
+						onMouseOver={(event) => hoverPopup(event, "version-history")}
+						onMouseMove={(event) => hoverPopup(event, "version-history")}
+						onMouseOut={(event) => hoverPopup(event, "version-history")}
 					>
 						{"v." + item.logs.length}
 						<VersionHistory />

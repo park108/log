@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { log } from '../common/common';
+import { log, hoverPopup } from '../common/common';
 import { getWebVitals } from './api';
 import PropTypes from 'prop-types';
 
@@ -70,29 +70,6 @@ const WebVitalsItem = (props) => {
 		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-assessment span--monitor-warn"
 		: "span span--monitor-assessment span--monitor-none";
 
-	const hoverDetails = (e) => {
-
-		const pillarDetail = document.getElementById(name);
-		const classNames = pillarDetail.getAttribute("class");
-
-		if("mouseover" === e.type) {
-			if("div div--monitor-pillardetail" !== classNames) {
-				pillarDetail.setAttribute("class", "div div--monitor-pillardetail");
-			}
-		}
-		else if("mousemove" === e.type) {
-			const left  = e.clientX  + 5 + "px";
-			const top  = e.clientY  + 5 + "px";
-			pillarDetail.style.left = left;
-			pillarDetail.style.top = top;
-		}
-		else {
-			if("div div--monitor-pillardetailhide" !== classNames) {
-				pillarDetail.setAttribute("class", "div div--monitor-pillardetailhide");
-			}
-		}
-	}
-
 	// Draw web vital item
 	return (
 		<section className="section section--monitor-item">
@@ -101,7 +78,13 @@ const WebVitalsItem = (props) => {
 				<span className="span span--monitor-metric">{title + " (" + totalCount + ")"}</span>
 				<span className={headerStyle}>{evaluation}</span>
 			</h3>
-			<div data-testid={"status-bar-" + name} className="div div--monitor-statusbar" onMouseOver={hoverDetails} onMouseMove={hoverDetails} onMouseOut={hoverDetails}>
+			<div
+				data-testid={"status-bar-" + name}
+				className="div div--monitor-statusbar"
+				onMouseOver={(event) => hoverPopup(event, name)}
+				onMouseMove={(event) => hoverPopup(event, name)}
+				onMouseOut={(event) => hoverPopup(event, name)}
+			>
 				<span className="span span--monitor-bar span--monitor-good" style={goodStyle}>
 					{good > 0 ? (100*good/totalCount).toFixed(0): ""}
 				</span>
@@ -112,7 +95,7 @@ const WebVitalsItem = (props) => {
 					{poor > 0 ? (100*poor/totalCount).toFixed(0) : ""}
 				</span>
 			</div>
-			<div id={name} className="div div--monitor-pillardetailhide">
+			<div id={name} className="div div--monitor-pillardetail" style={{display: "none"}}>
 				<ul className="ul ul--monitor-detailpillaritem">
 					<li className="li li--monitor-detailpillaritem">{title}</li>
 					<li className="li li--monitor-detailpillaritem">🟢 {good} &nbsp;&nbsp; 🟡 {needImprovement} &nbsp;&nbsp; 🔴 {poor}</li>

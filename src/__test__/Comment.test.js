@@ -222,6 +222,15 @@ describe('render comment list and post comment correctly if admin logged in', ()
 		const submitButton = await screen.findByText("Submit");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
+
+		const replyPopup = await screen.findByTestId("reply-popup-1655389504138");
+		expect(replyPopup).toBeDefined();
+	
+		fireEvent.mouseOver(replyButtons[0]);
+		fireEvent.mouseOver(replyButtons[0]); // Already class changed
+		fireEvent.mouseMove(replyButtons[0]);
+		fireEvent.mouseOut(replyButtons[0]);
+		fireEvent.mouseOut(replyButtons[0]); // Already class changed
 	});
 });
 
@@ -271,6 +280,6 @@ it('render hidden comment item correctly', () => {
 			timestamp={1655302060414}
 		/>
 	);
-	const messageText = screen.getByText("Hidden message");
+	const messageText = screen.getByText("🥷 Hidden Message 🥷");
 	expect(messageText).toBeInTheDocument();
 });

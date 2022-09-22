@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
-import { log, getFormattedDate, getFormattedTime, getWeekday } from '../common/common';
+import { log, getFormattedDate, getFormattedTime, getWeekday, hoverPopup } from '../common/common';
 import { getApiCallStats } from './api';
 
 const getSuccessRateIndex = (rate) => {
@@ -121,29 +121,6 @@ const ApiCallItem = (props) => {
 			color: stackPallet[successRateColor].color
 		}
 
-		const hoverDetails = (e) => {
-
-			const pillarDetail = document.getElementById(detailId);
-			const classNames = pillarDetail.getAttribute("class");
-
-			if("mouseover" === e.type) {
-				if("div div--monitor-pillardetail" !== classNames) {
-					pillarDetail.setAttribute("class", "div div--monitor-pillardetail");
-				}
-			}
-			else if("mousemove" === e.type) {
-				const left  = e.clientX  + 5 + "px";
-				const top  = e.clientY  + 5 + "px";
-				pillarDetail.style.left = left;
-				pillarDetail.style.top = top;
-			}
-			else {
-				if("div div--monitor-pillardetailhide" !== classNames) {
-					pillarDetail.setAttribute("class", "div div--monitor-pillardetailhide");
-				}
-			}
-		}
-
 		return (
 			<div className="div div--monitor-7pillars">
 				<div className="div div--monitor-blank" style={blankHeight}> </div>
@@ -155,9 +132,17 @@ const ApiCallItem = (props) => {
 					</span>
 					)
 				</div>
-				<div data-testid={detailId} className="div div--monitor-pillar" style={pillarStyle} onMouseOver={hoverDetails} onMouseMove={hoverDetails} onMouseOut={hoverDetails} ></div>
-				<div className="div div--monitor-pillarlegend" >{legend}</div>
-				<div id={detailId} className="div div--monitor-pillardetailhide">
+				<div
+					data-testid={detailId}
+					className="div div--monitor-pillar"
+					style={pillarStyle}
+					onMouseOver={(event) => hoverPopup(event, detailId)}
+					onMouseMove={(event) => hoverPopup(event, detailId)}
+					onMouseOut={(event) => hoverPopup(event, detailId)}
+				>
+				</div>
+				<div className="div div--monitor-pillarlegend">{legend}</div>
+				<div id={detailId} className="div div--monitor-pillardetail" style={{display: "none"}}>
 					<ul className="ul ul--monitor-detailpillaritem">
 						<li className="li li--monitor-detailpillaritem">{attr.date.substr(0,10)}</li>
 						<li className="li li--monitor-detailpillaritem">🟢 {attr.succeed} &nbsp;&nbsp; 🔴 {attr.failed}</li>

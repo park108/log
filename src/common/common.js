@@ -335,3 +335,26 @@ export const userAgentParser = () => {
 
 	return userAgentInfo;
 }
+
+export const hoverPopup = (e, popupElementId) => {
+
+	const popup = document.getElementById(popupElementId);
+	const currentDisplay = popup.style.display;
+
+	if("mouseover" === e.type) {
+		if(currentDisplay === "none") {
+			popup.style.display = "";
+		}
+	}
+	else if("mousemove" === e.type) {
+		const left  = e.clientX  + 5 + "px";
+		const top  = e.clientY  + 5 + "px";
+		popup.style.left = left;
+		popup.style.top = top;
+	}
+	else {
+		if(currentDisplay !== "none") {
+			popup.style.display = "none";
+		}
+	}
+}

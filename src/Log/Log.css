@@ -89,10 +89,6 @@
   padding-right: 0.3em;
 }
 
-.div--logitem-linkmessagehide {
-	display: none;
-}
-
 .div--logitem-linkmessage {
 	position: fixed;
 	display: block;
@@ -104,10 +100,6 @@
 	background-color: var(--info-background-color);
 	font-size: var(--info-font-size);
 	font-weight: bold;
-}
-
-.div--logitem-versionhistoryhide {
-	display: none;
 }
 
 .div--logitem-versionhistory {
