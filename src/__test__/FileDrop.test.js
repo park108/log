@@ -24,10 +24,8 @@ it('render drop zone correctly and upload ok', async () => {
 	const event = {
 		dataTransfer: {
 			files: [
-				{
-					name: "testfile1.txt",
-					type: "text"
-				}
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
 			]
 		}
 	};
@@ -91,10 +89,8 @@ it('render drop zone correctly and upload failed', async () => {
 	const event = {
 		dataTransfer: {
 			files: [
-				{
-					name: "testfile1.txt",
-					type: "text"
-				}
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
 			]
 		}
 	}
@@ -124,10 +120,8 @@ it('render drop zone correctly and upload server error', async () => {
 	const event = {
 		dataTransfer: {
 			files: [
-				{
-					name: "testfile1.txt",
-					type: "text"
-				}
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
 			]
 		}
 	}

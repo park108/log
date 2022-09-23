@@ -24,10 +24,8 @@ it('render upload input correctly and upload ok', async () => {
 	const event = {
 		target: {
 			files: [
-				{
-					name: "testfile1.txt",
-					type: "text"
-				}
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
 			]
 		}
 	};
@@ -86,10 +84,8 @@ it('render upload input correctly and upload failed', () => {
 	const event = {
 		target: {
 			files: [
-				{
-					name: "testfile1.txt",
-					type: "text"
-				}
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
 			]
 		}
 	};
@@ -119,10 +115,8 @@ it('render upload input correctly and server error', () => {
 	const event = {
 		target: {
 			files: [
-				{
-					name: "testfile1.txt",
-					type: "text"
-				}
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
 			]
 		}
 	};
