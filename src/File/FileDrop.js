@@ -96,7 +96,7 @@ const FileDrop = (props) => {
 				refreshFiles();
 			}, REFRESH_TIMEOUT);
 		}
-		else if("FAILED" === isUploading) {
+		else {
 			setDropzoneStyle("div div--filedrop-dropzone div--filedrop-uploading");
 			setDropzoneText(<span>Upload failed.</span>);
 			setTimeout(function() {

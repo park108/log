@@ -104,7 +104,7 @@ const FileUpload = (props) => {
 				refreshFiles();
 			}, refreshTimeout);
 		}
-		else if("FAILED" === isUploading) {
+		else {
 
 			// Delete selected files in input
 			document.getElementById('file-upload-for-mobile').value = "";
