@@ -94,26 +94,26 @@ const Writer = (props) => {
 
 	useEffect(() => {
 
-		const setTextarealHeight = ({target: e}) => {
-	
-			if( !e.nodeName === 'TEXTAREA' || !e.classList.contains('auto-expand')  ) return
-			if(isAdmin()) setTextAreaRows(e);
-		}
+		if(isAdmin()) {
+			const setTextarealHeight = ({target: e}) => {
+				setTextAreaRows(e);
+			}
 
-		let html = parser.markdownToHtml(article);
+			let html = parser.markdownToHtml(article);
 
-		setConvertedArticle(html);
-		setArticleStatus("Markdown length = " + article.length);
-		window.addEventListener('input', setTextarealHeight);
+			setConvertedArticle(html);
+			setArticleStatus("Markdown length = " + article.length);
+			window.addEventListener('input', setTextarealHeight);
 
-		// Initialize editor rows
-		let textArea = document.getElementById("textarea--writer-article");
-		if(2 > textArea.rows) {
-			setTextAreaRows(textArea);
-		}
+			// Initialize editor rows
+			let textArea = document.getElementById("textarea--writer-article");
+			if(2 > textArea.rows) {
+				setTextAreaRows(textArea);
+			}
 
-		return () => {
-			window.removeEventListener('input', setTextarealHeight);
+			return () => {
+				window.removeEventListener('input', setTextarealHeight);
+			}
 		}
 
 	}, [article]);
@@ -139,18 +139,14 @@ const Writer = (props) => {
 
 	const postLog = (event) => {
 
-		// TODO: Make version control
 		if(article.length < 5) {
-
 			alert("Please note at least 5 characters.");
 		}
 		else if("POST" === mode) {
-
 			event.preventDefault();
 			props.post(article, document.getElementById("temporary").checked);
 		}
 		else if("EDIT" === mode) {
-
 			event.preventDefault();
 			props.edit(data, article, document.getElementById("temporary").checked);
 		}
