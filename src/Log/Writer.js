@@ -140,13 +140,17 @@ const Writer = (props) => {
 	const postLog = (event) => {
 
 		if(article.length < 5) {
+			event.preventDefault();
 			alert("Please note at least 5 characters.");
+			document.getElementById("textarea--writer-article").focus();
+			return;
 		}
-		else if("POST" === mode) {
+
+		if("POST" === mode) {
 			event.preventDefault();
 			props.post(article, document.getElementById("temporary").checked);
 		}
-		else if("EDIT" === mode) {
+		else { // "EDIT" === mode
 			event.preventDefault();
 			props.edit(data, article, document.getElementById("temporary").checked);
 		}
@@ -266,7 +270,7 @@ const Writer = (props) => {
 				/>
 			</Suspense>
 
-			<form onSubmit={postLog}>
+			<form data-testid="writer-form" onSubmit={postLog}>
 				<div className="div div--writer-editbox">
 					<textarea
 						id="textarea--writer-article"

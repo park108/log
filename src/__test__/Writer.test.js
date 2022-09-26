@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
 import { Router } from 'react-router-dom';
@@ -49,7 +49,10 @@ it('render text area correctly', async () => {
 	render(
 		<div id="root" className="div fullscreen">
 			<Router location={location} history={history}>
-				<Writer />
+				<Writer
+					post={jest.fn()}
+					edit={jest.fn()}
+				/>
 			</Router>
 		</div>
 	);
@@ -123,43 +126,62 @@ it('render text area correctly', async () => {
 	jest.runOnlyPendingTimers();
 
 	// Submit test
-	// TODO: Didn't covered postLog()
-	const submitButton = await screen.findByTestId("submit-button");
-	expect(submitButton).toBeDefined();
-	userEvent.click(submitButton);
+	const form = await screen.findByTestId("writer-form");
+	expect(form).toBeDefined();
+	fireEvent.submit(form);
 
 	jest.runOnlyPendingTimers();
 
 	jest.useRealTimers();
 });
 
-it('render text area if not logged in', async () => {
+
+it('render text area and test submit', async () => {
   
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(false);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
 	common.setFullscreen = jest.fn().mockResolvedValue(true);
 	document.execCommand = jest.fn();
 
 	const history = createMemoryHistory();
 	const location = {
-		pathname: "/log/write",
-		state: {
-			from: {
-				logs: [
-					{"contents":"Current contents","timestamp":1655737033793}
-					,{"contents":"Previous contents","timestamp":1655736946977}
-				]
-			}
-		}
+		pathname: "/log/write"
 	};
 
 	history.push(location);
   
 	render(
 		<div id="root" className="div fullscreen">
-			<Router location={location} navigator={history}>
-				<Writer />
+			<Router location={location} history={history}>
+				<Writer
+					post={jest.fn()}
+					edit={jest.fn()}
+				/>
 			</Router>
 		</div>
 	);
+
+	jest.useFakeTimers();
+
+	// Submit with no text
+	const form = await screen.findByTestId("writer-form");
+	expect(form).toBeDefined();
+	fireEvent.submit(form);
+
+	jest.runOnlyPendingTimers();
+	
+	// Text input test
+	const textInput = await screen.findByTestId("writer-text-area");
+	fireEvent.change(textInput, {target: {value: '123456'}});
+
+	jest.runOnlyPendingTimers();
+
+	// Submit test with text
+	const form2 = await screen.findByTestId("writer-form");
+	expect(form2).toBeDefined();
+	fireEvent.submit(form2);
+
+	jest.runOnlyPendingTimers();
+
+	jest.useRealTimers();
 });
