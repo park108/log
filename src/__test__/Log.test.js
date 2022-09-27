@@ -1,13 +1,12 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
 import Log from '../Log/Log';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
-console.log = jest.fn();
-console.error = jest.fn();
+// console.log = jest.fn();
+// console.error = jest.fn();
 
 it('render log if it logged in', async () => {
 		
@@ -41,11 +40,15 @@ it('render log if it logged in', async () => {
 	history.push({location: {pathname: "/log"}});
 	sessionStorage.clear();
 
+	jest.useFakeTimers();
+
 	render(
 		<Router location={history.location} navigator={history}>
 			<Log />
 		</Router>
 	);
+
+	jest.runOnlyPendingTimers();
 
 	const div = await screen.findByRole("application");
 	expect(div).toBeInTheDocument();
@@ -53,46 +56,45 @@ it('render log if it logged in', async () => {
 	const item = await screen.findByText("2022-06-20");
 	expect(item).toBeInTheDocument();
 	
-	global.fetch = () =>
-		Promise.resolve({
-		json: () => Promise.resolve({
-			body: {
-				Count: 1,
-				Items: [
-					{
-						author: "park108@gmail.com",
-						timestamp: 1656034616036,
-						logs: [
-							{
-								contents: "Test Contents",
-								timestamp: 1656034616036,
-							}
-						]
-					},
-				]
-			}
-		}),
-	});
+	// global.fetch = () =>
+	// 	Promise.resolve({
+	// 	json: () => Promise.resolve({
+	// 		body: {
+	// 			Count: 1,
+	// 			Items: [
+	// 				{
+	// 					author: "park108@gmail.com",
+	// 					timestamp: 1656034616036,
+	// 					logs: [
+	// 						{
+	// 							contents: "Test Contents",
+	// 							timestamp: 1656034616036,
+	// 						}
+	// 					]
+	// 				},
+	// 			]
+	// 		}
+	// 	}),
+	// });
 
-	console.log(item.parentNode);
-	userEvent.click(item.parentNode);
+	const newlogButton = await screen.findByTestId("newlog-button");
+	fireEvent.click(newlogButton);
+
+	jest.runOnlyPendingTimers();
+
+	screen.debug();
 
 	// const textInput = await screen.findByTestId("writer-text-area");
 	// const typedValue = "Posting test";
 	// userEvent.type(textInput, typedValue);
 
+	jest.runOnlyPendingTimers();
+
 	// const submitButton = await screen.findByTestId("submit-button");
 	// expect(submitButton).toBeDefined();
 	// userEvent.click(submitButton);
 
+
+	jest.useRealTimers();
 	global.fetch = unmockedFetch;
-});
-
-describe("get api url", () => {
-
-	it('get trimmed string', () => {
-
-		const testString = "test string";
-		// expect(testString).toBe("test string");
-	});
 });

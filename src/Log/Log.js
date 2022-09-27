@@ -39,7 +39,9 @@ const Log = (props) => {
 				setToasterMessage("The log posted.");
 				setIsShowToaster(1);
 
-				sessionStorage.clear();
+				sessionStorage.removeItem("logList");
+				sessionStorage.removeItem("logListLastTimestamp");
+
 				log("A log is POSTED uccessfully.");
 
 				navigate("/log/" + newTimestamp);
@@ -79,7 +81,9 @@ const Log = (props) => {
 				setToasterMessage("The log changed.");
 				setIsShowToaster(1);
 
-				sessionStorage.clear();
+				sessionStorage.removeItem("logList");
+				sessionStorage.removeItem("logListLastTimestamp");
+
 				log("A log is PUTTED successfully.");
 				
 				navigate("/log/" + item.timestamp);
@@ -103,7 +107,7 @@ const Log = (props) => {
 				from: location.pathname
 			}
 		}}>
-			<button role="button" className="button button--log-newlog">+</button>
+			<button data-testid="newlog-button" role="button" className="button button--log-newlog">+</button>
 		</Link>
 	) : null;
 
