@@ -14,8 +14,6 @@ const LogList = (props) => {
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
-	const itemPerPage = 10;
-
 	// Get log list from API gateway
 	const fetchFirst = async () => {
 
@@ -41,7 +39,7 @@ const LogList = (props) => {
 		// Call API
 		try {
 			setIsLoading(true);
-			const res = await getLogs(itemPerPage);
+			const res = await getLogs();
 			const fetchedData = await res.json();
 
 			if(hasValue(fetchedData.errorType)) {
@@ -70,7 +68,7 @@ const LogList = (props) => {
 		try {
 			// Call API
 			setIsLoading(true);
-			const res = await getNextLogs(lastTimestamp, itemPerPage);
+			const res = await getNextLogs(lastTimestamp);
 			const fetchedData = await res.json();
 
 			if(hasValue(fetchedData.errorType)) {

@@ -10,14 +10,13 @@ const getApiUrl = () => {
 	}
 }
 
-export const getLogs = async(limit) => {
-	limit = undefined === limit ? 1 : limit;
+const DEFAULT_ITEM_PER_PAGE = 10;
+export const getLogs = async(limit = DEFAULT_ITEM_PER_PAGE) => {
 	const admin = isAdmin() ? "&admin=true" : "";
 	return await fetch(getApiUrl() + "?limit=" + limit + admin);
 }
 
-export const getNextLogs = async(timestamp, limit) => {
-	limit = undefined === limit ? 1 : limit;
+export const getNextLogs = async(timestamp, limit = DEFAULT_ITEM_PER_PAGE) => {
 	return await fetch(getApiUrl() + "?lastTimestamp=" + timestamp + "&limit=" + limit);
 }
 
