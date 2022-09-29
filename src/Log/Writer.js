@@ -27,7 +27,7 @@ const Writer = (props) => {
 	const [changeHistory, setChangeHistory] = useState(undefined);
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
-	const [isShowImageSelector, setIsShowImageSelector] = useState("READY");
+	const [isShowImageSelector, setIsShowImageSelector] = useState(false);
 	
 	const location = useLocation();
 	
@@ -205,24 +205,12 @@ const Writer = (props) => {
 
 	const ImageSelectorButton = () => {
 
-		const changeMode = () => {
-			if("READY" === isShowImageSelector) {
-				setIsShowImageSelector("SHOW");
-			}
-			if("SHOW" === isShowImageSelector) {
-				setIsShowImageSelector("HIDE");
-			}
-			if("HIDE" === isShowImageSelector) {
-				setIsShowImageSelector("SHOW");
-			}
-		}
-
 		return (
 			<span
 				role="button"
 				data-testid="img-selector-button"
 				className="span span--writer-statusbarbutton"
-				onClick={changeMode}
+				onClick={() => setIsShowImageSelector(!isShowImageSelector)}
 			>
 				[IMG]
 			</span>
@@ -343,7 +331,6 @@ const Writer = (props) => {
 				position={"bottom"}
 				type={"warning"}
 				duration={2000}
-				
 				completed={() => setIsShowToaster(2)}
 			/>
 		</div>

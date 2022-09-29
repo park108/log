@@ -30,8 +30,8 @@ const ImageSelector = (props) => {
 				console.error(retrieved);
 			}
 			else {
-
 				log("Images are FETCHED successfully.");
+				
 				const newImages = retrieved.body.Items;
 				const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 
@@ -76,16 +76,12 @@ const ImageSelector = (props) => {
 
 	// Fetch data by event
 	useEffect(() => {
-		if("SHOW" === props.show) {
+		if(props.show) {
 			fetchFirst();
 			setImageSelectorClass("div div--image-selector");
 		}
 		else {
-			setImages([]);
-
-			if("HIDE" === props.show) {
-				setImageSelectorClass("div div--image-selectorhide");
-			}
+			setImageSelectorClass("div div--image-selectorhide");
 		}
 	}, [props.show]);
 
@@ -165,7 +161,7 @@ const ImageSelector = (props) => {
 }
 
 ImageSelector.propTypes = {
-	show: PropTypes.string,
+	show: PropTypes.bool,
 };
 
 export default ImageSelector;
