@@ -5,32 +5,24 @@ const ApiCallItem = lazy(() => import('./ApiCallItem'));
 
 const ApiCallMon = (props) => {
 
-	const stackPallet = props.stackPallet;
+	const serviceList = [
+		{title: "log", service: "log"},
+		{title: "file", service: "file"},
+		{title: "analytics", service: "analytics"},
+	]
 
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1>API Calls in the last 7 days</h1>
-			<Suspense fallback={<div></div>}>
-				<ApiCallItem
-					title="log"
-					service="log"
-					stackPallet={stackPallet}
-				/>
-			</Suspense>
-			<Suspense fallback={<div></div>}>
-				<ApiCallItem
-					title="file"
-					service="file"
-					stackPallet={stackPallet}
-				/>
-			</Suspense>
-			<Suspense fallback={<div></div>}>
-				<ApiCallItem
-					title="analytics"
-					service="analytics"
-					stackPallet={stackPallet}
-				/>
-			</Suspense>
+			{serviceList.map(item => (
+				<Suspense key={item.service} fallback={<div></div>}>
+					<ApiCallItem
+						title={item.title}
+						service={item.service}
+						stackPallet={props.stackPallet}
+					/>
+				</Suspense>
+			))}
 		</article>
 	);
 }

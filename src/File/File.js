@@ -19,8 +19,6 @@ const File = (props) => {
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 	const [isShowToaster, setIsShowToaster] = useState(1);
 
-	const contentHeight = props.contentHeight;
-
 	// Get uploaded file list from API Gateway
 	const fetchData = async () => {
 
@@ -124,7 +122,7 @@ const File = (props) => {
 
 	// Draw file app.
 	return (
-		<main className="main main--contents" style={contentHeight} role="application">
+		<main className="main main--contents" style={props.contentHeight} role="application">
 			<article className="article article--main-item">
 
 				{fileUploadUI}

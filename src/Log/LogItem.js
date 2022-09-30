@@ -12,7 +12,7 @@ const Comment = lazy(() => import('../Comment/Comment'));
 const LogItem = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [itemClass, setItemClass] = useState("div div--main-item");
+	const [itemClass, setItemClass] = useState("article article--main-item");
 	const [isShowToaster, setIsShowToaster] = useState(0);
 
 	const item = props.item;

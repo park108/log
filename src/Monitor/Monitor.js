@@ -74,8 +74,6 @@ const chartPallets = [
 ];
 
 const Monitor = (props) => {
-
-	const contentHeight = props.contentHeight;
 	
 	// Change width
 	useEffect(() => {
@@ -91,7 +89,7 @@ const Monitor = (props) => {
 
 	// Draw monitor app.
 	return (
-		<main className="main main--contents" style={contentHeight} role="application">
+		<main className="main main--contents" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
 				<ContentMon stackPallet={chartPallets[1].colors} />
 			</Suspense>

@@ -5,32 +5,26 @@ const ContentItem = lazy(() => import('./ContentItem'));
 
 const ContentMon = (props) => {
 
-	const stackPallet = props.stackPallet;
+	const contentList = [
+		{title: "Logs", path: "content/log", unit: "count"},
+		{title: "Comments", path: "content/comment", unit: "count"},
+		{title: "Files", path: "file", unit: "capacity"},
+	]
 
 	// Return 3 charts
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1>Contents in the last 6 months</h1>
-			<Suspense fallback={<div></div>}>
-				<ContentItem
-					title="Logs"
-					path="content/log"
-					unit="count"
-					stackPallet={stackPallet}
-				/>
-				<ContentItem
-					title="Comments"
-					path="content/comment"
-					unit="count"
-					stackPallet={stackPallet}
-				/>
-				<ContentItem
-					title="Files"
-					path="file"
-					unit="capacity"
-					stackPallet={stackPallet}
-				/>
-			</Suspense>
+			{contentList.map(item => (
+				<Suspense key={item.title} fallback={<div></div>}>
+					<ContentItem
+						title={item.title}
+						path={item.path}
+						unit={item.unit}
+						stackPallet={props.stackPallet}
+					/>
+				</Suspense>
+			))}
 		</article>
 	);
 }

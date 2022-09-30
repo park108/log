@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
@@ -132,25 +132,23 @@ const LogList = (props) => {
 	// Draw log list
 	return (
 		<section className="section section--log-list" role="list">
-			<Suspense fallback={<div></div>}>
-				{logs.map(data => (
-					<div className="div--loglist-item" key={data.timestamp} role="listitem">
-						<Link to={{
-							pathname: "/log/" + data.timestamp
-						}}>
-							<div className="div--loglist-date">
-								{getFormattedDate(data.timestamp)}
-								{ true === data.temporary ? <span className="span--loglist-temporary">✍️</span> : "" }
-							</div>
-							{
-								true === data.temporary
-									? <div className="div--loglist-temporary">{data.contents}</div>
-									: <div className="div--loglist-contents">{data.contents}</div>
-							}
-						</Link>
-					</div>
-				))}
-			</Suspense>
+			{logs.map(data => (
+				<div className="div--loglist-item" key={data.timestamp} role="listitem">
+					<Link to={{
+						pathname: "/log/" + data.timestamp
+					}}>
+						<div className="div--loglist-date">
+							{getFormattedDate(data.timestamp)}
+							{ true === data.temporary ? <span className="span--loglist-temporary">✍️</span> : "" }
+						</div>
+						{
+							true === data.temporary
+								? <div className="div--loglist-temporary">{data.contents}</div>
+								: <div className="div--loglist-contents">{data.contents}</div>
+						}
+					</Link>
+				</div>
+			))}
 
 			<Toaster 
 				show={isShowToasterCenter}

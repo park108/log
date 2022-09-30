@@ -20,7 +20,6 @@ const Log = (props) => {
 
 	const navigate = useNavigate();
 	const location = useLocation();
-	const contentHeight = props.contentHeight;
 	
 	// Create new log
 	const createLog = async (contents, isTemporary = false) => {
@@ -113,7 +112,7 @@ const Log = (props) => {
 
 	// Draw log app.
 	return (
-		<main className="main main--contents" style={contentHeight} role="application">
+		<main className="main main--contents" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
 				{writeButton}
 				<Routes>
