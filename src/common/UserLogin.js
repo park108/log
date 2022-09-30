@@ -1,6 +1,5 @@
 import React from "react";
 import * as common from '../common/common';
-// import { ReactComponent as EnterButton } from './static/enter.svg';
 
 export const getLoginUrl = () => {
 	if ('production' === process.env.NODE_ENV) {
@@ -33,9 +32,6 @@ const UserLogin = () => {
 	}
 
 	if(common.isLoggedIn()) {
-		
-		// Maybe use ✓ symbol
-		const userId = common.isAdmin() ? "Jongkil Park" : "Visitor";
 
 		return (
 			<span
@@ -44,7 +40,7 @@ const UserLogin = () => {
 				className="span span--login-loggedin"
 				onClick={logout}
 			>
-				{userId}
+				👨‍💻 Jongkil Park
 			</span>
 		);
 	}
@@ -57,7 +53,6 @@ const UserLogin = () => {
 			onClick={login}
 		>
 			Jongkil Park
-			{/* Maybe use enter symbol <EnterButton /> */}
 		</span>
 	);
 }

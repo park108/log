@@ -30,7 +30,7 @@ describe('reder UserLogin by stage', () => {
     common.isAdmin = jest.fn().mockResolvedValue(true);
 
     render(<UserLogin />);
-    const menu = screen.getByText("Jongkil Park");
+    const menu = screen.getByText("👨‍💻 Jongkil Park");
 
     expect(menu).toBeInTheDocument();
   });
@@ -42,7 +42,7 @@ describe('reder UserLogin by stage', () => {
     common.isAdmin = jest.fn().mockResolvedValue(true);
 
     render(<UserLogin />);
-    const menu = screen.getByText("Jongkil Park");
+    const menu = screen.getByText("👨‍💻 Jongkil Park");
 
     expect(menu).toBeInTheDocument();
   });
