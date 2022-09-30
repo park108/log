@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
 import LogSingle from '../Log/LogSingle';
+import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
 console.log = jest.fn();
@@ -42,15 +43,20 @@ it('render LogSingle', async () => {
 	const location = { pathname: "/log" };
 	history.push(location);
 
+	jest.useFakeTimers();
+
 	render(
 		<Router location={location} history={history} >
 			<LogSingle />
 		</Router>
 	);
 
-	const obj = await screen.findByText("Test Contents", {}, { timeout: 0});
+	jest.runOnlyPendingTimers();
+
+	const obj = await screen.findByText("Test Contents");
 	expect(obj).toBeInTheDocument();
 
+	jest.useRealTimers();
 	global.fetch = unmockedFetch;
 });
 

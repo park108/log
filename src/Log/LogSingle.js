@@ -3,10 +3,13 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { log, hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '../common/common';
 import { getLog } from './api';
+import * as parser from '../common/markdownParser';
 import PageNotFound from "../common/PageNotFound";
 
 const LogItem = lazy(() => import('./LogItem'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));
+
+const PAGE_NOT_FOUND = "Page not found";
 
 const LogSingle = (props) => {
 
@@ -18,7 +21,7 @@ const LogSingle = (props) => {
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
 	const [toasterMessageBottom, setToasterMessageBottom] = useState("");
 
-	let logTimestamp = useParams()["timestamp"];
+	const logTimestamp = useParams()["timestamp"];
 
 	const fetchData = async (timestamp) => {
 
@@ -31,34 +34,53 @@ const LogSingle = (props) => {
 			
 			if(hasValue(fetchedData.errorType)) {
 				console.error(fetchedData);
-				setHasItem("NO"); // Page not found
 				log("No log found.");
-				setMetaDescription("Page not found");
+				setHasItem("NO");
+				setHtmlTitle(PAGE_NOT_FOUND);
+				setMetaDescription(PAGE_NOT_FOUND);
 				return;
 			}
 
 			if(0 === fetchedData.body.Count) {
-				setHasItem("NO"); // Page not found
+				setHasItem("NO");
+				setHtmlTitle(PAGE_NOT_FOUND);
+				setMetaDescription(PAGE_NOT_FOUND);
 			}
 			else {
-				setData(fetchedData.body.Items[0]);
+				const latestData = fetchedData.body.Items[0];
+				setData(latestData);
 				setHasItem("YES");
-				const metaDescription = fetchedData.body.Items[0].summary;
-				const length = fetchedData.body.Items[0].summary.length;
-				setMetaDescription(length > 100 ? metaDescription.substr(0, 100) + "..." : metaDescription);
+				
+				const contents = latestData.logs[0].contents;
+				const hasTitle = contents.indexOf("# ") === 0;
+				const contentsStartIndex = hasTitle ? contents.indexOf("\n") : 0;
+				const logTitle = hasTitle
+					? contents.substr(2, contentsStartIndex - 1)
+					: "log of " + getFormattedDate(logTimestamp * 1, "date mon year");
+				setHtmlTitle(logTitle);
+
+				const SUMMARY_LENGTH = 100;
+				const contentsWithoutTitle = contents.substr(contentsStartIndex);
+				const parsedContents = parser.markdownToHtml(contentsWithoutTitle).replace(/<[^>]*>?/gm, '');
+				const summary = parsedContents.substr(0, SUMMARY_LENGTH);
+				const contentsLength = parsedContents.length;
+				const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
+				setMetaDescription(summary + ellipsis);
 			}
 
 			log("The log is FETCHED successfully.");
 		}
 		catch(err) {
 			log(err, "ERROR");
+			setHtmlTitle(PAGE_NOT_FOUND);
+			setMetaDescription(PAGE_NOT_FOUND);
 		}
 	}
 
 	// Fetch data at mount
 	useEffect(() => {
 		fetchData(logTimestamp);
-	}, [props.isPostSuccess, logTimestamp]);	
+	}, [props.isPostSuccess, logTimestamp]);
 
 	// Change by loading state
 	useEffect(() => {
@@ -73,14 +95,6 @@ const LogSingle = (props) => {
 
 	// Cleanup
 	useEffect(() => {
-		const date = getFormattedDate(logTimestamp * 1, "date mon year");
-		if("NaN undefined 'NaN" === date) {
-			setHtmlTitle("log not found");
-		}
-		else {
-			setHtmlTitle("log of " + date);
-		}
-		
 		return () => {
 			setIsLoading(false);
 			setMetaDescription("park108.net is a personal journal of Jongkil Park the developer");
