@@ -97,7 +97,7 @@ const LogSingle = (props) => {
 	useEffect(() => {
 		return () => {
 			setIsLoading(false);
-			setMetaDescription("park108.net is a personal journal of Jongkil Park the developer");
+			setMetaDescription();
 		}
 	}, []);
 

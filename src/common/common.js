@@ -7,8 +7,9 @@ export const setHtmlTitle = (title) => {
 	}
 }
 
-export const setMetaDescription = (desc) => {
+const DEFAULT_META_DESCRIPTION = "park108.net is a personal journal of Jongkil Park the developer";
 
+export const setMetaDescription = (desc = DEFAULT_META_DESCRIPTION) => {
 	const meta = document.getElementsByTagName('meta');
 	if(meta.description !== undefined) {
 		meta.description.content = desc;
