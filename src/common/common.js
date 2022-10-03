@@ -25,10 +25,7 @@ export const hasValue = (obj) => {
 }
 
 export const log = (logText, type = "INFO") => {
-	if (process.env.NODE_ENV === 'production') {
-		// Nothing to do
-	}
-	else if (process.env.NODE_ENV === 'development') {
+	if (process.env.NODE_ENV === 'development') {
 		switch(type) {
 			case "INFO": console.log(logText); break;
 			case "ERROR": console.error(logText); break;
@@ -106,6 +103,7 @@ export function auth() {
 	if(null != accessToken) {
 
 		let site = "";
+		
 		if ('production' === process.env.NODE_ENV) {
 			site = "park108.net";
 		}
