@@ -15,7 +15,7 @@ it('render drop zone correctly and upload ok', async () => {
 
 	render(<
 		FileDrop
-		uploaded = {uploadedCallbackFunction}
+		callbackAfterUpload = {uploadedCallbackFunction}
 	/>);
 
 	const dropZone = screen.getByTestId("dropzone");

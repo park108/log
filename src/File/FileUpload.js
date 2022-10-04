@@ -12,7 +12,7 @@ const FileUpload = (props) => {
 	const [toasterType, setToasterType] = useState("success");
 	const [toasterMessage ,setToasterMessage] = useState("");
 
-	const refreshFiles = props.uploaded;
+	const refreshFiles = props.callbackAfterUpload;
 
 	// Upload files into the S3 bucket
 	const uploadFile = async(item, isLast) => {
@@ -160,7 +160,7 @@ const FileUpload = (props) => {
 }
 
 FileUpload.propTypes = {
-	uploaded: PropTypes.func,
+	callbackAfterUpload: PropTypes.func,
 };
 
 export default FileUpload;

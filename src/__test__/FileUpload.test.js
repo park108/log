@@ -15,7 +15,7 @@ it('render upload input correctly and upload ok', async () => {
 
 	render(<
 		FileUpload
-		uploaded = {uploadedCallbackFunction}
+		callbackAfterUpload = {uploadedCallbackFunction}
 	/>);
 
 	const input = screen.getByLabelText('file-upload');

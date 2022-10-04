@@ -98,8 +98,8 @@ const File = (props) => {
 
 	// Select file upload UI
 	const fileUploadUI = isMobile() 
-		? <FileUpload uploaded={fetchData} />
-		: <FileDrop uploaded={fetchData} />;
+		? <FileUpload callbackAfterUpload={fetchData} />
+		: <FileDrop callbackAfterUpload={fetchData} />;
 
 	// Make See More button
 	const seeMoreButton = (lastTimestamp === undefined)

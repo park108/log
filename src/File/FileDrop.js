@@ -10,7 +10,7 @@ const FileDrop = (props) => {
 	const [dropzoneStyle, setDropzoneStyle] = useState("div div--filedrop-dropzone div--filedrop-ready")
 	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
 
-	const refreshFiles = props.uploaded;
+	const refreshFiles = props.callbackAfterUpload;
 	const REFRESH_TIMEOUT = 3000;
 
 	// Upload file into the S3 bucket
@@ -147,7 +147,7 @@ const FileDrop = (props) => {
 }
 
 FileDrop.propTypes = {
-	uploaded: PropTypes.func,
+	callbackAfterUpload: PropTypes.func,
 }
 
 export default FileDrop;
