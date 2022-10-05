@@ -15,38 +15,68 @@ export const codeHighlighter = (lang, code) => {
 	return code;
 }
 
+const SYNTAX_KOTLIN = {
+	reservedWords: [
+		{ frontSpace: "", keyword: "package", rearSpace: " " },
+		{ frontSpace: "", keyword: "import", rearSpace: " " },
+		{ frontSpace: "", keyword: "class", rearSpace: " " },
+		{ frontSpace: "", keyword: "private", rearSpace: " " },
+		{ frontSpace: "", keyword: "val", rearSpace: "" },
+		{ frontSpace: "", keyword: "var", rearSpace: "" },
+		{ frontSpace: "", keyword: "fun", rearSpace: "" },
+		{ frontSpace: " ", keyword: "try", rearSpace: "" },
+		{ frontSpace: " ", keyword: "catch", rearSpace: "" },
+		{ frontSpace: " ", keyword: "when", rearSpace: "" },
+		{ frontSpace: " ", keyword: "if", rearSpace: "" },
+		{ frontSpace: " ", keyword: "else", rearSpace: "" },
+		{ frontSpace: "", keyword: "null", rearSpace: "" },
+		{ frontSpace: "", keyword: "true", rearSpace: "" },
+		{ frontSpace: "", keyword: "false", rearSpace: "" },
+		{ frontSpace: "", keyword: "return", rearSpace: "" },
+	],
+	annotations: [
+		"@GetMapping", "@PostMapping", "@PutMapping", "@DeleteMapping", "@PathVariable",
+		"@RestController", "@RequestMapping", "@RequestBody"
+	]
+};
+
 const highlighterKotlin = (code) => {
 
 	code = code.replace("<", "&lt");
 	code = replaceLiteral(code);
-	
-	code = replaceReservedWord("", "package", " ", code);
-	code = replaceReservedWord("", "import", " ", code);
-	code = replaceReservedWord("", "class", " ", code);
-	code = replaceReservedWord("", "private", " ", code);
-	code = replaceReservedWord("", "val", " ", code);
-	code = replaceReservedWord("", "var", " ", code);
-	code = replaceReservedWord("", "fun", " ", code);
-	code = replaceReservedWord(" ", "try", "", code);
-	code = replaceReservedWord(" ", "catch", "", code);
-	code = replaceReservedWord(" ", "when", "", code);
-	code = replaceReservedWord(" ", "if", "", code);
-	code = replaceReservedWord(" ", "else", "", code);
-	code = replaceReservedWord("", "null", "", code);
-	code = replaceReservedWord("", "true", "", code);
-	code = replaceReservedWord("", "false", "", code);
-	code = replaceReservedWord("", "return", "", code)
 
-	code = replaceAnnotation("@GetMapping", code);
-	code = replaceAnnotation("@PostMapping", code);
-	code = replaceAnnotation("@PutMapping", code);
-	code = replaceAnnotation("@DeleteMapping", code);
-	code = replaceAnnotation("@PathVariable", code);
-	code = replaceAnnotation("@RestController", code);
-	code = replaceAnnotation("@RequestMapping", code);
-	code = replaceAnnotation("@RequestBody", code);
+	for(const keyword of SYNTAX_KOTLIN.reservedWords) {
+		code = replaceReservedWord(keyword.frontSpace, keyword.keyword, keyword.rearSpace, code);
+	}
+
+	for(const annotation of SYNTAX_KOTLIN.annotations) {
+		code = replaceAnnotation(annotation, code);
+	}
 
 	return code;
+}
+
+const replaceLiteral = (line) => {
+	const start = line.indexOf("\"");
+	if(start > -1) {
+		const next = line.indexOf("\"", start + 1);
+
+		if(next > start) {
+			const front = line.substring(0, start);
+			const literal = line.substring(start, next + 1);
+			const rear = line.substring(next + 1);
+			line = front + "<span class='span span--kotlin-literal'>" + literal + "</span>" + rear;
+		}
+	}
+	return line;
+}
+
+const replaceReservedWord = (frontSpace, keyword, rearSpace, line) => {
+	return line.replace(frontSpace + keyword + rearSpace, frontSpace + "<span class='span span--kotlin-reserved'>" + keyword + "</span>" + rearSpace);
+}
+
+const replaceAnnotation = (keyword, line) => {
+	return line.replace(keyword, "<span class='span span--kotlin-annotation'>" + keyword + "</span>");
 }
 
 const highlighterYaml = (code) => {
@@ -85,27 +115,4 @@ const highlighterYaml = (code) => {
 	}
 
 	return code;
-}
-
-const replaceLiteral = (line) => {
-	const start = line.indexOf("\"");
-	if(start > -1) {
-		const next = line.indexOf("\"", start + 1);
-
-		if(next > start) {
-			const front = line.substring(0, start);
-			const literal = line.substring(start, next + 1);
-			const rear = line.substring(next + 1);
-			line = front + "<span class='span span--kotlin-literal'>" + literal + "</span>" + rear;
-		}
-	}
-	return line;
-}
-
-const replaceReservedWord = (frontSpace, word, rearSpace, line) => {
-	return line.replace(frontSpace + word + rearSpace, frontSpace + "<span class='span span--kotlin-reserved'>" + word + "</span>" + rearSpace);
-}
-
-const replaceAnnotation = (word, line) => {
-	return line.replace(word, "<span class='span span--kotlin-annotation'>" + word + "</span>");
 }
