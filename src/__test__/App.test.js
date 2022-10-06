@@ -5,7 +5,31 @@ import * as common from '../common/common';
 
 console.error = jest.fn();
 
+it('render when network connection is offline', async () => {
+	
+	// Mocking network status
+	Object.defineProperty(navigator, 'onLine',
+		{
+			value: false,
+			configurable: true
+		}
+	);
+
+	render(<App />);
+	expect(await screen.findByText("You are offline now.", {}, { timeout: 0 })).toBeInTheDocument();
+	
+	// Mocking network status
+	Object.defineProperty(navigator, 'onLine',
+		{
+			value: true,
+			configurable: true
+		}
+	);
+	expect(await screen.findByText("You are offline now.", {}, { timeout: 0 })).toBeInTheDocument();
+});
+
 it('render title text "park108.net" correctly', async () => {
+
 	render(<App />);
 	expect(await screen.findByText("park108.net", {}, { timeout: 0 })).toBeInTheDocument();
 });
