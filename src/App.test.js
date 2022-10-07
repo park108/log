@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from '../App';
-import * as common from '../common/common';
+import App from './App';
+import * as common from './common/common';
 
 console.error = jest.fn();
 

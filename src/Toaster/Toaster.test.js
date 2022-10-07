@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
-import Toaster from '../Toaster/Toaster';
+import Toaster from './Toaster';
 
 jest.useFakeTimers();
 

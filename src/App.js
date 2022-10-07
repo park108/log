@@ -36,7 +36,7 @@ const App = () => {
 		handleOnresize();
 	}, []);
 
-	// Set 
+	// Change status by network connection
 	useEffect(() => {
 
 		const handleStatusChange = () => {

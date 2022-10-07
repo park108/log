@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ApiCallItem from '../Monitor/ApiCallItem';
+import ApiCallItem from './ApiCallItem';
 
 const unmockedFetch = global.fetch;
 console.log = jest.fn();

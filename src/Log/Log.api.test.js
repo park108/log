@@ -1,4 +1,4 @@
-import * as api from '../Log/api';
+import * as api from './api';
 
 const unmockedFetch = global.fetch;
 

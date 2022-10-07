@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history'
 import { Router } from 'react-router-dom';
 import * as common from "../common/common";
-import SearchInput from '../Search/SearchInput';
+import SearchInput from './SearchInput';
 
 console.log = jest.fn();
 console.error = jest.fn();

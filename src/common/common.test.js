@@ -1,4 +1,4 @@
-import * as common from '../common/common';
+import * as common from './common';
 
 console.error = jest.fn();
 console.log = jest.fn();

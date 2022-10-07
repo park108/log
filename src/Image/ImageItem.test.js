@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'
-import ImageItem from '../Image/ImageItem';
+import ImageItem from './ImageItem';
 
 it('render image item and test click events', async () => {
 

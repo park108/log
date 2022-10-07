@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
-import Comment from '../Comment/Comment';;
-import CommentItem from '../Comment/CommentItem';
+import Comment from './Comment';;
+import CommentItem from './CommentItem';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;

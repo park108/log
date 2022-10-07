@@ -1,4 +1,4 @@
-import * as parser from '../common/markdownParser';
+import * as parser from './markdownParser';
 
 describe('MD parsing test', () => {
 

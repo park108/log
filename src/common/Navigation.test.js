@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import {createMemoryHistory} from 'history'
 import { Router } from 'react-router-dom';
-import Navigation from '../common/Navigation';
-import * as common from '../common/common';
+import Navigation from './Navigation';
+import * as common from './common';
 
 describe('render navigation menu correctly', () => {
 
