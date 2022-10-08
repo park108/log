@@ -20,7 +20,7 @@ const WebVitalsItem = (props) => {
 				console.error(data);
 			}
 			else {
-				log("Web Vital " + name + " is FETCHED successfully.: " + data.body.Count);
+				log("[API GET] OK - Web Vital + " + name + ": " + data.body.Count);
 				setData(data.body.Items);
 			}
 		}

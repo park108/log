@@ -34,7 +34,7 @@ const Comment = (props) => {
 				return (a.sortKey < b.sortKey) ? -1 : 1
 			});
 
-			log("Comments are FETCHED successfully.");
+			log("[API GET] OK - Comments");
 
 			// Set comment list
 			setComments(newData.body.Items);

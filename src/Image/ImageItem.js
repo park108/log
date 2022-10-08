@@ -4,10 +4,6 @@ import './ImageSelector.css';
 
 const ImageItem = (props) => {
 
-	const fileName = props.fileName;
-	const imageUrl = props.url.replace("thumbnail/", "");
-	const thumbnailUrl = props.url;
-
 	// Event handlers for image
 	const enlargeImage = (e) => {
 		e.target.src = e.target.getAttribute("imageurl");
@@ -37,10 +33,10 @@ const ImageItem = (props) => {
 		<img className="img img--image-imageitem"
 			data-testid="imageItem"
 			role="listitem"
-			src={thumbnailUrl}
-			alt={fileName}
-			imageurl={imageUrl}
-			thumbnailurl={thumbnailUrl}
+			src={props.url}
+			alt={props.fileName}
+			imageurl={props.url.replace("thumbnail/", "")}
+			thumbnailurl={props.url}
 			enlarged={"N"}
 			onMouseOut={shrinkImage}
 			onClick={clickImage}

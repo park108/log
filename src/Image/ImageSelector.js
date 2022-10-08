@@ -30,7 +30,7 @@ const ImageSelector = (props) => {
 				console.error(retrieved);
 			}
 			else {
-				log("Images are FETCHED successfully.");
+				log("[API GET] OK - Images");
 				
 				const newImages = retrieved.body.Items;
 				const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
@@ -59,7 +59,8 @@ const ImageSelector = (props) => {
 				console.error(nextData);
 			}
 			else {
-				log("Next images are FETCHED successfully.");
+				log("[API GET] OK - Next Images");
+
 				const newImages = images.concat(nextData.body.Items);
 				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	

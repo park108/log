@@ -42,8 +42,7 @@ const ContentItem = (props) => {
 				console.error(data);
 			}
 			else {
-			
-				log("Content API " + path + " is FETCHED successfully.");
+				log("[API GET] OK - Content API: " + path);
 
 				setTotalCount(data.body.Count);
 

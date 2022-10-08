@@ -33,8 +33,7 @@ const VisitorMon = (props) => {
 				console.error(data);
 			}
 			else {
-			
-				log("Visitor information is FETCHED successfully.");
+				log("[API GET] OK - Visitor information");
 			
 				setTotalCount(data.body.totalCount);
 

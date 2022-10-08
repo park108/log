@@ -43,8 +43,7 @@ const ApiCallItem = (props) => {
 				console.error(data);
 			}
 			else {
-			
-				log(service + " API call stats are FETCHED successfully. Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms");
+				log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms");
 				
 				if(undefined === data.body.totalCount) {
 					throw "totalCount is undefined";

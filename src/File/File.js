@@ -33,7 +33,8 @@ const File = (props) => {
 			}
 			else {
 
-				log("Files are FETCHED successfully.");
+				log("[API GET] OK - Files");
+
 				const newFiles = newData.body.Items;
 				const lastEvaluatedKey = newData.body.LastEvaluatedKey;
 
@@ -61,7 +62,9 @@ const File = (props) => {
 				console.error(nextData);
 			}
 			else {
-				log("Next files are FETCHED successfully.");
+
+				log("[API GET] OK - Next Files");
+				
 				const newFiles = files.concat(nextData.body.Items);
 				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	

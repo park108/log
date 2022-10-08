@@ -68,7 +68,7 @@ const LogSingle = (props) => {
 				setMetaDescription(summary + ellipsis);
 			}
 
-			log("The log is FETCHED successfully.");
+			log("[API GET] OK - Log");
 		}
 		catch(err) {
 			log(err, "ERROR");

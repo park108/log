@@ -63,7 +63,7 @@ const Search = () => {
 				sessionStorage.setItem("searchQueryString", result.QueryString);
 				sessionStorage.setItem("searchProcessingTime", result.ProcessingTime * 1);
 
-				log("Search list FETCHED successfully.");
+				log("[API GET] OK - Search List");
 			}
 		}
 		catch(err) {

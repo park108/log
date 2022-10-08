@@ -55,7 +55,8 @@ const LogList = (props) => {
 			setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 
 			setIsLoading(false);
-			log("Logs are FETCHED successfully.");
+
+			log("[API GET] OK - Logs");
 		}
 		catch(err) {
 			log(err, "ERROR");
@@ -84,7 +85,8 @@ const LogList = (props) => {
 			setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 
 			setIsLoading(false);
-			log("Next logs are FETCHED successfully.");
+			
+			log("[API GET] OK - Next Logs");
 		}
 		catch(err) {
 			log(err, "ERROR");

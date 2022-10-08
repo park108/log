@@ -37,7 +37,7 @@ const FileUpload = (props) => {
 			}
 			else {
 				uploadUrl = preSignedUrlData.body.UploadUrl;
-				log("Presigned URL FETCHED successfully -> " + uploadUrl);
+				log("[API GET] OK - Presigned URL: " + uploadUrl);
 				isSuccess = true;
 			}
 		}
