@@ -34,6 +34,7 @@ const LogItem = (props) => {
 			const status = await res.json();
 
 			if(200 !== status.statusCode) {
+				log("[API DELETE] FAILED - Log");
 				log(res, "ERROR");
 				return;
 			}
@@ -47,12 +48,13 @@ const LogItem = (props) => {
 				sessionStorage.setItem("logList", JSON.stringify(newList));
 			}
 
-			log("A log is DELETED successfully.");
+			log("[API DELETE] OK - Log");
 			setIsDeleting(false);
 
 			props.deleted();
 		}
 		catch(err) {
+			log("[API DELETE] FAILED - Log");
 			log(err, "ERROR");
 		}
 	}

@@ -43,6 +43,7 @@ const LogList = (props) => {
 			const fetchedData = await res.json();
 
 			if(hasValue(fetchedData.errorType)) {
+				log("[API GET] FAILED - Logs");
 				log(fetchedData, "ERROR");
 				setIsLoading(false);
 				return;
@@ -59,6 +60,7 @@ const LogList = (props) => {
 			log("[API GET] OK - Logs");
 		}
 		catch(err) {
+			log("[API GET] FAILED - Logs");
 			log(err, "ERROR");
 		}
 	}
@@ -73,6 +75,7 @@ const LogList = (props) => {
 			const fetchedData = await res.json();
 
 			if(hasValue(fetchedData.errorType)) {
+				log("[API GET] FAILED - Next Logs");
 				log(fetchedData, "ERROR");
 				setIsLoading(false);
 				return;
@@ -89,6 +92,7 @@ const LogList = (props) => {
 			log("[API GET] OK - Next Logs");
 		}
 		catch(err) {
+			log("[API GET] FAILED - Next Logs");
 			log(err, "ERROR");
 		}
 	}

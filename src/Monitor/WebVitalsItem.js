@@ -17,6 +17,7 @@ const WebVitalsItem = (props) => {
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {
+				log("[API GET] FAILED - Web Vital + " + name);
 				console.error(data);
 			}
 			else {
@@ -25,6 +26,7 @@ const WebVitalsItem = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Web Vital + " + name);
 			console.error(err);
 		}
 	}

@@ -30,6 +30,7 @@ const VisitorMon = (props) => {
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {
+				log("[API FAILED] OK - Visitor information");
 				console.error(data);
 			}
 			else {
@@ -146,6 +147,7 @@ const VisitorMon = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API FAILED] OK - Visitor information");
 			console.error(err);
 		}
 	

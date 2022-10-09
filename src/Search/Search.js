@@ -48,6 +48,7 @@ const Search = () => {
 			const retrieved = await res.json();
 
 			if(undefined !== retrieved.errorType) {
+				log("[API GET] FAILED - Search List");
 				console.error(retrieved);
 			}
 			else {
@@ -67,6 +68,7 @@ const Search = () => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Search List");
 			console.error(err);
 		}
 

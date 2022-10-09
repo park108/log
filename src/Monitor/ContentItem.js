@@ -39,6 +39,7 @@ const ContentItem = (props) => {
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {
+				log("[API GET] FAILED - Content API: " + path);
 				console.error(data);
 			}
 			else {

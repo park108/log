@@ -40,6 +40,7 @@ const ApiCallItem = (props) => {
 			const data = await res.json();
 
 			if(undefined !== data.errorType) {
+				log("[API GET] FAILED - API call stats: " + service);
 				console.error(data);
 			}
 			else {
@@ -78,6 +79,7 @@ const ApiCallItem = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - API call stats: " + service);
 			console.error(err);
 		}
 		

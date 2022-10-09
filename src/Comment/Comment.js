@@ -40,6 +40,7 @@ const Comment = (props) => {
 			setComments(newData.body.Items);
 		}
 		catch(err) {
+			log("[API GET] FAILED - Comments");
 			console.error(err);
 		}
 
@@ -55,14 +56,16 @@ const Comment = (props) => {
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
-				log("A comment is POSTED successfully.");
+				log("[API POST] OK - Comment");
 				fetchData(comment.logTimestamp);
 			}
 			else {
+				log("[API POST] FAILED - Comment");
 				console.error(res);
 			}
 		}
 		catch(err) {
+			log("[API POST] FAILED - Comment");
 			console.error(err);
 		}
 	}

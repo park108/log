@@ -41,16 +41,18 @@ const Log = (props) => {
 				sessionStorage.removeItem("logList");
 				sessionStorage.removeItem("logListLastTimestamp");
 
-				log("A log is POSTED uccessfully.");
+				log("[API POST] OK - Log");
 
 				navigate("/log/" + newTimestamp);
 			}
 			else {
+				log("[API POST] FAILED - Log");
 				log(res, "ERROR");
 				setIsPostSuccess(false);
 			}
 		}
 		catch(err) {
+			log("[API POST] FAILED - Log");
 			log(err, "ERROR");
 			setIsPostSuccess(false);
 		}
@@ -83,16 +85,18 @@ const Log = (props) => {
 				sessionStorage.removeItem("logList");
 				sessionStorage.removeItem("logListLastTimestamp");
 
-				log("A log is PUTTED successfully.");
+				log("[API PUT] OK - Log");
 				
 				navigate("/log/" + item.timestamp);
 			}
 			else {
+				log("[API PUT] FAILED - Log");
 				log(res, "ERROR");
 				setIsPostSuccess(false);
 			}
 		}
 		catch(err) {
+			log("[API PUT] FAILED - Log");
 			log(err, "ERROR");
 			setIsPostSuccess(false);
 		}

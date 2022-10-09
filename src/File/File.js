@@ -29,6 +29,7 @@ const File = (props) => {
 			const newData = await res.json();
 
 			if(undefined !== newData.errorType) {
+				log("[API GET] FAILED - Files");
 				console.error(newData);
 			}
 			else {
@@ -43,6 +44,7 @@ const File = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Files");
 			console.error(err);
 		}
 
@@ -59,6 +61,7 @@ const File = (props) => {
 			const nextData = await res.json();
 
 			if(undefined !== nextData.errorType) {
+				log("[API GET] FAILED - Next Files");
 				console.error(nextData);
 			}
 			else {
@@ -73,6 +76,7 @@ const File = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Next Files");
 			console.error(err);
 		}
 

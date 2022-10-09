@@ -32,6 +32,7 @@ const FileUpload = (props) => {
 			preSignedUrlData = await res.json();
 
 			if(undefined !== preSignedUrlData.errorType) {
+				log("[API GET] FAILED - Presigned URL");
 				console.error(preSignedUrlData);
 				if(isLast) setIsUploading("FAILED");
 			}
@@ -42,6 +43,7 @@ const FileUpload = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Presigned URL");
 			console.error(err);
 			if(isLast) setIsUploading("FAILED");
 		}
@@ -54,15 +56,17 @@ const FileUpload = (props) => {
 				const res = await putFile(uploadUrl, item.type, item);
 
 				if(200 === res.status) {
-					log("File [" + name + "] PUTTED successfully.");
+					log("[API PUT] OK - File: " + name);
 					if(isLast) setIsUploading("COMPLETE");
 				}
 				else {
+					log("[API PUT] FAILED - File: " + name);
 					console.error(res);
 					if(isLast) setIsUploading("FAILED");
 				}
 			}
 			catch(err) {
+				log("[API PUT] FAILED - File: " + name);
 				console.error(err);
 				if(isLast) setIsUploading("FAILED");
 			}

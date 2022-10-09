@@ -33,6 +33,7 @@ const LogSingle = (props) => {
 			setIsLoading(false);
 			
 			if(hasValue(fetchedData.errorType)) {
+				log("[API GET] FAILED - Log");
 				console.error(fetchedData);
 				log("No log found.");
 				setHasItem("NO");
@@ -71,6 +72,7 @@ const LogSingle = (props) => {
 			log("[API GET] OK - Log");
 		}
 		catch(err) {
+			log("[API GET] FAILED - Log");
 			log(err, "ERROR");
 			setHtmlTitle(PAGE_NOT_FOUND);
 			setMetaDescription(PAGE_NOT_FOUND);

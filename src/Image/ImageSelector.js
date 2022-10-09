@@ -27,6 +27,7 @@ const ImageSelector = (props) => {
 			const retrieved = await res.json();
 
 			if(undefined !== retrieved.errorType) {
+				log("[API GET] FAILED - Images");
 				console.error(retrieved);
 			}
 			else {
@@ -40,6 +41,7 @@ const ImageSelector = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Images");
 			console.error(err);
 		}
 
@@ -56,6 +58,7 @@ const ImageSelector = (props) => {
 			const nextData = await res.json();
 
 			if(undefined !== nextData.errorType) {
+				log("[API GET] FAILED - Next Images");
 				console.error(nextData);
 			}
 			else {
@@ -69,6 +72,7 @@ const ImageSelector = (props) => {
 			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Next Images");
 			console.error(err);
 		}
 
