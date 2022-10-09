@@ -33,28 +33,29 @@ const LogItem = (props) => {
 			const res = await deleteLog(author, timestamp);
 			const status = await res.json();
 
-			if(200 !== status.statusCode) {
-				log("[API DELETE] FAILED - Log");
+			if(200 === status.statusCode) {
+				log("[API DELETE] OK - Log", "SUCCESS");
+
+				// Delete item in session list
+				let currentList = sessionStorage.getItem("logList");
+	
+				if(hasValue(currentList)) {
+					currentList = JSON.parse(currentList);
+					const newList = currentList.filter(item => {return item.timestamp !== timestamp});
+					sessionStorage.setItem("logList", JSON.stringify(newList));
+				}
+	
+				setIsDeleting(false);
+	
+				props.deleted();
+			}
+			else {
+				log("[API DELETE] FAILED - Log", "ERROR");
 				log(res, "ERROR");
-				return;
 			}
-
-			// Delete item in session list
-			let currentList = sessionStorage.getItem("logList");
-
-			if(hasValue(currentList)) {
-				currentList = JSON.parse(currentList);
-				const newList = currentList.filter(item => {return item.timestamp !== timestamp});
-				sessionStorage.setItem("logList", JSON.stringify(newList));
-			}
-
-			log("[API DELETE] OK - Log");
-			setIsDeleting(false);
-
-			props.deleted();
 		}
 		catch(err) {
-			log("[API DELETE] FAILED - Log");
+			log("[API DELETE] FAILED - Log", "ERROR");
 			log(err, "ERROR");
 		}
 	}
@@ -181,23 +182,40 @@ const LogItem = (props) => {
 				);
 			}
 
-			if(undefined !== item) {
+			if(hasValue(item)) {
+
+				const versionHistoryId = "version-history";
 
 				separator = <span className="span span--logitem-separator">|</span>;
 
-				version = (
-					<span
-						role="button"
-						data-testid="versions-button"
-						className="span span--logitem-version"
-						onMouseOver={(event) => hoverPopup(event, "version-history")}
-						onMouseMove={(event) => hoverPopup(event, "version-history")}
-						onMouseOut={(event) => hoverPopup(event, "version-history")}
-					>
-						{"v." + item.logs.length}
-						<VersionHistory />
-					</span>
-				);
+				if(1 === item.logs.length) {
+					version = (
+						<span
+							role="button"
+							data-testid="versions-button"
+							className="span span--logitem-version"
+						>
+							{"v." + item.logs.length}
+							<VersionHistory />
+						</span>
+					);
+
+				}
+				else {
+					version = (
+						<span
+							role="button"
+							data-testid="versions-button"
+							className="span span--logitem-version"
+							onMouseOver={(event) => hoverPopup(event, versionHistoryId)}
+							onMouseMove={(event) => hoverPopup(event, versionHistoryId)}
+							onMouseOut={(event) => hoverPopup(event, versionHistoryId)}
+						>
+							{"v." + item.logs.length}
+							<VersionHistory />
+						</span>
+					);
+				}
 
 				editButton = (
 					<Link to="/log/write" state={{from: item}}>

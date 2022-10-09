@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
-import { log, getFormattedDate, getFormattedTime, getWeekday, hoverPopup } from "../common/common";
+import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday, hoverPopup } from "../common/common";
 import { getVisitors } from "./api";
 
 const VisitorMon = (props) => {
@@ -25,16 +25,11 @@ const VisitorMon = (props) => {
 		const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
 
 		try {
-
 			const res = await getVisitors(fromTimestamp, toTimestamp);
 			const data = await res.json();
 
-			if(undefined !== data.errorType) {
-				log("[API FAILED] OK - Visitor information");
-				console.error(data);
-			}
-			else {
-				log("[API GET] OK - Visitor information");
+			if(!hasValue(data.errorType)) {
+				log("[API GET] OK - Visitor information", "SUCCESS");
 			
 				setTotalCount(data.body.totalCount);
 
@@ -145,9 +140,13 @@ const VisitorMon = (props) => {
 				setOs(osList);
 				setEngines(engineList);
 			}
+			else {
+				log("[API GET] FAILED - Visitor information", "ERROR");
+				console.error(data);
+			}
 		}
 		catch(err) {
-			log("[API FAILED] OK - Visitor information");
+			log("[API GET] FAILED - Visitor information", "ERROR");
 			console.error(err);
 		}
 	

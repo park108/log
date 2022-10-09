@@ -42,7 +42,7 @@ const Writer = (props) => {
 
 	// Set contents data
 	useEffect(() => {
-		if(undefined !== data) {
+		if(hasValue(data)) {
 			setContents(data.logs[0].contents);
 			if(hasValue(data.temporary)) {
 				setIsTemporary(data.temporary);

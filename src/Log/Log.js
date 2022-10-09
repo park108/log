@@ -34,6 +34,8 @@ const Log = (props) => {
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
+				log("[API POST] OK - Log", "SUCCESS");
+
 				setIsPostSuccess(true);
 				setToasterMessage("The log posted.");
 				setIsShowToaster(1);
@@ -41,18 +43,16 @@ const Log = (props) => {
 				sessionStorage.removeItem("logList");
 				sessionStorage.removeItem("logListLastTimestamp");
 
-				log("[API POST] OK - Log");
-
 				navigate("/log/" + newTimestamp);
 			}
 			else {
-				log("[API POST] FAILED - Log");
+				log("[API POST] FAILED - Log", "ERROR");
 				log(res, "ERROR");
 				setIsPostSuccess(false);
 			}
 		}
 		catch(err) {
-			log("[API POST] FAILED - Log");
+			log("[API POST] FAILED - Log", "ERROR");
 			log(err, "ERROR");
 			setIsPostSuccess(false);
 		}
@@ -78,25 +78,25 @@ const Log = (props) => {
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
+				log("[API PUT] OK - Log", "SUCCESS");
+
 				setIsPostSuccess(true);			
 				setToasterMessage("The log changed.");
 				setIsShowToaster(1);
 
 				sessionStorage.removeItem("logList");
 				sessionStorage.removeItem("logListLastTimestamp");
-
-				log("[API PUT] OK - Log");
 				
 				navigate("/log/" + item.timestamp);
 			}
 			else {
-				log("[API PUT] FAILED - Log");
+				log("[API PUT] FAILED - Log", "ERROR");
 				log(res, "ERROR");
 				setIsPostSuccess(false);
 			}
 		}
 		catch(err) {
-			log("[API PUT] FAILED - Log");
+			log("[API PUT] FAILED - Log", "ERROR");
 			log(err, "ERROR");
 			setIsPostSuccess(false);
 		}

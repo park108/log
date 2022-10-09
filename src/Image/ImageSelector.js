@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { log } from '../common/common';
+import { log, hasValue } from '../common/common';
 import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
@@ -26,22 +26,22 @@ const ImageSelector = (props) => {
 			const res = await getImages();
 			const retrieved = await res.json();
 
-			if(undefined !== retrieved.errorType) {
-				log("[API GET] FAILED - Images");
-				console.error(retrieved);
-			}
-			else {
-				log("[API GET] OK - Images");
+			if(!hasValue(retrieved.errorType)) {
+				log("[API GET] OK - Images", "SUCCESS");
 				
 				const newImages = retrieved.body.Items;
 				const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 
-				setImages(undefined === newImages ? [] : newImages);
-				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
+				setImages(hasValue(newImages) ? newImages : []);
+				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+			}
+			else {
+				log("[API GET] FAILED - Images", "ERROR");
+				console.error(retrieved);
 			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Images");
+			log("[API GET] FAILED - Images", "ERROR");
 			console.error(err);
 		}
 
@@ -57,22 +57,22 @@ const ImageSelector = (props) => {
 			const res = await getNextImages(timestamp);
 			const nextData = await res.json();
 
-			if(undefined !== nextData.errorType) {
-				log("[API GET] FAILED - Next Images");
-				console.error(nextData);
-			}
-			else {
-				log("[API GET] OK - Next Images");
+			if(!hasValue(nextData.errorType)) {
+				log("[API GET] OK - Next Images", "SUCCESS");
 
 				const newImages = images.concat(nextData.body.Items);
 				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	
-				setImages(undefined === nextData.body.Items ? [] : newImages);
-				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
+				setImages(hasValue(nextData.body.Items) ? newImages : []);
+				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+			}
+			else {
+				log("[API GET] FAILED - Next Images", "ERROR");
+				console.error(nextData);
 			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Next Images");
+			log("[API GET] FAILED - Next Images", "ERROR");
 			console.error(err);
 		}
 
@@ -141,7 +141,7 @@ const ImageSelector = (props) => {
 			{
 				// See More button
 				isLoading ? undefined
-					: undefined === lastTimestamp ? undefined
+					: !hasValue(lastTimestamp) ? undefined
 					: (
 						<div
 							role="button"

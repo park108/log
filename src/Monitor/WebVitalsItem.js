@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { log, hoverPopup } from '../common/common';
+import { log, hasValue, hoverPopup } from '../common/common';
 import { getWebVitals } from './api';
 import PropTypes from 'prop-types';
 
@@ -16,17 +16,17 @@ const WebVitalsItem = (props) => {
 			const res = await getWebVitals(name);
 			const data = await res.json();
 
-			if(undefined !== data.errorType) {
-				log("[API GET] FAILED - Web Vital + " + name);
-				console.error(data);
+			if(!hasValue(data.errorType)) {
+				log("[API GET] OK - Web Vital + " + name + ": " + data.body.Count, "SUCCESS");
+				setData(data.body.Items);
 			}
 			else {
-				log("[API GET] OK - Web Vital + " + name + ": " + data.body.Count);
-				setData(data.body.Items);
+				log("[API GET] FAILED - Web Vital + " + name, "ERROR");
+				console.error(data);
 			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Web Vital + " + name);
+			log("[API GET] FAILED - Web Vital + " + name, "ERROR");
 			console.error(err);
 		}
 	}

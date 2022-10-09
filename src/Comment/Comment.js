@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import PropTypes from 'prop-types';
-import { log, isAdmin } from '../common/common';
+import { log, hasValue, isAdmin } from '../common/common';
 import { getComments, postComment } from './api';
 
 import './Comment.css';
@@ -21,26 +21,31 @@ const Comment = (props) => {
 
 	const fetchData = async(timestamp) => {
 
-		const admin = isAdmin();
+		setIsLoading(true);
 
 		// Call GET API
 		try {
-			setIsLoading(true);
-			const res = await getComments(timestamp, admin);
+			const res = await getComments(timestamp, isAdmin());
 			const newData = await res.json();
 
-			// Sort by sortKey
-			newData.body.Items.sort((a, b) => {
-				return (a.sortKey < b.sortKey) ? -1 : 1
-			});
+			if(!hasValue(newData.errorType)) {
+				log("[API GET] OK - Comments", "SUCCESS");
 
-			log("[API GET] OK - Comments");
-
-			// Set comment list
-			setComments(newData.body.Items);
+				// Sort by sortKey
+				newData.body.Items.sort((a, b) => {
+					return (a.sortKey < b.sortKey) ? -1 : 1
+				});
+				
+				// Set comment list
+				setComments(newData.body.Items);
+			}
+			else {
+				log("[API GET] FAILED - Comments", "ERROR");
+				console.error(newData);
+			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Comments");
+			log("[API GET] FAILED - Comments", "ERROR");
 			console.error(err);
 		}
 
@@ -50,23 +55,26 @@ const Comment = (props) => {
 
 	const newComment = async(comment) => {
 
+		setIsPosting(true);
+
 		try {
-			setIsPosting(true);
 			const res = await postComment(comment);
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
-				log("[API POST] OK - Comment");
+				log("[API POST] OK - Comment", "SUCCESS");
 				fetchData(comment.logTimestamp);
 			}
 			else {
-				log("[API POST] FAILED - Comment");
+				log("[API POST] FAILED - Comment", "ERROR");
 				console.error(res);
+				setIsPosting(false);
 			}
 		}
 		catch(err) {
-			log("[API POST] FAILED - Comment");
+			log("[API POST] FAILED - Comment", "ERROR");
 			console.error(err);
+			setIsPosting(false);
 		}
 	}
 

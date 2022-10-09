@@ -42,25 +42,25 @@ const LogList = (props) => {
 			const res = await getLogs();
 			const fetchedData = await res.json();
 
-			if(hasValue(fetchedData.errorType)) {
-				log("[API GET] FAILED - Logs");
+			if(!hasValue(fetchedData.errorType)) {
+				log("[API GET] OK - Logs", "SUCCESS");
+
+				const newLogs = fetchedData.body.Items;
+				const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
+	
+				setLogs(newLogs);
+				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+	
+				setIsLoading(false);
+			}
+			else {
+				log("[API GET] FAILED - Logs", "ERROR");
 				log(fetchedData, "ERROR");
 				setIsLoading(false);
-				return;
 			}
-
-			const newLogs = fetchedData.body.Items;
-			const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
-
-			setLogs(newLogs);
-			setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
-
-			setIsLoading(false);
-
-			log("[API GET] OK - Logs");
 		}
 		catch(err) {
-			log("[API GET] FAILED - Logs");
+			log("[API GET] FAILED - Logs", "ERROR");
 			log(err, "ERROR");
 		}
 	}
@@ -69,30 +69,29 @@ const LogList = (props) => {
 	const fetchMore = async (lastTimestamp) => {
 
 		try {
-			// Call API
 			setIsLoading(true);
 			const res = await getNextLogs(lastTimestamp);
 			const fetchedData = await res.json();
 
-			if(hasValue(fetchedData.errorType)) {
-				log("[API GET] FAILED - Next Logs");
+			if(!hasValue(fetchedData.errorType)) {
+				log("[API GET] OK - Next Logs", "SUCCESS");
+
+				const newLogs = logs.concat(fetchedData.body.Items);
+				const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
+	
+				setLogs(newLogs);
+				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+	
+				setIsLoading(false);
+			}
+			else {
+				log("[API GET] FAILED - Next Logs", "ERROR");
 				log(fetchedData, "ERROR");
 				setIsLoading(false);
-				return;
 			}
-
-			const newLogs = logs.concat(fetchedData.body.Items);
-			const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
-
-			setLogs(newLogs);
-			setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
-
-			setIsLoading(false);
-			
-			log("[API GET] OK - Next Logs");
 		}
 		catch(err) {
-			log("[API GET] FAILED - Next Logs");
+			log("[API GET] FAILED - Next Logs", "ERROR");
 			log(err, "ERROR");
 		}
 	}

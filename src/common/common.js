@@ -29,6 +29,7 @@ export const log = (logText, type = "INFO") => {
 		switch(type) {
 			case "INFO": console.log(logText); break;
 			case "ERROR": console.error(logText); break;
+			case "SUCCESS": console.log("%c" + logText, "color: green"); break;
 			default: console.log(logText);
 		}
 	}
@@ -339,7 +340,7 @@ export const userAgentParser = () => {
 }
 
 export const hoverPopup = (e, popupElementId) => {
-
+	
 	const popup = document.getElementById(popupElementId);
 	const currentDisplay = popup.style.display;
 

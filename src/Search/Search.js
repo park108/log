@@ -47,11 +47,9 @@ const Search = () => {
 			const res = await getSearchList(searchString);
 			const retrieved = await res.json();
 
-			if(undefined !== retrieved.errorType) {
-				log("[API GET] FAILED - Search List");
-				console.error(retrieved);
-			}
-			else {
+			if(!hasValue(retrieved.errorType)) {
+				log("[API GET] OK - Search List", "SUCCESS");
+
 				const result = retrieved.body;
 
 				setSearchedList(result.Items);
@@ -63,12 +61,14 @@ const Search = () => {
 				sessionStorage.setItem("searchTotalCount", result.TotalCount * 1);
 				sessionStorage.setItem("searchQueryString", result.QueryString);
 				sessionStorage.setItem("searchProcessingTime", result.ProcessingTime * 1);
-
-				log("[API GET] OK - Search List");
+			}
+			else {
+				log("[API GET] FAILED - Search List", "ERROR");
+				console.error(retrieved);
 			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Search List");
+			log("[API GET] FAILED - Search List", "ERROR");
 			console.error(err);
 		}
 

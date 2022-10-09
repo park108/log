@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
-import { log } from '../common/common';
+import { log, hasValue } from '../common/common';
 import { getPreSignedUrl, putFile } from './api';
 
 const FileUpload = (props) => {
@@ -31,19 +31,19 @@ const FileUpload = (props) => {
 			const res = await getPreSignedUrl(name, type);
 			preSignedUrlData = await res.json();
 
-			if(undefined !== preSignedUrlData.errorType) {
-				log("[API GET] FAILED - Presigned URL");
+			if(!hasValue(preSignedUrlData.errorType)) {
+				log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
+				uploadUrl = preSignedUrlData.body.UploadUrl;
+				isSuccess = true;
+			}
+			else {
+				log("[API GET] FAILED - Presigned URL", "ERROR");
 				console.error(preSignedUrlData);
 				if(isLast) setIsUploading("FAILED");
 			}
-			else {
-				uploadUrl = preSignedUrlData.body.UploadUrl;
-				log("[API GET] OK - Presigned URL: " + uploadUrl);
-				isSuccess = true;
-			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Presigned URL");
+			log("[API GET] FAILED - Presigned URL", "ERROR");
 			console.error(err);
 			if(isLast) setIsUploading("FAILED");
 		}
@@ -56,17 +56,17 @@ const FileUpload = (props) => {
 				const res = await putFile(uploadUrl, item.type, item);
 
 				if(200 === res.status) {
-					log("[API PUT] OK - File: " + name);
+					log("[API PUT] OK - File: " + name, "SUCCESS");
 					if(isLast) setIsUploading("COMPLETE");
 				}
 				else {
-					log("[API PUT] FAILED - File: " + name);
+					log("[API PUT] FAILED - File: " + name, "ERROR");
 					console.error(res);
 					if(isLast) setIsUploading("FAILED");
 				}
 			}
 			catch(err) {
-				log("[API PUT] FAILED - File: " + name);
+				log("[API PUT] FAILED - File: " + name, "ERROR");
 				console.error(err);
 				if(isLast) setIsUploading("FAILED");
 			}

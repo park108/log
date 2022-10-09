@@ -26,53 +26,52 @@ const LogSingle = (props) => {
 	const fetchData = async (timestamp) => {
 
 		try {
-			// Call API
 			setIsLoading(true);
 			const res = await getLog(timestamp);
 			const fetchedData = await res.json();
 			setIsLoading(false);
 			
-			if(hasValue(fetchedData.errorType)) {
-				log("[API GET] FAILED - Log");
+			if(!hasValue(fetchedData.errorType)) {
+				log("[API GET] OK - Log", "SUCCESS");
+
+				if(0 === fetchedData.body.Count) {
+					setHasItem("NO");
+					setHtmlTitle(PAGE_NOT_FOUND);
+					setMetaDescription(PAGE_NOT_FOUND);
+				}
+				else {
+					const latestData = fetchedData.body.Items[0];
+					setData(latestData);
+					setHasItem("YES");
+					
+					const contents = latestData.logs[0].contents;
+					const hasTitle = contents.indexOf("# ") === 0;
+					const contentsStartIndex = hasTitle ? contents.indexOf("\n") : 0;
+					const logTitle = hasTitle
+						? contents.substr(2, contentsStartIndex - 1)
+						: "log of " + getFormattedDate(logTimestamp * 1, "date mon year");
+					setHtmlTitle(logTitle);
+	
+					const SUMMARY_LENGTH = 100;
+					const contentsWithoutTitle = contents.substr(contentsStartIndex);
+					const parsedContents = parser.markdownToHtml(contentsWithoutTitle).replace(/<[^>]*>?/gm, '');
+					const summary = parsedContents.substr(0, SUMMARY_LENGTH);
+					const contentsLength = parsedContents.length;
+					const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
+					setMetaDescription(summary + ellipsis);
+				}
+			}
+			else {
+				log("[API GET] FAILED - Log", "ERROR");
 				console.error(fetchedData);
 				log("No log found.");
 				setHasItem("NO");
 				setHtmlTitle(PAGE_NOT_FOUND);
 				setMetaDescription(PAGE_NOT_FOUND);
-				return;
 			}
-
-			if(0 === fetchedData.body.Count) {
-				setHasItem("NO");
-				setHtmlTitle(PAGE_NOT_FOUND);
-				setMetaDescription(PAGE_NOT_FOUND);
-			}
-			else {
-				const latestData = fetchedData.body.Items[0];
-				setData(latestData);
-				setHasItem("YES");
-				
-				const contents = latestData.logs[0].contents;
-				const hasTitle = contents.indexOf("# ") === 0;
-				const contentsStartIndex = hasTitle ? contents.indexOf("\n") : 0;
-				const logTitle = hasTitle
-					? contents.substr(2, contentsStartIndex - 1)
-					: "log of " + getFormattedDate(logTimestamp * 1, "date mon year");
-				setHtmlTitle(logTitle);
-
-				const SUMMARY_LENGTH = 100;
-				const contentsWithoutTitle = contents.substr(contentsStartIndex);
-				const parsedContents = parser.markdownToHtml(contentsWithoutTitle).replace(/<[^>]*>?/gm, '');
-				const summary = parsedContents.substr(0, SUMMARY_LENGTH);
-				const contentsLength = parsedContents.length;
-				const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
-				setMetaDescription(summary + ellipsis);
-			}
-
-			log("[API GET] OK - Log");
 		}
 		catch(err) {
-			log("[API GET] FAILED - Log");
+			log("[API GET] FAILED - Log", "ERROR");
 			log(err, "ERROR");
 			setHtmlTitle(PAGE_NOT_FOUND);
 			setMetaDescription(PAGE_NOT_FOUND);

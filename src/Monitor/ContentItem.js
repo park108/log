@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
-import { log, getFormattedDate, getFormattedSize } from '../common/common';
+import { log, hasValue, getFormattedDate, getFormattedSize } from '../common/common';
 import { getContentItemCount } from './api';
 
 const ContentItem = (props) => {
@@ -34,16 +34,11 @@ const ContentItem = (props) => {
 		];
 
 		try {
-
 			const res = await getContentItemCount(path, from, to);
 			const data = await res.json();
 
-			if(undefined !== data.errorType) {
-				log("[API GET] FAILED - Content API: " + path);
-				console.error(data);
-			}
-			else {
-				log("[API GET] OK - Content API: " + path);
+			if(!hasValue(data.errorType)) {
+				log("[API GET] OK - Content API: " + path, "SUCCESS");
 
 				setTotalCount(data.body.Count);
 
@@ -64,7 +59,7 @@ const ContentItem = (props) => {
 					for(let item of periodData) {
 						if(timeline[i] <= item.timestamp && item.timestamp < timeline[i+1]) {
 							++countList[i].count;
-							if(undefined !== item.size) {
+							if(hasValue(item.size)) {
 								countList[i].value += item.size;
 							}
 							else {
@@ -89,8 +84,13 @@ const ContentItem = (props) => {
 
 				setCounts(countList);
 			}
+			else {
+				log("[API GET] FAILED - Content API: " + path, "ERROR");
+				console.error(data);
+			}
 		}
 		catch(err) {
+			log("[API GET] FAILED - Content API: " + path, "ERROR");
 			console.error(err);
 		}
 		

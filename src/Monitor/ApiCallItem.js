@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
-import { log, getFormattedDate, getFormattedTime, getWeekday, hoverPopup } from '../common/common';
+import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday, hoverPopup } from '../common/common';
 import { getApiCallStats } from './api';
 
 const getSuccessRateIndex = (rate) => {
@@ -35,18 +35,13 @@ const ApiCallItem = (props) => {
 		const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
 
 		try {
-
 			const res = await getApiCallStats(service, fromTimestamp, toTimestamp);
 			const data = await res.json();
 
-			if(undefined !== data.errorType) {
-				log("[API GET] FAILED - API call stats: " + service);
-				console.error(data);
-			}
-			else {
-				log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms");
+			if(!hasValue(data.errorType)) {
+				log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms", "SUCCESS");
 				
-				if(undefined === data.body.totalCount) {
+				if(!hasValue(data.body.totalCount)) {
 					throw "totalCount is undefined";
 				}
 				setTotalCount(data.body.totalCount);
@@ -77,9 +72,13 @@ const ApiCallItem = (props) => {
 				setSuccessCount(successCount);
 				setCountList(statList);
 			}
+			else {
+				log("[API GET] FAILED - API call stats: " + service, "ERROR");
+				console.error(data);
+			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - API call stats: " + service);
+			log("[API GET] FAILED - API call stats: " + service, "ERROR");
 			console.error(err);
 		}
 		

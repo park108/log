@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Navigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getFiles, getNextFiles } from './api';
-import { log, isAdmin, isMobile, setHtmlTitle } from '../common/common';
+import { log, hasValue, isAdmin, isMobile, setHtmlTitle } from '../common/common';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
@@ -28,23 +28,22 @@ const File = (props) => {
 			const res = await getFiles();
 			const newData = await res.json();
 
-			if(undefined !== newData.errorType) {
-				log("[API GET] FAILED - Files");
-				console.error(newData);
-			}
-			else {
-
-				log("[API GET] OK - Files");
+			if(!hasValue(newData.errorType)) {
+				log("[API GET] OK - Files", "SUCCESS");
 
 				const newFiles = newData.body.Items;
 				const lastEvaluatedKey = newData.body.LastEvaluatedKey;
 
-				setFiles(undefined === newFiles ? [] : newFiles);
-				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
+				setFiles(hasValue(newFiles) ? newFiles : []);
+				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+			}
+			else {
+				log("[API GET] FAILED - Files", "ERROR");
+				console.error(newData);
 			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Files");
+			log("[API GET] FAILED - Files", "ERROR");
 			console.error(err);
 		}
 
@@ -60,23 +59,22 @@ const File = (props) => {
 			const res = await getNextFiles(timestamp);
 			const nextData = await res.json();
 
-			if(undefined !== nextData.errorType) {
-				log("[API GET] FAILED - Next Files");
-				console.error(nextData);
-			}
-			else {
-
-				log("[API GET] OK - Next Files");
+			if(!hasValue(nextData.errorType)) {
+				log("[API GET] OK - Next Files", "SUCCESS");
 				
 				const newFiles = files.concat(nextData.body.Items);
 				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 	
-				setFiles(undefined === nextData.body.Items ? [] : newFiles);
-				setLastTimestamp(undefined === lastEvaluatedKey ? undefined : lastEvaluatedKey.timestamp);
+				setFiles(hasValue(nextData.body.Items) ? newFiles : []);
+				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+			}
+			else {
+				log("[API GET] FAILED - Next Files", "ERROR");
+				console.error(nextData);
 			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Next Files");
+			log("[API GET] FAILED - Next Files", "ERROR");
 			console.error(err);
 		}
 
@@ -109,7 +107,7 @@ const File = (props) => {
 		: <FileDrop callbackAfterUpload={fetchData} />;
 
 	// Make See More button
-	const seeMoreButton = (lastTimestamp === undefined)
+	const seeMoreButton = (!hasValue(lastTimestamp))
 		? ""
 		: (
 			<button

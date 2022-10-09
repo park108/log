@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from 'prop-types';
-import { isAdmin } from '../common/common';
+import { hasValue, isAdmin } from '../common/common';
 
 import './Comment.css';
 
@@ -96,7 +96,7 @@ const CommentForm = (props) => {
 					<textarea
 						ref={messageRef}
 						className="textarea textarea--comment-form"
-						placeholder={undefined === commentTimestamp
+						placeholder={!hasValue(commentTimestamp)
 							? "Write your comment"
 							: "Write your Reply"
 						}

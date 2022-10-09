@@ -25,16 +25,16 @@ const FileItem = (props) => {
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
-				log("[API DELETE] OK - File: " + props.fileName);
+				log("[API DELETE] OK - File: " + props.fileName, "SUCCESS");
 				setTimeout(refreshFiles, refreshTimeout);
 			}
 			else {
-				log("[API DELETE] FAILED - File: " + props.fileName);
+				log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
 				console.error(res);
 			}
 		}
 		catch(err) {
-			log("[API DELETE] FAILED - File: " + props.fileName);
+			log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
 			console.error(err);
 		}
 	}

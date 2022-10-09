@@ -1,6 +1,6 @@
 import React, { useState, lazy } from "react";
 import PropTypes from 'prop-types';
-import { getFormattedDate, getFormattedTime, hoverPopup, isAdmin } from '../common/common';
+import { hasValue, getFormattedDate, getFormattedTime, hoverPopup, isAdmin } from '../common/common';
 
 const CommentForm = lazy(() => import('./CommentForm'));
 
@@ -26,7 +26,7 @@ const CommentItem = (props) => {
 		setIsShowReplyForm(false);
 	}
 
-	const isReply = (undefined === commentTimestamp) ? false : true;
+	const isReply = hasValue(commentTimestamp);
 
 	let wrapperClassName = "div div--comment-item";
 	wrapperClassName += (isReply) ? " div--comment-reply" : "";
