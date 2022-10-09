@@ -15,7 +15,6 @@ const CommentForm = (props) => {
 	const commentTimestamp = props.commentTimestamp;
 
 	useEffect(() => {
-
 		if(isAdmin()) {
 			setUserName("Jongkil Park");
 		}
@@ -38,9 +37,9 @@ const CommentForm = (props) => {
 	const userNameRef = useRef(null);
 	const messageRef = useRef(null);
 
-	const postComment = (event) => {
+	const postComment = (e) => {
 
-		event.preventDefault();
+		e.preventDefault();
 
 		if(0 === userName.length) {
 			alert("Please input your name.");
@@ -69,47 +68,40 @@ const CommentForm = (props) => {
 	const nameDisabled = isAdmin()||props.isPosting ? "disabled" : "";
 
 	return (
-		<div className="div div--comment-form">
-			<form onSubmit={postComment}>
-				<div className="div div--comment-input">
-					<div>
-						<input 
-							ref={userNameRef}
-							type="text"
-							className="input input--comment-name"
-							placeholder="Type your name"
-							onChange={changeName}
-							value={userName}
-							disabled={nameDisabled}
-							autoFocus
-						/>
-						<input
-							type="checkbox"
-							id="hidden"
-							className="input input--comment-hidden"
-							onChange={changeIsHidden}
-						/>
-						<label htmlFor="hidden" className="label label--comment-hidden">
-							🥷 Only show your message to admin
-						</label>
-					</div>
-					<textarea
-						ref={messageRef}
-						className="textarea textarea--comment-form"
-						placeholder={!hasValue(commentTimestamp)
-							? "Write your comment"
-							: "Write your Reply"
-						}
-						value={message}
-						disabled={messageDisabled}
-						onChange={changeComment}
-					/>
-					<button type="submit" className="button button--comment-submit">
-						Submit
-					</button>
-				</div>
-			</form>
-		</div>
+		<form onSubmit={postComment} className="form form--comment-input">
+			<input 
+				ref={userNameRef}
+				type="text"
+				className="input input--comment-name"
+				placeholder="Type your name"
+				onChange={changeName}
+				value={userName}
+				disabled={nameDisabled}
+				autoFocus
+			/>
+			<textarea
+				ref={messageRef}
+				className="textarea textarea--comment-form"
+				placeholder={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
+				value={message}
+				disabled={messageDisabled}
+				onChange={changeComment}
+			/>
+			<div className="div div--comment-inputhidden">
+				<input
+					type="checkbox"
+					id="hidden"
+					className="input input--comment-hidden"
+					onChange={changeIsHidden}
+				/>
+				<label htmlFor="hidden" className="label label--comment-hidden">
+					🥷 Only show your message to admin
+				</label>
+			</div>
+			<button type="submit" className="button button--comment-submit">
+				{hasValue(commentTimestamp) ? "Send Reply" : "Submit Comment"}
+			</button>
+		</form>
 	);
 }
 

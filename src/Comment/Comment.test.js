@@ -48,7 +48,7 @@ describe('render comment list and post comment correctly', () => {
 	});
 
 	it('test name not exists', async () => {
-		const submitButton = await screen.findByText("Submit");
+		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 	});
@@ -58,7 +58,7 @@ describe('render comment list and post comment correctly', () => {
 		expect(nameInput).toBeDefined();
 		userEvent.type(nameInput, 'Test name');
 
-		const submitButton = await screen.findByText("Submit");
+		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 	});
@@ -78,7 +78,7 @@ describe('render comment list and post comment correctly', () => {
 			}),
 		});
 
-		const submitButton = await screen.findByText("Submit");
+		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 	});
@@ -98,7 +98,7 @@ describe('render comment list and post comment correctly', () => {
 			}),
 		});
 
-		const submitButton = await screen.findByText("Submit");
+		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 	});
@@ -114,7 +114,7 @@ describe('render comment list and post comment correctly', () => {
 
 		global.fetch = () => Promise.reject(errorMessage);
 		
-		const submitButton = await screen.findByText("Submit");
+		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 	});
@@ -196,7 +196,7 @@ describe('render comment list and post comment correctly if admin logged in', ()
 			}),
 		});
 
-		const submitButton = await screen.findByText("Submit");
+		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 	});
@@ -219,7 +219,7 @@ describe('render comment list and post comment correctly if admin logged in', ()
 			}),
 		});
 
-		const submitButton = await screen.findByText("Submit");
+		const submitButton = await screen.findByText("Send Reply");
 		expect(submitButton).toBeDefined();
 		userEvent.click(submitButton);
 
