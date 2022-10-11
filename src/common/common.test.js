@@ -458,3 +458,10 @@ describe('User Agent parsing test', () => {
 		expect(result3.browser).toBe("Internet Explorer");
 	});
 });
+
+it('copy no string into clipboard not mobile', () => {
+
+	document.execCommand = jest.fn();
+	common.copyToClipboard(); // Set undefined value to copy
+	common.copyToClipboard("Test"); // Set value to copy
+});

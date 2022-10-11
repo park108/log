@@ -361,3 +361,19 @@ export const hoverPopup = (e, popupElementId) => {
 		}
 	}
 }
+
+
+export const copyToClipboard = (valueToClipboard = "") => {
+
+	console.log(valueToClipboard)
+
+	const tempElem = document.createElement('textarea');
+	tempElem.value = valueToClipboard;  
+	document.body.appendChild(tempElem);
+
+	tempElem.select();
+	document.execCommand("copy");
+	document.body.removeChild(tempElem);
+
+	log("Copy to Clipboard: " + valueToClipboard);
+}

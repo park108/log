@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
-import { log, getFormattedDate, getFormattedTime, confirm } from '../common/common';
+import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
 import { deleteFile } from './api';
 
 const FileItem = (props) => {
@@ -47,18 +47,8 @@ const FileItem = (props) => {
 	}, [isDeleting]);
 
 	// Copy file URL into clipboard
-	const copyToClipboard = () => {
-
-		let tempElem = document.createElement('textarea');
-		tempElem.value = props.url;  
-		document.body.appendChild(tempElem);
-
-		tempElem.select();
-		document.execCommand("copy");
-		document.body.removeChild(tempElem);
-
-		log("URL " + props.url + " copied.");
-
+	const copyFileUrl = () => {
+		copyToClipboard(props.url);
 		setToasterMessage(props.fileName + " URL copied.");
 		setIsShowToaster(1);
 	}
@@ -71,7 +61,7 @@ const FileItem = (props) => {
 	return (
 		<div className={itemClass} role="listitem">
 			<div className="div div--fileitem-fileinfo">
-				<div className="div div--fileitem-filename" role="button" onClick={copyToClipboard} >
+				<div className="div div--fileitem-filename" role="button" onClick={copyFileUrl} >
 					{props.fileName}
 				</div>
 				<div className="div div--fileitem-statusbar">

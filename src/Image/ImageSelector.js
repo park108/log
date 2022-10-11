@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { log, hasValue } from '../common/common';
+import { log, hasValue, copyToClipboard } from '../common/common';
 import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
@@ -99,20 +99,10 @@ const ImageSelector = (props) => {
 
 	// Copy markdown string into clipboard
 	const copyMarkdownString = (e) => {
-
 		const url = e.target.getAttribute("imageurl");
 		const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
 
-		let tempElem = document.createElement('textarea');
-		tempElem.value = imageForMarkdown;  
-		document.body.appendChild(tempElem);
-		
-		tempElem.select();
-		document.execCommand("copy");
-		document.body.removeChild(tempElem);
-
-		log("MarkDown Img " + imageForMarkdown + " copied.");
-		
+		copyToClipboard(imageForMarkdown);
 		setToasterMessage("MD string copied.");
 		setIsShowToaster(1);
 	}

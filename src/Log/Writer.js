@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Navigate } from "react-router";
 import { useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { isAdmin, log, setFullscreen, hasValue } from '../common/common';
+import { isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
 import * as parser from '../common/markdownParser';
 import Toaster from "../Toaster/Toaster";
 import './Writer.css';
@@ -156,27 +156,14 @@ const Writer = (props) => {
 		}
 	}
 
-	const copyToMDString = (e) => {
-
+	const copyMarkdownString = (e) => {
 		e.preventDefault();
-
 		const tag = e.target.value;
-
 		const markdownString = ("img" === tag) ? "![ALT_TEXT](url \"OPTIONAL_TITLE\")"
 			: ("a" === tag) ? "[LinkText](https://example.com/ \"TITLE\")"
 			: "";
-
-		let tempElem = document.createElement('textarea');
-		tempElem.value = markdownString;  
-		document.body.appendChild(tempElem);
-
-		tempElem.select();
-		document.execCommand("copy");
-		document.body.removeChild(tempElem);
-
-		log("MarkDown Img " + markdownString + " copied.");
-		
-		setToasterMessage("MD string copied.");
+		copyToClipboard(markdownString);
+		setToasterMessage("Markdown string copied.");
 		setIsShowToaster(1);
 	}
 
@@ -298,7 +285,7 @@ const Writer = (props) => {
 						data-testid="img-button"
 						className="button button--writer-mdcopy"
 						value="img"
-						onClick={copyToMDString}
+						onClick={copyMarkdownString}
 					>
 						Markdown: image
 					</button>
@@ -308,7 +295,7 @@ const Writer = (props) => {
 						data-testid="a-button"
 						className="button button--writer-mdcopy"
 						value="a"
-						onClick={copyToMDString}
+						onClick={copyMarkdownString}
 					>
 						Markdown: anchor
 					</button>

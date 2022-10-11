@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, hasValue, hoverPopup } from '../common/common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, hasValue, hoverPopup, copyToClipboard } from '../common/common';
 import { ReactComponent as LinkButton } from '../static/link.svg';
 import { deleteLog } from './api';
 import * as parser from '../common/markdownParser';
@@ -91,22 +91,10 @@ const LogItem = (props) => {
 	}
 
 	// URL copy
-	const copyToClipboard = (e) => {
-
+	const copyURL = (e) => {
 		e.preventDefault();
-
 		let url = getUrl() + "log/" + timestamp;
-
-		let tempElem = document.createElement('textarea');
-		tempElem.value = url;  
-		document.body.appendChild(tempElem);
-
-		tempElem.select();
-		document.execCommand("copy");
-		document.body.removeChild(tempElem);
-
-		log("URL " + url + " copied.");
-
+		copyToClipboard(url);
 		setIsShowToaster(1);
 	}
 
@@ -121,7 +109,7 @@ const LogItem = (props) => {
 			? (
 				<span
 					data-testid="link-copy-button"
-					onClick={copyToClipboard}
+					onClick={copyURL}
 					className="span span--logitem-toolbaricon"
 				>
 					<LinkButton />
