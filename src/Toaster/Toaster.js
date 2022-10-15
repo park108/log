@@ -30,40 +30,29 @@ const Toaster = (props) => {
 		setTimeout(hideToaster, 1000);
 	}
 
-	const CENTER = "div--toaster-center";
-	const BOTTOM = "div--toaster-bottom";
+	const positionStyle = {
+		"center": "div--toaster-center",
+		"bottom": "div--toaster-bottom",
+		undefined: "div--toaster-center"
+	};
 
-	const INFO = "div--toaster-information";
-	const SUCCESS = "div--toaster-success";
-	const WARNING = "div--toaster-warning";
-	const ERROR = "div--toaster-error";
+	const typeStyle = {
+		"information": "div--toaster-information",
+		"success": "div--toaster-success",
+		"warning": "div--toaster-warning",
+		"error": "div--toaster-error",
+		undefined: "div--toaster-information"
+	};
 
-	const HIDE = "div--toaster-hide";
-	const FADE_OUT = "div--toaster-fadeout";
+	const showStyle = [
+		"div--toaster-hide", // 0: hide
+		"", // 1: show
+		"div--toaster-fadeout" // 2: fadeout
+	];
 
 	return (
-		<div id={id} className={"div "
-				+ (
-					"center" === position ? CENTER
-					: "bottom" === position ? BOTTOM
-					: CENTER
-				)
-				+ " "
-				+ (
-					"information" === type ? INFO
-					: "success" === type ? SUCCESS
-					: "warning" === type ? WARNING
-					: "error" === type ? ERROR
-					: INFO
-				)
-				+ " "
-				+ (
-					0 === show ? HIDE
-					: 2 === show ? FADE_OUT
-					: ""
-				)
-
-				}
+		<div id={id}
+			className={ "div " + positionStyle[position] + " " + typeStyle[type] + " " + showStyle[show] }
 			role="alert"
 		>
 			{message}
