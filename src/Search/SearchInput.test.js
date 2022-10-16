@@ -28,7 +28,7 @@ describe('test key up events', () => {
 			</Router>
 		);
 
-		inputElement = screen.getAllByPlaceholderText("Search logs...")[0];
+		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
 		searchButton = screen.getByText("go");
 		mobileSearchButton = screen.getByText("search");
 
@@ -61,7 +61,7 @@ describe('test key up events', () => {
 			</Router>
 		);
 
-		inputElement = screen.getAllByPlaceholderText("Search logs...")[0];
+		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
 		
 		jest.useFakeTimers();
 
@@ -73,7 +73,7 @@ describe('test key up events', () => {
 		});
 		jest.useRealTimers();
 
-		const nullStringAlert = screen.getByText("Enter a sentence to search for");
+		const nullStringAlert = screen.getByText("Enter the keyword to search for");
 		expect(nullStringAlert).toBeDefined();
 	});
 });

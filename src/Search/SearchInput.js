@@ -19,7 +19,7 @@ const SearchInput = () => {
 
 		if(0 === inputString.length) {
 			setIsShowToaster(1);
-			setToasterMessage("Enter a sentence to search for");
+			setToasterMessage("Enter the keyword to search for");
 		}
 		else {
 			setIsMobileSearchOpen(false);
@@ -35,8 +35,8 @@ const SearchInput = () => {
 		const inputKeyCode = window.event.keyCode;
 		const inputString = e.target.value;
 		if(isAdmin()) {
-			document.getElementById("queryString1").value = inputString;
-			document.getElementById("queryString2").value = inputString;
+			document.getElementById("query-string-by-enter").value = inputString;
+			document.getElementById("query-string-by-button").value = inputString;
 		}
 		if(13 === inputKeyCode) {
 			search(inputString);
@@ -44,7 +44,7 @@ const SearchInput = () => {
 	}
 
 	const searchByButton = async () => {
-		const inputString = document.getElementById("queryString2").value;
+		const inputString = document.getElementById("query-string-by-button").value;
 		search(inputString);
 	}
 
@@ -55,7 +55,7 @@ const SearchInput = () => {
 	// Fetch when input query string
 	useEffect(() => {
 		if(isAdmin()) {
-			const mobileSearch = document.getElementById("mobileSearch");
+			const mobileSearch = document.getElementById("mobile-search");
 			if(isMobileSearchOpen) {
 				mobileSearch.setAttribute("class", "div div--search-mobile");
 			}
@@ -65,66 +65,63 @@ const SearchInput = () => {
 		}
 	}, [isMobileSearchOpen]);
 
-	const placeHolder = "Search logs..."
-
-	const queryStringInput = isAdmin() ? (
-		<input
-			id="queryString1"
-			className="input input--search-string hidden--width-400px"
-			placeholder={placeHolder}
-			onKeyUp={searchByEnter}
-		/>
-	) : (
-		<input
-			id="queryString1"
-			className="input input--search-string"
-			placeholder={placeHolder}
-			onKeyUp={searchByEnter}
-		/>
-	);
-
-	const mobileSearchToggleButton = isAdmin() ? (
-		<span className="span span--nav-searchbutton" onClick={toggleMobileSearch} >search</span>
-	) : "";
-
-	const mobileSearch = isAdmin() ? (
-		<div id="mobileSearch">
-			<input
-				id="queryString2"
-				className="input input--search-mobile show--width-400px"
-				placeholder={placeHolder}
-				onKeyUp={searchByEnter}
+	const toaster = (
+		<Suspense fallback={<div></div>}>
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={"warning"}
+				duration={2000}
+				completed={() => setIsShowToaster(2)}
 			/>
-			<button
-				className="button button--search-submit show--width-400px"
-				onClick={searchByButton}
-			>
-				go
-			</button>
-		</div>
-	) : "";
-
-	return (
-		<li className="li li--nav-right li--nav-search">
-
-			{ queryStringInput }
-
-			{ mobileSearchToggleButton }	
-
-			{ mobileSearch }
-
-			<Suspense fallback={<div></div>}>
-				<Toaster 
-					show={isShowToaster}
-					message={toasterMessage}
-					position={"bottom"}
-					type={"warning"}
-					duration={2000}
-					completed={() => setIsShowToaster(2)}
-				/>
-			</Suspense>
-		</li>
+		</Suspense>
 	);
+	
+	if(isAdmin()) {
+		return (
+			<li className="li li--nav-right li--nav-search">
+				<input
+					id="query-string-by-enter"
+					className="input input--search-string hidden--width-400px"
+					placeholder="Input search string..."
+					onKeyUp={searchByEnter}
+				/>
+				<span className="span span--nav-searchbutton" onClick={toggleMobileSearch} >
+					search
+				</span>
+				<div id="mobile-search">
+					<input
+						id="query-string-by-button"
+						className="input input--search-mobile show--width-400px"
+						placeholder="Input search string..."
+						onKeyUp={searchByEnter}
+					/>
+					<button
+						className="button button--search-submit show--width-400px"
+						onClick={searchByButton}
+					>
+						go
+					</button>
+				</div>
+				{ toaster }
+			</li>
+		);
+	}
+	else {
+		return (
+			<li className="li li--nav-right li--nav-search">
+				<input
+					id="query-string-by-enter"
+					className="input input--search-string"
+					placeholder="Input search string..."
+					onKeyUp={searchByEnter}
+				/>
+
+				{ toaster }
+			</li>
+		);
+	}
 }
 
 export default SearchInput;

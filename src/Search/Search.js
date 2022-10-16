@@ -102,8 +102,8 @@ const Search = () => {
 	const toListButton = (
 		<button className="button button--loglist-seemore" onClick={() => {
 
-			const searchInput1 = document.getElementById("queryString1");
-			const searchInput2 = document.getElementById("queryString2");
+			const searchInput1 = document.getElementById("query-string-by-enter");
+			const searchInput2 = document.getElementById("query-string-by-button");
 
 			if(hasValue(searchInput1)) {
 				searchInput1.value = "";
