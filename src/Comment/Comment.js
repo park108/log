@@ -53,7 +53,7 @@ const Comment = (props) => {
 		setIsPosting(false);
 	}
 
-	const newComment = async(comment) => {
+	const postNewComment = async(comment) => {
 
 		setIsPosting(true);
 
@@ -91,9 +91,9 @@ const Comment = (props) => {
 		}
 		else {
 			const count = comments.length;
-			1 < count ? setButtonText(count + " comments")
-				: 1 === count ?	setButtonText("1 comment")
-				: setButtonText("Add a comment");
+			if(0 === count) setButtonText("Add a comment");
+			else if(1 === count) setButtonText("1 comment");
+			else setButtonText(count + " comments");
 		}
 	}, [isLoading]);
 
@@ -102,7 +102,7 @@ const Comment = (props) => {
 		return () => setIsLoading(false);
 	}, []);
 
-	const toggleComments = () => setIsShow(!isShow)
+	const toggleShowComments = () => setIsShow(!isShow)
 
 	const commentThread = isShow
 		? (
@@ -119,7 +119,7 @@ const Comment = (props) => {
 							timestamp={data.timestamp}
 							isHidden={data.isHidden}
 							openReplyForm={openReplyForm}
-							reply={newComment}
+							reply={postNewComment}
 						/>
 					))}
 				</Suspense>
@@ -132,7 +132,7 @@ const Comment = (props) => {
 			<Suspense fallback={<div></div>}>
 				<CommentForm
 					logTimestamp={logTimestamp}
-					post={newComment}
+					post={postNewComment}
 					isPosting={isPosting}
 				/>
 			</Suspense>
@@ -142,7 +142,7 @@ const Comment = (props) => {
 		<section className="section section--logitem-comment">
 			<span
 				className="span span--comment-togglebutton"
-				onClick={toggleComments}
+				onClick={toggleShowComments}
 			>
 				{buttonText}
 			</span>

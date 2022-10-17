@@ -14,26 +14,6 @@ const CommentForm = (props) => {
 	const logTimestamp = props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
 
-	useEffect(() => {
-		if(isAdmin()) {
-			setUserName("Jongkil Park");
-		}
-	}, []);
-
-	useEffect(() => {
-		if(props.isPosting) {
-			setMessageDisabled("disabled");
-		}
-		else {
-			setMessageDisabled("");
-			setMessage("");
-		}
-	}, [props.isPosting]);
-
-	const changeComment = ({ target: { value } }) => setMessage(value);
-	const changeName = ({target: { value } }) => setUserName(value);
-	const changeIsHidden = ({target: { checked } }) => setIsHidden(checked);
-
 	const userNameRef = useRef(null);
 	const messageRef = useRef(null);
 
@@ -65,7 +45,27 @@ const CommentForm = (props) => {
 		props.post(comment);
 	}
 
-	const nameDisabled = isAdmin()||props.isPosting ? "disabled" : "";
+	useEffect(() => {
+		if(isAdmin()) {
+			setUserName("Jongkil Park");
+		}
+	}, []);
+
+	useEffect(() => {
+		if(props.isPosting) {
+			setMessageDisabled("disabled");
+		}
+		else {
+			setMessageDisabled("");
+			setMessage("");
+		}
+	}, [props.isPosting]);
+
+	const changeName = ({target: { value } }) => setUserName(value);
+	const changeComment = ({ target: { value } }) => setMessage(value);
+	const changeIsHidden = ({target: { checked } }) => setIsHidden(checked);
+
+	const isNameDisabled = isAdmin() || props.isPosting ? "disabled" : "";
 
 	return (
 		<form onSubmit={postComment} className="form form--comment-input">
@@ -76,7 +76,7 @@ const CommentForm = (props) => {
 				placeholder="Type your name"
 				onChange={changeName}
 				value={userName}
-				disabled={nameDisabled}
+				disabled={isNameDisabled}
 				autoFocus
 			/>
 			<textarea
