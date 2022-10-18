@@ -15,7 +15,7 @@ const LogSingle = (props) => {
 
 	const [data, setData] = useState({});
 	const [isLoading, setIsLoading] = useState(false);
-	const [hasItem, setHasItem] = useState("NOW_LOADING");
+	const [itemLoadingStatus, setItemLoadingStatus] = useState("NOW_LOADING");
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
@@ -35,14 +35,14 @@ const LogSingle = (props) => {
 				log("[API GET] OK - Log", "SUCCESS");
 
 				if(0 === fetchedData.body.Count) {
-					setHasItem("NO");
+					setItemLoadingStatus("NOT_FOUND");
 					setHtmlTitle(PAGE_NOT_FOUND);
 					setMetaDescription(PAGE_NOT_FOUND);
 				}
 				else {
 					const latestData = fetchedData.body.Items[0];
 					setData(latestData);
-					setHasItem("YES");
+					setItemLoadingStatus("FOUND");
 					
 					const contents = latestData.logs[0].contents;
 					const hasTitle = contents.indexOf("# ") === 0;
@@ -65,7 +65,7 @@ const LogSingle = (props) => {
 				log("[API GET] FAILED - Log", "ERROR");
 				console.error(fetchedData);
 				log("No log found.");
-				setHasItem("NO");
+				setItemLoadingStatus("NOT_FOUND");
 				setHtmlTitle(PAGE_NOT_FOUND);
 				setMetaDescription(PAGE_NOT_FOUND);
 			}
@@ -104,17 +104,19 @@ const LogSingle = (props) => {
 
 	// Callback delete item from LogItem
 	const navigate = useNavigate();
+
 	const afterDelete = () => {
 		setToasterMessageBottom("The log deleted.");
 		setIsShowToasterBottom(1);
 	}
+	
 	const completed = () => {
 		setIsShowToasterBottom(2);
 		navigate("/log/");
 	}
 	
 	// Draw log item
-	const logItem = ("YES" === hasItem)
+	const logItem = ("FOUND" === itemLoadingStatus)
 		? <LogItem
 			author={data.author}
 			timestamp={data.timestamp}
@@ -125,7 +127,7 @@ const LogSingle = (props) => {
 			showLink={true}
 			deleted={afterDelete}
 		/>
-		: ("NO" === hasItem) ? <PageNotFound />
+		: ("NOT_FOUND" === itemLoadingStatus) ? <PageNotFound />
 		: "";
 
 	const getQueryStringSearch = () => {

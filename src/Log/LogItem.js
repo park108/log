@@ -62,9 +62,12 @@ const LogItem = (props) => {
 
 	// Change style by delete item
 	useEffect(() => {
-		(isDeleting)
-			? setItemClass("article article--main-item article--logitem-delete")
-			: setItemClass("article article--main-item");
+		if(isDeleting) {
+			setItemClass("article article--main-item article--logitem-delete");
+		}
+		else {
+			setItemClass("article article--main-item");
+		}
 	}, [isDeleting]);
 
 	// Cleanup
@@ -75,20 +78,6 @@ const LogItem = (props) => {
 	// Confirm alert to delete
 	const abort = () => log("Deleting aborted");
 	const confirmDelete = confirm("Are you sure delete the log?", deleteLogItem, abort);
-
-	// Article parsed by Markdown
-	const Article = () => {
-
-		const outputContents = parser.markdownToHtml(contents);
-
-		return (
-			<section
-				className="section section--logitem-contents"
-				dangerouslySetInnerHTML={{__html: outputContents}}
-			>
-			</section>
-		);
-	}
 
 	// URL copy
 	const copyURL = (e) => {
@@ -256,23 +245,26 @@ const LogItem = (props) => {
 
 	// Comments
 	const comments = React.useMemo(() => {
-		return (
-			showComments ? (
+		if(showComments) {
+			return (
 				<Suspense fallback={<div></div>}>
-					<Comment
-						logTimestamp={timestamp}
-					/>
+					<Comment logTimestamp={timestamp} />
 				</Suspense>
-			)
-			: ""
-		);
+			);
+		}
+		else {
+			return "";
+		}
 	}, [showComments, timestamp]);
 
 	// Draw log item
 	return (
 		<article className={itemClass} role="listitem">
 			<LogItemInfo />
-			<Article />
+			<section
+				className="section section--logitem-contents"
+				dangerouslySetInnerHTML={{__html: parser.markdownToHtml(contents)}}
+			/>
 			{ comments }
 			<Suspense fallback={<div></div>}>
 				<Toaster 
