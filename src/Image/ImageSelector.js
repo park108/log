@@ -133,13 +133,13 @@ const ImageSelector = (props) => {
 				isLoading ? undefined
 					: !hasValue(lastTimestamp) ? undefined
 					: (
-						<div
+						<button
 							role="button"
-							className="div div--image-seemorebutton"
+							className="button button--image-seemorebutton"
 							onClick={() => fetchMore(lastTimestamp)}
 						>
 							See<br/>More
-						</div>
+						</button>
 					)
 			}
 			
