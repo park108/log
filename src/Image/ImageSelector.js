@@ -103,7 +103,7 @@ const ImageSelector = (props) => {
 		const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
 
 		copyToClipboard(imageForMarkdown);
-		setToasterMessage("MD string copied.");
+		setToasterMessage("Markdown string copied.");
 		setIsShowToaster(1);
 	}
 

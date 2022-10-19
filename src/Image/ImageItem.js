@@ -4,22 +4,27 @@ import './ImageSelector.css';
 
 const ImageItem = (props) => {
 
+	const thumbnailImageUrl = props.url;
+	const fullsizeImageUrl = thumbnailImageUrl.replace("thumbnail/", "");
+
 	// Event handlers for image
 	const enlargeImage = (e) => {
-		e.target.src = e.target.getAttribute("imageurl");
 		e.target.setAttribute("enlarged", "Y");
+		e.target.setAttribute("src", fullsizeImageUrl);
+		e.target.setAttribute("class", "img img--image-imageitem img--image-selected");
 	}
 
 	const shrinkImage = (e) => {
-		e.target.src = e.target.getAttribute("thumbnailurl");
 		e.target.setAttribute("enlarged", "N");
+		e.target.setAttribute("src", thumbnailImageUrl);
+		e.target.setAttribute("class", "img img--image-imageitem");
 	}
 
 	const clickImage = (e) => {
 
-		let isEnlarged = e.target.getAttribute("enlarged");
+		const isEnlarged = "Y" === e.target.getAttribute("enlarged");
 
-		if("Y" === isEnlarged) {
+		if(isEnlarged) {
 			props.copyMarkdownString(e);
 			shrinkImage(e);
 		}
@@ -33,13 +38,14 @@ const ImageItem = (props) => {
 		<img className="img img--image-imageitem"
 			data-testid="imageItem"
 			role="listitem"
-			src={props.url}
+			src={thumbnailImageUrl}
 			alt={props.fileName}
-			imageurl={props.url.replace("thumbnail/", "")}
-			thumbnailurl={props.url}
+			title={props.fileName}
+			imageurl={fullsizeImageUrl}
+			thumbnailurl={thumbnailImageUrl}
 			enlarged={"N"}
-			onMouseOut={shrinkImage}
 			onClick={clickImage}
+			// onMouseOut={shrinkImage}
 		/>
 	);
 }
