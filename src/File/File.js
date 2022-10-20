@@ -127,7 +127,7 @@ const File = (props) => {
 
 	// Draw file app.
 	return (
-		<main className="main main--contents" style={props.contentHeight} role="application">
+		<main className="main main--main-contents" style={props.contentHeight} role="application">
 			<article className="article article--main-item">
 
 				{fileUploadUI}

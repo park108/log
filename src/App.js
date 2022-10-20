@@ -58,28 +58,30 @@ const App = () => {
 	common.auth();
 
 	const pageNotFound = (
-		<div className="div div--main-contents" style={contentHeight}>
+		<main className="main main--main-contents" style={contentHeight}>
 			<PageNotFound />
-		</div>
+		</main>
 	);
 
 	if(!isOnline) {
 		return (
-			<nav className="nav nav--nav-bar">
-				<ul className="ul ul--nav-tabs">
-					<li className="li li--nav-title">
-						<a href={common.getUrl()}>park108.net</a>
-					</li>
-				</ul>
-				<div className="div div--main-contents" style={contentHeight}>
-					<p className="p">
+			<div className="div div--offline-contents">
+				<nav className="nav nav--nav-bar">
+					<ul className="ul ul--nav-tabs">
+						<li className="li li--nav-title">
+							<a href={common.getUrl()}>park108.net</a>
+						</li>
+					</ul>
+				</nav>
+				<main className="main main--main-contents" style={contentHeight}>
+					<p className="p p--offline-message">
 						You are offline now.
 					</p>
-					<p className="p">
+					<p className="p p--offline-message">
 						Please check your network connection.
 					</p>
-				</div>
-			</nav>
+				</main>
+			</div>
 		)
 	}
 	else {

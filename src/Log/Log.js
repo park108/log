@@ -116,7 +116,7 @@ const Log = (props) => {
 
 	// Draw log app.
 	return (
-		<main className="main main--contents" style={props.contentHeight} role="application">
+		<main className="main main--main-contents" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
 				{writeButton}
 				<Routes>

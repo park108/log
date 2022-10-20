@@ -89,7 +89,7 @@ const Monitor = (props) => {
 
 	// Draw monitor app.
 	return (
-		<main className="main main--contents" style={props.contentHeight} role="application">
+		<main className="main main--main-contents" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
 				<ContentMon stackPallet={chartPallets[1].colors} />
 			</Suspense>
