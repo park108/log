@@ -22,7 +22,7 @@ const ImageItem = (props) => {
 
 	const clickImage = (e) => {
 
-		const isEnlarged = "Y" === e.target.getAttribute("enlarged");
+		const isEnlarged = ("Y" === e.target.getAttribute("enlarged"));
 
 		if(isEnlarged) {
 			props.copyMarkdownString(e);
@@ -45,7 +45,6 @@ const ImageItem = (props) => {
 			thumbnailurl={thumbnailImageUrl}
 			enlarged={"N"}
 			onClick={clickImage}
-			// onMouseOut={shrinkImage}
 		/>
 	);
 }

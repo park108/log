@@ -21,7 +21,6 @@
 	height: 55px;
 	padding-top: 35px;
 	text-align: center;
-	background-color: var(--info-background-color);
 }
 
 .img--image-imageitem {
@@ -46,7 +45,7 @@
 	max-width: 75%;
 	max-height: 75%;
 	border: 5px solid var(--normal-border-color);
-	transition: 0.3s ease;
+	background-color: var(--normal-background-color);
 }
 
 .button--image-seemorebutton {

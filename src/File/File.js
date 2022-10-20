@@ -20,7 +20,7 @@ const File = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(1);
 
 	// Get uploaded file list from API Gateway
-	const fetchData = async () => {
+	const fetchFirst = async () => {
 
 		setIsLoading(true);
 
@@ -84,7 +84,7 @@ const File = (props) => {
 	// Fetch data at mount
 	useEffect(() => {
 		setHtmlTitle("file");
-		fetchData();
+		fetchFirst();
 	}, []);
 
 	// Change by upload state
@@ -103,8 +103,8 @@ const File = (props) => {
 
 	// Select file upload UI
 	const fileUploadUI = isMobile() 
-		? <FileUpload callbackAfterUpload={fetchData} />
-		: <FileDrop callbackAfterUpload={fetchData} />;
+		? <FileUpload callbackAfterUpload={fetchFirst} />
+		: <FileDrop callbackAfterUpload={fetchFirst} />;
 
 	// Make See More button
 	const seeMoreButton = (!hasValue(lastTimestamp))
@@ -142,7 +142,7 @@ const File = (props) => {
 									lastModified={data.timestamp}
 									size={data.size}
 									url={data.url}
-									deleted={fetchData}
+									deleted={fetchFirst}
 								/>
 							)
 						)

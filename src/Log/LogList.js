@@ -66,11 +66,11 @@ const LogList = (props) => {
 	}
 
 	// Get next log list from API gateway
-	const fetchMore = async (lastTimestamp) => {
+	const fetchMore = async (timestamp) => {
 
 		try {
 			setIsLoading(true);
-			const res = await getNextLogs(lastTimestamp);
+			const res = await getNextLogs(timestamp);
 			const fetchedData = await res.json();
 
 			if(!hasValue(fetchedData.errorType)) {

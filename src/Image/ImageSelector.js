@@ -11,7 +11,6 @@ const ImageSelector = (props) => {
 
 	const [images, setImages] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [loading, setLoading] = useState(null);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 	const [isShowToaster, setIsShowToaster] = useState(0);
@@ -90,13 +89,6 @@ const ImageSelector = (props) => {
 		}
 	}, [props.show]);
 
-	// At isLoading state changed
-	useEffect(() => {
-		(isLoading)
-			? setLoading(<div className="div div--image-loading">Loading...</div>)
-			: setLoading(null);
-	}, [isLoading]);
-
 	// Copy markdown string into clipboard
 	const copyMarkdownString = (e) => {
 		const url = e.target.getAttribute("imageurl");
@@ -108,16 +100,20 @@ const ImageSelector = (props) => {
 	}
 
 	// Draw Image Selector
-	return (
-		<div className={imageSelectorClass} role="list">
-			
-			{loading}
+	if(isLoading) {
+		return (
+			<div className={imageSelectorClass} role="list">
+				<div className="div div--image-loading">Loading...</div>
+			</div>
+		);
+	}
+	else {
+		return (
+			<div className={imageSelectorClass} role="list">
 
-			{
-				// Image list
-				isLoading
-					? undefined
-					: images.map(
+				{
+					// Image list
+					images.map(
 						(data) => 
 							<ImageItem
 								key={data.key}
@@ -126,33 +122,32 @@ const ImageSelector = (props) => {
 								copyMarkdownString={copyMarkdownString}
 							/>
 					)
-			}
+				}
 
-			{
-				// See More button
-				isLoading ? undefined
-					: !hasValue(lastTimestamp) ? undefined
-					: (
-						<button
-							role="button"
-							className="button button--image-seemorebutton"
-							onClick={() => fetchMore(lastTimestamp)}
-						>
-							See<br/>More
-						</button>
-					)
-			}
-			
-			<Toaster 
-				show={isShowToaster}
-				message={toasterMessage}
-				position={"bottom"}
-				type={"warning"}
-				duration={2000}				
-				completed={() => setIsShowToaster(2)}
-			/>
-		</div>
-	);
+				{
+					// See More button
+					hasValue(lastTimestamp) ? (
+							<button
+								role="button"
+								className="button button--image-seemorebutton"
+								onClick={() => fetchMore(lastTimestamp)}
+							>
+								See<br/>More
+							</button>
+						) : undefined
+				}
+				
+				<Toaster 
+					show={isShowToaster}
+					message={toasterMessage}
+					position={"bottom"}
+					type={"warning"}
+					duration={2000}				
+					completed={() => setIsShowToaster(2)}
+				/>
+			</div>
+		);
+	}
 }
 
 ImageSelector.propTypes = {
