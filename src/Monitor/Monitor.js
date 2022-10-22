@@ -34,43 +34,7 @@ const chartPallets = [
 			{color: "black", backgroundColor: "#354F52"},
 			{color: "black", backgroundColor: "#2F3E46"},
 		]
-	},
-	{
-		pallet: "Grey scale",
-		colors: [
-			{color: "black", backgroundColor: "rgb(230, 230, 230)"},
-			{color: "black", backgroundColor: "rgb(200, 200, 200)"},
-			{color: "black", backgroundColor: "rgb(170, 170, 170)"},
-			{color: "black", backgroundColor: "rgb(140, 140, 140)"},
-			{color: "black", backgroundColor: "rgb(110, 110, 110)"},
-			{color: "black", backgroundColor: "rgb(80, 80, 80)"},
-			{color: "black", backgroundColor: "rgb(50, 50, 50)"},
-		]
-	},
-	{
-		pallet: "Temperature colors",
-		colors: [
-			{color: "black", backgroundColor: "#EB7373"},
-			{color: "black", backgroundColor: "#F08D57"},
-			{color: "black", backgroundColor: "#F5A63A"},
-			{color: "black", backgroundColor: "#FFD900"},
-			{color: "black", backgroundColor: "#958357"},
-			{color: "black", backgroundColor: "#605883"},
-			{color: "black", backgroundColor: "#2A2CAE"},
-		]
-	},
-	{
-		pallet: "Yellow to Purple",
-		colors: [
-			{color: "black", backgroundColor: "#FFECB3"},
-			{color: "black", backgroundColor: "#FAC6A8"},
-			{color: "black", backgroundColor: "#F49F9C"},
-			{color: "black", backgroundColor: "#E85285"},
-			{color: "black", backgroundColor: "#A93790"},
-			{color: "black", backgroundColor: "#8A2995"},
-			{color: "black", backgroundColor: "#6A1B9A"},
-		]
-	},
+	}
 ];
 
 const Monitor = (props) => {
