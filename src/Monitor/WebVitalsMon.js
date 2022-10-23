@@ -4,15 +4,25 @@ const WebVitalsItem = lazy(() => import('./WebVitalsItem'));
 
 const WebVitalsMon = () => {
 
+	const webVitalList = [
+		{title: "Largest Contentful Paint", name: "LCP"},
+		{title: "First Input Delay", name: "FID"},
+		{title: "Cumulative Layout Shift", name: "CLS"},
+		{title: "First Contentful Paint", name: "FCP"},
+		{title: "Time to First Byte", name: "TTFB"},
+	]
+
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1 >Web Vitals in the last 24 hours</h1>
 			<Suspense fallback={<div></div>}>
-				<WebVitalsItem title="Largest Contentful Paint" name="LCP" />
-				<WebVitalsItem title="First Input Delay" name="FID" />
-				<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />
-				<WebVitalsItem title="First Contentful Paint" name="FCP" />
-				<WebVitalsItem title="Time to First Byte" name="TTFB" />
+				{webVitalList.map(item => (
+					<WebVitalsItem
+						key={item.name}
+						title={item.title}
+						name={item.name}
+					/>
+				))}
 			</Suspense>
 			<a
 				href="https://web.dev/defining-core-web-vitals-thresholds/"

@@ -11,7 +11,6 @@ const ContentMon = (props) => {
 		{title: "Files", path: "file", unit: "capacity"},
 	]
 
-	// Return 3 charts
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1>Contents in the last 6 months</h1>
