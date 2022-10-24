@@ -14,7 +14,7 @@ const WebVitalsMon = () => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">
-			<h1 >Web Vitals in the last 24 hours</h1>
+			<h1>Web Vitals in the last 24 hours</h1>
 			<Suspense fallback={<div></div>}>
 				{webVitalList.map(item => (
 					<WebVitalsItem

@@ -14,15 +14,16 @@ const ApiCallMon = (props) => {
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1>API Calls in the last 7 days</h1>
-			{serviceList.map(item => (
-				<Suspense key={item.service} fallback={<div></div>}>
+			<Suspense fallback={<div></div>}>
+				{serviceList.map(item => (
 					<ApiCallItem
+						key={item.service}
 						title={item.title}
 						service={item.service}
 						stackPallet={props.stackPallet}
 					/>
-				</Suspense>
-			))}
+				))}
+			</Suspense>
 		</article>
 	);
 }

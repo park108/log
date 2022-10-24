@@ -14,16 +14,17 @@ const ContentMon = (props) => {
 	return (
 		<article className="article article--main-item article--monitor-item">
 			<h1>Contents in the last 6 months</h1>
-			{contentList.map(item => (
-				<Suspense key={item.title} fallback={<div></div>}>
+			<Suspense fallback={<div></div>}>
+				{contentList.map(item => (
 					<ContentItem
+						key={item.title}
 						title={item.title}
 						path={item.path}
 						unit={item.unit}
 						stackPallet={props.stackPallet}
 					/>
-				</Suspense>
-			))}
+				))}
+			</Suspense>
 		</article>
 	);
 }
