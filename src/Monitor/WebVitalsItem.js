@@ -7,26 +7,26 @@ const WebVitalsItem = (props) => {
 
 	const [data, setData] = useState([]);
 
-	const title = props.title;
 	const name = props.name;
+	const description = props.description;
 
 	const fetchData = async(name) => {
 
 		try {
 			const res = await getWebVitals(name);
-			const data = await res.json();
+			const fetchedData = await res.json();
 
-			if(!hasValue(data.errorType)) {
-				log("[API GET] OK - Web Vital + " + name + ": " + data.body.Count, "SUCCESS");
-				setData(data.body.Items);
+			if(!hasValue(fetchedData.errorType)) {
+				log("[API GET] OK - Web Vital(" + name + "): " + fetchedData.body.Count, "SUCCESS");
+				setData(fetchedData.body.Items);
 			}
 			else {
-				log("[API GET] FAILED - Web Vital + " + name, "ERROR");
-				console.error(data);
+				log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
+				console.error(fetchedData);
 			}
 		}
 		catch(err) {
-			log("[API GET] FAILED - Web Vital + " + name, "ERROR");
+			log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
 			console.error(err);
 		}
 	}
@@ -41,17 +41,10 @@ const WebVitalsItem = (props) => {
 
 	for(let item of data) {
 		switch(item.evaluation) {
-			case "GOOD":
-				++good;
-				break;
-			case "POOR":
-				++poor;
-				break;
-			case "NEEDS IMPROVEMENT":
-				++needImprovement;
-				break;
-			default:
-				break;
+			case "GOOD": ++good; break;
+			case "POOR": ++poor; break;
+			case "NEEDS IMPROVEMENT": ++needImprovement; break;
+			default: break;
 		}
 	}
 
@@ -67,17 +60,17 @@ const WebVitalsItem = (props) => {
 		: "None";
 	
 	// Make style by metrics
-	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-assessment span--monitor-good"
-		: ("POOR" === evaluation) ? "span span--monitor-assessment span--monitor-poor"
-		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-assessment span--monitor-warn"
-		: "span span--monitor-assessment span--monitor-none";
+	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-evaluation span--monitor-good"
+		: ("POOR" === evaluation) ? "span span--monitor-evaluation span--monitor-poor"
+		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-evaluation span--monitor-warn"
+		: "span span--monitor-evaluation span--monitor-none";
 
 	// Draw web vital item
 	return (
 		<section className="section section--monitor-item">
 			<h3>
 				{name}
-				<span className="span span--monitor-metric">{title + " (" + totalCount + ")"}</span>
+				<span className="span span--monitor-metric">{description + " (" + totalCount + ")"}</span>
 				<span className={headerStyle}>{evaluation}</span>
 			</h3>
 			<div
@@ -99,7 +92,7 @@ const WebVitalsItem = (props) => {
 			</div>
 			<div id={name} className="div div--monitor-pillardetail" style={{display: "none"}}>
 				<ul className="ul ul--monitor-detailpillaritem">
-					<li className="li li--monitor-detailpillaritem">{title}</li>
+					<li className="li li--monitor-detailpillaritem">{description}</li>
 					<li className="li li--monitor-detailpillaritem">🟢 {good} &nbsp;&nbsp; 🟡 {needImprovement} &nbsp;&nbsp; 🔴 {poor}</li>
 				</ul>
 			</div>
@@ -108,7 +101,7 @@ const WebVitalsItem = (props) => {
 }
 
 WebVitalsItem.propTypes = {
-	title: PropTypes.string,
+	description: PropTypes.string,
 	name: PropTypes.string,
 };
 

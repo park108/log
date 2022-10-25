@@ -5,11 +5,11 @@ const WebVitalsItem = lazy(() => import('./WebVitalsItem'));
 const WebVitalsMon = () => {
 
 	const webVitalList = [
-		{title: "Largest Contentful Paint", name: "LCP"},
-		{title: "First Input Delay", name: "FID"},
-		{title: "Cumulative Layout Shift", name: "CLS"},
-		{title: "First Contentful Paint", name: "FCP"},
-		{title: "Time to First Byte", name: "TTFB"},
+		{name: "LCP", description: "Largest Contentful Paint"},
+		{name: "FID", description: "First Input Delay"},
+		{name: "CLS", description: "Cumulative Layout Shift"},
+		{name: "FCP", description: "First Contentful Paint"},
+		{name: "TTFB", description: "Time to First Byte"},
 	]
 
 	return (
@@ -19,8 +19,8 @@ const WebVitalsMon = () => {
 				{webVitalList.map(item => (
 					<WebVitalsItem
 						key={item.name}
-						title={item.title}
 						name={item.name}
+						description={item.description}
 					/>
 				))}
 			</Suspense>
