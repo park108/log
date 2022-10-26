@@ -26,10 +26,14 @@ export const hasValue = (obj) => {
 
 export const log = (logText, type = "INFO") => {
 	if (process.env.NODE_ENV === 'development') {
+
+		const now = Math.floor(new Date().getTime());
+		const timestampFormat = getFormattedDate(now) + " " + getFormattedTime(now) + " ";
+
 		switch(type) {
-			case "INFO": console.log(logText); break;
-			case "ERROR": console.error(logText); break;
-			case "SUCCESS": console.log("%c" + logText, "color: green"); break;
+			case "INFO": console.log(timestampFormat + logText); break;
+			case "ERROR": console.log(timestampFormat + + "%c" + logText, "color: red"); break;
+			case "SUCCESS": console.log(timestampFormat + "%c" + logText, "color: green"); break;
 			default: console.log(logText);
 		}
 	}
