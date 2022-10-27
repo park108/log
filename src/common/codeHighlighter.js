@@ -3,6 +3,7 @@ export const codeHighlighter = (lang, code) => {
 	const language = lang.toLowerCase();
 
 	switch(language) {
+		case "kt":
 		case "kotlin":
 			code = highlighterKotlin(code);
 			break;
