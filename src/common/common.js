@@ -32,7 +32,7 @@ export const log = (logText, type = "INFO") => {
 
 		switch(type) {
 			case "INFO": console.log(timestampFormat + logText); break;
-			case "ERROR": console.log(timestampFormat + + "%c" + logText, "color: red"); break;
+			case "ERROR": console.log(timestampFormat + "%c" + logText, "color: red"); break;
 			case "SUCCESS": console.log(timestampFormat + "%c" + logText, "color: green"); break;
 			default: console.log(logText);
 		}
