@@ -6,6 +6,7 @@ import File from '../File/File';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
+console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
 

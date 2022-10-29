@@ -21,38 +21,24 @@ export const getLogoutUrl = () => {
 }
 
 const UserLogin = () => {
-	
+		
 	const logout = () => {
 		common.deleteCookie("access_token");
 		window.location.href = getLogoutUrl();
 	}
-
+	
 	const login = () => {
 		window.location.href = getLoginUrl();
-	}
-
-	if(common.isLoggedIn()) {
-
-		return (
-			<span
-				role="button"
-				data-testid="logout-button"
-				className="span span--login-loggedin"
-				onClick={logout}
-			>
-				👨‍💻 Jongkil Park
-			</span>
-		);
 	}
 
 	return (
 		<span
 			role="button"
 			data-testid="login-button"
-			className="span span--login-loggedout"
-			onClick={login}
+			className="span span--login-loggedin"
+			onClick={ common.isLoggedIn() ? logout : login }
 		>
-			Jongkil Park
+			{ common.isLoggedIn() ? "👨‍💻 Jongkil Park" : "Jongkil Park" }
 		</span>
 	);
 }

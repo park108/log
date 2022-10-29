@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 import * as common from './common/common';
 
+console.log = jest.fn();
 console.error = jest.fn();
 
 it('render when network connection is offline', async () => {
@@ -73,7 +74,7 @@ describe('click login button', () => {
 
 		render(<App />);
 
-		const logoutButton = await screen.findByTestId("logout-button");
+		const logoutButton = await screen.findByTestId("login-button");
 		expect(logoutButton).toBeInTheDocument();
 		expect(logoutButton.getAttribute("class")).toBe("span span--login-loggedin");
 
@@ -89,7 +90,7 @@ describe('click login button', () => {
 
 		const loginButton = await screen.findByTestId("login-button");
 		expect(loginButton).toBeInTheDocument();
-		expect(loginButton.getAttribute("class")).toBe("span span--login-loggedout");
+		expect(loginButton.getAttribute("class")).toBe("span span--login-loggedin");
 
 		userEvent.click(loginButton);
 	});
