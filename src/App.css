@@ -313,11 +313,7 @@ pre {
 	padding-bottom: 5rem;
 }
 
-.span--login-loggedin {
-  cursor: pointer;
-}
-
-.span--login-loggedout {
+.span--login-text {
   cursor: pointer;
 }
 

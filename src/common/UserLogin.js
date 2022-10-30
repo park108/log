@@ -19,23 +19,23 @@ export const getLogoutUrl = () => {
 		return "https://log-dev.auth.ap-northeast-2.amazoncognito.com/logout?client_id=h3m92a27t39sfcat302tiqtko&logout_uri=http://localhost:3000";
 	}
 }
+		
+const logout = () => {
+	common.deleteCookie("access_token");
+	window.location.href = getLogoutUrl();
+}
+
+const login = () => {
+	window.location.href = getLoginUrl();
+}
 
 const UserLogin = () => {
-		
-	const logout = () => {
-		common.deleteCookie("access_token");
-		window.location.href = getLogoutUrl();
-	}
-	
-	const login = () => {
-		window.location.href = getLoginUrl();
-	}
 
 	return (
 		<span
 			role="button"
 			data-testid="login-button"
-			className="span span--login-loggedin"
+			className="span span--login-text"
 			onClick={ common.isLoggedIn() ? logout : login }
 		>
 			{ common.isLoggedIn() ? "👨‍💻 Jongkil Park" : "Jongkil Park" }

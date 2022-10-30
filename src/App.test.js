@@ -76,7 +76,7 @@ describe('click login button', () => {
 
 		const logoutButton = await screen.findByTestId("login-button");
 		expect(logoutButton).toBeInTheDocument();
-		expect(logoutButton.getAttribute("class")).toBe("span span--login-loggedin");
+		expect(logoutButton.getAttribute("class")).toBe("span span--login-text");
 
 		userEvent.click(logoutButton);
 	});
@@ -90,7 +90,7 @@ describe('click login button', () => {
 
 		const loginButton = await screen.findByTestId("login-button");
 		expect(loginButton).toBeInTheDocument();
-		expect(loginButton.getAttribute("class")).toBe("span span--login-loggedin");
+		expect(loginButton.getAttribute("class")).toBe("span span--login-text");
 
 		userEvent.click(loginButton);
 	});

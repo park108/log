@@ -3,12 +3,10 @@ import UserLogin from './UserLogin'
   
 const Footer = () => {
 
-	const year = new Date().getFullYear();
-
 	return (
 		<footer className="footer">
 			<span className="span span--footer-left">
-				© {year} <UserLogin />.
+				© { new Date().getFullYear() } <UserLogin />.
 			</span>
 			<span className="span span--footer-right hidden--width-350px">
 				<a
