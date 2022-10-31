@@ -2,15 +2,15 @@ import React, { Suspense, lazy } from "react";
 
 const WebVitalsItem = lazy(() => import('./WebVitalsItem'));
 
-const WebVitalsMon = () => {
+const webVitalList = [
+	{name: "LCP", description: "Largest Contentful Paint"},
+	{name: "FID", description: "First Input Delay"},
+	{name: "CLS", description: "Cumulative Layout Shift"},
+	{name: "FCP", description: "First Contentful Paint"},
+	{name: "TTFB", description: "Time to First Byte"},
+]
 
-	const webVitalList = [
-		{name: "LCP", description: "Largest Contentful Paint"},
-		{name: "FID", description: "First Input Delay"},
-		{name: "CLS", description: "Cumulative Layout Shift"},
-		{name: "FCP", description: "First Contentful Paint"},
-		{name: "TTFB", description: "Time to First Byte"},
-	]
+const WebVitalsMon = () => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">

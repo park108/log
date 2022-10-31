@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 
 const ContentItem = lazy(() => import('./ContentItem'));
 
-const ContentMon = (props) => {
+const contentList = [
+	{title: "Logs", path: "content/log", unit: "count"},
+	{title: "Comments", path: "content/comment", unit: "count"},
+	{title: "Files", path: "file", unit: "capacity"},
+]
 
-	const contentList = [
-		{title: "Logs", path: "content/log", unit: "count"},
-		{title: "Comments", path: "content/comment", unit: "count"},
-		{title: "Files", path: "file", unit: "capacity"},
-	]
+const ContentMon = (props) => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">
