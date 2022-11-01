@@ -11,6 +11,12 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
 
 const PAGE_NOT_FOUND = "Page not found";
 
+const getQueryStringSearch = () => {
+	const query = new URLSearchParams(useLocation().search);
+	const result = query.get("search");
+	return result;
+}
+
 const LogSingle = (props) => {
 
 	const [data, setData] = useState({});
@@ -129,12 +135,6 @@ const LogSingle = (props) => {
 		/>
 		: ("NOT_FOUND" === itemLoadingStatus) ? <PageNotFound />
 		: "";
-
-	const getQueryStringSearch = () => {
-		const query = new URLSearchParams(useLocation().search);
-		const result = query.get("search");
-		return result;
-	}
 
 	// To list button
 	const toListButton = !isLoading ? (

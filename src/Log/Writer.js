@@ -128,7 +128,6 @@ const Writer = (props) => {
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
 	const setTextAreaRows = (e) => {
-
 		let minRows = e.getAttribute('data-min-rows') | 1, rows;
 		if(!e._baseScrollHeight) e._baseScrollHeight = e.scrollHeight;
 
@@ -159,9 +158,18 @@ const Writer = (props) => {
 	const copyMarkdownString = (e) => {
 		e.preventDefault();
 		const tag = e.target.value;
-		const markdownString = ("img" === tag) ? "![ALT_TEXT](url \"OPTIONAL_TITLE\")"
-			: ("a" === tag) ? "[LinkText](https://example.com/ \"TITLE\")"
-			: "";
+
+		let markdownString = "";
+		if("img" === tag) {
+			markdownString = "![ALT_TEXT](url \"OPTIONAL_TITLE\")";
+		}
+		else if("a" === tag) {
+			markdownString = "[LinkText](https://example.com/ \"TITLE\")";
+		}
+		else {
+			markdownString = "";
+		}
+
 		copyToClipboard(markdownString);
 		setToasterMessage("Markdown string copied.");
 		setIsShowToaster(1);
@@ -179,47 +187,16 @@ const Writer = (props) => {
 				</div>
 			);
 		}
-
-		return (
-			<div
-				id="div--writer-converted"
-				className="div div--writer-converted"
-			>
-				{convertedArticle}
-			</div>
-		);
-	}
-
-	const ImageSelectorButton = () => {
-
-		return (
-			<span
-				role="button"
-				data-testid="img-selector-button"
-				className="span span--writer-statusbarbutton"
-				onClick={() => setIsShowImageSelector(!isShowImageSelector)}
-			>
-				[IMG]
-			</span>
-		);
-	}
-
-	const ConvertModeButton = () => {
-
-		return (
-			<span
-				role="button"
-				data-testid="mode-button"
-				onClick={() => setIsConvertedHTML(!isConvertedHTML)}
-				className="span span--writer-statusbarbutton"
-			>
-				{isConvertedHTML ? "HTML" : "Markdown Converted"}
-			</span>
-		);
-	}
-
-	const checkTemporary = () => {
-		setIsTemporary(!isTemporary);
+		else {
+			return (
+				<div
+					id="div--writer-converted"
+					className="div div--writer-converted"
+				>
+					{convertedArticle}
+				</div>
+			);
+		}
 	}
 	
 	if(!isAdmin()) {
@@ -236,7 +213,14 @@ const Writer = (props) => {
 				<span className="span span--writer-statusbaritem span--writer-statusbaritemright">
 					{convertedArticleStatus}
 				</span>
-				<ImageSelectorButton />
+				<span
+					role="button"
+					data-testid="img-selector-button"
+					className="span span--writer-statusbarbutton"
+					onClick={() => setIsShowImageSelector(!isShowImageSelector)}
+				>
+					[IMG]
+				</span>
 			</div>
 
 			<Suspense fallback={<div></div>}>
@@ -262,7 +246,14 @@ const Writer = (props) => {
 					/>
 					<div className="div div--writer-convertedbox">
 						<div className="div div--writer-convertedtag">
-							<ConvertModeButton />
+							<span
+								role="button"
+								data-testid="mode-button"
+								onClick={() => setIsConvertedHTML(!isConvertedHTML)}
+								className="span span--writer-statusbarbutton"
+							>
+								{isConvertedHTML ? "HTML" : "Markdown Converted"}
+							</span>
 						</div>
 						<Converted />
 					</div>
@@ -271,7 +262,7 @@ const Writer = (props) => {
 					<input
 						type="checkbox"
 						id="temporary"
-						onChange={checkTemporary}
+						onChange={() => setIsTemporary(!isTemporary)}
 						checked={isTemporary}
 					/>
 					<label
@@ -307,7 +298,9 @@ const Writer = (props) => {
 					className="button button--writer-submit"
 					type="submit"
 					disabled={disabled}
-				>{buttonText}</button>
+				>
+					{buttonText}
+				</button>
 			</form>
 
 			{changeHistory}
