@@ -110,32 +110,24 @@ const ImageSelector = (props) => {
 	else {
 		return (
 			<div className={imageSelectorClass} role="list">
+				{ images.map( data => 
+					<ImageItem
+						key={data.key}
+						fileName={data.key}
+						url={data.url}
+						copyMarkdownString={copyMarkdownString}
+					/>
+				) }
 
-				{
-					// Image list
-					images.map(
-						(data) => 
-							<ImageItem
-								key={data.key}
-								fileName={data.key}
-								url={data.url}
-								copyMarkdownString={copyMarkdownString}
-							/>
-					)
-				}
-
-				{
-					// See More button
-					hasValue(lastTimestamp) ? (
-							<button
-								role="button"
-								className="button button--image-seemorebutton"
-								onClick={() => fetchMore(lastTimestamp)}
-							>
-								See<br/>More
-							</button>
-						) : undefined
-				}
+				{ hasValue(lastTimestamp) ? (
+					<button
+						role="button"
+						className="button button--image-seemorebutton"
+						onClick={() => fetchMore(lastTimestamp)}
+					>
+						See<br/>More
+					</button>
+				) : undefined }
 				
 				<Toaster 
 					show={isShowToaster}

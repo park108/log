@@ -4,6 +4,32 @@ import PropTypes from 'prop-types';
 
 import './Toaster.css';
 
+const hideToaster = (id) => {
+	if(null !== document.getElementById(id)) {
+		document.getElementById(id).className = "div div--toaster-hide";
+	}
+}
+
+const positionStyle = {
+	"center": "div--toaster-center",
+	"bottom": "div--toaster-bottom",
+	undefined: "div--toaster-center"
+};
+
+const typeStyle = {
+	"information": "div--toaster-information",
+	"success": "div--toaster-success",
+	"warning": "div--toaster-warning",
+	"error": "div--toaster-error",
+	undefined: "div--toaster-information"
+};
+
+const showStyle = [
+	"div--toaster-hide", // 0: hide
+	"", // 1: show
+	"div--toaster-fadeout" // 2: fadeout
+];
+
 const Toaster = (props) => {
 
 	const id = uuid();
@@ -14,12 +40,6 @@ const Toaster = (props) => {
 	const message = props.message;
 	const type = props.type;
 
-	const hideToaster = () => {
-		if(null !== document.getElementById(id)) {
-			document.getElementById(id).className = "div div--toaster-hide";
-		}
-	}
-
 	// Draw toaster
 	if(1 === show) {
 		if(duration > 0) {
@@ -27,28 +47,8 @@ const Toaster = (props) => {
 		}
 	}
 	else if(2 === show) {
-		setTimeout(hideToaster, 1000);
+		setTimeout(() => { hideToaster(id) }, 1000);
 	}
-
-	const positionStyle = {
-		"center": "div--toaster-center",
-		"bottom": "div--toaster-bottom",
-		undefined: "div--toaster-center"
-	};
-
-	const typeStyle = {
-		"information": "div--toaster-information",
-		"success": "div--toaster-success",
-		"warning": "div--toaster-warning",
-		"error": "div--toaster-error",
-		undefined: "div--toaster-information"
-	};
-
-	const showStyle = [
-		"div--toaster-hide", // 0: hide
-		"", // 1: show
-		"div--toaster-fadeout" // 2: fadeout
-	];
 
 	return (
 		<div id={id}
