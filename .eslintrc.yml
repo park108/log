@@ -15,4 +15,10 @@ plugins:
 settings:
   react:
     version: 'detect'
-rules: {}
+rules: {
+  "react/no-unknown-property": ['error', { ignore: [
+    'imageurl'
+    , 'thumbnailurl'
+    , 'enlarged'
+  ] }]
+}
