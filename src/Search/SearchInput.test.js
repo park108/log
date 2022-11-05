@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory } from 'history'
-import { Router } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import * as common from "../common/common";
 import SearchInput from './SearchInput';
 
@@ -20,12 +19,18 @@ describe('test key up events', () => {
 
 		process.env.NODE_ENV = 'development';
 
-		const history = createMemoryHistory();
-		history.push({location: {pathname: "/log"}});
+		const testEntry = {
+			pathname: "/log"
+			, search: ""
+			, hash: ""
+			, state: null
+			, key: "default"
+		};
+	
 		render(
-			<Router location={history.location} navigator={history}>
+			<MemoryRouter initialEntries={[ testEntry ]}>
 				<SearchInput />
-			</Router>
+			</MemoryRouter>
 		);
 
 		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
@@ -53,12 +58,18 @@ describe('test key up events', () => {
 
 		process.env.NODE_ENV = 'production';
 
-		const history = createMemoryHistory();
-		history.push({location: {pathname: "/log"}});
+		const testEntry = {
+			pathname: "/log"
+			, search: ""
+			, hash: ""
+			, state: null
+			, key: "default"
+		};
+	
 		render(
-			<Router location={history.location} navigator={history}>
+			<MemoryRouter initialEntries={[ testEntry ]}>
 				<SearchInput />
-			</Router>
+			</MemoryRouter>
 		);
 
 		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
