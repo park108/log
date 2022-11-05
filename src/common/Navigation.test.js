@@ -1,36 +1,30 @@
 import { render, screen } from '@testing-library/react';
-import {createMemoryHistory} from 'history'
-import { Router } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import Navigation from './Navigation';
 import * as common from './common';
 
 describe('render navigation menu correctly', () => {
 
-	const history = createMemoryHistory();
-	const prevLocation = window.location;
 	const activatedListItemClass = "li li--nav-active";
 
 	it('render title menu correctly', () => {
-
-		// Mocking location
-		const location = new URL('https://www.park108.net/log')
-		location.assign = jest.fn()
-		location.replace = jest.fn()
-		location.reload = jest.fn()
-
-		delete window.location;
-		window.location = location;
-
-		history.push(location);
 
 		// Mocking login and admin check
 		common.isLoggedIn = jest.fn().mockResolvedValue(false);
 		common.isAdmin = jest.fn().mockResolvedValue(false);
 
+		const testEntry = {
+			pathname: "/log"
+			, search: ""
+			, hash: ""
+			, state: null
+			, key: "default"
+		};
+
 		render(
-			<Router location={location} navigator={history}>
+			<MemoryRouter initialEntries={[ testEntry ]}>
 				<Navigation />
-			</Router>
+			</MemoryRouter>
 		);
 
 		const html = screen.getByText("park108.net").closest('a');
@@ -39,31 +33,26 @@ describe('render navigation menu correctly', () => {
 		expected.innerHTML = "park108.net";
 
 		expect(expected).toStrictEqual(html);
-
-		window.location = prevLocation;
 	});
 
 	it('render file menu correctly', () => {
-
-		// Mocking location
-		const location = new URL('https://www.park108.net/file')
-		location.assign = jest.fn()
-		location.replace = jest.fn()
-		location.reload = jest.fn()
-
-		delete window.location;
-		window.location = location;
-
-		history.push(location);
 
 		// Mocking login and admin check
 		common.isLoggedIn = jest.fn().mockResolvedValue(true);
 		common.isAdmin = jest.fn().mockResolvedValue(true);
 
+		const testEntry = {
+			pathname: "/file"
+			, search: ""
+			, hash: ""
+			, state: null
+			, key: "default"
+		};
+
 		render(
-			<Router location={location} navigator={history}>
+			<MemoryRouter initialEntries={[ testEntry ]}>
 				<Navigation />
-			</Router>
+			</MemoryRouter>
 		);
 		
 		// Is a anchor tag exist?
@@ -80,32 +69,26 @@ describe('render navigation menu correctly', () => {
 		const liClass = li.getAttribute("class");
 
 		expect(liClass).toStrictEqual(activatedListItemClass);
-		
-		// Revert location
-		window.location = prevLocation;
 	});
 
 	it('render monitor menu correctly', async () => {
-
-		// Mocking location
-		const location = new URL('https://www.park108.net/monitor')
-		location.assign = jest.fn()
-		location.replace = jest.fn()
-		location.reload = jest.fn()
-
-		delete window.location;
-		window.location = location;
-
-		history.push(location);
 
 		// Mocking login and admin check
 		common.isLoggedIn = jest.fn().mockResolvedValue(true);
 		common.isAdmin = jest.fn().mockResolvedValue(true);
 
+		const testEntry = {
+			pathname: "/monitor"
+			, search: ""
+			, hash: ""
+			, state: null
+			, key: "default"
+		};
+
 		render(
-			<Router location={location} navigator={history}>
+			<MemoryRouter initialEntries={[ testEntry ]}>
 				<Navigation />
-			</Router>
+			</MemoryRouter>
 		);
 		
 		// Is a anchor tag exist?
@@ -122,8 +105,5 @@ describe('render navigation menu correctly', () => {
 		const liClass = li.getAttribute("class");
 
 		expect(liClass).toStrictEqual(activatedListItemClass);
-		
-		// Revert location
-		window.location = prevLocation;
 	});
 });

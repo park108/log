@@ -1,8 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { createMemoryHistory } from 'history'
-import { Router } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import LogSingle from '../Log/LogSingle';
-import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;
 console.log = jest.fn();
@@ -39,16 +37,20 @@ it('render LogSingle', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	const history = createMemoryHistory();
-	const location = { pathname: "/log" };
-	history.push(location);
-
 	jest.useFakeTimers();
 
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
 	render(
-		<Router location={location} history={history} >
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
-		</Router>
+		</MemoryRouter>
 	);
 
 	jest.runOnlyPendingTimers();
@@ -71,13 +73,18 @@ it('render "Page Not Found" page if it cannot fetch', async () => {
 
 	process.env.NODE_ENV = 'development';
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log/"}});
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
-		</Router>
+		</MemoryRouter>
 	);
 
 	const obj = await screen.findByText("Page Not Found.", {}, { timeout: 0});
@@ -97,13 +104,18 @@ it('render "Page Not Found" page if it has no log', async () => {
 		}),
 	})
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log/"}});
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
-		</Router>
+		</MemoryRouter>
 	);
 
 	const obj = await screen.findByText("Page Not Found.", {}, { timeout: 0});
@@ -117,13 +129,18 @@ it('render "Page Not Found" page if API is down', async () => {
 	// fetchFirst -> Server error
 	global.fetch = () => Promise.reject(errorMessage);
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log/"}});
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
-		</Router>
+		</MemoryRouter>
 	);
 
 	global.fetch = unmockedFetch;

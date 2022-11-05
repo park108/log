@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory } from 'history'
-import { Router } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import LogList from '../Log/LogList';
 
 const unmockedFetch = global.fetch;
@@ -36,14 +35,18 @@ it('render logs and get next logs correctly', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
-	sessionStorage.clear();
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogList />
-		</Router>
+		</MemoryRouter>
 	);
 
 	const list = await screen.findByRole("list", {}, { timeout: 0});
@@ -120,15 +123,20 @@ it('render logs and has no next', async () => {
 	});
 
 	process.env.NODE_ENV = 'development';
-
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
 	sessionStorage.clear();
 
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogList />
-		</Router>
+		</MemoryRouter>
 	);
 
 	const list = await screen.findByRole("list", {}, { timeout: 0});
@@ -146,14 +154,20 @@ it('render logs failed', async () => {
 		}),
 	});
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
 	sessionStorage.clear();
 
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogList />
-		</Router>
+		</MemoryRouter>
 	);
 
 	global.fetch = unmockedFetch;
@@ -164,14 +178,20 @@ it('render if API is down', async () => {
 	// fetchFirst -> Server error
 	global.fetch = () => Promise.reject(errorMessage);
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
 	sessionStorage.clear();
 
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogList />
-		</Router>
+		</MemoryRouter>
 	);
 
 	global.fetch = unmockedFetch;
@@ -200,13 +220,18 @@ it('render logs from session and get next logs correctly', async () => {
 
 	process.env.NODE_ENV = 'development';
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogList />
-		</Router>
+		</MemoryRouter>
 	);
 	
 	const seeMoreButton = screen.getByTestId("seeMoreButton");

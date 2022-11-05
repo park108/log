@@ -1,7 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory } from 'history'
-import { Router } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import LogItem from '../Log/LogItem';
 import * as common from '../common/common';
 
@@ -27,15 +26,20 @@ it('render log item correctly', async () => {
 
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
-
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
-
-	process.env.NODE_ENV = 'production';
 	document.execCommand = jest.fn();
 
+	process.env.NODE_ENV = 'production';
+
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogItem 
 				author={"park108@gmail.com"}
 				timestamp={1655736946977}
@@ -43,7 +47,7 @@ it('render log item correctly', async () => {
 				item={item}
 				showLink={true}
 			/>
-		</Router>
+		</MemoryRouter>
 	);
 	
 	// Button click tests
@@ -128,11 +132,16 @@ it('render log item and delete correctly', async () => {
 
 	process.env.NODE_ENV = 'development';
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogItem 
 				author={"park108@gmail.com"}
 				timestamp={1655736946977}
@@ -140,7 +149,7 @@ it('render log item and delete correctly', async () => {
 				item={item}
 				showLink={true}
 			/>
-		</Router>
+		</MemoryRouter>
 	);
 
 	// Mouse over/out event
@@ -195,11 +204,16 @@ it('render log item with no session data, no version history, temporary and dele
 
 	process.env.NODE_ENV = 'development';
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogItem 
 				author={"park108@gmail.com"}
 				timestamp={1655736946977}
@@ -208,7 +222,7 @@ it('render log item with no session data, no version history, temporary and dele
 				showLink={true}
 				temporary={true}
 			/>
-		</Router>
+		</MemoryRouter>
 	);
 
 	// Mouse over/out event
@@ -261,11 +275,16 @@ it('render log item and delete failed correctly', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/log"}});
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogItem 
 				author={"park108@gmail.com"}
 				timestamp={1655736946977}
@@ -273,7 +292,7 @@ it('render log item and delete failed correctly', async () => {
 				item={item}
 				showLink={true}
 			/>
-		</Router>
+		</MemoryRouter>
 	);
 	
 	jest.useFakeTimers();
