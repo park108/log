@@ -163,11 +163,8 @@ const Writer = (props) => {
 		if("img" === tag) {
 			markdownString = "![ALT_TEXT](url \"OPTIONAL_TITLE\")";
 		}
-		else if("a" === tag) {
+		else { // "a" tag
 			markdownString = "[LinkText](https://example.com/ \"TITLE\")";
-		}
-		else {
-			markdownString = "";
 		}
 
 		copyToClipboard(markdownString);

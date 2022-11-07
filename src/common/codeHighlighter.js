@@ -2,15 +2,11 @@ export const codeHighlighter = (lang, code) => {
 
 	const language = lang.toLowerCase();
 
-	switch(language) {
-		case "kt":
-		case "kotlin":
-			code = highlighterKotlin(code);
-			break;
-		case "yml":
-		case "yaml":
-			code = highlighterYaml(code);
-			break;
+	if("kt" === language || "kotlin" === language) {
+		code = highlighterKotlin(code);
+	}
+	else { // yml or yaml
+		code = highlighterYaml(code);
 	}
 
 	return code;
