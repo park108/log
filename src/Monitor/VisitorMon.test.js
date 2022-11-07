@@ -118,7 +118,7 @@ it('render visitor monitor', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
+	const obj = await screen.findByText("Rendering Engine");
 	expect(obj).toBeInTheDocument();
 
 	// Test mouse over, move and out events
@@ -291,7 +291,7 @@ it('render visitor monitor for sort order test - 2', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
+	const obj = await screen.findByText("Rendering Engine");
 	expect(obj).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;
@@ -312,7 +312,7 @@ it('render visitor monitor when fetch failed', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
+	const obj = await screen.findByText("Rendering Engine");
 	expect(obj).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;
@@ -329,7 +329,7 @@ it('render visitor monitor when API is down', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("Rendering Engine", {}, { timeout: 0});
+	const obj = await screen.findByText("Rendering Engine");
 	expect(obj).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;

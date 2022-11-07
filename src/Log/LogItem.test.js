@@ -55,7 +55,7 @@ it('render log item correctly', async () => {
 
 	const linkCopyButton = await screen.findByTestId("link-copy-button");
 	expect(linkCopyButton).toBeInTheDocument();
-	userEvent.click(linkCopyButton);
+	fireEvent.click(linkCopyButton);
 
 	jest.runOnlyPendingTimers();
 
@@ -70,7 +70,7 @@ it('render log item correctly', async () => {
 
 	const editButton = await screen.findByTestId("edit-button");
 	expect(editButton).toBeDefined();
-	userEvent.click(editButton);
+	fireEvent.click(editButton);
 
 	// Mouse over/out event
 	const linkUrl = await screen.findByText("https://www.park108.net/log/1655736946977");
@@ -162,11 +162,11 @@ it('render log item and delete correctly', async () => {
 
 	const deleteButton = screen.getByTestId("delete-button");
 	expect(deleteButton).toBeDefined();
-	userEvent.click(deleteButton);
+	fireEvent.click(deleteButton);
 
 	window.confirm = jest.fn(() => true);
 	expect(deleteButton).toBeDefined();
-	userEvent.click(deleteButton);
+	fireEvent.click(deleteButton);
 
 	jest.runOnlyPendingTimers();
 	
@@ -235,11 +235,11 @@ it('render log item with no session data, no version history, temporary and dele
 
 	const deleteButton = screen.getByTestId("delete-button");
 	expect(deleteButton).toBeDefined();
-	userEvent.click(deleteButton);
+	fireEvent.click(deleteButton);
 
 	window.confirm = jest.fn(() => true);
 	expect(deleteButton).toBeDefined();
-	userEvent.click(deleteButton);
+	fireEvent.click(deleteButton);
 
 	jest.runOnlyPendingTimers();
 	
@@ -300,7 +300,7 @@ it('render log item and delete failed correctly', async () => {
 
 	const deleteButton = await screen.findByTestId("delete-button");
 	expect(deleteButton).toBeDefined();
-	userEvent.click(deleteButton);
+	fireEvent.click(deleteButton);
 
 	jest.runOnlyPendingTimers();
 	

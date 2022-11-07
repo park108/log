@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event'
+import { render, screen, fireEvent } from '@testing-library/react';
 import FileItem from '../File/FileItem';
 
 const unmockedFetch = global.fetch;
@@ -30,7 +29,7 @@ describe('render file item name "20220606_log_CQRS.png" correctly', () => {
 		const buttons = screen.getAllByRole("button");
 		const fileButton = buttons[0];
 		expect(fileButton).toBeInTheDocument();
-		userEvent.click(fileButton);
+		fireEvent.click(fileButton);
 
 		jest.runAllTimers();
 		jest.useRealTimers();
@@ -54,7 +53,7 @@ describe('render file item name "20220606_log_CQRS.png" correctly', () => {
 		// Delete -> Server error
 		global.fetch = () => Promise.reject(errorMessage);
 		process.env.NODE_ENV = '';
-		userEvent.click(deleteButton);
+		fireEvent.click(deleteButton);
 		
 		// Delete -> Error
 		global.fetch = () => Promise.resolve({
@@ -63,7 +62,7 @@ describe('render file item name "20220606_log_CQRS.png" correctly', () => {
 			}),
 		});
 		process.env.NODE_ENV = 'development';
-		userEvent.click(deleteButton);
+		fireEvent.click(deleteButton);
 		
 		// Delete -> OK
 		global.fetch = () => Promise.resolve({
@@ -72,7 +71,7 @@ describe('render file item name "20220606_log_CQRS.png" correctly', () => {
 			}),
 		});
 		process.env.NODE_ENV = 'production';
-		userEvent.click(deleteButton);
+		fireEvent.click(deleteButton);
 
 		global.fetch = unmockedFetch;
 	});

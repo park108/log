@@ -73,6 +73,8 @@ it('render "Page Not Found" page if it cannot fetch', async () => {
 
 	process.env.NODE_ENV = 'development';
 
+	jest.useFakeTimers();
+
 	const testEntry = {
 		pathname: "/log"
 		, search: ""
@@ -87,9 +89,12 @@ it('render "Page Not Found" page if it cannot fetch', async () => {
 		</MemoryRouter>
 	);
 
-	const obj = await screen.findByText("Page Not Found.", {}, { timeout: 0});
+	jest.runOnlyPendingTimers();
+
+	const obj = await screen.findByText("Page Not Found.");
 	expect(obj).toBeInTheDocument();
 
+	jest.useRealTimers();
 	global.fetch = unmockedFetch;
 });
 
@@ -118,7 +123,7 @@ it('render "Page Not Found" page if it has no log', async () => {
 		</MemoryRouter>
 	);
 
-	const obj = await screen.findByText("Page Not Found.", {}, { timeout: 0});
+	const obj = await screen.findByText("Page Not Found.");
 	expect(obj).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;

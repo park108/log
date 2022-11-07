@@ -42,6 +42,8 @@ it('render api call monitor', async () => {
 		}),
 	});
 
+	jest.useFakeTimers();
+
 	render(
 		<ApiCallItem
 			title="log"
@@ -50,7 +52,9 @@ it('render api call monitor', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("02.01 (Tue)", {}, { timeout: 0});
+	jest.runOnlyPendingTimers();
+
+	const obj = await screen.findByText("02.01 (Tue)");
 	expect(obj).toBeInTheDocument();
 
 	// Test mouse over, move and out events
@@ -63,6 +67,7 @@ it('render api call monitor', async () => {
 	fireEvent.mouseOut(firstPillar);
 	fireEvent.mouseOut(firstPillar); // Already class changed
 
+	jest.useRealTimers();
 	global.fetch = unmockedFetch;
 });
 
@@ -89,6 +94,8 @@ it('render api call monitor for pillar of total count zero', async () => {
 		}),
 	});
 
+	jest.useFakeTimers();
+
 	render(
 		<ApiCallItem
 			title="log"
@@ -97,13 +104,16 @@ it('render api call monitor for pillar of total count zero', async () => {
 		/>
 	);
 
-	const obj = await screen.findByText("02.01 (Tue)", {}, { timeout: 0});
+	jest.runOnlyPendingTimers();
+
+	const obj = await screen.findByText("02.01 (Tue)");
 	expect(obj).toBeInTheDocument();
 
 	// Test mouse over, move and out events
 	const firstPillar = await screen.findByTestId("api-call-item-log-0");
 	expect(firstPillar).toBeInTheDocument();
 
+	jest.useRealTimers();
 	global.fetch = unmockedFetch;
 });
 

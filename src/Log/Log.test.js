@@ -92,7 +92,7 @@ it('render log if it logged in', async () => {
 
 	// const submitButton = await screen.findByTestId("submit-button");
 	// expect(submitButton).toBeDefined();
-	// userEvent.click(submitButton);
+	// fireEvent.click(submitButton);
 
 
 	jest.useRealTimers();

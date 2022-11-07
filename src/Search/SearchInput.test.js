@@ -45,11 +45,11 @@ describe('test key up events', () => {
 		fireEvent.keyUp(inputElement, { keyCode: 13 });
 		
 		expect(searchButton).toBeDefined();
-		userEvent.click(searchButton);
+		fireEvent.click(searchButton);
 		
 		expect(mobileSearchButton).toBeDefined();
-		userEvent.click(mobileSearchButton);
-		userEvent.click(mobileSearchButton);
+		fireEvent.click(mobileSearchButton);
+		fireEvent.click(mobileSearchButton);
 	});
 
 	it('firing search when the search string is null', async () => {

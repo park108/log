@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import userEvent from '@testing-library/user-event'
 import Search from './Search';
 
 const unmockedFetch = global.fetch;
@@ -50,7 +49,7 @@ it('render search result', async () => {
 	expect(searchedItem).toBeInTheDocument();
 
 	const toListButton = await screen.findByText("To list");
-	userEvent.click(toListButton);
+	fireEvent.click(toListButton);
 
 	global.fetch = unmockedFetch;
 });
@@ -93,7 +92,7 @@ it('render search single result', async () => {
 	expect(searchedItem).toBeInTheDocument();
 
 	const toListButton = await screen.findByText("To list");
-	userEvent.click(toListButton);
+	fireEvent.click(toListButton);
 
 	global.fetch = unmockedFetch;
 });
@@ -229,7 +228,7 @@ it('render search list from session and get next logs correctly', async () => {
 	document.getElementById("query-string-by-button").value = "테스트";
 
 	const toListButton = await screen.findByText("To list");
-	userEvent.click(toListButton);
+	fireEvent.click(toListButton);
 
 	global.fetch = unmockedFetch;
 });

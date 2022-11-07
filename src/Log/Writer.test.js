@@ -69,45 +69,45 @@ it('render text area correctly', async () => {
 	// Button click tests
 	const imgButton = await screen.findByTestId("img-button");
 	expect(imgButton).toBeDefined();
-	userEvent.click(imgButton);
+	fireEvent.click(imgButton);
 
 	jest.runOnlyPendingTimers();
 
 	const aButton = await screen.findByTestId("a-button");
 	expect(aButton).toBeDefined();
-	userEvent.click(aButton);
+	fireEvent.click(aButton);
 
 	jest.runOnlyPendingTimers();
 
 	const tempCheckbox = await screen.findByText("Temporary Save");
 	expect(tempCheckbox).toBeDefined();
-	userEvent.click(tempCheckbox);
+	fireEvent.click(tempCheckbox);
 
 	jest.runOnlyPendingTimers();
 	
 	// Image selector mode change tests
 	const selectorButton1 = await screen.findByTestId("img-selector-button");
 	expect(selectorButton1).toBeDefined();
-	userEvent.click(selectorButton1);
+	fireEvent.click(selectorButton1);
 
 	jest.runOnlyPendingTimers();
 
 	const selectorButton2 = await screen.findByTestId("img-selector-button");
 	expect(selectorButton2).toBeDefined();
-	userEvent.click(selectorButton2);
+	fireEvent.click(selectorButton2);
 
 	jest.runOnlyPendingTimers();
 
 	const selectorButton3 = await screen.findByTestId("img-selector-button");
 	expect(selectorButton3).toBeDefined();
-	userEvent.click(selectorButton3);
+	fireEvent.click(selectorButton3);
 
 	jest.runOnlyPendingTimers();
 
 	// Test conversion toggle
 	const modeHTML = await screen.findByTestId("mode-button");
 	expect(modeHTML).toBeDefined();
-	userEvent.click(modeHTML);
+	fireEvent.click(modeHTML);
 
 	jest.runOnlyPendingTimers();
 
@@ -116,7 +116,7 @@ it('render text area correctly', async () => {
 	
 	const modeMD = await screen.findByTestId("mode-button");
 	expect(modeMD).toBeDefined();
-	userEvent.click(modeMD);
+	fireEvent.click(modeMD);
 
 	jest.runOnlyPendingTimers();
 

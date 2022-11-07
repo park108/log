@@ -24,69 +24,69 @@ const ApiCallItem = (props) => {
 	const [countList, setCountList] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 
-	// Get api call stats from API Gateway
-	const fetchData = async (service) => {
-
-		setIsLoading(true);
-
-		// Make timestamp for 7 days
-		const today = new Date();
-		const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
-		const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
-
-		try {
-			const res = await getApiCallStats(service, fromTimestamp, toTimestamp);
-			const data = await res.json();
-
-			if(!hasValue(data.errorType)) {
-				log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms", "SUCCESS");
-				
-				if(!hasValue(data.body.totalCount)) {
-					throw "totalCount is undefined";
-				}
-				setTotalCount(data.body.totalCount);
-
-				const periodData = data.body.Items;
-				const maxCount = Math.max.apply(Math, periodData.map(item => { return item.total; }));
-
-				let statList = [];
-				let successCount = 0;
-	
-				for(let item of periodData) {
-					item.date = getFormattedDate(item.timestamp);
-					item.time = getFormattedTime(item.timestamp);
-	
-					statList.push(
-						{
-							"date": getFormattedDate(item.timestamp) + " (" + getWeekday(item.timestamp) +")",
-							"count": (1 * item.total).toLocaleString(),
-							"succeed": (1 * item.succeed).toLocaleString(),
-							"failed": (1 * item.failed).toLocaleString(),
-							"valueRate": 1 * item.total / maxCount,
-							"successRate":  0 === item.total ? 0 : 1 * item.succeed / item.total
-						}
-					);
-
-					successCount += item.succeed;
-				}
-				setSuccessCount(successCount);
-				setCountList(statList);
-			}
-			else {
-				log("[API GET] FAILED - API call stats: " + service, "ERROR");
-				console.error(data);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - API call stats: " + service, "ERROR");
-			console.error(err);
-		}
-		
-		setIsLoading(false);
-	}
-
 	// Fetch counts at mount
 	useEffect(() => {
+
+		// Get api call stats from API Gateway
+		const fetchData = async (service) => {
+	
+			setIsLoading(true);
+	
+			// Make timestamp for 7 days
+			const today = new Date();
+			const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
+			const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
+	
+			try {
+				const res = await getApiCallStats(service, fromTimestamp, toTimestamp);
+				const data = await res.json();
+	
+				if(!hasValue(data.errorType)) {
+					log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms", "SUCCESS");
+					
+					if(!hasValue(data.body.totalCount)) {
+						throw "totalCount is undefined";
+					}
+					setTotalCount(data.body.totalCount);
+	
+					const periodData = data.body.Items;
+					const maxCount = Math.max.apply(Math, periodData.map(item => { return item.total; }));
+	
+					let statList = [];
+					let successCount = 0;
+		
+					for(let item of periodData) {
+						item.date = getFormattedDate(item.timestamp);
+						item.time = getFormattedTime(item.timestamp);
+		
+						statList.push(
+							{
+								"date": getFormattedDate(item.timestamp) + " (" + getWeekday(item.timestamp) +")",
+								"count": (1 * item.total).toLocaleString(),
+								"succeed": (1 * item.succeed).toLocaleString(),
+								"failed": (1 * item.failed).toLocaleString(),
+								"valueRate": 1 * item.total / maxCount,
+								"successRate":  0 === item.total ? 0 : 1 * item.succeed / item.total
+							}
+						);
+	
+						successCount += item.succeed;
+					}
+					setSuccessCount(successCount);
+					setCountList(statList);
+				}
+				else {
+					log("[API GET] FAILED - API call stats: " + service, "ERROR");
+					console.error(data);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - API call stats: " + service, "ERROR");
+				console.error(err);
+			}
+			
+			setIsLoading(false);
+		}
 
 		fetchData(service)
 

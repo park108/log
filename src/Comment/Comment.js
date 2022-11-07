@@ -11,47 +11,14 @@ const CommentForm = lazy(() => import('./CommentForm'));
 const Comment = (props) => {
 
 	const [comments, setComments] = useState([]);
+	const [reload, setReload] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
 	const [buttonText, setButtonText] = useState("... comments");
 	const [isShow, setIsShow] = useState(false);
 	const [isOpenReplyForm, setIsOpenReplyForm] = useState(false);
 	const [isPosting, setIsPosting] = useState(false);
 
-	const logTimestamp = props.logTimestamp;
-
-	const fetchData = async(timestamp) => {
-
-		setIsLoading(true);
-
-		// Call GET API
-		try {
-			const res = await getComments(timestamp, isAdmin());
-			const newData = await res.json();
-
-			if(!hasValue(newData.errorType)) {
-				log("[API GET] OK - Comments", "SUCCESS");
-
-				// Sort by sortKey
-				newData.body.Items.sort((a, b) => {
-					return (a.sortKey < b.sortKey) ? -1 : 1
-				});
-				
-				// Set comment list
-				setComments(newData.body.Items);
-			}
-			else {
-				log("[API GET] FAILED - Comments", "ERROR");
-				console.error(newData);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - Comments", "ERROR");
-			console.error(err);
-		}
-
-		setIsLoading(false);
-		setIsPosting(false);
-	}
+	let logTimestamp = props.logTimestamp;
 
 	const postNewComment = async(comment) => {
 
@@ -63,7 +30,7 @@ const Comment = (props) => {
 
 			if(200 === status.statusCode) {
 				log("[API POST] OK - Comment", "SUCCESS");
-				fetchData(comment.logTimestamp);
+				setReload(true);
 			}
 			else {
 				log("[API POST] FAILED - Comment", "ERROR");
@@ -82,7 +49,48 @@ const Comment = (props) => {
 		setIsOpenReplyForm(isOpened);
 	}
 
-	useEffect(() => fetchData(logTimestamp), [logTimestamp]);
+	useEffect(() => {
+
+		const fetchData = async(timestamp) => {
+
+			setIsLoading(true);
+	
+			// Call GET API
+			try {
+				const res = await getComments(timestamp, isAdmin());
+				const newData = await res.json();
+	
+				if(!hasValue(newData.errorType)) {
+					log("[API GET] OK - Comments", "SUCCESS");
+	
+					// Sort by sortKey
+					newData.body.Items.sort((a, b) => {
+						return (a.sortKey < b.sortKey) ? -1 : 1
+					});
+					
+					// Set comment list
+					setComments(newData.body.Items);
+				}
+				else {
+					log("[API GET] FAILED - Comments", "ERROR");
+					console.error(newData);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - Comments", "ERROR");
+				console.error(err);
+			}
+	
+			setIsLoading(false);
+			setIsPosting(false);
+		}
+
+		if(reload) {
+			fetchData(logTimestamp);
+			setReload(false);
+		}
+
+	}, [logTimestamp, reload]);
 
 	// Change by loading state
 	useEffect(() => {

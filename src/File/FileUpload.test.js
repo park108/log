@@ -65,13 +65,13 @@ it('render upload input correctly and upload ok', async () => {
 	expect(toasterCompleted.getAttribute("class")).toBe("div div--toaster-bottom div--toaster-success ");
 
 	// Second, initialize file selector.
-	jest.runOnlyPendingTimers();
+	jest.runAllTimers();
 	
 	const toasterReady = await screen.findByText("Upload complete.");
-	expect(toasterReady.getAttribute("class")).toBe("div div--toaster-bottom div--toaster-success div--toaster-fadeout");
+	expect(toasterReady.getAttribute("class")).toBe("div div--toaster-bottom div--toaster-success ");
 
-	global.fetch = unmockedFetch;
 	jest.useRealTimers();
+	global.fetch = unmockedFetch;
 });
 
 it('render upload input correctly and upload failed', () => {

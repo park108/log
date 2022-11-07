@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import * as common from './common/common';
 
@@ -17,7 +16,7 @@ it('render when network connection is offline', async () => {
 	);
 
 	render(<App />);
-	expect(await screen.findByText("You are offline now.", {}, { timeout: 0 })).toBeInTheDocument();
+	expect(await screen.findByText("You are offline now.")).toBeInTheDocument();
 	
 	// Mocking network status
 	Object.defineProperty(navigator, 'onLine',
@@ -26,13 +25,13 @@ it('render when network connection is offline', async () => {
 			configurable: true
 		}
 	);
-	expect(await screen.findByText("You are offline now.", {}, { timeout: 0 })).toBeInTheDocument();
+	expect(await screen.findByText("You are offline now.")).toBeInTheDocument();
 });
 
 it('render title text "park108.net" correctly', async () => {
 
 	render(<App />);
-	expect(await screen.findByText("park108.net", {}, { timeout: 0 })).toBeInTheDocument();
+	expect(await screen.findByText("park108.net")).toBeInTheDocument();
 });
 
 it('render after resize', () => {
@@ -78,7 +77,7 @@ describe('click login button', () => {
 		expect(logoutButton).toBeInTheDocument();
 		expect(logoutButton.getAttribute("class")).toBe("span span--login-text");
 
-		userEvent.click(logoutButton);
+		fireEvent.click(logoutButton);
 	});
 
 	it("test login", async () => {
@@ -92,6 +91,6 @@ describe('click login button', () => {
 		expect(loginButton).toBeInTheDocument();
 		expect(loginButton.getAttribute("class")).toBe("span span--login-text");
 
-		userEvent.click(loginButton);
+		fireEvent.click(loginButton);
 	});
 });

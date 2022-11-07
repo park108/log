@@ -13,92 +13,92 @@ const ContentItem = (props) => {
 	const [counts, setCounts] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 
-	// Get content counts from API Gateway
-	const fetchCounts = async (path) => {
-
-		setIsLoading(true);
-
-		// Make timestamp for 6 months
-		const now = new Date();
-		const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
-		const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
-
-		const timeline = [
-			from,
-			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
-			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
-			to
-		];
-
-		try {
-			const res = await getContentItemCount(path, from, to);
-			const data = await res.json();
-
-			if(!hasValue(data.errorType)) {
-				log("[API GET] OK - Content API: " + path, "SUCCESS");
-
-				setTotalCount(data.body.Count);
-
-				let periodData = data.body.Items;
-				let max = 0; // Max value in array to calculate value rate
-				let countList = [];
-
-				for(let i = 0; i < timeline.length - 1; i++) {
-
-					countList.push({
-						"from": timeline[i],
-						"to": timeline[i+1],
-						"value": 0,
-						"count": 0,
-						"deleted": 0
-					});
-	
-					for(let item of periodData) {
-						if(timeline[i] <= item.timestamp && item.timestamp < timeline[i+1]) {
-							++countList[i].count;
-							if(hasValue(item.size)) {
-								countList[i].value += item.size;
-							}
-							else {
-								++countList[i].value;
-							}
-							if(item.sortKey < 0) {
-								++countList[i].deleted;
-							}
-						}
-					}
-					
-					// Update max value
-					if(max < countList[i].value) {
-						max = countList[i].value;
-					}
-				}
-
-				// Calculate value rate by max value
-				for(let item of countList) {
-					item.valueRate = item.value / max;
-				}
-
-				setCounts(countList);
-			}
-			else {
-				log("[API GET] FAILED - Content API: " + path, "ERROR");
-				console.error(data);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - Content API: " + path, "ERROR");
-			console.error(err);
-		}
-		
-		setIsLoading(false);
-	}
-
 	// Fetch counts at mount
 	useEffect(() => {
+
+		// Get content counts from API Gateway
+		const fetchCounts = async (path) => {
+	
+			setIsLoading(true);
+	
+			// Make timestamp for 6 months
+			const now = new Date();
+			const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
+			const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
+	
+			const timeline = [
+				from,
+				(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
+				(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
+				(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
+				(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
+				(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
+				to
+			];
+	
+			try {
+				const res = await getContentItemCount(path, from, to);
+				const data = await res.json();
+	
+				if(!hasValue(data.errorType)) {
+					log("[API GET] OK - Content API: " + path, "SUCCESS");
+	
+					setTotalCount(data.body.Count);
+	
+					let periodData = data.body.Items;
+					let max = 0; // Max value in array to calculate value rate
+					let countList = [];
+	
+					for(let i = 0; i < timeline.length - 1; i++) {
+	
+						countList.push({
+							"from": timeline[i],
+							"to": timeline[i+1],
+							"value": 0,
+							"count": 0,
+							"deleted": 0
+						});
+		
+						for(let item of periodData) {
+							if(timeline[i] <= item.timestamp && item.timestamp < timeline[i+1]) {
+								++countList[i].count;
+								if(hasValue(item.size)) {
+									countList[i].value += item.size;
+								}
+								else {
+									++countList[i].value;
+								}
+								if(item.sortKey < 0) {
+									++countList[i].deleted;
+								}
+							}
+						}
+						
+						// Update max value
+						if(max < countList[i].value) {
+							max = countList[i].value;
+						}
+					}
+	
+					// Calculate value rate by max value
+					for(let item of countList) {
+						item.valueRate = item.value / max;
+					}
+	
+					setCounts(countList);
+				}
+				else {
+					log("[API GET] FAILED - Content API: " + path, "ERROR");
+					console.error(data);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - Content API: " + path, "ERROR");
+				console.error(err);
+			}
+			
+			setIsLoading(false);
+		}
 
 		fetchCounts(path)
 

@@ -3,6 +3,9 @@ import { MemoryRouter } from 'react-router-dom';
 import Navigation from './Navigation';
 import * as common from './common';
 
+console.log = jest.fn();
+console.error = jest.fn();
+
 describe('render navigation menu correctly', () => {
 
 	const activatedListItemClass = "li li--nav-active";

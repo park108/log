@@ -14,57 +14,6 @@ const LogList = (props) => {
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
-	// Get log list from API gateway
-	const fetchFirst = async () => {
-
-		// Get log list from session
-		const listInSession = sessionStorage.getItem("logList");
-
-		if(hasValue(listInSession)) {
-			
-			setLogs(JSON.parse(listInSession));
-
-			const lastTimestampInSession = sessionStorage.getItem("logListLastTimestamp");
-
-			if(hasValue(lastTimestampInSession)) {
-				setLastTimestamp(JSON.parse(lastTimestampInSession));
-			}
-
-			setIsLoading(false);
-			log("Get logs from session.");
-
-			return;
-		}
-
-		// Call API
-		try {
-			setIsLoading(true);
-			const res = await getLogs();
-			const fetchedData = await res.json();
-
-			if(!hasValue(fetchedData.errorType)) {
-				log("[API GET] OK - Logs", "SUCCESS");
-
-				const newLogs = fetchedData.body.Items;
-				const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
-	
-				setLogs(newLogs);
-				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
-	
-				setIsLoading(false);
-			}
-			else {
-				log("[API GET] FAILED - Logs", "ERROR");
-				log(fetchedData, "ERROR");
-				setIsLoading(false);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - Logs", "ERROR");
-			log(err, "ERROR");
-		}
-	}
-
 	// Get next log list from API gateway
 	const fetchMore = async (timestamp) => {
 
@@ -97,7 +46,62 @@ const LogList = (props) => {
 	}
 
 	// Fetch data at mount
-	useEffect(() => fetchFirst(), [props.isPostSuccess]);
+	useEffect(() => {
+
+		// Get log list from API gateway
+		const fetchFirst = async () => {
+	
+			// Get log list from session
+			const listInSession = sessionStorage.getItem("logList");
+	
+			if(hasValue(listInSession)) {
+				
+				setLogs(JSON.parse(listInSession));
+	
+				const lastTimestampInSession = sessionStorage.getItem("logListLastTimestamp");
+	
+				if(hasValue(lastTimestampInSession)) {
+					setLastTimestamp(JSON.parse(lastTimestampInSession));
+				}
+	
+				setIsLoading(false);
+				log("Get logs from session.");
+	
+				return;
+			}
+	
+			// Call API
+			try {
+				setIsLoading(true);
+				const res = await getLogs();
+				const fetchedData = await res.json();
+	
+				if(!hasValue(fetchedData.errorType)) {
+					log("[API GET] OK - Logs", "SUCCESS");
+	
+					const newLogs = fetchedData.body.Items;
+					const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
+		
+					setLogs(newLogs);
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+		
+					setIsLoading(false);
+				}
+				else {
+					log("[API GET] FAILED - Logs", "ERROR");
+					log(fetchedData, "ERROR");
+					setIsLoading(false);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - Logs", "ERROR");
+				log(err, "ERROR");
+			}
+		}
+
+		fetchFirst();
+
+	}, [props.isPostSuccess]);
 
 	// Change by loading state
 	useEffect(() => {
@@ -114,8 +118,16 @@ const LogList = (props) => {
 	}, [isLoading]);
 
 	// Set fetched data in local stroage
-	useEffect(() => sessionStorage.setItem("logList", JSON.stringify(logs)), [logs]);
-	useEffect(() => sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestamp)), [lastTimestamp]);
+	useEffect(() => {
+		if(logs.length > 0) {
+			sessionStorage.setItem("logList", JSON.stringify(logs));
+		}
+	}, [logs]);
+	useEffect(() => {
+		if(hasValue(lastTimestamp)) {
+			sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestamp));
+		}
+	}, [lastTimestamp]);
 
 	// Cleanup
 	useEffect(() => {

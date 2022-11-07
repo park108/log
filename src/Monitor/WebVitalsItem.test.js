@@ -49,7 +49,7 @@ it('render web vitals monitor', async () => {
 
 	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
-	const obj = await screen.findByText("POOR", {}, { timeout: 0});
+	const obj = await screen.findByText("POOR");
 	expect(obj).toBeInTheDocument();
 
 	// Test mouse over, move and out events
@@ -180,7 +180,7 @@ it('render web vitals monitor when fetch failed', async () => {
 
 	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
-	const obj = await screen.findByText("CLS", {}, { timeout: 0});
+	const obj = await screen.findByText("CLS");
 	expect(obj).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;
@@ -193,7 +193,7 @@ it('render web vitals if API is down', async () => {
 
 	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
-	const obj = await screen.findByText("CLS", {}, { timeout: 0});
+	const obj = await screen.findByText("CLS");
 	expect(obj).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;

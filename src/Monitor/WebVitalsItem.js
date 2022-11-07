@@ -10,29 +10,33 @@ const WebVitalsItem = (props) => {
 	const name = props.name;
 	const description = props.description;
 
-	const fetchData = async(name) => {
-
-		try {
-			const res = await getWebVitals(name);
-			const fetchedData = await res.json();
-
-			if(!hasValue(fetchedData.errorType)) {
-				log("[API GET] OK - Web Vital(" + name + "): " + fetchedData.body.Count, "SUCCESS");
-				setData(fetchedData.body.Items);
-			}
-			else {
-				log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
-				console.error(fetchedData);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
-			console.error(err);
-		}
-	}
-
 	// Fetch data at mount
-	useEffect(() => fetchData(name), [name]);
+	useEffect(() => {
+
+		const fetchData = async(name) => {
+
+			try {
+				const res = await getWebVitals(name);
+				const fetchedData = await res.json();
+
+				if(!hasValue(fetchedData.errorType)) {
+					log("[API GET] OK - Web Vital(" + name + "): " + fetchedData.body.Count, "SUCCESS");
+					setData(fetchedData.body.Items);
+				}
+				else {
+					log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
+					console.error(fetchedData);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
+				console.error(err);
+			}
+		}
+
+		fetchData(name);
+		
+	}, [name]);
 
 	// Count by metrics
 	let good = 0;

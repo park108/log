@@ -38,9 +38,9 @@ describe('render comment list and post comment correctly', () => {
 
 		render(<Comment timestamp={1655302060414} />);
 
-		const togglebutton = await screen.findByText("10 comments", {}, { timeout: 0});
+		const togglebutton = await screen.findByText("10 comments");
 		expect(togglebutton).toBeInTheDocument();
-		userEvent.click(togglebutton);
+		fireEvent.click(togglebutton);
 	});
 
 	afterEach(() => {
@@ -50,7 +50,7 @@ describe('render comment list and post comment correctly', () => {
 	it('test name not exists', async () => {
 		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
-		userEvent.click(submitButton);
+		fireEvent.click(submitButton);
 	});
 
 	it('test comment not exists', async () => {
@@ -60,7 +60,7 @@ describe('render comment list and post comment correctly', () => {
 
 		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
-		userEvent.click(submitButton);
+		fireEvent.click(submitButton);
 	});
 
 	it('test all exists and submit -> OK', async () => {
@@ -80,7 +80,7 @@ describe('render comment list and post comment correctly', () => {
 
 		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
-		userEvent.click(submitButton);
+		fireEvent.click(submitButton);
 	});
 
 	it('test all exists and submit -> error', async () => {
@@ -100,7 +100,7 @@ describe('render comment list and post comment correctly', () => {
 
 		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
-		userEvent.click(submitButton);
+		fireEvent.click(submitButton);
 	});
 
 	it('test all exists and submit -> server down', async () => {
@@ -116,7 +116,7 @@ describe('render comment list and post comment correctly', () => {
 		
 		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
-		userEvent.click(submitButton);
+		fireEvent.click(submitButton);
 	});
 });
 
@@ -139,9 +139,9 @@ test('render only one comment', async () => {
 
 	render(<Comment timestamp={1655392348834} />);
 
-	const togglebutton = await screen.findByText("1 comment", {}, { timeout: 0});
+	const togglebutton = await screen.findByText("1 comment");
 	expect(togglebutton).toBeInTheDocument();
-	userEvent.click(togglebutton);
+	fireEvent.click(togglebutton);
 
 	global.fetch = unmockedFetch;
 });
@@ -174,9 +174,9 @@ describe('render comment list and post comment correctly if admin logged in', ()
 		common.isAdmin = jest.fn().mockResolvedValue(true);
 		render(<Comment timestamp={1655302060414} />);
 
-		const togglebutton = await screen.findByText("10 comments", {}, { timeout: 0});
+		const togglebutton = await screen.findByText("10 comments");
 		expect(togglebutton).toBeInTheDocument();
-		userEvent.click(togglebutton);
+		fireEvent.click(togglebutton);
 	});
 
 	afterEach(() => {
@@ -198,14 +198,14 @@ describe('render comment list and post comment correctly if admin logged in', ()
 
 		const submitButton = await screen.findByText("Submit Comment");
 		expect(submitButton).toBeDefined();
-		userEvent.click(submitButton);
+		fireEvent.click(submitButton);
 	});
 
 	it('test all exists and reply -> OK', async () => {
 
 		const replyButtons = await screen.findAllByTestId("reply-toggle-button");
 		expect(replyButtons[0]).toBeInTheDocument();
-		userEvent.click(replyButtons[0]);
+		fireEvent.click(replyButtons[0]);
 
 		const textArea = await screen.findByPlaceholderText("Write your Reply");
 		expect(textArea).toBeDefined();
@@ -221,7 +221,7 @@ describe('render comment list and post comment correctly if admin logged in', ()
 
 		const submitButton = await screen.findByText("Send Reply");
 		expect(submitButton).toBeDefined();
-		userEvent.click(submitButton);
+		fireEvent.click(submitButton);
 
 		const replyPopup = await screen.findByTestId("reply-popup-1655389504138");
 		expect(replyPopup).toBeDefined();
@@ -244,7 +244,7 @@ it('render comment list if it has error', async () => {
 	});
 
 	render(<Comment timestamp={1655302060414} />);
-	const togglbutton = await screen.findByText("Add a comment", {}, { timeout: 0});
+	const togglbutton = await screen.findByText("Add a comment");
 	expect(togglbutton).toBeInTheDocument();
 
 	global.fetch = unmockedFetch;
