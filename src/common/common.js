@@ -21,6 +21,8 @@ export const hasValue = (obj) => {
 		&& null !== obj
 		&& "undefined" !== obj
 		&& "null" !== obj
+		&& "" !== obj
+		&& 0 !== obj
 	);
 }
 
