@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 
 const ApiCallItem = lazy(() => import('./ApiCallItem'));
 
-const ApiCallMon = (props) => {
+const serviceList = [
+	{title: "log", service: "log"},
+	{title: "file", service: "file"},
+	{title: "analytics", service: "analytics"},
+];
 
-	const serviceList = [
-		{title: "log", service: "log"},
-		{title: "file", service: "file"},
-		{title: "analytics", service: "analytics"},
-	]
+const ApiCallMon = (props) => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">
