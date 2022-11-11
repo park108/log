@@ -16,37 +16,6 @@ const ImageSelector = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
-	// Get image list from API Gateway
-	const fetchFirst = async () => {
-
-		setIsLoading(true);
-
-		try {
-			const res = await getImages();
-			const retrieved = await res.json();
-
-			if(!hasValue(retrieved.errorType)) {
-				log("[API GET] OK - Images", "SUCCESS");
-				
-				const newImages = retrieved.body.Items;
-				const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
-
-				setImages(hasValue(newImages) ? newImages : []);
-				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
-			}
-			else {
-				log("[API GET] FAILED - Images", "ERROR");
-				console.error(retrieved);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - Images", "ERROR");
-			console.error(err);
-		}
-
-		setIsLoading(false);
-	}
-
 	// Get next image list from API Gateway
 	const fetchMore = async (timestamp) => {
 		
@@ -80,6 +49,38 @@ const ImageSelector = (props) => {
 
 	// Fetch data by event
 	useEffect(() => {
+
+		// Get image list from API Gateway
+		const fetchFirst = async () => {
+	
+			setIsLoading(true);
+	
+			try {
+				const res = await getImages();
+				const retrieved = await res.json();
+	
+				if(!hasValue(retrieved.errorType)) {
+					log("[API GET] OK - Images", "SUCCESS");
+					
+					const newImages = retrieved.body.Items;
+					const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
+	
+					setImages(hasValue(newImages) ? newImages : []);
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+				}
+				else {
+					log("[API GET] FAILED - Images", "ERROR");
+					console.error(retrieved);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - Images", "ERROR");
+				console.error(err);
+			}
+	
+			setIsLoading(false);
+		}
+		
 		if(props.show) {
 			fetchFirst();
 			setImageSelectorClass("div div--image-selector");
