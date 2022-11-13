@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import LogList from '../Log/LogList';
 
 const unmockedFetch = global.fetch;
-// console.log = jest.fn();
+console.log = jest.fn();
 console.error = jest.fn();
 const errorMessage = "API is down";
 
