@@ -11,6 +11,7 @@ const ImageSelector = (props) => {
 
 	const [images, setImages] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isFailed, setIsFailed] = useState(false);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 	const [isShowToaster, setIsShowToaster] = useState(0);
@@ -37,11 +38,13 @@ const ImageSelector = (props) => {
 			else {
 				log("[API GET] FAILED - Next Images", "ERROR");
 				console.error(nextData);
+				setIsFailed(true);
 			}
 		}
 		catch(err) {
 			log("[API GET] FAILED - Next Images", "ERROR");
 			console.error(err);
+			setIsFailed(true);
 		}
 
 		setIsLoading(false);
@@ -71,11 +74,13 @@ const ImageSelector = (props) => {
 				else {
 					log("[API GET] FAILED - Images", "ERROR");
 					console.error(retrieved);
+					setIsFailed(true);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Images", "ERROR");
 				console.error(err);
+				setIsFailed(true);
 			}
 	
 			setIsLoading(false);
@@ -100,46 +105,61 @@ const ImageSelector = (props) => {
 		setIsShowToaster(1);
 	}
 
+	const handleRetry = (e) => {
+		e.preventDefault();
+		setIsFailed(false);
+	}
+
 	// Draw Image Selector
 	if(isLoading) {
 		return (
-			<div className={imageSelectorClass} role="list">
+			<div className={imageSelectorClass}>
 				<div className="div div--image-loading">Loading...</div>
 			</div>
 		);
 	}
 	else {
-		return (
-			<div className={imageSelectorClass} role="list">
-				{ images.map( data => 
-					<ImageItem
-						key={data.key}
-						fileName={data.key}
-						url={data.url}
-						copyMarkdownString={copyMarkdownString}
-					/>
-				) }
+		if(isFailed) {
+			return (
+				<div className={imageSelectorClass}>
+					<div className="div div--image-loading">Failed getting images</div>
+					<span onClick={ handleRetry }>Retry</span>
+				</div>
+			);
+		}
+		else {
+			return (
+				<div className={imageSelectorClass} role="list">
+					{ images.map( data => 
+						<ImageItem
+							key={data.key}
+							fileName={data.key}
+							url={data.url}
+							copyMarkdownString={copyMarkdownString}
+						/>
+					) }
 
-				{ hasValue(lastTimestamp) ? (
-					<button
-						role="button"
-						className="button button--image-seemorebutton"
-						onClick={() => fetchMore(lastTimestamp)}
-					>
-						See<br/>More
-					</button>
-				) : undefined }
-				
-				<Toaster 
-					show={isShowToaster}
-					message={toasterMessage}
-					position={"bottom"}
-					type={"warning"}
-					duration={2000}				
-					completed={() => setIsShowToaster(2)}
-				/>
-			</div>
-		);
+					{ hasValue(lastTimestamp) ? (
+						<button
+							role="button"
+							className="button button--image-seemorebutton"
+							onClick={() => fetchMore(lastTimestamp)}
+						>
+							See<br/>More
+						</button>
+					) : undefined }
+					
+					<Toaster 
+						show={isShowToaster}
+						message={toasterMessage}
+						position={"bottom"}
+						type={"warning"}
+						duration={2000}				
+						completed={() => setIsShowToaster(2)}
+					/>
+				</div>
+			);
+		}
 	}
 }
 
