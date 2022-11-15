@@ -1,8 +1,10 @@
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
+const API_URL = "https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com";
+
 export const prodServerOk = setupServer(
-	rest.get('https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/prod', async (req, res, ctx) => {
+	rest.get(API_URL + "/prod", async (req, res, ctx) => {
 
 		console.info("[MOCK API][PROD] GET IMAGES");
 
@@ -55,7 +57,7 @@ export const prodServerOk = setupServer(
 );
 
 export const prodServerFailed = setupServer(
-	rest.get('https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/prod', (req, res, ctx) => {
+	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
 		console.info("[MOCK API][PROD] GET IMAGES - FAILED");
 
@@ -69,7 +71,7 @@ export const prodServerFailed = setupServer(
 );
 
 export const prodServerNetworkError = setupServer(
-	rest.get('https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/prod', (req, res, ctx) => {
+	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
 		console.info("[MOCK API][PROD] GET IMAGES - NETWORK ERROR");
 
@@ -78,7 +80,7 @@ export const prodServerNetworkError = setupServer(
 );
 
 export const devServerOk = setupServer(
-	rest.get('https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/test', async (req, res, ctx) => {
+	rest.get(API_URL + "/test", async (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] GET IMAGES");
 
@@ -131,7 +133,7 @@ export const devServerOk = setupServer(
 );
 
 export const devServerFailed = setupServer(
-	rest.get('https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/test', (req, res, ctx) => {
+	rest.get(API_URL + "/test", (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] GET IMAGES - FAILED");
 
@@ -145,7 +147,7 @@ export const devServerFailed = setupServer(
 );
 
 export const devServerNetworkError = setupServer(
-	rest.get('https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/test', (req, res, ctx) => {
+	rest.get(API_URL + "/test", (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] GET IMAGES - NETWORK ERROR");
 
