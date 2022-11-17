@@ -221,36 +221,36 @@ test('render comment list and post comment correctly on prod server', async () =
 // 	global.fetch = unmockedFetch;
 // });
 
-// it('render comment item correctly', () => {
-// 	const message = "Wow, this is message";
-// 	render(
-// 		<CommentItem
-// 			isHidden={false}
-// 			isAdminComment={false}
-// 			message={message}
-// 			name="Tester"
-// 			logTimestamp={1655302060414}
-// 			commentTimestamp={1655302099999}
-// 			timestamp={1655302060414}
-// 		/>
-// 	);
-// 	const messageText = screen.getByText(message);
-// 	expect(messageText).toBeInTheDocument();
-// });
+it('render comment item correctly', () => {
+	const message = "Wow, this is message";
+	render(
+		<CommentItem
+			isHidden={false}
+			isAdminComment={false}
+			message={message}
+			name="Tester"
+			logTimestamp={1655302060414}
+			commentTimestamp={1655302099999}
+			timestamp={1655302060414}
+		/>
+	);
+	const messageText = screen.getByText(message);
+	expect(messageText).toBeInTheDocument();
+});
 
-// it('render hidden comment item correctly', () => {
-// 	const message = "Wow, this is message";
-// 	render(
-// 		<CommentItem
-// 			isHidden={true}
-// 			isAdminComment={false}
-// 			message={message}
-// 			name="Tester"
-// 			logTimestamp={1655302060414}
-// 			commentTimestamp={1655302099999}
-// 			timestamp={1655302060414}
-// 		/>
-// 	);
-// 	const messageText = screen.getByText("🥷 Hidden Message 🥷");
-// 	expect(messageText).toBeInTheDocument();
-// });
+it('render hidden comment item correctly', () => {
+	const message = "Wow, this is message";
+	render(
+		<CommentItem
+			isHidden={true}
+			isAdminComment={false}
+			message={message}
+			name="Tester"
+			logTimestamp={1655302060414}
+			commentTimestamp={1655302099999}
+			timestamp={1655302060414}
+		/>
+	);
+	const messageText = screen.getByText("🥷 Hidden Message 🥷");
+	expect(messageText).toBeInTheDocument();
+});
