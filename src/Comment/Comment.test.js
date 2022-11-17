@@ -8,177 +8,114 @@ import * as common from '../common/common';
 // const unmockedFetch = global.fetch;
 // console.log = jest.fn();
 // console.error = jest.fn();
-const errorMessage = "API is down";
 
-describe('render comment list and post comment correctly', () => {
-	
-	// beforeEach(async () => {
+test('render comment list and post comment correctly on dev server', async () => {
 
-	// 	mock.devServerOk.listen();
-
-	// 	process.env.NODE_ENV = 'development';
-
-	// 	render(<Comment timestamp={1655302060414} />);
-
-	// 	const togglebutton = await screen.findByText("10 comments");
-	// 	expect(togglebutton).toBeInTheDocument();
-	// 	fireEvent.click(togglebutton);
-	// });
-
-	it('test name not exists', async () => {
-
-		mock.devServerOk.listen();
-		jest.spyOn(window, 'alert').mockImplementation((message) => {
-			console.log("INPUT MESSAGE on ALERT = " + message);
-		});
-
-		process.env.NODE_ENV = 'development';
-
-		render(<Comment timestamp={1655302060414} />);
-
-		const togglebutton = await screen.findByText("10 comments");
-		expect(togglebutton).toBeInTheDocument();
-		fireEvent.click(togglebutton);
-
-		// Validation error -> No name and comment
-		const submitButton = await screen.findByText("Submit Comment");
-		expect(submitButton).toBeDefined();
-		fireEvent.click(submitButton);
-
-		// Add name
-		const nameInput = await screen.findByPlaceholderText("Type your name");
-		expect(nameInput).toBeDefined();
-		fireEvent.change(nameInput, {target: {value: 'Test name'}});
-
-		// Validation error -> No comment
-		const submitButton2 = await screen.findByText("Submit Comment");
-		expect(submitButton2).toBeDefined();
-		fireEvent.click(submitButton2);
-
-		// Add comment
-		const textArea = await screen.findByPlaceholderText("Write your comment");
-		expect(textArea).toBeDefined();
-		fireEvent.change(textArea, {target: {value: 'Test comment'}});
-
-		// Ok!
-		const submitButton3 = await screen.findByText("Submit Comment");
-		expect(submitButton3).toBeDefined();
-		fireEvent.click(submitButton3);
-
-		// Change comment
-		const textArea2 = await screen.findByPlaceholderText("Write your comment");
-		expect(textArea2).toBeDefined();
-		fireEvent.change(textArea2, {target: {value: ''}});
-
-		// Ok!
-		const submitButton4 = await screen.findByText("Submit Comment");
-		expect(submitButton4).toBeDefined();
-		fireEvent.click(submitButton4);
-
-		mock.devServerOk.resetHandlers();
-		mock.devServerOk.close();
-	});
-	/*
-	it('test comment not exists', async () => {
-
-		mock.devServerOk.listen();
-
-		process.env.NODE_ENV = 'development';
-
-		render(<Comment timestamp={1655302060414} />);
-
-		const nameInput = await screen.findByPlaceholderText("Type your name");
-		expect(nameInput).toBeDefined();
-		userEvent.type(nameInput, 'Test name');
-
-		const submitButton = await screen.findByText("Submit Comment");
-		expect(submitButton).toBeDefined();
-		fireEvent.click(submitButton);
-		
-		mock.devServerOk.resetHandlers();
-		mock.devServerOk.close();
+	mock.devServerOk.listen();
+	jest.spyOn(window, 'alert').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
 
-	it('test all exists and submit -> OK', async () => {
-		const nameInput = await screen.findByPlaceholderText("Type your name");
-		expect(nameInput).toBeDefined();
-		userEvent.type(nameInput, 'Test name');
+	process.env.NODE_ENV = 'development';
 
-		const textArea = await screen.findByPlaceholderText("Write your comment");
-		expect(textArea).toBeDefined();
-		userEvent.type(textArea, 'Test comment');
+	render(<Comment timestamp={1655302060414} />);
 
-		const submitButton = await screen.findByText("Submit Comment");
-		expect(submitButton).toBeDefined();
-		fireEvent.click(submitButton);
-		
-		mock.devServerOk.resetHandlers();
-		mock.devServerOk.close();
-	});
-	*/
+	const togglebutton = await screen.findByText("10 comments");
+	expect(togglebutton).toBeInTheDocument();
+	fireEvent.click(togglebutton);
 
-	// it('test all exists and submit -> error', async () => {
-	// 	const nameInput = await screen.findByPlaceholderText("Type your name");
-	// 	expect(nameInput).toBeDefined();
-	// 	userEvent.type(nameInput, 'Test name');
-		
-	// 	const textArea = await screen.findByPlaceholderText("Write your comment");
-	// 	expect(textArea).toBeDefined();
-	// 	userEvent.type(textArea, 'Test comment');
+	// Validation error -> No name and comment
+	const submitButton = await screen.findByText("Submit Comment");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
 
-	// 	global.fetch = () => Promise.resolve({
-	// 		json: () => Promise.resolve({
-	// 			status: 404
-	// 		}),
-	// 	});
+	// Add name
+	const nameInput = await screen.findByPlaceholderText("Type your name");
+	expect(nameInput).toBeDefined();
+	fireEvent.change(nameInput, {target: {value: 'Test name'}});
 
-	// 	const submitButton = await screen.findByText("Submit Comment");
-	// 	expect(submitButton).toBeDefined();
-	// 	fireEvent.click(submitButton);
-	// });
+	// Validation error -> No comment
+	const submitButton2 = await screen.findByText("Submit Comment");
+	expect(submitButton2).toBeDefined();
+	fireEvent.click(submitButton2);
 
-	// it('test all exists and submit -> server down', async () => {
-	// 	const nameInput = await screen.findByPlaceholderText("Type your name");
-	// 	expect(nameInput).toBeDefined();
-	// 	userEvent.type(nameInput, 'Test name');
-		
-	// 	const textArea = await screen.findByPlaceholderText("Write your comment");
-	// 	expect(textArea).toBeDefined();
-	// 	userEvent.type(textArea, 'Test comment');
+	// Add comment
+	const textArea = await screen.findByPlaceholderText("Write your comment");
+	expect(textArea).toBeDefined();
+	fireEvent.change(textArea, {target: {value: 'Test comment'}});
 
-	// 	global.fetch = () => Promise.reject(errorMessage);
-		
-	// 	const submitButton = await screen.findByText("Submit Comment");
-	// 	expect(submitButton).toBeDefined();
-	// 	fireEvent.click(submitButton);
-	// });
+	// Ok!
+	const submitButton3 = await screen.findByText("Submit Comment");
+	expect(submitButton3).toBeDefined();
+	fireEvent.click(submitButton3);
+
+	// Change comment
+	const textArea2 = await screen.findByPlaceholderText("Write your comment");
+	expect(textArea2).toBeDefined();
+	fireEvent.change(textArea2, {target: {value: ''}});
+
+	// Ok!
+	const submitButton4 = await screen.findByText("Submit Comment");
+	expect(submitButton4).toBeDefined();
+	fireEvent.click(submitButton4);
+
+	mock.devServerOk.resetHandlers();
+	mock.devServerOk.close();
 });
 
-// test('render only one comment', async () => {
-	
-// 	global.fetch = () =>
-// 		Promise.resolve({
-// 		json: () => Promise.resolve({
-// 			body:{
-// 				Items:[
-// 					{"sortKey":"1655392348834-0000000000000","logTimestamp":1655302060414,"timestamp":1655392348834,"message":"Posting Test","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
-// 				]
-// 				,"Count":1,
-// 				"ScannedCount":1
-// 			}
-// 		}),
-// 	});
+test('render comment list and post comment correctly on prod server', async () => {
 
-// 	process.env.NODE_ENV = 'production';
+	mock.prodServerOk.listen();
+	jest.spyOn(window, 'alert').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+	});
 
-// 	render(<Comment timestamp={1655392348834} />);
+	process.env.NODE_ENV = 'production';
 
-// 	const togglebutton = await screen.findByText("1 comment");
-// 	expect(togglebutton).toBeInTheDocument();
-// 	fireEvent.click(togglebutton);
+	render(<Comment timestamp={1655302060414} />);
 
-// 	global.fetch = unmockedFetch;
-// });
+	const togglebutton = await screen.findByText("1 comment");
+	expect(togglebutton).toBeInTheDocument();
+	fireEvent.click(togglebutton);
+
+	// Validation error -> No name and comment
+	const submitButton = await screen.findByText("Submit Comment");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
+
+	// Add name
+	const nameInput = await screen.findByPlaceholderText("Type your name");
+	expect(nameInput).toBeDefined();
+	fireEvent.change(nameInput, {target: {value: 'Test name'}});
+
+	// Validation error -> No comment
+	const submitButton2 = await screen.findByText("Submit Comment");
+	expect(submitButton2).toBeDefined();
+	fireEvent.click(submitButton2);
+
+	// Add comment
+	const textArea = await screen.findByPlaceholderText("Write your comment");
+	expect(textArea).toBeDefined();
+	fireEvent.change(textArea, {target: {value: 'Test comment'}});
+
+	// Ok!
+	const submitButton3 = await screen.findByText("Submit Comment");
+	expect(submitButton3).toBeDefined();
+	fireEvent.click(submitButton3);
+
+	// Change comment
+	const textArea2 = await screen.findByPlaceholderText("Write your comment");
+	expect(textArea2).toBeDefined();
+	fireEvent.change(textArea2, {target: {value: ''}});
+
+	// Ok!
+	const submitButton4 = await screen.findByText("Submit Comment");
+	expect(submitButton4).toBeDefined();
+	fireEvent.click(submitButton4);
+
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
+});
 
 // describe('render comment list and post comment correctly if admin logged in', () => {
 	
