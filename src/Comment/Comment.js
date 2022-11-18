@@ -5,6 +5,7 @@ import { getComments, postComment } from './api';
 
 import './Comment.css';
 
+const Toaster = lazy(() => import('../Toaster/Toaster'));
 const CommentItem = lazy(() => import('./CommentItem'));
 const CommentForm = lazy(() => import('./CommentForm'));
 
@@ -17,6 +18,9 @@ const Comment = (props) => {
 	const [isShow, setIsShow] = useState(false);
 	const [isOpenReplyForm, setIsOpenReplyForm] = useState(false);
 	const [isPosting, setIsPosting] = useState(false);
+	const [isShowToaster, setIsShowToaster] = useState(0);
+	const [toasterMessage, setToasterMessage] = useState("");
+	const [toasterType, setToasterType] = useState("success");
 
 	let logTimestamp = props.logTimestamp;
 
@@ -31,18 +35,29 @@ const Comment = (props) => {
 			if(200 === status.statusCode) {
 				log("[API POST] OK - Comment", "SUCCESS");
 				setReload(true);
+				setToasterMessage("The comment posted.");
+				setToasterType("success");
+				setIsShowToaster(1);
 			}
 			else {
 				log("[API POST] FAILED - Comment", "ERROR");
 				console.error(res);
-				setIsPosting(false);
+
+				setToasterMessage("The comment posted failed.");
+				setToasterType("error");
+				setIsShowToaster(1);
 			}
 		}
 		catch(err) {
 			log("[API POST] FAILED - Comment", "ERROR");
 			console.error(err);
-			setIsPosting(false);
+
+			setToasterMessage("The comment posted failed for network issue.");
+			setToasterType("error");
+			setIsShowToaster(1);
 		}
+
+		setIsPosting(false);
 	}
 
 	const openReplyForm = (isOpened) => {
@@ -156,6 +171,16 @@ const Comment = (props) => {
 			</span>
 			{commentThread}
 			{commentForm}
+
+			<Toaster 
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={toasterType}
+				duration={2000}
+				
+				completed={() => setIsShowToaster(2)}
+			/>
 		</section>
 	);
 }

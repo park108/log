@@ -50,7 +50,19 @@ export const prodServerOk = setupServer(
 export const prodServerFailed = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET IMAGES - FAILED");
+		console.info("[MOCK API][PROD] GET COMMENTS - FAILED");
+
+		return res(
+			ctx.json({
+				errorType: "500",
+				errorMessage: "Test Error Message!"
+			})
+		);
+	}),
+
+	rest.post(API_URL + "/prod", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] POST COMMENT - FAILED");
 
 		return res(
 			ctx.json({
@@ -64,7 +76,13 @@ export const prodServerFailed = setupServer(
 export const prodServerNetworkError = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET IMAGES - NETWORK ERROR");
+		console.info("[MOCK API][PROD] GET COMMENT - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	}),
+	rest.post(API_URL + "/prod", (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] POST COMMENT - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	})
@@ -126,7 +144,19 @@ export const devServerOk = setupServer(
 export const devServerFailed = setupServer(
 	rest.get(API_URL + "/test", (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET IMAGES - FAILED");
+		console.info("[MOCK API][DEV] GET COMMENTS - FAILED");
+
+		return res(
+			ctx.json({
+				errorType: "500",
+				errorMessage: "Test Error Message!"
+			})
+		);
+	}),
+
+	rest.post(API_URL + "/test", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] POST COMMENT - FAILED");
 
 		return res(
 			ctx.json({
@@ -141,6 +171,13 @@ export const devServerNetworkError = setupServer(
 	rest.get(API_URL + "/test", (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] GET IMAGES - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	}),
+
+	rest.post(API_URL + "/test", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] POST COMMENT - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	})
