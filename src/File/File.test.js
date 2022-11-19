@@ -1,92 +1,46 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { rest } from 'msw'
-import { setupServer } from 'msw/node'
-import { createMemoryHistory } from 'history'
-import { BrowserRouter, MemoryRouter, Router } from 'react-router-dom';
-import File from '../File/File';
+import { BrowserRouter, Routes, Route, MemoryRouter, Router } from 'react-router-dom';
+import * as mock from './api.mock';
 import * as common from '../common/common';
+import File from '../File/File';
+import Log from '../log/Log';
 
-// const unmockedFetch = global.fetch;
-console.log = jest.fn();
-console.error = jest.fn();
-const errorMessage = "API is down";
+// console.log = jest.fn();
+// console.error = jest.fn();
+// TODO: <Navigate to='/somewhere'> is not working in jest, so i have to find way how to mocking it
 
-const server = setupServer(
-	rest.get('https://urruauaj81.execute-api.ap-northeast-2.amazonaws.com/prod', async (req, res, ctx) => {
+test('render files, next files, upload file, delete file', async () => {
 
-		console.log("[MOCK API][PROD] GET FILES");
-
-		return res(
-			ctx.json({
-				body: {
-					Items:[
-						{"size":49955,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220606_log_CQRS.png","key":"20220606_log_CQRS.png","timestamp":1654522279342}
-						,{"size":34022,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_ecr_repo.png","key":"20220221_ecr_repo.png","timestamp":1645425962599}
-						,{"size":96824,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_actions.png","key":"20220221_actions.png","timestamp":1645425938601}
-						,{"size":109294,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_IAM.png","key":"20220221_IAM.png","timestamp":1645425938587}
-						,{"size":7498,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/ansi-html-community-0.0.8.tgz","key":"ansi-html-community-0.0.8.tgz","timestamp":1644038129605}
-						,{"size":198298,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/2021_hometax.pdf","key":"2021_hometax.pdf","timestamp":1643637384681}
-						,{"size":940719,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/house_price.pdf","key":"house_price.pdf","timestamp":1643637384614}
-						,{"size":8836521,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/308142rg.jpg","key":"308142rg.jpg","timestamp":1639269515238}
-						,{"size":2942795,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/501985ld.jpg","key":"501985ld.jpg","timestamp":1639268308087}
-						,{"size":7682046,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/227100fg.jpg","key":"227100fg.jpg","timestamp":1638746700070}
-					],
-					"Count":10,
-					"ScannedCount":10,
-					"LastEvaluatedKey":{"key":"227100fg.jpg","bucket":"park108-log-dev","timestamp":1638746700070}
-				}
-			})
-		);
-	}),
-	rest.get('https://urruauaj81.execute-api.ap-northeast-2.amazonaws.com/test', async (req, res, ctx) => {
-
-		console.log("[MOCK API][DEV] GET FILES");
-
-		return res(
-			ctx.json({
-				body: {
-					Items:[
-						{"size":49955,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220606_log_CQRS.png","key":"20220606_log_CQRS.png","timestamp":1654522279342}
-						,{"size":34022,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_ecr_repo.png","key":"20220221_ecr_repo.png","timestamp":1645425962599}
-						,{"size":96824,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_actions.png","key":"20220221_actions.png","timestamp":1645425938601}
-						,{"size":109294,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_IAM.png","key":"20220221_IAM.png","timestamp":1645425938587}
-						,{"size":7498,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/ansi-html-community-0.0.8.tgz","key":"ansi-html-community-0.0.8.tgz","timestamp":1644038129605}
-						,{"size":198298,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/2021_hometax.pdf","key":"2021_hometax.pdf","timestamp":1643637384681}
-						,{"size":940719,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/house_price.pdf","key":"house_price.pdf","timestamp":1643637384614}
-						,{"size":8836521,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/308142rg.jpg","key":"308142rg.jpg","timestamp":1639269515238}
-						,{"size":2942795,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/501985ld.jpg","key":"501985ld.jpg","timestamp":1639268308087}
-						,{"size":7682046,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/227100fg.jpg","key":"227100fg.jpg","timestamp":1638746700070}
-					],
-					"Count":10,
-					"ScannedCount":10,
-					"LastEvaluatedKey":{"key":"227100fg.jpg","bucket":"park108-log-dev","timestamp":1638746700070}
-				}
-			})
-		);
-	}),
-);
-
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
-
-it('redirect if not admin', async () => {
+	mock.prodServerOk.listen();
 	
+	process.env.NODE_ENV = 'production';
+
 	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(false);
+	common.isAdmin = jest.fn().mockReturnValue(true);
 
 	process.env.NODE_ENV = 'production';
-  
-	const history = createMemoryHistory({ initialEntries: ["/file"]});
+
+	const testEntry = {
+		pathname: "/file"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
 
 	render(
-		<Router location={history.location} navigator={history}>
+        <MemoryRouter initialEntries={[testEntry]}>
 			<File />
-		</Router>
+		</MemoryRouter>
 	);
 
-	const nothing = screen.queryByText("Nothing");
-	expect(nothing).not.toBeInTheDocument();
+	const seeMoreButton = await screen.findByTestId("seeMoreButton");
+	expect(seeMoreButton).toBeDefined();
+
+	fireEvent.click(seeMoreButton);
+
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
 });
 
 // it('render files and get next files correctly', async () => {

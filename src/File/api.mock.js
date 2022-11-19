@@ -1,0 +1,265 @@
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+
+const API_URL = "https://urruauaj81.execute-api.ap-northeast-2.amazonaws.com";
+const PRESIGNED_URL = "https://aws.test.upload.url.com";
+
+export const prodServerOk = setupServer(
+	rest.get(API_URL + "/prod", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] GET FILES");
+
+		const url = JSON.stringify(req.url).split("?");
+
+		let queryString = "";
+		let lastTimestamp = "";
+
+		if(url.length > 1) {
+			queryString = url[1];
+			queryString = queryString.replaceAll("\"", "");
+			lastTimestamp = queryString.split("=")[1];
+		}
+
+		// Fetch first: 7 items
+		if("" === queryString) {
+			return res(
+				ctx.json({
+					body:{
+						Items:[
+							{"size":49955,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220606_log_CQRS.png","key":"20220606_log_CQRS.png","timestamp":1654522279342}
+							,{"size":34022,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_ecr_repo.png","key":"20220221_ecr_repo.png","timestamp":1645425962599}
+							,{"size":96824,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_actions.png","key":"20220221_actions.png","timestamp":1645425938601}
+							,{"size":109294,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_IAM.png","key":"20220221_IAM.png","timestamp":1645425938587}
+							,{"size":7498,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/ansi-html-community-0.0.8.tgz","key":"ansi-html-community-0.0.8.tgz","timestamp":1644038129605}
+							,{"size":198298,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/2021_hometax.pdf","key":"2021_hometax.pdf","timestamp":1643637384681}
+							,{"size":940719,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/house_price.pdf","key":"house_price.pdf","timestamp":1643637384614}
+						],
+						"Count":7,
+						"ScannedCount":7,
+						"LastEvaluatedKey":{"key":"house_price.pdf","bucket":"park108-log-dev","timestamp":1643637384614}
+					}
+				})
+			);
+		}
+		// Fetch more: 3 items
+		else if("1643637384614" === lastTimestamp) {
+			return res(
+				ctx.json({
+					body:{
+						Items:[
+							{"size":8836521,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/308142rg.jpg","key":"308142rg.jpg","timestamp":1639269515238}
+							,{"size":2942795,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/501985ld.jpg","key":"501985ld.jpg","timestamp":1639268308087}
+							,{"size":7682046,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/227100fg.jpg","key":"227100fg.jpg","timestamp":1638746700070}
+						],
+						"Count":3,
+						"ScannedCount":3,
+					}
+				})
+			);
+		}
+	}),
+
+	rest.get(API_URL + "/prod/key/testname/type/testtype", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] GET PRESIGNED URL");
+
+		return res(
+			ctx.json({
+				body:{
+					UploadUrl: PRESIGNED_URL
+				}
+			})
+		);
+	}),
+
+	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] PUT FILE");
+
+		return res(
+			ctx.json({
+				statusCode: 200
+			})
+		);
+	}),
+
+	rest.delete(API_URL + "/prod/key/20220606_log_CQRS.png", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] DELETE FILE");
+
+		return res(
+			ctx.json({
+				statusCode: 200
+			})
+		);
+	})
+);
+
+export const prodServerFailed = setupServer(
+	rest.get(API_URL + "/prod", (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] GET FILES - FAILED");
+
+		return res(
+			ctx.json({
+				errorType: "500",
+				errorMessage: "Test Error Message!"
+			})
+		);
+	}),
+
+	rest.get(API_URL + "/prod/key/testname/type/testtype", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] GET PRESIGNED URL - FAILED");
+
+	}),
+
+	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] PUT FILE - FAILED");
+
+		return res(
+			ctx.json({
+				errorType: "500",
+				errorMessage: "Test Error Message!"
+			})
+		);
+	}),
+
+	rest.delete(API_URL + "/prod/key/20220606_log_CQRS.png", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] DELETE FILE - FAILED");
+
+		return res(
+			ctx.json({
+				errorType: "500",
+				errorMessage: "Test Error Message!"
+			})
+		);
+	})
+);
+
+export const prodServerNetworkError = setupServer(
+	rest.get(API_URL + "/prod", (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] GET FILES - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	}),
+
+	rest.get(API_URL + "/prod/key/testname/type/testtype", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] GET PRESIGNED URL - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	}),
+
+	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] PUT FILE - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	}),
+
+	rest.delete(API_URL + "/prod/key/20220606_log_CQRS.png", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] DELETE FILE - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	})
+);
+
+export const devServerOk = setupServer(
+	rest.get(API_URL + "/test", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] GET COMMENTS");
+
+		const url = JSON.stringify(req.url).split("?");
+
+		let queryString = "";
+		let logTimestamp = "";
+		let isAdmin = "";
+
+		if(url.length > 1) {
+			queryString = queryString.replaceAll("\"", "");
+			queryString = (url[1]).replaceAll("\"", "").split("&");
+			logTimestamp = queryString[0].split("=")[1];
+			isAdmin = queryString[1].split("=")[1];
+		}
+
+		// 10 comments
+		return res(
+			ctx.json({
+				body:{
+					Items:[
+						{"sortKey":"1655389504138-0000000000000","logTimestamp":1655302060414,"timestamp":1655389504138,"message":"나는 엉망으로 살고 있구나!","isHidden":false,"isAdminComment":true,"name":"Jongkil Park"}
+						,{"sortKey":"1655389797918-0000000000000","logTimestamp":1655302060414,"timestamp":1655389797918,"message":"내가 썼지만 숨겨져서 못보지롱?","isHidden":true,"isAdminComment":false,"name":"숨겨져있는 나"}
+						,{"commentTimestamp":1655389797918,"sortKey":"1655389797918-1655389832698","logTimestamp":1655302060414,"timestamp":1655389832698,"message":"비밀 댓글이 아니지만, 비밀 댓글에 대댓글을 달았다.","isHidden":false,"isAdminComment":true,"name":"Jongkil Park"}
+						,{"sortKey":"1655392096432-0000000000000","logTimestamp":1655302060414,"timestamp":1655392096432,"message":"Posting Lock Test","isHidden":false,"isAdminComment":false,"name":"Posting!"}
+						,{"sortKey":"1655392348834-0000000000000","logTimestamp":1655302060414,"timestamp":1655392348834,"message":"Posting Test","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
+						,{"sortKey":"1655392394275-0000000000000","logTimestamp":1655302060414,"timestamp":1655392394275,"message":"Posting Test 2","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
+						,{"sortKey":"1655392503660-0000000000000","logTimestamp":1655302060414,"timestamp":1655392503660,"message":"Posting Test4","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
+						,{"sortKey":"1655392407974-0000000000000","logTimestamp":1655302060414,"timestamp":1655392407974,"message":"Posting Test3","isHidden":false,"isAdminComment":false,"name":"Posting Test"}
+						,{"sortKey":"1655589447546-0000000000000","logTimestamp":1655302060414,"timestamp":1655589447546,"message":"Admin comment","isHidden":false,"isAdminComment":true,"name":"Jongkil Park"}
+						,{"sortKey":"1655589469726-0000000000000","logTimestamp":1655302060414,"timestamp":1655589469726,"message":"Admin Hidden","isHidden":true,"isAdminComment":true,"name":"Jongkil Park"}
+					]
+					,"Count":10,
+					"ScannedCount":10
+				}
+			})
+		);
+	}),
+
+	rest.post(API_URL + "/test", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] POST COMMENT");
+
+		return res(
+			ctx.json({
+				statusCode: 200
+			})
+		);
+	})
+);
+
+export const devServerFailed = setupServer(
+	rest.get(API_URL + "/test", (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] GET COMMENTS - FAILED");
+
+		return res(
+			ctx.json({
+				errorType: "500",
+				errorMessage: "Test Error Message!"
+			})
+		);
+	}),
+
+	rest.post(API_URL + "/test", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] POST COMMENT - FAILED");
+
+		return res(
+			ctx.json({
+				errorType: "500",
+				errorMessage: "Test Error Message!"
+			})
+		);
+	})
+);
+
+export const devServerNetworkError = setupServer(
+	rest.get(API_URL + "/test", (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] GET IMAGES - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	}),
+
+	rest.post(API_URL + "/test", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] POST COMMENT - NETWORK ERROR");
+
+		return res.networkError('Failed to connect');
+	})
+);

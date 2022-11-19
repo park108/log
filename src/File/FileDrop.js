@@ -31,8 +31,8 @@ const FileDrop = (props) => {
 			preSignedUrlData = await res.json();
 
 			if(!hasValue(preSignedUrlData.errorType)) {
-				log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
 				uploadUrl = preSignedUrlData.body.UploadUrl;
+				log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
 				isSuccess = true;
 			}
 			else {
