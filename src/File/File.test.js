@@ -1,15 +1,57 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter, Routes, Route, MemoryRouter, Router } from 'react-router-dom';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import File from '../File/File';
-import Log from '../log/Log';
 
-// console.log = jest.fn();
-// console.error = jest.fn();
-// TODO: <Navigate to='/somewhere'> is not working in jest, so i have to find way how to mocking it
+console.log = jest.fn();
+console.error = jest.fn();
 
-test('render files, next files, upload file, delete file', async () => {
+const testEntry = {
+	pathname: "/file"
+	, search: ""
+	, hash: ""
+	, state: {}
+	, key: "default"
+};
+
+test('redirect to log when user is not admin', async () => {
+	
+	process.env.NODE_ENV = 'development';
+
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(false);
+
+	render(
+        <MemoryRouter initialEntries={[testEntry]}>
+			<File />
+		</MemoryRouter>
+	);
+});
+
+test('render files but no data on prod server', async () => {
+
+	mock.prodServerHasNoData.listen();
+	
+	process.env.NODE_ENV = 'production';
+
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
+
+	render(
+        <MemoryRouter initialEntries={[testEntry]}>
+			<File />
+		</MemoryRouter>
+	);
+
+	const dropZone = await screen.findByText("Drop files here!");
+	expect(dropZone).toBeDefined();
+
+	mock.prodServerHasNoData.resetHandlers();
+	mock.prodServerHasNoData.close();
+});
+
+test('render files, next files, delete file and confirm on prod server', async () => {
 
 	mock.prodServerOk.listen();
 	
@@ -18,15 +60,51 @@ test('render files, next files, upload file, delete file', async () => {
 	common.isLoggedIn = jest.fn().mockReturnValue(true);
 	common.isAdmin = jest.fn().mockReturnValue(true);
 
+	render(
+        <MemoryRouter initialEntries={[testEntry]}>
+			<File />
+		</MemoryRouter>
+	);
+	
+	// Get 7 files
+	const files = await screen.findAllByRole("listitem");
+	expect(files.length).toBe(7);
+	
+	// See more -> get more data
+	// TODO: GET MORE DATA NOT WORKING
+	const seeMoreButton = await screen.findByTestId("seeMoreButton");
+	expect(seeMoreButton).toBeDefined();
+	fireEvent.click(seeMoreButton);
+
+	// See more -> no data
+	const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
+	expect(seeMoreButton2).toBeDefined();
+	fireEvent.click(seeMoreButton2);
+
+	const buttons = await screen.findAllByRole("button");
+	const firstDeleteButton = buttons[1];
+
+	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+		return true;
+	});
+
+	fireEvent.click(firstDeleteButton);
+
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
+});
+
+test('render failed when internal error on prod server', async () => {
+
+	mock.prodServerFailed.listen();
+
+	jest.useFakeTimers();
+
 	process.env.NODE_ENV = 'production';
 
-	const testEntry = {
-		pathname: "/file"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -34,247 +112,98 @@ test('render files, next files, upload file, delete file', async () => {
 		</MemoryRouter>
 	);
 
-	const seeMoreButton = await screen.findByTestId("seeMoreButton");
-	expect(seeMoreButton).toBeDefined();
+	const failMessage = await screen.findByText("Get files failed.");
 
-	fireEvent.click(seeMoreButton);
+	act(() => {
+		jest.runAllTimers();
+	});
 
-	mock.prodServerOk.resetHandlers();
-	mock.prodServerOk.close();
+	expect(failMessage).toBeDefined();
+	
+	jest.useRealTimers();
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
 });
 
-// it('render files and get next files correctly', async () => {
-  
-// 	const history = createMemoryHistory({ initialEntries: ["/file"]});
+test('render failed when network error on prod server', async () => {
 
-// 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-// 	common.isAdmin = jest.fn().mockResolvedValue(true);
+	mock.prodServerNetworkError.listen();
 
-// 	process.env.NODE_ENV = 'production';
+	process.env.NODE_ENV = 'production';
 
-// 	render(
-// 		<Router location={history.location} navigator={history}>
-// 			<File />
-// 		</Router>
-// 	);
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
 
-// 	const dropZone = await screen.findByText("Drop files here!");
-// 	expect(dropZone).toBeInTheDocument();
+	render(
+        <MemoryRouter initialEntries={[testEntry]}>
+			<File />
+		</MemoryRouter>
+	);
 
-// 	const list = await screen.findByRole("list");
-// 	expect(list).toBeInTheDocument();
+	const failMessage = await screen.findByText("Get files failed.");
+	expect(failMessage).toBeDefined();
 
-// 	// fetchMore -> ok
-// 	const seeMoreButton = screen.getByTestId("seeMoreButton");
-// 	expect(seeMoreButton).toBeDefined();
+	mock.prodServerNetworkError.resetHandlers();
+	mock.prodServerNetworkError.close();
+});
 
-// 	fireEvent.click(seeMoreButton);
+test('render files and get next files failed on dev server', async () => {
+
+	mock.devServerOk.listen();
 	
-// 	// fetchMore -> Server error
-// 	// global.fetch = () => Promise.reject(errorMessage);
+	process.env.NODE_ENV = 'development';
 
-// 	const seeMoreButton2 = screen.getByTestId("seeMoreButton");
-// 	fireEvent.click(seeMoreButton2);
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
+	common.isMobile = jest.fn().mockReturnValue(true); // Mobile UI test
 
-// 	// global.fetch = unmockedFetch;
-// });
+	render(
+        <MemoryRouter initialEntries={[testEntry]}>
+			<File />
+		</MemoryRouter>
+	);
 
-// it('render files with no data', async () => {
-		
-// 	// fetchFirst -> ok
-// 	// global.fetch = () =>
-// 	// 	Promise.resolve({
-// 	// 	json: () => Promise.resolve({
-// 	// 		body:{
-// 	// 		}
-// 	// 	}),
-// 	// });
-  
-// 	const history = createMemoryHistory({ initialEntries: ["/file"]});
+	mock.devServerOk.resetHandlers();
+	mock.devServerOk.close();
 
-// 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-// 	common.isAdmin = jest.fn().mockResolvedValue(true);
 
-// 	process.env.NODE_ENV = 'production';
+	mock.devServerFailed.listen();
 
-// 	render(
-// 		<Router location={history.location} navigator={history}>
-// 			<File />
-// 		</Router>
-// 	);
+	jest.useFakeTimers();
 
-// 	const dropZone = await screen.findByText("Drop files here!");
-// 	expect(dropZone).toBeInTheDocument();
+	const seeMoreButton = await screen.findByTestId("seeMoreButton");
+	expect(seeMoreButton).toBeDefined();
+	fireEvent.click(seeMoreButton);
 
-// 	const list = await screen.findByRole("list");
-// 	expect(list).toBeInTheDocument();
+	const failMessage = await screen.findByText("Get more files failed.");
 
-// 	// global.fetch = unmockedFetch;
-// });
+	act(() => {
+		jest.runAllTimers();
+	});
 
-// it('render files correctly and get next failed', async () => {
-		
-// 	// fetchFirst -> ok
-// 	// global.fetch = () =>
-// 	// 	Promise.resolve({
-// 	// 	json: () => Promise.resolve({
-// 	// 		body:{
-// 	// 			Items:[
-// 	// 				{"size":49955,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220606_log_CQRS.png","key":"20220606_log_CQRS.png","timestamp":1654522279342}
-// 	// 				,{"size":34022,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_ecr_repo.png","key":"20220221_ecr_repo.png","timestamp":1645425962599}
-// 	// 				,{"size":96824,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_actions.png","key":"20220221_actions.png","timestamp":1645425938601}
-// 	// 				,{"size":109294,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_IAM.png","key":"20220221_IAM.png","timestamp":1645425938587}
-// 	// 				,{"size":7498,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/ansi-html-community-0.0.8.tgz","key":"ansi-html-community-0.0.8.tgz","timestamp":1644038129605}
-// 	// 				,{"size":198298,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/2021_hometax.pdf","key":"2021_hometax.pdf","timestamp":1643637384681}
-// 	// 				,{"size":940719,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/house_price.pdf","key":"house_price.pdf","timestamp":1643637384614}
-// 	// 				,{"size":8836521,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/308142rg.jpg","key":"308142rg.jpg","timestamp":1639269515238}
-// 	// 				,{"size":2942795,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/501985ld.jpg","key":"501985ld.jpg","timestamp":1639268308087}
-// 	// 				,{"size":7682046,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/227100fg.jpg","key":"227100fg.jpg","timestamp":1638746700070}
-// 	// 			],
-// 	// 			"Count":10,
-// 	// 			"ScannedCount":10,
-// 	// 			"LastEvaluatedKey":{"key":"227100fg.jpg","bucket":"park108-log-dev","timestamp":1638746700070}
-// 	// 		}
-// 	// 	}),
-// 	// });
-  
-// 	const history = createMemoryHistory({ initialEntries: ["/file"]});
+	expect(failMessage).toBeDefined();
 
-// 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-// 	common.isAdmin = jest.fn().mockResolvedValue(true);
+	mock.devServerFailed.resetHandlers();
+	mock.devServerFailed.close();
 
-// 	process.env.NODE_ENV = 'production';
 
-// 	render(
-// 		<Router location={history.location} navigator={history}>
-// 			<File />
-// 		</Router>
-// 	);
+	mock.devServerNetworkError.listen();
 
-// 	const dropZone = await screen.findByText("Drop files here!");
-// 	expect(dropZone).toBeInTheDocument();
+	const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
+	expect(seeMoreButton2).toBeDefined();
+	fireEvent.click(seeMoreButton2);
 
-// 	const list = await screen.findByRole("list");
-// 	expect(list).toBeInTheDocument();
+	const failMessage2 = await screen.findByText("Get more files failed for network issue.");
+
+	act(() => {
+		jest.runAllTimers();
+	});
+
+	expect(failMessage2).toBeDefined();
 	
-// 	// fetchMore -> return error
-// 	// global.fetch = () =>
-// 	// Promise.resolve({
-// 	// 	json: () => Promise.resolve({
-// 	// 		errorType: "404"
-// 	// 	}),
-// 	// });
+	jest.useRealTimers();
 
-// 	const seeMoreButton = screen.getByTestId("seeMoreButton");
-// 	expect(seeMoreButton).toBeDefined();
-
-// 	fireEvent.click(seeMoreButton);
-
-// 	// global.fetch = unmockedFetch;
-// });
-
-// it('render files correctly and get next with no data', async () => {
-		
-// 	// fetchFirst -> ok
-// 	// global.fetch = () =>
-// 	// 	Promise.resolve({
-// 	// 	json: () => Promise.resolve({
-// 	// 		body:{
-// 	// 			Items:[
-// 	// 				{"size":49955,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220606_log_CQRS.png","key":"20220606_log_CQRS.png","timestamp":1654522279342}
-// 	// 				,{"size":34022,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_ecr_repo.png","key":"20220221_ecr_repo.png","timestamp":1645425962599}
-// 	// 				,{"size":96824,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_actions.png","key":"20220221_actions.png","timestamp":1645425938601}
-// 	// 				,{"size":109294,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_IAM.png","key":"20220221_IAM.png","timestamp":1645425938587}
-// 	// 				,{"size":7498,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/ansi-html-community-0.0.8.tgz","key":"ansi-html-community-0.0.8.tgz","timestamp":1644038129605}
-// 	// 				,{"size":198298,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/2021_hometax.pdf","key":"2021_hometax.pdf","timestamp":1643637384681}
-// 	// 				,{"size":940719,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/house_price.pdf","key":"house_price.pdf","timestamp":1643637384614}
-// 	// 				,{"size":8836521,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/308142rg.jpg","key":"308142rg.jpg","timestamp":1639269515238}
-// 	// 				,{"size":2942795,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/501985ld.jpg","key":"501985ld.jpg","timestamp":1639268308087}
-// 	// 				,{"size":7682046,"bucket":"park108-log-dev","url":"https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/227100fg.jpg","key":"227100fg.jpg","timestamp":1638746700070}
-// 	// 			],
-// 	// 			"Count":10,
-// 	// 			"ScannedCount":10,
-// 	// 			"LastEvaluatedKey":{"key":"227100fg.jpg","bucket":"park108-log-dev","timestamp":1638746700070}
-// 	// 		}
-// 	// 	}),
-// 	// });
-  
-// 	const history = createMemoryHistory({ initialEntries: ["/file"]});
-
-// 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-// 	common.isAdmin = jest.fn().mockResolvedValue(true);
-
-// 	process.env.NODE_ENV = 'production';
-
-// 	render(
-// 		<Router location={history.location} navigator={history}>
-// 			<File />
-// 		</Router>
-// 	);
-
-// 	const dropZone = await screen.findByText("Drop files here!");
-// 	expect(dropZone).toBeInTheDocument();
-
-// 	const list = await screen.findByRole("list");
-// 	expect(list).toBeInTheDocument();
-	
-// 	// fetchMore -> return error
-// 	// global.fetch = () =>
-// 	// Promise.resolve({
-// 	// 	json: () => Promise.resolve({
-// 	// 		body:{}
-// 	// 	}),
-// 	// });
-
-// 	const seeMoreButton = screen.getByTestId("seeMoreButton");
-// 	expect(seeMoreButton).toBeDefined();
-
-// 	fireEvent.click(seeMoreButton);
-
-// 	// global.fetch = unmockedFetch;
-// });
-
-// it('render files failed', async () => {
-	
-// 	// fetchFirst -> return error
-// 	// global.fetch = () => Promise.resolve({
-// 	// 	json: () => Promise.resolve({
-// 	// 		errorType: "404"
-// 	// 	}),
-// 	// });
-  
-// 	const history = createMemoryHistory({ initialEntries: ["/file"]});
-
-// 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-// 	common.isAdmin = jest.fn().mockResolvedValue(true);
-// 	common.isMobile = jest.fn().mockResolvedValue(true);
-
-// 	process.env.NODE_ENV = 'development';
-
-// 	render(
-// 		<Router location={history.location} navigator={history}>
-// 			<File />
-// 		</Router>
-// 	);
-
-// 	// global.fetch = unmockedFetch;
-// });
-
-// it('render if API is down', async () => {
-
-// 	// fetchFirst -> Server error
-// 	// global.fetch = () => Promise.reject(errorMessage);
-  
-// 	const history = createMemoryHistory({ initialEntries: ["/file"]});
-
-// 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-// 	common.isAdmin = jest.fn().mockResolvedValue(true);
-
-// 	render(
-// 		<Router location={history.location} navigator={history}>
-// 			<File />
-// 		</Router>
-// 	);
-
-// 	// global.fetch = unmockedFetch;
-// });
+	mock.devServerNetworkError.resetHandlers();
+	mock.devServerNetworkError.close();
+});
