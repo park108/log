@@ -243,7 +243,7 @@ export const devServerOk = setupServer(
 		}
 	}),
 
-	rest.get(API_URL + "/dev/key/testname/type/testtype", async (req, res, ctx) => {
+	rest.get(API_URL + "/test/key/testname/type/testtype", async (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] GET PRESIGNED URL");
 
@@ -267,7 +267,7 @@ export const devServerOk = setupServer(
 		);
 	}),
 
-	rest.delete(API_URL + "/dev/key/20220606_log_CQRS.png", async (req, res, ctx) => {
+	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] DELETE FILE");
 
@@ -292,7 +292,7 @@ export const devServerFailed = setupServer(
 		);
 	}),
 
-	rest.get(API_URL + "/dev/key/testname/type/testtype", async (req, res, ctx) => {
+	rest.get(API_URL + "/test/key/testname/type/testtype", async (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] GET PRESIGNED URL - FAILED");
 
@@ -316,7 +316,7 @@ export const devServerFailed = setupServer(
 		);
 	}),
 
-	rest.delete(API_URL + "/dev/key/20220606_log_CQRS.png", async (req, res, ctx) => {
+	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] DELETE FILE - FAILED");
 
@@ -337,7 +337,7 @@ export const devServerNetworkError = setupServer(
 		return res.networkError('Failed to connect');
 	}),
 
-	rest.get(API_URL + "/dev/key/testname/type/testtype", async (req, res, ctx) => {
+	rest.get(API_URL + "/test/key/testname/type/testtype", async (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] GET PRESIGNED URL - NETWORK ERROR");
 
@@ -351,7 +351,7 @@ export const devServerNetworkError = setupServer(
 		return res.networkError('Failed to connect');
 	}),
 
-	rest.delete(API_URL + "/dev/key/20220606_log_CQRS.png", async (req, res, ctx) => {
+	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
 
 		console.info("[MOCK API][DEV] DELETE FILE - NETWORK ERROR");
 

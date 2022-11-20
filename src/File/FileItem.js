@@ -10,6 +10,7 @@ const FileItem = (props) => {
 	const [itemClass, setItemClass] = useState("div div--fileitem");
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
+	const [toasterType, setToasterType] = useState("success");
 
 	const refreshFiles = props.deleted;
 	const refreshTimeout = 3000;
@@ -30,11 +31,17 @@ const FileItem = (props) => {
 			}
 			else {
 				log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
+				setToasterMessage("Upload file failed.");
+				setToasterType("error");
+				setIsShowToaster(1);
 				console.error(res);
 			}
 		}
 		catch(err) {
 			log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
+			setToasterMessage("Upload file failed for network issue.");
+			setToasterType("error");
+			setIsShowToaster(1);
 			console.error(err);
 		}
 	}
@@ -50,6 +57,7 @@ const FileItem = (props) => {
 	const copyFileUrl = () => {
 		copyToClipboard(props.url);
 		setToasterMessage(props.fileName + " URL copied.");
+		setToasterType("success");
 		setIsShowToaster(1);
 	}
 
@@ -83,7 +91,7 @@ const FileItem = (props) => {
 				show={isShowToaster}
 				message={toasterMessage}
 				position={"bottom"}
-				type={"success"}
+				type={ toasterType }
 				duration={2000}				
 				completed={() => setIsShowToaster(2)}
 			/>

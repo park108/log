@@ -4,7 +4,7 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import File from '../File/File';
 
-console.log = jest.fn();
+// console.log = jest.fn();
 console.error = jest.fn();
 
 const testEntry = {
@@ -80,7 +80,8 @@ test('render files, next files, delete file and confirm on prod server', async (
 	const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
 	expect(seeMoreButton2).toBeDefined();
 	fireEvent.click(seeMoreButton2);
-
+	
+	// Delete
 	const buttons = await screen.findAllByRole("button");
 	const firstDeleteButton = buttons[1];
 
@@ -90,6 +91,11 @@ test('render files, next files, delete file and confirm on prod server', async (
 	});
 
 	fireEvent.click(firstDeleteButton);
+
+	// Copy URL
+	document.execCommand = jest.fn();
+	const firstFile = buttons[0];
+	fireEvent.click(firstFile);
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();
@@ -183,6 +189,20 @@ test('render files and get next files failed on dev server', async () => {
 	});
 
 	expect(failMessage).toBeDefined();
+	
+	// Delete
+	const buttons = await screen.findAllByRole("button");
+	const firstDeleteButton = buttons[1];
+
+	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+		return true;
+	});
+
+	fireEvent.click(firstDeleteButton);
+
+	const toasterErrorText = await screen.findByText("Upload file failed.");
+	expect(toasterErrorText).toBeInTheDocument();
 
 	mock.devServerFailed.resetHandlers();
 	mock.devServerFailed.close();
@@ -201,6 +221,15 @@ test('render files and get next files failed on dev server', async () => {
 	});
 
 	expect(failMessage2).toBeDefined();
+	
+	// Delete
+	const buttons2 = await screen.findAllByRole("button");
+	const firstDeleteButton2 = buttons2[1];
+
+	fireEvent.click(firstDeleteButton2);
+
+	const toasterErrorText2 = await screen.findByText("Upload file failed for network issue.");
+	expect(toasterErrorText2).toBeInTheDocument();
 	
 	jest.useRealTimers();
 
