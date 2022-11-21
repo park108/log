@@ -8,7 +8,7 @@ export const prodServerHasNoData = setupServer(
 	rest.get(API_URL + "/prod", async (req, res, ctx) => {
 		console.info("[MOCK API][PROD] GET FILES - No Data");
 		return res( ctx.json({ body:{} }) );
-	})
+	}),
 );
 
 export const prodServerOk = setupServer(
@@ -292,16 +292,14 @@ export const devServerFailed = setupServer(
 		);
 	}),
 
-	rest.get(API_URL + "/test/key/testname/type/testtype", async (req, res, ctx) => {
+	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile1) - FAILED");
+		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
+	}),
 
-		console.info("[MOCK API][DEV] GET PRESIGNED URL - FAILED");
-
-		return res(
-			ctx.json({
-				errorType: "500",
-				errorMessage: "Test Error Message!"
-			})
-		);
+	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile2) - FAILED");
+		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
@@ -337,10 +335,13 @@ export const devServerNetworkError = setupServer(
 		return res.networkError('Failed to connect');
 	}),
 
-	rest.get(API_URL + "/test/key/testname/type/testtype", async (req, res, ctx) => {
+	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile1) - NETWORK ERROR");
+		return res.networkError('Failed to connect');
+	}),
 
-		console.info("[MOCK API][DEV] GET PRESIGNED URL - NETWORK ERROR");
-
+	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile2) - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	}),
 

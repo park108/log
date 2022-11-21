@@ -4,7 +4,7 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import File from '../File/File';
 
-// console.log = jest.fn();
+console.log = jest.fn();
 console.error = jest.fn();
 
 const testEntry = {
