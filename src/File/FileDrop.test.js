@@ -1,17 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import FileDrop from '../File/FileDrop';
-import * as api from '../File/api';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 
-const unmockedFetch = global.fetch;
 console.log = jest.fn();
 console.error = jest.fn();
 const uploadedCallbackFunction = jest.fn();
-const errorMessage = "API is down";
 
-test('render getting presigned url failed on dev server', async () => {
+test('getting presigned url failed on dev server', async () => {
 
 	mock.devServerFailed.listen();
 	
@@ -46,7 +42,7 @@ test('render getting presigned url failed on dev server', async () => {
 	mock.devServerFailed.close();
 });
 
-test('render getting presigned url network error on dev server', async () => {
+test('getting presigned url network error on dev server', async () => {
 
 	mock.devServerNetworkError.listen();
 	
@@ -69,10 +65,7 @@ test('render getting presigned url network error on dev server', async () => {
 		}
 	};
 
-	fireEvent.dragOver(dropZone, event);
 	fireEvent.drop(dropZone, event);
-	fireEvent.dragEnter(dropZone, event);
-	fireEvent.dragLeave(dropZone, event);
 
 	const failText = await screen.findByText("Upload failed.");
 	expect(failText).toBeInTheDocument();
@@ -81,133 +74,120 @@ test('render getting presigned url network error on dev server', async () => {
 	mock.devServerNetworkError.close();
 });
 
-it('render drop zone correctly and upload ok', async () => {
+test('upload ok', async () => {
+
+	mock.devServerOk.listen();
 
 	jest.useFakeTimers();
+	
+	process.env.NODE_ENV = 'development';
 
-	const uploadedCallbackFunction = jest.fn();
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
 
 	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
-	// const dropZone = screen.getByTestId("dropzone");
-	// expect(dropZone).toBeInTheDocument();
+	const dropZone = await screen.findByText("Drop files here!");
+	expect(dropZone).toBeDefined();
 
-	// const event = {
-	// 	dataTransfer: {
-	// 		files: [
-	// 			{ name: "testfile1.txt", type: "text" },
-	// 			{ name: "testfile2.txt", type: "text" }
-	// 		]
-	// 	}
-	// };
+	const event = {
+		dataTransfer: {
+			files: [
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
+			]
+		}
+	};
 
-	// // Fetch pre-signed URL -> error
-	// global.fetch = () =>
-	// 	Promise.resolve({
-	// 	json: () => Promise.resolve({
-	// 		errorType: "404"
-	// 	}),
-	// });
+	fireEvent.drop(dropZone, event);
 
-	// fireEvent.drop(dropZone, event);
+	const resultText = await screen.findByText("Upload complete.");
+	expect(resultText).toBeInTheDocument();
 
-	// // Fetch pre-signed URL -> Server Down
-	// global.fetch = () => Promise.reject(errorMessage);
+	act(() => {
+		jest.runAllTimers();
+	});
 
-	// fireEvent.drop(dropZone, event);
-
-	// // Fetch pre-signed URL -> OK & Upload -> OK
-	// global.fetch = () => Promise.resolve({
-	// 	json: () => Promise.resolve({
-	// 		body:{
-	// 			UploadUrl: "https://test.url.com/test"
-	// 		}
-	// 	}),
-	// });
-
-	// api.putFile = jest.fn().mockReturnValue({status: 200});
-
-	// fireEvent.dragOver(dropZone, event);
-	// fireEvent.drop(dropZone, event);
-	// fireEvent.dragEnter(dropZone, event);
-	// fireEvent.dragLeave(dropZone, event);
-
-	// // First, upload completed.
-	// jest.runOnlyPendingTimers();
+	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
+	expect(dropZoneAgain).toBeDefined();
 	
-	// const dropZoneTextComplete = await screen.findByText("Upload complete.");
-	// expect(dropZoneTextComplete).toBeInTheDocument();
+	jest.useRealTimers();
 
-	// // Second, initialize dropzone.
-	// jest.runOnlyPendingTimers();
-	
-	// const dropZoneTextReady = await screen.findByText("Drop files here!");
-	// expect(dropZoneTextReady).toBeInTheDocument();
-
-	// expect(uploadedCallbackFunction).toBeCalledTimes(2);
-
-	// global.fetch = unmockedFetch;
-	// jest.useRealTimers();
+	mock.devServerOk.resetHandlers();
+	mock.devServerOk.close();
 });
 
-// it('render drop zone correctly and upload failed', async () => {
+test('getting presigned url ok, but upload failed', async () => {
 
-// 	render(<FileDrop />);
+	mock.devServerPresignedUrlOkButUploadFailed.listen();
+	
+	process.env.NODE_ENV = 'development';
 
-// 	const dropZone = screen.getByTestId("dropzone");
-// 	expect(dropZone).toBeInTheDocument();
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
 
-// 	const event = {
-// 		dataTransfer: {
-// 			files: [
-// 				{ name: "testfile1.txt", type: "text" },
-// 				{ name: "testfile2.txt", type: "text" }
-// 			]
-// 		}
-// 	}
+	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
-// 	global.fetch = () => Promise.resolve({
-// 		json: () => Promise.resolve({
-// 			body:{
-// 				UploadUrl: "https://test.url.com/test"
-// 			}
-// 		}),
-// 	});
+	const dropZone = await screen.findByText("Drop files here!");
+	expect(dropZone).toBeDefined();
 
-// 	api.putFile = jest.fn().mockReturnValue({status: 404});
+	const event = {
+		dataTransfer: {
+			files: [
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
+			]
+		}
+	};
 
-// 	fireEvent.drop(dropZone, event);
+	fireEvent.drop(dropZone, event);
 
-// 	global.fetch = unmockedFetch;
-// });
+	const resultText = await screen.findByText("Upload failed.");
+	expect(resultText).toBeInTheDocument();
 
-// it('render drop zone correctly and upload server error', async () => {
+	mock.devServerPresignedUrlOkButUploadFailed.resetHandlers();
+	mock.devServerPresignedUrlOkButUploadFailed.close();
+});
 
-// 	render(<FileDrop />);
+test('getting presigned url ok, but upload network error', async () => {
 
-// 	const dropZone = screen.getByTestId("dropzone");
-// 	expect(dropZone).toBeInTheDocument();
+	mock.devServerPresignedUrlOkButUploadNetworkError.listen();
 
-// 	const event = {
-// 		dataTransfer: {
-// 			files: [
-// 				{ name: "testfile1.txt", type: "text" },
-// 				{ name: "testfile2.txt", type: "text" }
-// 			]
-// 		}
-// 	}
+	jest.useFakeTimers();
+	
+	process.env.NODE_ENV = 'development';
 
-// 	global.fetch = () => Promise.resolve({
-// 		json: () => Promise.resolve({
-// 			body:{
-// 				UploadUrl: "https://test.url.com/test"
-// 			}
-// 		}),
-// 	});
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
 
-// 	api.putFile = jest.fn().mockRejectedValue();
+	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
-// 	fireEvent.drop(dropZone, event);
+	const dropZone = await screen.findByText("Drop files here!");
+	expect(dropZone).toBeDefined();
 
-// 	global.fetch = unmockedFetch;
-// });
+	const event = {
+		dataTransfer: {
+			files: [
+				{ name: "testfile1.txt", type: "text" },
+				{ name: "testfile2.txt", type: "text" }
+			]
+		}
+	};
+
+	fireEvent.drop(dropZone, event);
+
+	const resultText = await screen.findByText("Upload failed.");
+	expect(resultText).toBeInTheDocument();
+
+	act(() => {
+		jest.runAllTimers();
+	});
+
+	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
+	expect(dropZoneAgain).toBeDefined();
+	
+	jest.useRealTimers();
+
+	mock.devServerPresignedUrlOkButUploadNetworkError.resetHandlers();
+	mock.devServerPresignedUrlOkButUploadNetworkError.close();
+});

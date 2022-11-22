@@ -92,14 +92,8 @@ export const prodServerOk = setupServer(
 	}),
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-
 		console.info("[MOCK API][PROD] PUT FILE");
-
-		return res(
-			ctx.json({
-				statusCode: 200
-			})
-		);
+		return res( ctx.json({ status: 200 }) );
 	}),
 
 	rest.delete(API_URL + "/prod/key/20220606_log_CQRS.png", async (req, res, ctx) => {
@@ -134,15 +128,8 @@ export const prodServerFailed = setupServer(
 	}),
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-
 		console.info("[MOCK API][PROD] PUT FILE - FAILED");
-
-		return res(
-			ctx.json({
-				errorType: "500",
-				errorMessage: "Test Error Message!"
-			})
-		);
+		return res(ctx.status(500));
 	}),
 
 	rest.delete(API_URL + "/prod/key/20220606_log_CQRS.png", async (req, res, ctx) => {
@@ -160,30 +147,17 @@ export const prodServerFailed = setupServer(
 
 export const prodServerNetworkError = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
-
 		console.info("[MOCK API][PROD] GET FILES - NETWORK ERROR");
-
-		return res.networkError('Failed to connect');
-	}),
-
-	rest.get(API_URL + "/prod/key/testname/type/testtype", async (req, res, ctx) => {
-
-		console.info("[MOCK API][PROD] GET PRESIGNED URL - NETWORK ERROR");
-
 		return res.networkError('Failed to connect');
 	}),
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-
 		console.info("[MOCK API][PROD] PUT FILE - NETWORK ERROR");
-
 		return res.networkError('Failed to connect');
 	}),
 
 	rest.delete(API_URL + "/prod/key/20220606_log_CQRS.png", async (req, res, ctx) => {
-
 		console.info("[MOCK API][PROD] DELETE FILE - NETWORK ERROR");
-
 		return res.networkError('Failed to connect');
 	})
 );
@@ -243,28 +217,19 @@ export const devServerOk = setupServer(
 		}
 	}),
 
-	rest.get(API_URL + "/test/key/testname/type/testtype", async (req, res, ctx) => {
-
+	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
 		console.info("[MOCK API][DEV] GET PRESIGNED URL");
+		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
+	}),
 
-		return res(
-			ctx.json({
-				body:{
-					UploadUrl: PRESIGNED_URL
-				}
-			})
-		);
+	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL");
+		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
 	}),
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-
 		console.info("[MOCK API][DEV] PUT FILE");
-
-		return res(
-			ctx.json({
-				statusCode: 200
-			})
-		);
+		return res( ctx.json({ status: 200 }) );
 	}),
 
 	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
@@ -303,15 +268,8 @@ export const devServerFailed = setupServer(
 	}),
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-
 		console.info("[MOCK API][DEV] PUT FILE - FAILED");
-
-		return res(
-			ctx.json({
-				errorType: "500",
-				errorMessage: "Test Error Message!"
-			})
-		);
+		return res(ctx.status(500));
 	}),
 
 	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
@@ -329,9 +287,7 @@ export const devServerFailed = setupServer(
 
 export const devServerNetworkError = setupServer(
 	rest.get(API_URL + "/test", (req, res, ctx) => {
-
 		console.info("[MOCK API][DEV] GET FILES - NETWORK ERROR");
-
 		return res.networkError('Failed to connect');
 	}),
 
@@ -346,16 +302,48 @@ export const devServerNetworkError = setupServer(
 	}),
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-
 		console.info("[MOCK API][DEV] PUT FILE - NETWORK ERROR");
-
 		return res.networkError('Failed to connect');
 	}),
 
 	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
-
 		console.info("[MOCK API][DEV] DELETE FILE - NETWORK ERROR");
-
 		return res.networkError('Failed to connect');
 	})
+);
+
+export const devServerPresignedUrlOkButUploadFailed = setupServer(
+
+	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
+	}),
+
+	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
+	}),
+
+	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] PUT FILE - URL OK, Upload Failed");
+		return res(ctx.status(500));
+	}),
+);
+
+export const devServerPresignedUrlOkButUploadNetworkError = setupServer(
+
+	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
+	}),
+
+	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
+	}),
+
+	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
+		console.info("[MOCK API][DEV] PUT FILE - URL OK, Upload Failed");
+		return res.networkError('Failed to connect');
+	}),
 );
