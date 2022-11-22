@@ -2,7 +2,7 @@ const getApiUrl = () => {
 	if (process.env.NODE_ENV === 'production') {
 		return "https://k7aiaqwk1e.execute-api.ap-northeast-2.amazonaws.com/prod";
 	}
-	else if (process.env.NODE_ENV === 'development') {
+	else {
 		return "https://k7aiaqwk1e.execute-api.ap-northeast-2.amazonaws.com/test";
 	}
 }

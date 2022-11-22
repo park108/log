@@ -15,14 +15,17 @@ const getSuccessRateIndex = (rate) => {
 
 const ApiCallItem = (props) => {
 
-	const title = props.title;
-	const service = props.service;
-	const stackPallet = props.stackPallet;
+	const [isLoading, setIsLoading] = useState(false);
+	const [isMount, setIsMount] = useState(false);
+	const [isError, setIsError] = useState(false);
 
 	const [totalCount, setTotalCount] = useState("...");
 	const [successCount, setSuccessCount] = useState(0);
 	const [countList, setCountList] = useState([]);
-	const [isLoading, setIsLoading] = useState(false);
+
+	const title = props.title;
+	const service = props.service;
+	const stackPallet = props.stackPallet;
 
 	// Fetch counts at mount
 	useEffect(() => {
@@ -31,6 +34,7 @@ const ApiCallItem = (props) => {
 		const fetchData = async (service) => {
 	
 			setIsLoading(true);
+			setIsError(false);
 	
 			// Make timestamp for 7 days
 			const today = new Date();
@@ -44,7 +48,7 @@ const ApiCallItem = (props) => {
 				if(!hasValue(data.errorType)) {
 					log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms", "SUCCESS");
 					
-					if(!hasValue(data.body.totalCount)) {
+					if(undefined === data.body.totalCount ) {
 						throw "totalCount is undefined";
 					}
 					setTotalCount(data.body.totalCount);
@@ -77,20 +81,25 @@ const ApiCallItem = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - API call stats: " + service, "ERROR");
+					setIsError(true);
 					console.error(data);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - API call stats: " + service, "ERROR");
+				setIsError(true);
 				console.error(err);
 			}
 			
 			setIsLoading(false);
 		}
 
-		fetchData(service)
+		if(!isMount) {
+			fetchData(service);
+			setIsMount(true);
+		}
 
-	}, [service]);
+	}, [service, isMount]);
 
 	// Make pillar 
 	const Pillar = (attr) => {
@@ -157,38 +166,48 @@ const ApiCallItem = (props) => {
 		color: stackPallet[getSuccessRateIndex(rate)].color
 	}
 
-	// Draw pillar chart
-	return (
-		<section className="section section--monitor-item">
-			<h3>
-				{title}: {totalCount.toLocaleString()} 
-				(<span style={rateColor}>{"..." === totalCount || 0 === totalCount ? 0 : rate}%</span>)
-			</h3>
-			<div className="div div--monitor-pillarchart">
-			{
-				isLoading ? (
-					<div className="div div--monitor-loading">
-						Loading...
-					</div>
-				)
-				: countList.map(
-					(data, index) => (
-						<Pillar
-							key={data.date}
-							date={data.date}
-							count={data.count}
-							succeed={data.succeed}
-							failed={data.failed}
-							valueRate={data.valueRate}
-							successRate={data.successRate}
-							index={index}
-						/>
+	if(isError) {
+		return (
+			<section className="section section--monitor-item">
+				Retry
+			</section>
+		);
+	}
+	else {
+
+		// Draw pillar chart
+		return (
+			<section className="section section--monitor-item">
+				<h3>
+					{title}: {totalCount.toLocaleString()} 
+					(<span style={rateColor}>{"..." === totalCount || 0 === totalCount ? 0 : rate}%</span>)
+				</h3>
+				<div className="div div--monitor-pillarchart">
+				{
+					isLoading ? (
+						<div className="div div--monitor-loading">
+							Loading...
+						</div>
 					)
-				)
-			}
-			</div>
-		</section>
-	);
+					: countList.map(
+						(data, index) => (
+							<Pillar
+								key={data.date}
+								date={data.date}
+								count={data.count}
+								succeed={data.succeed}
+								failed={data.failed}
+								valueRate={data.valueRate}
+								successRate={data.successRate}
+								index={index}
+							/>
+						)
+					)
+				}
+				</div>
+			</section>
+		);
+	}
 }
 
 ApiCallItem.propTypes = {

@@ -1,10 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import * as mock from './api.mock'
 import ApiCallItem from './ApiCallItem';
 
-const unmockedFetch = global.fetch;
 console.log = jest.fn();
 console.error = jest.fn();
-const errorMessage = "API is down";
 
 const stackPallet = {
 	pallet: "Red to Green",
@@ -19,30 +18,11 @@ const stackPallet = {
 	]
 };
 
-it('render api call monitor', async () => {
+it('render api call monitor on prod server', async () => {
 
-	const fromTimestamp = 1643375805000; // 2022.01.28
+	mock.prodServerOk.listen();
 
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-            statusCode: 200,
-            body: {
-                totalCount: 700,
-				ProcessingTime: 1000,
-                Items: [
-                    { timestamp: fromTimestamp, succeed: 50, failed: 50, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 71, failed: 29, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 81, failed: 19, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 91, failed: 9, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 96, failed: 4, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 100, failed: 200, total: 100 },
-                ],
-            }
-		}),
-	});
-
-	jest.useFakeTimers();
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<ApiCallItem
@@ -51,8 +31,6 @@ it('render api call monitor', async () => {
 			stackPallet={stackPallet.colors}
 		/>
 	);
-
-	jest.runOnlyPendingTimers();
 
 	const obj = await screen.findByText("02.01 (Tue)");
 	expect(obj).toBeInTheDocument();
@@ -67,34 +45,15 @@ it('render api call monitor', async () => {
 	fireEvent.mouseOut(firstPillar);
 	fireEvent.mouseOut(firstPillar); // Already class changed
 
-	jest.useRealTimers();
-	global.fetch = unmockedFetch;
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
 });
 
-it('render api call monitor for pillar of total count zero', async () => {
+it('render api call monitor has zero total count on prod server', async () => {
 
-	const fromTimestamp = 1643375805000; // 2022.01.28
+	mock.prodServerHasNoCount.listen();
 
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-            statusCode: 200,
-            body: {
-                totalCount: 600,
-				ProcessingTime: 1000,
-                Items: [
-                    { timestamp: fromTimestamp, succeed: 0, failed: 0, total: 0 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 71, failed: 29, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 81, failed: 19, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 91, failed: 9, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 96, failed: 4, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 100, failed: 200, total: 100 },
-                ],
-            }
-		}),
-	});
-
-	jest.useFakeTimers();
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<ApiCallItem
@@ -103,41 +62,19 @@ it('render api call monitor for pillar of total count zero', async () => {
 			stackPallet={stackPallet.colors}
 		/>
 	);
-
-	jest.runOnlyPendingTimers();
 
 	const obj = await screen.findByText("02.01 (Tue)");
 	expect(obj).toBeInTheDocument();
 
-	// Test mouse over, move and out events
-	const firstPillar = await screen.findByTestId("api-call-item-log-0");
-	expect(firstPillar).toBeInTheDocument();
-
-	jest.useRealTimers();
-	global.fetch = unmockedFetch;
+	mock.prodServerHasNoCount.resetHandlers();
+	mock.prodServerHasNoCount.close();
 });
 
-it('render api call monitor when totalCount is undefined', async () => {
+it('render api call monitor but has no total count on prod server', async () => {
 
-	const fromTimestamp = 1643375805000; // 2022.01.28
+	mock.prodServerHasNoTotalCount.listen();
 
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-            statusCode: 200,
-            body: {
-				ProcessingTime: 1000,
-                Items: [
-                    { timestamp: fromTimestamp, succeed: 50, failed: 50, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 61, failed: 39, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 71, failed: 29, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 81, failed: 19, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 91, failed: 9, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 96, failed: 4, total: 100 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 100, failed: 200, total: 100 },
-                ],
-            }
-		}),
-	});
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<ApiCallItem
@@ -147,31 +84,18 @@ it('render api call monitor when totalCount is undefined', async () => {
 		/>
 	);
 
-	global.fetch = unmockedFetch;
+	const obj = await screen.findByText("Retry");
+	expect(obj).toBeInTheDocument();
+
+	mock.prodServerHasNoTotalCount.resetHandlers();
+	mock.prodServerHasNoTotalCount.close();
 });
 
-it('render api call monitor when totalCount is zero', async () => {
+it('render api call monitor failed on prod server', async () => {
 
-	const fromTimestamp = 1643375805000; // 2022.01.28
+	mock.prodServerFailed.listen();
 
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-            statusCode: 200,
-            body: {
-				ProcessingTime: 1000,
-				totalCount: 0,
-                Items: [
-                    { timestamp: fromTimestamp, succeed: 0, failed: 0, total: 0 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24), succeed: 0, failed: 0, total: 0 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 2, succeed: 0, failed: 0, total: 0 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 3, succeed: 0, failed: 0, total: 0 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 4, succeed: 0, failed: 0, total: 0 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 5, succeed: 0, failed: 0, total: 0 },
-                    { timestamp: fromTimestamp + (1000 * 60 * 60 * 24) * 6, succeed: 0, failed: 0, total: 0 },
-                ],
-            }
-		}),
-	});
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<ApiCallItem
@@ -181,17 +105,18 @@ it('render api call monitor when totalCount is zero', async () => {
 		/>
 	);
 
-	global.fetch = unmockedFetch;
+	const obj = await screen.findByText("Retry");
+	expect(obj).toBeInTheDocument();
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
 });
 
-it('render api call monitor when fetch failed', async () => {
-	
-	// fetchFirst -> return error
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			errorType: "404"
-		}),
-	});
+it('render api call monitor network error on prod server', async () => {
+
+	mock.prodServerNetworkError.listen();
+
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<ApiCallItem
@@ -201,20 +126,9 @@ it('render api call monitor when fetch failed', async () => {
 		/>
 	);
 
-	global.fetch = unmockedFetch;
-});
+	const obj = await screen.findByText("Retry");
+	expect(obj).toBeInTheDocument();
 
-it('render visitor monitor when API is down', async () => {
-	
-	// fetchMore -> Server error
-	global.fetch = () => Promise.reject(errorMessage);
-
-	render(
-		<ApiCallItem
-			title="log"
-			service="log"
-			stackPallet={stackPallet.colors}
-		/>
-	);
-	global.fetch = unmockedFetch;
+	mock.prodServerNetworkError.resetHandlers();
+	mock.prodServerNetworkError.close();
 });

@@ -1,72 +1,46 @@
 import { render, screen } from '@testing-library/react';
-import { createMemoryHistory } from 'history'
-import { Router } from 'react-router-dom';
-import App from '../App';
+import { MemoryRouter } from 'react-router-dom';
 import Monitor from '../Monitor/Monitor';
-import * as api from '../Monitor/api';
 import * as common from '../common/common';
-import userEvent from '@testing-library/user-event';
 
+console.log = jest.fn();
 console.error = jest.fn();
 
+const testEntry = {
+	pathname: "/monitor"
+	, search: ""
+	, hash: ""
+	, state: {}
+	, key: "default"
+};
+
 it('render monitor if it logged in', async () => {
+	
+	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-
-	const history = createMemoryHistory();
-	history.push({location: {pathname: "/monitor"}});
+	common.isLoggedIn = jest.fn().mockReturnValue(true);
+	common.isAdmin = jest.fn().mockReturnValue(true);
 
 	render(
-		<Router location={history.location} navigator={history}>
+        <MemoryRouter initialEntries={[testEntry]}>
 			<Monitor />
-		</Router>
+		</MemoryRouter>
 	);
-	
-	const title = await screen.findByText("Contents in the last 6 months");
-	expect(title).toBeInTheDocument();
+
+	const text = await screen.findByText("Contents in the last 6 months");
+	expect(text).toBeInTheDocument();
 });
 
 it('redirect if not admin', async () => {
 	
+	process.env.NODE_ENV = 'development';
+
 	common.isLoggedIn = jest.fn().mockReturnValue(true);
 	common.isAdmin = jest.fn().mockReturnValue(false);
 
-	const history = createMemoryHistory();
-	const location = {location: {pathname: "/monitor"}};
-	history.push(location);
-
 	render(
-		<Router location={location} navigator={history}>
+        <MemoryRouter initialEntries={[testEntry]}>
 			<Monitor />
-		</Router>
+		</MemoryRouter>
 	);
-
-	const title = screen.queryByText("Contents in the last 6 months");
-	expect(title).not.toBeInTheDocument();
-});
-
-describe("get api url", () => {
-
-	it('get production api', () => {
-
-		process.env.NODE_ENV = 'production';
-		let prod = api.getAPI();
-		expect(prod).toBe("https://4568z7p97l.execute-api.ap-northeast-2.amazonaws.com/prod");
-	});
-
-	it('get development api', () => {
-
-		process.env.NODE_ENV = 'development';
-		let test = api.getAPI();
-		expect(test).toBe("https://4568z7p97l.execute-api.ap-northeast-2.amazonaws.com/test");
-	});
-
-	it('failed get development api', () => {
-
-		process.env.NODE_ENV = '';
-		let test = api.getAPI();
-		expect(test).toBe(undefined);
-	});
 });

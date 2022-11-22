@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, lazy } from "react";
 import PropTypes from 'prop-types';
-import { Navigate } from 'react-router-dom';
-import { isAdmin, setFullscreen, setHtmlTitle } from '../common/common';
+import { useNavigate } from 'react-router-dom';
+import { log, isAdmin, setFullscreen, setHtmlTitle } from '../common/common';
 
 import './Monitor.css';
 
@@ -38,18 +38,24 @@ const chartPallets = [
 ];
 
 const Monitor = (props) => {
+
+	const navigate = useNavigate();
 	
 	// Change width
 	useEffect(() => {
+
+		if(!isAdmin()) {
+			const redirectPage = "/log";
+			log("Redirect to " + redirectPage);
+			navigate(redirectPage);
+			return;
+		}
+
 		setHtmlTitle("monitor");
 		setFullscreen(true); // Enable fullscreen mode at mounted
+
 		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
 	}, []);
-
-	// If not admin, redirect initial page
-	if(!isAdmin()) {
-		return <Navigate to="/log" />;
-	}
 
 	// Draw monitor app.
 	return (
