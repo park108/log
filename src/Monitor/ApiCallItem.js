@@ -166,16 +166,29 @@ const ApiCallItem = (props) => {
 		color: stackPallet[getSuccessRateIndex(rate)].color
 	}
 
-	if(isError) {
+	if(isLoading) {
 		return (
 			<section className="section section--monitor-item">
-				Retry
+				<h3>{title}</h3>
+				<div className="div div--monitor-processing">
+					Loading...
+				</div>
+			</section>
+		);
+	}
+	else if(isError) {
+		return (
+			<section className="section section--monitor-item">
+				<h3>{title}</h3>
+				<div className="div div--monitor-processing">
+					<span className="span span--monitor-retrybutton" onClick={ () => { setIsMount(false) } } >
+						Retry
+					</span>
+				</div>
 			</section>
 		);
 	}
 	else {
-
-		// Draw pillar chart
 		return (
 			<section className="section section--monitor-item">
 				<h3>
@@ -183,27 +196,18 @@ const ApiCallItem = (props) => {
 					(<span style={rateColor}>{"..." === totalCount || 0 === totalCount ? 0 : rate}%</span>)
 				</h3>
 				<div className="div div--monitor-pillarchart">
-				{
-					isLoading ? (
-						<div className="div div--monitor-loading">
-							Loading...
-						</div>
-					)
-					: countList.map(
-						(data, index) => (
-							<Pillar
-								key={data.date}
-								date={data.date}
-								count={data.count}
-								succeed={data.succeed}
-								failed={data.failed}
-								valueRate={data.valueRate}
-								successRate={data.successRate}
-								index={index}
-							/>
-						)
-					)
-				}
+				{ countList.map((data, index) => (
+					<Pillar
+						key={data.date}
+						date={data.date}
+						count={data.count}
+						succeed={data.succeed}
+						failed={data.failed}
+						valueRate={data.valueRate}
+						successRate={data.successRate}
+						index={index}
+					/>
+				)) }
 				</div>
 			</section>
 		);

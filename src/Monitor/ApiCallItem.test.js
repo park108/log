@@ -24,13 +24,7 @@ it('render api call monitor on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	render(
-		<ApiCallItem
-			title="log"
-			service="log"
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
 	const obj = await screen.findByText("02.01 (Tue)");
 	expect(obj).toBeInTheDocument();
@@ -55,13 +49,7 @@ it('render api call monitor has zero total count on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	render(
-		<ApiCallItem
-			title="log"
-			service="log"
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
 	const obj = await screen.findByText("02.01 (Tue)");
 	expect(obj).toBeInTheDocument();
@@ -76,16 +64,12 @@ it('render api call monitor but has no total count on prod server', async () => 
 
 	process.env.NODE_ENV = 'production';
 
-	render(
-		<ApiCallItem
-			title="log"
-			service="log"
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const obj = await screen.findByText("Retry");
-	expect(obj).toBeInTheDocument();
+	const retryButton = await screen.findByText("Retry");
+	expect(retryButton).toBeInTheDocument();
+
+	fireEvent.click(retryButton);
 
 	mock.prodServerHasNoTotalCount.resetHandlers();
 	mock.prodServerHasNoTotalCount.close();
@@ -97,16 +81,10 @@ it('render api call monitor failed on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	render(
-		<ApiCallItem
-			title="log"
-			service="log"
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const obj = await screen.findByText("Retry");
-	expect(obj).toBeInTheDocument();
+	const retryButton = await screen.findByText("Retry");
+	expect(retryButton).toBeInTheDocument();
 
 	mock.prodServerFailed.resetHandlers();
 	mock.prodServerFailed.close();
@@ -118,16 +96,10 @@ it('render api call monitor network error on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	render(
-		<ApiCallItem
-			title="log"
-			service="log"
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const obj = await screen.findByText("Retry");
-	expect(obj).toBeInTheDocument();
+	const retryButton = await screen.findByText("Retry");
+	expect(retryButton).toBeInTheDocument();
 
 	mock.prodServerNetworkError.resetHandlers();
 	mock.prodServerNetworkError.close();
