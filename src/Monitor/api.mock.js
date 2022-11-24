@@ -89,18 +89,74 @@ export const prodServerHasNoCount = setupServer(
 export const prodServerFailed = setupServer(
 	rest.get(API_URL + "/prod/api/log", (req, res, ctx) => {
 		console.info("[MOCK API][PROD] GET API CALL STATS - FAILED");
-		return res(
-			ctx.json({
-				errorType: "500",
-				errorMessage: "Test Error Message!"
-			})
-		);
+		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	})
 );
 
 export const prodServerNetworkError = setupServer(
 	rest.get(API_URL + "/prod/api/log", (req, res, ctx) => {
 		console.info("[MOCK API][PROD] GET API CALL STATS - NETWORK ERROR");
+		return res.networkError('Failed to connect');
+	})
+);
+
+export const devServerOk = setupServer(
+	rest.get(API_URL + "/test/content/log", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS");
+
+		const testTime = 1643375805000; // 2022.01.28
+		const day = 144000000;
+		const month = day * 30;
+
+		return res(
+			ctx.json({
+				statusCode: 200,
+				body:{
+					Count: 6,
+					ProcessingTime: 1000,
+					Items: [
+						{timestamp: testTime, size: 3, sortKey: testTime},
+						{timestamp: testTime - month * 1, size: 5, sortKey: -testTime},
+						{timestamp: testTime - month * 2},
+						{timestamp: testTime - month * 3},
+						{timestamp: testTime - month * 4},
+						{timestamp: testTime - month * 5},
+					]
+				}
+			})
+		);
+	})
+);
+
+export const devServerHasNoCount = setupServer(
+	rest.get(API_URL + "/test/content/log", async (req, res, ctx) => {
+
+		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS - No Data");
+
+		return res(
+			ctx.json({
+				statusCode: 200,
+				body:{
+					Count: 0,
+					ProcessingTime: 1000,
+					Items: []
+				}
+			})
+		);
+	})
+);
+
+export const devServerFailed = setupServer(
+	rest.get(API_URL + "/test/content/log", (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS - FAILED");
+		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
+	})
+);
+
+export const devServerNetworkError = setupServer(
+	rest.get(API_URL + "/test/content/log", (req, res, ctx) => {
+		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	})
 );

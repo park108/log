@@ -30,7 +30,6 @@ const ApiCallItem = (props) => {
 	// Fetch counts at mount
 	useEffect(() => {
 
-		// Get api call stats from API Gateway
 		const fetchData = async (service) => {
 	
 			setIsLoading(true);

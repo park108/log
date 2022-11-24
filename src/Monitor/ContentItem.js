@@ -5,36 +5,39 @@ import { getContentItemCount } from './api';
 
 const ContentItem = (props) => {
 
-	const title = props.title;
-	const path = props.path;
-	const stackPallet = props.stackPallet;
+	const [isLoading, setIsLoading] = useState(false);
+	const [isMount, setIsMount] = useState(false);
+	const [isError, setIsError] = useState(false);
 
 	const [totalCount, setTotalCount] = useState("...");
 	const [counts, setCounts] = useState([]);
-	const [isLoading, setIsLoading] = useState(false);
+
+	const title = props.title;
+	const path = props.path;
+	const stackPallet = props.stackPallet;
+	
+	// Make timestamp for 6 months
+	const now = new Date();
+	const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
+	const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
+	
+	const timeline = [
+		from,
+		(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
+		(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
+		(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
+		(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
+		(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
+		to
+	];
 
 	// Fetch counts at mount
 	useEffect(() => {
 
-		// Get content counts from API Gateway
-		const fetchCounts = async (path) => {
+		const fetchData = async (path) => {
 	
 			setIsLoading(true);
-	
-			// Make timestamp for 6 months
-			const now = new Date();
-			const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
-			const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
-	
-			const timeline = [
-				from,
-				(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
-				(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
-				(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
-				(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
-				(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
-				to
-			];
+			setIsError(false);
 	
 			try {
 				const res = await getContentItemCount(path, from, to);
@@ -89,20 +92,25 @@ const ContentItem = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - Content API: " + path, "ERROR");
+					setIsError(true);
 					console.error(data);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Content API: " + path, "ERROR");
+				setIsError(true);
 				console.error(err);
 			}
 			
 			setIsLoading(false);
 		}
 
-		fetchCounts(path)
+		if(!isMount) {
+			fetchData(path);
+			setIsMount(true);
+		}
 
-	}, [path]);
+	}, [path, isMount]);
 
 	// Make pillar 
 	const Pillar = (attr) => {
@@ -133,41 +141,55 @@ const ContentItem = (props) => {
 		);
 	}
 
-	// Draw pillar chart
-	return (
-		<section className="section section--monitor-item">
-			<h3>{title}</h3>
-			<div className="div div--monitor-pillarchart">
-				{
-					isLoading ? (
-						<div className="div div--monitor-loading">
-							Loading...
-						</div>
-					)
-					: counts.map(
-						(item, index) => (
-							<Pillar
-								key={item.from}
-								valueRate={item.valueRate}
-								value={
-									("capacity" === props.unit)
-									? (
-										getFormattedSize(item.value)
-											+ ((0 === item.count) ? ""
-											: (1 === item.count) ? " (" + item.count + " file)"
-											: " (" + item.count + " files)")
-									)
-									: item.value
-								}
-								date={getFormattedDate(item.from)}
-								index={index}
-							/>
-						)
-					)
-				}
-			</div>
-		</section>
-	);
+	if(isLoading) {
+		return (
+			<section className="section section--monitor-item">
+				<h3>{title}</h3>
+				<div className="div div--monitor-processing">
+					Loading...
+				</div>
+			</section>
+		);
+	}
+	else if(isError) {
+		return (
+			<section className="section section--monitor-item">
+				<h3>{title}</h3>
+				<div className="div div--monitor-processing">
+					<span className="span span--monitor-retrybutton" onClick={ () => { setIsMount(false) } } >
+						Retry
+					</span>
+				</div>
+			</section>
+		);
+	}
+	else {
+		return (
+			<section className="section section--monitor-item">
+				<h3>{title}</h3>
+				<div className="div div--monitor-pillarchart">
+					{ counts.map((item, index) => (
+						<Pillar
+							key={item.from}
+							valueRate={item.valueRate}
+							value={
+								("capacity" === props.unit)
+								? (
+									getFormattedSize(item.value)
+										+ ((0 === item.count) ? ""
+										: (1 === item.count) ? " (" + item.count + " file)"
+										: " (" + item.count + " files)")
+								)
+								: item.value
+							}
+							date={getFormattedDate(item.from)}
+							index={index}
+						/>
+					)) }
+				</div>
+			</section>
+		);
+	}
 }
 
 ContentItem.propTypes = {

@@ -1,10 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import * as mock from './api.mock'
 import ContentItem from '../Monitor/ContentItem';
 
-const unmockedFetch = global.fetch;
 console.log = jest.fn();
 console.error = jest.fn();
-const errorMessage = "API is down";
 
 const stackPallet = {
 	pallet: "Red to Green",
@@ -19,156 +18,84 @@ const stackPallet = {
 	]
 };
 
-afterAll(() => {
-	global.fetch = unmockedFetch;
-	jest.useRealTimers();
-});
+it('render log on dev server', async () => {
 
-it('render content item monitor', async () => {
+	mock.devServerOk.listen();
 
-	jest
-		.useFakeTimers()
-		.setSystemTime(new Date('2022-01-28'));
-
-	const testTime = 1643375805000; // 2022.01.28
-	const day = 144000000;
-	const month = day * 30;
-
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			Count: 6,
-			body: {
-				Items: [
-					{timestamp: testTime, size: 3, sortKey: testTime},
-					{timestamp: testTime - month * 1, size: 5, sortKey: -testTime},
-					{timestamp: testTime - month * 2},
-					{timestamp: testTime - month * 3},
-					{timestamp: testTime - month * 4},
-					{timestamp: testTime - month * 5},
-				]
-			}
-		}),
-	});
-
-	process.env.NODE_ENV = 'production';
-
-	render(
-		<ContentItem 
-			title="Logs"
-			path="content/log"
-			unit="count"
-			stackPallet={stackPallet.colors}
-		/>
-	);
-	
-	const text = await screen.findAllByText("1");
-	expect(text[0]).toBeInTheDocument();
-});
-
-it('render file content item monitor', async () => {
-
-	jest
-		.useFakeTimers()
-		.setSystemTime(new Date('2022-01-28'));
-
-	const testTime = 1643375805000; // 2022.01.28
-	const day = 144000000;
-	const month = day * 30;
-
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			Count: 6,
-			body: {
-				Items: [
-					{timestamp: testTime, size: 1000, sortKey: testTime},
-					{timestamp: testTime - month * 1, size: 100000, sortKey: -testTime},
-					{timestamp: testTime, size: 2222, sortkKey: testTime},
-					{timestamp: testTime - month * 4},
-					{timestamp: testTime - month * 5},
-				]
-			}
-		}),
-	});
-
-	process.env.NODE_ENV = 'production';
-
-	render(
-		<ContentItem 
-			title="Files"
-			path="content/file"
-			unit="capacity"
-			stackPallet={stackPallet.colors}
-		/>
-	);
-	
-	const text = await screen.findAllByText("3.22 KB (2 files)");
-	expect(text[0]).toBeInTheDocument();
-});
-
-it('render file content item monitor when totalCount is zero', async () => {
-
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			body: {
-				Count: 0,
-				Items: [
-				]
-			}
-		}),
-	});
+	jest.useFakeTimers('modern')
+		.setSystemTime(new Date(1643375805000));
 
 	process.env.NODE_ENV = 'development';
 
-	render(
-		<ContentItem 
-			title="Log"
-			path="content/log"
-			unit="count"
-			stackPallet={stackPallet.colors}
-		/>
-	);
-	
+	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+
+	const text = await screen.findByText("'22.01");
+	expect(text).toBeInTheDocument();
+
+	jest.useRealTimers();
+
+	mock.devServerOk.resetHandlers();
+	mock.devServerOk.close();
+});
+
+it('render log with no data on dev server', async () => {
+
+	mock.devServerHasNoCount.listen();
+
+	jest.useFakeTimers('modern')
+		.setSystemTime(new Date(1643375805000));
+
+	process.env.NODE_ENV = 'development';
+
+	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+
 	const text = await screen.findAllByText("0");
 	expect(text[0]).toBeInTheDocument();
+
+	jest.useRealTimers();
+
+	mock.devServerHasNoCount.resetHandlers();
+	mock.devServerHasNoCount.close();
 });
 
-it('render content item monitor if it fetch error', async () => {
+it('render log failed on dev server', async () => {
 
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			errorType: "404"
-		}),
-	});
+	mock.devServerFailed.listen();
+
+	jest.useFakeTimers('modern')
+		.setSystemTime(new Date(1643375805000));
 
 	process.env.NODE_ENV = 'development';
 
-	render(
-		<ContentItem 
-			title="Logs"
-			path="content/log"
-			unit="count"
-			stackPallet={stackPallet.colors}
-		/>
-	);
-	
-	const text = await screen.findByText("Logs", {}, { timeout: 0 });
-	expect(text).toBeInTheDocument();
+	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+
+	const retryButton = await screen.findByText("Retry");
+	expect(retryButton).toBeInTheDocument();
+
+	fireEvent.click(retryButton);
+
+	jest.useRealTimers();
+
+	mock.devServerFailed.resetHandlers();
+	mock.devServerFailed.close();
 });
 
-it('render visitor monitor when API is down', async () => {
-	
-	// fetchMore -> Server error
-	global.fetch = () => Promise.reject(errorMessage);
+it('render log network error on dev server', async () => {
 
-	render(
-		<ContentItem 
-			title="Logs"
-			path="content/log"
-			unit="count"
-			stackPallet={stackPallet.colors}
-		/>
-	);
-	
-	const text = await screen.findByText("Logs", {}, { timeout: 0 });
-	expect(text).toBeInTheDocument();
+	mock.devServerNetworkError.listen();
+
+	jest.useFakeTimers('modern')
+		.setSystemTime(new Date(1643375805000));
+
+	process.env.NODE_ENV = 'development';
+
+	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+
+	const retryButton = await screen.findByText("Retry");
+	expect(retryButton).toBeInTheDocument();
+
+	jest.useRealTimers();
+
+	mock.devServerNetworkError.resetHandlers();
+	mock.devServerNetworkError.close();
 });
