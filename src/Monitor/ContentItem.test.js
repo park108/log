@@ -99,3 +99,24 @@ it('render log network error on dev server', async () => {
 	mock.devServerNetworkError.resetHandlers();
 	mock.devServerNetworkError.close();
 });
+
+// TODO: Cannot render component.
+it('render file on dev server', async () => {
+
+	mock.devServerOk.listen();
+
+	jest.useFakeTimers('modern')
+		.setSystemTime(new Date(1643375805000));
+
+	process.env.NODE_ENV = 'development';
+
+	render( <ContentItem title="Files" path="content/file" unit="capacity" stackPallet={ stackPallet.colors } /> );
+
+	const text = await screen.findByText("Loading...");
+	expect(text).toBeInTheDocument();
+
+	jest.useRealTimers();
+
+	mock.devServerOk.resetHandlers();
+	mock.devServerOk.close();
+});

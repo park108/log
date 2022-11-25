@@ -1,11 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import * as mock from './api.mock'
 import VisitorMon from '../Monitor/VisitorMon';
-import * as common from '../common/common';
 
-const unmockedFetch = global.fetch;
-console.log = jest.fn();
-console.error = jest.fn();
-const errorMessage = "API is down";
+// const unmockedFetch = global.fetch;
+// console.log = jest.fn();
+// console.error = jest.fn();
+// const errorMessage = "API is down";
 
 const stackPallet = {
 	pallet: "Red to Green",
@@ -20,103 +20,16 @@ const stackPallet = {
 	]
 };
 
-it('render visitor monitor', async () => {
+it('render visitor monitor on prod server', async () => {
 
-	const testTime = (new Date()).getTime() - 3600000;
-	let prevDay = 144000000;
+	mock.prodServerOk.listen();
 
-	// fetchData -> ok
-	global.fetch = () => Promise.resolve({
-
-		json: () => Promise.resolve({
-			body: {
-				periodData: {
-					Count: 2,
-					Items: [
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime),
-							timestamp: testTime,
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Firefox",
-							date: common.getFormattedDate(testTime - prevDay),
-							operatingSystem: "Windows",
-							originalText: "Test Text",
-							renderingEngine: "Gecko",
-							time: common.getFormattedTime(testTime - prevDay),
-							timestamp: (testTime - prevDay),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 2),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 2),
-							timestamp: (testTime - prevDay * 2),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 3),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 3),
-							timestamp: (testTime - prevDay * 3),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 4),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 4),
-							timestamp: (testTime - prevDay * 4),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 5),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 5),
-							timestamp: (testTime - prevDay * 5),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 6),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 6),
-							timestamp: (testTime - prevDay * 6),
-							url: "http://localhost:3000/",
-						}
-					]
-				},
-				totalCount: 2533
-			}
-		}),
-	});
+	jest.useFakeTimers('modern')
+		.setSystemTime(new Date(1643673600000));
 
 	process.env.NODE_ENV = 'production';
 
-	render(
-		<VisitorMon 
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
 	const obj = await screen.findByText("Rendering Engine");
 	expect(obj).toBeInTheDocument();
@@ -131,206 +44,42 @@ it('render visitor monitor', async () => {
 	fireEvent.mouseOut(statusBar);
 	fireEvent.mouseOut(statusBar); // Already class changed
 
-	global.fetch = unmockedFetch;
-});
-
-it('render visitor monitor for sort order test', async () => {
-
-	jest
-		.useFakeTimers()
-		.setSystemTime(new Date('2022-02-01')); // Set date for month changing test
-
-	const testTime = 1643673600000; // 2022.02.01
-	let prevDay = 144000000;
-
-	// fetchData -> ok
-	global.fetch = () => Promise.resolve({
-
-		json: () => Promise.resolve({
-			body: {
-				periodData: {
-					Count: 7,
-					Items: [
-						{
-							browser: "Firefox",
-							date: common.getFormattedDate(testTime - prevDay),
-							operatingSystem: "Windows",
-							originalText: "Test Text",
-							renderingEngine: "Gecko",
-							time: common.getFormattedTime(testTime - prevDay),
-							timestamp: (testTime - prevDay),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime),
-							timestamp: testTime,
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 2),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 2),
-							timestamp: (testTime - prevDay * 2),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 3),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 3),
-							timestamp: (testTime - prevDay * 3),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 4),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 4),
-							timestamp: (testTime - prevDay * 4),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 5),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 5),
-							timestamp: (testTime - prevDay * 5),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime - prevDay * 6),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime - prevDay * 6),
-							timestamp: (testTime - prevDay * 6),
-							url: "http://localhost:3000/",
-						}
-					]
-				},
-				totalCount: 2533
-			}
-		}),
-	});
-
-	process.env.NODE_ENV = 'production';
-
-	render(
-		<VisitorMon 
-			stackPallet={stackPallet.colors}
-		/>
-	);
-
-	const obj = await screen.findByText("Rendering Engine");
-	expect(obj).toBeInTheDocument();
-	
-	global.fetch = unmockedFetch;
 	jest.useRealTimers();
+
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
 });
 
-it('render visitor monitor for sort order test - 2', async () => {
+it('render visitor monitor failed on prod server', async () => {
 
-	const testTime = (new Date()).getTime() - 3600000;
-	let prevDay = 144000000;
-
-	// fetchData -> ok
-	global.fetch = () => Promise.resolve({
-
-		json: () => Promise.resolve({
-			body: {
-				periodData: {
-					Count: 2,
-					Items: [
-						{
-							browser: "Firefox",
-							date: common.getFormattedDate(testTime - prevDay),
-							operatingSystem: "Windows",
-							originalText: "Test Text",
-							renderingEngine: "Gecko",
-							time: common.getFormattedTime(testTime - prevDay),
-							timestamp: (testTime - prevDay),
-							url: "http://localhost:3000/",
-						},
-						{
-							browser: "Chrome",
-							date: common.getFormattedDate(testTime),
-							operatingSystem: "Mac OS X",
-							originalText: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
-							renderingEngine: "Webkit",
-							time: common.getFormattedTime(testTime),
-							timestamp: testTime,
-							url: "http://localhost:3000/",
-						}
-					]
-				},
-				totalCount: 2533
-			}
-		}),
-	});
+	mock.prodServerFailed.listen();
 
 	process.env.NODE_ENV = 'production';
 
-	render(
-		<VisitorMon 
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
-	const obj = await screen.findByText("Rendering Engine");
-	expect(obj).toBeInTheDocument();
+	const retryButtons = await screen.findAllByText("Retry");
+	expect(retryButtons[0]).toBeInTheDocument();
 
-	global.fetch = unmockedFetch;
+	fireEvent.click(retryButtons[0]);
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
 });
 
-it('render visitor monitor when fetch failed', async () => {
-	
-	// fetchFirst -> return error
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			errorType: "404"
-		}),
-	});
+it('render visitor monitor network error on prod server', async () => {
 
-	render(
-		<VisitorMon 
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	mock.prodServerNetworkError.listen();
 
-	const obj = await screen.findByText("Rendering Engine");
-	expect(obj).toBeInTheDocument();
+	process.env.NODE_ENV = 'production';
 
-	global.fetch = unmockedFetch;
-});
+	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
-it('render visitor monitor when API is down', async () => {
-	
-	// fetchMore -> Server error
-	global.fetch = () => Promise.reject(errorMessage);
+	const retryButtons = await screen.findAllByText("Retry");
+	expect(retryButtons[0]).toBeInTheDocument();
 
-	render(
-		<VisitorMon 
-			stackPallet={stackPallet.colors}
-		/>
-	);
+	fireEvent.click(retryButtons[1]);
 
-	const obj = await screen.findByText("Rendering Engine");
-	expect(obj).toBeInTheDocument();
-
-	global.fetch = unmockedFetch;
+	mock.prodServerNetworkError.resetHandlers();
+	mock.prodServerNetworkError.close();
 });

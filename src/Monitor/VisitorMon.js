@@ -5,13 +5,17 @@ import { getVisitors } from "./api";
 
 const VisitorMon = (props) => {
 
+	const [isLoading, setIsLoading] = useState(false);
+	const [isMount, setIsMount] = useState(false);
+	const [isError, setIsError] = useState(false);
+
 	const [totalCount, setTotalCount] = useState("...");
 	const [dailyCount, setDailyCount] = useState([]);
 	const [envTotalCount, setEnvTotalCount] = useState(0);
+
 	const [browsers, setBrowsers] = useState([]);
 	const [os, setOs] = useState([]);
 	const [engines, setEngines] = useState([]);
-	const [isLoading, setIsLoading] = useState(false);
 
 	const stackPallet = props.stackPallet;
 
@@ -21,6 +25,7 @@ const VisitorMon = (props) => {
 		const fetchData = async() => {
 
 			setIsLoading(true);
+			setIsError(false);
 
 			// Make timestamp for 7 days
 			const today = new Date();
@@ -145,19 +150,24 @@ const VisitorMon = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - Visitor information", "ERROR");
+					setIsError(true);
 					console.error(data);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Visitor information", "ERROR");
+				setIsError(true);
 				console.error(err);
 			}
 		
 			setIsLoading(false);
 		}
 
-		fetchData();
-	}, []);
+		if(!isMount) {
+			fetchData();
+			setIsMount(true);
+		}
+	}, [isMount]);
 
 	// Make pillar
 	const CountPillar = (attr) => {
@@ -248,64 +258,80 @@ const VisitorMon = (props) => {
 		);
 	}
 
-	// Draw visitor monitor
-	return (
-		<article className="article article--main-item article--monitor-item">
-			<h1>Visitors in the last 7 days</h1>
-			<section className="section section--monitor-item">
-				<h3>Total Count: {totalCount}</h3>
-				<div className="div div--monitor-pillarchart">
-				{
-					isLoading ? (
-						<div className="div div--monitor-loading">
-							Loading...
+
+	if(isLoading) {
+		return (
+			<article className="article article--main-item article--monitor-item">
+				<h1>Visitors in the last 7 days</h1>
+				<section className="section section--monitor-item">
+				<h3>Total Count: ...</h3>
+					<div className="div div--monitor-processing">
+						Loading...
+					</div>
+				</section>
+				<section className="section section--monitor-item">
+					<h3>User Environment: ... cases</h3>
+					<div className="div div--monitor-processing">
+						Loading...
+					</div>
+				</section>
+			</article>
+		);
+	}
+	else if(isError) {
+		return (
+			<article className="article article--main-item article--monitor-item">
+				<h1>Visitors in the last 7 days</h1>
+				<section className="section section--monitor-item">
+					<h3>Total Count: ...</h3>
+					<div className="div div--monitor-processing">
+						<span className="span span--monitor-retrybutton" onClick={ () => { setIsMount(false) } } >
+							Retry
+						</span>
+					</div>
+				</section>
+				<section className="section section--monitor-item">
+					<h3>User Environment: ... cases</h3>
+					<div className="div div--monitor-processing">
+						<span className="span span--monitor-retrybutton" onClick={ () => { setIsMount(false) } } >
+							Retry
+						</span>
+					</div>
+				</section>
+			</article>
+		);
+	}
+	else {
+		return (
+			<article className="article article--main-item article--monitor-item">
+				<h1>Visitors in the last 7 days</h1>
+				<section className="section section--monitor-item">
+					<h3>Total Count: {totalCount}</h3>
+					<div className="div div--monitor-pillarchart">
+					{ dailyCount.map((data, index) => (
+						<CountPillar
+							key={data.date}
+							date={data.date}
+							count={data.count}
+							valueRate={data.valueRate}
+							index={index}
+						/>
+					)) }
+					</div>
+				</section>
+				<section className="section section--monitor-item">
+					<h3>User Environment: {envTotalCount} cases</h3>
+					<div className="div div--monitor-stackchart">
+						<div>
+							<EnvPillar legend="Browser" length={envTotalCount} data={browsers} />
+							<EnvPillar legend="OS" length={envTotalCount} data={os} />
+							<EnvPillar legend="Rendering Engine" length={envTotalCount} data={engines} />
 						</div>
-					)
-					: dailyCount.map(
-						(data, index) => (
-							<CountPillar
-								key={data.date}
-								date={data.date}
-								count={data.count}
-								valueRate={data.valueRate}
-								index={index}
-							/>
-						)
-					)
-				}
-				</div>
-			</section>
-			<section className="section section--monitor-item">
-				<h3>User Environment: {envTotalCount} cases</h3>
-				<div className="div div--monitor-stackchart">
-					{
-						isLoading ? (
-							<div className="div div--monitor-loading">
-								Loading...
-							</div>
-						)
-						: <div>
-							<EnvPillar
-								legend="Browser"
-								length={envTotalCount}
-								data={browsers}
-							/>
-							<EnvPillar
-								legend="OS"
-								length={envTotalCount}
-								data={os}
-							/>
-							<EnvPillar
-								legend="Rendering Engine"
-								length={envTotalCount}
-								data={engines}
-							/>
-						</div>
-					}
-				</div>
-			</section>
-		</article>
-	);
+					</div>
+				</section>
+			</article>
+		);
+	}
 }
 
 VisitorMon.propTypes = {
