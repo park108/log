@@ -2,10 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import VisitorMon from '../Monitor/VisitorMon';
 
-// const unmockedFetch = global.fetch;
-// console.log = jest.fn();
-// console.error = jest.fn();
-// const errorMessage = "API is down";
+console.log = jest.fn();
+console.error = jest.fn();
 
 const stackPallet = {
 	pallet: "Red to Green",

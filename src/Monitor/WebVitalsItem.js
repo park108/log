@@ -5,6 +5,10 @@ import PropTypes from 'prop-types';
 
 const WebVitalsItem = (props) => {
 
+	const [isLoading, setIsLoading] = useState(false);
+	const [isMount, setIsMount] = useState(false);
+	const [isError, setIsError] = useState(false);
+
 	const [data, setData] = useState([]);
 
 	const name = props.name;
@@ -14,6 +18,9 @@ const WebVitalsItem = (props) => {
 	useEffect(() => {
 
 		const fetchData = async(name) => {
+
+			setIsLoading(true);
+			setIsError(false);
 
 			try {
 				const res = await getWebVitals(name);
@@ -25,18 +32,24 @@ const WebVitalsItem = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
+					setIsError(true);
 					console.error(fetchedData);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
+				setIsError(true);
 				console.error(err);
 			}
+		
+			setIsLoading(false);
 		}
 
-		fetchData(name);
-		
-	}, [name]);
+		if(!isMount) {
+			fetchData(name);
+			setIsMount(true);
+		}
+	}, [isMount, name]);
 
 	// Count by metrics
 	let good = 0;
@@ -69,39 +82,69 @@ const WebVitalsItem = (props) => {
 		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-evaluation span--monitor-warn"
 		: "span span--monitor-evaluation span--monitor-none";
 
-	// Draw web vital item
-	return (
-		<section className="section section--monitor-item">
-			<h3>
-				{name}
-				<span className="span span--monitor-metric">{description + " (" + totalCount + ")"}</span>
-				<span className={headerStyle}>{evaluation}</span>
-			</h3>
-			<div
-				data-testid={"status-bar-" + name}
-				className="div div--monitor-statusbar"
-				onMouseOver={(event) => hoverPopup(event, name)}
-				onMouseMove={(event) => hoverPopup(event, name)}
-				onMouseOut={(event) => hoverPopup(event, name)}
-			>
-				<span className="span span--monitor-bar span--monitor-good" style={goodStyle}>
-					{good > 0 ? (100*good/totalCount).toFixed(0): ""}
-				</span>
-				<span className="span span--monitor-bar span--monitor-warn" style={needImprovementStyle}>
-					{needImprovement > 0 ? (100*needImprovement/totalCount).toFixed(0) : ""}
-				</span>
-				<span className="span span--monitor-bar span--monitor-poor" style={poorStyle}>
-					{poor > 0 ? (100*poor/totalCount).toFixed(0) : ""}
-				</span>
-			</div>
-			<div id={name} className="div div--monitor-pillardetail" style={{display: "none"}}>
-				<ul className="ul ul--monitor-detailpillaritem">
-					<li className="li li--monitor-detailpillaritem">{description}</li>
-					<li className="li li--monitor-detailpillaritem">🟢 {good} &nbsp;&nbsp; 🟡 {needImprovement} &nbsp;&nbsp; 🔴 {poor}</li>
-				</ul>
-			</div>
-		</section>
-	);
+
+	if(isLoading) {
+		return (
+			<section className="section section--monitor-item">
+				<h3>
+					{name}
+					<span className="span span--monitor-metric">{ description + " (...)"}</span>
+				</h3>
+				<div className="div div--monitor-processinglow">
+					Loading...
+				</div>
+			</section>
+		);
+	}
+	else if(isError) {
+		return (
+			<section className="section section--monitor-item">
+				<h3>
+					{name}
+					<span className="span span--monitor-metric">{ description }</span>
+				</h3>
+				<div className="div div--monitor-processinglow">
+					<span className="span span--monitor-retrybutton" onClick={ () => { setIsMount(false) } } >
+						Retry
+					</span>
+				</div>
+			</section>
+		);
+	}
+	else {
+		return (
+			<section className="section section--monitor-item">
+				<h3>
+					{name}
+					<span className="span span--monitor-metric">{description + " (" + totalCount + ")"}</span>
+					<span className={headerStyle}>{evaluation}</span>
+				</h3>
+				<div
+					data-testid={"status-bar-" + name}
+					className="div div--monitor-statusbar"
+					onMouseOver={(event) => hoverPopup(event, name)}
+					onMouseMove={(event) => hoverPopup(event, name)}
+					onMouseOut={(event) => hoverPopup(event, name)}
+				>
+					<span className="span span--monitor-bar span--monitor-good" style={goodStyle}>
+						{good > 0 ? (100*good/totalCount).toFixed(0): ""}
+					</span>
+					<span className="span span--monitor-bar span--monitor-warn" style={needImprovementStyle}>
+						{needImprovement > 0 ? (100*needImprovement/totalCount).toFixed(0) : ""}
+					</span>
+					<span className="span span--monitor-bar span--monitor-poor" style={poorStyle}>
+						{poor > 0 ? (100*poor/totalCount).toFixed(0) : ""}
+					</span>
+				</div>
+				<div id={name} className="div div--monitor-pillardetail" style={{display: "none"}}>
+					<ul className="ul ul--monitor-detailpillaritem">
+						<li className="li li--monitor-detailpillaritem">{description}</li>
+						<li className="li li--monitor-detailpillaritem">🟢 {good} &nbsp;&nbsp; 🟡 {needImprovement} &nbsp;&nbsp; 🔴 {poor}</li>
+					</ul>
+				</div>
+			</section>
+		);
+	}
 }
 
 WebVitalsItem.propTypes = {

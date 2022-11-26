@@ -5,6 +5,50 @@ import * as common from '../common/common'
 const API_URL = "https://4568z7p97l.execute-api.ap-northeast-2.amazonaws.com";
 
 export const prodServerOk = setupServer(
+	rest.get(API_URL + "/prod", async (req, res, ctx) => {
+
+		console.info("[MOCK API][PROD] GET WEB VITAL STATS");
+
+		return res(
+			ctx.json({
+				body:{
+					Count: 3,
+					Items: [
+						{
+							evaluation: "GOOD",
+							id: "v2-1656034616036-7298271418539",
+							name: "CLS",
+							timestamp: 1656034616036,
+							value: 0.009544711182232976
+						},
+						{
+							evaluation: "POOR",
+							id: "v2-1656034635378-2481399101706",
+							name: "CLS",
+							timestamp: 16560346353781,
+							value: 0.340741517698529
+						},
+						{
+							evaluation: "NEEDS IMPROVEMENT",
+							id: "v2-1656035041776-4470523187290",
+							name: "CLS",
+							timestamp: 1656035041776,
+							value: 0.126102708124442
+						},
+						{
+							evaluation: "BAD DATA",
+							id: "v2-1656035041776-4470523187290",
+							name: "CLS",
+							timestamp: 1656035041776,
+							value: 0.126102708124442
+						}
+					],
+					ScannedCount: 12725
+				}
+			})
+		);
+	}),
+
 	rest.get(API_URL + "/prod/api/log", async (req, res, ctx) => {
 
 		console.info("[MOCK API][PROD] GET API CALL STATS");
@@ -182,6 +226,10 @@ export const prodServerHasNoCount = setupServer(
 );
 
 export const prodServerFailed = setupServer(
+	rest.get(API_URL + "/prod", (req, res, ctx) => {
+		console.info("[MOCK API][PROD] GET WEB VITAL STATS - FAILED");
+		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
+	}),
 	rest.get(API_URL + "/prod/api/log", (req, res, ctx) => {
 		console.info("[MOCK API][PROD] GET API CALL STATS - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
@@ -193,6 +241,10 @@ export const prodServerFailed = setupServer(
 );
 
 export const prodServerNetworkError = setupServer(
+	rest.get(API_URL + "/prod", (req, res, ctx) => {
+		console.info("[MOCK API][PROD] GET WEB VITAL STATS - NETWORK ERROR");
+		return res.networkError('Failed to connect');
+	}),
 	rest.get(API_URL + "/prod/api/log", (req, res, ctx) => {
 		console.info("[MOCK API][PROD] GET API CALL STATS - NETWORK ERROR");
 		return res.networkError('Failed to connect');
