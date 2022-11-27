@@ -12,12 +12,12 @@ import './File.css';
 
 const File = (props) => {
 
-	const [files, setFiles] = useState([]);
-	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGetData, setIsGetData] = useState(false);
 	const [isGetNextData, setIsGetNextData] = useState(false);
+
+	const [files, setFiles] = useState([]);
+	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
 	const [fileUploadUI, setFileUploadUI] = useState();
 	const [seeMoreButton, setSeeMoreButton] = useState();

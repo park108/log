@@ -285,10 +285,6 @@ pre {
   box-shadow: none;
 }
 
-.div--main-offline {
-	
-}
-
 .footer {
   font-size: var(--sub-font-size);
   margin-top: 2em;
@@ -306,6 +302,14 @@ pre {
   padding-left: 0.5em;
 }
 
+.span--login-text {
+  cursor: pointer;
+}
+
+.section--message-box {
+	margin: 0 1em;
+}
+
 .h1--notification-result {
 	margin: 0;
 	padding-top: 5rem;
@@ -313,8 +317,22 @@ pre {
 	padding-bottom: 5rem;
 }
 
-.span--login-text {
-  cursor: pointer;
+.h2--message-error {
+	padding-top: 5em;
+	padding-bottom: 1em;
+}
+
+.div--message-description {
+	margin: 1em 0;
+}
+
+.button--message-retrybutton {
+	margin: 1em auto;
+	padding: 0.5em;
+	width: 10em;
+	display: block;
+	height: 3em;
+	cursor: pointer;
 }
 
 @media screen and (max-width: 640px) {

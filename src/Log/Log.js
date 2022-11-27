@@ -104,12 +104,7 @@ const Log = (props) => {
 	
 	// Make write button
 	const writeButton = isAdmin() ? (
-		<Link to={{
-			pathname: "/log/write",
-			state: { 
-				from: location.pathname
-			}
-		}}>
+		<Link to={{ pathname: "/log/write", state: { from: location.pathname } }}>
 			<button data-testid="newlog-button" role="button" className="button button--log-newlog">+</button>
 		</Link>
 	) : null;

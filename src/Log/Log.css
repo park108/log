@@ -24,8 +24,8 @@
   color: var(--normal-text-color);
 }
 
-.section--log-list {
-	
+.section--log-message {
+	text-align: center;
 }
 
 .section--logitem-info {

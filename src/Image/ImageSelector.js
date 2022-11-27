@@ -9,11 +9,13 @@ import './ImageSelector.css';
 
 const ImageSelector = (props) => {
 
-	const [images, setImages] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [isFailed, setIsFailed] = useState(false);
+	const [isError, setIsError] = useState(false);
+
+	const [images, setImages] = useState([]);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
+	
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
@@ -38,13 +40,13 @@ const ImageSelector = (props) => {
 			else {
 				log("[API GET] FAILED - Next Images", "ERROR");
 				console.error(nextData);
-				setIsFailed(true);
+				setIsError(true);
 			}
 		}
 		catch(err) {
 			log("[API GET] FAILED - Next Images", "ERROR");
 			console.error(err);
-			setIsFailed(true);
+			setIsError(true);
 		}
 
 		setIsLoading(false);
@@ -74,13 +76,13 @@ const ImageSelector = (props) => {
 				else {
 					log("[API GET] FAILED - Images", "ERROR");
 					console.error(retrieved);
-					setIsFailed(true);
+					setIsError(true);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Images", "ERROR");
 				console.error(err);
-				setIsFailed(true);
+				setIsError(true);
 			}
 	
 			setIsLoading(false);
@@ -107,7 +109,7 @@ const ImageSelector = (props) => {
 
 	const handleRetry = (e) => {
 		e.preventDefault();
-		setIsFailed(false);
+		setIsError(false);
 	}
 
 	// Draw Image Selector
@@ -119,7 +121,7 @@ const ImageSelector = (props) => {
 		);
 	}
 	else {
-		if(isFailed) {
+		if(isError) {
 			return (
 				<div className={imageSelectorClass}>
 					<div className="div div--image-loading">Failed getting images</div>
