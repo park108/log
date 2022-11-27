@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import LogItem from '../Log/LogItem';
+import LogItem from './LogItem';
 import * as common from '../common/common';
 
 const unmockedFetch = global.fetch;

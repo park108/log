@@ -20,14 +20,22 @@ beforeEach(() => {
 	sessionStorage.removeItem("logListLastTimestamp");
 });
 
-test('render log has no data', async () => {
-
-	mock.prodServerHasNoData.listen();
-	
-	process.env.NODE_ENV = 'production';
+test('render log has data in session', async () => {
 
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
+
+	sessionStorage.setItem("logList", JSON.stringify([
+		{"contents":"123456","author":"park108@gmail.com","timestamp":1655736946977}
+		,{"contents":"이노베이션 사이트의 연이은 인력 이탈, 무리한 사업 수주로 인한 외부 사업 투입, 강요된 거짓말, 실망스런 회사의 관리자들, 고객사에 들통나 버린 거짓말, 가시화되는 운영 조직의  ...","author":"park108@gmail.com","timestamp":1655302060414}
+		,{"contents":"const makeSummary = (contents) => {\tconst trimmedContents = markdownToHtml(contents).replace(/(]+)>) ...","author":"park108@gmail.com","timestamp":1654639495093}
+		,{"contents":"Test over 50 characters.Is it make summary well???","author":"park108@gmail.com","timestamp":1654639469843}
+		,{"contents":"Test Now","author":"park108@gmail.com","timestamp":1654639443910}
+		,{"contents":"첫 화면을 목록 형태로 변경했다.이 블로그는 변경 이력을 모두 저장하도록 설계, 구현했다. 개별 건의 CRUD 뿐 만 아니라, 목록 조회를 할 때에도 동일한 테이블에서 쿼리를 했기 ...","author":"park108@gmail.com","timestamp":1654526208951}
+		,{"contents":"Ver 4.Real! New!!! and long string over the FIFTY! ...","author":"park108@gmail.com","timestamp":1654520402200,"temporary": true}
+	]));
+
+	sessionStorage.setItem("logListLastTimestamp", "1654520402200");
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -35,11 +43,8 @@ test('render log has no data', async () => {
 		</MemoryRouter>
 	);
 	
-	const logsHasNoData = await screen.findByRole("list");
-	expect(logsHasNoData).toBeDefined();
-
-	mock.prodServerHasNoData.resetHandlers();
-	mock.prodServerHasNoData.close();
+	const logs = await screen.findAllByRole("listitem");
+	expect(logs.length).toBe(7);
 });
 
 test('render log if it logged in', async () => {
@@ -75,6 +80,10 @@ test('render log if it logged in', async () => {
 	const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
 	expect(seeMoreButton2).toBeDefined();
 	fireEvent.click(seeMoreButton2);
+	
+	// Click first log
+	const firstItem = await screen.findByText("123456");
+	fireEvent.click(firstItem);
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();

@@ -6,7 +6,7 @@ const API_URL = "https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com";
 export const prodServerOk = setupServer(
 	rest.get(API_URL + "/prod", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET IMAGES");
+		console.log("[MOCK API][PROD] GET IMAGES");
 
 		const url = JSON.stringify(req.url).split("?");
 
@@ -59,7 +59,7 @@ export const prodServerOk = setupServer(
 export const prodServerFailed = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET IMAGES - FAILED");
+		console.log("[MOCK API][PROD] GET IMAGES - FAILED");
 
 		return res(
 			ctx.json({
@@ -73,7 +73,7 @@ export const prodServerFailed = setupServer(
 export const prodServerNetworkError = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET IMAGES - NETWORK ERROR");
+		console.log("[MOCK API][PROD] GET IMAGES - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	})
@@ -82,7 +82,7 @@ export const prodServerNetworkError = setupServer(
 export const devServerOk = setupServer(
 	rest.get(API_URL + "/test", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET IMAGES");
+		console.log("[MOCK API][DEV] GET IMAGES");
 
 		const url = JSON.stringify(req.url).split("?");
 
@@ -135,7 +135,7 @@ export const devServerOk = setupServer(
 export const devServerFailed = setupServer(
 	rest.get(API_URL + "/test", (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET IMAGES - FAILED");
+		console.log("[MOCK API][DEV] GET IMAGES - FAILED");
 
 		return res(
 			ctx.json({
@@ -149,7 +149,7 @@ export const devServerFailed = setupServer(
 export const devServerNetworkError = setupServer(
 	rest.get(API_URL + "/test", (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET IMAGES - NETWORK ERROR");
+		console.log("[MOCK API][DEV] GET IMAGES - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	})

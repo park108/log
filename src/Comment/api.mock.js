@@ -6,7 +6,7 @@ const API_URL = "https://k7aiaqwk1e.execute-api.ap-northeast-2.amazonaws.com";
 export const prodServerOk = setupServer(
 	rest.get(API_URL + "/prod", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET COMMENTS");
+		console.log("[MOCK API][PROD] GET COMMENTS");
 
 		const url = JSON.stringify(req.url).split("?");
 
@@ -37,7 +37,7 @@ export const prodServerOk = setupServer(
 
 	rest.post(API_URL + "/prod", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] POST COMMENT");
+		console.log("[MOCK API][PROD] POST COMMENT");
 
 		return res(
 			ctx.json({
@@ -50,7 +50,7 @@ export const prodServerOk = setupServer(
 export const prodServerFailed = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET COMMENTS - FAILED");
+		console.log("[MOCK API][PROD] GET COMMENTS - FAILED");
 
 		return res(
 			ctx.json({
@@ -62,7 +62,7 @@ export const prodServerFailed = setupServer(
 
 	rest.post(API_URL + "/prod", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] POST COMMENT - FAILED");
+		console.log("[MOCK API][PROD] POST COMMENT - FAILED");
 
 		return res(
 			ctx.json({
@@ -76,13 +76,13 @@ export const prodServerFailed = setupServer(
 export const prodServerNetworkError = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET COMMENT - NETWORK ERROR");
+		console.log("[MOCK API][PROD] GET COMMENT - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	}),
 	rest.post(API_URL + "/prod", (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] POST COMMENT - NETWORK ERROR");
+		console.log("[MOCK API][PROD] POST COMMENT - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	})
@@ -91,7 +91,7 @@ export const prodServerNetworkError = setupServer(
 export const devServerOk = setupServer(
 	rest.get(API_URL + "/test", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET COMMENTS");
+		console.log("[MOCK API][DEV] GET COMMENTS");
 
 		const url = JSON.stringify(req.url).split("?");
 
@@ -131,7 +131,7 @@ export const devServerOk = setupServer(
 
 	rest.post(API_URL + "/test", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] POST COMMENT");
+		console.log("[MOCK API][DEV] POST COMMENT");
 
 		return res(
 			ctx.json({
@@ -144,7 +144,7 @@ export const devServerOk = setupServer(
 export const devServerFailed = setupServer(
 	rest.get(API_URL + "/test", (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET COMMENTS - FAILED");
+		console.log("[MOCK API][DEV] GET COMMENTS - FAILED");
 
 		return res(
 			ctx.json({
@@ -156,7 +156,7 @@ export const devServerFailed = setupServer(
 
 	rest.post(API_URL + "/test", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] POST COMMENT - FAILED");
+		console.log("[MOCK API][DEV] POST COMMENT - FAILED");
 
 		return res(
 			ctx.json({
@@ -170,14 +170,14 @@ export const devServerFailed = setupServer(
 export const devServerNetworkError = setupServer(
 	rest.get(API_URL + "/test", (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET IMAGES - NETWORK ERROR");
+		console.log("[MOCK API][DEV] GET IMAGES - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	}),
 
 	rest.post(API_URL + "/test", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] POST COMMENT - NETWORK ERROR");
+		console.log("[MOCK API][DEV] POST COMMENT - NETWORK ERROR");
 
 		return res.networkError('Failed to connect');
 	})

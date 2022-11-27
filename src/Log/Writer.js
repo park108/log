@@ -1,8 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { Navigate } from "react-router";
-import { useLocation } from "react-router-dom";
-import PropTypes from 'prop-types';
-import { isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
+import { useLocation, useNavigate } from "react-router-dom";
+import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
+import { postLog, putLog } from './api';
 import * as parser from '../common/markdownParser';
 import Toaster from "../Toaster/Toaster";
 import './Writer.css';
@@ -10,162 +9,225 @@ import './Writer.css';
 const LogItem = lazy(() => import('./LogItem'));
 const ImageSelector = lazy(() => import('../Image/ImageSelector'));
 
-const Writer = (props) => {
+const MARKDOWN_STRING_TEMPLATE = {
+	"img": "![ALT_TEXT](url \"OPTIONAL_TITLE\")",
+	"a": "[LinkText](https://example.com/ \"TITLE\")",
+};
 
-	const [data, setData] = useState(undefined);
-	const [contents, setContents] = useState("");
-	const [isTemporary, setIsTemporary] = useState(false);
+const Writer = () => {
+
+	const [isProcessing, setIsProcessing] = useState(false);
+	const [isSubmitted, setIsSubmitted] = useState(false);
+	const [isConvertedHTML, setIsConvertedHTML] = useState(false);
+	const [isNew, setIsNew] = useState(true);
+
+	const [historyData, setHistoryData] = useState(undefined);
+	const [changeHistory, setChangeHistory] = useState(undefined);
+
 	const [article, setArticle] = useState("");
+	const [isTemporary, setIsTemporary] = useState(false);
 	const [articleStatus, setArticleStatus] = useState("");
-	const [rows, setRows] = useState("1");
 	const [convertedArticle, setConvertedArticle] = useState("");
 	const [convertedArticleStatus, setConvertedArticleStatus] = useState("");
-	const [disabled, setDisabled] = useState(false);
-	const [isConvertedHTML, setIsConvertedHTML] = useState(false);
-	const [mode, setMode] = useState("POST");
-	const [buttonText, setButtonText] = useState("Post");	
-	const [changeHistory, setChangeHistory] = useState(undefined);
+
+	const [rows, setRows] = useState("1");
+
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [isShowImageSelector, setIsShowImageSelector] = useState(false);
 	
 	const location = useLocation();
+	const navigate = useNavigate();
 	
-	// Change width
 	useEffect(() => {
-		setFullscreen(true); // Enable fullscreen mode at mounted
-		if(null !== location.state) {
-			setData(location.state.from); // Set data from location state
+
+		if(!isAdmin()) {
+			const redirectPage = "/log";
+			log("Redirect to " + redirectPage);
+			navigate(redirectPage);
+			return;
 		}
-		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
+
+		setFullscreen(true);
+
+		if(hasValue(location.state)) {
+			setIsNew(false);
+			setHistoryData(location.state.from);
+		}
+
+		return () => {setFullscreen(false)}
 	}, [location]);
 
-	// Set contents data
 	useEffect(() => {
-		if(hasValue(data)) {
-			setContents(data.logs[0].contents);
-			if(hasValue(data.temporary)) {
-				setIsTemporary(data.temporary);
-			}
-		}
-	}, [data]);
+		if(hasValue(historyData)) {
 
-	// Set change history in useEffect for prevent flickering.
-	useEffect(() => {
-		if("EDIT" === mode) {
+			setArticle(historyData.logs[0].contents);
+
 			setChangeHistory(
 				<div className="div div--writer-history" >
 					<h1 className="h1 h1--writer-historytitle">Change History</h1>
 					<Suspense fallback={<div></div>}>
-						{
-							data.logs.map(
-								(log) => (
-									<LogItem
-										key={log.timestamp}
-										author={data.author}
-										timestamp={log.timestamp}
-										contents={log.contents}
-										showComments={false}
-										showLink={false}
-									/>
-								)
-							)
-						}
+						{ historyData.logs.map((log) => (
+							<LogItem
+								key={log.timestamp}
+								author={historyData.author}
+								timestamp={log.timestamp}
+								contents={log.contents}
+								showComments={false}
+								showLink={false}
+							/>
+						)) }
 					</Suspense>
 				</div>
 			);
-		}
-	}, [mode, data]);
 
-	// Set writer mode POST or EDIT
-	useEffect(() => {
-		
-		setArticle(contents);
-
-		if("" === contents) {
-			setMode("POST");
-			setButtonText("Post");
+			if(hasValue(historyData.temporary)) {
+				setIsTemporary(historyData.temporary);
+			}
 		}
-		else {
-			setMode("EDIT");
-			setButtonText("Edit");
-		}
-	}, [contents]);
+	}, [historyData]);
 
 	useEffect(() => {
 
-		if(isAdmin()) {
-			const setTextarealHeight = ({target: e}) => {
-				setTextAreaRows(e);
-			}
+		const setTextAreaRows = (e) => {
+			let minRows = e.getAttribute('data-min-rows') | 1, rows;
+			if(!e._baseScrollHeight) e._baseScrollHeight = e.scrollHeight;
+	
+			setRows(minRows); // Restore minimum rows
+			rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32) ; // 32 px
+			setRows(minRows + rows); // Set current rows
+		}
 
-			let html = parser.markdownToHtml(article);
+		const setTextarealHeight = ({target: e}) => {
+			setTextAreaRows(e);
+		}
 
-			setConvertedArticle(html);
-			setArticleStatus("Markdown length = " + article.length);
-			window.addEventListener('input', setTextarealHeight);
+		let html = parser.markdownToHtml(article);
 
-			// Initialize editor rows
-			let textArea = document.getElementById("textarea--writer-article");
-			if(2 > textArea.rows) {
-				setTextAreaRows(textArea);
-			}
+		setConvertedArticle(html);
+		setArticleStatus("Markdown length = " + article.length);
+		window.addEventListener('input', setTextarealHeight);
 
-			return () => {
-				window.removeEventListener('input', setTextarealHeight);
-			}
+		// Initialize editor rows
+		let textArea = document.getElementById("textarea--writer-article");
+		if(2 > textArea.rows) {
+			setTextAreaRows(textArea);
+		}
+
+		return () => {
+			window.removeEventListener('input', setTextarealHeight);
 		}
 
 	}, [article]);
 
 	useEffect(() => {
-	}, [isTemporary]);
 
-	useEffect(() => setConvertedArticleStatus("HTML length = " + convertedArticle.length), [convertedArticle]);
+		const createLog = async () => {
+	
+			const newTimestamp = Math.floor(new Date().getTime());
+	
+			setIsProcessing(true);
+	
+			try {
+				// Call API
+				const res = await postLog(newTimestamp, article, isTemporary);
+				const status = await res.json();
+	
+				if(200 === status.statusCode) {
+					log("[API POST] OK - Log", "SUCCESS");
+	
+					setToasterMessage("The log posted.");
+					setIsShowToaster(1);
+	
+					sessionStorage.removeItem("logList");
+					sessionStorage.removeItem("logListLastTimestamp");
+	
+					navigate("/log/" + newTimestamp);
+				}
+				else {
+					log("[API POST] FAILED - Log", "ERROR");
+					log(res, "ERROR");
+				}
+			}
+			catch(err) {
+				log("[API POST] FAILED - Log", "ERROR");
+				log(err, "ERROR");
+			}
 
-	useEffect(() => setDisabled(!props.isPostSuccess), [props.isPostSuccess]);
+			setIsProcessing(false);
+		}
+	
+		const editLog = async () => {
+	
+			setIsProcessing(true);
+	
+			try {
+				let newItem = JSON.parse(JSON.stringify(historyData));
+		
+				const changedLogs = [{
+					contents: article,
+					timestamp: Math.floor(new Date().getTime())
+				}, ...newItem.logs];
+		
+				newItem.logs = changedLogs;
+	
+				// Call API
+				const res = await putLog(newItem, isTemporary);
+				const status = await res.json();
+	
+				if(200 === status.statusCode) {
+					log("[API PUT] OK - Log", "SUCCESS");
+			
+					setToasterMessage("The log changed.");
+					setIsShowToaster(1);
+	
+					sessionStorage.removeItem("logList");
+					sessionStorage.removeItem("logListLastTimestamp");
+					
+					navigate("/log/" + historyData.timestamp);
+				}
+				else {
+					log("[API PUT] FAILED - Log", "ERROR");
+					log(res, "ERROR");
+				}
+			}
+			catch(err) {
+				log("[API PUT] FAILED - Log", "ERROR");
+				log(err, "ERROR");
+			}
+
+			setIsProcessing(false);
+		}
+
+		if(isSubmitted) {
+
+			if(article.length < 5) {
+				alert("Please note at least 5 characters.");
+				document.getElementById("textarea--writer-article").focus();
+				return;
+			}
+
+			if(isNew) {
+				createLog();
+			}
+			else {
+				editLog();
+			}
+			setIsSubmitted(false);
+		}
+	}, [isSubmitted])
+
+	useEffect(() => {
+		setConvertedArticleStatus("HTML length = " + convertedArticle.length)
+	}, [convertedArticle]);
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
-
-	const setTextAreaRows = (e) => {
-		let minRows = e.getAttribute('data-min-rows') | 1, rows;
-		if(!e._baseScrollHeight) e._baseScrollHeight = e.scrollHeight;
-
-		setRows(minRows); // Restore minimum rows
-		rows = Math.ceil((e.scrollHeight - e._baseScrollHeight) / 32) ; // 32 px
-		setRows(minRows + rows); // Set current rows
-	}
-
-	const postLog = (event) => {
-
-		if(article.length < 5) {
-			event.preventDefault();
-			alert("Please note at least 5 characters.");
-			document.getElementById("textarea--writer-article").focus();
-			return;
-		}
-
-		if("POST" === mode) {
-			event.preventDefault();
-			props.post(article, document.getElementById("temporary").checked);
-		}
-		else { // "EDIT" === mode
-			event.preventDefault();
-			props.edit(data, article, document.getElementById("temporary").checked);
-		}
-	}
 
 	const copyMarkdownString = (e) => {
 		e.preventDefault();
 		const tag = e.target.value;
 
-		let markdownString = "";
-		if("img" === tag) {
-			markdownString = "![ALT_TEXT](url \"OPTIONAL_TITLE\")";
-		}
-		else { // "a" tag
-			markdownString = "[LinkText](https://example.com/ \"TITLE\")";
-		}
+		let markdownString = MARKDOWN_STRING_TEMPLATE[tag];
 
 		copyToClipboard(markdownString);
 		setToasterMessage("Markdown string copied.");
@@ -174,7 +236,17 @@ const Writer = (props) => {
 
 	const Converted = () => {
 
-		if(!isConvertedHTML) {
+		if(isConvertedHTML) {
+			return (
+				<div
+					id="div--writer-converted"
+					className="div div--writer-converted"
+				>
+					{ convertedArticle }
+				</div>
+			);
+		}
+		else {
 			return (
 				<div
 					id="div--writer-converted"
@@ -184,20 +256,6 @@ const Writer = (props) => {
 				</div>
 			);
 		}
-		else {
-			return (
-				<div
-					id="div--writer-converted"
-					className="div div--writer-converted"
-				>
-					{convertedArticle}
-				</div>
-			);
-		}
-	}
-	
-	if(!isAdmin()) {
-		return <Navigate to="/log" />;
 	}
 
 	return (
@@ -226,7 +284,10 @@ const Writer = (props) => {
 				/>
 			</Suspense>
 
-			<form data-testid="writer-form" onSubmit={postLog}>
+			<form data-testid="writer-form" onSubmit={ (e) => {
+				e.preventDefault();
+				setIsSubmitted(true);
+			} }>
 				<div className="div div--writer-editbox">
 					<textarea
 						id="textarea--writer-article"
@@ -239,7 +300,7 @@ const Writer = (props) => {
 						placeholder="Take your note in markdown"
 						rows={rows}
 						data-min-rows="1"
-						disabled={disabled}
+						disabled={ isProcessing }
 					/>
 					<div className="div div--writer-convertedbox">
 						<div className="div div--writer-convertedtag">
@@ -294,9 +355,9 @@ const Writer = (props) => {
 					data-testid="submit-button"
 					className="button button--writer-submit"
 					type="submit"
-					disabled={disabled}
+					disabled={ isProcessing }
 				>
-					{buttonText}
+					{ isNew ? "Post" : "Edit" }
 				</button>
 			</form>
 
@@ -313,11 +374,5 @@ const Writer = (props) => {
 		</div>
 	);
 }
-
-Writer.propTypes = {
-	isPostSuccess: PropTypes.bool,
-	post: PropTypes.func,
-	edit: PropTypes.func,
-};
 
 export default Writer;

@@ -5,7 +5,7 @@ const API_URL = "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com";
 
 export const prodServerHasNoData = setupServer(
 	rest.get(API_URL + "/prod", async (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET LOGS - No Data");
+		console.log("[MOCK API][PROD] GET LOGS - No Data");
 		return res( ctx.json({ body:{
 			Items: [],
 			Count: 0,
@@ -31,7 +31,7 @@ export const prodServerOk = setupServer(
 		// Fetch first: 7 items
 		if(params[0].startsWith("limit=")) {
 
-			console.info("[MOCK API][PROD] GET LOGS");
+			console.log("[MOCK API][PROD] GET LOGS");
 
 			return res(
 				ctx.json({
@@ -55,7 +55,7 @@ export const prodServerOk = setupServer(
 		// Fetch more: 3 items
 		else if(params[0].startsWith("lastTimestamp=1654520402200")) {
 
-			console.info("[MOCK API][PROD] GET MORE LOGS");
+			console.log("[MOCK API][PROD] GET MORE LOGS");
 
 			return res(
 				ctx.json({
@@ -75,7 +75,7 @@ export const prodServerOk = setupServer(
 		// Fetch more: no data 
 		else if(params[0].startsWith("lastTimestamp=1654501373940")) {
 
-			console.info("[MOCK API][PROD] GET MORE LOGS - No Data");
+			console.log("[MOCK API][PROD] GET MORE LOGS - No Data");
 
 			return res( ctx.json({ body:{} }) );
 		}
@@ -99,7 +99,7 @@ export const prodServerFirstOkNextFailed = setupServer(
 		// Fetch first: 7 items
 		if(params[0].startsWith("limit=")) {
 
-			console.info("[MOCK API][PROD] GET LOGS - FIRST OK NEXT FAILED");
+			console.log("[MOCK API][PROD] GET LOGS - FIRST OK NEXT FAILED");
 
 			return res(
 				ctx.json({
@@ -122,7 +122,7 @@ export const prodServerFirstOkNextFailed = setupServer(
 		}
 		// Fetch more: 3 items
 		else if(params[0].startsWith("lastTimestamp=1654520402200")) {
-			console.info("[MOCK API][PROD] GET MORE LOGS - FIRST OK NEXT FAILED");
+			console.log("[MOCK API][PROD] GET MORE LOGS - FIRST OK NEXT FAILED");
 			return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 		}
 	}),
@@ -145,7 +145,7 @@ export const prodServerFirstOkNextError = setupServer(
 		// Fetch first: 7 items
 		if(params[0].startsWith("limit=")) {
 
-			console.info("[MOCK API][PROD] GET LOGS - FIRST OK NEXT ERROR");
+			console.log("[MOCK API][PROD] GET LOGS - FIRST OK NEXT ERROR");
 
 			return res(
 				ctx.json({
@@ -168,7 +168,7 @@ export const prodServerFirstOkNextError = setupServer(
 		}
 		// Fetch more: 3 items
 		else if(params[0].startsWith("lastTimestamp=1654520402200")) {
-			console.info("[MOCK API][PROD] GET MORE LOGS - FIRST OK NEXT ERROR");
+			console.log("[MOCK API][PROD] GET MORE LOGS - FIRST OK NEXT ERROR");
 			return res.networkError('Failed to connect');
 		}
 	}),
@@ -176,14 +176,14 @@ export const prodServerFirstOkNextError = setupServer(
 
 export const prodServerFailed = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET LOGS - FAILED");
+		console.log("[MOCK API][PROD] GET LOGS - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
 );
 
 export const prodServerNetworkError = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET LOGS - NETWORK ERROR");
+		console.log("[MOCK API][PROD] GET LOGS - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	}),
 );
@@ -191,7 +191,7 @@ export const prodServerNetworkError = setupServer(
 // export const devServerOk = setupServer(
 // 	rest.get(API_URL + "/test", async (req, res, ctx) => {
 
-// 		console.info("[MOCK API][DEV] GET FILES");
+// 		console.log("[MOCK API][DEV] GET FILES");
 
 // 		const url = JSON.stringify(req.url).split("?");
 
@@ -244,23 +244,23 @@ export const prodServerNetworkError = setupServer(
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL");
 // 		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL");
 // 		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
 // 	}),
 
 // 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] PUT FILE");
+// 		console.log("[MOCK API][DEV] PUT FILE");
 // 		return res( ctx.json({ status: 200 }) );
 // 	}),
 
 // 	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
 
-// 		console.info("[MOCK API][DEV] DELETE FILE");
+// 		console.log("[MOCK API][DEV] DELETE FILE");
 
 // 		return res(
 // 			ctx.json({
@@ -273,7 +273,7 @@ export const prodServerNetworkError = setupServer(
 // export const devServerFailed = setupServer(
 // 	rest.get(API_URL + "/test", (req, res, ctx) => {
 
-// 		console.info("[MOCK API][DEV] GET FILES - FAILED");
+// 		console.log("[MOCK API][DEV] GET FILES - FAILED");
 
 // 		return res(
 // 			ctx.json({
@@ -284,23 +284,23 @@ export const prodServerNetworkError = setupServer(
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile1) - FAILED");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL(testfile1) - FAILED");
 // 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile2) - FAILED");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL(testfile2) - FAILED");
 // 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 // 	}),
 
 // 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] PUT FILE - FAILED");
+// 		console.log("[MOCK API][DEV] PUT FILE - FAILED");
 // 		return res(ctx.status(500));
 // 	}),
 
 // 	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
 
-// 		console.info("[MOCK API][DEV] DELETE FILE - FAILED");
+// 		console.log("[MOCK API][DEV] DELETE FILE - FAILED");
 
 // 		return res(
 // 			ctx.json({
@@ -313,27 +313,27 @@ export const prodServerNetworkError = setupServer(
 
 // export const devServerNetworkError = setupServer(
 // 	rest.get(API_URL + "/test", (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET FILES - NETWORK ERROR");
+// 		console.log("[MOCK API][DEV] GET FILES - NETWORK ERROR");
 // 		return res.networkError('Failed to connect');
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile1) - NETWORK ERROR");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL(testfile1) - NETWORK ERROR");
 // 		return res.networkError('Failed to connect');
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL(testfile2) - NETWORK ERROR");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL(testfile2) - NETWORK ERROR");
 // 		return res.networkError('Failed to connect');
 // 	}),
 
 // 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] PUT FILE - NETWORK ERROR");
+// 		console.log("[MOCK API][DEV] PUT FILE - NETWORK ERROR");
 // 		return res.networkError('Failed to connect');
 // 	}),
 
 // 	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] DELETE FILE - NETWORK ERROR");
+// 		console.log("[MOCK API][DEV] DELETE FILE - NETWORK ERROR");
 // 		return res.networkError('Failed to connect');
 // 	})
 // );
@@ -341,17 +341,17 @@ export const prodServerNetworkError = setupServer(
 // export const devServerPresignedUrlOkButUploadFailed = setupServer(
 
 // 	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
 // 		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
 // 		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
 // 	}),
 
 // 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] PUT FILE - URL OK, Upload Failed");
+// 		console.log("[MOCK API][DEV] PUT FILE - URL OK, Upload Failed");
 // 		return res(ctx.status(500));
 // 	}),
 // );
@@ -359,17 +359,17 @@ export const prodServerNetworkError = setupServer(
 // export const devServerPresignedUrlOkButUploadNetworkError = setupServer(
 
 // 	rest.get(API_URL + "/test/key/testfile1.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
 // 		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
 // 	}),
 
 // 	rest.get(API_URL + "/test/key/testfile2.txt/type/text", async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
+// 		console.log("[MOCK API][DEV] GET PRESIGNED URL - URL OK, Upload Failed");
 // 		return res( ctx.json({ body:{ UploadUrl: PRESIGNED_URL } }) );
 // 	}),
 
 // 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
-// 		console.info("[MOCK API][DEV] PUT FILE - URL OK, Upload Failed");
+// 		console.log("[MOCK API][DEV] PUT FILE - URL OK, Upload Failed");
 // 		return res.networkError('Failed to connect');
 // 	}),
 // );

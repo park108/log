@@ -7,7 +7,7 @@ const API_URL = "https://4568z7p97l.execute-api.ap-northeast-2.amazonaws.com";
 export const prodServerOk = setupServer(
 	rest.get(API_URL + "/prod", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET WEB VITAL STATS");
+		console.log("[MOCK API][PROD] GET WEB VITAL STATS");
 
 		return res(
 			ctx.json({
@@ -51,7 +51,7 @@ export const prodServerOk = setupServer(
 
 	rest.get(API_URL + "/prod/api/log", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET API CALL STATS");
+		console.log("[MOCK API][PROD] GET API CALL STATS");
 
 		const fromTimestamp = 1643375805000; // 2022.01.28
 
@@ -77,7 +77,7 @@ export const prodServerOk = setupServer(
 
 	rest.get(API_URL + "/prod/useragent", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET VISITOR STATS");
+		console.log("[MOCK API][PROD] GET VISITOR STATS");
 
 		const testTime = 1643673600000; // 2022.02.01
 		let prevDay = 144000000;
@@ -173,7 +173,7 @@ export const prodServerOk = setupServer(
 export const prodServerHasNoTotalCount = setupServer(
 	rest.get(API_URL + "/prod/api/log", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET API CALL STATS - No Data");
+		console.log("[MOCK API][PROD] GET API CALL STATS - No Data");
 
 		const fromTimestamp = 1643375805000; // 2022.01.28
 
@@ -200,7 +200,7 @@ export const prodServerHasNoTotalCount = setupServer(
 export const prodServerHasNoCount = setupServer(
 	rest.get(API_URL + "/prod/api/log", async (req, res, ctx) => {
 
-		console.info("[MOCK API][PROD] GET API CALL STATS - No Data");
+		console.log("[MOCK API][PROD] GET API CALL STATS - No Data");
 
 		const fromTimestamp = 1643375805000; // 2022.01.28
 
@@ -227,30 +227,30 @@ export const prodServerHasNoCount = setupServer(
 
 export const prodServerFailed = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET WEB VITAL STATS - FAILED");
+		console.log("[MOCK API][PROD] GET WEB VITAL STATS - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
 	rest.get(API_URL + "/prod/api/log", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET API CALL STATS - FAILED");
+		console.log("[MOCK API][PROD] GET API CALL STATS - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
 	rest.get(API_URL + "/prod/useragent", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET VISITOR STATS - FAILED");
+		console.log("[MOCK API][PROD] GET VISITOR STATS - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	})
 );
 
 export const prodServerNetworkError = setupServer(
 	rest.get(API_URL + "/prod", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET WEB VITAL STATS - NETWORK ERROR");
+		console.log("[MOCK API][PROD] GET WEB VITAL STATS - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	}),
 	rest.get(API_URL + "/prod/api/log", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET API CALL STATS - NETWORK ERROR");
+		console.log("[MOCK API][PROD] GET API CALL STATS - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	}),
 	rest.get(API_URL + "/prod/useragent", (req, res, ctx) => {
-		console.info("[MOCK API][PROD] GET VISITOR STATS - NETWORK ERROR");
+		console.log("[MOCK API][PROD] GET VISITOR STATS - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	})
 );
@@ -258,7 +258,7 @@ export const prodServerNetworkError = setupServer(
 export const devServerOk = setupServer(
 	rest.get(API_URL + "/test/content/log", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS");
+		console.log("[MOCK API][DEV] GET CONTENT/LOG STATS");
 
 		const testTime = 1643375805000; // 2022.01.28
 		const day = 144000000;
@@ -285,7 +285,7 @@ export const devServerOk = setupServer(
 
 	rest.get(API_URL + "/test/content/file", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET CONTENT/FILE STATS");
+		console.log("[MOCK API][DEV] GET CONTENT/FILE STATS");
 
 		const testTime = 1643375805000; // 2022.01.28
 		const day = 144000000;
@@ -314,7 +314,7 @@ export const devServerOk = setupServer(
 export const devServerHasNoCount = setupServer(
 	rest.get(API_URL + "/test/content/log", async (req, res, ctx) => {
 
-		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS - No Data");
+		console.log("[MOCK API][DEV] GET CONTENT/LOG STATS - No Data");
 
 		return res(
 			ctx.json({
@@ -331,14 +331,14 @@ export const devServerHasNoCount = setupServer(
 
 export const devServerFailed = setupServer(
 	rest.get(API_URL + "/test/content/log", (req, res, ctx) => {
-		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS - FAILED");
+		console.log("[MOCK API][DEV] GET CONTENT/LOG STATS - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	})
 );
 
 export const devServerNetworkError = setupServer(
 	rest.get(API_URL + "/test/content/log", (req, res, ctx) => {
-		console.info("[MOCK API][DEV] GET CONTENT/LOG STATS - NETWORK ERROR");
+		console.log("[MOCK API][DEV] GET CONTENT/LOG STATS - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	})
 );
