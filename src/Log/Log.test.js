@@ -4,8 +4,8 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import Log from '../Log/Log';
 
-// console.log = jest.fn();
-// console.error = jest.fn();
+console.log = jest.fn();
+console.error = jest.fn();
 
 const testEntry = {
 	pathname: "/"
@@ -82,8 +82,8 @@ test('render log if it logged in', async () => {
 	fireEvent.click(seeMoreButton2);
 	
 	// Click first log
-	const firstItem = await screen.findByText("123456");
-	fireEvent.click(firstItem);
+	// const firstItem = await screen.findByText("123456");
+	// fireEvent.click(firstItem);
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();

@@ -120,7 +120,7 @@ const LogSingle = (props) => {
 	
 	const completed = () => {
 		setIsShowToasterBottom(2);
-		navigate("/log/");
+		navigate("/log");
 	}
 	
 	// Draw log item
