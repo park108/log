@@ -12,6 +12,11 @@ export const prodServerHasNoData = setupServer(
 			ScannedCount: 0
 		} }) );
 	}),
+
+	rest.get(API_URL + "/prod/timestamp/1656034616036", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] GET LOG - No Data");
+		return res( ctx.json({ body: { Count: 0 } }) );
+	}),
 );
 
 export const prodServerOk = setupServer(
@@ -74,21 +79,47 @@ export const prodServerOk = setupServer(
 		}
 		// Fetch more: no data 
 		else if(params[0].startsWith("lastTimestamp=1654501373940")) {
-
 			console.log("[MOCK API][PROD] GET MORE LOGS - No Data");
-
 			return res( ctx.json({ body:{} }) );
 		}
 	}),
 
-	rest.post(API_URL + "/prod", async (req, res, ctx) => {
-		console.log("[MOCK API][PROD] POST FILE");
-		return res( ctx.json({ status: 200 }) );
+	rest.get(API_URL + "/prod/timestamp/1656034616036", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] GET LOG");
+		return res(
+			ctx.json({
+				body: {
+					Count: 1,
+					Items: [
+						{
+							author: "park108@gmail.com",
+							timestamp: 1656034616036,
+							logs: [
+								{
+									contents: "Test Contents",
+									timestamp: 1656034616036,
+								}
+							]
+						},
+					]
+				}
+			})
+		);
 	}),
 
-	rest.put(API_URL + "/prod", async (req, res, ctx) => {
-		console.log("[MOCK API][PROD] PUT FILE");
-		return res( ctx.json({ status: 200 }) );
+	rest.post(API_URL + "/prod", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] POST LOG");
+		return res( ctx.json({ statusCode: 200 }) );
+	}),
+
+	rest.put(API_URL + "/prod/timestamp/1234567890", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] PUT LOG");
+		return res( ctx.json({ statusCode: 200 }) );
+	}),
+
+	rest.delete(API_URL + "/prod/timestamp/1656034616036", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] DELETE LOG");
+		return res( ctx.json({ statusCode: 200 }) );
 	}),
 );
 
@@ -190,13 +221,13 @@ export const prodServerFailed = setupServer(
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
 
-	rest.post(API_URL + "/prod", async (req, res, ctx) => {
-		console.log("[MOCK API][PROD] POST FILE - FAILED");
+	rest.get(API_URL + "/prod/timestamp/1656034616036", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] GET LOG - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
 
-	rest.put(API_URL + "/prod", async (req, res, ctx) => {
-		console.log("[MOCK API][PROD] PUT FILE - FAILED");
+	rest.post(API_URL + "/prod", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] POST LOG - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
 );
@@ -207,13 +238,34 @@ export const prodServerNetworkError = setupServer(
 		return res.networkError('Failed to connect');
 	}),
 
-	rest.post(API_URL + "/prod", async (req, res, ctx) => {
-		console.log("[MOCK API][PROD] POST FILE - NETWORK ERROR");
-		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
+	rest.get(API_URL + "/prod/timestamp/1656034616036", (req, res, ctx) => {
+		console.log("[MOCK API][PROD] GET LOG - NETWORK ERROR");
+		return res.networkError('Failed to connect');
 	}),
 
-	rest.put(API_URL + "/prod", async (req, res, ctx) => {
-		console.log("[MOCK API][PROD] PUT FILE - NETWORK ERROR");
+	rest.post(API_URL + "/prod", async (req, res, ctx) => {
+		console.log("[MOCK API][PROD] POST LOG - NETWORK ERROR");
+		return res.networkError('Failed to connect');
+	}),
+);
+
+export const devServerOk = setupServer(
+	rest.put(API_URL + "/test/timestamp/1234567890", async (req, res, ctx) => {
+		console.log("[MOCK API][DEV] PUT LOG");
+		return res( ctx.json({ statusCode: 200 }) );
+	}),
+);
+
+export const devServerFailed = setupServer(
+	rest.put(API_URL + "/test/timestamp/1234567890", async (req, res, ctx) => {
+		console.log("[MOCK API][DEV] PUT LOG - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
+	}),
+);
+
+export const devServerNetworkError = setupServer(
+	rest.put(API_URL + "/test/timestamp/1234567890", async (req, res, ctx) => {
+		console.log("[MOCK API][DEV] PUT LOG - NETWORK ERROR");
+		return res.networkError('Failed to connect');
 	}),
 );

@@ -33,6 +33,7 @@ const Writer = () => {
 	const [rows, setRows] = useState("1");
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
+	const [toasterType, setToasterType] = useState("success");
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [isShowImageSelector, setIsShowImageSelector] = useState(false);
 	
@@ -135,7 +136,8 @@ const Writer = () => {
 	
 				if(200 === status.statusCode) {
 					log("[API POST] OK - Log", "SUCCESS");
-	
+					
+					setToasterType("success");
 					setToasterMessage("The log posted.");
 					setIsShowToaster(1);
 	
@@ -147,11 +149,19 @@ const Writer = () => {
 				else {
 					log("[API POST] FAILED - Log", "ERROR");
 					log(res, "ERROR");
+					
+					setToasterType("error");
+					setToasterMessage("Posting log failed.");
+					setIsShowToaster(1);
 				}
 			}
 			catch(err) {
 				log("[API POST] FAILED - Log", "ERROR");
 				log(err, "ERROR");
+					
+				setToasterType("error");
+				setToasterMessage("Posting log network error.");
+				setIsShowToaster(1);
 			}
 
 			setIsProcessing(false);
@@ -189,11 +199,19 @@ const Writer = () => {
 				else {
 					log("[API PUT] FAILED - Log", "ERROR");
 					log(res, "ERROR");
+					
+					setToasterType("error");
+					setToasterMessage("Editing log failed.");
+					setIsShowToaster(1);
 				}
 			}
 			catch(err) {
 				log("[API PUT] FAILED - Log", "ERROR");
 				log(err, "ERROR");
+					
+				setToasterType("error");
+				setToasterMessage("Editing log network error.");
+				setIsShowToaster(1);
 			}
 
 			setIsProcessing(false);
@@ -230,6 +248,8 @@ const Writer = () => {
 		let markdownString = MARKDOWN_STRING_TEMPLATE[tag];
 
 		copyToClipboard(markdownString);
+
+		setToasterType("information");
 		setToasterMessage("Markdown string copied.");
 		setIsShowToaster(1);
 	}
@@ -323,11 +343,7 @@ const Writer = () => {
 						onChange={() => setIsTemporary(!isTemporary)}
 						checked={isTemporary}
 					/>
-					<label
-						htmlFor="temporary"
-					>
-						Temporary Save
-					</label>
+					<label htmlFor="temporary">Temporary Save</label>
 
 					<button
 						role="button"
@@ -367,7 +383,7 @@ const Writer = () => {
 				show={isShowToaster}
 				message={toasterMessage}
 				position={"bottom"}
-				type={"warning"}
+				type={toasterType}
 				duration={2000}
 				completed={() => setIsShowToaster(2)}
 			/>

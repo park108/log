@@ -156,7 +156,7 @@ const Search = () => {
 					<div className="div--loglist-item" key={data.timestamp} role="listitem">
 						<Link to={{
 							pathname: "/log/" + data.timestamp,
-							search: "true"
+							search: "search=true"
 						}}>
 							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
 							<div className="div--loglist-contents">{

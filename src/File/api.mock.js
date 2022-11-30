@@ -93,7 +93,7 @@ export const prodServerOk = setupServer(
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
 		console.log("[MOCK API][PROD] PUT FILE");
-		return res( ctx.json({ status: 200 }) );
+		return res( ctx.json({ statusCode: 200 }) );
 	}),
 
 	rest.delete(API_URL + "/prod/key/20220606_log_CQRS.png", async (req, res, ctx) => {
@@ -229,7 +229,7 @@ export const devServerOk = setupServer(
 
 	rest.put(PRESIGNED_URL, async (req, res, ctx) => {
 		console.log("[MOCK API][DEV] PUT FILE");
-		return res( ctx.json({ status: 200 }) );
+		return res( ctx.json({ statusCode: 200 }) );
 	}),
 
 	rest.delete(API_URL + "/test/key/20220606_log_CQRS.png", async (req, res, ctx) => {

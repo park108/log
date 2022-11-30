@@ -1,87 +1,81 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import * as mock from './api.mock';
+import * as common from '../common/common';
 import LogSingle from '../Log/LogSingle';
 
-const unmockedFetch = global.fetch;
-console.log = jest.fn();
-console.error = jest.fn();
-const errorMessage = "API is down";
+// console.log = jest.fn();
+// console.error = jest.fn();
+
+const testEntry = {
+	pathname: "/log"
+	, search: ""
+	, hash: ""
+	, state: {}
+	, key: "default"
+};
 	
 jest.mock('react-router-dom', () => ({
 	...jest.requireActual('react-router-dom'),
 	useParams: () => ({ timestamp: '1656034616036' }),
 }));
 
-it('render LogSingle', async () => {
-	
-	global.fetch = () =>
-		Promise.resolve({
-		json: () => Promise.resolve({
-			body: {
-				Count: 1,
-				Items: [
-					{
-						author: "park108@gmail.com",
-						timestamp: 1656034616036,
-						logs: [
-							{
-								contents: "Test Contents",
-								timestamp: 1656034616036,
-							}
-						]
-					},
-				]
-			}
-		}),
-	})
+it('render LogSingle on prod server', async () => {
 
+	mock.prodServerOk.listen();
 	process.env.NODE_ENV = 'production';
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
 
 	jest.useFakeTimers();
-
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
 
 	render(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
 	);
-
-	jest.runOnlyPendingTimers();
 
 	const obj = await screen.findByText("Test Contents");
 	expect(obj).toBeInTheDocument();
 
+	act(() => {
+		jest.runOnlyPendingTimers();
+	});
+
+	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+		return true;
+	});
+
+	const deleteButton = await screen.findByText("Delete");
+	expect(deleteButton).toBeInTheDocument();
+	fireEvent.click(deleteButton);
+
+	act(() => {
+		jest.runAllTimers();
+	});
+
+	const deleteResultText = await screen.findByText("The log deleted.");
+	expect(deleteResultText).toBeInTheDocument();
+
+	act(() => {
+		jest.runAllTimers();
+	});
+
+	const afterResult = await screen.findByText("The log deleted.");
+	expect(afterResult).toBeInTheDocument();
+
 	jest.useRealTimers();
-	global.fetch = unmockedFetch;
+
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
 });
 
 it('render "Page Not Found" page if it cannot fetch', async () => {
-	
-	global.fetch = () =>
-		Promise.resolve({
-		json: () => Promise.resolve({
-			errorType: "404"
-		}),
-	})
 
-	process.env.NODE_ENV = 'development';
-
-	jest.useFakeTimers();
-
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+	mock.prodServerFailed.listen();
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<MemoryRouter initialEntries={[ testEntry ]}>
@@ -89,33 +83,17 @@ it('render "Page Not Found" page if it cannot fetch', async () => {
 		</MemoryRouter>
 	);
 
-	jest.runOnlyPendingTimers();
-
 	const obj = await screen.findByText("Page Not Found.");
 	expect(obj).toBeInTheDocument();
 
-	jest.useRealTimers();
-	global.fetch = unmockedFetch;
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
 });
 
 it('render "Page Not Found" page if it has no log', async () => {
-	
-	global.fetch = () =>
-		Promise.resolve({
-		json: () => Promise.resolve({
-			body: {
-				Count: 0
-			}
-		}),
-	})
 
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+	mock.prodServerHasNoData.listen();
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<MemoryRouter initialEntries={[ testEntry ]}>
@@ -126,21 +104,14 @@ it('render "Page Not Found" page if it has no log', async () => {
 	const obj = await screen.findByText("Page Not Found.");
 	expect(obj).toBeInTheDocument();
 
-	global.fetch = unmockedFetch;
+	mock.prodServerHasNoData.resetHandlers();
+	mock.prodServerHasNoData.close();
 });
 
 it('render "Page Not Found" page if API is down', async () => {
 
-	// fetchFirst -> Server error
-	global.fetch = () => Promise.reject(errorMessage);
-
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+	mock.prodServerNetworkError.listen();
+	process.env.NODE_ENV = 'production';
 
 	render(
 		<MemoryRouter initialEntries={[ testEntry ]}>
@@ -148,5 +119,9 @@ it('render "Page Not Found" page if API is down', async () => {
 		</MemoryRouter>
 	);
 
-	global.fetch = unmockedFetch;
+	const obj = await screen.findByText("Page Not Found.");
+	expect(obj).toBeInTheDocument();
+
+	mock.prodServerNetworkError.resetHandlers();
+	mock.prodServerNetworkError.close();
 });

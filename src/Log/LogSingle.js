@@ -19,9 +19,11 @@ const getQueryStringSearch = () => {
 
 const LogSingle = (props) => {
 
-	const [data, setData] = useState({});
 	const [isLoading, setIsLoading] = useState(false);
 	const [itemLoadingStatus, setItemLoadingStatus] = useState("NOW_LOADING");
+
+	const [data, setData] = useState({});
+
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
@@ -29,29 +31,24 @@ const LogSingle = (props) => {
 
 	const logTimestamp = useParams()["timestamp"];
 
-	// Fetch data at mount
 	useEffect(() => {
 
 		const fetchData = async (timestamp) => {
 
+			setIsLoading(true);
+
 			try {
-				setIsLoading(true);
 				const res = await getLog(timestamp);
 				const fetchedData = await res.json();
-				setIsLoading(false);
 				
 				if(!hasValue(fetchedData.errorType)) {
+
 					log("[API GET] OK - Log", "SUCCESS");
 
-					if(0 === fetchedData.body.Count) {
-						setItemLoadingStatus("NOT_FOUND");
-						setHtmlTitle(PAGE_NOT_FOUND);
-						setMetaDescription(PAGE_NOT_FOUND);
-					}
-					else {
+					if(fetchedData.body.Count > 0) {
+
 						const latestData = fetchedData.body.Items[0];
 						setData(latestData);
-						setItemLoadingStatus("FOUND");
 						
 						const contents = latestData.logs[0].contents;
 						const hasTitle = contents.indexOf("# ") === 0;
@@ -68,23 +65,34 @@ const LogSingle = (props) => {
 						const contentsLength = parsedContents.length;
 						const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
 						setMetaDescription(summary + ellipsis);
+
+						setItemLoadingStatus("FOUND");
+					}
+					else {
+						setItemLoadingStatus("NOT_FOUND");
+						setHtmlTitle(PAGE_NOT_FOUND);
+						setMetaDescription(PAGE_NOT_FOUND);
 					}
 				}
 				else {
 					log("[API GET] FAILED - Log", "ERROR");
 					console.error(fetchedData);
-					log("No log found.");
+
 					setItemLoadingStatus("NOT_FOUND");
 					setHtmlTitle(PAGE_NOT_FOUND);
 					setMetaDescription(PAGE_NOT_FOUND);
 				}
 			}
 			catch(err) {
-				log("[API GET] FAILED - Log", "ERROR");
+				log("[API GET] NETWORK ERROR - Log", "ERROR");
 				log(err, "ERROR");
+
+				setItemLoadingStatus("NOT_FOUND");
 				setHtmlTitle(PAGE_NOT_FOUND);
 				setMetaDescription(PAGE_NOT_FOUND);
 			}
+		
+			setIsLoading(false);
 		}
 
 		fetchData(logTimestamp);

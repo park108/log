@@ -1,37 +1,191 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, act } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
-import { Router } from 'react-router-dom';
-import userEvent from '@testing-library/user-event';
+import { Router, MemoryRouter } from 'react-router-dom';
+import * as mock from './api.mock';
 import * as common from '../common/common';
 
+console.log = jest.fn();
 console.error = jest.fn();
 
 it('redirect if not admin', async () => {
-	
 	common.isLoggedIn = jest.fn().mockReturnValue(true);
 	common.isAdmin = jest.fn().mockReturnValue(false);
   
 	const history = createMemoryHistory({ initialEntries: ["/log/write"]});
-  
+	
 	render(
-		<div id="root" className="div fullscreen">
-			<Router location={history.location} navigator={history}>
-				<Writer />
-			</Router>
-		</div>
-	);
+		<Router location={history.location} navigator={history}>
+			<Writer />
+		</Router>
+	)
 });
 
-it('render text area correctly', async () => {
+test('create log ok on prod server', async () => {
+
+	mock.prodServerOk.listen();
+
+	process.env.NODE_ENV = 'production';
   
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
 	common.setFullscreen = jest.fn().mockResolvedValue(true);
 	document.execCommand = jest.fn();
 
-	const history = createMemoryHistory();
-	const location = {
+	const testEntry = {
+		pathname: "/log/write",
+		state: null,
+	};
+
+	jest.useFakeTimers();
+  
+	render(
+		<div id="root" className="div fullscreen">
+        	<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
+		</div>
+	);
+
+	const textInput = await screen.findByTestId("writer-text-area");
+	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+
+	act(() => {
+		jest.runOnlyPendingTimers();
+	});
+
+	// Submit test
+	const submitButton = await screen.findByTestId("submit-button");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
+
+	act(() => {
+		jest.runAllTimers();
+	});
+
+	const resultMessage = await screen.findByText("The log posted.");
+	expect(resultMessage).toBeDefined();
+
+	jest.useRealTimers();
+
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
+});
+
+test('create log failed on prod server', async () => {
+
+	mock.prodServerFailed.listen();
+
+	process.env.NODE_ENV = 'production';
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+	common.setFullscreen = jest.fn().mockResolvedValue(true);
+	document.execCommand = jest.fn();
+
+	const testEntry = {
+		pathname: "/log/write",
+		state: null,
+	};
+
+	jest.useFakeTimers();
+  
+	render(
+		<div id="root" className="div fullscreen">
+        	<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
+		</div>
+	);
+
+	const textInput = await screen.findByTestId("writer-text-area");
+	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+
+	act(() => {
+		jest.runOnlyPendingTimers();
+	});
+
+	// Submit test
+	const submitButton = await screen.findByTestId("submit-button");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
+
+	act(() => {
+		jest.runAllTimers();
+	});
+
+	const resultMessage = await screen.findByText("Posting log failed.");
+	expect(resultMessage).toBeDefined();
+
+	jest.useRealTimers();
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
+});
+
+test('create log network error on prod server', async () => {
+
+	mock.prodServerNetworkError.listen();
+
+	process.env.NODE_ENV = 'production';
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+	common.setFullscreen = jest.fn().mockResolvedValue(true);
+	document.execCommand = jest.fn();
+
+	const testEntry = {
+		pathname: "/log/write",
+		state: null,
+	};
+
+	jest.useFakeTimers();
+  
+	render(
+		<div id="root" className="div fullscreen">
+        	<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
+		</div>
+	);
+
+	const textInput = await screen.findByTestId("writer-text-area");
+	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+
+	act(() => {
+		jest.runOnlyPendingTimers();
+	});
+
+	// Submit test
+	const submitButton = await screen.findByTestId("submit-button");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
+
+	act(() => {
+		jest.runAllTimers();
+	});
+
+	const resultMessage = await screen.findByText("Posting log network error.");
+	expect(resultMessage).toBeDefined();
+
+	jest.useRealTimers();
+
+	mock.prodServerNetworkError.resetHandlers();
+	mock.prodServerNetworkError.close();
+});
+
+it('edit log ok on dev server', async () => {
+
+	mock.devServerOk.listen();
+
+	process.env.NODE_ENV = 'development';
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+	common.setFullscreen = jest.fn().mockResolvedValue(true);
+	document.execCommand = jest.fn();
+
+	const testEntry = {
 		pathname: "/log/write",
 		state: {
 			from: {
@@ -39,129 +193,197 @@ it('render text area correctly', async () => {
 					{"contents":"Current contents","timestamp":1655737033793}
 					,{"contents":"Previous contents","timestamp":1655736946977}
 				],
-				temporary: true
+				temporary: true,
+				timestamp: 1234567890
 			}
 		}
 	};
-
-	history.push(location);
   
 	render(
 		<div id="root" className="div fullscreen">
-			<Router location={location} history={history}>
-				<Writer
-					post={jest.fn()}
-					edit={jest.fn()}
-				/>
-			</Router>
+        	<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
 		</div>
 	);
 
 	jest.useFakeTimers();
-	
-	// Text input test
-	const textInput = await screen.findByTestId("writer-text-area");
-	const typedValue = "Posting test";
-	userEvent.type(textInput, typedValue);
-
-	jest.runOnlyPendingTimers();
-	
-	// Button click tests
-	const imgButton = await screen.findByTestId("img-button");
-	expect(imgButton).toBeDefined();
-	fireEvent.click(imgButton);
-
-	jest.runOnlyPendingTimers();
-
-	const aButton = await screen.findByTestId("a-button");
-	expect(aButton).toBeDefined();
-	fireEvent.click(aButton);
-
-	jest.runOnlyPendingTimers();
-
-	const tempCheckbox = await screen.findByText("Temporary Save");
-	expect(tempCheckbox).toBeDefined();
-	fireEvent.click(tempCheckbox);
-
-	jest.runOnlyPendingTimers();
-	
-	// Image selector mode change tests
-	const selectorButton1 = await screen.findByTestId("img-selector-button");
-	expect(selectorButton1).toBeDefined();
-	fireEvent.click(selectorButton1);
-
-	jest.runOnlyPendingTimers();
-
-	const selectorButton2 = await screen.findByTestId("img-selector-button");
-	expect(selectorButton2).toBeDefined();
-	fireEvent.click(selectorButton2);
-
-	jest.runOnlyPendingTimers();
-
-	const selectorButton3 = await screen.findByTestId("img-selector-button");
-	expect(selectorButton3).toBeDefined();
-	fireEvent.click(selectorButton3);
-
-	jest.runOnlyPendingTimers();
-
-	// Test conversion toggle
-	const modeHTML = await screen.findByTestId("mode-button");
-	expect(modeHTML).toBeDefined();
-	fireEvent.click(modeHTML);
-
-	jest.runOnlyPendingTimers();
-
-	const conversionModeHTML = await screen.findByText("HTML");
-	expect(conversionModeHTML).toBeInTheDocument();
-	
-	const modeMD = await screen.findByTestId("mode-button");
-	expect(modeMD).toBeDefined();
-	fireEvent.click(modeMD);
-
-	jest.runOnlyPendingTimers();
-
-	const conversionModeMarkdown = await screen.findByText("Markdown Converted");
-	expect(conversionModeMarkdown).toBeInTheDocument();
-
-	jest.runOnlyPendingTimers();
 
 	// Submit test
-	const form = await screen.findByTestId("writer-form");
-	expect(form).toBeDefined();
-	fireEvent.submit(form);
+	const submitButton = await screen.findByTestId("submit-button");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
 
-	jest.runOnlyPendingTimers();
+	act(() => {
+		jest.runOnlyPendingTimers();
+	});
+
+	const resultMessage = await screen.findByText("The log changed.");
+	expect(resultMessage).toBeDefined();
 
 	jest.useRealTimers();
+
+	mock.devServerOk.resetHandlers();
+	mock.devServerOk.close();
 });
 
+it('edit log failed on dev server', async () => {
 
-it('render text area and test submit', async () => {
+	mock.devServerFailed.listen();
+
+	process.env.NODE_ENV = 'development';
   
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
 	common.setFullscreen = jest.fn().mockResolvedValue(true);
 	document.execCommand = jest.fn();
 
-	const history = createMemoryHistory();
-	const location = {
-		pathname: "/log/write"
+	const testEntry = {
+		pathname: "/log/write",
+		state: {
+			from: {
+				logs: [
+					{"contents":"Current contents","timestamp":1655737033793}
+					,{"contents":"Previous contents","timestamp":1655736946977}
+				],
+				temporary: false,
+				timestamp: 1234567890
+			}
+		}
 	};
-
-	history.push(location);
   
 	render(
 		<div id="root" className="div fullscreen">
-			<Router location={location} history={history}>
-				<Writer
-					post={jest.fn()}
-					edit={jest.fn()}
-				/>
-			</Router>
+        	<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
 		</div>
 	);
 
 	jest.useFakeTimers();
+
+	// Submit test
+	const submitButton = await screen.findByTestId("submit-button");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
+
+	act(() => {
+		jest.runOnlyPendingTimers();
+	});
+
+	const resultMessage = await screen.findByText("Editing log failed.");
+	expect(resultMessage).toBeDefined();
+
+	jest.useRealTimers();
+
+	mock.devServerFailed.resetHandlers();
+	mock.devServerFailed.close();
+});
+
+it('edit log network error on dev server', async () => {
+
+	mock.devServerNetworkError.listen();
+
+	process.env.NODE_ENV = 'development';
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+	common.setFullscreen = jest.fn().mockResolvedValue(true);
+	document.execCommand = jest.fn();
+
+	const testEntry = {
+		pathname: "/log/write",
+		state: {
+			from: {
+				logs: [
+					{"contents":"Current contents","timestamp":1655737033793}
+					,{"contents":"Previous contents","timestamp":1655736946977}
+				],
+				timestamp: 1234567890
+			}
+		}
+	};
+  
+	render(
+		<div id="root" className="div fullscreen">
+        	<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
+		</div>
+	);
+
+	jest.useFakeTimers();
+
+	// Submit test
+	const submitButton = await screen.findByTestId("submit-button");
+	expect(submitButton).toBeDefined();
+	fireEvent.click(submitButton);
+
+	act(() => {
+		jest.runOnlyPendingTimers();
+	});
+
+	const resultMessage = await screen.findByText("Editing log network error.");
+	expect(resultMessage).toBeDefined();
+
+	jest.useRealTimers();
+
+	mock.devServerNetworkError.resetHandlers();
+	mock.devServerNetworkError.close();
+});
+
+
+test('event testing', async () => {
+
+	jest.spyOn(window, 'alert').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+	});
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+	common.setFullscreen = jest.fn().mockResolvedValue(true);
+	document.execCommand = jest.fn();
+
+	const testEntry = {
+		pathname: "/log/write"
+	};
+  
+	render(
+		<div id="root" className="div fullscreen">
+        	<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
+		</div>
+	);
+
+	jest.useFakeTimers();
+
+	// Convert display mode
+	const modeButton = await screen.findByTestId("mode-button");
+	expect(modeButton).toBeDefined();
+	fireEvent.click(modeButton);
+	fireEvent.click(modeButton);
+
+	// Get markdown string for anchor
+	const aButton = await screen.findByTestId("a-button");
+	expect(aButton).toBeDefined();
+	fireEvent.click(aButton);
+
+	// Get markdown string for image
+	const imgButton = await screen.findByTestId("img-button");
+	expect(imgButton).toBeDefined();
+	fireEvent.click(imgButton);
+
+	// Toggle temporary
+	const temporaryCheckbox = await screen.findByText("Temporary Save");
+	expect(temporaryCheckbox).toBeDefined();
+	fireEvent.click(temporaryCheckbox);
+
+	// Open imag selector
+	const imgSelector = await screen.findByTestId("img-selector-button");
+	expect(imgSelector).toBeDefined();
+	fireEvent.click(imgSelector);
+	fireEvent.click(imgSelector);
 
 	// Submit with no text
 	const form = await screen.findByTestId("writer-form");
@@ -185,3 +407,91 @@ it('render text area and test submit', async () => {
 
 	jest.useRealTimers();
 });
+
+
+	
+	// // Text input test
+	// const textInput = await screen.findByTestId("writer-text-area");
+	// const typedValue = "Posting test";
+	// userEvent.type(textInput, typedValue);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+	
+	// // Button click tests
+	// const imgButton = await screen.findByTestId("img-button");
+	// expect(imgButton).toBeDefined();
+	// fireEvent.click(imgButton);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+
+	// const aButton = await screen.findByTestId("a-button");
+	// expect(aButton).toBeDefined();
+	// fireEvent.click(aButton);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+
+	// const tempCheckbox = await screen.findByText("Temporary Save");
+	// expect(tempCheckbox).toBeDefined();
+	// fireEvent.click(tempCheckbox);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+	
+	// // Image selector mode change tests
+	// const selectorButton1 = await screen.findByTestId("img-selector-button");
+	// expect(selectorButton1).toBeDefined();
+	// fireEvent.click(selectorButton1);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+
+	// const selectorButton2 = await screen.findByTestId("img-selector-button");
+	// expect(selectorButton2).toBeDefined();
+	// fireEvent.click(selectorButton2);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+
+	// const selectorButton3 = await screen.findByTestId("img-selector-button");
+	// expect(selectorButton3).toBeDefined();
+	// fireEvent.click(selectorButton3);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+
+	// // Test conversion toggle
+	// const modeHTML = await screen.findByTestId("mode-button");
+	// expect(modeHTML).toBeDefined();
+	// fireEvent.click(modeHTML);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+
+	// const conversionModeHTML = await screen.findByText("HTML");
+	// expect(conversionModeHTML).toBeInTheDocument();
+	
+	// const modeMD = await screen.findByTestId("mode-button");
+	// expect(modeMD).toBeDefined();
+	// fireEvent.click(modeMD);
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
+
+	// const conversionModeMarkdown = await screen.findByText("Markdown Converted");
+	// expect(conversionModeMarkdown).toBeInTheDocument();
+
+	// act(() => {
+	// 	jest.runOnlyPendingTimers();
+	// });
