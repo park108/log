@@ -9,6 +9,7 @@ import PageNotFound from "../common/PageNotFound";
 const LogItem = lazy(() => import('./LogItem'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 
+const SUMMARY_LENGTH = 100;
 const PAGE_NOT_FOUND = "Page not found";
 
 const getQueryStringSearch = () => {
@@ -25,6 +26,7 @@ const LogSingle = (props) => {
 	const [data, setData] = useState({});
 
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
+	const [toasterMessage, setToasterMessage] = useState("");
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
 
 	const navigate = useNavigate();
@@ -55,6 +57,7 @@ const LogSingle = (props) => {
 
 						const latestData = fetchedData.body.Items[0];
 						setData(latestData);
+						setItemLoadingStatus("FOUND");
 						
 						const contents = latestData.logs[0].contents;
 						const hasTitle = contents.indexOf("# ") === 0;
@@ -64,15 +67,12 @@ const LogSingle = (props) => {
 							: "log of " + getFormattedDate(logTimestamp * 1, "date mon year");
 						setHtmlTitle(logTitle);
 		
-						const SUMMARY_LENGTH = 100;
 						const contentsWithoutTitle = contents.substr(contentsStartIndex);
 						const parsedContents = parser.markdownToHtml(contentsWithoutTitle).replace(/<[^>]*>?/gm, '');
 						const summary = parsedContents.substr(0, SUMMARY_LENGTH);
 						const contentsLength = parsedContents.length;
 						const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
 						setMetaDescription(summary + ellipsis);
-
-						setItemLoadingStatus("FOUND");
 					}
 					else {
 						setItemLoadingStatus("NOT_FOUND");
@@ -127,10 +127,15 @@ const LogSingle = (props) => {
 					showComments={true}
 					showLink={true}
 					deleted={() => {
+						setToasterMessage("The log is deleted.");
 						setIsShowToasterBottom(1);
 					}}
 				/>
 			</Suspense>
+		: ("DELETED" === itemLoadingStatus) ?
+			<h1 className="h1 h1--notification-result">
+				Deleted
+			</h1>
 		: "";
 
 	const toListButton = !isLoading ? (
@@ -156,14 +161,14 @@ const LogSingle = (props) => {
 					message="Loading a log..."
 				/>
 				<Toaster 
-					show={isShowToasterBottom}
-					message="The log deleted."
+					show={ isShowToasterBottom }
+					message={ toasterMessage }
 					position="bottom"
 					type="success"
 					duration={ 2000 }
 					completed={() => {
 						setIsShowToasterBottom(2);
-						navigate("/log");
+						setItemLoadingStatus("DELETED");
 					}}
 				/>
 			</Suspense>

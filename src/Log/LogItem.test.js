@@ -1,12 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import * as mock from './api.mock';
 import LogItem from './LogItem';
 import * as common from '../common/common';
 
-const unmockedFetch = global.fetch;
-console.log = jest.fn();
-console.error = jest.fn();
+// console.log = jest.fn();
+// console.error = jest.fn();
 
 it('render log item correctly', async () => {
 
@@ -85,176 +84,10 @@ it('render log item correctly', async () => {
 	jest.useRealTimers();
 });
 
-it('render log item and delete correctly', async () => {
-		
-	// deleteLogItem -> ok
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			statusCode: 200
-		}),
-	});
-
-	// Set session list
-	sessionStorage.clear();
-	const logFromServer = [
-		{"contents":"123456","author":"park108@gmail.com","timestamp":1655736946977}
-		,{"contents":"이노베이션 사이트의 연이은 인력 이탈, 무리한 사업 수주로 인한 외부 사업 투입, 강요된 거짓말, 실망스런 회사의 관리자들, 고객사에 들통나 버린 거짓말, 가시화되는 운영 조직의  ...","author":"park108@gmail.com","timestamp":1655302060414}
-		,{"contents":"const makeSummary = (contents) => {\tconst trimmedContents = markdownToHtml(contents).replace(/(]+)>) ...","author":"park108@gmail.com","timestamp":1654639495093}
-		,{"contents":"Test over 50 characters.Is it make summary well???","author":"park108@gmail.com","timestamp":1654639469843}
-		,{"contents":"Test Now","author":"park108@gmail.com","timestamp":1654639443910}
-		,{"contents":"첫 화면을 목록 형태로 변경했다.이 블로그는 변경 이력을 모두 저장하도록 설계, 구현했다. 개별 건의 CRUD 뿐 만 아니라, 목록 조회를 할 때에도 동일한 테이블에서 쿼리를 했기 ...","author":"park108@gmail.com","timestamp":1654526208951}
-		,{"contents":"Ver 4.Real! New!!! and long string over the FIFTY! ...","author":"park108@gmail.com","timestamp":1654520402200}
-		,{"contents":"New!!!!!!","author":"park108@gmail.com","timestamp":1654520368510}
-		,{"contents":"New test ","author":"park108@gmail.com","timestamp":1654520347146}
-		,{"contents":"Noew Version 10! Can i success? Change once again! ...","author":"park108@gmail.com","timestamp":1654501373940}
-	];
-	const lastTimestampFromServer = 1654501373940;
-
-	sessionStorage.setItem("logList", JSON.stringify(logFromServer));
-	sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestampFromServer));
-
-	const contents = "header test contents";
-	const markdownText = "## " + contents;
-
-	const item = {
-		"logs":[
-			{"contents":markdownText,"timestamp":1655737033793}
-			,{"contents":"12345","timestamp":1655736946977}
-		]
-		,"summary":"123456"
-		,"sortKey":1655736946977
-		,"timestamp":1655736946977
-		,"author":"park108@gmail.com"
-	}
-
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-
-	process.env.NODE_ENV = 'development';
-
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
-
-	render(
-		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem 
-				author={"park108@gmail.com"}
-				timestamp={1655736946977}
-				contents={markdownText}
-				item={item}
-				showLink={true}
-			/>
-		</MemoryRouter>
-	);
-
-	// Mouse over/out event
-	const linkUrl = await screen.findByText("http://localhost:3000/log/1655736946977");
-	expect(linkUrl).toBeDefined();
-	fireEvent.mouseOut(linkUrl);
-	
-	jest.useFakeTimers();
-	window.confirm = jest.fn(() => false);
-
-	const deleteButton = screen.getByTestId("delete-button");
-	expect(deleteButton).toBeDefined();
-	fireEvent.click(deleteButton);
-
-	window.confirm = jest.fn(() => true);
-	expect(deleteButton).toBeDefined();
-	fireEvent.click(deleteButton);
-
-	jest.runOnlyPendingTimers();
-	
-	jest.useRealTimers();
-	global.fetch = unmockedFetch;
-});
-
-it('render log item with no session data, no version history, temporary and delete correctly', async () => {
-		
-	// deleteLogItem -> ok
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			statusCode: 200
-		}),
-	});
-
-	// Set session list is null
-	sessionStorage.clear();
-
-	const contents = "header test contents";
-	const markdownText = "## " + contents;
-
-	const item = {
-		"logs":[
-			{"contents":markdownText,"timestamp":1655737033793}
-		]
-		,"summary":"123456"
-		,"sortKey":1655736946977
-		,"timestamp":1655736946977
-		,"author":"park108@gmail.com"
-	}
-
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-
-	process.env.NODE_ENV = 'development';
-
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
-
-	render(
-		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem 
-				author={"park108@gmail.com"}
-				timestamp={1655736946977}
-				contents={markdownText}
-				item={item}
-				showLink={true}
-				temporary={true}
-			/>
-		</MemoryRouter>
-	);
-
-	// Mouse over/out event
-	const linkUrl = await screen.findByText("http://localhost:3000/log/1655736946977");
-	expect(linkUrl).toBeDefined();
-	fireEvent.mouseOut(linkUrl);
-	
-	jest.useFakeTimers();
-	window.confirm = jest.fn(() => false);
-
-	const deleteButton = screen.getByTestId("delete-button");
-	expect(deleteButton).toBeDefined();
-	fireEvent.click(deleteButton);
-
-	window.confirm = jest.fn(() => true);
-	expect(deleteButton).toBeDefined();
-	fireEvent.click(deleteButton);
-
-	jest.runOnlyPendingTimers();
-	
-	jest.useRealTimers();
-	global.fetch = unmockedFetch;
-});
-
 it('render log item and delete failed correctly', async () => {
-		
-	// deleteLogItem -> failed
-	global.fetch = () => Promise.resolve({
-		json: () => Promise.resolve({
-			statusCode: 404
-		}),
-	});
+
+	mock.devServerFailed.listen();
+	process.env.NODE_ENV = 'development';
 
 	const contents = "header test contents";
 	const markdownText = "## " + contents;
@@ -272,8 +105,6 @@ it('render log item and delete failed correctly', async () => {
 
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
-
-	process.env.NODE_ENV = 'production';
 
 	const testEntry = {
 		pathname: "/log"
@@ -296,16 +127,83 @@ it('render log item and delete failed correctly', async () => {
 	);
 	
 	jest.useFakeTimers();
-	window.confirm = jest.fn(() => true);	
+	window.confirm = jest.fn(() => false);
 
-	const deleteButton = await screen.findByTestId("delete-button");
+	const deleteButton = screen.getByTestId("delete-button");
+	expect(deleteButton).toBeDefined();
+	fireEvent.click(deleteButton);
+
+	window.confirm = jest.fn(() => true);
 	expect(deleteButton).toBeDefined();
 	fireEvent.click(deleteButton);
 
 	jest.runOnlyPendingTimers();
+
+	const afterDelete = await screen.findByText("Delete");
 	
 	jest.useRealTimers();
-	global.fetch = unmockedFetch;
+
+	mock.devServerFailed.resetHandlers();
+	mock.devServerFailed.close();
+});
+
+it('render log item and delete network error', async () => {
+
+	mock.devServerNetworkError.listen();
+	process.env.NODE_ENV = 'development';
+
+	const contents = "header test contents";
+	const markdownText = "## " + contents;
+
+	const item = {
+		"logs":[
+			{"contents":markdownText,"timestamp":1655737033793}
+			,{"contents":"12345","timestamp":1655736946977}
+		]
+		,"summary":"123456"
+		,"sortKey":1655736946977
+		,"timestamp":1655736946977
+		,"author":"park108@gmail.com"
+	}
+
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
+	render(
+		<MemoryRouter initialEntries={[ testEntry ]}>
+			<LogItem 
+				author={"park108@gmail.com"}
+				timestamp={1655736946977}
+				contents={markdownText}
+				item={item}
+				showLink={true}
+			/>
+		</MemoryRouter>
+	);
+	
+	jest.useFakeTimers();
+	window.confirm = jest.fn(() => true);
+
+	const deleteButton = screen.getByTestId("delete-button");
+	expect(deleteButton).toBeDefined();
+	fireEvent.click(deleteButton);
+
+	jest.runOnlyPendingTimers();
+
+	const afterDelete = await screen.findByText("Delete");
+	
+	jest.useRealTimers();
+
+	mock.devServerNetworkError.resetHandlers();
+	mock.devServerNetworkError.close();
 });
 
 it('parse unordered list tag correctly', () => {

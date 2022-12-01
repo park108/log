@@ -45,18 +45,20 @@ const LogItem = (props) => {
 					sessionStorage.setItem("logList", JSON.stringify(newList));
 				}
 	
-				setIsDeleting(false);
-	
 				props.deleted();
 			}
 			else {
 				log("[API DELETE] FAILED - Log", "ERROR");
 				log(res, "ERROR");
+	
+				setIsDeleting(false);
 			}
 		}
 		catch(err) {
 			log("[API DELETE] FAILED - Log", "ERROR");
 			log(err, "ERROR");
+	
+			setIsDeleting(false);
 		}
 	}
 

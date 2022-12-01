@@ -250,8 +250,36 @@ export const prodServerNetworkError = setupServer(
 );
 
 export const devServerOk = setupServer(
+	rest.get(API_URL + "/test/timestamp/1656034616036", async (req, res, ctx) => {
+		console.log("[MOCK API][DEV] GET LOG");
+		return res(
+			ctx.json({
+				body: {
+					Count: 1,
+					Items: [
+						{
+							author: "park108@gmail.com",
+							timestamp: 1656034616036,
+							logs: [
+								{
+									contents: "Test Contents",
+									timestamp: 1656034616036,
+								}
+							]
+						},
+					]
+				}
+			})
+		)
+	}),
+
 	rest.put(API_URL + "/test/timestamp/1234567890", async (req, res, ctx) => {
 		console.log("[MOCK API][DEV] PUT LOG");
+		return res( ctx.json({ statusCode: 200 }) );
+	}),
+
+	rest.delete(API_URL + "/test/timestamp/1655736946977", async (req, res, ctx) => {
+		console.log("[MOCK API][DEV] DELETE LOG");
 		return res( ctx.json({ statusCode: 200 }) );
 	}),
 );
@@ -261,11 +289,21 @@ export const devServerFailed = setupServer(
 		console.log("[MOCK API][DEV] PUT LOG - FAILED");
 		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
 	}),
+
+	rest.delete(API_URL + "/test/timestamp/1655736946977", async (req, res, ctx) => {
+		console.log("[MOCK API][DEV] DELETE LOG - FAILED");
+		return res( ctx.json({ errorType: "500", errorMessage: "Test Error Message!" }) );
+	}),
 );
 
 export const devServerNetworkError = setupServer(
 	rest.put(API_URL + "/test/timestamp/1234567890", async (req, res, ctx) => {
 		console.log("[MOCK API][DEV] PUT LOG - NETWORK ERROR");
+		return res.networkError('Failed to connect');
+	}),
+
+	rest.delete(API_URL + "/test/timestamp/1655736946977", async (req, res, ctx) => {
+		console.log("[MOCK API][DEV] DELETE LOG - NETWORK ERROR");
 		return res.networkError('Failed to connect');
 	}),
 );

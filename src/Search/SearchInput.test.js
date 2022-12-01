@@ -7,6 +7,14 @@ import SearchInput from './SearchInput';
 console.log = jest.fn();
 console.error = jest.fn();
 
+const testEntry = {
+	pathname: "/log"
+	, search: ""
+	, hash: ""
+	, state: null
+	, key: "default"
+};
+
 describe('test key up events', () => {
 
 	let inputElement = null;
@@ -18,14 +26,6 @@ describe('test key up events', () => {
 		common.isAdmin = jest.fn().mockReturnValue(true);
 
 		process.env.NODE_ENV = 'development';
-
-		const testEntry = {
-			pathname: "/log"
-			, search: ""
-			, hash: ""
-			, state: null
-			, key: "default"
-		};
 	
 		render(
 			<MemoryRouter initialEntries={[ testEntry ]}>
@@ -57,14 +57,6 @@ describe('test key up events', () => {
 		common.isAdmin = jest.fn().mockReturnValue(false);
 
 		process.env.NODE_ENV = 'production';
-
-		const testEntry = {
-			pathname: "/log"
-			, search: ""
-			, hash: ""
-			, state: null
-			, key: "default"
-		};
 	
 		render(
 			<MemoryRouter initialEntries={[ testEntry ]}>
