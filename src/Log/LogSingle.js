@@ -25,11 +25,17 @@ const LogSingle = (props) => {
 	const [data, setData] = useState({});
 
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
-	const [toasterMessageCenter, setToasterMessageCenter] = useState("");
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
-	const [toasterMessageBottom, setToasterMessageBottom] = useState("");
 
+	const navigate = useNavigate();
 	const logTimestamp = useParams()["timestamp"];
+
+	useEffect(() => {
+		return () => {
+			// Clean up before leave
+			setMetaDescription();
+		}
+	}, []);
 
 	useEffect(() => {
 
@@ -102,7 +108,6 @@ const LogSingle = (props) => {
 	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
-			setToasterMessageCenter("Loading a log...");
 			setIsShowToasterCenter(1);
 		}
 		else {
@@ -110,43 +115,24 @@ const LogSingle = (props) => {
 		}
 	}, [isLoading]);
 
-	// Cleanup
-	useEffect(() => {
-		return () => {
-			setIsLoading(false);
-			setMetaDescription();
-		}
-	}, []);
-
-	// Callback delete item from LogItem
-	const navigate = useNavigate();
-
-	const afterDelete = () => {
-		setToasterMessageBottom("The log deleted.");
-		setIsShowToasterBottom(1);
-	}
-	
-	const completed = () => {
-		setIsShowToasterBottom(2);
-		navigate("/log");
-	}
-	
-	// Draw log item
-	const logItem = ("FOUND" === itemLoadingStatus)
-		? <LogItem
-			author={data.author}
-			timestamp={data.timestamp}
-			contents={data.logs[0].contents}
-			item = {data}
-			temporary = {data.temporary}
-			showComments={true}
-			showLink={true}
-			deleted={afterDelete}
-		/>
-		: ("NOT_FOUND" === itemLoadingStatus) ? <PageNotFound />
+	const logItem = ("NOT_FOUND" === itemLoadingStatus) ? <PageNotFound />
+		: ("FOUND" === itemLoadingStatus) ?
+			<Suspense fallback={<div></div>}>
+				<LogItem
+					author={data.author}
+					timestamp={data.timestamp}
+					contents={data.logs[0].contents}
+					item = {data}
+					temporary = {data.temporary}
+					showComments={true}
+					showLink={true}
+					deleted={() => {
+						setIsShowToasterBottom(1);
+					}}
+				/>
+			</Suspense>
 		: "";
 
-	// To list button
 	const toListButton = !isLoading ? (
 		getQueryStringSearch() ? (
 			<button className="button button--loglist-seemore" onClick={() => navigate(-1)}>
@@ -158,26 +144,27 @@ const LogSingle = (props) => {
 			</button>
 		)
 	) : "";
-
-	// Draw a single log
+	
 	return (
 		<div role="list">
-			<Suspense fallback={<div></div>}>
-				{logItem}
-			</Suspense>
+
+			{ logItem }
+			
 			<Suspense fallback={<div></div>}>
 				<Toaster 
 					show={isShowToasterCenter}
-					message={toasterMessageCenter}				
-					completed={() => setIsShowToasterCenter(2)}
+					message="Loading a log..."
 				/>
 				<Toaster 
 					show={isShowToasterBottom}
-					message={toasterMessageBottom}
-					position={"bottom"}
-					type={"success"}
-					duration={2000}
-					completed={completed}
+					message="The log deleted."
+					position="bottom"
+					type="success"
+					duration={ 2000 }
+					completed={() => {
+						setIsShowToasterBottom(2);
+						navigate("/log");
+					}}
 				/>
 			</Suspense>
 

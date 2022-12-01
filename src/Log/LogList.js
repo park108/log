@@ -27,9 +27,6 @@ const LogList = (props) => {
 	useEffect(() => {
 
 		const fetchFirst = async () => {
-
-			setIsLoading(true);
-			setIsError(false);
 	
 			const listInSession = sessionStorage.getItem("logList");
 	
@@ -47,6 +44,9 @@ const LogList = (props) => {
 	
 				return;
 			}
+
+			setIsLoading(true);
+			setIsError(false);
 	
 			try {
 				const res = await getLogs();

@@ -4,8 +4,8 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import LogSingle from '../Log/LogSingle';
 
-// console.log = jest.fn();
-// console.error = jest.fn();
+console.log = jest.fn();
+console.error = jest.fn();
 
 const testEntry = {
 	pathname: "/log"
@@ -28,6 +28,11 @@ it('render LogSingle on prod server', async () => {
 	common.isLoggedIn = jest.fn().mockResolvedValue(true);
 	common.isAdmin = jest.fn().mockResolvedValue(true);
 
+	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+		return true;
+	});
+
 	jest.useFakeTimers();
 
 	render(
@@ -43,28 +48,16 @@ it('render LogSingle on prod server', async () => {
 		jest.runOnlyPendingTimers();
 	});
 
-	jest.spyOn(window, 'confirm').mockImplementation((message) => {
-		console.log("INPUT MESSAGE on ALERT = " + message);
-		return true;
-	});
-
 	const deleteButton = await screen.findByText("Delete");
 	expect(deleteButton).toBeInTheDocument();
 	fireEvent.click(deleteButton);
 
 	act(() => {
-		jest.runAllTimers();
+		jest.runOnlyPendingTimers();
 	});
 
 	const deleteResultText = await screen.findByText("The log deleted.");
 	expect(deleteResultText).toBeInTheDocument();
-
-	act(() => {
-		jest.runAllTimers();
-	});
-
-	const afterResult = await screen.findByText("The log deleted.");
-	expect(afterResult).toBeInTheDocument();
 
 	jest.useRealTimers();
 
