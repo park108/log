@@ -4,8 +4,8 @@ import * as mock from './api.mock';
 import LogItem from './LogItem';
 import * as common from '../common/common';
 
-// console.log = jest.fn();
-// console.error = jest.fn();
+console.log = jest.fn();
+console.error = jest.fn();
 
 it('render log item correctly', async () => {
 
