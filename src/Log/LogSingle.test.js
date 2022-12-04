@@ -123,6 +123,80 @@ it('render LogSingle on dev server', async () => {
 	mock.devServerOk.close();
 });
 
+it('get OK delete failed', async () => {
+
+	mock.devServerGetOkDeleteFailed.listen();
+	process.env.NODE_ENV = 'development';
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+
+	const testEntry = {
+		pathname: "/log/1656034616036"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
+	render(
+		<MemoryRouter initialEntries={[ testEntry ]}>
+			<LogSingle />
+		</MemoryRouter>
+	);
+
+	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+		return true;
+	});
+
+	const deleteButton = await screen.findByText("Delete");
+	expect(deleteButton).toBeInTheDocument();
+	fireEvent.click(deleteButton);
+
+	jest.useRealTimers();
+
+	mock.devServerGetOkDeleteFailed.resetHandlers();
+	mock.devServerGetOkDeleteFailed.close();
+});
+
+it('get OK delete failed', async () => {
+
+	mock.devServerGetOkDeleteNetworkError.listen();
+	process.env.NODE_ENV = 'development';
+  
+	common.isLoggedIn = jest.fn().mockResolvedValue(true);
+	common.isAdmin = jest.fn().mockResolvedValue(true);
+
+	const testEntry = {
+		pathname: "/log/1656034616036"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
+	render(
+		<MemoryRouter initialEntries={[ testEntry ]}>
+			<LogSingle />
+		</MemoryRouter>
+	);
+
+	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+		console.log("INPUT MESSAGE on ALERT = " + message);
+		return true;
+	});
+
+	const deleteButton = await screen.findByText("Delete");
+	expect(deleteButton).toBeInTheDocument();
+	fireEvent.click(deleteButton);
+
+	jest.useRealTimers();
+
+	mock.devServerGetOkDeleteNetworkError.resetHandlers();
+	mock.devServerGetOkDeleteNetworkError.close();
+});
+
 it('render "Page Not Found" page if it cannot fetch', async () => {
 
 	mock.prodServerFailed.listen();
