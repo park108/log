@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from 'react-router-dom';
+// import { useLocation } from 'react-router-dom';
 import * as common from '../common/common';
 
 export const getLoginUrl = (redirectUri) => {
@@ -23,8 +23,8 @@ export const getLogoutUrl = (logoutUri) => {
 
 const UserLogin = () => {
 
-	const location = useLocation();
-	console.log(location);
+	// const location = useLocation();
+	// console.log(location);
 
 	return (
 		<span
