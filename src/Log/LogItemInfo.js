@@ -12,73 +12,43 @@ const LogItemInfo = (props) => {
 
 	const item = props.item;
 	const timestamp = props.timestamp;
-	const temporary = props.temporary;
 
-	const linkIcon = props.showLink
-		? (
-			<span
-				data-testid="link-copy-button"
-				onClick={(e) => {
-					e.preventDefault();
-					copyToClipboard(getUrl() + "log/" + timestamp);
-					setIsShowToaster(1);
-				} }
-				className="span span--logitem-toolbaricon"
-			>
-				<LinkButton />
-				<span className="hidden--width-640px">
-					<a
-						role="button"
-						href={ getUrl() + "log/" + timestamp }
-						className="a a--logitem-loglink"
-						onMouseOver={(event) => hoverPopup(event, "click-to-clipboard-box")}
-						onMouseMove={(event) => hoverPopup(event, "click-to-clipboard-box")}
-						onMouseOut={(event) => hoverPopup(event, "click-to-clipboard-box")}
-					>
-						{ getUrl() + "log/" + timestamp }
-					</a>
+	return (
+		<section className="section section--logitem-info">
+			<h1 className="h1 h1--logitem-title">
+				{ !props.temporary ? "" : "✍️"  } {getFormattedDate(timestamp)}
+			</h1>
+			<span className="span span--logitem-toolbarblank"></span>
+			{ !props.showLink ? "" : (
+				<span
+					data-testid="link-copy-button"
+					onClick={(e) => {
+						e.preventDefault();
+						copyToClipboard(getUrl() + "log/" + timestamp);
+						setIsShowToaster(1);
+					} }
+					className="span span--logitem-toolbaricon"
+				>
+					<LinkButton />
+					<span className="hidden--width-640px">
+						<a
+							role="button"
+							href={ getUrl() + "log/" + timestamp }
+							className="a a--logitem-loglink"
+							onMouseOver={(event) => hoverPopup(event, "click-to-clipboard-box")}
+							onMouseMove={(event) => hoverPopup(event, "click-to-clipboard-box")}
+							onMouseOut={(event) => hoverPopup(event, "click-to-clipboard-box")}
+						>
+							{ getUrl() + "log/" + timestamp }
+						</a>
+					</span>
+					<div id="click-to-clipboard-box" className="div div--logitem-linkmessage" style={{display: "none"}}>
+						Click to Clipboard
+					</div>
 				</span>
-				<div id="click-to-clipboard-box" className="div div--logitem-linkmessage" style={{display: "none"}}>
-					Click to Clipboard
-				</div>
-			</span>
-		)
-		: undefined;
-
-	if(!isAdmin()) {
-
-		return (
-			<section className="section section--logitem-info">
-				<h1 className="h1 h1--logitem-title">
-					{temporary ? "✍️" : ""} {getFormattedDate(timestamp)}
-				</h1>
-				<span className="span span--logitem-toolbarblank"></span>
-				{linkIcon}
-				<Suspense fallback={<div></div>}>
-					<Toaster 
-						show={isShowToaster}
-						message={"The link URL copied."}
-						position={"bottom"}
-						type={"success"}
-						duration={2000}
-						completed={() => setIsShowToaster(2)}
-					/>
-				</Suspense>
-			</section>
-		);
-	}
-	else {
-		return (
-			<section className="section section--logitem-info">
-	
-				<h1 className="h1 h1--logitem-title">
-					{temporary ? "✍️" : ""} {getFormattedDate(timestamp)}
-				</h1>
-				
-				<span className="span span--logitem-toolbarblank"></span>
-				
-				{linkIcon}
-				
+			)}
+			
+			{ !isAdmin() ? "" : (
 				<div className="div div--logitem-toolbar">
 					<span className="hidden--width-350px">
 						{ getFormattedTime(timestamp) }
@@ -133,19 +103,19 @@ const LogItemInfo = (props) => {
 						Delete
 					</span>
 				</div>
-				<Suspense fallback={<div></div>}>
-					<Toaster 
-						show={isShowToaster}
-						message={"The link URL copied."}
-						position={"bottom"}
-						type={"success"}
-						duration={2000}
-						completed={() => setIsShowToaster(2)}
-					/>
-				</Suspense>
-			</section>
-		);
-	}
+			)}
+			<Suspense fallback={<div></div>}>
+				<Toaster 
+					show={isShowToaster}
+					message={"The link URL copied."}
+					position={"bottom"}
+					type={"success"}
+					duration={2000}
+					completed={() => setIsShowToaster(2)}
+				/>
+			</Suspense>
+		</section>
+	);
 }
 
 LogItemInfo.propTypes = {
