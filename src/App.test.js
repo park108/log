@@ -7,31 +7,23 @@ console.error = jest.fn();
 
 it('render when network connection is offline', async () => {
 	
-	// Mocking network status
-	Object.defineProperty(navigator, 'onLine',
-		{
-			value: false,
-			configurable: true
-		}
-	);
+	// Mocking network status -> offline
+	Object.defineProperty(navigator, 'onLine', { value: false, configurable: true } );
 
 	render(<App />);
-	expect(await screen.findByText("You are offline now.")).toBeInTheDocument();
+	window.dispatchEvent(new Event('online'));
+	const offlineText = await screen.findByText("You are offline now.");
+	expect(offlineText).toBeInTheDocument();
 	
-	// Mocking network status
-	Object.defineProperty(navigator, 'onLine',
-		{
-			value: true,
-			configurable: true
-		}
-	);
-	expect(await screen.findByText("You are offline now.")).toBeInTheDocument();
+	// Mocking network status -> restore to online
+	Object.defineProperty(navigator, 'onLine', { value: true, configurable: false } );
 });
 
 it('render title text "park108.net" correctly', async () => {
 
 	render(<App />);
-	expect(await screen.findByText("park108.net")).toBeInTheDocument();
+	const title = await screen.findByText("park108.net");
+	expect(title).toBeInTheDocument();
 });
 
 it('render after resize', () => {

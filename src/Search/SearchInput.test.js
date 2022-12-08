@@ -1,5 +1,4 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import * as common from "../common/common";
 import SearchInput from './SearchInput';
