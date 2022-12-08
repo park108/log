@@ -26,7 +26,7 @@ const Footer = () => {
 			</span>
 			<span className="span span--footer-right">
 				<a
-					href="https://github.com/park108"
+					href="https://github.com/park108/log"
 					rel="noopener noreferrer"
 					target="_blank"
 					title="github Repositories"

@@ -2,8 +2,8 @@
 This project started to write a personal journal.
 
 ## On AWS with Serverless Architecture
-This application is running on AWS.  
-I'm using it as a sandbox for various serverless architectures.
+This application is running on AWS.
+It is being used as a sandbox for various serverless architectures.
 
 ### File processing using SNS and SQS
 Related article: https://www.park108.net/log/1638259886256
