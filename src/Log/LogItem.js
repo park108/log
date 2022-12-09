@@ -17,7 +17,10 @@ const LogItem = (props) => {
 	const timestamp = props.timestamp;
 	const showComments = props.showComments;
 
-	// Delete log
+	useEffect(() => {
+		return () => setIsDeleting(false);
+	}, []);
+
 	const deleteLogItem = async () => {
 
 		setIsDeleting(true);
@@ -66,11 +69,6 @@ const LogItem = (props) => {
 		}
 	}, [isDeleting]);
 
-	// Cleanup
-	useEffect(() => {
-		return () => setIsDeleting(false);
-	}, []);
-
 	// Comments
 	const comments = React.useMemo(() => {
 		if(showComments) {
@@ -87,7 +85,7 @@ const LogItem = (props) => {
 
 	// Draw log item
 	return (
-		<article className={itemClass} role="listitem">
+		<article className={ itemClass } role="listitem">
 			<LogItemInfo
 				item={ props.item }
 				timestamp={ props.timestamp }

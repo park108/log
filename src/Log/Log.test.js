@@ -22,8 +22,8 @@ beforeEach(() => {
 
 test('render log has data in session', async () => {
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	common.isLoggedIn = jest.fn().mockResolvedValue(false);
+	common.isAdmin = jest.fn().mockResolvedValue(false);
 
 	sessionStorage.setItem("logList", JSON.stringify([
 		{"contents":"123456","author":"park108@gmail.com","timestamp":1655736946977}
