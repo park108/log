@@ -33,10 +33,7 @@ const LogSingle = (props) => {
 	const logTimestamp = useParams()["timestamp"];
 
 	useEffect(() => {
-		return () => {
-			// Clean up before leave
-			setMetaDescription();
-		}
+		return () => { setMetaDescription(); }
 	}, []);
 
 	useEffect(() => {
@@ -138,7 +135,7 @@ const LogSingle = (props) => {
 			</h1>
 		: "";
 
-	const toListButton = !isLoading ? (
+	const toListButton = isLoading ? "" : (
 		getQueryStringSearch() ? (
 			<button className="button button--loglist-seemore" onClick={() => navigate(-1)}>
 				To search result
@@ -148,7 +145,7 @@ const LogSingle = (props) => {
 				To list
 			</button>
 		)
-	) : "";
+	);
 	
 	return (
 		<div role="list">

@@ -17,64 +17,6 @@ const Search = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	// Search from API Gateway
-	const search = async (searchString) => {
-
-		setIsLoading(true);
-
-		// Get searched list from session
-		const listInSession = sessionStorage.getItem("searchList");
-
-		if(hasValue(listInSession)) {
-
-			const queryStringInSession = sessionStorage.getItem("searchQueryString");
-
-			if(hasValue(queryStringInSession) && searchString === queryStringInSession) {
-
-				setSearchedList(JSON.parse(listInSession));
-				setTotalCount(sessionStorage.getItem("searchTotalCount") * 1);
-				setQueryString(queryStringInSession);
-				setProcessingTime(sessionStorage.getItem("searchProcessingTime") * 1);
-
-				setIsLoading(false);
-				log("Get search list from session.");
-	
-				return;
-			}
-		}
-
-		try {
-			const res = await getSearchList(searchString);
-			const retrieved = await res.json();
-
-			if(!hasValue(retrieved.errorType)) {
-				log("[API GET] OK - Search List", "SUCCESS");
-
-				const result = retrieved.body;
-
-				setSearchedList(result.Items);
-				setTotalCount(result.TotalCount * 1);
-				setQueryString(result.QueryString);
-				setProcessingTime(result.ProcessingTime * 1);
-
-				sessionStorage.setItem("searchList", JSON.stringify(result.Items));
-				sessionStorage.setItem("searchTotalCount", result.TotalCount * 1);
-				sessionStorage.setItem("searchQueryString", result.QueryString);
-				sessionStorage.setItem("searchProcessingTime", result.ProcessingTime * 1);
-			}
-			else {
-				log("[API GET] FAILED - Search List", "ERROR");
-				console.error(retrieved);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - Search List", "ERROR");
-			console.error(err);
-		}
-
-		setIsLoading(false);
-	}
-
 	// Get query string from state
 	useEffect(() => {
 		if(hasValue(location.state)) {
@@ -84,7 +26,67 @@ const Search = () => {
 
 	// Fetch when input query string
 	useEffect(() => {
+
+		// Search from API Gateway
+		const search = async (searchString) => {
+	
+			setIsLoading(true);
+	
+			// Get searched list from session
+			const listInSession = sessionStorage.getItem("searchList");
+	
+			if(hasValue(listInSession)) {
+	
+				const queryStringInSession = sessionStorage.getItem("searchQueryString");
+	
+				if(hasValue(queryStringInSession) && searchString === queryStringInSession) {
+	
+					setSearchedList(JSON.parse(listInSession));
+					setTotalCount(sessionStorage.getItem("searchTotalCount") * 1);
+					setQueryString(queryStringInSession);
+					setProcessingTime(sessionStorage.getItem("searchProcessingTime") * 1);
+	
+					setIsLoading(false);
+					log("Get search list from session.");
+		
+					return;
+				}
+			}
+	
+			try {
+				const res = await getSearchList(searchString);
+				const retrieved = await res.json();
+	
+				if(!hasValue(retrieved.errorType)) {
+					log("[API GET] OK - Search List", "SUCCESS");
+	
+					const result = retrieved.body;
+	
+					setSearchedList(result.Items);
+					setTotalCount(result.TotalCount * 1);
+					setQueryString(result.QueryString);
+					setProcessingTime(result.ProcessingTime * 1);
+	
+					sessionStorage.setItem("searchList", JSON.stringify(result.Items));
+					sessionStorage.setItem("searchTotalCount", result.TotalCount * 1);
+					sessionStorage.setItem("searchQueryString", result.QueryString);
+					sessionStorage.setItem("searchProcessingTime", result.ProcessingTime * 1);
+				}
+				else {
+					log("[API GET] FAILED - Search List", "ERROR");
+					console.error(retrieved);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - Search List", "ERROR");
+				console.error(err);
+			}
+	
+			setIsLoading(false);
+		}
+
 		setHtmlTitle("search results for " + queryString);
+		
 		if(queryString.length > 0 && !isLoading) {
 			search(queryString);
 		}
