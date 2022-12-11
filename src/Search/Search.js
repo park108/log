@@ -17,22 +17,18 @@ const Search = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	// Get query string from state
 	useEffect(() => {
 		if(hasValue(location.state)) {
 			setQueryString(location.state.queryString);
 		}
-	});
+	}, []);
 
-	// Fetch when input query string
 	useEffect(() => {
 
-		// Search from API Gateway
 		const search = async (searchString) => {
 	
 			setIsLoading(true);
 	
-			// Get searched list from session
 			const listInSession = sessionStorage.getItem("searchList");
 	
 			if(hasValue(listInSession)) {
@@ -86,10 +82,11 @@ const Search = () => {
 		}
 
 		setHtmlTitle("search results for " + queryString);
-		
+
 		if(queryString.length > 0 && !isLoading) {
 			search(queryString);
 		}
+		
 	}, [queryString]);
 
 	// Add dots in loading
