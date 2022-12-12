@@ -145,6 +145,12 @@ it('get OK delete failed', async () => {
 		</MemoryRouter>
 	);
 
+	const title = await screen.findByText("Lorem ipsum dolor sit amet,");
+	expect(title).toBeInTheDocument();
+
+	const contents = await screen.findByText("consectetur adipiscing elit. Duis vel urna mollis arcu suscipit ultricies eu eget dolor. Integer in enim sed lectus cursus aliquam. Ut porttitor augue nec auctor scelerisque. Pellentesque tellus tortor, tempus cursus ipsum et, fringilla efficitur risus. Nunc a sollicitudin nibh. Praesent placerat, libero eget fermentum fermentum, arcu ipsum euismod purus, ac vestibulum libero enim et lorem. Curabitur non urna vel massa suscipit molestie nec vitae ligula. Suspendisse quam augue, convallis sed magna ac, cursus convallis purus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vivamus sit amet feugiat est, id cursus purus. Nullam sollicitudin a enim sed imperdiet.");
+	expect(contents).toBeInTheDocument();
+
 	jest.spyOn(window, 'confirm').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 		return true;
