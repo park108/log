@@ -395,7 +395,7 @@ test('event testing', async () => {
 	// Text input test
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: '123456'}});
-
+	
 	jest.runOnlyPendingTimers();
 
 	// Submit test with text

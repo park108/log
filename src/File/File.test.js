@@ -71,10 +71,17 @@ test('render files, next files, delete file and confirm on prod server', async (
 	expect(files.length).toBe(7);
 	
 	// See more -> get more data
-	// TODO: GET MORE DATA NOT WORKING
 	const seeMoreButton = await screen.findByTestId("seeMoreButton");
 	expect(seeMoreButton).toBeDefined();
 	fireEvent.click(seeMoreButton);
+	
+	// 8th File
+	const file8 = await screen.findByText("308142rg.jpg");
+	expect(file8).toBeInTheDocument();
+	
+	// Get 10 files
+	const files2 = await screen.findAllByRole("listitem");
+	expect(files2.length).toBe(10);
 
 	// See more -> no data
 	const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
