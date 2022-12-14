@@ -34,7 +34,7 @@ export function markdownToHtml (input) {
 
 			parsed.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre"});
 			
-			language = node.text.trim().substr(3);
+			language = node.text.trim().substr(3).trim();
 			
 			isPreStarted = true;
 		}
