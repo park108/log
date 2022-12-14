@@ -10,7 +10,7 @@ const ContentMon = lazy(() => import('./ContentMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 const ApiCallMon = lazy(() => import('./ApiCallMon'));
 
-const chartPallets = [
+const CHART_PALLETS = [
 	{
 		pallet: "Red to Green",
 		colors: [
@@ -61,16 +61,16 @@ const Monitor = (props) => {
 	return (
 		<main className="main main--main-contents" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
-				<ContentMon stackPallet={chartPallets[1].colors} />
+				<ContentMon stackPallet={CHART_PALLETS[1].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<ApiCallMon stackPallet={chartPallets[0].colors} />
+				<ApiCallMon stackPallet={CHART_PALLETS[0].colors} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<WebVitalsMon />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<VisitorMon stackPallet={chartPallets[1].colors} />
+				<VisitorMon stackPallet={CHART_PALLETS[1].colors} />
 			</Suspense>
 		</main>
 	);
