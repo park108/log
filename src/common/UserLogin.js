@@ -28,10 +28,8 @@ const UserLogin = () => {
 			data-testid="login-button"
 			className="span span--login-text"
 			onClick={(e) => {
-
 				e.preventDefault();
-
-				// TOOD: 현재 페이지로 리다이렉트
+				
 				if(common.isLoggedIn()) {
 					common.deleteCookie("access_token");
 					window.location.href = getLogoutUrl();
