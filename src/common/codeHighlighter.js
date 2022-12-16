@@ -33,7 +33,10 @@ const SYNTAX_KOTLIN = {
 	],
 	annotations: [
 		"@GetMapping", "@PostMapping", "@PutMapping", "@DeleteMapping", "@PathVariable",
-		"@RestController", "@RequestMapping", "@RequestBody"
+		"@RestController", "@RequestMapping", "@RequestBody", "@JvmName", "@JvmStatic", "@JvmField",
+		"@Throws", "@JvmOverloads", "@Override", "@Deprecated", "SuppressWarnings", "@Component",
+		"@Bean", "@Configuration", "@Service", "@Repository", "@Autowired", "@Qualifier", "@PostConstruct", "@PreConstruct",
+		"@PreDestroy", "@Scheduled", "@SchedulerLock"
 	]
 };
 
