@@ -1,6 +1,6 @@
 export const codeHighlighter = (lang, code) => {
 
-	const language = lang.toLowerCase();
+	const language = lang.toLowerCase().trim();
 
 	if("kt" === language || "kotlin" === language) {
 		code = highlighterKotlin(code);
