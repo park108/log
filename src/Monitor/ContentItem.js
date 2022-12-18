@@ -16,7 +16,6 @@ const ContentItem = (props) => {
 	const path = props.path;
 	const stackPallet = props.stackPallet;
 	
-	// Make timestamp for 6 months
 	const now = new Date();
 	const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
 	const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
@@ -31,7 +30,6 @@ const ContentItem = (props) => {
 		to
 	];
 
-	// Fetch counts at mount
 	useEffect(() => {
 
 		const fetchData = async (path) => {
@@ -77,13 +75,11 @@ const ContentItem = (props) => {
 							}
 						}
 						
-						// Update max value
 						if(max < countList[i].value) {
 							max = countList[i].value;
 						}
 					}
 	
-					// Calculate value rate by max value
 					for(let item of countList) {
 						item.valueRate = item.value / max;
 					}
@@ -112,7 +108,6 @@ const ContentItem = (props) => {
 
 	}, [path, isMount]);
 
-	// Make pillar 
 	const Pillar = (attr) => {
 
 		const index = attr.index;

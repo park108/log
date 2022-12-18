@@ -19,7 +19,6 @@ const ImageItem = (props) => {
 	const thumbnailImageUrl = props.url;
 	const fullsizeImageUrl = thumbnailImageUrl.replace("thumbnail/", "");
 
-	// Event handlers for image
 	const clickImage = (e) => {
 	
 		const isEnlarged = ("Y" === e.target.getAttribute("enlarged"));
@@ -33,7 +32,6 @@ const ImageItem = (props) => {
 		}
 	}
 
-	// Draw image item
 	return (
 		<img className="img img--image-imageitem"
 			data-testid="imageItem"

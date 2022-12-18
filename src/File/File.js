@@ -169,7 +169,6 @@ const File = (props) => {
 		}
 	}, [lastTimestamp, isLoading]);
 
-	// Draw file app.
 	return (
 		<main className="main main--main-contents" style={props.contentHeight} role="application">
 			<article className="article article--main-item">

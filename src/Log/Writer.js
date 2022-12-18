@@ -109,7 +109,6 @@ const Writer = () => {
 		setArticleStatus("Markdown length = " + article.length);
 		window.addEventListener('input', setTextarealHeight);
 
-		// Initialize editor rows
 		let textArea = document.getElementById("textarea--writer-article");
 		if(2 > textArea.rows) {
 			setTextAreaRows(textArea);
@@ -130,7 +129,6 @@ const Writer = () => {
 			setIsProcessing(true);
 	
 			try {
-				// Call API
 				const res = await postLog(newTimestamp, article, isTemporary);
 				const status = await res.json();
 	
@@ -181,7 +179,6 @@ const Writer = () => {
 		
 				newItem.logs = changedLogs;
 	
-				// Call API
 				const res = await putLog(newItem, isTemporary);
 				const status = await res.json();
 	

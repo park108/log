@@ -40,7 +40,6 @@ const Toaster = (props) => {
 	const message = props.message;
 	const type = props.type;
 
-	// Draw toaster
 	if(1 === show) {
 		if(duration > 0) {
 			setTimeout(props.completed, duration);

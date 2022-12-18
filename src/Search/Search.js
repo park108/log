@@ -89,7 +89,6 @@ const Search = () => {
 		
 	}, [queryString]);
 
-	// Add dots in loading
 	useEffect(() => {
 		const tick = () => {
 			return setTimeout(() => setLoadingDots(loadingDots + "."), 300);

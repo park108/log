@@ -19,7 +19,6 @@ const VisitorMon = (props) => {
 
 	const stackPallet = props.stackPallet;
 
-	// Fetch data at mount
 	useEffect(() => {
 
 		const fetchData = async() => {
@@ -27,7 +26,6 @@ const VisitorMon = (props) => {
 			setIsLoading(true);
 			setIsError(false);
 
-			// Make timestamp for 7 days
 			const today = new Date();
 			const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
 			const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
@@ -76,8 +74,6 @@ const VisitorMon = (props) => {
 		
 					setDailyCount(dailyCountList);
 		
-		
-					// Analyze user agent
 					let browserList = [];
 					let osList = [];
 					let engineList = [];
@@ -88,7 +84,6 @@ const VisitorMon = (props) => {
 		
 					for(let item of periodData) {
 		
-						// Set browser list
 						hasBrowser = false;
 						for(let browser of browserList) {
 							if(browser["name"] === item.browser) {
@@ -101,7 +96,6 @@ const VisitorMon = (props) => {
 							browserList.push({"name": item.browser, "count": 1});
 						}
 		
-						// Set os list
 						hasOs = false;
 						for(let os of osList) {
 							if(os["name"] === item.operatingSystem) {
@@ -114,7 +108,6 @@ const VisitorMon = (props) => {
 							osList.push({"name": item.operatingSystem, "count": 1});
 						}
 		
-						// Set rendering engine list
 						hasEngine = false;
 						for(let engine of engineList) {
 							if(engine["name"] === item.renderingEngine) {
@@ -169,7 +162,6 @@ const VisitorMon = (props) => {
 		}
 	}, [isMount]);
 
-	// Make pillar
 	const CountPillar = (attr) => {
 
 		const index = attr.index;
@@ -199,7 +191,6 @@ const VisitorMon = (props) => {
 		);
 	}
 
-	// Make stacked pillar's stack
 	const EnvStack = (attr) => {
 
 		const pillarHeight = 185; 
@@ -235,7 +226,6 @@ const VisitorMon = (props) => {
 		);
 	}
 
-	// Make stacked pillar
 	const EnvPillar = (attr) => {
 
 		let index = 0;

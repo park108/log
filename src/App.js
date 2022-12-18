@@ -15,7 +15,6 @@ const App = () => {
 	const [contentHeight, setContentHeight] = useState();
 	const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-	// Set content height for footer space
 	const handleOnresize = (e) => {
 		if(undefined !== e) {
 			e.preventDefault();
@@ -25,18 +24,15 @@ const App = () => {
 		});
 	}
 
-	// Set reload event handler
 	const handleReload = (e) => {
 		e.preventDefault();
 		sessionStorage.clear(); // Clear sessionStorage
 	}
 
-	// Set resized height at mount
 	useEffect(() => {
 		handleOnresize();
 	}, []);
 
-	// Change status by network connection
 	useEffect(() => {
 
 		const handleStatusChange = () => {

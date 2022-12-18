@@ -26,14 +26,12 @@ const LogItem = (props) => {
 		setIsDeleting(true);
 
 		try {
-			// Call API
 			const res = await deleteLog(author, timestamp);
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
 				log("[API DELETE] OK - Log", "SUCCESS");
 
-				// Delete item in session list
 				let currentList = sessionStorage.getItem("logList");
 	
 				if(hasValue(currentList)) {
@@ -59,7 +57,6 @@ const LogItem = (props) => {
 		}
 	}
 
-	// Change style by delete item
 	useEffect(() => {
 		if(isDeleting) {
 			setItemClass("article article--main-item article--logitem-delete");
@@ -69,7 +66,6 @@ const LogItem = (props) => {
 		}
 	}, [isDeleting]);
 
-	// Comments
 	const comments = React.useMemo(() => {
 		if(showComments) {
 			return (
@@ -83,7 +79,6 @@ const LogItem = (props) => {
 		}
 	}, [showComments, timestamp]);
 
-	// Draw log item
 	return (
 		<article className={ itemClass } role="listitem">
 			<LogItemInfo

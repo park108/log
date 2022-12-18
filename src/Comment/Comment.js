@@ -70,7 +70,6 @@ const Comment = (props) => {
 
 			setIsLoading(true);
 	
-			// Call GET API
 			try {
 				const res = await getComments(timestamp, isAdmin());
 				const newData = await res.json();
@@ -78,12 +77,10 @@ const Comment = (props) => {
 				if(!hasValue(newData.errorType)) {
 					log("[API GET] OK - Comments", "SUCCESS");
 	
-					// Sort by sortKey
 					newData.body.Items.sort((a, b) => {
 						return (a.sortKey < b.sortKey) ? -1 : 1
 					});
 					
-					// Set comment list
 					setComments(newData.body.Items);
 				}
 				else {
@@ -107,7 +104,6 @@ const Comment = (props) => {
 
 	}, [logTimestamp, reload]);
 
-	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
 			setButtonText("... comments");
@@ -120,7 +116,6 @@ const Comment = (props) => {
 		}
 	}, [isLoading]);
 
-	// Cleanup
 	useEffect(() => {
 		return () => setIsLoading(false);
 	}, []);

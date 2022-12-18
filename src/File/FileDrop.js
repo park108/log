@@ -14,10 +14,8 @@ const FileDrop = (props) => {
 
 	const refreshFiles = props.callbackAfterUpload;
 
-	// Dropped files in the area
 	useEffect(() => {
 
-		// Upload file into the S3 bucket
 		const uploadFile = async(item, isLast)  => {
 	
 			setIsUploading("UPLOADING");
@@ -25,7 +23,6 @@ const FileDrop = (props) => {
 			let name = item.name;
 			let type = encodeURIComponent(item.type);
 			
-			// Get pre-signed URL
 			let preSignedUrlData = "";
 			let uploadUrl = "";
 			let isSuccess = false;
@@ -51,8 +48,6 @@ const FileDrop = (props) => {
 				if(isLast) setIsUploading("FAILED");
 			}
 	
-	
-			// Upload file
 			if(isSuccess) {
 	
 				try {
@@ -82,7 +77,6 @@ const FileDrop = (props) => {
 
 	}, [files]);
 
-	// Change dropzone style by upload state
 	useEffect(() => {
 
 		if("READY" === isUploading) {
@@ -112,7 +106,6 @@ const FileDrop = (props) => {
 
 	}, [isUploading, refreshFiles]);
 
-	// Define drag event hanlders
 	const handleDragEnter = (e) => {
 		e.preventDefault();
 		e.target.classList.add("div--filedrop-dragenter");
@@ -136,7 +129,6 @@ const FileDrop = (props) => {
 		setFiles(newFiles);
 	}
 
-	// Draw dropzone
 	return (
 		<div className={dropzoneStyle}
 			data-testid="dropzone"

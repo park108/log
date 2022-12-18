@@ -19,7 +19,6 @@ const ImageSelector = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 
-	// Get next image list from API Gateway
 	const fetchMore = async (timestamp) => {
 		
 		setIsLoading(true);
@@ -52,10 +51,8 @@ const ImageSelector = (props) => {
 		setIsLoading(false);
 	}
 
-	// Fetch data by event
 	useEffect(() => {
 
-		// Get image list from API Gateway
 		const fetchFirst = async () => {
 	
 			setIsLoading(true);
@@ -97,7 +94,6 @@ const ImageSelector = (props) => {
 		}
 	}, [props.show]);
 
-	// Copy markdown string into clipboard
 	const copyMarkdownString = (e) => {
 		const url = e.target.getAttribute("imageurl");
 		const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
@@ -112,7 +108,6 @@ const ImageSelector = (props) => {
 		setIsError(false);
 	}
 
-	// Draw Image Selector
 	if(isLoading) {
 		return (
 			<div className={imageSelectorClass}>

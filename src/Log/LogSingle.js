@@ -102,7 +102,6 @@ const LogSingle = (props) => {
 		
 	}, [props.isPostSuccess, logTimestamp]);
 
-	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
 			setIsShowToasterCenter(1);

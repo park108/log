@@ -129,7 +129,6 @@ const LogList = (props) => {
 		setIsGetData(true);
 	}, [props.isPostSuccess]);
 
-	// Change by loading state
 	useEffect(() => {
 		if(isLoading) {
 			setIsShowToasterCenter(1);

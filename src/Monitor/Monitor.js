@@ -41,7 +41,6 @@ const Monitor = (props) => {
 
 	const navigate = useNavigate();
 	
-	// Change width
 	useEffect(() => {
 
 		if(!isAdmin()) {
@@ -52,12 +51,11 @@ const Monitor = (props) => {
 		}
 
 		setHtmlTitle("monitor");
-		setFullscreen(true); // Enable fullscreen mode at mounted
+		setFullscreen(true);
 
-		return () => {setFullscreen(false)} // Disable fullscreen mode at unmounted
+		return () => {setFullscreen(false)}
 	}, []);
 
-	// Draw monitor app.
 	return (
 		<main className="main main--main-contents" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>

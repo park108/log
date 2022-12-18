@@ -14,7 +14,6 @@ const WebVitalsItem = (props) => {
 	const name = props.name;
 	const description = props.description;
 
-	// Fetch data at mount
 	useEffect(() => {
 
 		const fetchData = async(name) => {
@@ -51,7 +50,6 @@ const WebVitalsItem = (props) => {
 		}
 	}, [isMount, name]);
 
-	// Count by metrics
 	let good = 0;
 	let needImprovement = 0;
 	let poor = 0;
@@ -76,7 +74,6 @@ const WebVitalsItem = (props) => {
 		: (0 < totalCount) ? "NEEDS IMPROVEMENT"
 		: "None";
 	
-	// Make style by metrics
 	const headerStyle = ("GOOD" === evaluation) ? "span span--monitor-evaluation span--monitor-good"
 		: ("POOR" === evaluation) ? "span span--monitor-evaluation span--monitor-poor"
 		: ("NEEDS IMPROVEMENT" === evaluation) ? "span span--monitor-evaluation span--monitor-warn"

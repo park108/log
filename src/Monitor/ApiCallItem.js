@@ -27,7 +27,6 @@ const ApiCallItem = (props) => {
 	const service = props.service;
 	const stackPallet = props.stackPallet;
 
-	// Fetch counts at mount
 	useEffect(() => {
 
 		const fetchData = async (service) => {
@@ -35,7 +34,6 @@ const ApiCallItem = (props) => {
 			setIsLoading(true);
 			setIsError(false);
 	
-			// Make timestamp for 7 days
 			const today = new Date();
 			const toTimestamp = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)).getTime();
 			const fromTimestamp = toTimestamp - (1000 * 60 * 60 * 24 * 7);
@@ -100,7 +98,6 @@ const ApiCallItem = (props) => {
 
 	}, [service, isMount]);
 
-	// Make pillar 
 	const Pillar = (attr) => {
 
 		const index = attr.index;

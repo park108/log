@@ -102,7 +102,6 @@ const highlighterYaml = (code) => {
 	if(":" === lastChar) colon = code.length - 1;
 	if(start === dash && dash < colon) start = dash + 1;
 
-	// Comment
 	if(start === sharp) {
 		code = "<span class='span--yml-comment'>" + code + "</span>";
 	}

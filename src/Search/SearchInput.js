@@ -52,7 +52,6 @@ const SearchInput = () => {
 		setIsMobileSearchOpen(!isMobileSearchOpen);
 	}
 
-	// Fetch when input query string
 	useEffect(() => {
 		if(isAdmin()) {
 			const mobileSearch = document.getElementById("mobile-search");

@@ -17,10 +17,8 @@ const FileUpload = (props) => {
 
 	const refreshFiles = props.callbackAfterUpload;
 
-	// Upload files by changing files state
 	useEffect(() => {
 
-		// Upload files into the S3 bucket
 		const uploadFile = async(item, isLast) => {
 	
 			setIsUploading("UPLOADING");
@@ -28,7 +26,6 @@ const FileUpload = (props) => {
 			let name = item.name;
 			let type = encodeURIComponent(item.type);
 			
-			// Get pre-signed URL
 			let preSignedUrlData = "";
 			let uploadUrl = "";
 			let isSuccess = false;
@@ -54,7 +51,6 @@ const FileUpload = (props) => {
 				if(isLast) setIsUploading("FAILED");
 			}
 	
-			// Upload file
 			if(isSuccess) {
 	
 				try {
@@ -84,7 +80,6 @@ const FileUpload = (props) => {
 
 	}, [files]);
 
-	// Change by upload state
 	useEffect(() => {
 
 		if("READY" === isUploading) {
@@ -95,7 +90,6 @@ const FileUpload = (props) => {
 		}
 		else if("COMPLETE" === isUploading) {
 
-			// Delete selected files in input
 			document.getElementById('file-upload-for-mobile').value = "";
 		
 			setToasterMessage("Upload complete.");
@@ -110,7 +104,6 @@ const FileUpload = (props) => {
 		}
 		else {
 
-			// Delete selected files in input
 			document.getElementById('file-upload-for-mobile').value = "";
 		
 			setToasterMessage("Upload failed.");
@@ -126,7 +119,6 @@ const FileUpload = (props) => {
 
 	}, [isUploading, refreshFiles]);
 
-	// Define input event handler
 	const handleSelectedFiles = (e) => {
 		e.preventDefault();
 	
@@ -139,7 +131,6 @@ const FileUpload = (props) => {
 		setFiles(newFiles);
 	}
 
-	// Draw upload input
 	return (
 		<div className="div div--fileupload-input">
 			<input
