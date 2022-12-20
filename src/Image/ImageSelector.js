@@ -11,6 +11,7 @@ const ImageSelector = (props) => {
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [isError, setIsError] = useState(false);
+	const [isGetNextData, setIsGetNextData] = useState(false);
 
 	const [images, setImages] = useState([]);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
@@ -18,38 +19,6 @@ const ImageSelector = (props) => {
 	
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
-
-	const fetchMore = async (timestamp) => {
-		
-		setIsLoading(true);
-
-		try {
-			const res = await getNextImages(timestamp);
-			const nextData = await res.json();
-
-			if(!hasValue(nextData.errorType)) {
-				log("[API GET] OK - Next Images", "SUCCESS");
-
-				const newImages = images.concat(nextData.body.Items);
-				const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
-	
-				setImages(hasValue(nextData.body.Items) ? newImages : []);
-				setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
-			}
-			else {
-				log("[API GET] FAILED - Next Images", "ERROR");
-				console.error(nextData);
-				setIsError(true);
-			}
-		}
-		catch(err) {
-			log("[API GET] FAILED - Next Images", "ERROR");
-			console.error(err);
-			setIsError(true);
-		}
-
-		setIsLoading(false);
-	}
 
 	useEffect(() => {
 
@@ -94,19 +63,46 @@ const ImageSelector = (props) => {
 		}
 	}, [props.show]);
 
-	const copyMarkdownString = (e) => {
-		const url = e.target.getAttribute("imageurl");
-		const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
+	useEffect(() => {
 
-		copyToClipboard(imageForMarkdown);
-		setToasterMessage("Markdown string copied.");
-		setIsShowToaster(1);
-	}
+		const fetchMore = async (timestamp) => {
+		
+			setIsLoading(true);
+	
+			try {
+				const res = await getNextImages(timestamp);
+				const nextData = await res.json();
+	
+				if(!hasValue(nextData.errorType)) {
+					log("[API GET] OK - Next Images", "SUCCESS");
+	
+					const newImages = images.concat(nextData.body.Items);
+					const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
+		
+					setImages(hasValue(nextData.body.Items) ? newImages : []);
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+				}
+				else {
+					log("[API GET] FAILED - Next Images", "ERROR");
+					console.error(nextData);
+					setIsError(true);
+				}
+			}
+			catch(err) {
+				log("[API GET] FAILED - Next Images", "ERROR");
+				console.error(err);
+				setIsError(true);
+			}
+	
+			setIsLoading(false);
+		}
 
-	const handleRetry = (e) => {
-		e.preventDefault();
-		setIsError(false);
-	}
+		if(isGetNextData) {
+			fetchMore(lastTimestamp);
+			setIsGetNextData(false);
+		}
+
+	}, [isGetNextData, lastTimestamp]);
 
 	if(isLoading) {
 		return (
@@ -120,7 +116,10 @@ const ImageSelector = (props) => {
 			return (
 				<div className={imageSelectorClass}>
 					<div className="div div--image-loading">Failed getting images</div>
-					<span onClick={ handleRetry }>Retry</span>
+					<span onClick={(e) => {
+						e.preventDefault();
+						setIsError(false);
+					}}>Retry</span>
 				</div>
 			);
 		}
@@ -132,7 +131,14 @@ const ImageSelector = (props) => {
 							key={data.key}
 							fileName={data.key}
 							url={data.url}
-							copyMarkdownString={copyMarkdownString}
+							copyMarkdownString={(e) => {
+								const url = e.target.getAttribute("imageurl");
+								const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
+						
+								copyToClipboard(imageForMarkdown);
+								setToasterMessage("Markdown string copied.");
+								setIsShowToaster(1);
+							}}
 						/>
 					) }
 
@@ -140,7 +146,7 @@ const ImageSelector = (props) => {
 						<button
 							role="button"
 							className="button button--image-seemorebutton"
-							onClick={() => fetchMore(lastTimestamp)}
+							onClick={() => setIsGetNextData(true)}
 						>
 							See<br/>More
 						</button>
