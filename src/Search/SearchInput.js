@@ -43,11 +43,6 @@ const SearchInput = () => {
 		}
 	}
 
-	const searchByButton = async () => {
-		const inputString = document.getElementById("query-string-by-button").value;
-		search(inputString);
-	}
-
 	useEffect(() => {
 		if(isAdmin()) {
 			const mobileSearch = document.getElementById("mobile-search");
@@ -96,7 +91,10 @@ const SearchInput = () => {
 					/>
 					<button
 						className="button button--search-submit show--width-400px"
-						onClick={searchByButton}
+						onClick={async () => {
+							const inputString = document.getElementById("query-string-by-button").value;
+							search(inputString);
+						}}
 					>
 						go
 					</button>
