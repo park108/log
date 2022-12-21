@@ -48,10 +48,6 @@ const SearchInput = () => {
 		search(inputString);
 	}
 
-	const toggleMobileSearch = () => {
-		setIsMobileSearchOpen(!isMobileSearchOpen);
-	}
-
 	useEffect(() => {
 		if(isAdmin()) {
 			const mobileSearch = document.getElementById("mobile-search");
@@ -86,7 +82,9 @@ const SearchInput = () => {
 					placeholder="Input search string..."
 					onKeyUp={searchByEnter}
 				/>
-				<span className="span span--nav-searchbutton" onClick={toggleMobileSearch} >
+				<span className="span span--nav-searchbutton" onClick={() => {
+					setIsMobileSearchOpen(!isMobileSearchOpen);
+				}} >
 					search
 				</span>
 				<div id="mobile-search">
