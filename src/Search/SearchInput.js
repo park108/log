@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { isAdmin, log } from '../common/common';
+import { isAdmin } from '../common/common';
 
 import './Search.css';
 
@@ -8,16 +8,16 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
   
 const SearchInput = () => {
 
+	const [queryString, setQueryString] = useState("");
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
 	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
 	const navigate = useNavigate();
 
-	const search = async (inputString) => {
-		log("Search String = " + inputString);
+	const search = async () => {
 
-		if(0 === inputString.length) {
+		if(0 === queryString.length) {
 			setIsShowToaster(1);
 			setToasterMessage("Enter the keyword to search for");
 		}
@@ -25,21 +25,16 @@ const SearchInput = () => {
 			setIsMobileSearchOpen(false);
 			navigate("/log/search", {
 				state: {
-					queryString: inputString
+					queryString: queryString
 				}
 			});
 		}
 	}
 
-	const searchByEnter = async (e) => {
-		const inputKeyCode = window.event.keyCode;
-		const inputString = e.target.value;
-		if(isAdmin()) {
-			document.getElementById("query-string-by-enter").value = inputString;
-			document.getElementById("query-string-by-button").value = inputString;
-		}
-		if(13 === inputKeyCode) {
-			search(inputString);
+	const fireSearch = async (e) => {
+		e.preventDefault();
+		if(13 === e.keyCode) {
+			search(queryString);
 		}
 	}
 
@@ -75,7 +70,9 @@ const SearchInput = () => {
 					id="query-string-by-enter"
 					className="input input--search-string hidden--width-400px"
 					placeholder="Input search string..."
-					onKeyUp={searchByEnter}
+					value={queryString}
+					onKeyUp={fireSearch}
+					onChange={e => setQueryString(e.target.value)}
 				/>
 				<span className="span span--nav-searchbutton" onClick={() => {
 					setIsMobileSearchOpen(!isMobileSearchOpen);
@@ -87,14 +84,13 @@ const SearchInput = () => {
 						id="query-string-by-button"
 						className="input input--search-mobile show--width-400px"
 						placeholder="Input search string..."
-						onKeyUp={searchByEnter}
+						value={queryString}
+						onKeyUp={fireSearch}
+						onChange={e => setQueryString(e.target.value)}
 					/>
 					<button
 						className="button button--search-submit show--width-400px"
-						onClick={async () => {
-							const inputString = document.getElementById("query-string-by-button").value;
-							search(inputString);
-						}}
+						onClick={async () => { search(); }}
 					>
 						go
 					</button>
@@ -110,7 +106,9 @@ const SearchInput = () => {
 					id="query-string-by-enter"
 					className="input input--search-string"
 					placeholder="Input search string..."
-					onKeyUp={searchByEnter}
+					value={queryString}
+					onKeyUp={fireSearch}
+					onChange={e => setQueryString(e.target.value)}
 				/>
 
 				{ toaster }
