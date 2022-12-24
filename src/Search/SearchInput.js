@@ -9,8 +9,8 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
 const SearchInput = () => {
 
 	const [queryString, setQueryString] = useState("");
+	const [toaster, setToaster] = useState();
 	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage, setToasterMessage] = useState("");
 	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
 	const navigate = useNavigate();
@@ -19,7 +19,6 @@ const SearchInput = () => {
 
 		if(0 === queryString.length) {
 			setIsShowToaster(1);
-			setToasterMessage("Enter the keyword to search for");
 		}
 		else {
 			setIsMobileSearchOpen(false);
@@ -31,12 +30,29 @@ const SearchInput = () => {
 		}
 	}
 
-	const fireSearch = async (e) => {
+	const handleKeyUp = async (e) => {
+
 		e.preventDefault();
+
 		if(13 === e.keyCode) {
 			search(queryString);
 		}
 	}
+
+	useEffect(() => {
+		setToaster(
+			<Suspense fallback={<div></div>}>
+				<Toaster 
+					show={ isShowToaster }
+					message="Enter the keyword to search for"
+					position="bottom"
+					type="warning"
+					duration={ 2000 }
+					completed={() => setIsShowToaster(2)}
+				/>
+			</Suspense>
+		);
+	}, [isShowToaster])
 
 	useEffect(() => {
 		if(isAdmin()) {
@@ -49,19 +65,6 @@ const SearchInput = () => {
 			}
 		}
 	}, [isMobileSearchOpen]);
-
-	const toaster = (
-		<Suspense fallback={<div></div>}>
-			<Toaster 
-				show={isShowToaster}
-				message={toasterMessage}
-				position={"bottom"}
-				type={"warning"}
-				duration={2000}
-				completed={() => setIsShowToaster(2)}
-			/>
-		</Suspense>
-	);
 	
 	if(isAdmin()) {
 		return (
@@ -70,9 +73,9 @@ const SearchInput = () => {
 					id="query-string-by-enter"
 					className="input input--search-string hidden--width-400px"
 					placeholder="Input search string..."
-					value={queryString}
-					onKeyUp={fireSearch}
-					onChange={e => setQueryString(e.target.value)}
+					value={ queryString }
+					onKeyUp={ handleKeyUp }
+					onChange={ e => setQueryString(e.target.value) }
 				/>
 				<span className="span span--nav-searchbutton" onClick={() => {
 					setIsMobileSearchOpen(!isMobileSearchOpen);
@@ -84,9 +87,9 @@ const SearchInput = () => {
 						id="query-string-by-button"
 						className="input input--search-mobile show--width-400px"
 						placeholder="Input search string..."
-						value={queryString}
-						onKeyUp={fireSearch}
-						onChange={e => setQueryString(e.target.value)}
+						value={ queryString }
+						onKeyUp={ handleKeyUp }
+						onChange={ e => setQueryString(e.target.value) }
 					/>
 					<button
 						className="button button--search-submit show--width-400px"
@@ -106,11 +109,10 @@ const SearchInput = () => {
 					id="query-string-by-enter"
 					className="input input--search-string"
 					placeholder="Input search string..."
-					value={queryString}
-					onKeyUp={fireSearch}
-					onChange={e => setQueryString(e.target.value)}
+					value={ queryString }
+					onKeyUp={ handleKeyUp }
+					onChange={ e => setQueryString(e.target.value) }
 				/>
-
 				{ toaster }
 			</li>
 		);
