@@ -8,36 +8,47 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
   
 const SearchInput = () => {
 
+	const [isGetData, setIsGetData] = useState(false);
+
 	const [queryString, setQueryString] = useState("");
+
 	const [toaster, setToaster] = useState();
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
 	const navigate = useNavigate();
 
-	const search = async () => {
-
-		if(0 === queryString.length) {
-			setIsShowToaster(1);
-		}
-		else {
-			setIsMobileSearchOpen(false);
-			navigate("/log/search", {
-				state: {
-					queryString: queryString
-				}
-			});
-		}
-	}
-
 	const handleKeyUp = async (e) => {
-
 		e.preventDefault();
 
 		if(13 === e.keyCode) {
-			search(queryString);
+			setIsGetData(true);
 		}
 	}
+
+	useEffect(() => {
+
+		const search = async () => {
+	
+			if(0 === queryString.length) {
+				setIsShowToaster(1);
+			}
+			else {
+				setIsMobileSearchOpen(false);
+				navigate("/log/search", {
+					state: {
+						queryString: queryString
+					}
+				});
+			}
+		}
+
+		if(isGetData) {
+			search();
+			setIsGetData(false);
+		}
+
+	}, [isGetData]);
 
 	useEffect(() => {
 		setToaster(
@@ -93,7 +104,7 @@ const SearchInput = () => {
 					/>
 					<button
 						className="button button--search-submit show--width-400px"
-						onClick={async () => { search(); }}
+						onClick={ () => setIsGetData(true) }
 					>
 						go
 					</button>
