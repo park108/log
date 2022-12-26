@@ -7,12 +7,14 @@ import './Search.css';
 
 const Search = () => {
 
-	const [searchedList, setSearchedList] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+
+	const [searchedList, setSearchedList] = useState([]);
 	const [totalCount, setTotalCount] = useState(0);
 	const [queryString, setQueryString] = useState("");
 	const [processingTime, setProcessingTime] = useState(0);
 	const [loadingDots, setLoadingDots] = useState("");
+	const [toListButton, setToListButton] = useState();
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -21,6 +23,26 @@ const Search = () => {
 		if(hasValue(location.state)) {
 			setQueryString(location.state.queryString);
 		}
+
+		setToListButton(
+			<button className="button button--loglist-seemore" onClick={() => {
+
+				const searchInput1 = document.getElementById("query-string-by-enter");
+				const searchInput2 = document.getElementById("query-string-by-button");
+
+				if(hasValue(searchInput1)) {
+					searchInput1.value = "";
+				}
+
+				if(hasValue(searchInput2)) {
+					searchInput2.value = "";
+				}
+				
+				navigate("/log");
+			}}>
+				To list
+			</button>
+		);
 	}, []);
 
 	useEffect(() => {
@@ -96,26 +118,6 @@ const Search = () => {
 		isLoading ? tick() : setLoadingDots("");
 		return () => clearTimeout(tick);
 	}, [loadingDots, isLoading]);
-
-	const toListButton = (
-		<button className="button button--loglist-seemore" onClick={() => {
-
-			const searchInput1 = document.getElementById("query-string-by-enter");
-			const searchInput2 = document.getElementById("query-string-by-button");
-
-			if(hasValue(searchInput1)) {
-				searchInput1.value = "";
-			}
-
-			if(hasValue(searchInput2)) {
-				searchInput2.value = "";
-			}
-			
-			navigate("/log");
-		}}>
-			To list
-		</button>
-	);
 	
 	if(isLoading) {
 
@@ -125,7 +127,6 @@ const Search = () => {
 			</h1>
 		);
 	}
-
 	else if(0 === totalCount) {
 
 		return (
