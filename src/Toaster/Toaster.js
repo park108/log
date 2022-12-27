@@ -10,13 +10,13 @@ const hideToaster = (id) => {
 	}
 }
 
-const positionStyle = {
+const POSITION_STYLE = {
 	"center": "div--toaster-center",
 	"bottom": "div--toaster-bottom",
 	undefined: "div--toaster-center"
 };
 
-const typeStyle = {
+const TYPE_STYLE = {
 	"information": "div--toaster-information",
 	"success": "div--toaster-success",
 	"warning": "div--toaster-warning",
@@ -24,7 +24,7 @@ const typeStyle = {
 	undefined: "div--toaster-information"
 };
 
-const showStyle = [
+const SHOW_STYLE = [
 	"div--toaster-hide", // 0: hide
 	"", // 1: show
 	"div--toaster-fadeout" // 2: fadeout
@@ -51,7 +51,7 @@ const Toaster = (props) => {
 
 	return (
 		<div id={id}
-			className={ "div " + positionStyle[position] + " " + typeStyle[type] + " " + showStyle[show] }
+			className={ "div " + POSITION_STYLE[position] + " " + TYPE_STYLE[type] + " " + SHOW_STYLE[show] }
 			role="alert"
 		>
 			{message}
