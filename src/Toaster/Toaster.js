@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { v4 as uuid } from 'uuid';
 import PropTypes from 'prop-types';
 
@@ -40,14 +40,16 @@ const Toaster = (props) => {
 	const message = props.message;
 	const type = props.type;
 
-	if(1 === show) {
-		if(duration > 0) {
-			setTimeout(props.completed, duration);
+	useEffect(() => {
+		if(1 === show) {
+			if(duration > 0) {
+				setTimeout(props.completed, duration);
+			}
 		}
-	}
-	else if(2 === show) {
-		setTimeout(() => { hideToaster(id) }, 1000);
-	}
+		else if(2 === show) {
+			setTimeout(() => { hideToaster(id) }, 1000);
+		}
+	}, [show]);
 
 	return (
 		<div id={id}
