@@ -119,18 +119,6 @@ const FileUpload = (props) => {
 
 	}, [isUploading, refreshFiles]);
 
-	const handleSelectedFiles = (e) => {
-		e.preventDefault();
-	
-		let newFiles = [];
-
-		for(let file of e.target.files) {
-			newFiles.push(file);
-		}
-
-		setFiles(newFiles);
-	}
-
 	return (
 		<div className="div div--fileupload-input">
 			<input
@@ -138,7 +126,17 @@ const FileUpload = (props) => {
 				type="file"
 				aria-label="file-upload"
 				multiple
-				onChange={(event) => handleSelectedFiles(event)}
+				onChange={( e) => {
+					e.preventDefault();
+				
+					let newFiles = [];
+			
+					for(let file of e.target.files) {
+						newFiles.push(file);
+					}
+			
+					setFiles(newFiles);
+				} }
 			/>
 			<Toaster 
 				show={ isShowToaster }

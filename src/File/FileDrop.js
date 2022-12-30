@@ -106,36 +106,30 @@ const FileDrop = (props) => {
 
 	}, [isUploading, refreshFiles]);
 
-	const handleDragEnter = (e) => {
-		e.preventDefault();
-		e.target.classList.add("div--filedrop-dragenter");
-	}
-
-	const handleDragLeave = (e) => {
-		e.preventDefault();
-		e.target.classList.remove("div--filedrop-dragenter");
-	}
-
-	const handleDrop = (e) => {
-		e.preventDefault();
-		e.target.classList.remove("div--filedrop-dragenter");
-	
-		let newFiles = [];
-
-		for(let file of e.dataTransfer.files) {
-			newFiles.push(file);
-		}
-
-		setFiles(newFiles);
-	}
-
 	return (
 		<div className={dropzoneStyle}
 			data-testid="dropzone"
 			onDragOver={(e) => e.preventDefault()}
-			onDragEnter={(e) => handleDragEnter(e)}
-			onDragLeave={(e) => handleDragLeave(e)}
-			onDrop={(e) => handleDrop(e)}
+			onDragEnter={(e) => {
+				e.preventDefault();
+				e.target.classList.add("div--filedrop-dragenter");
+			}}
+			onDragLeave={(e) => {
+				e.preventDefault();
+				e.target.classList.remove("div--filedrop-dragenter");
+			}}
+			onDrop={(e) => {
+				e.preventDefault();
+				e.target.classList.remove("div--filedrop-dragenter");
+			
+				let newFiles = [];
+		
+				for(let file of e.dataTransfer.files) {
+					newFiles.push(file);
+				}
+		
+				setFiles(newFiles);
+			}}
 		>
 			{dropzoneText}
 		</div>
