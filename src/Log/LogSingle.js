@@ -12,12 +12,6 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
 const SUMMARY_LENGTH = 100;
 const PAGE_NOT_FOUND = "Page not found";
 
-const getQueryStringSearch = () => {
-	const query = new URLSearchParams(useLocation().search);
-	const result = query.get("search");
-	return result;
-}
-
 const LogSingle = (props) => {
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -25,12 +19,14 @@ const LogSingle = (props) => {
 
 	const [data, setData] = useState({});
 	const [logItem, setLogItem] = useState();
+	const [toListButton, setToListButton] = useState();
 
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
 
 	const navigate = useNavigate();
+	const queryString = new URLSearchParams(useLocation().search);
 	const logTimestamp = useParams()["timestamp"];
 
 	useEffect(() => {
@@ -106,9 +102,27 @@ const LogSingle = (props) => {
 	useEffect(() => {
 		if(isLoading) {
 			setIsShowToasterCenter(1);
+			setToListButton("");
 		}
 		else {
 			setIsShowToasterCenter(2);
+
+			const isSearchResult = queryString.get("search");
+
+			if(isSearchResult) {
+				setToListButton(
+					<button className="button button--loglist-seemore" onClick={() => navigate(-1)}>
+						To search result
+					</button>
+				);
+			}
+			else {
+				setToListButton(
+					<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
+						To list
+					</button>
+				);
+			}
 		}
 	}, [isLoading]);
 
@@ -147,23 +161,12 @@ const LogSingle = (props) => {
 		}
 
 	}, [itemLoadingStatus]);
-
-	const toListButton = isLoading ? "" : (
-		getQueryStringSearch() ? (
-			<button className="button button--loglist-seemore" onClick={() => navigate(-1)}>
-				To search result
-			</button>
-		) : (
-			<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
-				To list
-			</button>
-		)
-	);
 	
 	return (
 		<div role="list">
 
 			{ logItem }
+			{ toListButton }
 			
 			<Suspense fallback={<div></div>}>
 				<Toaster 
@@ -182,8 +185,6 @@ const LogSingle = (props) => {
 					}}
 				/>
 			</Suspense>
-
-			{toListButton}
 			
 		</div>
 	);
