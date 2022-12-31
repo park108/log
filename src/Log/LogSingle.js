@@ -24,6 +24,7 @@ const LogSingle = (props) => {
 	const [itemLoadingStatus, setItemLoadingStatus] = useState("NOW_LOADING");
 
 	const [data, setData] = useState({});
+	const [logItem, setLogItem] = useState();
 
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
@@ -111,28 +112,41 @@ const LogSingle = (props) => {
 		}
 	}, [isLoading]);
 
-	const logItem = ("NOT_FOUND" === itemLoadingStatus) ? <PageNotFound />
-		: ("FOUND" === itemLoadingStatus) ?
-			<Suspense fallback={<div></div>}>
-				<LogItem
-					author={data.author}
-					timestamp={data.timestamp}
-					contents={data.logs[0].contents}
-					item = {data}
-					temporary = {data.temporary}
-					showComments={true}
-					showLink={true}
-					deleted={() => {
-						setToasterMessage("The log is deleted.");
-						setIsShowToasterBottom(1);
-					}}
-				/>
-			</Suspense>
-		: ("DELETED" === itemLoadingStatus) ?
-			<h1 className="h1 h1--notification-result">
-				Deleted
-			</h1>
-		: "";
+	useEffect(() => {
+		if("NOT_FOUND" === itemLoadingStatus) {
+			setLogItem(<PageNotFound />);
+		}
+		else if("FOUND" === itemLoadingStatus) {
+			setLogItem(
+				<Suspense fallback={<div></div>}>
+					<LogItem
+						author={data.author}
+						timestamp={data.timestamp}
+						contents={data.logs[0].contents}
+						item = {data}
+						temporary = {data.temporary}
+						showComments={true}
+						showLink={true}
+						deleted={() => {
+							setToasterMessage("The log is deleted.");
+							setIsShowToasterBottom(1);
+						}}
+					/>
+				</Suspense>
+			);
+		}
+		else if("DELETED" === itemLoadingStatus) {
+			setLogItem(
+				<h1 className="h1 h1--notification-result">
+					Deleted
+				</h1>
+			);
+		}
+		else {
+			setLogItem("");
+		}
+
+	}, [itemLoadingStatus]);
 
 	const toListButton = isLoading ? "" : (
 		getQueryStringSearch() ? (
