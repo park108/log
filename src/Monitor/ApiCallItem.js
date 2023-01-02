@@ -20,8 +20,10 @@ const ApiCallItem = (props) => {
 	const [isError, setIsError] = useState(false);
 
 	const [totalCount, setTotalCount] = useState("...");
-	const [successCount, setSuccessCount] = useState(0);
 	const [countList, setCountList] = useState([]);
+
+	const [rate, setRate] = useState(0);
+	const [rateColor, setRateColor] = useState({});
 
 	const title = props.title;
 	const service = props.service;
@@ -73,8 +75,11 @@ const ApiCallItem = (props) => {
 	
 						successCount += item.succeed;
 					}
-					setSuccessCount(successCount);
 					setCountList(statList);
+
+					const rate = Math.round(100 * (successCount / data.body.totalCount));
+					setRate(rate);
+					setRateColor({ color: stackPallet[getSuccessRateIndex(rate)].color });
 				}
 				else {
 					log("[API GET] FAILED - API call stats: " + service, "ERROR");
@@ -155,11 +160,6 @@ const ApiCallItem = (props) => {
 				</div>
 			</div>
 		);
-	}
-
-	const rate = Math.round(100 * (successCount / totalCount));
-	const rateColor = {
-		color: stackPallet[getSuccessRateIndex(rate)].color
 	}
 
 	if(isLoading) {
