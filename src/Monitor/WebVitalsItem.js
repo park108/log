@@ -65,7 +65,7 @@ const WebVitalsItem = (props) => {
 
 					evaluationResult.good.rate = 0 === good ? "" : (100 * good / totalCount).toFixed(0);
 					evaluationResult.needImprovement.rate = 0 === needImprovement ? "" : (100 * needImprovement / totalCount).toFixed(0);
-					evaluationResult.poor.rate = 0 === poor ? "" : (100 * poor / totalCount).toFixed(0);
+					evaluationResult.poor.rate = 0 === 	poor ? "" : (100 * poor / totalCount).toFixed(0);
 
 					evaluationResult.good.style = {width: 100 * good / totalCount + "%"}
 					evaluationResult.needImprovement.style = {width: 100 * needImprovement / totalCount + "%"};
