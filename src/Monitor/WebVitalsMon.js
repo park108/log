@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 
 const WebVitalsItem = lazy(() => import('./WebVitalsItem'));
 
-const webVitalList = [
+const WEB_VITAL_LIST = [
 	{name: "LCP", description: "Largest Contentful Paint"},
 	{name: "FID", description: "First Input Delay"},
 	{name: "CLS", description: "Cumulative Layout Shift"},
@@ -16,13 +16,13 @@ const WebVitalsMon = () => {
 		<article className="article article--main-item article--monitor-item">
 			<h1>Web Vitals in the last 24 hours</h1>
 			<Suspense fallback={<div></div>}>
-				{webVitalList.map(item => (
+				{ WEB_VITAL_LIST.map(item => (
 					<WebVitalsItem
 						key={item.name}
 						name={item.name}
 						description={item.description}
 					/>
-				))}
+				)) }
 			</Suspense>
 			<a
 				href="https://web.dev/defining-core-web-vitals-thresholds/"
