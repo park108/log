@@ -38,23 +38,7 @@ const ImageSelector = (props) => {
 					const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 	
 					setImages(hasValue(newImages) ? newImages : []);
-
-					if(hasValue(lastEvaluatedKey)) {
-						setLastTimestamp(lastEvaluatedKey.timestamp);
-						setSeeMoreButton(
-							<button
-								role="button"
-								className="button button--image-seemorebutton"
-								onClick={() => setIsGetNextData(true)}
-							>
-								See<br/>More
-							</button>
-						)
-					}
-					else {
-						setLastTimestamp(undefined);
-						setSeeMoreButton(undefined);
-					}
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 				}
 				else {
 					log("[API GET] FAILED - Images", "ERROR");
@@ -97,23 +81,7 @@ const ImageSelector = (props) => {
 					const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 		
 					setImages(hasValue(nextData.body.Items) ? newImages : []);
-
-					if(hasValue(lastEvaluatedKey)) {
-						setLastTimestamp(lastEvaluatedKey.timestamp);
-						setSeeMoreButton(
-							<button
-								role="button"
-								className="button button--image-seemorebutton"
-								onClick={() => setIsGetNextData(true)}
-							>
-								See<br/>More
-							</button>
-						)
-					}
-					else {
-						setLastTimestamp(undefined);
-						setSeeMoreButton(undefined);
-					}
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 				}
 				else {
 					log("[API GET] FAILED - Next Images", "ERROR");
@@ -136,6 +104,24 @@ const ImageSelector = (props) => {
 		}
 
 	}, [isGetNextData, lastTimestamp]);
+
+	useEffect(() => {
+
+		if(hasValue(lastTimestamp)) {
+			setSeeMoreButton(
+				<button
+					role="button"
+					className="button button--image-seemorebutton"
+					onClick={() => setIsGetNextData(true)}
+				>
+					See<br/>More
+				</button>
+			)
+		}
+		else {
+			setSeeMoreButton(undefined);
+		}
+	}, [lastTimestamp]);
 
 	if(isLoading) {
 		return (
