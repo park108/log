@@ -103,10 +103,9 @@ const ImageSelector = (props) => {
 			setIsGetNextData(false);
 		}
 
-	}, [isGetNextData, lastTimestamp]);
+	}, [isGetNextData]);
 
 	useEffect(() => {
-
 		if(hasValue(lastTimestamp)) {
 			setSeeMoreButton(
 				<button
