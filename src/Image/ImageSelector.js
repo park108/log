@@ -16,6 +16,7 @@ const ImageSelector = (props) => {
 	const [images, setImages] = useState([]);
 	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
+	const [seeMoreButton, setSeeMoreButton] = useState(undefined);
 	
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
@@ -37,7 +38,23 @@ const ImageSelector = (props) => {
 					const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
 	
 					setImages(hasValue(newImages) ? newImages : []);
-					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
+					if(hasValue(lastEvaluatedKey)) {
+						setLastTimestamp(lastEvaluatedKey.timestamp);
+						setSeeMoreButton(
+							<button
+								role="button"
+								className="button button--image-seemorebutton"
+								onClick={() => setIsGetNextData(true)}
+							>
+								See<br/>More
+							</button>
+						)
+					}
+					else {
+						setLastTimestamp(undefined);
+						setSeeMoreButton(undefined);
+					}
 				}
 				else {
 					log("[API GET] FAILED - Images", "ERROR");
@@ -80,7 +97,23 @@ const ImageSelector = (props) => {
 					const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
 		
 					setImages(hasValue(nextData.body.Items) ? newImages : []);
-					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
+					if(hasValue(lastEvaluatedKey)) {
+						setLastTimestamp(lastEvaluatedKey.timestamp);
+						setSeeMoreButton(
+							<button
+								role="button"
+								className="button button--image-seemorebutton"
+								onClick={() => setIsGetNextData(true)}
+							>
+								See<br/>More
+							</button>
+						)
+					}
+					else {
+						setLastTimestamp(undefined);
+						setSeeMoreButton(undefined);
+					}
 				}
 				else {
 					log("[API GET] FAILED - Next Images", "ERROR");
@@ -142,15 +175,7 @@ const ImageSelector = (props) => {
 						/>
 					) }
 
-					{ hasValue(lastTimestamp) ? (
-						<button
-							role="button"
-							className="button button--image-seemorebutton"
-							onClick={() => setIsGetNextData(true)}
-						>
-							See<br/>More
-						</button>
-					) : undefined }
+					{ seeMoreButton }
 					
 					<Toaster 
 						show={isShowToaster}
