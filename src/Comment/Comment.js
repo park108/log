@@ -120,8 +120,6 @@ const Comment = (props) => {
 		return () => setIsLoading(false);
 	}, []);
 
-	const toggleShowComments = () => setIsShow(!isShow)
-
 	const commentThread = isShow
 		? (
 			<div className="div div--comment-thread">
@@ -160,7 +158,7 @@ const Comment = (props) => {
 		<section className="section section--logitem-comment">
 			<span
 				className="span span--comment-togglebutton"
-				onClick={toggleShowComments}
+				onClick={() => setIsShow(!isShow)}
 			>
 				{buttonText}
 			</span>

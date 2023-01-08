@@ -95,7 +95,7 @@ const CommentForm = (props) => {
 					onChange={changeIsHidden}
 				/>
 				<label htmlFor="hidden" className="label label--comment-hidden">
-					🥷 Only show your message to admin
+					🥷 Hidden Message
 				</label>
 			</div>
 			<button type="submit" className="button button--comment-submit">
