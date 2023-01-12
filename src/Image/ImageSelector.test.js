@@ -18,7 +18,7 @@ it('render image selector loading images > loading more images > and fail when l
 	expect(imageItems.length).toBe(4);
 	
 	// After click see more button, added 2 more images
-	const seeMoreButton = screen.getByRole("button");
+	const seeMoreButton = await screen.findByRole("button");
 	expect(seeMoreButton).toBeDefined();
 
 	fireEvent.click(seeMoreButton);
