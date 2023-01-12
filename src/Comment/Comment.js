@@ -11,13 +11,17 @@ const CommentForm = lazy(() => import('./CommentForm'));
 
 const Comment = (props) => {
 
-	const [comments, setComments] = useState([]);
 	const [reload, setReload] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
-	const [buttonText, setButtonText] = useState("... comments");
 	const [isShow, setIsShow] = useState(false);
 	const [isOpenReplyForm, setIsOpenReplyForm] = useState(false);
 	const [isPosting, setIsPosting] = useState(false);
+
+	const [comments, setComments] = useState([]);
+	const [buttonText, setButtonText] = useState("... comments");
+	const [commentThread, setCommentThread] = useState("");
+	const [commentForm, setCommentForm] = useState("");
+
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
 	const [toasterType, setToasterType] = useState("success");
@@ -60,9 +64,9 @@ const Comment = (props) => {
 		setIsPosting(false);
 	}
 
-	const openReplyForm = (isOpened) => {
-		setIsOpenReplyForm(isOpened);
-	}
+	useEffect(() => {
+		return () => setIsLoading(false);
+	}, []);
 
 	useEffect(() => {
 
@@ -117,42 +121,54 @@ const Comment = (props) => {
 	}, [isLoading]);
 
 	useEffect(() => {
-		return () => setIsLoading(false);
-	}, []);
 
-	const commentThread = isShow
-		? (
-			<div className="div div--comment-thread">
+		if(isShow) {
+			setCommentThread(
+				<div className="div div--comment-thread">
+					<Suspense fallback={<div></div>}>
+						{comments.map(data => (				
+							<CommentItem
+								key={data.timestamp}
+								isAdminComment={data.isAdminComment}
+								message={data.message}
+								name={data.name}
+								logTimestamp={logTimestamp}
+								commentTimestamp={data.commentTimestamp}
+								timestamp={data.timestamp}
+								isHidden={data.isHidden}
+								openReplyForm={(isOpened) => {
+									setIsOpenReplyForm(isOpened);
+								}}
+								reply={postNewComment}
+							/>
+						))}
+					</Suspense>
+				</div>
+			);
+		}
+		else {
+			setCommentThread("");
+		}
+
+	}, [isShow]);
+
+	useEffect(() => {
+
+		if(isShow && !isOpenReplyForm) {
+			setCommentForm(
 				<Suspense fallback={<div></div>}>
-					{comments.map(data => (				
-						<CommentItem
-							key={data.timestamp}
-							isAdminComment={data.isAdminComment}
-							message={data.message}
-							name={data.name}
-							logTimestamp={logTimestamp}
-							commentTimestamp={data.commentTimestamp}
-							timestamp={data.timestamp}
-							isHidden={data.isHidden}
-							openReplyForm={openReplyForm}
-							reply={postNewComment}
-						/>
-					))}
+					<CommentForm
+						logTimestamp={logTimestamp}
+						post={postNewComment}
+						isPosting={isPosting}
+					/>
 				</Suspense>
-			</div>
-		)
-		: "";
-
-	const commentForm = isShow && !isOpenReplyForm
-		? (
-			<Suspense fallback={<div></div>}>
-				<CommentForm
-					logTimestamp={logTimestamp}
-					post={postNewComment}
-					isPosting={isPosting}
-				/>
-			</Suspense>
-		) : "";
+			);
+		}
+		else {
+			setCommentForm("");
+		}
+	}, [isShow, isOpenReplyForm]);
 
 	return (
 		<section className="section section--logitem-comment">
@@ -160,10 +176,11 @@ const Comment = (props) => {
 				className="span span--comment-togglebutton"
 				onClick={() => setIsShow(!isShow)}
 			>
-				{buttonText}
+				{ buttonText }
 			</span>
-			{commentThread}
-			{commentForm}
+
+			{ commentThread }
+			{ commentForm }
 
 			<Toaster 
 				show={isShowToaster}
@@ -171,7 +188,6 @@ const Comment = (props) => {
 				position={"bottom"}
 				type={toasterType}
 				duration={2000}
-				
 				completed={() => setIsShowToaster(2)}
 			/>
 		</section>
