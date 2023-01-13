@@ -61,12 +61,6 @@ const CommentForm = (props) => {
 		}
 	}, [props.isPosting]);
 
-	const changeName = ({target: { value } }) => setUserName(value);
-	const changeComment = ({ target: { value } }) => setMessage(value);
-	const changeIsHidden = ({target: { checked } }) => setIsHidden(checked);
-
-	const isNameDisabled = isAdmin() || props.isPosting ? "disabled" : "";
-
 	return (
 		<form onSubmit={postComment} className="form form--comment-input">
 			<input 
@@ -74,9 +68,9 @@ const CommentForm = (props) => {
 				type="text"
 				className="input input--comment-name"
 				placeholder="Type your name"
-				onChange={changeName}
+				onChange={ ({target: { value } }) => setUserName(value) }
 				value={userName}
-				disabled={isNameDisabled}
+				disabled={ isAdmin() || props.isPosting ? "disabled" : "" }
 				autoFocus
 			/>
 			<textarea
@@ -85,14 +79,14 @@ const CommentForm = (props) => {
 				placeholder={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
 				value={message}
 				disabled={messageDisabled}
-				onChange={changeComment}
+				onChange={ ({ target: { value } }) => setMessage(value) }
 			/>
 			<div className="div div--comment-inputhidden">
 				<input
 					type="checkbox"
 					id="hidden"
 					className="input input--comment-hidden"
-					onChange={changeIsHidden}
+					onChange={ ({target: { checked } }) => setIsHidden(checked) }
 				/>
 				<label htmlFor="hidden" className="label label--comment-hidden">
 					🥷 Hidden Message
