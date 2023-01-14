@@ -1,6 +1,6 @@
 import { codeHighlighter } from './codeHighlighter';
 
-export function markdownToHtml (input) {
+export const markdownToHtml = (input) => {
 
 	let parsed = [];
 	let str = input;
