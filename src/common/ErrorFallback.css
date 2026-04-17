@@ -1,0 +1,37 @@
+/*
+ * ErrorFallback message box styles.
+ * Not a CSS Module — stage-1 modules scope does not include this file.
+ */
+
+.error-fallback {
+	display: block;
+	padding: 1rem;
+	margin: 1rem 0;
+	border: 1px solid var(--error-border-color, #dddddd);
+	border-radius: 4px;
+	background: var(--error-background-color, #ffecec);
+	color: var(--error-text-color, #000000);
+}
+
+.error-fallback__title {
+	margin: 0 0 0.5rem 0;
+	font-weight: bold;
+}
+
+.error-fallback__message {
+	margin: 0 0 0.75rem 0;
+}
+
+.error-fallback__reset {
+	padding: 0.375rem 0.75rem;
+	background: var(--active-background-color, #ffffff);
+	color: var(--active-text-color, #000000);
+	border: 1px solid var(--active-border-color, #666666);
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.error-fallback__reset:hover {
+	background: var(--hover-background-color, #ffffd0);
+	border-color: var(--hover-border-color, #666666);
+}
