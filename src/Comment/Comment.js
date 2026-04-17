@@ -73,18 +73,18 @@ const Comment = (props) => {
 		const fetchData = async(timestamp) => {
 
 			setIsLoading(true);
-	
+
 			try {
 				const res = await getComments(timestamp, isAdmin());
 				const newData = await res.json();
 	
 				if(!hasValue(newData.errorType)) {
 					log("[API GET] OK - Comments", "SUCCESS");
-	
+
 					newData.body.Items.sort((a, b) => {
 						return (a.sortKey < b.sortKey) ? -1 : 1
 					});
-					
+
 					setComments(newData.body.Items);
 				}
 				else {
@@ -118,7 +118,7 @@ const Comment = (props) => {
 			else if(1 === count) setButtonText("1 comment");
 			else setButtonText(count + " comments");
 		}
-	}, [isLoading]);
+	}, [isLoading, comments]);
 
 	useEffect(() => {
 
