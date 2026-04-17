@@ -24,11 +24,6 @@ const App = () => {
 		});
 	}
 
-	const handleReload = (e) => {
-		e.preventDefault();
-		sessionStorage.clear(); // Clear sessionStorage
-	}
-
 	useEffect(() => {
 		handleOnresize();
 	}, []);
@@ -50,7 +45,6 @@ const App = () => {
 	}, [isOnline]);
 
 	window.onresize = handleOnresize;
-	window.onbeforeunload = handleReload;
 	common.auth();
 
 	const pageNotFound = (
