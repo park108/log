@@ -1,5 +1,33 @@
 import { codeHighlighter } from './codeHighlighter';
 
+// Compute indentation depth of a list item line.
+// - Leading tabs take precedence: 1 tab = depth+1.
+// - When no leading tabs are present, floor(leading spaces / 2) = depth.
+// Returns { depth, prefixLength } so the caller can strip the prefix
+// before running the marker detection on the remainder.
+export const computeDepth = (line) => {
+
+	if(typeof line !== "string" || line.length === 0) {
+		return { depth: 0, prefixLength: 0 };
+	}
+
+	let tabs = 0;
+	while(tabs < line.length && '\t' === line.charAt(tabs)) {
+		tabs++;
+	}
+
+	if(tabs > 0) {
+		return { depth: tabs, prefixLength: tabs };
+	}
+
+	let spaces = 0;
+	while(spaces < line.length && ' ' === line.charAt(spaces)) {
+		spaces++;
+	}
+
+	return { depth: Math.floor(spaces / 2), prefixLength: spaces };
+}
+
 export const markdownToHtml = (input) => {
 
 	let parsed = [];
@@ -101,14 +129,20 @@ export const markdownToHtml = (input) => {
 
 		if("value" === node.type
 			&& "" === node.closure
-			&& node.text.length > 1
-			&& ('*' === node.text.charAt(0) || '-' === node.text.charAt(0))
-			&& ' ' === node.text.charAt(1)) {
+			&& node.text.length > 1) {
 
-			parsed.splice(index, 1
-				, {type: "tag", text: "<li>", itemOf: "ul"}
-				, {type: "value", text: node.text.substring(2), itemOf: "ul", closure: "li"}
-				, {type: "tag", text: "</li>", itemOf: "ul"});
+			const { depth, prefixLength } = computeDepth(node.text);
+			const stripped = node.text.substring(prefixLength);
+
+			if(stripped.length > 1
+				&& ('*' === stripped.charAt(0) || '-' === stripped.charAt(0))
+				&& ' ' === stripped.charAt(1)) {
+
+				parsed.splice(index, 1
+					, {type: "tag", text: "<li>", itemOf: "ul", depth: depth}
+					, {type: "value", text: stripped.substring(2), itemOf: "ul", closure: "li", depth: depth}
+					, {type: "tag", text: "</li>", itemOf: "ul", depth: depth});
+			}
 		}
 
 		index++;
@@ -123,31 +157,36 @@ export const markdownToHtml = (input) => {
 
 		if("value" === node.type
 			&& "" === node.closure
-			&& node.text.length > 2
-			&& isNumeric(node.text.charAt(0))) {
+			&& node.text.length > 2) {
 
-			for(let i = 1; i < node.text.length; i++) {
+			const { depth, prefixLength } = computeDepth(node.text);
+			const stripped = node.text.substring(prefixLength);
 
-				if(!isDot && isNumeric(node.text.charAt(i))) {
-					continue;
-				}
-				else if(!isDot && '.' === node.text.charAt(i)) {
-					isDot = true;
-					continue;
-				}
-				else if(!isDot && !isNumeric(node.text.charAt(i))) {
-					break;
-				}
-				else if(isDot && ' ' === node.text.charAt(i)) {
-				
-					parsed.splice(index, 1, 
-						{type: "tag", text: "<li>", itemOf: "ol"}
-						, {type: "value", text: node.text.substring(i), itemOf: "ol", closure: "li"}
-						, {type: "tag", text: "</li>", itemOf: "ol"});
-					break;
-				}
-				else {
-					break;
+			if(stripped.length > 2 && isNumeric(stripped.charAt(0))) {
+
+				for(let i = 1; i < stripped.length; i++) {
+
+					if(!isDot && isNumeric(stripped.charAt(i))) {
+						continue;
+					}
+					else if(!isDot && '.' === stripped.charAt(i)) {
+						isDot = true;
+						continue;
+					}
+					else if(!isDot && !isNumeric(stripped.charAt(i))) {
+						break;
+					}
+					else if(isDot && ' ' === stripped.charAt(i)) {
+
+						parsed.splice(index, 1,
+							{type: "tag", text: "<li>", itemOf: "ol", depth: depth}
+							, {type: "value", text: stripped.substring(i), itemOf: "ol", closure: "li", depth: depth}
+							, {type: "tag", text: "</li>", itemOf: "ol", depth: depth});
+						break;
+					}
+					else {
+						break;
+					}
 				}
 			}
 		}
