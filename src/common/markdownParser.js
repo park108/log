@@ -357,31 +357,114 @@ const inlineParsing = (parsed, delimeter, tagName) => {
 	return parsed;
 }
 
+// Stack-based grouping for same-type nested lists.
+// See specs/spec/green/common/markdownParser-spec.md §5.3.3 and
+// TSK-20260418-10 for the algorithm.
+//
+// The detection passes emit each list line as a triple:
+//   { <li> open, value, </li> }   (all tagged with itemOf + depth)
+// so a deeper line arrives AFTER a fully-closed </li>. To achieve the
+// nested shape <li>...<tagName>...</tagName></li> we defer emitting the
+// item-closing </li>: if the next <li> open is at a deeper depth we drop
+// the pending </li> (the outer <li> stays open to host the nested list);
+// otherwise we flush it and continue.
 const bindListItem = (parsed, tagName) => {
 
-	let isStarted = false;
-	let output = [];
+	const output = [];
+	const depthStack = [];
+	let pendingCloseLi = null; // {type,text,itemOf,depth} waiting to be flushed
 
-	for(let node of parsed) {
+	const openTag = "<" + tagName + ">";
+	const closeTag = "</" + tagName + ">";
 
-		if(!isStarted && node.itemOf === tagName) {
-			output.push({type: "tag", text: "<" + tagName + ">", itemOf: tagName});
-			output.push(node);
-			isStarted = true;
+	const top = () => depthStack[depthStack.length - 1];
+
+	const flushPendingCloseLi = () => {
+		if(pendingCloseLi) {
+			output.push(pendingCloseLi);
+			pendingCloseLi = null;
 		}
-		else if(isStarted && node.itemOf !== tagName) {
-			output.push({type: "tag", text: "</" + tagName + ">", itemOf: tagName});
+	};
+
+	// Close every currently open list. Used on non-list nodes and at EOF.
+	const flushAll = () => {
+		flushPendingCloseLi();
+		while(depthStack.length > 0) {
+			output.push({type: "tag", text: closeTag, itemOf: tagName});
+			depthStack.pop();
+			if(depthStack.length > 0) {
+				// The enclosing <li> that held the just-closed inner list
+				// is still open; close it before moving further out.
+				output.push({type: "tag", text: "</li>", itemOf: tagName});
+			}
+		}
+	};
+
+	for(const node of parsed) {
+
+		const isListNode = node.itemOf === tagName;
+		const isOpenLi = isListNode
+			&& node.type === "tag"
+			&& node.text === "<li>";
+		const isCloseLi = isListNode
+			&& node.type === "tag"
+			&& node.text === "</li>";
+
+		if(isOpenLi) {
+
+			const d = (typeof node.depth === "number") ? node.depth : 0;
+
+			if(depthStack.length === 0) {
+				// Starting a fresh list.
+				output.push({type: "tag", text: openTag, itemOf: tagName});
+				depthStack.push(d);
+			}
+			else if(d > top()) {
+				// Nest deeper: keep the previous item's </li> suppressed so
+				// the new <tagName> lives inside that still-open <li>.
+				pendingCloseLi = null;
+				output.push({type: "tag", text: openTag, itemOf: tagName});
+				depthStack.push(d);
+			}
+			else if(d === top()) {
+				// Sibling at the same depth — flush the previous </li>.
+				flushPendingCloseLi();
+			}
+			else {
+				// d < top(): close inner lists until depths line up.
+				flushPendingCloseLi();
+				while(depthStack.length > 0 && d < top()) {
+					output.push({type: "tag", text: closeTag, itemOf: tagName});
+					depthStack.pop();
+					if(depthStack.length > 0) {
+						output.push({type: "tag", text: "</li>", itemOf: tagName});
+					}
+				}
+				if(depthStack.length === 0) {
+					// Fell below the outermost: begin a new top-level list.
+					output.push({type: "tag", text: openTag, itemOf: tagName});
+					depthStack.push(d);
+				}
+			}
+
 			output.push(node);
-			isStarted = false;
+		}
+		else if(isCloseLi) {
+			// Defer until we know whether the next item nests deeper.
+			pendingCloseLi = node;
+		}
+		else if(isListNode) {
+			// value node inside the current list item — pass through.
+			output.push(node);
 		}
 		else {
+			// Non-list node terminates any open lists.
+			flushAll();
 			output.push(node);
 		}
 	}
 
-	if(isStarted) {
-		output.push({type: "tag", text: "</" + tagName + ">", itemOf: tagName});
-	}
+	flushAll();
 
 	return output;
 }

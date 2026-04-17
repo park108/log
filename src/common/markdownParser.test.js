@@ -102,27 +102,54 @@ describe('MD parsing — indented list detection (regression + nesting scan)', (
 		expect(result).toBe("<ol><li> item1</li><li> item2</li><li> item11</li></ol><p>123Common Text</p><p>1.Has Not Space After Dot</p>");
 	});
 
-	it("recognises a tab-indented UL marker as a list item (bindListItem still flat)", () => {
-		// bindListItem is unchanged in this task, so nested indentation collapses
-		// back to a flat <ul>...<li>...</li>...</ul>. The important assertion is
-		// that the indented line is still detected as an <li> rather than a <p>.
-		const result = parser.markdownToHtml("- a\n\t- b");
-		expect(result).toBe("<ul><li>a</li><li>b</li></ul>");
-	});
-
-	it("recognises a two-space-indented UL marker as a list item", () => {
-		const result = parser.markdownToHtml("- a\n  - b");
-		expect(result).toBe("<ul><li>a</li><li>b</li></ul>");
-	});
-
-	it("recognises a tab-indented OL marker as a list item", () => {
-		const result = parser.markdownToHtml("1. a\n\t1. b");
-		expect(result).toBe("<ol><li> a</li><li> b</li></ol>");
-	});
-
 	it("does not treat a non-marker indented line as a list item", () => {
 		// Leading spaces without a marker must fall through to the paragraph pass.
 		const result = parser.markdownToHtml("  hello");
 		expect(result).toBe("<p>  hello</p>");
+	});
+});
+
+describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
+
+	it("nests a tab-indented UL child inside the parent <li>", () => {
+		// TSK-20260418-10 §7 case 1
+		const result = parser.markdownToHtml("- a\n\t- b");
+		expect(result).toBe("<ul><li>a<ul><li>b</li></ul></li></ul>");
+	});
+
+	it("reopens the outer UL after a depth-2 descent returns to depth 1", () => {
+		// TSK-20260418-10 §7 case 2
+		const result = parser.markdownToHtml("- a\n\t- b\n- c");
+		expect(result).toBe("<ul><li>a<ul><li>b</li></ul></li><li>c</li></ul>");
+	});
+
+	it("nests a tab-indented OL child inside the parent <li>", () => {
+		// TSK-20260418-10 §7 case 3
+		const result = parser.markdownToHtml("1. a\n\t1. b");
+		expect(result).toBe("<ol><li> a<ol><li> b</li></ol></li></ol>");
+	});
+
+	it("closes all nested lists before a trailing paragraph", () => {
+		// TSK-20260418-10 §7 case 4
+		const result = parser.markdownToHtml("- a\n\t- b\nText");
+		expect(result).toBe("<ul><li>a<ul><li>b</li></ul></li></ul><p>Text</p>");
+	});
+
+	it("treats two leading spaces as equivalent to one tab for UL nesting", () => {
+		// TSK-20260418-10 §7 case 5
+		const result = parser.markdownToHtml("- a\n  - b");
+		expect(result).toBe("<ul><li>a<ul><li>b</li></ul></li></ul>");
+	});
+
+	it("keeps sibling children at the same depth inside one nested UL", () => {
+		const result = parser.markdownToHtml("- a\n\t- b\n\t- c");
+		expect(result).toBe("<ul><li>a<ul><li>b</li><li>c</li></ul></li></ul>");
+	});
+
+	it("handles a three-level descent and a return to depth 0", () => {
+		const result = parser.markdownToHtml("- a\n\t- b\n\t\t- c\n- d");
+		expect(result).toBe(
+			"<ul><li>a<ul><li>b<ul><li>c</li></ul></li></ul></li><li>d</li></ul>"
+		);
 	});
 });
