@@ -17,6 +17,11 @@ export default defineConfig({
 		outDir: 'build',
 		sourcemap: false,
 	},
+	css: {
+		modules: {
+			localsConvention: 'camelCaseOnly',
+		},
+	},
 	optimizeDeps: {
 		esbuildOptions: {
 			loader: { '.js': 'jsx' },

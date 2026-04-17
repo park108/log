@@ -1,32 +1,33 @@
 import React, { useEffect } from "react";
 import PropTypes from 'prop-types';
 
-import './Toaster.css';
+import styles from './Toaster.module.css';
 
 const hideToaster = (id) => {
-	if(null !== document.getElementById(id)) {
-		document.getElementById(id).className = "div div--toaster-hide";
+	const el = document.getElementById(id);
+	if(null !== el) {
+		el.className = styles.divToasterHide;
 	}
 }
 
 const POSITION_STYLE = {
-	"center": "div--toaster-center",
-	"bottom": "div--toaster-bottom",
-	undefined: "div--toaster-center"
+	"center": styles.divToasterCenter,
+	"bottom": styles.divToasterBottom,
+	undefined: styles.divToasterCenter
 };
 
 const TYPE_STYLE = {
-	"information": "div--toaster-information",
-	"success": "div--toaster-success",
-	"warning": "div--toaster-warning",
-	"error": "div--toaster-error",
-	undefined: "div--toaster-information"
+	"information": styles.divToasterInformation,
+	"success": styles.divToasterSuccess,
+	"warning": styles.divToasterWarning,
+	"error": styles.divToasterError,
+	undefined: styles.divToasterInformation
 };
 
 const SHOW_STYLE = [
-	"div--toaster-hide", // 0: hide
+	styles.divToasterHide, // 0: hide
 	"", // 1: show
-	"div--toaster-fadeout" // 2: fadeout
+	styles.divToasterFadeout // 2: fadeout
 ];
 
 const Toaster = (props) => {
@@ -52,8 +53,11 @@ const Toaster = (props) => {
 
 	return (
 		<div id={id}
-			className={ "div " + POSITION_STYLE[position] + " " + TYPE_STYLE[type] + " " + SHOW_STYLE[show] }
+			className={ [POSITION_STYLE[position], TYPE_STYLE[type], SHOW_STYLE[show]].filter(Boolean).join(' ') }
 			role="alert"
+			data-position={position ?? 'center'}
+			data-type={type ?? 'information'}
+			data-show={typeof show === 'number' ? String(show) : 'none'}
 		>
 			{message}
 		</div>

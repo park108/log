@@ -1,10 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import Toaster from './Toaster';
+import styles from './Toaster.module.css';
 
 vi.useFakeTimers();
 
 it('render message text "Test message" correctly', () => {
-	render(<Toaster 
+	render(<Toaster
 		message="Test message"
 		type={"warning"}
 	/>);
@@ -13,53 +14,65 @@ it('render message text "Test message" correctly', () => {
 });
 
 it('render Toaster no show', () => {
-	render(<Toaster 
+	render(<Toaster
 		message={"Test message"}
 		type={"error"}
 		show={0}
 	/>);
 	const toaster = screen.getByText("Test message");
-	expect(toaster).toHaveAttribute('class', 'div div--toaster-center div--toaster-error div--toaster-hide');
+	expect(toaster).toHaveClass(styles.divToasterCenter);
+	expect(toaster).toHaveClass(styles.divToasterError);
+	expect(toaster).toHaveClass(styles.divToasterHide);
+	expect(toaster).toHaveAttribute('data-show', '0');
 });
 
 it('render information Toaster in center', () => {
-	render(<Toaster 
+	render(<Toaster
 		message={"Test message"}
 		position={"center"}
 		type={"information"}
 		show={1}
 	/>);
 	const toaster = screen.getByText("Test message");
-	expect(toaster).toHaveAttribute('class', 'div div--toaster-center div--toaster-information ');
+	expect(toaster).toHaveClass(styles.divToasterCenter);
+	expect(toaster).toHaveClass(styles.divToasterInformation);
+	expect(toaster).not.toHaveClass(styles.divToasterHide);
+	expect(toaster).not.toHaveClass(styles.divToasterFadeout);
+	expect(toaster).toHaveAttribute('data-position', 'center');
+	expect(toaster).toHaveAttribute('data-type', 'information');
 });
 
 it('render success Toaster in bottom', () => {
-  render(<Toaster 
+  render(<Toaster
     message={"Test message"}
     position={"bottom"}
     type={"success"}
     show={1}
   />);
-  const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success ');
+	const toaster = screen.getByText("Test message");
+	expect(toaster).toHaveClass(styles.divToasterBottom);
+	expect(toaster).toHaveClass(styles.divToasterSuccess);
+	expect(toaster).not.toHaveClass(styles.divToasterHide);
+	expect(toaster).not.toHaveClass(styles.divToasterFadeout);
 });
 
 it('render error Toaster in bottom', () => {
-  render(<Toaster 
+  render(<Toaster
     message={"Test message"}
     position={"bottom"}
     type={"error"}
     show={1}
   />);
-  const toaster = screen.getByText("Test message");
-  expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-error ');
+	const toaster = screen.getByText("Test message");
+	expect(toaster).toHaveClass(styles.divToasterBottom);
+	expect(toaster).toHaveClass(styles.divToasterError);
 });
 
 it('render success Toaster faded out', async () => {
 
 	vi.useFakeTimers();
 
-	render(<Toaster 
+	render(<Toaster
 		message={"Test message"}
 		position={"bottom"}
 		type={"success"}
@@ -71,8 +84,10 @@ it('render success Toaster faded out', async () => {
 
 	vi.advanceTimersByTime(2000);
 
-	expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
-	
+	expect(toaster).toHaveClass(styles.divToasterBottom);
+	expect(toaster).toHaveClass(styles.divToasterSuccess);
+	expect(toaster).toHaveClass(styles.divToasterFadeout);
+
 	vi.runOnlyPendingTimers();
 	vi.useRealTimers();
 });

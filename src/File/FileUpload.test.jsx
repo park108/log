@@ -106,8 +106,10 @@ test('upload ok', async () => {
 	});
 
 	const toasterFadedout = await screen.findByText("Upload complete."); // Result message change to ready in few seconds
-	expect(toasterFadedout).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
-	
+	expect(toasterFadedout).toHaveAttribute('data-position', 'bottom');
+	expect(toasterFadedout).toHaveAttribute('data-type', 'success');
+	expect(toasterFadedout).toHaveAttribute('data-show', '2');
+
 	vi.useRealTimers();
 
 	mock.devServerOk.resetHandlers();
@@ -181,8 +183,10 @@ test('getting presigned url ok, but upload network error', async () => {
 	});
 
 	const toasterFadedout = await screen.findByText("Upload failed."); // Result message change to ready in few seconds
-	expect(toasterFadedout).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-error div--toaster-fadeout');
-	
+	expect(toasterFadedout).toHaveAttribute('data-position', 'bottom');
+	expect(toasterFadedout).toHaveAttribute('data-type', 'error');
+	expect(toasterFadedout).toHaveAttribute('data-show', '2');
+
 	vi.useRealTimers();
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.resetHandlers();
