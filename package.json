@@ -20,34 +20,6 @@
     "lint": "eslint ./src",
     "prepare": "husky install"
   },
-  "eslintConfig": {
-    "extends": [
-      "eslint:recommended",
-      "plugin:react/recommended"
-    ],
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module",
-      "ecmaFeatures": {
-        "jsx": true
-      }
-    },
-    "env": {
-      "browser": true,
-      "node": true,
-      "es2022": true
-    },
-    "settings": {
-      "react": {
-        "version": "detect"
-      }
-    },
-    "rules": {
-      "react/react-in-jsx-scope": "off",
-      "react/prop-types": "off",
-      "no-unused-vars": "warn"
-    }
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -60,11 +32,8 @@
       "last 1 safari version"
     ]
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "eslint ./src",
-      "pre-push": "npm test"
-    }
+  "lint-staged": {
+    "src/**/*.{js,jsx}": "eslint"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -76,6 +45,7 @@
     "history": "^5.3.0",
     "husky": "^8.0.1",
     "jsdom": "^29.0.2",
+    "lint-staged": "^16.4.0",
     "msw": "^2.13.4",
     "vite": "^8.0.8",
     "vite-plugin-svgr": "^5.2.0",

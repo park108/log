@@ -334,7 +334,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -350,7 +350,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "Mozilla/5.0 (iPhone; CPU iPhone OS 15_6 like Mac OS X) Trident/testversion (KHTML, like Gecko) Version/15.6 Mobile/15E148 Safari/604.1",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -366,7 +366,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "(X11; Linux x86_64) Opera/86.0.4363.59",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -382,7 +382,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "Android Chrome/",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -398,7 +398,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "(X11; CrOS KAKAOTALK",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -414,7 +414,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "Symbian CriOS/",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -430,7 +430,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "Chromium/",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -441,7 +441,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "OPR/",
-  				configurable: true
+				configurable: true
 			}
 		);
 
@@ -452,7 +452,7 @@ describe('User Agent parsing test', () => {
 		Object.defineProperty(window.navigator, 'userAgent',
 			{
 				value : "; MSIE ",
-  				configurable: true
+				configurable: true
 			}
 		);
 
