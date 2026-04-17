@@ -62,6 +62,7 @@ describe('render navigation menu correctly', () => {
 		const anchor = screen.getByText("file").closest('a');
 
 		const expected = document.createElement("a");
+		expected.setAttribute("data-discover", "true");
 		expected.setAttribute("href", "/file");
 		expected.innerHTML = "file";
 
@@ -98,6 +99,7 @@ describe('render navigation menu correctly', () => {
 		const anchor = screen.getByText("mon").closest('a');
 
 		const expected = document.createElement("a");
+		expected.setAttribute("data-discover", "true");
 		expected.setAttribute("href", "/monitor");
 		expected.innerHTML = "mon";
 
