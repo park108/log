@@ -1,10 +1,7 @@
-const getApiUrl= () => {
-	if (process.env.NODE_ENV === 'production') {
-		return "https://kw7u2k9pv4.execute-api.ap-northeast-2.amazonaws.com/prod";
-	}
-	else {
-		return "https://kw7u2k9pv4.execute-api.ap-northeast-2.amazonaws.com/test";
-	}
+const BASE = import.meta.env.VITE_SEARCH_API_BASE;
+const getApiUrl = () => {
+	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
+	return BASE + "/test";
 }
 
 export const getSearchList = async(searchString) => {

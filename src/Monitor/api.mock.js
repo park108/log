@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import * as common from '../common/common'
 
-const API_URL = "https://4568z7p97l.execute-api.ap-northeast-2.amazonaws.com";
+const API_URL = import.meta.env.VITE_MONITOR_API_BASE;
 
 export const prodServerOk = setupServer(
 	http.get(API_URL + "/prod", async () => {

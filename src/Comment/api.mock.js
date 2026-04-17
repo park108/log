@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-const API_URL = "https://k7aiaqwk1e.execute-api.ap-northeast-2.amazonaws.com";
+const API_URL = import.meta.env.VITE_COMMENT_API_BASE;
 
 const server = setupServer();
 let active = false;

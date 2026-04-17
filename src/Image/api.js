@@ -1,10 +1,7 @@
+const BASE = import.meta.env.VITE_IMAGE_API_BASE;
 const getApiUrl = () => {
-	if (process.env.NODE_ENV === 'production') {
-		return "https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/prod";
-	}
-	else if (process.env.NODE_ENV === 'development') {
-		return "https://jjm9z7h606.execute-api.ap-northeast-2.amazonaws.com/test";
-	}
+	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
+	if (process.env.NODE_ENV === 'development') return BASE + "/test";
 }
 
 export const getImages = async() => {

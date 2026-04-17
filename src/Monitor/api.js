@@ -1,10 +1,7 @@
+const BASE = import.meta.env.VITE_MONITOR_API_BASE;
 export const getAPI = () => {
-	if (process.env.NODE_ENV === 'production') {
-		return "https://4568z7p97l.execute-api.ap-northeast-2.amazonaws.com/prod";
-	}
-	else {
-		return "https://4568z7p97l.execute-api.ap-northeast-2.amazonaws.com/test";
-	}
+	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
+	return BASE + "/test";
 }
 
 const getApiUrl = () => {

@@ -1,13 +1,10 @@
 import { markdownToHtml } from '../common/markdownParser';
 import { isAdmin } from "../common/common";
 
+const BASE = import.meta.env.VITE_LOG_API_BASE;
 const getApiUrl = () => {
-	if (process.env.NODE_ENV === 'production') {
-		return "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/prod";
-	}
-	else if (process.env.NODE_ENV === 'development') {
-		return "https://7jpt5rjs99.execute-api.ap-northeast-2.amazonaws.com/test";
-	}
+	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
+	if (process.env.NODE_ENV === 'development') return BASE + "/test";
 }
 
 const DEFAULT_ITEM_PER_PAGE = 10;

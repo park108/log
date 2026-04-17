@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-const API_URL = "https://kw7u2k9pv4.execute-api.ap-northeast-2.amazonaws.com";
+const API_URL = import.meta.env.VITE_SEARCH_API_BASE;
 
 export const prodServerGetList = setupServer(
 	http.get(API_URL + "/prod", async () => {

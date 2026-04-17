@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-const API_URL = "https://urruauaj81.execute-api.ap-northeast-2.amazonaws.com";
+const API_URL = import.meta.env.VITE_FILE_API_BASE;
 const PRESIGNED_URL = "https://aws.test.upload.url.com";
 
 export const prodServerHasNoData = setupServer(

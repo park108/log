@@ -1,6 +1,23 @@
 # log
 This project started to write a personal journal.
 
+## Local setup
+Copy `.env.example` to `.env.development.local` and `.env.production.local`, then fill in the API Gateway domains and Cognito Hosted UI URLs. These files are gitignored. On AWS Amplify, set the same variables under **App settings > Environment variables**.
+
+```
+VITE_LOG_API_BASE
+VITE_SEARCH_API_BASE
+VITE_MONITOR_API_BASE
+VITE_IMAGE_API_BASE
+VITE_FILE_API_BASE
+VITE_COMMENT_API_BASE
+VITE_COGNITO_LOGIN_URL_PROD
+VITE_COGNITO_LOGIN_URL_DEV
+VITE_COGNITO_LOGOUT_URL_PROD
+VITE_COGNITO_LOGOUT_URL_DEV
+```
+
+
 ## On AWS with Serverless Architecture
 This application is running on AWS.
 It is being used as a sandbox for various serverless architectures.

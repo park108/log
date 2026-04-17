@@ -1,10 +1,7 @@
+const BASE = import.meta.env.VITE_COMMENT_API_BASE;
 const getApiUrl = () => {
-	if (process.env.NODE_ENV === 'production') {
-		return "https://k7aiaqwk1e.execute-api.ap-northeast-2.amazonaws.com/prod";
-	}
-	else {
-		return "https://k7aiaqwk1e.execute-api.ap-northeast-2.amazonaws.com/test";
-	}
+	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
+	return BASE + "/test";
 }
 
 export const getComments = async(timestamp, admin) => {
