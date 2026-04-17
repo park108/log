@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
 import { getSearchList } from './api';
 
-import './Search.css';
+import styles from './Search.module.css';
 
 const Search = () => {
 
@@ -131,7 +131,7 @@ const Search = () => {
 
 		return (
 			<section className="section section--log-list" role="list">
-				<div className="div div--search-result">
+				<div className={`div ${styles.divSearchResult}`}>
 					0 result for &quot;{ queryString }&quot;
 					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
@@ -146,8 +146,8 @@ const Search = () => {
 
 		return (
 			<section className="section section--log-list" role="list">
-				<div className="div div--search-result">
-					{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;<span className="span span--search-querystring">{ queryString }</span>&quot;
+				<div className={`div ${styles.divSearchResult}`}>
+					{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;<span className={`span ${styles.spanSearchQuerystring}`}>{ queryString }</span>&quot;
 					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
 				
@@ -164,7 +164,7 @@ const Search = () => {
 										{parsed}
 										{ index == arr.length - 1
 											? ""
-											: <span className="span span--search-keyword">{queryString}</span>
+											: <span className={`span ${styles.spanSearchKeyword}`}>{queryString}</span>
 										}
 									</span>
 								))

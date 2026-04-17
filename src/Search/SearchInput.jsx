@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { isAdmin } from '../common/common';
 
-import './Search.css';
+import styles from './Search.module.css';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
   
@@ -69,26 +69,26 @@ const SearchInput = () => {
 		if(isAdmin()) {
 			const mobileSearch = document.getElementById("mobile-search");
 			if(isMobileSearchOpen) {
-				mobileSearch.setAttribute("class", "div div--search-mobile");
+				mobileSearch.setAttribute("class", `div ${styles.divSearchMobile}`);
 			}
 			else {
-				mobileSearch.setAttribute("class", "div div--search-mobilehide");
+				mobileSearch.setAttribute("class", `div ${styles.divSearchMobilehide}`);
 			}
 		}
 	}, [isMobileSearchOpen]);
 	
 	if(isAdmin()) {
 		return (
-			<li className="li li--nav-right li--nav-search">
+			<li className={`li li--nav-right ${styles.liNavSearch}`}>
 				<input
 					id="query-string-by-enter"
-					className="input input--search-string hidden--width-400px"
+					className={`input ${styles.inputSearchString} hidden--width-400px`}
 					placeholder="Input search string..."
 					value={ queryString }
 					onKeyUp={ handleKeyUp }
 					onChange={ e => setQueryString(e.target.value) }
 				/>
-				<span className="span span--nav-searchbutton" onClick={() => {
+				<span className={`span ${styles.spanNavSearchbutton}`} onClick={() => {
 					setIsMobileSearchOpen(!isMobileSearchOpen);
 				}} >
 					search
@@ -96,14 +96,14 @@ const SearchInput = () => {
 				<div id="mobile-search">
 					<input
 						id="query-string-by-button"
-						className="input input--search-mobile show--width-400px"
+						className={`input ${styles.inputSearchMobile} show--width-400px`}
 						placeholder="Input search string..."
 						value={ queryString }
 						onKeyUp={ handleKeyUp }
 						onChange={ e => setQueryString(e.target.value) }
 					/>
 					<button
-						className="button button--search-submit show--width-400px"
+						className={`button ${styles.buttonSearchSubmit} show--width-400px`}
 						onClick={ () => setIsGetData(true) }
 					>
 						go
@@ -115,10 +115,10 @@ const SearchInput = () => {
 	}
 	else {
 		return (
-			<li className="li li--nav-right li--nav-search">
+			<li className={`li li--nav-right ${styles.liNavSearch}`}>
 				<input
 					id="query-string-by-enter"
-					className="input input--search-string"
+					className={`input ${styles.inputSearchString}`}
 					placeholder="Input search string..."
 					value={ queryString }
 					onKeyUp={ handleKeyUp }
