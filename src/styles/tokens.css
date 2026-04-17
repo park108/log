@@ -1,0 +1,35 @@
+:root {
+	--sub-font-size: 0.9em;
+	--info-font-size: 0.8em;
+
+	--loading-background-color: white;
+
+	--normal-text-color: black;
+	--normal-background-color: white;
+	--normal-border-color: #dddddd;
+
+	--hover-background-color: rgb(255, 255, 210);
+	--hover-border-color: #666666;
+
+	--active-text-color: black;
+	--active-background-color: white;
+	--active-border-color: #666666;
+
+	--inactive-text-color: #666666;
+
+	--sub-text-color: #666666;
+
+	--shadow-color: #aaaaaa;
+
+	--success-text-color: black;
+	--success-background-color: #A7BEA9;
+
+	--warning-text-color: black;
+	--warning-background-color: #FFECB3;
+
+	--error-text-color: black;
+	--error-background-color: #F49F9C;
+
+	--info-background-color: cornsilk;
+	--disabled-background-color: #FFECB3;
+}

@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useState, useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import * as common from './common/common';
-import './App.css';
+import './styles/index.css';
 
 const Navigation = lazy(() => import('./common/Navigation'));
 const Log = lazy(() => import('./Log/Log'));

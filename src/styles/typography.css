@@ -1,0 +1,72 @@
+h1, h2, h3, h4, h5, h6 {
+	margin-block-start: 1.8em;
+}
+
+h1 {
+	font-size: 1.5rem;
+}
+
+h2 {
+	font-size: 1.3rem;
+}
+
+h3 {
+	font-size: 1.1rem;
+}
+
+h4 {
+	font-size: 1.0rem;
+}
+
+h5 {
+	font-size: 0.9rem;
+}
+
+h6 {
+	font-size: 0.8rem;
+}
+
+blockquote {
+	background-color: var(--normal-background-color);
+	font-style: italic;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	margin-inline-start: 0.5em;
+	margin-inline-end: 0.5em;
+}
+
+blockquote:before {
+	content: "\201C";
+	font-size: 3em;
+	font-family: Georgia;
+	color: var(--sub-text-color);
+	float: left;
+	margin: -5px 10px 0px -10px;
+}
+
+code {
+	border-radius: 3px;
+	color: darkorange;
+}
+
+pre {
+	background-color: #eeeeee;
+	border-radius: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
+	word-wrap: break-word;
+	overflow-x: auto;
+}
+
+.p {
+	line-height: 2em;
+}
+
+.p--offline-message {
+	margin-left: 1em;
+	margin-right: 1em;
+}
+
+.article {
+	line-height: 2em;
+}
