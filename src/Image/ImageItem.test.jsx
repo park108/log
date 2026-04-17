@@ -3,7 +3,7 @@ import ImageItem from './ImageItem';
 
 it('render image item and test click events', async () => {
 
-	const copyMarkdownString = jest.fn();
+	const copyMarkdownString = vi.fn();
 
 	render(
 		<ImageItem

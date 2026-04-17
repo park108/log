@@ -3,9 +3,9 @@ import FileDrop from '../File/FileDrop';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 
-console.log = jest.fn();
-console.error = jest.fn();
-const uploadedCallbackFunction = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
+const uploadedCallbackFunction = vi.fn();
 
 test('getting presigned url failed on dev server', async () => {
 
@@ -13,8 +13,8 @@ test('getting presigned url failed on dev server', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -48,8 +48,8 @@ test('getting presigned url network error on dev server', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -78,12 +78,12 @@ test('upload ok', async () => {
 
 	mock.devServerOk.listen();
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -105,13 +105,13 @@ test('upload ok', async () => {
 	expect(resultText).toBeInTheDocument();
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
 	expect(dropZoneAgain).toBeDefined();
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerOk.resetHandlers();
 	mock.devServerOk.close();
@@ -123,8 +123,8 @@ test('getting presigned url ok, but upload failed', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -153,12 +153,12 @@ test('getting presigned url ok, but upload network error', async () => {
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.listen();
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -180,13 +180,13 @@ test('getting presigned url ok, but upload network error', async () => {
 	expect(resultText).toBeInTheDocument();
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
 	expect(dropZoneAgain).toBeDefined();
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.resetHandlers();
 	mock.devServerPresignedUrlOkButUploadNetworkError.close();

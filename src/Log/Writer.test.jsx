@@ -5,12 +5,12 @@ import { Router, MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 it('redirect if not admin', async () => {
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(false);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(false);
   
 	const history = createMemoryHistory({ initialEntries: ["/log/write"]});
 	
@@ -27,17 +27,17 @@ test('create log ok on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
 		state: null,
 	};
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
   
 	render(
 		<div id="root" className="div fullscreen">
@@ -51,7 +51,7 @@ test('create log ok on prod server', async () => {
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	// Submit test
@@ -60,13 +60,13 @@ test('create log ok on prod server', async () => {
 	fireEvent.click(submitButton);
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	const resultMessage = await screen.findByText("The log posted.");
 	expect(resultMessage).toBeDefined();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();
@@ -78,17 +78,17 @@ test('create log failed on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
 		state: null,
 	};
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
   
 	render(
 		<div id="root" className="div fullscreen">
@@ -102,7 +102,7 @@ test('create log failed on prod server', async () => {
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	// Submit test
@@ -111,13 +111,13 @@ test('create log failed on prod server', async () => {
 	fireEvent.click(submitButton);
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	const resultMessage = await screen.findByText("Posting log failed.");
 	expect(resultMessage).toBeDefined();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.prodServerFailed.resetHandlers();
 	mock.prodServerFailed.close();
@@ -129,17 +129,17 @@ test('create log network error on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
 		state: null,
 	};
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
   
 	render(
 		<div id="root" className="div fullscreen">
@@ -153,7 +153,7 @@ test('create log network error on prod server', async () => {
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	// Submit test
@@ -162,13 +162,13 @@ test('create log network error on prod server', async () => {
 	fireEvent.click(submitButton);
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	const resultMessage = await screen.findByText("Posting log network error.");
 	expect(resultMessage).toBeDefined();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.prodServerNetworkError.resetHandlers();
 	mock.prodServerNetworkError.close();
@@ -180,10 +180,10 @@ it('edit log ok on dev server', async () => {
 
 	process.env.NODE_ENV = 'development';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -207,7 +207,7 @@ it('edit log ok on dev server', async () => {
 		</div>
 	);
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	// Submit test
 	const submitButton = await screen.findByTestId("submit-button");
@@ -215,13 +215,13 @@ it('edit log ok on dev server', async () => {
 	fireEvent.click(submitButton);
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	const resultMessage = await screen.findByText("The log changed.");
 	expect(resultMessage).toBeDefined();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerOk.resetHandlers();
 	mock.devServerOk.close();
@@ -233,10 +233,10 @@ it('edit log failed on dev server', async () => {
 
 	process.env.NODE_ENV = 'development';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -260,7 +260,7 @@ it('edit log failed on dev server', async () => {
 		</div>
 	);
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	// Submit test
 	const submitButton = await screen.findByTestId("submit-button");
@@ -268,13 +268,13 @@ it('edit log failed on dev server', async () => {
 	fireEvent.click(submitButton);
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	const resultMessage = await screen.findByText("Editing log failed.");
 	expect(resultMessage).toBeDefined();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerFailed.resetHandlers();
 	mock.devServerFailed.close();
@@ -286,10 +286,10 @@ it('edit log network error on dev server', async () => {
 
 	process.env.NODE_ENV = 'development';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -312,7 +312,7 @@ it('edit log network error on dev server', async () => {
 		</div>
 	);
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	// Submit test
 	const submitButton = await screen.findByTestId("submit-button");
@@ -320,13 +320,13 @@ it('edit log network error on dev server', async () => {
 	fireEvent.click(submitButton);
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	const resultMessage = await screen.findByText("Editing log network error.");
 	expect(resultMessage).toBeDefined();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerNetworkError.resetHandlers();
 	mock.devServerNetworkError.close();
@@ -335,14 +335,14 @@ it('edit log network error on dev server', async () => {
 
 test('event testing', async () => {
 
-	jest.spyOn(window, 'alert').mockImplementation((message) => {
+	vi.spyOn(window, 'alert').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	common.setFullscreen = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write"
@@ -356,7 +356,7 @@ test('event testing', async () => {
 		</div>
 	);
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	// Convert display mode
 	const modeButton = await screen.findByTestId("mode-button");
@@ -390,20 +390,20 @@ test('event testing', async () => {
 	expect(form).toBeDefined();
 	fireEvent.submit(form);
 
-	jest.runOnlyPendingTimers();
+	vi.runOnlyPendingTimers();
 	
 	// Text input test
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: '123456'}});
 	
-	jest.runOnlyPendingTimers();
+	vi.runOnlyPendingTimers();
 
 	// Submit test with text
 	const form2 = await screen.findByTestId("writer-form");
 	expect(form2).toBeDefined();
 	fireEvent.submit(form2);
 
-	jest.runOnlyPendingTimers();
+	vi.runOnlyPendingTimers();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 });

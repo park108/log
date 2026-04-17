@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import WebVitalsItem from '../Monitor/WebVitalsItem';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 it('render web vitals monitor on dev server', async () => {
 

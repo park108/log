@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import Toaster from './Toaster';
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 it('render message text "Test message" correctly', () => {
 	render(<Toaster 
@@ -57,7 +57,7 @@ it('render error Toaster in bottom', () => {
 
 it('render success Toaster faded out', async () => {
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	render(<Toaster 
 		message={"Test message"}
@@ -67,12 +67,12 @@ it('render success Toaster faded out', async () => {
 	/>);
 
 	const toaster = await screen.findByText("Test message");
-	document.getElementById = jest.fn().mockReturnValue(null);
+	document.getElementById = vi.fn().mockReturnValue(null);
 
-	jest.advanceTimersByTime(2000);
+	vi.advanceTimersByTime(2000);
 
 	expect(toaster).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
 	
-	jest.runOnlyPendingTimers();
-	jest.useRealTimers();
+	vi.runOnlyPendingTimers();
+	vi.useRealTimers();
 });

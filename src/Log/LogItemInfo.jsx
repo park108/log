@@ -2,7 +2,7 @@ import React, { useState, Suspense, lazy } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, hoverPopup, copyToClipboard, hasValue } from '../common/common';
-import { ReactComponent as LinkButton } from '../static/link.svg';
+import LinkButton from '../static/link.svg?react';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 

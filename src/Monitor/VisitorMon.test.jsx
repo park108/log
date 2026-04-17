@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import VisitorMon from '../Monitor/VisitorMon';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const stackPallet = {
 	pallet: "Red to Green",
@@ -22,7 +22,7 @@ it('render visitor monitor on prod server', async () => {
 
 	mock.prodServerOk.listen();
 
-	jest.useFakeTimers('modern')
+	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643673600000));
 
 	process.env.NODE_ENV = 'production';
@@ -42,7 +42,7 @@ it('render visitor monitor on prod server', async () => {
 	fireEvent.mouseOut(statusBar);
 	fireEvent.mouseOut(statusBar); // Already class changed
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();

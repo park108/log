@@ -1,9 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import * as mock from './api.mock'
 import ImageSelector from '../Image/ImageSelector';
 
-console.error = jest.fn();
-console.log = jest.fn();
+console.error = vi.fn();
+console.log = vi.fn();
 
 it('render image selector loading images > loading more images > and fail when load more images', async () => {
 
@@ -26,14 +26,14 @@ it('render image selector loading images > loading more images > and fail when l
 	expect(imageItems2.length).toBe(6);
 
 	// Click first image
-	jest.useFakeTimers(); // Set timer to test toaster message changing
+	vi.useFakeTimers(); // Set timer to test toaster message changing
 
-	document.execCommand = jest.fn();
+	document.execCommand = vi.fn();
 	fireEvent.click(imageItems2[0]); // enlarge
 	fireEvent.click(imageItems2[0]); // shrink and copy url
 
-	jest.runAllTimers();
-	jest.useRealTimers();
+	vi.runAllTimers();
+	vi.useRealTimers();
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();
@@ -69,20 +69,17 @@ it('render image selector loading images > loading more images > and network err
 	expect(imageItems.length).toBe(4);
 	
 	// After click see more button, added 2 more images
-	const seeMoreButton = screen.getByRole("button");
+	const seeMoreButton = await screen.findByRole("button");
 	expect(seeMoreButton).toBeDefined();
 
 	fireEvent.click(seeMoreButton);
-	const imageItems2 = await screen.findAllByRole("listitem");
-	expect(imageItems2.length).toBe(6);
+	await waitFor(() => expect(screen.getAllByRole("listitem").length).toBe(6));
 
-	mock.devServerOk.resetHandlers();
+	// Switch mock server: close OK, start network error before clicking again
 	mock.devServerOk.close();
-
-	// When server network error, display fail message after click see more button
 	mock.devServerNetworkError.listen();
-	
-	const seeMoreButton3 = screen.getByRole("button");
+
+	const seeMoreButton3 = await screen.findByRole("button");
 	expect(seeMoreButton3).toBeDefined();
 
 	fireEvent.click(seeMoreButton3);

@@ -3,9 +3,9 @@ import FileUpload from '../File/FileUpload';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 
-console.log = jest.fn();
-console.error = jest.fn();
-const uploadedCallbackFunction = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
+const uploadedCallbackFunction = vi.fn();
 
 test('getting presigned url failed on dev server', async () => {
 
@@ -13,8 +13,8 @@ test('getting presigned url failed on dev server', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(<FileUpload callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -45,8 +45,8 @@ test('getting presigned url network error on dev server', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(<FileUpload callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -75,12 +75,12 @@ test('upload ok', async () => {
 
 	mock.devServerOk.listen();
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(<FileUpload callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -102,13 +102,13 @@ test('upload ok', async () => {
 	expect(toaster).toBeInTheDocument();
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	const toasterFadedout = await screen.findByText("Upload complete."); // Result message change to ready in few seconds
 	expect(toasterFadedout).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-success div--toaster-fadeout');
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerOk.resetHandlers();
 	mock.devServerOk.close();
@@ -120,8 +120,8 @@ test('getting presigned url ok, but upload failed', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(<FileUpload callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -150,12 +150,12 @@ test('getting presigned url ok, but upload network error', async () => {
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.listen();
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(<FileUpload callbackAfterUpload = {uploadedCallbackFunction} />);
 
@@ -177,13 +177,13 @@ test('getting presigned url ok, but upload network error', async () => {
 	expect(toaster).toBeInTheDocument();
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	const toasterFadedout = await screen.findByText("Upload failed."); // Result message change to ready in few seconds
 	expect(toasterFadedout).toHaveAttribute('class', 'div div--toaster-bottom div--toaster-error div--toaster-fadeout');
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.resetHandlers();
 	mock.devServerPresignedUrlOkButUploadNetworkError.close();

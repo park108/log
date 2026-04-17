@@ -3,8 +3,8 @@ import { MemoryRouter } from 'react-router-dom';
 import * as common from "../common/common";
 import SearchInput from './SearchInput';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const testEntry = {
 	pathname: "/log"
@@ -22,7 +22,7 @@ describe('test key up events', () => {
 
 	it('firing keyUp event', async () => {
 
-		common.isAdmin = jest.fn().mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		process.env.NODE_ENV = 'development';
 	
@@ -53,7 +53,7 @@ describe('test key up events', () => {
 
 	it('firing search when the search string is null', async () => {
 
-		common.isAdmin = jest.fn().mockReturnValue(false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(false);
 
 		process.env.NODE_ENV = 'production';
 	
@@ -65,17 +65,17 @@ describe('test key up events', () => {
 
 		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
 		
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 
 		inputElement.value = "";
 		fireEvent.keyUp(inputElement, { keyCode: 13 });
 	
 		act(() => {
-			jest.runOnlyPendingTimers();
+			vi.runOnlyPendingTimers();
 		});
-		jest.useRealTimers();
+		vi.useRealTimers();
 
-		const nullStringAlert = screen.getByText("Enter the keyword to search for");
+		const nullStringAlert = await screen.findByText("Enter the keyword to search for");
 		expect(nullStringAlert).toBeDefined();
 	});
 });

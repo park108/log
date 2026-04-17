@@ -3,8 +3,8 @@ import { MemoryRouter } from 'react-router-dom';
 import Monitor from '../Monitor/Monitor';
 import * as common from '../common/common';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const testEntry = {
 	pathname: "/monitor"
@@ -18,8 +18,8 @@ it('render monitor if it logged in', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -35,8 +35,8 @@ it('redirect if not admin', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(false);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(false);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>

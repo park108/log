@@ -4,18 +4,18 @@ import * as common from '../common/common';
 import Comment from './Comment';
 import CommentItem from './CommentItem';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 test('render comment list and post comment correctly on dev server', async () => {
 
 	mock.devServerOk.listen();
-	jest.spyOn(window, 'alert').mockImplementation((message) => {
+	vi.spyOn(window, 'alert').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
 
 	process.env.NODE_ENV = 'development';
-	common.isAdmin = jest.fn().mockResolvedValue(true); // User is admin in this case.
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true); // User is admin in this case.
 
 	render(<Comment timestamp={1655302060414} />);
 
@@ -112,7 +112,7 @@ test('render failed when network error on dev server', async () => {
 test('render comment list and post comment failed on prod server', async () => {
 
 	mock.prodServerOk.listen();
-	jest.spyOn(window, 'alert').mockImplementation((message) => {
+	vi.spyOn(window, 'alert').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
 
@@ -151,7 +151,7 @@ test('render comment list and post comment failed on prod server', async () => {
 	mock.prodServerFailed.listen();
 
 	// Failed!
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	const submitButton4 = await screen.findByText("Submit Comment");
 	expect(submitButton4).toBeDefined();
@@ -160,7 +160,7 @@ test('render comment list and post comment failed on prod server', async () => {
 	const toasterMessage = await screen.findByText("The comment posted failed.");
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	expect(toasterMessage).toBeDefined();
@@ -184,12 +184,12 @@ test('render comment list and post comment failed on prod server', async () => {
 	const toasterMessage2 = await screen.findByText("The comment posted failed for network issue.");
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	expect(toasterMessage2).toBeDefined();
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.prodServerNetworkError.resetHandlers();
 	mock.prodServerNetworkError.close();
@@ -213,6 +213,7 @@ it('render comment item correctly', () => {
 });
 
 it('render hidden comment item correctly', () => {
+	vi.spyOn(common, "isAdmin").mockReturnValue(false);
 	const message = "Wow, this is message";
 	render(
 		<CommentItem

@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import * as common from './common/common';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 it('render when network connection is offline', async () => {
 	
@@ -28,7 +28,7 @@ it('render title text "park108.net" correctly', async () => {
 
 it('render after resize', () => {
 
-	const spyFunction = jest.fn();
+	const spyFunction = vi.fn();
 	window.addEventListener('resize', spyFunction);
 
 	const testHeight = 400;
@@ -42,7 +42,7 @@ it('render after resize', () => {
 
 it('reload page', () => {
 
-	const spyFunction = jest.fn();
+	const spyFunction = vi.fn();
 	window.addEventListener('beforeunload', spyFunction);
 
 	window.dispatchEvent(new Event('beforeunload'));
@@ -60,8 +60,8 @@ describe('click login button', () => {
 
 	it("test logout", async () => {
 	
-		common.isLoggedIn = jest.fn().mockResolvedValue(true);
-		common.isAdmin = jest.fn().mockResolvedValueOnce(true);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValueOnce(true);
 
 		render(<App />);
 
@@ -74,8 +74,8 @@ describe('click login button', () => {
 
 	it("test login", async () => {
 
-		common.isLoggedIn = jest.fn().mockResolvedValueOnce(false);
-		common.isAdmin = jest.fn().mockResolvedValueOnce(false);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValueOnce(false);
+		vi.spyOn(common, "isAdmin").mockResolvedValueOnce(false);
 		
 		render(<App />);
 

@@ -4,8 +4,8 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import Log from '../Log/Log';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const testEntry = {
 	pathname: "/"
@@ -22,8 +22,8 @@ beforeEach(() => {
 
 test('render log has data in session', async () => {
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(false);
-	common.isAdmin = jest.fn().mockResolvedValue(false);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(false);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(false);
 
 	sessionStorage.setItem("logList", JSON.stringify([
 		{"contents":"123456","author":"park108@gmail.com","timestamp":1655736946977}
@@ -53,8 +53,8 @@ test('render log if it logged in', async () => {
 	
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -95,8 +95,8 @@ test('render failed when internal server error on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -121,8 +121,8 @@ test('render failed when network error on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -146,8 +146,8 @@ test('render logs and getting next failed', async () => {
 	
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -176,8 +176,8 @@ test('render logs and getting next error', async () => {
 	
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>

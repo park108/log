@@ -3,8 +3,8 @@ import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import Search from './Search';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const testEntry = {
 	pathname: "/log/search"

@@ -4,9 +4,9 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import LogSingle from '../Log/LogSingle';
 
-console.log = jest.fn();
-console.warn = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.warn = vi.fn();
+console.error = vi.fn();
 
 const testEntry = {
 	pathname: "/log"
@@ -16,8 +16,8 @@ const testEntry = {
 	, key: "default"
 };
 	
-jest.mock('react-router-dom', () => ({
-	...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+	...await vi.importActual('react-router-dom'),
 	useParams: () => ({ timestamp: '1656034616036' }),
 }));
 
@@ -45,15 +45,15 @@ it('render LogSingle on prod server', async () => {
 	sessionStorage.setItem("logList", JSON.stringify(logFromServer));
 	sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestampFromServer));
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+	vi.spyOn(window, 'confirm').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 		return true;
 	});
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	render(
 		<MemoryRouter initialEntries={[ testEntry ]}>
@@ -66,7 +66,7 @@ it('render LogSingle on prod server', async () => {
 	fireEvent.click(toListButton);
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	const deleteButton = await screen.findByText("Delete");
@@ -74,20 +74,20 @@ it('render LogSingle on prod server', async () => {
 	fireEvent.click(deleteButton);
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	const afterDelete = await screen.findByText("The log is deleted.");
 	expect(afterDelete).toBeInTheDocument();
 
 	act(() => {
-		jest.runOnlyPendingTimers();
+		vi.runOnlyPendingTimers();
 	});
 
 	const afterDeleteTimer = await screen.findByText("Deleted");
 	expect(afterDeleteTimer).toBeInTheDocument();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();
@@ -98,8 +98,8 @@ it('render LogSingle on dev server', async () => {
 	mock.devServerOk.listen();
 	process.env.NODE_ENV = 'development';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	const testEntry = {
 		pathname: "/log/1656034616036?search=true"
@@ -128,8 +128,8 @@ it('get OK delete failed', async () => {
 	mock.devServerGetOkDeleteFailed.listen();
 	process.env.NODE_ENV = 'development';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	const testEntry = {
 		pathname: "/log/1656034616036"
@@ -151,7 +151,7 @@ it('get OK delete failed', async () => {
 	const contents = await screen.findByText("consectetur adipiscing elit. Duis vel urna mollis arcu suscipit ultricies eu eget dolor. Integer in enim sed lectus cursus aliquam. Ut porttitor augue nec auctor scelerisque. Pellentesque tellus tortor, tempus cursus ipsum et, fringilla efficitur risus. Nunc a sollicitudin nibh. Praesent placerat, libero eget fermentum fermentum, arcu ipsum euismod purus, ac vestibulum libero enim et lorem. Curabitur non urna vel massa suscipit molestie nec vitae ligula. Suspendisse quam augue, convallis sed magna ac, cursus convallis purus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vivamus sit amet feugiat est, id cursus purus. Nullam sollicitudin a enim sed imperdiet.");
 	expect(contents).toBeInTheDocument();
 
-	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+	vi.spyOn(window, 'confirm').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 		return true;
 	});
@@ -160,7 +160,7 @@ it('get OK delete failed', async () => {
 	expect(deleteButton).toBeInTheDocument();
 	fireEvent.click(deleteButton);
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerGetOkDeleteFailed.resetHandlers();
 	mock.devServerGetOkDeleteFailed.close();
@@ -171,8 +171,8 @@ it('get OK delete failed', async () => {
 	mock.devServerGetOkDeleteNetworkError.listen();
 	process.env.NODE_ENV = 'development';
   
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	const testEntry = {
 		pathname: "/log/1656034616036"
@@ -188,7 +188,7 @@ it('get OK delete failed', async () => {
 		</MemoryRouter>
 	);
 
-	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+	vi.spyOn(window, 'confirm').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 		return true;
 	});
@@ -197,7 +197,7 @@ it('get OK delete failed', async () => {
 	expect(deleteButton).toBeInTheDocument();
 	fireEvent.click(deleteButton);
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerGetOkDeleteNetworkError.resetHandlers();
 	mock.devServerGetOkDeleteNetworkError.close();

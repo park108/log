@@ -3,8 +3,8 @@ import { MemoryRouter } from 'react-router-dom';
 import Navigation from './Navigation';
 import * as common from './common';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 describe('render navigation menu correctly', () => {
 
@@ -13,8 +13,8 @@ describe('render navigation menu correctly', () => {
 	it('render title menu correctly', () => {
 
 		// Mocking login and admin check
-		common.isLoggedIn = jest.fn().mockResolvedValue(false);
-		common.isAdmin = jest.fn().mockResolvedValue(false);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(false);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(false);
 
 		const testEntry = {
 			pathname: "/log"
@@ -41,8 +41,8 @@ describe('render navigation menu correctly', () => {
 	it('render file menu correctly', () => {
 
 		// Mocking login and admin check
-		common.isLoggedIn = jest.fn().mockResolvedValue(true);
-		common.isAdmin = jest.fn().mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 		const testEntry = {
 			pathname: "/file"
@@ -77,8 +77,8 @@ describe('render navigation menu correctly', () => {
 	it('render monitor menu correctly', async () => {
 
 		// Mocking login and admin check
-		common.isLoggedIn = jest.fn().mockResolvedValue(true);
-		common.isAdmin = jest.fn().mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 		const testEntry = {
 			pathname: "/monitor"

@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import ApiCallItem from './ApiCallItem';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const stackPallet = {
 	pallet: "Red to Green",

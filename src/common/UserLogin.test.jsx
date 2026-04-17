@@ -26,8 +26,8 @@ describe('reder UserLogin by stage', () => {
   it("render test stage logout menu correctly", () => {
     process.env.NODE_ENV = "development";
 
-    common.isLoggedIn = jest.fn().mockResolvedValue(true);
-    common.isAdmin = jest.fn().mockResolvedValue(true);
+    vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+    vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
     render(<UserLogin />);
     const menu = screen.getByText("👨‍💻 Jongkil Park");
@@ -38,8 +38,8 @@ describe('reder UserLogin by stage', () => {
   it("render prod stage logout menu correctly", () => {
     process.env.NODE_ENV = "production";
 
-    common.isLoggedIn = jest.fn().mockResolvedValue(true);
-    common.isAdmin = jest.fn().mockResolvedValue(true);
+    vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+    vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
     render(<UserLogin />);
     const menu = screen.getByText("👨‍💻 Jongkil Park");

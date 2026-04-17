@@ -4,8 +4,8 @@ import * as mock from './api.mock';
 import LogItem from './LogItem';
 import * as common from '../common/common';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 it('render log item correctly', async () => {
 
@@ -23,9 +23,9 @@ it('render log item correctly', async () => {
 		,"author":"park108@gmail.com"
 	}
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
-	document.execCommand = jest.fn();
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	document.execCommand = vi.fn();
 
 	process.env.NODE_ENV = 'production';
 
@@ -50,13 +50,13 @@ it('render log item correctly', async () => {
 	);
 	
 	// Button click tests
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	const linkCopyButton = await screen.findByTestId("link-copy-button");
 	expect(linkCopyButton).toBeInTheDocument();
 	fireEvent.click(linkCopyButton);
 
-	jest.runOnlyPendingTimers();
+	vi.runOnlyPendingTimers();
 
 	const versionsButton = await screen.findByTestId("versions-button");
 	expect(versionsButton).toBeDefined();
@@ -81,7 +81,7 @@ it('render log item correctly', async () => {
 	fireEvent.mouseOut(linkUrl);
 	fireEvent.mouseOut(linkUrl); // Already class changed
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 });
 
 it('render log item and delete failed correctly', async () => {
@@ -103,8 +103,8 @@ it('render log item and delete failed correctly', async () => {
 		,"author":"park108@gmail.com"
 	}
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	const testEntry = {
 		pathname: "/log"
@@ -126,22 +126,22 @@ it('render log item and delete failed correctly', async () => {
 		</MemoryRouter>
 	);
 	
-	jest.useFakeTimers();
-	window.confirm = jest.fn(() => false);
+	vi.useFakeTimers();
+	window.confirm = vi.fn(() => false);
 
 	const deleteButton = screen.getByTestId("delete-button");
 	expect(deleteButton).toBeDefined();
 	fireEvent.click(deleteButton);
 
-	window.confirm = jest.fn(() => true);
+	window.confirm = vi.fn(() => true);
 	expect(deleteButton).toBeDefined();
 	fireEvent.click(deleteButton);
 
-	jest.runOnlyPendingTimers();
+	vi.runOnlyPendingTimers();
 
 	const afterDelete = await screen.findByText("Delete");
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerFailed.resetHandlers();
 	mock.devServerFailed.close();
@@ -166,8 +166,8 @@ it('render log item and delete network error', async () => {
 		,"author":"park108@gmail.com"
 	}
 
-	common.isLoggedIn = jest.fn().mockResolvedValue(true);
-	common.isAdmin = jest.fn().mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
 	const testEntry = {
 		pathname: "/log"
@@ -189,18 +189,18 @@ it('render log item and delete network error', async () => {
 		</MemoryRouter>
 	);
 	
-	jest.useFakeTimers();
-	window.confirm = jest.fn(() => true);
+	vi.useFakeTimers();
+	window.confirm = vi.fn(() => true);
 
 	const deleteButton = screen.getByTestId("delete-button");
 	expect(deleteButton).toBeDefined();
 	fireEvent.click(deleteButton);
 
-	jest.runOnlyPendingTimers();
+	vi.runOnlyPendingTimers();
 
 	const afterDelete = await screen.findByText("Delete");
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerNetworkError.resetHandlers();
 	mock.devServerNetworkError.close();
@@ -211,11 +211,11 @@ it('parse unordered list tag correctly', () => {
 	const contents = "list item test contents";
 	const markdownText = "- " + contents;
 
-	render(<LogItem 
+	render(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
-		contents={markdownText}    
-	/>);
+		contents={markdownText}
+	/></MemoryRouter>);
 
 	const html = screen.getByText(contents).closest('ul');
 
@@ -232,11 +232,11 @@ it('parse ordered list tag correctly', () => {
 	const contents = "list item test contents";
 	const markdownText = "1. " + contents;
 
-	render(<LogItem 
+	render(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
-		contents={markdownText}    
-	/>);
+		contents={markdownText}
+	/></MemoryRouter>);
 
 	const html = screen.getByText(contents).closest('ol');
 
@@ -255,11 +255,11 @@ it('parse image tag correctly', () => {
 	const altText = "alternated text";
 	const markdownText = "![" + altText + "](" + url + " \"" + titleText + "\")";
 
-	render(<LogItem 
+	render(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
 		contents={markdownText}
-	/>);
+	/></MemoryRouter>);
 
 	const html = screen.getByRole('img');
 
@@ -278,11 +278,11 @@ it('parse anchor tag correctly', () => {
 	const text = "linked text";
 	const markdownText = "[" + text + "](" + url + " \"" + titleText + "\")";
 
-	render(<LogItem 
+	render(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
-		contents={markdownText}    
-	/>);
+		contents={markdownText}
+	/></MemoryRouter>);
 
 	const html = screen.getByText(text).closest('a');
 

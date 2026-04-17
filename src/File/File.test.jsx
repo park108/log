@@ -4,8 +4,8 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import File from '../File/File';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const testEntry = {
 	pathname: "/file"
@@ -19,8 +19,8 @@ test('redirect to log when user is not admin', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(false);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(false);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -35,8 +35,8 @@ test('render files but no data on prod server', async () => {
 	
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -57,8 +57,8 @@ test('render files, next files, delete file and confirm on prod server', async (
 	
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -92,7 +92,7 @@ test('render files, next files, delete file and confirm on prod server', async (
 	const buttons = await screen.findAllByRole("button");
 	const firstDeleteButton = buttons[1];
 
-	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+	vi.spyOn(window, 'confirm').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 		return true;
 	});
@@ -100,7 +100,7 @@ test('render files, next files, delete file and confirm on prod server', async (
 	fireEvent.click(firstDeleteButton);
 
 	// Copy URL
-	document.execCommand = jest.fn();
+	document.execCommand = vi.fn();
 	const firstFile = buttons[0];
 	fireEvent.click(firstFile);
 
@@ -112,12 +112,12 @@ test('render failed when internal error on prod server', async () => {
 
 	mock.prodServerFailed.listen();
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -128,12 +128,12 @@ test('render failed when internal error on prod server', async () => {
 	const failMessage = await screen.findByText("Get files failed.");
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	expect(failMessage).toBeDefined();
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.prodServerFailed.resetHandlers();
 	mock.prodServerFailed.close();
@@ -145,8 +145,8 @@ test('render failed when network error on prod server', async () => {
 
 	process.env.NODE_ENV = 'production';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -167,9 +167,9 @@ test('render files and get next files failed on dev server', async () => {
 	
 	process.env.NODE_ENV = 'development';
 
-	common.isLoggedIn = jest.fn().mockReturnValue(true);
-	common.isAdmin = jest.fn().mockReturnValue(true);
-	common.isMobile = jest.fn().mockReturnValue(true); // Mobile UI test
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
+	vi.spyOn(common, "isMobile").mockReturnValue(true); // Mobile UI test
 
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
@@ -183,7 +183,7 @@ test('render files and get next files failed on dev server', async () => {
 
 	mock.devServerFailed.listen();
 
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 
 	const seeMoreButton = await screen.findByTestId("seeMoreButton");
 	expect(seeMoreButton).toBeDefined();
@@ -192,7 +192,7 @@ test('render files and get next files failed on dev server', async () => {
 	const failMessage = await screen.findByText("Get more files failed.");
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	expect(failMessage).toBeDefined();
@@ -201,7 +201,7 @@ test('render files and get next files failed on dev server', async () => {
 	const buttons = await screen.findAllByRole("button");
 	const firstDeleteButton = buttons[1];
 
-	jest.spyOn(window, 'confirm').mockImplementation((message) => {
+	vi.spyOn(window, 'confirm').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 		return true;
 	});
@@ -224,7 +224,7 @@ test('render files and get next files failed on dev server', async () => {
 	const failMessage2 = await screen.findByText("Get more files failed for network issue.");
 
 	act(() => {
-		jest.runAllTimers();
+		vi.runAllTimers();
 	});
 
 	expect(failMessage2).toBeDefined();
@@ -238,7 +238,7 @@ test('render files and get next files failed on dev server', async () => {
 	const toasterErrorText2 = await screen.findByText("Upload file failed for network issue.");
 	expect(toasterErrorText2).toBeInTheDocument();
 	
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerNetworkError.resetHandlers();
 	mock.devServerNetworkError.close();

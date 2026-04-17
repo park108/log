@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import ContentItem from '../Monitor/ContentItem';
 
-console.log = jest.fn();
-console.error = jest.fn();
+console.log = vi.fn();
+console.error = vi.fn();
 
 const stackPallet = {
 	pallet: "Red to Green",
@@ -22,7 +22,7 @@ it('render log on dev server', async () => {
 
 	mock.devServerOk.listen();
 
-	jest.useFakeTimers('modern')
+	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
 	process.env.NODE_ENV = 'development';
@@ -32,7 +32,7 @@ it('render log on dev server', async () => {
 	const text = await screen.findByText("'22.01");
 	expect(text).toBeInTheDocument();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerOk.resetHandlers();
 	mock.devServerOk.close();
@@ -42,7 +42,7 @@ it('render log with no data on dev server', async () => {
 
 	mock.devServerHasNoCount.listen();
 
-	jest.useFakeTimers('modern')
+	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
 	process.env.NODE_ENV = 'development';
@@ -52,7 +52,7 @@ it('render log with no data on dev server', async () => {
 	const text = await screen.findAllByText("0");
 	expect(text[0]).toBeInTheDocument();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerHasNoCount.resetHandlers();
 	mock.devServerHasNoCount.close();
@@ -62,7 +62,7 @@ it('render log failed on dev server', async () => {
 
 	mock.devServerFailed.listen();
 
-	jest.useFakeTimers('modern')
+	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
 	process.env.NODE_ENV = 'development';
@@ -74,7 +74,7 @@ it('render log failed on dev server', async () => {
 
 	fireEvent.click(retryButton);
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerFailed.resetHandlers();
 	mock.devServerFailed.close();
@@ -84,7 +84,7 @@ it('render log network error on dev server', async () => {
 
 	mock.devServerNetworkError.listen();
 
-	jest.useFakeTimers('modern')
+	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
 	process.env.NODE_ENV = 'development';
@@ -94,7 +94,7 @@ it('render log network error on dev server', async () => {
 	const retryButton = await screen.findByText("Retry");
 	expect(retryButton).toBeInTheDocument();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerNetworkError.resetHandlers();
 	mock.devServerNetworkError.close();
@@ -105,7 +105,7 @@ it('render file on dev server', async () => {
 
 	mock.devServerOk.listen();
 
-	jest.useFakeTimers('modern')
+	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
 	process.env.NODE_ENV = 'development';
@@ -115,7 +115,7 @@ it('render file on dev server', async () => {
 	const text = await screen.findByText("Loading...");
 	expect(text).toBeInTheDocument();
 
-	jest.useRealTimers();
+	vi.useRealTimers();
 
 	mock.devServerOk.resetHandlers();
 	mock.devServerOk.close();

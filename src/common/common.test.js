@@ -1,7 +1,7 @@
 import * as common from './common';
 
-console.error = jest.fn();
-console.log = jest.fn();
+console.error = vi.fn();
+console.log = vi.fn();
 
 describe('set HTML page title', () => {
   
@@ -87,7 +87,7 @@ it('test auth', () => {
 	let currentLocation = window.location; // Backup current location
 
 	const mockLocation = new URL("http://localhost:3000");
-	mockLocation.replace = jest.fn();
+	mockLocation.replace = vi.fn();
 	mockLocation.href += "?abcde=abcde&access_token=12345#id_token=67890&abcdef=abcdef";
 	delete window.location;
 	window.location = mockLocation;
@@ -107,6 +107,8 @@ it('test auth', () => {
 describe('login test', () => {
 
 	it("is not logged", () => {
+		common.deleteCookie("access_token");
+		common.deleteCookie("id_token");
 		expect(false).toBe(common.isLoggedIn());
 	});
 
@@ -461,7 +463,7 @@ describe('User Agent parsing test', () => {
 
 it('copy no string into clipboard not mobile', () => {
 
-	document.execCommand = jest.fn();
+	document.execCommand = vi.fn();
 	common.copyToClipboard(); // Set undefined value to copy
 	common.copyToClipboard("Test"); // Set value to copy
 });

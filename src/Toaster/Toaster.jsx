@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { v4 as uuid } from 'uuid';
 import PropTypes from 'prop-types';
 
 import './Toaster.css';
@@ -32,7 +31,7 @@ const SHOW_STYLE = [
 
 const Toaster = (props) => {
 
-	const id = uuid();
+	const id = crypto.randomUUID();
 
 	const duration = props.duration;
 	const show = props.show;
