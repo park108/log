@@ -1,14 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import PropTypes from 'prop-types';
 
 import styles from './Toaster.module.css';
-
-const hideToaster = (id) => {
-	const el = document.getElementById(id);
-	if(null !== el) {
-		el.className = styles.divToasterHide;
-	}
-}
 
 const POSITION_STYLE = {
 	"center": styles.divToasterCenter,
@@ -32,7 +25,8 @@ const SHOW_STYLE = [
 
 const Toaster = (props) => {
 
-	const id = crypto.randomUUID();
+	const divRef = useRef(null);
+	const timerRef = useRef(null);
 
 	const duration = props.duration;
 	const show = props.show;
@@ -41,18 +35,31 @@ const Toaster = (props) => {
 	const type = props.type;
 
 	useEffect(() => {
-		if(1 === show) {
-			if(duration > 0) {
-				setTimeout(props.completed, duration);
+		if (timerRef.current) {
+			clearTimeout(timerRef.current);
+			timerRef.current = null;
+		}
+		if (1 === show) {
+			if (duration > 0) {
+				timerRef.current = setTimeout(props.completed, duration);
 			}
+		} else if (2 === show) {
+			timerRef.current = setTimeout(() => {
+				if (divRef.current) {
+					divRef.current.classList.add(styles.divToasterHide);
+				}
+			}, 1000);
 		}
-		else if(2 === show) {
-			setTimeout(() => { hideToaster(id) }, 1000);
-		}
+		return () => {
+			if (timerRef.current) {
+				clearTimeout(timerRef.current);
+				timerRef.current = null;
+			}
+		};
 	}, [show]);
 
 	return (
-		<div id={id}
+		<div ref={divRef}
 			className={ [POSITION_STYLE[position], TYPE_STYLE[type], SHOW_STYLE[show]].filter(Boolean).join(' ') }
 			role="alert"
 			data-position={position ?? 'center'}

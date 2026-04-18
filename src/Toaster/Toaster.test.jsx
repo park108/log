@@ -80,7 +80,6 @@ it('render success Toaster faded out', async () => {
 	/>);
 
 	const toaster = await screen.findByText("Test message");
-	document.getElementById = vi.fn().mockReturnValue(null);
 
 	vi.advanceTimersByTime(2000);
 
@@ -88,6 +87,121 @@ it('render success Toaster faded out', async () => {
 	expect(toaster).toHaveClass(styles.divToasterSuccess);
 	expect(toaster).toHaveClass(styles.divToasterFadeout);
 
+	vi.runOnlyPendingTimers();
+	vi.useRealTimers();
+});
+
+it('preserves position/type classes after hide (show=2 + timeout)', () => {
+	vi.useFakeTimers();
+
+	render(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		show={2}
+	/>);
+
+	const toaster = screen.getByRole('alert');
+	vi.advanceTimersByTime(1000);
+
+	expect(toaster).toHaveClass(styles.divToasterBottom);
+	expect(toaster).toHaveClass(styles.divToasterSuccess);
+	expect(toaster).toHaveClass(styles.divToasterHide);
+
+	vi.runOnlyPendingTimers();
+	vi.useRealTimers();
+});
+
+it('keeps the same DOM node across rerenders (ref stability)', () => {
+	const { rerender } = render(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		show={1}
+	/>);
+
+	const first = screen.getByRole('alert');
+
+	rerender(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		show={2}
+	/>);
+	const second = screen.getByRole('alert');
+
+	rerender(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		show={1}
+	/>);
+	const third = screen.getByRole('alert');
+
+	expect(second).toBe(first);
+	expect(third).toBe(first);
+});
+
+it('clears the previous timeout when show transitions 1 -> 2', () => {
+	vi.useFakeTimers();
+	const clearSpy = vi.spyOn(global, 'clearTimeout');
+
+	const completed = vi.fn();
+	const { rerender } = render(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		duration={5000}
+		show={1}
+		completed={completed}
+	/>);
+
+	const callsAfterShow1 = clearSpy.mock.calls.length;
+
+	rerender(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		duration={5000}
+		show={2}
+		completed={completed}
+	/>);
+
+	// Cleanup of show=1 effect plus the defensive clear at the top of the show=2 effect
+	// should both fire — so at least one extra clearTimeout call is observed.
+	expect(clearSpy.mock.calls.length).toBeGreaterThan(callsAfterShow1);
+
+	clearSpy.mockRestore();
+	vi.runOnlyPendingTimers();
+	vi.useRealTimers();
+});
+
+it('does not call document.getElementById', () => {
+	vi.useFakeTimers();
+	const getByIdSpy = vi.spyOn(document, 'getElementById');
+
+	const { rerender, unmount } = render(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		show={1}
+		duration={500}
+		completed={() => {}}
+	/>);
+
+	rerender(<Toaster
+		message={"Test message"}
+		position={"bottom"}
+		type={"success"}
+		show={2}
+	/>);
+
+	vi.advanceTimersByTime(2000);
+
+	expect(getByIdSpy).toHaveBeenCalledTimes(0);
+
+	unmount();
+	getByIdSpy.mockRestore();
 	vi.runOnlyPendingTimers();
 	vi.useRealTimers();
 });
