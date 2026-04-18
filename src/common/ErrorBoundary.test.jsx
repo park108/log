@@ -11,14 +11,24 @@ function Bomb({ shouldThrow }) {
 describe('ErrorBoundary', () => {
 
 	let consoleErrorSpy;
+	let stderrWriteSpy;
 
-	beforeEach(() => {
-		// Suppress React's internal error logs emitted from ErrorBoundary catches.
+	beforeAll(() => {
+		// File-scope suppression of intentional render-error noise from this test file.
+		// React 18 logs a "Consider adding an error boundary" hint via console.error on
+		// every caught render error; jsdom 29 additionally re-emits the raw Error stack
+		// through the callTheUserObjectsOperation path directly to process.stderr,
+		// bypassing the console spy. We mute both here so CI logs only surface real
+		// regressions. Scope is deliberately limited to this describe block via
+		// beforeAll/afterAll — NOT moved to setupFiles — so other test files retain
+		// their ability to assert on console.error / stderr output.
 		consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		stderrWriteSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 	});
 
-	afterEach(() => {
+	afterAll(() => {
 		consoleErrorSpy.mockRestore();
+		stderrWriteSpy.mockRestore();
 	});
 
 	it('renders children when no error is thrown', () => {
