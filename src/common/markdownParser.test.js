@@ -48,6 +48,30 @@ describe('MD parsing test', () => {
 		expect(result).toBe("<p><img src='https://www.example.com' alt='ALT_TEXT' title='TITLE' /></p>");
 	});
 
+	it("escapes single quote in IMG alt (attribute boundary guard)", () => {
+		// TSK-20260418-20 / REQ-20260418-001 FR-07 — parser-level escape
+		const result = parser.markdownToHtml("![a'b](https://example.com/u.png \"t\")");
+		expect(result).toContain("alt='a&#39;b'");
+	});
+
+	it("escapes < and > in IMG url (attribute boundary guard)", () => {
+		const result = parser.markdownToHtml("![x](https://example.com/u.png?a=<script> \"t\")");
+		expect(result).toContain("src='https://example.com/u.png?a=&lt;script&gt;'");
+	});
+
+	it("escapes double quote in IMG title (attribute boundary guard)", () => {
+		// The parser's title syntax consumes up to the closing ")` pair, so an
+		// internal `"` never reaches the emitter; instead we verify a string with
+		// an already-embedded `"` inside url survives escape into `&quot;`.
+		const result = parser.markdownToHtml("![a](https://example.com/u.png?q=\"v\" \"t\")");
+		expect(result).toContain("&quot;");
+	});
+
+	it("escapes & in anchor href (attribute boundary guard)", () => {
+		const result = parser.markdownToHtml("[x](https://example.com/?a=1&b=2 \"t\")");
+		expect(result).toContain("href='https://example.com/?a=1&amp;b=2'");
+	});
+
 	it("test parsing STRONG", () => {
 		const result = parser.markdownToHtml("** STRONG **");
 		expect(result).toBe("<p><strong> STRONG </strong></p>");

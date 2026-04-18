@@ -1,5 +1,19 @@
 import { codeHighlighter } from './codeHighlighter';
 
+// Escape the five characters that would let a user-controlled value break
+// out of a single-quoted HTML attribute context (or an attribute name).
+// Used by the <img> and <a> emitters below as a defense-in-depth layer
+// on top of sanitizeHtml at render time (REQ-20260418-001 FR-07).
+const escapeHtmlAttr = (s) => {
+	if(s === undefined || s === null) return '';
+	return String(s)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+};
+
 // Compute indentation depth of a list item line.
 // - Leading tabs take precedence: 1 tab = depth+1.
 // - When no leading tabs are present, floor(leading spaces / 2) = depth.
@@ -251,7 +265,8 @@ export const markdownToHtml = (input) => {
 					let title = node.text.substring(image3 + 2, image4);
 
 					node.text = node.text.replace(searchedText,
-						"<img src='" + url + "' alt='" + alt + "' title='" + title + "' />");
+						"<img src='" + escapeHtmlAttr(url) + "' alt='" + escapeHtmlAttr(alt) +
+						"' title='" + escapeHtmlAttr(title) + "' />");
 					searchIndex = image4 + 20;
 				}
 				else {
@@ -288,7 +303,8 @@ export const markdownToHtml = (input) => {
 					let title = node.text.substring(a3 + 2, a4);
 
 					node.text = node.text.replace(searchedText,
-						"<a href='" + url + "' title='" + title + "' target='_blank' rel='noreferrer'>" + text + "</a>");
+						"<a href='" + escapeHtmlAttr(url) + "' title='" + escapeHtmlAttr(title) +
+						"' target='_blank' rel='noreferrer'>" + text + "</a>");
 					searchIndex = a4 + 48;
 				}
 				else {
