@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from 'prop-types';
 import styles from './ImageSelector.module.css';
 
@@ -10,31 +10,26 @@ const ImageItem = (props) => {
 	const baseClass = `img ${styles.imgImageImageitem}`;
 	const selectedClass = `img ${styles.imgImageImageitem} ${styles.imgImageSelected}`;
 
+	const [isEnlarged, setIsEnlarged] = useState(false);
+
+	const className = isEnlarged ? selectedClass : baseClass;
+	const src = isEnlarged ? fullsizeImageUrl : thumbnailImageUrl;
+
 	return (
-		<img className={baseClass}
+		<img className={className}
 			data-testid="imageItem"
 			role="listitem"
-			src={thumbnailImageUrl}
+			src={src}
 			alt={props.fileName}
 			title={props.fileName}
 			imageurl={fullsizeImageUrl}
 			thumbnailurl={thumbnailImageUrl}
-			enlarged={"N"}
+			data-enlarged={isEnlarged ? "Y" : "N"}
 			onClick={(e) => {
-
-				const isEnlarged = ("Y" === e.target.getAttribute("enlarged"));
-
-				if(isEnlarged) {
+				if (isEnlarged) {
 					props.copyMarkdownString(e);
-					e.target.setAttribute("enlarged", "N");
-					e.target.setAttribute("src", thumbnailImageUrl);
-					e.target.setAttribute("class", baseClass);
 				}
-				else {
-					e.target.setAttribute("enlarged", "Y");
-					e.target.setAttribute("src", fullsizeImageUrl);
-					e.target.setAttribute("class", selectedClass);
-				}
+				setIsEnlarged((prev) => !prev);
 			}}
 		/>
 	);
