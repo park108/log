@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, act } from '@testing-library/react';
+import { fireEvent, render, screen, act, waitFor } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
 import { Router, MemoryRouter } from 'react-router-dom';
@@ -7,6 +7,14 @@ import * as common from '../common/common';
 
 console.log = vi.fn();
 console.error = vi.fn();
+
+beforeEach(() => {
+	Object.defineProperty(navigator, 'clipboard', {
+		value: { writeText: vi.fn().mockResolvedValue(undefined) },
+		configurable: true,
+		writable: true,
+	});
+});
 
 it('redirect if not admin', async () => {
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
@@ -30,7 +38,6 @@ test('create log ok on prod server', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -81,7 +88,6 @@ test('create log failed on prod server', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -132,7 +138,6 @@ test('create log network error on prod server', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -183,7 +188,6 @@ it('edit log ok on dev server', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -236,7 +240,6 @@ it('edit log failed on dev server', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -289,7 +292,6 @@ it('edit log network error on dev server', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -339,7 +341,6 @@ describe("Writer preview sanitizes rendered markdown HTML", () => {
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-		document.execCommand = vi.fn();
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -392,7 +393,6 @@ test('event testing', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	const testEntry = {
 		pathname: "/log/write"
@@ -456,4 +456,41 @@ test('event testing', async () => {
 	vi.runOnlyPendingTimers();
 
 	vi.useRealTimers();
+});
+
+test('copyMarkdownString shows error Toaster when clipboard write rejects', async () => {
+
+	Object.defineProperty(navigator, 'clipboard', {
+		value: {
+			writeText: vi.fn().mockRejectedValueOnce(new Error('permission denied')),
+		},
+		configurable: true,
+		writable: true,
+	});
+
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+
+	const testEntry = {
+		pathname: "/log/write",
+		state: null,
+	};
+
+	render(
+		<div id="root" className="div fullscreen">
+			<MemoryRouter initialEntries={[testEntry]}>
+				<Writer />
+			</MemoryRouter>
+		</div>
+	);
+
+	const aButton = await screen.findByTestId("a-button");
+	expect(aButton).toBeDefined();
+	fireEvent.click(aButton);
+
+	await waitFor(async () => {
+		const err = await screen.findByText(/Copy failed \(permission denied or unavailable\)/);
+		expect(err).toBeDefined();
+	});
 });

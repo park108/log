@@ -239,16 +239,20 @@ const Writer = () => {
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
-	const copyMarkdownString = (e) => {
+	const copyMarkdownString = async (e) => {
 		e.preventDefault();
 		const tag = e.target.value;
 
-		let markdownString = MARKDOWN_STRING_TEMPLATE[tag];
+		const markdownString = MARKDOWN_STRING_TEMPLATE[tag];
 
-		copyToClipboard(markdownString);
-
-		setToasterType("information");
-		setToasterMessage("Markdown string copied.");
+		const ok = await copyToClipboard(markdownString);
+		if (ok) {
+			setToasterType("information");
+			setToasterMessage("Markdown string copied.");
+		} else {
+			setToasterType("error");
+			setToasterMessage("Copy failed (permission denied or unavailable).");
+		}
 		setIsShowToaster(1);
 	}
 
