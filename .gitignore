@@ -28,3 +28,4 @@ yarn-error.log*
 specs/followups
 specs/requirements
 specs/task
+/.claude/scheduled_tasks.lock
