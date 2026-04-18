@@ -20,6 +20,7 @@ const ImageSelector = (props) => {
 	
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
+	const [toasterType, setToasterType] = useState("warning");
 
 	useEffect(() => {
 
@@ -149,12 +150,18 @@ const ImageSelector = (props) => {
 							key={data.key}
 							fileName={data.key}
 							url={data.url}
-							copyMarkdownString={(e) => {
+							copyMarkdownString={async (e) => {
 								const url = e.target.getAttribute("imageurl");
 								const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
-						
-								copyToClipboard(imageForMarkdown);
-								setToasterMessage("Markdown string copied.");
+
+								const ok = await copyToClipboard(imageForMarkdown);
+								if (ok) {
+									setToasterType("warning");
+									setToasterMessage("Markdown string copied.");
+								} else {
+									setToasterType("error");
+									setToasterMessage("Copy failed (permission denied or unavailable).");
+								}
 								setIsShowToaster(1);
 							}}
 						/>
@@ -162,12 +169,12 @@ const ImageSelector = (props) => {
 
 					{ seeMoreButton }
 					
-					<Toaster 
+					<Toaster
 						show={isShowToaster}
 						message={toasterMessage}
 						position={"bottom"}
-						type={"warning"}
-						duration={2000}				
+						type={toasterType}
+						duration={2000}
 						completed={() => setIsShowToaster(2)}
 					/>
 				</div>
