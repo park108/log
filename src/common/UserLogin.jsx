@@ -1,14 +1,15 @@
 import React from "react";
 import * as common from '../common/common';
+import { isDev, isProd } from './env';
 
 export const getLoginUrl = () => {
-	if ('production' === process.env.NODE_ENV) return import.meta.env.VITE_COGNITO_LOGIN_URL_PROD;
-	if ('development' === process.env.NODE_ENV) return import.meta.env.VITE_COGNITO_LOGIN_URL_DEV;
+	if (isProd) return import.meta.env.VITE_COGNITO_LOGIN_URL_PROD;
+	if (isDev) return import.meta.env.VITE_COGNITO_LOGIN_URL_DEV;
 }
 
 export const getLogoutUrl = () => {
-	if ('production' === process.env.NODE_ENV) return import.meta.env.VITE_COGNITO_LOGOUT_URL_PROD;
-	if ('development' === process.env.NODE_ENV) return import.meta.env.VITE_COGNITO_LOGOUT_URL_DEV;
+	if (isProd) return import.meta.env.VITE_COGNITO_LOGOUT_URL_PROD;
+	if (isDev) return import.meta.env.VITE_COGNITO_LOGOUT_URL_DEV;
 }
 
 const UserLogin = () => {
@@ -20,7 +21,7 @@ const UserLogin = () => {
 			className="span span--login-text"
 			onClick={(e) => {
 				e.preventDefault();
-				
+
 				if(common.isLoggedIn()) {
 					common.deleteCookie("access_token");
 					window.location.href = getLogoutUrl();
