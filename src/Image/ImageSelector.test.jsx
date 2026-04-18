@@ -125,6 +125,66 @@ it('render image selector when network error', async () => {
 	mock.prodServerNetworkError.close();
 });
 
+describe('keyboard a11y (REQ-20260418-017 FR-07, REQ-20260418-029, accessibility-spec §2.1 #8)', () => {
+
+	it('Retry 요소에 tabIndex=0 과 role="button" 이 부여된다', async () => {
+
+		mock.devServerFailed.listen();
+		process.env.NODE_ENV = 'development';
+
+		render(<ImageSelector show={true} />);
+
+		const retrySpan = await screen.findByText('Retry');
+		expect(retrySpan.getAttribute('tabindex')).toBe('0');
+		expect(retrySpan.getAttribute('role')).toBe('button');
+
+		mock.devServerFailed.resetHandlers();
+		mock.devServerFailed.close();
+	});
+
+	it('Enter 키로 Retry 가 활성화되어 "Failed getting images" 가 사라진다', async () => {
+
+		mock.devServerFailed.listen();
+		process.env.NODE_ENV = 'development';
+
+		render(<ImageSelector show={true} />);
+
+		const failMessage = await screen.findByText('Failed getting images');
+		expect(failMessage).toBeDefined();
+
+		const retrySpan = await screen.findByText('Retry');
+		fireEvent.keyDown(retrySpan, { key: 'Enter' });
+
+		await waitFor(() => {
+			expect(screen.queryByText('Failed getting images')).toBeNull();
+		});
+
+		mock.devServerFailed.resetHandlers();
+		mock.devServerFailed.close();
+	});
+
+	it('Space 키로 Retry 가 활성화되어 "Failed getting images" 가 사라진다', async () => {
+
+		mock.devServerFailed.listen();
+		process.env.NODE_ENV = 'development';
+
+		render(<ImageSelector show={true} />);
+
+		const failMessage = await screen.findByText('Failed getting images');
+		expect(failMessage).toBeDefined();
+
+		const retrySpan = await screen.findByText('Retry');
+		fireEvent.keyDown(retrySpan, { key: ' ' });
+
+		await waitFor(() => {
+			expect(screen.queryByText('Failed getting images')).toBeNull();
+		});
+
+		mock.devServerFailed.resetHandlers();
+		mock.devServerFailed.close();
+	});
+});
+
 it('shows error Toaster when clipboard write rejects (REQ-20260418-025 FR-04, US-03)', async () => {
 
 	mock.prodServerOk.listen();

@@ -7,6 +7,14 @@ import Toaster from "../Toaster/Toaster";
 
 import styles from './ImageSelector.module.css';
 
+// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
+const activateOnKey = (handler) => (event) => {
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault();
+		handler(event);
+	}
+};
+
 const ImageSelector = (props) => {
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -132,13 +140,19 @@ const ImageSelector = (props) => {
 	}
 	else {
 		if(isError) {
+			const handleRetry = (e) => {
+				e.preventDefault();
+				setIsError(false);
+			};
 			return (
 				<div className={imageSelectorClass}>
 					<div className={`div ${styles.divImageLoading}`}>Failed getting images</div>
-					<span onClick={(e) => {
-						e.preventDefault();
-						setIsError(false);
-					}}>Retry</span>
+					<span
+						tabIndex={0}
+						role="button"
+						onClick={handleRetry}
+						onKeyDown={activateOnKey(handleRetry)}
+					>Retry</span>
 				</div>
 			);
 		}
