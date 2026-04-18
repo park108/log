@@ -50,10 +50,15 @@ const FileItem = (props) => {
 			: setItemClass("div div--fileitem");
 	}, [isDeleting]);
 
-	const copyFileUrl = () => {
-		copyToClipboard(props.url);
-		setToasterMessage(props.fileName + " URL copied.");
-		setToasterType("success");
+	const copyFileUrl = async () => {
+		const ok = await copyToClipboard(props.url);
+		if (ok) {
+			setToasterMessage(props.fileName + " URL copied.");
+			setToasterType("success");
+		} else {
+			setToasterMessage("Copy failed (permission denied or unavailable).");
+			setToasterType("error");
+		}
 		setIsShowToaster(1);
 	}
 

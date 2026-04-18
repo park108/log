@@ -100,9 +100,46 @@ test('render files, next files, delete file and confirm on prod server', async (
 	fireEvent.click(firstDeleteButton);
 
 	// Copy URL
-	document.execCommand = vi.fn();
+	Object.assign(navigator, {
+		clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+	});
 	const firstFile = buttons[0];
 	fireEvent.click(firstFile);
+
+	const copiedToast = await screen.findByText(/URL copied\.$/);
+	expect(copiedToast).toBeInTheDocument();
+
+	mock.prodServerOk.resetHandlers();
+	mock.prodServerOk.close();
+});
+
+test('copy URL failure shows error Toaster on prod server', async () => {
+
+	mock.prodServerOk.listen();
+
+	process.env.NODE_ENV = 'production';
+
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+	Object.assign(navigator, {
+		clipboard: {
+			writeText: vi.fn().mockRejectedValueOnce(new Error('permission denied')),
+		},
+	});
+
+	render(
+        <MemoryRouter initialEntries={[testEntry]}>
+			<File />
+		</MemoryRouter>
+	);
+
+	const buttons = await screen.findAllByRole("button");
+	const firstFile = buttons[0];
+	fireEvent.click(firstFile);
+
+	const errorToast = await screen.findByText("Copy failed (permission denied or unavailable).");
+	expect(errorToast).toBeInTheDocument();
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();
