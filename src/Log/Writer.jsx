@@ -1,8 +1,8 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
-import { putLog } from './api';
 import { useCreateLog } from './hooks/useCreateLog';
+import { useUpdateLog } from './hooks/useUpdateLog';
 import * as parser from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
 import Toaster from "../Toaster/Toaster";
@@ -43,6 +43,7 @@ const Writer = () => {
 	const navigate = useNavigate();
 
 	const createLogMutation = useCreateLog();
+	const updateLogMutation = useUpdateLog();
 
 	useEffect(() => {
 
@@ -163,53 +164,47 @@ const Writer = () => {
 			);
 		}
 	
-		const editLog = async () => {
-	
-			setIsProcessing(true);
-	
-			try {
-				let newItem = JSON.parse(JSON.stringify(historyData));
-		
-				const changedLogs = [{
-					contents: article,
-					timestamp: Math.floor(new Date().getTime())
-				}, ...newItem.logs];
-		
-				newItem.logs = changedLogs;
-	
-				const res = await putLog(newItem, isTemporary);
-				const status = await res.json();
-	
-				if(200 === status.statusCode) {
-					log("[API PUT] OK - Log", "SUCCESS");
-			
-					setToasterMessage("The log changed.");
-					setIsShowToaster(1);
-	
-					sessionStorage.removeItem("logList");
-					sessionStorage.removeItem("logListLastTimestamp");
-					
-					navigate("/log/" + historyData.timestamp);
-				}
-				else {
-					log("[API PUT] FAILED - Log", "ERROR");
-					log(res, "ERROR");
-					
-					setToasterType("error");
-					setToasterMessage("Editing log failed.");
-					setIsShowToaster(1);
-				}
-			}
-			catch(err) {
-				log("[API PUT] FAILED - Log", "ERROR");
-				log(err, "ERROR");
-					
-				setToasterType("error");
-				setToasterMessage("Editing log network error.");
-				setIsShowToaster(1);
-			}
+		const editLog = () => {
 
-			setIsProcessing(false);
+			setIsProcessing(true);
+
+			let newItem = JSON.parse(JSON.stringify(historyData));
+
+			const changedLogs = [{
+				contents: article,
+				timestamp: Math.floor(new Date().getTime())
+			}, ...newItem.logs];
+
+			newItem.logs = changedLogs;
+
+			updateLogMutation.mutate(
+				{ newItem, isTemporary, timestamp: historyData.timestamp },
+				{
+					onSuccess: () => {
+						log("[API PUT] OK - Log", "SUCCESS");
+
+						setToasterMessage("The log changed.");
+						setIsShowToaster(1);
+
+						setIsProcessing(false);
+						navigate("/log/" + historyData.timestamp);
+					},
+					onError: (err) => {
+						log("[API PUT] FAILED - Log", "ERROR");
+						log(err, "ERROR");
+
+						setToasterType("error");
+						setToasterMessage(
+							err && err.message && err.message.startsWith("PUT /log failed")
+								? "Editing log failed."
+								: "Editing log network error."
+						);
+						setIsShowToaster(1);
+
+						setIsProcessing(false);
+					},
+				}
+			);
 		}
 
 		if(isSubmitted) {
