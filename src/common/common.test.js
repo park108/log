@@ -461,9 +461,30 @@ describe('User Agent parsing test', () => {
 	});
 });
 
-it('copy no string into clipboard not mobile', () => {
+describe("copyToClipboard (async Clipboard API)", () => {
+	afterEach(() => {
+		// navigator 를 재할당해 테스트간 간섭 제거
+		delete navigator.clipboard;
+	});
 
-	document.execCommand = vi.fn();
-	common.copyToClipboard(); // Set undefined value to copy
-	common.copyToClipboard("Test"); // Set value to copy
+	it("returns true and calls writeText on success", async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		Object.assign(navigator, { clipboard: { writeText } });
+		const ok = await common.copyToClipboard("Test");
+		expect(ok).toBe(true);
+		expect(writeText).toHaveBeenCalledWith("Test");
+	});
+
+	it("returns false when writeText rejects", async () => {
+		const writeText = vi.fn().mockRejectedValue(new Error("denied"));
+		Object.assign(navigator, { clipboard: { writeText } });
+		const ok = await common.copyToClipboard("Test");
+		expect(ok).toBe(false);
+	});
+
+	it("returns false when Clipboard API is unavailable", async () => {
+		Object.assign(navigator, { clipboard: undefined });
+		const ok = await common.copyToClipboard("Test");
+		expect(ok).toBe(false);
+	});
 });

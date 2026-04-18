@@ -368,15 +368,17 @@ export const hoverPopup = (e, popupElementId) => {
 }
 
 
-export const copyToClipboard = (valueToClipboard = "") => {
-
-	const tempElem = document.createElement('textarea');
-	tempElem.value = valueToClipboard;  
-	document.body.appendChild(tempElem);
-
-	tempElem.select();
-	document.execCommand("copy");
-	document.body.removeChild(tempElem);
-
-	log("Copy to Clipboard: " + valueToClipboard);
-}
+export const copyToClipboard = async (value = "") => {
+	if (navigator.clipboard?.writeText) {
+		try {
+			await navigator.clipboard.writeText(value);
+			log("Copy to Clipboard: " + value);
+			return true;
+		} catch (err) {
+			log("Clipboard write rejected: " + err.message, "ERROR");
+			return false;
+		}
+	}
+	log("Clipboard API unavailable", "ERROR");
+	return false;
+};
