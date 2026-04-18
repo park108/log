@@ -11,6 +11,14 @@ const HEADER_STYLE = {
 	undefined: "span span--monitor-evaluation span--monitor-none"
 };
 
+// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
+const activateOnKey = (handler) => (event) => {
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault();
+		handler(event);
+	}
+};
+
 const WebVitalsItem = (props) => {
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -128,7 +136,13 @@ const WebVitalsItem = (props) => {
 					<span className="span span--monitor-metric">{ description }</span>
 				</h3>
 				<div className="div div--monitor-processinglow">
-					<span className="span span--monitor-retrybutton" onClick={ () => { setIsMount(false) } } >
+					<span
+						className="span span--monitor-retrybutton"
+						role="button"
+						tabIndex={0}
+						onClick={ () => { setIsMount(false) } }
+						onKeyDown={activateOnKey(() => setIsMount(false))}
+					>
 						Retry
 					</span>
 				</div>
