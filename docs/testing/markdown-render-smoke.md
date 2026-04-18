@@ -241,3 +241,75 @@ console.log(1);
   - [ ] 픽스처 6 코드+인용
 - 비고: 본 문서 도입 baseline. 본 태스크는 문서 추가만 포함하며 런타임 코드 변경이 없어 수동 픽스처 렌더 확인은 수행하지 않았음 (수행 불가가 아닌 범위 외; 다음 렌더 경로 변경 태스크에서 1회 수행 후 체크박스 채움).
 ```
+
+## §LogItem sanitize runtime smoke (F1~F4)
+
+`src/Log/LogItem.jsx` 본문 렌더 경로(`src/common/sanitizeHtml.js` + `src/common/markdownParser.js`) 의 시각 회귀를 dev 런타임에서 1회 baseline 으로 박제하기 위한 수동 스모크 섹션. 트리거 조건은 다음 중 하나라도 변경된 PR:
+
+- `src/common/sanitizeHtml.js` 정책 변경
+- `src/common/markdownParser.js` 변경
+- `src/Log/LogItem.jsx` 렌더 변경
+- 글로벌 CSS (`src/App.css` / `src/Log/Log.css` / `src/styles/index.css`) 중 LogItem 렌더 결과에 영향을 주는 셀렉터 변경
+
+실행 환경: `npm run dev` → 관리자 계정 로그인 → `/log` 에서 임의 항목 진입 후 본문 관찰. 소요: ≤10분 (4 픽스처). Baseline 결과는 본 섹션 하단의 "Baseline 수행 기록" 테이블에 박제한다.
+
+### F1 — 헤더 / 리스트 / 코드블록 / blockquote
+
+- 설명: `/log` 임의 항목에서 본문에 포함된 `#` 헤더, `-` 리스트, 펜스 코드, `>` blockquote 4 요소가 전역 CSS 와 매끄럽게 적용되는지 확인.
+- 관찰 포인트:
+  - 헤더 레벨별 크기/굵기 일관.
+  - UL/OL 마커와 들여쓰기 정상.
+  - 코드 블록 배경·모노스페이스·줄바꿈 정상.
+  - Blockquote 좌측 border·들여쓰기 정상.
+- 체크박스:
+  - [ ] PASS (4요소 모두 정상)
+  - [ ] FAIL — 문제 항목: ____
+- 관찰 노트: ____
+
+### F2 — 외부 링크 (`target="_blank"` + `rel="noopener noreferrer"` 보존)
+
+- 설명: 본문에 외부 링크(예: `[example](https://example.com)`) 가 있는 항목에서, 링크 클릭 시 **새 탭** 에서 열리고 DevTools Elements 에서 `target="_blank"` 와 `rel="noopener noreferrer"` 가 sanitize 후에도 보존됐는지 확인.
+- 관찰 포인트:
+  - 새 탭에서 정상 open.
+  - Elements 에서 `<a target="_blank" rel="noopener noreferrer" href="https://...">` 확인.
+- 체크박스:
+  - [ ] PASS
+  - [ ] FAIL — rel 누락 / target 누락 / href 수정 등 관찰
+- 관찰 노트: ____
+
+### F3 — 이미지 (src / alt / title 보존, broken 0)
+
+- 설명: 임의 `<img>` (또는 마크다운 `![alt](src "title")`) 요소의 3속성 보존 확인.
+- 관찰 포인트:
+  - 이미지 정상 표시 (broken icon 0).
+  - Elements 에서 `src`, `alt`, `title` 3속성 모두 존재.
+- 체크박스:
+  - [ ] PASS
+  - [ ] FAIL
+  - [ ] N/A (해당 항목 내 `<img>` 부재)
+- 관찰 노트: ____
+
+### F4 — 코드 하이라이트 (Should)
+
+- 설명: 인라인 백틱 / 펜스 코드 블록의 시각 폰트·배경·줄바꿈 회귀 0.
+- 관찰 포인트:
+  - 인라인 코드의 배경/폰트 적용.
+  - 펜스 블록이 블록 수준 여백·줄바꿈 유지.
+- 체크박스:
+  - [ ] PASS
+  - [ ] FAIL
+  - [ ] N/A (파서가 하이라이트 미지원 시; spec §13 미결)
+- 관찰 노트: ____
+
+### Baseline 수행 기록
+
+| 일자 | 운영자 | 커밋 | 브라우저 + 버전 | OS | 디스플레이 모드 | F1 | F2 | F3 | F4 | 관찰 메모 |
+|------|--------|------|-----------------|-----|----------------|----|----|----|----|-----------|
+
+> 본 섹션은 TSK-20260418-23 (sanitize 통합) 의 DoD 수동 baseline 항목 해소용 인프라를 제공한다. 실제 1회 수행은 별 task 로 baseline 을 채운다 (REQ-20260418-027 §10 3번 항).
+
+## 변경 이력
+
+| 일자 | TSK | 변경 요약 |
+|------|-----|-----------|
+| 2026-04-19 | TSK-20260419-LOGITEM-SMOKE-SECTION | §LogItem sanitize runtime smoke 섹션 추가 (F1~F4 픽스처 + Baseline 슬롯) |
