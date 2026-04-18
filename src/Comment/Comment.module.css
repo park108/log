@@ -27,15 +27,6 @@
 	margin-left: 2em;
 }
 
-.div--comment-name {
-	width: 5em;
-	font-weight: bold;
-	font-size: var(--sub-font-size);
-
-	float: left;
-	padding-right: 1em;
-}
-
 .div--comment-contents {
 	font-size: var(--sub-font-size);
 	display: inline-block;
@@ -90,26 +81,9 @@
 	color: var(--sub-text-color);
 }
 
-.div--comment-form {
-	overflow: auto;
-}
-
 .form--comment-input {
 	display: flex;
 	flex-direction: column;
-}
-
-.div--comment-replypopup {
-	position: fixed;
-	display: block;
-	margin: 0;
-	padding: 8px;
-	border-radius: 8px;
-	line-height: 1em;
-
-	background-color: var(--info-background-color);
-	font-size: var(--info-font-size);
-	font-weight: bold;
 }
 
 .input--comment-name {
@@ -157,10 +131,6 @@
 .textarea--comment-form:disabled {
 	background-color: var(--disabled-background-color);
 	font-style: italic;
-}
-
-.textarea--comment-reply {
-	text-align: right;
 }
 
 .button--comment-submit {
