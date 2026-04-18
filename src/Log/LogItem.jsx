@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import PropTypes from 'prop-types';
-import { log, hasValue, } from '../common/common';
-import { deleteLog } from './api';
+import { log } from '../common/common';
+import { useDeleteLog } from './hooks/useDeleteLog';
 import * as parser from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
 
@@ -10,7 +10,8 @@ const Comment = lazy(() => import('../Comment/Comment'));
 
 const LogItem = (props) => {
 
-	const [isDeleting, setIsDeleting] = useState(false);
+	const deleteMutation = useDeleteLog();
+	const isDeleting = deleteMutation.isPending;
 	const [itemClass, setItemClass] = useState("article article--main-item");
 
 	const author = props.author;
@@ -18,44 +19,20 @@ const LogItem = (props) => {
 	const timestamp = props.timestamp;
 	const showComments = props.showComments;
 
-	useEffect(() => {
-		return () => setIsDeleting(false);
-	}, []);
-
-	const deleteLogItem = async () => {
-
-		setIsDeleting(true);
-
-		try {
-			const res = await deleteLog(author, timestamp);
-			const status = await res.json();
-
-			if(200 === status.statusCode) {
-				log("[API DELETE] OK - Log", "SUCCESS");
-
-				let currentList = sessionStorage.getItem("logList");
-	
-				if(hasValue(currentList)) {
-					currentList = JSON.parse(currentList);
-					const newList = currentList.filter(item => {return item.timestamp !== timestamp});
-					sessionStorage.setItem("logList", JSON.stringify(newList));
-				}
-	
-				props.deleted();
+	const deleteLogItem = () => {
+		deleteMutation.mutate(
+			{ author, timestamp },
+			{
+				onSuccess: () => {
+					log("[API DELETE] OK - Log", "SUCCESS");
+					props.deleted();
+				},
+				onError: (err) => {
+					log("[API DELETE] FAILED - Log", "ERROR");
+					log(err, "ERROR");
+				},
 			}
-			else {
-				log("[API DELETE] FAILED - Log", "ERROR");
-				log(res, "ERROR");
-	
-				setIsDeleting(false);
-			}
-		}
-		catch(err) {
-			log("[API DELETE] FAILED - Log", "ERROR");
-			log(err, "ERROR");
-	
-			setIsDeleting(false);
-		}
+		);
 	}
 
 	useEffect(() => {

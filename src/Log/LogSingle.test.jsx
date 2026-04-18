@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import LogSingle from '../Log/LogSingle';
@@ -7,6 +8,23 @@ import LogSingle from '../Log/LogSingle';
 console.log = vi.fn();
 console.warn = vi.fn();
 console.error = vi.fn();
+
+// LogSingle renders LogItem which depends on `useDeleteLog` (TanStack Query
+// mutation hook) since TSK-20260418-MUT-DELETE. A QueryClientProvider is
+// mandatory for the component tree to mount; each test gets an isolated
+// client to avoid cache leakage between tests.
+const makeQueryClient = () => new QueryClient({
+	defaultOptions: {
+		queries: { retry: false, staleTime: 0, gcTime: 0 },
+		mutations: { retry: false },
+	},
+});
+
+const withQuery = (node) => (
+	<QueryClientProvider client={makeQueryClient()}>
+		{node}
+	</QueryClientProvider>
+);
 
 const testEntry = {
 	pathname: "/log"
@@ -55,11 +73,11 @@ it('render LogSingle on prod server', async () => {
 
 	vi.useFakeTimers();
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
-	);
+	));
 
 	const toListButton = await screen.findByText("To list");
 	expect(toListButton).toBeInTheDocument();
@@ -109,11 +127,11 @@ it('render LogSingle on dev server', async () => {
 		, key: "default"
 	};
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
-	);
+	));
 
 	const toSearchResultButton = await screen.findByText("To search result");
 	expect(toSearchResultButton).toBeInTheDocument();
@@ -139,11 +157,11 @@ it('get OK delete failed', async () => {
 		, key: "default"
 	};
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
-	);
+	));
 
 	const title = await screen.findByText("Lorem ipsum dolor sit amet,");
 	expect(title).toBeInTheDocument();
@@ -182,11 +200,11 @@ it('get OK delete failed', async () => {
 		, key: "default"
 	};
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
-	);
+	));
 
 	vi.spyOn(window, 'confirm').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
@@ -208,11 +226,11 @@ it('render "Page Not Found" page if it cannot fetch', async () => {
 	mock.prodServerFailed.listen();
 	process.env.NODE_ENV = 'production';
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
-	);
+	));
 
 	const obj = await screen.findByText("Page Not Found.");
 	expect(obj).toBeInTheDocument();
@@ -226,11 +244,11 @@ it('render "Page Not Found" page if it has no log', async () => {
 	mock.prodServerHasNoData.listen();
 	process.env.NODE_ENV = 'production';
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
-	);
+	));
 
 	const obj = await screen.findByText("Page Not Found.");
 	expect(obj).toBeInTheDocument();
@@ -244,11 +262,11 @@ it('render "Page Not Found" page if API is down', async () => {
 	mock.prodServerNetworkError.listen();
 	process.env.NODE_ENV = 'production';
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
-	);
+	));
 
 	const obj = await screen.findByText("Page Not Found.");
 	expect(obj).toBeInTheDocument();

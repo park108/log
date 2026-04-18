@@ -1,11 +1,29 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import LogItem from './LogItem';
 import * as common from '../common/common';
 
 console.log = vi.fn();
 console.error = vi.fn();
+
+// LogItem depends on `useDeleteLog` (TanStack Query mutation hook) since
+// TSK-20260418-MUT-DELETE. A QueryClientProvider is mandatory for the
+// component to mount; each test gets an isolated client to avoid cache
+// leakage (per `src/test-utils/queryWrapper.jsx` guidance).
+const makeQueryClient = () => new QueryClient({
+	defaultOptions: {
+		queries: { retry: false, staleTime: 0, gcTime: 0 },
+		mutations: { retry: false },
+	},
+});
+
+const withQuery = (node) => (
+	<QueryClientProvider client={makeQueryClient()}>
+		{node}
+	</QueryClientProvider>
+);
 
 it('render log item correctly', async () => {
 
@@ -37,9 +55,9 @@ it('render log item correctly', async () => {
 		, key: "default"
 	};
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem 
+			<LogItem
 				author={"park108@gmail.com"}
 				timestamp={1655736946977}
 				contents={markdownText}
@@ -47,8 +65,8 @@ it('render log item correctly', async () => {
 				showLink={true}
 			/>
 		</MemoryRouter>
-	);
-	
+	));
+
 	// Button click tests
 	vi.useFakeTimers();
 
@@ -99,7 +117,7 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 		author: "park108@gmail.com",
 	});
 
-	const renderAt = (contents) => render(
+	const renderAt = (contents) => render(withQuery(
 		<MemoryRouter initialEntries={[{ pathname: "/log", search: "", hash: "", state: {}, key: "d" }]}>
 			<LogItem
 				author={"park108@gmail.com"}
@@ -109,7 +127,7 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 				showLink={true}
 			/>
 		</MemoryRouter>
-	);
+	));
 
 	it("strips <script> tags from markdown HTML output", async () => {
 		const payload = "Hello <script>window.__xss=1</script> World";
@@ -163,9 +181,9 @@ it('render log item and delete failed correctly', async () => {
 		, key: "default"
 	};
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem 
+			<LogItem
 				author={"park108@gmail.com"}
 				timestamp={1655736946977}
 				contents={markdownText}
@@ -173,8 +191,8 @@ it('render log item and delete failed correctly', async () => {
 				showLink={true}
 			/>
 		</MemoryRouter>
-	);
-	
+	));
+
 	vi.useFakeTimers();
 	window.confirm = vi.fn(() => false);
 
@@ -189,7 +207,7 @@ it('render log item and delete failed correctly', async () => {
 	vi.runOnlyPendingTimers();
 
 	const afterDelete = await screen.findByText("Delete");
-	
+
 	vi.useRealTimers();
 
 	mock.devServerFailed.resetHandlers();
@@ -226,9 +244,9 @@ it('render log item and delete network error', async () => {
 		, key: "default"
 	};
 
-	render(
+	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem 
+			<LogItem
 				author={"park108@gmail.com"}
 				timestamp={1655736946977}
 				contents={markdownText}
@@ -236,8 +254,8 @@ it('render log item and delete network error', async () => {
 				showLink={true}
 			/>
 		</MemoryRouter>
-	);
-	
+	));
+
 	vi.useFakeTimers();
 	window.confirm = vi.fn(() => true);
 
@@ -248,7 +266,7 @@ it('render log item and delete network error', async () => {
 	vi.runOnlyPendingTimers();
 
 	const afterDelete = await screen.findByText("Delete");
-	
+
 	vi.useRealTimers();
 
 	mock.devServerNetworkError.resetHandlers();
@@ -260,11 +278,11 @@ it('parse unordered list tag correctly', () => {
 	const contents = "list item test contents";
 	const markdownText = "- " + contents;
 
-	render(<MemoryRouter><LogItem
+	render(withQuery(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
 		contents={markdownText}
-	/></MemoryRouter>);
+	/></MemoryRouter>));
 
 	const html = screen.getByText(contents).closest('ul');
 
@@ -281,11 +299,11 @@ it('parse ordered list tag correctly', () => {
 	const contents = "list item test contents";
 	const markdownText = "1. " + contents;
 
-	render(<MemoryRouter><LogItem
+	render(withQuery(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
 		contents={markdownText}
-	/></MemoryRouter>);
+	/></MemoryRouter>));
 
 	const html = screen.getByText(contents).closest('ol');
 
@@ -304,11 +322,11 @@ it('parse image tag correctly', () => {
 	const altText = "alternated text";
 	const markdownText = "![" + altText + "](" + url + " \"" + titleText + "\")";
 
-	render(<MemoryRouter><LogItem
+	render(withQuery(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
 		contents={markdownText}
-	/></MemoryRouter>);
+	/></MemoryRouter>));
 
 	const html = screen.getByRole('img');
 
@@ -327,11 +345,11 @@ it('parse anchor tag correctly', () => {
 	const text = "linked text";
 	const markdownText = "[" + text + "](" + url + " \"" + titleText + "\")";
 
-	render(<MemoryRouter><LogItem
+	render(withQuery(<MemoryRouter><LogItem
 		author={"park108@gmail.com"}
 		timestamp={20211008195400}
 		contents={markdownText}
-	/></MemoryRouter>);
+	/></MemoryRouter>));
 
 	const html = screen.getByText(text).closest('a');
 
