@@ -88,11 +88,15 @@ const SearchInput = () => {
 					onKeyUp={ handleKeyUp }
 					onChange={ e => setQueryString(e.target.value) }
 				/>
-				<span className={`span ${styles.spanNavSearchbutton}`} onClick={() => {
-					setIsMobileSearchOpen(!isMobileSearchOpen);
-				}} >
+				<button
+					type="button"
+					className={`span ${styles.spanNavSearchbutton}`}
+					onClick={() => {
+						setIsMobileSearchOpen(!isMobileSearchOpen);
+					}}
+				>
 					search
-				</span>
+				</button>
 				<div id="mobile-search">
 					<input
 						id="query-string-by-button"
