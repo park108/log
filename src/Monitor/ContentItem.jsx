@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedSize } from '../common/common';
+import { activateOnKey } from '../common/a11y';
 import { getContentItemCount } from './api';
 
 const ContentItem = (props) => {
@@ -15,14 +16,6 @@ const ContentItem = (props) => {
 	const title = props.title;
 	const path = props.path;
 	const stackPallet = props.stackPallet;
-
-	// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
-	const activateOnKey = (handler) => (event) => {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			handler(event);
-		}
-	};
 
 	const handleRetry = () => { setIsMount(false); };
 	

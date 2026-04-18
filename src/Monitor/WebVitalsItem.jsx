@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { log, hasValue, hoverPopup } from '../common/common';
+import { activateOnKey } from '../common/a11y';
 import { getWebVitals } from './api';
 import PropTypes from 'prop-types';
 
@@ -9,14 +10,6 @@ const HEADER_STYLE = {
 	"NEEDS IMPROVEMENT": "span span--monitor-evaluation span--monitor-warn",
 	"None": "span span--monitor-evaluation span--monitor-none",
 	undefined: "span span--monitor-evaluation span--monitor-none"
-};
-
-// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
-const activateOnKey = (handler) => (event) => {
-	if (event.key === 'Enter' || event.key === ' ') {
-		event.preventDefault();
-		handler(event);
-	}
 };
 
 const WebVitalsItem = (props) => {
