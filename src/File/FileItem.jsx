@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
+import { activateOnKey } from '../common/a11y';
 import { deleteFile } from './api';
 
 const FileItem = (props) => {
@@ -11,14 +12,6 @@ const FileItem = (props) => {
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [toasterType, setToasterType] = useState("success");
-
-	// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
-	const activateOnKey = (handler) => (event) => {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			handler(event);
-		}
-	};
 
 	const refreshFiles = props.deleted;
 	const refreshTimeout = 3000;

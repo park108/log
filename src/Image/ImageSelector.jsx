@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, copyToClipboard } from '../common/common';
+import { activateOnKey } from '../common/a11y';
 import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
 
 import styles from './ImageSelector.module.css';
-
-// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
-const activateOnKey = (handler) => (event) => {
-	if (event.key === 'Enter' || event.key === ' ') {
-		event.preventDefault();
-		handler(event);
-	}
-};
 
 const ImageSelector = (props) => {
 
