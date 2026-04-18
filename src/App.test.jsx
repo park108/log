@@ -131,6 +131,56 @@ describe('render body has no direct side effects', () => {
 
 		authSpy.mockRestore();
 	});
+
+	it('keeps document.cookie equivalent under StrictMode double mount (REQ-20260418-025 FR-02)', () => {
+		// 실제 common.auth 를 실행시키기 위해 mock 하지 않음.
+		const originalLocation = window.location;
+		// App 트리 내부의 useEffect 들이 parseJwt(access_token) 을 호출하므로
+		// access_token 은 파싱 가능한 JWT 문자열이어야 한다 (형식 검증 목적, 실제 서명 검증 없음).
+		const jwtFixture =
+			'eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ' +
+			'.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJjbGllbnRfaWQiOiJoM205MmEyN3QzOXNmY2F0MzAydGlxdGtvIiwidXNlcm5hbWUiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUifQ' +
+			'.sig';
+		// auth() 의 URLSearchParams(href) 구현은 첫 파라미터를 key 로 인식하지 못하므로
+		// 선행 더미 파라미터 + access_token 배치 (common.test.js 의 'test auth' 와 동일 패턴).
+		const mock = new URL('http://localhost:3000');
+		mock.replace = vi.fn();
+		mock.href += `?abcde=abcde&access_token=${jwtFixture}#id_token=YYY&abcdef=abcdef`;
+		delete window.location;
+		window.location = mock;
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+
+		const normalize = (raw) =>
+			raw
+				.split(';')
+				.map((c) => c.trim())
+				.filter(Boolean)
+				.sort()
+				.join('; ');
+
+		// 1회 마운트(+StrictMode 이중 effect) 후 cookie 상태
+		const { unmount } = render(
+			<React.StrictMode>
+				<App />
+			</React.StrictMode>
+		);
+		const cookieAfterStrictDouble = normalize(document.cookie);
+		unmount();
+
+		// 비교 baseline: cookie 초기화 후 auth() 1회 직접 호출 시의 상태
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+		common.auth();
+		const cookieAfterSingle = normalize(document.cookie);
+
+		expect(cookieAfterStrictDouble).toBe(cookieAfterSingle);
+
+		// 정리 — 후속 케이스 오염 방지
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+		window.location = originalLocation;
+	});
 });
 
 describe('click login button', () => {

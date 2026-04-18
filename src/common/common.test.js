@@ -104,6 +104,60 @@ it('test auth', () => {
 	window.location = currentLocation; // Rollback location
 });
 
+describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
+	let savedLocation;
+	const clearAuthCookies = () => {
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+	};
+	const normalizeCookie = (raw) =>
+		raw
+			.split(';')
+			.map((c) => c.trim())
+			.filter(Boolean)
+			.sort()
+			.join('; ');
+
+	beforeEach(() => {
+		savedLocation = window.location;
+		// auth() 의 URLSearchParams(href) 구현은 첫 파라미터를 key 로 인식하지 못하므로
+		// 기존 'test auth' 케이스와 동일하게 선행 더미 파라미터 + access_token 배치.
+		const mock = new URL('http://localhost:3000');
+		mock.replace = vi.fn();
+		mock.href += '?abcde=abcde&access_token=AAA#id_token=BBB&abcdef=abcdef';
+		delete window.location;
+		window.location = mock;
+		clearAuthCookies();
+	});
+
+	afterEach(() => {
+		clearAuthCookies();
+		window.location = savedLocation;
+	});
+
+	it('produces equivalent document.cookie body after 1 vs 2 calls (development)', () => {
+		process.env.NODE_ENV = 'development';
+		common.auth();
+		const cookieAfter1 = normalizeCookie(document.cookie);
+		common.auth();
+		const cookieAfter2 = normalizeCookie(document.cookie);
+		expect(cookieAfter1).toBe(cookieAfter2);
+		// 설정된 토큰 자체도 검증 (허수 등가성 방지)
+		expect(cookieAfter1).toMatch(/access_token=AAA/);
+		expect(cookieAfter1).toMatch(/id_token=BBB/);
+	});
+
+	it('produces equivalent document.cookie body after 1 vs 3 calls (production)', () => {
+		process.env.NODE_ENV = 'production';
+		common.auth();
+		const cookieAfter1 = normalizeCookie(document.cookie);
+		common.auth();
+		common.auth();
+		const cookieAfter3 = normalizeCookie(document.cookie);
+		expect(cookieAfter1).toBe(cookieAfter3);
+	});
+});
+
 describe('login test', () => {
 
 	it("is not logged", () => {
