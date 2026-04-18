@@ -5,7 +5,7 @@ import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
 
-import './ImageSelector.css';
+import styles from './ImageSelector.module.css';
 
 const ImageSelector = (props) => {
 
@@ -14,7 +14,7 @@ const ImageSelector = (props) => {
 	const [isGetNextData, setIsGetNextData] = useState(false);
 
 	const [images, setImages] = useState([]);
-	const [imageSelectorClass, setImageSelectorClass] = useState("div div--image-selectorhide");
+	const [imageSelectorClass, setImageSelectorClass] = useState(`div ${styles.divImageSelectorhide}`);
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 	const [seeMoreButton, setSeeMoreButton] = useState(undefined);
 	
@@ -57,10 +57,10 @@ const ImageSelector = (props) => {
 		
 		if(props.show) {
 			fetchFirst();
-			setImageSelectorClass("div div--image-selector");
+			setImageSelectorClass(`div ${styles.divImageSelector}`);
 		}
 		else {
-			setImageSelectorClass("div div--image-selectorhide");
+			setImageSelectorClass(`div ${styles.divImageSelectorhide}`);
 		}
 	}, [props.show]);
 
@@ -110,7 +110,7 @@ const ImageSelector = (props) => {
 			setSeeMoreButton(
 				<button
 					role="button"
-					className="button button--image-seemorebutton"
+					className={`button ${styles.buttonImageSeemorebutton}`}
 					onClick={() => setIsGetNextData(true)}
 				>
 					See<br/>More
@@ -125,7 +125,7 @@ const ImageSelector = (props) => {
 	if(isLoading) {
 		return (
 			<div className={imageSelectorClass}>
-				<div className="div div--image-loading">Loading...</div>
+				<div className={`div ${styles.divImageLoading}`}>Loading...</div>
 			</div>
 		);
 	}
@@ -133,7 +133,7 @@ const ImageSelector = (props) => {
 		if(isError) {
 			return (
 				<div className={imageSelectorClass}>
-					<div className="div div--image-loading">Failed getting images</div>
+					<div className={`div ${styles.divImageLoading}`}>Failed getting images</div>
 					<span onClick={(e) => {
 						e.preventDefault();
 						setIsError(false);

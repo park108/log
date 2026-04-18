@@ -1,14 +1,17 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import './ImageSelector.css';
+import styles from './ImageSelector.module.css';
 
 const ImageItem = (props) => {
 
 	const thumbnailImageUrl = props.url;
 	const fullsizeImageUrl = thumbnailImageUrl.replace("thumbnail/", "");
 
+	const baseClass = `img ${styles.imgImageImageitem}`;
+	const selectedClass = `img ${styles.imgImageImageitem} ${styles.imgImageSelected}`;
+
 	return (
-		<img className="img img--image-imageitem"
+		<img className={baseClass}
 			data-testid="imageItem"
 			role="listitem"
 			src={thumbnailImageUrl}
@@ -18,19 +21,19 @@ const ImageItem = (props) => {
 			thumbnailurl={thumbnailImageUrl}
 			enlarged={"N"}
 			onClick={(e) => {
-	
+
 				const isEnlarged = ("Y" === e.target.getAttribute("enlarged"));
-			
+
 				if(isEnlarged) {
 					props.copyMarkdownString(e);
 					e.target.setAttribute("enlarged", "N");
 					e.target.setAttribute("src", thumbnailImageUrl);
-					e.target.setAttribute("class", "img img--image-imageitem");
+					e.target.setAttribute("class", baseClass);
 				}
 				else {
 					e.target.setAttribute("enlarged", "Y");
 					e.target.setAttribute("src", fullsizeImageUrl);
-					e.target.setAttribute("class", "img img--image-imageitem img--image-selected");
+					e.target.setAttribute("class", selectedClass);
 				}
 			}}
 		/>
