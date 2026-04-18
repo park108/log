@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import * as common from './common/common';
@@ -54,6 +55,82 @@ it('reload page', () => {
 it('redirect page', () => {
 
 	render(<App />);
+});
+
+describe('render body has no direct side effects', () => {
+
+	it('removes the resize listener on unmount (cleanup pair)', () => {
+
+		const addSpy = vi.spyOn(window, 'addEventListener');
+		const removeSpy = vi.spyOn(window, 'removeEventListener');
+
+		const { unmount } = render(<App />);
+
+		const addedResizeHandlers = addSpy.mock.calls
+			.filter(([event]) => event === 'resize')
+			.map(([, handler]) => handler);
+
+		expect(addedResizeHandlers.length).toBeGreaterThan(0);
+
+		unmount();
+
+		const removedResizeHandlers = removeSpy.mock.calls
+			.filter(([event]) => event === 'resize')
+			.map(([, handler]) => handler);
+
+		// mount 시 등록된 모든 resize 핸들러가 unmount 에서 정리돼야 한다 (NFR-01).
+		addedResizeHandlers.forEach((handler) => {
+			expect(removedResizeHandlers).toContain(handler);
+		});
+
+		addSpy.mockRestore();
+		removeSpy.mockRestore();
+	});
+
+	it('does not assign window.onresize in the render body (FR-02)', () => {
+
+		const originalOnResize = window.onresize;
+		window.onresize = null;
+
+		render(<App />);
+
+		expect(window.onresize).toBeNull();
+
+		window.onresize = originalOnResize;
+	});
+
+	it('calls common.auth once per mount and not on re-render (FR-03, FR-04)', () => {
+
+		const authSpy = vi.spyOn(common, 'auth').mockImplementation(() => {});
+
+		const { rerender } = render(<App />);
+		const callsAfterMount = authSpy.mock.calls.length;
+		expect(callsAfterMount).toBeGreaterThanOrEqual(1);
+
+		rerender(<App />);
+
+		// re-render 로는 auth 가 추가 호출되지 않는다 (mount effect 1회만).
+		expect(authSpy.mock.calls.length).toBe(callsAfterMount);
+
+		authSpy.mockRestore();
+	});
+
+	it('keeps common.auth idempotent under StrictMode double mount (FR-05, NFR-02)', () => {
+
+		const authSpy = vi.spyOn(common, 'auth').mockImplementation(() => {});
+
+		render(
+			<React.StrictMode>
+				<App />
+			</React.StrictMode>
+		);
+
+		// StrictMode 는 effect 를 두 번 실행할 수 있다. auth 자체는 부수효과가 idempotent 하므로
+		// 호출 자체는 허용되되 최소 1회 이상 호출돼야 한다.
+		expect(authSpy.mock.calls.length).toBeGreaterThanOrEqual(1);
+
+		authSpy.mockRestore();
+	});
 });
 
 describe('click login button', () => {

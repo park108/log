@@ -33,7 +33,14 @@ const App = () => {
 	}
 
 	useEffect(() => {
-		handleOnresize();
+		const handler = () => handleOnresize();
+		window.addEventListener('resize', handler);
+		handler(); // 초기 1회 (기존 initial-size useEffect 통합)
+		return () => window.removeEventListener('resize', handler);
+	}, []);
+
+	useEffect(() => {
+		common.auth();
 	}, []);
 
 	useEffect(() => {
@@ -51,9 +58,6 @@ const App = () => {
 		}
 
 	}, [isOnline]);
-
-	window.onresize = handleOnresize;
-	common.auth();
 
 	const pageNotFound = (
 		<main className="main main--main-contents" style={contentHeight}>
