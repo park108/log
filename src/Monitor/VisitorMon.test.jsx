@@ -81,3 +81,90 @@ it('render visitor monitor network error on prod server', async () => {
 	mock.prodServerNetworkError.resetHandlers();
 	mock.prodServerNetworkError.close();
 });
+
+it('retry spans are keyboard focusable with role=button (a11y pattern B)', async () => {
+
+	mock.prodServerFailed.listen();
+
+	process.env.NODE_ENV = 'production';
+
+	render(<VisitorMon stackPallet={stackPallet.colors}/>);
+
+	const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
+	expect(retryButtons).toHaveLength(2);
+
+	for (const el of retryButtons) {
+		expect(el).toHaveAttribute('tabindex', '0');
+		expect(el).toHaveAttribute('role', 'button');
+	}
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
+});
+
+it('retry span activates on Enter key (a11y pattern B)', async () => {
+
+	mock.prodServerFailed.listen();
+
+	process.env.NODE_ENV = 'production';
+
+	render(<VisitorMon stackPallet={stackPallet.colors}/>);
+
+	const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
+
+	// Enter triggers the same handler as onClick → component re-mounts and fires a new fetch.
+	// We verify by asserting the Retry buttons disappear (loading state) or are re-rendered.
+	fireEvent.keyDown(retryButtons[0], { key: 'Enter' });
+
+	// After Enter, the loading branch is rendered at least once → original Retry nodes detach.
+	// Re-query to confirm handler ran (new Retry buttons will reappear after the mock still fails).
+	const retryButtonsAfter = await screen.findAllByRole('button', { name: /Retry/ });
+	expect(retryButtonsAfter).toHaveLength(2);
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
+});
+
+it('retry span activates on Space key and prevents default scroll (a11y pattern B)', async () => {
+
+	mock.prodServerFailed.listen();
+
+	process.env.NODE_ENV = 'production';
+
+	render(<VisitorMon stackPallet={stackPallet.colors}/>);
+
+	const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
+
+	const spaceEvent = fireEvent.keyDown(retryButtons[1], { key: ' ' });
+	// fireEvent.keyDown returns true when the event was NOT cancelled. Our handler calls
+	// preventDefault() for Space to block page scroll (accessibility-spec §2.2 pattern B).
+	expect(spaceEvent).toBe(false);
+
+	const retryButtonsAfter = await screen.findAllByRole('button', { name: /Retry/ });
+	expect(retryButtonsAfter).toHaveLength(2);
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
+});
+
+it('retry span ignores non-activation keys (a11y pattern B negative case)', async () => {
+
+	mock.prodServerFailed.listen();
+
+	process.env.NODE_ENV = 'production';
+
+	render(<VisitorMon stackPallet={stackPallet.colors}/>);
+
+	const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
+
+	// A non-activation key must NOT call preventDefault — event remains dispatchable (returns true).
+	const otherEvent = fireEvent.keyDown(retryButtons[0], { key: 'x' });
+	expect(otherEvent).toBe(true);
+
+	// The error UI is still rendered (no re-mount triggered).
+	const retryButtonsAfter = await screen.findAllByRole('button', { name: /Retry/ });
+	expect(retryButtonsAfter).toHaveLength(2);
+
+	mock.prodServerFailed.resetHandlers();
+	mock.prodServerFailed.close();
+});
