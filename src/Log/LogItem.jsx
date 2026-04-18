@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { log, hasValue, } from '../common/common';
 import { deleteLog } from './api';
 import * as parser from '../common/markdownParser';
+import sanitizeHtml from '../common/sanitizeHtml';
 
 const LogItemInfo = lazy(() => import('../Log/LogItemInfo'));
 const Comment = lazy(() => import('../Comment/Comment'));
@@ -90,7 +91,7 @@ const LogItem = (props) => {
 			/>
 			<section
 				className="section section--logitem-contents"
-				dangerouslySetInnerHTML={{__html: parser.markdownToHtml(contents)}}
+				dangerouslySetInnerHTML={{ __html: sanitizeHtml(parser.markdownToHtml(contents)) }}
 			/>
 			{ comments }
 		</article>

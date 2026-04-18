@@ -84,6 +84,55 @@ it('render log item correctly', async () => {
 	vi.useRealTimers();
 });
 
+describe("LogItem sanitizes rendered markdown HTML", () => {
+	beforeEach(() => {
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(false);
+		document.execCommand = vi.fn();
+	});
+
+	const baseItem = (contents) => ({
+		logs: [{ contents, timestamp: 1655736946977 }],
+		summary: "s",
+		sortKey: 1655736946977,
+		timestamp: 1655736946977,
+		author: "park108@gmail.com",
+	});
+
+	const renderAt = (contents) => render(
+		<MemoryRouter initialEntries={[{ pathname: "/log", search: "", hash: "", state: {}, key: "d" }]}>
+			<LogItem
+				author={"park108@gmail.com"}
+				timestamp={1655736946977}
+				contents={contents}
+				item={baseItem(contents)}
+				showLink={true}
+			/>
+		</MemoryRouter>
+	);
+
+	it("strips <script> tags from markdown HTML output", async () => {
+		const payload = "Hello <script>window.__xss=1</script> World";
+		const { container } = renderAt(payload);
+		await screen.findByText(/Hello/);
+		expect(container.querySelector("script")).toBeNull();
+		// global side-effect not triggered
+		// @ts-ignore
+		expect(window.__xss).toBeUndefined();
+	});
+
+	it("strips on* event handler attributes from embedded html", async () => {
+		const payload = '<img src="x" onerror="window.__xss2=1" />';
+		const { container } = renderAt(payload);
+		const imgs = container.querySelectorAll("img");
+		imgs.forEach((img) => {
+			expect(img.getAttribute("onerror")).toBeNull();
+		});
+		// @ts-ignore
+		expect(window.__xss2).toBeUndefined();
+	});
+});
+
 it('render log item and delete failed correctly', async () => {
 
 	mock.devServerFailed.listen();
@@ -288,7 +337,8 @@ it('parse anchor tag correctly', () => {
 
 	const expected = document.createElement("a");
 	expected.setAttribute("href", url);
-	expected.setAttribute("rel", "noreferrer");
+	// sanitizeHtml afterSanitizeAttributes hook expands rel for target="_blank".
+	expected.setAttribute("rel", "noopener noreferrer");
 	expected.setAttribute("target", "_blank");
 	expected.setAttribute("title", titleText);
 	expected.innerHTML = text;
