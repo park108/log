@@ -29,6 +29,16 @@ const ApiCallItem = (props) => {
 	const service = props.service;
 	const stackPallet = props.stackPallet;
 
+	// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
+	const activateOnKey = (handler) => (event) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			handler(event);
+		}
+	};
+
+	const handleRetry = () => { setIsMount(false); };
+
 	useEffect(() => {
 
 		const fetchData = async (service) => {
@@ -177,7 +187,13 @@ const ApiCallItem = (props) => {
 			<section className="section section--monitor-item">
 				<h3>{title}</h3>
 				<div className="div div--monitor-processing">
-					<span className="span span--monitor-retrybutton" onClick={ () => { setIsMount(false) } } >
+					<span
+						className="span span--monitor-retrybutton"
+						role="button"
+						tabIndex={0}
+						onClick={handleRetry}
+						onKeyDown={activateOnKey(handleRetry)}
+					>
 						Retry
 					</span>
 				</div>
