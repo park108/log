@@ -47,44 +47,50 @@ const Search = () => {
 
 	useEffect(() => {
 
+		setHtmlTitle("search results for " + queryString);
+
+		if(!(queryString.length > 0 && !isLoading)) return;
+
+		const ac = new AbortController();
+
 		const search = async (searchString) => {
-	
+
 			setIsLoading(true);
-	
+
 			const listInSession = sessionStorage.getItem("searchList");
-	
+
 			if(hasValue(listInSession)) {
-	
+
 				const queryStringInSession = sessionStorage.getItem("searchQueryString");
-	
+
 				if(hasValue(queryStringInSession) && searchString === queryStringInSession) {
-	
+
 					setSearchedList(JSON.parse(listInSession));
 					setTotalCount(sessionStorage.getItem("searchTotalCount") * 1);
 					setQueryString(queryStringInSession);
 					setProcessingTime(sessionStorage.getItem("searchProcessingTime") * 1);
-	
+
 					setIsLoading(false);
 					log("Get search list from session.");
-		
+
 					return;
 				}
 			}
-	
+
 			try {
-				const res = await getSearchList(searchString);
+				const res = await getSearchList(searchString, { signal: ac.signal });
 				const retrieved = await res.json();
-	
+
 				if(!hasValue(retrieved.errorType)) {
 					log("[API GET] OK - Search List", "SUCCESS");
-	
+
 					const result = retrieved.body;
-	
+
 					setSearchedList(result.Items);
 					setTotalCount(result.TotalCount * 1);
 					setQueryString(result.QueryString);
 					setProcessingTime(result.ProcessingTime * 1);
-	
+
 					sessionStorage.setItem("searchList", JSON.stringify(result.Items));
 					sessionStorage.setItem("searchTotalCount", result.TotalCount * 1);
 					sessionStorage.setItem("searchQueryString", result.QueryString);
@@ -96,19 +102,18 @@ const Search = () => {
 				}
 			}
 			catch(err) {
+				if(err.name === 'AbortError') return;
 				log("[API GET] FAILED - Search List", "ERROR");
 				console.error(err);
 			}
-	
+
 			setIsLoading(false);
 		}
 
-		setHtmlTitle("search results for " + queryString);
+		search(queryString);
 
-		if(queryString.length > 0 && !isLoading) {
-			search(queryString);
-		}
-		
+		return () => ac.abort();
+
 	}, [queryString]);
 
 	useEffect(() => {

@@ -4,6 +4,6 @@ const getApiUrl = () => {
 	return BASE + "/test";
 }
 
-export const getSearchList = async(searchString) => {
-	return await fetch(getApiUrl() + "?q=" + encodeURI(searchString));
+export const getSearchList = async (searchString, { signal } = {}) => {
+	return await fetch(getApiUrl() + "?q=" + encodeURI(searchString), { signal });
 }

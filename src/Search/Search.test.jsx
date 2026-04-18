@@ -155,6 +155,35 @@ it('render search list from session and get next logs correctly', async () => {
 	fireEvent.click(toListButton);
 });
 
+it('aborts in-flight fetch on unmount — no setState after unmount', async () => {
+
+	mock.prodServerGetList.listen();
+	process.env.NODE_ENV = 'production';
+	sessionStorage.clear();
+
+	const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+	const { unmount } = render(
+		<MemoryRouter initialEntries={[ testEntry ]}>
+			<Search />
+		</MemoryRouter>
+	);
+
+	// mount 직후 fetch 는 in-flight. 응답 도착 전 unmount.
+	unmount();
+
+	// microtask + macrotask 모두 flush
+	await new Promise((r) => setTimeout(r, 0));
+
+	// 기대: React "Cannot update unmounted component" 경고가 0. (NFR-01 per REQ-021)
+	const warn = errorSpy.mock.calls.find(args => String(args[0]).includes('unmounted'));
+	expect(warn).toBeUndefined();
+
+	mock.prodServerGetList.resetHandlers();
+	mock.prodServerGetList.close();
+	errorSpy.mockRestore();
+});
+
 it('render search list from session and didnt match query string in session', async () => {
 
 	sessionStorage.clear();
