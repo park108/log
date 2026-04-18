@@ -2,8 +2,26 @@ import { fireEvent, render, screen, act, waitFor } from '@testing-library/react'
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
 import { Router, MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import * as common from '../common/common';
+
+// Writer depends on `useCreateLog` (TanStack Query mutation hook) since
+// TSK-20260418-MUT-CREATE. A QueryClientProvider is mandatory for the
+// component to mount; each test gets an isolated client to avoid cache
+// leakage between tests (per `src/test-utils/queryWrapper.jsx` guidance).
+const makeQueryClient = () => new QueryClient({
+	defaultOptions: {
+		queries: { retry: false, staleTime: 0, gcTime: 0 },
+		mutations: { retry: false },
+	},
+});
+
+const withQuery = (node) => (
+	<QueryClientProvider client={makeQueryClient()}>
+		{node}
+	</QueryClientProvider>
+);
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -22,11 +40,11 @@ it('redirect if not admin', async () => {
   
 	const history = createMemoryHistory({ initialEntries: ["/log/write"]});
 	
-	render(
+	render(withQuery(
 		<Router location={history.location} navigator={history}>
 			<Writer />
 		</Router>
-	)
+	))
 });
 
 test('create log ok on prod server', async () => {
@@ -46,13 +64,13 @@ test('create log ok on prod server', async () => {
 
 	vi.useFakeTimers();
   
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
@@ -96,13 +114,13 @@ test('create log failed on prod server', async () => {
 
 	vi.useFakeTimers();
   
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
@@ -146,13 +164,13 @@ test('create log network error on prod server', async () => {
 
 	vi.useFakeTimers();
   
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
@@ -203,13 +221,13 @@ it('edit log ok on dev server', async () => {
 		}
 	};
   
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	vi.useFakeTimers();
 
@@ -255,13 +273,13 @@ it('edit log failed on dev server', async () => {
 		}
 	};
   
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	vi.useFakeTimers();
 
@@ -306,13 +324,13 @@ it('edit log network error on dev server', async () => {
 		}
 	};
   
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	vi.useFakeTimers();
 
@@ -347,13 +365,13 @@ describe("Writer preview sanitizes rendered markdown HTML", () => {
 			state: null,
 		};
 
-		return render(
+		return render(withQuery(
 			<div id="root" className="div fullscreen">
 				<MemoryRouter initialEntries={[testEntry]}>
 					<Writer />
 				</MemoryRouter>
 			</div>
-		);
+		));
 	};
 
 	it("strips <script> tags from markdown preview HTML", async () => {
@@ -398,13 +416,13 @@ test('event testing', async () => {
 		pathname: "/log/write"
 	};
   
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	vi.useFakeTimers();
 
@@ -477,13 +495,13 @@ test('copyMarkdownString shows error Toaster when clipboard write rejects', asyn
 		state: null,
 	};
 
-	render(
+	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
-	);
+	));
 
 	const aButton = await screen.findByTestId("a-button");
 	expect(aButton).toBeDefined();

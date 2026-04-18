@@ -1,7 +1,8 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
-import { postLog, putLog } from './api';
+import { putLog } from './api';
+import { useCreateLog } from './hooks/useCreateLog';
 import * as parser from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
 import Toaster from "../Toaster/Toaster";
@@ -40,7 +41,9 @@ const Writer = () => {
 	
 	const location = useLocation();
 	const navigate = useNavigate();
-	
+
+	const createLogMutation = useCreateLog();
+
 	useEffect(() => {
 
 		if(!isAdmin()) {
@@ -123,47 +126,41 @@ const Writer = () => {
 
 	useEffect(() => {
 
-		const createLog = async () => {
-	
-			const newTimestamp = Math.floor(new Date().getTime());
-	
-			setIsProcessing(true);
-	
-			try {
-				const res = await postLog(newTimestamp, article, isTemporary);
-				const status = await res.json();
-	
-				if(200 === status.statusCode) {
-					log("[API POST] OK - Log", "SUCCESS");
-					
-					setToasterType("success");
-					setToasterMessage("The log posted.");
-					setIsShowToaster(1);
-	
-					sessionStorage.removeItem("logList");
-					sessionStorage.removeItem("logListLastTimestamp");
-	
-					navigate("/log/" + newTimestamp);
-				}
-				else {
-					log("[API POST] FAILED - Log", "ERROR");
-					log(res, "ERROR");
-					
-					setToasterType("error");
-					setToasterMessage("Posting log failed.");
-					setIsShowToaster(1);
-				}
-			}
-			catch(err) {
-				log("[API POST] FAILED - Log", "ERROR");
-				log(err, "ERROR");
-					
-				setToasterType("error");
-				setToasterMessage("Posting log network error.");
-				setIsShowToaster(1);
-			}
+		const createLog = () => {
 
-			setIsProcessing(false);
+			const newTimestamp = Math.floor(new Date().getTime());
+
+			setIsProcessing(true);
+
+			createLogMutation.mutate(
+				{ timestamp: newTimestamp, article, isTemporary },
+				{
+					onSuccess: () => {
+						log("[API POST] OK - Log", "SUCCESS");
+
+						setToasterType("success");
+						setToasterMessage("The log posted.");
+						setIsShowToaster(1);
+
+						setIsProcessing(false);
+						navigate("/log/" + newTimestamp);
+					},
+					onError: (err) => {
+						log("[API POST] FAILED - Log", "ERROR");
+						log(err, "ERROR");
+
+						setToasterType("error");
+						setToasterMessage(
+							err && err.message && err.message.startsWith("POST /log failed")
+								? "Posting log failed."
+								: "Posting log network error."
+						);
+						setIsShowToaster(1);
+
+						setIsProcessing(false);
+					},
+				}
+			);
 		}
 	
 		const editLog = async () => {
