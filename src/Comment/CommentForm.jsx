@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import PropTypes from 'prop-types';
 import { hasValue, isAdmin } from '../common/common';
 
-import './Comment.css';
+import styles from './Comment.module.css';
 
 const CommentForm = (props) => {
 
@@ -62,11 +62,11 @@ const CommentForm = (props) => {
 	}, [props.isPosting]);
 
 	return (
-		<form onSubmit={postComment} className="form form--comment-input">
-			<input 
+		<form onSubmit={postComment} className={`form ${styles.formCommentInput}`}>
+			<input
 				ref={userNameRef}
 				type="text"
-				className="input input--comment-name"
+				className={`input ${styles.inputCommentName}`}
 				placeholder="Type your name"
 				onChange={ ({target: { value } }) => setUserName(value) }
 				value={userName}
@@ -75,24 +75,24 @@ const CommentForm = (props) => {
 			/>
 			<textarea
 				ref={messageRef}
-				className="textarea textarea--comment-form"
+				className={`textarea ${styles.textareaCommentForm}`}
 				placeholder={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
 				value={message}
 				disabled={messageDisabled}
 				onChange={ ({ target: { value } }) => setMessage(value) }
 			/>
-			<div className="div div--comment-inputhidden">
+			<div className={`div ${styles.divCommentInputhidden}`}>
 				<input
 					type="checkbox"
 					id="hidden"
-					className="input input--comment-hidden"
+					className={`input ${styles.inputCommentHidden}`}
 					onChange={ ({target: { checked } }) => setIsHidden(checked) }
 				/>
-				<label htmlFor="hidden" className="label label--comment-hidden">
+				<label htmlFor="hidden" className={`label ${styles.labelCommentHidden}`}>
 					🥷 Hidden Message
 				</label>
 			</div>
-			<button type="submit" className="button button--comment-submit">
+			<button type="submit" className={`button ${styles.buttonCommentSubmit}`}>
 				{hasValue(commentTimestamp) ? "Send Reply" : "Submit Comment"}
 			</button>
 		</form>

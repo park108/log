@@ -2,6 +2,8 @@ import React, { useState, lazy } from "react";
 import PropTypes from 'prop-types';
 import { hasValue, getFormattedDate, getFormattedTime, hoverPopup, isAdmin } from '../common/common';
 
+import styles from './Comment.module.css';
+
 const CommentForm = lazy(() => import('./CommentForm'));
 
 const CommentItem = (props) => {
@@ -28,8 +30,11 @@ const CommentItem = (props) => {
 
 	const isReply = hasValue(commentTimestamp);
 
-	let wrapperClassName = "div div--comment-item";
-	wrapperClassName += (isReply) ? " div--comment-reply" : "";
+	const wrapperClassName = [
+		'div',
+		styles.divCommentItem,
+		isReply && styles.divCommentReply,
+	].filter(Boolean).join(' ');
 
 	const timestampText
 		= isHidden && !isAdmin()
@@ -39,7 +44,7 @@ const CommentItem = (props) => {
 	const replyButton = isHidden && !isAdmin() ? ""
 		: isReply ? ""
 		: <div
-			className="div div--comment-replybutton"
+			className={`div ${styles.divCommentReplybutton}`}
 			data-testid="reply-toggle-button"
 			onClick={toggleReplyForm}
 			onMouseOver={event => hoverPopup(event, "reply-popup-" + timestamp)}
@@ -62,15 +67,18 @@ const CommentItem = (props) => {
 			/>
 		: ""
 
-	let messageClassName = "div div--comment-message";
-	messageClassName += isHidden ? " div--comment-hidden" : "";
-	messageClassName += isAdmin() ? " div--comment-adminhidden" : "";
-	messageClassName += isAdmin() && isHidden ? " div--comment-revealhidden" : "";
-	messageClassName += isAdminComment ? " div--comment-admin" : " div--comment-visitor";
+	const messageClassName = [
+		'div',
+		styles.divCommentMessage,
+		isHidden && styles.divCommentHidden,
+		isAdmin() && styles.divCommentAdminhidden,
+		isAdmin() && isHidden && styles.divCommentRevealhidden,
+		isAdminComment ? styles.divCommentAdmin : styles.divCommentVisitor,
+	].filter(Boolean).join(' ');
 
 	return (
 		<div className={wrapperClassName}>
-			<div className="div div--comment-contents">
+			<div className={`div ${styles.divCommentContents}`}>
 				<div className={messageClassName}>
 					{message.map((sentence, index) => (
 						<p key={index}>
@@ -79,7 +87,7 @@ const CommentItem = (props) => {
 					))}
 				</div>
 				{replyButton}
-				<div className="div div--comment-timestamp">
+				<div className={`div ${styles.divCommentTimestamp}`}>
 					<span>{name}</span>
 					<span>{timestampText}</span>
 				</div>

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { log, hasValue, isAdmin } from '../common/common';
 import { getComments, postComment } from './api';
 
-import './Comment.css';
+import styles from './Comment.module.css';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 const CommentItem = lazy(() => import('./CommentItem'));
@@ -124,7 +124,7 @@ const Comment = (props) => {
 
 		if(isShow) {
 			setCommentThread(
-				<div className="div div--comment-thread">
+				<div className={`div ${styles.divCommentThread}`}>
 					<Suspense fallback={<div></div>}>
 						{comments.map(data => (				
 							<CommentItem
@@ -171,9 +171,9 @@ const Comment = (props) => {
 	}, [isShow, isOpenReplyForm]);
 
 	return (
-		<section className="section section--logitem-comment">
+		<section className={`section ${styles.sectionLogitemComment}`}>
 			<span
-				className="span span--comment-togglebutton"
+				className={`span ${styles.spanCommentTogglebutton}`}
 				onClick={() => setIsShow(!isShow)}
 			>
 				{ buttonText }
