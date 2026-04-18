@@ -7,6 +7,29 @@ console.log = vi.fn();
 console.error = vi.fn();
 const uploadedCallbackFunction = vi.fn();
 
+test('toggles data-dragover attribute on drag events', () => {
+
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
+
+	const dropZone = screen.getByTestId('dropzone');
+	expect(dropZone).toHaveAttribute('data-dragover', 'N');
+
+	fireEvent.dragEnter(dropZone);
+	expect(dropZone).toHaveAttribute('data-dragover', 'Y');
+
+	fireEvent.dragLeave(dropZone);
+	expect(dropZone).toHaveAttribute('data-dragover', 'N');
+
+	fireEvent.dragEnter(dropZone);
+	expect(dropZone).toHaveAttribute('data-dragover', 'Y');
+
+	fireEvent.drop(dropZone, { dataTransfer: { files: [] } });
+	expect(dropZone).toHaveAttribute('data-dragover', 'N');
+});
+
 test('getting presigned url failed on dev server', async () => {
 
 	mock.devServerFailed.listen();
