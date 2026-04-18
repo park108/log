@@ -12,6 +12,14 @@ const FileItem = (props) => {
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [toasterType, setToasterType] = useState("success");
 
+	// a11y 패턴 B: Enter / Space 로 onClick 과 동일 핸들러 호출 (accessibility-spec §2.2, REQ-20260418-017 FR-07)
+	const activateOnKey = (handler) => (event) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			handler(event);
+		}
+	};
+
 	const refreshFiles = props.deleted;
 	const refreshTimeout = 3000;
 
@@ -68,7 +76,13 @@ const FileItem = (props) => {
 	return (
 		<div className={itemClass} role="listitem">
 			<div className="div div--fileitem-fileinfo">
-				<div className="div div--fileitem-filename" role="button" onClick={copyFileUrl} >
+				<div
+					className="div div--fileitem-filename"
+					role="button"
+					tabIndex={0}
+					onClick={copyFileUrl}
+					onKeyDown={activateOnKey(copyFileUrl)}
+				>
 					{props.fileName}
 				</div>
 				<div className="div div--fileitem-statusbar">
@@ -82,7 +96,15 @@ const FileItem = (props) => {
 						{(props.size * 1).toLocaleString()} bytes
 					</span>
 					<span className="span span--fileitem-toolbar">
-						<span onClick={confirmDelete} className="span span--fileitem-delete" role="button">✕</span>
+						<span
+							onClick={confirmDelete}
+							onKeyDown={activateOnKey(confirmDelete)}
+							className="span span--fileitem-delete"
+							role="button"
+							tabIndex={0}
+						>
+							✕
+						</span>
 					</span>
 				</div>
 			</div>
