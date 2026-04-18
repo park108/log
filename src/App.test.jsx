@@ -2,6 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import * as common from './common/common';
+import ErrorBoundary from './common/ErrorBoundary';
+import ErrorFallback from './common/ErrorFallback';
+import { reportError } from './common/errorReporter';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -203,7 +206,7 @@ describe('click login button', () => {
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValueOnce(false);
 		vi.spyOn(common, "isAdmin").mockResolvedValueOnce(false);
-		
+
 		render(<App />);
 
 		const loginButton = await screen.findByTestId("login-button");
@@ -211,5 +214,44 @@ describe('click login button', () => {
 		expect(loginButton.getAttribute("class")).toBe("span span--login-text");
 
 		fireEvent.click(loginButton);
+	});
+});
+
+describe('ErrorBoundary integration (REQ-20260418-005 FR-06)', () => {
+
+	it('isolates a throwing route without breaking Navigation/Footer', () => {
+		// Lazy 컴포넌트를 모킹하기 어려우므로, 의도 throw 컴포넌트를 ErrorBoundary 로 직접 감싼
+		// 최소 트리를 별도로 렌더해 격리 동작을 검증한다. 본 케이스는 ErrorBoundary + ErrorFallback
+		// 통합이 끊기지 않았는지에 대한 smoke 수준 회귀 방어.
+		const Boom = () => { throw new Error('boom'); };
+		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		render(
+			<div>
+				<nav data-testid="nav-surface">nav</nav>
+				<ErrorBoundary fallback={(p) => <ErrorFallback {...p} />} onError={reportError}>
+					<Boom />
+				</ErrorBoundary>
+				<footer data-testid="footer-surface">footer</footer>
+			</div>
+		);
+
+		// ErrorFallback UI 노출 (network/render 분기 어느 쪽이어도 매칭)
+		expect(
+			screen.getByText(/오류가 발생했습니다|연결을 확인하고/)
+		).toBeInTheDocument();
+		// 이웃 UI 정상
+		expect(screen.getByTestId('nav-surface')).toBeInTheDocument();
+		expect(screen.getByTestId('footer-surface')).toBeInTheDocument();
+
+		errSpy.mockRestore();
+	});
+
+	it('renders Skeleton as top-level Suspense fallback without error (white-screen regression guard)', async () => {
+		// fallback 교체로 기존 렌더 경로가 깨지지 않는지만 확인.
+		// BrowserRouter 내부 Navigation 의 title("park108.net") 이 여전히 보이면 OK.
+		render(<App />);
+		const title = await screen.findByText('park108.net');
+		expect(title).toBeInTheDocument();
 	});
 });

@@ -3,6 +3,10 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import * as common from './common/common';
+import ErrorBoundary from './common/ErrorBoundary';
+import ErrorFallback from './common/ErrorFallback';
+import Skeleton from './common/Skeleton';
+import { reportError } from './common/errorReporter';
 import './styles/index.css';
 
 const Navigation = lazy(() => import('./common/Navigation'));
@@ -85,13 +89,34 @@ const App = () => {
 		</div>
 	) : (
 		<BrowserRouter>
-			<Suspense fallback={<div></div>}>
+			<Suspense fallback={<Skeleton variant="page" />}>
 				<Navigation />
 				<Routes>
 					<Route path="/" element={<Navigate replace to="/log"/>} />
-					<Route path="/log/*" element={<Log contentHeight={contentHeight} />} />
-					<Route path="/file" element={<File contentHeight={contentHeight} />} />
-					<Route path="/monitor" element={<Monitor contentHeight={contentHeight} />} />
+					<Route path="/log/*" element={
+						<ErrorBoundary
+							fallback={(p) => <ErrorFallback {...p} />}
+							onError={reportError}
+						>
+							<Log contentHeight={contentHeight} />
+						</ErrorBoundary>
+					} />
+					<Route path="/file" element={
+						<ErrorBoundary
+							fallback={(p) => <ErrorFallback {...p} />}
+							onError={reportError}
+						>
+							<File contentHeight={contentHeight} />
+						</ErrorBoundary>
+					} />
+					<Route path="/monitor" element={
+						<ErrorBoundary
+							fallback={(p) => <ErrorFallback {...p} />}
+							onError={reportError}
+						>
+							<Monitor contentHeight={contentHeight} />
+						</ErrorBoundary>
+					} />
 					<Route path="*" element={pageNotFound} />
 				</Routes>
 				<Footer />
