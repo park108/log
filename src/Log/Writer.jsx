@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
 import { postLog, putLog } from './api';
 import * as parser from '../common/markdownParser';
+import sanitizeHtml from '../common/sanitizeHtml';
 import Toaster from "../Toaster/Toaster";
 import './Writer.css';
 
@@ -268,7 +269,7 @@ const Writer = () => {
 				<div
 					id="div--writer-converted"
 					className="div div--writer-converted"
-					dangerouslySetInnerHTML={{__html: convertedArticle}}
+					dangerouslySetInnerHTML={{ __html: sanitizeHtml(convertedArticle) }}
 				>
 				</div>
 			);

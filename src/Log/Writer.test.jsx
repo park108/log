@@ -41,7 +41,7 @@ test('create log ok on prod server', async () => {
   
 	render(
 		<div id="root" className="div fullscreen">
-        	<MemoryRouter initialEntries={[testEntry]}>
+			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
@@ -92,7 +92,7 @@ test('create log failed on prod server', async () => {
   
 	render(
 		<div id="root" className="div fullscreen">
-        	<MemoryRouter initialEntries={[testEntry]}>
+			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
@@ -143,7 +143,7 @@ test('create log network error on prod server', async () => {
   
 	render(
 		<div id="root" className="div fullscreen">
-        	<MemoryRouter initialEntries={[testEntry]}>
+			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
@@ -201,7 +201,7 @@ it('edit log ok on dev server', async () => {
   
 	render(
 		<div id="root" className="div fullscreen">
-        	<MemoryRouter initialEntries={[testEntry]}>
+			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
@@ -254,7 +254,7 @@ it('edit log failed on dev server', async () => {
   
 	render(
 		<div id="root" className="div fullscreen">
-        	<MemoryRouter initialEntries={[testEntry]}>
+			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
@@ -306,7 +306,7 @@ it('edit log network error on dev server', async () => {
   
 	render(
 		<div id="root" className="div fullscreen">
-        	<MemoryRouter initialEntries={[testEntry]}>
+			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
@@ -333,6 +333,56 @@ it('edit log network error on dev server', async () => {
 });
 
 
+describe("Writer preview sanitizes rendered markdown HTML", () => {
+
+	const renderWriter = () => {
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		document.execCommand = vi.fn();
+
+		const testEntry = {
+			pathname: "/log/write",
+			state: null,
+		};
+
+		return render(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		);
+	};
+
+	it("strips <script> tags from markdown preview HTML", async () => {
+		const { container } = renderWriter();
+
+		const textInput = await screen.findByTestId("writer-text-area");
+		fireEvent.change(textInput, { target: { value: "Hello <script>window.__xss=1</script> World" } });
+
+		const preview = container.querySelector("#div--writer-converted");
+		expect(preview).not.toBeNull();
+		expect(preview.querySelector("script")).toBeNull();
+		// global side-effect not triggered
+		expect(window.__xss).toBeUndefined();
+	});
+
+	it("strips on* event handler attributes from embedded html in preview", async () => {
+		const { container } = renderWriter();
+
+		const textInput = await screen.findByTestId("writer-text-area");
+		fireEvent.change(textInput, { target: { value: '<img src="x" onerror="window.__xss2=1" />' } });
+
+		const preview = container.querySelector("#div--writer-converted");
+		expect(preview).not.toBeNull();
+		preview.querySelectorAll("img").forEach((img) => {
+			expect(img.getAttribute("onerror")).toBeNull();
+		});
+		expect(window.__xss2).toBeUndefined();
+	});
+});
+
 test('event testing', async () => {
 
 	vi.spyOn(window, 'alert').mockImplementation((message) => {
@@ -350,7 +400,7 @@ test('event testing', async () => {
   
 	render(
 		<div id="root" className="div fullscreen">
-        	<MemoryRouter initialEntries={[testEntry]}>
+			<MemoryRouter initialEntries={[testEntry]}>
 				<Writer />
 			</MemoryRouter>
 		</div>
