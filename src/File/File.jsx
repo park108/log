@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getFiles, getNextFiles	 } from './api';
@@ -19,9 +19,6 @@ const File = (props) => {
 	const [files, setFiles] = useState([]);
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
-	const [fileUploadUI, setFileUploadUI] = useState();
-	const [seeMoreButton, setSeeMoreButton] = useState();
-
 	const [isShowToaster, setIsShowToaster] = useState(1);
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
@@ -39,13 +36,6 @@ const File = (props) => {
 
 		setIsGetData(true);
 		setHtmlTitle("file");
-
-		if(isMobile()) {
-			setFileUploadUI(<FileUpload callbackAfterUpload={() => setIsGetData(true)} />);
-		}
-		else {
-			setFileUploadUI(<FileDrop callbackAfterUpload={() => setIsGetData(true)} />);
-		}
 	}, []);
 
 	useEffect(() => {
@@ -143,31 +133,26 @@ const File = (props) => {
 		}
 	}, [isLoading]);
 
-	useEffect(() => {
+	const isMobileEnv = useMemo(() => isMobile(), []);
+	const fileUploadUI = isMobileEnv
+		? <FileUpload callbackAfterUpload={() => setIsGetData(true)} />
+		: <FileDrop callbackAfterUpload={() => setIsGetData(true)} />;
 
-		const seeMoreButtonClass = isLoading
-			? "button button--file-seemore button--file-seemoreloading"
-			: "button button--file-seemore";
-		
-		const seeMoreButtonText = isLoading
-			? "Loading..."
-			: "See more";
-
-		if(!hasValue(lastTimestamp)) {
-			setSeeMoreButton("");
-		}
-		else {
-			setSeeMoreButton(
-				<button
-					data-testid="seeMoreButton"
-					className={seeMoreButtonClass}
-					onClick={() => setIsGetNextData(true)}
-				>
-					{seeMoreButtonText}
-				</button>
-			);
-		}
-	}, [lastTimestamp, isLoading]);
+	const seeMoreButtonClass = isLoading
+		? "button button--file-seemore button--file-seemoreloading"
+		: "button button--file-seemore";
+	const seeMoreButtonText = isLoading ? "Loading..." : "See more";
+	const seeMoreButton = hasValue(lastTimestamp)
+		? (
+			<button
+				data-testid="seeMoreButton"
+				className={seeMoreButtonClass}
+				onClick={() => setIsGetNextData(true)}
+			>
+				{seeMoreButtonText}
+			</button>
+		)
+		: null;
 
 	return (
 		<main className="main main--main-contents" style={props.contentHeight} role="application">
