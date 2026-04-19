@@ -4,6 +4,7 @@ import { log } from '../common/common';
 import { useDeleteLog } from './hooks/useDeleteLog';
 import * as parser from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
+import Toaster from "../Toaster/Toaster";
 
 const LogItemInfo = lazy(() => import('../Log/LogItemInfo'));
 const Comment = lazy(() => import('../Comment/Comment'));
@@ -13,6 +14,10 @@ const LogItem = (props) => {
 	const deleteMutation = useDeleteLog();
 	const isDeleting = deleteMutation.isPending;
 	const [itemClass, setItemClass] = useState("article article--main-item");
+
+	const [isShowToaster, setIsShowToaster] = useState(0);
+	const [toasterMessage, setToasterMessage] = useState("");
+	const [toasterType, setToasterType] = useState("error");
 
 	const author = props.author;
 	const contents = props.contents;
@@ -30,6 +35,13 @@ const LogItem = (props) => {
 				onError: (err) => {
 					log("[API DELETE] FAILED - Log", "ERROR");
 					log(err, "ERROR");
+					setToasterMessage(
+						err && err.message && err.message.startsWith("DELETE /log failed")
+							? "Deleting log failed."
+							: "Deleting log network error."
+					);
+					setToasterType("error");
+					setIsShowToaster(1);
 				},
 			}
 		);
@@ -71,6 +83,14 @@ const LogItem = (props) => {
 				dangerouslySetInnerHTML={{ __html: sanitizeHtml(parser.markdownToHtml(contents)) }}
 			/>
 			{ comments }
+			<Toaster
+				show={isShowToaster}
+				message={toasterMessage}
+				position={"bottom"}
+				type={toasterType}
+				duration={2000}
+				completed={() => setIsShowToaster(2)}
+			/>
 		</article>
 	);
 }

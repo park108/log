@@ -151,6 +151,116 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 	});
 });
 
+it('shows error toaster on DELETE 5xx response', async () => {
+
+	mock.devServerFailed.listen();
+	process.env.NODE_ENV = 'development';
+
+	const contents = "header test contents";
+	const markdownText = "## " + contents;
+
+	const item = {
+		"logs":[
+			{"contents":markdownText,"timestamp":1655737033793}
+			,{"contents":"12345","timestamp":1655736946977}
+		]
+		,"summary":"123456"
+		,"sortKey":1655736946977
+		,"timestamp":1655736946977
+		,"author":"park108@gmail.com"
+	}
+
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
+	render(withQuery(
+		<MemoryRouter initialEntries={[ testEntry ]}>
+			<LogItem
+				author={"park108@gmail.com"}
+				timestamp={1655736946977}
+				contents={markdownText}
+				item={item}
+				showLink={true}
+			/>
+		</MemoryRouter>
+	));
+
+	window.confirm = vi.fn(() => true);
+
+	const deleteButton = screen.getByTestId("delete-button");
+	fireEvent.click(deleteButton);
+
+	// Error toaster should be visible with the 5xx-specific copy.
+	const toasterMessage = await screen.findByText("Deleting log failed.");
+	expect(toasterMessage).toBeInTheDocument();
+
+	mock.devServerFailed.resetHandlers();
+	mock.devServerFailed.close();
+});
+
+it('shows network error toaster on DELETE network failure', async () => {
+
+	mock.devServerNetworkError.listen();
+	process.env.NODE_ENV = 'development';
+
+	const contents = "header test contents";
+	const markdownText = "## " + contents;
+
+	const item = {
+		"logs":[
+			{"contents":markdownText,"timestamp":1655737033793}
+			,{"contents":"12345","timestamp":1655736946977}
+		]
+		,"summary":"123456"
+		,"sortKey":1655736946977
+		,"timestamp":1655736946977
+		,"author":"park108@gmail.com"
+	}
+
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+
+	const testEntry = {
+		pathname: "/log"
+		, search: ""
+		, hash: ""
+		, state: {}
+		, key: "default"
+	};
+
+	render(withQuery(
+		<MemoryRouter initialEntries={[ testEntry ]}>
+			<LogItem
+				author={"park108@gmail.com"}
+				timestamp={1655736946977}
+				contents={markdownText}
+				item={item}
+				showLink={true}
+			/>
+		</MemoryRouter>
+	));
+
+	window.confirm = vi.fn(() => true);
+
+	const deleteButton = screen.getByTestId("delete-button");
+	fireEvent.click(deleteButton);
+
+	// Network-level failure branches to the distinct message.
+	const toasterMessage = await screen.findByText("Deleting log network error.");
+	expect(toasterMessage).toBeInTheDocument();
+
+	mock.devServerNetworkError.resetHandlers();
+	mock.devServerNetworkError.close();
+});
+
 it('render log item and delete failed correctly', async () => {
 
 	mock.devServerFailed.listen();
