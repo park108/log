@@ -1,8 +1,8 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { log, hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '../common/common';
-import { getLog } from './api';
+import { hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '../common/common';
+import { useLog } from './hooks/useLog';
 import * as parser from '../common/markdownParser';
 import PageNotFound from "../common/PageNotFound";
 
@@ -12,12 +12,10 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
 const SUMMARY_LENGTH = 100;
 const PAGE_NOT_FOUND = "Page not found";
 
-const LogSingle = (props) => {
+const LogSingle = () => {
 
-	const [isLoading, setIsLoading] = useState(false);
-	const [itemLoadingStatus, setItemLoadingStatus] = useState("NOW_LOADING");
+	const [itemLoadingStatus, setItemLoadingStatus] = useState("NOW_LOADING"); // DELETED 전이용 최소 유지
 
-	const [data, setData] = useState({});
 	const [logItem, setLogItem] = useState();
 	const [toListButton, setToListButton] = useState();
 
@@ -29,75 +27,43 @@ const LogSingle = (props) => {
 	const queryString = new URLSearchParams(useLocation().search);
 	const logTimestamp = useParams()["timestamp"];
 
+	const { isLoading, isError, data: queryData } = useLog(logTimestamp);
+
+	// `queryData` shape: `{ body: { Count, Items: [...] }, errorType? }` (useLog queryFn → res.json()).
+	const hasErrorType = queryData && hasValue(queryData.errorType);
+	const hasError = isError || hasErrorType;
+	const found = !hasError && queryData?.body?.Count > 0;
+	const notFound = !hasError && queryData?.body?.Count === 0;
+	const latestData = found ? queryData.body.Items[0] : undefined;
+
 	useEffect(() => {
 		return () => { setMetaDescription(); }
 	}, []);
 
 	useEffect(() => {
+		if (!latestData) return;
+		const contents = latestData.logs[0].contents;
+		const hasTitle = contents.indexOf("# ") === 0;
+		const contentsStartIndex = hasTitle ? contents.indexOf("\n") : 0;
+		const logTitle = hasTitle
+			? contents.substr(2, contentsStartIndex - 1)
+			: "log of " + getFormattedDate(logTimestamp * 1, "date mon year");
+		setHtmlTitle(logTitle);
 
-		const fetchData = async (timestamp) => {
+		const contentsWithoutTitle = contents.substr(contentsStartIndex);
+		const parsedContents = parser.markdownToHtml(contentsWithoutTitle).replace(/<[^>]*>?/gm, '');
+		const summary = parsedContents.substr(0, SUMMARY_LENGTH);
+		const contentsLength = parsedContents.length;
+		const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
+		setMetaDescription(summary + ellipsis);
+	}, [latestData, logTimestamp]);
 
-			setIsLoading(true);
-
-			try {
-				const res = await getLog(timestamp);
-				const fetchedData = await res.json();
-				
-				if(!hasValue(fetchedData.errorType)) {
-
-					log("[API GET] OK - Log", "SUCCESS");
-
-					if(fetchedData.body.Count > 0) {
-
-						const latestData = fetchedData.body.Items[0];
-						setData(latestData);
-						setItemLoadingStatus("FOUND");
-						
-						const contents = latestData.logs[0].contents;
-						const hasTitle = contents.indexOf("# ") === 0;
-						const contentsStartIndex = hasTitle ? contents.indexOf("\n") : 0;
-						const logTitle = hasTitle
-							? contents.substr(2, contentsStartIndex - 1)
-							: "log of " + getFormattedDate(logTimestamp * 1, "date mon year");
-						setHtmlTitle(logTitle);
-		
-						const contentsWithoutTitle = contents.substr(contentsStartIndex);
-						const parsedContents = parser.markdownToHtml(contentsWithoutTitle).replace(/<[^>]*>?/gm, '');
-						const summary = parsedContents.substr(0, SUMMARY_LENGTH);
-						const contentsLength = parsedContents.length;
-						const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
-						setMetaDescription(summary + ellipsis);
-					}
-					else {
-						setItemLoadingStatus("NOT_FOUND");
-						setHtmlTitle(PAGE_NOT_FOUND);
-						setMetaDescription(PAGE_NOT_FOUND);
-					}
-				}
-				else {
-					log("[API GET] FAILED - Log", "ERROR");
-					console.error(fetchedData);
-
-					setItemLoadingStatus("NOT_FOUND");
-					setHtmlTitle(PAGE_NOT_FOUND);
-					setMetaDescription(PAGE_NOT_FOUND);
-				}
-			}
-			catch(err) {
-				log("[API GET] NETWORK ERROR - Log", "ERROR");
-				log(err, "ERROR");
-
-				setItemLoadingStatus("NOT_FOUND");
-				setHtmlTitle(PAGE_NOT_FOUND);
-				setMetaDescription(PAGE_NOT_FOUND);
-			}
-		
-			setIsLoading(false);
+	useEffect(() => {
+		if (hasError || notFound) {
+			setHtmlTitle(PAGE_NOT_FOUND);
+			setMetaDescription(PAGE_NOT_FOUND);
 		}
-
-		fetchData(logTimestamp);
-		
-	}, [props.isPostSuccess, logTimestamp]);
+	}, [hasError, notFound]);
 
 	useEffect(() => {
 		if(isLoading) {
@@ -127,18 +93,27 @@ const LogSingle = (props) => {
 	}, [isLoading]);
 
 	useEffect(() => {
-		if("NOT_FOUND" === itemLoadingStatus) {
+		if("DELETED" === itemLoadingStatus) {
+			setLogItem(
+				<h1 className="h1 h1--notification-result">
+					Deleted
+				</h1>
+			);
+			return;
+		}
+
+		if (hasError || notFound) {
 			setLogItem(<PageNotFound />);
 		}
-		else if("FOUND" === itemLoadingStatus) {
+		else if (found && latestData) {
 			setLogItem(
 				<Suspense fallback={<div></div>}>
 					<LogItem
-						author={data.author}
-						timestamp={data.timestamp}
-						contents={data.logs[0].contents}
-						item = {data}
-						temporary = {data.temporary}
+						author={latestData.author}
+						timestamp={latestData.timestamp}
+						contents={latestData.logs[0].contents}
+						item = {latestData}
+						temporary = {latestData.temporary}
 						showComments={true}
 						showLink={true}
 						deleted={() => {
@@ -149,31 +124,24 @@ const LogSingle = (props) => {
 				</Suspense>
 			);
 		}
-		else if("DELETED" === itemLoadingStatus) {
-			setLogItem(
-				<h1 className="h1 h1--notification-result">
-					Deleted
-				</h1>
-			);
-		}
 		else {
 			setLogItem("");
 		}
 
-	}, [itemLoadingStatus]);
-	
+	}, [itemLoadingStatus, hasError, notFound, found, latestData]);
+
 	return (
 		<div role="list">
 
 			{ logItem }
 			{ toListButton }
-			
+
 			<Suspense fallback={<div></div>}>
-				<Toaster 
+				<Toaster
 					show={isShowToasterCenter}
 					message="Loading a log..."
 				/>
-				<Toaster 
+				<Toaster
 					show={ isShowToasterBottom }
 					message={ toasterMessage }
 					position="bottom"
@@ -185,7 +153,7 @@ const LogSingle = (props) => {
 					}}
 				/>
 			</Suspense>
-			
+
 		</div>
 	);
 }

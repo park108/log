@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import * as common from '../common/common';
+import * as useLogModule from './hooks/useLog';
 import LogSingle from '../Log/LogSingle';
 
 console.log = vi.fn();
@@ -71,16 +72,19 @@ it('render LogSingle on prod server', async () => {
 		return true;
 	});
 
-	vi.useFakeTimers();
-
 	render(withQuery(
 		<MemoryRouter initialEntries={[ testEntry ]}>
 			<LogSingle />
 		</MemoryRouter>
 	));
 
+	// Wait for the useLog-driven fetch to resolve under real timers before
+	// switching to fake timers; MSW handlers rely on the real microtask queue.
 	const toListButton = await screen.findByText("To list");
 	expect(toListButton).toBeInTheDocument();
+
+	vi.useFakeTimers();
+
 	fireEvent.click(toListButton);
 
 	act(() => {
@@ -273,4 +277,36 @@ it('render "Page Not Found" page if API is down', async () => {
 
 	mock.prodServerNetworkError.resetHandlers();
 	mock.prodServerNetworkError.close();
+});
+
+// REQ-20260419-023 FR-05: useLog 훅이 useParams 에서 받은 timestamp 로 호출되는지 직접 검증.
+// 기존 useEffect + getLog 직접 호출 경로가 제거됐음을 캐시 키 기반으로 확인.
+it('calls useLog with the timestamp resolved from useParams', async () => {
+
+	mock.devServerOk.listen();
+	process.env.NODE_ENV = 'development';
+
+	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+
+	const useLogSpy = vi.spyOn(useLogModule, 'useLog');
+
+	render(withQuery(
+		<MemoryRouter initialEntries={[ testEntry ]}>
+			<LogSingle />
+		</MemoryRouter>
+	));
+
+	// 본문이 그려졌다 = useLog 가 성공 경로로 해결됐다.
+	const contents = await screen.findByText("Test Contents");
+	expect(contents).toBeInTheDocument();
+
+	// 호출 인자 검증: useParams 가 돌려준 '1656034616036' 가 그대로 전달.
+	expect(useLogSpy).toHaveBeenCalled();
+	expect(useLogSpy).toHaveBeenCalledWith('1656034616036');
+
+	useLogSpy.mockRestore();
+
+	mock.devServerOk.resetHandlers();
+	mock.devServerOk.close();
 });
