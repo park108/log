@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
@@ -8,7 +8,6 @@ import { deleteFile } from './api';
 const FileItem = (props) => {
 
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [itemClass, setItemClass] = useState("div div--fileitem");
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [toasterType, setToasterType] = useState("success");
@@ -45,12 +44,6 @@ const FileItem = (props) => {
 		}
 	}
 
-	useEffect(() => {
-		(isDeleting)
-			? setItemClass("div div--fileitem div--fileitem-delete")
-			: setItemClass("div div--fileitem");
-	}, [isDeleting]);
-
 	const copyFileUrl = async () => {
 		const ok = await copyToClipboard(props.url);
 		if (ok) {
@@ -66,8 +59,12 @@ const FileItem = (props) => {
 	const abort = () => log("Deleting aborted");
 	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
 
+	const className = isDeleting
+		? "div div--fileitem div--fileitem-delete"
+		: "div div--fileitem";
+
 	return (
-		<div className={itemClass} role="listitem">
+		<div className={className} data-deleting={isDeleting ? 'Y' : 'N'} role="listitem">
 			<div className="div div--fileitem-fileinfo">
 				<div
 					className="div div--fileitem-filename"

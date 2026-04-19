@@ -1,5 +1,6 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, act, waitFor } from '@testing-library/react';
 import * as common from '../common/common';
+import * as api from './api';
 import FileItem from './FileItem';
 
 console.log = vi.fn();
@@ -158,6 +159,79 @@ describe('FileItem keyboard activation (a11y pattern B) — delete span', () => 
 		fireEvent.click(deleteSpan);
 
 		expect(confirmAction).toHaveBeenCalledTimes(1);
+
+		vi.restoreAllMocks();
+	});
+});
+
+// REQ-20260419-015 FR-01/FR-02/FR-03/FR-04/FR-05/FR-06. 선행 패턴: REQ-20260418-026 (ImageItem data-enlarged), REQ-20260419-010 (FileDrop data-dragover).
+// setItemClass 명령형 → 선언적 className 파생 + data-deleting HTML5 속성 전환 회귀 가드.
+
+describe('FileItem className transition (declarative pattern)', () => {
+
+	it('renders base className when isDeleting=false (FR-03, FR-04)', () => {
+
+		const { container } = render(<FileItem {...defaultProps} />);
+
+		const root = container.querySelector('.div--fileitem');
+		expect(root).toBeInTheDocument();
+		expect(root).not.toHaveClass('div--fileitem-delete');
+		expect(root).toHaveAttribute('data-deleting', 'N');
+		expect(root).toHaveAttribute('role', 'listitem');
+	});
+
+	it('toggles className and data-deleting on delete confirm (FR-03, FR-04, FR-05)', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: async () => ({ statusCode: 200 }),
+		});
+
+		const { container } = render(<FileItem {...defaultProps} />);
+
+		const root = container.querySelector('.div--fileitem');
+		expect(root).toHaveAttribute('data-deleting', 'N');
+		expect(root).not.toHaveClass('div--fileitem-delete');
+
+		const deleteSpan = container.querySelector('.span--fileitem-delete');
+
+		await act(async () => {
+			fireEvent.click(deleteSpan);
+		});
+
+		await waitFor(() => {
+			expect(root).toHaveClass('div--fileitem-delete');
+		});
+		expect(root).toHaveAttribute('data-deleting', 'Y');
+
+		vi.restoreAllMocks();
+	});
+
+	it('preserves data-deleting across parent rerender (FR-06)', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: async () => ({ statusCode: 200 }),
+		});
+
+		const { container, rerender } = render(<FileItem {...defaultProps} />);
+
+		const deleteSpan = container.querySelector('.span--fileitem-delete');
+		await act(async () => {
+			fireEvent.click(deleteSpan);
+		});
+
+		await waitFor(() => {
+			const rootBefore = container.querySelector('.div--fileitem');
+			expect(rootBefore).toHaveAttribute('data-deleting', 'Y');
+		});
+
+		// 부모가 동일 props 로 리렌더해도 로컬 isDeleting 상태 기반 파생 값은 보존되어야 한다.
+		rerender(<FileItem {...defaultProps} />);
+
+		const rootAfter = container.querySelector('.div--fileitem');
+		expect(rootAfter).toHaveAttribute('data-deleting', 'Y');
+		expect(rootAfter).toHaveClass('div--fileitem-delete');
 
 		vi.restoreAllMocks();
 	});
