@@ -2,7 +2,7 @@
 
 > **위치**: `src/**/*.css` → `src/**/*.module.css`, `src/App.css` (전역 유지)
 > **유형**: 스타일 아키텍처 / 마이그레이션 정책
-> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-010/011/012/013 반영)
+> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-010/011/012/013/019 반영)
 > **상태**: Active (마이그레이션 진행 중)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260417-css-modules-migration.md`
@@ -12,6 +12,7 @@
 > - `specs/requirements/done/2026/04/19/20260419-comment-replypopup-log-global-class-policy.md` (REQ-20260419-011, Comment ↔ Log 전역 클래스 정책 결정)
 > - `specs/requirements/done/2026/04/19/20260419-cross-domain-modules-dead-class-audit.md` (REQ-20260419-012, Image/Search/Toaster 도메인 dead class audit)
 > - `specs/requirements/done/2026/04/19/20260419-stylelint-no-unused-selectors-introduction.md` (REQ-20260419-013, stylelint + unused-selectors 자동 감지 룰 도입)
+> - `specs/requirements/done/2026/04/19/20260419-logitem-setitemclass-declarative-refactor.md` (REQ-20260419-019, LogItem `setItemClass` 명령형 className state → 선언적 React, REQ-026/010/015 패턴 4차 재적용 — Log 도메인 마무리)
 
 > 본 문서는 컴포넌트 국소 스타일을 `*.module.css` 로 이전하는 1단계 정책을 기술.
 > 디자인 토큰 재구성/`App.css` 분할 (2단계) 은 별도 spec (`design-tokens-spec.md`).
@@ -557,8 +558,10 @@ return (
 - 카운터 패턴 (dragenter counter) 도입은 본 PR 범위 밖 — 실 사용자 영향 있을 시 별 후속 REQ.
 
 **패턴 reference 연동**:
-- `src/Image/ImageItem.jsx` (§10.1 REQ-026 후 baseline) — 선언적 state + `data-*` 속성 패턴 모범.
+- `src/Image/ImageItem.jsx` (§10.1 REQ-026 후 baseline) — 선언적 state + `data-*` 속성 패턴 모범 (1차, `data-enlarged`).
+- `src/File/FileDrop.jsx` (§10.6 본 절, REQ-010 done) — `useMemo` + `data-dragover` (2차).
 - `src/File/FileItem.jsx:11, 50-51` 의 `setItemClass("div div--fileitem ...")` 동일 패턴 — **REQ-20260419-015 로 3차 재적용 예약(ready, WIP)** — 상세는 §10.7.
+- `src/Log/LogItem.jsx:15, 38-45` 의 `setItemClass("article article--main-item ...")` 동일 패턴 — **REQ-20260419-019 로 4차 재적용 예약(ready, WIP)** — 상세는 §10.9. 4차 마감 시 Image / File / Log 3 도메인 모두 패턴 정착 → "도메인 일관 표준" 박제.
 
 **수용 기준 (REQ-20260419-010 §10)**:
 - [ ] FR-01 ~ FR-10 모두 충족 (Must 우선)
@@ -702,6 +705,102 @@ const className = isDeleting
 - 시각 회귀 자동화 (Percy / Chromatic) — 별 후속.
 - prod 환경 (`vite preview`) 검증 — 별 후속.
 
+### 10.9 [WIP] LogItem `setItemClass` 명령형 className state → 선언적 React (REQ-20260419-019, REQ-026 / REQ-010 / REQ-015 패턴 4차 재적용 — Log 도메인 마무리)
+
+> 관련 요구사항: REQ-20260419-019 FR-01 ~ FR-08, US-01 ~ US-04
+
+**맥락**: `src/Log/LogItem.jsx:15, 38-45` 의 `setItemClass("article article--main-item ...")` 는 ImageItem (§10.1, REQ-026 done, commit `9efb9ad`) / FileDrop (§10.6, REQ-010 done, commit `2b35a8f`) / FileItem (§10.7, REQ-015 ready) 와 **동일한 className-state 안티패턴 4번째 인스턴스**. `useDeleteLog` 훅(`:13-14`)의 `isPending` 을 `isDeleting` 지역 상수로 파생 후, 별도 `useState("article article--main-item")` + `useEffect([isDeleting])` 의 if/else 분기로 `itemClass` 갱신 — **이중 SSoT** (TanStack Query state ↔ 로컬 state) + 1 tick 지연. 본 §은 해당 후속을 4차 재적용으로 마감하여 Image / File / Log 3 도메인 패턴 정착.
+
+**As-Is**:
+```jsx
+// src/Log/LogItem.jsx:13-15
+const deleteMutation = useDeleteLog();
+const isDeleting = deleteMutation.isPending;
+const [itemClass, setItemClass] = useState("article article--main-item");
+
+// src/Log/LogItem.jsx:38-45
+useEffect(() => {
+    if (isDeleting) {
+        setItemClass("article article--main-item article--logitem-delete");
+    } else {
+        setItemClass("article article--main-item");
+    }
+}, [isDeleting]);
+
+// src/Log/LogItem.jsx:60-61
+<article className={itemClass} role="listitem">
+```
+
+**To-Be**:
+```jsx
+// 단순 2 케이스 — 인라인 삼항 권장 (useMemo 도 가능, FileDrop 모범 일관 — §10.7 FileItem 과 패턴 동등)
+const itemClass = isDeleting
+    ? "article article--main-item article--logitem-delete"
+    : "article article--main-item";
+
+<article className={itemClass} data-deleting={isDeleting ? 'Y' : 'N'} role="listitem">
+```
+
+**리팩터 세부 (FR-01 ~ FR-08)**:
+- **FR-01**: `[itemClass, setItemClass] = useState("article article--main-item")` 1줄 제거.
+- **FR-02**: `useEffect([isDeleting])` 분기 setItemClass 7줄 제거 (useEffect 자체 제거 권장 — 단순도).
+- **FR-03**: className 파생 — 인라인 삼항 권장 (2-케이스 단순, FileItem §10.7 패턴 동등). `useMemo([isDeleting])` 도 허용 (FileDrop §10.6 모범 일관).
+- **FR-04 (Should)**: `data-deleting={isDeleting ? 'Y' : 'N'}` 선언적 속성 추가 — ImageItem `data-enlarged` / FileDrop `data-dragover` / FileItem `data-deleting` 패턴 1:1.
+- **FR-05 (Must)**: `'reflects deleting state via className transition'` 회귀 테스트 — `isDeleting=false` → `container.querySelector('.article--logitem-delete')` 없음 / delete trigger → `isDeleting=true` → `.article--logitem-delete` 존재.
+- **FR-06 (Should)**: `'preserves data-deleting attribute under parent rerender'` 회귀 테스트 — 부모 리렌더 트리거 후 `data-deleting` 동기 유지.
+- **FR-07 (Should)**: spec §10.6 "패턴 reference 연동" 행 갱신 — 본 §10.9 신설 이후 `src/Log/LogItem.jsx:15, 38-45` 의 "별 후속" 박제를 "REQ-20260419-019 done (commit `xxx`)" 로 마감 (별 inspector 라운드).
+- **FR-08 (Could)**: LOC 변동 박제 — wc -l 변경 전후 (FileDrop 의 LOC drift 선례 의식, 현 89 → ±5 이내 예상).
+
+**회귀 테스트 (FR-05, FR-06)**:
+- `src/Log/LogItem.test.jsx` 기존 케이스 (mutation 결과 success/failed 분기 중심, className 어서트 부재) 100% PASS.
+- 신규 ≥ 1 케이스: className 전환 어서트 또는 `data-deleting` 속성 어서트 (RTL 권장 — 사용자 가시 어서트, `getByRole('listitem').getAttribute('data-deleting')` 패턴).
+- per-test mock isolation + `makeQueryClient()` 회전 + `vi.clearAllMocks` — TanStack Query mutation mock leak 차단.
+
+**grep 회귀 차단**:
+- `grep -n "useState.*itemClass" src/Log/LogItem.jsx` → 0.
+- `grep -n "setItemClass" src/Log/LogItem.jsx` → 0.
+- `grep -n "data-deleting" src/Log/LogItem.jsx` → ≥ 1 (루트 요소).
+- 도메인 일관성 4 파일: `grep -n "data-enlarged\|data-dragover\|data-deleting" src/Image/ImageItem.jsx src/File/FileDrop.jsx src/File/FileItem.jsx src/Log/LogItem.jsx` → 4 파일 각 ≥ 1 hit (§10.1 / §10.6 / §10.7 / §10.9).
+
+**CSS Modules 정합성**: Log 도메인은 CSS Modules 미마이그레이션 (§10 대상 목록의 미완 영역) — plain CSS 클래스 문자열 `"article article--main-item"` / `"article article--main-item article--logitem-delete"` 그대로 유지. Log 도메인 Modules 마이그레이션(별 후속) 시 본 §의 파생화된 className 이 `styles.foo` hash 로 자연 치환 가능 — 마이그레이션 비용 감소.
+
+**TanStack Query 정합**:
+- `useDeleteLog.isPending` (TanStack Query 5.x 가 보장하는 stable boolean) 을 단일 SSoT 로 사용 → `itemClass` 별도 state 제거로 동기 timing 버그 0.
+- mutation lifecycle (`idle` → `pending` → `success`/`error`) 동안 `isPending` frame-perfect 갱신 — React render commit 과 className 파생이 동일 commit 에서 발생 (1 frame lag 0).
+
+**REQ-015 (FileItem) 와의 관계**:
+- REQ-015 (§10.7) 와 본 §10.9 는 동일 안티패턴 — 직교. planner 는 묶음 PR vs 별 PR 결정 가능.
+- 두 PR 동시 마감 시 Image / File / Log 3 도메인 + 4 파일 패턴 일관.
+- 충돌 가능성 매우 낮음 — 서로 다른 파일.
+
+**시각 회귀 위험 완화**:
+- React 18 strict mode 에서 effect double-invocation 시 초기 className state → useEffect → setItemClass 의 1 tick 지연이 현 As-Is 의 잠재 회귀 원인. To-Be 는 인라인 파생으로 render commit 동시 반영 → 부모 리렌더 시 initial className 누락 window 제거.
+- React 19 bump (REQ-040 미실행) 후 Concurrent 렌더 + strict mode 효과 ↑ 전 사전 정리.
+
+**수용 기준 (REQ-20260419-019 §10)**:
+- [ ] FR-01 itemClass useState 0 매치 (grep).
+- [ ] FR-02 setItemClass 0 매치 (grep).
+- [ ] FR-03 className 파생 (useMemo 또는 삼항) 동작.
+- [ ] FR-04 `data-deleting` 속성 노출 (DevTools 식별 가능).
+- [ ] FR-05 회귀 테스트 PASS.
+- [ ] (Should) FR-06 data-deleting 회귀 테스트 PASS.
+- [ ] (Should) FR-07 inspector 가 §10.6 패턴 reference 글머리 갱신.
+- [ ] NFR-02 LOC 변경 ±5 이내 (현재 89 → ≤ 94).
+- [ ] NFR-04 4 파일 패턴 일관 검증 (§10.1 / §10.6 / §10.7 / §10.9).
+- [ ] `npm run lint` clean.
+- [ ] 사용자 visible 회귀 0.
+
+**범위 밖**:
+- Log 도메인 CSS Modules 마이그레이션 — §3.1 영역 (8 마이그레이션 대상 중 Log 미완).
+- `LogItem` 의 다른 useState 정리 — 별 후속.
+- `useDeleteLog` 훅 자체 변경 — REQ-033 영역.
+- `LogItem.jsx` 의 다른 렌더 분기 (LogItemInfo, Comment) 변경.
+- `Search/SearchInput.jsx:118-126` 의 `setAttribute("class", ...)` 분기 — 별 후속 (REQ-026 §10.1 "범위 밖" 명시).
+- React.memo 추가/제거.
+- React 19 bump (REQ-040) — 본 §은 bump 전 사전 정리 효과.
+- TypeScript 변환.
+- LogItem 시각 디자인 변경 ("article article--logitem-delete" 클래스 그대로).
+
 ## 11. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-css-modules-migration.md`
 - 후속 요구사항: `specs/requirements/done/2026/04/18/20260418-imageitem-imperative-dom-react-refactor.md` (REQ-026, CSS Modules 마이그레이션 사후 위생)
@@ -723,3 +822,4 @@ const className = isDeleting
 | 2026-04-19 | (pending, REQ-20260419-016) | FileDrop `dropzoneText` JSX useState → `useMemo([isUploading])` 파생 §10.6.2 신설 (§10.6 FR-06 Should 후속 마감) (WIP) | 10.6, 10.6.2 |
 | 2026-04-19 | (pending, REQ-20260419-015) | FileItem `setItemClass` 명령형 className state → 선언적 React §10.7 신설 (§10.6 마지막 글머리 "별 후속" 박제 3차 재적용, `data-deleting` 패턴 도입) (WIP) | 10.6, 10.7 |
 | 2026-04-19 | (pending, REQ-20260419-017) | 3 체크리스트 묶음 baseline 수행 §10.8 신설 (log-mutation MC/MD 8 + LogItem sanitize F1~F4 + FileDrop 시각 회귀 3 관찰점, 운영자 60분 1회 세션) (WIP) | 10.6, 10.8 |
+| 2026-04-19 | (pending, REQ-20260419-019) | LogItem `setItemClass` 명령형 className state → 선언적 React §10.9 신설 (§10.6 "패턴 reference 연동" 글머리 4차 재적용 박제, `data-deleting` 패턴 도입, Image/File/Log 3 도메인 마무리, useDeleteLog.isPending 단일 SSoT) (WIP) | 10.6, 10.9 |
