@@ -15,8 +15,6 @@ const LogList = (props) => {
 	const [logs, setLogs] = useState([]);
 	const [lastTimestamp, setLastTimestamp] = useState(undefined);
 
-	const [seeMoreButton, setSeeMoreButton] = useState();
-
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 
 	useEffect(() => {
@@ -139,32 +137,6 @@ const LogList = (props) => {
 	}, [isLoading]);
 
 	useEffect(() => {
-
-		const seeMoreButtonClass = isLoading
-			? "button button--loglist-seemore button--loglist-seemoreloading"
-			: "button button--loglist-seemore";
-		
-		const seeMoreButtonText = isLoading
-			? "Loading..."
-			: "See more";
-
-		if(!hasValue(lastTimestamp)) {
-			setSeeMoreButton("");
-		}
-		else {
-			setSeeMoreButton(
-				<button
-					data-testid="seeMoreButton"
-					className={seeMoreButtonClass}
-					onClick={() => setIsGetNextData(true)}
-				>
-					{seeMoreButtonText}
-				</button>
-			);
-		}
-	}, [lastTimestamp, isLoading]);
-
-	useEffect(() => {
 		if(logs.length > 0) {
 			sessionStorage.setItem("logList", JSON.stringify(logs));
 		}
@@ -197,6 +169,23 @@ const LogList = (props) => {
 		);
 	}
 	else {
+
+		const seeMoreButtonClass = isLoading
+			? "button button--loglist-seemore button--loglist-seemoreloading"
+			: "button button--loglist-seemore";
+		const seeMoreButtonText = isLoading ? "Loading..." : "See more";
+		const seeMoreButton = hasValue(lastTimestamp)
+			? (
+				<button
+					data-testid="seeMoreButton"
+					className={seeMoreButtonClass}
+					onClick={() => setIsGetNextData(true)}
+				>
+					{seeMoreButtonText}
+				</button>
+			)
+			: null;
+
 		return (
 			<section className="section section--log-list" role="list">
 				{logs.map(data => (
