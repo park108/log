@@ -42,8 +42,17 @@
 - 훅 우회(`--no-verify`, `--no-gpg-sign`) 금지.
 - `git commit --amend`(이전 커밋 덮어쓰기) 금지.
 
-### 2.3 커밋/푸시
-- 자동 커밋/푸시는 **developer 전용**. 다른 에이전트는 금지.
-- `master`/`main` 직접 푸시가 정책상 금지면 작업 브랜치로 전환 후 보고.
-- 민감 파일(`.env`, `*.pem`, 자격증명) 스테이징/커밋 금지.
-- `git add -A` / `git add .` 대신 **파일 명시**.
+### 2.3 커밋 / 푸시
+- **공유 범위**: 원격에 공유되는 것은 **`specs/spec/**`** 와 **`src/**`** 뿐이다. `specs/followups/**`, `specs/requirements/**`, `specs/task/**` 등 큐/아카이브는 `.gitignore` 로 **로컬 전용**. 레포 설정상 기본값.
+- **로컬 커밋**: 각 에이전트는 `RULE-01` §2 매트릭스상 **자기 writer 영역 내 변경만** 세션 종료 직전 **단일 커밋**으로 기록한다. `.gitignore` 로 제외된 경로는 자동 생략 — 결과적으로 스테이지가 비면 **커밋 없음** (멱등).
+- **원격 push**: **developer 전용**. 다른 에이전트는 로컬 커밋까지만, push 금지.
+- 커밋 메시지 포맷:
+  - developer 의 task 커밋: `developer.md` §5 포맷 유지 (`{type}: {task title}`).
+  - **그 외 에이전트**: `{scope}({agent}): {요약}` — `{scope}` ∈ {spec, req, task, followup}, `{agent}` ∈ {discovery, inspector, planner}.
+    - `spec(inspector): reflect REQ-20260418-001 on build/react-version-spec`
+    - `spec(planner): promote monitor/web-vitals green→blue`
+    - `spec(planner): block styles/design-tokens (3회 정체)`
+  - discovery 출력(`specs/requirements/ready/**`, `specs/followups/consumed/**`)은 현 gitignore 상 전량 제외 → 실제 커밋 발생하지 않음. gitignore 가 완화되면 규칙은 자동 적용.
+- 커밋은 **자기 writer 영역 밖 파일을 절대 포함하지 않는다**. `git add` 는 **파일 명시** (`-A`/`.` 금지). 민감 파일(`.env`, `*.pem`, 자격증명) 스테이징/커밋 금지.
+- 훅 실패 시 부분 스테이지 해제 후 원인 수정·재시도. **훅 우회 금지** (§2.2).
+- `master`/`main` 직접 푸시가 정책상 금지면 작업 브랜치로 전환 후 보고 (developer 한정).
