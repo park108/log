@@ -2,7 +2,7 @@
 
 > **위치**: `src/App.jsx` (Provider), `src/Log/api.js`, `src/Log/hooks/*` (신규)
 > **유형**: 상태 관리 패턴 / 서버 캐싱
-> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-20260418-013/021/027/033 + REQ-20260419-005/007/009/012 반영)
+> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-20260418-013/021/027/033 + REQ-20260419-005/007/009/012/023 반영)
 > **상태**: Active (파일럿 단계 + fetch cancellation 안전망 단계 + mutation 경로 마감 단계 + mutation 후속 정리 단계)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`
@@ -15,6 +15,7 @@
 > - `specs/requirements/done/2026/04/19/20260419-log-mutation-runtime-smoke-checklist-doc.md` (REQ-20260419-008, mutation 런타임 수동 smoke 체크리스트 문서 — §3.3.1.7 운영자 검증 Could 인프라)
 > - `specs/requirements/done/2026/04/19/20260419-writer-isprocessing-derive-from-mutation-ispending.md` (REQ-20260419-009, Writer `isProcessing` 로컬 state 제거 → `isPending` 파생화 — §3.3.1.2 commitment 마감)
 > - `specs/requirements/done/2026/04/19/20260419-cross-domain-msw-lifecycle-isolation-phase2.md` (REQ-20260419-012, 도메인 전반 MSW lifecycle / `NODE_ENV` 변형 격리 Phase 2 — REQ-027 Phase 1 cross-domain 확장)
+> - `specs/requirements/done/2026/04/19/20260419-logsingle-consume-uselog-hook-tanstack-query-migration.md` (REQ-20260419-023, LogSingle.jsx `useLog` 소비 + 수동 fetch `useEffect` 제거 — §3.3 조회 경로 drift 해소)
 
 > 본 문서는 서버 상태(원격 데이터) 관리 표준 SSoT.
 > 클라이언트 상태(전역 UI 상태) 는 범위 밖.
@@ -63,7 +64,7 @@
 ### 3.3 파일럿 적용 범위 (Log 도메인)
 대상 화면:
 - `LogList.jsx` — `useLogList` (조회, 훅은 `fa9424c` 에 도입됨 — **consumer 미전환** → REQ-20260419-007 에서 `LogList.jsx` 의 `useLogList` 소비 + `sessionStorage("logList"/"logListLastTimestamp")` 트릭 제거로 §3.3 파일럿 마감 예정, WIP)
-- `LogSingle.jsx` — `useLog` (조회, 완료 — commit `fa9424c`)
+- `LogSingle.jsx` — `useLog` (조회, 훅은 `fa9424c` 에 도입됨 — **consumer 미전환** → REQ-20260419-023 에서 `LogSingle.jsx` 의 `useLog` 소비 + `useEffect` 직접 fetch 제거 + `isLoading`/`data`/`itemLoadingStatus` 수동 state 3개 제거로 §3.3 조회 경로 마감 예정, WIP — 상세 §3.3.3)
 - `Writer.jsx` — `useCreateLog`, `useUpdateLog` (변경, WIP — REQ-20260418-033 §3.3.1 + REQ-20260419-009 `isProcessing` 파생화)
 - `LogItem.jsx` — `useDeleteLog` (메뉴/액션, WIP — REQ-20260418-033 §3.3.1)
 
@@ -260,7 +261,7 @@
 - `grep -rn "useLogList(" src/Log/LogList.jsx` ≥ 1 line.
 
 **범위 밖**:
-- `LogSingle.jsx` 의 `useLog` 통합 — 이미 done (REQ-020).
+- `LogSingle.jsx` 의 `useLog` 통합 — **REQ-20260419-023 에서 별 트랙으로 진행** (이전 "done (REQ-020)" 표기는 drift, §3.3.3 참조).
 - 다른 도메인(Comment/File/Image/Search/Monitor) 의 `useQuery` 마이그레이션 — 별 후속.
 - 낙관적 업데이트 (`onMutate` + `setQueryData`) — Could.
 - `persistQueryClient` 도입 — 별 spec.
@@ -271,6 +272,46 @@
 - App 레벨 `staleTime: 60_000` 이 mutation invalidate 발화와 무관하게 자동 refetch 를 trigger (invalidation 은 staleTime 과 독립).
 - 기존 Toaster ("Loading logs...") UX 는 `isFetching` (또는 `isPending`) 로 동등 재현.
 - sessionStorage 잔존 키는 자연 stale — 재진입 시 무해. 일회성 cleanup 은 별 후보.
+
+### 3.3.3 [WIP] LogSingle `useLog` 소비 마이그레이션 (REQ-20260419-023)
+
+> 관련 요구사항: REQ-20260419-023 FR-01 ~ FR-05, US-01 ~ US-02
+
+**맥락 (2026-04-19 관측 — §3.3 "완료" 표기 drift 해소)**: §3.3 의 `LogSingle.jsx — useLog (조회, 완료 — commit fa9424c)` 행이 실태와 drift. `src/Log/hooks/useLog.js:13-23` (`useQuery({ queryKey: ['log','detail',timestamp], enabled: Boolean(timestamp) })`) 은 구현 완료 상태이지만 `src/Log/LogSingle.jsx` 가 훅을 **소비하지 않고** 여전히 `useEffect` 에서 `getLog(timestamp)` 를 직접 호출하며 `isLoading` / `data` / `itemLoadingStatus` 등 수동 state 6개를 유지한다 (`LogSingle.jsx:17-26, 37-95`). 결과적으로 (a) §3.3.1.1 의 `useUpdateLog` / `useDeleteLog` 가 발화하는 `invalidateQueries(['log','detail',timestamp])` / `removeQueries(['log','detail',timestamp])` 가 **실효 0** — 캐시 상에 `['log','detail',*]` 엔트리 부재 — 이고, (b) `useLog` 훅의 `staleTime` / `retry` / dedupe 혜택이 활용되지 못한다. §3.3 파일럿의 조회 경로 마감을 위해 본 §이 drift 를 해소.
+
+**목표 (In-Scope)**:
+
+**3.3.3.1 LogSingle.jsx 마이그레이션 (FR-01 ~ FR-03)**
+- `src/Log/LogSingle.jsx` 가 `useLog(logTimestamp)` 를 호출하고 반환된 `{ isLoading, isError, data }` 를 렌더에 직접 사용.
+- `useState(false)` `isLoading`, `useState({})` `data`, `useState("NOW_LOADING")` `itemLoadingStatus` 3개 수동 state 제거 (또는 `useLog` 반환값 + 파생 변수로 대체).
+- `fetchData()` 를 호출하는 `useEffect` 블록 (`LogSingle.jsx:37-95`) 제거.
+- NOT_FOUND(`data?.body?.Count === 0` 또는 `isError`) / FOUND(`data?.body?.Count > 0`) / DELETED 분기 표시 동작 유지 — 단, DELETED 는 `setIsShowToasterBottom` 콜백 기반 로컬 state 로 남길지 여부는 §13 미결.
+
+**3.3.3.2 부수효과 보존 (FR-04)**
+- `setHtmlTitle(data)` / `setMetaDescription(data)` 는 `useEffect([data])` 에서 기존과 동등하게 호출 — 서버 상태 외 UI 부수효과이므로 훅 내부 이동 금지.
+- `useLog` 자체는 수정 금지 (이미 spec-aligned, `Out-of-Scope`).
+
+**3.3.3.3 테스트 (FR-05)**
+- `LogSingle.test.jsx` 의 MSW 핸들러 + QueryClient 래퍼 구성을 `renderWithQuery` (§4.3.1, REQ-20260419-005) 로 통일.
+- 기존 테스트 케이스 100% PASS + `useLog` 호출 확인 어서트 신규 1건 (queryKey `['log','detail',timestamp]` 주입 검증).
+- `useDeleteLog.onSuccess` 경로에서 `removeQueries(['log','detail',timestamp])` 가 `LogSingle` 재렌더 시 실효 확인 케이스 1건 (Should).
+
+**3.3.3.4 grep 회귀 차단**
+- `grep -n "useLog(" src/Log/LogSingle.jsx` ≥ 1 line.
+- `grep -n "await getLog\|getLog(" src/Log/LogSingle.jsx` → 0 line (`useLog` 훅 내부 `queryFn` 제외).
+- `grep -n "itemLoadingStatus" src/Log/LogSingle.jsx` → 0 line (또는 DELETED 전이용 최소 유지 시 §13 결정 기록).
+
+**범위 밖 (REQ-023 §3.2)**:
+- `useLog` 훅 자체 수정 (이미 §3.2 규약 준수).
+- `LogSingle` 의 JSX-in-state (`logItem`, `toListButton`) 제거 — **REQ-20260419-024** (§ 3.3.3 와 동일 파일 편집 충돌 주의) 에서 다룸.
+- 페이지네이션 / 무한 스크롤 도입.
+- `isShowToasterBottom` / `isShowToasterTop` 분기 통폐합 — 별 후보.
+
+**UX 가정 (Assumptions)**:
+- `useLog` 의 `queryFn` 이 `res.ok` 기반 에러 throw 를 수행하므로 네트워크 에러는 `isError=true` 로 전달 — 기존 try/catch 분기 동등.
+- `staleTime: 60_000` (§3.1) 과 `enabled: Boolean(timestamp)` (기존 훅 옵션) 조합으로 경로 진입 시 불필요 재요청 0.
+
+**Drift 기록**: 본 §3.3.3 머지 시 §3.3 파일럿 행의 `LogSingle.jsx — useLog (조회, 완료 — commit fa9424c)` 는 "완료 — commit `<REQ-023 머지 해시>`" 로 inspector 가 갱신 (현 `fa9424c` 는 훅 구현만 반영, 소비자 전환은 REQ-023 머지 후 박제).
 
 ### 3.4 Devtools
 - `@tanstack/react-query-devtools` 도입
@@ -711,6 +752,21 @@ afterAll(() => server.close());
 - [ ] `npm test` 100% PASS, 커버리지 ±0.5pp, `npm run lint` 0 warn, `npm run build` PASS
 - [ ] 본 §3.3.1.2.1 의 commitment 충족 마킹 — 완료 시 "commit `<hash>`" 박제 (inspector)
 
+### 5.8 REQ-20260419-023 수용 기준 (LogSingle `useLog` 소비 마이그레이션 — §3.3 조회 경로 drift 해소)
+
+> 관련 요구사항: REQ-20260419-023 §10
+
+- [ ] `src/Log/LogSingle.jsx` 에서 `fetchData` 또는 `getLog(` 를 직접 호출하는 `useEffect` 블록이 제거됨 (`grep -n "getLog(" src/Log/LogSingle.jsx` → 0)
+- [ ] `isLoading`, `data`, `itemLoadingStatus` `useState` 선언 3개가 제거되거나 `useLog` 반환값/파생으로 대체 (DELETED 전이용 state 는 §13 결정 기록 후 유지 허용)
+- [ ] `useLog(logTimestamp)` 가 `LogSingle` 내에서 ≥ 1회 호출 (`grep -n "useLog(" src/Log/LogSingle.jsx` ≥ 1)
+- [ ] `useLog` 훅 파일(`src/Log/hooks/useLog.js`) 은 수정되지 않음 (Out-of-Scope)
+- [ ] `setHtmlTitle(data)` / `setMetaDescription(data)` 는 `useEffect([data])` 에서 동등하게 호출 — 기존 동작 보존
+- [ ] `LogSingle.test.jsx` 가 `renderWithQuery` (§4.3.1) 를 사용하며 기존 케이스 100% PASS
+- [ ] `useLog` 호출 확인 어서트 1건 신규 (queryKey `['log','detail',timestamp]`)
+- [ ] (Should) `useDeleteLog.mutate` → `removeQueries(['log','detail',timestamp])` 경로의 `LogSingle` 재렌더 실효 확인 1건
+- [ ] `npm test` 100% PASS, 커버리지 ±0.5pp, `npm run lint` 0 warn, `npm run build` PASS
+- [ ] 본 REQ 머지 후 inspector 가 §3.3 파일럿 LogSingle 행을 "완료 — commit `<hash>`" 로 박제
+
 ### 5.1 REQ-20260418-021 수용 기준 (AbortController 안전망)
 - [ ] 6개 도메인 api.js (`Log`/`File`/`Image`/`Search`/`Comment`/`Monitor`) 모두 `{ signal }` 옵션 수용
 - [ ] `grep -rn "AbortController" src/` → useEffect 내 fetch 호출처 10+ 사이트 커버
@@ -739,6 +795,7 @@ afterAll(() => server.close());
 | 2026-04-19 | (pending, REQ-20260419-008) | Log mutation 런타임 수동 smoke 체크리스트 문서 §3.3.1.8 링크 + 별 spec 파일 `specs/spec/green/testing/log-mutation-runtime-smoke-spec.md` 신설 — §3.3.1.7 Could 운영자 검증 인프라 실현 (WIP) | 3.3.1.8, 5.5 |
 | 2026-04-19 | (pending, REQ-20260419-009) | Writer `isProcessing` 로컬 state 제거 → `useCreateLog`/`useUpdateLog` 의 `isPending` 파생화 §3.3.1.2.1 신설 — §3.3.1.2 commitment 마감 (WIP) | 3.3.1.2.1, 5.6 |
 | 2026-04-19 | (pending, REQ-20260419-012) | 도메인 전반 MSW lifecycle / `NODE_ENV` 변형 격리 Phase 2 §3.7 신설 — 17 파일 cross-domain sweep + 글로벌 `setupServer` / `vi.stubEnv` / `vi.spyOn` 표준화 + 진단 baseline 매트릭스 (REQ-027 Phase 1 후속) (WIP) | 3.7, 5.7 |
+| 2026-04-19 | (pending, REQ-20260419-023) | LogSingle `useLog` 소비 마이그레이션 §3.3.3 신설 — §3.3 파일럿 "완료 (commit fa9424c)" 표기 drift 해소, 수동 state 3개(`isLoading`/`data`/`itemLoadingStatus`) 제거, `invalidateQueries(['log','detail',*])` 실효 회복 (WIP) | 3.3, 3.3.3, 5.8 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`

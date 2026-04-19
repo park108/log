@@ -135,7 +135,7 @@ React 19 strict mode 의 effect double-invocation / concurrent 렌더 / fiber su
 - React 19 의 strict mode 변화 (effect double-invocation) 가 일부 테스트에 영향 줄 수 있음 — 회귀 검사 필수. 큰 수정이면 별 followup.
 - **명령형 `setAttribute` 잔존 위치** (`src/Image/ImageItem.jsx` 외 ImageSelector/SearchInput 가능성) 가 bump 후 상태 회귀를 일으킬 수 있음 — REQ-20260418-026 선행 권장.
 - 서드파티 라이브러리 React 19 호환 확인 (`react-router-dom`, `@testing-library/*`) — 감사 §3.1 통과.
-- `@testing-library/jest-dom@5.17.0 → 6.9.1` 도 함께 bump 검토 — 본 요구사항 범위 밖, 별 후보.
+- `@testing-library/jest-dom@5.17.0 → 6.9.1` 도 함께 bump 검토 — 본 요구사항 범위 밖, **REQ-20260419-025 로 별 spec `specs/spec/green/build/jest-dom-upgrade-spec.md` 신설 (WIP)**. 본 REQ-012/040 머지 후 inspector 가 §3.1 의 `jest-dom@5.17.0` baseline 을 `^6.9.1` 로 갱신.
 - `prop-types` 가 React 19 에서 런타임은 동작하되 deprecation 경고 가능 — 본 PR 에서 제거하지 않음 (TS 마이그레이션 의존).
 - StrictMode 일시 비활성 옵션은 정책 판단 필요 — REQ-012 §13 미결.
 
@@ -157,6 +157,7 @@ React 19 strict mode 의 effect double-invocation / concurrent 렌더 / fiber su
 | 2026-04-18 | (pending, REQ-20260418-012) | React 19 + RTL 16 실행 범위, post-bump deprecation 관측 루틴 추가 (WIP) | 2, 4, 5, 6 |
 | 2026-04-18 | (pending, REQ-20260418-026) | ImageItem 명령형 DOM 선행 위생 §4.1 신설 — bump 선행 권장 (WIP) | 4.1, 5 |
 | 2026-04-18 | (pending, REQ-20260418-040) | REQ-012 done/실태 drift 해소 §4.0.1 신설 — 물리 bump 재실행 + post-bump audit §7 박제 + inspector baseline 갱신 트리거 (WIP) | 2.1, 4.0.1 |
+| 2026-04-19 | (pending, REQ-20260419-025) | `@testing-library/jest-dom` v5 → v6 별 후보 승격 — 별 spec `build/jest-dom-upgrade-spec.md` 신설, §5 "별 후보" 문구 링크 보강 (WIP) | 5 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-upgrade-react-19.md`
@@ -165,5 +166,6 @@ React 19 strict mode 의 effect double-invocation / concurrent 렌더 / fiber su
 - 관련 spec: `specs/spec/green/styles/css-modules-spec.md` §10.1 (REQ-026 상세 정책)
 - 관련 spec: `specs/spec/green/types/typescript-spec.md` (`@types/react` 핀 — REQ-20260418-019 A)
 - 관련 spec: `specs/spec/green/state/server-state-spec.md` (Suspense Query 패턴)
+- 관련 spec: `specs/spec/green/build/jest-dom-upgrade-spec.md` (REQ-025, `@testing-library/jest-dom` v5 → v6)
 - 사전 감사: `docs/react-19-audit.md` §1, §3, §4, §7 (신규)
 - 외부: https://react.dev/blog/2024/12/05/react-19
