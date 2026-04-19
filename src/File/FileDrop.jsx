@@ -10,7 +10,6 @@ const FileDrop = (props) => {
 	const [files, setFiles] = useState([]);
 	const [isUploading, setIsUploading] = useState("READY");
 	const [isDragOver, setIsDragOver] = useState(false);
-	const [dropzoneText, setDropzoneText] = useState(<span>Drop files here!</span>);
 
 	const refreshFiles = props.callbackAfterUpload;
 
@@ -78,29 +77,21 @@ const FileDrop = (props) => {
 	}, [files]);
 
 	useEffect(() => {
-
-		if("READY" === isUploading) {
-			setDropzoneText(<span>Drop files here!</span>);
-		}
-		else if("UPLOADING" === isUploading) {
-			setDropzoneText(<span>Uploading...</span>);
-		}
-		else if("COMPLETE" === isUploading) {
-			setDropzoneText(<span>Upload complete.</span>);
-			setTimeout(function() {
+		if("COMPLETE" === isUploading || "FAILED" === isUploading) {
+			const timer = setTimeout(() => {
 				setIsUploading("READY");
 				refreshFiles();
 			}, REFRESH_TIMEOUT);
+			return () => clearTimeout(timer);
 		}
-		else {
-			setDropzoneText(<span>Upload failed.</span>);
-			setTimeout(function() {
-				setIsUploading("READY");
-				refreshFiles();
-			}, REFRESH_TIMEOUT);
-		}
-
 	}, [isUploading, refreshFiles]);
+
+	const dropzoneText = useMemo(() => {
+		if("UPLOADING" === isUploading) return <span>Uploading...</span>;
+		if("COMPLETE" === isUploading) return <span>Upload complete.</span>;
+		if("FAILED" === isUploading) return <span>Upload failed.</span>;
+		return <span>Drop files here!</span>;
+	}, [isUploading]);
 
 	const dropzoneStyle = useMemo(() => {
 		const base = "div div--filedrop-dropzone";
