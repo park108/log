@@ -24,7 +24,6 @@ const Writer = () => {
 	const [isNew, setIsNew] = useState(true);
 
 	const [historyData, setHistoryData] = useState(undefined);
-	const [changeHistory, setChangeHistory] = useState(undefined);
 
 	const [article, setArticle] = useState("");
 	const [isTemporary, setIsTemporary] = useState(false);
@@ -68,24 +67,6 @@ const Writer = () => {
 		if(hasValue(historyData)) {
 
 			setArticle(historyData.logs[0].contents);
-
-			setChangeHistory(
-				<div className="div div--writer-history" >
-					<h1 className="h1 h1--writer-historytitle">Change History</h1>
-					<Suspense fallback={<div></div>}>
-						{ historyData.logs.map((log) => (
-							<LogItem
-								key={log.timestamp}
-								author={historyData.author}
-								timestamp={log.timestamp}
-								contents={log.contents}
-								showComments={false}
-								showLink={false}
-							/>
-						)) }
-					</Suspense>
-				</div>
-			);
 
 			if(hasValue(historyData.temporary)) {
 				setIsTemporary(historyData.temporary);
@@ -371,8 +352,24 @@ const Writer = () => {
 				</button>
 			</form>
 
-			{changeHistory}
-			
+			{hasValue(historyData) && (
+				<div className="div div--writer-history" >
+					<h1 className="h1 h1--writer-historytitle">Change History</h1>
+					<Suspense fallback={<div></div>}>
+						{ historyData.logs.map((log) => (
+							<LogItem
+								key={log.timestamp}
+								author={historyData.author}
+								timestamp={log.timestamp}
+								contents={log.contents}
+								showComments={false}
+								showLink={false}
+							/>
+						)) }
+					</Suspense>
+				</div>
+			)}
+
 			<Toaster 
 				show={isShowToaster}
 				message={toasterMessage}
