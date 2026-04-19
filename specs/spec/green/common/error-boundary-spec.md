@@ -2,8 +2,8 @@
 
 > **위치**: `src/common/ErrorBoundary.jsx`, `src/common/Skeleton.jsx`, `src/common/ErrorFallback.jsx`, `src/App.jsx`
 > **유형**: 공통 컴포넌트 / 라우팅 패턴
-> **최종 업데이트**: 2026-04-18 (by inspector, WIP)
-> **상태**: Active (부분 도입 — ErrorBoundary 클래스 완료, 통합 잔여)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile)
+> **상태**: Active (통합 완료 — ErrorBoundary / Skeleton / ErrorFallback / App.jsx 3 라우트 래핑 / reportError onError 훅 모두 반영; 테스트 stderr 억제 완료; Monitor 도메인 reporter sweep + 하위 컴포넌트 Suspense fallback Skeleton 전환 / 런타임 수동 스모크 문서 신설만 잔여)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260417-add-error-boundaries.md` (원 4종 묶음)
 > - `specs/requirements/done/2026/04/18/20260418-error-boundary-app-integration.md` (Skeleton/ErrorFallback/App.jsx 통합 잔여)
@@ -28,15 +28,18 @@
   - 전체 페이지 디자인 시스템화
   - 로깅 백엔드 구축
 
-## 2. 현재 상태 (As-Is) — 2026-04-18 기준
-- [x] `src/common/ErrorBoundary.jsx` **존재** (클래스 컴포넌트, `:4-29`) — `task/done/2026/04/18/20260418-error-boundary-component/` 에서 추가 완료.
-- [ ] `src/common/Skeleton.jsx` **부재**
-- [ ] `src/common/ErrorFallback.jsx` **부재**
-- [ ] `src/App.jsx:80` 의 최상위 Suspense fallback 이 여전히 `<Suspense fallback={<div></div>}>` — 빈 div.
-- [ ] `src/App.jsx` 어디에도 ErrorBoundary import/사용 없음 (`grep -rn ErrorBoundary src/App.jsx src/index.jsx` → 0 hits) → 트리 에러 시 white screen 위험 미해소.
-- FRAMEWORK_DESIGN.md 의 Suspense + ErrorBoundary 기본 패턴 — 부분 구현.
+## 2. 현재 상태 (As-Is) — 2026-04-20 기준 (drift reconcile)
+- [x] `src/common/ErrorBoundary.jsx` **존재** (클래스 컴포넌트) — `task/done/2026/04/18/20260418-error-boundary-component/` 에서 추가 완료.
+- [x] `src/common/Skeleton.jsx` **존재** (`variant: 'page' | 'list' | 'detail'`, role="status", data-testid). `src/common/Skeleton.test.jsx` 동반 — `src/common/Skeleton.css` 포함.
+- [x] `src/common/ErrorFallback.jsx` **존재** (`isNetworkError(error)` 분기 + `error` / `reset` prop). `src/common/ErrorFallback.test.jsx` 동반 — `src/common/ErrorFallback.css` 포함.
+- [x] `src/App.jsx:92` 의 최상위 Suspense fallback 이 `<Suspense fallback={<Skeleton variant="page" />}>` 로 전환 완료.
+- [x] `src/App.jsx` 에 `ErrorBoundary` / `ErrorFallback` / `Skeleton` / `reportError` import 및 3개 라우트(`/log/*`, `/file/*`, `/monitor/*`) 를 `<ErrorBoundary fallback={(p) => <ErrorFallback {...p} />} onError={reportError}>` 로 래핑 완료 (`:6-9, :97-118`).
+- [x] `src/common/errorReporter.js` **존재** + `reportError(error, errorInfo)` 인터페이스 구현 (`src/common/errorReporter.test.js` 동반).
+- [ ] `src/App.jsx` 외 **하위 컴포넌트 내부** 17건 `<Suspense fallback={<div></div>}>` 잔존 (`LogSingle:110,139`, `LogItem:62`, `Writer:276,358`, `Monitor:61,64,67,70`, `ContentMon:17`, `ApiCallMon:17`, `WebVitalsMon:18`, `Log:23,37`, `LogItemInfo:107`, `Comment:128,159`, `SearchInput:55`) — REQ-005 §11 "빈 div fallback 0" 수용 기준 관점에서 최상위는 해소됐으나, 하위 라우트 내부 fallback 은 미전환.
+- [ ] Monitor 도메인 4 파일 fetch 실패 분기 `console.error(...)` **7건 잔존** (REQ-20260419-004 §4.3.1 대상 — 미구현).
+- FRAMEWORK_DESIGN.md 의 Suspense + ErrorBoundary 기본 패턴 — **최상위 구현 완료**, 하위 컴포넌트 전파는 잔여.
 
-> 관련 요구사항: REQ-20260418-005 §2 배경, §3.1 In-Scope (Skeleton/ErrorFallback/App.jsx 통합)
+> 관련 요구사항: REQ-20260418-005 (완료로 재분류 가능, planner 승격 판단 영역). 본 §2 정정은 inspector drift reconcile — 2026-04-18 당시 "Skeleton/ErrorFallback 부재 + App.jsx 미통합" 표기가 실 코드 관측과 불일치. 실제 통합 작업은 REQ-20260418-005 처리 과정에서 반영 완료됐으나 본 spec 의 As-Is 표가 미갱신 상태로 유지되어 있었음.
 
 ## 3. 신규 컴포넌트 (To-Be, WIP)
 > 관련 요구사항: 20260417-add-error-boundaries
@@ -56,52 +59,63 @@
 - 상태: `{hasError: boolean, error: Error|null}`
 - `reset` 콜백으로 사용자가 재시도 가능
 
-### 3.2 `src/common/Skeleton.jsx` — **[WIP]** REQ-20260418-005
+### 3.2 `src/common/Skeleton.jsx` — **완료** (REQ-20260418-005 FR-01)
 > 관련 요구사항: REQ-20260418-005 FR-01
 - 라우트별 lazy 로딩 시 표시할 스켈레톤 UI
+- 구현 완료 (`src/common/Skeleton.jsx`, `Skeleton.css`, `Skeleton.test.jsx`)
 - Props:
   | 이름 | 타입 | 필수 | 설명 |
   |------|------|------|------|
-  | `variant` | `'page' \| 'list' \| 'detail'` | N (기본 `page`) | 레이아웃 종류 |
+  | `variant` | `'page' \| 'list' \| 'detail'` | N (기본 `page`) | 레이아웃 종류. 무효값은 `page` 로 폴백 |
 - 시각적 충격 최소화 — 본문이 들어올 위치를 회색 블록으로 미리 보여줌
+- 접근성: `role="status"` + `aria-label="로딩 중"` + `data-testid="skeleton-{variant}"`
+- variant 별 블록 수: `page=4`, `list=5`, `detail=5`
 
-### 3.3 `src/common/ErrorFallback.jsx` — **[WIP]** REQ-20260418-005
+### 3.3 `src/common/ErrorFallback.jsx` — **완료** (REQ-20260418-005 FR-02)
 > 관련 요구사항: REQ-20260418-005 FR-02
 - 기본 에러 표시 UI (ErrorBoundary 의 기본 fallback)
+- 구현 완료 (`src/common/ErrorFallback.jsx`, `ErrorFallback.css`, `ErrorFallback.test.jsx`)
 - Props:
   | 이름 | 타입 | 필수 | 설명 |
   |------|------|------|------|
-  | `error` | `Error` | Y | 에러 객체 |
-  | `reset` | `() => void` | N | 재시도 콜백 |
-- 네트워크 에러(`error.name === 'NetworkError'` 또는 fetch 실패) 와 렌더 에러를 구분 표시
+  | `error` | `Error` | N | 에러 객체 |
+  | `reset` | `() => void` | N | 재시도 콜백; 존재 시 "다시 시도" 버튼 렌더 |
+- 네트워크 에러(`error.name === 'NetworkError'` 또는 `/failed to fetch|network/i` 매칭) 와 렌더 에러를 구분 표시
   - 네트워크: "연결을 확인하고 다시 시도하세요" + reset 버튼
-  - 렌더: "예기치 않은 오류가 발생했습니다" + 새로고침 안내 + reset 버튼
+  - 렌더: "예기치 않은 오류가 발생했습니다" + reset 버튼
+- 접근성: `role="alert"`
 
-## 4. 적용 (App.jsx 통합) — **[WIP]** REQ-20260418-005
+## 4. 적용 (App.jsx 통합) — **완료** (REQ-20260418-005)
 > 관련 요구사항: REQ-20260418-005 FR-03, FR-04, FR-05
 
-### 4.1 최상위 Suspense — [WIP] FR-03
+### 4.1 최상위 Suspense — **완료** (FR-03)
+`src/App.jsx:92`:
 ```jsx
 <Suspense fallback={<Skeleton variant="page" />}>
   ...
 </Suspense>
 ```
-기존 `<div></div>` fallback 제거.
+기존 `<div></div>` fallback 제거 완료.
 
-### 4.2 라우트 단위 Error Boundary — [WIP] FR-04
-각 라우트 컴포넌트(또는 라우트 그룹)를 ErrorBoundary 로 래핑:
+### 4.2 라우트 단위 Error Boundary — **완료** (FR-04)
+`src/App.jsx:97-118` 에서 3개 lazy 라우트(`/log/*`, `/file/*`, `/monitor/*`) 를 아래 패턴으로 래핑:
 ```jsx
-<ErrorBoundary fallback={(props) => <ErrorFallback {...props} />} onError={reportError}>
-  <Suspense fallback={<Skeleton />}>
-    <RouteComponent />
-  </Suspense>
+<ErrorBoundary
+  fallback={(p) => <ErrorFallback {...p} />}
+  onError={reportError}
+>
+  <RouteComponent />
 </ErrorBoundary>
 ```
-적용 대상: `src/App.jsx:82-88` 의 5개 lazy 라우트(`Log`, `File`, `Monitor`, `PageNotFound`, `Footer`). 라우트 단위 vs 라우트 그룹 단위는 planner 결정 (REQ-20260418-005 §13 미결).
+적용 범위:
+- 라우트 단위 래핑 (그룹 단위 아님) — planner 가 **라우트 단위** 로 결정.
+- `Navigation`, `Footer` 는 현재 래핑 밖 — 이들의 렌더 에러는 최상위 Suspense/React 기본 경로로 처리. 별 라운드에서 범위 확장 가능성 (§13 미결 이슈 후속).
+- `PageNotFound` 는 별도 `ErrorBoundary` 래핑 없음 (단순 정적 페이지).
 
-### 4.3 reportError 훅 — [WIP] FR-05
-- `src/common/errorReporter.js` (선택 위치) — `reportError(error, errorInfo)` 인터페이스만 정의
+### 4.3 reportError 훅 — **완료** (FR-05)
+- `src/common/errorReporter.js` 존재 — `reportError(error, errorInfo)` 인터페이스 정의 완료 (`src/common/errorReporter.test.js` 동반).
 - 본 단계 구현은 `console.error` 로 위임. 실제 Sentry 연결은 별 spec.
+- 3개 `ErrorBoundary` 의 `onError` prop 이 모두 `reportError` 로 연결됨.
 
 ### 4.3.1 [WIP] reporter 호출부 매트릭스 — Monitor 도메인 sweep (REQ-20260419-004)
 
@@ -179,9 +193,10 @@
 - 다른 도메인(`Log`, `Comment`, `File`, `Image`, `Search`) 의 `console.error` 직접 호출 — 별 후속 후보 (§13 미결 이슈).
 - `reportError(err, { source, data })` 메타 첨부 형태 채택 — planner 결정 또는 별 spec.
 
-### 4.4 통합 회귀 테스트 — [WIP] FR-06
-- 의도 throw 컴포넌트로 fallback 표시 확인 (라우트 격리)
-- Navigation/Footer 가 라우트 에러에 영향받지 않는지 검증
+### 4.4 통합 회귀 테스트 — 부분 완료 (FR-06)
+- `src/App.test.jsx:250` 에 "renders Skeleton as top-level Suspense fallback without error (white-screen regression guard)" 테스트 존재.
+- `src/common/ErrorBoundary.test.jsx` (4/4 PASS), `Skeleton.test.jsx`, `ErrorFallback.test.jsx` 단위 테스트 커버 완료.
+- 라우트 격리 통합 테스트 (의도 throw → fallback 노출, 이웃 라우트 무영향) 는 **수동 스모크** 로 커버 예정 (§7.2, 미완).
 
 ## 5. 의존성
 
@@ -194,13 +209,13 @@
 
 ## 6. 수용 기준 (Acceptance)
 - [x] ErrorBoundary 클래스 컴포넌트 구현 (`task/done/.../20260418-error-boundary-component/`)
-- [ ] [WIP] 의도적으로 에러 throw 시 ErrorFallback UI 표시 확인 (REQ-005 FR-06)
-- [ ] [WIP] Lazy 컴포넌트 로딩 중 Skeleton 노출 (REQ-005 FR-03)
-- [ ] [WIP] 네트워크 에러와 렌더 에러 구분 표시 확인 (REQ-005 FR-02, US-03)
-- [ ] [WIP] 기존 기능 회귀 없음 (REQ-005 FR-07)
-- [ ] [WIP] reset 버튼으로 트리 복구 가능
-- [ ] [WIP] `grep -rn "<ErrorBoundary" src/` ≥ 1 (REQ-005 §11 성공 지표)
-- [ ] [WIP] `<Suspense fallback={<div></div>}>` 잔존 0 (REQ-005 §11)
+- [x] 의도적으로 에러 throw 시 ErrorFallback UI 표시 확인 — 단위 테스트 `ErrorBoundary.test.jsx` (4/4 PASS) + `ErrorFallback.test.jsx` 로 커버. 라우트 격리 수동 검증은 §7.2 미완.
+- [x] Lazy 컴포넌트 로딩 중 Skeleton 노출 — `src/App.jsx:92` 적용 + `src/App.test.jsx:250` "white-screen regression guard" 테스트.
+- [x] 네트워크 에러와 렌더 에러 구분 표시 — `ErrorFallback.jsx` `isNetworkError(error)` 분기 구현 + 단위 테스트 커버.
+- [x] 기존 기능 회귀 없음 — 전체 테스트 스위트 PASS 유지 (별 CI 라운드에서 지속 검증).
+- [x] reset 버튼으로 트리 복구 가능 — `ErrorBoundary` `reset` 콜백 + `ErrorFallback` "다시 시도" 버튼.
+- [x] `grep -rn "<ErrorBoundary" src/` ≥ 1 (REQ-005 §11 성공 지표) — 실측 10 hits (`src/App.jsx` 3 라우트 래핑 + 테스트 참조).
+- [ ] `<Suspense fallback={<div></div>}>` 잔존 0 (REQ-005 §11) — **최상위 App.jsx 해소** but 하위 컴포넌트 내부 17건 잔존 (`LogSingle`, `LogItem`, `Writer`, `Monitor`, `ContentMon`, `ApiCallMon`, `WebVitalsMon`, `Log`, `LogItemInfo`, `Comment`, `SearchInput`). 전역 0 달성은 별 요구사항/후속 라운드 필요.
 
 ## 7. 알려진 제약 / 이슈
 - React 의 Error Boundary 는 **이벤트 핸들러 / 비동기 코드 / SSR 의 에러를 잡지 못함** — 호출부에서 try/catch 또는 Promise.catch 필요
@@ -208,19 +223,24 @@
 - **테스트 stderr 노이즈** (jsdom 29 + React 18) — `ErrorBoundary.test.jsx` 실행 시 `vi.spyOn(console, 'error')` 로 mock 해도 jsdom 의 `callTheUserObjectsOperation` 경로가 에러 스택을 직접 `process.stderr` 로 6회 출력. 테스트 PASS 4/4 지만 CI 로그에 무해 트레이스가 섞여 진짜 실패와 구분 어려움.
   > 관련 요구사항: REQ-20260418-007 (`20260418-errorboundary-test-stderr-suppression.md`)
 
-## 7.1 [WIP] 테스트 stderr 억제 — REQ-20260418-007
+## 7.1 테스트 stderr 억제 — **완료** (REQ-20260418-007)
 > 관련 요구사항: REQ-20260418-007 §3.1 In-Scope, FR-01~04
 
-- 대상 파일: `src/common/ErrorBoundary.test.jsx` (또는 `src/setupTests.js` 파일 scope)
-- 채택 후보 (planner 결정, REQ-007 §13 미결):
-  - (a) `vi.spyOn(console, 'error').mockImplementation(() => {})` 를 `beforeAll` 로 이동 + `afterAll` restore — 가장 작은 변경, 우선 권장
-  - (b) `setupFiles` 에서 globalThis 레벨 적용 — 다른 테스트 영향 위험 (NFR-02)
-  - (c) `vi.spyOn(process.stderr, 'write')` mock 으로 jsdom 우회 경로까지 차단 (Could)
-- 제약: **파일 scope** 으로 한정해 다른 테스트의 진짜 console.error 캡처를 sink 시키지 않음 (FR-02).
-- 검증:
-  - `npx vitest run src/common/ErrorBoundary.test.jsx 2>&1 | grep -c "Error: boom"` → `0`
-  - 전체 스위트 PASS 수 변동 없음 (현재 185, NFR-02)
-- 후속 영향: REQ-20260418-005 의 통합 테스트도 동일 패턴을 채택해 노이즈 0 유지.
+- 대상 파일: `src/common/ErrorBoundary.test.jsx` (파일 scope 적용)
+- 채택: **(a)+(c) 조합** — `beforeAll` 에서 `console.error` spy + `process.stderr.write` spy 동시 mock, `afterAll` restore.
+- 구현 (`ErrorBoundary.test.jsx:16-32`):
+  ```js
+  beforeAll(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    stderrWriteSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  });
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
+    stderrWriteSpy.mockRestore();
+  });
+  ```
+- 파일 scope 한정 — `setupFiles` 로 이동하지 않음 (다른 테스트의 진짜 `console.error` 캡처를 sink 시키지 않기 위해, FR-02).
+- 결과: jsdom 29 + React 18 의 `callTheUserObjectsOperation` 경로 stderr 누수 차단 완료. CI 로그 노이즈 0.
 
 ## 7.2 [WIP] 런타임 수동 스모크 체크리스트 cross-link (REQ-20260418-037)
 
@@ -250,10 +270,11 @@
 | 일자 | TSK | 요약 | 영향 |
 |------|-----|------|------|
 | 2026-04-18 | TSK-20260418-02 | Error Boundary 클래스 컴포넌트 추가 (완료) | 3.1 |
-| 2026-04-18 | (pending, REQ-20260418-005) | Skeleton/ErrorFallback + App.jsx 통합 (WIP) | 3.2, 3.3, 4 |
-| 2026-04-18 | (pending, REQ-20260418-007) | ErrorBoundary 테스트 stderr 노이즈 억제 (WIP) | 7, 7.1 |
+| 2026-04-18 | (REQ-20260418-005, 통합 완료) | Skeleton / ErrorFallback 신설 + App.jsx 최상위 Suspense fallback Skeleton 전환 + 3 라우트 `ErrorBoundary` 래핑 + `reportError` onError 훅 | 3.2, 3.3, 4 |
+| 2026-04-18 | (REQ-20260418-007, 완료) | ErrorBoundary 테스트 stderr 노이즈 억제 (`beforeAll`/`afterAll` + `console.error` + `process.stderr.write` 파일 scope mock) | 7, 7.1 |
 | 2026-04-18 | (pending, REQ-20260418-037) | 런타임 수동 스모크 체크리스트 cross-link §7.2 신설 (post-merge-visual-smoke-spec §3.C.3 참조, `docs/testing/error-boundary-runtime-smoke.md` 신설) (WIP) | 7.2 |
-| 2026-04-19 | (pending, REQ-20260419-004) | Monitor 도메인 `console.error` → `reportError` 일원화 sweep §4.3.1 신설 — 7 호출부 식별자 매트릭스, 호출 시그니처 매핑 정책 단순 형태 권장, 테스트 spy 갱신 가이드, Sentry wiring 전제 조건 (WIP) | 4.3.1 |
+| 2026-04-19 | (pending, REQ-20260419-004) | Monitor 도메인 `console.error` → `reportError` 일원화 sweep §4.3.1 신설 — 7 호출부 식별자 매트릭스, 호출 시그니처 매핑 정책 단순 형태 권장, 테스트 spy 갱신 가이드, Sentry wiring 전제 조건 (WIP, 미구현) | 4.3.1 |
+| 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정 (Skeleton/ErrorFallback "부재" → 실 코드 "존재" + App.jsx 통합 완료 반영), §3.2/3.3/4.1~4.3 "[WIP]" 마커 → "완료", §6 수용 기준 7/8 항목 [x] 전환, §7.1 테스트 stderr 억제 "완료" 마킹. 커밋 영향: `specs/spec/green/common/error-boundary-spec.md` 단독. 잔여: 하위 컴포넌트 17 `<Suspense fallback={<div></div>}>`, Monitor reporter sweep (§4.3.1), 런타임 수동 스모크 문서 (§7.2). | 2, 3.2, 3.3, 4.1~4.4, 6, 7.1 |
 
 ## 9. 관련 문서
 - 기원 요구사항:
