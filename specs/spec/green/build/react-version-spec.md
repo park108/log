@@ -58,7 +58,7 @@
 
 ### 3.1 상류 의존
 - **빌드 도구**: Vite (`^8.0.8`) + `@vitejs/plugin-react@^6.0.1` — React 19 지원 확인됨 (사전 감사 §3.1).
-- **테스트 환경**: `@testing-library/react` 16+ 가 React 19 와 호환. `@testing-library/jest-dom@5.17.0` / `vitest@4.1.4` + `@vitest/coverage-v8@4.1.4` 는 React 19 에서 안정 동작 가정 (검증 필요).
+- **테스트 환경**: `@testing-library/react` 16+ 가 React 19 와 호환. `@testing-library/jest-dom@^6.9.1` (REQ-20260419-025 완료, commit `9a477cf`) / `vitest@4.1.4` + `@vitest/coverage-v8@4.1.4` 는 React 19 에서 안정 동작 가정 (검증 필요).
 - **라우터**: `react-router-dom@^7.14.1` 은 React 19 호환 (사전 감사 §3.1).
 
 ### 3.2 하류 영향
@@ -135,7 +135,7 @@ React 19 strict mode 의 effect double-invocation / concurrent 렌더 / fiber su
 - React 19 의 strict mode 변화 (effect double-invocation) 가 일부 테스트에 영향 줄 수 있음 — 회귀 검사 필수. 큰 수정이면 별 followup.
 - **명령형 `setAttribute` 잔존 위치** (`src/Image/ImageItem.jsx` 외 ImageSelector/SearchInput 가능성) 가 bump 후 상태 회귀를 일으킬 수 있음 — REQ-20260418-026 선행 권장.
 - 서드파티 라이브러리 React 19 호환 확인 (`react-router-dom`, `@testing-library/*`) — 감사 §3.1 통과.
-- `@testing-library/jest-dom@5.17.0 → 6.9.1` 도 함께 bump 검토 — 본 요구사항 범위 밖, **REQ-20260419-025 로 별 spec `specs/spec/green/build/jest-dom-upgrade-spec.md` 신설 (WIP)**. 본 REQ-012/040 머지 후 inspector 가 §3.1 의 `jest-dom@5.17.0` baseline 을 `^6.9.1` 로 갱신.
+- `@testing-library/jest-dom@^6.9.1` bump 완료 (REQ-20260419-025, commit `9a477cf`). 별 spec `specs/spec/green/build/jest-dom-upgrade-spec.md` 가 matcher 라이브러리 baseline SSoT. §3.1 baseline 문구도 REQ-20260419-033 에서 `^6.9.1` 로 동기화 완료.
 - `prop-types` 가 React 19 에서 런타임은 동작하되 deprecation 경고 가능 — 본 PR 에서 제거하지 않음 (TS 마이그레이션 의존).
 - StrictMode 일시 비활성 옵션은 정책 판단 필요 — REQ-012 §13 미결.
 
@@ -158,6 +158,7 @@ React 19 strict mode 의 effect double-invocation / concurrent 렌더 / fiber su
 | 2026-04-18 | (pending, REQ-20260418-026) | ImageItem 명령형 DOM 선행 위생 §4.1 신설 — bump 선행 권장 (WIP) | 4.1, 5 |
 | 2026-04-18 | (pending, REQ-20260418-040) | REQ-012 done/실태 drift 해소 §4.0.1 신설 — 물리 bump 재실행 + post-bump audit §7 박제 + inspector baseline 갱신 트리거 (WIP) | 2.1, 4.0.1 |
 | 2026-04-19 | (pending, REQ-20260419-025) | `@testing-library/jest-dom` v5 → v6 별 후보 승격 — 별 spec `build/jest-dom-upgrade-spec.md` 신설, §5 "별 후보" 문구 링크 보강 (WIP) | 5 |
+| 2026-04-19 | REQ-20260419-033 | jest-dom v6 drift 해소 — §3.1 baseline `jest-dom@5.17.0` → `^6.9.1` 치환, §5 "별 후보" 문구를 REQ-025 완료 (commit `9a477cf`) 로 갱신 | 3.1, 5 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-upgrade-react-19.md`

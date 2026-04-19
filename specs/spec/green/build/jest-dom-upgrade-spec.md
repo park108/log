@@ -105,7 +105,7 @@ Vitest + jsdom 환경에서 DOM 어서트 matcher (`toBeInTheDocument`, `toHaveT
 ### 4.2 하류 영향
 - `src/setupTests.js` — FR-02 대상 단일 파일. 타 설정 파일 영향 없음.
 - 각 `*.test.jsx` — matcher 호출부는 v6 에서 유지 (제거 matcher 사용처만 대체).
-- `react-version-spec.md` §3.1 "`jest-dom@5.17.0`" 문구 — REQ-025 머지 후 inspector 가 `^6.9.1` 로 갱신.
+- `react-version-spec.md` §3.1 "`jest-dom@5.17.0`" 문구 — REQ-025 머지 (commit `9a477cf`) 후 REQ-20260419-033 에서 `^6.9.1` 로 갱신 완료.
 
 ### 4.3 TypeScript 전환 연동
 - `types/typescript-spec.md` (REQ-20260417 전환 후) 의 `tsconfig.json` `compilerOptions.types` 배열에 `@testing-library/jest-dom` 항목 필요 시 본 spec 에서 명시 (미결 §7).
@@ -124,7 +124,7 @@ Vitest + jsdom 환경에서 DOM 어서트 matcher (`toBeInTheDocument`, `toHaveT
 - [ ] `npm run build` PASS
 - [ ] `npm audit` 에서 jest-dom 관련 high+ 취약점 0 (NFR-03)
 - [ ] RTL v13 상태의 peer 경고는 §3.4 에 예상 기록됨 — RTL v16 (REQ-040) 후 0 수렴 확인
-- [ ] 본 REQ 머지 후 inspector 가 `react-version-spec.md` §3.1 의 "`jest-dom@5.17.0`" 문구를 `^6.9.1` 로 갱신
+- [x] 본 REQ 머지 후 inspector 가 `react-version-spec.md` §3.1 의 "`jest-dom@5.17.0`" 문구를 `^6.9.1` 로 갱신 — REQ-20260419-033 완료 (commit `9a477cf` 박제)
 
 ## 6. 알려진 제약 / 이슈
 
@@ -143,11 +143,12 @@ Vitest + jsdom 환경에서 DOM 어서트 matcher (`toBeInTheDocument`, `toHaveT
 | 일자 | TSK | 요약 | 영향 |
 |------|-----|------|------|
 | 2026-04-19 | (pending, REQ-20260419-025) | 신규 spec 초안 — `@testing-library/jest-dom` v5.17.0 → v6.9.1 업그레이드, Vitest 통합 방식, 제거 matcher 매핑 (WIP) | 전체 |
+| 2026-04-19 | REQ-20260419-033 | REQ-025 머지 (commit `9a477cf`) 후 `react-version-spec.md` §3.1 drift 해소 — §4.2 / §5.1 인계 체크박스 마감 | 4.2, 5.1, 8 |
 
 ## 9. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/19/20260419-testing-library-jest-dom-v5-to-v6-upgrade.md`
 - 선행 분리 근거: `specs/requirements/done/2026/04/18/20260418-react-19-bump-execution-drift-resolve.md` §13 (`jest-dom@6` 별 후보 권장)
-- 관련 spec: `specs/spec/green/build/react-version-spec.md` §3.1, §5 (jest-dom@5.17.0 baseline — REQ-025 머지 후 갱신)
+- 관련 spec: `specs/spec/green/build/react-version-spec.md` §3.1, §5 (jest-dom `^6.9.1` baseline — REQ-20260419-033 에서 drift 해소 완료)
 - 관련 spec: `specs/spec/green/types/typescript-spec.md` (향후 `tsconfig.json` `types` 반영 검토)
 - 외부: https://github.com/testing-library/jest-dom/releases (v6 changelog)
 - 외부: https://vitest.dev/guide/ (Vitest + jest-dom 통합 가이드)
