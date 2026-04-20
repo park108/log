@@ -1,11 +1,11 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T23:55:00Z
-# Phase 1 ack this session: 0/1. env-test-stub 단 1개만 green 잔존 (react-19-test-layer / typescript-tooling 은 전 세션에 blue 승격되어 green 에서 제거됨).
-#   - env-test-stub: `process\.env\.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행. hook-ack 부재, WIP 불변. stale_cycles 5 → 6 (≥3 누적 4세션 연속).
+# Updated: 2026-04-20T24:10:00Z (HEAD=b625b5a)
+# Phase 1 ack this session: 0/2. 두 green spec 모두 WIP 불변.
+#   - common/env-test-stub: `process\.env\.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행 (40.task/ready/TSK-20260420-37 은 런타임/나비게이션 pair scope 상이). hook-ack 부재. stale_cycles 6 → 7 (5세션 연속 ≥3).
+#   - deps/uniform-fake-timer: `useRealTimers` in setupTests.js = 0 hits (baseline 0 불변, FR-01 미이행). body 직접 호출 42 hits in 16 files (baseline 41 hits + setupTests.timer-idiom.test.jsx afterEach 포함 동등). 대응 task 미발행. hook-ack 부재. stale_cycles 0 → 1 (신규 등록 다음 세션).
 # Phase 2 this session:
-#   - input queue: 1 req (20260420-uniform-fake-timer-teardown-policy.md) — 수동 개입으로 REQ-ID `REQ-20260420-007` 재할당 후 복귀.
-#   - processed: 1 / blocked: 0.
-#   - new green specs produced: 1 (`deps/uniform-fake-timer-teardown-policy-spec.md`). baseline 45 hits in 17 files `useFakeTimers` + 41 hits in 18 files `useRealTimers` 박제.
-#   - req moved: `20.req/ready/20260420-uniform-fake-timer-teardown-policy.md` → `60.done/2026/04/20/req/`.
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 6
-30.spec/green/deps/uniform-fake-timer-teardown-policy-spec.md 3c34ce5a2c55aaeca169c06deab27874663a86e21993e3fd92f7e20bdf68a4a2 0
+#   - input queue: 0 req. no-op.
+#   - processed: 0 / blocked: 0.
+#   - new green specs produced: 0. no mv.
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 7
+30.spec/green/deps/uniform-fake-timer-teardown-policy-spec.md 3c34ce5a2c55aaeca169c06deab27874663a86e21993e3fd92f7e20bdf68a4a2 1
