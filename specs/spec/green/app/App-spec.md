@@ -76,7 +76,7 @@
 
 **2026-04-20 현재 (src/App.jsx:39-50)**: useEffect 격리 완료 — §5.2 형태로 구현. drift reconcile.
 
-### 5.2 To-Be → 완료 — useEffect 격리 (REQ-20260418-009)
+### 5.2 완료 — useEffect 격리 (REQ-20260418-009)
 > 관련 요구사항: REQ-20260418-009 FR-01, FR-02, FR-03
 
 **구현 (src/App.jsx:39-50, commit `b07cbf5`, task `20260418-app-render-side-effects-useeffect`)**:
@@ -204,6 +204,7 @@ N/A.
 | 2026-04-18 | (REQ-20260418-005, merged) | Skeleton / ErrorFallback 신설 + App.jsx 최상위 Suspense fallback Skeleton 전환 + 3 라우트 ErrorBoundary 래핑 + reportError onError 훅 (상세는 `error-boundary-spec.md` §4) | 5.3, 7, 8 |
 | 2026-04-20 | (inspector drift reconcile) | §5.1/5.2/5.2.1/5.3 "[WIP]" → "완료" ACK: REQ-009 useEffect 격리 (commit `b07cbf5`) + REQ-025 auth 멱등 등가성 자동 테스트 (commit `b5b2ae5`) + REQ-005 ErrorBoundary/Skeleton App.jsx 통합 (src/App.jsx:92-118). §7 체크박스 4 항목 [x] 전환 (resize cleanup / StrictMode idempotent / auth cookie 등가성 자동 / ErrorBoundary 라우트 격리). §8 NFR Status 5 행 "달성" 갱신. 잔여: §7 운영자 수동 스모크 baseline (`docs/testing/app-shell-side-effects-smoke.md` 체크리스트 문서 부재 + REQ-025 FR-03~07 operator). 커밋 영향: 본 spec 단독. | 5.1, 5.2, 5.2.1, 5.3, 7, 8 |
 | 2026-04-20 | (inspector Phase 2 defer-tag) | §7 운영자 수동 스모크 baseline unchecked 1 건에 `[deferred: operator baseline + 선행 docs/testing/app-shell-side-effects-smoke.md 체크리스트 신설 task 대기]` 태깅 — REQ-025 FR-03~07 자동 테스트 영역 밖 operator. §7.1 "Should" App.test StrictMode cookie 등가성 어서트는 `[~]` 유지(active/carveable). 나머지 §1~6/§8/§9 모두 "완료" 또는 active 유지. planner 승격 게이트 계산은 본 unchecked deferred 제외로 본 spec 승격권 진입. 커밋 영향: 본 spec 단독. | 7, 10 |
+| 2026-04-20 | (inspector Phase 1 drift reconcile) | §5.2 header rename: `### 5.2 To-Be → 완료 — useEffect 격리 (REQ-20260418-009)` → `### 5.2 완료 — useEffect 격리 (REQ-20260418-009)` — "To-Be → " 리터럴 제거 (planner §4 Cond-3 `^#+ .*To-Be` 매칭 해소). 헤더는 이미 "완료" 표기가 있었으므로 현재 상태와 일관 (TSK-20260418-16 merged, commit `b07cbf5`). 섹션 본문·구현 박제·REQ 참조 전부 유지, 헤더 문자열만 정리. 커밋 영향: 본 spec 단독. | 5.2, 10 |
 
 ## 11. 관련 문서
 - 기원 요구사항:
