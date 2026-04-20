@@ -14,7 +14,7 @@ it('render web vitals monitor on dev server', async () => {
 	vi.stubEnv('PROD', true);
 	vi.stubEnv('DEV', false);
 
-	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
 
 	const obj = await screen.findByText("POOR");
 	expect(obj).toBeInTheDocument();
@@ -35,7 +35,10 @@ it('render web vitals monitor on dev server', async () => {
 	expect(tooltip).not.toBeNull();
 	expect(tooltip).toHaveAttribute('role', 'tooltip');
 	expect(tooltip).toHaveAttribute('aria-hidden', 'false');
-	// description prop 미전달 환경이라도 counts 마커(🟢/🟡/🔴) 는 렌더되므로 최소 어서트.
+	// web-vitals-spec §7.2 FR-02 / REQ-20260420-020:
+	// description prop 이 전달되면 tooltip 첫 <li> 에 그 문자열이 렌더되어야 한다.
+	// 기존 counts 마커(🟢/🟡/🔴) 어서트는 보존 (회귀 금지).
+	expect(tooltip.textContent).toMatch(/Cumulative Layout Shift/);
 	expect(tooltip.textContent).toMatch(/🟢|🟡|🔴/);
 
 	mock.prodServerOk.resetHandlers();

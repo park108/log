@@ -231,7 +231,6 @@ ApiCallItem.propTypes = {
 	stackPallet: PropTypes.array,
 	title: PropTypes.string,
 	service: PropTypes.string,
-	unit: PropTypes.string,
 };
 
 export default ApiCallItem;
