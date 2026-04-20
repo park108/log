@@ -1,15 +1,11 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T23:30:00Z
-# Phase 1 ack this session: 2/3. 2 specs 전량 Must/Should/NFR PASS (grep 게이트 현 HEAD 재실행 + hook-ack + result.md 이중 확증), 체크박스 flip + 변경 이력 박제 완료.
-#   - react-19-test-layer: TSK-20260420-35-a (e4a470b, ancestor) + TSK-20260420-35-b (08a64f6, ancestor) 쌍으로 Must 전량 ack.
-#       grep 재실행: `vi\.useFakeTimers(\s*)` = 0, `'modern'` = 0, `.listen(` in *.test.* = 7 hits 전량 Comment.test.jsx 의 beforeEach() 내부 (+ 주석 3건, 본문 직접 호출 0). 368/368 green, 3회 flake 0, lint 증감 0, 10개 파일 회귀 0 (split 증가만). Should/NFR 전량 충족.
-#   - typescript-tooling: TSK-20260420-33 (14696b3, ancestor) 로 Must/Should/NFR 전량 ack.
-#       grep 재실행: eslint.config.js `**/*.d.ts` ignores 0 hits (주석 :11 + 파서 블록 files :34 만 잔존 — DoD 허용), package.json `typescript-eslint` 1 hit (:60), vite.config.js coverage include `{js,jsx,ts,tsx}` + `.d.ts` exclude 명시. lint/typecheck/build/test 전량 exit 0.
-#   - env-test-stub: `process.env.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행. stale_cycles 4 → 5 (≥3 누적 3세션 연속).
+# Updated: 2026-04-20T23:55:00Z
+# Phase 1 ack this session: 0/1. env-test-stub 단 1개만 green 잔존 (react-19-test-layer / typescript-tooling 은 전 세션에 blue 승격되어 green 에서 제거됨).
+#   - env-test-stub: `process\.env\.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행. hook-ack 부재, WIP 불변. stale_cycles 5 → 6 (≥3 누적 4세션 연속).
 # Phase 2 this session:
-#   - input queue: 1 req (20260420-uniform-fake-timer-teardown-policy.md).
-#   - processed: 0 / blocked: 1 (REQ-ID 충돌 — 본 req 가 `REQ-20260420-005` 선언 but 해당 ID 는 이미 `60.done/req/20260420-vite-native-env-stub-strategy.md` 에 할당됨. inspector 는 req 내용 수정 불가 (RULE-01 mv-only), 격리 후 `50.blocked/req/{slug}_reason.md` 에 수동 해제 권장 조치 박제).
-#   - new green specs produced: 0.
-30.spec/green/deps/react-19-test-layer-adaptation-spec.md 16965ee53ffff7fdd0cf694529a02869415f8fec14c63c1b57939ecfb9de7a83 0
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 5
-30.spec/green/foundation/typescript-tooling-completion-spec.md 7bb441e11f99361de9d5abd1ae13573dec089d2f9453832d52129db250ff1549 0
+#   - input queue: 1 req (20260420-uniform-fake-timer-teardown-policy.md) — 수동 개입으로 REQ-ID `REQ-20260420-007` 재할당 후 복귀.
+#   - processed: 1 / blocked: 0.
+#   - new green specs produced: 1 (`deps/uniform-fake-timer-teardown-policy-spec.md`). baseline 45 hits in 17 files `useFakeTimers` + 41 hits in 18 files `useRealTimers` 박제.
+#   - req moved: `20.req/ready/20260420-uniform-fake-timer-teardown-policy.md` → `60.done/2026/04/20/req/`.
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 6
+30.spec/green/deps/uniform-fake-timer-teardown-policy-spec.md 3c34ce5a2c55aaeca169c06deab27874663a86e21993e3fd92f7e20bdf68a4a2 0
