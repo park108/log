@@ -1,7 +1,166 @@
 {
   "version": 1,
-  "updated": "2026-04-20T12:45:00Z",
-  "notes": "cycle 73: carve 1 (CSP dev/prod branch FR-14, TSK-20260420-13, option (a) transformIndexHtml plugin — planner decision recorded). No promotions (csp-policy remains Cond-2 FAIL for FR-12/14/15 non-deferred, inspector action required post-TSK-13 merge). No blocked isolations. task/ready 9 → 10 (cap reached). Precheck: pause lock absent, input queue 17 greens non-empty, slack=1 (empirical post-dev-consume of TSK-11 env-functional-getter at 4c56103).",
+  "updated": "2026-04-20T13:30:00Z",
+  "notes": "cycle 74: HEAD f23b06f inspector flipped FR-01~11, FR-13 + NFR-03/04/06 on csp-policy (11 items) but did NOT commit FR-12/14/15 [deferred] tags — HEAD promotion gate Cond-2 still FAIL (3 non-deferred unchecked). Planner respects committed SSoT (RULE-01 §4 / RULE-02 §1.2): promotion refused. OBSERVED: uncommitted worktree diff on csp-policy-spec.md (+32 lines) DOES add [deferred] blocks for FR-12/14/15 — if inspector commits it next cycle, csp-policy becomes promotion-eligible in cycle 75. No new carve (slack=1, no non-hybrid candidate). No blocked isolation (cycle-75 deadline unchanged, progress observed). task/ready 10 → 9 (dev consumed execcommand-stub-sweep TSK-34 slug at c86fed1). Inspector boundary audit: da38489 .planner-seen inadvertent edit (RULE-02 §2.1 violation, retry f23b06f corrected); c86fed1 is DEVELOPER test: commit, NOT inspector violation (USER CLAIM CORRECTED). Revert remains operator RULE-05 domain. Precheck PASS.",
+  "cycle_74_observation": {
+    "timestamp": "2026-04-20T13:30:00Z",
+    "head_at_start": "f23b06f (spec(inspector): green 3-spec reflection retry — CSP FR-01~11/13 + NFR-03/04/06 flip, auth REQ-008 doc ref, server-state REQ-009 carve ref)",
+    "head_advance_since_cycle_73_commit": [
+      "c86fed1 test: document.execCommand stub sweep + global clipboard beforeEach (TSK-20260420-11 slug execcommand-stub-sweep-req-034 DEV-CONSUMED — note Task ID collision with env-functional-getter TSK-11 operator precedent at 4c56103, tracked in followup per its result.md)",
+      "da38489 spec(inspector): reflect REQ-008/009 + flip CSP FR-01~13+NFR-03/04/06 — FIRST ATTEMPT, routed to .planner-seen only by lint-staged v16 pre-commit hook (RULE-02 §2.1 incidental boundary touch: inspector modified planner writer artifact .planner-seen; per-inspector body reported as 'inadvertent').",
+      "f23b06f spec(inspector): green 3-spec reflection retry — CLEAN 3 green files (auth/csp-policy/server-state), NO .planner-seen edit, NO src/ edit."
+    ],
+    "developer_pulse_since_cycle_73": "1 task consumption (execcommand-stub-sweep TSK-34 at c86fed1). Continues 3-cycle pulse streak (csp-meta-72, env-functional-getter-73, execcommand-stub-sweep-74). Dev side-effect: c86fed1 push side-effected prior local-only 4c56103 env-functional-getter commit to origin (per task result.md § 커밋 note).",
+    "inspector_pulse_since_cycle_73": "2 commits (da38489 + f23b06f retry). Zero-pulse streak BROKEN at cycle 74 (prior 8 cycles 66-73). Inspector flipped 11 FR/NFR checkboxes on csp-policy-spec.md §5.1 + rewrote §2 As-Is + added changelog rows on auth-spec.md + server-state-spec.md. Boundary violations: da38489 inadvertently edited .planner-seen (planner writer area) — retry f23b06f corrected this. User notes c86fed1 as an inspector boundary violation but c86fed1 is authored-by developer (test: scope, not spec(inspector): scope) — actually a legitimate developer TSK-34 consume commit; USER OBSERVATION CLARIFIED in final report.",
+    "green_file_count_start": 17,
+    "green_file_count_end": 17,
+    "blue_file_count_start": 14,
+    "blue_file_count_end": 14,
+    "task_ready_count_start": 9,
+    "task_ready_count_end": 9,
+    "task_ready_delta_cycle_74": {
+      "removed_via_dev_consume": [
+        "20260420-execcommand-stub-sweep-req-034.md (→ c86fed1, TSK-20260420-11 slug execcommand-stub-sweep-req-034)"
+      ],
+      "added_via_planner_carve": [],
+      "net_change": "-1 + 0 = -1 (10 → 9, cap not reached, slack=1)"
+    },
+    "precheck": {
+      "pause_lock": "absent (.claude/locks/ missing)",
+      "input_queue_green": "17 files (non-empty, Q-2 PASS)",
+      "downstream_task_ready": "9/10 (empirical, slack=1)",
+      "backpressure_carve_gate": "slack=1 → up to 1 carve allowed per RULE-03 §2. This cycle: 0 carved (no productive candidate, see carve_decision).",
+      "promotion_gate_independent": "promotion (green→blue mv) does not affect task/ready count; gated by planner §4 Cond-1/2/3 (spec quality), not by backpressure.",
+      "proceed_to_full_processing": true
+    },
+    "mechanical_gate_scan_promotion_verdict": {
+      "method": "Per planner §4: Cond-1=zero [WIP]/[DRAFT]/[TBD]/[TODO]; Cond-2=every unchecked '- [ ]' tagged [deferred] or resolved; Cond-3=no 'To-Be' heading.",
+      "wip_token_counts_per_spec": {
+        "build/react-version-spec.md": 3,
+        "ci/github-actions-ci-spec.md": 13,
+        "common/accessibility-spec.md": 17,
+        "common/auth-spec.md": 2,
+        "common/clipboard-spec.md": 7,
+        "common/csp-policy-spec.md": 0,
+        "common/env-spec.md": 29,
+        "common/error-boundary-spec.md": 3,
+        "common/react-render-patterns-spec.md": 1,
+        "common/sanitizeHtml-spec.md": 11,
+        "state/server-state-spec.md": 11,
+        "styles/css-modules-spec.md": 11,
+        "testing/app-shell-side-effects-smoke-spec.md": 8,
+        "testing/log-mutation-runtime-smoke-spec.md": 2,
+        "testing/post-merge-visual-smoke-spec.md": 1,
+        "testing/search-abort-runtime-smoke-spec.md": 1,
+        "types/typescript-spec.md": 4
+      },
+      "csp_policy_cond2_deep_check_cycle_74": {
+        "wip_tokens": 0,
+        "total_unchecked": 5,
+        "deferred_unchecked": 2,
+        "non_deferred_unchecked": 3,
+        "non_deferred_items": [
+          "line 110: `- [ ] FR-12 (Should): docs/testing/csp-smoke.md 신설 + 운영자 1회 baseline (별 task 20260420-csp-smoke-checklist 큐잉)` — NO [deferred] block preceding this line. Body annotates '별 task 큐잉' but the queued task 20260420-csp-smoke-checklist is NOT in task/ready (docs creation + operator hybrid rejected in cycle 73). Item remains open.",
+          "line 112: `- [ ] FR-14: dev/prod 분기 처리 (옵션 (a) 또는 (b) 중 1 선택 + 박제) (별 task 20260420-csp-dev-prod-branch 분리)` — NO [deferred] block preceding this line. TSK-20260420-13 IS in task/ready (carved cycle 73, in-flight — worktree shows M vite.config.js + ?? vite.config.test.js). Post-merge inspector must flip to [x] + annotate §3.2 option (a) selection.",
+          "line 113: `- [ ] FR-15 (Should): 업로드 CDN 도메인 확인 → img-src 에 추가 (운영자 followup 스텁)` — NO [deferred] block preceding this line. Operator hostname-discovery work; spec body annotates '운영자 followup 스텁' but no stub path cited. Inspector should [deferred] tag."
+        ],
+        "properly_deferred_items": [
+          "line 114-115: NFR-01 Observatory scan — `**[deferred: NFR-01 은 외부 스캐너(...)]**` block at L114 + `- [ ]` at L115. PROPERLY TAGGED.",
+          "line 116-117: NFR-02 DevTools violation smoke — `**[deferred: NFR-02 는 DevTools Console CSP violation 수동 관측(...)]**` block at L116 + `- [ ]` at L117. PROPERLY TAGGED."
+        ],
+        "fr01_flip_verification": "Line 5 header annotates 'inspector — 67794e1 flip: FR-01~FR-13 + NFR-03/04/06 충족 박제'. Lines 107-108 `[x] FR-01` and `[x] FR-02 ~ FR-10`. Line 109 `[x] FR-11`. Line 111 `[x] FR-13`. Lines 118-120 `[x] NFR-03`, `[x] NFR-04`, `[x] NFR-06`. FR-01~11 + FR-13 + NFR-03/04/06 flip VERIFIED in f23b06f. Inspector's claim 'FR-01~11/13 + NFR-03/04/06' is ACCURATE.",
+        "inspector_promotion_condition_claim": "User question: 'Inspector 가 승격 조건 충족이라 주장' — CLAIM INCORRECT. Inspector flipped 11 checkboxes correctly but did NOT tag FR-12/14/15 with [deferred]. Cond-2 requires 'every unchecked - [ ] tagged [deferred] or resolved' — FR-12/14/15 have neither tag nor resolution.",
+        "verdict": "Cond-1 PASS (WIP=0), Cond-2 FAIL (3 non-deferred unchecked remain: FR-12/14/15), Cond-3 PASS (no To-Be heading). Planner cannot edit green (RULE-01 §2). Inspector required to either (a) [deferred] tag FR-12/14/15 NOW or (b) wait for TSK-13 merge → flip FR-14 to [x] + [deferred] tag FR-12/15. Path (a) is fastest; path (b) delays promotion by 1 developer cycle."
+      },
+      "other_specs_cond1_scan": "16 of 17 greens carry WIP tokens (range 1-29). react-render-patterns has lowest WIP=1 (likely §5.2 [WIP] REQ-20260420-001 heading). No spec besides csp-policy passes Cond-1 this cycle.",
+      "promoted_this_cycle": [],
+      "held_this_cycle": "all 17 greens (16 fail Cond-1 via WIP tokens, 1 fails Cond-2 only — csp-policy unchanged gate since cycle 73).",
+      "blocked_this_cycle": [],
+      "closest_to_promotion": "common/csp-policy-spec.md (Cond-1 PASS, Cond-2 gap unchanged at 3 non-deferred: FR-12/14/15; TSK-13 in-flight addresses FR-14 post-merge)."
+    },
+    "carve_decision": {
+      "slack_before": 1,
+      "slack_after": 1,
+      "carved": [],
+      "rationale": "task/ready=9/10 (slack=1) after dev consume of TSK-34. Evaluated candidates: (1) csp-smoke-checklist (FR-12) — docs creation + operator baseline hybrid, rejected in cycle 73 for scope contamination; re-evaluating, partial doc-only carve does not flip FR-12 checkbox (requires both halves), so promotion-gate benefit is zero — REJECTED AGAIN. (2) csp-upload-cdn-followup (FR-15) — operator hostname discovery, non-developer — REJECTED. (3) Other specs all have in-flight tasks OR are inspector-WIP-heavy: react-render-patterns (1 WIP + 3 in-flight hover tasks), auth (2 WIP + parsejwt-isadmin in-flight), clipboard (7 WIP + imageselector-toaster in-flight), error-boundary (3 WIP + suspense-skeleton in-flight), typescript (4 WIP + tsconfig in-flight), react-version (3 WIP + searchinput-setattribute in-flight), csp-policy (0 WIP + csp-dev-prod-branch TSK-13 in-flight) — no productive carve. (4) Inspector-gated Cond-2 work (tagging/flipping) is outside planner writer area. VERDICT: 0 carve this cycle, accept slack=1.",
+      "planner_decision_recorded": "no carve — explicit fail-fast against hybrid/operator scope contamination + no independent atomic unit remains uncarved with dev benefit.",
+      "rejected_candidates_full": [
+        "csp-policy FR-12 (docs/testing/csp-smoke.md) — docs + operator hybrid. Partial carve gives zero promotion-gate benefit (FR-12 checkbox requires both halves per spec L110).",
+        "csp-policy FR-15 (업로드 CDN 도메인 확인) — operator CDN hostname discovery, non-developer scope.",
+        "react-render-patterns §5.2 REQ-20260420-001 hoverPopup refactor — 3 tasks already in-flight (usehoverpopup-hook + hoverpopup-callers-logitem-comment + hoverpopup-callers-monitor). Over-carving risks merge-order confusion.",
+        "auth §5 REQ-032 parsejwt-isadmin-guard — task already in-flight.",
+        "clipboard §3.3.2 REQ-036 imageselector-toaster — task already in-flight.",
+        "error-boundary §6 LogSingle Suspense-Skeleton Phase 1 — task already in-flight.",
+        "types/typescript tsconfig-baseurl-deprecation — task already in-flight.",
+        "react-version §4.1/§5 SearchInput setAttribute REQ-026 — task already in-flight (TSK-12).",
+        "state/server-state REQ-009 LogSingle MSW Phase 2 — not yet carved; spec is 11 WIP + 122 unchecked, inspector-heavy drift; carving now would contaminate an unstable spec surface.",
+        "styles/css-modules §10 family — 11 WIP + 102 unchecked; large inspector backlog.",
+        "sanitizeHtml §* — 11 WIP; inspector WIP in progress.",
+        "accessibility §* — 17 WIP + 115 unchecked; highest drift.",
+        "env-spec — 29 WIP (highest); TSK-11 env-functional-getter just consumed, inspector has not yet reconciled.",
+        "testing/*-smoke specs — manual operator baselines, non-developer.",
+        "ci/github-actions — 13 WIP + 47 unchecked; multi-file CI config, not atomic.",
+        "build/react-version §2 React 19 bump — 35+ test regression risk, too large for atomic carve."
+      ]
+    },
+    "stalling_assessment_cycle_74": {
+      "prior_deadline_cycle": 75,
+      "current_cycle": 74,
+      "conjunction_check": {
+        "a_zero_inspector_pulse": false,
+        "b_zero_developer_task_consumption": false,
+        "c_task_ready_stuck_at_cap": false,
+        "verdict": "conjunction FALSE — all 3 channels active (inspector da38489+f23b06f, developer c86fed1, task/ready 10→9 drained). No stalling."
+      },
+      "inspector_stall_streak": "BROKEN at cycle 74 (prior 66-73 = 8 cycles zero). Inspector flipped 11 + added 3 changelog rows this cycle. Watchlist escalation RESOLVED.",
+      "csp_policy_2cycle_cond2_stall_assessment": "Cycle 73 identified FR-12/14/15 non-deferred gap. Cycle 74 same 3 items still non-deferred. Surface reading: 2-cycle Cond-2 static → blocked/ eligibility per planner.md §4 '부분 (2회차 이상 연속 정체)'. HOWEVER: substantial PROGRESS observed (11 checkbox flips + §2 As-Is rewrite + changelog). Static checkboxes ≠ static spec. Interpretation: 'progress' clause overrides mechanical count. Cycle 73 deadline_reassessment set cycle 75 as blocked threshold — HONOR THAT. Cycle 74: hold in green, one more cycle. If cycle 75 shows FR-12/14/15 still non-deferred AND no inspector activity on csp-policy, escalate to blocked/ with _reason.md.",
+      "deadline_reassessment": "Cycle 75 remains blocked-isolation deadline for csp-policy. Inspector path (a) [deferred] tag fastest — 1 commit, ~6 lines. Inspector path (b) wait for TSK-13 merge → flip FR-14 + [deferred] tag FR-12/15 — 2 commits spanning ≥1 developer cycle. Both paths leave task/ready slot (TSK-13) unchanged."
+    },
+    "worktree_observation": {
+      "modified_vite_config": "M vite.config.js — TSK-20260420-13 (csp-dev-prod-branch-transformindexhtml) in progress. Developer has begun task but not yet committed.",
+      "untracked_vite_config_test": "?? vite.config.test.js — new test file for TSK-20260420-13 plugin behavior (expected per task spec §테스트 section).",
+      "uncommitted_inspector_edits_csp_policy": "M specs/spec/green/common/csp-policy-spec.md — WORKTREE-ONLY inspector edits (+32 lines across §3.2/§3.4/§5.1/§7/§8). Content: ADDS [deferred] blocks at L110 (FR-12), L112 (FR-14), L113 (FR-15) + adds REQ-20260420-011/012/013 cross-links + 4 changelog rows. IF COMMITTED, csp-policy Cond-2 would flip to PASS → promotion eligible. Planner operates on COMMITTED HEAD (f23b06f) per RULE-01 §4 immutable handoff + RULE-02 §1.2 queue-only communication. Uncommitted inspector work is NOT yet promoted to planner input. This cycle: HOLD csp-policy in green (Cond-2 still FAIL by HEAD).",
+      "uncommitted_inspector_edits_env_spec": "M specs/spec/green/common/env-spec.md — WORKTREE-ONLY inspector edits (+26 lines across §0 (ready REQ refs), §5.2, §10 changelog). Content: adds REQ-20260420-009 (stubEnv PROD drift) + REQ-20260420-010 (UserLogin test probe) cross-links + drift reproduction paragraph on TSK-20260420-11 4c56103. WIP token count likely UNCHANGED (still ≥29). Not promotable regardless. No planner action.",
+      "planner_writer_area_isolation": "Planner commits ONLY specs/spec/green/.planner-seen this cycle. DOES NOT stage csp-policy-spec.md or env-spec.md uncommitted diffs — those are inspector writer area. Git add is file-specific (RULE-02 §2.3: '파일 명시').",
+      "impact_on_planner": "none — planner does not read src/ or config/. TSK-13 developer consumption will produce signal via new commit + task/done move, observable in cycle 75. Inspector uncommitted csp-policy/env-spec edits will (if committed next inspector cycle) materially change cycle 75 promotion verdict for csp-policy — planner awaits their commit.",
+      "initial_session_git_status_mismatch": "Session start git status showed src/File/api.js + src/Monitor/api.js + src/common/UserLogin.jsx + src/common/env.js + src/common/env.test.js + src/setupTests.js modified. Post-c86fed1 + post-4c56103, these are all committed. Only vite.config.js + vite.config.test.js + (inspector-area) csp-policy-spec.md + env-spec.md remain uncommitted."
+    },
+    "boundary_violation_analysis": {
+      "user_claim": "Inspector 의 경계 위반 부수 커밋 c86fed1, da38489",
+      "c86fed1_audit": {
+        "commit_subject": "test: document.execCommand stub sweep + global clipboard beforeEach",
+        "scope_prefix": "test: (developer task commit style, RULE-02 §2.3 task commit format)",
+        "author_files": "src/setupTests.js + src/Log/LogItem.test.jsx",
+        "task_reference": "specs/task/done/2026/04/20/20260420-execcommand-stub-sweep-req-034/ (TSK-20260420-11 slug REQ-034)",
+        "verdict": "DEVELOPER commit, NOT inspector boundary violation. src/ edits match TSK-34 writer area (developer). Task move from task/ready to task/done per RULE-01 §2. USER CLAIM INCORRECT on this commit."
+      },
+      "da38489_audit": {
+        "commit_subject": "spec(inspector): reflect REQ-008/009 + flip CSP FR-01~13+NFR-03/04/06 (67794e1)",
+        "files_touched": "specs/spec/green/.planner-seen (sole diff, 70 insertions / 55 deletions)",
+        "intended_files": "3 green specs (auth + csp-policy + server-state) per commit body",
+        "actual_outcome": "lint-staged v16 pre-commit stash/apply flow rerouted to .planner-seen only per f23b06f body annotation",
+        "writer_area_audit": ".planner-seen is planner writer artifact per planner.md §4 (state file 'planner 만 읽고 쓴다'). Inspector touching .planner-seen IS a RULE-02 §2.1 boundary violation (자기 쓰기 영역 밖 수정).",
+        "retry_correction": "f23b06f committed CLEAN 3 green files (35 insertions / 22 deletions across auth + csp-policy + server-state), NO .planner-seen diff. Correctly scoped to inspector writer area (specs/spec/green/**).",
+        "verdict": "VERIFIED inspector boundary violation at da38489. f23b06f is clean retry. Net state file corruption: .planner-seen body was edited by inspector's da38489 but the content of that edit described cycle 74 inspector's own intended flip — NOT a planner state update. Planner (this cycle 74) reads .planner-seen body as-of HEAD (f23b06f did NOT revert da38489's .planner-seen edit because .planner-seen was excluded from f23b06f staging). Cycle 73 state content is PRESERVED in current .planner-seen (this cycle's inspection confirms structure intact at start of this session).",
+        "pipeline_impact": "minor — inspector's da38489 .planner-seen edit did NOT corrupt cycle_73_observation key. Planner cycle 74 reads valid prior state. Revert is operator RULE-05 domain; planner does not self-correct."
+      },
+      "planner_action": "reported only per user instruction. No revert, no re-carve. Continue normal cycle processing."
+    },
+    "watchlist_cycle_74": [
+      "common/csp-policy-spec.md — CRITICAL this cycle. Cond-1 PASS (WIP=0). Cond-2 FAIL (3 non-deferred: FR-12/14/15). Inspector flipped 11 items in f23b06f but did NOT tag FR-12/14/15. Deadline to blocked/ isolation: cycle 75 (1 cycle remaining). Inspector-priority action: `[deferred]` tag FR-12 + FR-15 + wait TSK-13 merge to flip FR-14.",
+      "common/auth-spec.md — REQ-008 cognito doc reference added in f23b06f, FR-06 checkbox deferred to operator round. WIP=2 remains. Post-parsejwt-isadmin-guard (REQ-032) consume + inspector reconcile of 1fc05e9 auth URL fix — promotable in ~2 cycles if WIP tokens drop.",
+      "state/server-state-spec.md — REQ-009 LogSingle MSW Phase 2 carve row annotated in f23b06f. WIP=11, 122 unchecked (highest drift after env). Not promotable near-term. Inspector flip path pending actual Phase 2 task merge.",
+      "common/env-spec.md — TSK-20260420-11 env-functional-getter DEV-CONSUMED at 4c56103. 29 WIP tokens (highest). Inspector has NOT yet reconciled in cycle 74 scope. Priority next inspector pulse.",
+      "common/react-render-patterns-spec.md — 3 tasks in flight (usehoverpopup-hook + 2 hoverpopup-callers). Promotable post full 3-task consume + §5.2 [WIP] flip.",
+      "common/clipboard-spec.md — execcommand-stub-sweep TSK-34 consumed at c86fed1. imageselector-toaster REQ-036 still in flight. Inspector pending flip of FR-05 (0 residue) post c86fed1.",
+      "common/error-boundary-spec.md — suspense-skeleton-logsingle-phase1 in flight.",
+      "types/typescript-spec.md — tsconfig-baseurl-deprecation in flight.",
+      "build/react-version-spec.md — TSK-20260420-12 (SearchInput REQ-026) in flight.",
+      "common/csp-policy-spec.md — TSK-20260420-13 in-flight worktree (M vite.config.js + ?? vite.config.test.js). Next cycle expected developer commit → inspector FR-14 flip path (b) becomes possible."
+    ],
+    "no_op": false,
+    "writer_area_delta_this_cycle": ".planner-seen updated (appended cycle_74_observation key). No task/ready creation (carve=0). No blue/ promotion (Cond-2 FAIL). No blocked/ isolation (deadline still cycle 75). Local commit captures .planner-seen delta only."
+  },
   "cycle_73_observation": {
     "timestamp": "2026-04-20T12:45:00Z",
     "head_at_start": "4c56103 (refactor: env.js functional getter + 5 api.js + 12 test migrations — TSK-20260420-11 DEV-CONSUMED, supersedes TSK-20260418-36)",
