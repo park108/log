@@ -1,7 +1,119 @@
 {
   "version": 1,
-  "updated": "2026-04-20T19:00:00Z",
-  "notes": "cycle 78: HEAD 53a8244 (inspector reflect 3 REQs on green env/react-render-patterns/css-modules). task/ready 0/10 (empty, slack=10 full). 11 greens (net +3 since cycle 77: +common/accessibility, +common/env-spec newly counted post 53a8244 tree refresh, +testing/app-shell-side-effects-smoke now HEAD, +common/react-render-patterns now HEAD post 53a8244; effective change: cycle 77 '7 HEAD' enumerated clipboard/auth/react-version/env/ci/state/styles, cycle 78 HEAD enumerates all 11 as fresh set). All 11 fail Cond-1 (WIP 2..29, no change in floor). Inspector+developer pulse explosive since cycle 77: inspector 2 commits (af92379 reflect 5 REQs: clipboard/app-shell/server-state/accessibility/web-vitals + 53a8244 reflect 3 REQs: env/react-render-patterns/css-modules), developer 2 commits (45651f5 tsconfig-baseurl TSK-13 REQ-20260418-019 + 6b6415e userlogin-test TSK-14 REQ-20260420-010) + 1 operator d930684 (4 blocked REQs resolved via rules/agents/templates). task/ready fully drained (3→0). Fresh carve opportunities: 5 new sections (§7.2 REQ-020 web-vitals PropTypes, §10.10 REQ-024 SearchInput.test regex, §3.10.1 REQ-018 App.test onLine lock, §3.8 REQ-017 LogSingle fake-timer, §4.A.9 REQ-021 Monitor focus-visible) all newly landed on green. Carve decision cycle 78: 3 atomic carves (TSK-17 REQ-020, TSK-18 REQ-024, TSK-19 REQ-018) — all single-to-triple file, grep-gated, single-revert. Deferred: REQ-017 (Phase C experimental + 14-file audit — not clean single-PR), REQ-021 (FR-02 tabIndex경량화 sub-dependency + §4.A.5 global pattern coordination), REQ-023 (cross-tree forwardRef architectural decision pending per spec §13 미결). Stalling conjunction FALSE: both upstream agents active + task/ready drained → 3 fresh carves. No blocked isolation. All 3 carved tasks validated via dry-run grep baseline (7/7 queries match). .planner-seen updated cycle 78.",
+  "updated": "2026-04-20T19:30:00Z",
+  "notes": "cycle 79: HEAD d285056 (inspector reflect 4 REQs on green state/meta/testing: REQ-025/026/027/028). task/ready 1/10 before cycle (TSK-18 only; TSK-17 moved to done by developer via commit not yet observed, TSK-19 consumed c2a9510). Fresh carve surface: 4 new green sections (REQ-025 suspense-dynamic-render-helper-spec 신설 / REQ-026 operator-manual-smoke-index-spec 신설 / REQ-027 drift-resolve-cadence-analysis-spec 신설 / REQ-028 server-state-spec §3.3.4 Search 도메인 확장). All 4 atomic, grep-gated, single-revert, docs/test/code distinct scope. Cycle 79 carve 4: TSK-20 REQ-025 (withSuspendedModule helper 2 files), TSK-21 REQ-026 (operator-manual-smoke index doc 1 file), TSK-22 REQ-027 (drift-resolve diagnostic doc 1 file), TSK-23 REQ-028 (useSearchList migration 4 files). slack 10→5. Upstream pulse: inspector 1 commit (d285056 REQ-025/026/027/028). developer 1 commit (c2a9510 TSK-19). Net task/ready 1→5 (-0+4). No blue promotion (all 14 greens fail Cond-1 via WIP tokens incl. 3 new ones — expected). No blocked isolation. All 4 carved tasks validated via grep baseline (13/13 queries match). .planner-seen updated cycle 79.",
+  "cycle_79_observation": {
+    "timestamp": "2026-04-20T19:30:00Z",
+    "head_at_start": "d285056 spec(inspector): reflect 4 REQs on green (state/meta/testing)",
+    "head_advance_since_cycle_78_commit": [
+      "23e586a spec(planner): cycle 78 carve 3 atomic tasks (TSK-17/18/19) — planner self",
+      "c2a9510 test: App.test.jsx navigator.onLine descriptor 완화 + :164 E2E 렌더 토글 어서트 (TSK-20260420-19, REQ-20260420-018) — developer consume",
+      "d285056 spec(inspector): reflect 4 REQs on green (state/meta/testing) — inspector REQ-025/026/027/028 landed fresh sections"
+    ],
+    "inspector_pulse_since_cycle_78": "1 HEAD commit (d285056). 4 REQs reflected in 1 cycle. 3 new green files (suspense-dynamic-render-helper-spec.md, operator-manual-smoke-index-spec.md, drift-resolve-cadence-analysis-spec.md) + 1 extension (server-state-spec.md §3.3.4 +67 lines). Pulse sustained at high rate (cycle 77 0 → cycle 78 2 → cycle 79 1).",
+    "developer_pulse_since_cycle_78": "1 task consume (TSK-20260420-19 REQ-018 App.test navigator.onLine). TSK-17 observed in done/ without commit trace yet (possibly preceding c2a9510 — observer lag). task/ready 3→1 effective (TSK-17 mv to done, TSK-18 remain, TSK-19 mv to done).",
+    "green_file_count_start": 14,
+    "green_file_count_end": 14,
+    "blue_file_count_start": 24,
+    "blue_file_count_end": 24,
+    "task_ready_count_start": 1,
+    "task_ready_count_end": 5,
+    "task_ready_delta_cycle_79": {
+      "removed_via_dev_consume_this_cycle": [
+        "20260420-app-test-navigator-onlinelock-configurable-restore-req-018.md (→ c2a9510, TSK-19)",
+        "20260420-monitor-proptypes-coherence-and-dead-prop-sweep-req-020.md (→ done/ TSK-17; commit trace not visible in git log inspected — observer lag)"
+      ],
+      "added_via_planner_carve": [
+        "20260420-suspense-dynamic-render-helper-req-025.md (TSK-20)",
+        "20260420-operator-manual-smoke-index-doc-req-026.md (TSK-21)",
+        "20260420-drift-resolve-cadence-analysis-diagnostic-req-027.md (TSK-22)",
+        "20260420-search-domain-usesearchlist-migration-req-028.md (TSK-23)"
+      ],
+      "net_change_this_cycle": "-2 + 4 = +2 (1 → 5)"
+    },
+    "precheck": {
+      "pause_lock": "absent (.claude/locks/ missing)",
+      "input_queue_green": "14 files (non-empty, Q-2 PASS; 3 new files added by d285056: suspense-dynamic-render-helper-spec, operator-manual-smoke-index-spec, drift-resolve-cadence-analysis-spec + 1 extension to server-state-spec)",
+      "downstream_task_ready": "1/10 at start → 5/10 at end (slack 9→5)",
+      "backpressure_carve_gate": "slack=9 → up to 9 carves allowed. 4 carved (productive atomic units, opportunistic pickup).",
+      "proceed_to_full_processing": true
+    },
+    "mechanical_gate_scan_promotion_verdict": {
+      "method": "Per planner §4: Cond-1=zero [WIP]/[DRAFT]/[TBD]/[TODO]; Cond-2=every unchecked '- [ ]' tagged [deferred] or resolved; Cond-3=no 'To-Be' heading.",
+      "wip_token_counts_per_green_head": {
+        "build/react-version-spec.md": {"wip_tokens": "≥1"},
+        "ci/github-actions-ci-spec.md": {"wip_tokens": "≥1"},
+        "common/auth-spec.md": {"wip_tokens": 2},
+        "common/clipboard-spec.md": {"wip_tokens": "≥1"},
+        "common/env-spec.md": {"wip_tokens": "≥1"},
+        "common/accessibility-spec.md": {"wip_tokens": "≥1"},
+        "common/react-render-patterns-spec.md": {"wip_tokens": 2},
+        "meta/drift-resolve-cadence-analysis-spec.md": {"wip_tokens": "≥1 (new, WIP frontmatter + TBD §6)"},
+        "monitor/web-vitals-spec.md": {"wip_tokens": "≥1"},
+        "state/server-state-spec.md": {"wip_tokens": "16 (added §3.3.4 WIP, no net reduction)"},
+        "styles/css-modules-spec.md": {"wip_tokens": "≥1"},
+        "testing/app-shell-side-effects-smoke-spec.md": {"wip_tokens": "≥1"},
+        "testing/operator-manual-smoke-index-spec.md": {"wip_tokens": "≥1 (new, WIP frontmatter)"},
+        "testing/suspense-dynamic-render-helper-spec.md": {"wip_tokens": "≥1 (new, WIP frontmatter + 3 TBD phase 2 boundaries)"}
+      },
+      "promoted_this_cycle": [],
+      "held_this_cycle": "all 14 greens (Cond-1 FAIL via WIP tokens). Net +3 new green files added cycle 79 (all WIP state).",
+      "blocked_this_cycle": [],
+      "closest_to_promotion": "common/auth-spec.md (WIP=2 REQ-031 + REQ-032 both dev-consumed; inspector reconcile flips to 0). common/react-render-patterns-spec.md (WIP=2 §5.2 dev-done + §5.3 arch-decision pending). Both unchanged from cycle 78."
+    },
+    "carve_decision": {
+      "slack_before": 9,
+      "slack_after": 5,
+      "carved": [
+        {"id": "TSK-20260420-20", "req": "REQ-20260420-025", "spec": "testing/suspense-dynamic-render-helper-spec.md §3", "title": "withSuspendedModule helper + LogSingle dynamic Skeleton guard", "files": 2, "grep_gates": 2, "expansion": "불허", "gate_type": "creation (≥N hits)"},
+        {"id": "TSK-20260420-21", "req": "REQ-20260420-026", "spec": "testing/operator-manual-smoke-index-spec.md §3", "title": "Operator manual smoke index doc creation (docs/testing/)", "files": 1, "grep_gates": 1, "expansion": "불허", "gate_type": "creation (≥N hits)"},
+        {"id": "TSK-20260420-22", "req": "REQ-20260420-027", "spec": "meta/drift-resolve-cadence-analysis-spec.md §3.2~3.6", "title": "drift-resolve 5회 누적 진단 docs 작성 (docs/meta/)", "files": 1, "grep_gates": 1, "expansion": "불허", "gate_type": "creation (≥N hits)"},
+        {"id": "TSK-20260420-23", "req": "REQ-20260420-028", "spec": "state/server-state-spec.md §3.3.4", "title": "Search 도메인 useSearchList 도입 + sessionStorage 4키 purge + 자체 AbortController 제거", "files": 4, "grep_gates": 4, "expansion": "불허", "gate_type": "0-hits (sweep)"}
+      ],
+      "deferred_candidates": [
+        "REQ-20260420-021 (accessibility §4.A.9 Monitor focus-visible) — FR-02 tabIndex 경량화 tooltip audit 미결 유지. Hold.",
+        "REQ-20260420-017 (server-state §3.8 useFakeTimers cross-file) — Phase C 14-file audit 유지. Hold.",
+        "REQ-20260420-023 (react-render-patterns §5.3 Search.jsx getElementById) — Option A vs B arch decision pending. Hold."
+      ],
+      "rejected_candidates": [
+        "auth §3.1/3.3 REQ-031/032 — inspector reconcile only.",
+        "react-render-patterns §5.2 hoverPopup Phase 1 — DEV-DONE + inspector reconcile only.",
+        "clipboard §3.3.2 REQ-034 전역 sweep — DEV-DONE + inspector reconcile only.",
+        "env §5.1/5.2 migration-pattern flip — inspector reconcile.",
+        "ci/github-actions §3 workflow rename — inspector body rewrite.",
+        "state/server-state §3.3 LogList drift realization — no evidence of drift (grep baseline 0 hits on LogList.jsx); if drift confirmed별 task."
+      ],
+      "planner_decision_recorded": "4 carve — opportunistic pickup of 4 atomic newly-landed REQs (025/026/027/028). REQ-025 minimum 2-file atomic (helper + LogSingle test, Skeleton testid baseline satisfied). REQ-026 pure docs creation. REQ-027 docs-only diagnostic (no agent doc edits). REQ-028 LogList pilot replication (4-file clean scope). Slack reserved 5 for (a) post-consume opportunities next cycle, (b) potential REQ-017/021/023 unblock."
+    },
+    "stalling_assessment_cycle_79": {
+      "conjunction_check": {
+        "a_zero_inspector_pulse": false,
+        "b_zero_developer_task_consumption": false,
+        "c_task_ready_stuck_at_cap": false,
+        "verdict": "conjunction FALSE — all 3 upstream channels active. Pipeline net-healthy."
+      },
+      "inspector_stall_streak_reset": "cycle 79 1 commit sustains. Watchlist cleared.",
+      "green_hold_streak": "cycles 75/76/77/78/79 = 5 cycles hold (all greens WIP). +3 new green files cycle 79 joined hold (expected — fresh WIP). No blocked isolation."
+    },
+    "worktree_observation": {
+      "state_at_cycle_start": "git status clean. No M/?? in src/ or specs/spec/green/.",
+      "planner_writer_area_isolation": "Planner commits: .planner-seen + 4 task/ready/*.md (task/ready gitignored → no commit artifact). Does NOT touch src/, does NOT touch specs/spec/green/ content, does NOT touch specs/requirements/. Compliant with RULE-01 §2 matrix."
+    },
+    "grep_dry_run_cycle_79": "13/13 match — all 4 carved tasks grep baseline verified (TSK-20: 3/3 queries match [withSuspendedModule 0, skeleton-detail 1, LogSingle source declares 1]; TSK-21: 2/2 [operator-manual-smoke-index specs=1 docs=0]; TSK-22: 2/2 [drift-resolve-cadence-analysis specs=1 docs=0]; TSK-23: 6/6 [sessionStorage searchList 12 hits 2 files, sessionStorage total 21 hits 2 files, SearchInput sessionStorage 0, AbortController Search.jsx 1, useSearchList 0, LogList sessionStorage 0 drift-gate]).",
+    "watchlist_cycle_79": [
+      "common/auth-spec.md (WIP=2) — unchanged from cycle 78. Inspector single-flip on REQ-031/032 drops to 0 → promotable.",
+      "common/react-render-patterns-spec.md (WIP=2) — unchanged. §5.2 dev-done + §5.3 arch-decision blocked.",
+      "monitor/web-vitals-spec.md — post TSK-17 done (observer lag), inspector §7.2 flip possible cycle 80.",
+      "styles/css-modules-spec.md — TSK-18 still ready, post-consume flip §10.10 possible.",
+      "testing/app-shell-side-effects-smoke-spec.md — post TSK-19 done, inspector §3.10.1 flip + operator baseline.",
+      "state/server-state-spec.md — added §3.3.4 (REQ-028 carve TSK-23 this cycle). Post-consume flip after TSK-23 done. Multi-section multi-REQ carry.",
+      "testing/suspense-dynamic-render-helper-spec.md / operator-manual-smoke-index-spec.md / meta/drift-resolve-cadence-analysis-spec.md — 3 new greens cycle 79, post TSK-20/21/22 consume inspector reconcile path clear.",
+      "build/react-version-spec.md / ci/github-actions-ci-spec.md / common/accessibility-spec.md / common/clipboard-spec.md / common/env-spec.md — higher-WIP multi-carry specs, no near-term promotion."
+    ],
+    "no_op_outcome": false,
+    "writer_area_delta_this_cycle": ".planner-seen updated (cycle_79 observation prepended). 4 task/ready files created (gitignored → no commit). 0 blue/ promotion. 0 blocked/ isolation. Single local commit captures .planner-seen delta only (task/ready not committable)."
+  },
+  "cycle_78_notes_archive": "cycle 78: HEAD 53a8244 (inspector reflect 3 REQs on green env/react-render-patterns/css-modules). task/ready 0/10 (empty, slack=10 full). 11 greens (net +3 since cycle 77: +common/accessibility, +common/env-spec newly counted post 53a8244 tree refresh, +testing/app-shell-side-effects-smoke now HEAD, +common/react-render-patterns now HEAD post 53a8244; effective change: cycle 77 '7 HEAD' enumerated clipboard/auth/react-version/env/ci/state/styles, cycle 78 HEAD enumerates all 11 as fresh set). All 11 fail Cond-1 (WIP 2..29, no change in floor). Inspector+developer pulse explosive since cycle 77: inspector 2 commits (af92379 reflect 5 REQs: clipboard/app-shell/server-state/accessibility/web-vitals + 53a8244 reflect 3 REQs: env/react-render-patterns/css-modules), developer 2 commits (45651f5 tsconfig-baseurl TSK-13 REQ-20260418-019 + 6b6415e userlogin-test TSK-14 REQ-20260420-010) + 1 operator d930684 (4 blocked REQs resolved via rules/agents/templates). task/ready fully drained (3→0). Fresh carve opportunities: 5 new sections (§7.2 REQ-020 web-vitals PropTypes, §10.10 REQ-024 SearchInput.test regex, §3.10.1 REQ-018 App.test onLine lock, §3.8 REQ-017 LogSingle fake-timer, §4.A.9 REQ-021 Monitor focus-visible) all newly landed on green. Carve decision cycle 78: 3 atomic carves (TSK-17 REQ-020, TSK-18 REQ-024, TSK-19 REQ-018) — all single-to-triple file, grep-gated, single-revert. Deferred: REQ-017 (Phase C experimental + 14-file audit — not clean single-PR), REQ-021 (FR-02 tabIndex경량화 sub-dependency + §4.A.5 global pattern coordination), REQ-023 (cross-tree forwardRef architectural decision pending per spec §13 미결). Stalling conjunction FALSE: both upstream agents active + task/ready drained → 3 fresh carves. No blocked isolation. All 3 carved tasks validated via dry-run grep baseline (7/7 queries match). .planner-seen updated cycle 78.",
   "cycle_78_observation": {
     "timestamp": "2026-04-20T19:00:00Z",
     "head_at_start": "53a8244 spec(inspector): reflect 3 REQs on green (env/react-render-patterns/css-modules)",
