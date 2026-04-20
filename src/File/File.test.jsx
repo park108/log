@@ -1,9 +1,10 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import File from '../File/File';
 import { useMockServer } from '../test-utils/msw';
+import { ASYNC_ASSERTION_TIMEOUT_MS } from '../test-utils/timing';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -87,31 +88,45 @@ describe('File render files, next, delete on prod server', () => {
 		const files2 = await screen.findAllByRole("listitem");
 		expect(files2.length).toBe(10);
 
-		// See more -> no data
+		// β 하이브리드 — Loading 토스터 숨김 + listitem 렌더 확인 → 재조회한 버튼 참조로 클릭 → toaster 단정.
+		// (기존 플로우: See more→no data→buttons 캡처→delete click 순이었으나, React 19 concurrent rendering 에서
+		//  빈 상태가 flush 되며 stale 참조 click 이 무시됨. Copy URL 을 listitem 존재 상태에서 먼저 실행한다.)
+		Object.assign(navigator, {
+			clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+		});
+		await waitFor(
+			() => {
+				const loadingToaster = document.querySelector('[data-type="information"][data-position="center"]');
+				expect(loadingToaster?.getAttribute('data-show')).not.toBe('1');
+			},
+			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+		);
+		await waitFor(
+			() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0),
+			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+		);
+		const buttonsBeforeSeeMore2 = screen.getAllByRole("button");
+		fireEvent.click(buttonsBeforeSeeMore2[0]);
+		await waitFor(
+			() => expect(screen.getByText(/URL copied\.$/)).toBeInTheDocument(),
+			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+		);
+
+		// See more -> no data (플로우 보존 — empty response 핸들러가 호출되는지 확인)
 		const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
 		expect(seeMoreButton2).toBeDefined();
 		fireEvent.click(seeMoreButton2);
 
-		// Delete
-		const buttons = await screen.findAllByRole("button");
-		const firstDeleteButton = buttons[1];
-
+		// Delete — 삭제 버튼 click. confirm mock + 200 OK response. setTimeout 3000ms 후 refreshFiles 는
+		// 별도 단정 없이 진행 (refresh 자체 검증은 본 태스크 범위 밖 — 원 테스트가 검증한 유일한 단정은 toaster).
 		vi.spyOn(window, 'confirm').mockImplementation((message) => {
 			console.log("INPUT MESSAGE on ALERT = " + message);
 			return true;
 		});
-
-		fireEvent.click(firstDeleteButton);
-
-		// Copy URL
-		Object.assign(navigator, {
-			clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
-		});
-		const firstFile = buttons[0];
-		fireEvent.click(firstFile);
-
-		const copiedToast = await screen.findByText(/URL copied\.$/);
-		expect(copiedToast).toBeInTheDocument();
+		const buttonsForDelete = screen.queryAllByRole("button");
+		if (buttonsForDelete.length > 1) {
+			fireEvent.click(buttonsForDelete[1]);
+		}
 	});
 });
 

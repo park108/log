@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, act } from '@testing-library/react';
+import { fireEvent, render, screen, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
@@ -6,6 +6,7 @@ import * as common from '../common/common';
 import * as useLogModule from './hooks/useLog';
 import LogSingle from '../Log/LogSingle';
 import { useMockServer } from '../test-utils/msw';
+import { ASYNC_ASSERTION_TIMEOUT_MS } from '../test-utils/timing';
 
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
@@ -110,8 +111,10 @@ describe('LogSingle render on prod server (ok)', () => {
 			await vi.runOnlyPendingTimersAsync();
 		});
 
-		const afterDelete = await screen.findByText("The log is deleted.");
-		expect(afterDelete).toBeInTheDocument();
+		await waitFor(
+			() => expect(screen.getByText("The log is deleted.")).toBeInTheDocument(),
+			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+		);
 
 		await act(async () => {
 			await vi.runOnlyPendingTimersAsync();
@@ -176,8 +179,10 @@ describe('LogSingle get OK delete failed', () => {
 			</MemoryRouter>
 		));
 
-		const title = await screen.findByText("Lorem ipsum dolor sit amet,");
-		expect(title).toBeInTheDocument();
+		await waitFor(
+			() => expect(screen.getByText("Lorem ipsum dolor sit amet,")).toBeInTheDocument(),
+			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+		);
 
 		const contents = await screen.findByText("consectetur adipiscing elit. Duis vel urna mollis arcu suscipit ultricies eu eget dolor. Integer in enim sed lectus cursus aliquam. Ut porttitor augue nec auctor scelerisque. Pellentesque tellus tortor, tempus cursus ipsum et, fringilla efficitur risus. Nunc a sollicitudin nibh. Praesent placerat, libero eget fermentum fermentum, arcu ipsum euismod purus, ac vestibulum libero enim et lorem. Curabitur non urna vel massa suscipit molestie nec vitae ligula. Suspendisse quam augue, convallis sed magna ac, cursus convallis purus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vivamus sit amet feugiat est, id cursus purus. Nullam sollicitudin a enim sed imperdiet.");
 		expect(contents).toBeInTheDocument();
@@ -324,8 +329,10 @@ describe('LogSingle useLog hook integration', () => {
 		));
 
 		// 본문이 그려졌다 = useLog 가 성공 경로로 해결됐다.
-		const contents = await screen.findByText("Test Contents");
-		expect(contents).toBeInTheDocument();
+		await waitFor(
+			() => expect(screen.getByText("Test Contents")).toBeInTheDocument(),
+			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+		);
 
 		// 호출 인자 검증: useParams 가 돌려준 '1656034616036' 가 그대로 전달.
 		expect(useLogSpy).toHaveBeenCalled();
