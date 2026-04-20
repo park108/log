@@ -1,8 +1,8 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T21:45:00Z
-# Phase 1 ack this session: 0/3 — 3 green specs (REQ-004/005/006) still carry unticked DoD markers; planner has issued 4 tasks to 40.task/ready/ but 60.done/task/ is empty (0 completed). No ack-eligible candidates — ack requires completed task result.md with DoD gates.
+# Updated: 2026-04-20T22:00:00Z
+# Phase 1 ack this session: 0/3 — react-19 spec 의 fake-timer grep gate 2건(Must §수용 기준 1/2)은 TSK-20260420-35-a (e4a470b) 로 실증 PASS. 그러나 pair TSK-35-b (MSW lifecycle Must §3) 미완료로 Must 주관 혼재 → 체크박스 플립 보류, 변경 이력 1행 박제만 수행. 나머지 2 spec 은 DoD grep 전량 미해결 (env-test-stub: `process.env.NODE_ENV` 44 hits 잔존 / typescript-tooling: `**/*.d.ts` ignore 잔존, typescript-eslint 미설치).
 # Phase 2 this session: input queue empty (20.req/ready/ = 0 files); no new green specs produced.
-# Stale: all 3 specs unchanged since 2026-04-20T21:30:00Z refresh → stale_cycles 1→2 (threshold ≥3).
-30.spec/green/deps/react-19-test-layer-adaptation-spec.md - 2
-30.spec/green/common/env-test-stub-adaptation-spec.md - 2
-30.spec/green/foundation/typescript-tooling-completion-spec.md - 2
+# Stale: react-19 spec 해시 변경 (이력 박제) → stale_cycles 리셋(0). env-test-stub, typescript-tooling 는 무변경 → 2→3 (임계치 ≥3 도달, 다음 세션 토큰에 반영).
+30.spec/green/deps/react-19-test-layer-adaptation-spec.md 89b92c0f7da628acb3f99df991fd6c821ac864c6d58ca1becc0df8ea8a5ced4c 0
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 3
+30.spec/green/foundation/typescript-tooling-completion-spec.md 2e6ad0f7b9570ae4a6c564fbc57dd4cbc883d351c2084ca45d44ad66e93d742b 3
