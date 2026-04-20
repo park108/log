@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-04-20T13:30:00Z",
-  "notes": "cycle 74: HEAD f23b06f inspector flipped FR-01~11, FR-13 + NFR-03/04/06 on csp-policy (11 items) but did NOT commit FR-12/14/15 [deferred] tags — HEAD promotion gate Cond-2 still FAIL (3 non-deferred unchecked). Planner respects committed SSoT (RULE-01 §4 / RULE-02 §1.2): promotion refused. OBSERVED: uncommitted worktree diff on csp-policy-spec.md (+32 lines) DOES add [deferred] blocks for FR-12/14/15 — if inspector commits it next cycle, csp-policy becomes promotion-eligible in cycle 75. No new carve (slack=1, no non-hybrid candidate). No blocked isolation (cycle-75 deadline unchanged, progress observed). task/ready 10 → 9 (dev consumed execcommand-stub-sweep TSK-34 slug at c86fed1). Inspector boundary audit: da38489 .planner-seen inadvertent edit (RULE-02 §2.1 violation, retry f23b06f corrected); c86fed1 is DEVELOPER test: commit, NOT inspector violation (USER CLAIM CORRECTED). Revert remains operator RULE-05 domain. Precheck PASS.",
+  "updated": "2026-04-20T13:45:00Z",
+  "notes": "cycle 74 (SECOND-PASS REVISION): during session execution HEAD advanced with 3c4c66f (developer TSK-13 csp-dev-prod-branch consume) + 6d8f2b0 (inspector 5-REQ reflection incl. FR-12/14/15 [deferred] tags on csp-policy). Re-evaluated: csp-policy HEAD state now Cond-1 PASS + Cond-2 PASS + Cond-3 PASS → PROMOTED green→blue via atomic mv. task/ready 9 → 8 (TSK-13 consumed) → 9 (carve TSK-20260420-14 UserLogin simplification probe REQ-010). slack=2 used slack=1, leaving slack=1. First-pass commit f92af14 captured pre-HEAD-advance observation; second-pass commit (this one) captures promotion + carve delta. No blocked isolation. Precheck re-validated post-HEAD-advance.",
   "cycle_74_observation": {
     "timestamp": "2026-04-20T13:30:00Z",
     "head_at_start": "f23b06f (spec(inspector): green 3-spec reflection retry — CSP FR-01~11/13 + NFR-03/04/06 flip, auth REQ-008 doc ref, server-state REQ-009 carve ref)",
@@ -160,6 +160,80 @@
     ],
     "no_op": false,
     "writer_area_delta_this_cycle": ".planner-seen updated (appended cycle_74_observation key). No task/ready creation (carve=0). No blue/ promotion (Cond-2 FAIL). No blocked/ isolation (deadline still cycle 75). Local commit captures .planner-seen delta only."
+  },
+  "cycle_74_second_pass": {
+    "timestamp": "2026-04-20T13:45:00Z",
+    "trigger": "HEAD advanced during session: 3c4c66f (developer) + 6d8f2b0 (inspector). First-pass commit f92af14 reported Cond-2 FAIL on pre-advance HEAD. Re-evaluation mandatory.",
+    "head_advance_during_session": [
+      "3c4c66f feat: Vite transformIndexHtml plugin — strip CSP meta tag in dev (TSK-20260420-13, REQ-20260419-040 FR-14) — developer consume, task/ready 9 → 8.",
+      "6d8f2b0 spec(inspector): reflect REQ-20260420-009/010/011/012/013 (CSP FR-12/14/15 defer + env-spec stubEnv drift) — 5 new REQs processed, csp-policy + env-spec updated, FR-12/14/15 [deferred] tags added, 4 changelog rows."
+    ],
+    "re_precheck": {
+      "pause_lock": "absent",
+      "input_queue_green": "17 files (csp-policy still in green at this point)",
+      "downstream_task_ready": "8/10 (post-TSK-13 consume, slack=2)",
+      "proceed": true
+    },
+    "re_gate_scan_csp_policy": {
+      "wip_tokens": 0,
+      "total_unchecked": 5,
+      "deferred_unchecked": 5,
+      "non_deferred_unchecked": 0,
+      "cond_1": "PASS (0 WIP/DRAFT/TBD/TODO)",
+      "cond_2": "PASS (all 5 unchecked have [deferred] blocks: FR-12 L120, FR-14 L123, FR-15 L125, NFR-01 L127, NFR-02 L129)",
+      "cond_3": "PASS (0 To-Be headers)",
+      "verdict": "PROMOTION ELIGIBLE — all 3 conditions satisfied on HEAD 6d8f2b0."
+    },
+    "promotion_action": {
+      "src": "specs/spec/green/common/csp-policy-spec.md",
+      "dst": "specs/spec/blue/common/csp-policy-spec.md",
+      "command": "mkdir -p specs/spec/blue/common && mv <src> <dst>",
+      "atomicity": "RULE-01 §3 compliant (mkdir -p + mv, single filesystem rename).",
+      "blue_overwrite": false,
+      "rationale": "csp-policy had no prior blue (first-promotion). FR-01~11/13 + NFR-03/04/06 [x] flipped via 67794e1 + f23b06f + 6d8f2b0. FR-12/14/15 properly [deferred] tagged via 6d8f2b0. NFR-01/02 [deferred] retained from cycle 65 4d7b9fc."
+    },
+    "re_carve_evaluation": {
+      "slack_after_promotion": 2,
+      "candidates_considered": [
+        "REQ-20260420-010 UserLogin.test dynamic-import simplification probe (NEW from inspector 6d8f2b0) — atomic single-file experiment, XS scope, PASS/FAIL branch with in-task decision, single-commit revert. BEST CARVE CANDIDATE.",
+        "REQ-20260420-009 env-spec stubEnv drift correction — spec edit only, inspector already handled in 6d8f2b0 (env-spec.md L162/L185 updated). NO developer task needed.",
+        "csp-policy FR-12/15 hybrid (operator baseline) — rejected as cycle 73 (scope contamination).",
+        "Other in-flight tasks (8 remaining in task/ready) — no additional carve needed on their specs."
+      ],
+      "carved": [
+        "TSK-20260420-14 (slug 20260420-userlogin-test-dynamic-import-simplification-probe-req-010) — REQ-20260420-010 FR-01 ~ FR-05 atomic probe + branch apply. PASS: helper + vi.resetModules 제거 + static import (≥18 LOC 감소). FAIL: helper 주석 1줄 추가 (inspector 후속 env-spec §5.2 박제). Single file src/common/UserLogin.test.jsx, revert 1회 복구."
+      ],
+      "not_carved_rationale": "slack=2 → 1 carved, leaving slack=1 buffer. Next cycle developer consume of any in-flight task will re-expose slack for further carving. No pressure to fill slack to zero.",
+      "slack_after_carve": 1
+    },
+    "worktree_state_post_session": {
+      "vite_config_status": "3c4c66f committed vite.config.js + vite.config.test.js — no longer uncommitted.",
+      "csp_policy_status": "6d8f2b0 committed inspector edits + planner mv promoted to blue. No worktree diff.",
+      "env_spec_status": "6d8f2b0 committed inspector edits. No worktree diff.",
+      "planner_writer_area_final": "Second-pass commit will capture: (a) specs/spec/green/.planner-seen append cycle_74_second_pass key, (b) specs/spec/blue/common/csp-policy-spec.md new-file-via-mv, (c) specs/spec/green/common/csp-policy-spec.md deletion-via-mv. specs/task/ready/20260420-userlogin-test-dynamic-import-simplification-probe-req-010.md gitignored, not committed."
+    },
+    "updated_metrics": {
+      "green_file_count_end_post_promotion": 16,
+      "blue_file_count_end_post_promotion": 15,
+      "task_ready_count_end_post_carve": 9,
+      "tasks_in_task_ready_current": [
+        "20260420-hoverpopup-callers-logitem-comment.md",
+        "20260420-hoverpopup-callers-monitor.md",
+        "20260420-imageselector-toaster-success-req-036.md",
+        "20260420-parsejwt-isadmin-guard-req-032.md",
+        "20260420-searchinput-setattribute-to-classname-req-026.md",
+        "20260420-suspense-skeleton-logsingle-phase1.md",
+        "20260420-tsconfig-baseurl-deprecation-cleanup.md",
+        "20260420-usehoverpopup-hook-introduce.md",
+        "20260420-userlogin-test-dynamic-import-simplification-probe-req-010.md (THIS CYCLE CARVE)"
+      ]
+    },
+    "inspector_pulse_final": "3 commits this cycle (da38489 boundary-violation inadvertent + f23b06f retry + 6d8f2b0 5-REQ processing). Zero-pulse streak (cycles 66-73) DEFINITIVELY BROKEN with 5 REQ processed + 11 FR flip + 3 [deferred] tag + 4 changelog rows + env-spec drift correction. Watchlist de-escalated.",
+    "developer_pulse_final": "2 commits this cycle (c86fed1 TSK-34 slug execcommand-stub-sweep + 3c4c66f TSK-13 csp-dev-prod-branch). 4-cycle consecutive pulse streak (cycle 71 operator carve → 72 csp-meta → 73 env-functional-getter → 74 execcommand + csp-dev-prod-branch). Pipeline healthy.",
+    "csp_policy_final_state": "PROMOTED green→blue at /Users/p201336/project/log/specs/spec/blue/common/csp-policy-spec.md. First defense-in-depth security policy baseline. FR-12 (smoke docs consolidation), FR-14 (dev HMR baseline), FR-15 (img-src upload CDN), NFR-01 (external scanner), NFR-02 (manual violation-0 smoke) remain [deferred] — operator-path or external-dependency gated; inspector may flip post-operator-completion.",
+    "boundary_violation_final": "c86fed1 confirmed DEVELOPER (test: scope, task/done move). da38489 inspector inadvertent .planner-seen touch — revert operator RULE-05 domain, no pipeline impact. c86fed1 and da38489 DO NOT block pipeline progress (this cycle demonstrates: promotion + carve succeeded despite them). USER QUESTION 'HEAD 상태에서 파이프라인 진행에 지장' → ANSWER: NO.",
+    "no_op": false,
+    "writer_area_delta_final": ".planner-seen (+cycle_74_second_pass append), specs/spec/blue/common/csp-policy-spec.md (new via mv), specs/spec/green/common/csp-policy-spec.md (deleted via mv). specs/task/ready/20260420-userlogin-test-dynamic-import-simplification-probe-req-010.md (gitignored). Second local commit to capture promotion + re-observation. RULE-02 §2.2 forbids amend — must be new commit."
   },
   "cycle_73_observation": {
     "timestamp": "2026-04-20T12:45:00Z",
