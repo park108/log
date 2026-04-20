@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
-import { getSearchList } from './api';
+import { useSearchList } from './hooks/useSearchList';
 
 import styles from './Search.module.css';
 
 const Search = () => {
 
-	const [isLoading, setIsLoading] = useState(false);
-
-	const [searchedList, setSearchedList] = useState([]);
-	const [totalCount, setTotalCount] = useState(0);
 	const [queryString, setQueryString] = useState("");
-	const [processingTime, setProcessingTime] = useState(0);
 	const [loadingDots, setLoadingDots] = useState("");
 
 	const location = useLocation();
@@ -25,75 +20,38 @@ const Search = () => {
 	}, []);
 
 	useEffect(() => {
-
 		setHtmlTitle("search results for " + queryString);
-
-		if(!(queryString.length > 0 && !isLoading)) return;
-
-		const ac = new AbortController();
-
-		const search = async (searchString) => {
-
-			setIsLoading(true);
-
-			const listInSession = sessionStorage.getItem("searchList");
-
-			if(hasValue(listInSession)) {
-
-				const queryStringInSession = sessionStorage.getItem("searchQueryString");
-
-				if(hasValue(queryStringInSession) && searchString === queryStringInSession) {
-
-					setSearchedList(JSON.parse(listInSession));
-					setTotalCount(sessionStorage.getItem("searchTotalCount") * 1);
-					setQueryString(queryStringInSession);
-					setProcessingTime(sessionStorage.getItem("searchProcessingTime") * 1);
-
-					setIsLoading(false);
-					log("Get search list from session.");
-
-					return;
-				}
-			}
-
-			try {
-				const res = await getSearchList(searchString, { signal: ac.signal });
-				const retrieved = await res.json();
-
-				if(!hasValue(retrieved.errorType)) {
-					log("[API GET] OK - Search List", "SUCCESS");
-
-					const result = retrieved.body;
-
-					setSearchedList(result.Items);
-					setTotalCount(result.TotalCount * 1);
-					setQueryString(result.QueryString);
-					setProcessingTime(result.ProcessingTime * 1);
-
-					sessionStorage.setItem("searchList", JSON.stringify(result.Items));
-					sessionStorage.setItem("searchTotalCount", result.TotalCount * 1);
-					sessionStorage.setItem("searchQueryString", result.QueryString);
-					sessionStorage.setItem("searchProcessingTime", result.ProcessingTime * 1);
-				}
-				else {
-					log("[API GET] FAILED - Search List", "ERROR");
-					console.error(retrieved);
-				}
-			}
-			catch(err) {
-				if(err.name === 'AbortError') return;
-				log("[API GET] FAILED - Search List", "ERROR");
-				console.error(err);
-			}
-
-			setIsLoading(false);
-		}
-
-		search(queryString);
-
-		return () => ac.abort();
-
 	}, [queryString]);
+
+	const { data, isLoading, isError, error } = useSearchList(queryString, {
+		enabled: queryString.length > 0,
+	});
+
+	const body = data?.body;
+	const searchedList = body?.Items ?? [];
+	const totalCount = (body?.TotalCount ?? 0) * 1;
+	const processingTime = (body?.ProcessingTime ?? 0) * 1;
+
+	// Preserve NFR-05 log contracts: log success/failure side-effects when
+	// query state transitions. Avoids deprecated TanStack Query v5 onSuccess/onError
+	// by aggregating side-effects in an effect bound to fetchStatus / isError.
+	useEffect(() => {
+		if (!data) return;
+		if (hasValue(data?.errorType)) {
+			log("[API GET] FAILED - Search List", "ERROR");
+			// eslint-disable-next-line no-console
+			console.error(data);
+		} else {
+			log("[API GET] OK - Search List", "SUCCESS");
+		}
+	}, [data]);
+
+	useEffect(() => {
+		if (!isError) return;
+		log("[API GET] FAILED - Search List", "ERROR");
+		// eslint-disable-next-line no-console
+		console.error(error);
+	}, [isError, error]);
 
 	useEffect(() => {
 		if (!isLoading) {
@@ -158,7 +116,7 @@ const Search = () => {
 					{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;<span className={`span ${styles.spanSearchQuerystring}`}>{ queryString }</span>&quot;
 					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
-				
+
 				{searchedList.map(data => (
 					<div className="div--loglist-item" key={data.timestamp} role="listitem">
 						<Link to={{
