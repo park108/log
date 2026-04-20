@@ -284,9 +284,9 @@ export function isAdmin() {
 - [x] `grep -rn "new URLSearchParams(window.location.href)" src/` → 0 lines (result.md 박제) — 재실행 확인 (HEAD `5a39ca1`)
 - [x] `grep -rn "abcde=abcde" src/` → 0 lines (우회 fixture 패턴 제거) — 재실행 확인 (HEAD `5a39ca1`)
 - [x] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS — `1fc05e9` pre-commit hook 통과 (hook-ack, `RULE-02` §2.2 `--no-verify` 금지 근거)
-- [ ] (Should) `id_token` 추출 일관성 결정 — 변경 시 별 케이스 추가, 미변경 시 사유 코멘트 1줄
-- [ ] (Could) 운영자 1회 Cognito Hosted UI 로그인 → 첫 화면 admin 진입 정상 — `docs/testing/cognito-hosted-ui-manual-smoke.md` 참조 (REQ-20260420-008, S-01 / S-02 시나리오 + Baseline 테이블 박제; REQ-035 자매 묶음 또는 별 PR)
-- [ ] (Could) `docs/testing/app-shell-side-effects-smoke.md` 시나리오 2 URL 형태 명시 (inspector 후속)
+- [ ] (Should) `id_token` 추출 일관성 결정 — 변경 시 별 케이스 추가, 미변경 시 사유 코멘트 1줄 — **[deferred: arch decision pending — `id_token` 추출 통일(URL.hash vs indexOf/substring) 여부 결정 별 라운드]**
+- [ ] (Could) 운영자 1회 Cognito Hosted UI 로그인 → 첫 화면 admin 진입 정상 — `docs/testing/cognito-hosted-ui-manual-smoke.md` 참조 (REQ-20260420-008, S-01 / S-02 시나리오 + Baseline 테이블 박제; REQ-035 자매 묶음 또는 별 PR) — **[deferred: 운영자 수동 검증 대기 (REQ-035 자매) — Cognito Hosted UI 실환경 로그인 baseline 필요]**
+- [ ] (Could) `docs/testing/app-shell-side-effects-smoke.md` 시나리오 2 URL 형태 명시 (inspector 후속) — **[deferred: inspector 후속 cross-link 별 라운드 — app-shell-side-effects-smoke-spec.md §3.4 동반 갱신 필요]**
 
 ### 6.1 수용 기준 (REQ-20260418-032 — `parseJwt` 가드 + `isAdmin` fail-safe)
 
@@ -298,8 +298,8 @@ export function isAdmin() {
 - [x] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS — `7daa83a` pre-commit hook 통과 (hook-ack)
 - [x] (Should) `grep -rn "parseJwt(getCookie" src/` → 모든 호출이 fail-safe 흐름 (직접 `.username` 접근 시 optional chaining 또는 가드) — 재실행 1 hit `common.js:159` (fail-safe 분기 안쪽, HEAD `5a39ca1`)
 - [ ] (Should) 가드 발동 시 `console.error` 출력 0 (운영 noise 금지) — **[deferred: 간접 관측 수단 부재]** grep·hook-ack 4종 패턴 미해당, 주관적 런타임 관찰 필요
-- [ ] (Could) 가드 발동 시 dev-only log (`process.env.NODE_ENV === 'development'` 분기)
-- [ ] (Could) 운영자 1회 손상 쿠키 시뮬레이션 (DevTools Application → Cookies 수정 → 새로고침) → 화이트 스크린 0 baseline 박제
+- [ ] (Could) 가드 발동 시 dev-only log (`process.env.NODE_ENV === 'development'` 분기) — **[deferred: arch decision pending — dev-only log 도입 여부(`common.log` 분기 vs 무로그) 결정 별 라운드, REQ-032 §13 미결 항목]**
+- [ ] (Could) 운영자 1회 손상 쿠키 시뮬레이션 (DevTools Application → Cookies 수정 → 새로고침) → 화이트 스크린 0 baseline 박제 — **[deferred: 운영자 수동 검증 대기 — DevTools 손상 쿠키 시뮬레이션 baseline 필요, 자동 관측 수단 부재]**
 
 ---
 
@@ -341,6 +341,7 @@ export function isAdmin() {
 | 2026-04-20 | `1fc05e9` (REQ-20260418-031(auth), TSK `20260420-auth-url-api-fix-req-031`) | §3.1 `[WIP]`→`[DONE]` — `new URL(href).searchParams.get('access_token')` 교체 + fixture 정상화 + 회귀 케이스 추가. grep 2종 재실행 0 hits (`URLSearchParams(window.location.href)`, `abcde=abcde`). hook-ack via pre-commit PASS. | 3.1, 6 |
 | 2026-04-20 | `7daa83a` (REQ-20260418-032, TSK `20260420-parsejwt-isadmin-guard-req-032`) | §3.3 `[WIP]`→`[DONE]` — `parseJwt` 가드 + `isAdmin` fail-safe (`common.js:157-160` 실측). 회귀 케이스 7종 + App 마운트 throw 0 회귀 PASS. grep 재실행 1 hit `common.js:159` (fail-safe 분기 안쪽). hook-ack via pre-commit PASS. §6.1 L300 "console.error 0" 은 `[deferred: 간접 관측 수단 부재]`. | 3.3, 6.1 |
 | 2026-04-20 | (inspector Phase 1 reconcile @ HEAD `5a39ca1`) | §6 수용 기준 7/10 ACK (REQ-031 7/7 Must + hook-ack 1건), §6.1 6/10 ACK (REQ-032 6/7 Must + Should grep 1건). 나머지 3건은 Should(`id_token` 결정) / Could(운영자 baseline) / deferred(console.error 관측 불가). `.inspector-seen` 신규 생성. | 6, 6.1 |
+| 2026-04-20 | (inspector Phase 2 line-level defer-tag @ HEAD `62e4466`) | §6 L287/288/289 + §6.1 L301/302 5건에 라인 단위 `**[deferred: {사유}]**` 마킹 신 문법 적용 — L287 `id_token` 일관성(`arch decision pending`), L288 Cognito Hosted UI 운영자 로그인(`운영자 수동 검증 대기 REQ-035`), L289 app-shell-smoke cross-link(`inspector 후속 별 라운드`), L301 dev-only log(`arch decision pending REQ-032 §13 미결`), L302 손상 쿠키 시뮬레이션(`운영자 수동 검증 대기`). §6.1 L300 은 기존 마킹 유지. Cond-1/2/3/4 전부 PASS → 다음 사이클 승격 후보. | 6, 6.1 |
 
 ---
 
