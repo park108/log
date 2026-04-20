@@ -88,7 +88,7 @@ it('test auth', () => {
 
 	const mockLocation = new URL("http://localhost:3000");
 	mockLocation.replace = vi.fn();
-	mockLocation.href += "?abcde=abcde&access_token=12345#id_token=67890&abcdef=abcdef";
+	mockLocation.href += "?access_token=12345#id_token=67890";
 	delete window.location;
 	window.location = mockLocation;
 
@@ -102,6 +102,50 @@ it('test auth', () => {
 	common.auth();
 
 	window.location = currentLocation; // Rollback location
+});
+
+describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => {
+	let savedLocation;
+	const clearAuthCookies = () => {
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+	};
+
+	beforeEach(() => {
+		savedLocation = window.location;
+		clearAuthCookies();
+		process.env.NODE_ENV = 'development';
+	});
+
+	afterEach(() => {
+		clearAuthCookies();
+		delete window.location;
+		window.location = savedLocation;
+	});
+
+	it('extracts access_token when it is the first query parameter', () => {
+		const mockLocation = new URL('http://localhost:3000/?access_token=AAA#id_token=BBB');
+		mockLocation.replace = vi.fn();
+		delete window.location;
+		window.location = mockLocation;
+
+		common.auth();
+
+		expect(common.getCookie('access_token')).toBe('AAA');
+		expect(common.getCookie('id_token')).toBe('BBB');
+	});
+
+	it('extracts id_token when fragment has trailing parameter', () => {
+		const mockLocation = new URL('http://localhost:3000/?access_token=AAA#id_token=BBB&token_type=Bearer');
+		mockLocation.replace = vi.fn();
+		delete window.location;
+		window.location = mockLocation;
+
+		common.auth();
+
+		expect(common.getCookie('access_token')).toBe('AAA');
+		expect(common.getCookie('id_token')).toBe('BBB');
+	});
 });
 
 describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
@@ -120,11 +164,9 @@ describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
 
 	beforeEach(() => {
 		savedLocation = window.location;
-		// auth() 의 URLSearchParams(href) 구현은 첫 파라미터를 key 로 인식하지 못하므로
-		// 기존 'test auth' 케이스와 동일하게 선행 더미 파라미터 + access_token 배치.
 		const mock = new URL('http://localhost:3000');
 		mock.replace = vi.fn();
-		mock.href += '?abcde=abcde&access_token=AAA#id_token=BBB&abcdef=abcdef';
+		mock.href += '?access_token=AAA#id_token=BBB';
 		delete window.location;
 		window.location = mock;
 		clearAuthCookies();

@@ -99,12 +99,15 @@ export function deleteCookie(name) {
 }
 
 export function auth() {
-	
-	const accessToken = new URLSearchParams(window.location.href).get("access_token");
+
+	const accessToken = new URL(window.location.href).searchParams.get("access_token");
 
 	const idTokenStart = window.location.href.indexOf("#id_token=");
 	const idTokenEnd = window.location.href.indexOf("&", idTokenStart);
-	const idToken = window.location.href.substring(idTokenStart + 10, idTokenEnd);
+	const idToken = window.location.href.substring(
+		idTokenStart + 10,
+		idTokenEnd === -1 ? undefined : idTokenEnd,
+	);
 
 	if(null != accessToken) {
 

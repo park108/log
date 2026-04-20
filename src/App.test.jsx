@@ -144,11 +144,9 @@ describe('render body has no direct side effects', () => {
 			'eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ' +
 			'.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJjbGllbnRfaWQiOiJoM205MmEyN3QzOXNmY2F0MzAydGlxdGtvIiwidXNlcm5hbWUiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUifQ' +
 			'.sig';
-		// auth() 의 URLSearchParams(href) 구현은 첫 파라미터를 key 로 인식하지 못하므로
-		// 선행 더미 파라미터 + access_token 배치 (common.test.js 의 'test auth' 와 동일 패턴).
 		const mock = new URL('http://localhost:3000');
 		mock.replace = vi.fn();
-		mock.href += `?abcde=abcde&access_token=${jwtFixture}#id_token=YYY&abcdef=abcdef`;
+		mock.href += `?access_token=${jwtFixture}#id_token=YYY`;
 		delete window.location;
 		window.location = mock;
 		common.deleteCookie('access_token');
