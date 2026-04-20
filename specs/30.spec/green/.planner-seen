@@ -1,6 +1,4 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T(session+2)Z
-# Session: foundation/common 동일 해시 (stale 2). deps 해시 변경 (89b92c0f — inspector 가 TSK-35-a 박제 반영, stale 리셋). 4조건 승격 판정 전원 불가 (unchecked 수용 기준 다수 + 변경 이력 TSK 미박제 또는 부분 박제). carve 재발행 불필요 — ready 큐에 TSK-33 / TSK-35-b / TSK-36 이 3개 green spec 전부 커버. blocked 이동 보류: spec 정체 원인은 planner 처리 불가가 아니라 developer 대기이므로 50.blocked/spec/ 격리 부적절. stale 누적만 기록.
-30.spec/green/foundation/typescript-tooling-completion-spec.md 2e6ad0f7b9570ae4a6c564fbc57dd4cbc883d351c2084ca45d44ad66e93d742b 2
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 2
-30.spec/green/deps/react-19-test-layer-adaptation-spec.md 89b92c0f7da628acb3f99df991fd6c821ac864c6d58ca1becc0df8ea8a5ced4c 0
+# Updated: 2026-04-20T(session+3)Z
+# Session: foundation/typescript-tooling-completion-spec.md + deps/react-19-test-layer-adaptation-spec.md 4조건 전부 충족 → blue 승격 (mv, 같은 경로·파일명 유지; blue 에는 기존 bootstrap/upgrade spec 과 공존 — REQ 누적 기록). common/env-test-stub-adaptation-spec.md 해시 동일 (58e36c22, stale 3 — 3회 연속 정체). 승격 불가 원인: unchecked 15건 잔존 + 변경 이력에 TSK/커밋 미박제. carve 재발행 불필요 — ready 큐 TSK-20260420-36 이 common green + blue/node-env-helper-migration-spec 양쪽을 paired 로 커버 (supersedes TSK-31, TSK-34). blocked 이동 보류: 정체 원인은 planner 처리 불가가 아니라 developer 소비 대기이므로 50.blocked/spec/ 격리 부적절. stale 누적 기록만.
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 3
