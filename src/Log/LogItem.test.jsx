@@ -43,7 +43,6 @@ it('render log item correctly', async () => {
 
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
-	document.execCommand = vi.fn();
 
 	process.env.NODE_ENV = 'production';
 
@@ -106,7 +105,6 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 	beforeEach(() => {
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(false);
-		document.execCommand = vi.fn();
 	});
 
 	const baseItem = (contents) => ({
