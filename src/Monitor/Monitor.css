@@ -118,6 +118,14 @@
 	margin: 0 10%;
 }
 
+/* REQ-20260420-021 (a11y) — Monitor 도메인 div 기반 popup trigger focus-visible 규칙
+   참조: specs/spec/green/common/accessibility-spec.md §4.A.9 (WCAG 2.4.7) */
+.div--monitor-pillar:focus-visible,
+.div--monitor-statusbar:focus-visible {
+	outline: 2px solid var(--color-focus-ring, currentColor);
+	outline-offset: 2px;
+}
+
 .div--monitor-processing {
 	text-align: center;
 	width: 100%;
