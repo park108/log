@@ -1,7 +1,7 @@
 # drift-resolve 5회 누적 cadence 분석 — Phase A 진단 (REQ-20260420-027)
 
 > **아티팩트 유형**: Meta / Diagnostic (진단 전용, 규약 편집 없음)
-> **작성 기원**: `specs/spec/green/meta/drift-resolve-cadence-analysis-spec.md` §3.2 ~ §3.6 (FR-01 ~ FR-05)
+> **작성 기원**: `specs/30.spec/green/meta/drift-resolve-cadence-analysis-spec.md` §3.2 ~ §3.6 (FR-01 ~ FR-05)
 > **작업 지시서**: `TSK-20260420-22` (REQ-20260420-027)
 > **작성일**: 2026-04-20
 > **상태**: Draft — Phase A 결과 박제. Phase B(실제 규약 편집) 는 별 REQ 로 carve.

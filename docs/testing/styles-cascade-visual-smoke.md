@@ -1,6 +1,6 @@
 # 전역 styles cascade 시각 baseline 체크리스트
 
-> SSoT: `specs/spec/blue/testing/styles-cascade-visual-smoke-spec.md`
+> SSoT: `specs/30.spec/blue/testing/styles-cascade-visual-smoke-spec.md`
 > 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-styles-cascade-visual-baseline-checklist.md` (REQ-20260418-015)
 > 도입 태스크: TSK-20260418-23
 > 자매 문서: `docs/testing/markdown-render-smoke.md`, `docs/testing/toaster-visual-smoke.md` (도입 예정), `docs/testing/tanstack-query-devtools-smoke.md` (도입 예정)
@@ -97,7 +97,7 @@
 - DevTools Device Toolbar 로 viewport 너비를 각각 351 → 350, 401 → 400, 641 → 640 px 로 전환.
 - Navigation 좁아짐: 해당 너비에서 `.hidden--width-640px` / `.hidden--width-400px` / `.hidden--width-350px` 가 적용되어 메뉴 항목 일부가 숨겨짐.
 - 본문 영역(`main--main-contents`, `article--main-item`) 좌우 패딩 변화.
-- `src/styles/utilities.css` 의 `@media screen and (max-width: N)` 값이 `specs/spec/green/styles/design-tokens-spec.md` §5 의 브레이크포인트와 일치.
+- `src/styles/utilities.css` 의 `@media screen and (max-width: N)` 값이 `specs/30.spec/green/styles/design-tokens-spec.md` §5 의 브레이크포인트와 일치.
 
 **기대 동작:**
 
@@ -265,15 +265,15 @@
 
 ## 관련 문서
 
-- SSoT spec: `specs/spec/blue/testing/styles-cascade-visual-smoke-spec.md`
+- SSoT spec: `specs/30.spec/blue/testing/styles-cascade-visual-smoke-spec.md`
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-styles-cascade-visual-baseline-checklist.md` (REQ-20260418-015, FR-01~07, NFR-01~04)
 - 원 followup: `specs/followups/consumed/2026/04/18/20260417-2153-visual-regression-manual-check-pending.md`
 - 상위 정책 spec:
-  - `specs/spec/green/styles/design-tokens-spec.md` §5 (브레이크포인트), §5.1, §9
-  - `specs/spec/green/styles/css-modules-spec.md` §7
+  - `specs/30.spec/green/styles/design-tokens-spec.md` §5 (브레이크포인트), §5.1, §9
+  - `specs/30.spec/green/styles/css-modules-spec.md` §7
 - 자매 spec:
-  - `specs/spec/blue/testing/toaster-visual-smoke-spec.md`
-  - `specs/spec/blue/testing/markdown-render-smoke-spec.md`
+  - `specs/30.spec/blue/testing/toaster-visual-smoke-spec.md`
+  - `specs/30.spec/blue/testing/markdown-render-smoke-spec.md`
 - 자매 REQ:
   - `specs/requirements/ready/20260418-component-css-redundant-global-imports-removal.md` (REQ-014, 본 체크리스트로 회귀 방어 예정)
   - `specs/requirements/ready/20260418-tanstack-query-devtools-smoke-checklist.md` (REQ-016, 동일 형식)

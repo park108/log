@@ -25,11 +25,11 @@ yarn-error.log*
 
 # AI
 .task
-specs/followups
-specs/req
-specs/task
-specs/blocked/req
-specs/blocked/task
-specs/done
+specs/10.followups
+specs/20.req
+specs/40.task
+specs/50.blocked/req
+specs/50.blocked/task
+specs/60.done
 specs.archived-*/
 /.claude/scheduled_tasks.lock

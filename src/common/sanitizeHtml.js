@@ -1,6 +1,6 @@
 // 단일 sanitize 모듈. markdownParser 산출 HTML 을 DOM 주입 직전 정제한다.
 // 정책은 이 파일에서만 변경한다 (FR-06 / spec §1, §6).
-// 관련: REQ-20260418-001, spec specs/spec/green/common/sanitizeHtml-spec.md §5, §6
+// 관련: REQ-20260418-001, spec specs/30.spec/green/common/sanitizeHtml-spec.md §5, §6
 
 import DOMPurify from 'dompurify';
 

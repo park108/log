@@ -1,6 +1,6 @@
 # TanStack Query Devtools 런타임 스모크 체크리스트
 
-> SSoT: `specs/spec/blue/testing/tanstack-query-devtools-smoke-spec.md`
+> SSoT: `specs/30.spec/blue/testing/tanstack-query-devtools-smoke-spec.md`
 > 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-tanstack-query-devtools-smoke-checklist.md` (REQ-20260418-016, FR-01~08 / NFR-01~04)
 > 도입 태스크: TSK-20260418-22
 > 자매 문서: `docs/testing/markdown-render-smoke.md`, `docs/testing/styles-cascade-visual-smoke.md`, `docs/testing/toaster-visual-smoke.md` (도입 예정)
@@ -235,7 +235,7 @@ grep -l "ReactQueryDevtools\|react-query-devtools" build/assets/*.js
 
 ## 관련 문서
 
-- SSoT spec: `specs/spec/blue/testing/tanstack-query-devtools-smoke-spec.md`
+- SSoT spec: `specs/30.spec/blue/testing/tanstack-query-devtools-smoke-spec.md`
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-tanstack-query-devtools-smoke-checklist.md` (REQ-20260418-016, FR-01~08, NFR-01~04)
 - 원 followup: `specs/followups/consumed/2026/04/18/20260418-0706-tanstack-devtools-runtime-manual-check.md`
 - 직전 태스크: `specs/task/done/2026/04/18/20260418-tanstack-query-provider/` (Provider + Devtools 도입, `ee87219`)
@@ -244,10 +244,10 @@ grep -l "ReactQueryDevtools\|react-query-devtools" build/assets/*.js
   - `docs/testing/styles-cascade-visual-smoke.md` (TSK-20260418-23)
   - `docs/testing/toaster-visual-smoke.md` (TSK-20260418-17, 도입 예정)
 - 자매 spec:
-  - `specs/spec/blue/testing/markdown-render-smoke-spec.md`
-  - `specs/spec/blue/testing/styles-cascade-visual-smoke-spec.md`
-  - `specs/spec/blue/testing/toaster-visual-smoke-spec.md`
-- 상위 정책 spec: `specs/spec/green/state/server-state-spec.md` §3.1, §3.4
+  - `specs/30.spec/blue/testing/markdown-render-smoke-spec.md`
+  - `specs/30.spec/blue/testing/styles-cascade-visual-smoke-spec.md`
+  - `specs/30.spec/blue/testing/toaster-visual-smoke-spec.md`
+- 상위 정책 spec: `specs/30.spec/green/state/server-state-spec.md` §3.1, §3.4
 - 외부:
   - TanStack Query v5 Devtools 가이드 — https://tanstack.com/query/v5/docs/framework/react/devtools
   - Vite `import.meta.env` — https://vitejs.dev/guide/env-and-mode.html

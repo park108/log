@@ -1,7 +1,7 @@
 import sanitizeHtml from './sanitizeHtml';
 
 // OWASP XSS Filter Evasion 10 대표 벡터 + 엣지 (spec §7).
-// 관련: REQ-20260418-001 NFR-01, spec specs/spec/green/common/sanitizeHtml-spec.md §7.
+// 관련: REQ-20260418-001 NFR-01, spec specs/30.spec/green/common/sanitizeHtml-spec.md §7.
 
 describe('sanitizeHtml: OWASP XSS vectors', () => {
 

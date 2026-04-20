@@ -7,7 +7,7 @@ import './ErrorFallback.css';
  *   - error?: Error         — error object thrown in the wrapped tree
  *   - reset?: () => void    — optional retry callback; when present a button is rendered
  *
- * Spec: `specs/spec/green/common/error-boundary-spec.md` §3.3
+ * Spec: `specs/30.spec/green/common/error-boundary-spec.md` §3.3
  *
  * Branch logic:
  *   - Network error  → "연결을 확인하고 다시 시도하세요"

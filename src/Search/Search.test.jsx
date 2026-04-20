@@ -196,7 +196,7 @@ it('render search with no-data payload and no-result banner', async () => {
 });
 
 // --- Loading dots timer cleanup regression guards (REQ-20260420-004, TSK-20260420-16) ---
-// blue spec: specs/spec/blue/testing/search-abort-runtime-smoke-spec.md §3.11
+// blue spec: specs/30.spec/blue/testing/search-abort-runtime-smoke-spec.md §3.11
 describe('loading dots timer cleanup', () => {
 
 	const getLoadingDotsText = () => document.getElementById('loading')?.textContent ?? '';

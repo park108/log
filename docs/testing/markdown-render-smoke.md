@@ -1,6 +1,6 @@
 # 마크다운 렌더 수동 스모크 체크리스트
 
-> SSoT: `specs/spec/blue/testing/markdown-render-smoke-spec.md`
+> SSoT: `specs/30.spec/blue/testing/markdown-render-smoke-spec.md`
 > 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-markdown-render-visual-smoke-checklist.md` (REQ-20260418-008)
 > 도입 태스크: TSK-20260418-15
 

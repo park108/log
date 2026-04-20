@@ -1,7 +1,7 @@
 # React 19 Upgrade — Pre-Flight Audit
 
 > **Task**: TSK-20260418-08 — React 19 업그레이드 사전 감사
-> **Spec**: `specs/spec/green/build/react-version-spec.md` §2, §4
+> **Spec**: `specs/30.spec/green/build/react-version-spec.md` §2, §4
 > **Requirement**: `specs/requirements/done/2026/04/18/20260417-upgrade-react-19.md`
 > **Audited**: 2026-04-18
 > **Scope**: 코드 변경 없음. 본 문서는 React 19 bump 전 영향 범위 파악용 스냅샷.

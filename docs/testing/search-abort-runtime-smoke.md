@@ -1,6 +1,6 @@
 # Search 도메인 AbortController 런타임 수동 스모크 체크리스트
 
-> SSoT: `specs/spec/blue/testing/search-abort-runtime-smoke-spec.md`
+> SSoT: `specs/30.spec/blue/testing/search-abort-runtime-smoke-spec.md`
 > 기원 요구사항: `specs/requirements/done/2026/04/19/20260419-search-abort-runtime-smoke-checklist-doc.md` (REQ-20260419-013)
 > 도입 태스크: TSK-20260419-SEARCH-ABORT-SMOKE-DOC
 > 자매 문서: `docs/testing/markdown-render-smoke.md`, `docs/testing/web-vitals-runtime-smoke.md`, `docs/testing/tanstack-query-devtools-smoke.md`, `docs/testing/toaster-visual-smoke.md`, `docs/testing/styles-cascade-visual-smoke.md`, `docs/testing/log-mutation-runtime-smoke.md`

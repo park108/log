@@ -1,6 +1,6 @@
 # ErrorBoundary 런타임 수동 스모크 체크리스트
 
-> SSoT: `specs/spec/green/common/error-boundary-spec.md` §7.2 (blue 승격 예정)
+> SSoT: `specs/30.spec/green/common/error-boundary-spec.md` §7.2 (blue 승격 예정)
 > 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-error-boundary-runtime-smoke-checklist-doc.md` (REQ-20260418-037, FR-01~08 / US-01~05 / NFR-01~06) + `specs/requirements/done/2026/04/18/20260418-error-boundary-app-integration.md` (REQ-20260418-005) + `specs/requirements/done/2026/04/18/20260418-errorboundary-test-stderr-suppression.md` (REQ-20260418-007)
 > 도입 태스크: TSK-20260420-02
 > 자매 문서: `docs/testing/web-vitals-runtime-smoke.md`, `docs/testing/styles-cascade-visual-smoke.md`, `docs/testing/toaster-visual-smoke.md`, `docs/testing/markdown-render-smoke.md`, `docs/testing/tanstack-query-devtools-smoke.md`, `docs/testing/log-mutation-runtime-smoke.md`, `docs/testing/search-abort-runtime-smoke.md`
@@ -334,7 +334,7 @@ spec §7.2 픽스처 5종 + REQ-037 §3.1 5 항목 1:1 대응.
 
 ## 관련 문서
 
-- SSoT spec (green → blue 승격 예정): `specs/spec/green/common/error-boundary-spec.md` §7.2
+- SSoT spec (green → blue 승격 예정): `specs/30.spec/green/common/error-boundary-spec.md` §7.2
 - 기원 요구사항:
   - `specs/requirements/done/2026/04/18/20260418-error-boundary-runtime-smoke-checklist-doc.md` (REQ-20260418-037, FR-01~08 / US-01~05 / NFR-01~06) — 본 문서 직접 기원
   - `specs/requirements/done/2026/04/18/20260418-error-boundary-app-integration.md` (REQ-20260418-005) — §4 통합 전제

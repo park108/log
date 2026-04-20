@@ -4,9 +4,9 @@
 
 | agent | 주기 | 하류 임계치 (기본) |
 |---|---|---|
-| discovery | 1~2회/일 | `REQUIREMENTS_READY_MAX=15` (`req/ready/`) |
-| inspector | ~1h | `GREEN_PENDING_MAX=20` (미승격 `spec/green/**`) |
-| planner | ~1h | `TASK_READY_MAX=10` (`task/ready/`) |
+| discovery | 1~2회/일 | `REQUIREMENTS_READY_MAX=15` (`20.req/ready/`) |
+| inspector | ~1h | `GREEN_PENDING_MAX=20` (미승격 `30.spec/green/**`) |
+| planner | ~1h | `TASK_READY_MAX=10` (`40.task/ready/`) |
 | developer | ~15m | — |
 
 override: `.claude/pipeline.json` (RULE-05).

@@ -6,7 +6,7 @@ import './Skeleton.css';
  * Props (prop-types intentionally omitted, TS migration pending):
  *   - variant?: 'page' | 'list' | 'detail'  (default: 'page'; invalid values fall back to 'page')
  *
- * Spec: `specs/spec/green/common/error-boundary-spec.md` §3.2
+ * Spec: `specs/30.spec/green/common/error-boundary-spec.md` §3.2
  */
 
 const VALID_VARIANTS = ['page', 'list', 'detail'];

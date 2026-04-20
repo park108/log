@@ -1,7 +1,7 @@
 # Task: {{제목}}
 
 > **Task ID**: TSK-YYYYMMDD-NN
-> **출처 spec**: `specs/spec/blue/.../X.md` §{{섹션}}
+> **출처 spec**: `specs/30.spec/blue/.../X.md` §{{섹션}}
 > **관련 요구사항**: REQ-...
 > **depends_on**: [] 또는 [TSK-...]
 > **supersedes**: (carve 파생 시만)
