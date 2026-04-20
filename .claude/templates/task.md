@@ -82,6 +82,19 @@
 - ...
 - 후속 작업으로 넘길 것: TSK-...
 
+## 7a. 스코프 규칙 (Scope Rules)
+`RULE-06` 적용. `## 6. 완료 기준` 에 `grep -rn <pattern> <path> → 0 lines` 형태 게이트가 있으면 **必** 작성. 없으면 본 섹션 생략 가능.
+
+- **expansion**: 허용 | 불허 | N/A
+- **grep-baseline**:
+  - `grep -rn "<pattern>" <path>` → N hits in M files:
+    - `src/.../foo.js:12`
+    - `src/.../bar.test.js:34, 56`
+- **rationale**: <1~2줄 사유>
+
+> `expansion: 허용` 이면 baseline 에 열거된 scope 밖 파일도 게이트 충족 목적으로 정상화 가능.
+> `expansion: 불허` 이면 scope 밖 파일 변경 금지 — 게이트 위반 파일이 scope 밖이면 developer 는 즉시 blocked 격리.
+
 ## 8. 롤백 (Rollback)
 운영 영향 있는 변경일 때만.
 - 트리거:

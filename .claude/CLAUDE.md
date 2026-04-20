@@ -38,6 +38,7 @@ flowchart LR
 | [`RULE-03-BACKPRESSURE`](rules/RULE-03-BACKPRESSURE.md) | 주기·임계치·pause lock·선결 점검 |
 | [`RULE-04-REPORT`](rules/RULE-04-REPORT.md) | stdout 표준 보고 블록 |
 | [`RULE-05-MANUAL`](rules/RULE-05-MANUAL.md) | blocked 해제·긴급 롤백·일시 정지 |
+| [`RULE-06-TASK-SCOPE`](rules/RULE-06-TASK-SCOPE.md) | Task `## 변경 범위` ↔ `## 검증/DoD` grep 게이트 정합성, `## 스코프 규칙` 섹션 |
 
 > 에이전트 문서와 규약 파일이 충돌하면 **규약 파일이 우선**한다.
 > 규약을 바꾸려면 `rules/` 에서만 바꾼다. 에이전트 문서는 참조만.

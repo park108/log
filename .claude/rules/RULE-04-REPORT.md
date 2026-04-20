@@ -38,3 +38,17 @@
 - 이 블록을 **먼저** 출력. 상세는 뒤에 자유 양식.
 - no-op 종료(pause, 빈 큐, backpressure)여도 **반드시 출력**. 침묵 금지.
 - 빈 배열은 `[]` 로. 자연어 "없음" 금지.
+
+## notes 필드 관용 형식
+
+`notes` 는 자유 텍스트지만 아래 토큰은 외부 집계를 위해 관용 형식으로 박제:
+
+- **developer orphan 가드** (`RULE-01` §6, `.claude/agents/developer.md` §1):
+  - `notes: "...; orphan: 0"` — 선행 orphan 없음.
+  - `notes: "...; orphan: 1 (4c56103)"` — orphan 1건 + 해시.
+  - `notes: "...; orphan: unknown (fetch failed)"` — origin 미도달.
+- **planner carve** (`RULE-01` §6.5):
+  - `notes: "...; carve: TSK-20260420-11 -> TSK-20260420-11-a,TSK-20260420-11-b"`.
+- **planner grep dry-run** (`.claude/agents/planner.md`):
+  - `notes: "...; grep dry-run: N/N match"` — 박제 쿼리 N개 전수 일치.
+  - `notes: "...; grep dry-run: K/N match (drift fixed)"` — 불일치 K건 보완 후 재확인.
