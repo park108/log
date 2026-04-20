@@ -277,6 +277,7 @@ TSK-20260418-23 (commit `879e5d1`) 으로 `src/Log/LogItem.jsx:94` 가 sanitize 
 - [x] 신규 회귀 테스트 ≥ 4건 (LogItem 2 + Writer 2) — commits `879e5d1` / `9f06a0c`
 - [x] `npm test` PASS + `npm run lint` PASS — 각 task result.md 박제
 - [x] 본 §4.3 의 "현재 상태: 미통합" 표기가 "통합 완료" 로 갱신 — 2026-04-20 inspector drift reconcile
+- **[deferred: REQ-20260418-028 §3.B.2 Writer preview 6 픽스처 운영자 1회 visual baseline 수행 대기 — `docs/testing/writer-preview-sanitize-visual-smoke.md` 부재 또는 baseline 0 회 (2026-04-20). 자동 테스트 영역 밖 operator. `post-merge-visual-smoke-spec.md` §3.B.2 배치 2 cross-cutting 묶음 세션 산출물. planner 는 본 항목을 승격 게이트 계산에서 제외.]**
 - [ ] Writer 미리보기 시각 baseline — `docs/testing/writer-preview-sanitize-visual-smoke.md` (REQ-20260418-028 §3.B.2, 배치 2) 운영자 1회 수행. 6 픽스처 (평문 / 코드블록 / 외부링크 `target=_blank rel="noopener noreferrer"` 정규화 / 리스트 / 이미지 / XSS 차단). 상세: `specs/spec/green/testing/post-merge-visual-smoke-spec.md` §3.B.2
 
 ### 9.1.2 REQ-20260418-103 (성능·번들 측정)
@@ -304,6 +305,8 @@ TSK-20260418-23 (commit `879e5d1`) 으로 `src/Log/LogItem.jsx:94` 가 sanitize 
 
 ### 9.1.6 REQ-20260419-017 (묶음 baseline 1차 운영자 수행)
 > 관련 요구사항: REQ-20260419-017 §10; 상세는 `specs/spec/green/styles/css-modules-spec.md` §10.8
+
+**[deferred: REQ-20260419-017 묶음 운영자 수동 baseline 1차 수행 대기 — `docs/testing/markdown-render-smoke.md` §LogItem sanitize runtime smoke §Baseline 슬롯 `[x]` 0 회 관측 (2026-04-20, blue 기준 `87fc1e3` 후속 동일). Chrome 130+ + macOS 14 1조합 60분 세션 산출물. 자동 테스트 영역 밖 operator. planner 는 본 §9.1.6 6 행 전부를 승격 게이트 계산에서 제외.]**
 
 - [ ] `docs/testing/markdown-render-smoke.md` §LogItem sanitize runtime smoke §Baseline 수행 기록 테이블 1행 박제 (F1 / F2 / F3 / F4 PASS/FAIL).
 - [ ] 환경 매트릭스 = Chrome 130+ + macOS 14 + `npm run dev` 1조합 (FR-09).
@@ -335,6 +338,7 @@ TSK-20260418-23 (commit `879e5d1`) 으로 `src/Log/LogItem.jsx:94` 가 sanitize 
 | 2026-04-19 | TSK-20260418-27 (merged, commit `cd8a1fe`) | `docs/testing/markdown-render-smoke.md` §LogItem sanitize runtime smoke (F1~F4) 섹션 신설 완료 — §9.1.5 "F1~F4 픽스처 정의 + baseline 박제 슬롯" 항목 충족 | 9.1.5 |
 | 2026-04-19 | (pending, REQ-20260419-017) | §9.1.6 묶음 baseline 1차 운영자 수행 수용 기준 신설 (3 체크리스트 묶음 세션, LogItem sanitize F1~F4 baseline 박제) (WIP) | 9.1.5, 9.1.6 |
 | 2026-04-20 | (inspector drift reconcile) | §4.3 LogItem/Writer 호출부 "미통합" → "통합 완료" ACK (commits `879e5d1` / `9f06a0c`, tasks `20260418-sanitize-html-logitem-integration` + `20260418-sanitize-html-writer-integration`). §7.1 회귀 테스트 4건 [x] 전환. §9.1.1 REQ-102 수용 5/6 [x] (Writer preview visual baseline 은 REQ-028 운영자 영역 잔여). 라인 번호 현행화: LogItem `:93` → `:83`, Writer `:271` → `:249`. 커밋 영향: 본 spec 단독. | 4.3, 7.1, 9.1.1 |
+| 2026-04-20 | (inspector Phase 2 — defer tagging) | §9.1.1 REQ-102 Writer preview visual baseline 1 행 [deferred] 태그 (REQ-028 §3.B.2 operator, post-merge-visual-smoke-spec §3.B.2 묶음 세션). §9.1.6 REQ-20260419-017 묶음 operator baseline 6 행 section-heading level [deferred] 태그 (markdown-render-smoke §Baseline 0/1). planner 승격 게이트 제외. 커밋 영향: 본 spec 단독. | 9.1.1, 9.1.6 |
 
 ## 11. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-sanitize-markdown-html-output.md`

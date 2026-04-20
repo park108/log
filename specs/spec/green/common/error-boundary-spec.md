@@ -278,6 +278,7 @@
 - [x] `docs/testing/error-boundary-runtime-smoke.md` 존재 (REQ-037 FR-01) — commit `94de1fa` (task `docs: add ErrorBoundary runtime smoke checklist (REQ-20260418-037)`; 2026-04-20 inspector drift reconcile, 파일 실측 확인)
 - [x] 5 픽스처 커버 (Skeleton / ErrorFallback / 이웃 라우트 / Reset / reportError) — commit `94de1fa` 문서 구조로 충족 (상세는 commit 본문)
 - [x] 자매 체크리스트와 형식 동등 (`## Pre-conditions` / `## Golden Path Checklist` / `## Failure Notes`) — commit `94de1fa`
+- **[deferred: REQ-20260418-037 FR-04 운영자 수동 baseline 1회 수행 대기 — `docs/testing/error-boundary-runtime-smoke.md` Baseline 슬롯 5 픽스처 `[x]` 0/5 관측 (2026-04-20). 자동 테스트 영역 밖 operator. 2회 baseline 은 상류 REQ-20260418-012 (React 19 bump) 머지 의존 cross-cutting. planner 는 본 2 행을 승격 게이트 계산에서 제외.]**
 - [ ] (Should) 운영자 1회 baseline 박제 — 문서 하단 Baseline 섹션 pending manual session
 - [ ] (Should) REQ-012 (React 19 bump) 머지 후 2회 baseline (회귀 0) — REQ-012 대기
 
@@ -295,6 +296,7 @@
 | 2026-04-20 | (inspector drift reconcile — second pass post `caadd10`/`94de1fa`) | §2 Monitor `console.error` 7건 잔존 → reportError 일원화 완료 ACK (commit `caadd10` REQ-20260419-004 TSK-20260420-01), §4.3.1 헤더 "[WIP]" → "완료" + REQ-004 수용 기준 11 항목 전부 [x] 전환 (2026-04-20 grep 실측 `console.error` 0 hits / `reportError` 4 import + 7 호출 확인). §7.2 헤더 "[WIP]" → "문서 신설 완료" (commit `94de1fa` REQ-20260418-037 TSK-20260420-02) + 수용 3 항목 [x] 전환 (operator baseline 2 항목만 pending). 커밋 영향: 본 spec 단독. 잔여: 하위 17 `<Suspense fallback={<div></div>}>`, §7.2 operator baseline 박제, §7.2 REQ-012 후속 2회 baseline. | 2, 4.3.1, 7.2 |
 | 2026-04-19 | (pending, REQ-20260419-032) | App.test.jsx ErrorBoundary 통합 describe scope stderrWriteSpy 패턴 확장 §7.1.1 신설 — REQ-007 파일 scope 패턴 1:1 복제, describe scope 로 범위 제한 (WIP) | 7.1, 7.1.1 |
 | 2026-04-20 | (pending, REQ-20260420-005) | `<Suspense fallback={<div></div>}>` 18곳 Skeleton variant 치환 §2 잔여 항목 마감 트리거 — error-boundary-spec §2 마지막 `[ ]` 하위 17 항목 해소, REQ-005 §11 "빈 div fallback 0" 수용 기준 충족, 라우트 전환 플리커 baseline 통일 (WIP) | 2 |
+| 2026-04-20 | (inspector Phase 2 — defer tagging) | §7.2 운영자 baseline 2 행 (`REQ-037 FR-04` 1회 + `REQ-012` 후속 2회) [deferred] 태그 — jsdom 범위 밖 operator / cross-cutting React 19 bump 의존. planner 승격 게이트 제외. 커밋 영향: 본 spec 단독. | 7.2 |
 
 ## 9. 관련 문서
 - 기원 요구사항:
