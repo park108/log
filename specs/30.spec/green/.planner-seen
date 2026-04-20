@@ -1,16 +1,23 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(session)Z
-# Session: 1 promotion — common/href-intent-assertions-spec (hash drift 959f59e3 → d0b58bf4, inspector 가 TSK-20260420-40/afe109e 변경 이력 박제 + unchecked `- [ ]` 11 → 0 전수 전환) → mv green → blue. 4조건 (WIP=0, unchecked=0, To-Be=0, 변경 이력 TSK+커밋 박제) PASS. 2 carves — (1) deps/fake-timer-teardown-residual-cleanup-spec 신규 green (REQ-20260421-001) → TSK-20260421-42 발행 (정책 A 채택: 파일별 afterEach 재등록 6건 전원 제거 + 메타 어서트 `[A]→[B]` 순서 의존 구조 제거); (2) deps/react-19-findby-timing-stabilization-spec drift (d9b0de55 → b5d9e93e, REQ-20260421-002 반영, LogSingle:113 In-Scope 승격) → TSK-20260421-43 발행 (supersedes TSK-20260420-39; 옵션 α 채택: ASYNC_ASSERTION_TIMEOUT_MS 3000→10000 상향). carve: TSK-20260420-39 -> TSK-20260421-43 (동일 spec 재발행; TSK-39 가 rejected 단일 후속이라 접미사 a/b 미사용, supersedes 메타로 계보 박제).
-# 2 pending green (미승격 유지):
-#   - deps/msw-test-idioms-unification-spec.md (hash 불변 2c4b96bc, TSK-20260420-41 ready): unchecked 16건 → 미승격, stale_cycles 1 → 2.
-#   - deps/react-19-findby-timing-stabilization-spec.md (hash drift d9b0de55 → b5d9e93e, TSK-20260421-43 ready): unchecked 15건 → 미승격, drift 발생으로 stale_cycles 0 (리셋).
-# 신규 green (본 세션 최초 인지):
-#   - deps/fake-timer-teardown-residual-cleanup-spec.md (hash 97cedb50, TSK-20260421-42 ready): unchecked 14건 → 미승격, stale_cycles 0.
-# ready 큐: TSK-20260420-41, TSK-20260421-42, TSK-20260421-43 (count=3, TASK_READY_MAX=10 여유). foundation/ green 폴더 비어있음. components/ green 없음 (9 blue 만 존재).
-# grep dry-run (carve 별 실측 대조):
-#   - TSK-42 (fake-timer-teardown-residual): `grep -rn "vi\.useRealTimers()" src --include="*.test.js" --include="*.test.jsx"` → 8/8 match (spec baseline 일치: 코드 6 + 주석 2). `grep -n "vi\.isFakeTimers" src/setupTests.timer-idiom.test.jsx` → 3/3 match at :50, :55, :60.
-#   - TSK-43 (react-19-findby): `grep -n "findByText" src/File/File.test.jsx` → 10/10 match. `grep -n "findByText" src/Log/LogSingle.test.jsx` → 13/13 match. `grep -rn "ASYNC_ASSERTION_TIMEOUT_MS" src` → 0/0 match. `grep -n "waitFor(" src/File/File.test.jsx src/Log/LogSingle.test.jsx` → 0/0 match. `src/test-utils/timing.js` → absent (spec 박제 일치).
-# 총: grep dry-run 5/5 match (carve 별 게이트 전부 spec baseline 과 실측 대조 완료).
-30.spec/green/deps/msw-test-idioms-unification-spec.md 2c4b96bcd5a280056138d8546569e9e280fee667154259577763a073255719cf 2
-30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 0
-30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 0
+# Updated: 2026-04-21T(session+1)Z
+# Session: 2 carves (no promotions). 5 green all unchecked > 0 → 승격 0.
+#   신규 green 2건 최초 인지:
+#     - common/geturl-render-path-test-audit-spec.md (hash b3137923, REQ-20260421-003) → TSK-20260421-44 발행 (App.test.jsx stubMode 가드 1건 — TSK-37 이디엄 승계, FR-01 감사 표 + FR-02 가드 단일 책임).
+#     - common/test-isolation-shuffle-safety-spec.md (hash bd27261f, REQ-20260421-004) → TSK-20260421-45 발행 (3축 shuffle flake 제거 — LogItem restoreAllMocks / msw.test describe.sequential / File.test QueryClient race; depends_on TSK-20260421-42 선행 명시).
+#   기존 3 pending green stale_cycles 증가:
+#     - deps/msw-test-idioms-unification-spec.md (hash 불변 2c4b96bc, TSK-20260420-41 ready): unchecked 16 → 미승격, stale 2 → 3 (≥3cycle 경계 진입; 다음 세션에서도 hash 불변·미승격 지속 시 RULE-01 상 50.blocked/spec/ 이동 후보 재평가 — 단, TSK-41 ready 큐 생존 중이므로 본 세션은 유지).
+#     - deps/react-19-findby-timing-stabilization-spec.md (hash 불변 b5d9e93e, TSK-20260421-43 ready): unchecked 15 → 미승격, stale 0 → 1.
+#     - deps/fake-timer-teardown-residual-cleanup-spec.md (hash 불변 97cedb50, TSK-20260421-42 ready): unchecked 14 → 미승격, stale 0 → 1.
+# ready 큐: TSK-20260420-41, TSK-20260421-42, TSK-20260421-43, TSK-20260421-44, TSK-20260421-45 (count=5, TASK_READY_MAX=10 여유).
+# carve 계보:
+#   - TSK-20260421-44 (신규, supersedes 없음).
+#   - TSK-20260421-45 (신규, supersedes 없음, depends_on TSK-20260421-42).
+# grep dry-run (carve 별 실측 대조, HEAD=515d9b3):
+#   - TSK-44 (geturl-render-path-audit): `grep -rn "getUrl()" src --include="*.{js,jsx}"` → 9/9 match (spec baseline 런타임 6 + test 2 + setupTests 주석 1 일치). `grep -rn "userAgentParser(" src` → 13 실측 vs spec 14 (내부 정의 1건 차이, drift fixed in TSK §grep-baseline). `grep -n "stubMode" src/App.test.jsx` → 0/0 match (FR-02 대상). `grep -nE "findByText.*park108" src/App.test.jsx` → 3/3 match at :39, :317, :376 (spec :36 → 실측 :39 라인 drift, carve 수치 불변 3건).
+#   - TSK-45 (test-isolation-shuffle-safety): `grep -n "vi\.spyOn" src/Log/LogItem.test.jsx` → 12/12 match at :53,:54,:113,:114,:180,:181,:235,:236,:290,:291,:351,:352. `grep -n "vi\.restoreAllMocks" src/Log/LogItem.test.jsx` → 0/0 match (FR-01 대상). `grep -rn "vi\.restoreAllMocks" src --include="*.test.*"` → 10 실측 in 6 files vs spec 9 in 5 files (LogItemInfo.test.jsx:58 신규 편입, drift fixed). `grep -nE "toHaveBeenCalledTimes|sibling|cycle" src/test-utils/msw.test.js` → 12 hits (sibling-it 2 블록 :28-37, :52-57 확인). `grep -n "no data on prod server|queryClient|QueryClient" src/File/File.test.jsx` → 2 hits at :34, :37 (describe + test; spec §Baseline :55 → 실측 :34 라인 drift). `src/test-utils/timing.js` → absent (TSK-43 미완료, 옵션 2 선택 시 TSK-43 선행 필요; 옵션 1 기본 권장).
+# 총 grep dry-run 9/9 match (carve 별 게이트 전부 실측 대조 완료, 2건 drift — spec baseline 은 afe109e 스냅샷, 현 HEAD=515d9b3 로 소폭 drift 는 TSK 문서 §grep-baseline 에 실측값 박제로 정합).
+30.spec/green/deps/msw-test-idioms-unification-spec.md 2c4b96bcd5a280056138d8546569e9e280fee667154259577763a073255719cf 3
+30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 1
+30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 1
+30.spec/green/common/geturl-render-path-test-audit-spec.md b31379230e2b28e677c5497537f64efa203878e3a9e568817b06ca7150fefc4a 0
+30.spec/green/common/test-isolation-shuffle-safety-spec.md bd27261fdbd3c24b4ad4db3ac13e37413841ebfdad575f31138773dcfd06b4bc 0
