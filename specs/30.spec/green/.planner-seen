@@ -1,18 +1,14 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(session+5)Z
-# Session: 0 promotions + 0 new carves + 2 filename corrections (RULE-01 Task ID prefix).
-#   filename fix (40.task/ready mv only — RULE-01, .gitignore 영역이지만 규약상 mv 허용):
-#     - 20260421-test-infra-conventions-grep-gate-lifo.md → TSK-20260421-46-test-infra-conventions-grep-gate-lifo.md.
-#     - 20260421-react-19-findby-beta-idiom-stabilization.md → TSK-20260421-47-react-19-findby-beta-idiom-stabilization.md.
-#       (내용 수정 없음. 두 파일 모두 본문에 Task ID 46/47 이미 박제. grep 중복 검증: 20260421 최대=47, 46/47 외 충돌 없음.)
+# Updated: 2026-04-21T(session+6)Z
+# Session: 0 promotions + 0 new carves + 0 blocked (stale 1 → 2 on both specs).
 #   승격 (green → blue): 없음.
-#     - foundation/test-infra-conventions-grep-gate-lifo-spec.md (hash 54f35c14 불변) — TSK-46 미수행 (40.task/ready 에 발행됨, 수용 기준 unchecked 다수 + 변경 이력 미박제). stale 0 → 1.
-#     - deps/react-19-findby-option-beta-idiom-spec.md (hash 18ead1c3 불변) — TSK-47 미수행 (40.task/ready 에 발행됨, 수용 기준 unchecked 다수 + 변경 이력 미박제). stale 0 → 1.
-#   carve: 없음 (TSK-46, TSK-47 이미 발행됨 → 재carve 금지).
-#   blocked: 없음 (stale 1 < 2, blocked 임계 미도달).
+#     - foundation/test-infra-conventions-grep-gate-lifo-spec.md (hash 54f35c14 불변) — TSK-46 여전히 40.task/ready 체류. unchecked `- [ ]`=15, WIP=0, To-Be=0. 승격 4조건 미충족. stale 1 → 2.
+#     - deps/react-19-findby-option-beta-idiom-spec.md (hash 18ead1c3 불변) — TSK-47 여전히 40.task/ready 체류. unchecked `- [ ]`=15, WIP=0, To-Be=0. 승격 4조건 미충족. stale 1 → 2.
+#   carve: 없음 (TSK-46, TSK-47 이미 발행됨 → RULE-01 멱등 재carve 금지).
+#   blocked: 없음 (stale 2 < 3, blocked 임계 미도달. 다음 세션 hash 불변 시 stale 2 → 3 도달, `50.blocked/spec/` + `_reason.md` 이동 후보).
 # ready 큐: TSK-20260421-46, TSK-20260421-47 (count=2, TASK_READY_MAX=10 여유).
-#   TSK-45 blocked (RULE-05 관할, 재carve 금지), TSK-44 done (96c37df), TSK-43 blocked (RULE-05 관할), TSK-42 done (c18132d).
-# pending green: 2건 (모두 task 발행됨, developer 대기).
-# grep dry-run: N/A (이번 세션 carve 없음 — 파일명 교정만).
-30.spec/green/foundation/test-infra-conventions-grep-gate-lifo-spec.md 54f35c1425ae04a122de9356f075a8d7ce4cae667a5c18ac54b39b467aa78ed5 1
-30.spec/green/deps/react-19-findby-option-beta-idiom-spec.md 18ead1c35ecceee29a4cd46cda798de5885bf648f8aee08f43464463731835a3 1
+#   TSK-45 blocked (RULE-05 관할), TSK-44 done (96c37df), TSK-43 blocked (RULE-05 관할), TSK-42 done (c18132d).
+# pending green: 2건 (모두 task 발행됨, developer 미소진).
+# grep dry-run: N/A (이번 세션 carve 없음).
+30.spec/green/foundation/test-infra-conventions-grep-gate-lifo-spec.md 54f35c1425ae04a122de9356f075a8d7ce4cae667a5c18ac54b39b467aa78ed5 2
+30.spec/green/deps/react-19-findby-option-beta-idiom-spec.md 18ead1c35ecceee29a4cd46cda798de5885bf648f8aee08f43464463731835a3 2
