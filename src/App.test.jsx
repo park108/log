@@ -9,6 +9,20 @@ import { reportError } from './common/errorReporter';
 console.log = vi.fn();
 console.error = vi.fn();
 
+// REQ-20260421-003 / TSK-20260421-44 — getUrl() 렌더 경로 (App.jsx:77) stubMode 가드.
+// getUrl() 런타임이 isDev()/isProd() (= `import.meta.env.DEV/PROD`) 경유로 전환돼
+// vitest 기본 MODE='test' 에서도 `<a href={common.getUrl()}>park108.net</a>` 의
+// 기대 동작이 안정적으로 유지되도록 MODE/DEV/PROD 를 명시 stub 한다.
+// 이디엄 정본: src/common/Navigation.test.jsx:13-26 승계.
+const stubMode = (mode) => {
+	vi.stubEnv('MODE', mode);
+	vi.stubEnv('DEV', mode === 'development');
+	vi.stubEnv('PROD', mode === 'production');
+};
+
+beforeEach(() => stubMode('test'));
+afterEach(() => vi.unstubAllEnvs());
+
 // REQ-20260420-018 FR-02: 테스트 간 navigator.onLine 오염을 차단하기 위해
 // 파일 최상위 afterAll 에서 descriptor 를 configurable: true 로 복원해 둔다.
 // 기존 describe 내부의 afterAll (L314) 은 console/stderr 복원 전용이므로
