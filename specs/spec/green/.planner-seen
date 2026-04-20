@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-04-20T20:00:00Z",
-  "notes": "cycle 80: HEAD cd25209 (developer feat TSK-23 REQ-028 Search useSearchList migration — 5th commit since cycle 79). Intra-window pulse since cycle 79 commit b601f18: 5 HEAD commits = c5ad0e9 (dev TSK-17 REQ-020 Monitor PropTypes) + 48197df (dev TSK-22 REQ-027 drift-resolve diag docs) + 3060102 (inspector REQ-021 React 19 bump 2nd-pass landed §4.0.2 on react-version-spec + cross-ref on meta) + 975125a (dev TSK-21 REQ-026 operator-manual-smoke-index docs) + cd25209 (dev TSK-23 REQ-028 Search useSearchList migration). Extraordinary dual-channel burst: inspector=1, developer=4. task/ready delta: 5 start → 3 after 3 dev consumes (TSK-17/21/22/23) → 2 new planner carves (TSK-24 REQ-021 React 19 bump 2nd-pass + TSK-25 REQ-021 a11y FR-01 only Monitor focus-visible CSS) → 4 end. NOTE: REQ-20260420-021 is a 2-file DUPLICATE ID (both done/) — one at 20260420-monitor-focus-visible-css-for-new-tab-stops.md (a11y, hit accessibility §4.A.9 cycle 78 via af92379), another at 20260420-react-19-bump-drift-resolve-2nd-pass.md (build, hit react-version-spec §4.0.2 cycle 80 via 3060102). Per RULE-01 §6.4 — no artifact rewrite; task slugs disambiguate. Carve rationale cycle 80: (a) TSK-24 picks up the fresh-landed React 19 2nd-pass — high value meta-regression-breaker requiring FR-12 grep gate DoD baked in (this spec specifically designed to close drift cycle, skipping again = 3rd meta regression); (b) TSK-25 picks up FR-01-only CSS atom on Monitor focus-visible (cycle 78/79 deferred due to FR-02 tooltip audit complexity — but FR-01 alone is clean atomic CSS-only carve). 8/8 grep baselines verified. slack 10→6. No blue promotion (3 zero-WIP greens fail Cond-2 via unchecked-unresolved items). No blocked isolation. Writer area: .planner-seen + 2 task/ready (gitignored — commit only captures .planner-seen delta).",
+  "updated": "2026-04-20T11:03:44Z",
+  "notes": "cycle 81: HEAD 5a39ca1 (chore(rules): tighten inspector Phase 1 reconcile — rules-only, no spec/code). Intra-window pulse since cycle 80 commit 89a1b17: 4 HEAD commits = cd25209 (already counted cycle 80), 89a1b17 (planner cycle 80 carve TSK-24/25), 98a56c5 (dev TSK-25 REQ-021 a11y FR-01 Monitor focus-visible CSS consume), 5a39ca1 (rules tighten). task/ready delta: 4 start (TSK-18/20/24/25) → 2 at cycle-start (TSK-18/20 retained; TSK-24 dev-consumed separately, TSK-25 dev-consumed 98a56c5) + inspector reconciled WIP→DONE flips on 4 green specs (web-vitals §7.2, auth §3.1+§3.3, server-state §3.3.4, accessibility §3.4.2 adds REQ-022 section). NEW SCOPE: REQ-20260420-022 drift 2차 재집행 (ESLint v9 flat config + jsx-a11y) surfaces via accessibility-spec §3.4.2 expansion — 6 new unchecked criteria. Single large REQ = split into 2 atomic tasks (TSK-26 flat config port, TSK-27 jsx-a11y activation with depends_on: TSK-26). Carve rationale cycle 81: (a) TSK-26 picks up flat config + eslint v9 bump + 룰 1:1 포팅 — meta-regression-breaker for REQ-003/018 which landed done/ without physical enactment (same pattern as REQ-021); (b) TSK-27 splits off jsx-a11y install + plugin activation because bundling with TSK-26 would exceed single-commit rollback atomicity (install + config + potential src fixes). Grep gates: TSK-26 '\"eslint\": \"\\^8' package.json → 1 hit baseline; TSK-27 'jsx-a11y' eslint.config.js → 0→1+ transition. slack 10→2 start → 10→4 end (8 free). No blue promotion (4 modified greens all retain non-deferred unchecked items post-flip — Cond-2 FAIL). No blocked isolation (first-window tracking). Writer area: .planner-seen + 2 task/ready (gitignored — commit only captures .planner-seen delta).",
   "cycle_80_observation": {
     "timestamp": "2026-04-20T20:00:00Z",
     "head_at_start": "cd25209 feat: Search useSearchList migration (TSK-20260420-23, REQ-20260420-028)",
@@ -929,5 +929,33 @@
     ],
     "no_op": false,
     "writer_area_delta_this_cycle": "task/ready/20260420-csp-dev-prod-branch-transformindexhtml.md CREATED (gitignored via specs/task/ exclusion, not committed per RULE-02 §2.3). .planner-seen updated (committable — specs/spec/green/ is NOT in gitignore, only specs/followups, specs/requirements, specs/task are excluded). No blue/ promotion, no blocked/ isolation. Local commit captures .planner-seen delta only."
+  },
+  "cycle_81_observation": {
+    "timestamp": "2026-04-20T11:03:44Z",
+    "head_at_start": "5a39ca1 chore(rules): tighten inspector Phase 1 reconcile",
+    "head_advance_since_cycle_80_commit_89a1b17": [
+      "98a56c5 style: Monitor pillar/statusbar :focus-visible CSS 규칙 추가 (TSK-20260420-25, REQ-20260420-021 a11y FR-01) — developer consume",
+      "5a39ca1 chore(rules): tighten inspector Phase 1 reconcile — rules-only"
+    ],
+    "green_modified_this_window": {
+      "monitor/web-vitals-spec.md": "§7.2 [WIP]→[DONE] flipped by inspector Phase 1 reconcile post-TSK-17 landing. §10 changelog row added for c5ad0e9. Other WIP sections remain (§7 runtime sendBeacon, §7.1 REQ-022 cross-link — all [deferred: operator baseline 대기] except REQ-001 hoverPopup pending).",
+      "common/auth-spec.md": "§3.1 + §3.3 both [WIP]→[DONE] by inspector Phase 1 reconcile. §6 REQ-031 7/7 Must ACK + 3 Should/Could unchecked. §6.1 REQ-032 6/7 Must ACK + 1 deferred (console.error 간접 관측 부재) + 2 Could. Inspector §10 new changelog rows for 1fc05e9, 7daa83a, reconcile @ 5a39ca1.",
+      "state/server-state-spec.md": "§3.3.4 [WIP]→[DONE] by inspector Phase 1 reconcile post-TSK-23 landing (cd25209). Grep 4종 재실행 박제. §3.3.2/§3.3.3/§3.7/§3.8 등 다수 WIP 잔존.",
+      "common/accessibility-spec.md": "§3.4.2 header renamed to '(REQ-20260419-003 / REQ-20260420-022 재집행)' + inline context paragraph + 6 new unchecked REQ-022 추가 수용 기준. Existing REQ-003 11 unchecked + REQ-004/014/021/024 WIP all retained."
+    },
+    "carves_this_cycle": [
+      "TSK-20260420-26 — REQ-20260420-022 Part 1: ESLint v9 + flat config 포팅. Grep-baseline: 'eslint\": \"\\^8' package.json → 1 hit at :50 ('eslint\": \"^8.26.0',). Target transition to 0 hits. File scope: eslint.config.js (new), .eslintrc.yml (delete), .eslintignore (delete), package.json (2 devDep bump), package-lock.json (auto).",
+      "TSK-20260420-27 — REQ-20260420-022 Part 2: eslint-plugin-jsx-a11y 설치 + flat config 활성. depends_on: TSK-26. Grep-baseline: 'jsx-a11y' eslint.config.js → 0 hits (file not yet present). Target transition to 1+ hits. File scope: package.json, package-lock.json, eslint.config.js, src/**/*.jsx (≤3 violations in same PR; 4+ → blocked + followup REQ)."
+    ],
+    "promotion_candidates_rejected": [
+      "monitor/web-vitals-spec.md — Cond-2 FAIL: §4.1 REQ-001 hoverPopup pending unchecked (non-deferred), §7 runtime INP unchecked (deferred OK), §7.2 DONE.",
+      "common/auth-spec.md — no blue counterpart; Cond-2 FAIL: §6 3 Should/Could + §6.1 2 Could unchecked (1 deferred). Experimental spec, needs REQ-035 operator baseline round.",
+      "state/server-state-spec.md — no blue counterpart; Cond-2 FAIL: §3.3.2/§3.3.3/§3.7/§3.8 WIP.",
+      "common/accessibility-spec.md — Cond-2 FAIL: §3.4.1 (REQ-024) 8 unchecked + §3.4.2 (REQ-003+REQ-022) 17 unchecked total + §3.4.3 (REQ-014) unchecked + §4.x (REQ-021) prior drift rows."
+    ],
+    "task_ready_slack_math": "start=2 (TSK-18, TSK-20) + 2 new carves (TSK-26, TSK-27) = 4 end. TASK_READY_MAX=10 → 6 slack remaining.",
+    "grep_dry_run_results": "2/2 match (TSK-26 `eslint\": \"\\^8` 1 hit in package.json:50 verified; TSK-27 `jsx-a11y` 0 hits in eslint.config.js verified — file not yet present, baseline holds).",
+    "no_op": false,
+    "writer_area_delta_this_cycle": "task/ready/20260420-eslint-v9-flat-config-migration-req-022.md + task/ready/20260420-eslint-plugin-jsx-a11y-activation-req-022.md CREATED (both gitignored via specs/task/ exclusion, not committed per RULE-02 §2.3). .planner-seen updated (committable). No blue/ promotion, no blocked/ isolation. Local commit captures .planner-seen delta only."
   }
 }
