@@ -1,30 +1,34 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(session+9)Z
-# Session: 0 promotions + 0 new carves + 0 blocked + RULE-01 rename 교정.
+# Updated: 2026-04-20T22:41:39Z
+# Session: 0 promotions + 0 new carves + 0 blocked.
+#   컨텍스트: 유저 메시지는 "TSK-49/50 소진" 이라 했으나 실측 결과 TSK-49, TSK-50 은
+#     `specs/50.blocked/task/` 로 이동됨 (developer 격리 — Layer 2 race / depends_on 미충족).
+#     해당 spec 들의 developer 경로 결과는 blocked 이므로 승격 시그널 아님.
 #   승격 (green → blue): 없음.
 #     - toaster-conditional-mount-or-helper-spec.md: unchecked 2건 잔존 (FR-09 shuffle, line 97/107).
-#       inspector 가 TSK-48/a8eee5e ack 박제 완료 (hash 0a09232→23bfc92 갱신) — stale 리셋.
-#       FR-09 는 pre-existing shuffle 실패로 TSK-49 이관 예정이나 [deferred] 태그 미기재.
-#     - test-isolation-shuffle-safety-cold-start-spec.md: unchecked 11건 잔존 (TSK-49 미실행). hash 동일 → stale=1.
-#     - file-test-multi-scenario-split-spec.md: unchecked 16건 잔존 (TSK-50 미실행). hash 동일 → stale=1.
-#   carve: 신규 없음 (TSK-48/49/50 기발행 상태; green diff 변경은 toaster reconcile ack 뿐으로 기존 carve 영향 없음).
-#   blocked: 없음 (3cycle stale 미도달).
-#   RULE-01 교정:
-#     - `specs/40.task/ready/20260421-test-isolation-shuffle-safety-cold-start.md` → `TSK-20260421-49-test-isolation-shuffle-safety-cold-start.md`
-#     - `specs/40.task/ready/20260421-file-test-multi-scenario-split.md` → `TSK-20260421-50-file-test-multi-scenario-split.md`
-#     (40.task/ 는 gitignored 이므로 `mv` 사용 — 내용 불변, RULE-01 "mv만 허용" 준수.)
-# grep dry-run: N/A (재발행 carve 없음).
+#       인라인 주석은 "TSK-49 범위로 이관" 서사만 있고 `[deferred]` 토큰 부재 → 승격 4조건 미충족.
+#       hash 동일(23bfc92…) → stale 0→1.
+#     - test-isolation-shuffle-safety-cold-start-spec.md: unchecked 16건 잔존.
+#       4건만 `[deferred]` 태그, 12건(수용 기준 섹션 + lint) 태그 부재 → 승격 불가.
+#       hash 변경(639c789…→6e5e507…) — inspector reconcile 박제로 stale 리셋 1→0.
+#     - file-test-multi-scenario-split-spec.md: unchecked 19건 잔존.
+#       7건만 `[deferred]` 태그, 12건(수용 기준 섹션) 태그 부재 → 승격 불가.
+#       hash 변경(f113f25…→6488570…) — inspector reconcile 박제로 stale 리셋 1→0.
+#   carve: 신규 없음.
+#     TSK-48 은 done, TSK-49/50 은 blocked 상태. 운영자(RULE-05) 가 blocked 해제 / spec
+#     재개정 (Layer 2 서사 / depends_on 재평가) 을 수행한 후 신규 carve 가능.
+#     planner 자발적 재발행은 멱등 위반 — no-op.
+#   blocked: 없음 (3cycle stale 미도달; hash 변경 2건은 리셋, 1건은 stale=1).
+#   grep dry-run: N/A (신규 carve 없음).
 # ledger entries:
-components/toaster-conditional-mount-or-helper-spec.md 23bfc9260ee53be3135e18f2826876ab761b28db2a7ad37ee3a7696d62aa6ba5 0
-common/test-isolation-shuffle-safety-cold-start-spec.md 639c789bf198b3025e88470f29e548224dc7ec55a0a3a9425c3249d4cc082fef 1
-components/file-test-multi-scenario-split-spec.md f113f25686a07412f8f4353ec8b666f0df0df48ee4c286ebf8e1fcfcf4ce03ea 1
-# ready 큐: TSK-20260421-49, TSK-20260421-50 (count=2, TASK_READY_MAX=10 여유 8).
+components/toaster-conditional-mount-or-helper-spec.md 23bfc9260ee53be3135e18f2826876ab761b28db2a7ad37ee3a7696d62aa6ba5 1
+common/test-isolation-shuffle-safety-cold-start-spec.md 6e5e5071ca4cfc4703c60dec255f4b3c23f7f836776b0f94d265e183edb498d9 0
+components/file-test-multi-scenario-split-spec.md 6488570be7d4c6586fdcc912c53a5cfeaf8020ff5add354ba34ea760df280197 0
+# ready 큐: (count=0, TASK_READY_MAX=10 여유 10).
 #   (TSK-48 은 60.done/2026/04/21/task/toaster-conditional-mount-or-helper/ 로 아카이브 완료)
-#   (TSK-46/47 은 선행 사이클에서 완료)
+#   (TSK-49, TSK-50 은 50.blocked/task/ 격리 — RULE-05 운영자 관할)
 #   50.blocked/spec: 5건 (RULE-05 운영자 관할).
-#   TSK-45 blocked (α-가설 historical; TSK-49 가 cold-start race 재작성).
 # next cycle:
-#   - toaster spec: FR-09 unchecked 는 TSK-49 완료 후 shuffle 실측으로 해소되면 일괄 [x] 박제 가능.
-#     TSK-49 가 shuffle 0 fail 달성 시 toaster spec 도 승격 가능. 그 전에는 [deferred] 태그 없으면 승격 불가.
-#   - shuffle-safety spec / file-split spec: TSK-49 / TSK-50 developer 수행 대기.
-#   - stale 3 cycle 도달 시 50.blocked/spec/ 이동 (RULE-01).
+#   - 운영자가 TSK-49/50 blocked 해제 후 spec 에 `[deferred]` 또는 `[x]` 박제 → 승격 재평가.
+#   - 또는 inspector 가 수용 기준 섹션도 `[deferred]` 로 통일 박제 → 다음 사이클 승격 후보.
+#   - stale 3cycle 도달 시 50.blocked/spec/ 이동 (RULE-01) — 현 시점 최고 stale=1 (toaster).
