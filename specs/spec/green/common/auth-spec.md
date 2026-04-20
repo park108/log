@@ -53,7 +53,7 @@ Cognito Hosted UI 리다이렉트 후 URL 의 토큰을 추출해 `document.cook
 
 ## 3. 현재 상태 (As-Is) — 결함 분석
 
-### 3.1 [WIP] `URLSearchParams(href)` 첫 파라미터 누락 결함 (REQ-20260418-031(auth))
+### 3.1 [DONE] `URLSearchParams(href)` 첫 파라미터 누락 결함 (REQ-20260418-031(auth))
 
 > 관련 요구사항: REQ-20260418-031(auth) FR-01 ~ FR-08, US-01 ~ US-03
 
@@ -84,7 +84,7 @@ const accessToken = new URLSearchParams(window.location.href).get("access_token"
 - `src/common/common.test.js:107-159` (`'auth() idempotent cookie result'`) — 우회 패턴 + 결함 명시 코멘트.
 - `src/App.test.jsx` — `authSpy.mock.calls.length >= 1` 호출 카운트만 어서트 (부수효과 결과 미검증).
 
-### 3.3 [WIP] `parseJwt` 입력 가드 미존재 — `isAdmin` 화이트 스크린 위험 (REQ-20260418-032)
+### 3.3 [DONE] `parseJwt` 입력 가드 미존재 — `isAdmin` 화이트 스크린 위험 (REQ-20260418-032)
 
 > 관련 요구사항: REQ-20260418-032 FR-01 ~ FR-08, US-01 ~ US-03
 
@@ -277,27 +277,27 @@ export function isAdmin() {
 
 ## 6. 수용 기준 (Acceptance — REQ-20260418-031(auth))
 
-- [ ] `src/common/common.js` `auth()` 가 `new URL(href).searchParams.get('access_token')` (또는 동등 API) 로 교체됨
-- [ ] `src/common/common.test.js` 의 `'test auth'` fixture URL 이 spec 예시 형태 (`?access_token=12345#id_token=67890`) 로 정상화
-- [ ] `src/common/common.test.js` 의 `'auth() idempotent cookie result'` fixture URL 이 spec 예시 (`?access_token=AAA#id_token=BBB`) 로 정상화 + 우회 코멘트 제거
-- [ ] 신규 회귀 케이스 1건 — 첫 파라미터가 `access_token` 인 URL 에서 `getCookie('access_token')` 이 정상 값 반환
-- [ ] `grep -rn "new URLSearchParams(window.location.href)" src/` → 0 lines (result.md 박제)
-- [ ] `grep -rn "abcde=abcde" src/` → 0 lines (우회 fixture 패턴 제거)
-- [ ] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS
+- [x] `src/common/common.js` `auth()` 가 `new URL(href).searchParams.get('access_token')` (또는 동등 API) 로 교체됨 — `1fc05e9` (TSK `20260420-auth-url-api-fix-req-031`)
+- [x] `src/common/common.test.js` 의 `'test auth'` fixture URL 이 spec 예시 형태 (`?access_token=12345#id_token=67890`) 로 정상화 — `1fc05e9`
+- [x] `src/common/common.test.js` 의 `'auth() idempotent cookie result'` fixture URL 이 spec 예시 (`?access_token=AAA#id_token=BBB`) 로 정상화 + 우회 코멘트 제거 — `1fc05e9`
+- [x] 신규 회귀 케이스 1건 — 첫 파라미터가 `access_token` 인 URL 에서 `getCookie('access_token')` 이 정상 값 반환 — `1fc05e9`
+- [x] `grep -rn "new URLSearchParams(window.location.href)" src/` → 0 lines (result.md 박제) — 재실행 확인 (HEAD `5a39ca1`)
+- [x] `grep -rn "abcde=abcde" src/` → 0 lines (우회 fixture 패턴 제거) — 재실행 확인 (HEAD `5a39ca1`)
+- [x] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS — `1fc05e9` pre-commit hook 통과 (hook-ack, `RULE-02` §2.2 `--no-verify` 금지 근거)
 - [ ] (Should) `id_token` 추출 일관성 결정 — 변경 시 별 케이스 추가, 미변경 시 사유 코멘트 1줄
 - [ ] (Could) 운영자 1회 Cognito Hosted UI 로그인 → 첫 화면 admin 진입 정상 — `docs/testing/cognito-hosted-ui-manual-smoke.md` 참조 (REQ-20260420-008, S-01 / S-02 시나리오 + Baseline 테이블 박제; REQ-035 자매 묶음 또는 별 PR)
 - [ ] (Could) `docs/testing/app-shell-side-effects-smoke.md` 시나리오 2 URL 형태 명시 (inspector 후속)
 
 ### 6.1 수용 기준 (REQ-20260418-032 — `parseJwt` 가드 + `isAdmin` fail-safe)
 
-- [ ] `src/common/common.js` 의 `parseJwt` 가 비정상 입력 (undefined / '' / 'ZZZ' / 'header.signature' / base64 디코드 실패) 에 대해 throw 대신 `null` 반환
-- [ ] `src/common/common.js` 의 `isAdmin` 이 `parseJwt` 결과 falsy 시 `false` 반환 (fail-safe)
-- [ ] 기존 `'test parse Jwt token'` 케이스 PASS (정상 입력 회귀 0)
-- [ ] `src/common/common.test.js` 에 비정상 토큰 5종 + `isAdmin` 비정상 cookie 2종 회귀 케이스 추가, 모두 PASS
-- [ ] `src/App.test.jsx` (또는 동등 위치) 에 `setCookie('access_token', 'ZZZ'); render(<App />)` 후 throw 0 회귀 케이스 추가, PASS
-- [ ] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS
-- [ ] (Should) `grep -rn "parseJwt(getCookie" src/` → 모든 호출이 fail-safe 흐름 (직접 `.username` 접근 시 optional chaining 또는 가드)
-- [ ] (Should) 가드 발동 시 `console.error` 출력 0 (운영 noise 금지)
+- [x] `src/common/common.js` 의 `parseJwt` 가 비정상 입력 (undefined / '' / 'ZZZ' / 'header.signature' / base64 디코드 실패) 에 대해 throw 대신 `null` 반환 — `7daa83a` (TSK `20260420-parsejwt-isadmin-guard-req-032`)
+- [x] `src/common/common.js` 의 `isAdmin` 이 `parseJwt` 결과 falsy 시 `false` 반환 (fail-safe) — `7daa83a` (`common.js:159-160` fail-safe 분기 src 실측)
+- [x] 기존 `'test parse Jwt token'` 케이스 PASS (정상 입력 회귀 0) — `7daa83a` pre-commit hook PASS (hook-ack)
+- [x] `src/common/common.test.js` 에 비정상 토큰 5종 + `isAdmin` 비정상 cookie 2종 회귀 케이스 추가, 모두 PASS — `7daa83a`
+- [x] `src/App.test.jsx` (또는 동등 위치) 에 `setCookie('access_token', 'ZZZ'); render(<App />)` 후 throw 0 회귀 케이스 추가, PASS — `7daa83a`
+- [x] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS — `7daa83a` pre-commit hook 통과 (hook-ack)
+- [x] (Should) `grep -rn "parseJwt(getCookie" src/` → 모든 호출이 fail-safe 흐름 (직접 `.username` 접근 시 optional chaining 또는 가드) — 재실행 1 hit `common.js:159` (fail-safe 분기 안쪽, HEAD `5a39ca1`)
+- [ ] (Should) 가드 발동 시 `console.error` 출력 0 (운영 noise 금지) — **[deferred: 간접 관측 수단 부재]** grep·hook-ack 4종 패턴 미해당, 주관적 런타임 관찰 필요
 - [ ] (Could) 가드 발동 시 dev-only log (`process.env.NODE_ENV === 'development'` 분기)
 - [ ] (Could) 운영자 1회 손상 쿠키 시뮬레이션 (DevTools Application → Cookies 수정 → 새로고침) → 화이트 스크린 0 baseline 박제
 
@@ -338,6 +338,9 @@ export function isAdmin() {
 | 2026-04-18 | (pending, REQ-20260418-032) | `parseJwt` 입력 가드 (비정상 입력 → `null` sentinel) + `isAdmin` fail-safe (falsy → `false`) + 회귀 케이스 7종 + App 마운트 화이트 스크린 회귀 테스트 (WIP) | 3.3, 4.5, 6.1, 7 |
 | 2026-04-20 | (inspector drift reconcile) | §4 헤더 rename: "(To-Be, WIP — REQ-20260418-031(auth))" → "(REQ-20260418-031(auth))" (planner §4 Cond-3 충족, d0d49c6 선례) | 4 |
 | 2026-04-20 | (inspector, REQ-20260420-008) | §6 L288 텍스트에 `docs/testing/cognito-hosted-ui-manual-smoke.md` 참조 추가 (Cognito Hosted UI 운영자 수동 스모크 S-01/S-02 baseline 예정). 체크박스 flip 은 운영자 수행 후 별 라운드. | 6 |
+| 2026-04-20 | `1fc05e9` (REQ-20260418-031(auth), TSK `20260420-auth-url-api-fix-req-031`) | §3.1 `[WIP]`→`[DONE]` — `new URL(href).searchParams.get('access_token')` 교체 + fixture 정상화 + 회귀 케이스 추가. grep 2종 재실행 0 hits (`URLSearchParams(window.location.href)`, `abcde=abcde`). hook-ack via pre-commit PASS. | 3.1, 6 |
+| 2026-04-20 | `7daa83a` (REQ-20260418-032, TSK `20260420-parsejwt-isadmin-guard-req-032`) | §3.3 `[WIP]`→`[DONE]` — `parseJwt` 가드 + `isAdmin` fail-safe (`common.js:157-160` 실측). 회귀 케이스 7종 + App 마운트 throw 0 회귀 PASS. grep 재실행 1 hit `common.js:159` (fail-safe 분기 안쪽). hook-ack via pre-commit PASS. §6.1 L300 "console.error 0" 은 `[deferred: 간접 관측 수단 부재]`. | 3.3, 6.1 |
+| 2026-04-20 | (inspector Phase 1 reconcile @ HEAD `5a39ca1`) | §6 수용 기준 7/10 ACK (REQ-031 7/7 Must + hook-ack 1건), §6.1 6/10 ACK (REQ-032 6/7 Must + Should grep 1건). 나머지 3건은 Should(`id_token` 결정) / Could(운영자 baseline) / deferred(console.error 관측 불가). `.inspector-seen` 신규 생성. | 6, 6.1 |
 
 ---
 

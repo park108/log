@@ -267,9 +267,11 @@
 - Toaster 컴포넌트 자체 리팩터.
 - 3 mutation hook 의 onSuccess / onSettled 공유 — 본 REQ 는 onError 한정.
 
-### 3.3.2 [WIP] LogList `useLogList` 소비 마이그레이션 (REQ-20260419-007)
+### 3.3.2 [WIP] LogList `useLogList` 소비 마이그레이션 (REQ-20260419-007 / REQ-20260420-030 재집행)
 
-> 관련 요구사항: REQ-20260419-007 FR-01 ~ FR-10, US-01 ~ US-04
+> 관련 요구사항: REQ-20260419-007 FR-01 ~ FR-10, US-01 ~ US-04; **REQ-20260420-030** FR-01 ~ FR-07, US-01 ~ US-02 (drift 2차 재집행)
+
+**[REQ-20260420-030 drift 재집행 맥락 — 2026-04-20 관측]**: realization REQ (`specs/requirements/done/2026/04/20/20260420-loglist-sessionstorage-trick-purge-code-realization.md`) done 상태에도 `src/Log/LogList.jsx:29, 35, 141, 147, 162` 에 `sessionStorage("logList"|"logListLastTimestamp")` **5~6 hits 잔존** (실태 미반영). **선례**: Search 도메인 commit `cd25209` (2026-04-20, REQ-20260420-028, 본 세션 Phase 1 에서 `[DONE]` flip) — `useSearchList` hook + sessionStorage 4키 purge + AbortController 제거 + TanStack Query staleTime 위임 패턴. 본 §3.3.2 는 Search 선례 1:1 이식으로 재집행. REQ-021/022/029 와 동일 메타 회귀 4번째 인스턴스.
 
 **맥락 (2026-04-19 관측)**: `useLogList` 훅이 `fa9424c` 에 도입됐으나 `src/Log/LogList.jsx` 는 **어떤 TanStack Query 훅도 소비하지 않고** `getLogs()` 를 `useEffect` 에서 직접 호출하며 `sessionStorage("logList", "logListLastTimestamp")` 로 캐싱 중이다 (`LogList.jsx` 의 `fetchFirst`/`fetchMore` 경로 + sessionStorage `setItem`/`getItem`/`removeItem` 6+ 라인). 그 결과 §3.3.1.1 의 mutation 훅 3종이 호출하는 `invalidateQueries({ queryKey: ['log', 'list'] })` 가 **현재 실효 0** — 쿼리 캐시 상에 `['log','list',*]` 엔트리가 존재하지 않기 때문. spec §3.3.1.5 의 "새 게시 후 list 자동 갱신" commitment 와 코드가 괴리.
 
@@ -353,7 +355,7 @@
 
 **Drift 기록**: 본 §3.3.3 머지 시 §3.3 파일럿 행의 `LogSingle.jsx — useLog (조회, 완료 — commit fa9424c)` 는 "완료 — commit `<REQ-023 머지 해시>`" 로 inspector 가 갱신 (현 `fa9424c` 는 훅 구현만 반영, 소비자 전환은 REQ-023 머지 후 박제).
 
-### 3.3.4 [WIP] Search 도메인 확장 — `useSearchList` + `sessionStorage` 4키 purge (REQ-20260420-028)
+### 3.3.4 [DONE] Search 도메인 확장 — `useSearchList` + `sessionStorage` 4키 purge (REQ-20260420-028)
 
 > 관련 요구사항: REQ-20260420-028 FR-01 ~ FR-08, US-01 ~ US-02
 
@@ -567,9 +569,20 @@ vi.stubEnv('NODE_ENV', 'production');
 
 **React 19 bump (REQ-012) 와의 관계**: bump 후 RTL 16 의 act/cleanup 동작 변경으로 flaky 빈도 증가 가능성 — **본 REQ-027 을 bump 선행 권장** (NFR-04 from REQ-027).
 
-### 3.7 [WIP] 도메인 전반 MSW lifecycle / `NODE_ENV` 변형 격리 Phase 2 (REQ-20260419-012)
+### 3.7 [WIP] 도메인 전반 MSW lifecycle / `NODE_ENV` 변형 격리 Phase 2 (REQ-20260419-012 / REQ-20260420-031 재집행)
 
-> 관련 요구사항: REQ-20260419-012 FR-01 ~ FR-10, US-01 ~ US-04, NFR-01 ~ NFR-06
+> 관련 요구사항: REQ-20260419-012 FR-01 ~ FR-10, US-01 ~ US-04, NFR-01 ~ NFR-06; **REQ-20260420-031** FR-01 ~ FR-08, US-01 ~ US-03 (drift 2차 재집행 + carve 분할)
+
+**[REQ-20260420-031 drift 재집행 맥락 — 2026-04-20 관측]**: REQ-20260419-034 realization done 상태에도 `src/setupTests.js` 에 MSW 글로벌 hook **부재** (현 23줄, env unstub + clipboard stub 만). `src/mocks/` 디렉토리 자체 부재. `grep -rn "process.env.NODE_ENV =" src/` 17+ hits 잔존 (`common.test.js` 12 hits + `common.js` 5 hits). Phase 2 carve 된 task 는 `20260420-logsingle-msw-lifecycle-phase2-carve.md` 1건만 (LogSingle 부분 sweep, 나머지 16+ 파일 미처리). LogSingle 8건 parallel-flake 재현 중. 본 §3.7 은 (a) 글로벌 hook 도입 + (b) domain 별 2~3 carve 로 재집행 — planner 가 carve-A/B/C (common.test.js / Log 도메인 / 잔여 도메인) 분할 권장. REQ-021/022/029/030 과 동일 메타 회귀 5번째 인스턴스.
+
+**REQ-031 추가 수용 기준 (drift 2차 해소)**:
+- [ ] `src/mocks/server.js` 존재 (`setupServer()` 인스턴스)
+- [ ] `src/setupTests.js` 에 `server.listen({ onUnhandledRequest: 'error' })` / `server.resetHandlers()` / `server.close()` 3 훅 포함
+- [ ] `grep -rn "process.env.NODE_ENV =" src/ --include="*.test.*"` → 0 lines
+- [ ] `npm test -- --run` 10회 연속 exit 0 (LogSingle flake 수렴)
+- [ ] planner 가 2~3 task 로 carve (carve-A common.test.js / carve-B Log 도메인 / carve-C 잔여)
+- [ ] **프로덕션 코드 `src/common/common.js` 미변경** (본 REQ scope 밖)
+
 
 **맥락 (2026-04-19 관측)**: REQ-20260418-027 (Log 도메인 Phase 1, done — §3.6) 머지 직후 5회 연속 308/308 PASS 를 박제했으나, 직후 신규 작업 컨텍스트에서 `npm test` 전체 스위트 2회 연속 실행 시 각각 1건씩 서로 다른 파일이 실패 (pass-rate 5:2 ≈ 71%):
 - run 1: `src/App.test.jsx > render title text "park108.net" correctly` — `findByText("park108.net")` 타임아웃 (Skeleton 만 렌더).
@@ -960,6 +973,9 @@ afterAll(() => server.close());
 | 2026-04-20 | (inspector, REQ-20260420-009) | §3.7.3 Priority 2 `LogSingle.test.jsx` 행에 carve REQ-20260420-009 박제 — 2026-04-20 flake 재현 evidence 기반 독립 원자 carve (3 패턴 로컬 해소 + 3회 연속 CI PASS 검증). Priority 2 `[x]` flip 은 carve task 머지 후 별 라운드 | 3.7 |
 | 2026-04-20 | (pending, REQ-20260420-017) | §3.8 신설 — `vi.useFakeTimers()` 크로스파일 누수 방지. LogSingle flaky timeout 3회 재현 수렴: Phase A per-case `useRealTimers` + 취약 케이스 15s 타임아웃, Phase B `setupTests.js` 전역 `afterEach(() => vi.useRealTimers())`, Phase C `singleFork: true` 원인 확정 실험. REQ-009 (MSW/NODE_ENV/console spy) 와 범위 분리 (WIP) | 3.8 |
 | 2026-04-20 | (pending, REQ-20260420-028) | §3.3.4 신설 — Search 도메인 확장 (LogList 파일럿 복제). `src/Search/hooks/useSearchList.js` 신규 + `Search.jsx` 의 `useState`/`useEffect`/자체 `AbortController`/`sessionStorage("searchList"/"searchTotalCount"/"searchQueryString"/"searchProcessingTime")` 4키 purge + `Search.test.jsx` `renderWithQuery` 전환. §1 "의도적으로 하지 않는 것" + §3.2 훅 명명 규약 (`useSearchList`) 동시 갱신 (WIP) | 1, 3.2, 3.3, 3.3.4 |
+| 2026-04-20 | `cd25209` (REQ-20260420-028, TSK `20260420-search-domain-usesearchlist-migration-req-028`) | §3.3.4 `[WIP]`→`[DONE]` — `useSearchList` 훅 도입 + `Search.jsx` sessionStorage 4키 purge + 자체 `AbortController` 제거. grep 4종 재실행 (HEAD `5a39ca1`): `sessionStorage.*search{List,QueryString,TotalCount,ProcessingTime}` 0 hits, `sessionStorage` in Search.jsx/test 0 hits, `AbortController` in Search.jsx 0 hits, `useSearchList(` in Search.jsx 1 hit (`:26`). hook-ack via pre-commit PASS. | 3.3.4 |
+| 2026-04-20 | (pending, REQ-20260420-030) | §3.3.2 확장 — REQ-007 realization done 상태에도 `LogList.jsx` sessionStorage 5~6 hits 잔존 drift 2차 재집행. Search `cd25209` 선례 1:1 이식 (hook/AbortController/sessionStorage purge/staleTime 위임). REQ-021/022/029 와 동일 메타 회귀 4번째 인스턴스. (WIP) | 3.3.2 |
+| 2026-04-20 | (pending, REQ-20260420-031) | §3.7 확장 — REQ-034 realization done 상태에도 `setupTests.js` MSW 글로벌 hook 부재 + `src/mocks/` 부재 + `process.env.NODE_ENV =` 17+ test hits 잔존 drift. LogSingle parallel-flake 재현 증거. 추가 수용 6건 (mocks/server.js 신설 + setupTests 3 훅 + test grep 0 + 10회 PASS + 2~3 carve 분할 + 프로덕션 코드 미변경). REQ-021/022/029/030 과 동일 메타 회귀 5번째 인스턴스. (WIP) | 3.7 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`

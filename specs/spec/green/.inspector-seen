@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "updated": "2026-04-20T11:07:50Z",
+  "head_sha_at_scan": "5a39ca11b6a0298deefe00c6e2e2abce40726d81",
+  "notes": "첫 사이클. inspector.md §2 결정성 3단계 + §2.3a hook-ack 신 정책 최초 적용. 섹션 헤더 기준 [WIP] 카운트 (변경 이력 본문 기술 문자열 제외).",
+  "files": {
+    "build/react-version-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 4,
+      "wip_end": 4,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§2 버전 정책 / §4.0.1 REQ-040 drift 재해소 / §4.0.2 REQ-021 2차 drift / §4.1 REQ-026 bump 선행 위생 — grep 게이트 + 수동 운영자 + CI smoke 혼재, 객관 관측 단서 부족"
+      ],
+      "stale_cycles": 1
+    },
+    "ci/github-actions-ci-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 8,
+      "wip_end": 9,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§3.1.1/3.1.3/3.3/3.5/3.5.1/3.5.2/3.5.3/3.6 — 대부분 CI workflow 파일 실 적용 + 운영자 branch protection 설정 + GitHub Actions 로그 검증 필요, grep 관측 수단 부재",
+        "§3.5.4 신설 (REQ-20260420-032, Phase 3)"
+      ],
+      "stale_cycles": 1
+    },
+    "common/accessibility-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 12,
+      "wip_end": 12,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§2.1.1/2.2.1/2.2.1.1/2.2.2/2.2.3/2.2.4/3.4.1/3.4.2/3.4.3/4.A/4.A.9/4.B — 대부분 운영자 수동 smoke / ESLint 설정 파일 존재 / 디자인 토큰 / WCAG 수동 검증 혼재. §3.4.2 는 REQ-20260420-022 재집행 맥락 박제 (Phase 3)"
+      ],
+      "stale_cycles": 1
+    },
+    "common/auth-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 2,
+      "wip_end": 0,
+      "ack_count": 2,
+      "hold_reasons": [],
+      "stale_cycles": 0,
+      "ack_detail": [
+        "§3.1 [WIP]→[DONE] — REQ-20260418-031(auth) via 1fc05e9 (TSK-20260420-auth-url-api-fix-req-031). grep 2종 PASS (URLSearchParams(window.location.href) 0 hits, abcde=abcde 0 hits). hook-ack.",
+        "§3.3 [WIP]→[DONE] — REQ-20260418-032 via 7daa83a (TSK-20260420-parsejwt-isadmin-guard-req-032). §6 수용 7/10 + §6.1 6/10 ACK. §6.1 L300 console.error 0 은 [deferred: 간접 관측 수단 부재] 마킹."
+      ]
+    },
+    "common/clipboard-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 5,
+      "wip_end": 5,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§3.2.1.1/3.3.1/3.3.2/3.7/5.1 — execCommand sweep + 운영자 수동 smoke + ImageSelector 수동 검증 혼재. REQ-036/034/025 대부분 수동·운영자 축으로 객관 관측 어려움"
+      ],
+      "stale_cycles": 1
+    },
+    "common/env-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 6,
+      "wip_end": 6,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§5.1/5.1.1/5.1.2/5.2/7.1/7.1.1 — REQ-20260418-032 함수형 전환 + REQ-026 Phase 2 회귀 + UserLogin Cognito dev/preview baseline. env getter 전환은 TSK-36 blocked 선행 필요, grep 대상이 있지만 범위 혼합 (production vs test)"
+      ],
+      "stale_cycles": 1
+    },
+    "common/react-render-patterns-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 2,
+      "wip_end": 2,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§5.2 REQ-20260420-001 hoverPopup 선언화 + §5.3 REQ-20260420-023 Search getElementById 선언화 — 둘 다 다파일 리팩터. REQ-001 은 useHoverPopup hook + 3~5 컴포넌트 수평 전개, REQ-023 은 Search.jsx 단일. 개별 task reachable 여부 재확인 필요 (다음 사이클)"
+      ],
+      "stale_cycles": 1
+    },
+    "meta/drift-resolve-cadence-analysis-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 0,
+      "wip_end": 0,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§5.1/5.2 — FR-01~FR-05 구현 박제 (timeline 표 / 가설 검증 / 변경 제안서) 가 §6 'TBD — Phase A 진단 task 머지 후 박제' 로 미완. docs/meta/drift-resolve-cadence-analysis.md 존재하나 spec 본문에 결과 반영 대기. 주관 판정 영역, marker 유지."
+      ],
+      "stale_cycles": 1
+    },
+    "monitor/web-vitals-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 3,
+      "wip_end": 2,
+      "ack_count": 1,
+      "hold_reasons": [
+        "§5.4 / §7 2 unchecked / §7.1 REQ-022 cross-link — 이미 [deferred: operator baseline 대기] 태깅 (본 세션 이전)",
+        "§7.1 헤더 자체는 [WIP] 유지 — REQ-022 operator 수동 스모크 baseline 대기"
+      ],
+      "stale_cycles": 0,
+      "ack_detail": [
+        "§7.2 [WIP]→[DONE] — REQ-20260420-020 via c5ad0e9 (TSK-20260420-17 monitor-proptypes-coherence-and-dead-prop-sweep-req-020). grep 3종 PASS (description= 1 hit, unit:PropTypes 0 hits, <ApiCallItem.*unit= 0 hits). hook-ack."
+      ]
+    },
+    "state/server-state-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 9,
+      "wip_end": 8,
+      "ack_count": 1,
+      "hold_reasons": [
+        "§3.3.1/3.3.1.2.1/3.3.1.8/3.3.1.9/3.3.1.10/3.3.2/3.3.3/3.5/3.6/3.7/3.8/4.3.1 — mutation 훅 경로 + LogList/LogSingle 마이그레이션 + MSW 격리 + fake timers 누수 방지 + renderWithQuery rollout. §3.3.2 는 REQ-030 재집행 맥락 박제, §3.7 은 REQ-031 재집행 맥락 박제 (Phase 3)"
+      ],
+      "stale_cycles": 0,
+      "ack_detail": [
+        "§3.3.4 [WIP]→[DONE] — REQ-20260420-028 via cd25209 (TSK-20260420-23 search-domain-usesearchlist-migration-req-028). grep 4종 PASS (sessionStorage search 4키 0 hits, sessionStorage Search.jsx/test 0 hits, AbortController Search.jsx 0 hits, useSearchList( Search.jsx 1 hit). hook-ack."
+      ]
+    },
+    "styles/css-modules-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 12,
+      "wip_end": 12,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§10.1~10.10 — 대부분 DOM 명령형→선언적 리팩터 + CSS Modules hash 회귀 + stylelint 설정 + 시각 스모크. grep 게이트가 있는 섹션도 있으나 reachable 여부 개별 재확인 필요 (다음 사이클). §10.9 는 REQ-029 재집행 맥락 박제 (Phase 3)"
+      ],
+      "stale_cycles": 1
+    },
+    "testing/app-shell-side-effects-smoke-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 2,
+      "wip_end": 2,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§3.10 REQ-20260419-022 online/offline cleanup + §3.10.1 REQ-20260420-018 navigator.onLine configurable lock + §11 checklist 7 unchecked — 운영자 수동 baseline (4 시나리오) 대기 축. 일부 자동 테스트 게이트는 REQ-039/REQ-018 task done 커밋 reachable 하나 체크박스 라인의 grep 패턴 1:1 매핑 재검토 필요 (다음 사이클)"
+      ],
+      "stale_cycles": 1
+    },
+    "testing/operator-manual-smoke-index-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 0,
+      "wip_end": 1,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§3.7a 신설 (REQ-20260420-033, Phase 3 — 이중 뷰 규약) — 원격/로컬 링크 가시성 정책 박제. FR-01/FR-02/FR-03/FR-05 는 docs/testing/operator-manual-smoke-index.md 실 편집 작업 선행 필요"
+      ],
+      "stale_cycles": 0
+    },
+    "testing/suspense-dynamic-render-helper-spec.md": {
+      "last_scan": "2026-04-20T11:07:50Z",
+      "wip_start": 0,
+      "wip_end": 0,
+      "ack_count": 0,
+      "hold_reasons": [
+        "§5.1 REQ-20260420-025 수용 기준 8 unchecked — renderWithSuspenseFallback helper 도입 + test 적용. WIP 토큰 없음. §4 Cond-2 기준 체크박스 flip 가능성 개별 재확인 필요 (다음 사이클)"
+      ],
+      "stale_cycles": 1
+    }
+  },
+  "summary": {
+    "scanned_files": 14,
+    "ack_files": 3,
+    "total_ack_sections": 4,
+    "stale_ge_3cycle_files": [],
+    "future_stale_seed_files": [
+      "build/react-version-spec.md",
+      "ci/github-actions-ci-spec.md",
+      "common/accessibility-spec.md",
+      "common/clipboard-spec.md",
+      "common/env-spec.md",
+      "common/react-render-patterns-spec.md",
+      "meta/drift-resolve-cadence-analysis-spec.md",
+      "styles/css-modules-spec.md",
+      "testing/app-shell-side-effects-smoke-spec.md",
+      "testing/suspense-dynamic-render-helper-spec.md"
+    ]
+  }
+}

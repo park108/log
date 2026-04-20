@@ -170,7 +170,7 @@ Metric = {
   - [ ] [WIP] 런타임 `sendBeacon` 경로 실측 검증 — **REQ-022 의 수동 스모크 체크리스트로 커버** (`specs/spec/green/testing/web-vitals-runtime-smoke-spec.md`)
   - [ ] [WIP] INP 콜백 실제 발화(사용자 클릭 + visibilitychange) — jsdom 범위 밖
 
-### 7.2 [WIP] WebVitalsItem PropTypes coherence + tooltip description 어서트 강화 (REQ-20260420-020)
+### 7.2 [DONE] WebVitalsItem PropTypes coherence + tooltip description 어서트 강화 (REQ-20260420-020)
 
 > 관련 요구사항: REQ-20260420-020 FR-01 ~ FR-06, US-01 ~ US-02
 
@@ -211,13 +211,13 @@ Metric = {
 - `grep -crn "<ApiCallItem.*unit=" src/` — expected 0 hits (호출자 잔재 없음).
 
 **수용 기준 (REQ-20260420-020 §10)**:
-- [ ] FR-01 `src/Monitor/WebVitalsItem.test.jsx` 에 `description` prop 전달.
-- [ ] FR-02 tooltip description 렌더 어서트 추가 (기존 `/🟢|🟡|🔴/` 매칭 유지).
-- [ ] FR-03 `src/Monitor/ApiCallItem.jsx` 의 `unit: PropTypes.string` 제거.
-- [ ] FR-04 호출자 잔재 `<ApiCallItem unit=...>` 없음.
-- [ ] FR-05 Monitor 도메인 3 컴포넌트 PropTypes 감사 결과표 task result.md 박제.
-- [ ] `npm test` 풀 스위트 PASS.
-- [ ] FR-06 grep 쿼리 3종 충족.
+- [x] FR-01 `src/Monitor/WebVitalsItem.test.jsx` 에 `description` prop 전달. — `c5ad0e9` (TSK-20260420-17; grep `description=` 1 hit 재실행 확인, HEAD `5a39ca1`)
+- [x] FR-02 tooltip description 렌더 어서트 추가 (기존 `/🟢|🟡|🔴/` 매칭 유지). — `c5ad0e9` (result.md §DoD FR-02 박제)
+- [x] FR-03 `src/Monitor/ApiCallItem.jsx` 의 `unit: PropTypes.string` 제거. — `c5ad0e9` (grep `unit:\s*PropTypes` 0 hits 재실행 확인)
+- [x] FR-04 호출자 잔재 `<ApiCallItem unit=...>` 없음. — `c5ad0e9` (grep `<ApiCallItem.*unit=` 0 hits 재실행 확인)
+- [x] FR-05 Monitor 도메인 3 컴포넌트 PropTypes 감사 결과표 task result.md 박제. — `c5ad0e9` (`result.md §32-39` 감사표 박제)
+- [x] `npm test` 풀 스위트 PASS. — `c5ad0e9` pre-commit hook 통과 (hook-ack, `RULE-02` §2.2)
+- [x] FR-06 grep 쿼리 3종 충족. — 재실행 전부 PASS (HEAD `5a39ca1`)
 
 **범위 밖**:
 - Monitor 도메인 이외의 PropTypes 정합 감사 — 별 REQ.
@@ -261,6 +261,7 @@ Metric = {
 | 2026-04-20 | (pending, REQ-20260420-001) | `hoverPopup` 공통 helper 명령형 DOM → 선언적 전환 — 본 spec §4.1 `hoverPopup` 의존성 항목이 신규 아티팩트 (`useHoverPopup` / `<HoverPopup>` / 로컬 state) 로 대체 예정, inspector 후속 라운드에서 §4.1 갱신 트리거. 상세: `common/react-render-patterns-spec.md` §5.2. (WIP) | 4.1 |
 | 2026-04-20 | (pending, REQ-20260420-020) | §7.2 신설 — WebVitalsItem PropTypes coherence + tooltip description 어서트 강화 + ApiCallItem `unit` 데드 PropTypes 삭제 + Monitor 도메인 3 컴포넌트 PropTypes 감사. hoverPopup 이관(6881e1d) 직후 tooltip 어서트 커버리지 완결 (WIP) | 7.2 |
 | 2026-04-20 | (inspector Phase 2 defer-tag) | §5.4 sendToAnalytics 페이로드 검증 + §7 2 unchecked(runtime `sendBeacon` / INP 콜백 발화) + §7.1 REQ-022 cross-link 4 섹션에 `[deferred: operator baseline 대기]` 태깅 — 모두 jsdom 범위 밖 런타임 경로, `docs/testing/web-vitals-runtime-smoke.md` baseline 0 회 상태. 나머지 §5.1/5.2/5.3/§6/§7 자동 테스트 영역은 완료 ACK(`60c0cd3`). planner 의 승격 게이트 계산은 §5.4/§7/§7.1 deferred 를 제외하므로 본 spec 은 다음 cycle 승격권 진입. 과태깅 방지: §1~4/5.5/6/8/9 active 유지. 커밋 영향: 본 spec 단독. | 5.4, 7, 7.1, 10 |
+| 2026-04-20 | `c5ad0e9` (REQ-20260420-020, TSK-20260420-17 `20260420-monitor-proptypes-coherence-and-dead-prop-sweep-req-020`) | §7.2 `[WIP]`→`[DONE]` — WebVitalsItem.test.jsx `description=` 전달 + tooltip 어서트 강화 + ApiCallItem `unit: PropTypes.string` 제거 + Monitor 3 컴포넌트 감사표 박제. grep 3종 재실행 (HEAD `5a39ca1`): `description=` 1 hit in WebVitalsItem.test.jsx, `unit:\s*PropTypes` 0 hits in ApiCallItem.jsx, `<ApiCallItem.*unit=` 0 hits in src/. hook-ack via pre-commit PASS. | 7.2 |
 
 ## 11. 관련 문서
 - 기원 요구사항:

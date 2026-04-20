@@ -706,9 +706,11 @@ const className = isDeleting
 - 시각 회귀 자동화 (Percy / Chromatic) — 별 후속.
 - prod 환경 (`vite preview`) 검증 — 별 후속.
 
-### 10.9 [WIP] LogItem `setItemClass` 명령형 className state → 선언적 React (REQ-20260419-019, REQ-026 / REQ-010 / REQ-015 패턴 4차 재적용 — Log 도메인 마무리)
+### 10.9 [WIP] LogItem `setItemClass` 명령형 className state → 선언적 React (REQ-20260419-019 / REQ-20260420-029 재집행, REQ-026 / REQ-010 / REQ-015 패턴 4차 재적용 — Log 도메인 마무리)
 
-> 관련 요구사항: REQ-20260419-019 FR-01 ~ FR-08, US-01 ~ US-04
+> 관련 요구사항: REQ-20260419-019 FR-01 ~ FR-08, US-01 ~ US-04; **REQ-20260420-029** FR-01 ~ FR-06, US-01 ~ US-02 (drift 2차 재집행)
+
+**[REQ-20260420-029 drift 재집행 맥락 — 2026-04-20 관측]**: REQ-20260419-019 realization task (`specs/requirements/done/2026/04/20/20260419-logitem-setitemclass-declarative-code-realization.md`) 가 done 처리됐음에도 `src/Log/LogItem.jsx:16, 52, 55, 73` 에 `setItemClass`/`itemClass` **4 hits 잔존** (실태 미반영). 선례: `src/File/FileItem.jsx` 는 commit `6ced3b6` 에서 동일 패턴을 선언적 (`className={...삼항}` + `data-deleting`) 로 전환 완료. 본 §10.9 는 FileItem 패턴을 **1:1 전파** 로 재집행. REQ-20260420-021 (React bump) / REQ-20260420-022 (eslint) 와 동일 메타 패턴 3번째 인스턴스 — 공통 "drift 재발 차단 게이트" 논의 대상.
 
 **맥락**: `src/Log/LogItem.jsx:15, 38-45` 의 `setItemClass("article article--main-item ...")` 는 ImageItem (§10.1, REQ-026 done, commit `9efb9ad`) / FileDrop (§10.6, REQ-010 done, commit `2b35a8f`) / FileItem (§10.7, REQ-015 ready) 와 **동일한 className-state 안티패턴 4번째 인스턴스**. `useDeleteLog` 훅(`:13-14`)의 `isPending` 을 `isDeleting` 지역 상수로 파생 후, 별도 `useState("article article--main-item")` + `useEffect([isDeleting])` 의 if/else 분기로 `itemClass` 갱신 — **이중 SSoT** (TanStack Query state ↔ 로컬 state) + 1 tick 지연. 본 §은 해당 후속을 4차 재적용으로 마감하여 Image / File / Log 3 도메인 패턴 정착.
 
@@ -876,3 +878,4 @@ const itemClass = isDeleting
 | 2026-04-19 | (pending, REQ-20260419-029) | REQ-019 §10.9 To-Be 코드 실현 트리거 — `src/Log/LogItem.jsx` `setItemClass` state 제거 + `data-deleting` 선언적 className 파생, 머지 후 §10.9 WIP → 마감 + 수용 기준 체크박스 일괄 `[x]` | 10.9 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 | 2026-04-20 | (pending, REQ-20260420-024) | §10.10 신설 — SearchInput.test substring 어서트를 anchored 정규식 (`/_divSearchMobile(?!hide)/`) 로 강화. CSS Modules hash 접미 하에서 `search-mobile ⊂ search-mobilehide` 중첩 blind spot 해소. L93/L114 대칭 강화 + 회귀 가드 주석 1줄. 본 spec §4.6 (hash 깨짐 주의) + §10.4 (Search selector 정의) 연동. 가족 도메인(Image/Toaster/Comment) suffix 패턴 재사용 기준점. (WIP) | 10.10 |
+| 2026-04-20 | (pending, REQ-20260420-029) | §10.9 확장 — REQ-20260419-019 realization done 상태에도 `LogItem.jsx` `setItemClass`/`itemClass` 4 hits 잔존 (실태 미반영) drift 2차 재집행. FileItem `6ced3b6` 선례 1:1 전파 (선언적 삼항 + `data-deleting` 속성). REQ-20260420-021/022 와 동일 메타 회귀 3번째 인스턴스. (WIP) | 10.9 |

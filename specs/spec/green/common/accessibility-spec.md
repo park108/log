@@ -506,9 +506,11 @@ plugins:
 - TypeScript 파일(`.ts/.tsx`) lint (TS 마이그레이션 의존).
 - `--cache` / `--max-warnings 0` / Prettier 도입 / 들여쓰기 룰 표준화 (별 후보).
 
-### 3.4.2 [WIP] ESLint v9 + flat config 마이그레이션 (REQ-20260419-003)
+### 3.4.2 [WIP] ESLint v9 + flat config 마이그레이션 (REQ-20260419-003 / REQ-20260420-022 재집행)
 
-> 관련 요구사항: REQ-20260419-003 FR-01 ~ FR-09, US-01~US-03
+> 관련 요구사항: REQ-20260419-003 FR-01 ~ FR-09, US-01~US-03; **REQ-20260420-022** FR-01 ~ FR-10, US-01 ~ US-03 (drift 2차 재집행)
+
+**[REQ-20260420-022 drift 재집행 맥락 — 2026-04-20 관측]**: REQ-003 이 done 처리됐으나 `.eslintrc.yml` 잔존 + `eslint@8.28.0` + `eslint-plugin-jsx-a11y` 미설치 (실태 0% 이행) 로 확인. 동시에 REQ-20260418-018 (`eslint-plugin-jsx-a11y` 도입) 도 done 인데 `node_modules/eslint-plugin-jsx-a11y/` 미존재 — 두 REQ 모두 본 §3.4.2 를 통해 **물리 이행 재집행**. REQ-020260420-021 (React 19 2차 drift) 와 동일한 메타 회귀 패턴 — 같은 사이클에 처방한다. 세부 FR 은 `specs/requirements/done/2026/04/20/20260420-eslint-v9-flat-config-and-jsx-a11y-drift-resolve.md` (REQ-022) 참조.
 
 **현재 결함 (2026-04-19 관측, `npm outdated --json`)**:
 - `eslint` current `8.28.0`, wanted `8.57.1`, latest `10.2.1` — 2 메이저 뒤처짐.
@@ -572,6 +574,14 @@ plugins:
 - [ ] §3.1 / §3.2 본문 flat config 형식으로 후속 갱신 (별 라운드, inspector 후속)
 - [ ] `github-actions-ci-spec.md` §3.1.3 cross-link 반영 (inspector 후속)
 - [ ] 번들 영향 0 (devDependency 만)
+
+**REQ-20260420-022 추가 수용 기준 (drift 2차 해소)**:
+- [ ] `ls .eslintrc.yml` → `No such file` (제거 확인)
+- [ ] `ls eslint.config.*` → 1건 이상
+- [ ] `grep -rn '"eslint": "\^8' package.json` → 0 lines
+- [ ] `ls node_modules/eslint-plugin-jsx-a11y/package.json` → 존재 (REQ-018 물리 이행)
+- [ ] 의도적 a11y 위반 smoke 파일에 lint 가 반응 (확인 후 제거)
+- [ ] lint-staged 가 flat config 로 무수정 작동 (husky v8 pre-commit 포맷 유지)
 
 **범위 밖**:
 - `@typescript-eslint/*` 도입 — TS 마이그레이션 의존, 별 spec (§1 "의도적으로 하지 않는 것" 참조).
@@ -1013,6 +1023,7 @@ const onChangeName = (e) => {
 | 2026-04-20 | (inspector drift reconcile) | §2.1 표 행 #6/#7/#8 (FileItem filename + 삭제 + ImageSelector Retry) 를 "[WIP] REQ-029 §2.1.1" → "**머지**" 로 ACK: commits `24493bb` (FileItem filename+delete 패턴 B, tasks `20260418-a11y-fileitem-keyboard-activation`) / `695e65d` (ImageSelector Retry 패턴 B, task `20260418-a11y-imageselector-retry-keyboard`); src 관측: `FileItem.jsx` `activateOnKey` import + `tabIndex={0}` + `onKeyDown={activateOnKey(copyFileUrl)}` / `onKeyDown={activateOnKey(confirmDelete)}` 확인, `ImageSelector.jsx:147` `onKeyDown={activateOnKey(handleRetry)}` 확인. 진행률 6/9 → 9/9 마감. REQ-029 §2.1.1 수용 체크박스 및 §2.4 수용 grep 자체는 본 ACK 범위 밖 (아래 §2.1.1 섹션 별 라운드 정리 필요). 커밋 영향: 본 spec 단독. | 2.1 |
 | 2026-04-20 | (inspector drift reconcile) | §3.2 헤더 rename: "(To-Be)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3.2 |
 | 2026-04-20 | (pending, REQ-20260420-021) | §4.A.9 신설 — Monitor 도메인 tabIndex focus-visible CSS + Tab 순서 경량화. 6881e1d (hoverPopup Monitor 이관) 직후 신규 tabIndex={0} 3 컴포넌트(ApiCallItem pillar / WebVitalsItem statusBar / VisitorMon EnvStack)에 대해 `.div--monitor-pillar:focus-visible` + `.div--monitor-statusbar:focus-visible` 규칙 + 컨테이너 grouping 으로 Tab stop 17 → 3~5 축소. 디자인 토큰 재사용. §4.A 글로벌 규칙의 "컴포넌트별 변형" 경로 첫 사례 (WIP) | 4.A.9 |
+| 2026-04-20 | (pending, REQ-20260420-022) | §3.4.2 확장 — REQ-003 (flat config) + REQ-018 (jsx-a11y) 둘 다 done 이지만 실태 미반영 drift (`.eslintrc.yml` + `eslint@8.28.0` + `eslint-plugin-jsx-a11y` 미설치) 2차 재집행. REQ-022 전용 수용 기준 6건 추가 (`.eslintrc.yml` 부재, `eslint.config.*` 존재, eslint v8 버전 스트링 0 hits, jsx-a11y 물리 설치, a11y smoke 반응, lint-staged 호환). 동일 메타 패턴 병렬: REQ-021 (React 19 2차 drift). (WIP) | 3.4.2 |
 
 ## 10. 관련 문서
 - 기원 요구사항:

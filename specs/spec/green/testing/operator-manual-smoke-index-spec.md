@@ -133,6 +133,27 @@ REQ §13 의 "green/testing vs blue/testing" 미결은 본 spec 에서 아래로
 - **Index SSoT spec** 은 본 파일 `specs/spec/green/testing/operator-manual-smoke-index-spec.md` — 테이블 스키마 / 등록 프로세스만 관리.
 - 링크는 `specs/spec/blue/...` (승격된 spec) 우선, 아카이브 경로(`requirements/done/**`) 는 fallback (아카이브는 gitignore 상 로컬 전용 — 링크 안정성 낮음).
 
+### 3.7a [WIP] 이중 뷰 규약 — 원격/로컬 링크 가시성 (REQ-20260420-033)
+
+> 관련 요구사항: REQ-20260420-033 FR-01 ~ FR-05, US-01 ~ US-02
+
+**맥락 (2026-04-20 관측)**: 본 spec 의 index 문서 (`docs/testing/operator-manual-smoke-index.md`) 는 `docs/` 하 tracked 원격 공유 파일이지만, §4 unverified 4 row 및 §2 본문이 `specs/followups/consumed/**` / `specs/requirements/done/**` 경로 (`.gitignore` 로컬 전용) 링크 를 다수 포함한다. GitHub 웹 뷰어에서 index 를 여는 운영자에게는 해당 링크 전량 404 — 탐색 단절 / SSoT 혼동. REQ-20260420-032 의 markdown-link-check CI 는 ignored 경로 skip 이지만 운영자 UX 문제는 독립.
+
+**정책 (이중 뷰 규약)**:
+
+- **원칙 1 — 상단 고지 (FR-01, Must)**: index 상단 (`§0` 또는 header 바로 아래) 에 1~2줄 안내 박제:
+  > 본 index 일부 링크 (`specs/followups/consumed/**`, `specs/requirements/done/**`) 는 로컬 전용 (`.gitignore`). 원격 웹 뷰어에서는 404 — **로컬 체크아웃 후 IDE Markdown 뷰어** 사용 권장.
+- **원칙 2 — 앵커 대체 우선 (FR-02/FR-03, Should)**: 각 404 가능 링크는 가능한 `specs/spec/blue/testing/*-spec.md` 섹션 앵커로 대체. 대체 불가 (원문 근거 보존 필요) 시 `(로컬 전용)` 접미사 명시 + 상단 고지에 fallback.
+- **원칙 3 — 대체 불가 Rationale (FR-02)**: `specs/spec/blue/**` 에 동등 내용이 없는 경우 rationale 1줄 본 spec 하단 또는 row 주석에 박제. inspector 가 green→blue 승격 시 대체 앵커 재검토.
+- **원칙 4 — 원격 렌더 smoke (FR-05, Should)**: index 수정 PR 에서 GitHub 웹 뷰어 렌더 확인 1회 — 안내 문구 가시 + 대체 앵커 동작.
+- **원칙 5 — `.gitignore` 완화 금지**: 로컬 전용 경로 유지 (본 규약의 근본 전제). 완화는 별 프로세스 REQ.
+
+**적용 범위**: 본 규약은 `docs/testing/operator-manual-smoke-index.md` 전용. 다른 `docs/**/*.md` 로의 확산은 별 REQ (FR Out-of-Scope).
+
+**CI 조화 (REQ-20260420-032 연동)**:
+- markdown-link-check 의 `ignorePatterns` 에 `specs/followups/`, `specs/requirements/`, `specs/task/` 포함 → 로컬 전용 링크는 CI skip (warning 없음).
+- 원격 접근 사용자 UX 는 원칙 1/2 안내로 흡수 (CI 독립).
+
 ### 3.8 (Optional) Playwright 도입 후 관계 — §13 open
 
 - `docs/testing/playwright-*` 도입 시 본 index 는 "수동 소분율" 축소 → 일부 row 는 자동화로 승격 후 제거 (별 REQ).
@@ -180,12 +201,38 @@ REQ §13 의 "green/testing vs blue/testing" 미결은 본 spec 에서 아래로
 - `grep -rn "operator-manual-smoke-index" specs/` ≥ 1 (본 spec + index 문서).
 - index 문서 삭제 또는 링크 끊김 회귀 시 운영자 followup 재발화 (§5.1 성공 지표 연동).
 
+### 5.4a REQ-20260420-033 수용 기준 (원격 404 링크 표기 이중 뷰 규약)
+
+> 관련 요구사항: REQ-20260420-033 FR-01 ~ FR-05, US-01 ~ US-02
+
+- [ ] **FR-01 (Must)**: `docs/testing/operator-manual-smoke-index.md` 상단에 "로컬 전용 링크" 안내 1~2줄 박제
+- [ ] **FR-02 (Should)**: §4 unverified 4 row 중 최소 1건이 `specs/spec/blue/testing/*-spec.md` 섹션 앵커로 대체 (또는 rationale 기록 후 유지)
+- [ ] **FR-03 (Should)**: §2 본문 `specs/requirements/done/**` 참조 중 원격 접근 필요분 앵커 대체
+- [ ] **FR-04 (Must)**: inspector 가 본 spec §3.7a 이중 뷰 규약 박제 (본 세션 기 완료)
+- [ ] **FR-05 (Should)**: PR 시 GitHub 웹 뷰어 렌더링 1회 smoke 확인
+- [ ] REQ-20260420-032 CI 도입 후 본 index CI PASS (ignore 패턴 정합)
+
+### 5.4 REQ-20260420-034 수용 기준 ("마지막 실행일" 갱신 강제 프로세스 + 미수행 smoke 수행)
+
+> 관련 요구사항: REQ-20260420-034 FR-01 ~ FR-08, US-01 ~ US-04
+
+- [ ] **축 A (FR-01/FR-02)**: 릴리스 runbook (`docs/releases/`, 없으면 신설 최소 scope) 또는 PR 템플릿에 "`operator-manual-smoke-index.md §2` 의 해당 도메인 row `마지막 실행일` 갱신 확인" 1줄 체크 항목 박제
+- [ ] **축 B (FR-08 Should)**: inspector agent 규약 갱신 — unverified row 수 주기 집계 (별 REQ carve 권장)
+- [ ] **축 C (FR-03/FR-04)**: Search TanStack Query 5항목 운영자 수행 + `docs/testing/operator-manual-smoke-index.md` §2 Search row `마지막 실행일` 에 ISO-8601 갱신
+- [ ] **축 C (FR-05/FR-06)**: 링크 무결성 수동 smoke 운영자 수행 + 해당 row 갱신 + 발견 문제는 followup 생성
+- [ ] **축 C (Monitor)**: Monitor focus-visible smoke 운영자 수행 + 해당 row 갱신 (followup `20260420-1048-monitor-focus-visible-manual-smoke-unverified.md` 해소)
+- [ ] §6 High 위험 항목에 완화 기전 3-축 박제 완료 (inspector — 본 세션 기에 완료)
+- [ ] 전체 13 row 중 `unverified` row 수가 base 대비 ≥3건 감소
+
 ---
 
 ## 6. 알려진 제약 / 이슈
 
 - index 가 유지되지 않으면 stale link 발생 위험 (REQ §12) — 완화: FR-05 등록 가이드 + inspector 사이클에서 link 무결성 grep.
-- 운영자가 "마지막 실행일" 갱신을 잊을 위험 (High) — 완화: release 체크리스트에 "index 갱신" 1줄 필수 포함 (운영자 소관).
+- 운영자가 "마지막 실행일" 갱신을 잊을 위험 (High) — 완화 기전 (REQ-20260420-034 §3 3-축):
+  - **축 A (릴리스 게이트)**: 릴리스 runbook (또는 PR 템플릿) 에 "본 릴리스 변경 범위 도메인 row 의 `마지막 실행일` 갱신 확인" 1줄 체크 항목 (FR-01/FR-02). 스코프는 릴리스 대상 도메인 row 만 (전체 13 row 매회 강요 아님).
+  - **축 B (주기 집계)**: inspector 주기 실행 시 `grep -c "unverified\|(미수행)"` 로 미갱신 row 수 집계, 50% 초과 또는 30일 미갱신 임계치 초과 시 followup 재발화 (inspector agent 규약 갱신은 별 REQ, FR-08 Should).
+  - **축 C (미수행 smoke 수행)**: Search TanStack Query 5항목 (cache hit / staleTime / race / HTTP 500 UX / loadingDots) + 링크 무결성 수동 검증 + Monitor focus-visible smoke 운영자 수행 후 해당 row 갱신 (FR-03/FR-05).
 - 아카이브 경로 안정성: `specs/requirements/done/**` 이동 가능성 주의 — 가급적 `spec/blue/testing/` 쪽을 우선 링크.
 
 ---
@@ -195,6 +242,8 @@ REQ §13 의 "green/testing vs blue/testing" 미결은 본 spec 에서 아래로
 | 일자 | TSK | 요약 | 영향 섹션 |
 |------|-----|------|-----------|
 | 2026-04-20 | (pending, REQ-20260420-026) | 본 spec 초안 신설 — 4 followup 병합, 운영자 수동 smoke index SSoT 박제 (WIP) | all |
+| 2026-04-20 | (pending, REQ-20260420-034) | §6 High 위험 항목에 3-축 완화 기전 박제 (축 A 릴리스 게이트 / 축 B inspector 주기 집계 / 축 C 미수행 smoke 수행). §5.4 신설 — Search TanStack 5항목 + 링크 무결성 + Monitor focus-visible 운영자 smoke 수행 수용 기준. (WIP) | 5.4, 6 |
+| 2026-04-20 | (pending, REQ-20260420-033) | §3.7a 신설 — 이중 뷰 규약 (원격/로컬 링크 가시성). 원칙 5종 (상단 고지 / 앵커 대체 우선 / rationale / 원격 렌더 smoke / `.gitignore` 완화 금지). §5.4a 신설 — 수용 기준 5항목. `specs/followups/consumed/**` / `specs/requirements/done/**` 로컬 전용 경로 404 문제 완화. REQ-032 CI 와 조화 (ignore 패턴 정합). (WIP) | 3.7a, 5.4a |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260420-operator-manual-smoke-checklist-index.md`
