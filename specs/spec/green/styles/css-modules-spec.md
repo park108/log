@@ -2,7 +2,7 @@
 
 > **위치**: `src/**/*.css` → `src/**/*.module.css`, `src/App.css` (전역 유지)
 > **유형**: 스타일 아키텍처 / 마이그레이션 정책
-> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-010/011/012/013/019 반영)
+> **최종 업데이트**: 2026-04-20 (by inspector, WIP — REQ-20260420-024 §10.10 신설: SearchInput.test substring→anchored regex 어서트 강화)
 > **상태**: Active (마이그레이션 진행 중)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260417-css-modules-migration.md`
@@ -13,6 +13,7 @@
 > - `specs/requirements/done/2026/04/19/20260419-cross-domain-modules-dead-class-audit.md` (REQ-20260419-012, Image/Search/Toaster 도메인 dead class audit)
 > - `specs/requirements/done/2026/04/19/20260419-stylelint-no-unused-selectors-introduction.md` (REQ-20260419-013, stylelint + unused-selectors 자동 감지 룰 도입)
 > - `specs/requirements/done/2026/04/19/20260419-logitem-setitemclass-declarative-refactor.md` (REQ-20260419-019, LogItem `setItemClass` 명령형 className state → 선언적 React, REQ-026/010/015 패턴 4차 재적용 — Log 도메인 마무리)
+> - `specs/requirements/ready/20260420-searchinput-test-substring-regex-tightening.md` (REQ-20260420-024, SearchInput.test 어서트를 substring `toContain` → anchored 정규식 `toMatch(/_divSearchMobile(?!hide)/)` 로 강화 — CSS Modules hash 접미에서 `search-mobile ⊂ search-mobilehide` substring 중첩 blind spot 해소; §10.10 신설)
 
 > 본 문서는 컴포넌트 국소 스타일을 `*.module.css` 로 이전하는 1단계 정책을 기술.
 > 디자인 토큰 재구성/`App.css` 분할 (2단계) 은 별도 spec (`design-tokens-spec.md`).
@@ -801,12 +802,61 @@ const itemClass = isDeleting
 - TypeScript 변환.
 - LogItem 시각 디자인 변경 ("article article--logitem-delete" 클래스 그대로).
 
+### 10.10 [WIP] SearchInput.test substring → anchored 정규식 어서트 강화 (REQ-20260420-024)
+
+> 관련 요구사항: REQ-20260420-024 FR-01 ~ FR-04, US-01
+
+**맥락 (2026-04-20 관측)**: `src/Search/SearchInput.test.jsx:93` 의 어서트 `expect(mobileSearch.getAttribute("class")).toContain("search-mobile")` 는 substring 매칭이라 CSS Module hash 체계 하에서 `search-mobile ⊂ search-mobilehide` 관계로 "hide" 상태에서도 통과한다 → 회귀 blind spot. `src/Search/Search.module.css` 는 `.divSearchMobile` / `.divSearchMobilehide` 두 class 정의, CSS Modules 자동 camelCase + hash 접미 형태 `_divSearchMobile__xxxxx` / `_divSearchMobilehide__xxxxx` 로 DOM 에 렌더. L114 (`toContain("search-mobilehide")`) 는 의도적으로 "닫힘" 검증이지만 L93 ("열림") 은 현재 hide 와 구분 못 함.
+
+**CSS Modules 해시 정합 (본 spec §4.6 연동)**: 본 spec §4.6 "테스트 영향 검토" 는 `container.querySelector('.foo')` → 해시된 클래스명 깨짐을 지적. 본 §10.10 은 그 연장 — **hash 접미 class 의 어서트 포함 관계(`prefix ⊂ prefixhide`) 주의 정책**을 spec SSoT 로 박제. 향후 다른 Modules 도메인(Image/Toaster 등)의 유사 suffix(`hide` / `active` / `disabled`) 어서트 작성 시 기준점.
+
+**현재 결함**:
+- `src/Search/SearchInput.test.jsx:93` — `toContain("search-mobile")` substring → "hide" 상태 blind.
+- `src/Search/SearchInput.test.jsx:114` — `toContain("search-mobilehide")` substring → 의도된 "닫힘" 검증, 현 시점 false-positive 없으나 비대칭.
+- `src/Search/Search.module.css` 정의: `.divSearchMobile`, `.divSearchMobilehide` (kebab 소스 `.div--search-mobile` / `.div--search-mobilehide` 가 CSS Modules camelCase 변환).
+
+**어서트 강화 원칙 (FR-01, FR-02)**:
+- L93 ("열림") → `toMatch(/_divSearchMobile(?!hide)/)` **또는** `toContain + expect(...).not.toMatch(/divSearchMobilehide/)` 조합. negative lookahead 로 hide suffix 엄격 배제.
+- L114 ("닫힘") → `toMatch(/_divSearchMobilehide/)` — prefix hash 포함 anchored 매칭으로 대칭 강화.
+- 정규식 prefix 는 CSS Modules default (`_divSearchMobile`) 기준 — 빌드 환경별 hash 접미(`__xxxxx`) 는 `.+` 또는 가변 패턴으로 허용. vite/postcss 의 기본 `cssModules.localsConvention` (camelCase) + `scopeBehaviour: 'local'` 전제.
+
+**회귀 가드 주석 (FR-03)**:
+- 해당 테스트 블록 바로 위에 1줄:
+  ```js
+  // substring 대신 anchored 정규식 — search-mobile ⊂ search-mobilehide 중첩 방지 (REQ-20260420-024, css-modules-spec §10.10)
+  ```
+- 주석 내 spec pointer 로 후속 개발자가 정책 근거 역추적 가능.
+
+**검증 (FR-04 probe, Could)**: 임시 probe 로 L93 어서트가 hide class 주입 시 FAIL 하는지 1회 확인 후 probe 제거. 영구 테스트 변경 없음.
+
+**수용 기준 (REQ-20260420-024 §10)**:
+- [ ] FR-01: L93 어서트 substring → anchored 정규식 (`/_divSearchMobile(?!hide)/`) 전환
+- [ ] FR-02: L114 어서트 대칭 강화 (`/_divSearchMobilehide/`) — Should
+- [ ] FR-03: 회귀 가드 주석 1줄 추가 (Should)
+- [ ] FR-04: hide class 주입 probe 로 L93 FAIL 확인 후 probe 제거 (Could)
+- [ ] `npm test -- --run src/Search/SearchInput.test.jsx` → 기존 카운트 PASS
+- [ ] `npm test -- --run` 전체 PASS (회귀 0)
+
+**범위 밖**:
+- CSS class 이름 리네이밍 (`divSearchMobile` / `divSearchMobilehide` 구조 자체 변경) — 별 REQ.
+- `src/Search/SearchInput.jsx` 컴포넌트 소스 수정 — 본 REQ 는 어서트 강화만.
+- 전역 "모든 substring 어서트" sweep — 다른 도메인 테스트는 별 REQ (본 §10.10 은 SearchInput.test 한정, spec 정책만 가족 도메인에 재사용 가능).
+- Vite CSS Modules hash 접미 규약 자체 변경.
+
+**정책 재사용 (가족 도메인)**: 본 §10.10 은 Search 한정 picker 이나, Image/Toaster/Comment 도메인의 유사 suffix 패턴(`hide`/`active`/`disabled`) 어서트 작성 시 본 섹션을 reference. 추후 유사 요구 발견 시 별 REQ 로 승격하거나 본 §10.10 의 적용 도메인 목록을 확장.
+
+**선례**:
+- 본 spec §4.6 (테스트 영향 검토) — CSS Modules hash 로 인한 `querySelector('.foo')` 깨짐 주의.
+- 본 spec §10.4 (REQ-20260419-012) — Search 도메인 selector 정의 `.div--search-mobilehide`, `.div--search-mobile` 열거.
+- TSK-20260420-12 (REQ-20260420-026, commit `e735aea`) — SearchInput `setAttribute` → `className` 선언적 전환 (본 REQ-024 는 그 작업의 §9 "substring 매칭 주의" followup 승계).
+
 ## 11. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-css-modules-migration.md`
 - 후속 요구사항: `specs/requirements/done/2026/04/18/20260418-imageitem-imperative-dom-react-refactor.md` (REQ-026, CSS Modules 마이그레이션 사후 위생)
 - 후속 spec: `specs/spec/green/styles/design-tokens-spec.md` (2단계)
 - 관련 spec: `specs/spec/green/build/react-version-spec.md` (REQ-026 의 React 19 strict mode 안전성 의존)
 - 관련 체크리스트: `specs/spec/green/testing/post-merge-visual-smoke-spec.md` §3 `image-selector-visual-smoke.md` (REQ-028 배치 2)
+- 연관 요구사항: `specs/requirements/ready/20260420-searchinput-test-substring-regex-tightening.md` (REQ-20260420-024, §10.10 소관)
 
 ## 12. 변경 이력
 | 일자 | TSK | 요약 | 영향 |
@@ -825,3 +875,4 @@ const itemClass = isDeleting
 | 2026-04-19 | (pending, REQ-20260419-019) | LogItem `setItemClass` 명령형 className state → 선언적 React §10.9 신설 (§10.6 "패턴 reference 연동" 글머리 4차 재적용 박제, `data-deleting` 패턴 도입, Image/File/Log 3 도메인 마무리, useDeleteLog.isPending 단일 SSoT) (WIP) | 10.6, 10.9 |
 | 2026-04-19 | (pending, REQ-20260419-029) | REQ-019 §10.9 To-Be 코드 실현 트리거 — `src/Log/LogItem.jsx` `setItemClass` state 제거 + `data-deleting` 선언적 className 파생, 머지 후 §10.9 WIP → 마감 + 수용 기준 체크박스 일괄 `[x]` | 10.9 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
+| 2026-04-20 | (pending, REQ-20260420-024) | §10.10 신설 — SearchInput.test substring 어서트를 anchored 정규식 (`/_divSearchMobile(?!hide)/`) 로 강화. CSS Modules hash 접미 하에서 `search-mobile ⊂ search-mobilehide` 중첩 blind spot 해소. L93/L114 대칭 강화 + 회귀 가드 주석 1줄. 본 spec §4.6 (hash 깨짐 주의) + §10.4 (Search selector 정의) 연동. 가족 도메인(Image/Toaster/Comment) suffix 패턴 재사용 기준점. (WIP) | 10.10 |
