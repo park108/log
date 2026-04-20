@@ -7,6 +7,14 @@ import * as useLogModule from './hooks/useLog';
 import LogSingle from '../Log/LogSingle';
 import { useMockServer } from '../test-utils/msw';
 
+// env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
+// 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
+const stubMode = (mode) => {
+	vi.stubEnv('MODE', mode);
+	vi.stubEnv('DEV', mode === 'development');
+	vi.stubEnv('PROD', mode === 'production');
+};
+
 console.log = vi.fn();
 console.warn = vi.fn();
 console.error = vi.fn();
@@ -46,7 +54,7 @@ describe('LogSingle render on prod server (ok)', () => {
 
 	it('render LogSingle on prod server', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		// Set session list
 		sessionStorage.clear();
@@ -121,7 +129,7 @@ describe('LogSingle render on dev server (ok)', () => {
 
 	it('render LogSingle on dev server', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -151,7 +159,7 @@ describe('LogSingle get OK delete failed', () => {
 
 	it('get OK delete failed', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -194,7 +202,7 @@ describe('LogSingle get OK delete network error', () => {
 
 	it('get OK delete failed', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -231,7 +239,7 @@ describe('LogSingle render "Page Not Found" on prod server (failed)', () => {
 
 	it('render "Page Not Found" page if it cannot fetch', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		render(withQuery(
 			<MemoryRouter initialEntries={[ testEntry ]}>
@@ -249,7 +257,7 @@ describe('LogSingle render "Page Not Found" on prod server (no data)', () => {
 
 	it('render "Page Not Found" page if it has no log', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		render(withQuery(
 			<MemoryRouter initialEntries={[ testEntry ]}>
@@ -267,7 +275,7 @@ describe('LogSingle render "Page Not Found" on prod server (network error)', () 
 
 	it('render "Page Not Found" page if API is down', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		render(withQuery(
 			<MemoryRouter initialEntries={[ testEntry ]}>
@@ -308,7 +316,7 @@ describe('LogSingle useLog hook integration', () => {
 
 	it('calls useLog with the timestamp resolved from useParams', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);

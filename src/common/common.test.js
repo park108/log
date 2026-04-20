@@ -1,12 +1,22 @@
 import * as common from './common';
 
+// env-spec §5.2 / REQ-20260420-002 FR-01 — 런타임 env 분기는 `isDev()/isProd()`
+// (= `import.meta.env.DEV/PROD`) 경유. 테스트에서는 `vi.stubEnv('MODE', ...)` 와
+// 보조로 `DEV/PROD` 를 짝맞춰 stub. 전역 `afterEach(vi.unstubAllEnvs)` 는
+// `src/setupTests.js` 에 박제돼 있으므로 개별 teardown 생략.
+const stubMode = (mode) => {
+	vi.stubEnv('MODE', mode);
+	vi.stubEnv('DEV', mode === 'development');
+	vi.stubEnv('PROD', mode === 'production');
+};
+
 console.error = vi.fn();
 console.log = vi.fn();
 
 describe('set HTML page title', () => {
   
 	it("dev title", () => {
-		process.env.NODE_ENV = "development";
+		stubMode('development');
 		document.title = "";
 		common.log("DEFAULT", "");
 		common.log("INFO", "INFO");
@@ -16,7 +26,7 @@ describe('set HTML page title', () => {
 	});
 
 	it("prod title", () => {
-		process.env.NODE_ENV = "production";
+		stubMode('production');
 		document.title = "";
 		common.log("DEFAULT");
 		common.log("INFO", "INFO");
@@ -86,13 +96,13 @@ describe('parseJwt input guards (REQ-20260418-032 FR-01, FR-03)', () => {
 describe('get URL by stage', () => {
   
 	it("test URL", () => {
-		process.env.NODE_ENV = "development";
+		stubMode('development');
 		const getUrl = common.getUrl();
 		expect(getUrl).toBe("http://localhost:3000/");
 	});
 
 	it("prod URL", () => {
-		process.env.NODE_ENV = "production";
+		stubMode('production');
 		const getUrl = common.getUrl();
 		expect(getUrl).toBe("https://www.park108.net/");
 	});
@@ -133,13 +143,13 @@ it('test auth', () => {
 	delete window.location;
 	window.location = mockLocation;
 
-	process.env.NODE_ENV = "development";
+	stubMode('development');
 	common.auth();
 
-	process.env.NODE_ENV = "production";
+	stubMode('production');
 	common.auth();
 
-	process.env.NODE_ENV = "";
+	stubMode('');
 	common.auth();
 
 	window.location = currentLocation; // Rollback location
@@ -155,7 +165,7 @@ describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => 
 	beforeEach(() => {
 		savedLocation = window.location;
 		clearAuthCookies();
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 	});
 
 	afterEach(() => {
@@ -219,7 +229,7 @@ describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
 	});
 
 	it('produces equivalent document.cookie body after 1 vs 2 calls (development)', () => {
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 		common.auth();
 		const cookieAfter1 = normalizeCookie(document.cookie);
 		common.auth();
@@ -231,7 +241,7 @@ describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
 	});
 
 	it('produces equivalent document.cookie body after 1 vs 3 calls (production)', () => {
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 		common.auth();
 		const cookieAfter1 = normalizeCookie(document.cookie);
 		common.auth();
@@ -263,7 +273,7 @@ describe('login test', () => {
 describe('test isAdmin', () => {
 
 	it('test production admin', () => {
-		process.env.NODE_ENV = "production";
+		stubMode('production');
 		common.setCookie(
 			"access_token"
 			, "eyJraWQiOiJ0S2JQRzgwS2ZJeWdYWk1XRXRRWVwvc3haM0NmVXAzNTR1RlQyeG1kd1l2TT0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJkZjI1NmU1Ni03YzI0LTRiMTktOTE3Mi0xMGFjYzQ3YWI4ZjQiLCJjb2duaXRvOmdyb3VwcyI6WyJhZG1pbiJdLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuYXAtbm9ydGhlYXN0LTIuYW1hem9uYXdzLmNvbVwvYXAtbm9ydGhlYXN0LTJfT1dqd0M1Vk1uIiwidmVyc2lvbiI6MiwiY2xpZW50X2lkIjoiNW9idGhldWxiN29sdjV1aG5rdWJ1bGRncWoiLCJldmVudF9pZCI6IjVjNjc0MjRhLTRmZWQtNDY5My1hNTdhLTY0YThhYjY0MzkzNSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2NTc0NTY2ODksImV4cCI6MTY1NzQ2MDI4OSwiaWF0IjoxNjU3NDU2Njg5LCJqdGkiOiI0ZjUzMTdmYi01ZThlLTRjNDQtOGFjYi0wMDY5MWE4M2U0MjIiLCJ1c2VybmFtZSI6ImRmMjU2ZTU2LTdjMjQtNGIxOS05MTcyLTEwYWNjNDdhYjhmNCJ9.gzJRLPzL9b4vqX4kVnX_yIQbJtPDd-ohm1znwjXttuBIAjlKIYs5_VwQzdEH6CpHZN4slPu2hYENKVXqXZqh0Au3sMOy-ATOX_OQiqerP0WSjAzhpw6kc1spLPlK-LsHvpnVv14F4j33DrDGJspKYR8BRwNUuVafc1lck6h43xwXiG78pt-_QbnLmd8LGAGZmLS4zRaya1WZCsG9SsNXIPcKmOwlbUNw-pbJVTtIS8lTNZr7h8ETFxMO2ryZlfcdYSKZbdab_71xHdOB6S-_zK3Kx7Y1xqKQ2iTIlG4PGmpE3WEV6rZqiWFW4CJALZ127bqWdTEK8RDlr5Xx6-UgUA"
@@ -280,7 +290,7 @@ describe('test isAdmin', () => {
 	});
 
 	it('test development admin', () => {
-		process.env.NODE_ENV = "development";
+		stubMode('development');
 		common.setCookie(
 			"access_token"
 			, "eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg"
@@ -297,7 +307,7 @@ describe('test isAdmin', () => {
 	});
 
 	it('test not admin', () => {
-		process.env.NODE_ENV = "";
+		stubMode('');
 		common.setCookie("access_token", "eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg");
 
 		const resultDevCommonUser = common.isAdmin();
@@ -314,14 +324,14 @@ describe('isAdmin fail-safe with corrupted cookie (REQ-20260418-032 FR-02, FR-04
 	});
 
 	it('returns false when access_token is a single-part garbage string', () => {
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 		common.setCookie('access_token', 'ZZZ', { site: 'localhost:3000' });
 		expect(() => common.isAdmin()).not.toThrow();
 		expect(common.isAdmin()).toBe(false);
 	});
 
 	it('returns false when access_token payload is malformed base64', () => {
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 		common.setCookie('access_token', 'header.!!!invalid!!!.sig', { site: 'localhost:3000' });
 		expect(() => common.isAdmin()).not.toThrow();
 		expect(common.isAdmin()).toBe(false);
@@ -460,14 +470,14 @@ describe('User Agent parsing test', () => {
 
 	it('get User Agent Info', () => {
 
-		process.env.NODE_ENV = "development";
+		stubMode('development');
 		const result = common.userAgentParser();
 		expect(result.url).toBe("http://localhost:3000/");
 	});
 
 	it('get User Agent Info', () => {
 
-		process.env.NODE_ENV = "development";
+		stubMode('development');
 		const result = common.userAgentParser();
 		expect(result.url).toBe("http://localhost:3000/");
 	});

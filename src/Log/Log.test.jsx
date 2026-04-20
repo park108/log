@@ -5,6 +5,15 @@ import * as common from '../common/common';
 import Log from '../Log/Log';
 import { useMockServer } from '../test-utils/msw';
 
+// env-spec §5.2 / REQ-20260420-002 — 테스트는 `vi.stubEnv('MODE', ...)` 로
+// MODE/DEV/PROD 를 짝맞춰 stub. 전역 `afterEach(vi.unstubAllEnvs)` 는
+// `src/setupTests.js` 에서 등록됨.
+const stubMode = (mode) => {
+	vi.stubEnv('MODE', mode);
+	vi.stubEnv('DEV', mode === 'development');
+	vi.stubEnv('PROD', mode === 'production');
+};
+
 console.log = vi.fn();
 console.error = vi.fn();
 
@@ -53,7 +62,7 @@ describe('Log render logged-in on prod server (ok)', () => {
 
 	test('render log if it logged in', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -94,7 +103,7 @@ describe('Log render failed when internal server error on prod server', () => {
 
 	test('render failed when internal server error on prod server', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -119,7 +128,7 @@ describe('Log render failed when network error on prod server', () => {
 
 	test('render failed when network error on prod server', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -143,7 +152,7 @@ describe('Log render logs and getting next failed', () => {
 
 	test('render logs and getting next failed', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -172,7 +181,7 @@ describe('Log render logs and getting next error', () => {
 
 	test('render logs and getting next error', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);

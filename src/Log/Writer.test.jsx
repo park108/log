@@ -7,6 +7,14 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
 
+// env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
+// 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
+const stubMode = (mode) => {
+	vi.stubEnv('MODE', mode);
+	vi.stubEnv('DEV', mode === 'development');
+	vi.stubEnv('PROD', mode === 'production');
+};
+
 // Writer depends on `useCreateLog` (TanStack Query mutation hook) since
 // TSK-20260418-MUT-CREATE. A QueryClientProvider is mandatory for the
 // component to mount; each test gets an isolated client to avoid cache
@@ -53,7 +61,7 @@ describe('Writer create log ok on prod server', () => {
 
 	test('create log ok on prod server', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -102,7 +110,7 @@ describe('Writer create log failed on prod server', () => {
 
 	test('create log failed on prod server', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -151,7 +159,7 @@ describe('Writer create log network error on prod server', () => {
 
 	test('create log network error on prod server', async () => {
 
-		process.env.NODE_ENV = 'production';
+		stubMode('production');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -200,7 +208,7 @@ describe('Writer edit log ok on dev server', () => {
 
 	it('edit log ok on dev server', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -251,7 +259,7 @@ describe('Writer edit log failed on dev server', () => {
 
 	it('edit log failed on dev server', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
@@ -302,7 +310,7 @@ describe('Writer edit log network error on dev server', () => {
 
 	it('edit log network error on dev server', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true);

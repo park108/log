@@ -2,6 +2,26 @@
 // e.g. expect(element).toHaveTextContent(/react/i)
 // https://github.com/testing-library/jest-dom
 //
+// env-spec §5.2 / REQ-20260420-002 / REQ-20260420-005 (TSK-20260420-37)
+// ------------------------------------------------------------------------------------
+// env (MODE / DEV / PROD) stub 이디엄 규칙 — 런타임 코드가 `isDev()/isProd()`
+// (= `import.meta.env.DEV/PROD`) 경유로 분기하므로, 테스트에서는 **반드시**
+// `vi.stubEnv('MODE', ...)` + 짝맞춘 `DEV` / `PROD` stub 으로 전환한다.
+//   • production 분기:   `vi.stubEnv('MODE','production')`  + `vi.stubEnv('DEV', false)` + `vi.stubEnv('PROD', true)`
+//   • development 분기:  `vi.stubEnv('MODE','development')` + `vi.stubEnv('DEV', true)`  + `vi.stubEnv('PROD', false)`
+//   • test (기본):        `vi.stubEnv('MODE','test')`        + `vi.stubEnv('DEV', false)` + `vi.stubEnv('PROD', false)`
+//     (DEV/PROD/SSR 는 vitest 에서 boolean 인자를 받는다 — 문자열 `'false'` 는 truthy 로
+//      평가돼 stub 이 무력화되므로 boolean 리터럴 사용 필수.)
+//   • 전역 `afterEach(() => vi.unstubAllEnvs())` 는 본 파일에서 한 번 등록
+//     (아래 §전역 afterEach) — 개별 테스트/스위트에서 추가 등록 불필요.
+//   • 레거시 `NODE_ENV` 직접 재할당 이디엄은 Vite 정적 치환 경로를 무효화하므로
+//     신규 코드에서 사용 금지. 기존 위반은 마이그레이션 대상.
+//   • 경고: vitest 는 기본적으로 `import.meta.env.DEV=true` 를 노출한다.
+//     `getUrl()` 처럼 `isDev()/isProd()` 를 렌더 경로에 사용하는 컴포넌트를
+//     테스트할 때는 baseline href-미설정 동작을 원하면 **명시적으로**
+//     `stubMode('test')` 를 걸어 DEV/PROD 모두 false 로 고정해야 한다
+//     (대표 예: `src/common/Navigation.test.jsx > render title menu correctly`).
+//
 // react-19-test-layer-adaptation-spec (REQ-20260420-004) §FR-01 / TSK-20260420-35-a
 // ------------------------------------------------------------------------------------
 // fake-timer 이디엄 규칙 (React 19 act 모델 + testing-library polling 호환):

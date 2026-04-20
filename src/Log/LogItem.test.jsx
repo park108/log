@@ -6,6 +6,14 @@ import LogItem from './LogItem';
 import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
 
+// env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
+// 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
+const stubMode = (mode) => {
+	vi.stubEnv('MODE', mode);
+	vi.stubEnv('DEV', mode === 'development');
+	vi.stubEnv('PROD', mode === 'production');
+};
+
 console.log = vi.fn();
 console.error = vi.fn();
 
@@ -45,7 +53,7 @@ it('render log item correctly', async () => {
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	process.env.NODE_ENV = 'production';
+	stubMode('production');
 
 	const testEntry = {
 		pathname: "/log"
@@ -155,7 +163,7 @@ describe('LogItem DELETE 5xx error toaster', () => {
 
 	it('shows error toaster on DELETE 5xx response', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		const contents = "header test contents";
 		const markdownText = "## " + contents;
@@ -210,7 +218,7 @@ describe('LogItem DELETE network-error toaster', () => {
 
 	it('shows network error toaster on DELETE network failure', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		const contents = "header test contents";
 		const markdownText = "## " + contents;
@@ -265,7 +273,7 @@ describe('LogItem render and delete failed (confirm cancel then accept)', () => 
 
 	it('render log item and delete failed correctly', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		const contents = "header test contents";
 		const markdownText = "## " + contents;
@@ -328,7 +336,7 @@ describe('LogItem render and delete network error', () => {
 
 	it('render log item and delete network error', async () => {
 
-		process.env.NODE_ENV = 'development';
+		stubMode('development');
 
 		const contents = "header test contents";
 		const markdownText = "## " + contents;

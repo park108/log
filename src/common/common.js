@@ -1,8 +1,10 @@
+import { isDev, isProd } from './env';
+
 export const setHtmlTitle = (title) => {
-	if(process.env.NODE_ENV === 'production') {
+	if(isProd()) {
 		document.title = title + " - park108.net";
 	}
-	else if(process.env.NODE_ENV === 'development') {
+	else if(isDev()) {
 		document.title = "[DEV] " + title + " - park108.net";
 	}
 }
@@ -27,7 +29,7 @@ export const hasValue = (obj) => {
 }
 
 export const log = (logText, type = "INFO") => {
-	if (process.env.NODE_ENV === 'development') {
+	if (isDev()) {
 
 		const now = Math.floor(new Date().getTime());
 		const timestampFormat = getFormattedDate(now) + " " + getFormattedTime(now) + " ";
@@ -63,10 +65,10 @@ export function parseJwt (token) {
 }
 
 export const getUrl = () => {
-	if (process.env.NODE_ENV === 'production') {
+	if (isProd()) {
 		return "https://www.park108.net/";
 	}
-	else if (process.env.NODE_ENV === 'development') {
+	else if (isDev()) {
 		return "http://localhost:3000/";
 	}
 }
@@ -124,10 +126,10 @@ export function auth() {
 
 		let site = "";
 		
-		if ('production' === process.env.NODE_ENV) {
+		if (isProd()) {
 			site = "park108.net";
 		}
-		else if ('development' === process.env.NODE_ENV) {
+		else if (isDev()) {
 			site = "localhost:3000";
 		}
 
@@ -160,11 +162,11 @@ export function isAdmin() {
 	if (!payload) return false;
 	const userId = payload.username;
 
-	if ('production' === process.env.NODE_ENV
+	if (isProd()
 		&& "df256e56-7c24-4b19-9172-10acc47ab8f4" === userId) {
 		return true;
 	}
-	else if ('development' === process.env.NODE_ENV
+	else if (isDev()
 		&& "051fd5f9-a336-4055-96e5-6e1e125ebd15" === userId) {
 		return true;
 	}

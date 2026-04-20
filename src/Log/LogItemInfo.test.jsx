@@ -4,6 +4,14 @@ import { Suspense } from 'react';
 import * as common from '../common/common';
 import LogItemInfo from './LogItemInfo';
 
+// env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
+// 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
+const stubMode = (mode) => {
+	vi.stubEnv('MODE', mode);
+	vi.stubEnv('DEV', mode === 'development');
+	vi.stubEnv('PROD', mode === 'production');
+};
+
 // react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02, FR-07
 // 목적: hoverPopup(legacy imperative) 호출을 useHoverPopup 훅으로 이관한
 // LogItemInfo 의 popup (클립보드 링크 + 버전 히스토리) 이
@@ -38,17 +46,14 @@ const renderInfo = (overrides = {}) => render(
 
 describe('LogItemInfo hoverPopup migration', () => {
 
-	let previousNodeEnv;
-
 	beforeEach(() => {
-		// getUrl() 은 NODE_ENV 가 production/development 일 때만 URL 을 반환.
-		// 테스트 환경(vitest → 'test') 에서는 undefined → 링크 텍스트 매칭 실패.
-		previousNodeEnv = process.env.NODE_ENV;
-		process.env.NODE_ENV = 'production';
+		// getUrl() 은 isProd()/isDev() 가 true 일 때만 URL 을 반환.
+		// 테스트 환경(vitest 기본 MODE='test') 에서는 undefined → 링크 텍스트 매칭 실패.
+		// env stub 해제는 `src/setupTests.js` 의 전역 `afterEach(vi.unstubAllEnvs)` 가 담당.
+		stubMode('production');
 	});
 
 	afterEach(() => {
-		process.env.NODE_ENV = previousNodeEnv;
 		vi.useRealTimers();
 		vi.restoreAllMocks();
 	});
