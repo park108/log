@@ -1,34 +1,45 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T22:41:39Z
+# Updated: 2026-04-21T23:15:00Z
 # Session: 0 promotions + 0 new carves + 0 blocked.
-#   컨텍스트: 유저 메시지는 "TSK-49/50 소진" 이라 했으나 실측 결과 TSK-49, TSK-50 은
-#     `specs/50.blocked/task/` 로 이동됨 (developer 격리 — Layer 2 race / depends_on 미충족).
-#     해당 spec 들의 developer 경로 결과는 blocked 이므로 승격 시그널 아님.
-#   승격 (green → blue): 없음.
-#     - toaster-conditional-mount-or-helper-spec.md: unchecked 2건 잔존 (FR-09 shuffle, line 97/107).
-#       인라인 주석은 "TSK-49 범위로 이관" 서사만 있고 `[deferred]` 토큰 부재 → 승격 4조건 미충족.
-#       hash 동일(23bfc92…) → stale 0→1.
-#     - test-isolation-shuffle-safety-cold-start-spec.md: unchecked 16건 잔존.
-#       4건만 `[deferred]` 태그, 12건(수용 기준 섹션 + lint) 태그 부재 → 승격 불가.
-#       hash 변경(639c789…→6e5e507…) — inspector reconcile 박제로 stale 리셋 1→0.
-#     - file-test-multi-scenario-split-spec.md: unchecked 19건 잔존.
-#       7건만 `[deferred]` 태그, 12건(수용 기준 섹션) 태그 부재 → 승격 불가.
-#       hash 변경(f113f25…→6488570…) — inspector reconcile 박제로 stale 리셋 1→0.
+#   컨텍스트: RULE-03 선결 통과 — pause 없음, input 3, ready 0 (여유 10).
+#     실측 결과 3건 모두 **hash 불변** (toaster 23bfc92…, shuffle 6e5e507…, file-split
+#     6488570…). 유저 메시지의 "직전 이후 green 변동" 은 실측상 없음 — stale 승계.
+#   승격 평가 (4조건: WIP=0, unchecked=0, To-Be=0, 변경이력 박제; `[deferred]` 제외):
+#     - toaster-conditional-mount-or-helper-spec.md:
+#         WIP=0, To-Be=0, 변경이력 TSK-48 / a8eee5e 박제 OK.
+#         unchecked 2건(line 97, 107) 모두 `[deferred]` 토큰 **부재** — 인라인 서술
+#         "TSK-20260421-49 범위로 이관" 만 있음. 4조건 미충족 → 승격 불가.
+#         hash 동일 → stale 1→2.
+#     - test-isolation-shuffle-safety-cold-start-spec.md:
+#         unchecked 16건 중 `[deferred]` 태깅 4건(테스트 현황 FR-02/06/07/08),
+#         수용 기준 섹션 12건(line 61, 64~74) 태깅 부재 → 승격 불가.
+#         hash 동일 → stale 0→1.
+#     - file-test-multi-scenario-split-spec.md:
+#         unchecked 19건 중 `[deferred]` 태깅 7건(테스트 현황 FR-01~05/07/09),
+#         수용 기준 섹션 12건(line 56~67) 태깅 부재 → 승격 불가.
+#         hash 동일 → stale 0→1.
 #   carve: 신규 없음.
-#     TSK-48 은 done, TSK-49/50 은 blocked 상태. 운영자(RULE-05) 가 blocked 해제 / spec
-#     재개정 (Layer 2 서사 / depends_on 재평가) 을 수행한 후 신규 carve 가능.
-#     planner 자발적 재발행은 멱등 위반 — no-op.
-#   blocked: 없음 (3cycle stale 미도달; hash 변경 2건은 리셋, 1건은 stale=1).
+#     TSK-49, TSK-50 은 50.blocked/task/ 격리 상태 (RULE-05 운영자 관할). 동일 범위
+#     재carve 는 멱등 위반 + RULE-02 fail-fast 원칙 위반. TSK-48 은 done, toaster FR-09
+#     는 TSK-49 해소 후에만 ack 가능. 운영자 해제 또는 inspector 수용 기준 섹션까지
+#     `[deferred]` 태깅 확산 후 재평가 가능.
+#     (참고: TSK-43 도 50.blocked/task/ 에 잔존 — react-19-findby-timing-reselection.)
+#   blocked (3cycle stale 미도달):
+#     - 최고 stale: toaster 2 (임계 3 미도달 — 다음 동일-hash 사이클 시 50.blocked/spec/ 이동).
+#     - 2회 이상 정체는 toaster 한정. inspector 가 line 97, 107 에 `[deferred: TSK-49]`
+#       토큰 1건 박제하면 즉시 승격 가능 (4조건 충족) — 차기 사이클 최우선 신호.
 #   grep dry-run: N/A (신규 carve 없음).
 # ledger entries:
-components/toaster-conditional-mount-or-helper-spec.md 23bfc9260ee53be3135e18f2826876ab761b28db2a7ad37ee3a7696d62aa6ba5 1
-common/test-isolation-shuffle-safety-cold-start-spec.md 6e5e5071ca4cfc4703c60dec255f4b3c23f7f836776b0f94d265e183edb498d9 0
-components/file-test-multi-scenario-split-spec.md 6488570be7d4c6586fdcc912c53a5cfeaf8020ff5add354ba34ea760df280197 0
+components/toaster-conditional-mount-or-helper-spec.md 23bfc9260ee53be3135e18f2826876ab761b28db2a7ad37ee3a7696d62aa6ba5 2
+common/test-isolation-shuffle-safety-cold-start-spec.md 6e5e5071ca4cfc4703c60dec255f4b3c23f7f836776b0f94d265e183edb498d9 1
+components/file-test-multi-scenario-split-spec.md 6488570be7d4c6586fdcc912c53a5cfeaf8020ff5add354ba34ea760df280197 1
 # ready 큐: (count=0, TASK_READY_MAX=10 여유 10).
-#   (TSK-48 은 60.done/2026/04/21/task/toaster-conditional-mount-or-helper/ 로 아카이브 완료)
-#   (TSK-49, TSK-50 은 50.blocked/task/ 격리 — RULE-05 운영자 관할)
-#   50.blocked/spec: 5건 (RULE-05 운영자 관할).
+#   50.blocked/task: TSK-43, TSK-49, TSK-50 (각 + _reason.md — RULE-05 관할).
+#   50.blocked/spec: 5건 (RULE-05 관할).
 # next cycle:
-#   - 운영자가 TSK-49/50 blocked 해제 후 spec 에 `[deferred]` 또는 `[x]` 박제 → 승격 재평가.
-#   - 또는 inspector 가 수용 기준 섹션도 `[deferred]` 로 통일 박제 → 다음 사이클 승격 후보.
-#   - stale 3cycle 도달 시 50.blocked/spec/ 이동 (RULE-01) — 현 시점 최고 stale=1 (toaster).
+#   - toaster stale 2 → 3 (차기 동일 hash 시) 이동 트리거. inspector 가 FR-09 2건에
+#     `[deferred: TSK-20260421-49]` 토큰 박제하면 4조건 통과 후 승격.
+#   - shuffle / file-split: inspector 가 수용 기준 섹션 unchecked 12건씩에 `[deferred]`
+#     태깅 확산 → 승격 후보.
+#   - 또는 운영자가 TSK-49/50 blocked 해제 (spec 재개정: Layer 2 서사 + depends_on
+#     재평가) 시 실측 가능 경로 재개.
