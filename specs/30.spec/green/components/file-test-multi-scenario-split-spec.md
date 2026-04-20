@@ -44,13 +44,13 @@
 
 ## 테스트 현황
 - [x] 현 HEAD `npm test` (serial) → 0 fail (ae80e56).
-- [ ] FR-01 목록 확장 단독 test.
-- [ ] FR-02 empty flush 단독 test.
-- [ ] FR-03 Copy URL toaster 단독 test.
-- [ ] FR-04 Delete API 호출 assertion.
-- [ ] FR-05 Delete → 3000ms refresh assertion (fake timer).
-- [ ] FR-07 기존 혼합 test 제거.
-- [ ] FR-09 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail.
+- [ ] FR-01 목록 확장 단독 test. **[deferred: depends_on TSK-20260421-49 (blocked) — TSK-20260421-50 자체도 blocked 이동됨, `50.blocked/task/TSK-20260421-50-file-test-multi-scenario-split_reason.md` 참조]**
+- [ ] FR-02 empty flush 단독 test. **[deferred: TSK-50 blocked]**
+- [ ] FR-03 Copy URL toaster 단독 test. **[deferred: TSK-50 blocked]**
+- [ ] FR-04 Delete API 호출 assertion. **[deferred: TSK-50 blocked]**
+- [ ] FR-05 Delete → 3000ms refresh assertion (fake timer). **[deferred: TSK-50 blocked]**
+- [ ] FR-07 기존 혼합 test 제거. **[deferred: TSK-50 blocked]**
+- [ ] FR-09 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail. **[deferred: TSK-50 blocked (+TSK-49 shuffle safety 선결)]**
 
 ## 수용 기준
 - [ ] (Must) FR-01 — `test("See more expands the list to 10 items")` 가 독립 `test` 로 존재.
@@ -80,3 +80,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-008 반영; File.test.jsx 단일 혼합 test 를 5개 test 로 분할, Delete→refresh 커버리지 fake timer 로 복원) | all |
+| 2026-04-21 | inspector / — (drift reconcile) | TSK-20260421-50 blocked 관측 (HEAD=ea9d30c). depends_on TSK-20260421-49 (blocked) 미충족으로 developer 가 blocked 이관. 본 spec 의 변경 범위(`src/File/File.test.jsx` `prodServerOk` describe)는 TSK-49 범위(`src/Log/LogItem.test.jsx` + shuffle)와 파일 비중첩 — 운영자 판단으로 depends_on 재평가(TSK-49 제거) 가능. FR-01~05, FR-07, FR-09 deferred 태깅. ack 0/7 (테스트 현황). | 테스트 현황, 변경 이력 |

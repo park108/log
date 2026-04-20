@@ -54,10 +54,10 @@
 ## 테스트 현황
 - [x] 현 HEAD `npm test` (serial) → 0 fail (ae80e56).
 - [x] shuffle seed=1/2/3 에서 cold-start race 재현 (REQ 본문 수치 — HEAD=4bd67ef 기준, 현 HEAD 재검증은 FR-08 에서).
-- [ ] FR-02 옵션 A 적용 후 LogItem cold-start race 해소.
-- [ ] FR-06 msw.test.js sibling-it 독립.
-- [ ] FR-07 File.test.jsx cache race 해소.
-- [ ] FR-08 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail.
+- [ ] FR-02 옵션 A 적용 후 LogItem cold-start race 해소. **[deferred: TSK-20260421-49 blocked — 옵션 A+B+C 조합에서도 shuffle seed=1 `LogItem DELETE network-error` 1건 잔존; developer 실측으로 Layer 2 (mutation flush + msw listen) race 식별, 50.blocked/task/TSK-20260421-49 _reason.md 참조]**
+- [ ] FR-06 msw.test.js sibling-it 독립. **[deferred: TSK-49 blocked; Layer 2 해소 후 재시도 권장]**
+- [ ] FR-07 File.test.jsx cache race 해소. **[deferred: TSK-49 blocked]**
+- [ ] FR-08 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail. **[deferred: TSK-49 blocked — Layer 2 race 미해소]**
 - [ ] `npm run lint` 0 warn/error.
 
 ## 수용 기준
@@ -87,3 +87,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-007 반영; α-가설 폐기, cold-start race 서사로 전면 재작성, 옵션 A(sync→async query 전환) 채택, 이전 blocked spec 은 운영자 정리 대상) | all |
+| 2026-04-21 | inspector / — (drift reconcile) | TSK-20260421-49 blocked 관측 (HEAD=ea9d30c). developer 실측으로 옵션 A/B/C 조합 적용 후에도 shuffle seed=1 `LogItem DELETE network-error` 1건 (`findByText("Deleting log network error.")` 5067ms timeout) 잔존 — **Layer 2 (mutation fetch → onError → setState → rerender) race** 가 cold-start race 와 별개로 존재. 본 spec 의 β-가설(sync query cold-start) 은 Layer 1 만 설명. 운영자 해제 시 spec 재개정 (Layer 2 서사 추가, 해결 후보 B1~B4 열거) 필요 — `50.blocked/task/TSK-20260421-49-test-isolation-shuffle-safety-cold-start_reason.md` 참조. FR-02/06/07/08 deferred 태깅. ack 0/5 (테스트 현황). | 테스트 현황, 변경 이력 |
