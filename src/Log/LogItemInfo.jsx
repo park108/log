@@ -1,7 +1,8 @@
 import React, { useState, Suspense, lazy } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, hoverPopup, copyToClipboard, hasValue } from '../common/common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, copyToClipboard, hasValue } from '../common/common';
+import { useHoverPopup } from '../common/useHoverPopup';
 import LinkButton from '../static/link.svg?react';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -12,6 +13,12 @@ const LogItemInfo = (props) => {
 
 	const item = props.item;
 	const timestamp = props.timestamp;
+
+	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+	// 기존 hoverPopup(event, 'click-to-clipboard-box') / 'version-history' 명령형 호출 대체.
+	// isId() 로 각 훅 인스턴스에 고유 id 자동 부여 → LogList 내 row 중복 ID 충돌 회피.
+	const linkPopup = useHoverPopup();
+	const versionPopup = useHoverPopup();
 
 	return (
 		<section className="section section--logitem-info">
@@ -35,19 +42,22 @@ const LogItemInfo = (props) => {
 							role="button"
 							href={ getUrl() + "log/" + timestamp }
 							className="a a--logitem-loglink"
-							onMouseOver={(event) => hoverPopup(event, "click-to-clipboard-box")}
-							onMouseMove={(event) => hoverPopup(event, "click-to-clipboard-box")}
-							onMouseOut={(event) => hoverPopup(event, "click-to-clipboard-box")}
+							{...linkPopup.triggerProps}
 						>
 							{ getUrl() + "log/" + timestamp }
 						</a>
 					</span>
-					<div id="click-to-clipboard-box" className="div div--logitem-linkmessage" style={{display: "none"}}>
-						Click to Clipboard
-					</div>
+					{ linkPopup.isVisible && (
+						<div
+							className="div div--logitem-linkmessage"
+							{...linkPopup.contentProps}
+						>
+							Click to Clipboard
+						</div>
+					) }
 				</span>
 			)}
-			
+
 			{ !isAdmin() ? "" : (
 				<div className="div div--logitem-toolbar">
 					<span className="hidden--width-350px">
@@ -60,24 +70,27 @@ const LogItemInfo = (props) => {
 								role="button"
 								data-testid="versions-button"
 								className="span span--logitem-version"
-								onMouseOver={(event) => hoverPopup(event, "version-history")}
-								onMouseMove={(event) => hoverPopup(event, "version-history")}
-								onMouseOut={(event) => hoverPopup(event, "version-history")}
+								{...versionPopup.triggerProps}
 							>
 								{"v." + item.logs.length}
-								<div id="version-history" className="div div--logitem-versionhistory" style={{display: "none"}}>
-									{ item.logs.map((data, index) => (
-										<div key={index}>
-											<span className="span span--logitem-historyverision">
-												{"v." + (item.logs.length - index)}
-											</span>
-											{
-												" " + getFormattedDate(data.timestamp)
-												+ " " + getFormattedTime(data.timestamp)
-											}
-										</div>
-									)) }
-								</div>
+								{ versionPopup.isVisible && (
+									<div
+										className="div div--logitem-versionhistory"
+										{...versionPopup.contentProps}
+									>
+										{ item.logs.map((data, index) => (
+											<div key={index}>
+												<span className="span span--logitem-historyverision">
+													{"v." + (item.logs.length - index)}
+												</span>
+												{
+													" " + getFormattedDate(data.timestamp)
+													+ " " + getFormattedTime(data.timestamp)
+												}
+											</div>
+										)) }
+									</div>
+								) }
 							</span> : ""
 						}
 						<span className="span span--logitem-separator">|</span>
@@ -105,7 +118,7 @@ const LogItemInfo = (props) => {
 				</div>
 			)}
 			<Suspense fallback={<div></div>}>
-				<Toaster 
+				<Toaster
 					show={isShowToaster}
 					message={"The link URL copied."}
 					position={"bottom"}

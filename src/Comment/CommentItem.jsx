@@ -1,6 +1,7 @@
 import React, { useState, lazy } from "react";
 import PropTypes from 'prop-types';
-import { hasValue, getFormattedDate, getFormattedTime, hoverPopup, isAdmin } from '../common/common';
+import { hasValue, getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
+import { useHoverPopup } from '../common/useHoverPopup';
 
 import styles from './Comment.module.css';
 
@@ -17,6 +18,10 @@ const CommentItem = (props) => {
 	const logTimestamp = isHidden && !isAdmin() ? "" : props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
 	const timestamp = isHidden && !isAdmin() ? "" : props.timestamp;
+
+	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+	// 기존 hoverPopup(event, "reply-popup-" + timestamp) 명령형 호출 대체.
+	const replyPopup = useHoverPopup();
 
 	const toggleReplyForm = () => {
 		setIsShowReplyForm(!isShowReplyForm);
@@ -47,17 +52,21 @@ const CommentItem = (props) => {
 			className={`div ${styles.divCommentReplybutton}`}
 			data-testid="reply-toggle-button"
 			onClick={toggleReplyForm}
-			onMouseOver={event => hoverPopup(event, "reply-popup-" + timestamp)}
-			onMouseMove={event => hoverPopup(event, "reply-popup-" + timestamp)}
-			onMouseOut={event => hoverPopup(event, "reply-popup-" + timestamp)}
-		>	
+			{...replyPopup.triggerProps}
+		>
 			🪃
 
-			<div data-testid={"reply-popup-" + timestamp} id={"reply-popup-" + timestamp} className="div div--logitem-linkmessage" style={{display: "none"}}>
-				Reply this message
-			</div>
+			{ replyPopup.isVisible && (
+				<div
+					data-testid={"reply-popup-" + timestamp}
+					className="div div--logitem-linkmessage"
+					{...replyPopup.contentProps}
+				>
+					Reply this message
+				</div>
+			) }
 		</div>;
-	
+
 	const replyForm = isHidden && !isAdmin() ? ""
 		: isShowReplyForm ? <CommentForm
 				isReply={true}
