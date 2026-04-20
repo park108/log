@@ -1,7 +1,135 @@
 {
   "version": 1,
-  "updated": "2026-04-20T17:30:00Z",
-  "notes": "cycle 76: HEAD 62fdf58 (developer App online/offline fix). task/ready 9/10, slack=1. All 7 remaining greens fail Cond-1 (WIP tokens 2..29) — zero promotion eligible. No carve this cycle: 4 of 7 greens (auth/clipboard/env/react-version) already have in-flight tasks; the other 3 (ci/github-actions-ci, state/server-state, styles/css-modules) are multi-WIP drift specs (WIP 11..13, unchecked 47..122) where atomic carve is not feasible — matches cycle 75 held-rationale. Stalling conjunction FALSE: developer pulse active (f4f933a useHoverPopup + 62fdf58 App fix + worktree M src/Comment/CommentItem.jsx + src/Log/LogItemInfo.jsx aligned to in-flight TSK hoverpopup-callers-logitem-comment). No blocked isolation (greens held 1 cycle, below 2-cycle threshold). .planner-seen state written by planner only.",
+  "updated": "2026-04-20T18:05:00Z",
+  "notes": "cycle 77: HEAD e735aea (developer SearchInput setAttribute→className REQ-026). task/ready 3/10, slack=7. 8 greens, all fail Cond-1 (WIP 2..29). Developer pulse extremely active since cycle 76: 6 consumes (58bff69 hoverPopup-callers LogItemInfo/Comment + 6881e1d hoverPopup-callers Monitor + a72865c imageselector-toaster-success REQ-036 + 7daa83a parsejwt-isadmin-guard REQ-032 + 4ed26d3 search-loadingdots-cleartimeout REQ-004 + e735aea searchinput-setattribute-to-classname REQ-026). task/ready drained 9→3. All 4 'lowest-WIP' greens (auth 2, react-version 3, clipboard 7, env 29) now have their in-flight REQs developer-consumed and await inspector reconcile to flip [WIP] tokens on HEAD. testing/app-shell-side-effects-smoke-spec.md NEW untracked green (inspector area, not yet at HEAD, worktree-only — no planner input). clipboard-spec.md M worktree (inspector §2.3 grep format drift reconcile, +REQ-20260420-014). Carve decision: 0 — no atomic developer-scope unit remains that is not (a) already in-flight/done, (b) inspector-area reconcile, or (c) multi-WIP drift spec (ci/state/styles). Holding slack=7 as next-cycle buffer for post-inspector-reconcile carves. Stalling conjunction FALSE: developer pulse explosive, task/ready draining. No blocked isolation. .planner-seen state written by planner only.",
+  "cycle_77_observation": {
+    "timestamp": "2026-04-20T18:05:00Z",
+    "head_at_start": "e735aea refactor: SearchInput mobile-search setAttribute to declarative className",
+    "head_advance_since_cycle_76_commit": [
+      "58bff69 refactor: hoverPopup callers migration — LogItemInfo (x2) + CommentItem (x1) — developer consume of TSK hoverpopup-callers-logitem-comment",
+      "6881e1d refactor: hoverPopup callers migration — Monitor domain (ApiCallItem, WebVitalsItem, VisitorMon) — developer consume of TSK hoverpopup-callers-monitor",
+      "a72865c fix: ImageSelector Toaster tone warning→success on markdown copy — developer consume of TSK imageselector-toaster-success-req-036",
+      "7daa83a fix: parseJwt input guard + isAdmin fail-safe — developer consume of TSK parsejwt-isadmin-guard-req-032",
+      "4ed26d3 fix(Search): loadingDots setInterval + functional updater + single dep — developer consume of TSK search-loadingdots-cleartimeout (REQ-004)",
+      "e735aea refactor: SearchInput mobile-search setAttribute to declarative className — developer consume of TSK searchinput-setattribute-to-classname-req-026"
+    ],
+    "developer_pulse_since_cycle_76": "6 task consumes in ~1 cycle window. Consecutive pulse streak extends (cycles 71→77 = 7 cycles uninterrupted). task/ready 9→3 delta (-6). Pipeline extremely healthy developer channel.",
+    "inspector_pulse_since_cycle_76": "0 HEAD commits. Worktree has 2 inspector-area edits (M specs/spec/green/common/clipboard-spec.md + ?? specs/spec/green/testing/app-shell-side-effects-smoke-spec.md untracked). Planner operates on HEAD per RULE-01 §4 immutable handoff — these are not yet planner input. 2-cycle silence (cycles 76+77) following cycle 74 peak (3 commits). Worktree activity signals reconcile-in-progress; not stall.",
+    "green_file_count_start": 8,
+    "green_file_count_end": 8,
+    "blue_file_count_start": 24,
+    "blue_file_count_end": 24,
+    "task_ready_count_start": 3,
+    "task_ready_count_end": 3,
+    "task_ready_delta_cycle_77": {
+      "removed_via_dev_consume_this_cycle": [
+        "20260420-hoverpopup-callers-logitem-comment.md (→ 58bff69)",
+        "20260420-hoverpopup-callers-monitor.md (→ 6881e1d)",
+        "20260420-imageselector-toaster-success-req-036.md (→ a72865c)",
+        "20260420-parsejwt-isadmin-guard-req-032.md (→ 7daa83a)",
+        "20260420-search-loadingdots-cleartimeout-stale-closure-req-004.md (→ 4ed26d3)",
+        "20260420-searchinput-setattribute-to-classname-req-026.md (→ e735aea)"
+      ],
+      "added_via_planner_carve": [],
+      "net_change_this_cycle": "-6 + 0 = -6 (9 → 3, slack 1→7)",
+      "remaining_in_flight": [
+        "20260420-suspense-skeleton-logsingle-phase1.md (REQ error-boundary Suspense Phase 1)",
+        "20260420-tsconfig-baseurl-deprecation-cleanup.md (REQ-20260418-037 typescript)",
+        "20260420-userlogin-test-dynamic-import-simplification-probe-req-010.md (REQ-20260420-010)"
+      ]
+    },
+    "precheck": {
+      "pause_lock": "absent (.claude/locks/ missing)",
+      "input_queue_green": "8 files (non-empty, Q-2 PASS; count includes untracked testing/app-shell-side-effects-smoke-spec.md filesystem entry, HEAD has only 7)",
+      "downstream_task_ready": "3/10 (slack=7)",
+      "backpressure_carve_gate": "slack=7 → up to 7 carves allowed per RULE-03 §2 / TASK_READY_MAX=10. Carve decision below evaluates productivity — not 'fill to cap' but 'productive atomic units'.",
+      "promotion_gate_independent": "promotion (green→blue mv) does not affect task/ready count; gated by planner §4 Cond-1/2/3 (spec quality).",
+      "proceed_to_full_processing": true
+    },
+    "mechanical_gate_scan_promotion_verdict": {
+      "method": "Per planner §4: Cond-1=zero [WIP]/[DRAFT]/[TBD]/[TODO]; Cond-2=every unchecked '- [ ]' tagged [deferred] or resolved; Cond-3=no 'To-Be' heading.",
+      "wip_token_counts_per_green_head": {
+        "build/react-version-spec.md": {"wip": 3, "unchecked": 18, "tobe": 0},
+        "ci/github-actions-ci-spec.md": {"wip": 13, "unchecked": 47, "tobe": 0},
+        "common/auth-spec.md": {"wip": 2, "unchecked": 20, "tobe": 0},
+        "common/clipboard-spec.md": {"wip": 7, "unchecked": 30, "tobe": 0, "worktree_wip": 6, "note": "inspector M with §2.3 grep-format reconcile; HEAD still WIP=7"},
+        "common/env-spec.md": {"wip": 29, "unchecked": 14, "tobe": 0},
+        "state/server-state-spec.md": {"wip": 11, "unchecked": 122, "tobe": 0},
+        "styles/css-modules-spec.md": {"wip": 11, "unchecked": 102, "tobe": 0},
+        "testing/app-shell-side-effects-smoke-spec.md": {"wip": null, "unchecked": null, "tobe": null, "note": "UNTRACKED — not at HEAD; inspector worktree-only; planner does not consider for promotion"}
+      },
+      "promoted_this_cycle": [],
+      "held_this_cycle": "all 7 HEAD greens (Cond-1 FAIL via WIP tokens; post-consume inspector reconcile pending on 4 of 7: auth/react-version/clipboard/env)",
+      "blocked_this_cycle": [],
+      "closest_to_promotion": "common/auth-spec.md (WIP=2, both REQ-031 at 1fc05e9 + REQ-032 at 7daa83a now developer-consumed). Single inspector reconcile commit flipping §3.1 + §3.3 [WIP] markers would drop WIP to 0; then Cond-2/3 scan becomes relevant. Promotable in 1-2 cycles post inspector pulse.",
+      "runner_up": "build/react-version-spec.md (WIP=3, §4.1 REQ-026 consumed at e735aea). Two residual WIP (§2 React 19 bump + §4.0.1 drift) remain independent inspector items. Partial promotability gain, not full."
+    },
+    "carve_decision": {
+      "slack_before": 7,
+      "slack_after": 7,
+      "carved": [],
+      "rationale": "slack=7 → up to 7 carves allowed. Evaluated 7 HEAD greens exhaustively: (1) common/auth WIP=2 — both §3.1 REQ-031 (1fc05e9) and §3.3 REQ-032 (7daa83a) developer-consumed; no residual carveable atomic unit; remaining work is inspector reconcile (flip [WIP] tokens). (2) build/react-version WIP=3 — §4.1 REQ-026 consumed at e735aea; §2 React 19 bump is multi-PR carry (35+ test regression, not atomic, planner.md §2 '태스크 분할' explicit prohibition); §4.0.1 drift resolution is inspector authorship (Cond-2 unchecked inventory, not developer). (3) common/clipboard WIP=7 — §3.2.1.1 REQ-036 consumed at a72865c; §3.3.2 REQ-034 Phase 1-4 already DONE (execcommand-stub-sweep c86fed1); §2.3 grep format reconcile is inspector worktree in progress (REQ-20260420-014); §3.3.1/§3.7/§5.1 are inspector gating on downstream operator smoke — not carveable atomic units for developer. (4) common/env WIP=29 — highest; TSK-10 userlogin-test-dynamic-import-simplification-probe-req-010 in-flight (not yet consumed). Residual WIP is inspector §5.1/§5.2 migration-pattern flip + §7.1 REQ-026 Phase 2 recheck — inspector-only. (5) ci/github-actions-ci WIP=13 — §3 workflow rename is inspector body rewrite (cycle 75 rationale, unchanged). §4/§5 CI config PRs hinge on inspector §3 stabilization. Not carveable. (6) state/server-state WIP=11 unchecked=122 — Suspense+Query multi-PR blocked on React 19 bump (§4.3); phased plan (Phase 1/2/3) is inspector authorship. (7) styles/css-modules WIP=11 unchecked=102 — per-component migration inventory consolidation required by inspector (§4.3) before atomic per-component carve. VERDICT: 0 carve — no atomic unit provides independent developer value without duplicating consumed/in-flight work or contaminating inspector-WIP surface. Accept slack=7 as buffer. Next cycle (post inspector reconcile) may expose fresh carve slots on auth/clipboard/react-version once [WIP] flips to [x].",
+      "rejected_candidates_full": [
+        "auth §3.1 REQ-031 — DEV-DONE at 1fc05e9 (cycle 72-ish); re-carve prohibited (RULE-02 §1.6 idempotency).",
+        "auth §3.3 REQ-032 — DEV-DONE at 7daa83a; re-carve prohibited.",
+        "auth §5 REQ-008 cognito doc — inspector doc reconcile, non-developer.",
+        "react-version §2 React 19 bump — 35+ test regression, multi-PR; planner.md §2 '크기 위반' explicit prohibition (not atomic).",
+        "react-version §4.0.1 REQ-040 drift done/실태 recheck — inspector checkbox inventory, non-developer.",
+        "react-version §4.1 REQ-026 — DEV-DONE at e735aea; re-carve prohibited.",
+        "clipboard §2.3 REQ-20260420-014 grep format reconcile — inspector worktree in progress (M clipboard-spec.md uncommitted), not developer work.",
+        "clipboard §3.2.1.1 REQ-036 — DEV-DONE at a72865c; re-carve prohibited.",
+        "clipboard §3.3.1 REQ-025 FR-04 거부 분기 테스트 — inspector drafting §3.7 수동 스모크 checklist, not independent developer carve.",
+        "clipboard §3.3.2 REQ-034 전역 sweep — DEV-DONE at c86fed1 (cycle 74); re-carve prohibited.",
+        "clipboard §3.7 REQ-025 US-04 수동 스모크 — operator baseline, non-developer.",
+        "clipboard §5.1 REQ-025 수용 기준 — inspector acceptance criteria authorship.",
+        "env §5.1 [WIP] 모듈 본문 flip — inspector reconcile post-4c56103, not developer.",
+        "env §5.2 migration pattern flip — inspector reconcile, not developer.",
+        "env §7.1 REQ-20260418-026 Phase 2 회귀 검증 — inspector doc scoped, developer work consumed at TSK-26 earlier.",
+        "env §7.1.1 UserLogin Cognito dev/preview 수동 스모크 — operator baseline.",
+        "ci/github-actions §3 rename body rewrite — inspector.",
+        "state/server-state §4.3 React 19 dependency cross-ref — blocked on React 19 bump (which is itself prohibited carve).",
+        "styles/css-modules §4.3 migration inventory — inspector authorship.",
+        "testing/app-shell-side-effects-smoke-spec.md — NEW untracked inspector file, not at HEAD; planner does not read worktree-only specs (RULE-01 §4)."
+      ],
+      "planner_decision_recorded": "no carve — aggressive fail-fast against re-carving DEV-CONSUMED REQs and against contaminating inspector-WIP/reconcile surface. slack=7 preserved for post-reconcile opportunistic carves in cycle 78+."
+    },
+    "stalling_assessment_cycle_77": {
+      "prior_deadline_cycle": "not applicable (no active blocked-escalation deadline)",
+      "current_cycle": 77,
+      "conjunction_check": {
+        "a_zero_inspector_pulse": true,
+        "b_zero_developer_task_consumption": false,
+        "c_task_ready_stuck_at_cap": false,
+        "verdict": "conjunction FALSE — developer pulse explosive (6 consumes) + task/ready drained (9→3). Inspector 2-cycle HEAD silence is not stall: inspector worktree shows reconcile-in-progress on clipboard + testing/app-shell new spec. Pipeline net-healthy."
+      },
+      "inspector_stall_streak": "2 cycles HEAD-silent (76+77). Watchlist NOT triggered — inspector has uncommitted worktree progress. If cycle 78 passes with no inspector HEAD commit AND worktree edits remain uncommitted, escalate to watchlist (not blocked — inspector stall alone never triggers blocked/ per planner.md §4 '부분 2회차 이상 연속 정체' conjunction clause).",
+      "green_hold_streak": "cycles 75/76/77 = 3 cycles hold. Per planner.md §4 '부분 (2회차 이상 연속 정체)', blocked/ isolation trigger requires full-pipeline conjunction stall (zero inspector + zero developer + task/ready cap). Current conjunction FALSE — hold is justified inspector-bandwidth-limited, not stall. No blocked isolation.",
+      "deadline_reassessment": "If cycle 78 shows (a) zero inspector HEAD commits (worktree or otherwise) AND (b) zero developer task consumption AND (c) task/ready still stuck, reassess. Otherwise continue held-in-green posture. Expected next inspector signal: commit of worktree clipboard-spec.md + untracked testing/app-shell-side-effects-smoke-spec.md. Post-commit, clipboard WIP may drop by 1 (§2.3 grep reformat is a true [WIP] flip candidate per REQ-20260420-014)."
+    },
+    "worktree_observation": {
+      "src_modifications": [
+        "M src/Log/LogSingle.jsx + M src/Log/LogSingle.test.jsx — consistent with TSK-20260420-suspense-skeleton-logsingle-phase1 in-flight task. Developer is actively consuming."
+      ],
+      "spec_modifications": [
+        "M specs/spec/green/common/clipboard-spec.md — inspector reconcile, §2.3 grep format drift resolution (REQ-20260420-014). Uncommitted. Planner ignores (HEAD-only read).",
+        "?? specs/spec/green/testing/app-shell-side-effects-smoke-spec.md — NEW inspector spec, not at HEAD. Planner ignores for promotion/carve; will be visible next inspector commit."
+      ],
+      "planner_writer_area_isolation": "Planner commits ONLY specs/spec/green/.planner-seen this cycle. Does not touch src/ (developer area), does not touch specs/spec/green/common/clipboard-spec.md (inspector M uncommitted), does not touch specs/spec/green/testing/app-shell-side-effects-smoke-spec.md (inspector untracked).",
+      "impact_on_planner": "none — worktree signals are inspector+developer in progress on expected trajectory. No need to carve sibling or duplicate tasks. 3-in-flight task/ready (suspense-skeleton + tsconfig-baseurl + userlogin-test-probe) continue normal lifecycle."
+    },
+    "watchlist_cycle_77": [
+      "common/auth-spec.md (WIP=2) — LOWEST WIP; both in-flight REQs consumed. Inspector single-flip commit could drop to 0 → then Cond-2/3 scan; promotion eligible in 1-2 cycles. HIGH PRIORITY for next inspector pulse.",
+      "build/react-version-spec.md (WIP=3) — §4.1 REQ-026 consumed at e735aea. Inspector §4.1 body flip + §4.0.1 drift consolidation path to WIP=1 (only §2 React 19 bump remains, which is a multi-cycle spec-level planning item).",
+      "common/clipboard-spec.md (WIP=7 HEAD / 6 worktree) — §3.2.1.1 REQ-036 consumed at a72865c. Inspector §2.3 grep format reconcile uncommitted (worktree). Once committed + §3.2.1.1 flipped, WIP ~4. Several residual items are operator baseline, not near promotion.",
+      "common/env-spec.md (WIP=29) — HIGHEST WIP. TSK-10 userlogin-test-dynamic-import-probe in-flight. Not near promotion.",
+      "ci/github-actions-ci-spec.md (WIP=13) — no in-flight. §3 body rewrite required. Inspector-only.",
+      "state/server-state-spec.md (WIP=11 unchecked=122) — no in-flight. Spec body stabilization required.",
+      "styles/css-modules-spec.md (WIP=11 unchecked=102) — no in-flight. Inventory consolidation required.",
+      "testing/app-shell-side-effects-smoke-spec.md — untracked, inspector authoring. Planner ignores until HEAD."
+    ],
+    "no_op_outcome": false,
+    "writer_area_delta_this_cycle": ".planner-seen updated (appended cycle_77_observation key). No task/ready creation (carve=0). No blue/ promotion (all HEAD greens fail Cond-1). No blocked/ isolation (conjunction FALSE; hold is justified). Local commit captures .planner-seen delta only."
+  },
   "cycle_76_observation": {
     "timestamp": "2026-04-20T17:30:00Z",
     "head_at_start": "62fdf58 fix(App): online/offline useEffect deps [isOnline] -> []",
