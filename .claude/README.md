@@ -152,6 +152,18 @@ flowchart TD
 
 배포를 되돌려야 하면 **`git revert`** 를 쓴다. `git reset --hard` 는 규약상 금지 (RULE-02). revert 사실은 해당 task 의 `result.md` 하단에 append 한다.
 
+### `/triage` — blocked 큐 정리 보조 스킬
+
+blocked 항목이 쌓이면 수동 분류가 귀찮아진다. `/triage` 슬래시 커맨드 (`.claude/commands/triage.md`) 가 이를 돕는다.
+
+- **B 경로 (해소방안 있음) — 자동**: `reason.md` 에 actionable 한 후속 제안 (`## 후속 필요 사항` / `## 제안` / `## 해소 방안`) 이 있으면, 내용을 `10.followups/` 로 승격하고 원본·reason 파일을 삭제한다. discovery 가 다음 사이클에 새 요구사항으로 흡수.
+- **A 경로 (이미 해소됨) — 승인 후 삭제**: 지목된 REQ/TSK 가 `60.done/` 에 있거나, 재현 절차가 현재 코드로 재현 불가인 경우. 사용자 승인 후 감사노트(`60.done/YYYY/MM/DD/triage/<slug>.md`) 1줄 남기고 삭제.
+- **C 경로 (불분명) — 승인 후 삭제**: flake 재현 실패·외부 원인 해소·중복 격리 등 후속이 무의미한 경우. A 와 동일한 승인 절차.
+
+스킵 조건: `.claude/locks/triage.pause` 존재 시 전체 no-op, `{slug}_keep.marker` 존재 시 해당 항목 보존.
+
+이 스킬은 RULE-05 의 수동 프로세스를 대체하지 않는다 — 원래 큐(`ready/`)로 되돌리는 "복귀" 경로는 여전히 사람이 직접 `mv` 한다. `/triage` 는 "더 이상 살릴 필요 없는 blocked 잔재" 를 정리해 followup 큐로 넘기거나 깨끗이 비우는 용도다.
+
 ## 커밋 규약 요약
 
 - 메시지: `{scope}({agent}): {요약}` (`scope` ∈ spec/req/task/followup)
