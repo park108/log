@@ -67,13 +67,13 @@ it('render log item correctly', async () => {
 	));
 
 	// Button click tests
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	const linkCopyButton = await screen.findByTestId("link-copy-button");
 	expect(linkCopyButton).toBeInTheDocument();
 	fireEvent.click(linkCopyButton);
 
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 
 	const versionsButton = await screen.findByTestId("versions-button");
 	expect(versionsButton).toBeDefined();
@@ -301,7 +301,7 @@ it('render log item and delete failed correctly', async () => {
 		</MemoryRouter>
 	));
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	window.confirm = vi.fn(() => false);
 
 	const deleteButton = screen.getByTestId("delete-button");
@@ -312,7 +312,7 @@ it('render log item and delete failed correctly', async () => {
 	expect(deleteButton).toBeDefined();
 	fireEvent.click(deleteButton);
 
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 
 	await screen.findByText("Delete");
 
@@ -364,14 +364,14 @@ it('render log item and delete network error', async () => {
 		</MemoryRouter>
 	));
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	window.confirm = vi.fn(() => true);
 
 	const deleteButton = screen.getByTestId("delete-button");
 	expect(deleteButton).toBeDefined();
 	fireEvent.click(deleteButton);
 
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 
 	await screen.findByText("Delete");
 

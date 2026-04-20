@@ -19,8 +19,8 @@ describe('useHoverPopup', () => {
 		expect(result.current.triggerProps['aria-describedby']).toBeUndefined();
 	});
 
-	it('onMouseEnter shows popup immediately and onMouseLeave hides after 100ms', () => {
-		vi.useFakeTimers();
+	it('onMouseEnter shows popup immediately and onMouseLeave hides after 100ms', async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 		const { result } = renderHook(() => useHoverPopup());
 
 		act(() => {
@@ -36,16 +36,16 @@ describe('useHoverPopup', () => {
 		// hide 는 100ms 딜레이 — 직후에는 여전히 true
 		expect(result.current.isVisible).toBe(true);
 
-		act(() => {
-			vi.advanceTimersByTime(100);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(100);
 		});
 		expect(result.current.isVisible).toBe(false);
 		expect(result.current.contentProps['aria-hidden']).toBe(true);
 		expect(result.current.triggerProps['aria-describedby']).toBeUndefined();
 	});
 
-	it('onFocus shows and onBlur hides (keyboard accessibility, WCAG 2.1 SC 1.4.13)', () => {
-		vi.useFakeTimers();
+	it('onFocus shows and onBlur hides (keyboard accessibility, WCAG 2.1 SC 1.4.13)', async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 		const { result } = renderHook(() => useHoverPopup());
 
 		act(() => {
@@ -53,9 +53,9 @@ describe('useHoverPopup', () => {
 		});
 		expect(result.current.isVisible).toBe(true);
 
-		act(() => {
+		await act(async () => {
 			result.current.triggerProps.onBlur();
-			vi.advanceTimersByTime(100);
+			await vi.advanceTimersByTimeAsync(100);
 		});
 		expect(result.current.isVisible).toBe(false);
 	});
@@ -116,8 +116,8 @@ describe('useHoverPopup', () => {
 		expect(idA).not.toBe(idB);
 	});
 
-	it('pending hide timer is cleared on unmount (no memory leak)', () => {
-		vi.useFakeTimers();
+	it('pending hide timer is cleared on unmount (no memory leak)', async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 		const { result, unmount } = renderHook(() => useHoverPopup());
 
 		act(() => {
@@ -126,13 +126,13 @@ describe('useHoverPopup', () => {
 		});
 		// hide 타이머가 큐에 있어야 정상 — 언마운트 후 advance 해도 setState 경고 없음.
 		unmount();
-		expect(() => {
-			vi.advanceTimersByTime(500);
-		}).not.toThrow();
+		await expect(
+			vi.advanceTimersByTimeAsync(500),
+		).resolves.not.toThrow();
 	});
 
-	it('contentProps.onMouseEnter cancels the pending hide (hover bridge trigger → content)', () => {
-		vi.useFakeTimers();
+	it('contentProps.onMouseEnter cancels the pending hide (hover bridge trigger → content)', async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 		const { result } = renderHook(() => useHoverPopup());
 
 		act(() => {
@@ -144,9 +144,9 @@ describe('useHoverPopup', () => {
 			result.current.triggerProps.onMouseLeave();
 		});
 		// 보류 타이머 존재 — content 로 hover 가 브릿지되면 취소.
-		act(() => {
+		await act(async () => {
 			result.current.contentProps.onMouseEnter();
-			vi.advanceTimersByTime(200);
+			await vi.advanceTimersByTimeAsync(200);
 		});
 		expect(result.current.isVisible).toBe(true);
 	});

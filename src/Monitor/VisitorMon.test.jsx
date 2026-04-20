@@ -24,7 +24,7 @@ it('render visitor monitor on prod server', async () => {
 
 	mock.prodServerOk.listen();
 
-	vi.useFakeTimers('modern')
+	vi.useFakeTimers({ shouldAdvanceTime: true })
 		.setSystemTime(new Date(1643673600000));
 
 	vi.stubEnv('PROD', true);

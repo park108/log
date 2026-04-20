@@ -68,8 +68,8 @@ describe('CommentItem rendering + hoverPopup migration', () => {
 		expect(screen.queryByText('Reply this message')).toBeNull();
 	});
 
-	it('focus on reply button shows popup with aria-describedby; blur hides after 100ms', () => {
-		vi.useFakeTimers();
+	it('focus on reply button shows popup with aria-describedby; blur hides after 100ms', async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
 		render(
 			<CommentItem
@@ -99,9 +99,9 @@ describe('CommentItem rendering + hoverPopup migration', () => {
 		expect(describedBy).toBeTruthy();
 		expect(popup.getAttribute('id')).toBe(describedBy);
 
-		act(() => {
+		await act(async () => {
 			fireEvent.blur(replyButton);
-			vi.advanceTimersByTime(100);
+			await vi.advanceTimersByTimeAsync(100);
 		});
 
 		expect(screen.queryByText('Reply this message')).toBeNull();

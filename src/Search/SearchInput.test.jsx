@@ -128,14 +128,14 @@ describe('test key up events', () => {
 		);
 
 		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
-		
-		vi.useFakeTimers();
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 
 		inputElement.value = "";
 		fireEvent.keyUp(inputElement, { keyCode: 13 });
-	
-		act(() => {
-			vi.runOnlyPendingTimers();
+
+		await act(async () => {
+			await vi.runOnlyPendingTimersAsync();
 		});
 		vi.useRealTimers();
 

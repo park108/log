@@ -1,6 +1,23 @@
 // jest-dom adds custom matchers for asserting on DOM nodes.
 // e.g. expect(element).toHaveTextContent(/react/i)
 // https://github.com/testing-library/jest-dom
+//
+// react-19-test-layer-adaptation-spec (REQ-20260420-004) §FR-01 / TSK-20260420-35-a
+// ------------------------------------------------------------------------------------
+// fake-timer 이디엄 규칙 (React 19 act 모델 + testing-library polling 호환):
+//   • 기본 옵션: `vi.useFakeTimers({ shouldAdvanceTime: true })`.
+//     — `findBy*`/`waitFor` 폴링이 real-clock 과 병행 가능.
+//   • 명시적 시간 진행은 async API 만 사용:
+//       `await vi.advanceTimersByTimeAsync(ms)`
+//       `await vi.runAllTimersAsync()`
+//       `await vi.runOnlyPendingTimersAsync()`
+//     sync API (`vi.advanceTimersByTime` / `vi.runAllTimers` / `vi.runOnlyPendingTimers`)
+//     는 사용 금지.
+//   • 인자 없는 `vi.useFakeTimers()` / 문자열 인자 `vi.useFakeTimers('modern')` 호출 금지
+//     — 반드시 옵션 객체를 명시 (`{ shouldAdvanceTime: true }` 기본).
+//   • `vi.useRealTimers()` 해제를 각 스위트의 `afterEach` 또는 `afterAll` 에 반드시 포함.
+//   • 의도적 제외: `src/Search/Search.test.jsx:214` 의
+//     `{ shouldAdvanceTime: false }` 는 debounce 타이머 제어가 목적.
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeEach, vi } from 'vitest'
 

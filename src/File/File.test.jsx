@@ -153,7 +153,7 @@ test('render failed when internal error on prod server', async () => {
 
 	mock.prodServerFailed.listen();
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	vi.stubEnv('PROD', true);
 	vi.stubEnv('DEV', false);
@@ -169,12 +169,12 @@ test('render failed when internal error on prod server', async () => {
 
 	const failMessage = await screen.findByText("Get files failed.");
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	expect(failMessage).toBeDefined();
-	
+
 	vi.useRealTimers();
 
 	mock.prodServerFailed.resetHandlers();
@@ -227,7 +227,7 @@ test('render files and get next files failed on dev server', async () => {
 
 	mock.devServerFailed.listen();
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	const seeMoreButton = await screen.findByTestId("seeMoreButton");
 	expect(seeMoreButton).toBeDefined();
@@ -235,8 +235,8 @@ test('render files and get next files failed on dev server', async () => {
 
 	const failMessage = await screen.findByText("Get more files failed.");
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	expect(failMessage).toBeDefined();
@@ -267,8 +267,8 @@ test('render files and get next files failed on dev server', async () => {
 
 	const failMessage2 = await screen.findByText("Get more files failed for network issue.");
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	expect(failMessage2).toBeDefined();

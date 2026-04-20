@@ -2,7 +2,11 @@ import { render, screen } from '@testing-library/react';
 import Toaster from './Toaster';
 import styles from './Toaster.module.css';
 
-vi.useFakeTimers();
+vi.useFakeTimers({ shouldAdvanceTime: true });
+
+afterEach(() => {
+	vi.useRealTimers();
+});
 
 it('render message text "Test message" correctly', () => {
 	render(<Toaster
@@ -70,7 +74,7 @@ it('render error Toaster in bottom', () => {
 
 it('render success Toaster faded out', async () => {
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	render(<Toaster
 		message={"Test message"}
@@ -81,18 +85,18 @@ it('render success Toaster faded out', async () => {
 
 	const toaster = await screen.findByText("Test message");
 
-	vi.advanceTimersByTime(2000);
+	await vi.advanceTimersByTimeAsync(2000);
 
 	expect(toaster).toHaveClass(styles.divToasterBottom);
 	expect(toaster).toHaveClass(styles.divToasterSuccess);
 	expect(toaster).toHaveClass(styles.divToasterFadeout);
 
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 	vi.useRealTimers();
 });
 
-it('preserves position/type classes after hide (show=2 + timeout)', () => {
-	vi.useFakeTimers();
+it('preserves position/type classes after hide (show=2 + timeout)', async () => {
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	render(<Toaster
 		message={"Test message"}
@@ -102,13 +106,13 @@ it('preserves position/type classes after hide (show=2 + timeout)', () => {
 	/>);
 
 	const toaster = screen.getByRole('alert');
-	vi.advanceTimersByTime(1000);
+	await vi.advanceTimersByTimeAsync(1000);
 
 	expect(toaster).toHaveClass(styles.divToasterBottom);
 	expect(toaster).toHaveClass(styles.divToasterSuccess);
 	expect(toaster).toHaveClass(styles.divToasterHide);
 
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 	vi.useRealTimers();
 });
 
@@ -142,8 +146,8 @@ it('keeps the same DOM node across rerenders (ref stability)', () => {
 	expect(third).toBe(first);
 });
 
-it('clears the previous timeout when show transitions 1 -> 2', () => {
-	vi.useFakeTimers();
+it('clears the previous timeout when show transitions 1 -> 2', async () => {
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	const clearSpy = vi.spyOn(global, 'clearTimeout');
 
 	const completed = vi.fn();
@@ -172,12 +176,12 @@ it('clears the previous timeout when show transitions 1 -> 2', () => {
 	expect(clearSpy.mock.calls.length).toBeGreaterThan(callsAfterShow1);
 
 	clearSpy.mockRestore();
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 	vi.useRealTimers();
 });
 
-it('does not call document.getElementById', () => {
-	vi.useFakeTimers();
+it('does not call document.getElementById', async () => {
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	const getByIdSpy = vi.spyOn(document, 'getElementById');
 
 	const { rerender, unmount } = render(<Toaster
@@ -196,12 +200,12 @@ it('does not call document.getElementById', () => {
 		show={2}
 	/>);
 
-	vi.advanceTimersByTime(2000);
+	await vi.advanceTimersByTimeAsync(2000);
 
 	expect(getByIdSpy).toHaveBeenCalledTimes(0);
 
 	unmount();
 	getByIdSpy.mockRestore();
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 	vi.useRealTimers();
 });

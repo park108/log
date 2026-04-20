@@ -61,8 +61,8 @@ describe('LogItemInfo hoverPopup migration', () => {
 		expect(screen.queryByText('Click to Clipboard')).toBeNull();
 	});
 
-	it('focus on link shows the clipboard popup with role=tooltip + aria-describedby; blur hides after 100ms', () => {
-		vi.useFakeTimers();
+	it('focus on link shows the clipboard popup with role=tooltip + aria-describedby; blur hides after 100ms', async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
 		renderInfo();
 
@@ -82,9 +82,9 @@ describe('LogItemInfo hoverPopup migration', () => {
 		expect(describedBy).toBeTruthy();
 		expect(popup.getAttribute('id')).toBe(describedBy);
 
-		act(() => {
+		await act(async () => {
 			fireEvent.blur(linkUrl);
-			vi.advanceTimersByTime(100);
+			await vi.advanceTimersByTimeAsync(100);
 		});
 
 		expect(screen.queryByText('Click to Clipboard')).toBeNull();

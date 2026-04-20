@@ -77,7 +77,7 @@ test('upload ok', async () => {
 
 	mock.devServerOk.listen();
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	
 	vi.stubEnv('DEV', true);
 	vi.stubEnv('PROD', false);
@@ -104,8 +104,8 @@ test('upload ok', async () => {
 	const toaster = await screen.findByText("Upload complete.");
 	expect(toaster).toBeInTheDocument();
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	const toasterFadedout = await screen.findByText("Upload complete."); // Result message change to ready in few seconds
@@ -156,7 +156,7 @@ test('getting presigned url ok, but upload network error', async () => {
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.listen();
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	
 	vi.stubEnv('DEV', true);
 	vi.stubEnv('PROD', false);
@@ -183,8 +183,8 @@ test('getting presigned url ok, but upload network error', async () => {
 	const toaster = await screen.findByText("Upload failed.");
 	expect(toaster).toBeInTheDocument();
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	const toasterFadedout = await screen.findByText("Upload failed."); // Result message change to ready in few seconds

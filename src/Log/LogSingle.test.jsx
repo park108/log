@@ -83,27 +83,27 @@ it('render LogSingle on prod server', async () => {
 	const toListButton = await screen.findByText("To list");
 	expect(toListButton).toBeInTheDocument();
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	fireEvent.click(toListButton);
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	const deleteButton = await screen.findByText("Delete");
 	expect(deleteButton).toBeInTheDocument();
 	fireEvent.click(deleteButton);
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	const afterDelete = await screen.findByText("The log is deleted.");
 	expect(afterDelete).toBeInTheDocument();
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	const afterDeleteTimer = await screen.findByText("Deleted");

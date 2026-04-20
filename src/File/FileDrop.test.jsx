@@ -103,7 +103,7 @@ test('upload ok', async () => {
 
 	mock.devServerOk.listen();
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	
 	vi.stubEnv('DEV', true);
 	vi.stubEnv('PROD', false);
@@ -130,13 +130,13 @@ test('upload ok', async () => {
 	const resultText = await screen.findByText("Upload complete.");
 	expect(resultText).toBeInTheDocument();
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
 	expect(dropZoneAgain).toBeDefined();
-	
+
 	vi.useRealTimers();
 
 	mock.devServerOk.resetHandlers();
@@ -180,7 +180,7 @@ test('getting presigned url ok, but upload network error', async () => {
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.listen();
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 	
 	vi.stubEnv('DEV', true);
 	vi.stubEnv('PROD', false);
@@ -207,13 +207,13 @@ test('getting presigned url ok, but upload network error', async () => {
 	const resultText = await screen.findByText("Upload failed.");
 	expect(resultText).toBeInTheDocument();
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
 	expect(dropZoneAgain).toBeDefined();
-	
+
 	vi.useRealTimers();
 
 	mock.devServerPresignedUrlOkButUploadNetworkError.resetHandlers();

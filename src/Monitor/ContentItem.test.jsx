@@ -24,7 +24,7 @@ it('render log on dev server', async () => {
 
 	mock.devServerOk.listen();
 
-	vi.useFakeTimers('modern')
+	vi.useFakeTimers({ shouldAdvanceTime: true })
 		.setSystemTime(new Date(1643375805000));
 
 	vi.stubEnv('DEV', true);
@@ -45,7 +45,7 @@ it('render log with no data on dev server', async () => {
 
 	mock.devServerHasNoCount.listen();
 
-	vi.useFakeTimers('modern')
+	vi.useFakeTimers({ shouldAdvanceTime: true })
 		.setSystemTime(new Date(1643375805000));
 
 	vi.stubEnv('DEV', true);
@@ -66,7 +66,7 @@ it('render log failed on dev server', async () => {
 
 	mock.devServerFailed.listen();
 
-	vi.useFakeTimers('modern')
+	vi.useFakeTimers({ shouldAdvanceTime: true })
 		.setSystemTime(new Date(1643375805000));
 
 	vi.stubEnv('DEV', true);
@@ -89,7 +89,7 @@ it('render log network error on dev server', async () => {
 
 	mock.devServerNetworkError.listen();
 
-	vi.useFakeTimers('modern')
+	vi.useFakeTimers({ shouldAdvanceTime: true })
 		.setSystemTime(new Date(1643375805000));
 
 	vi.stubEnv('DEV', true);
@@ -112,7 +112,7 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.devServerFailed.listen();
 
-		vi.useFakeTimers('modern')
+		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
 
 		vi.stubEnv('DEV', true);
@@ -134,7 +134,7 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.devServerFailed.listen();
 
-		vi.useFakeTimers('modern')
+		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
 
 		vi.stubEnv('DEV', true);
@@ -161,7 +161,7 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.devServerFailed.listen();
 
-		vi.useFakeTimers('modern')
+		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
 
 		vi.stubEnv('DEV', true);
@@ -189,7 +189,7 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.devServerFailed.listen();
 
-		vi.useFakeTimers('modern')
+		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
 
 		vi.stubEnv('DEV', true);
@@ -219,7 +219,7 @@ it('render file on dev server', async () => {
 
 	mock.devServerOk.listen();
 
-	vi.useFakeTimers('modern')
+	vi.useFakeTimers({ shouldAdvanceTime: true })
 		.setSystemTime(new Date(1643375805000));
 
 	vi.stubEnv('DEV', true);

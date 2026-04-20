@@ -155,7 +155,7 @@ test('render comment list and post comment failed on prod server', async () => {
 	mock.prodServerFailed.listen();
 
 	// Failed!
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	const submitButton4 = await screen.findByText("Submit Comment");
 	expect(submitButton4).toBeDefined();
@@ -163,8 +163,8 @@ test('render comment list and post comment failed on prod server', async () => {
 
 	const toasterMessage = await screen.findByText("The comment posted failed.");
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	expect(toasterMessage).toBeDefined();
@@ -187,12 +187,12 @@ test('render comment list and post comment failed on prod server', async () => {
 
 	const toasterMessage2 = await screen.findByText("The comment posted failed for network issue.");
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	expect(toasterMessage2).toBeDefined();
-	
+
 	vi.useRealTimers();
 
 	mock.prodServerNetworkError.resetHandlers();

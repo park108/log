@@ -62,8 +62,8 @@ test('create log ok on prod server', async () => {
 		state: null,
 	};
 
-	vi.useFakeTimers();
-  
+	vi.useFakeTimers({ shouldAdvanceTime: true });
+
 	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
@@ -75,8 +75,8 @@ test('create log ok on prod server', async () => {
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	// Submit test
@@ -84,8 +84,8 @@ test('create log ok on prod server', async () => {
 	expect(submitButton).toBeDefined();
 	fireEvent.click(submitButton);
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	const resultMessage = await screen.findByText("The log posted.");
@@ -112,8 +112,8 @@ test('create log failed on prod server', async () => {
 		state: null,
 	};
 
-	vi.useFakeTimers();
-  
+	vi.useFakeTimers({ shouldAdvanceTime: true });
+
 	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
@@ -125,8 +125,8 @@ test('create log failed on prod server', async () => {
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	// Submit test
@@ -134,8 +134,8 @@ test('create log failed on prod server', async () => {
 	expect(submitButton).toBeDefined();
 	fireEvent.click(submitButton);
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	const resultMessage = await screen.findByText("Posting log failed.");
@@ -162,8 +162,8 @@ test('create log network error on prod server', async () => {
 		state: null,
 	};
 
-	vi.useFakeTimers();
-  
+	vi.useFakeTimers({ shouldAdvanceTime: true });
+
 	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>
@@ -175,8 +175,8 @@ test('create log network error on prod server', async () => {
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	// Submit test
@@ -184,8 +184,8 @@ test('create log network error on prod server', async () => {
 	expect(submitButton).toBeDefined();
 	fireEvent.click(submitButton);
 
-	act(() => {
-		vi.runAllTimers();
+	await act(async () => {
+		await vi.runAllTimersAsync();
 	});
 
 	const resultMessage = await screen.findByText("Posting log network error.");
@@ -229,15 +229,15 @@ it('edit log ok on dev server', async () => {
 		</div>
 	));
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	// Submit test
 	const submitButton = await screen.findByTestId("submit-button");
 	expect(submitButton).toBeDefined();
 	fireEvent.click(submitButton);
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	const resultMessage = await screen.findByText("The log changed.");
@@ -281,15 +281,15 @@ it('edit log failed on dev server', async () => {
 		</div>
 	));
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	// Submit test
 	const submitButton = await screen.findByTestId("submit-button");
 	expect(submitButton).toBeDefined();
 	fireEvent.click(submitButton);
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	const resultMessage = await screen.findByText("Editing log failed.");
@@ -332,15 +332,15 @@ it('edit log network error on dev server', async () => {
 		</div>
 	));
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	// Submit test
 	const submitButton = await screen.findByTestId("submit-button");
 	expect(submitButton).toBeDefined();
 	fireEvent.click(submitButton);
 
-	act(() => {
-		vi.runOnlyPendingTimers();
+	await act(async () => {
+		await vi.runOnlyPendingTimersAsync();
 	});
 
 	const resultMessage = await screen.findByText("Editing log network error.");
@@ -424,7 +424,7 @@ test('event testing', async () => {
 		</div>
 	));
 
-	vi.useFakeTimers();
+	vi.useFakeTimers({ shouldAdvanceTime: true });
 
 	// Convert display mode
 	const modeButton = await screen.findByTestId("mode-button");
@@ -458,20 +458,20 @@ test('event testing', async () => {
 	expect(form).toBeDefined();
 	fireEvent.submit(form);
 
-	vi.runOnlyPendingTimers();
-	
+	await vi.runOnlyPendingTimersAsync();
+
 	// Text input test
 	const textInput = await screen.findByTestId("writer-text-area");
 	fireEvent.change(textInput, {target: {value: '123456'}});
-	
-	vi.runOnlyPendingTimers();
+
+	await vi.runOnlyPendingTimersAsync();
 
 	// Submit test with text
 	const form2 = await screen.findByTestId("writer-form");
 	expect(form2).toBeDefined();
 	fireEvent.submit(form2);
 
-	vi.runOnlyPendingTimers();
+	await vi.runOnlyPendingTimersAsync();
 
 	vi.useRealTimers();
 });
