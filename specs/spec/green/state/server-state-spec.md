@@ -570,13 +570,14 @@ afterAll(() => server.close());
 
 **우선 (Must, 실패 케이스 매핑)**:
 1. `App.test.jsx` (실패 케이스 1) — MSW 부재이나 `console.*` mock 누설 / Suspense 오염 점검.
-2. `LogSingle.test.jsx` (실패 케이스 2) — REQ-027 Phase 1 패턴 재적용 (per-test `listen`/`close` → 글로벌 `server.use`).
+2. `LogSingle.test.jsx` (실패 케이스 2) — REQ-027 Phase 1 패턴 재적용 (per-test `listen`/`close` → 글로벌 `server.use`). **[carve: REQ-20260420-009 — 2026-04-20 commit `1fc05e9` 직후 flake 재현 evidence 기반 독립 carve. 3 패턴 (모듈 스코프 console mutation / per-test listen/close / NODE_ENV 직접 mutation) 로컬 해소 + `CI=true npm test` 3회 연속 PASS 검증. 본 REQ 머지 후 inspector 라운드에서 이 행 `[x]` flip + commit hash 박제.]**
 3. `Search.test.jsx` (followup 가설 3 의심 source) — REQ-021 unmount 케이스의 microtask flush 효과 검증 + 필요 시 `await waitFor(...)` 보강.
 4. `SearchInput.test.jsx` — 동일 도메인 일관성.
 
 **잔여 (Should, 별 후속 분리 권장)**:
 - `Comment/Comment.test.jsx`, `Image/{ImageSelector,ImageItem}.test.jsx`, `File/{File,FileDrop,FileUpload,FileItem}.test.jsx`, `Monitor/{Monitor,VisitorMon,ContentItem,ApiCallItem,WebVitalsItem,WebVitalsMon}.test.jsx`, `common/{common.test.js,UserLogin.test.jsx}`.
 - 본 PR 범위 판단은 planner 영역 (REQ-012 §13 미결 1).
+- carve 전략 (REQ-20260420-009 Priority 2 선례) 이 성공 시 Priority 1/3/4 및 잔여 도메인도 동형 1-파일 carve REQ 로 분기.
 
 **3.7.4 `process.env.NODE_ENV` 직접 변형 sweep (FR-05)**
 
@@ -843,6 +844,7 @@ afterAll(() => server.close());
 | 2026-04-19 | (pending, REQ-20260419-036) | `src/Log/LogList.test.jsx` 신설 트리거 — seeMoreButton 파생 4 분기 + 클릭·페이지네이션 회귀 보호 최소 5 케이스 (자매 REQ-037 수동 smoke 와 쌍). §4.3.1 renderWithQuery 패턴 적용 | 4.3.1 |
 | 2026-04-19 | (pending, REQ-20260419-035) | `src/Log/Writer.test.jsx` historyData (location.state.from) 편집 진입 경로 테스트 커버리지 2 케이스 추가 — WH-01 history 패널 렌더 / WH-02 미렌더. §3.3.1 commitment 갱신은 없음 | 3.3.1 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
+| 2026-04-20 | (inspector, REQ-20260420-009) | §3.7.3 Priority 2 `LogSingle.test.jsx` 행에 carve REQ-20260420-009 박제 — 2026-04-20 flake 재현 evidence 기반 독립 원자 carve (3 패턴 로컬 해소 + 3회 연속 CI PASS 검증). Priority 2 `[x]` flip 은 carve task 머지 후 별 라운드 | 3.7 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`

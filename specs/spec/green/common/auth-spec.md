@@ -285,7 +285,7 @@ export function isAdmin() {
 - [ ] `grep -rn "abcde=abcde" src/` → 0 lines (우회 fixture 패턴 제거)
 - [ ] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS
 - [ ] (Should) `id_token` 추출 일관성 결정 — 변경 시 별 케이스 추가, 미변경 시 사유 코멘트 1줄
-- [ ] (Could) 운영자 1회 Cognito Hosted UI 로그인 → 첫 화면 admin 진입 정상 (REQ-035 자매 묶음 또는 별 PR)
+- [ ] (Could) 운영자 1회 Cognito Hosted UI 로그인 → 첫 화면 admin 진입 정상 — `docs/testing/cognito-hosted-ui-manual-smoke.md` 참조 (REQ-20260420-008, S-01 / S-02 시나리오 + Baseline 테이블 박제; REQ-035 자매 묶음 또는 별 PR)
 - [ ] (Could) `docs/testing/app-shell-side-effects-smoke.md` 시나리오 2 URL 형태 명시 (inspector 후속)
 
 ### 6.1 수용 기준 (REQ-20260418-032 — `parseJwt` 가드 + `isAdmin` fail-safe)
@@ -337,6 +337,7 @@ export function isAdmin() {
 | 2026-04-18 | (pending, REQ-20260418-031(auth)) | `URLSearchParams(window.location.href)` 결함 제거 + 테스트 fixture 정상화 + 신규 회귀 케이스 추가 (WIP) | 3.1, 4, 6 |
 | 2026-04-18 | (pending, REQ-20260418-032) | `parseJwt` 입력 가드 (비정상 입력 → `null` sentinel) + `isAdmin` fail-safe (falsy → `false`) + 회귀 케이스 7종 + App 마운트 화이트 스크린 회귀 테스트 (WIP) | 3.3, 4.5, 6.1, 7 |
 | 2026-04-20 | (inspector drift reconcile) | §4 헤더 rename: "(To-Be, WIP — REQ-20260418-031(auth))" → "(REQ-20260418-031(auth))" (planner §4 Cond-3 충족, d0d49c6 선례) | 4 |
+| 2026-04-20 | (inspector, REQ-20260420-008) | §6 L288 텍스트에 `docs/testing/cognito-hosted-ui-manual-smoke.md` 참조 추가 (Cognito Hosted UI 운영자 수동 스모크 S-01/S-02 baseline 예정). 체크박스 flip 은 운영자 수행 후 별 라운드. | 6 |
 
 ---
 

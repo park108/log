@@ -2,9 +2,9 @@
 
 > **위치**: `index.html` (`<meta http-equiv="Content-Security-Policy">`) + 관련 Vite 빌드 산출물
 > **유형**: Security Policy / Configuration
-> **최종 업데이트**: 2026-04-19 (inspector 초안 — REQ-20260420-XXX Phase 3)
-> **상태**: WIP — 정책 설계 완료, 도입 미실행
-> **관련 요구사항**: REQ-20260420-XXX / REQ-20260419-040 (CSP meta 태그 도입 — defense-in-depth)
+> **최종 업데이트**: 2026-04-20 (inspector — 67794e1 flip: FR-01~FR-13 + NFR-03/04/06 충족 박제)
+> **상태**: WIP — meta 태그 도입 완료 (67794e1), dev/prod 분기 + 수동 smoke baseline 잔여
+> **관련 요구사항**: REQ-20260419-040 (CSP meta 태그 도입 — defense-in-depth; 본 라운드 FR-01~FR-13 + NFR-03/04/06 flip)
 
 > 본 spec 은 `sanitizeHtml-spec.md` 의 **1차 방어 (input sanitize)** 와 짝을 이루는 **2차 방어 (browser-level policy)** 를 박제한다. 두 계층이 독립 실패해도 한 계층이 XSS / 외부 리소스 주입을 차단하는 **defense-in-depth** 구조.
 
@@ -26,17 +26,26 @@
   - `report-uri` / `report-to` 원격 수집 엔드포인트 (백엔드 필요)
   - `trusted-types` directive (DOMPurify 통합 필요, Chrome 전용)
 
-## 2. 현재 상태 (As-Is, 2026-04-20)
+## 2. 현재 상태 (As-Is, 2026-04-20, post-67794e1)
 
-- `index.html` 에 CSP meta 태그 **부재** — `grep "Content-Security-Policy" index.html` → 0 hits.
-- 서버 응답 헤더 CSP 부재 (AWS CloudFront 또는 Amplify 설정 미적용 추정).
+- `index.html:9` 에 CSP meta 태그 **도입 완료** (commit `67794e1`, TSK-20260420-08) — `grep -c "Content-Security-Policy" index.html` → 1.
+- `build/index.html` 에도 meta 태그 보존 확인 — `grep -c "Content-Security-Policy" build/index.html` → 1 (task result.md §테스트 결과).
+- 9 directive 모두 §3.1 정의대로 반영 (`default-src 'self'; script-src 'self'; connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com; img-src 'self' data: https://d0.awsstatic.com https://brand.linkedin.com; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self';`).
+- 서버 응답 헤더 CSP 부재 (AWS CloudFront 또는 Amplify 설정 미적용 추정) — 별 REQ 트랙.
 - `sanitizeHtml` (DOMPurify) 1차 방어는 `src/common/sanitizeHtml.js` 존재 + `LogItem`/`Writer preview` 통합 완료 (REQ-20260418-102 머지).
 - `src/**` 에서 inline `<script>` 사용 0 (module script 단일 진입 `<script type="module" src="/src/index.jsx">`).
 - `style={{}}` inline 스타일 prop 6 hits 존재 → `style-src 'unsafe-inline'` 필요.
 - 외부 리소스:
-  - Footer 이미지 2 호스트: `https://d0.awsstatic.com`, `https://brand.linkedin.com`.
-  - API Gateway: `VITE_*_API_BASE` 환경변수 — 실제 도메인 1~2개 (운영자 확인 필요).
-  - 업로드 CDN: `src/File/api.js` / `src/Image/api.js` 업로드 후 URL (운영자 확인 필요).
+  - Footer 이미지 2 호스트: `https://d0.awsstatic.com`, `https://brand.linkedin.com` — `img-src` 반영 완료.
+  - API Gateway: `*.execute-api.ap-northeast-2.amazonaws.com` 와일드카드 — `connect-src` 반영 완료.
+  - 업로드 CDN: 운영자 확인 후 `img-src` 추가 필요 (FR-15 Should, 미결).
+
+**잔여 항목**:
+- FR-12 (수동 smoke 체크리스트 `docs/testing/csp-smoke.md` 신설) — 별 task `20260420-csp-smoke-checklist` 큐잉 (task result.md §관찰).
+- FR-14 (dev/prod 분기) — 별 task `20260420-csp-dev-prod-branch` 분리 (task result.md §관찰).
+- FR-15 (업로드 CDN 도메인 확인) — 운영자 followup.
+- NFR-01 (securityheaders.com / Mozilla Observatory 스캔) — 운영자 세션 deferred.
+- NFR-02 (주요 경로 수동 smoke violation 0) — FR-12 docs 기반 별 세션 deferred.
 
 ## 3. 정책
 
@@ -95,20 +104,20 @@
 ## 5. 수용 기준 (Acceptance)
 
 ### 5.1 REQ-20260419-040 수용 기준 (CSP meta 도입)
-- [ ] FR-01: `index.html` 에 `<meta http-equiv="Content-Security-Policy" content="...">` 단일 태그 추가
-- [ ] FR-02 ~ FR-10: §3.1 표의 9 directive 모두 정확한 값으로 포함
-- [ ] FR-11: `npm run build` 후 `build/index.html` 에 meta 태그 보존 (grep 검증)
-- [ ] FR-12 (Should): `docs/testing/csp-smoke.md` 신설 + 운영자 1회 baseline
-- [ ] FR-13: 본 `csp-policy-spec.md` 존재 (본 문서로 충족)
-- [ ] FR-14: dev/prod 분기 처리 (옵션 (a) 또는 (b) 중 1 선택 + 박제)
-- [ ] FR-15 (Should): 업로드 CDN 도메인 확인 → `img-src` 에 추가
-**[deferred: NFR-01 은 외부 스캐너(securityheaders.com / Mozilla Observatory) 결과 관측이 유일 검증 수단 — 코드 변경 아니라 운영자 세션에서 등급 확인 후 사인오프; REQ-040 구현 task 머지 이후 운영자 1회 스캔]**
+- [x] FR-01: `index.html` 에 `<meta http-equiv="Content-Security-Policy" content="...">` 단일 태그 추가 (commit `67794e1`, index.html:9)
+- [x] FR-02 ~ FR-10: §3.1 표의 9 directive 모두 정확한 값으로 포함 (commit `67794e1`, task result.md DoD 박제)
+- [x] FR-11: `npm run build` 후 `build/index.html` 에 meta 태그 보존 (grep count=1, task result.md §테스트 결과)
+- [ ] FR-12 (Should): `docs/testing/csp-smoke.md` 신설 + 운영자 1회 baseline (별 task `20260420-csp-smoke-checklist` 큐잉)
+- [x] FR-13: 본 `csp-policy-spec.md` 존재 (본 문서로 충족)
+- [ ] FR-14: dev/prod 분기 처리 (옵션 (a) 또는 (b) 중 1 선택 + 박제) (별 task `20260420-csp-dev-prod-branch` 분리)
+- [ ] FR-15 (Should): 업로드 CDN 도메인 확인 → `img-src` 에 추가 (운영자 followup 스텁)
+**[deferred: NFR-01 은 외부 스캐너(securityheaders.com / Mozilla Observatory) 결과 관측이 유일 검증 수단 — 코드 변경 아니라 운영자 세션에서 등급 확인 후 사인오프; 67794e1 머지 완료 → 운영자 1회 스캔 followup 스텁 생성]**
 - [ ] NFR-01: securityheaders.com / Mozilla Observatory CSP 항목 통과 (F → A/B 이상)
 **[deferred: NFR-02 는 DevTools Console CSP violation 수동 관측 — 자동화 불가(jsdom CSP 미지원, §7 알려진 제약 박제), 운영자 수동 smoke 세션에서 5 경로 위반 0 확인 사인오프]**
 - [ ] NFR-02: 모든 주요 경로 렌더 회귀 0 (수동 smoke 0 violation)
-- [ ] NFR-03: `npm run build` 성공
-- [ ] NFR-04: `npm test` 100% PASS (jsdom 미적용, 회귀 0)
-- [ ] NFR-06: 번들 / gzipped size diff < 1KB
+- [x] NFR-03: `npm run build` 성공 (task result.md: 356ms 성공, `build/` 산출물 정상)
+- [x] NFR-04: `npm test` 100% PASS (39 files / 317 tests, coverage Statements 97.96% / Branches 95.29%)
+- [x] NFR-06: 번들 / gzipped size diff < 1KB (meta 태그 1줄 ~500 bytes)
 
 ## 6. 비기능 특성 (NFR Status)
 
@@ -132,6 +141,7 @@
 | 2026-04-19 | (pending, REQ-20260419-040) | CSP meta 태그 defense-in-depth 정책 spec 초기화 (9 directive 설계, dev/prod 분기, 수동 smoke 체크리스트, 빌드 무결성 검증) (WIP) | 전체 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 | 2026-04-20 | §5.1 operator UNCHK 2행(NFR-01, NFR-02) defer-tag (planner §4 Cond-2 충족 목적) | inspector |
+| 2026-04-20 | TSK-20260420-08 (67794e1) | CSP meta 태그 index.html 도입 (9 directive, build grep 검증 PASS, 317/317 PASS) — FR-01 ~ FR-11, FR-13 + NFR-03/04/06 flip | 2, 5.1 |
 
 ## 9. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-csp-meta-defense-in-depth-introduction.md` (REQ-20260419-040)
