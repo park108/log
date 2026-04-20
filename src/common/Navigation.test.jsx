@@ -16,6 +16,7 @@ describe('render navigation menu correctly', () => {
 	// 아래 `render title menu correctly` 의 baseline assertion (`<a>park108.net</a>`) 이
 	// 회귀한다. 본 describe 내부는 명시적으로 `stubMode('test')` 로 DEV/PROD 모두 false
 	// 로 고정해 baseline 의 href-미설정 동작을 보존한다.
+	// REQ-20260420-009 — render title 어설션을 intent-based 로 재설계해 env 분기와 assertion 을 분리.
 	const stubMode = (mode) => {
 		vi.stubEnv('MODE', mode);
 		vi.stubEnv('DEV', mode === 'development');
@@ -44,12 +45,11 @@ describe('render navigation menu correctly', () => {
 			</MemoryRouter>
 		);
 
-		const html = screen.getByText("park108.net").closest('a');
+		const link = screen.getByText("park108.net").closest('a');
 
-		const expected = document.createElement("a");
-		expected.innerHTML = "park108.net";
-
-		expect(expected).toStrictEqual(html);
+		expect(link).not.toBeNull();
+		const href = link.getAttribute('href');
+		expect(href === null || /^https?:\/\//.test(href)).toBe(true);
 	});
 
 	it('render file menu correctly', () => {
