@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedSize } from '../common/common';
 import { activateOnKey } from '../common/a11y';
+import { reportError } from '../common/errorReporter';
 import { getContentItemCount } from './api';
 
 const ContentItem = (props) => {
@@ -92,13 +93,13 @@ const ContentItem = (props) => {
 				else {
 					log("[API GET] FAILED - Content API: " + path, "ERROR");
 					setIsError(true);
-					console.error(data);
+					reportError(data);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Content API: " + path, "ERROR");
 				setIsError(true);
-				console.error(err);
+				reportError(err);
 			}
 			
 			setIsLoading(false);

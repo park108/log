@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday, hoverPopup } from "../common/common";
 import { activateOnKey } from "../common/a11y";
+import { reportError } from "../common/errorReporter";
 import { getVisitors } from "./api";
 
 const VisitorMon = (props) => {
@@ -147,13 +148,13 @@ const VisitorMon = (props) => {
 				else {
 					log("[API GET] FAILED - Visitor information", "ERROR");
 					setIsError(true);
-					console.error(data);
+					reportError(data);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Visitor information", "ERROR");
 				setIsError(true);
-				console.error(err);
+				reportError(err);
 			}
 		
 			setIsLoading(false);

@@ -1,9 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import WebVitalsItem from '../Monitor/WebVitalsItem';
+import * as errorReporter from '../common/errorReporter';
 
 console.log = vi.fn();
 console.error = vi.fn();
+vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
 it('render web vitals monitor on dev server', async () => {
 

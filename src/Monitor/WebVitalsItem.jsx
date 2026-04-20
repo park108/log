@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { log, hasValue, hoverPopup } from '../common/common';
 import { activateOnKey } from '../common/a11y';
+import { reportError } from '../common/errorReporter';
 import { getWebVitals } from './api';
 import PropTypes from 'prop-types';
 
@@ -90,13 +91,13 @@ const WebVitalsItem = (props) => {
 				else {
 					log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
 					setIsError(true);
-					console.error(fetchedData);
+					reportError(fetchedData);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
 				setIsError(true);
-				console.error(err);
+				reportError(err);
 			}
 		
 			setIsLoading(false);

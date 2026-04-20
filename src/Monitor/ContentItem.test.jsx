@@ -1,9 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import ContentItem from '../Monitor/ContentItem';
+import * as errorReporter from '../common/errorReporter';
 
 console.log = vi.fn();
 console.error = vi.fn();
+vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
 const stackPallet = {
 	pallet: "Red to Green",
