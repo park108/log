@@ -5,6 +5,7 @@ import * as common from '../common/common';
 import File from '../File/File';
 import { useMockServer } from '../test-utils/msw';
 import { ASYNC_ASSERTION_TIMEOUT_MS } from '../test-utils/timing';
+import { waitForToasterHidden } from '../test-utils/toaster';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -94,13 +95,7 @@ describe('File render files, next, delete on prod server', () => {
 		Object.assign(navigator, {
 			clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
 		});
-		await waitFor(
-			() => {
-				const loadingToaster = document.querySelector('[data-type="information"][data-position="center"]');
-				expect(loadingToaster?.getAttribute('data-show')).not.toBe('1');
-			},
-			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
-		);
+		await waitForToasterHidden('information', 'center');
 		await waitFor(
 			() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0),
 			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
