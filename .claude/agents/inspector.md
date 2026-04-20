@@ -93,10 +93,19 @@ promote-gate 정체 예방. Phase 1 의 drift ack 가 끝난 뒤, Phase 3 신규
    - **deferred (cross-cutting)** — 다수 컴포넌트 동시 개편 필요 · 단일 태스크 단위로 분할 불가.
    - **deferred (upstream)** — 다른 spec (예: `styles/css-modules`) 승격 후 가능.
    - **split** — 독립된 REQ 출처 · 별도 구현 일정 · 규모 >100줄 → 별 파일로 분리.
-3. **deferred 태깅** — 해당 섹션 헤더 바로 다음 줄에 `**[deferred: {사유}]**` 한 줄 삽입.
-   - 사유 예: `운영자 baseline 수행 대기`, `styles/css-modules 승격 후 가능`, `REQ-20260418-024 수동 검증`.
-   - planner 의 승격 판정에서 해당 섹션 내부의 `[WIP]` · unchecked `- [ ]` · `To-Be` 헤더는 제외 계산된다 (planner.md §4 `[deferred]` 제외 규약 참조).
-   - **전체 섹션이 100% `[deferred]` 상태가 되면 해당 spec 은 planner 가 blocked 후보로 본다** — 과태깅 주의.
+3. **deferred 태깅** — `planner.md` §4 의 두 가지 문법 중 적합한 것 선택. 두 문법 모두 planner 판정기가 인식한다.
+   - **(섹션 단위)** 해당 섹션 헤더 바로 다음 줄에 `**[deferred: {사유}]**` 한 줄 삽입.
+     - 블록 범위: 다음 동급 이상의 `#` 헤더까지.
+     - 사유 예: `운영자 baseline 수행 대기`, `styles/css-modules 승격 후 가능`, `REQ-20260418-024 수동 검증`.
+     - 적용 기준: §2 섹션 분류가 **operator / cross-cutting / upstream** 으로 판정되고 **섹션 전체가 단일 사유**로 묶이는 경우.
+   - **(라인 단위)** 해당 `- [ ]` 라인 끝 또는 `[WIP]` 포함 라인 끝에 `**[deferred: {사유}]**` 인라인 추가.
+     - 예: `- [ ] (Should) \`console.error\` 출력 0 — **[deferred: 간접 관측 수단 부재]**`.
+     - 범위: 해당 한 라인만.
+     - 적용 기준: **Acceptance 섹션 (`## 수용 기준` 등) 내 (Should) / (Could) / 수동 검증 / 운영자 baseline 라인**. Must 라인과 혼재해 섹션 단위 deferred 가 부적절할 때. 섹션 헤더 (`^#+`) 에는 사용 금지 (섹션 단위 문법 사용).
+     - 사유 카테고리 예: `간접 관측 수단 부재`, `운영자 수동 검증 대기 (REQ-035)`, `arch decision pending`, `외부 선행 의존 — docs/testing 운영자 baseline 후`.
+   - planner 의 승격 판정에서 섹션 단위 deferred 는 섹션 전체, 라인 단위 deferred 는 해당 라인만 제외 계산된다 (`planner.md` §4 `[deferred]` 제외 규약 참조).
+   - **전체 섹션이 100% `[deferred]` 상태가 되면 해당 spec 은 planner 가 blocked 후보로 본다** — 과태깅 주의. 라인 단위 deferred 가 섞여도 active 라인이 0 이면 동일 판단.
+   - **Phase 1 ack 후속 의무** — Phase 1 이 `## 수용 기준` 섹션의 Must 라인을 ack 한 경우, 같은 섹션의 (Should)/(Could)/수동 라인 중 ack 불가한 것은 **본 Phase 2 단계에서 라인 단위 deferred 마킹**. Phase 1 만 돌고 Phase 2 누락하면 Cond-2 FAIL 로 승격 차단되므로 필수.
 4. **sub-spec 분리** — split 플래그 섹션 추출:
    - 대상 경로: `specs/spec/green/{category}/{원본-slug}--{sub-slug}-spec.md`.
    - 원본 파일의 해당 섹션은 요약 3줄 + `> 분리: {sub-slug} → {경로}` 참조 행만 유지.
