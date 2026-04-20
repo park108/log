@@ -219,6 +219,26 @@ describe('click login button', () => {
 
 describe('ErrorBoundary integration (REQ-20260418-005 FR-06)', () => {
 
+	let consoleErrorSpy;
+	let stderrWriteSpy;
+
+	beforeAll(() => {
+		// Describe-scope suppression of intentional render-error noise (REQ-20260419-032 FR-01).
+		// React 18 logs a "Consider adding an error boundary" hint via console.error and
+		// jsdom 29 re-emits the raw Error stack through process.stderr, bypassing console
+		// spies. Both are silenced here so CI logs only surface real regressions. Scope is
+		// deliberately limited to this describe via beforeAll/afterAll — NOT moved to a
+		// file-scope or setupFiles — so other describes retain their console/stderr
+		// observation ability (FR-05).
+		consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		stderrWriteSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+	});
+
+	afterAll(() => {
+		consoleErrorSpy.mockRestore();
+		stderrWriteSpy.mockRestore();
+	});
+
 	it('isolates a throwing route without breaking Navigation/Footer', () => {
 		// Lazy 컴포넌트를 모킹하기 어려우므로, 의도 throw 컴포넌트를 ErrorBoundary 로 직접 감싼
 		// 최소 트리를 별도로 렌더해 격리 동작을 검증한다. 본 케이스는 ErrorBoundary + ErrorFallback
