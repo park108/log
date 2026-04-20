@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import App from './App';
 import * as common from './common/common';
 import ErrorBoundary from './common/ErrorBoundary';
@@ -8,6 +8,14 @@ import { reportError } from './common/errorReporter';
 
 console.log = vi.fn();
 console.error = vi.fn();
+
+// REQ-20260420-018 FR-02: 테스트 간 navigator.onLine 오염을 차단하기 위해
+// 파일 최상위 afterAll 에서 descriptor 를 configurable: true 로 복원해 둔다.
+// 기존 describe 내부의 afterAll (L314) 은 console/stderr 복원 전용이므로
+// scope 혼용을 피해 별도 최상위 훅에 박제한다.
+afterAll(() => {
+	Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+});
 
 it('render when network connection is offline', async () => {
 	
@@ -20,7 +28,9 @@ it('render when network connection is offline', async () => {
 	expect(offlineText).toBeInTheDocument();
 	
 	// Mocking network status -> restore to online
-	Object.defineProperty(navigator, 'onLine', { value: true, configurable: false } );
+	// REQ-20260420-018 FR-01: descriptor 를 configurable: true 로 완화해
+	// 후속 케이스가 navigator.onLine 을 재정의할 수 있도록 lock 을 해제한다.
+	Object.defineProperty(navigator, 'onLine', { value: true, configurable: true } );
 });
 
 it('render title text "park108.net" correctly', async () => {
@@ -158,16 +168,16 @@ describe('render body has no direct side effects', () => {
 		addSpy.mockRestore();
 	});
 
-	it('updates isOnline state on online/offline event (REQ-20260419-039 FR-03)', () => {
-		// 기존 'render when network connection is offline' 케이스가 navigator.onLine 을
-		// `configurable: false` 로 잠가두기 때문에, 본 케이스는 navigator 를 직접 건드리지 않고
-		// state 변화 핸들러가 실제로 wiring 됐는지를 spy 로 관찰한다 (FR-03 Should 의 핵심 의도:
-		// online/offline 이벤트가 handleStatusChange 를 통해 setIsOnline(navigator.onLine) 을
-		// 유발한다는 계약). dispatchEvent 경유 렌더 토글의 엔드-투-엔드 검증은 §3.10 의 우선 케이스
-		// 'subscribes to online/offline events once on mount' 로 이미 충분 (listener 1쌍 바인딩
-		// + rerender churn 0 확인).
+	it('updates isOnline state on online/offline event (REQ-20260419-039 FR-03)', async () => {
+		// REQ-20260420-018 FR-03: 첫 케이스 L23 descriptor 가 configurable: true 로 완화됨에 따라
+		// 본 케이스는 navigator.onLine 을 직접 토글해 dispatchEvent 경유 렌더 토글까지 E2E 로 관측한다.
+		// 기존 wiring 계약 (listener 쌍 바인딩 + handleStatusChange 동일 reference + throw-free 디스패치)
+		// 도 병행 유지한다.
 		const addSpy = vi.spyOn(window, 'addEventListener');
 		const baselineCalls = addSpy.mock.calls.length;
+
+		// navigator.onLine 은 이전 케이스 복원으로 true 상태로 들어온다고 가정.
+		Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
 		render(<App />);
 
@@ -190,6 +200,21 @@ describe('render body has no direct side effects', () => {
 		expect(() => {
 			act(() => { window.dispatchEvent(new Event('offline')); });
 		}).not.toThrow();
+
+		// FR-03 E2E: navigator.onLine 을 false 로 뒤바꾼 뒤 offline 이벤트를 디스패치하면
+		// App 이 isOnline=false 분기로 다시 렌더돼 .div--offline-contents 가 노출돼야 한다.
+		Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+		act(() => { window.dispatchEvent(new Event('offline')); });
+		await waitFor(() => {
+			expect(document.querySelector('.div--offline-contents')).toBeInTheDocument();
+		});
+
+		// online 복귀 시 offline 분기가 해제되는지도 확인 (symmetric toggle).
+		Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+		act(() => { window.dispatchEvent(new Event('online')); });
+		await waitFor(() => {
+			expect(document.querySelector('.div--offline-contents')).not.toBeInTheDocument();
+		});
 
 		addSpy.mockRestore();
 	});
