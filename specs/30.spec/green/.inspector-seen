@@ -1,11 +1,15 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T24:10:00Z (HEAD=b625b5a)
-# Phase 1 ack this session: 0/2. 두 green spec 모두 WIP 불변.
-#   - common/env-test-stub: `process\.env\.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행 (40.task/ready/TSK-20260420-37 은 런타임/나비게이션 pair scope 상이). hook-ack 부재. stale_cycles 6 → 7 (5세션 연속 ≥3).
-#   - deps/uniform-fake-timer: `useRealTimers` in setupTests.js = 0 hits (baseline 0 불변, FR-01 미이행). body 직접 호출 42 hits in 16 files (baseline 41 hits + setupTests.timer-idiom.test.jsx afterEach 포함 동등). 대응 task 미발행. hook-ack 부재. stale_cycles 0 → 1 (신규 등록 다음 세션).
+# Updated: 2026-04-20T25:30:00Z (HEAD=3f9e590)
+# Phase 1 ack this session: 0/2. 두 기존 green spec 모두 WIP 불변 (HEAD 기준 재grep).
+#   - common/env-test-stub: HEAD 기준 `process\.env\.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). working tree 에는 unstaged 편집이 관찰되나 HEAD 미커밋이라 ack 불가. 대응 task 미발행 (TSK-20260420-37 은 runtime/navigation pair scope). hook-ack 부재. stale_cycles 7 → 8 (6세션 연속 ≥3).
+#   - deps/uniform-fake-timer: HEAD 기준 `useRealTimers` in setupTests.js = 주석 1 hit (실행 코드 0). body 직접 `vi.useRealTimers()` = 42 hits in 16 files (baseline 41 hits 동등, setupTests.timer-idiom.test.jsx afterEach 포함). FR-01 미이행. 대응 task TSK-20260420-38 은 40.task/ready/ 에서 대기 중. hook-ack 부재. stale_cycles 1 → 2.
 # Phase 2 this session:
-#   - input queue: 0 req. no-op.
-#   - processed: 0 / blocked: 0.
-#   - new green specs produced: 0. no mv.
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 7
-30.spec/green/deps/uniform-fake-timer-teardown-policy-spec.md 3c34ce5a2c55aaeca169c06deab27874663a86e21993e3fd92f7e20bdf68a4a2 1
+#   - input queue: 3 req (REQ-20260420-008/009/010).
+#   - processed: 3 / blocked: 0.
+#   - new green specs produced: 3 (react-19-findby-timing-stabilization, href-intent-assertions, msw-test-idioms-unification).
+#   - req mv: 3 → 60.done/2026/04/20/req/
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 8
+30.spec/green/deps/uniform-fake-timer-teardown-policy-spec.md 3c34ce5a2c55aaeca169c06deab27874663a86e21993e3fd92f7e20bdf68a4a2 2
+30.spec/green/deps/react-19-findby-timing-stabilization-spec.md d9b0de553ec48929e11487bb1264ecb8b7b64a42a489b71a38eb58bb93b9bb82 0
+30.spec/green/common/href-intent-assertions-spec.md 959f59e3e4d02bdb13476199e96c29df3fda48b7eb6f1b9ebab9548bc9c4fbd3 0
+30.spec/green/deps/msw-test-idioms-unification-spec.md 2c4b96bcd5a280056138d8546569e9e280fee667154259577763a073255719cf 0
