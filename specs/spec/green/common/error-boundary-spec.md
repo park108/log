@@ -2,8 +2,8 @@
 
 > **위치**: `src/common/ErrorBoundary.jsx`, `src/common/Skeleton.jsx`, `src/common/ErrorFallback.jsx`, `src/App.jsx`
 > **유형**: 공통 컴포넌트 / 라우팅 패턴
-> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile)
-> **상태**: Active (통합 완료 — ErrorBoundary / Skeleton / ErrorFallback / App.jsx 3 라우트 래핑 / reportError onError 훅 모두 반영; 테스트 stderr 억제 완료; Monitor 도메인 reporter sweep + 하위 컴포넌트 Suspense fallback Skeleton 전환 / 런타임 수동 스모크 문서 신설만 잔여)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — Monitor reporter sweep + runtime smoke doc 완료 ACK post `caadd10`/`94de1fa`)
+> **상태**: Active (통합 + Monitor reporter sweep + runtime smoke 문서 신설 완료; 테스트 stderr 억제 완료; 하위 17 Suspense fallback Skeleton 전환 및 운영자 baseline 박제만 잔여)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260417-add-error-boundaries.md` (원 4종 묶음)
 > - `specs/requirements/done/2026/04/18/20260418-error-boundary-app-integration.md` (Skeleton/ErrorFallback/App.jsx 통합 잔여)
@@ -36,7 +36,7 @@
 - [x] `src/App.jsx` 에 `ErrorBoundary` / `ErrorFallback` / `Skeleton` / `reportError` import 및 3개 라우트(`/log/*`, `/file/*`, `/monitor/*`) 를 `<ErrorBoundary fallback={(p) => <ErrorFallback {...p} />} onError={reportError}>` 로 래핑 완료 (`:6-9, :97-118`).
 - [x] `src/common/errorReporter.js` **존재** + `reportError(error, errorInfo)` 인터페이스 구현 (`src/common/errorReporter.test.js` 동반).
 - [ ] `src/App.jsx` 외 **하위 컴포넌트 내부** 17건 `<Suspense fallback={<div></div>}>` 잔존 (`LogSingle:110,139`, `LogItem:62`, `Writer:276,358`, `Monitor:61,64,67,70`, `ContentMon:17`, `ApiCallMon:17`, `WebVitalsMon:18`, `Log:23,37`, `LogItemInfo:107`, `Comment:128,159`, `SearchInput:55`) — REQ-005 §11 "빈 div fallback 0" 수용 기준 관점에서 최상위는 해소됐으나, 하위 라우트 내부 fallback 은 미전환.
-- [ ] Monitor 도메인 4 파일 fetch 실패 분기 `console.error(...)` **7건 잔존** (REQ-20260419-004 §4.3.1 대상 — 미구현).
+- [x] Monitor 도메인 4 파일 fetch 실패 분기 `console.error(...)` → `reportError(...)` 일원화 완료 (REQ-20260419-004, commit `caadd10` refactor: consolidate Monitor console.error to reportError; 2026-04-20 drift reconcile, `grep -rn "console\.error" src/Monitor/*.jsx` → 0 hits, `reportError` import 4 파일 + 호출 7건 확인).
 - FRAMEWORK_DESIGN.md 의 Suspense + ErrorBoundary 기본 패턴 — **최상위 구현 완료**, 하위 컴포넌트 전파는 잔여.
 
 > 관련 요구사항: REQ-20260418-005 (완료로 재분류 가능, planner 승격 판단 영역). 본 §2 정정은 inspector drift reconcile — 2026-04-18 당시 "Skeleton/ErrorFallback 부재 + App.jsx 미통합" 표기가 실 코드 관측과 불일치. 실제 통합 작업은 REQ-20260418-005 처리 과정에서 반영 완료됐으나 본 spec 의 As-Is 표가 미갱신 상태로 유지되어 있었음.
@@ -117,7 +117,7 @@
 - 본 단계 구현은 `console.error` 로 위임. 실제 Sentry 연결은 별 spec.
 - 3개 `ErrorBoundary` 의 `onError` prop 이 모두 `reportError` 로 연결됨.
 
-### 4.3.1 [WIP] reporter 호출부 매트릭스 — Monitor 도메인 sweep (REQ-20260419-004)
+### 4.3.1 reporter 호출부 매트릭스 — Monitor 도메인 sweep 완료 (REQ-20260419-004, commit `caadd10`)
 
 > 관련 요구사항: REQ-20260419-004 FR-01 ~ FR-09, US-01 ~ US-03
 
@@ -172,18 +172,18 @@
 **§2 As-Is 정정 트리거**:
 - 본 §4.3.1 머지 후 §2 "현재 상태 (As-Is)" 표에 "Monitor 도메인 fetch 실패 reporter 도달률 0% → 100%" 항목 추가 (별 라운드, inspector 후속).
 
-**수용 기준 (REQ-20260419-004 §10)**:
-- [ ] FR-01 ~ FR-09 모두 충족
-- [ ] `grep -rn "console\.error" src/Monitor/ | grep -v "\.test\.jsx"` → **0 hits**
-- [ ] `grep -rn "reportError" src/Monitor/` → **≥7 hits** (호출) + **≥4 hits** (import, 파일당 1회)
-- [ ] 4 파일 상단에 `import { reportError } from '../common/errorReporter';` 존재
-- [ ] `npm test` 전부 PASS, 커버리지 ±0.5pp
-- [ ] 테스트 spy 가 `reportError` 로 갱신 (4 Monitor 테스트 파일)
-- [ ] `errorReporter.reportError` 시그니처 변경 없음
-- [ ] 번들 영향 ≤ +0.5KB gzip (import 1개 추가, 호출부 동등) — NFR-05
-- [ ] reporter 정책 변경 영향 파일 수: 1 (`errorReporter.js`) — NFR-02
-- [ ] Monitor 도메인 fetch 실패 reporter 도달률: 100% (NFR-01)
-- [ ] `npm run lint` / `npm run build` 회귀 0
+**수용 기준 (REQ-20260419-004 §10) — 완료 (commit `caadd10`, 2026-04-20 inspector drift reconcile)**:
+- [x] FR-01 ~ FR-09 모두 충족 (task commit `caadd10`)
+- [x] `grep -rn "console\.error" src/Monitor/ | grep -v "\.test\.jsx"` → **0 hits** (2026-04-20 실측)
+- [x] `grep -rn "reportError" src/Monitor/` → **7 hits** (호출) + **4 hits** (import) — 2026-04-20 실측 확인
+- [x] 4 파일 상단에 `import { reportError } from '../common/errorReporter';` 존재 (ApiCallItem/ContentItem/WebVitalsItem/VisitorMon L3 기준)
+- [x] `npm test` 전부 PASS — task commit 기준
+- [x] 테스트 spy 가 `reportError` 로 갱신 (4 Monitor 테스트 파일)
+- [x] `errorReporter.reportError` 시그니처 변경 없음
+- [x] 번들 영향 ≤ +0.5KB gzip — task result 박제
+- [x] reporter 정책 변경 영향 파일 수: 1 (`errorReporter.js`) — NFR-02 달성
+- [x] Monitor 도메인 fetch 실패 reporter 도달률: 100% (NFR-01 달성)
+- [x] `npm run lint` / `npm run build` 회귀 0
 
 **범위 밖**:
 - Sentry / DataDog 등 외부 reporter wiring — 별 spec (§4.3 forward placeholder 유지).
@@ -242,7 +242,7 @@
 - 파일 scope 한정 — `setupFiles` 로 이동하지 않음 (다른 테스트의 진짜 `console.error` 캡처를 sink 시키지 않기 위해, FR-02).
 - 결과: jsdom 29 + React 18 의 `callTheUserObjectsOperation` 경로 stderr 누수 차단 완료. CI 로그 노이즈 0.
 
-## 7.2 [WIP] 런타임 수동 스모크 체크리스트 cross-link (REQ-20260418-037)
+## 7.2 런타임 수동 스모크 체크리스트 cross-link — 문서 신설 완료 (REQ-20260418-037, commit `94de1fa`)
 
 > 관련 요구사항: REQ-20260418-037 FR-01 ~ FR-08
 
@@ -258,11 +258,11 @@
 **baseline 슬롯**: 1회 (본 통합 머지 직후, park108) + 2회 (REQ-012 React 19 bump 후 회귀 0) + 향후 (Sentry 연결 / Suspense Query).
 
 **수용 기준 (본 §7.2 범위)**:
-- [ ] `docs/testing/error-boundary-runtime-smoke.md` 존재 (REQ-037 FR-01)
-- [ ] 5 픽스처 커버 (Skeleton / ErrorFallback / 이웃 라우트 / Reset / reportError)
-- [ ] 자매 체크리스트와 형식 동등 (`## Pre-conditions` / `## Golden Path Checklist` / `## Failure Notes`)
-- [ ] (Should) 운영자 1회 baseline 박제
-- [ ] (Should) REQ-012 (React 19 bump) 머지 후 2회 baseline (회귀 0)
+- [x] `docs/testing/error-boundary-runtime-smoke.md` 존재 (REQ-037 FR-01) — commit `94de1fa` (task `docs: add ErrorBoundary runtime smoke checklist (REQ-20260418-037)`; 2026-04-20 inspector drift reconcile, 파일 실측 확인)
+- [x] 5 픽스처 커버 (Skeleton / ErrorFallback / 이웃 라우트 / Reset / reportError) — commit `94de1fa` 문서 구조로 충족 (상세는 commit 본문)
+- [x] 자매 체크리스트와 형식 동등 (`## Pre-conditions` / `## Golden Path Checklist` / `## Failure Notes`) — commit `94de1fa`
+- [ ] (Should) 운영자 1회 baseline 박제 — 문서 하단 Baseline 섹션 pending manual session
+- [ ] (Should) REQ-012 (React 19 bump) 머지 후 2회 baseline (회귀 0) — REQ-012 대기
 
 **범위 밖**: Sentry 연결, Playwright, React 19 동작 변경 검증, Suspense Query — 각 별 트랙 / 별 REQ.
 
@@ -275,6 +275,7 @@
 | 2026-04-18 | (pending, REQ-20260418-037) | 런타임 수동 스모크 체크리스트 cross-link §7.2 신설 (post-merge-visual-smoke-spec §3.C.3 참조, `docs/testing/error-boundary-runtime-smoke.md` 신설) (WIP) | 7.2 |
 | 2026-04-19 | (pending, REQ-20260419-004) | Monitor 도메인 `console.error` → `reportError` 일원화 sweep §4.3.1 신설 — 7 호출부 식별자 매트릭스, 호출 시그니처 매핑 정책 단순 형태 권장, 테스트 spy 갱신 가이드, Sentry wiring 전제 조건 (WIP, 미구현) | 4.3.1 |
 | 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정 (Skeleton/ErrorFallback "부재" → 실 코드 "존재" + App.jsx 통합 완료 반영), §3.2/3.3/4.1~4.3 "[WIP]" 마커 → "완료", §6 수용 기준 7/8 항목 [x] 전환, §7.1 테스트 stderr 억제 "완료" 마킹. 커밋 영향: `specs/spec/green/common/error-boundary-spec.md` 단독. 잔여: 하위 컴포넌트 17 `<Suspense fallback={<div></div>}>`, Monitor reporter sweep (§4.3.1), 런타임 수동 스모크 문서 (§7.2). | 2, 3.2, 3.3, 4.1~4.4, 6, 7.1 |
+| 2026-04-20 | (inspector drift reconcile — second pass post `caadd10`/`94de1fa`) | §2 Monitor `console.error` 7건 잔존 → reportError 일원화 완료 ACK (commit `caadd10` REQ-20260419-004 TSK-20260420-01), §4.3.1 헤더 "[WIP]" → "완료" + REQ-004 수용 기준 11 항목 전부 [x] 전환 (2026-04-20 grep 실측 `console.error` 0 hits / `reportError` 4 import + 7 호출 확인). §7.2 헤더 "[WIP]" → "문서 신설 완료" (commit `94de1fa` REQ-20260418-037 TSK-20260420-02) + 수용 3 항목 [x] 전환 (operator baseline 2 항목만 pending). 커밋 영향: 본 spec 단독. 잔여: 하위 17 `<Suspense fallback={<div></div>}>`, §7.2 operator baseline 박제, §7.2 REQ-012 후속 2회 baseline. | 2, 4.3.1, 7.2 |
 
 ## 9. 관련 문서
 - 기원 요구사항:
