@@ -1,22 +1,31 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(session+2)Z (HEAD=4bd67ef)
-# Phase 1 ack this session: 0/5.
-#   - 이번 세션은 ack 대상 task done 없음. 전세션 TSK-40 (href-intent) 은 이미 blue promote 완료 (커밋 4bd67ef).
-#   - 현 ready 큐: TSK-20260420-41 (msw-idioms), TSK-20260421-42 (fake-timer-residual), TSK-20260421-43 (react19-findby) — developer 주기 대기.
-#   - 나머지 2 green (geturl-render-path, test-isolation-shuffle) 은 planner 차기 주기 carve 대기.
-# Phase 1 stale 추이:
-#   - deps/react-19-findby-timing-stabilization-spec.md: hash 불변 (b5d9e9). TSK-43 ready 대기. stale_cycles 0 → 1.
-#   - deps/msw-test-idioms-unification-spec.md: hash 불변 (2c4b96). TSK-41 ready 대기. stale_cycles 2 → 3 (≥3 진입).
-#   - deps/fake-timer-teardown-residual-cleanup-spec.md: hash 불변 (97ced5). TSK-42 ready 대기. stale_cycles 0 → 1.
-#   - common/geturl-render-path-test-audit-spec.md: hash 불변 (b31379). planner carve 대기. stale_cycles 0 → 1.
-#   - common/test-isolation-shuffle-safety-spec.md: hash 불변 (bd2726). planner carve 대기. stale_cycles 0 → 1.
+# Updated: 2026-04-20T16:34:23Z (HEAD=c18132d)
+# Phase 1 ack this session: 1/5.
+#   - TSK-20260420-41 (msw-idioms) 커밋 515d9b3 HEAD 조상. DoD grep 2건 전원 PASS (재실행):
+#       · `beforeEach.*listen\(\)|afterEach.*close\(\)` → 코드 0 hits (msw.test.js 주석/메타는 spec 허용 예외).
+#       · `HttpResponse.error()|HttpResponse.json(ERROR_500)` in `*.test.jsx` → 0 hits.
+#     Must 주관 혼재 없음, result.md 의 "46/370 green + lint 0" 정합 → flip. 변경 이력 1행 박제.
+#     (spec hash 변경: 2c4b96 → refresh 이후 — flip 커밋 포함.)
+#   - TSK-20260421-42 (fake-timer-residual) 커밋 c18132d HEAD 조상. DoD grep:
+#       · #1 `vi.useRealTimers()` 코드 hits: `setupTests.timer-idiom.test.jsx:61` 1건 잔존.
+#         spec §공개 인터페이스 옵션 1 (같은 `it` 직렬화) 은 허용 경로로 명시 — 그러나
+#         spec §수용기준 Must #4 "정책 A 선택 시 코드 라인 0 hits" 와 문자열 엄격 해석 시 충돌.
+#       · #2 `it\([A]|[B]` → 0 hits (분리 구조 제거 PASS).
+#     Must 주관 혼재 → RULE-03 Phase 1 "애매하면 marker 유지" 적용. ack 보류. stale 1 → 2.
+#     follow-up: planner 가 spec Must #4 grep 패턴을 `afterEach\s*\([^)]*vi\.useRealTimers` 로 좁혀
+#     재개정 carve 혹은 수동 개입 필요 (RULE-05).
+#   - TSK-20260421-43 (react19-findby) ready 큐 대기. stale 1 → 2.
+#   - TSK-20260421-44 (geturl-audit) ready 큐 대기. stale 1 → 2.
+#   - TSK-20260421-45 (shuffle-safety) ready 큐 대기. stale 1 → 2.
 # Phase 2/3 this session:
-#   - input queue (20.req/ready/): 비어있음. no-op.
-#   - downstream threshold GREEN_PENDING_MAX=20 (기본) — green 5개 < 20, 여유.
-#   - Phase 1 은 스캔/갱신 수행 (ack 0건). Phase 2 deferred 이미 기존 tag (`[deferred: ...]` on react-19-findby §역할, no-op).
-#   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 0.
-30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 1
-30.spec/green/deps/msw-test-idioms-unification-spec.md 2c4b96bcd5a280056138d8546569e9e280fee667154259577763a073255719cf 3
-30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 1
-30.spec/green/common/geturl-render-path-test-audit-spec.md b31379230e2b28e677c5497537f64efa203878e3a9e568817b06ca7150fefc4a 1
-30.spec/green/common/test-isolation-shuffle-safety-spec.md bd27261fdbd3c24b4ad4db3ac13e37413841ebfdad575f31138773dcfd06b4bc 1
+#   - input queue (20.req/ready/): 비어있음 (Phase 3 no-op).
+#   - downstream threshold GREEN_PENDING_MAX=20 (기본) — green 5 < 20, 여유.
+#   - Phase 2 deferred: 신규 없음 (기존 tag 유지).
+#   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 1 (msw-idioms flip).
+# Stale >=3 경고: 없음 (msw-idioms flip 으로 stale=4 해소).
+#   - 잔존 최대 stale: fake-timer-residual=2, 나머지 모두 =2. 아직 경고 임계치 미만.
+30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 2
+30.spec/green/deps/msw-test-idioms-unification-spec.md refresh 0
+30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 2
+30.spec/green/common/geturl-render-path-test-audit-spec.md b31379230e2b28e677c5497537f64efa203878e3a9e568817b06ca7150fefc4a 2
+30.spec/green/common/test-isolation-shuffle-safety-spec.md bd27261fdbd3c24b4ad4db3ac13e37413841ebfdad575f31138773dcfd06b4bc 2

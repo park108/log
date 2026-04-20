@@ -62,24 +62,24 @@ TSK-20260420-35-b 에서 도입한 공통 헬퍼 `src/test-utils/msw.js::useMock
 - [x] `useMockServer` 메타 스위트 (`src/test-utils/msw.test.js`) green.
 - [x] Comment.test.jsx 수동 바인딩 상태로 현 HEAD green.
 - [x] File.test.jsx / ImageSelector.test.jsx inline handler 상태로 현 HEAD green.
-- [ ] FR-01 scenario 정규화 후 Comment 스위트 green (FR-02 통합 검증).
-- [ ] FR-03, FR-04 명명 handler export 후 File / Image 스위트 green (FR-05 치환 검증).
-- [ ] NFR-02, NFR-03 grep 게이트 0 hits 달성.
-- [ ] `npm run lint` 0 warn / 0 error.
+- [x] FR-01 scenario 정규화 후 Comment 스위트 green (FR-02 통합 검증).
+- [x] FR-03, FR-04 명명 handler export 후 File / Image 스위트 green (FR-05 치환 검증).
+- [x] NFR-02, NFR-03 grep 게이트 0 hits 달성.
+- [x] `npm run lint` 0 warn / 0 error.
 
 ## 수용 기준
-- [ ] (Must) `src/Comment/api.mock.js::scenario()` 가 `SetupServerApi` 호환 서브셋 (`listen(opts?)`, `close()`, `resetHandlers(...)`, `use(...)`) 를 노출하거나 `{ onUnhandledRequest }` 옵션 인자를 수용 — 둘 중 1안 일관 적용.
-- [ ] (Must) `src/Comment/Comment.test.jsx` 6 describe 블록 전원 `useMockServer(() => mock.xxx)` 이디엄으로 통일. 수동 `beforeEach(() => mock.xxx.listen())` 및 대응 `afterEach(() => mock.xxx.close())` 제거.
-- [ ] (Must) `grep -rn "beforeEach.*listen\(\)\|afterEach.*close\(\)" src --include="*.test.*"` → 0 hits (예외: `src/test-utils/msw.test.js` 의 **주석** 및 **메타 단정 어서트** 는 허용, 실제 `beforeEach/afterEach` 호출 라인만 카운트; 허용 예외는 `result.md` 에 명시).
-- [ ] (Must) `src/File/api.mock.js` 에 `failedHandler` / `deleteFailedHandler` / `networkErrorHandler` / `deleteNetworkErrorHandler` (또는 동등 명명) 상수 export 추가. `src/Image/api.mock.js` 에 `prodFailedHandler` / `devNetworkErrorHandler` 상수 export 추가.
-- [ ] (Must) `src/File/File.test.jsx:230, 231, 264, 265` 및 `src/Image/ImageSelector.test.jsx:54, 91` 의 inline `http.get(...)` / `http.delete(...)` 정의를 `server.use(mock.xxxHandler, ...)` 상수 참조 형태로 치환.
-- [ ] (Must) `grep -rn "HttpResponse\.error\(\)\|HttpResponse\.json(ERROR_500)" src --include="*.test.jsx"` → 0 hits (`api.mock.js` 만 정의 보유).
-- [ ] (Must) `npm test` — 46 files / 368 tests 전원 green + flake 0 유지.
-- [ ] (Must) `npm run lint` 0 warn / 0 error.
-- [ ] (Should) 다른 `api.mock.js` (Log, Search, Monitor, Toaster, useLog) 추가 감사는 본 spec 밖 — 필요 시 별도 followup 발행.
-- [ ] (Should) scenario 팩토리 공통화 (FR-06 Could) 는 본 spec 밖 — 공통화 필요 판단되면 후속 spec 으로 carve.
-- [ ] (NFR) `src/**` 비-test 런타임 파일 수정 0건 — `*.test.*`, `api.mock.js`, `test-utils/` 한정.
-- [ ] (NFR) `src/setupTests.js` 의 MSW idiom 주석 (`:22-34`) 불변.
+- [x] (Must) `src/Comment/api.mock.js::scenario()` 가 `SetupServerApi` 호환 서브셋 (`listen(opts?)`, `close()`, `resetHandlers(...)`, `use(...)`) 를 노출하거나 `{ onUnhandledRequest }` 옵션 인자를 수용 — 둘 중 1안 일관 적용.
+- [x] (Must) `src/Comment/Comment.test.jsx` 6 describe 블록 전원 `useMockServer(() => mock.xxx)` 이디엄으로 통일. 수동 `beforeEach(() => mock.xxx.listen())` 및 대응 `afterEach(() => mock.xxx.close())` 제거.
+- [x] (Must) `grep -rn "beforeEach.*listen\(\)\|afterEach.*close\(\)" src --include="*.test.*"` → 0 hits (예외: `src/test-utils/msw.test.js` 의 **주석** 및 **메타 단정 어서트** 는 허용, 실제 `beforeEach/afterEach` 호출 라인만 카운트; 허용 예외는 `result.md` 에 명시).
+- [x] (Must) `src/File/api.mock.js` 에 `failedHandler` / `deleteFailedHandler` / `networkErrorHandler` / `deleteNetworkErrorHandler` (또는 동등 명명) 상수 export 추가. `src/Image/api.mock.js` 에 `prodFailedHandler` / `devNetworkErrorHandler` 상수 export 추가.
+- [x] (Must) `src/File/File.test.jsx:230, 231, 264, 265` 및 `src/Image/ImageSelector.test.jsx:54, 91` 의 inline `http.get(...)` / `http.delete(...)` 정의를 `server.use(mock.xxxHandler, ...)` 상수 참조 형태로 치환.
+- [x] (Must) `grep -rn "HttpResponse\.error\(\)\|HttpResponse\.json(ERROR_500)" src --include="*.test.jsx"` → 0 hits (`api.mock.js` 만 정의 보유).
+- [x] (Must) `npm test` — 46 files / 368 tests 전원 green + flake 0 유지.
+- [x] (Must) `npm run lint` 0 warn / 0 error.
+- [x] (Should) 다른 `api.mock.js` (Log, Search, Monitor, Toaster, useLog) 추가 감사는 본 spec 밖 — 필요 시 별도 followup 발행.
+- [x] (Should) scenario 팩토리 공통화 (FR-06 Could) 는 본 spec 밖 — 공통화 필요 판단되면 후속 spec 으로 carve.
+- [x] (NFR) `src/**` 비-test 런타임 파일 수정 0건 — `*.test.*`, `api.mock.js`, `test-utils/` 한정.
+- [x] (NFR) `src/setupTests.js` 의 MSW idiom 주석 (`:22-34`) 불변.
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -96,3 +96,4 @@ TSK-20260420-35-b 에서 도입한 공통 헬퍼 `src/test-utils/msw.js::useMock
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-20 | inspector / — | 최초 등록 (REQ-20260420-010 반영) | all |
+| 2026-04-21 | TSK-20260420-41 / 515d9b3 | Comment scenario → SetupServerApi 호환 서브셋 (A1 안) · File/Image inline handler 6 hits → 명명 export 상수 치환. `*.test.jsx` 내 `HttpResponse.error/json(ERROR_500)` 0 hits. 46/370 green. DoD 전원 PASS → inspector flip. | 테스트 현황, 수용 기준 |
