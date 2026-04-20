@@ -1,33 +1,34 @@
 {
   "version": 1,
-  "updated": "2026-04-20T14:00:00Z",
-  "notes": "cycle 59: task/ready at start = 0. HEAD=ff0e6b7 (planner cycle 58 no-op). Cycle 59 detects FIRST inspector activity since cycle 54: working-tree shows 10 modified greens (accessibility, env, error-boundary, react-render-patterns, server-state, css-modules, design-tokens, app-shell-side-effects, log-mutation-runtime, search-abort-runtime) + 3 untracked new greens (csp-policy, fileitem-delete-visual, loglist-seemore-runtime) + .claude/pipeline.json (untracked, GREEN_PENDING_MAX=25 override). NONE staged/committed yet — inspector still in-flight. Planner MUST NOT touch inspector writer-area (spec/green/**) per RULE-01 §2. Planner §4 mechanical scan uses HEAD baseline ONLY; in-flight files (10 modified + 3 untracked) treated as inspector_in_flight, hold. Of the 14 HEAD-stable greens: ALL still WIP>0 OR unchecked>0 OR To-Be>0, ALL DEF=0 → 0 promotable under raw-zero (no [deferred] exemption available yet because inspector hasn't tagged anything yet; the [deferred] regime introduced in da246cb is still un-applied across the green tree). 2 blue-paired DIFFs (monitor/web-vitals, testing/markdown-render-smoke) unchanged from cycle 58, atomic carve still impossible. react-render-patterns drift ENTERS inspector active edit (working-tree WIP=1 + UNCHK=11 — body actually GROWING this cycle). Cycle 59 NO-OP for promotion/carve/block, but is FIRST signal of inspector pulse return. Next cycle: if inspector commits its in-flight changes, planner re-evaluates against new HEAD.",
+  "updated": "2026-04-20T15:00:00Z",
+  "notes": "cycle 60: task/ready at start = 0, TASK_READY_MAX=10 slack=10, GREEN_PENDING_MAX override=25 (pipeline.json). HEAD advanced from cycle 59 baseline (ff0e6b7) through 6b9fec3 (inspector defer-tag 3 sections + reflect 20 REQs) to 556f977 (cycle 59 planner no-op). Inspector FINALLY committed the 10 modified + 3 new greens that cycle 59 saw only in working-tree. Cycle 60 is FIRST evaluation after [deferred] regime (da246cb) has any real coverage: 3 sections now marked [deferred] across 3 files (common/accessibility §2.2.3, common/env §7.1.1, styles/design-tokens §3). Mechanical §4 scan against HEAD body: 0 files pass raw-zero (WIP=0 AND unchecked=0 AND To-Be=0). 3 files have DEF>0 but still fail on at least one of WIP/unchecked/To-Be being non-zero (accessibility DEF=1 but WIP=17/UNCHK=115/To-Be=5 — net body GREW; env DEF=1 but WIP=29/UNCHK=18/To-Be=3; design-tokens DEF=1 UNCHK=0 but WIP=1/To-Be=1 residual). 2 blue-paired diffs (monitor/web-vitals, testing/markdown-render-smoke) still DEF=0, atomic carve still impossible. react-render-patterns 6-cycle drift (55..60) now committed: body grew as suspected (WIP 0→1, UNCHK 4→11, To-Be 1→3 — inspector added §5.2 hoverPopup section per REQ-20260420-001) with NO [deferred] coverage, drift extends. 3 NEW greens entered HEAD: csp-policy-spec, fileitem-delete-visual-smoke-spec, loglist-seemore-runtime-smoke-spec, all first-seen bodies unchecked>0. 1 MORE new green appeared in HEAD beyond the 3 cycle 59 spotted: testing/logsingle-runtime-smoke-spec.md (REQ-030), also WIP=0 UNCHK=4 To-Be=1. Cycle 60 NO-OP for promotion/carve/block/task creation. Progress signal: [deferred] regime now operational (3 sections across 3 files). Next cycles: inspector continues defer-tagging per Phase 2, planner watches DEF counters climb until a file reaches (DEF>=residual AND WIP=0 AND unchecked=0 AND To-Be=0 offset by deferred).",
   "files": {
-    "app/App-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 56, "mechanical": {"WIP": 4, "unchecked": 1, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. Not in inspector in-flight set this cycle. Candidate for [deferred] tagging."},
-    "build/react-version-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 3, "unchecked": 18, "To-Be": 0, "deferred": 0}, "promotable": false, "reason": "Unchanged HEAD. React 19 cross-cutting hold. Candidate for [deferred] tagging."},
+    "app/App-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 4, "unchecked": 1, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD across 6b9fec3 (inspector touched 0 lines here). Candidate for [deferred] tagging — REQ-025 FR-03~07 residual operator baseline."},
+    "build/react-version-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 59, "mechanical": {"WIP": 3, "unchecked": 18, "To-Be": 0, "deferred": 0}, "promotable": false, "reason": "Unchanged HEAD. React 19 cross-cutting hold. Candidate for [deferred] tagging."},
     "build/jest-dom-upgrade-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T11:50:00Z", "final_cycle": 23, "promoted_at_commit": "a7dd6ee"},
-    "ci/github-actions-ci-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 13, "unchecked": 47, "To-Be": 1, "deferred": 0}, "promotable": false, "reason": "Unchanged HEAD. PR template doc + branch protection operator-side. Candidate for [deferred] tagging."},
-    "common/accessibility-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 54, "mechanical": {"WIP": 17, "unchecked": 115, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified by inspector. HEAD baseline unchanged from cycle 58. Hold pending inspector commit."},
-    "common/auth-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 42, "mechanical": {"WIP": 2, "unchecked": 20, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. Not in inspector in-flight set."},
-    "common/clipboard-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 52, "mechanical": {"WIP": 7, "unchecked": 34, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. Not in inspector in-flight set."},
-    "common/csp-policy-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 1, "mechanical": {"WIP": 0, "unchecked": 12, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "NEW spec, untracked in working-tree. HEAD does not contain. Treat as inspector in-flight. Even if committed, mechanical §4 fails: unchecked=12, To-Be=1."},
-    "common/env-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 56, "mechanical": {"WIP": 29, "unchecked": 18, "To-Be": 0, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified. HEAD unchanged from cycle 58. Hold pending inspector commit."},
-    "common/error-boundary-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 2, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified. HEAD unchanged. §6 fallback sweep cross-cutting."},
-    "common/react-render-patterns-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 28, "mechanical_head": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "mechanical_worktree": {"WIP": 1, "unchecked": 11, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Cycle 59: inspector FINALLY editing this 5-cycle drift target. Working-tree shows body GROWING (WIP 0→1, unchecked 4→11), not shrinking — inspector likely re-baselining (perhaps re-introducing optional ImageSelector §7 spec sections or REQ-024 markers). Drift will only resolve once inspector commits AND new body reaches §4 raw-zero or full [deferred] coverage."},
-    "common/sanitizeHtml-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 56, "mechanical": {"WIP": 11, "unchecked": 24, "To-Be": 0, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. Not in inspector in-flight set."},
-    "monitor/web-vitals-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 48, "mechanical": {"WIP": 6, "unchecked": 2, "To-Be": 0, "deferred": 0}, "promotable": false, "blue_paired": true, "progress": "PAIR diff w/ blue persists. §5.4 + §7.1 not atomically carveable. Candidate for [deferred] tagging."},
-    "state/server-state-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 10, "unchecked": 117, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified. HEAD unchanged. §3.7 Phase 2 REQ-012 undividable + REQ-007 HOLD."},
-    "styles/css-modules-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 11, "unchecked": 102, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified. HEAD unchanged. §10.8 operator + §10.3/§10.4/§10.5 cross-cutting."},
-    "styles/design-tokens-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 1, "unchecked": 0, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "holding_on_dependency": "Working-tree modified. HEAD unchanged. Awaiting css-modules. Strong [deferred] candidate."},
-    "testing/app-shell-side-effects-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 48, "mechanical": {"WIP": 8, "unchecked": 24, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified. HEAD unchanged."},
-    "testing/fileitem-delete-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 1, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "NEW spec, untracked. HEAD does not contain. Even if committed, §4 fails: unchecked=4, To-Be=1."},
-    "testing/log-mutation-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 35, "mechanical": {"WIP": 2, "unchecked": 15, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified. HEAD unchanged."},
-    "testing/loglist-seemore-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 1, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "NEW spec, untracked. HEAD does not contain. Even if committed, §4 fails: unchecked=4, To-Be=1."},
-    "testing/markdown-render-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 48, "mechanical": {"WIP": 5, "unchecked": 9, "To-Be": 1, "deferred": 0}, "promotable": false, "blue_paired": true, "progress": "PAIR diff w/ blue persists. §3.7 + §5.1 REQ-024 operator. Candidate for [deferred] tagging."},
-    "testing/post-merge-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 52, "mechanical": {"WIP": 1, "unchecked": 44, "To-Be": 3, "deferred": 0}, "promotable": false, "reason": "Unchanged HEAD. Operator-side visual smoke. Candidate for [deferred] tagging."},
-    "testing/search-abort-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 31, "mechanical": {"WIP": 1, "unchecked": 29, "To-Be": 1, "deferred": 0}, "promotable": false, "inspector_in_flight": true, "progress": "Working-tree modified. HEAD unchanged."},
-    "testing/web-vitals-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 48, "mechanical": {"WIP": 5, "unchecked": 7, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. Not in inspector in-flight set. Joint promote w/ monitor/web-vitals after both body refresh."},
-    "types/typescript-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 4, "unchecked": 14, "To-Be": 1, "deferred": 0}, "promotable": false, "holding_on_dependency": "Unchanged HEAD. Pilot file selection deferred."},
+    "ci/github-actions-ci-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 13, "unchecked": 47, "To-Be": 1, "deferred": 0}, "promotable": false, "reason": "Unchanged HEAD. PR template doc + branch protection operator-side. Candidate for [deferred] tagging."},
+    "common/accessibility-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 55, "mechanical": {"WIP": 17, "unchecked": 115, "To-Be": 5, "deferred": 1}, "promotable": false, "progress": "Inspector committed 6b9fec3 (§2.2.3 E2E defer-tag). DEF=1 entered but WIP/unchecked/To-Be still non-zero (body slightly grew via REQ-029 cross-link). Partial defer progress, not yet §4-satisfied."},
+    "common/auth-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 43, "mechanical": {"WIP": 2, "unchecked": 20, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. Candidate for [deferred] tagging — stable baseline holds."},
+    "common/clipboard-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 53, "mechanical": {"WIP": 7, "unchecked": 34, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. §3.3/§3.4/§3.7 doc/policy holds. Candidate for [deferred] tagging."},
+    "common/csp-policy-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 1, "mechanical": {"WIP": 0, "unchecked": 12, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "NEW spec committed via 6b9fec3 (REQ-040). First HEAD snapshot. Unchecked=12, To-Be=1 — not §4-satisfied. Inspector will need to resolve bodies and/or defer-tag operator sections."},
+    "common/env-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 29, "unchecked": 18, "To-Be": 3, "deferred": 1}, "promotable": false, "progress": "Inspector committed 6b9fec3 (§7.1.1 Cognito defer-tag + REQ-034/038 changelog). DEF=1 entered, body GREW via changelog additions (WIP 29, To-Be 3→3 — stable, but unchecked still 18). Partial defer progress."},
+    "common/error-boundary-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 3, "unchecked": 9, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "Inspector committed 6b9fec3 (+19 lines: REQ-032 stderr §7.1.1 + REQ-20260420-005 Suspense changelog). Body grew, WIP 2→3, unchecked 4→9, To-Be 1→3, DEF still 0. Worse mechanical posture. §6 global fallback cross-cutting remains."},
+    "common/react-render-patterns-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 29, "mechanical": {"WIP": 1, "unchecked": 11, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "Inspector committed 6b9fec3 (+42 lines: §5.2 hoverPopup per REQ-20260420-001). 6-cycle drift (55..60) now committed; body GROWING as predicted. No [deferred] coverage. Drift extends indefinitely until inspector shrinks body or defer-tags."},
+    "common/sanitizeHtml-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 11, "unchecked": 24, "To-Be": 0, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. §9.1.2/§9.1.5 + REQ-017 operator. Candidate for [deferred] tagging."},
+    "monitor/web-vitals-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 49, "mechanical": {"WIP": 6, "unchecked": 2, "To-Be": 0, "deferred": 0}, "promotable": false, "blue_paired": true, "progress": "Inspector committed 6b9fec3 (+2 lines: REQ-20260420-001/002 changelog cross-link). PAIR diff w/ blue persists. §5.4 + §7.1 REQ-022 operator. Still no §4 satisfaction. Candidate for [deferred] tagging."},
+    "state/server-state-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 59, "mechanical": {"WIP": 11, "unchecked": 122, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "Inspector committed 6b9fec3 (+46 lines: §3.3.1.10 REQ-028 + 7 REQ changelogs). Body GREW — unchecked 117→122, WIP 10→11. §3.7 Phase 2 REQ-012 undividable + REQ-007 HOLD. DEF still 0."},
+    "styles/css-modules-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 11, "unchecked": 102, "To-Be": 7, "deferred": 0}, "promotable": false, "progress": "Inspector committed 6b9fec3 (+1 line: REQ-029 LogItem setItemClass changelog). §10.8 operator + §10.3/§10.4/§10.5 cross-cutting. DEF still 0."},
+    "styles/design-tokens-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 1, "unchecked": 0, "To-Be": 1, "deferred": 1}, "promotable": false, "holding_on_dependency": "Inspector committed 6b9fec3 (§3 App.css split defer-tag). DEF=1 entered, UNCHK now 0. Closest to §4 satisfaction of all files: only WIP=1 + To-Be=1 residual block it. Next defer sweep on remaining §3 sub-bullet + §2 WIP marker should land this file."},
+    "testing/app-shell-side-effects-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 49, "mechanical": {"WIP": 8, "unchecked": 24, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "Inspector committed 6b9fec3 (+1 line: REQ-039 online/offline changelog). Operator checklist-doc. DEF still 0."},
+    "testing/fileitem-delete-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 1, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "NEW spec committed via 6b9fec3 (REQ-026, +97 lines). First HEAD snapshot. UNCHK=4, To-Be=1. Operator-side visual smoke — defer-tag candidate."},
+    "testing/log-mutation-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 36, "mechanical": {"WIP": 2, "unchecked": 15, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Inspector committed 6b9fec3 (+2 lines: REQ-027 MD-03 + REQ-20260420-007 purge changelog)."},
+    "testing/loglist-seemore-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 1, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "NEW spec committed via 6b9fec3 (REQ-037, +101 lines). First HEAD snapshot. UNCHK=4, To-Be=1."},
+    "testing/logsingle-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 1, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "NEW spec committed via 6b9fec3 (REQ-030, +101 lines). Cycle 59 did NOT observe this file in working-tree (oversight — was actually untracked at the time). First HEAD snapshot. UNCHK=4, To-Be=1."},
+    "testing/markdown-render-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 49, "mechanical": {"WIP": 5, "unchecked": 9, "To-Be": 1, "deferred": 0}, "promotable": false, "blue_paired": true, "progress": "Unchanged HEAD. PAIR diff w/ blue persists. §3.7 + §5.1 REQ-024 operator. Candidate for [deferred] tagging."},
+    "testing/post-merge-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 53, "mechanical": {"WIP": 1, "unchecked": 44, "To-Be": 3, "deferred": 0}, "promotable": false, "reason": "Unchanged HEAD. Operator-side visual smoke. Candidate for [deferred] tagging."},
+    "testing/search-abort-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 32, "mechanical": {"WIP": 1, "unchecked": 29, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "Inspector committed 6b9fec3 (+1 line: REQ-20260420-004 loadingDots changelog)."},
+    "testing/web-vitals-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 49, "mechanical": {"WIP": 5, "unchecked": 7, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged HEAD. Joint promote w/ monitor/web-vitals after both body refresh. Candidate for [deferred] tagging."},
+    "types/typescript-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 4, "unchecked": 14, "To-Be": 1, "deferred": 0}, "promotable": false, "holding_on_dependency": "Unchanged HEAD. Pilot file selection deferred — candidate for formal [deferred] tagging."},
     "component-name-spec-template.md": {"status": "PROMOTED", "promoted_at": "2026-04-18T19:30:00Z", "final_cycle": 2},
     "common/markdownParser-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-18T18:40:00Z", "final_cycle": 12},
     "components/Toaster-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-18T18:40:00Z", "final_cycle": 11}
@@ -37,47 +38,33 @@
   "carry_over_from_prior_cycle": [],
   "consumed_since_prior_cycle": [],
   "blocked_this_cycle": [],
-  "inspector_in_flight_observed_this_cycle": {
-    "modified_in_worktree": [
-      "common/accessibility-spec.md",
-      "common/env-spec.md",
-      "common/error-boundary-spec.md",
-      "common/react-render-patterns-spec.md",
-      "state/server-state-spec.md",
-      "styles/css-modules-spec.md",
-      "styles/design-tokens-spec.md",
-      "testing/app-shell-side-effects-smoke-spec.md",
-      "testing/log-mutation-runtime-smoke-spec.md",
-      "testing/search-abort-runtime-smoke-spec.md"
-    ],
-    "untracked_new_in_worktree": [
-      "common/csp-policy-spec.md",
-      "testing/fileitem-delete-visual-smoke-spec.md",
-      "testing/loglist-seemore-runtime-smoke-spec.md"
-    ],
-    "note": "First inspector activity signal since cycle 54. Inspector has NOT yet committed any of these. Planner used HEAD baseline (committed state) for §4 mechanical scan and treats all 13 in-flight files as hold. Next cycle: if inspector commits, planner re-evaluates."
+  "head_advance_observed_this_cycle": {
+    "from": "ff0e6b7 (cycle 58 planner no-op)",
+    "through": "6b9fec3 (inspector: defer-tag 3 sections + reflect 20 REQs)",
+    "to": "556f977 (cycle 59 planner no-op)",
+    "inspector_commit_stats": "15 files changed, 561 insertions(+). 4 NEW greens (csp-policy, fileitem-delete-visual-smoke, loglist-seemore-runtime-smoke, logsingle-runtime-smoke). 3 [deferred] tags entered green tree (first ever)."
   },
-  "uncommitted_inspector_drift_observed": [
-    "common/react-render-patterns-spec.md — 5 cycles drift (55+56+57+58+59). Inspector NOW actively editing in worktree. Body GROWING (WIP 0→1, unchecked 4→11) — likely re-baseline rather than reduction. Resolution still pending inspector commit + §4 raw-zero or [deferred] coverage."
-  ],
-  "deferred_tagging_candidates_for_inspector": [
-    "app/App-spec.md — residual [WIP] all operator baseline (REQ-025 FR-03~07)",
-    "build/react-version-spec.md — React 19 cross-cutting hold",
-    "ci/github-actions-ci-spec.md — PR template doc + branch protection operator-side",
-    "common/accessibility-spec.md — inline superset §2.4 + §2.1.1 operator (REQ-029)",
-    "common/auth-spec.md — stable baseline holds",
-    "common/clipboard-spec.md — §3.3/§3.4/§3.7 doc/policy holds",
-    "common/error-boundary-spec.md — §6 global fallback cross-cutting",
-    "common/sanitizeHtml-spec.md — §9.1.2/§9.1.5 + REQ-017 operator",
-    "monitor/web-vitals-spec.md — §5.4 payload stub + §7.1 REQ-022 operator",
-    "state/server-state-spec.md — §3.7 Phase 2 undividable + REQ-007 HOLD",
-    "styles/css-modules-spec.md — §10.8 operator + §10.3/§10.4/§10.5 cross-cutting",
-    "styles/design-tokens-spec.md — dependency-gated on css-modules migration",
-    "testing/app-shell-side-effects-smoke-spec.md — operator checklist-doc",
-    "testing/markdown-render-smoke-spec.md — §3.7 + §5.1 REQ-024 operator baseline",
-    "testing/post-merge-visual-smoke-spec.md — operator-side visual smoke hold",
-    "testing/web-vitals-runtime-smoke-spec.md — operator baseline REQ-022",
-    "types/typescript-spec.md — pilot file selection deferred"
-  ],
-  "backpressure": "none (task/ready=0 at start, TASK_READY_MAX=10 slack=10). Cycle 59 NO-OP. HEAD ff0e6b7 unchanged — no inspector commit since cycle 54. BUT working-tree shows first inspector activity (10 modified greens + 3 new greens + new pipeline.json). Planner cannot evaluate uncommitted state (HEAD baseline only) and cannot touch spec/green/** anyway. Of 14 HEAD-stable greens: 0 reach §4 (all WIP>0 or unchecked>0 or To-Be>0, all deferred=0). 2 blue-paired diffs unchanged. react-render-patterns 5-cycle drift NOW under inspector active edit (worktree). Commit this cycle: only .planner-seen bump (planner-owned metadata). No src/**, no requirements/**, no green content-edit, no blocked escalation, no task/ready creation."
+  "deferred_coverage_snapshot": {
+    "total_files_with_DEF_gt_0": 3,
+    "files": [
+      {"path": "common/accessibility-spec.md", "DEF": 1, "note": "§2.2.3 E2E deferred, but body WIP/UNCHK/To-Be still large"},
+      {"path": "common/env-spec.md", "DEF": 1, "note": "§7.1.1 Cognito deferred, body still large"},
+      {"path": "styles/design-tokens-spec.md", "DEF": 1, "note": "§3 App.css split deferred. Closest to §4 — UNCHK=0, only WIP=1 + To-Be=1 left"}
+    ],
+    "total_files_with_DEF_zero": 22,
+    "assessment": "[deferred] regime operational but nascent. 1 file (design-tokens) close to §4 satisfaction. All others still require either body shrinkage OR further defer-tags."
+  },
+  "react_render_patterns_drift": {
+    "cycles": "55..60 (6 cycles)",
+    "committed_this_cycle_via": "6b9fec3",
+    "body_growth_confirmed": "+42 lines, §5.2 hoverPopup added per REQ-20260420-001",
+    "current_mechanical": {"WIP": 1, "unchecked": 11, "To-Be": 3, "deferred": 0},
+    "action": "hold; no blocked escalation this cycle — inspector is actively progressing file, not stalled. Planner will re-evaluate each cycle."
+  },
+  "blue_paired_diff_status": {
+    "monitor/web-vitals-spec.md": "diff persists; inspector only added 2-line changelog, no §5.4/§7.1 resolution",
+    "testing/markdown-render-smoke-spec.md": "diff persists; unchanged HEAD this cycle",
+    "atomic_carve_feasibility": "still impossible; operator/cross-cutting nature unchanged"
+  },
+  "backpressure": "none (task/ready=0 at start, TASK_READY_MAX=10 slack=10; GREEN_PENDING_MAX=25 per pipeline.json, green count=25 at limit). Cycle 60 NO-OP for promotion/carve/block/task creation. Commit this cycle: only .planner-seen bump reflecting HEAD advance + first [deferred] observations + new greens cataloging + drift extension. No src/**, no requirements/**, no green content-edit, no blocked escalation, no task/ready creation."
 }
