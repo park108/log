@@ -65,18 +65,6 @@ const SearchInput = () => {
 		);
 	}, [isShowToaster])
 
-	useEffect(() => {
-		if(isAdmin()) {
-			const mobileSearch = document.getElementById("mobile-search");
-			if(isMobileSearchOpen) {
-				mobileSearch.setAttribute("class", `div ${styles.divSearchMobile}`);
-			}
-			else {
-				mobileSearch.setAttribute("class", `div ${styles.divSearchMobilehide}`);
-			}
-		}
-	}, [isMobileSearchOpen]);
-	
 	if(isAdmin()) {
 		return (
 			<li className={`li li--nav-right ${styles.liNavSearch}`}>
@@ -97,7 +85,10 @@ const SearchInput = () => {
 				>
 					search
 				</button>
-				<div id="mobile-search">
+				<div
+					id="mobile-search"
+					className={`div ${isMobileSearchOpen ? styles.divSearchMobile : styles.divSearchMobilehide}`}
+				>
 					<input
 						id="query-string-by-button"
 						className={`input ${styles.inputSearchMobile} show--width-400px`}
