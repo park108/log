@@ -22,11 +22,18 @@ function DelayedLabel({ delayMs = 50, label = 'ready' }) {
 	return shown ? <span>{label}</span> : <span>loading</span>;
 }
 
+// REQ-20260421-001 FR-03 — `[A]→[B]` 순서 의존 제거.
+// 이전 구조는 두 `it` (`[A]` enable / `[B]` next-test teardown 검증) 분리 +
+// 파일 내 실행 순서 의존이었다. `vitest --sequence.shuffle` 에서 false positive
+// 위험을 없애기 위해, 같은 `it` 본문에서 enable → 해제 → 복귀 확인 을
+// 직렬화한다 (spec §공개 인터페이스 옵션 1). 옵션 2 (describe 내부 `afterEach`
+// 훅에서 `isFakeTimers === false` 단정) 는 실측 결과 vitest afterEach 실행
+// 순서가 inner → outer (LIFO) 여서 로컬 훅이 전역 teardown 보다 먼저 돌아
+// 실패 — 옵션 1 로 확정.
+//
+// 전역 `afterEach` (setupTests.js `vi.useRealTimers()`) 는 본 `it` 내부 단언이
+// 통과한 뒤 중복 무해 호출로 동작한다.
 describe('fake-timer idiom (react-19-test-layer-adaptation-spec §FR-01)', () => {
-	afterEach(() => {
-		vi.useRealTimers();
-	});
-
 	it('`{ shouldAdvanceTime: true }` + `advanceTimersByTimeAsync` resolves findBy* polling', async () => {
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 
@@ -45,18 +52,13 @@ describe('fake-timer idiom (react-19-test-layer-adaptation-spec §FR-01)', () =>
 		expect(ready).toBeInTheDocument();
 	});
 
-	// REQ-20260420-007 / TSK-20260420-38 — 전역 afterEach teardown 박제 검증.
-	// 테스트 A: fake-timer 를 enable 만 하고 **의도적으로** 수동 해제하지 않는다.
-	// 테스트 B: A 직후 시작 시점에 `vi.isFakeTimers() === false` 여야 한다
-	//   (전역 `afterEach` 가 `vi.useRealTimers()` 를 걸어준 덕). vitest 는 같은
-	//   파일 내부 테스트를 기술 순서대로 순차 실행하므로 A→B 의존이 안정적이다.
-	it('[A] enables fake timers without manual teardown (global afterEach covers it)', () => {
+	it('fake-timer enable 후 수동 teardown 하면 isFakeTimers === false 로 복귀한다 (REQ-20260421-001 FR-03)', () => {
+		// 같은 `it` 내부에서 enable → useRealTimers → 복귀 확인 까지 직렬화.
+		// `it` 실행 순서 (shuffle 포함) 와 무관하게 안전.
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 		expect(vi.isFakeTimers()).toBe(true);
-		// 의도적으로 vi.useRealTimers() 를 호출하지 않는다.
-	});
 
-	it('[B] next test starts with real timers (global afterEach teardown assertion)', () => {
+		vi.useRealTimers();
 		expect(vi.isFakeTimers()).toBe(false);
 	});
 });

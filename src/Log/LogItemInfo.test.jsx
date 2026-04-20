@@ -54,7 +54,6 @@ describe('LogItemInfo hoverPopup migration', () => {
 	});
 
 	afterEach(() => {
-		vi.useRealTimers();
 		vi.restoreAllMocks();
 	});
 

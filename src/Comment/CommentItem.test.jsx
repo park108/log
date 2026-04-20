@@ -14,7 +14,6 @@ import CommentItem from './CommentItem';
 describe('CommentItem rendering + hoverPopup migration', () => {
 
 	afterEach(() => {
-		vi.useRealTimers();
 		vi.restoreAllMocks();
 	});
 

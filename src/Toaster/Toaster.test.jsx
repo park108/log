@@ -4,10 +4,6 @@ import styles from './Toaster.module.css';
 
 vi.useFakeTimers({ shouldAdvanceTime: true });
 
-afterEach(() => {
-	vi.useRealTimers();
-});
-
 it('render message text "Test message" correctly', () => {
 	render(<Toaster
 		message="Test message"

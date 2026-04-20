@@ -35,8 +35,9 @@
 //     는 사용 금지.
 //   • 인자 없는 `vi.useFakeTimers()` / 문자열 인자 `vi.useFakeTimers('modern')` 호출 금지
 //     — 반드시 옵션 객체를 명시 (`{ shouldAdvanceTime: true }` 기본).
-//   • 전역 `afterEach` 가 `vi.useRealTimers()` 해제를 담당하므로 파일별
-//     `afterEach(() => vi.useRealTimers())` 추가는 선택 사항 (재등록해도 무해).
+//   • 전역 `afterEach` 가 `vi.useRealTimers()` 해제를 담당한다. 추가
+//     teardown 불필요 — 파일별 `afterEach(() => vi.useRealTimers())`
+//     재등록은 삭제 규약 (REQ-20260421-001 §정책 A).
 //     — `vi.useFakeTimers({ shouldAdvanceTime: true })` 만 호출하고 끝나도
 //       다음 테스트 시작 시점에 `vi.isFakeTimers() === false` 가 보장된다.
 //   • 의도적 제외: `src/Search/Search.test.jsx` 의

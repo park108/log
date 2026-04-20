@@ -217,7 +217,6 @@ describe('loading dots timer cleanup', () => {
 	});
 
 	afterEach(() => {
-		vi.useRealTimers();
 		vi.restoreAllMocks();
 		vi.unstubAllEnvs();
 	});

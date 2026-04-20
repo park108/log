@@ -3,10 +3,6 @@ import { useHoverPopup } from './useHoverPopup';
 
 describe('useHoverPopup', () => {
 
-	afterEach(() => {
-		vi.useRealTimers();
-	});
-
 	it('initial state: isVisible=false, contentProps carries id and aria-hidden=true, triggerProps.aria-describedby=undefined', () => {
 		const { result } = renderHook(() => useHoverPopup());
 
