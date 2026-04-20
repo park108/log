@@ -620,6 +620,63 @@ afterAll(() => server.close());
 
 - React 19 strict mode double-invocation 강화 → 본 flake 빈도 ↑ 가능. **본 REQ-012 를 bump 선행 권장** (REQ-027 권장과 동일한 선행 관계).
 
+### 3.8 [WIP] `vi.useFakeTimers()` 크로스파일 누수 방지 — LogSingle flaky timeout 수렴 (REQ-20260420-017)
+
+> 관련 요구사항: REQ-20260420-017 FR-01 ~ FR-06, US-01 ~ US-03
+
+**맥락 (2026-04-20 3회 재현)**: `src/Log/LogSingle.test.jsx` 의 8 케이스가 풀 스위트 실행 중 간헐적으로 5003~5007ms 타임아웃으로 FAIL. 2026-04-20 당일 1657 / 1720 / 0835 총 3회 재현 — followup 승격 임계치 충족. 단독·디렉토리 일괄 실행 시 100% PASS 이므로 **본 파일의 로직 결함이 아니라** 풀 스위트 실행 시 (a) 타 파일이 남긴 `vi.useFakeTimers()` 상태 누수 또는 (b) vitest 포크 풀 간 MSW 경합이 원인 추정. REQ-20260420-009 (MSW lifecycle carve) 와 **범위·원인이 상이** — 본 §3.8 은 fake-timer · pool 영역, REQ-009 는 MSW lifecycle · NODE_ENV · console spy 영역.
+
+**현재 실측 (2026-04-20)**:
+- `vi.useFakeTimers()` 호출 파일 14개 (Monitor/VisitorMon, Log/LogItemInfo, Comment/CommentItem, common/useHoverPopup, Log/LogItem, Search/SearchInput, Comment/Comment, File/FileUpload, File/FileDrop, File/File, Monitor/ContentItem, Log/LogSingle, Log/Writer, Toaster/Toaster).
+- `src/setupTests.js` 에 `vi.useFakeTimers|vi.useRealTimers` 패턴 0 hits — **전역 방어 부재**.
+- `src/Log/LogSingle.test.jsx` 내부: `:86` `useFakeTimers()` 진입 후 `:112/:185/:222` `useRealTimers()` 복원. `:148/:191` (`'get OK delete failed'` 2건) 은 `useFakeTimers()` 진입 없이 시작하지만 **파일 초입의 fake-timer 잔재** 시 MSW 핸들러의 real-timer 기반 비동기 대기가 고갈될 수 있음.
+
+**Phase A (즉시 완화, Must — FR-01/FR-02)**:
+- `src/Log/LogSingle.test.jsx` 의 모든 `it()` 종료 시 `vi.useRealTimers()` 호출 누락 없음. 특히 `:148`, `:191` 취약 케이스는 **진입 전에도** real-timer 상태를 보장 (시작부 `vi.useRealTimers()` 선제 호출 또는 per-case `{ timeout: 15000 }`).
+- 취약 케이스(`'get OK delete failed'` 2건) 타임아웃 5s → 15s 상향:
+  ```js
+  it('get OK delete failed', async () => { /* ... */ }, { timeout: 15000 });
+  ```
+
+**Phase B (전역 방어, Should — FR-03)**:
+- `src/setupTests.js` 에 전역 `afterEach` 추가 (기존 `beforeEach` clipboard stub 및 MSW/NODE_ENV 훅과 공존 확인):
+  ```js
+  // src/setupTests.js
+  import { afterEach } from 'vitest';
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+  ```
+- §3.7.2 의 `afterEach(server.resetHandlers + vi.unstubAllEnvs + vi.restoreAllMocks + cleanup)` 베이스라인과 **공존** — 실행 순서는 vitest 기본(등록 순서). 필요 시 단일 `afterEach` 블록에 합치기도 허용.
+
+**Phase C (원인 확정, Could — FR-05)**:
+- `vite.config.test.js` 에 **1회 실험** `pool: 'forks', poolOptions: { forks: { singleFork: true } }` 으로 풀 스위트 10회 실행 → LogSingle 단독 포크에서 flake 재현 여부 관측. 재현 시 "포크간 경합" 이 아닌 "파일 내부 원인" 으로 재진단. **persistent 변경 금지** — 실험 후 원복.
+- 결과는 `specs/followups/*.md` 1건으로 박제 (원인 확정 또는 가설 반증).
+
+**14 파일 감사 (Should — FR-04)**:
+- 각 파일이 `useFakeTimers` 에 대응하는 `useRealTimers` 복원 호출을 보유하는지 `grep` 1차 감사. 결과는 task result.md 에 표로 박제. 수정은 본 REQ 범위 밖 (별 REQ 후보).
+
+**grep 수용 기준 (FR-06)**:
+- `grep -c "vi.useRealTimers" src/Log/LogSingle.test.jsx` — expected ≥ 4 hits.
+- `grep -c "vi.useRealTimers" src/setupTests.js` — expected ≥ 1 hit.
+- `grep -c "timeout: 15000" src/Log/LogSingle.test.jsx` — expected ≥ 2 hits (취약 케이스 2건).
+
+**수용 기준 (REQ-20260420-017 §10)**:
+- [ ] Phase A 적용 후 `npm test` 10회 연속 실행 중 LogSingle 8 케이스 100% PASS.
+- [ ] Phase B 적용 후 `src/setupTests.js` 에 `afterEach(() => { vi.useRealTimers(); })` 존재.
+- [ ] FR-06 grep 쿼리 3종 충족.
+- [ ] Phase C 실험 결과 followup 1건 발행 (원인 확정 또는 가설 반증).
+- [ ] REQ-20260420-009 와의 범위 중복 없음 — 본 §3.8 은 fake-timer · pool, 그 REQ 는 MSW lifecycle · NODE_ENV · console spy.
+
+**범위 밖**:
+- REQ-20260420-009 범위 (MSW lifecycle + NODE_ENV mutation + console spy 복원).
+- 14 파일 전반의 `useFakeTimers` 패턴 리팩토링 (Phase B 감사 후 별 REQ 후보).
+- vitest 버전 업그레이드 / Node 런타임 변경.
+- CI flaky-test retry 정책 (근원 수렴 우선).
+
+**REQ-009 와의 경계**: 두 REQ 모두 LogSingle.test.jsx 공동 대상이나 스코프 상이. planner 가 LogSingle.test.jsx 수정 태스크를 1건으로 합칠지 2건으로 분할할지 carve.
+
 ## 4. 의존성
 
 ### 4.1 패키지 (신규)
@@ -845,6 +902,7 @@ afterAll(() => server.close());
 | 2026-04-19 | (pending, REQ-20260419-035) | `src/Log/Writer.test.jsx` historyData (location.state.from) 편집 진입 경로 테스트 커버리지 2 케이스 추가 — WH-01 history 패널 렌더 / WH-02 미렌더. §3.3.1 commitment 갱신은 없음 | 3.3.1 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 | 2026-04-20 | (inspector, REQ-20260420-009) | §3.7.3 Priority 2 `LogSingle.test.jsx` 행에 carve REQ-20260420-009 박제 — 2026-04-20 flake 재현 evidence 기반 독립 원자 carve (3 패턴 로컬 해소 + 3회 연속 CI PASS 검증). Priority 2 `[x]` flip 은 carve task 머지 후 별 라운드 | 3.7 |
+| 2026-04-20 | (pending, REQ-20260420-017) | §3.8 신설 — `vi.useFakeTimers()` 크로스파일 누수 방지. LogSingle flaky timeout 3회 재현 수렴: Phase A per-case `useRealTimers` + 취약 케이스 15s 타임아웃, Phase B `setupTests.js` 전역 `afterEach(() => vi.useRealTimers())`, Phase C `singleFork: true` 원인 확정 실험. REQ-009 (MSW/NODE_ENV/console spy) 와 범위 분리 (WIP) | 3.8 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`

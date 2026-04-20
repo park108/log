@@ -58,24 +58,36 @@ export const copyToClipboard = (valueToClipboard = "") => {
 - `src/Log/Writer.jsx`, `src/Log/LogItem.jsx`, `src/File/FileItem.jsx`, `src/Image/ImageSelector.jsx` 의 메뉴/액션.
 - 일부는 직접 `execCommand` fallback 을 포함 (FileItem 등).
 
-### 2.3 테스트 stub 8건 → 잔재 3건 (2026-04-18 관측)
+### 2.3 테스트 stub 회귀 쿼리 (grep 포맷, 2026-04-20 수렴)
 
-**원 기준선 (REQ-022 시점, 8건)**:
-- `src/common/common.test.js:466` `document.execCommand = vi.fn();`
-- `src/Log/Writer.test.jsx:33,84,135,186,239,292,345` (7회)
-- `src/Log/LogItem.test.jsx:28`
-- `src/File/File.test.jsx:103`
-- `src/Image/ImageSelector.test.jsx:31`
+> 관련 요구사항: REQ-20260420-014 FR-01 ~ FR-04 — 하드코딩 파일:라인 → grep 커맨드 + expected hit count 포맷으로 전환 (drift 차단).
 
-`document.execCommand` stub 이 8곳에 흩어져 있고 패턴이 일관되지 않음.
+**역사적 경로 (요약)**:
+REQ-20260418-022 시점 stub 8곳 분산 → REQ-20260418-025 머지 후 3곳 잔재(LogItem × 2 + ImageSelector) → REQ-20260418-034 sweep 후 **0곳** (2026-04-20 기준선). 파일:라인 나열은 상류 boilerplate(예: QueryClientProvider 추가) 만으로도 shift 되어 드리프트가 누적되므로 본 판본부터는 **실행 가능한 쿼리** 로 박제한다.
 
-**[WIP] 잔재 현황 (REQ-20260418-034 Phase 1 `grep -rn "document.execCommand = vi.fn" src/` 결과)**:
-- `src/Log/LogItem.test.jsx:28` — 모듈 최상단 공유 stub (잔재)
-- `src/Log/LogItem.test.jsx:91` — 별도 it 블록 내 재선언 stub (잔재 — cleanup 누락)
-- `src/Image/ImageSelector.test.jsx:31` — 모듈 최상단 공유 stub (잔재)
-- (검증 필요 — REQ-034 Phase 1) `src/common/common.test.js:466` / `src/File/File.test.jsx:103` — REQ-022/025 머지 후 정리 여부 미확인 (REQ-034 Phase 1 grep 검증 필수)
+**주 회귀 쿼리 (Must, expected 값 박제)**:
 
-REQ-025 머지 결과 (commit `4765eaf` `copyToClipboard` 비동기 전환 + 후속 PR) 로 `Writer.test.jsx` 의 7건이 0건으로 정리됨. **현 3건 잔재 + α** 를 REQ-20260418-034 가 §3.3 FR-05 `0건` 목표로 최종 sweep 한다.
+```bash
+grep -rn "document.execCommand = vi.fn" src/ --include='*.test.jsx' --include='*.test.js'
+```
+- **expected: 0 hits** (2026-04-20 측정, REQ-20260418-034 sweep 완료 후).
+- 재실행 시 ≥1 hit 이면 §3.3 FR-05 위반 — 즉시 후속 sweep 대상.
+
+**보조 쿼리 (참고용, 값 비박제)**:
+
+```bash
+grep -rn "document.execCommand" src/ --include='*.test.jsx' --include='*.test.js'
+```
+- 테스트 코드에서의 `execCommand` 전면 잔재 스캔 (stub 이 아닌 참조 포함). hit 수는 박제하지 않고 쿼리만 제공.
+
+```bash
+grep -rn "document.execCommand" src/ --include='*.js' --include='*.jsx' | grep -v '\.test\.'
+```
+- 실 코드(프로덕션) fallback 잔재 스캔 — `§3.3.2 Phase 3` 와 교차 참조 (expected 0, §2.1 `copyToClipboard` 비동기 전환 완료).
+
+**드리프트 내성 원칙**: 이 블록은 파일:라인 번호를 박제하지 않는다 (shell 커맨드 + hit 수만 박제). 상류 라인이 shift 되어도 본 §2.3 는 재작성 없이 유효. 단, 테스트 stub 스타일이 미래에 변경되면 (예: `vi.stubGlobal('document.execCommand', ...)`) 주 쿼리 정규식 보강 필요 — 그때만 본 §2.3 를 갱신한다.
+
+**교차 참조**: §3.3 FR-05 (0건 목표) 와 본 §2.3 의 주 쿼리 expected 값이 정합. §3.3.2 Phase 1/3 의 동일 쿼리 인용 포맷과 문체 일관.
 
 ### 2.4 ESLint 설정
 - `.eslintrc.yml` 에 `document.execCommand` 호출을 차단하는 룰 없음. 자매 REQ-20260418-018 의 `eslint-plugin-jsx-a11y` 도입과 같은 라운드에서 처리 가능.
@@ -414,3 +426,4 @@ rules:
 | 2026-04-18 | (pending, REQ-20260418-034) | §2.3 잔재 현황 갱신 (8건 → 3건 + α) + §3.3.2 전역 sweep 섹션 신설 (옵션 A/B 결정, Phase 1~4 로드맵, §3.3 FR-05 0건 마감) (WIP) | 2.3, 3.3.2 |
 | 2026-04-18 | (pending, REQ-20260418-036) | §3.2.1 호출자별 성공 톤 정책 마감 (warning → success 통일) + §3.2.1.1 ImageSelector 1줄 변경 + 회귀 테스트 보정 + grep 차단 (WIP) | 3.2.1, 3.2.1.1 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
+| 2026-04-20 | (pending, REQ-20260420-014) | §2.3 하드코딩 파일:라인 → grep 커맨드 + expected hit count 포맷 수렴 (drift 차단). 8건→3건→0건 경로는 역사 1~2줄 요약으로 압축. §3.3 FR-05 교차참조 1줄 유지 (WIP) | 2.3 |
