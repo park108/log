@@ -52,3 +52,8 @@
 - **planner grep dry-run** (`.claude/agents/planner.md`):
   - `notes: "...; grep dry-run: N/N match"` — 박제 쿼리 N개 전수 일치.
   - `notes: "...; grep dry-run: K/N match (drift fixed)"` — 불일치 K건 보완 후 재확인.
+- **inspector reconcile** (`.claude/agents/inspector.md` Phase 1):
+  - `notes: "...; reconcile: 3/5 ack"` — 5개 green 스캔 중 3건 ack · 2건 유지.
+  - `notes: "...; reconcile: 0/0 ack"` — 스캔 대상 0건 (green 비거나 WIP marker 없음).
+  - `notes: "...; reconcile: 0/5 ack (2 stale ≥3cycle)"` — 0 ack + stale 경고 (`.inspector-seen` 상 3 사이클 이상 ack 불가 지속).
+  - Phase 1 이 빈 큐·임계치 초과·ack 0건으로 무변경이더라도 **본 토큰은 항상 박제** (`RULE-03` §4.1).

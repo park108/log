@@ -40,3 +40,13 @@
 2. 입력 큐 비었는지 확인 → 비었으면 no-op 종료.
 3. 하류 임계치 확인 → 초과면 no-op 종료 (discovery 는 followup 소비 계속).
 4. 처리 진행.
+
+## 4.1 inspector Phase 1 예외 (Drift reconcile)
+
+inspector 는 `.claude/agents/inspector.md` §Phase 1 (Drift reconcile) 을 **위 (2)·(3) 차단 사유와 무관하게 항상 수행**한다. green 을 줄이는 방향이므로 백프레셔 철학과 충돌하지 않는다.
+
+- **Pause lock (1)** 있으면 본칙대로 전체 no-op — Phase 1 도 스킵.
+- **빈 큐 (2)** — `requirements/ready/` 비어 있어도 Phase 1 수행. 이후 Phase 2·Phase 3 는 본칙대로 종료.
+- **하류 임계치 (3)** — `GREEN_PENDING_MAX` 초과면 Phase 3 (신규 반영) 차단, Phase 1·Phase 2 는 수행 (green 감소 경로 확보).
+- Phase 1 결과는 ack 0건·무변경이어도 `RULE-04` §notes 의 `reconcile: N/M ack` 토큰을 **반드시 박제** (외부 스케줄러가 Phase 1 실행 여부를 파싱).
+- Phase 1 커밋 범위는 `RULE-01` §2 매트릭스상 inspector 쓰기 영역(`spec/green/**`) 한정. 상태 파일 `specs/spec/green/.inspector-seen` 포함.
