@@ -2,8 +2,8 @@
 
 > **위치**: `src/common/sanitizeHtml.js` (신규, WIP)
 > **유형**: Util (Pure function module)
-> **최종 업데이트**: 2026-04-18 (by inspector, WIP — REQ-20260418-102/103/104/021 통합 반영)
-> **상태**: Experimental (모듈 도입 완료 / 호출부 통합 + 측정 + drift 정정 + 앵커 하위 정책 결정 단계)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — REQ-102 LogItem/Writer 호출부 통합 완료 ACK)
+> **상태**: Active (모듈 도입 + 호출부 2곳 통합 완료 / 측정 + drift 정정 + 앵커 하위 정책 + 운영자 baseline 잔여)
 > **관련 요구사항**:
 > - REQ-20260418-001 (`specs/requirements/done/2026/04/18/20260418-sanitize-markdown-html-output.md`) — 모듈 도입
 > - REQ-20260418-102 (`specs/requirements/done/2026/04/18/20260418-sanitize-html-logitem-writer-integration.md`) — LogItem/Writer 호출부 통합
@@ -69,8 +69,8 @@
 ### 4.3 역의존 (사용처)
 > 관련 요구사항: REQ-20260418-102 FR-01, FR-02, FR-05
 
-- `src/Log/LogItem.jsx:93` — 본문 렌더 (REQ-001 FR-03, REQ-102 FR-01). **현재 상태: 미통합** → `dangerouslySetInnerHTML={{__html: parser.markdownToHtml(contents)}}` 가 sanitize 미경유.
-- `src/Log/Writer.jsx:271` — 미리보기 렌더 (REQ-001 FR-04, REQ-102 FR-02). **현재 상태: 미통합** → `convertedArticle` (markdownToHtml 출력) 이 sanitize 미경유.
+- `src/Log/LogItem.jsx:83` — 본문 렌더 (REQ-001 FR-03, REQ-102 FR-01). **통합 완료** → `dangerouslySetInnerHTML={{ __html: sanitizeHtml(parser.markdownToHtml(contents)) }}` (commit `879e5d1`, task `20260418-sanitize-html-logitem-integration`; 2026-04-20 inspector drift reconcile).
+- `src/Log/Writer.jsx:249` — 미리보기 렌더 (REQ-001 FR-04, REQ-102 FR-02). **통합 완료** → `dangerouslySetInnerHTML={{ __html: sanitizeHtml(convertedArticle) }}` (commit `9f06a0c`, task `20260418-sanitize-html-writer-integration`; 2026-04-20 inspector drift reconcile).
 - (잠재) `src/Comment/*` — 향후 마크다운 도입 시
 
 **[WIP] 통합 목표 패턴 (REQ-20260418-102)**:
@@ -184,11 +184,11 @@ href, src, alt, title, target, rel, class
 ### 7.1 [WIP] 호출부 통합 회귀 테스트 (REQ-20260418-102 FR-03, FR-04)
 > 관련 요구사항: REQ-20260418-102 FR-03, FR-04; US-01, US-02, US-03
 
-- [ ] [WIP] `LogItem.jsx` 렌더 회귀: XSS 페이로드 3종 (스크립트 / 이벤트 속성 / `javascript:` URL) 주입 후 결과 DOM 에 차단/보정 확인
-- [ ] [WIP] `Writer.jsx` 미리보기 렌더 회귀: 동일 3종 페이로드 차단 확인
-- [ ] [WIP] 빈/널 입력 회귀 (FR-04): `markdownToHtml(null/undefined/'')` → sanitize 결과 `''` 안전 처리
-- [ ] [WIP] 골든 픽스처 스냅샷 (US-03): 정상 마크다운 렌더 결과가 sanitize 전후 동일 (허용 차이: `target=_blank` anchor 의 `rel` 보정)
-- **총 신규 테스트 ≥ 4건** (LogItem 2 + Writer 2), REQ-102 §10.
+- [x] `LogItem.jsx` 렌더 회귀: XSS 페이로드 스크립트 / 이벤트 속성 2건 PASS — commit `879e5d1` (`src/Log/LogItem.test.jsx` `LogItem sanitizes rendered markdown HTML` describe 블록, 2026-04-20 inspector drift reconcile)
+- [x] `Writer.jsx` 미리보기 렌더 회귀: 페이로드 2건 PASS — commit `9f06a0c` (2026-04-20 inspector drift reconcile)
+- [x] 빈/널 입력 회귀 (FR-04): `sanitizeHtml(...)` 빈 문자열 안전 처리 — `sanitizeHtml.test.js` 17건으로 커버 (2026-04-20 inspector drift reconcile)
+- [~] 골든 픽스처 스냅샷 (US-03): `target=_blank` rel 보정 포함 — LogItem 통합 테스트에서 `noreferrer` → `noopener noreferrer` 기대값 갱신 확인 (commit `879e5d1`, result.md 박제); Writer 골든 스냅샷은 별 라운드
+- **총 신규 테스트 4건 달성** (LogItem 2 + Writer 2) — commits `879e5d1` / `9f06a0c` (2026-04-20 inspector drift reconcile, REQ-102 §10).
 
 ### 7.1.1 [WIP] LogItem 런타임 수동 스모크 baseline (REQ-20260418-027)
 > 관련 요구사항: REQ-20260418-027 FR-01~07, US-01~04
@@ -272,11 +272,11 @@ TSK-20260418-23 (commit `879e5d1`) 으로 `src/Log/LogItem.jsx:94` 가 sanitize 
 ## 9.1 수용 기준 통합 (REQ-102 + REQ-103 + REQ-104)
 
 ### 9.1.1 REQ-20260418-102 (호출부 통합)
-- [ ] `LogItem.jsx`, `Writer.jsx` 양쪽이 `dangerouslySetInnerHTML` 직전에 `sanitizeHtml(...)` 호출
-- [ ] `grep -n "dangerouslySetInnerHTML" src/` 결과 2건 모두 sanitize 통과
-- [ ] 신규 회귀 테스트 ≥ 4건 (LogItem 2 + Writer 2)
-- [ ] `npm test` PASS + `npm run lint` PASS
-- [ ] 본 §4.3 의 "현재 상태: 미통합" 표기가 "통합 완료" 로 갱신 가능 (inspector 다음 사이클)
+- [x] `LogItem.jsx`, `Writer.jsx` 양쪽이 `dangerouslySetInnerHTML` 직전에 `sanitizeHtml(...)` 호출 — commits `879e5d1` / `9f06a0c` (2026-04-20 inspector drift reconcile)
+- [x] `grep -n "dangerouslySetInnerHTML" src/` 결과 2건 모두 sanitize 통과 — 2026-04-20 실측 `src/Log/LogItem.jsx:83` + `src/Log/Writer.jsx:249` 양쪽 sanitize 경유 확인
+- [x] 신규 회귀 테스트 ≥ 4건 (LogItem 2 + Writer 2) — commits `879e5d1` / `9f06a0c`
+- [x] `npm test` PASS + `npm run lint` PASS — 각 task result.md 박제
+- [x] 본 §4.3 의 "현재 상태: 미통합" 표기가 "통합 완료" 로 갱신 — 2026-04-20 inspector drift reconcile
 - [ ] Writer 미리보기 시각 baseline — `docs/testing/writer-preview-sanitize-visual-smoke.md` (REQ-20260418-028 §3.B.2, 배치 2) 운영자 1회 수행. 6 픽스처 (평문 / 코드블록 / 외부링크 `target=_blank rel="noopener noreferrer"` 정규화 / 리스트 / 이미지 / XSS 차단). 상세: `specs/spec/green/testing/post-merge-visual-smoke-spec.md` §3.B.2
 
 ### 9.1.2 REQ-20260418-103 (성능·번들 측정)
@@ -334,6 +334,7 @@ TSK-20260418-23 (commit `879e5d1`) 으로 `src/Log/LogItem.jsx:94` 가 sanitize 
 | 2026-04-18 | (pending, REQ-20260418-028) | §9.1.1 에 `writer-preview-sanitize-visual-smoke.md` (배치 2) cross-link 추가 (WIP) | 9.1.1 |
 | 2026-04-19 | TSK-20260418-27 (merged, commit `cd8a1fe`) | `docs/testing/markdown-render-smoke.md` §LogItem sanitize runtime smoke (F1~F4) 섹션 신설 완료 — §9.1.5 "F1~F4 픽스처 정의 + baseline 박제 슬롯" 항목 충족 | 9.1.5 |
 | 2026-04-19 | (pending, REQ-20260419-017) | §9.1.6 묶음 baseline 1차 운영자 수행 수용 기준 신설 (3 체크리스트 묶음 세션, LogItem sanitize F1~F4 baseline 박제) (WIP) | 9.1.5, 9.1.6 |
+| 2026-04-20 | (inspector drift reconcile) | §4.3 LogItem/Writer 호출부 "미통합" → "통합 완료" ACK (commits `879e5d1` / `9f06a0c`, tasks `20260418-sanitize-html-logitem-integration` + `20260418-sanitize-html-writer-integration`). §7.1 회귀 테스트 4건 [x] 전환. §9.1.1 REQ-102 수용 5/6 [x] (Writer preview visual baseline 은 REQ-028 운영자 영역 잔여). 라인 번호 현행화: LogItem `:93` → `:83`, Writer `:271` → `:249`. 커밋 영향: 본 spec 단독. | 4.3, 7.1, 9.1.1 |
 
 ## 11. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260418-sanitize-markdown-html-output.md`

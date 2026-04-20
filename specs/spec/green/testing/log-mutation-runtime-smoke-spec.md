@@ -7,8 +7,8 @@
 >   - `src/Log/LogItem.jsx` 의 `deleteMutation` 콜백
 >   - `src/Log/hooks/useCreateLog.js`, `useDeleteLog.js`, (예정) `useUpdateLog.js`
 > **유형**: Test / Operational Checklist (수동 스모크)
-> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-20260419-008 신설)
-> **상태**: Active (문서 신설 WIP)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — `log-mutation-runtime-smoke.md` 문서 신설 완료 + `useUpdateLog.js` 머지 완료 ACK)
+> **상태**: Active (문서 신설 완료 / 운영자 baseline + Mut-Update 시나리오 확장 잔여)
 > **관련 요구사항**:
 > - REQ-20260419-008 (`specs/requirements/done/2026/04/19/20260419-log-mutation-runtime-smoke-checklist-doc.md`) — 본 체크리스트 신설
 > - REQ-20260418-033 (mutation 훅 3종 도입, done) — §3.3.1.7 의 "운영자 1회 검증" Could 항목의 인프라
@@ -36,11 +36,11 @@ MSW 단위/통합 테스트가 잡지 못하는 **dev/prod 서버 연동 mutatio
 
 > 관련 요구사항: REQ-20260419-008 §3 (Goals)
 
-## 2. 현재 상태 (As-Is) — 2026-04-19 기준
-- [ ] `docs/testing/log-mutation-runtime-smoke.md` **부재** — 본 REQ 로 신설
+## 2. 현재 상태 (As-Is) — 2026-04-20 기준 (drift reconcile)
+- [x] `docs/testing/log-mutation-runtime-smoke.md` **존재** — 신설 완료 (commit `bba167b`, task `20260419-log-mutation-runtime-smoke-checklist-doc`; 2026-04-20 inspector drift reconcile)
 - [x] 유사 패턴 5종 정착: `markdown-render-smoke.md`, `web-vitals-runtime-smoke.md`, `tanstack-query-devtools-smoke.md`, `toaster-visual-smoke.md`, `styles-cascade-visual-smoke.md`
-- [x] mutation 훅 2종 도입 — `src/Log/hooks/useCreateLog.js`, `useDeleteLog.js` (REQ-20260418-033 §3.3.1.1)
-- [ ] mutation 훅 1종 예정 — `useUpdateLog.js` (TSK-20260418-MUT-UPDATE, `task/ready/`)
+- [x] mutation 훅 3종 도입 — `src/Log/hooks/useCreateLog.js`, `useDeleteLog.js`, `useUpdateLog.js` (REQ-20260418-033 §3.3.1.1; `useUpdateLog.js` 머지 완료 — 2026-04-20 src 실측 확인)
+- [ ] Mut-Update (MU-01~) 시나리오 확장 — 본 spec §3.2.3 범위 내 예정 (별 라운드)
 - 직전 followup 2건(동일 패턴):
   - `specs/followups/consumed/2026/04/19/20260419-0223-writer-create-manual-smoke-unverified.md` (Writer create 5 시나리오 unverified)
   - `specs/followups/consumed/2026/04/19/20260418-1811-logitem-delete-manual-smoke-unverified.md` (LogItem delete 2 경로 unverified)
@@ -182,6 +182,7 @@ MSW 단위/통합 테스트가 잡지 못하는 **dev/prod 서버 연동 mutatio
 | 2026-04-19 | (pending, REQ-20260419-008) | Log 도메인 mutation 런타임 스모크 체크리스트 문서 spec 신설 (WIP) | all |
 | 2026-04-19 | (pending, REQ-20260419-014) | MD-03 시나리오 메모에 REQ-014 후속 정리 예약 cross-link (Deleting log failed./Deleting log network error. 토스터 노출이 PASS 조건) (WIP) | 3.2.2 |
 | 2026-04-19 | (pending, REQ-20260419-017) | §5.1 묶음 baseline 1차 운영자 수행 수용 기준 이관 (60분 3 체크리스트 묶음 세션) (WIP) | 5, 5.1 |
+| 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정: `docs/testing/log-mutation-runtime-smoke.md` 부재 → 존재 (commit `bba167b`, task `20260419-log-mutation-runtime-smoke-checklist-doc`); mutation 훅 2종 → 3종 (useUpdateLog.js 머지 완료, src 실측). Mut-Update 시나리오 확장은 별 라운드로 이관. 커밋 영향: 본 spec 단독. | 2 |
 
 ## 9. 관련 문서
 - 기원 요구사항:

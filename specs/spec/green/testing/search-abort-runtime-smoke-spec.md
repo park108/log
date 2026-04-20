@@ -8,8 +8,8 @@
 >   - `src/Search/api.js` 의 `getSearchList(string, init)` signature
 >   - `src/Search/Search.test.jsx` 의 unmount 회귀 케이스 (보조: `:158-185`)
 > **유형**: Test / Operational Checklist (수동 스모크, 재사용)
-> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-20260419-020 loadingDots 타이머 정합 반영)
-> **상태**: Active (문서 신설 WIP)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — `search-abort-runtime-smoke.md` 문서 신설 완료 ACK)
+> **상태**: Active (문서 신설 완료 / 운영자 baseline 잔여)
 > **관련 요구사항**:
 > - REQ-20260419-013 (`specs/requirements/done/2026/04/19/20260419-search-abort-runtime-smoke-checklist-doc.md`) — 본 체크리스트 신설
 > - REQ-20260419-020 (`specs/requirements/done/2026/04/19/20260419-search-loadingdots-cleartimeout-bug-and-stale-closure.md`) — `src/Search/Search.jsx:118-125` loadingDots 타이머 cleanup + stale closure 정합 + Search 도메인 timer cleanup 패턴 SSoT
@@ -42,8 +42,8 @@
 
 > 관련 요구사항: REQ-20260419-013 §3 (Goals)
 
-## 2. 현재 상태 (As-Is) — 2026-04-19 기준
-- [ ] `docs/testing/search-abort-runtime-smoke.md` **부재** — 본 REQ 로 신설
+## 2. 현재 상태 (As-Is) — 2026-04-20 기준 (drift reconcile)
+- [x] `docs/testing/search-abort-runtime-smoke.md` **존재** — 신설 완료 (commit `089a818`, task `20260419-search-abort-runtime-smoke-checklist-doc`; 2026-04-20 inspector drift reconcile)
 - [x] 유사 패턴 6종 정착: `markdown-render-smoke.md`, `web-vitals-runtime-smoke.md`, `tanstack-query-devtools-smoke.md`, `toaster-visual-smoke.md`, `styles-cascade-visual-smoke.md`, `keyboard-a11y-runtime-smoke.md` (REQ-002, done — 자동망 사각지대 보완 모범)
 - [x] Search abort 파일럿 도입 완료 — REQ-20260418-021 §3.5 (`src/Search/Search.jsx` 의 `AbortController` + cleanup, `src/Search/Search.test.jsx:158-185` 의 unmount 회귀 케이스)
 - [x] 직전 task: `specs/task/done/2026/04/18/20260419-search-domain-abortcontroller-safety-net/` — DoD 의 자동 검증 모두 PASS, **DevTools 수동 확인 1건만 미수행** (followup `20260418-1200-manual-devtools-canceled-verification.md` 관찰)
@@ -340,6 +340,7 @@ useEffect(() => {
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-013) | Search 도메인 AbortController 런타임 수동 smoke 체크리스트 문서 spec 신설 — 5종 → 7종 확장, REQ-021 §3.5 DoD DevTools 항목 흡수, 후속 fetch race 정리(Log/Comment/Image) 일반화 시드 (WIP) | all |
 | 2026-04-19 | (pending, REQ-20260419-020) | Search `loadingDots` 타이머 cleanup + stale closure 정합 §3.11 신설 — `clearTimeout(tick)` 함수 인자 버그 수정 + functional updater + `[isLoading]` 단일 의존, Search 도메인 timer cleanup 패턴 SSoT 박제, REQ-021 AbortController 정합과 공존, SA-05 Could 매뉴얼 시나리오 예약 (WIP) | 3.11 |
+| 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정: `docs/testing/search-abort-runtime-smoke.md` 부재 → 존재 (commit `089a818`, task `20260419-search-abort-runtime-smoke-checklist-doc`). 커밋 영향: 본 spec 단독. | 2 |
 
 ## 9. 관련 문서
 - 기원 요구사항:

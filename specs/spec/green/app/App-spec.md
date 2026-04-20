@@ -2,8 +2,8 @@
 
 > **위치**: `src/App.jsx`
 > **유형**: Root Container / Routing Shell
-> **최종 업데이트**: 2026-04-18 (by inspector, WIP)
-> **상태**: Active (위생 정리 진행 중)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — REQ-009 useEffect 격리 + REQ-025 auth 멱등 등가성 자동 테스트 완료 ACK)
+> **상태**: Active (사이드이펙트 useEffect 격리 완료 / ErrorBoundary 통합 완료 / auth() 멱등 등가성 자동 테스트 완료 / 운영자 수동 스모크 baseline 잔여)
 > **관련 요구사항**:
 > - REQ-20260418-009 (`specs/requirements/done/2026/04/18/20260418-app-render-side-effects-cleanup.md`)
 > - REQ-20260418-005 (`specs/requirements/done/2026/04/18/20260418-error-boundary-app-integration.md`) — App.jsx 통합 (참조)
@@ -69,51 +69,42 @@
 
 ## 5. 동작 (Current Behavior)
 
-### 5.1 As-Is — 사이드이펙트가 렌더 본문에 노출
+### 5.1 As-Is — 사이드이펙트 useEffect 격리 완료 (TSK-20260418-16, commit `b07cbf5`)
 > 관련 요구사항: REQ-20260418-009 §2 배경
 
-```jsx
-// src/App.jsx:47-48 (현재)
-window.onresize = handleOnresize;   // 매 렌더마다 핸들러 재할당
-common.auth();                       // 매 렌더마다 호출
-```
+**이전 결함 (2026-04-18 관측)**: 렌더 본문에 `window.onresize = handleOnresize;` + `common.auth();` 직접 대입/호출 → StrictMode 더블 마운트 시 side effect 중복.
 
-문제:
-- `window.onresize=` 직접 대입은 다른 등록자와 사일런트 충돌 (`addEventListener` 가 표준).
-- 매 렌더마다 `auth()` 가 실행되어 `setCookie` 부수효과 반복 (현재 idempotent 하지만 위험).
-- React 18 `StrictMode` 의 의도적 더블 마운트로 마운트당 2회 실행 — `useEffect` 의 더블 effect 와 동등하지 않음.
-- React 19 의 더 엄격한 동시성 정책에서 깨질 잠재.
+**2026-04-20 현재 (src/App.jsx:39-50)**: useEffect 격리 완료 — §5.2 형태로 구현. drift reconcile.
 
-기존 useEffect(`:27-29` 초기 사이즈, `:31-45` 온라인) 는 정상 — 본 사이드이펙트만 예외.
-
-### 5.2 [WIP] To-Be — useEffect 격리
+### 5.2 To-Be → 완료 — useEffect 격리 (REQ-20260418-009)
 > 관련 요구사항: REQ-20260418-009 FR-01, FR-02, FR-03
 
+**구현 (src/App.jsx:39-50, commit `b07cbf5`, task `20260418-app-render-side-effects-useeffect`)**:
 ```jsx
-// resize listener (FR-01, FR-02)
+// resize listener (FR-01, FR-02) — src/App.jsx:39-45
 useEffect(() => {
   const handler = () => handleOnresize();
   window.addEventListener('resize', handler);
-  handler(); // 초기 1회 (기존 :27-29 useEffect 통합 가능 — planner 결정)
+  handler(); // 초기 1회 (기존 initial-size useEffect 통합)
   return () => window.removeEventListener('resize', handler);
 }, []);
 
-// auth (FR-03)
+// auth (FR-03) — src/App.jsx:46-48
 useEffect(() => {
   common.auth();
 }, []);
 ```
 
-핵심:
-- 함수 본문에 사이드이펙트 0건.
-- cleanup 으로 listener 누수 방지 (NFR-01).
-- StrictMode 더블 effect 시에도 idempotent (NFR-02).
-- 기존 `useEffect(() => { handleOnresize(); }, [])` 는 새 listener useEffect 안에서 1회 호출로 통합하거나 별도 유지 — REQ-009 §13 미결.
+**핵심 (달성)**:
+- 함수 본문에 사이드이펙트 0건 — `window.onresize=` / `common.auth()` 직접 호출 제거.
+- cleanup 으로 listener 누수 방지 (NFR-01) — `removeEventListener` 동봉.
+- StrictMode 더블 effect 시에도 idempotent (NFR-02) — REQ-20260418-025 `auth() idempotent cookie result` 자동 테스트 PASS (commit `b5b2ae5`, §5.2.1 참조).
+- 기존 initial-size useEffect 는 새 listener useEffect 의 `handler()` 초기 1회 호출로 통합됨 (REQ-009 §13 결정).
 
-### 5.2.1 [WIP] `auth()` 멱등 결과 등가성 자동 검증 — REQ-20260418-025
+### 5.2.1 `auth()` 멱등 결과 등가성 자동 검증 — 완료 (REQ-20260418-025)
 > 관련 요구사항: REQ-20260418-025 FR-01, FR-02, US-01
 
-TSK-20260418-16 에서 `common.auth()` 가 useEffect 로 격리됐으나, `src/App.test.jsx` 는 `authSpy.mock.calls.length >= 1` 호출 카운트만 어서트한다. StrictMode 이중 마운트 시점의 **cookie 상태 등가성**(1회 호출 결과와 2회 호출 결과가 동등)은 미검증이므로, `src/common/common.test.js` 또는 `src/App.test.jsx` 에 자동 테스트 1건을 신설해 회귀를 차단한다.
+**완료 (2026-04-20 drift reconcile)**: `common.auth()` idempotent cookie 등가성 자동 테스트 1건이 `src/common/common.test.js` 에 `'auth() idempotent cookie result'` describe 블록(line 107-159) 으로 추가됨 — commit `b5b2ae5`, task `20260418-auth-cookie-idempotent-equivalence-test`. 1회 호출 후 cookie 와 2회 호출 후 cookie 가 동등함을 어서트 (`expect(cookieAfter1).toBe(cookieAfter2)`). StrictMode 이중 마운트 시점의 cookie 상태 회귀 차단 완료.
 
 **테스트 패턴 (FR-01, FR-02)**:
 ```js
@@ -144,10 +135,13 @@ describe('auth() idempotent cookie result', () => {
 **jsdom 한계 완화 메모**:
 - `document.cookie` 의 `secure` / `site` 속성은 jsdom 에서 부분만 반영 가능 → 비교를 cookie **본체 (`name=value`)** 문자열 또는 파싱된 객체 기준으로 제한. 사유 코멘트 inline 기록.
 
-### 5.3 [WIP] ErrorBoundary + Skeleton 통합 — REQ-20260418-005
+### 5.3 ErrorBoundary + Skeleton 통합 — 완료 (REQ-20260418-005)
 > 관련 요구사항: REQ-20260418-005 FR-03, FR-04 (상세는 `error-boundary-spec.md` §4)
 
+**완료 (2026-04-20 drift reconcile)**: `src/App.jsx:92` 의 최상위 Suspense fallback 이 `<Skeleton variant="page" />` 로 전환 완료. 3 lazy 라우트(`/log/*`, `/file/*`, `/monitor/*`)가 `<ErrorBoundary fallback={(p) => <ErrorFallback {...p} />} onError={reportError}>` 패턴으로 래핑 완료 (src/App.jsx:97-118). 라우트 단위 래핑 채택 (Navigation / Footer 는 최상위 Suspense 경로). 상세 매트릭스는 `error-boundary-spec.md` §4.1~§4.3 및 §6 수용 기준에 박제.
+
 ```jsx
+// src/App.jsx:92-118 (현재 구현)
 <Suspense fallback={<Skeleton variant="page" />}>
   <Navigation />
   <Routes>
@@ -163,8 +157,6 @@ describe('auth() idempotent cookie result', () => {
 </Suspense>
 ```
 
-라우트 단위 vs 라우트 그룹 단위 래핑은 planner 결정. 본 spec 은 실제 적용 후 §5.3 을 To-Be 로 갱신.
-
 ### 5.4 에러 / 엣지 케이스
 - 오프라인(`!isOnline`): Navigation 만 있는 축약 트리 렌더 — 기존 동작 유지.
 - `setContentHeight` 첫 마운트 전: inline style `undefined` → React 가 무시.
@@ -178,21 +170,21 @@ N/A.
   - [x] 기본 렌더, 온라인/오프라인 분기
   - [x] `authSpy.mock.calls.length >= 1` 호출 카운트 어서트 (TSK-16)
 - 미커버 / [WIP]:
-  - [ ] [WIP] resize 핸들러 cleanup (mount/unmount 시 listener 카운트) — REQ-009 NFR-01
-  - [ ] [WIP] StrictMode 더블 마운트 시 `auth()` idempotent 검증 — REQ-009 FR-05
-  - [ ] [WIP] `auth()` 결과 등가성 (`cookieAfter1 === cookieAfter2`) 자동 테스트 1건 — REQ-20260418-025 FR-01
-  - [ ] [WIP] App.test StrictMode 이중 마운트 시 cookie 등가성 어서트 (Should) — REQ-20260418-025 FR-02
-  - [ ] [WIP] 운영자 수동 스모크 baseline 4 시나리오 (`docs/testing/app-shell-side-effects-smoke.md`) — REQ-20260418-025 FR-03~07
-  - [ ] [WIP] ErrorBoundary 적용 후 라우트 격리 회귀 테스트 — REQ-005 FR-06
+  - [x] resize 핸들러 cleanup (mount/unmount 시 listener 카운트) — REQ-009 NFR-01: `return () => window.removeEventListener('resize', handler)` cleanup 구현 (commit `b07cbf5`, src/App.jsx:44)
+  - [x] StrictMode 더블 마운트 시 `auth()` idempotent 검증 — REQ-009 FR-05: `useEffect(() => { common.auth(); }, [])` (commit `b07cbf5`)
+  - [x] `auth()` 결과 등가성 (`cookieAfter1 === cookieAfter2`) 자동 테스트 1건 — REQ-20260418-025 FR-01: commit `b5b2ae5` (`common.test.js` `'auth() idempotent cookie result'` describe)
+  - [~] App.test StrictMode 이중 마운트 시 cookie 등가성 어서트 (Should) — REQ-20260418-025 FR-02: `common.test.js` 단에서 등가성 PASS 달성; App.test.jsx 추가 어서트는 Should, 별 라운드
+  - [ ] [WIP] 운영자 수동 스모크 baseline 4 시나리오 (`docs/testing/app-shell-side-effects-smoke.md`) — REQ-20260418-025 FR-03~07: 체크리스트 문서 아직 부재, 운영자 영역
+  - [x] ErrorBoundary 적용 후 라우트 격리 회귀 테스트 — REQ-005 FR-06: `src/App.test.jsx:250` "white-screen regression guard" 테스트 + `ErrorBoundary.test.jsx` 4/4 PASS (상세는 `error-boundary-spec.md` §6)
 
 ## 8. 비기능 특성 (NFR Status)
 | 항목 | 현재 상태 | 목표 (NFR) | 메모 |
 |------|-----------|------------|------|
-| 신뢰성 | listener 누수 위험, 매 렌더 재할당 | 마운트 N회 시 unmount 후 listener=0 | REQ-009 NFR-01 |
-| 호환성 | StrictMode 안전성 검증 안됨 | 더블 마운트 = 1회분과 동등 (idempotent) | REQ-009 NFR-02 |
-| 유지보수성 | 본문에 사이드이펙트 2건 | 본문 0건, useEffect 안 모두 | REQ-009 NFR-03 |
-| 성능 | 매 렌더 핸들러 재할당 | re-render 시 listener 재등록 없음 | REQ-009 NFR-04 |
-| 신뢰성(렌더 격리) | 라우트 에러 시 white screen | 라우트 단위 ErrorBoundary | REQ-005 NFR-01 |
+| 신뢰성 | listener cleanup 구현 (commit `b07cbf5`) | 마운트 N회 시 unmount 후 listener=0 | REQ-009 NFR-01 — 달성 |
+| 호환성 | idempotent 자동 어서트 PASS (commit `b5b2ae5`) | 더블 마운트 = 1회분과 동등 (idempotent) | REQ-009 NFR-02 + REQ-025 FR-01 — 달성 |
+| 유지보수성 | 본문 사이드이펙트 0건 (commit `b07cbf5`) | 본문 0건, useEffect 안 모두 | REQ-009 NFR-03 — 달성 |
+| 성능 | re-render 시 listener 재등록 없음 (deps `[]`) | re-render 시 listener 재등록 없음 | REQ-009 NFR-04 — 달성 |
+| 신뢰성(렌더 격리) | 라우트 단위 ErrorBoundary 적용 완료 (src/App.jsx:97-118) | 라우트 단위 ErrorBoundary | REQ-005 NFR-01 — 달성 (상세: `error-boundary-spec.md`) |
 
 ## 9. 알려진 제약 / 이슈
 - React 18.x 기반. React 19 전환은 별 spec.
@@ -206,6 +198,10 @@ N/A.
 | 2026-04-18 | (pending, REQ-20260418-009) | 렌더 본문 사이드이펙트 (`window.onresize=`, `common.auth()`) useEffect 격리 (WIP) | 5.1, 5.2, 7, 8 |
 | 2026-04-18 | (pending, REQ-20260418-005) | Suspense fallback Skeleton + 라우트 단위 ErrorBoundary (WIP) | 5.3, 7, 8 |
 | 2026-04-18 | (pending, REQ-20260418-025) | `auth()` 멱등 cookie 등가성 자동 테스트 + 수동 스모크 baseline 4 시나리오 (WIP) | 5.2.1, 7, 11 |
+| 2026-04-18 | TSK-20260418-16 (merged, commit `b07cbf5`) | REQ-009 useEffect 격리 완료 — `window.onresize=` + `common.auth()` 렌더 본문 사이드이펙트 제거, `addEventListener('resize', handler)` + cleanup, `useEffect(() => common.auth(), [])` 마운트 1회 | 5.1, 5.2 |
+| 2026-04-18 | TSK-20260418-auth-cookie-idempotent-equivalence-test (merged, commit `b5b2ae5`) | REQ-025 FR-01 `auth() idempotent cookie result` 자동 테스트 (`src/common/common.test.js`) — StrictMode 이중 마운트 cookie 등가성 어서트 | 5.2.1, 7 |
+| 2026-04-18 | (REQ-20260418-005, merged) | Skeleton / ErrorFallback 신설 + App.jsx 최상위 Suspense fallback Skeleton 전환 + 3 라우트 ErrorBoundary 래핑 + reportError onError 훅 (상세는 `error-boundary-spec.md` §4) | 5.3, 7, 8 |
+| 2026-04-20 | (inspector drift reconcile) | §5.1/5.2/5.2.1/5.3 "[WIP]" → "완료" ACK: REQ-009 useEffect 격리 (commit `b07cbf5`) + REQ-025 auth 멱등 등가성 자동 테스트 (commit `b5b2ae5`) + REQ-005 ErrorBoundary/Skeleton App.jsx 통합 (src/App.jsx:92-118). §7 체크박스 4 항목 [x] 전환 (resize cleanup / StrictMode idempotent / auth cookie 등가성 자동 / ErrorBoundary 라우트 격리). §8 NFR Status 5 행 "달성" 갱신. 잔여: §7 운영자 수동 스모크 baseline (`docs/testing/app-shell-side-effects-smoke.md` 체크리스트 문서 부재 + REQ-025 FR-03~07 operator). 커밋 영향: 본 spec 단독. | 5.1, 5.2, 5.2.1, 5.3, 7, 8 |
 
 ## 11. 관련 문서
 - 기원 요구사항:

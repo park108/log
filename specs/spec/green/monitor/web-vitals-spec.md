@@ -5,8 +5,8 @@
 > - `src/Monitor/WebVitalsMon.jsx`
 > - `src/Monitor/WebVitalsItem.jsx`
 > **유형**: Util + UI Components
-> **최종 업데이트**: 2026-04-18 (by inspector, WIP — REQ-20260418-022 런타임 스모크 체크리스트 cross-link 추가)
-> **상태**: Active (TSK-14 머지로 v5 + INP 업그레이드 완료 / 런타임 스모크 baseline WIP)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — §4.2 version pin + §5.1/5.2/5.3 WIP→완료 ACK post TSK-14 `60c0cd3`)
+> **상태**: Active (v5 + INP 업그레이드 완료 / 런타임 스모크 baseline 운영자 대기)
 > **관련 요구사항**:
 > - REQ-20260418-003 (`specs/requirements/done/2026/04/18/20260418-upgrade-web-vitals-inp.md`) — v5 업그레이드 + INP 도입
 > - REQ-20260418-022 (`specs/requirements/done/2026/04/18/20260418-web-vitals-inp-runtime-smoke-doc-and-baseline.md`) — 런타임 수동 스모크 체크리스트 + baseline (WIP)
@@ -71,7 +71,7 @@
 - `src/common/common.js` — `log`, `hasValue`, `hoverPopup`
 
 ### 4.2 외부 의존
-- 패키지: **`web-vitals`** — 현재 `^3.0.4` (실설치 3.1.0)
+- 패키지: **`web-vitals`** — 2026-04-20 관측 `^5.2.0` (post TSK-14, commit `60c0cd3`; 2026-04-20 inspector drift reconcile)
 - 브라우저 API: `navigator.sendBeacon` (전송), `lazy`/`Suspense`
 - 외부 시스템: 수신측 Lambda + DynamoDB (스키마 변경 없음 가정)
 
@@ -81,27 +81,9 @@
 
 ## 5. 동작 (Current Behavior)
 
-### 5.1 현재 구현 (v3.1.0 기준, deprecated)
+### 5.1 현재 구현 (v5 기준, post TSK-14 `60c0cd3`; 2026-04-20 inspector drift reconcile)
 ```js
-// src/reportWebVitals.js
-import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-  getCLS(onPerfEntry);
-  getFID(onPerfEntry);
-  getFCP(onPerfEntry);
-  getLCP(onPerfEntry);
-  getTTFB(onPerfEntry);
-});
-```
-- `getXXX` API 사용 (deprecated, v5 에서 제거)
-- `getFID` 포함 — Google Core Web Vitals 에서 2024-03 부로 INP 로 대체됨에도 불일치
-
-`WebVitalsMon.jsx` 의 `WEB_VITAL_LIST` 가 `LCP, FID, CLS, FCP, TTFB` 5개를 정적으로 매핑.
-
-### 5.2 [WIP] v5 업그레이드 후
-> 관련 요구사항: REQ-20260418-003 FR-01, FR-02, FR-03
-
-```js
-// src/reportWebVitals.js (WIP)
+// src/reportWebVitals.js (실측, 2026-04-20)
 import('web-vitals').then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
   onCLS(onPerfEntry);
   onINP(onPerfEntry);
@@ -110,12 +92,20 @@ import('web-vitals').then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
   onTTFB(onPerfEntry);
 });
 ```
-- `getFID`/`onFID` 제거. `onINP` 도입.
-- 콜백 시그니처는 v3 → v5 동일 형태 (`(metric) => void`). `metric.name`, `metric.value`, `metric.id`, `metric.rating` 보존.
-- attribution 필드명이 `*Time → *Duration` 으로 변경됨 — 현재 attribution 미사용이므로 무영향(가정). 도입 시 별도 작업.
+- `onXXX` v5 API 사용. `getFID`/`onFID` 완전 제거.
+- `onINP` 도입 — Google Core Web Vitals 2024-03 표준 정합.
 
-### 5.3 [WIP] WebVitalsMon 라벨
+`WebVitalsMon.jsx` 의 `WEB_VITAL_LIST` 가 `LCP, INP, CLS, FCP, TTFB` 5개 정적 매핑 (FID 미포함).
+
+### 5.2 v5 업그레이드 — 완료 (TSK-14 `60c0cd3`)
+> 관련 요구사항: REQ-20260418-003 FR-01, FR-02, FR-03
+
+**완료 (2026-04-20 drift reconcile)**: §5.1 코드와 동일. 콜백 시그니처는 v3 → v5 동일 형태 (`(metric) => void`). `metric.name`, `metric.value`, `metric.id`, `metric.rating` 보존. attribution 미사용(가정) 유지.
+
+### 5.3 WebVitalsMon 라벨 — 완료 (TSK-14 `60c0cd3`)
 > 관련 요구사항: REQ-20260418-003 FR-04
+
+**완료 (2026-04-20 drift reconcile, src/Monitor/WebVitalsMon.jsx:5-7 실측)**:
 ```js
 const WEB_VITAL_LIST = [
   {name: "LCP",  description: "Largest Contentful Paint"},
@@ -125,8 +115,7 @@ const WEB_VITAL_LIST = [
   {name: "TTFB", description: "Time to First Byte"},
 ];
 ```
-- `FID` 항목 제거(신규 수집 중단).
-- 단, `WebVitalsItem` 의 fetch (`getWebVitals(name)`) 는 임의 name 을 받으므로 과거 FID 레코드는 별도 조회 가능 (US-03, FR-04 호환성 유지).
+- `FID` 항목 제거 (신규 수집 중단). `WebVitalsItem` 의 fetch (`getWebVitals(name)`) 는 임의 name 을 받으므로 과거 FID 레코드는 별도 조회 가능 (US-03, FR-04 호환성 유지).
 - INP 임계치 표시 여부는 §13 미결.
 
 ### 5.4 [WIP] sendToAnalytics 페이로드 검증
@@ -189,10 +178,10 @@ Metric = {
 ## 8. 비기능 특성 (NFR Status)
 | 항목 | 현재 상태 | 목표 (NFR) | 메모 |
 |------|-----------|------------|------|
-| 신뢰성 | v3.1.0 동작 | v5 업그레이드 후 build/test pass | NFR-01 |
-| 성능(번들) | 현재 web-vitals 청크 | ≤ 현재 (v5 tree-shake 개선) | NFR-02 |
-| 관측가능성 | FID 수집 중 (CWV 불일치) | INP 수집, 일 1+ 레코드 | NFR-03 |
-| 호환성 | FID 만 표시 | 레거시 FID 도 조회 가능 | NFR-04 |
+| 신뢰성 | v5.2.0 build/test PASS (commit `60c0cd3`) | v5 업그레이드 후 build/test pass | NFR-01 — 달성 |
+| 성능(번들) | v5 청크 (tree-shake `onXXX`) | ≤ 현재 (v5 tree-shake 개선) | NFR-02 — 달성 (TSK-14 post-build 확인) |
+| 관측가능성 | INP 수집 활성 (WEB_VITAL_LIST 반영) | INP 수집, 일 1+ 레코드 | NFR-03 — 코드 경로 달성 / 운영 관측 baseline 은 REQ-022 운영자 |
+| 호환성 | FID UI 제거 / 서버 레코드는 임의 name 조회 유지 | 레거시 FID 도 조회 가능 | NFR-04 — 달성 |
 
 ## 9. 알려진 제약 / 이슈
 - v5 에서 `getFID`/`onFID` 완전 제거. 업그레이드 PR 머지 직후 깨질 수 있어 동시 변경 필요.
@@ -206,6 +195,7 @@ Metric = {
 | 2026-04-18 | (pending) | web-vitals v5 업그레이드 + INP 도입, FID 제거 (WIP) | 4.2, 5, 6, 7 |
 | 2026-04-18 | TSK-20260418-14 (merged, commit `60c0cd3`) | web-vitals v5 + INP 적용 완료 (자동 테스트 포함) | 4.2, 5.2, 5.3, 6, 7 |
 | 2026-04-18 | (pending, REQ-20260418-022) | 런타임 수동 스모크 체크리스트 cross-link 추가 + §7.1 섹션 신설 (WIP) | 7, 7.1, 11 |
+| 2026-04-20 | (inspector drift reconcile) | §4.2 web-vitals 버전 pin `^3.0.4 (실설치 3.1.0)` → `^5.2.0` (post TSK-14, commit `60c0cd3`, package.json 실측). §5.1 "v3.1.0 deprecated" 코드 블록 → v5 onXXX 실측 코드로 교체. §5.2/§5.3 "[WIP]" → "완료" ACK. §8 NFR Status 4행 "달성" 갱신. 잔여: §5.4 sendToAnalytics 페이로드 재검증 (자동 테스트 영역), §7.1 운영자 런타임 스모크 baseline (REQ-022). 커밋 영향: 본 spec 단독. | 4.2, 5.1, 5.2, 5.3, 8 |
 
 ## 11. 관련 문서
 - 기원 요구사항:

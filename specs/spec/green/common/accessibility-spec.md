@@ -5,7 +5,7 @@
 > - 도구: `.eslintrc.yml`, `package.json` (eslint-plugin-jsx-a11y)
 > - 선택적 문서: `docs/a11y/` 또는 본 spec 단일 출처
 > **유형**: 정책 / 공통 패턴 + 린트 규칙
-> **최종 업데이트**: 2026-04-18 (by inspector, WIP — REQ-20260418-017 + REQ-20260418-018 통합 초기화; REQ-029/030/031 반영)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — §2.1 REQ-029 잔여 3곳 [WIP]→머지 ACK)
 > **상태**: Experimental (신규 spec, 도입 전)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260418-non-button-onclick-keyboard-a11y.md` (REQ-20260418-017)
@@ -56,15 +56,15 @@
 | 3 | `src/Monitor/ContentItem.jsx:154` | Retry | onClick 만 | **머지** (`d8cd8bb`, 패턴 B) |
 | 4 | `src/Monitor/WebVitalsItem.jsx:131` | Retry | onClick 만 | **머지** (`1289201`, 패턴 B) |
 | 5 | `src/Monitor/ApiCallItem.jsx:180` | Retry | onClick 만 | **머지** (`179a37b`, 패턴 B) |
-| 6 | `src/File/FileItem.jsx:71` | filename 복사 (copyFileUrl) | `<div role="button" onClick>` | [WIP] REQ-029 §2.1.1 |
-| 7 | `src/File/FileItem.jsx:85` | 삭제 (confirmDelete) | `<span onClick role="button">` | [WIP] REQ-029 §2.1.1 |
-| 8 | `src/Image/ImageSelector.jsx:137-141` | Retry | `<span onClick>` | [WIP] REQ-029 §2.1.1 |
+| 6 | `src/File/FileItem.jsx:71` | filename 복사 (copyFileUrl) | `<div role="button" onClick>` | **머지** (`24493bb`, 패턴 B — REQ-029 §2.1.1) |
+| 7 | `src/File/FileItem.jsx:85` | 삭제 (confirmDelete) | `<span onClick role="button">` | **머지** (`24493bb`, 패턴 B — REQ-029 §2.1.1) |
+| 8 | `src/Image/ImageSelector.jsx:137-141` | Retry | `<span onClick>` | **머지** (`695e65d`, 패턴 B — REQ-029 §2.1.1) |
 | 9 | `src/Search/SearchInput.jsx:91-99` | 모바일 검색 토글 | (패턴 A 전환됨) | **머지** (`f980c1a`, 패턴 A) |
 
 추가 관찰:
 - `grep -rn "tabIndex" src/` → **0건** (프로젝트 전역 0; 9곳 마감 시 패턴 B 채택분만큼 증가)
 - `grep -rn "onKeyDown\|onKeyPress\|onKeyUp" src/` → 5곳 패턴 B 머지 + SearchInput 의 검색 입력 `onKeyUp`. 잔여 3곳 처리 후 재측정.
-- **현 진행률: 6/9 머지** (REQ-017 + `f980c1a` 패턴 A 전환분 1곳). 잔여 3곳은 REQ-029 로 처리.
+- **현 진행률: 9/9 머지** (REQ-017 + `f980c1a` 패턴 A 전환분 1곳 + REQ-029 잔여 3곳 머지: `24493bb` FileItem×2 + `695e65d` ImageSelector — 2026-04-20 inspector drift reconcile). 9/9 매트릭스 마감.
 
 ### 2.1.1 [WIP] 잔여 3곳 마감 (REQ-20260418-029)
 
@@ -946,6 +946,7 @@ const onChangeName = (e) => {
 | 2026-04-19 | (pending, REQ-20260419-003) | ESLint v9 + flat config 마이그레이션 §3.4.2 신설 — `eslint.config.js` 이관, legacy `.eslintrc.yml` 종료, 플러그인 v9 호환, 룰셋 동등성 검증, Node 20 유지, github-actions-ci-spec §3.1.3 cross-link (WIP) | 3.4.2 |
 | 2026-04-19 | (pending, REQ-20260419-014) | `react/no-unknown-property` ignore 목록 dead `enlarged` 1줄 제거 §3.4.3 신설 — REQ-026 후속 정리, `[imageurl, thumbnailurl, enlarged]` → `[imageurl, thumbnailurl]` 축소, REQ-003 flat config 위치 동시 정리 (WIP) | 3.4.3 |
 | 2026-04-19 | (pending, REQ-20260419-021) | 폼 검증 에러 표시 정책 §4.B 신설 — `window.alert(...)` 금지 + `aria-invalid` / `aria-describedby` / `role="alert"` 인라인 메시지 + Toaster 보조 표준 패턴 박제, CommentForm×2 + Writer×1 결함 매트릭스 (WCAG 3.3.1/3.3.3/4.1.2, REQ-017 §13 후속) (WIP) | 4.B |
+| 2026-04-20 | (inspector drift reconcile) | §2.1 표 행 #6/#7/#8 (FileItem filename + 삭제 + ImageSelector Retry) 를 "[WIP] REQ-029 §2.1.1" → "**머지**" 로 ACK: commits `24493bb` (FileItem filename+delete 패턴 B, tasks `20260418-a11y-fileitem-keyboard-activation`) / `695e65d` (ImageSelector Retry 패턴 B, task `20260418-a11y-imageselector-retry-keyboard`); src 관측: `FileItem.jsx` `activateOnKey` import + `tabIndex={0}` + `onKeyDown={activateOnKey(copyFileUrl)}` / `onKeyDown={activateOnKey(confirmDelete)}` 확인, `ImageSelector.jsx:147` `onKeyDown={activateOnKey(handleRetry)}` 확인. 진행률 6/9 → 9/9 마감. REQ-029 §2.1.1 수용 체크박스 및 §2.4 수용 grep 자체는 본 ACK 범위 밖 (아래 §2.1.1 섹션 별 라운드 정리 필요). 커밋 영향: 본 spec 단독. | 2.1 |
 
 ## 10. 관련 문서
 - 기원 요구사항:
