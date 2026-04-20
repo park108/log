@@ -53,8 +53,6 @@ describe('VisitorMon render on prod server (ok)', () => {
 		expect(tooltip).not.toBeNull();
 		expect(tooltip).toHaveAttribute('role', 'tooltip');
 		expect(tooltip).toHaveAttribute('aria-hidden', 'false');
-
-		vi.useRealTimers();
 	});
 });
 

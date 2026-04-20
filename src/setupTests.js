@@ -35,7 +35,10 @@
 //     는 사용 금지.
 //   • 인자 없는 `vi.useFakeTimers()` / 문자열 인자 `vi.useFakeTimers('modern')` 호출 금지
 //     — 반드시 옵션 객체를 명시 (`{ shouldAdvanceTime: true }` 기본).
-//   • `vi.useRealTimers()` 해제를 각 스위트의 `afterEach` 또는 `afterAll` 에 반드시 포함.
+//   • 전역 `afterEach` 가 `vi.useRealTimers()` 해제를 담당하므로 파일별
+//     `afterEach(() => vi.useRealTimers())` 추가는 선택 사항 (재등록해도 무해).
+//     — `vi.useFakeTimers({ shouldAdvanceTime: true })` 만 호출하고 끝나도
+//       다음 테스트 시작 시점에 `vi.isFakeTimers() === false` 가 보장된다.
 //   • 의도적 제외: `src/Search/Search.test.jsx` 의
 //     `{ shouldAdvanceTime: false }` 는 debounce 타이머 제어가 목적.
 //
@@ -55,9 +58,13 @@ import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeEach, vi } from 'vitest'
 
 // env-spec §5.2 — 도메인 테스트는 vi.stubEnv 로 NODE_ENV 를 조작한다.
-// 테스트 간 상태 누수 방지를 위해 전역 afterEach 로 모든 env stub 을 해제한다.
+// 테스트 간 상태 누수 방지를 위해 전역 afterEach 로 모든 env stub 을 해제하고,
+// REQ-20260420-007 (TSK-20260420-38) — fake-timer teardown 을 단일 지점에
+// 박제한다. `vi.unstubAllEnvs()` → `vi.useRealTimers()` 순서: env 분기 의존
+// 로직이 timer 해제 부작용에 영향받지 않도록 env 를 먼저 해제한다.
 afterEach(() => {
 	vi.unstubAllEnvs();
+	vi.useRealTimers();
 });
 
 // clipboard-spec §3.3.2 (REQ-20260418-034) — 옵션 B 전역 sweep.

@@ -177,8 +177,6 @@ describe('File render failed when internal error on prod server', () => {
 		});
 
 		expect(failMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -285,7 +283,5 @@ describe('File render files and get next files failed on dev server', () => {
 
 		const toasterErrorText2 = await screen.findByText("Upload file failed for network issue.");
 		expect(toasterErrorText2).toBeInTheDocument();
-
-		vi.useRealTimers();
 	});
 });

@@ -106,8 +106,6 @@ it('render log item correctly', async () => {
 	fireEvent.mouseMove(linkUrl);
 	fireEvent.mouseOut(linkUrl);
 	fireEvent.mouseOut(linkUrl); // Already class changed
-
-	vi.useRealTimers();
 });
 
 describe("LogItem sanitizes rendered markdown HTML", () => {
@@ -326,8 +324,6 @@ describe('LogItem render and delete failed (confirm cancel then accept)', () => 
 		await vi.runOnlyPendingTimersAsync();
 
 		await screen.findByText("Delete");
-
-		vi.useRealTimers();
 	});
 });
 
@@ -385,8 +381,6 @@ describe('LogItem render and delete network error', () => {
 		await vi.runOnlyPendingTimersAsync();
 
 		await screen.findByText("Delete");
-
-		vi.useRealTimers();
 	});
 });
 

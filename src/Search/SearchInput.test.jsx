@@ -137,7 +137,6 @@ describe('test key up events', () => {
 		await act(async () => {
 			await vi.runOnlyPendingTimersAsync();
 		});
-		vi.useRealTimers();
 
 		const nullStringAlert = await screen.findByText("Enter the keyword to search for");
 		expect(nullStringAlert).toBeDefined();

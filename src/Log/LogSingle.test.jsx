@@ -119,8 +119,6 @@ describe('LogSingle render on prod server (ok)', () => {
 
 		const afterDeleteTimer = await screen.findByText("Deleted");
 		expect(afterDeleteTimer).toBeInTheDocument();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -192,8 +190,6 @@ describe('LogSingle get OK delete failed', () => {
 		const deleteButton = await screen.findByText("Delete");
 		expect(deleteButton).toBeInTheDocument();
 		fireEvent.click(deleteButton);
-
-		vi.useRealTimers();
 	});
 });
 
@@ -229,8 +225,6 @@ describe('LogSingle get OK delete network error', () => {
 		const deleteButton = await screen.findByText("Delete");
 		expect(deleteButton).toBeInTheDocument();
 		fireEvent.click(deleteButton);
-
-		vi.useRealTimers();
 	});
 });
 

@@ -112,8 +112,6 @@ describe('FileUpload upload ok on dev server', () => {
 		expect(toasterFadedout).toHaveAttribute('data-position', 'bottom');
 		expect(toasterFadedout).toHaveAttribute('data-type', 'success');
 		expect(toasterFadedout).toHaveAttribute('data-show', '2');
-
-		vi.useRealTimers();
 	});
 });
 
@@ -189,7 +187,5 @@ describe('FileUpload presigned url ok but upload network error', () => {
 		expect(toasterFadedout).toHaveAttribute('data-position', 'bottom');
 		expect(toasterFadedout).toHaveAttribute('data-type', 'error');
 		expect(toasterFadedout).toHaveAttribute('data-show', '2');
-
-		vi.useRealTimers();
 	});
 });

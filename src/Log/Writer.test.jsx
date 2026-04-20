@@ -100,8 +100,6 @@ describe('Writer create log ok on prod server', () => {
 
 		const resultMessage = await screen.findByText("The log posted.");
 		expect(resultMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -149,8 +147,6 @@ describe('Writer create log failed on prod server', () => {
 
 		const resultMessage = await screen.findByText("Posting log failed.");
 		expect(resultMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -198,8 +194,6 @@ describe('Writer create log network error on prod server', () => {
 
 		const resultMessage = await screen.findByText("Posting log network error.");
 		expect(resultMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -249,8 +243,6 @@ describe('Writer edit log ok on dev server', () => {
 
 		const resultMessage = await screen.findByText("The log changed.");
 		expect(resultMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -300,8 +292,6 @@ describe('Writer edit log failed on dev server', () => {
 
 		const resultMessage = await screen.findByText("Editing log failed.");
 		expect(resultMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -350,8 +340,6 @@ describe('Writer edit log network error on dev server', () => {
 
 		const resultMessage = await screen.findByText("Editing log network error.");
 		expect(resultMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -475,8 +463,6 @@ test('event testing', async () => {
 	fireEvent.submit(form2);
 
 	await vi.runOnlyPendingTimersAsync();
-
-	vi.useRealTimers();
 });
 
 test('copyMarkdownString shows error Toaster when clipboard write rejects', async () => {

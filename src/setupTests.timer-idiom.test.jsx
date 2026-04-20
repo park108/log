@@ -44,4 +44,19 @@ describe('fake-timer idiom (react-19-test-layer-adaptation-spec §FR-01)', () =>
 		const ready = await screen.findByText('ready');
 		expect(ready).toBeInTheDocument();
 	});
+
+	// REQ-20260420-007 / TSK-20260420-38 — 전역 afterEach teardown 박제 검증.
+	// 테스트 A: fake-timer 를 enable 만 하고 **의도적으로** 수동 해제하지 않는다.
+	// 테스트 B: A 직후 시작 시점에 `vi.isFakeTimers() === false` 여야 한다
+	//   (전역 `afterEach` 가 `vi.useRealTimers()` 를 걸어준 덕). vitest 는 같은
+	//   파일 내부 테스트를 기술 순서대로 순차 실행하므로 A→B 의존이 안정적이다.
+	it('[A] enables fake timers without manual teardown (global afterEach covers it)', () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		expect(vi.isFakeTimers()).toBe(true);
+		// 의도적으로 vi.useRealTimers() 를 호출하지 않는다.
+	});
+
+	it('[B] next test starts with real timers (global afterEach teardown assertion)', () => {
+		expect(vi.isFakeTimers()).toBe(false);
+	});
 });

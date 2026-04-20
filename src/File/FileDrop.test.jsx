@@ -136,8 +136,6 @@ describe('FileDrop upload ok on dev server', () => {
 
 		const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
 		expect(dropZoneAgain).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -211,7 +209,5 @@ describe('FileDrop presigned url ok but upload network error', () => {
 
 		const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
 		expect(dropZoneAgain).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });

@@ -37,7 +37,6 @@ describe('ContentItem render on dev server (ok, log)', () => {
 		const text = await screen.findByText("'22.01");
 		expect(text).toBeInTheDocument();
 
-		vi.useRealTimers();
 	});
 });
 
@@ -57,7 +56,6 @@ describe('ContentItem render on dev server (no count)', () => {
 		const text = await screen.findAllByText("0");
 		expect(text[0]).toBeInTheDocument();
 
-		vi.useRealTimers();
 	});
 });
 
@@ -79,7 +77,6 @@ describe('ContentItem render on dev server (failed)', () => {
 
 		fireEvent.click(retryButton);
 
-		vi.useRealTimers();
 	});
 });
 
@@ -99,7 +96,6 @@ describe('ContentItem render on dev server (network error)', () => {
 		const retryButton = await screen.findByText("Retry");
 		expect(retryButton).toBeInTheDocument();
 
-		vi.useRealTimers();
 	});
 });
 
@@ -119,8 +115,6 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButton).toHaveAttribute('tabindex', '0');
 		expect(retryButton).toHaveAttribute('role', 'button');
-
-		vi.useRealTimers();
 	});
 
 	it('retry span activates on Enter key', async () => {
@@ -141,8 +135,6 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 
 		const retryAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryAfter).toBeInTheDocument();
-
-		vi.useRealTimers();
 	});
 
 	it('retry span activates on Space key and prevents default scroll', async () => {
@@ -164,8 +156,6 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 
 		const retryAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryAfter).toBeInTheDocument();
-
-		vi.useRealTimers();
 	});
 
 	it('retry span ignores non-activation keys (negative case)', async () => {
@@ -188,7 +178,6 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		const retryAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryAfter).toBeInTheDocument();
 
-		vi.useRealTimers();
 	});
 });
 
@@ -209,6 +198,5 @@ describe('ContentItem render on dev server (ok, file)', () => {
 		const text = await screen.findByText("Loading...");
 		expect(text).toBeInTheDocument();
 
-		vi.useRealTimers();
 	});
 });

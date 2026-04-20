@@ -223,8 +223,6 @@ describe('Comment render list and post on prod server (failed scenario â€” post 
 		});
 
 		expect(toasterMessage).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 
@@ -270,8 +268,6 @@ describe('Comment render list and post on prod server (network-error scenario â€
 		});
 
 		expect(toasterMessage2).toBeDefined();
-
-		vi.useRealTimers();
 	});
 });
 

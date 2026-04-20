@@ -92,7 +92,6 @@ it('render success Toaster faded out', async () => {
 	expect(toaster).toHaveClass(styles.divToasterFadeout);
 
 	await vi.runOnlyPendingTimersAsync();
-	vi.useRealTimers();
 });
 
 it('preserves position/type classes after hide (show=2 + timeout)', async () => {
@@ -113,7 +112,6 @@ it('preserves position/type classes after hide (show=2 + timeout)', async () => 
 	expect(toaster).toHaveClass(styles.divToasterHide);
 
 	await vi.runOnlyPendingTimersAsync();
-	vi.useRealTimers();
 });
 
 it('keeps the same DOM node across rerenders (ref stability)', () => {
@@ -177,7 +175,6 @@ it('clears the previous timeout when show transitions 1 -> 2', async () => {
 
 	clearSpy.mockRestore();
 	await vi.runOnlyPendingTimersAsync();
-	vi.useRealTimers();
 });
 
 it('does not call document.getElementById', async () => {
@@ -207,5 +204,4 @@ it('does not call document.getElementById', async () => {
 	unmount();
 	getByIdSpy.mockRestore();
 	await vi.runOnlyPendingTimersAsync();
-	vi.useRealTimers();
 });
