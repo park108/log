@@ -1,0 +1,41 @@
+env:
+  browser: true
+  node: true
+  es2022: true
+extends:
+  - eslint:recommended
+  - plugin:react/recommended
+parserOptions:
+  ecmaFeatures:
+    jsx: true
+  ecmaVersion: latest
+  sourceType: module
+plugins:
+  - react
+settings:
+  react:
+    version: detect
+globals:
+  describe: readonly
+  it: readonly
+  test: readonly
+  expect: readonly
+  vi: readonly
+  beforeEach: readonly
+  afterEach: readonly
+  beforeAll: readonly
+  afterAll: readonly
+ignorePatterns:
+  - build/
+  - coverage/
+  - node_modules/
+rules:
+  react/react-in-jsx-scope: off
+  react/prop-types: off
+  no-unused-vars: warn
+  react/no-unknown-property:
+    - error
+    - ignore:
+        - imageurl
+        - thumbnailurl
+        - enlarged
