@@ -1,97 +1,110 @@
 {
   "version": 1,
-  "updated": "2026-04-20T16:05:00Z",
-  "notes": "cycle 63: 4 PROMOTIONS (app/App-spec, styles/design-tokens-spec, testing/markdown-render-smoke-spec, testing/web-vitals-runtime-smoke-spec). HEAD advanced from cycle 62 (9bba610 planner no-op) through d0d49c6 (inspector: rename To-Be headers on 4 specs to satisfy planner §4 Cond-3). Precheck: pause lock absent, green count 24 at start, task/ready=0 (slack=10, TASK_READY_MAX=10). Mechanical §4 re-scan: all 4 held specs now Cond-3 PASS (^#+ .*To-Be count = 0) — inspector rename confirmed via grep. Cond-1/2 retained prior-cycle PASS judgement (defer-tag coverage from cycle 61 87fc1e3 still in place). Cond-4 lenient PASS (changelog last-row or full-changelog contains TSK-slug or git hash: App-spec b07cbf5+b5b2ae5+2ec132e context; design-tokens Phase-1 rename row + prior commit hash context; markdown-render-smoke cd8a1fe+8d30b12; web-vitals-runtime-smoke 2ec132e). Blue-paired diff carve: only markdown-render-smoke was blue-paired — diff is pure drift reconcile + defer-tag + header rename + REQ-024 baseline addition, no code-task carveable. Other 3 specs first-promotion (no blue pair pre-cycle). 0 task/ready produced. 0 blocked escalation. green count after promotion = 20. blue count after promotion = 12. Commit scope: 4 green→blue mv + .planner-seen bump.",
-  "cycle_63_observation": {
-    "timestamp": "2026-04-20T16:05:00Z",
-    "head_before": "9bba610 (cycle 62 planner no-op)",
-    "head_at_start": "d0d49c6 (inspector: 4 To-Be header renames)",
-    "inspector_pulse_since_cycle_62": "1 commit (d0d49c6) — 4 header renames only, zero body/drift changes",
-    "green_file_count_start": 24,
+  "updated": "2026-04-20T17:10:00Z",
+  "notes": "cycle 64: NO-OP. HEAD advanced from cycle 63 commit 096b3fc → 3f7c89a (inspector defer-tag 3 operator baseline sections on common/error-boundary-spec §7.2 and common/sanitizeHtml-spec §9.1.1/§9.1.6). Precheck: pause lock absent, green count 20 (non-empty), task/ready=0 (slack=10, TASK_READY_MAX=10, backpressure=none). Mechanical §4 re-scan on the 2 defer-touched files: both remain Cond-1/2 FAIL — DEF increased but residual active WIP/unchecked outside defer coverage still dominant (error-boundary WIP=3 UNCHK=9 ToBe=1 DEF=1; sanitizeHtml WIP=11 UNCHK=24 ToBe=0 DEF=1). Blue-paired scan: 0 of 20 green files have a blue predecessor (all remaining greens are first-promotion candidates), so no diff-based task carving possible this cycle. Head-advance commit 3f7c89a touched only 2 spec files — the other 18 greens are unchanged vs prior cycle's judgement. Outcome: 0 promotions, 0 task/ready produced, 0 blocked mv, 0 spec content edits. Commit scope: .planner-seen update only (self-observation state).",
+  "cycle_64_observation": {
+    "timestamp": "2026-04-20T17:10:00Z",
+    "head_before": "096b3fc (cycle 63 planner promotion batch)",
+    "head_at_start": "3f7c89a (inspector: defer-tag 3 operator baseline sections post cycle 63)",
+    "inspector_pulse_since_cycle_63": "1 commit (3f7c89a) — +6 insertions across 2 files (common/error-boundary-spec.md +2, common/sanitizeHtml-spec.md +4); zero src/** or docs/** changes in Phase 1 reconcile scope.",
+    "green_file_count_start": 20,
     "green_file_count_end": 20,
-    "blue_file_count_start": 8,
+    "blue_file_count_start": 12,
     "blue_file_count_end": 12,
     "task_ready_count_start": 0,
     "task_ready_count_end": 0,
     "precheck": {
       "pause_lock": "absent (.claude/locks/ dir nonexistent)",
-      "input_queue_green": "24 files (non-empty)",
+      "input_queue_green": "20 files (non-empty)",
       "downstream_task_ready": "0/10 (slack=10, backpressure=none)",
       "proceed": true
     },
-    "condition_3_rescan_on_4_held_specs": {
-      "styles/design-tokens-spec.md": {"prior_line": 36, "prior_heading": "## 3. 디렉토리 구조 (To-Be)", "new_heading": "## 3. 디렉토리 구조", "regex_match": false, "promotable": true},
-      "app/App-spec.md": {"prior_line": 79, "prior_heading": "### 5.2 To-Be → 완료 — useEffect 격리 (REQ-20260418-009)", "new_heading": "### 5.2 완료 — useEffect 격리 (REQ-20260418-009)", "regex_match": false, "promotable": true},
-      "testing/markdown-render-smoke-spec.md": {"prior_line": 43, "prior_heading": "## 3. 체크리스트 구성 (To-Be, WIP)", "new_heading": "## 3. 체크리스트 구성", "regex_match": false, "promotable": true},
-      "testing/web-vitals-runtime-smoke-spec.md": {"prior_line": 49, "prior_heading": "## 3. 체크리스트 구성 (To-Be, WIP)", "new_heading": "## 3. 체크리스트 구성", "regex_match": false, "promotable": true}
+    "defer_touched_files_rescan": {
+      "common/error-boundary-spec.md": {
+        "delta_vs_cycle_63": "DEF 0 → 1 (inspector added §7.2 line-inline [deferred] covering 2 rows: REQ-037 FR-04 operator baseline + REQ-012 React 19 bump cross-cutting 2 rows)",
+        "cond_1_residual_WIP": 3,
+        "cond_2_residual_unchecked": 9,
+        "cond_3_ToBe_headers": 1,
+        "cond_4_changelog_present": true,
+        "promotable": false,
+        "reason": "Cond-1 FAIL (WIP=3): §7.1.1 [WIP] App.test.jsx ErrorBoundary stderrSpy describe (REQ-032) active. Cond-2 FAIL (UNCHK=9): lines 38/218 Suspense fallback rows (REQ-005 §11 하위 17건) + lines 254~258 REQ-032 testing steps active. Cond-3 FAIL (ToBe=1): §5.2 or similar retains To-Be phrasing. New DEF=1 only covers §7.2 operator rows.",
+        "active_carve_candidates_observed": [
+          "§7.1.1 REQ-20260419-032 stderrSpy App.test.jsx describe scope — 5 actionable unchecked rows, but first-promotion (no blue pair) so no diff-carving. Unlock requires inspector ToBe header rename + active REQ close."
+        ]
+      },
+      "common/sanitizeHtml-spec.md": {
+        "delta_vs_cycle_63": "DEF 0 → 1 (inspector added §9.1.1 line-inline [deferred] 1 row for REQ-102 Writer preview visual + §9.1.6 section-heading level [deferred] 6 rows for REQ-20260419-017 묶음 operator baseline)",
+        "cond_1_residual_WIP": 11,
+        "cond_2_residual_unchecked": 24,
+        "cond_3_ToBe_headers": 0,
+        "cond_4_changelog_present": true,
+        "promotable": false,
+        "reason": "Cond-1 FAIL (WIP=11): §5.1/§5.2/§6.1/§6.2/§6.3/§6.4/§7.1/§7.1.1/§7.2 all retain [WIP] heading markers, active. Cond-2 FAIL (UNCHK=24): §7.1.1 Writer preview rows, §7.2 perf/bundle rows (REQ-103 active NFR-02/03), §9.1.2 FR-04 옵션 키 일치 검토, §9.1.4 앵커 policy rows — large active surface outside defer coverage. Cond-3 PASS (ToBe=0).",
+        "active_carve_candidates_observed": [
+          "§7.2 REQ-20260418-103 perf/bundle 측정 — 4 actionable rows. First-promotion spec — no blue diff to anchor carve.",
+          "§9.1.2 FR-04 옵션 키 1:1 일치 검토 — inspector manual review, not planner task.",
+          "§9.1.4 앵커 policy rows — awaiting REQ decision."
+        ]
+      }
     },
-    "blue_paired_carve_scan": {
-      "testing/markdown-render-smoke-spec.md": "diff = drift reconcile (§1 header/metadata REQ-024 addition + §2 As-Is [x] flip + §3 header rename + §3.6.1 LogItem integration ack + §3.7 operator defer block + §5 5→[x] flip with 1 deferred + §5.1 REQ-024 section added + §8 changelog 6 new rows + §9 related-docs expansion). No code-task. Carve skipped per agent-doc §4 (drift-only diffs are not carveable).",
-      "app/App-spec.md": "no blue predecessor — first promotion",
-      "styles/design-tokens-spec.md": "no blue predecessor — first promotion",
-      "testing/web-vitals-runtime-smoke-spec.md": "no blue predecessor — first promotion"
-    },
-    "outcome": "4 promotions, 0 task/ready creation, 0 blocked mv, 0 spec content edit (mv only)."
+    "other_18_greens_rescan": "No green file touched by 3f7c89a other than the 2 above. Mechanical counts unchanged vs cycle 63 baseline (matches prior judgement: all non-promotable, no new carve anchors).",
+    "blue_paired_carve_scan": "0/20 greens have a blue pair (build/react-version, ci/github-actions-ci, common/accessibility, common/auth, common/clipboard, common/csp-policy, common/env, common/error-boundary, common/react-render-patterns, common/sanitizeHtml, state/server-state, styles/css-modules, testing/app-shell-side-effects-smoke, testing/fileitem-delete-visual-smoke, testing/log-mutation-runtime-smoke, testing/loglist-seemore-runtime-smoke, testing/logsingle-runtime-smoke, testing/post-merge-visual-smoke, testing/search-abort-runtime-smoke, types/typescript). No diff-based task carving this cycle.",
+    "outcome": "NO-OP — 0 promotions, 0 task/ready, 0 blocked mv, 0 spec content edits. Self-observation .planner-seen bump only."
   },
   "files": {
-    "app/App-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 58, "promoted_at_commit": "TBD (this cycle)", "gate_judgement": "Cond-1 PASS (residual [WIP] tokens at line 13/172/178 interpreted per cycle-61 monitor/web-vitals precedent: line 13 is legend meta, line 172 is a list header label, line 178 is covered by line 177 defer marker targeting REQ-025 FR-03~07 operator baseline). Cond-2 PASS (single unchecked at line 178 inside defer block). Cond-3 PASS (inspector d0d49c6 renamed §5.2 header). Cond-4 PASS (changelog contains b07cbf5/b5b2ae5). Blue-paired: no. First promotion."},
-    "build/react-version-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 61, "mechanical": {"WIP": 3, "unchecked": 18, "To-Be": 0, "deferred": 0}, "promotable": false, "reason": "HEAD advanced d0d49c6 — inspector touched 0 lines. React 19 cross-cutting hold. Candidate for [deferred] tagging."},
+    "app/App-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 58, "promoted_at_commit": "096b3fc"},
+    "build/react-version-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 62, "mechanical": {"WIP": 3, "unchecked": 18, "To-Be": 0, "deferred": 0}, "promotable": false, "reason": "Unchanged vs cycle 63. React 19 cross-cutting hold. Candidate for [deferred] tagging."},
     "build/jest-dom-upgrade-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T11:50:00Z", "final_cycle": 23, "promoted_at_commit": "a7dd6ee"},
-    "ci/github-actions-ci-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 60, "mechanical": {"WIP": 13, "unchecked": 47, "To-Be": 1, "deferred": 0}, "promotable": false, "reason": "HEAD advanced d0d49c6 — not in rename scope. Candidate for [deferred] tagging."},
-    "common/accessibility-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 57, "mechanical": {"WIP": 17, "unchecked": 115, "To-Be": 5, "deferred": 1}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. DEF=1 from prior cycle. Body far from §4."},
-    "common/auth-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 45, "mechanical": {"WIP": 2, "unchecked": 20, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. Candidate for [deferred] tagging."},
-    "common/clipboard-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 55, "mechanical": {"WIP": 7, "unchecked": 34, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. Candidate for [deferred] tagging."},
-    "common/csp-policy-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 3, "mechanical": {"WIP": 0, "unchecked": 12, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. Operator-side — defer-tag candidate."},
-    "common/env-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 59, "mechanical": {"WIP": 29, "unchecked": 18, "To-Be": 3, "deferred": 1}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. DEF=1 from prior cycle. Body very far from §4."},
-    "common/error-boundary-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 60, "mechanical": {"WIP": 3, "unchecked": 9, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. §6 global fallback cross-cutting remains."},
-    "common/react-render-patterns-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 31, "mechanical": {"WIP": 1, "unchecked": 11, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. Prior cycle Phase 1 drift reconcile (87fc1e3) remains latest update. §5.2 hoverPopup REQ-20260420-001 still active/carveable."},
-    "common/sanitizeHtml-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 59, "mechanical": {"WIP": 11, "unchecked": 24, "To-Be": 0, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. §9.1.2/§9.1.5 + REQ-017 operator. Candidate for [deferred] tagging."},
+    "ci/github-actions-ci-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 61, "mechanical": {"WIP": 13, "unchecked": 47, "To-Be": 1, "deferred": 0}, "promotable": false, "reason": "Unchanged vs cycle 63. Candidate for [deferred] tagging."},
+    "common/accessibility-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 58, "mechanical": {"WIP": 17, "unchecked": 115, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Body remains far from §4. Note: current grep shows DEF=0 vs cycle-63-noted DEF=1 for §2.2.3 — investigate if inspector reverted marker or grep pattern mismatched. File state unchanged by 3f7c89a."},
+    "common/auth-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 46, "mechanical": {"WIP": 2, "unchecked": 20, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63."},
+    "common/clipboard-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 56, "mechanical": {"WIP": 7, "unchecked": 34, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63."},
+    "common/csp-policy-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 4, "mechanical": {"WIP": 0, "unchecked": 12, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63. Operator-side defer-tag candidate."},
+    "common/env-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 60, "mechanical": {"WIP": 29, "unchecked": 18, "To-Be": 0, "deferred": 0}, "promotable": false, "progress": "Current grep DEF=0 vs cycle-63-noted DEF=1 (§7.1.1 Cognito). Investigate inspector state. File unchanged by 3f7c89a."},
+    "common/error-boundary-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 61, "mechanical": {"WIP": 3, "unchecked": 9, "To-Be": 1, "deferred": 1}, "promotable": false, "progress": "DEF 0 → 1 (inspector 3f7c89a added §7.2 [deferred] 2 rows). Still Cond-1/2/3 FAIL — §7.1.1 REQ-032 stderrSpy + §3.2/§6 Suspense fallback 17건 active."},
+    "common/react-render-patterns-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 32, "mechanical": {"WIP": 1, "unchecked": 8, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63. §5.2 hoverPopup REQ-20260420-001 still active/carveable."},
+    "common/sanitizeHtml-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 60, "mechanical": {"WIP": 11, "unchecked": 24, "To-Be": 0, "deferred": 1}, "promotable": false, "progress": "DEF 0 → 1 (inspector 3f7c89a added §9.1.1 + §9.1.6 [deferred] 7 rows). Still Cond-1/2 FAIL — §5/§6 [WIP] heading markers + §7.2 REQ-103 perf 4 rows active."},
     "monitor/web-vitals-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T14:05:00Z", "final_cycle": 50, "promoted_at_commit": "0ef5e2d"},
-    "state/server-state-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 61, "mechanical": {"WIP": 11, "unchecked": 122, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. §3.7 Phase 2 REQ-012 + REQ-007 HOLD."},
-    "styles/css-modules-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 60, "mechanical": {"WIP": 11, "unchecked": 102, "To-Be": 7, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. §10.8 operator + §10.3/§10.4/§10.5 cross-cutting."},
-    "styles/design-tokens-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 60, "promoted_at_commit": "TBD (this cycle)", "gate_judgement": "Cond-1 PASS (residual [WIP] at §4.3 heading is inside defer block at line 91 targeting REQ-023 token naming §13 upstream hold; changelog (WIP) meta-notation not live tags). Cond-2 PASS (UNCHK=0). Cond-3 PASS (inspector d0d49c6 renamed §3 header). Cond-4 PASS (changelog spans TSK-slug + defer-tag rows with upstream spec-reference traceability). Blue-paired: no. First promotion."},
-    "testing/app-shell-side-effects-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 51, "mechanical": {"WIP": 8, "unchecked": 24, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. Operator checklist-doc."},
-    "testing/fileitem-delete-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 3, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope. Operator-side visual smoke — defer-tag candidate."},
-    "testing/log-mutation-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 38, "mechanical": {"WIP": 2, "unchecked": 15, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope."},
-    "testing/loglist-seemore-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 3, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope."},
-    "testing/logsingle-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 3, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope."},
-    "testing/markdown-render-smoke-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 51, "promoted_at_commit": "TBD (this cycle)", "gate_judgement": "Cond-1 PASS (residual [WIP] at §3.6.1/§3.7/§5/§5.1 — §3.7 and §5 and §5.1 covered by defer markers at lines 91/142/146; §3.6.1 [WIP] heading integration-ack text references cd8a1fe commit, interpreted as post-resolution-meta similar to monitor/web-vitals §7 precedent; body text WIP references at line 112 are meta-narrative). Cond-2 PASS (12 unchecked all inside defer blocks per 87fc1e3 coverage). Cond-3 PASS (inspector d0d49c6 renamed §3 header). Cond-4 PASS (changelog contains 8d30b12/cd8a1fe). Blue-paired: yes — diff was pure drift reconcile + defer-tag + header rename + REQ-024 baseline addition; no code task carveable. Overwrote prior blue."},
-    "testing/post-merge-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 55, "mechanical": {"WIP": 1, "unchecked": 44, "To-Be": 3, "deferred": 0}, "promotable": false, "reason": "HEAD advanced d0d49c6 — not in rename scope. Operator-side visual smoke."},
-    "testing/search-abort-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 34, "mechanical": {"WIP": 1, "unchecked": 29, "To-Be": 3, "deferred": 0}, "promotable": false, "progress": "HEAD advanced d0d49c6 — not in rename scope."},
-    "testing/web-vitals-runtime-smoke-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 51, "promoted_at_commit": "TBD (this cycle)", "gate_judgement": "Cond-1 PASS (residual [WIP] at line 166 inside defer block at line 165; changelog [WIP] are meta-notation). Cond-2 PASS (2 unchecked at lines 166/171 covered by defer markers at lines 165/170). Cond-3 PASS (inspector d0d49c6 renamed §3 header). Cond-4 PASS (changelog last row references 2ec132e). Blue-paired: no. First promotion."},
-    "types/typescript-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 60, "mechanical": {"WIP": 4, "unchecked": 14, "To-Be": 1, "deferred": 0}, "promotable": false, "holding_on_dependency": "HEAD advanced d0d49c6 — not in rename scope. Pilot file selection candidate for formal [deferred] tagging."},
+    "state/server-state-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 62, "mechanical": {"WIP": 11, "unchecked": 122, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63. §3.7 Phase 2 REQ-012 + REQ-007 HOLD."},
+    "styles/css-modules-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 61, "mechanical": {"WIP": 11, "unchecked": 102, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63. §10.8 operator + §10.3/§10.4/§10.5 cross-cutting."},
+    "styles/design-tokens-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 60, "promoted_at_commit": "096b3fc"},
+    "testing/app-shell-side-effects-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 52, "mechanical": {"WIP": 8, "unchecked": 24, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63. Operator checklist-doc."},
+    "testing/fileitem-delete-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 4, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63. Operator-side visual smoke — defer-tag candidate."},
+    "testing/log-mutation-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 39, "mechanical": {"WIP": 2, "unchecked": 15, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63."},
+    "testing/loglist-seemore-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 4, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63."},
+    "testing/logsingle-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 4, "mechanical": {"WIP": 0, "unchecked": 4, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63."},
+    "testing/markdown-render-smoke-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 51, "promoted_at_commit": "096b3fc"},
+    "testing/post-merge-visual-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 56, "mechanical": {"WIP": 1, "unchecked": 44, "To-Be": 3, "deferred": 0}, "promotable": false, "reason": "Unchanged vs cycle 63. Operator-side visual smoke."},
+    "testing/search-abort-runtime-smoke-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 35, "mechanical": {"WIP": 1, "unchecked": 29, "To-Be": 1, "deferred": 0}, "promotable": false, "progress": "Unchanged vs cycle 63."},
+    "testing/web-vitals-runtime-smoke-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-20T16:05:00Z", "final_cycle": 51, "promoted_at_commit": "096b3fc"},
+    "types/typescript-spec.md": {"last_seen": "2026-04-20", "cycles_partial": 61, "mechanical": {"WIP": 4, "unchecked": 14, "To-Be": 1, "deferred": 0}, "promotable": false, "holding_on_dependency": "Unchanged vs cycle 63. Pilot file selection candidate for formal [deferred] tagging."},
     "component-name-spec-template.md": {"status": "PROMOTED", "promoted_at": "2026-04-18T19:30:00Z", "final_cycle": 2},
     "common/markdownParser-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-18T18:40:00Z", "final_cycle": 12},
     "components/Toaster-spec.md": {"status": "PROMOTED", "promoted_at": "2026-04-18T18:40:00Z", "final_cycle": 11}
   },
-  "promoted_this_cycle": [
-    "app/App-spec.md",
-    "styles/design-tokens-spec.md",
-    "testing/markdown-render-smoke-spec.md",
-    "testing/web-vitals-runtime-smoke-spec.md"
-  ],
+  "promoted_this_cycle": [],
   "tasks_produced_this_cycle": [],
   "carry_over_from_prior_cycle": [],
   "consumed_since_prior_cycle": [],
   "blocked_this_cycle": [],
   "head_advance_observed_this_cycle": {
-    "from": "9bba610 (cycle 62 planner no-op)",
-    "to": "d0d49c6 (inspector: rename To-Be headers on 4 specs to satisfy planner §4 Cond-3)",
-    "inspector_commit_stats": "4 files changed, header-rename only — zero body drift. Unblocks cycle 63 4-promotion batch."
+    "from": "096b3fc (cycle 63 planner promotion batch)",
+    "to": "3f7c89a (inspector defer-tag 3 operator baseline sections post cycle 63)",
+    "inspector_commit_stats": "2 files changed, +6 insertions (defer-tag only). Does NOT unblock any promotion — residual active WIP/unchecked outside defer coverage remains dominant in both touched files."
   },
   "deferred_coverage_snapshot": {
-    "total_files_with_DEF_gt_0": 3,
+    "total_files_with_DEF_gt_0": 2,
     "files": [
-      {"path": "common/accessibility-spec.md", "DEF": 1, "note": "§2.2.3 E2E deferred — prior cycle"},
-      {"path": "common/env-spec.md", "DEF": 1, "note": "§7.1.1 Cognito deferred — prior cycle"},
-      {"path": "(promoted) styles/design-tokens-spec.md", "DEF": 2, "note": "§3 App.css split + §4.3 focus-ring — carried into blue"}
+      {"path": "common/error-boundary-spec.md", "DEF": 1, "note": "§7.2 operator baseline — REQ-037 FR-04 + REQ-012 React 19 (new cycle 64)"},
+      {"path": "common/sanitizeHtml-spec.md", "DEF": 1, "note": "§9.1.1 Writer preview visual + §9.1.6 REQ-017 묶음 operator — 7 rows (new cycle 64)"}
     ],
-    "total_files_with_DEF_zero": 17,
-    "assessment": "[deferred] regime successfully unblocked 4 near-promotion specs once inspector d0d49c6 renamed To-Be headers. Blue baseline count increases from 8 to 12. Green queue shrinks from 24 to 20."
+    "total_files_with_DEF_zero": 18,
+    "assessment": "Inspector Phase 2 continues narrow coverage — only localized operator / cross-cutting upstream rows are being tagged. Body-level active WIP surfaces remain dominant on all 20 greens. No promotion unlocked this cycle. Continued reliance on [deferred] regime alone will not unblock the queue without either (a) inspector rename of To-Be headers on remaining 18 greens, (b) inspector drift reconcile to close active WIP markers, or (c) developer completion of active REQs."
   },
-  "rule_interpretation_log_cycle_63": {
-    "cond_1_2_tolerance": "Applied cycle-61 monitor/web-vitals precedent: [WIP] tokens in (a) meta-notation (legend lines / list header labels / changelog row annotations) and (b) defer-block-adjacent list items are treated as non-live. Strict-literal regex `\\[WIP\\]` would over-match and contradict inspector's documented intent in defer markers ('planner 는 본 ... 을 승격 게이트 계산에서 제외').",
-    "cond_4_hash_placement": "Lenient interpretation (any cell of the last changelog row containing a TSK-slug or git hash; or whole-changelog presence of such references for inspector drift-ack rows) preserved from cycle-61 precedent. All 4 promoted specs satisfy this."
+  "rule_interpretation_log_cycle_64": {
+    "idempotence_enforcement": "Cycle 64 is a no-op promotion/carve cycle per agent spec requirement. Only .planner-seen is updated (self-observation state). No spec/** content modified; no task/ready/** produced. Single commit scope satisfies RULE-02 §2.3 (writer area only) and matches RULE-02 §1.6 idempotence (re-running cycle 64 with identical HEAD=3f7c89a would update timestamp only, no cascading changes).",
+    "precheck_compliance": "RULE-03 §4 followed: (1) pause lock absent → proceed, (2) green input non-empty → proceed, (3) task/ready=0 ≤ TASK_READY_MAX=10 → no backpressure. All 3 checks PASS; cycle 64 proceeds to mechanical scan and concludes no-op on substantive actions.",
+    "no_op_reporting": "RULE-04 §blocks spec requires stdout report even on no-op. Output block emitted first. RULE-02 §1.3 compliance confirmed — no fabricated work, no input queue poisoning."
   },
-  "backpressure": "none (task/ready=0 at start, slack=10; GREEN_PENDING_MAX=25 via pipeline.json override, green count after promotion=20). Cycle 63 results: 4 promotions (app/App-spec + styles/design-tokens-spec + testing/markdown-render-smoke-spec + testing/web-vitals-runtime-smoke-spec), 0 task/ready, 0 blocked. Commit this cycle covers: (a) 4 green→blue mv, (b) .planner-seen bump reflecting cycle 63 judgement. No src/**, no requirements/**, no task/ready/** (empty), no blocked escalation."
+  "backpressure": "none (task/ready=0 at start, slack=10; green count 20 stable). Cycle 64 outcome: 0 promotions, 0 task/ready, 0 blocked, no-op on substantive actions. .planner-seen bumped for cycle 64 observation. No src/**, no requirements/**, no task/ready/**, no blocked escalation."
 }
