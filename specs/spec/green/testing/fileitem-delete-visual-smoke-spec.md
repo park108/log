@@ -74,6 +74,9 @@
 - 자매: `specs/spec/blue/testing/log-mutation-runtime-smoke-spec.md` (형식 reference).
 
 ## 5. 수용 기준 (Acceptance)
+
+**[deferred: 4개 항목 전부 수동 smoke 문서 신설 후 운영자 세션에서 확인되는 rollup/형식/LOC/baseline 사인오프 — carvable 구현 단위 아님; planner 는 §3.1 문서 신설을 별 task 로 carve 하고 본 §5 는 REQ 완료 사인오프로 남겨둠]**
+
 - [ ] FR-01 ~ FR-08 모두 충족.
 - [ ] 문서 ≤300 LOC (헤더 + 4 시나리오 + 환경 매트릭스 + 결과 표).
 - [ ] 자매 체크리스트와 형식 일관성 유지.
@@ -88,6 +91,7 @@
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-026) | FileItem 삭제 UX 시각/런타임 수동 스모크 체크리스트 spec 초기화 (4 시나리오 FI-01~04, 자매 형식 준수) (WIP) | 전체 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
+| 2026-04-20 | §5 operator UNCHK 4행 defer-tag (planner §4 Cond-2 충족 목적) | inspector |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-fileitem-delete-visual-smoke-checklist-doc.md` (REQ-20260419-026)

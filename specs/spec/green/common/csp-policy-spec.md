@@ -102,7 +102,9 @@
 - [ ] FR-13: 본 `csp-policy-spec.md` 존재 (본 문서로 충족)
 - [ ] FR-14: dev/prod 분기 처리 (옵션 (a) 또는 (b) 중 1 선택 + 박제)
 - [ ] FR-15 (Should): 업로드 CDN 도메인 확인 → `img-src` 에 추가
+**[deferred: NFR-01 은 외부 스캐너(securityheaders.com / Mozilla Observatory) 결과 관측이 유일 검증 수단 — 코드 변경 아니라 운영자 세션에서 등급 확인 후 사인오프; REQ-040 구현 task 머지 이후 운영자 1회 스캔]**
 - [ ] NFR-01: securityheaders.com / Mozilla Observatory CSP 항목 통과 (F → A/B 이상)
+**[deferred: NFR-02 는 DevTools Console CSP violation 수동 관측 — 자동화 불가(jsdom CSP 미지원, §7 알려진 제약 박제), 운영자 수동 smoke 세션에서 5 경로 위반 0 확인 사인오프]**
 - [ ] NFR-02: 모든 주요 경로 렌더 회귀 0 (수동 smoke 0 violation)
 - [ ] NFR-03: `npm run build` 성공
 - [ ] NFR-04: `npm test` 100% PASS (jsdom 미적용, 회귀 0)
@@ -129,6 +131,7 @@
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-040) | CSP meta 태그 defense-in-depth 정책 spec 초기화 (9 directive 설계, dev/prod 분기, 수동 smoke 체크리스트, 빌드 무결성 검증) (WIP) | 전체 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
+| 2026-04-20 | §5.1 operator UNCHK 2행(NFR-01, NFR-02) defer-tag (planner §4 Cond-2 충족 목적) | inspector |
 
 ## 9. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-csp-meta-defense-in-depth-introduction.md` (REQ-20260419-040)

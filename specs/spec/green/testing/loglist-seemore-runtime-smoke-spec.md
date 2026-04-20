@@ -80,6 +80,9 @@
 - 자매: 7종 smoke spec.
 
 ## 5. 수용 기준 (Acceptance)
+
+**[deferred: 4개 항목 전부 수동 smoke 문서 신설 후 운영자 세션에서 확인되는 rollup/LOC/형식/baseline 사인오프 — carvable 구현 단위 아님; planner 는 §3.1 문서 신설을 별 task 로 carve 하고 본 §5 는 REQ 완료 사인오프로 남겨둠]**
+
 - [ ] FR-01 ~ FR-10 모두 충족.
 - [ ] 문서 ≤350 LOC.
 - [ ] 자매 체크리스트와 형식 일관성 유지.
@@ -94,6 +97,7 @@
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-037) | LogList "See more" 페이지네이션 런타임 수동 스모크 체크리스트 spec 초기화 (4 Must + 1 Should + 1 Could 시나리오) (WIP) | 전체 |
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
+| 2026-04-20 | §5 operator UNCHK 4행 defer-tag (planner §4 Cond-2 충족 목적) | inspector |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-loglist-seemore-runtime-smoke-checklist-doc.md` (REQ-20260419-037)
