@@ -1,7 +1,111 @@
 {
   "version": 1,
-  "updated": "2026-04-20T13:45:00Z",
-  "notes": "cycle 74 (SECOND-PASS REVISION): during session execution HEAD advanced with 3c4c66f (developer TSK-13 csp-dev-prod-branch consume) + 6d8f2b0 (inspector 5-REQ reflection incl. FR-12/14/15 [deferred] tags on csp-policy). Re-evaluated: csp-policy HEAD state now Cond-1 PASS + Cond-2 PASS + Cond-3 PASS → PROMOTED green→blue via atomic mv. task/ready 9 → 8 (TSK-13 consumed) → 9 (carve TSK-20260420-14 UserLogin simplification probe REQ-010). slack=2 used slack=1, leaving slack=1. First-pass commit f92af14 captured pre-HEAD-advance observation; second-pass commit (this one) captures promotion + carve delta. No blocked isolation. Precheck re-validated post-HEAD-advance.",
+  "updated": "2026-04-20T17:30:00Z",
+  "notes": "cycle 76: HEAD 62fdf58 (developer App online/offline fix). task/ready 9/10, slack=1. All 7 remaining greens fail Cond-1 (WIP tokens 2..29) — zero promotion eligible. No carve this cycle: 4 of 7 greens (auth/clipboard/env/react-version) already have in-flight tasks; the other 3 (ci/github-actions-ci, state/server-state, styles/css-modules) are multi-WIP drift specs (WIP 11..13, unchecked 47..122) where atomic carve is not feasible — matches cycle 75 held-rationale. Stalling conjunction FALSE: developer pulse active (f4f933a useHoverPopup + 62fdf58 App fix + worktree M src/Comment/CommentItem.jsx + src/Log/LogItemInfo.jsx aligned to in-flight TSK hoverpopup-callers-logitem-comment). No blocked isolation (greens held 1 cycle, below 2-cycle threshold). .planner-seen state written by planner only.",
+  "cycle_76_observation": {
+    "timestamp": "2026-04-20T17:30:00Z",
+    "head_at_start": "62fdf58 fix(App): online/offline useEffect deps [isOnline] -> []",
+    "head_advance_since_cycle_75_commit": [
+      "f4f933a feat: useHoverPopup 훅 도입 (hoverPopup 선언적 전환 Phase 1) — developer consume of TSK usehoverpopup-hook-introduce (task moved to done)",
+      "62fdf58 fix(App): online/offline useEffect deps [isOnline] -> [] — developer consume of TSK app-online-offline-listener-deps-fix (REQ-039)"
+    ],
+    "developer_pulse_since_cycle_75": "2 task consumes (useHoverPopup hook + App online/offline deps fix). Additional worktree activity: M src/Comment/CommentItem.jsx + src/Log/LogItemInfo.jsx + ?? src/Comment/CommentItem.test.jsx + src/Log/LogItemInfo.test.jsx — matches in-flight TSK 20260420-hoverpopup-callers-logitem-comment scope. Dev pulse healthy, 5-cycle consecutive streak (71-75 plus 76 worktree).",
+    "inspector_pulse_since_cycle_75": "0 commits. 1-cycle quiet period following cycle 74 peak activity (da38489+f23b06f+6d8f2b0, 3 commits in single cycle). Not yet stall — single-cycle silence within normal bounds.",
+    "green_file_count_start": 7,
+    "green_file_count_end": 7,
+    "blue_file_count_start": 24,
+    "blue_file_count_end": 24,
+    "task_ready_count_start": 9,
+    "task_ready_count_end": 9,
+    "task_ready_delta_cycle_76": {
+      "removed_via_dev_consume_this_cycle": [],
+      "note_cycle_75_to_76_bridge": "Cycle 75 ended task/ready=9 post its own carves (TSK-15 app-online-offline-listener + TSK-16 search-loadingdots + useHoverPopup). Between cycle 75 close and cycle 76 open, developer consumed useHoverPopup + app-online-offline (9 → 7). Then cycle 75→76 inter-cycle additional task/ready additions restored to 9/10 (search-loadingdots remains + others — detail out of scope for planner-seen; tasks are gitignored).",
+      "added_via_planner_carve": [],
+      "net_change_this_cycle": "0 (no planner action on queue)"
+    },
+    "precheck": {
+      "pause_lock": "absent (.claude/locks/ missing)",
+      "input_queue_green": "7 files (non-empty, Q-2 PASS)",
+      "downstream_task_ready": "9/10 (empirical, slack=1)",
+      "backpressure_carve_gate": "slack=1 → up to 1 carve allowed per RULE-03 §2. Carve decision below evaluates productivity.",
+      "promotion_gate_independent": "promotion (green→blue mv) does not affect task/ready count; gated by planner §4 Cond-1/2/3 (spec quality).",
+      "proceed_to_full_processing": true
+    },
+    "mechanical_gate_scan_promotion_verdict": {
+      "method": "Per planner §4: Cond-1=zero [WIP]/[DRAFT]/[TBD]/[TODO]; Cond-2=every unchecked '- [ ]' tagged [deferred] or resolved; Cond-3=no 'To-Be' heading.",
+      "wip_token_counts_per_green": {
+        "build/react-version-spec.md": {"wip": 3, "unchecked": 18, "tobe": 0},
+        "ci/github-actions-ci-spec.md": {"wip": 13, "unchecked": 47, "tobe": 0},
+        "common/auth-spec.md": {"wip": 2, "unchecked": 20, "tobe": 0},
+        "common/clipboard-spec.md": {"wip": 7, "unchecked": 30, "tobe": 0},
+        "common/env-spec.md": {"wip": 29, "unchecked": 14, "tobe": 0},
+        "state/server-state-spec.md": {"wip": 11, "unchecked": 122, "tobe": 0},
+        "styles/css-modules-spec.md": {"wip": 11, "unchecked": 102, "tobe": 0}
+      },
+      "promoted_this_cycle": [],
+      "held_this_cycle": "all 7 greens (Cond-1 FAIL via WIP tokens; all spec bodies still carry inspector WIP blocks awaiting reconcile)",
+      "blocked_this_cycle": [],
+      "closest_to_promotion": "common/auth-spec.md (WIP=2, lowest among greens). Post parsejwt-isadmin-guard (REQ-032) developer consume + inspector §5 REQ-008/REQ-031 [WIP] reconcile — promotable in ~2-3 cycles.",
+      "furthest_from_promotion": "state/server-state-spec.md (122 unchecked) and styles/css-modules-spec.md (102 unchecked) — both multi-WIP drift specs, matches cycle 75 held-rationale."
+    },
+    "carve_decision": {
+      "slack_before": 1,
+      "slack_after": 1,
+      "carved": [],
+      "rationale": "slack=1 → up to 1 carve allowed. Evaluated 7 greens: (1) build/react-version — 2 tasks in-flight (searchinput-setattribute TSK-12 + search-loadingdots TSK-16 just cycle 75-carved); additional carve risks merge-order confusion and does not unblock Cond-1 (§2 React 19 bump multi-PR territory). (2) common/auth — parsejwt-isadmin-guard in-flight; §5 remaining WIP is REQ-008 Cognito doc (non-developer scope, inspector reconcile). (3) common/clipboard — imageselector-toaster-success in-flight; remaining WIP is inspector §5 FR-05 post-c86fed1 reconciliation. (4) common/env — userlogin-test-dynamic-import in-flight; WIP=29 is inspector §5.1/§5.2 backlog, not developer carveable. (5) ci/github-actions-ci — §3 rename pending (cycle 75 rationale), multi-file CI config, not atomic. (6) state/server-state — 122 unchecked, Suspense+Query multi-PR, blocked on React 19 bump. (7) styles/css-modules — 102 unchecked, inspector-heavy migration plan. VERDICT: 0 carve — no atomic unit provides independent promotion-gate benefit without duplicating in-flight work or contaminating unstable inspector-WIP surface. Accept slack=1.",
+      "rejected_candidates_detail": [
+        "build/react-version §2 React 19 bump — 35+ test regression, multi-PR, too large for atomic carve.",
+        "build/react-version §4.1/§5 additional setAttribute sweep — TSK-12 already targets SearchInput; residual occurrences are single-case lint candidates, not worth separate task if search-loadingdots + setAttribute + useHoverPopup all converge post-consume.",
+        "auth §5 REQ-008 Cognito docs — inspector doc reconcile, non-developer.",
+        "auth §5 REQ-031 post-1fc05e9 reconcile — inspector checkbox flip, non-developer.",
+        "clipboard §5 FR-05 post-c86fed1 reconcile — inspector checkbox flip, non-developer.",
+        "env §5.1.1 TSK-36 재개 Phase 4 — REQ-20260418-032 §3.1 Phase 4, explicitly blocked per operator RULE-05 §1 closure at 6550266.",
+        "env §5.1 [WIP] 모듈 본문 flip — inspector reconcile post-4c56103, not developer.",
+        "env §5.2 migration pattern flip — inspector reconcile, not developer.",
+        "env §7.1 [WIP] REQ-20260418-026 Phase 2 회귀 검증 — test suite scoped to inspector documentation, developer work already consumed.",
+        "env §7.1.1 UserLogin Cognito dev/preview 수동 스모크 — operator baseline, non-developer.",
+        "ci/github-actions §3 workflow rename — cycle 75 rationale '§3 rename pending' implies inspector §3 body rewrite preferred before any CI yaml PR; avoid premature carve.",
+        "state/server-state §* — 122 unchecked dominated by Suspense+Query phased plan; Phase 1/2/3 subdivision is inspector spec authorship, not planner carve territory. Phased task carving premature without spec stabilization.",
+        "styles/css-modules §10 migration family — 102 unchecked dominated by per-component migration inventory; inspector must first solidify inventory §4.3 before planner can atomically carve per-component tasks."
+      ],
+      "planner_decision_recorded": "no carve — explicit fail-fast against duplicating in-flight scope and against contaminating inspector-WIP surface. slack=1 preserved as buffer for next-cycle opportunistic carve post inspector reconcile or post additional developer consume."
+    },
+    "stalling_assessment_cycle_76": {
+      "prior_deadline_cycle": "not applicable (cycle 75 was aggressive promotion cycle; no prior deadline)",
+      "current_cycle": 76,
+      "conjunction_check": {
+        "a_zero_inspector_pulse": true,
+        "b_zero_developer_task_consumption": false,
+        "c_task_ready_stuck_at_cap": false,
+        "verdict": "conjunction FALSE — developer channel active (2 consumes + worktree progress), task/ready draining. Inspector single-cycle silence is not stall."
+      },
+      "inspector_stall_streak": "1 cycle (cycle 76 only). Reset from cycle 74 peak activity. Watchlist not triggered.",
+      "green_hold_streak": "cycle 75 first held all 7 greens. Cycle 76 holds same 7. 2-cycle hold beginning — monitor closely. Per planner.md §4 '부분 (2회차 이상 연속 정체)', blocked/ isolation trigger requires 2nd-cycle AND full-pipeline conjunction stall. Current conjunction is FALSE (developer pulse active) — hold is NOT stall, just inspector-bandwidth-limited spec reconcile backlog.",
+      "deadline_reassessment": "If cycle 77 shows (a) zero inspector commits AND (b) zero developer task consumption AND (c) task/ready at cap, reassess. Otherwise continue held-in-green posture. Expected next inspector signal: reconcile on auth (post-1fc05e9 + post-TSK-32 consume) or clipboard (post-c86fed1) — both touch only 2-7 WIP tokens and should be fastest flip path."
+    },
+    "worktree_observation": {
+      "src_modifications": [
+        "M src/Comment/CommentItem.jsx — developer in-flight work on TSK-20260420-hoverpopup-callers-logitem-comment (REQ hoverPopup declarative conversion Phase 2 consumer migration).",
+        "M src/Log/LogItemInfo.jsx — same task, sibling consumer migration.",
+        "?? src/Comment/CommentItem.test.jsx — new test file for migrated consumer.",
+        "?? src/Log/LogItemInfo.test.jsx — new test file for migrated consumer."
+      ],
+      "expected_consume_target": "TSK-20260420-hoverpopup-callers-logitem-comment task/ready entry will move to task/done on next developer commit.",
+      "planner_writer_area_isolation": "Planner commits ONLY specs/spec/green/.planner-seen this cycle. Does not touch src/ or inspector writer area.",
+      "impact_on_planner": "none — worktree changes confirm in-flight task on pipeline-expected trajectory. No need to carve duplicate or sibling tasks."
+    },
+    "watchlist_cycle_76": [
+      "build/react-version-spec.md (WIP=3, unchecked=18) — TSK-12 (setAttribute→className REQ-026) + TSK-16 (search-loadingdots REQ-004) in-flight. Post-both-consumes, inspector §4.1/§5 row flips may reduce WIP to near 0. Promotable in 2-3 cycles if inspector reconciles.",
+      "ci/github-actions-ci-spec.md (WIP=13, unchecked=47) — no in-flight. §3 rename body rewrite required. Inspector-only work, not developer carveable.",
+      "common/auth-spec.md (WIP=2, unchecked=20) — LOWEST WIP, closest to promotion. parsejwt-isadmin-guard TSK-32 in-flight. Post-consume inspector must flip §5 REQ-008/031 rows.",
+      "common/clipboard-spec.md (WIP=7, unchecked=30) — imageselector-toaster-success REQ-036 in-flight. Inspector FR-05 flip post-c86fed1 pending since cycle 74.",
+      "common/env-spec.md (WIP=29, unchecked=14) — HIGHEST WIP. userlogin-test-dynamic-import-probe TSK-10 in-flight. Post-consume inspector §5.1/§5.2/§7.1 flip is multi-commit reconcile; not near-term promotable.",
+      "state/server-state-spec.md (WIP=11, unchecked=122) — no in-flight. Spec body stabilization required before carving. Suspense+Query blocked on React 19 bump (§4.3 dependency cross-ref).",
+      "styles/css-modules-spec.md (WIP=11, unchecked=102) — no in-flight. Inspector migration inventory consolidation required."
+    ],
+    "no_op": false,
+    "writer_area_delta_this_cycle": ".planner-seen updated (appended cycle_76_observation key). No task/ready creation (carve=0). No blue/ promotion (all 7 greens fail Cond-1). No blocked/ isolation (hold streak only 2 cycles, below 2-cycle conjunction threshold). Local commit captures .planner-seen delta only."
+  },
   "cycle_74_observation": {
     "timestamp": "2026-04-20T13:30:00Z",
     "head_at_start": "f23b06f (spec(inspector): green 3-spec reflection retry — CSP FR-01~11/13 + NFR-03/04/06 flip, auth REQ-008 doc ref, server-state REQ-009 carve ref)",
