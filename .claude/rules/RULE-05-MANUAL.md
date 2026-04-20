@@ -1,48 +1,28 @@
-# RULE-05 수동 개입 (Manual Intervention)
+# RULE-05 수동 개입
 
-> 적용 범위: 사람 운영자 (에이전트는 **재시도 안 함**)
+> 적용: 사람 운영자. 에이전트는 blocked 를 재시도하지 않는다.
 
-## 1. Blocked 해제
+## Blocked 해제
+`specs/blocked/{req,spec,task}/` 항목:
+1. 같은 폴더 `{slug}_reason.md` 로 사유 확인.
+2. 원인 제거 (의존 task 완료 / spec 보강 / 환경 수정).
+3. 원본을 원래 큐(`ready/` 등)로 `mv` 되돌리거나 삭제. `_reason.md` 는 감사용으로 유지 또는 삭제.
 
-에이전트가 자동 처리 불가로 격리한 항목:
-- `specs/requirements/blocked/*.md` — inspector 매핑 실패
-- `specs/spec/blocked/**/*.md` — planner 부분 승격 불가
-- `specs/task/blocked/*.md` — developer 선행/환경/구현 실패
-
-절차:
-1. 같은 폴더의 `{slug}_reason.md` 로 사유 확인.
-2. 원인 제거 (의존 태스크 완료, 스펙 보강, 환경 수정 등).
-3. 원본을 원래 큐(`ready/` 등)로 `mv` 되돌리거나 삭제.
-4. `_reason.md` 는 감사 로그용으로 남기거나 함께 삭제.
-
-에이전트는 blocked 를 **스스로 다시 시도하지 않는다**.
-
-## 2. 긴급 롤백
-
-직전 developer 작업을 되돌리려면:
-1. `specs/task/done/YYYY/MM/DD/{slug}/result.md` 의 `## 커밋` 섹션에서 해시 확인.
+## 긴급 롤백
+1. `specs/done/YYYY/MM/DD/task/{slug}/result.md` 에서 커밋 해시 확인.
 2. `git revert <hash>` 로 revert 커밋 생성.
-3. 태스크 문서는 이동하지 않고, revert 사실만 동일 폴더 `result.md` 하단에 추가 기록.
+3. task 문서는 이동하지 않고, revert 사실을 `result.md` 하단에 append.
 
-`git reset --hard` 는 `RULE-02` §2.2 에 의해 금지. 반드시 `revert`.
+`git reset --hard` 금지 (RULE-02). 반드시 `revert`.
 
-## 3. 일시 정지
-
-- 전체: `.claude/locks/pipeline.pause` 파일 생성.
+## 일시 정지
+- 전체: `.claude/locks/pipeline.pause` 생성.
 - 특정 에이전트: `.claude/locks/<agent>.pause`.
-- 해제: 해당 파일 삭제.
-- 파일 내용은 무시 — 비워도 되고 사유 메모 넣어도 됨.
+- 해제: 파일 삭제. 내용은 무시.
 
-## 4. 임계치 override
-
-`RULE-03` backpressure 기본값을 바꾸려면 `.claude/pipeline.json`:
-
+## 임계치 override
+`.claude/pipeline.json`:
 ```json
-{
-  "REQUIREMENTS_READY_MAX": 30,
-  "GREEN_PENDING_MAX": 40,
-  "TASK_READY_MAX": 20
-}
+{"REQUIREMENTS_READY_MAX": 30, "GREEN_PENDING_MAX": 40, "TASK_READY_MAX": 20}
 ```
-
-파일 없으면 기본값 사용.
+파일 없으면 기본값.
