@@ -9,14 +9,15 @@ const server = setupServer();
 let active = false;
 
 const scenario = (...handlers) => ({
-	listen: () => {
+	listen: (opts = {}) => {
 		if (!active) {
-			server.listen({ onUnhandledRequest: 'bypass' });
+			server.listen({ onUnhandledRequest: 'error', ...opts });
 			active = true;
 		}
 		server.resetHandlers(...handlers);
 	},
-	resetHandlers: () => server.resetHandlers(),
+	resetHandlers: (...h) => server.resetHandlers(...handlers, ...h),
+	use: (...h) => server.use(...h),
 	close: () => {
 		if (active) {
 			server.close();

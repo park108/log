@@ -53,20 +53,31 @@ export const devServerOk = setupServer(
 	http.delete(API_URL + "/test/key/20220606_log_CQRS.png", async () => HttpResponse.json(OK_200)),
 );
 
+export const failedGetHandler = http.get(API_URL + "/test", () => HttpResponse.json(ERROR_500));
+export const failedPresignedFile1Handler = http.get(API_URL + "/test/key/testfile1.txt/type/text", async () => HttpResponse.json(ERROR_500));
+export const failedPresignedFile2Handler = http.get(API_URL + "/test/key/testfile2.txt/type/text", async () => HttpResponse.json(ERROR_500));
+export const failedPutHandler = http.put(PRESIGNED_URL, async () => new HttpResponse(null, { status: 500 }));
+export const failedDeleteHandler = http.delete(API_URL + "/test/key/20220606_log_CQRS.png", async () => HttpResponse.json(ERROR_500));
+export const networkErrorGetHandler = http.get(API_URL + "/test", () => HttpResponse.error());
+export const networkErrorPresignedFile1Handler = http.get(API_URL + "/test/key/testfile1.txt/type/text", async () => HttpResponse.error());
+export const networkErrorPresignedFile2Handler = http.get(API_URL + "/test/key/testfile2.txt/type/text", async () => HttpResponse.error());
+export const networkErrorPutHandler = http.put(PRESIGNED_URL, async () => HttpResponse.error());
+export const networkErrorDeleteHandler = http.delete(API_URL + "/test/key/20220606_log_CQRS.png", async () => HttpResponse.error());
+
 export const devServerFailed = setupServer(
-	http.get(API_URL + "/test", () => HttpResponse.json(ERROR_500)),
-	http.get(API_URL + "/test/key/testfile1.txt/type/text", async () => HttpResponse.json(ERROR_500)),
-	http.get(API_URL + "/test/key/testfile2.txt/type/text", async () => HttpResponse.json(ERROR_500)),
-	http.put(PRESIGNED_URL, async () => new HttpResponse(null, { status: 500 })),
-	http.delete(API_URL + "/test/key/20220606_log_CQRS.png", async () => HttpResponse.json(ERROR_500)),
+	failedGetHandler,
+	failedPresignedFile1Handler,
+	failedPresignedFile2Handler,
+	failedPutHandler,
+	failedDeleteHandler,
 );
 
 export const devServerNetworkError = setupServer(
-	http.get(API_URL + "/test", () => HttpResponse.error()),
-	http.get(API_URL + "/test/key/testfile1.txt/type/text", async () => HttpResponse.error()),
-	http.get(API_URL + "/test/key/testfile2.txt/type/text", async () => HttpResponse.error()),
-	http.put(PRESIGNED_URL, async () => HttpResponse.error()),
-	http.delete(API_URL + "/test/key/20220606_log_CQRS.png", async () => HttpResponse.error()),
+	networkErrorGetHandler,
+	networkErrorPresignedFile1Handler,
+	networkErrorPresignedFile2Handler,
+	networkErrorPutHandler,
+	networkErrorDeleteHandler,
 );
 
 export const devServerPresignedUrlOkButUploadFailed = setupServer(

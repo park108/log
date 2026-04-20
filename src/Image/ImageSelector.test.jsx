@@ -1,15 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
 import * as mock from './api.mock'
 import ImageSelector from '../Image/ImageSelector';
 import { useMockServer } from '../test-utils/msw';
-import { ERROR_500 } from '../__fixtures__/common';
 
 console.error = vi.fn();
 console.log = vi.fn();
-
-const PROD_URL = import.meta.env.VITE_IMAGE_API_BASE + "/prod";
-const DEV_URL = import.meta.env.VITE_IMAGE_API_BASE + "/test";
 
 // clipboard-spec §3.2.1 — ImageSelector 호출자는 `navigator.clipboard.writeText` 를 통해 헬퍼가 Promise<boolean>
 // 으로 정규화한 결과를 await 분기한다. Async Clipboard API 기반 stub 만 사용.
@@ -51,7 +46,7 @@ describe('ImageSelector loading > loading more > and fail on prod server', () =>
 		await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalled());
 
 		// Swap handler to failure response (mirrors prodServerFailed).
-		server.use(http.get(PROD_URL, () => HttpResponse.json(ERROR_500)));
+		server.use(mock.prodFailedHandler);
 
 		const seeMoreButton2 = screen.getByRole("button");
 		expect(seeMoreButton2).toBeDefined();
@@ -88,7 +83,7 @@ describe('ImageSelector loading > loading more > and network error on dev server
 		await waitFor(() => expect(screen.getAllByRole("listitem").length).toBe(6));
 
 		// Swap handler to network error (mirrors devServerNetworkError).
-		server.use(http.get(DEV_URL, () => HttpResponse.error()));
+		server.use(mock.devNetworkErrorHandler);
 
 		const seeMoreButton3 = await screen.findByRole("button");
 		expect(seeMoreButton3).toBeDefined();

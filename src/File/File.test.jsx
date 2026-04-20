@@ -1,16 +1,12 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { http, HttpResponse } from 'msw';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import File from '../File/File';
 import { useMockServer } from '../test-utils/msw';
-import { ERROR_500 } from '../__fixtures__/common';
 
 console.log = vi.fn();
 console.error = vi.fn();
-
-const API_URL = import.meta.env.VITE_FILE_API_BASE;
 
 const testEntry = {
 	pathname: "/file"
@@ -224,10 +220,7 @@ describe('File render files and get next files failed on dev server', () => {
 		);
 
 		// Switch handlers to failure responses (mirrors devServerFailed)
-		server.use(
-			http.get(API_URL + "/test", () => HttpResponse.json(ERROR_500)),
-			http.delete(API_URL + "/test/key/20220606_log_CQRS.png", async () => HttpResponse.json(ERROR_500)),
-		);
+		server.use(mock.failedGetHandler, mock.failedDeleteHandler);
 
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 
@@ -258,10 +251,7 @@ describe('File render files and get next files failed on dev server', () => {
 		expect(toasterErrorText).toBeInTheDocument();
 
 		// Switch handlers to network-error responses (mirrors devServerNetworkError)
-		server.use(
-			http.get(API_URL + "/test", () => HttpResponse.error()),
-			http.delete(API_URL + "/test/key/20220606_log_CQRS.png", async () => HttpResponse.error()),
-		);
+		server.use(mock.networkErrorGetHandler, mock.networkErrorDeleteHandler);
 
 		const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
 		expect(seeMoreButton2).toBeDefined();

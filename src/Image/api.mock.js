@@ -12,10 +12,15 @@ const imageListHandler = (path) => http.get(path, async ({ request }) => {
 	if (ts === "1645425943454") return HttpResponse.json({ body: imagesListNext2 });
 });
 
+export const prodFailedHandler = http.get(API_URL + "/prod", () => HttpResponse.json(ERROR_500));
+export const prodNetworkErrorHandler = http.get(API_URL + "/prod", () => HttpResponse.error());
+export const devFailedHandler = http.get(API_URL + "/test", () => HttpResponse.json(ERROR_500));
+export const devNetworkErrorHandler = http.get(API_URL + "/test", () => HttpResponse.error());
+
 export const prodServerOk = setupServer(imageListHandler(API_URL + "/prod"));
-export const prodServerFailed = setupServer(http.get(API_URL + "/prod", () => HttpResponse.json(ERROR_500)));
-export const prodServerNetworkError = setupServer(http.get(API_URL + "/prod", () => HttpResponse.error()));
+export const prodServerFailed = setupServer(prodFailedHandler);
+export const prodServerNetworkError = setupServer(prodNetworkErrorHandler);
 
 export const devServerOk = setupServer(imageListHandler(API_URL + "/test"));
-export const devServerFailed = setupServer(http.get(API_URL + "/test", () => HttpResponse.json(ERROR_500)));
-export const devServerNetworkError = setupServer(http.get(API_URL + "/test", () => HttpResponse.error()));
+export const devServerFailed = setupServer(devFailedHandler);
+export const devServerNetworkError = setupServer(devNetworkErrorHandler);

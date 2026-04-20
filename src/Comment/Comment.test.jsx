@@ -3,23 +3,16 @@ import * as mock from './api.mock';
 import * as common from '../common/common';
 import Comment from './Comment';
 import CommentItem from './CommentItem';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
 
-// Comment `api.mock.js` 는 `scenario()` 팩토리 래퍼로 단일 shared server 를 재사용한다.
-// 래퍼의 `listen()` 은 `resetHandlers(...)` 로 핸들러 세트를 교체하며, `{ onUnhandledRequest: 'bypass' }`
-// 를 내부에 하드코딩한다 (src/Comment/api.mock.js:12). 따라서 공통 `useMockServer` 헬퍼 대신
-// 래퍼 API 를 `beforeEach`/`afterEach` 로 직접 호출해 "테스트 본문 내 `.listen()`/`.close()` 잔존 0"
-// 이디엄 규칙을 충족한다. 기존에 한 test 내부에서 3 scenario 를 chain swap 하던 케이스는
-// 3 개의 독립 describe 로 쪼개 각각의 beforeEach 가 해당 scenario 를 활성화한다.
+// Comment api.mock.js scenario() 는 SetupServerApi 호환 서브셋을 노출 (TSK-20260420-41).
+// 본 스위트는 useMockServer(() => mock.xxx) 단일 이디엄으로 통일한다.
 
 describe('Comment render list and post on dev server (ok)', () => {
-	beforeEach(() => mock.devServerOk.listen());
-	afterEach(() => {
-		mock.devServerOk.resetHandlers();
-		mock.devServerOk.close();
-	});
+	useMockServer(() => mock.devServerOk);
 
 	test('render comment list and post comment correctly on dev server', async () => {
 
@@ -98,11 +91,7 @@ describe('Comment render list and post on dev server (ok)', () => {
 });
 
 describe('Comment render failed when internal error on dev server', () => {
-	beforeEach(() => mock.devServerFailed.listen());
-	afterEach(() => {
-		mock.devServerFailed.resetHandlers();
-		mock.devServerFailed.close();
-	});
+	useMockServer(() => mock.devServerFailed);
 
 	test('render failed when internal error on dev server', async () => {
 
@@ -114,11 +103,7 @@ describe('Comment render failed when internal error on dev server', () => {
 });
 
 describe('Comment render failed when network error on dev server', () => {
-	beforeEach(() => mock.devServerNetworkError.listen());
-	afterEach(() => {
-		mock.devServerNetworkError.resetHandlers();
-		mock.devServerNetworkError.close();
-	});
+	useMockServer(() => mock.devServerNetworkError);
 
 	test('render failed when network error on dev server', async () => {
 
@@ -137,11 +122,7 @@ describe('Comment render failed when network error on dev server', () => {
 // ---------------------------------------------------------------------------
 
 describe('Comment render list and post on prod server (ok scenario — validation flow)', () => {
-	beforeEach(() => mock.prodServerOk.listen());
-	afterEach(() => {
-		mock.prodServerOk.resetHandlers();
-		mock.prodServerOk.close();
-	});
+	useMockServer(() => mock.prodServerOk);
 
 	test('render comment list and post comment failed on prod server — ok stage', async () => {
 
@@ -181,11 +162,7 @@ describe('Comment render list and post on prod server (ok scenario — validatio
 });
 
 describe('Comment render list and post on prod server (failed scenario — post failure toast)', () => {
-	beforeEach(() => mock.prodServerFailed.listen());
-	afterEach(() => {
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
-	});
+	useMockServer(() => mock.prodServerFailed);
 
 	test('render comment list and post comment failed on prod server — failed stage', async () => {
 
@@ -227,11 +204,7 @@ describe('Comment render list and post on prod server (failed scenario — post 
 });
 
 describe('Comment render list and post on prod server (network-error scenario — post failure toast)', () => {
-	beforeEach(() => mock.prodServerNetworkError.listen());
-	afterEach(() => {
-		mock.prodServerNetworkError.resetHandlers();
-		mock.prodServerNetworkError.close();
-	});
+	useMockServer(() => mock.prodServerNetworkError);
 
 	test('render comment list and post comment failed on prod server — networkError stage', async () => {
 
