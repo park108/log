@@ -1,46 +1,50 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T08:15:00Z (HEAD=ea9d30c, pre-commit)
-# Phase 1 ack this session: 0/3 ack.
+# Updated: 2026-04-21T09:10:00Z (HEAD=ee03a7c, pre-commit)
+# Phase 1 ack this session: 0/3 ack (2 stale >=3cycle).
 # Phase 1 historical context (reference only):
-#   - 이전 세션 HEAD=3822147 → 현 HEAD=ea9d30c 사이:
-#       * 0225335 spec(inspector): flip toaster-helper DoD (1/3 ack via TSK-48); stale=1 shuffle+file-split
-#         (toaster spec Must 6/7 + Should 2/2 + NFR 2/2 flip; FR-09 만 unchecked 잔존)
-#       * ea9d30c spec(planner): rename TSK-49/50 prefix; 0 promote; TSK-49/50 → 50.blocked/task/ 이관 관측
-#   - 50.blocked/task/ 잔여 (HEAD=ea9d30c): TSK-20260421-43, TSK-20260421-49, TSK-20260421-50 — RULE-05 관할.
+#   - 이전 inspector 세션 HEAD=ea9d30c → 현 HEAD=ee03a7c 사이:
+#       * 6c2517f spec(inspector): tag TSK-49/50 deferred in shuffle-safety + file-test-split (0/3 ack, stale=2).
+#       * ee03a7c spec(planner): reassess promotion — 3 green all deferred-incomplete, no-op.
+#   - 50.blocked/task/ 잔여 (HEAD=ee03a7c): TSK-20260421-43, TSK-20260421-49, TSK-20260421-50 — 불변, RULE-05 관할.
 #   - 50.blocked/spec/ 5건 불변.
-#   - 40.task/ready/ 0건 (직전 세션의 TSK-49/50 가 blocked 이관).
+#   - 40.task/ready/ 0건. developer 활동 없음 (`git log 6c2517f..HEAD -- src/` = 0 commit).
 #
-# Phase 1 detail this session (drift reconcile):
+# Phase 1 detail this session (drift reconcile, HEAD=ee03a7c 재실측):
 #   - components/toaster-conditional-mount-or-helper-spec.md (REQ-20260421-009):
-#       * 대응 커밋 a8eee5e (TSK-20260421-48 done, 0225335 세션에서 Must 6/7 + Should 2/2 + NFR 2/2 flip 완료).
-#       * 현 HEAD=ea9d30c 재검증:
-#           - grep "waitForToasterHidden|waitForToasterVisible|getToasterElement" src → 25 hits in 3 files (FR-02 ack 유지)
-#           - grep "document.querySelector.*data-type=" src --include="*.test.*" → 0 hits (FR-05 ack 유지)
-#           - grep "<Toaster " src → 8 hits in 8 files (FR-04 ack 유지)
-#       * 유일한 unchecked FR-09 (shuffle seed 0 fail) 은 TSK-20260421-49 blocked (Layer 2 mutation flush race) 때문에 경로 차단.
-#       * 이번 세션 추가 ack: 0건. stale=0 유지 (직전 세션 flip 으로 인해 hash drift 정지 상태).
+#       * 대응 커밋 a8eee5e (TSK-20260421-48 done, 0225335 에서 Must 6/7 + Should 2/2 + NFR 2/2 flip 완료).
+#       * 현 HEAD=ee03a7c 재검증:
+#           - grep "waitForToasterHidden|waitForToasterVisible|getToasterElement" src → 25 hits (기대 >=3, ack 유지).
+#           - grep "document.querySelector.*data-type=" src --include="*.test.*" → 0 hits (ack 유지).
+#           - grep "<Toaster " src → 8 hits in 8 files (runtime 0 변경 NFR-04 유지).
+#       * 유일한 unchecked FR-09 (shuffle seed 0 fail) 은 TSK-20260421-49 Layer 2 race 차단으로 경로 차단 상태.
+#       * 이번 세션 추가 ack: 0건. stale=0 유지 (hash drift 정지).
 #   - common/test-isolation-shuffle-safety-cold-start-spec.md (REQ-20260421-007):
-#       * 대응 task TSK-20260421-49 가 50.blocked/task/ 로 이관 (ea9d30c 시점). ack 불가.
-#       * developer blocked_reason: 옵션 A+B+C 조합 + `it` timeout 10s + `act(async)` + `vi.runAllTimersAsync` 전부 시도 후에도 shuffle seed=1 에서 `LogItem DELETE network-error` 1건 `findByText("Deleting log network error.")` 5067ms timeout 잔존. `window.confirm` spy 호출 / 직접 fetch 200 ok 확인됨 → mutation fetch 경로에 한해 first-in-file 실행 시 resolution hang. 별도 Layer 2 race (mutation + msw listen 타이밍) 식별.
-#       * 이번 세션 drift reconcile: FR-02/06/07/08 에 [deferred: TSK-49 blocked] 태깅 + 변경 이력 1행 박제. ack 0건. stale=1→2.
+#       * 대응 task TSK-20260421-49 가 50.blocked/task/ 유지. ack 불가.
+#       * developer blocked_reason: 옵션 A+B+C 조합 적용 후에도 shuffle seed=1 `LogItem DELETE network-error` 1건 `findByText("Deleting log network error.")` 5067ms timeout 잔존 — Layer 2 (mutation flush + msw listen) race 미해소.
+#       * FR-02/06/07/08 deferred 태깅 유지 (6c2517f 세션 박제). HEAD=ee03a7c grep 재실측: `getByTestId("delete-button")` 여전히 4 hits at :205, :260, :316, :377 (FR-02 미적용 상태 유지).
+#       * 이번 세션 drift reconcile: 상태 변화 없음. ack 0건. stale=2→3 (경고 임계 진입).
 #   - components/file-test-multi-scenario-split-spec.md (REQ-20260421-008):
-#       * 대응 task TSK-20260421-50 가 50.blocked/task/ 로 이관 (ea9d30c 시점). depends_on TSK-20260421-49 (blocked) 미충족.
-#       * 파일 비중첩 (File.test.jsx prodServerOk vs LogItem.test.jsx) 이므로 운영자 판단으로 depends_on 제거 재평가 가능 — blocked_reason 에 경로 명시.
-#       * 이번 세션 drift reconcile: FR-01~05, FR-07, FR-09 에 [deferred: TSK-50 blocked] 태깅 + 변경 이력 1행 박제. ack 0건. stale=1→2.
+#       * 대응 task TSK-20260421-50 가 50.blocked/task/ 유지 (depends_on TSK-49 미충족).
+#       * 파일 비중첩 (File.test.jsx prodServerOk vs LogItem.test.jsx) — 운영자 판단으로 depends_on TSK-49 해제 시 TSK-50 독립 진행 가능 (blocked_reason 에 경로 명시).
+#       * FR-01~05, FR-07, FR-09 deferred 태깅 유지 (6c2517f 세션 박제).
+#       * 이번 세션 drift reconcile: 상태 변화 없음. ack 0건. stale=2→3 (경고 임계 진입).
 #
-# Phase 2 this session: deferred 태깅 적용 (shuffle-safety 5건, file-test-split 7건). 300줄 초과 spec 없음 → 분할 없음.
+# Phase 2 this session: deferred 태깅 변화 없음 (이미 적용). 300줄 초과 spec 없음 (전원 <130줄) → 분할 없음.
 # Phase 3 this session:
 #   - input queue (20.req/ready/): 0건 (비어있음).
-#   - downstream threshold GREEN_PENDING_MAX=20 (기본). 현 green 3 < 20.
-#   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 2 (shuffle-safety, file-test-split deferred 태깅).
+#   - downstream threshold GREEN_PENDING_MAX=20 (기본). 현 green 3 < 20 (하류 여유 충분).
+#   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 0.
 #
 # 현 ledger:
-specs/30.spec/green/components/file-test-multi-scenario-split-spec.md - 2
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md - 2
+specs/30.spec/green/components/file-test-multi-scenario-split-spec.md - 3
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md - 3
 specs/30.spec/green/components/toaster-conditional-mount-or-helper-spec.md - 0
 #
-# Stale 경고: 없음 (전원 stale < 3). 다음 세션에 TSK-49/50 blocked 해제 없으면 stale=3 도달 → planner 측 승격 보류 재확인 필요.
+# Stale 경고: 2건 stale=3 (shuffle-safety, file-test-split). RULE-05 운영자 개입 필요 신호.
+#   - 권장 조치 (운영자):
+#       a) TSK-20260421-49 의 Layer 2 race 해소 경로 재carve (또는 blocked_reason 기반으로 sub-spec 으로 서사 보강 요청 생성).
+#       b) TSK-20260421-50 의 depends_on TSK-49 해제 여부 판단 (파일 비중첩 검증됨). 해제 시 TSK-50 을 40.task/ready/ 로 복귀 가능.
+#   - planner 는 현 상태에서 green → blue 승격 불가 (3 green 전원 미완 또는 deferred). stale=3 이상 지속 시 planner 차원 재블록 또는 재carve 판단 (RULE-03).
 # 다음 세션 유의:
-#   - RULE-05 운영자가 TSK-49 해제 시 shuffle-safety spec 재개정 필요 (Layer 2 서사 추가). inspector 는 운영자 복귀 후 재carve 가능한 형태로 유지.
-#   - RULE-05 운영자가 TSK-50 의 depends_on 을 TSK-49 에서 해제하면 TSK-50 독립 진행 가능.
-#   - toaster spec FR-09 는 TSK-49 Layer 2 해소에 종속.
+#   - 운영자 개입 없으면 다음 세션 stale=4 상승. 4 cycle 이상 stale 잔존 시 planner 가 50.blocked/spec/ 로 이관하는 판단 도입 여부 재검토 (현 RULE-03 은 inspector-side 자동 이관 규정 없음).
+#   - toaster FR-09 는 TSK-49 Layer 2 해소에 종속. TSK-49 재개 없이 독립 ack 불가.
