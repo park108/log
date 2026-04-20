@@ -95,9 +95,8 @@ const FileDrop = (props) => {
 
 	const dropzoneStyle = useMemo(() => {
 		const base = "div div--filedrop-dropzone";
-		if("UPLOADING" === isUploading) return `${base} div--filedrop-uploading`;
+		if("UPLOADING" === isUploading || "FAILED" === isUploading) return `${base} div--filedrop-uploading`;
 		if("COMPLETE" === isUploading) return `${base} div--filedrop-complete`;
-		if("FAILED" === isUploading) return `${base} div--filedrop-uploading`;
 		return `${base} div--filedrop-ready`;
 	}, [isUploading]);
 
