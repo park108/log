@@ -6,7 +6,8 @@
 `specs/50.blocked/{req,spec,task}/` 항목:
 1. 같은 폴더 `{slug}_reason.md` 로 사유 확인.
 2. 원인 제거 (의존 task 완료 / spec 보강 / 환경 수정).
-3. 원본을 원래 큐(`ready/` 등)로 `mv` 되돌리거나 삭제. `_reason.md` 는 감사용으로 유지 또는 삭제.
+3. 원본을 원래 큐(`ready/` 등)로 `mv` 되돌리거나 삭제.
+4. **후속 처리가 끝나면 `{slug}_reason.md` 및 `50.blocked/**` 잔여 파일은 삭제 원칙** — 잔존 파일은 "미해소 blocker" 로 인지되어 재확인 비용을 유발. 감사 기록이 필요하면 해당 req/task 의 `60.done/.../result.md` 또는 후속 spec 에 사유를 1~2줄 남긴다.
 
 ## 긴급 롤백
 1. `specs/60.done/YYYY/MM/DD/task/{slug}/result.md` 에서 커밋 해시 확인.
