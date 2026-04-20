@@ -126,6 +126,47 @@ JSX 세팅 전용 `useEffect` 블록(의존성이 분기 조건과 동일하고 
 - [~] `npm test` 100% PASS, `npm run lint` 0 warn, `npm run build` PASS — 5 개별 task 커밋 시점에 모두 PASS (result.md 박제). REQ-024 전체 마감 판정은 LogSingle 완료 후.
 - [ ] (Optional) `src/Image/ImageSelector.jsx:20` `seeMoreButton` 포함 여부 결정 (§7 결정 기록 후 포함 시 FR-03 패턴 재사용) — 미결
 
+### 5.2 [WIP] REQ-20260420-001 수용 기준 (`hoverPopup` 명령형 DOM → 선언적 React + 접근성 도입)
+
+> 관련 요구사항: REQ-20260420-001 FR-01 ~ FR-10, US-01 ~ US-04
+
+**맥락 (2026-04-20 관측)**: `src/common/common.js:347-368` `hoverPopup(e, popupElementId)` 가 `document.getElementById` + `style.display|left|top` 직접 mutation 을 수행. 7 호출자(`LogItemInfo.jsx` × 2 popup, `Comment/CommentItem.jsx`, `Monitor/ApiCallItem.jsx`, `Monitor/VisitorMon.jsx`, `Monitor/WebVitalsItem.jsx`) × 3 핸들러(over/move/out) = 21 명령형 호출 + 각 호출자 `<div id=... style={{display:"none"}}>` 인라인 숨김 반복. React 19 strict mode 렌더 예측성 저하 + 터치 디바이스 hover 부재 기능 회귀 + WCAG 2.1 SC 1.4.13 (Content on Hover or Focus) 미충족 + `common.test.js` 단위 테스트 0건 + `getElementById` 첫 매칭 잠재 버그(LogList 내 row 중복 ID) 5중 결함.
+
+**대체 아티팩트 3 옵션 (planner 결정)**:
+- (1) `src/common/useHoverPopup.js` 훅 — `{triggerProps, contentProps, isVisible}` 반환. 호출자 재사용률 최대.
+- (2) `src/common/HoverPopup.jsx` 컴포넌트 — `<HoverPopup trigger={...} content={...} />`. 선언성 가장 높음.
+- (3) 호출자 로컬 `useState` + `onMouseEnter/Leave` + `onFocus/Blur`. 추상화 없이 가장 단순, 중복 그대로.
+
+**권장 (discovery)**: 옵션 (1) — 훅이 React `useId()` 로 고유 ID 자동 생성 + focus/blur + touch 대안(`onTouchStart/End`) 처리. 호출자 6 파일 변경 최소화 + 테스트 격리 용이.
+
+**FR 요약 (본 spec §3.2 권장 전술 확장)**:
+- **FR-01 대체 아티팩트 도입** (Must): 옵션 1~3 중 1 선택, 신규 파일 추가 (hook 또는 component).
+- **FR-02 7 callers 이관** (Must): 7 popup 모두 신규 아티팩트 사용. `hoverPopup(` import 제거.
+- **FR-03 `hoverPopup` 제거 또는 deprecated** (Must): `src/common/common.js` 에서 정의 삭제 또는 JSDoc `@deprecated` + 신규 경로 reference.
+- **FR-04 접근성 보강** (Must): `role="tooltip"` + `aria-describedby` + focus/blur + Escape 키 지원 (WCAG 2.1 SC 1.4.13).
+- **FR-05 touch 대안** (Must): `onTouchStart/End` 또는 tap 후 외부 click 으로 닫힘 — mobile 기능 회귀 해소.
+- **FR-06 단위 테스트** (Must): 신규 훅/컴포넌트 단위 테스트 — mount/unmount, isVisible 토글, focus/blur, Escape 닫기, ID 중복 안전성.
+- **FR-07 grep 수용** (Must): `rg "hoverPopup\(" src/` → 0 match (정의 유지 시 정의 라인만 허용, 호출 0).
+- **FR-08 consumer 회귀 테스트** (Should): 7 호출자 기존 테스트 100% PASS — popup trigger 동작 검증은 mouseOver → focus 로 대체 가능 (jsdom 한계).
+- **FR-09 Monitor/web-vitals-spec 의존성 갱신** (Must, inspector): `specs/spec/blue/monitor/web-vitals-spec.md:69` + `specs/spec/green/monitor/web-vitals-spec.md:71` 의 `hoverPopup` 의존성 항목을 신규 아티팩트로 교체 (별 라운드 inspector, 본 REQ 머지 후).
+- **FR-10 accessibility-spec cross-link** (Should): `specs/spec/green/common/accessibility-spec.md` §3 또는 §4 에 tooltip ARIA 패턴 한 줄 박제 (별 inspector 라운드).
+
+**수용 기준 (REQ-20260420-001 §10)**:
+- [ ] FR-01 ~ FR-07 모두 충족 (Must)
+- [ ] (Should) FR-08 consumer 회귀 테스트 PASS
+- [ ] FR-09 monitor/web-vitals-spec 의존성 갱신 (inspector 후속)
+- [ ] (Should) FR-10 accessibility-spec cross-link (inspector 후속)
+- [ ] `npm test` 100% PASS, `npm run lint` / `npm run build` 회귀 0
+- [ ] 번들 영향 ≤ ±1KB gzip
+- [ ] 7 호출자 mobile/touch 에서 popup 기능 동작 (운영자 1회 baseline, Could)
+
+**범위 밖**:
+- `isMobile()` 의 SSR 안전성 리팩터 — 본 §3.4 영역 별 후속.
+- Footer/Navigation 의 다른 popup 패턴 — 범위 밖.
+- `react-popper` / Floating UI 등 외부 라이브러리 도입 — 별 평가 REQ.
+- `getElementById` 사용처 전반 제거 — 본 REQ 는 `hoverPopup` 호출자 한정.
+- Monitor 도메인 CSS Modules 마이그레이션 — 별 트랙.
+
 ## 6. 알려진 제약 / 이슈
 
 - `Search.jsx` 의 `toListButton` `useEffect([])` 내 `navigate` 클로저는 `useNavigate()` 가 컴포넌트 최상위에서 호출되므로 렌더 시점 인라인화 시 stale closure 없음 (REQ-024 §8 가정).
@@ -147,6 +188,7 @@ JSX 세팅 전용 `useEffect` 블록(의존성이 분기 조건과 동일하고 
 | 2026-04-19 | `20260419-file-jsx-fileuploadui-seemorebutton-inline` | FR-05 + FR-06 완료 — `src/File/File.jsx` `fileUploadUI` / `seeMoreButton` state 제거 (commit `d65f313`) | 2.1, 2.2, 5.1 |
 | 2026-04-19 | `20260419-writer-changehistory-inline-conditional` | FR-07 완료 — `src/Log/Writer.jsx` `changeHistory` state 제거 (commit `53d9168`) | 2.1, 2.2, 5.1 |
 | 2026-04-20 | (inspector drift reconcile) | §1 상태/최종 업데이트 갱신, §2.1 LogList/Search/File/Writer 행 "완료" 마킹 + commit 박제, §2.2 완료 선례 목록에 5 건 추가, §3.5 grep 실측 반영 (12 hit, 5 파일 스윕), §5.1 FR-03~08 [x] 전환 + LogSingle FR-01/02 잔여 명시. 커밋 영향: 본 spec 단독. 잔여: LogSingle (FR-01/02) + ImageSelector Optional (§7 미결). | 1, 2.1, 2.2, 3.5, 5.1, 8 |
+| 2026-04-20 | (pending, REQ-20260420-001) | `src/common/common.js:347-368` `hoverPopup` 공통 helper 의 명령형 DOM → 선언적 React 전환 §6 신설 — 7 callers(LogItemInfo×2, CommentItem, ApiCallItem, VisitorMon, WebVitalsItem) 일괄 이관, `useHoverPopup` 훅 / `<HoverPopup>` 컴포넌트 / 로컬 state 3 옵션 중 planner 결정, tooltip ARIA + focus/blur 접근성 + touch 대안 경로 동시 도입, `hoverPopup` 제거 또는 deprecated (WIP) | 2.1, 3, 6 (신설 예정) |
 
 ## 9. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/19/20260419-jsx-in-state-antipattern-sweep-remaining-components.md`

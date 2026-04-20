@@ -183,6 +183,8 @@ MSW 단위/통합 테스트가 잡지 못하는 **dev/prod 서버 연동 mutatio
 | 2026-04-19 | (pending, REQ-20260419-014) | MD-03 시나리오 메모에 REQ-014 후속 정리 예약 cross-link (Deleting log failed./Deleting log network error. 토스터 노출이 PASS 조건) (WIP) | 3.2.2 |
 | 2026-04-19 | (pending, REQ-20260419-017) | §5.1 묶음 baseline 1차 운영자 수행 수용 기준 이관 (60분 3 체크리스트 묶음 세션) (WIP) | 5, 5.1 |
 | 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정: `docs/testing/log-mutation-runtime-smoke.md` 부재 → 존재 (commit `bba167b`, task `20260419-log-mutation-runtime-smoke-checklist-doc`); mutation 훅 2종 → 3종 (useUpdateLog.js 머지 완료, src 실측). Mut-Update 시나리오 확장은 별 라운드로 이관. 커밋 영향: 본 spec 단독. | 2 |
+| 2026-04-19 | (pending, REQ-20260419-027) | §3.2.2 MD-03 row 비고 갱신 + Toaster 도입 후 baseline 재수행 트리거 — REQ-014 의 `useDeleteLog.onError` Toaster 머지 후 MD-03 의 "조건부" 표기 → "PASS 조건" 명시, 운영자 baseline 1행 재박제 + 문서 버전 표기(v?) (WIP) | 3.2.2, 5.1 |
+| 2026-04-20 | (pending, REQ-20260420-007) | LogList sessionStorage 트릭 purge 코드 실현이 mutation smoke 시나리오 MC-* refresh 동작에 영향 없음 확인 (REQ-20260419-007 drift 회수, 본 spec §3.2.1 invalidateQueries 의존 경로) | 3.2.1 |
 
 ## 9. 관련 문서
 - 기원 요구사항:

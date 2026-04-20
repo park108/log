@@ -34,6 +34,7 @@
 - 네비게이션 관련 스타일(`.nav--nav-bar`, `.ul--nav-tabs`, `.li--nav-*`) 은 1단계에서 남겨두었을 가능성 → 이번 과제에서 정리
 
 ## 3. 디렉토리 구조 (To-Be)
+**[deferred: CSS Modules 1단계(8개 컴포넌트) 완료 후 가능 — styles/css-modules-spec §10 진행 의존. 단일 태스크 단위 carve 불가한 2단계 cross-cutting 리스트럭처링]**
 ```
 src/styles/
   index.css          # 진입점. 아래 파일들을 @import 순서대로

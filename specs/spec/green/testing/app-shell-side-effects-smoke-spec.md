@@ -276,6 +276,7 @@ useEffect(() => {
 |------|-----|------|------|
 | 2026-04-18 | (pending, REQ-20260418-025) | App 셸 사이드이펙트 수동 스모크 spec 초기화 (WIP) | all |
 | 2026-04-19 | (pending, REQ-20260419-022) | online/offline 이벤트 리스너 cleanup 패턴 §3.10 신설 — `[isOnline]` → `[]` 의존성 정합 + rebind churn 방지 + race 차단 박제, App.jsx 3 useEffect 일관 (WIP) | 3.10 |
+| 2026-04-19 | (pending, REQ-20260419-039) | REQ-022 §3.10 To-Be 코드 실현 트리거 — `src/App.jsx:64` `[isOnline]` → `[]` 1 LOC + App.test.jsx 회귀 가드 2 케이스 (addEventListener once / online-offline dispatch); 머지 후 §3.10 WIP 마감 + FR-01~03 수용 기준 `[x]` | 3.10 |
 
 ---
 

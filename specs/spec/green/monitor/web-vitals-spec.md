@@ -196,6 +196,8 @@ Metric = {
 | 2026-04-18 | TSK-20260418-14 (merged, commit `60c0cd3`) | web-vitals v5 + INP 적용 완료 (자동 테스트 포함) | 4.2, 5.2, 5.3, 6, 7 |
 | 2026-04-18 | (pending, REQ-20260418-022) | 런타임 수동 스모크 체크리스트 cross-link 추가 + §7.1 섹션 신설 (WIP) | 7, 7.1, 11 |
 | 2026-04-20 | (inspector drift reconcile) | §4.2 web-vitals 버전 pin `^3.0.4 (실설치 3.1.0)` → `^5.2.0` (post TSK-14, commit `60c0cd3`, package.json 실측). §5.1 "v3.1.0 deprecated" 코드 블록 → v5 onXXX 실측 코드로 교체. §5.2/§5.3 "[WIP]" → "완료" ACK. §8 NFR Status 4행 "달성" 갱신. 잔여: §5.4 sendToAnalytics 페이로드 재검증 (자동 테스트 영역), §7.1 운영자 런타임 스모크 baseline (REQ-022). 커밋 영향: 본 spec 단독. | 4.2, 5.1, 5.2, 5.3, 8 |
+| 2026-04-20 | (pending, REQ-20260420-002) | Monitor.test.jsx unhandled error (CI run #69 exit 1) 원인 박제 — `WebVitalsItem.jsx:97-104` catch branch 의 `setIsError(true)` 가 test teardown 후 비동기 dispatch → `ReferenceError: window is not defined` in `getCurrentEventPriority`. 해소: (a) Monitor.test.jsx MSW 핸들러 등록 or `vi.mock()` 자식 스텁, (b) 4 Monitor* 컴포넌트 fetch `useEffect` 에 `AbortController` / `isMounted` ref 언마운트 가드, (c) REQ-034 §3.7 Phase 2a 글로벌 setupServer 와 수렴. (WIP) | 5.5, 9 |
+| 2026-04-20 | (pending, REQ-20260420-001) | `hoverPopup` 공통 helper 명령형 DOM → 선언적 전환 — 본 spec §4.1 `hoverPopup` 의존성 항목이 신규 아티팩트 (`useHoverPopup` / `<HoverPopup>` / 로컬 state) 로 대체 예정, inspector 후속 라운드에서 §4.1 갱신 트리거. 상세: `common/react-render-patterns-spec.md` §5.2. (WIP) | 4.1 |
 
 ## 11. 관련 문서
 - 기원 요구사항:

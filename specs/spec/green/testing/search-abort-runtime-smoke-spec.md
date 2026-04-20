@@ -341,6 +341,7 @@ useEffect(() => {
 | 2026-04-19 | (pending, REQ-20260419-013) | Search 도메인 AbortController 런타임 수동 smoke 체크리스트 문서 spec 신설 — 5종 → 7종 확장, REQ-021 §3.5 DoD DevTools 항목 흡수, 후속 fetch race 정리(Log/Comment/Image) 일반화 시드 (WIP) | all |
 | 2026-04-19 | (pending, REQ-20260419-020) | Search `loadingDots` 타이머 cleanup + stale closure 정합 §3.11 신설 — `clearTimeout(tick)` 함수 인자 버그 수정 + functional updater + `[isLoading]` 단일 의존, Search 도메인 timer cleanup 패턴 SSoT 박제, REQ-021 AbortController 정합과 공존, SA-05 Could 매뉴얼 시나리오 예약 (WIP) | 3.11 |
 | 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정: `docs/testing/search-abort-runtime-smoke.md` 부재 → 존재 (commit `089a818`, task `20260419-search-abort-runtime-smoke-checklist-doc`). 커밋 영향: 본 spec 단독. | 2 |
+| 2026-04-20 | (pending, REQ-20260420-004) | REQ-020 §3.11 To-Be 코드 실현 트리거 — `src/Search/Search.jsx:98-104` `loadingDots` 타이머 cleanup + `clearTimeout(tick)` 함수 인자 버그 수정 + functional updater + `[isLoading]` 단일 의존; 머지 후 §3.11 WIP 마감 + 수용 기준 체크박스 `[x]` | 3.11 |
 
 ## 9. 관련 문서
 - 기원 요구사항:

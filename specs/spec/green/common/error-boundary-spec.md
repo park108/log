@@ -225,6 +225,7 @@
 
 ## 7.1 테스트 stderr 억제 — **완료** (REQ-20260418-007)
 > 관련 요구사항: REQ-20260418-007 §3.1 In-Scope, FR-01~04
+> 관련 요구사항 확장: REQ-20260419-032 (App.test.jsx ErrorBoundary 통합 describe 스코프 확장, 본 §7.1 패턴 "stderrWriteSpy 파일/describe scope" 의 2차 적용)
 
 - 대상 파일: `src/common/ErrorBoundary.test.jsx` (파일 scope 적용)
 - 채택: **(a)+(c) 조합** — `beforeAll` 에서 `console.error` spy + `process.stderr.write` spy 동시 mock, `afterAll` restore.
@@ -241,6 +242,22 @@
   ```
 - 파일 scope 한정 — `setupFiles` 로 이동하지 않음 (다른 테스트의 진짜 `console.error` 캡처를 sink 시키지 않기 위해, FR-02).
 - 결과: jsdom 29 + React 18 의 `callTheUserObjectsOperation` 경로 stderr 누수 차단 완료. CI 로그 노이즈 0.
+
+### 7.1.1 [WIP] App.test.jsx ErrorBoundary 통합 describe 스코프 확장 (REQ-20260419-032)
+> 관련 요구사항: REQ-20260419-032 FR-01~05
+
+**맥락**: REQ-007 의 stderrWriteSpy 패턴이 `src/common/ErrorBoundary.test.jsx` 한정으로 적용됐으나, REQ-20260418-005 로 신설된 `src/App.jsx` ErrorBoundary 통합 테스트(`src/App.test.jsx:220-248`)에는 `vi.spyOn(console, 'error')` 만 있어 React callbacks 의 `process.stderr.write` 경로 noise 가 재노출 (`App.test.jsx:226 Boom` 스택 다수 라인). 테스트 자체는 PASS. 규모 XS (≤10 LOC).
+
+**To-Be**: `src/App.test.jsx` 의 ErrorBoundary 통합 describe 블록에 `stderrWriteSpy` 패턴을 describe-scope 로 확장 (옵션 A 권장 — `beforeAll`/`afterAll` in describe) — 파일 scope 가 아닌 describe scope 를 택하는 이유는 다른 describe 의 `console.error` 검증 테스트(userEvent 경로 경고 등) 영향 회피.
+
+**수용 기준 (REQ-20260419-032 §10)**:
+- [ ] `src/App.test.jsx` ErrorBoundary integration describe 에 `stderrWriteSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)` + `mockRestore` 배치
+- [ ] `npx vitest run src/App.test.jsx 2>&1 | grep -c "Error: boom"` → 0 라인
+- [ ] `npm test` 전체 PASS 수 유지 (315 또는 현재 baseline)
+- [ ] 기존 `errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})` 유지 (React 내부 `console.error` 경로 대응)
+- [ ] 다른 describe 의 console/stderr 사용 회귀 0
+
+**범위 밖**: 다른 테스트 파일의 stderr sweep, vitest `silent` 전역 적용, React 18→19 bump.
 
 ## 7.2 런타임 수동 스모크 체크리스트 cross-link — 문서 신설 완료 (REQ-20260418-037, commit `94de1fa`)
 
@@ -276,6 +293,8 @@
 | 2026-04-19 | (pending, REQ-20260419-004) | Monitor 도메인 `console.error` → `reportError` 일원화 sweep §4.3.1 신설 — 7 호출부 식별자 매트릭스, 호출 시그니처 매핑 정책 단순 형태 권장, 테스트 spy 갱신 가이드, Sentry wiring 전제 조건 (WIP, 미구현) | 4.3.1 |
 | 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정 (Skeleton/ErrorFallback "부재" → 실 코드 "존재" + App.jsx 통합 완료 반영), §3.2/3.3/4.1~4.3 "[WIP]" 마커 → "완료", §6 수용 기준 7/8 항목 [x] 전환, §7.1 테스트 stderr 억제 "완료" 마킹. 커밋 영향: `specs/spec/green/common/error-boundary-spec.md` 단독. 잔여: 하위 컴포넌트 17 `<Suspense fallback={<div></div>}>`, Monitor reporter sweep (§4.3.1), 런타임 수동 스모크 문서 (§7.2). | 2, 3.2, 3.3, 4.1~4.4, 6, 7.1 |
 | 2026-04-20 | (inspector drift reconcile — second pass post `caadd10`/`94de1fa`) | §2 Monitor `console.error` 7건 잔존 → reportError 일원화 완료 ACK (commit `caadd10` REQ-20260419-004 TSK-20260420-01), §4.3.1 헤더 "[WIP]" → "완료" + REQ-004 수용 기준 11 항목 전부 [x] 전환 (2026-04-20 grep 실측 `console.error` 0 hits / `reportError` 4 import + 7 호출 확인). §7.2 헤더 "[WIP]" → "문서 신설 완료" (commit `94de1fa` REQ-20260418-037 TSK-20260420-02) + 수용 3 항목 [x] 전환 (operator baseline 2 항목만 pending). 커밋 영향: 본 spec 단독. 잔여: 하위 17 `<Suspense fallback={<div></div>}>`, §7.2 operator baseline 박제, §7.2 REQ-012 후속 2회 baseline. | 2, 4.3.1, 7.2 |
+| 2026-04-19 | (pending, REQ-20260419-032) | App.test.jsx ErrorBoundary 통합 describe scope stderrWriteSpy 패턴 확장 §7.1.1 신설 — REQ-007 파일 scope 패턴 1:1 복제, describe scope 로 범위 제한 (WIP) | 7.1, 7.1.1 |
+| 2026-04-20 | (pending, REQ-20260420-005) | `<Suspense fallback={<div></div>}>` 18곳 Skeleton variant 치환 §2 잔여 항목 마감 트리거 — error-boundary-spec §2 마지막 `[ ]` 하위 17 항목 해소, REQ-005 §11 "빈 div fallback 0" 수용 기준 충족, 라우트 전환 플리커 baseline 통일 (WIP) | 2 |
 
 ## 9. 관련 문서
 - 기원 요구사항:

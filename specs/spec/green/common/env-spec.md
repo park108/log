@@ -217,6 +217,7 @@ N/A (boolean / string).
 > 관련 요구사항: REQ-20260418-002 §10 수용 기준, §11 성공 지표; REQ-20260418-026 §10
 
 ### 7.1.1 [WIP] UserLogin Cognito dev/preview 수동 스모크 baseline (REQ-20260418-035)
+**[deferred: 운영자 dev/preview 수동 baseline 수행 대기 — 자동 headless 세션 불가]**
 > 관련 요구사항: REQ-20260418-035 FR-01 ~ FR-10, US-01 ~ US-04
 
 **배경**: TSK-20260418-31 (UserLogin.jsx env 헬퍼 마이그레이션, commit `865d86f`) 의 §5.2 수동 검증 2건이 자동 헤드리스 세션 한계로 미수행 상태. 단위 테스트 8/8 PASS (`src/common/UserLogin.test.jsx`) 는 `isDev` / `isProd` stub 기반 URL 문자열 매칭만 검증하며, 실 Cognito Hosted UI 진입 / 리다이렉트 URI 허용목록 정합 / `.env.*.local` 4 키 (`VITE_COGNITO_LOGIN_URL_*` / `VITE_COGNITO_LOGOUT_URL_*`) 의 실 동작은 미커버. REQ-032 (env.js 함수형 전환) / common.js 후속 마이그레이션의 회귀 검증 reference 로 즉시 재사용 필요.
@@ -307,6 +308,9 @@ N/A (boolean / string).
 | 2026-04-18 | (pending, REQ-20260418-035) | §7.1.1 UserLogin Cognito dev/preview 수동 스모크 baseline 체크리스트 (`docs/testing/userlogin-cognito-runtime-smoke.md`) 신설 트리거 (WIP) | 7.1.1 |
 | 2026-04-19 | (pending, REQ-20260419-012) | §5.2 `vi.stubEnv('NODE_ENV', ...)` 패턴의 17 파일 cross-domain sweep 목표 cross-link (Phase 2 확장 — 상세는 `server-state-spec.md` §3.7) (WIP) | 5.2 |
 | 2026-04-20 | (inspector drift reconcile) | §4.3 row #2 `src/common/UserLogin.jsx` 상태 [WIP] → **머지** (`865d86f`, task `20260418-env-migrate-userlogin` — 4건 `isDev`/`isProd` 치환 완료, src 실측 확인). 런타임 hits 합계 21 → 17 (UserLogin 4건 마감). 잔여: common.js 9건 (row #1) + api.js 5 도메인 8건 (row #3~#8, TSK-36 blocked 포함). 커밋 영향: 본 spec 단독. | 4.3 |
+| 2026-04-19 | (pending, REQ-20260419-038) | REQ-032 §5.1.1 함수형 전환 코드 실현 트리거 — `src/common/env.js` boolean export → `() => boolean` + 호출부 sweep(UserLogin 4 hits 이미 머지) + TSK-36 blocked 해제 cascade; 머지 후 §5.1.1 / §5.1.2 WIP 마감 | 2.3, 5.1.1, 5.1.2 |
+| 2026-04-19 | (pending, REQ-20260419-034) | REQ-012 Phase 2a 코드 실현 트리거 — `src/setupTests.js` `vi.unstubAllEnvs` 글로벌 afterEach 등록 (§5.2 패턴 통합 진입점), Comment.test.jsx 1 파일 PoC; 상세는 server-state-spec §3.7 changelog | 5.2 |
+| 2026-04-20 | (pending, REQ-20260420-002) | Monitor.test.jsx unhandled error 회귀 — MSW 미mock 요청에 의한 `onUnhandledRequest:'error'` 승격 + 언마운트 후 setState 가드 (env mutation 복원 관련 §5.2 패턴 의존) | 5.2 |
 
 ## 11. 관련 문서
 - 기원 요구사항:

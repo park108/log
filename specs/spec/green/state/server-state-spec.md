@@ -227,6 +227,44 @@
 - `docs/testing/log-mutation-runtime-smoke.md` MD-03 row baseline 재수행 — 별 task.
 - Comment 도메인 mutation onError — Comment 도메인 server-state 통합 자체 미실행 (별 후속).
 
+**3.3.1.10 [WIP] Log 도메인 3종 mutation onError Toaster UX 컨벤션 통합 (REQ-20260419-028)**
+
+> 관련 요구사항: REQ-20260419-028 FR-01 ~ FR-10, US-01 ~ US-03
+
+**맥락 (2026-04-19 관측)**: §3.3.1.9 (REQ-014) 가 `useDeleteLog` 의 onError Toaster 도입을 예약하여 Create ↔ Delete UX 대칭을 회복한다. 그러나 `useUpdateLog` (REQ-20260418-033 FR-07 머지본) 의 onError 도 현재 `Writer.jsx:149-162` 와 동일 패턴을 **복제**로 가지고 있어, 3종 mutation(Create/Update/Delete) × 각 consumer 컴포넌트(Writer/LogItem 등) 마다 동일 분기 로직이 반복되는 구조. 본 §3.3.1.10 은 3종 mutation 의 onError Toaster UX 를 **공유 helper** 또는 **훅 레벨 default onError** 로 통합하여 중복을 단일 출처로 박제한다.
+
+**3 옵션 trade-off (planner 결정)**:
+| 옵션 | 위치 | 장점 | 단점 |
+|------|------|------|------|
+| (a) 공유 helper | `src/Log/hooks/mutationErrorToaster.js` (신규) | consumer 변경 최소, test 격리 쉬움 | 각 consumer 가 helper 명시 호출 필요 |
+| (b) 훅 레벨 default `onError` | `useCreateLog`/`useUpdateLog`/`useDeleteLog` 내부 | consumer 에서 onError 생략 가능 | Toaster state 훅 외부 소유 (2-way coupling) |
+| (c) 상위 컨텍스트 (ToasterProvider) | App 레벨 Toaster context | 글로벌 1 Toaster, consumer 완전 독립 | 구조 변경 대규모, 기존 LogItem/Writer Toaster mount 재설계 |
+
+**권장 (discovery)**: 옵션 (a) — `mutationErrorToaster(setToasterFns)` 가 prefix 매칭 분기를 내장, consumer 에서 `onError: (err) => mutationErrorToaster(err, { setIsShowToaster, setToasterType, setToasterMessage }, { verb: 'Deleting' })` 로 호출. 훅 레벨 default 는 Toaster state 를 훅이 소유하면 consumer 의 JSX 에 state 주입이 필요해져 결합 증가.
+
+**FR 요약**:
+- **FR-01 공유 helper (Must)**: `src/Log/hooks/mutationErrorToaster.js` 신설 — `(err, setters, { verb })` 시그니처. 3 verb 지원: "Posting" / "Updating" / "Deleting".
+- **FR-02 Writer 마이그레이션**: `Writer.jsx:149-162` 의 createLog onError → helper 호출로 치환. 메시지 텍스트 변경 0.
+- **FR-03 LogItem 마이그레이션**: §3.3.1.9 머지 후 LogItem 의 deleteMutation onError → helper 호출로 치환.
+- **FR-04 update consumer 마이그레이션**: Writer 의 updateLogMutation onError (FR-07 머지본) → helper 호출.
+- **FR-05 단위 테스트**: `mutationErrorToaster.test.js` 신설 — 3 verb × (5xx / network / 기타 prefix 불일치) 매트릭스 9 케이스.
+- **FR-06 consumer 테스트 회귀**: Writer/LogItem 기존 onError Toaster 어서트 100% PASS 유지.
+- **FR-07 grep 수용**: `grep -c "err.message.startsWith" src/Log/` → 0 (모두 helper 내부로 캡슐화).
+- **FR-08 LOC 감소**: Writer.jsx / LogItem.jsx onError 블록 라인 수 각각 감소 (대략 -8 LOC / consumer, helper +25 LOC 순증 ≤ +5 LOC total).
+
+**수용 기준 (REQ-20260419-028 §10)**:
+- [ ] FR-01 ~ FR-06 모두 충족 (Must).
+- [ ] (Should) FR-07 grep 통계 result.md 박제.
+- [ ] (Should) FR-08 LOC diff 박제.
+- [ ] `npm test` 100% PASS, `npm run lint` / `npm run build` 회귀 0.
+- [ ] (Should) §3.3.1.9 REQ-014 머지 직후 본 §3.3.1.10 진입 — 2 REQ 의 순서 의존 (FR-03 의 LogItem 전제).
+
+**범위 밖**:
+- Comment 도메인 mutation (server-state 통합 미실행).
+- 옵션 (c) ToasterProvider 글로벌 컨텍스트 — 별 REQ.
+- Toaster 컴포넌트 자체 리팩터.
+- 3 mutation hook 의 onSuccess / onSettled 공유 — 본 REQ 는 onError 한정.
+
 ### 3.3.2 [WIP] LogList `useLogList` 소비 마이그레이션 (REQ-20260419-007)
 
 > 관련 요구사항: REQ-20260419-007 FR-01 ~ FR-10, US-01 ~ US-04
@@ -796,6 +834,14 @@ afterAll(() => server.close());
 | 2026-04-19 | (pending, REQ-20260419-009) | Writer `isProcessing` 로컬 state 제거 → `useCreateLog`/`useUpdateLog` 의 `isPending` 파생화 §3.3.1.2.1 신설 — §3.3.1.2 commitment 마감 (WIP) | 3.3.1.2.1, 5.6 |
 | 2026-04-19 | (pending, REQ-20260419-012) | 도메인 전반 MSW lifecycle / `NODE_ENV` 변형 격리 Phase 2 §3.7 신설 — 17 파일 cross-domain sweep + 글로벌 `setupServer` / `vi.stubEnv` / `vi.spyOn` 표준화 + 진단 baseline 매트릭스 (REQ-027 Phase 1 후속) (WIP) | 3.7, 5.7 |
 | 2026-04-19 | (pending, REQ-20260419-023) | LogSingle `useLog` 소비 마이그레이션 §3.3.3 신설 — §3.3 파일럿 "완료 (commit fa9424c)" 표기 drift 해소, 수동 state 3개(`isLoading`/`data`/`itemLoadingStatus`) 제거, `invalidateQueries(['log','detail',*])` 실효 회복 (WIP) | 3.3, 3.3.3, 5.8 |
+| 2026-04-19 | (pending, REQ-20260419-034) | REQ-012 §3.7 Phase 2a 코드 실현 트리거 — `src/setupTests.js` 글로벌 setupServer + afterEach(resetHandlers + unstubAllEnvs + restoreAllMocks) + Comment.test.jsx 1 파일 PoC 마이그레이션; 머지 후 §3.7 Phase 2a 체크박스 `[x]` + Comment flake ≥99% 박제 | 3.7 |
+| 2026-04-19 | (pending, REQ-20260419-028) | Log 도메인 3종 mutation(`useCreateLog`/`useUpdateLog`/`useDeleteLog`) `onError` Toaster UX 컨벤션 통합 — 공유 helper 또는 훅 레벨 default onError 도입, §3.3.1 하위 신설 예정 (WIP) | 3.3.1 |
+| 2026-04-19 | (pending, REQ-20260419-031) | `useLog` 훅 `!res.ok` HTTP non-2xx 에러 브랜치 커버리지 단위 테스트 1건 추가 — `useLog.test.js` 신규 또는 확장, §4.3.1 renderWithQuery 패턴 적용 (WIP) | 4.3.1, 5.8 |
+| 2026-04-20 | (pending, REQ-20260420-006) | Writer `isProcessing` 파생화 §3.3.1.2.1 코드 실현 트리거 — `setIsProcessing` 7 hits purge + `useCreateLog`/`useUpdateLog` `isPending` 파생; 머지 후 §3.3.1.2.1 `[x]` | 3.3.1.2.1 |
+| 2026-04-20 | (pending, REQ-20260420-007) | LogList `sessionStorage` 트릭 제거 + `useLogList` 소비 §3.3.2 코드 실현 트리거 — REQ-007 drift 회수; 머지 후 §3.3.2 체크박스 `[x]` | 3.3.2 |
+| 2026-04-20 | (pending, REQ-20260420-002) | Monitor.test.jsx unhandled error (자식 Monitor* MSW 미mock + 언마운트 후 setState) — Vitest v4 에서 "Unhandled errors" 로 승격, CI exit 1 회귀 가드 (WIP) | 3.6, 3.7 |
+| 2026-04-19 | (pending, REQ-20260419-036) | `src/Log/LogList.test.jsx` 신설 트리거 — seeMoreButton 파생 4 분기 + 클릭·페이지네이션 회귀 보호 최소 5 케이스 (자매 REQ-037 수동 smoke 와 쌍). §4.3.1 renderWithQuery 패턴 적용 | 4.3.1 |
+| 2026-04-19 | (pending, REQ-20260419-035) | `src/Log/Writer.test.jsx` historyData (location.state.from) 편집 진입 경로 테스트 커버리지 2 케이스 추가 — WH-01 history 패널 렌더 / WH-02 미렌더. §3.3.1 commitment 갱신은 없음 | 3.3.1 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`
