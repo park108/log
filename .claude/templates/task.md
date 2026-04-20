@@ -22,6 +22,7 @@
 - 신규 케이스, 회귀 기준.
 
 ## 검증/DoD
+<!-- grep 게이트 예: rg -nE "afterEach\s*\([^)]*<fn>\s*\(\s*\)" src --glob="*.test.{js,jsx}" → 0 hits -->
 - [ ] `npm run lint`
 - [ ] `npm test`
 - [ ] `npm run build` (해당 시)

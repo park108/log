@@ -63,6 +63,8 @@ import { afterEach, beforeEach, vi } from 'vitest'
 // REQ-20260420-007 (TSK-20260420-38) — fake-timer teardown 을 단일 지점에
 // 박제한다. `vi.unstubAllEnvs()` → `vi.useRealTimers()` 순서: env 분기 의존
 // 로직이 timer 해제 부작용에 영향받지 않도록 env 를 먼저 해제한다.
+//   • vitest `afterEach` 실행 순서는 inner (describe) → outer (setup 파일) = LIFO.
+//     전역 teardown 의 사후 상태를 로컬 describe 훅에서 단정하려면 `it` 본문 직렬화 또는 `afterAll` 사용.
 afterEach(() => {
 	vi.unstubAllEnvs();
 	vi.useRealTimers();
