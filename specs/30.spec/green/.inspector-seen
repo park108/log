@@ -1,25 +1,25 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T20:33:59Z (HEAD=7d8bdf5)
-# Phase 1 ack this session: 0/0 (green queue 空 — 직전 inspector session
-#   `7d8bdf5` 이후 planner/developer cycle 없음 → 상태 불변).
+# Updated: 2026-04-20T21:03:32Z (HEAD=5ecf4af)
+# Phase 1 ack this session: 0/0 (green queue 空 — WIP marker 0건).
 # Phase 1 historical context (reference only, ledger 트래킹 이미 종료):
 #   - deps/react-19-findby-option-beta-idiom-spec.md → 50.blocked/spec/ (planner @ 4aa85e4, stale=3)
 #       reason: TSK-20260421-47 `40.task/ready/` 체류 (developer 미소진), RULE-05 관할.
 #   - foundation/test-infra-conventions-grep-gate-lifo-spec.md → 50.blocked/spec/ (planner @ 4aa85e4, stale=3)
-#       reason: TSK-20260421-46 `40.task/ready/` 체류 (developer 미소진), RULE-05 관할.
+#       reason: TSK-20260421-46 done (@5ecf4af, 2026-04-21) — 원인 해소. RULE-05 운영자 정리 대기.
 #   - common/test-isolation-shuffle-safety-spec.md → `50.blocked/spec/` (TSK-45 blocked).
 #   - deps/react-19-findby-timing-stabilization-spec.md → `50.blocked/spec/` (α 폐기).
 #   - deps/fake-timer-teardown-residual-cleanup-spec.md → `50.blocked/spec/` (marker 유지).
-#   - common/geturl-render-path-test-audit-spec.md → `30.spec/blue/` (TSK-44 flip 후 promote).
 # Phase 2 this session: green 空 → deferred/split 대상 없음.
 # Phase 3 this session:
 #   - input queue (20.req/ready/): **0 건** — Phase 3 no-op.
 #   - downstream threshold GREEN_PENDING_MAX=20 (기본, pipeline.json 없음). green 현 0 < 20.
 #   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 0.
-# 관찰: 파이프라인 상태 직전 세션 (7d8bdf5) 대비 변동 없음.
-#   - 40.task/ready/ 체류: TSK-20260421-46, TSK-20260421-47 (2건, developer 소비 대기).
-#   - 60.done/task/ 에 46/47 결과물 없음.
-#   - 50.blocked/spec/ 5건 (4건 historical + 1건 fake-timer-residual marker 유지) — RULE-05 관할.
-#   - 50.blocked/task/ 2건 (TSK-43, TSK-45) — RULE-05 관할.
+# 관찰: 직전 inspector session (7d8bdf5) → HEAD (5ecf4af) 사이 변화:
+#   - a7a2ed2 spec(inspector): 직전 ledger refresh.
+#   - 5ecf4af test: TSK-20260421-46 done (foundation/test-infra-conventions-grep-gate-lifo
+#       원인 커밋). 40.task/ready/ 에서 빠짐 → 현재 TSK-20260421-47 1건만 체류.
+#   - 60.done/task/ 에 `20260421-test-infra-conventions-grep-gate-lifo/` 추가됨.
+#   - 50.blocked/spec/ 5건 불변 (RULE-05 운영자 정리 대기; 그중 grep-gate-lifo 는 원인 해소 상태).
+#   - 50.blocked/task/ 2건 (TSK-43, TSK-45) 불변 — RULE-05 관할.
 # Stale 경고: 없음 (ledger 비어있음).
 #
