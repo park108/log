@@ -1,31 +1,38 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T16:34:23Z (HEAD=c18132d)
-# Phase 1 ack this session: 1/5.
-#   - TSK-20260420-41 (msw-idioms) 커밋 515d9b3 HEAD 조상. DoD grep 2건 전원 PASS (재실행):
-#       · `beforeEach.*listen\(\)|afterEach.*close\(\)` → 코드 0 hits (msw.test.js 주석/메타는 spec 허용 예외).
-#       · `HttpResponse.error()|HttpResponse.json(ERROR_500)` in `*.test.jsx` → 0 hits.
-#     Must 주관 혼재 없음, result.md 의 "46/370 green + lint 0" 정합 → flip. 변경 이력 1행 박제.
-#     (spec hash 변경: 2c4b96 → refresh 이후 — flip 커밋 포함.)
-#   - TSK-20260421-42 (fake-timer-residual) 커밋 c18132d HEAD 조상. DoD grep:
-#       · #1 `vi.useRealTimers()` 코드 hits: `setupTests.timer-idiom.test.jsx:61` 1건 잔존.
-#         spec §공개 인터페이스 옵션 1 (같은 `it` 직렬화) 은 허용 경로로 명시 — 그러나
-#         spec §수용기준 Must #4 "정책 A 선택 시 코드 라인 0 hits" 와 문자열 엄격 해석 시 충돌.
-#       · #2 `it\([A]|[B]` → 0 hits (분리 구조 제거 PASS).
-#     Must 주관 혼재 → RULE-03 Phase 1 "애매하면 marker 유지" 적용. ack 보류. stale 1 → 2.
-#     follow-up: planner 가 spec Must #4 grep 패턴을 `afterEach\s*\([^)]*vi\.useRealTimers` 로 좁혀
-#     재개정 carve 혹은 수동 개입 필요 (RULE-05).
-#   - TSK-20260421-43 (react19-findby) ready 큐 대기. stale 1 → 2.
-#   - TSK-20260421-44 (geturl-audit) ready 큐 대기. stale 1 → 2.
-#   - TSK-20260421-45 (shuffle-safety) ready 큐 대기. stale 1 → 2.
+# Updated: 2026-04-21T12:00:00Z (HEAD=96c37df)
+# Phase 1 ack this session: 1/4.
+#   - TSK-20260421-44 (geturl-audit) 커밋 96c37df HEAD 조상. DoD grep 전원 PASS (재실행):
+#       · `stubMode` in `src/App.test.jsx` → 3 hits (L12/L17/L23).
+#       · `vi.stubEnv` → 3 hits (L18/L19/L20 MODE/DEV/PROD).
+#       · `vi.unstubAllEnvs` → 1 hit (L24).
+#       · `REQ-20260421-003` → 1 hit (L12).
+#       · `findByText.*park108|getByText.*park108` → 3 hits (L53/L331/L390, baseline :39/:317/:376 대비 +14 shift 인정).
+#     Must/Should/Could/NFR 주관 혼재 없음, result.md 4열 감사 표 + 46/369 green + lint 0/0 정합 → flip.
+#     변경 이력 1행 박제. 단, spec §테스트 현황 기재 수치 "46/370 → 46/369" drift 는 TSK-42 의
+#     `[A]/[B]` 2 it → 1 it 통합 여파로 합리적 — 수용 기준 라인에 근거 명시.
+#   - TSK-20260421-42 (fake-timer-residual) 커밋 c18132d HEAD 조상. DoD grep 재실행:
+#       · `vi\.useRealTimers\(\)` 코드 hits → `setupTests.timer-idiom.test.jsx:61` 1건 잔존.
+#         spec §공개 인터페이스 옵션 1 (같은 `it` 직렬화) 허용 경로이지만
+#         spec §수용기준 Must #4 "grep ... 코드 라인 0 hits" 문자열 엄격 해석 시 충돌 지속.
+#       · `it\([A]|[B]` → 0 hits (분리 구조 제거 PASS).
+#     Must 주관 혼재 → RULE-03 Phase 1 "애매하면 marker 유지" 2회차 적용. ack 보류. stale 2 → 3.
+#     **≥3cycle 경고 임계치 도달** — follow-up: planner 가 spec Must #4 grep 패턴을
+#     `afterEach\s*\([^)]*vi\.useRealTimers` 로 좁혀 재개정 carve 필요 (RULE-05 수동 개입 후보).
+#   - TSK-20260421-43 (react19-findby) 50.blocked/task/ 격리. 실측 실패로 커밋 無.
+#     blocked_reason.md §"해제 경로" 는 REQ-20260421-002 β 재사양 발행 후 별건 신규 task 로 재진입 요구.
+#     Phase 1 ack 불가. stale 2 → 3.
+#   - TSK-20260421-45 (shuffle-safety) 40.task/ready/ 대기. 커밋 無. depends_on=TSK-42 (완료).
+#     Phase 1 ack 불가. stale 2 → 3.
 # Phase 2/3 this session:
 #   - input queue (20.req/ready/): 비어있음 (Phase 3 no-op).
-#   - downstream threshold GREEN_PENDING_MAX=20 (기본) — green 5 < 20, 여유.
+#   - downstream threshold GREEN_PENDING_MAX=20 (기본) — green 4 < 20, 여유.
 #   - Phase 2 deferred: 신규 없음 (기존 tag 유지).
-#   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 1 (msw-idioms flip).
-# Stale >=3 경고: 없음 (msw-idioms flip 으로 stale=4 해소).
-#   - 잔존 최대 stale: fake-timer-residual=2, 나머지 모두 =2. 아직 경고 임계치 미만.
-30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 2
-30.spec/green/deps/msw-test-idioms-unification-spec.md refresh 0
-30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 2
-30.spec/green/common/geturl-render-path-test-audit-spec.md b31379230e2b28e677c5497537f64efa203878e3a9e568817b06ca7150fefc4a 2
-30.spec/green/common/test-isolation-shuffle-safety-spec.md bd27261fdbd3c24b4ad4db3ac13e37413841ebfdad575f31138773dcfd06b4bc 2
+#   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 1 (geturl-audit flip).
+# Stale >=3 경고: 3건 (fake-timer-residual=3, react19-findby=3, shuffle-safety=3).
+#   - fake-timer-residual: 수동 개입 권고 (spec Must #4 문구 재개정).
+#   - react19-findby: blocked; β 사양 재진입 대기 (discovery + REQ 재발행).
+#   - shuffle-safety: ready 큐 TSK-45 대기; developer 사이클 1~2회 내 해소 기대.
+30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 3
+30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 3
+30.spec/green/common/geturl-render-path-test-audit-spec.md refresh 0
+30.spec/green/common/test-isolation-shuffle-safety-spec.md bd27261fdbd3c24b4ad4db3ac13e37413841ebfdad575f31138773dcfd06b4bc 3

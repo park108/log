@@ -50,20 +50,20 @@ TSK-20260420-37 이후 `getUrl()` 런타임이 `process.env.NODE_ENV` → `isDev
 ## 테스트 현황
 - [x] 현 HEAD `npm test` 46 files / 370 tests green (afe109e).
 - [x] `Navigation.test.jsx` / `LogItemInfo.test.jsx` 가드 완료 확인 (TSK-37 / TSK-40).
-- [ ] `App.test.jsx` stubMode 가드 추가 후 green 유지 (FR-02).
-- [ ] 감사 결과 표 박제 (FR-01) + 재현 0 판정 or 가드 N건 박제 (FR-04).
-- [ ] `npm run lint` 0 warn / 0 error.
+- [x] `App.test.jsx` stubMode 가드 추가 후 green 유지 (FR-02) — TSK-44 / 96c37df.
+- [x] 감사 결과 표 박제 (FR-01) + 재현 0 판정 or 가드 N건 박제 (FR-04) — TSK-44 result.md 4열 표.
+- [x] `npm run lint` 0 warn / 0 error — TSK-44 실측.
 
 ## 수용 기준
-- [ ] (Must) `grep -rn "getUrl()\|userAgentParser(" src/` 결과를 파일:라인 · 렌더/비렌더 · 대응 test 파일 · stubMode 명시 유무 4열 표로 result.md 에 박제.
-- [ ] (Must) 표에서 "렌더 경로 + stubMode 누락" 항목 각각에 describe-scoped `beforeEach(() => stubMode('test'))` 또는 `it` 내부 stubMode 가드 추가. 현 baseline 에서 최소 `src/App.test.jsx` 1건.
-- [ ] (Should) 가드 패턴은 TSK-37 이디엄 승계 — `src/common/Navigation.test.jsx:13-26` 정본. 주석에 "REQ-20260421-003" 박제.
-- [ ] (Could) 재현 0건 확인 시 "감사 완료, 가드 불필요" 판정 + 근거 result.md 박제 후 종료 허용.
-- [ ] (Must) `npm test` 46 files / 370 tests green.
-- [ ] (Must) `npm run lint` 0 warn / 0 error.
-- [ ] (NFR) 수정 파일 ≤ 5 (test 파일 한정). `src/**/*.{js,jsx}` 중 `*.test.*` 제외 런타임 0건 수정.
-- [ ] (NFR) 신규 테스트 케이스 추가 0 (가드 누락만 보강).
-- [ ] (NFR) env stub 이디엄 자체 변경 0 — REQ-20260420-005 관할 유지.
+- [x] (Must) `grep -rn "getUrl()\|userAgentParser(" src/` 결과를 파일:라인 · 렌더/비렌더 · 대응 test 파일 · stubMode 명시 유무 4열 표로 result.md 에 박제.
+- [x] (Must) 표에서 "렌더 경로 + stubMode 누락" 항목 각각에 describe-scoped `beforeEach(() => stubMode('test'))` 또는 `it` 내부 stubMode 가드 추가. 현 baseline 에서 최소 `src/App.test.jsx` 1건.
+- [x] (Should) 가드 패턴은 TSK-37 이디엄 승계 — `src/common/Navigation.test.jsx:13-26` 정본. 주석에 "REQ-20260421-003" 박제.
+- [x] (Could) 재현 0건 확인 시 "감사 완료, 가드 불필요" 판정 + 근거 result.md 박제 후 종료 허용.
+- [x] (Must) `npm test` 46 files / 369 tests green (spec 기재 370 은 TSK-42 가 `[A]/[B]` 2 it → 1 it 통합으로 -1; TSK-44 실측 369 박제).
+- [x] (Must) `npm run lint` 0 warn / 0 error.
+- [x] (NFR) 수정 파일 ≤ 5 (test 파일 한정). `src/**/*.{js,jsx}` 중 `*.test.*` 제외 런타임 0건 수정 — TSK-44 실측 1 파일 (App.test.jsx).
+- [x] (NFR) 신규 테스트 케이스 추가 0 (가드 누락만 보강).
+- [x] (NFR) env stub 이디엄 자체 변경 0 — REQ-20260420-005 관할 유지.
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -79,3 +79,4 @@ TSK-20260420-37 이후 `getUrl()` 런타임이 `process.env.NODE_ENV` → `isDev
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-003 반영; TSK-20260420-37 이후 렌더 경로 감사 필요성 정식화 — App.test.jsx 가드 누락 baseline 박제) | all |
+| 2026-04-21 | TSK-20260421-44 / 96c37df | 전 Must/Should/Could/NFR 기준 충족으로 DoD 전원 flip. `src/App.test.jsx` stubMode 2줄 헬퍼 + `beforeEach(() => stubMode('test'))` + `afterEach(() => vi.unstubAllEnvs())` 박제 (14+/0-), 감사 4열 표 result.md, `npm test` 46/369 green, lint 0/0. 런타임 0 수정. | 테스트 현황·수용 기준 |
