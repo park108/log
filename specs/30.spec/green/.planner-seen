@@ -1,14 +1,11 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T(session+5)Z
-# Session: 3 new green specs (react-19-findby-timing-stabilization, href-intent-assertions, msw-test-idioms-unification) carved → TSK-20260420-39, -40, -41 발행 (ready 1→4, TASK_READY_MAX=10). depends_on=[] 전원 (독립 축). 2 existing green:
-#   - common/env-test-stub-adaptation-spec.md: hash 불변 (58e36c22, prior session stale=4). HEAD grep 에서 `process\.env\.NODE_ENV` in `*.test.*` = 0 hits (TSK-20260420-37 이 실질 구현 완료) 이나 spec 본문 `- [ ]` unchecked 15건 + `## 변경 이력` TSK/커밋 미박제라 planner 4조건 미충족 → 승격 불가. planner writer 영역 밖 (inspector 만 편집 가능) 이므로 상태 반영 대기. stale_cycles 4 → 5. blocked 이동 보류 유지 — "planner 가 carve 불가" 조건 아님 (구현은 이미 done 상태, 문서 갱신 대기).
-#   - deps/uniform-fake-timer-teardown-policy-spec.md: hash 불변 (3c34ce5a). TSK-20260420-38 이 ready 큐 대기 (본 세션 당시 상태). 승격 불가. stale_cycles 0 → 1.
-# 3 new green 은 모두 hash 신규 등록 + TSK 발행. grep dry-run 19/19 match (task-39: 4, task-40: 7, task-41: 8). carve 접미사 없음 (각 green → 1 task). spec baseline drift 2건 박제:
-#   - File.test.jsx (msw spec): `:230/231/264/265 → 228/229/262/263` (4 hits)
-#   - LogSingle.test.jsx (findby spec): `:181 → 179`, `:333 → 327` (2 hits)
-# foundation/ 빈 폴더 — 처리 대상 없음. 전체 queue 상태: ready=4 (38, 39, 40, 41), 5 green (2 stale + 3 신규).
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 5
-30.spec/green/deps/uniform-fake-timer-teardown-policy-spec.md 3c34ce5a2c55aaeca169c06deab27874663a86e21993e3fd92f7e20bdf68a4a2 1
-30.spec/green/deps/react-19-findby-timing-stabilization-spec.md d9b0de553ec48929e11487bb1264ecb8b7b64a42a489b71a38eb58bb93b9bb82 0
-30.spec/green/common/href-intent-assertions-spec.md 959f59e3e4d02bdb13476199e96c29df3fda48b7eb6f1b9ebab9548bc9c4fbd3 0
-30.spec/green/deps/msw-test-idioms-unification-spec.md 2c4b96bcd5a280056138d8546569e9e280fee667154259577763a073255719cf 0
+# Updated: 2026-04-21T(session)Z
+# Session: 2 promotions — common/env-test-stub-adaptation-spec (hash drift 58e36c22 → f9de2156, inspector 가 `[x]` 전환 + TSK-20260420-37/a95f1bb 변경 이력 박제) / deps/uniform-fake-timer-teardown-policy (hash drift 3c34ce5a → 7203f2d5, inspector 가 `[x]` 전환 + TSK-20260420-38/504bee9 변경 이력 박제). 4조건 (WIP=0, unchecked `- [ ]` =0, To-Be=0, 변경 이력 TSK+커밋 박제) 전수 PASS → mv green → blue. carve 신규 0건 — 신규 green 3건은 직전 세션에 TSK-20260420-39/-40/-41 발행 완료, 본 세션은 승격만.
+# 3 pending green (미승격 유지):
+#   - common/href-intent-assertions-spec.md (hash 불변 959f59e3, TSK-20260420-40 ready): unchecked `- [ ]` 11건 → 미승격, stale_cycles 0 → 1.
+#   - deps/msw-test-idioms-unification-spec.md (hash 불변 2c4b96bc, TSK-20260420-41 ready): unchecked `- [ ]` 12건 → 미승격, stale_cycles 0 → 1.
+#   - deps/react-19-findby-timing-stabilization-spec.md (hash 불변 d9b0de55, TSK-20260420-39 blocked): unchecked `- [ ]` 8건 → 미승격, stale_cycles 1 → 2. (blocked 해제는 RULE-05 수동 개입 대기; planner 재carve 대상 아님.)
+# ready 큐: TSK-20260420-40, -41 (count=2, TASK_READY_MAX=10 여유). foundation/ green 폴더 비어있음. components/ green 없음 (9 blue 만 존재). grep dry-run: N/A (carve 0건 → 신규 grep 게이트 없음).
+30.spec/green/common/href-intent-assertions-spec.md 959f59e3e4d02bdb13476199e96c29df3fda48b7eb6f1b9ebab9548bc9c4fbd3 1
+30.spec/green/deps/msw-test-idioms-unification-spec.md 2c4b96bcd5a280056138d8546569e9e280fee667154259577763a073255719cf 1
+30.spec/green/deps/react-19-findby-timing-stabilization-spec.md d9b0de553ec48929e11487bb1264ecb8b7b64a42a489b71a38eb58bb93b9bb82 2
