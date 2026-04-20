@@ -1,8 +1,10 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T22:00:00Z
-# Phase 1 ack this session: 0/3 — react-19 spec 의 fake-timer grep gate 2건(Must §수용 기준 1/2)은 TSK-20260420-35-a (e4a470b) 로 실증 PASS. 그러나 pair TSK-35-b (MSW lifecycle Must §3) 미완료로 Must 주관 혼재 → 체크박스 플립 보류, 변경 이력 1행 박제만 수행. 나머지 2 spec 은 DoD grep 전량 미해결 (env-test-stub: `process.env.NODE_ENV` 44 hits 잔존 / typescript-tooling: `**/*.d.ts` ignore 잔존, typescript-eslint 미설치).
-# Phase 2 this session: input queue empty (20.req/ready/ = 0 files); no new green specs produced.
-# Stale: react-19 spec 해시 변경 (이력 박제) → stale_cycles 리셋(0). env-test-stub, typescript-tooling 는 무변경 → 2→3 (임계치 ≥3 도달, 다음 세션 토큰에 반영).
-30.spec/green/deps/react-19-test-layer-adaptation-spec.md 89b92c0f7da628acb3f99df991fd6c821ac864c6d58ca1becc0df8ea8a5ced4c 0
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 3
-30.spec/green/foundation/typescript-tooling-completion-spec.md 2e6ad0f7b9570ae4a6c564fbc57dd4cbc883d351c2084ca45d44ad66e93d742b 3
+# Updated: 2026-04-20T23:00:00Z
+# Phase 1 ack this session: 0/3. 세 spec 모두 해시 불변(직전 세션 스냅샷과 동일) + WIP 미전진.
+#   - react-19-test-layer: Must §수용 기준 §1/§2 (fake-timer grep 0) 는 TSK-20260420-35-a (e4a470b) 로 직전 세션에 이력 박제 완료. Must §3 (`\.listen(` inline→beforeEach 이동) 과 그 뒤 Must (전체 green / 3회 flake 0 / lint 증감 0 / 10개 파일 회귀 0) 은 pair TSK-20260420-35-b 미발행·미완료 — Must 주관 혼재 지속 → 체크박스 플립 보류 유지. `.listen(` inline 호출 92 hits in 14 files 잔존 (Monitor/File/Comment/Image/Search/Log 전역, WebVitalsItem/ApiCallItem 포함) — teardown 이동 필요. 해시 변경 없어 stale_cycles 0 → 1.
+#   - env-test-stub: `process.env.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행. stale_cycles 3 → 4 (≥3 누적 2세션 연속, planner 태스크화 필요).
+#   - typescript-tooling: `eslint.config.js:13` 의 `**/*.d.ts` ignore 잔존 / `package.json` 의 `typescript-eslint|@typescript-eslint` 0 hits / `vite.config.js:74` coverage include = `['src/**/*.{js,jsx}']` (ts/tsx 미확장). 3개 Must 전량 FAIL. stale_cycles 3 → 4.
+# Phase 2 this session: input queue empty (20.req/ready/ = 0 files). no new green specs produced.
+30.spec/green/deps/react-19-test-layer-adaptation-spec.md 89b92c0f7da628acb3f99df991fd6c821ac864c6d58ca1becc0df8ea8a5ced4c 1
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 4
+30.spec/green/foundation/typescript-tooling-completion-spec.md 2e6ad0f7b9570ae4a6c564fbc57dd4cbc883d351c2084ca45d44ad66e93d742b 4
