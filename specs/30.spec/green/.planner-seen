@@ -1,23 +1,20 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(session+1)Z
-# Session: 2 carves (no promotions). 5 green all unchecked > 0 → 승격 0.
-#   신규 green 2건 최초 인지:
-#     - common/geturl-render-path-test-audit-spec.md (hash b3137923, REQ-20260421-003) → TSK-20260421-44 발행 (App.test.jsx stubMode 가드 1건 — TSK-37 이디엄 승계, FR-01 감사 표 + FR-02 가드 단일 책임).
-#     - common/test-isolation-shuffle-safety-spec.md (hash bd27261f, REQ-20260421-004) → TSK-20260421-45 발행 (3축 shuffle flake 제거 — LogItem restoreAllMocks / msw.test describe.sequential / File.test QueryClient race; depends_on TSK-20260421-42 선행 명시).
-#   기존 3 pending green stale_cycles 증가:
-#     - deps/msw-test-idioms-unification-spec.md (hash 불변 2c4b96bc, TSK-20260420-41 ready): unchecked 16 → 미승격, stale 2 → 3 (≥3cycle 경계 진입; 다음 세션에서도 hash 불변·미승격 지속 시 RULE-01 상 50.blocked/spec/ 이동 후보 재평가 — 단, TSK-41 ready 큐 생존 중이므로 본 세션은 유지).
-#     - deps/react-19-findby-timing-stabilization-spec.md (hash 불변 b5d9e93e, TSK-20260421-43 ready): unchecked 15 → 미승격, stale 0 → 1.
-#     - deps/fake-timer-teardown-residual-cleanup-spec.md (hash 불변 97cedb50, TSK-20260421-42 ready): unchecked 14 → 미승격, stale 0 → 1.
-# ready 큐: TSK-20260420-41, TSK-20260421-42, TSK-20260421-43, TSK-20260421-44, TSK-20260421-45 (count=5, TASK_READY_MAX=10 여유).
-# carve 계보:
-#   - TSK-20260421-44 (신규, supersedes 없음).
-#   - TSK-20260421-45 (신규, supersedes 없음, depends_on TSK-20260421-42).
-# grep dry-run (carve 별 실측 대조, HEAD=515d9b3):
-#   - TSK-44 (geturl-render-path-audit): `grep -rn "getUrl()" src --include="*.{js,jsx}"` → 9/9 match (spec baseline 런타임 6 + test 2 + setupTests 주석 1 일치). `grep -rn "userAgentParser(" src` → 13 실측 vs spec 14 (내부 정의 1건 차이, drift fixed in TSK §grep-baseline). `grep -n "stubMode" src/App.test.jsx` → 0/0 match (FR-02 대상). `grep -nE "findByText.*park108" src/App.test.jsx` → 3/3 match at :39, :317, :376 (spec :36 → 실측 :39 라인 drift, carve 수치 불변 3건).
-#   - TSK-45 (test-isolation-shuffle-safety): `grep -n "vi\.spyOn" src/Log/LogItem.test.jsx` → 12/12 match at :53,:54,:113,:114,:180,:181,:235,:236,:290,:291,:351,:352. `grep -n "vi\.restoreAllMocks" src/Log/LogItem.test.jsx` → 0/0 match (FR-01 대상). `grep -rn "vi\.restoreAllMocks" src --include="*.test.*"` → 10 실측 in 6 files vs spec 9 in 5 files (LogItemInfo.test.jsx:58 신규 편입, drift fixed). `grep -nE "toHaveBeenCalledTimes|sibling|cycle" src/test-utils/msw.test.js` → 12 hits (sibling-it 2 블록 :28-37, :52-57 확인). `grep -n "no data on prod server|queryClient|QueryClient" src/File/File.test.jsx` → 2 hits at :34, :37 (describe + test; spec §Baseline :55 → 실측 :34 라인 drift). `src/test-utils/timing.js` → absent (TSK-43 미완료, 옵션 2 선택 시 TSK-43 선행 필요; 옵션 1 기본 권장).
-# 총 grep dry-run 9/9 match (carve 별 게이트 전부 실측 대조 완료, 2건 drift — spec baseline 은 afe109e 스냅샷, 현 HEAD=515d9b3 로 소폭 drift 는 TSK 문서 §grep-baseline 에 실측값 박제로 정합).
-30.spec/green/deps/msw-test-idioms-unification-spec.md 2c4b96bcd5a280056138d8546569e9e280fee667154259577763a073255719cf 3
-30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 1
-30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 1
-30.spec/green/common/geturl-render-path-test-audit-spec.md b31379230e2b28e677c5497537f64efa203878e3a9e568817b06ca7150fefc4a 0
-30.spec/green/common/test-isolation-shuffle-safety-spec.md bd27261fdbd3c24b4ad4db3ac13e37413841ebfdad575f31138773dcfd06b4bc 0
+# Updated: 2026-04-21T(session+2)Z
+# Session: 1 promotion (msw-idioms → blue) + 0 new carves. 4 green pending all unchecked > 0 → 잔여 승격 0.
+#   승격 (green → blue):
+#     - deps/msw-test-idioms-unification-spec.md (hash 2c4b96bc → inspector flip a51d35c 에서 hash 갱신, DoD 전원 `[x]` + 변경 이력 TSK-20260420-41 / 515d9b3 박제 확인) → mv specs/30.spec/green/deps/ → specs/30.spec/blue/deps/. ledger 제거.
+#   pending green (승격 조건 미충족):
+#     - deps/fake-timer-teardown-residual-cleanup-spec.md (hash 불변 97cedb50): TSK-20260421-42 완료 + 60.done 이동 (커밋 c18132d) 확인, 그러나 inspector 미flip (변경 이력 TSK-42 박제 없음, 수용 기준 10건 `[ ]` unchecked 잔존). stale 1 → 2 (≥3cycle 경계 접근; 다음 세션 hash 불변 지속 시 blocked/spec 이동 후보 재평가). `a51d35c` 커밋이 "fake-timer-residual marker 유지" 명시 — inspector 가 의도적으로 flip 유보 중.
+#     - deps/react-19-findby-timing-stabilization-spec.md (hash 불변 b5d9e93e): TSK-20260421-43 이 `specs/50.blocked/task/` 로 이동 (developer 판단). 해당 green 의 carve 경로 재검토 필요하나 본 세션은 planner writer 경계상 blocked 진입 유도 (stale 증가). stale 1 → 2.
+#     - common/geturl-render-path-test-audit-spec.md (hash 불변 b3137923): TSK-20260421-44 ready 큐 생존. stale 0 → 1.
+#     - common/test-isolation-shuffle-safety-spec.md (hash 불변 bd27261f): TSK-20260421-45 ready 큐 생존. stale 0 → 1.
+# ready 큐: TSK-20260421-44, TSK-20260421-45 (count=2, TASK_READY_MAX=10 여유). TSK-43 blocked 이동으로 1건 감소, TSK-41/42 done 이동으로 2건 감소.
+# carve 계보 (본 세션 추가 없음):
+#   - 직전 세션 carve (TSK-44, TSK-45) 는 `40.task/ready/` 생존 — developer 미소진.
+#   - TSK-43 은 blocked 격리 → planner 재carve 금지 (RULE-05 수동 개입 관할). green 스펙은 inspector 재개정 또는 blocked 재개 신호 대기.
+# grep dry-run (본 세션 신규 carve 0건이므로 실측 없음). 이전 세션 carve 의 grep-baseline 은 TSK-44/45 문서에 박제된 값 불변 유지.
+# 총 grep dry-run 0/0 match (본 세션 carve 0 — 승격만 수행).
+30.spec/green/deps/fake-timer-teardown-residual-cleanup-spec.md 97cedb50c645b512b563f2bb33ed251b2e67ce6830611f548dc5f8b5266345a9 2
+30.spec/green/deps/react-19-findby-timing-stabilization-spec.md b5d9e93ed288177673e17ba1012d54fc77f26e20722a1071ac1b43d5c4b133a4 2
+30.spec/green/common/geturl-render-path-test-audit-spec.md b31379230e2b28e677c5497537f64efa203878e3a9e568817b06ca7150fefc4a 1
+30.spec/green/common/test-isolation-shuffle-safety-spec.md bd27261fdbd3c24b4ad4db3ac13e37413841ebfdad575f31138773dcfd06b4bc 1
