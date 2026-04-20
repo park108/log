@@ -52,21 +52,21 @@
 ## 테스트 현황
 - [x] React 18.x `npm test` — 46 files / 368 tests green (HEAD=3f9e590).
 - [x] `Navigation.test.jsx:38` 현 HEAD green (우연 경로 의존).
-- [ ] 이디엄 전환 후 React 18 baseline green 유지 (FR-01, FR-02).
-- [ ] `isDev()` true 시뮬레이트 시에도 green (NFR-03, 치환 경로 선결 검증).
-- [ ] `npm run lint` 0 warn / 0 error.
+- [x] 이디엄 전환 후 React 18 baseline green 유지 (FR-01, FR-02) — afe109e / 46/370 green.
+- [x] `isDev()` true 시뮬레이트 시에도 green (NFR-03, 치환 경로 선결 검증) — `stubMode('development')` 실측 green.
+- [x] `npm run lint` 0 warn / 0 error.
 
 ## 수용 기준
-- [ ] (Must) `src/common/Navigation.test.jsx` href assertion 이 intent-based query (`getByRole('link').getAttribute('href')`) 또는 env stub 명시 (`vi.stubEnv('DEV', false); vi.stubEnv('PROD', false);` in `beforeEach`) 중 1종 이디엄으로 전환.
-- [ ] (Must) `grep -rn "getUrl\b" src --include="*.{jsx,js}" | grep -v "\.test\." | grep -v "common\.js:" | awk -F: '{print $1}' | sort -u` 결과 각 컴포넌트의 렌더 소비처에 대응하는 test 파일 (`Navigation.test.jsx`, `LogItemInfo.test.jsx` 등) 이 동일 이디엄 적용 완료.
-- [ ] (Must) React 18.x `npm test` — 46 files / 368 tests 전원 green + flake 0.
-- [ ] (Must) 치환 경로 선결 검증 — `vi.stubEnv('DEV', true)` 로 `isDev()` 활성화한 시뮬레이션 또는 로컬 `getUrl()` 치환 시 본 spec 수정 테스트 전원 green. 결과를 `result.md` 에 박제.
-- [ ] (Must) `npm run lint` 0 warn / 0 error.
-- [ ] (Should) 선택 이디엄 A/B 중 파일 전반 단일 적용 (혼용 금지).
-- [ ] (Should) 이디엄 B 선택 시 공통 헬퍼 (`src/test-utils/env.js::stubTestEnv()` 또는 `src/setupTests.js` 주석 가이드) 로 중복 선언 2회 이내 제한.
-- [ ] (NFR) `src/**` 런타임 파일 수정 0건 (test 파일·test-utils 한정).
-- [ ] (NFR) `grep -rn "process.env.NODE_ENV\|import.meta.env.DEV\|import.meta.env.PROD" src --include="*.test.*"` 추가 증가 0 hits (본 spec 수정으로 선언이 증가해도 assertion 경로에 잔존하지 않아야 함 — env stub 선언은 `beforeEach` 내부만 허용, 판정은 `vi.stubEnv` 호출 라인 수로 측정).
-- [ ] (NFR) 회귀 안전 — REQ-20260420-005 (env-test-stub adaptation) 와 충돌 없음. 본 spec 수정이 `previousNodeEnv` 백업·복원 패턴을 새로 도입하지 않음 (RULE-06 grep baseline 참조).
+- [x] (Must) `src/common/Navigation.test.jsx` href assertion 이 intent-based query (`getByRole('link').getAttribute('href')`) 또는 env stub 명시 (`vi.stubEnv('DEV', false); vi.stubEnv('PROD', false);` in `beforeEach`) 중 1종 이디엄으로 전환.
+- [x] (Must) `grep -rn "getUrl\b" src --include="*.{jsx,js}" | grep -v "\.test\." | grep -v "common\.js:" | awk -F: '{print $1}' | sort -u` 결과 각 컴포넌트의 렌더 소비처에 대응하는 test 파일 (`Navigation.test.jsx`, `LogItemInfo.test.jsx` 등) 이 동일 이디엄 적용 완료.
+- [x] (Must) React 18.x `npm test` — 46 files / 368 tests 전원 green + flake 0.
+- [x] (Must) 치환 경로 선결 검증 — `vi.stubEnv('DEV', true)` 로 `isDev()` 활성화한 시뮬레이션 또는 로컬 `getUrl()` 치환 시 본 spec 수정 테스트 전원 green. 결과를 `result.md` 에 박제.
+- [x] (Must) `npm run lint` 0 warn / 0 error.
+- [x] (Should) 선택 이디엄 A/B 중 파일 전반 단일 적용 (혼용 금지) — 이디엄 A (intent-based) 고정.
+- [x] (Should) 이디엄 B 선택 시 공통 헬퍼 (`src/test-utils/env.js::stubTestEnv()` 또는 `src/setupTests.js` 주석 가이드) 로 중복 선언 2회 이내 제한 — A 채택으로 B 제약 N/A.
+- [x] (NFR) `src/**` 런타임 파일 수정 0건 (test 파일·test-utils 한정).
+- [x] (NFR) `grep -rn "process.env.NODE_ENV\|import.meta.env.DEV\|import.meta.env.PROD" src --include="*.test.*"` 추가 증가 0 hits (본 spec 수정으로 선언이 증가해도 assertion 경로에 잔존하지 않아야 함 — env stub 선언은 `beforeEach` 내부만 허용, 판정은 `vi.stubEnv` 호출 라인 수로 측정).
+- [x] (NFR) 회귀 안전 — REQ-20260420-005 (env-test-stub adaptation) 와 충돌 없음. 본 spec 수정이 `previousNodeEnv` 백업·복원 패턴을 새로 도입하지 않음 (RULE-06 grep baseline 참조).
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -87,3 +87,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-20 | inspector / — | 최초 등록 (REQ-20260420-009 반영) | all |
+| 2026-04-21 | TSK-20260420-40 / afe109e | Navigation.test.jsx `:52` `toStrictEqual` 1건을 intent-based (anchor 존재 + `href===null \|\| /^https?:\/\//`) 2건으로 재설계 — env 전제와 assertion 의도 분리. `document.createElement("a")` 스캐폴딩 2줄 제거, 변수명 `html→link`. 46/370 green × 3회, lint clean, `stubMode('development')` 선결 시나리오 PASS. 8개 Must + 2개 Should + 3개 NFR 전원 `[x]`. | 테스트 현황·수용 기준 |
