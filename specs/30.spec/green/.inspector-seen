@@ -1,25 +1,33 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T21:03:32Z (HEAD=5ecf4af)
-# Phase 1 ack this session: 0/0 (green queue 空 — WIP marker 0건).
-# Phase 1 historical context (reference only, ledger 트래킹 이미 종료):
-#   - deps/react-19-findby-option-beta-idiom-spec.md → 50.blocked/spec/ (planner @ 4aa85e4, stale=3)
-#       reason: TSK-20260421-47 `40.task/ready/` 체류 (developer 미소진), RULE-05 관할.
-#   - foundation/test-infra-conventions-grep-gate-lifo-spec.md → 50.blocked/spec/ (planner @ 4aa85e4, stale=3)
-#       reason: TSK-20260421-46 done (@5ecf4af, 2026-04-21) — 원인 해소. RULE-05 운영자 정리 대기.
-#   - common/test-isolation-shuffle-safety-spec.md → `50.blocked/spec/` (TSK-45 blocked).
-#   - deps/react-19-findby-timing-stabilization-spec.md → `50.blocked/spec/` (α 폐기).
-#   - deps/fake-timer-teardown-residual-cleanup-spec.md → `50.blocked/spec/` (marker 유지).
-# Phase 2 this session: green 空 → deferred/split 대상 없음.
-# Phase 3 this session:
-#   - input queue (20.req/ready/): **0 건** — Phase 3 no-op.
-#   - downstream threshold GREEN_PENDING_MAX=20 (기본, pipeline.json 없음). green 현 0 < 20.
-#   - 처리된 req: 0 / blocked: 0 / 신규 green: 0 / 갱신 green: 0.
-# 관찰: 직전 inspector session (7d8bdf5) → HEAD (5ecf4af) 사이 변화:
-#   - a7a2ed2 spec(inspector): 직전 ledger refresh.
-#   - 5ecf4af test: TSK-20260421-46 done (foundation/test-infra-conventions-grep-gate-lifo
-#       원인 커밋). 40.task/ready/ 에서 빠짐 → 현재 TSK-20260421-47 1건만 체류.
-#   - 60.done/task/ 에 `20260421-test-infra-conventions-grep-gate-lifo/` 추가됨.
-#   - 50.blocked/spec/ 5건 불변 (RULE-05 운영자 정리 대기; 그중 grep-gate-lifo 는 원인 해소 상태).
+# Updated: 2026-04-21T06:40:00Z (HEAD=ae80e56, pre-commit)
+# Phase 1 ack this session: 0/0 (green queue 空 at session start — WIP marker 0건).
+# Phase 1 historical context (reference only):
+#   - 이전 세션 HEAD=5ecf4af → 현 HEAD=ae80e56 사이 `ae80e56 test: React 19 findBy* β 이디엄 적용` 발생 (TSK-47 done).
+#   - 50.blocked/spec/ 5건: shuffle-safety (α-가설 기반), react-19-findby-timing-stabilization (α 폐기),
+#     fake-timer-teardown-residual-cleanup, react-19-findby-option-beta-idiom (원인 해소), test-infra-conventions-grep-gate-lifo (원인 해소).
 #   - 50.blocked/task/ 2건 (TSK-43, TSK-45) 불변 — RULE-05 관할.
-# Stale 경고: 없음 (ledger 비어있음).
+# Phase 2 this session: green 空 상태에서 신규 3건 발행 — deferred/split 대상 없음 (모두 단일 스펙 단위).
+# Phase 3 this session:
+#   - input queue (20.req/ready/): **3 건** — REQ-20260421-007/008/009 전원 처리.
+#   - downstream threshold GREEN_PENDING_MAX=20 (기본, pipeline.json 없음). green 현 3 < 20.
+#   - 처리된 req: 3 / blocked: 0 / 신규 green: 3 / 갱신 green: 0.
+# 발행된 green (초기 stale=0):
+specs/30.spec/green/components/file-test-multi-scenario-split-spec.md - 0
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md - 0
+specs/30.spec/green/components/toaster-conditional-mount-or-helper-spec.md - 0
+# 매핑 메모:
+#   - REQ-20260421-008 → components/file-test-multi-scenario-split-spec.md
+#       (File.test.jsx 단일 혼합 test 를 5건 test 로 분할, Delete→refresh fake timer 검증 복원).
+#   - REQ-20260421-007 → common/test-isolation-shuffle-safety-cold-start-spec.md
+#       (α-가설 폐기, cold-start race 서사 재작성, 옵션 A(sync→async) 채택.
+#        이전 blocked spec `test-isolation-shuffle-safety-spec.md` 와 파일명 충돌 회피 위해 `-cold-start` suffix.
+#        운영자 정리(RULE-05 §4) 후 본 파일이 정식 등재).
+#   - REQ-20260421-009 → components/toaster-conditional-mount-or-helper-spec.md
+#       (옵션 B(test-utils 헬퍼) 채택, 옵션 A 는 §대안 보존. runtime 0 변경 + File.test.jsx 우회 1건 치환).
+# 역의존 주의:
+#   - REQ-008 과 REQ-009 는 `src/File/File.test.jsx` 동일 파일 수정 — planner 단계에서 REQ-009 (헬퍼 도입 + 우회 치환) 선행,
+#     REQ-008 (시나리오 분할) 후행을 권장. 병합 순서는 각 spec §의존성 참조.
+#   - REQ-007 의 FR-07 (`File.test.jsx:52` prodServerHasNoData describe `findByText` timeout 옵션) 과
+#     REQ-008 의 분할(`prodServerOk` describe 한정) 은 describe 가 다르므로 병렬 처리 가능.
+# Stale 경고: 없음 (신규 3건 초기 등재).
 #
