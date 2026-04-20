@@ -2,8 +2,8 @@
 
 > **위치**: `package.json:43` (`@testing-library/jest-dom` 의존), `src/setupTests.js:4` (matcher 등록), `vite.config.js:46-60` (Vitest setup)
 > **유형**: Build / Test runtime baseline
-> **최종 업데이트**: 2026-04-19 (by inspector, WIP — REQ-20260419-025 초안)
-> **상태**: Active (업그레이드 계획 단계)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — REQ-20260419-025 완료 반영)
+> **상태**: Stable (v6.9.1 baseline 확립, 모든 FR/수용 기준 충족)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/19/20260419-testing-library-jest-dom-v5-to-v6-upgrade.md` (REQ-20260419-025, v5.17.0 → v6.9.1 업그레이드 실행)
 > - `specs/requirements/done/2026/04/18/20260418-react-19-bump-execution-drift-resolve.md` (REQ-20260418-040, §13 Open Questions — jest-dom@6 분리 권장)
@@ -32,51 +32,49 @@ Vitest + jsdom 환경에서 DOM 어서트 matcher (`toBeInTheDocument`, `toHaveT
 
 ---
 
-## 2. 현재 상태 (As-Is)
+## 2. 현재 상태 (As-Is) — 2026-04-20 drift reconcile
 
-### 2.1 현재 baseline (2026-04-19)
+### 2.1 현재 baseline (2026-04-20)
 
-- `package.json:43` — `"@testing-library/jest-dom": "^5.17.0"` (`^5.x` 캐럿은 메이저 고정 → 자동 bump 불가)
-- `node_modules/@testing-library/jest-dom/package.json` → `5.17.0`
-- `src/setupTests.js:4` — `import '@testing-library/jest-dom'` (v5 범용 진입점)
-- `vite.config.js:46-60` — `test.setupFiles: ['./src/setupTests.js']`, `test.environment: 'jsdom'`
-- `npm outdated`: `@testing-library/jest-dom: 5.17.0 → 6.9.1 (latest)` (2026-04-19)
+- `package.json:43` — `"@testing-library/jest-dom": "^6.9.1"` **(v6 확정, REQ-20260419-025 머지 완료)**
+- `node_modules/@testing-library/jest-dom/package.json` → `6.9.1`
+- `src/setupTests.js:4` — `import '@testing-library/jest-dom/vitest'` (v6 공식 Vitest 진입점, §3.2 V1 채택)
+- `vite.config.js:46-60` — `test.setupFiles: ['./src/setupTests.js']`, `test.environment: 'jsdom'` (변경 없음)
+- 회귀 검증 (commit `9a477cf`, task `20260419-jest-dom-v5-to-v6-upgrade`): 39 파일 / 315 PASS, lint 0 warn, build PASS, `npm audit` 0 vulnerabilities.
 
 ### 2.2 관측 사용 matcher (grep baseline)
 
 - `toBeInTheDocument()`, `toHaveTextContent(...)`, `toHaveClass(...)`, `toHaveAttribute(...)` 등 공통 matcher 다수 사용.
-- v6 에서 제거된 matcher (`toBeEmpty`, `toBeInTheDOM`) 의 현재 사용 여부는 FR-03 사전 grep 에서 확정 (예상 0 또는 소수).
+- v6 에서 제거된 matcher (`toBeEmpty`, `toBeInTheDOM`) — **`grep -rn "toBeEmpty\b\|toBeInTheDOM" src/` → 0 hit** (2026-04-20 재확인). sweep 불필요.
 
-### 2.3 맥락 (drift 근거)
+### 2.3 맥락 (drift 근거 — 해소 완료)
 
-- `react-version-spec.md` §3.1 은 "`@testing-library/jest-dom@5.17.0` / `vitest@4.1.4` + `@vitest/coverage-v8@4.1.4` 는 React 19 에서 안정 동작 가정 (검증 필요)" 로 명시하고, §5 는 "`5.17.0 → 6.9.1` 도 함께 bump 검토 — 본 요구사항 범위 밖, 별 후보" 로 분리 의사 박제.
-- REQ-20260418-040 §13 "Open Questions" 에 "`jest-dom@5 → 6` 을 본 PR 에 포함할지 별 요구사항으로 분리할지 — 기본은 분리" 결정 기록.
-- REQ-20260419-025 가 이 별 후보를 실행 요구사항으로 승격.
+- `react-version-spec.md` §3.1 / §5 의 "jest-dom@5.17.0" / "별 후보" 문구는 REQ-20260419-033 (commit `9a477cf` 박제) 에서 `^6.9.1` 로 동기화 완료.
+- REQ-20260418-040 §13 의 "jest-dom@5 → 6 별 요구사항 분리" 결정은 REQ-20260419-025 로 실행되어 마감.
 
-## 3. 도입 정책 (To-Be, WIP)
+## 3. 도입 정책 (확정 — REQ-20260419-025 머지 완료)
 
-> 관련 요구사항: REQ-20260419-025
+> 관련 요구사항: REQ-20260419-025 (commit `9a477cf`)
 
-### 3.1 목표 baseline
+### 3.1 확정 baseline
 
-- `@testing-library/jest-dom`: `^6.9.1` (메이저 6)
-- import 방식: `import '@testing-library/jest-dom/vitest'` 또는 범용 `import '@testing-library/jest-dom'` — FR-02 에서 v6 공식 vitest 가이드에 따라 결정.
-  - v6 은 Vitest 의 `expect` 전역에 matcher 를 자동 등록하는 `/vitest` 진입점을 제공. Vitest 4.x 의 `test.globals: true` 여부와 호환성 검증 필요 (미결 §7).
-- 제거된 matcher 목록 (v5 → v6):
+- `@testing-library/jest-dom`: **`^6.9.1`** (메이저 6, 설치 해결 `6.9.1`)
+- import 방식: **`import '@testing-library/jest-dom/vitest'`** (v6 공식 Vitest 진입점, §3.2 V1 확정 채택).
+  - Vitest 4.x 와 호환성 런타임 검증 완료 (39 파일 / 315 PASS).
+- 제거된 matcher (v5 → v6) — 코드베이스 영향 없음 (grep 0):
   - `toBeEmpty` → `toBeEmptyDOMElement`
   - `toBeInTheDOM` → 비공개 API, 사용 지양 (대체는 `toBeInTheDocument` 또는 해당 노드 부모 containment 어서트)
 - 기타 v6 변경점: TypeScript type 선언 구조 재편, deprecated matcher 제거, peer 의존 `@testing-library/react` v13+ 호환 유지 (호환 경고는 RTL v16 bump 후 해소).
 
-### 3.2 Vitest 통합 방식 (FR-02 결정 지점)
+### 3.2 Vitest 통합 방식 — **V1 확정**
 
-- 전략 V1 (권장): `src/setupTests.js` 를 `import '@testing-library/jest-dom/vitest';` 로 교체. Vitest 의 `expect` 타입 확장이 가장 정확.
-- 전략 V2 (fallback): 범용 `import '@testing-library/jest-dom';` 유지. 기존 동작과 가장 가깝고 마이그레이션 비용 최소. 단 TS 전환(`types/typescript-spec.md`) 후 type 확장 정확도에서 V1 대비 열위.
-- 결정은 REQ-025 태스크 분할 시 1회 확정. 본 spec 은 기본 V1, fallback V2 허용 (미결 §7).
+- 전략 V1 (**채택**): `src/setupTests.js` 를 `import '@testing-library/jest-dom/vitest';` 로 교체. Vitest 의 `expect` 타입 확장이 가장 정확. (commit `9a477cf` 에서 적용)
+- 전략 V2 (fallback, 미채택): 범용 `import '@testing-library/jest-dom';` — 기존 동작과 가깝지만 TS 전환 후 type 확장 정확도에서 열위 → 미채택.
+- 결정 완료 — §7 미결에서 제외.
 
-### 3.3 제거 matcher 사전 grep (FR-03)
+### 3.3 제거 matcher 사전 grep (FR-03) — **완료**
 
-- `grep -rn "toBeEmpty\b\|toBeInTheDOM" src/` — 발견 시 v6 대체 matcher 로 교체.
-- 발견 매치 수 0 이면 sweep 불필요 (NFR-01 무영향).
+- `grep -rn "toBeEmpty\b\|toBeInTheDOM" src/` → **0 hit** (2026-04-19 / 재확인 2026-04-20). sweep 불필요 (NFR-01 무영향).
 
 ### 3.4 peer 호환 매트릭스
 
@@ -90,11 +88,11 @@ Vitest + jsdom 환경에서 DOM 어서트 matcher (`toBeInTheDocument`, `toHaveT
 
 - REQ-025 는 RTL / React 버전에 독립적으로 진행 가능 — peer 경고(`jest-dom@6` + RTL v13) 는 기능 동작에 영향 없음(REQ-025 §8 가정). RTL v16 + React 19 머지 후 peer 경고 0 로 수렴.
 
-### 3.5 grep 회귀 차단 (NFR-01)
+### 3.5 grep 회귀 차단 (NFR-01) — **충족**
 
-- `grep -rn "toBeEmpty\b\|toBeInTheDOM" src/` → 0 (또는 대체 완료 후 0).
-- `grep -n "\"@testing-library/jest-dom\"" package.json` → `^6.x.x` 매치.
-- `npm list @testing-library/jest-dom` → `6.x.y` 해결.
+- `grep -rn "toBeEmpty\b\|toBeInTheDOM" src/` → 0 (2026-04-20 재확인).
+- `grep -n "\"@testing-library/jest-dom\"" package.json` → `43:    "@testing-library/jest-dom": "^6.9.1",` (매치).
+- `npm list @testing-library/jest-dom` → `6.9.1` (result.md 박제).
 
 ## 4. 의존성
 
@@ -112,18 +110,18 @@ Vitest + jsdom 환경에서 DOM 어서트 matcher (`toBeInTheDocument`, `toHaveT
 
 ## 5. 수용 기준 (Acceptance)
 
-### 5.1 REQ-20260419-025 수용 기준 (`jest-dom` v5 → v6)
+### 5.1 REQ-20260419-025 수용 기준 (`jest-dom` v5 → v6) — **전부 충족**
 > 관련 요구사항: REQ-20260419-025 §10
 
-- [ ] FR-01 `package.json` 의 `@testing-library/jest-dom` 버전이 `^6.x.x` 이상으로 설정
-- [ ] FR-01 `package-lock.json` / `node_modules/@testing-library/jest-dom/package.json` 의 version 이 `6.x.y`
-- [ ] FR-02 `src/setupTests.js` 가 v6 공식 import 방식으로 갱신 (§3.2 V1 우선, V2 fallback)
-- [ ] FR-03 `grep -rn "toBeEmpty\b\|toBeInTheDOM" src/` → 0 (또는 v6 대체 완료)
-- [ ] FR-04 `npm test` 전체 통과 (기준 35 파일 / ~292 PASS 또는 현 baseline 동등 이상)
-- [ ] `npm run lint` 0 warn/error
-- [ ] `npm run build` PASS
-- [ ] `npm audit` 에서 jest-dom 관련 high+ 취약점 0 (NFR-03)
-- [ ] RTL v13 상태의 peer 경고는 §3.4 에 예상 기록됨 — RTL v16 (REQ-040) 후 0 수렴 확인
+- [x] FR-01 `package.json` 의 `@testing-library/jest-dom` 버전이 `^6.x.x` 이상으로 설정 — `^6.9.1` 확정
+- [x] FR-01 `package-lock.json` / `node_modules/@testing-library/jest-dom/package.json` 의 version 이 `6.x.y` — `6.9.1` 해결
+- [x] FR-02 `src/setupTests.js` 가 v6 공식 import 방식으로 갱신 — `import '@testing-library/jest-dom/vitest'` (§3.2 V1 채택)
+- [x] FR-03 `grep -rn "toBeEmpty\b\|toBeInTheDOM" src/` → 0 — 2026-04-20 재확인
+- [x] FR-04 `npm test` 전체 통과 — 39 파일 / 315 PASS (baseline 동등 이상)
+- [x] `npm run lint` 0 warn/error — 확인
+- [x] `npm run build` PASS — `✓ built in 471ms`
+- [x] `npm audit` 에서 jest-dom 관련 high+ 취약점 0 (NFR-03) — `found 0 vulnerabilities`
+- [~] RTL v13 상태의 peer 경고는 §3.4 에 예상 기록됨 — RTL v16 (REQ-040) 후 0 수렴 확인 **(REQ-040 대기)**
 - [x] 본 REQ 머지 후 inspector 가 `react-version-spec.md` §3.1 의 "`jest-dom@5.17.0`" 문구를 `^6.9.1` 로 갱신 — REQ-20260419-033 완료 (commit `9a477cf` 박제)
 
 ## 6. 알려진 제약 / 이슈
@@ -135,15 +133,17 @@ Vitest + jsdom 환경에서 DOM 어서트 matcher (`toBeInTheDocument`, `toHaveT
 
 ## 7. 미결 (Open Questions)
 
-- Vitest 통합 방식 V1(`/vitest`) vs V2(범용) — REQ-025 태스크 분할 시 결정.
-- `tsconfig.json` `types` 배열 반영 여부 — TypeScript 전환 REQ (`20260417-migrate-to-typescript`) 와 병행 또는 별 후보.
-- jest-dom v6 + RTL v13 peer 경고 허용 기간 — RTL v16 bump (REQ-040) 후 해소 대기가 기본. 수용 기간 정책 별 후보.
+- ~~Vitest 통합 방식 V1(`/vitest`) vs V2(범용)~~ — **V1 확정** (commit `9a477cf`, §3.2).
+- `tsconfig.json` `types` 배열 반영 여부 — TypeScript 전환 REQ (`20260417-migrate-to-typescript`) 와 병행 또는 별 후보. (여전히 미결)
+- jest-dom v6 + RTL v13 peer 경고 허용 기간 — RTL v16 bump (REQ-040) 후 해소 대기가 기본. REQ-040 진행 전까지 유지.
 
 ## 8. 변경 이력
 | 일자 | TSK | 요약 | 영향 |
 |------|-----|------|------|
 | 2026-04-19 | (pending, REQ-20260419-025) | 신규 spec 초안 — `@testing-library/jest-dom` v5.17.0 → v6.9.1 업그레이드, Vitest 통합 방식, 제거 matcher 매핑 (WIP) | 전체 |
+| 2026-04-19 | `20260419-jest-dom-v5-to-v6-upgrade` | REQ-025 FR-01~04 실행 완료 — jest-dom `^5.17.0` → `^6.9.1` bump, setupTests `/vitest` 진입점 교체, 39 파일 / 315 PASS (commit `9a477cf`) | 2.1, 3.1, 3.2, 3.3, 5.1 |
 | 2026-04-19 | REQ-20260419-033 | REQ-025 머지 (commit `9a477cf`) 후 `react-version-spec.md` §3.1 drift 해소 — §4.2 / §5.1 인계 체크박스 마감 | 4.2, 5.1, 8 |
+| 2026-04-20 | (inspector drift reconcile) | §1 상태 "Stable", §2.1 현재 baseline 을 `^6.9.1` 로 갱신 + commit `9a477cf` 박제, §3.x [WIP]/미결 표기 제거(V1 확정), §5.1 수용 기준 전부 [x] (RTL peer 수렴은 REQ-040 대기 [~]), §7 V1 미결 항목 제거. 커밋 영향: 본 spec 단독. | 1, 2.1, 3.1~3.5, 5.1, 7, 8 |
 
 ## 9. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/19/20260419-testing-library-jest-dom-v5-to-v6-upgrade.md`
