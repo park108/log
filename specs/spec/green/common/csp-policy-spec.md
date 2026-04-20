@@ -65,10 +65,14 @@
 
 ### 3.2 Dev/Prod 분기 (FR-14)
 
+> 관련 요구사항: REQ-20260420-011 (dev HMR 호환성 운영자 수동 스모크 baseline — 옵션 (a)/(b) 결정 근거)
+
 - **Prod (`npm run build`)**: 본 §3.1 정책 100% 적용.
 - **Dev (`npm run dev`)**: 두 옵션 중 1 선택 (planner 결정):
   - (a) dev 환경 meta 태그 제거 — Vite plugin `transformIndexHtml` 로 제외.
   - (b) dev 한정 `script-src 'self' 'unsafe-eval'` — HMR `eval` 기반 모듈 교체 허용.
+- **운영자 baseline 절차**: `docs/testing/csp-dev-hmr-smoke.md` (REQ-20260420-011 신설 예정) — S-01 dev 기동 + 메인 / S-02 주요 페이지 이동 / S-03 HMR 트리거 3 시나리오에서 DevTools Console CSP violation = 0 관측. PASS 시 옵션 (b) `'unsafe-eval'` 추가 불필요 결정 박제; FAIL 시 옵션 (a)/(b) 별 REQ 큐잉.
+- **업로드 CDN `img-src` 운영자 도메인 확인** (FR-15): `src/File/api.js` / `src/Image/api.js` 의 업로드 응답 URL 호스트 확정 후 `index.html:9` `img-src` 에 추가. 절차는 REQ-20260420-013 박제 — 운영자 1회 Network 탭 관측 또는 AWS 콘솔 직접 확인.
 
 ### 3.3 Build 무결성 검증 (FR-11)
 
@@ -78,10 +82,16 @@
 
 ### 3.4 수동 smoke 체크리스트 (FR-12, Should)
 
-- **문서 위치**: `docs/testing/csp-smoke.md` 신설 (자매 `docs/testing/*.md` 동일 형식).
+> 관련 요구사항: REQ-20260420-011 (dev HMR 호환성), REQ-20260420-012 (외부 스캐너 등급), REQ-20260420-013 (업로드 → 렌더 violation 0)
+
+- **문서 위치**: `docs/testing/csp-smoke.md` 신설 (자매 `docs/testing/*.md` 동일 형식) — 통합 합본은 4 분산 docs 의 baseline 수행 후 별 REQ.
 - **시나리오 매트릭스**: 주요 경로 5개 `/log`, `/log/writer`, `/admin/file`, `/monitor`, `/search` 에서 DevTools Console 의 CSP violation 로그 0 확인.
 - **환경 매트릭스**: Chrome / Firefox 최신 + Prod build (`npm run build && npm run preview`).
 - **baseline**: 운영자 1회 수행 + 결과 PR 본문 또는 문서 하단 박제.
+- **분산 docs 현황** (통합 전 독립 수행):
+  - `docs/testing/csp-dev-hmr-smoke.md` — dev HMR 호환성 3 시나리오 (REQ-20260420-011).
+  - `docs/testing/csp-external-scanner-baseline.md` — securityheaders.com / Mozilla Observatory 등급 (REQ-20260420-012).
+  - `docs/testing/csp-img-src-upload-rendering-smoke.md` (또는 REQ-013 절차 내 통합) — 업로드 → 렌더 `Refused to load the image` 0 (REQ-20260420-013).
 
 ## 4. 의존성
 
@@ -107,13 +117,16 @@
 - [x] FR-01: `index.html` 에 `<meta http-equiv="Content-Security-Policy" content="...">` 단일 태그 추가 (commit `67794e1`, index.html:9)
 - [x] FR-02 ~ FR-10: §3.1 표의 9 directive 모두 정확한 값으로 포함 (commit `67794e1`, task result.md DoD 박제)
 - [x] FR-11: `npm run build` 후 `build/index.html` 에 meta 태그 보존 (grep count=1, task result.md §테스트 결과)
+**[deferred: FR-12 는 `docs/testing/csp-smoke.md` 신설 + 운영자 1회 baseline — 자동 파이프라인 불가(jsdom CSP 미지원). 운영자 수동 smoke 는 REQ-20260420-008 (Cognito) / REQ-20260420-011 (dev HMR) / REQ-20260420-012 (외부 스캐너) / REQ-20260420-013 (img-src CDN) 로 분산·cross-link 됨 — 통합 `csp-smoke.md` 는 4 docs baseline 수행 후 합본 별 REQ 큐잉]**
 - [ ] FR-12 (Should): `docs/testing/csp-smoke.md` 신설 + 운영자 1회 baseline (별 task `20260420-csp-smoke-checklist` 큐잉)
 - [x] FR-13: 본 `csp-policy-spec.md` 존재 (본 문서로 충족)
+**[deferred: FR-14 는 dev HMR 호환성 실측 baseline 이 먼저 필요 — 운영자 1회 `npm run dev` 세션 DevTools Console violation 관측으로 옵션 (a) `transformIndexHtml` dev CSP 제거 vs (b) dev 한정 `'unsafe-eval'` 결정. REQ-20260420-011 (`docs/testing/csp-dev-hmr-smoke.md` 신설) 이 baseline 절차 박제. PASS (violation 0) 시 옵션 (b) 불필요 결정; FAIL 시 옵션 (a)/(b) 별 REQ 큐잉]**
 - [ ] FR-14: dev/prod 분기 처리 (옵션 (a) 또는 (b) 중 1 선택 + 박제) (별 task `20260420-csp-dev-prod-branch` 분리)
-- [ ] FR-15 (Should): 업로드 CDN 도메인 확인 → `img-src` 에 추가 (운영자 followup 스텁)
-**[deferred: NFR-01 은 외부 스캐너(securityheaders.com / Mozilla Observatory) 결과 관측이 유일 검증 수단 — 코드 변경 아니라 운영자 세션에서 등급 확인 후 사인오프; 67794e1 머지 완료 → 운영자 1회 스캔 followup 스텁 생성]**
+**[deferred: FR-15 는 업로드 응답 URL 의 CDN 호스트 확정이 선결 — 운영자 Image/File 업로드 1회 + Network 탭 관측 또는 AWS 콘솔 직접 확인 필요. REQ-20260420-013 가 (a) 도메인 조사 절차, (b) `index.html:9` `img-src` 1줄 갱신, (c) §3.2 / FR-15 cross-link + `[x]` 전환을 박제. 운영자 수행 후 inspector 후속 라운드에서 flip]**
+- [ ] FR-15 (Should): 업로드 CDN 도메인 확인 → `img-src` 에 추가 (운영자 followup 스텁; REQ-20260420-013 절차 박제)
+**[deferred: NFR-01 은 외부 스캐너(securityheaders.com / Mozilla Observatory) 결과 관측이 유일 검증 수단 — 코드 변경 아니라 운영자 세션에서 등급 확인 후 사인오프; 67794e1 머지 완료 → REQ-20260420-012 (`docs/testing/csp-external-scanner-baseline.md`) 가 스캔 2건 절차 박제, 운영자 1회 스캔 후 inspector 후속 라운드 flip]**
 - [ ] NFR-01: securityheaders.com / Mozilla Observatory CSP 항목 통과 (F → A/B 이상)
-**[deferred: NFR-02 는 DevTools Console CSP violation 수동 관측 — 자동화 불가(jsdom CSP 미지원, §7 알려진 제약 박제), 운영자 수동 smoke 세션에서 5 경로 위반 0 확인 사인오프]**
+**[deferred: NFR-02 는 DevTools Console CSP violation 수동 관측 — 자동화 불가(jsdom CSP 미지원, §7 알려진 제약 박제), 운영자 수동 smoke 세션에서 5 경로 위반 0 확인 사인오프. REQ-20260420-011 (dev HMR) 와 REQ-20260420-013 (업로드 → 렌더 `Refused to load the image` 0 검증, FR-05) 이 부분 커버]**
 - [ ] NFR-02: 모든 주요 경로 렌더 회귀 0 (수동 smoke 0 violation)
 - [x] NFR-03: `npm run build` 성공 (task result.md: 356ms 성공, `build/` 산출물 정상)
 - [x] NFR-04: `npm test` 100% PASS (39 files / 317 tests, coverage Statements 97.96% / Branches 95.29%)
@@ -132,8 +145,10 @@
 - jsdom 은 CSP enforce 를 지원하지 않아 단위 테스트로 검증 불가 — 수동 smoke 필수.
 - `'unsafe-inline'` in `style-src` 는 XSS 방어 완전성을 일부 손상 — 별 REQ 로 nonce/해시 전환 트랙.
 - `report-uri` 부재 시 violation 관측 수단 없음 — DevTools Console 수동 확인 한정.
-- dev HMR 호환성 — FR-14 옵션 (a)/(b) 중 선택 (planner).
+- dev HMR 호환성 — FR-14 옵션 (a)/(b) 중 선택 (planner). 운영자 수동 검증: `docs/testing/csp-dev-hmr-smoke.md` 참조 (REQ-20260420-011 — S-01~S-03 3 시나리오 PASS/FAIL 분기로 옵션 결정).
 - AWS API Gateway 호스트 확정 전에는 `connect-src` 값 확정 불가 — 운영자 확인 필요.
+- 업로드 CDN `img-src` 도메인 미확정 (FR-15) — `src/File/api.js` / `src/Image/api.js` 의 업로드 응답 URL 호스트를 운영자 1회 관측 후 `index.html:9` 에 추가. 절차: REQ-20260420-013 (`img-src` 업로드 CDN 도메인 추가) 박제.
+- 외부 스캐너 등급 운영자 1회 baseline 미수행 (NFR-01, deferred) — `docs/testing/csp-external-scanner-baseline.md` 참조 (REQ-20260420-012 — S-01 securityheaders.com / S-02 Mozilla Observatory).
 
 ## 8. 변경 이력 (Changelog — via Task)
 | 일자 | TSK | 요약 | 영향 섹션 |
@@ -142,6 +157,10 @@
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 | 2026-04-20 | §5.1 operator UNCHK 2행(NFR-01, NFR-02) defer-tag (planner §4 Cond-2 충족 목적) | inspector |
 | 2026-04-20 | TSK-20260420-08 (67794e1) | CSP meta 태그 index.html 도입 (9 directive, build grep 검증 PASS, 317/317 PASS) — FR-01 ~ FR-11, FR-13 + NFR-03/04/06 flip | 2, 5.1 |
+| 2026-04-20 | (pending, REQ-20260420-011) | §3.2 Dev/Prod 분기 + §3.4 수동 smoke + §7 알려진 제약에 `docs/testing/csp-dev-hmr-smoke.md` cross-link — dev HMR 호환성 운영자 1회 baseline 절차 (S-01~S-03). FR-14 옵션 (a)/(b) 결정 근거 박제. §5.1 FR-14 `[deferred]` 태그 추가 (planner §4 Cond-2 충족) | 3.2, 3.4, 5.1, 7 |
+| 2026-04-20 | (pending, REQ-20260420-012) | §5.1 NFR-01 + §7 알려진 제약에 `docs/testing/csp-external-scanner-baseline.md` cross-link — securityheaders.com / Mozilla Observatory 등급 baseline 절차 (S-01/S-02). 운영자 수행 후 inspector 후속 라운드 `[x]` flip 박제 | 5.1, 7 |
+| 2026-04-20 | (pending, REQ-20260420-013) | §3.2 Dev/Prod 분기 섹션에 업로드 CDN `img-src` 운영자 도메인 확인 절차 박제 + §7 알려진 제약 + §5.1 FR-15 `[deferred]` 태그 추가 (planner §4 Cond-2 충족). 도메인 확정 후 `index.html:9` `img-src` 1줄 갱신 + FR-15 `[x]` flip 은 REQ-013 머지 후 inspector 후속 라운드 | 3.2, 5.1, 7 |
+| 2026-04-20 | (inspector §4 Cond-2 보강) | §5.1 FR-12 `[deferred]` 태그 추가 — 통합 `csp-smoke.md` 는 4 분산 docs (REQ-008/011/012/013) baseline 수행 후 합본 별 REQ. FR-12/14/15 non-deferred unchecked 0 도달로 planner cycle 74 이후 promotion 해제 | 5.1 |
 
 ## 9. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-csp-meta-defense-in-depth-introduction.md` (REQ-20260419-040)
@@ -150,6 +169,9 @@
   - REQ-20260418-001 (sanitize-markdown-html-output, done)
   - REQ-20260418-102 (sanitize-html-logitem-writer-integration, done)
   - REQ-20260418-104 (sanitize-html-uri-safe-attr-spec-drift, done)
+  - REQ-20260420-011 (csp-dev-hmr-runtime-smoke-doc, ready) — FR-14 baseline 절차
+  - REQ-20260420-012 (csp-external-scanner-baseline-doc, ready) — NFR-01 baseline 절차
+  - REQ-20260420-013 (csp-img-src-upload-cdn-domain-survey-and-add, ready) — FR-15 도메인 확정
 - 외부:
   - MDN CSP reference
   - OWASP ASVS V14.4

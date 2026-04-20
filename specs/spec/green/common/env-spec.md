@@ -13,6 +13,8 @@
 > - REQ-20260418-033 (`specs/requirements/done/2026/04/18/20260418-log-api-js-spec-code-mismatch-correction.md`) — §4.3 row #8 `src/Log/api.js` spec/code drift 정정 + 2 hits sweep (WIP)
 > - REQ-20260418-035 (`specs/requirements/done/2026/04/18/20260418-userlogin-cognito-dev-preview-runtime-smoke-baseline.md`) — §7.1 UserLogin Cognito dev/preview 수동 스모크 baseline 박제 트리거 (WIP)
 > - REQ-20260419-012 (`specs/requirements/done/2026/04/19/20260419-cross-domain-msw-lifecycle-isolation-phase2.md`) — §5.2 `vi.stubEnv('NODE_ENV', ...)` 패턴의 17 파일 cross-domain sweep 목표 박제 (Phase 2 확장)
+> - REQ-20260420-009 (`specs/requirements/ready/20260420-env-spec-stubenv-prod-only-drift-correction.md`) — §5.2 stub 패턴 drift 정정 (`vi.stubEnv('PROD', true)` 가 함수형 getter `isProd()` 의 유일 유효 stub 경로; `NODE_ENV` stub 은 `process.env.NODE_ENV` 직접 읽는 잔여 코드 한정 유효)
+> - REQ-20260420-010 (`specs/requirements/ready/20260420-userlogin-test-dynamic-import-workaround-simplification.md`) — UserLogin.test.jsx 18라인 우회 단순화 실험 (REQ-032 FR-11 Could — probe it PASS/FAIL 분기 결정)
 
 > 본 문서는 컴포넌트의 **현재 구현 상태 + 진행 중 변경 계획(WIP)** 을 기술하는 SSoT.
 > WIP 항목은 `[WIP]` 또는 `> 관련 요구사항:` 헤더로 표시.
@@ -157,9 +159,15 @@ export const mode = () => import.meta.env.MODE;
 
 **`process.env.NODE_ENV` 직접 mutation 금지 (REQ-20260418-027, REQ-20260419-012 Phase 2 확장)**: 테스트 파일이 `process.env.NODE_ENV = 'production'` 를 직접 할당하고 복원하지 않으면 다음 테스트로 누설되어 flaky 원인이 된다. 표준 패턴은 `vi.stubEnv('NODE_ENV', 'production')` + 글로벌 `afterEach(vi.unstubAllEnvs)` (`src/setupTests.js` 에 1회 등록). 상세는 `state/server-state-spec.md` §3.6.3 + §3.7.4 (Phase 2 cross-domain sweep 시 `grep -rn 'process\.env\.NODE_ENV\s*=' src/**/*.test.{js,jsx}` → 0 매치 달성).
 
-**[WIP] 함수형 전환 후 테스트 stub 패턴 (REQ-20260418-032 FR-04, FR-05)**:
+**[WIP] 함수형 전환 후 테스트 stub 패턴 (REQ-20260418-032 FR-04, FR-05; REQ-20260420-009 drift 정정)**:
 
-함수형 전환 머지 후 `vi.stubEnv('PROD', true)` / `vi.stubEnv('NODE_ENV', 'production')` 단독으로 `isProd()` 가 즉시 `true` 반환. `vi.resetModules() + dynamic import` 우회 불필요.
+> 관련 요구사항: REQ-20260420-009 (env-spec §5.2 함수형 stub 패턴 drift 정정 — `vi.stubEnv('PROD', true)` 가 함수형 getter `isProd()` 의 **유일** 유효 stub 경로임을 박제)
+
+함수형 전환 머지 후 `vi.stubEnv('PROD', true)` 또는 `vi.stubEnv('DEV', false)` 가 함수형 getter `isProd()` / `isDev()` 의 **유일** 유효 stub 경로다. `import.meta.env.PROD` / `DEV` 는 `process.env.NODE_ENV` 와 별개 keypath 이므로 `vi.stubEnv('NODE_ENV', 'production')` 은 함수형 getter 에 전파되지 않는다 (Vitest 4.1.4 probe 실측: `after NODE_ENV — DEV: true PROD: false MODE: test NODE_ENV: production`). `vi.resetModules() + dynamic import` 우회 불필요.
+
+**`vi.stubEnv('NODE_ENV', 'production')` 유효 범위** (FR-03): `process.env.NODE_ENV` 를 직접 읽는 잔여 코드 (현재 `src/common/common.js` 9 hits + `src/Log/api.js` 2 hits — REQ-026 Phase 1 잔여) 에 한정 유효. 함수형 getter 호출부 (`isProd()` / `isDev()`) 에는 무효. 잔여 sweep 마감 시 본 유효 범위 항목도 함께 제거 (inspector 후속 라운드).
+
+**drift 재현 박제 (REQ-20260420-009 FR-04)**: TSK-20260420-11 (commit `4c56103`) 수행 중 `vi.stubEnv('NODE_ENV', 'production')` 단독 치환 시 5 도메인 (Monitor/File/Comment/Search/Image) 36/95 회귀 + MSW `server.listen()` Invariant Violation cascade 재현. `PROD`/`DEV` 쌍으로 재치환 후 95/95 PASS 복구. drift 본질: Vite 의 `import.meta.env.PROD` 는 Vite 런타임 객체에서 노출 — `process.env.NODE_ENV` 와 별개 keypath 이므로 `NODE_ENV` stub 은 getter 에 전파 0.
 
 ```js
 // 함수형 전환 후 권장 패턴 (간결)
@@ -177,12 +185,16 @@ it('prod stage url', () => {
 });
 ```
 
-**5 도메인 api.js 테스트 표준화 (REQ-20260418-032 FR-04)**:
-- `src/Comment/Comment.test.jsx:17, 92, 104, 119` 및 Monitor/File/Search/Image 도메인 테스트의 `process.env.NODE_ENV = '...'` 직접 mutation → `vi.stubEnv('PROD', true)` 또는 `vi.stubEnv('NODE_ENV', 'production')` 로 치환.
+**5 도메인 api.js 테스트 표준화 (REQ-20260418-032 FR-04; REQ-20260420-009 정정)**:
+- `src/Comment/Comment.test.jsx:17, 92, 104, 119` 및 Monitor/File/Search/Image 도메인 테스트의 `process.env.NODE_ENV = '...'` 직접 mutation → `vi.stubEnv('PROD', true)` 또는 `vi.stubEnv('DEV', false)` 로 치환 (commit `4c56103` 마이그레이션 완료). `vi.stubEnv('NODE_ENV', 'production')` OR 옵션은 실측에서 `import.meta.env.PROD` 에 미전파 → 선택지에서 제외.
 - `src/setupTests.js` 에 글로벌 `afterEach(() => vi.unstubAllEnvs())` 등록 (REQ-027 표준 인용).
 
-**UserLogin.test.jsx 우회 단순화 (REQ-20260418-032 FR-11, Could)**:
+**UserLogin.test.jsx 우회 단순화 (REQ-20260418-032 FR-11, Could; REQ-20260420-010 실험 대기)**:
+> 관련 요구사항: REQ-20260420-010 (정적 import + `vi.stubEnv` 가능 여부 단독 실험 — PASS 시 헬퍼 제거, FAIL 시 사유 박제)
+
 - 현 `importUserLogin = async () => { vi.resetModules(); const mod = await import('./UserLogin'); ... }` 18라인 우회 (`src/common/UserLogin.test.jsx:1-18`) 를 함수형 전환 후 단순 `vi.stubEnv` + 정적 import 로 단순화.
+- **실험 절차 (REQ-20260420-010 FR-01)**: probe it `'simplification probe (REQ-010)'` 추가 → `setEnv(true, false)` + 정적 import 된 UserLogin render → 9/9 PASS 확인 후 probe 제거.
+- **분기 결과 박제 위치**: PASS → §5.2 L162~ 문장에 "UserLogin.test.jsx 실측 ✅ 단순화 적용됨 (REQ-20260420-010)" 1줄 추가. FAIL → 본 Could 항목에 "함수형 전환 후에도 [실측 사유] 로 우회 유지 — REQ-20260420-010 실험 결과" 1줄 추가 + 헬퍼 주석 동기화.
 - 회귀 0 보장 시 적용. 회귀 발견 시 우회 유지.
 
 ### 5.3 에러 / 엣지 케이스
@@ -313,6 +325,8 @@ N/A (boolean / string).
 | 2026-04-19 | (pending, REQ-20260419-034) | REQ-012 Phase 2a 코드 실현 트리거 — `src/setupTests.js` `vi.unstubAllEnvs` 글로벌 afterEach 등록 (§5.2 패턴 통합 진입점), Comment.test.jsx 1 파일 PoC; 상세는 server-state-spec §3.7 changelog | 5.2 |
 | 2026-04-20 | (pending, REQ-20260420-002) | Monitor.test.jsx unhandled error 회귀 — MSW 미mock 요청에 의한 `onUnhandledRequest:'error'` 승격 + 언마운트 후 setState 가드 (env mutation 복원 관련 §5.2 패턴 의존) | 5.2 |
 | 2026-04-20 | (operator, RULE-05 §1) | TSK-20260418-36 (api.js only) 재분할 → TSK-20260420-11 (env.js 함수형 + 5 api.js + 12 도메인 테스트 `vi.stubEnv` migrate 번들) carve. §5.1.2 / §9 의 "TSK-36 재개 방식" 미결 closed. 구 blocked 태스크 본문 제거, `_reason.md` 감사 로그 보존 | 5.1.2, 9 |
+| 2026-04-20 | (pending, REQ-20260420-009) | §5.2 stub 패턴 drift 정정 — `vi.stubEnv('PROD', true)` / `vi.stubEnv('DEV', false)` 가 함수형 getter 의 **유일** 유효 stub 경로임을 명시. `NODE_ENV` OR 옵션 제거 (L162/L187). `vi.stubEnv('NODE_ENV', 'production')` 유효 범위 = `process.env.NODE_ENV` 직접 읽는 잔여 코드 (common.js 9 + Log/api.js 2 hits) 한정. drift 재현 박제: TSK-20260420-11 (`4c56103`) 첫 sed 시 5 도메인 36/95 회귀 + MSW Invariant Violation cascade, PROD/DEV 쌍 재치환 후 95/95 복구 | 5.2 |
+| 2026-04-20 | (pending, REQ-20260420-010) | §5.2 UserLogin.test.jsx 우회 단순화 (FR-11 Could) 항목에 probe 실험 절차 박제 — `'simplification probe (REQ-010)'` it 추가 → `setEnv(true, false)` + 정적 import render → 9/9 PASS 분기 결정. PASS 시 헬퍼 제거 + §5.2 ✅ 박제, FAIL 시 사유 박제 + 헬퍼 주석 동기화. 실험은 developer 영역 (inspector 는 spec 박제만) | 5.2 |
 
 ## 11. 관련 문서
 - 기원 요구사항:
@@ -320,6 +334,8 @@ N/A (boolean / string).
   - `specs/requirements/done/2026/04/18/20260418-env-spec-vitest-mode-default-drift.md` (REQ-101)
   - `specs/requirements/done/2026/04/18/20260418-env-helper-call-site-sweep-replace-process-env.md` (REQ-026)
   - `specs/requirements/done/2026/04/18/20260418-log-test-flaky-listitem-msw-isolation.md` (REQ-027, 테스트 stub 가이드 적용처)
+  - `specs/requirements/ready/20260420-env-spec-stubenv-prod-only-drift-correction.md` (REQ-20260420-009, §5.2 stub drift 정정)
+  - `specs/requirements/ready/20260420-userlogin-test-dynamic-import-workaround-simplification.md` (REQ-20260420-010, UserLogin.test 우회 단순화 실험)
 - 관련 컴포넌트 명세: 없음 (consumer 들은 spec 미작성. 본 헬퍼 도입 시 함께 갱신)
 - 1차 task: `specs/task/done/2026/04/18/20260418-env-helper-module-introduction/` (TSK-13)
 - 진행 중/예정 task: (planner 가 생성 예정)
