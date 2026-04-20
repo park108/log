@@ -16,6 +16,7 @@
 > - `specs/requirements/done/2026/04/19/20260419-writer-isprocessing-derive-from-mutation-ispending.md` (REQ-20260419-009, Writer `isProcessing` 로컬 state 제거 → `isPending` 파생화 — §3.3.1.2 commitment 마감)
 > - `specs/requirements/done/2026/04/19/20260419-cross-domain-msw-lifecycle-isolation-phase2.md` (REQ-20260419-012, 도메인 전반 MSW lifecycle / `NODE_ENV` 변형 격리 Phase 2 — REQ-027 Phase 1 cross-domain 확장)
 > - `specs/requirements/done/2026/04/19/20260419-logsingle-consume-uselog-hook-tanstack-query-migration.md` (REQ-20260419-023, LogSingle.jsx `useLog` 소비 + 수동 fetch `useEffect` 제거 — §3.3 조회 경로 drift 해소)
+> - `specs/requirements/ready/20260420-search-domain-tanstack-query-sessionstorage-trick-purge.md` (REQ-20260420-028, Search 도메인 `useSearchList` 도입 + `sessionStorage("searchList"/"searchTotalCount"/"searchQueryString"/"searchProcessingTime")` 4키 + 자체 AbortController 제거 — §3.3.4 Search 도메인 확장, WIP)
 
 > 본 문서는 서버 상태(원격 데이터) 관리 표준 SSoT.
 > 클라이언트 상태(전역 UI 상태) 는 범위 밖.
@@ -33,7 +34,7 @@
 - 의도적으로 하지 않는 것:
   - 전역 클라이언트 상태(Zustand 등) — 별 spec
   - Suspense Query 패턴 — React 19 업그레이드 후 고려
-  - 다른 도메인(File/Image/Comment/Search/Monitor) 적용 — 파일럿 검증 후 별건
+  - 다른 도메인(File/Image/Comment/Monitor) 적용 — 파일럿 검증 후 별건 (Search 는 §3.3.4 에서 본 REQ-20260420-028 로 이관 WIP)
 
 ## 2. 현재 상태 (As-Is)
 - `src/*/api.js` 가 `fetch` + `useState` 조합으로 리스트/단건 로딩 수동 관리
@@ -56,12 +57,13 @@
 - `refetchOnWindowFocus`: 환경에 따라 결정 (개발/운영 동일이 권장)
 
 ### 3.2 훅 명명 규약
-- 조회: `useLogList`, `useLog(id)` — `useQuery`
+- 조회: `useLogList`, `useLog(id)`, `useSearchList(q, options)` — `useQuery`
+  - `useSearchList` 는 Search 도메인 확장 (§3.3.4, REQ-20260420-028) 에서 도입. `queryKey: ['search', 'list', { q }]`, `queryFn` 은 `getSearchList(q, { signal })`. `enabled: q.length > 0` 로 idle 분기 지원.
 - 변경: `useCreateLog`, `useUpdateLog`, `useDeleteLog` — `useMutation`
-- 위치: `src/Log/hooks/` (신규 디렉토리)
-- queryKey: `['log', 'list', params]`, `['log', 'detail', id]` 형태로 계층화
+- 위치: `src/Log/hooks/`, `src/Search/hooks/` 등 도메인별 디렉토리
+- queryKey: `['log', 'list', params]`, `['log', 'detail', id]`, `['search', 'list', { q }]` 형태로 계층화
 
-### 3.3 파일럿 적용 범위 (Log 도메인)
+### 3.3 파일럿 적용 범위 (Log 도메인) 및 도메인 확장
 대상 화면:
 - `LogList.jsx` — `useLogList` (조회, 훅은 `fa9424c` 에 도입됨 — **consumer 미전환** → REQ-20260419-007 에서 `LogList.jsx` 의 `useLogList` 소비 + `sessionStorage("logList"/"logListLastTimestamp")` 트릭 제거로 §3.3 파일럿 마감 예정, WIP)
 - `LogSingle.jsx` — `useLog` (조회, 훅은 `fa9424c` 에 도입됨 — **consumer 미전환** → REQ-20260419-023 에서 `LogSingle.jsx` 의 `useLog` 소비 + `useEffect` 직접 fetch 제거 + `isLoading`/`data`/`itemLoadingStatus` 수동 state 3개 제거로 §3.3 조회 경로 마감 예정, WIP — 상세 §3.3.3)
@@ -350,6 +352,60 @@
 - `staleTime: 60_000` (§3.1) 과 `enabled: Boolean(timestamp)` (기존 훅 옵션) 조합으로 경로 진입 시 불필요 재요청 0.
 
 **Drift 기록**: 본 §3.3.3 머지 시 §3.3 파일럿 행의 `LogSingle.jsx — useLog (조회, 완료 — commit fa9424c)` 는 "완료 — commit `<REQ-023 머지 해시>`" 로 inspector 가 갱신 (현 `fa9424c` 는 훅 구현만 반영, 소비자 전환은 REQ-023 머지 후 박제).
+
+### 3.3.4 [WIP] Search 도메인 확장 — `useSearchList` + `sessionStorage` 4키 purge (REQ-20260420-028)
+
+> 관련 요구사항: REQ-20260420-028 FR-01 ~ FR-08, US-01 ~ US-02
+
+**맥락 (2026-04-20 관측)**: `src/Search/Search.jsx:27-96` 는 Log 도메인 파일럿 이전과 동일한 레거시 패턴 — `useState` + `useEffect(() => { fetch(...); return () => ac.abort(); }, [queryString])` + `sessionStorage.getItem/setItem("searchList" | "searchTotalCount" | "searchQueryString" | "searchProcessingTime")` 4키 기반 세션 캐싱 — 을 유지한다. §1 의 "다른 도메인(File/Image/Comment/Search/Monitor) — 파일럿 검증 후 별건" 약속은 LogList(REQ-20260419-007) / LogSingle(REQ-20260419-023) 파일럿이 sessionStorage 트릭 제거 + `staleTime` 위임으로 성공한 전례를 근거로 Search 도메인 확장 commitment 를 본 §에 박제한다.
+
+**목표 (In-Scope)**:
+
+**3.3.4.1 신규 훅 도입 (FR-01)**
+- `src/Search/hooks/useSearchList.js` 신규 생성. `useLogList` / `useLog` 골격 1:1 복제.
+  - `queryKey: ['search', 'list', { q }]` (§3.2 계층화 준수).
+  - `queryFn: ({ signal }) => getSearchList(q, { signal })` — TanStack Query signal 을 §3.5 AbortController 안전망으로 위임.
+  - `enabled: q.length > 0` 옵션으로 idle 분기 지원 (초기 렌더 / direct URL 진입 시 빈 쿼리 자동 skip).
+- 옵션 객체 시그니처: `useSearchList(q, { enabled } = {})` — LogList/Log 대칭.
+
+**3.3.4.2 `Search.jsx` 소비 전환 (FR-02, FR-04)**
+- `useState(searchedList/totalCount/processingTime)` 서버 상태 3개 제거. `queryString` state 는 URL-derived (location.state 기반) 이므로 유지 가능 (§13 미결 — URL-derived 전환은 별 REQ).
+- `const { data, isLoading, isError } = useSearchList(queryString, { enabled: queryString.length > 0 })` 로 교체. `data.body.Items` / `data.body.TotalCount` / `data.body.ProcessingTime` 을 렌더에 직접 사용.
+- 자체 `AbortController` (`Search.jsx:33 const ac = new AbortController();` + `return () => ac.abort();`) 제거 — `useQuery` 내장 cancellation 으로 위임 (§3.5 안전망은 마이그레이션 완료 후 자연 해체).
+
+**3.3.4.3 sessionStorage 6 호출 전면 제거 (FR-03)**
+- `grep -rn "sessionStorage.*searchList\|sessionStorage.*searchQueryString\|sessionStorage.*searchTotalCount\|sessionStorage.*searchProcessingTime" src/Search/` → **0 lines** 박제.
+- 레거시 key (`searchList` / `searchTotalCount` / `searchQueryString` / `searchProcessingTime`) 4종은 `staleTime: 60_000` (§3.1) 캐시로 UX 동등 대체 — 동일 queryKey 재방문 시 Network 탭 Fetch 0건.
+
+**3.3.4.4 테스트 (FR-05, FR-06)**
+- `src/Search/hooks/useSearchList.test.js` 신규 — happy / HTTP 500 error / `enabled:false` idle / abort-on-unmount 4 케이스. `renderHook` + 독립 `QueryClient` 인스턴스 (기존 `useLog.test.js` 대칭).
+- `src/Search/Search.test.jsx` 는 `renderWithQuery` (§4.3.1) + MSW 핸들러로 전환. 기존 `sessionStorage.getItem/setItem` mock / spy 제거.
+- 기존 UI 어서트 (결과 카운트, 쿼리 문자열 표시) 는 동일 유지 (NFR-06).
+
+**3.3.4.5 loadingDots 효과 보존 (FR-07)**
+- `Search.jsx:98-108` 의 `isLoading` 기반 loading dots setInterval 효과는 유지. `useQuery` 의 `isLoading` 신호를 그대로 소비. REQ-20260419-004 (`search-loadingdots-cleartimeout`) 의 cleanup 계약은 본 마이그레이션과 독립으로 보존.
+
+**3.3.4.6 grep 회귀 차단**
+- `grep -rn "sessionStorage" src/Search/Search.jsx` → 0 lines.
+- `grep -rn "sessionStorage" src/Search/Search.test.jsx` → 0 lines (SearchInput.jsx 등 scope 밖 baseline 은 planner 가 `## 스코프 규칙` 으로 박제; RULE-06).
+- `grep -rn "AbortController" src/Search/Search.jsx` → 0 lines.
+- `grep -rn "useSearchList(" src/Search/Search.jsx` → ≥ 1 line.
+
+**범위 밖 (REQ-028 §3.2)**:
+- `src/Search/SearchInput.jsx` 의 검색어 입력 UX 변경 — 본 REQ 는 Search 결과 렌더 컴포넌트에만 집중.
+- Search 도메인 mutation 경로 — Search 는 read-only (`useQuery` 단일 경로).
+- Search 도메인의 검색 히스토리 / 추천 자동완성 — 별 REQ 후보.
+- File / Image / Comment / Monitor 도메인의 TanStack Query 이관 — 본 REQ 는 Search 단독.
+- `queryString` state 를 URL-derived 로 리팩토링 — §13 미결 (별 REQ 후보).
+
+**UX 가정 (Assumptions)**:
+- `staleTime: 60_000` 이 기존 sessionStorage 트릭(60초 이상 유지) 의 UX 와 동등. 필요 시 후속 REQ 에서 override.
+- Search API (`/search?q=...`) 는 idempotent read-only — GET 캐싱 안전.
+- LogList 파일럿(REQ-20260419-007) 이 실제 코드에 반영된 상태 전제. drift 발견 시 planner 가 LogList 별 task 로 carve (본 REQ 스코프는 Search 단독).
+
+**의존성**:
+- **상류**: REQ-20260417-adopt-tanstack-query (Provider), REQ-20260418-013 (`renderWithQuery`), REQ-20260418-021 (AbortController 안전망 — hook 이관 후 자동 이관), REQ-20260419-007 (LogList 파일럿 — 본 REQ 의 복제 원본).
+- **하류**: File / Image / Comment / Monitor 도메인 이관 REQ 들의 블루프린트.
 
 ### 3.4 Devtools
 - `@tanstack/react-query-devtools` 도입
@@ -903,6 +959,7 @@ afterAll(() => server.close());
 | 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 | 2026-04-20 | (inspector, REQ-20260420-009) | §3.7.3 Priority 2 `LogSingle.test.jsx` 행에 carve REQ-20260420-009 박제 — 2026-04-20 flake 재현 evidence 기반 독립 원자 carve (3 패턴 로컬 해소 + 3회 연속 CI PASS 검증). Priority 2 `[x]` flip 은 carve task 머지 후 별 라운드 | 3.7 |
 | 2026-04-20 | (pending, REQ-20260420-017) | §3.8 신설 — `vi.useFakeTimers()` 크로스파일 누수 방지. LogSingle flaky timeout 3회 재현 수렴: Phase A per-case `useRealTimers` + 취약 케이스 15s 타임아웃, Phase B `setupTests.js` 전역 `afterEach(() => vi.useRealTimers())`, Phase C `singleFork: true` 원인 확정 실험. REQ-009 (MSW/NODE_ENV/console spy) 와 범위 분리 (WIP) | 3.8 |
+| 2026-04-20 | (pending, REQ-20260420-028) | §3.3.4 신설 — Search 도메인 확장 (LogList 파일럿 복제). `src/Search/hooks/useSearchList.js` 신규 + `Search.jsx` 의 `useState`/`useEffect`/자체 `AbortController`/`sessionStorage("searchList"/"searchTotalCount"/"searchQueryString"/"searchProcessingTime")` 4키 purge + `Search.test.jsx` `renderWithQuery` 전환. §1 "의도적으로 하지 않는 것" + §3.2 훅 명명 규약 (`useSearchList`) 동시 갱신 (WIP) | 1, 3.2, 3.3, 3.3.4 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`
