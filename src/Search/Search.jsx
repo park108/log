@@ -96,12 +96,16 @@ const Search = () => {
 	}, [queryString]);
 
 	useEffect(() => {
-		const tick = () => {
-			return setTimeout(() => setLoadingDots(loadingDots + "."), 300);
+		if (!isLoading) {
+			setLoadingDots("");
+			return;
 		}
-		isLoading ? tick() : setLoadingDots("");
-		return () => clearTimeout(tick);
-	}, [loadingDots, isLoading]);
+		const id = setInterval(
+			() => setLoadingDots(prev => prev.length >= 3 ? "" : prev + "."),
+			300
+		);
+		return () => clearInterval(id);
+	}, [isLoading]);
 
 	const toListButton = (
 		<button className="button button--loglist-seemore" onClick={() => {

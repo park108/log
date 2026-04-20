@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import Search from './Search';
@@ -216,4 +216,83 @@ it('render search list from session and didnt match query string in session', as
 			<Search />
 		</MemoryRouter>
 	);
+});
+
+// --- Loading dots timer cleanup regression guards (REQ-20260420-004, TSK-20260420-16) ---
+// blue spec: specs/spec/blue/testing/search-abort-runtime-smoke-spec.md §3.11
+describe('loading dots timer cleanup', () => {
+
+	const getLoadingDotsText = () => document.getElementById('loading')?.textContent ?? '';
+
+	// fetch 를 미해결 promise 로 stub → isLoading=true 가 유지되어 dots 애니메이션 관찰 가능
+	const stubPendingFetch = () => {
+		return vi.spyOn(globalThis, 'fetch').mockImplementation(
+			() => new Promise(() => { /* never resolves */ })
+		);
+	};
+
+	beforeEach(() => {
+		sessionStorage.clear();
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+		vi.useFakeTimers({ shouldAdvanceTime: false });
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		vi.restoreAllMocks();
+		vi.unstubAllEnvs();
+	});
+
+	it('loading dots increment every 300ms while isLoading', () => {
+		stubPendingFetch();
+
+		render(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<Search />
+			</MemoryRouter>
+		);
+
+		// 초기 진입: isLoading=true 전이 후 dots 는 "".
+		expect(getLoadingDotsText()).toBe('');
+
+		act(() => { vi.advanceTimersByTime(300); });
+		expect(getLoadingDotsText()).toBe('.');
+
+		act(() => { vi.advanceTimersByTime(300); });
+		expect(getLoadingDotsText()).toBe('..');
+
+		act(() => { vi.advanceTimersByTime(300); });
+		expect(getLoadingDotsText()).toBe('...');
+
+		// prev.length >= 3 → "" 로 재시작 (권장안 로직)
+		act(() => { vi.advanceTimersByTime(300); });
+		expect(getLoadingDotsText()).toBe('');
+	});
+
+	it('does not setLoadingDots after unmount (no stale interval tick)', () => {
+		stubPendingFetch();
+
+		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const { unmount } = render(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<Search />
+			</MemoryRouter>
+		);
+
+		// 최소 1회 tick 경과시켜 interval 등록 상태 확인.
+		act(() => { vi.advanceTimersByTime(300); });
+		expect(getLoadingDotsText()).toBe('.');
+
+		unmount();
+
+		// unmount 후 추가 tick 예약 시도 — clearInterval 이 정합이면 경고 0.
+		act(() => { vi.advanceTimersByTime(900); });
+
+		const unmountedWarn = errSpy.mock.calls.filter(
+			c => String(c[0]).includes('unmounted')
+		);
+		expect(unmountedWarn.length).toBe(0);
+	});
 });
