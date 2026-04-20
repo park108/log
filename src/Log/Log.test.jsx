@@ -1,4 +1,4 @@
-import { fireEvent, render, screen,act } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';

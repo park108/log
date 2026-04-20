@@ -314,7 +314,7 @@ it('render log item and delete failed correctly', async () => {
 
 	vi.runOnlyPendingTimers();
 
-	const afterDelete = await screen.findByText("Delete");
+	await screen.findByText("Delete");
 
 	vi.useRealTimers();
 
@@ -373,7 +373,7 @@ it('render log item and delete network error', async () => {
 
 	vi.runOnlyPendingTimers();
 
-	const afterDelete = await screen.findByText("Delete");
+	await screen.findByText("Delete");
 
 	vi.useRealTimers();
 
