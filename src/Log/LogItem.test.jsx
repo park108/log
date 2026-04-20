@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import LogItem from './LogItem';
 import * as common from '../common/common';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -97,7 +98,7 @@ it('render log item correctly', async () => {
 	fireEvent.mouseMove(linkUrl);
 	fireEvent.mouseOut(linkUrl);
 	fireEvent.mouseOut(linkUrl); // Already class changed
-	
+
 	vi.useRealTimers();
 });
 
@@ -149,236 +150,236 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 	});
 });
 
-it('shows error toaster on DELETE 5xx response', async () => {
+describe('LogItem DELETE 5xx error toaster', () => {
+	useMockServer(() => mock.devServerFailed);
 
-	mock.devServerFailed.listen();
-	process.env.NODE_ENV = 'development';
+	it('shows error toaster on DELETE 5xx response', async () => {
 
-	const contents = "header test contents";
-	const markdownText = "## " + contents;
+		process.env.NODE_ENV = 'development';
 
-	const item = {
-		"logs":[
-			{"contents":markdownText,"timestamp":1655737033793}
-			,{"contents":"12345","timestamp":1655736946977}
-		]
-		,"summary":"123456"
-		,"sortKey":1655736946977
-		,"timestamp":1655736946977
-		,"author":"park108@gmail.com"
-	}
+		const contents = "header test contents";
+		const markdownText = "## " + contents;
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		const item = {
+			"logs":[
+				{"contents":markdownText,"timestamp":1655737033793}
+				,{"contents":"12345","timestamp":1655736946977}
+			]
+			,"summary":"123456"
+			,"sortKey":1655736946977
+			,"timestamp":1655736946977
+			,"author":"park108@gmail.com"
+		}
 
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	render(withQuery(
-		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem
-				author={"park108@gmail.com"}
-				timestamp={1655736946977}
-				contents={markdownText}
-				item={item}
-				showLink={true}
-			/>
-		</MemoryRouter>
-	));
+		const testEntry = {
+			pathname: "/log"
+			, search: ""
+			, hash: ""
+			, state: {}
+			, key: "default"
+		};
 
-	window.confirm = vi.fn(() => true);
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogItem
+					author={"park108@gmail.com"}
+					timestamp={1655736946977}
+					contents={markdownText}
+					item={item}
+					showLink={true}
+				/>
+			</MemoryRouter>
+		));
 
-	const deleteButton = screen.getByTestId("delete-button");
-	fireEvent.click(deleteButton);
+		window.confirm = vi.fn(() => true);
 
-	// Error toaster should be visible with the 5xx-specific copy.
-	const toasterMessage = await screen.findByText("Deleting log failed.");
-	expect(toasterMessage).toBeInTheDocument();
+		const deleteButton = screen.getByTestId("delete-button");
+		fireEvent.click(deleteButton);
 
-	mock.devServerFailed.resetHandlers();
-	mock.devServerFailed.close();
+		// Error toaster should be visible with the 5xx-specific copy.
+		const toasterMessage = await screen.findByText("Deleting log failed.");
+		expect(toasterMessage).toBeInTheDocument();
+	});
 });
 
-it('shows network error toaster on DELETE network failure', async () => {
+describe('LogItem DELETE network-error toaster', () => {
+	useMockServer(() => mock.devServerNetworkError);
 
-	mock.devServerNetworkError.listen();
-	process.env.NODE_ENV = 'development';
+	it('shows network error toaster on DELETE network failure', async () => {
 
-	const contents = "header test contents";
-	const markdownText = "## " + contents;
+		process.env.NODE_ENV = 'development';
 
-	const item = {
-		"logs":[
-			{"contents":markdownText,"timestamp":1655737033793}
-			,{"contents":"12345","timestamp":1655736946977}
-		]
-		,"summary":"123456"
-		,"sortKey":1655736946977
-		,"timestamp":1655736946977
-		,"author":"park108@gmail.com"
-	}
+		const contents = "header test contents";
+		const markdownText = "## " + contents;
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		const item = {
+			"logs":[
+				{"contents":markdownText,"timestamp":1655737033793}
+				,{"contents":"12345","timestamp":1655736946977}
+			]
+			,"summary":"123456"
+			,"sortKey":1655736946977
+			,"timestamp":1655736946977
+			,"author":"park108@gmail.com"
+		}
 
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	render(withQuery(
-		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem
-				author={"park108@gmail.com"}
-				timestamp={1655736946977}
-				contents={markdownText}
-				item={item}
-				showLink={true}
-			/>
-		</MemoryRouter>
-	));
+		const testEntry = {
+			pathname: "/log"
+			, search: ""
+			, hash: ""
+			, state: {}
+			, key: "default"
+		};
 
-	window.confirm = vi.fn(() => true);
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogItem
+					author={"park108@gmail.com"}
+					timestamp={1655736946977}
+					contents={markdownText}
+					item={item}
+					showLink={true}
+				/>
+			</MemoryRouter>
+		));
 
-	const deleteButton = screen.getByTestId("delete-button");
-	fireEvent.click(deleteButton);
+		window.confirm = vi.fn(() => true);
 
-	// Network-level failure branches to the distinct message.
-	const toasterMessage = await screen.findByText("Deleting log network error.");
-	expect(toasterMessage).toBeInTheDocument();
+		const deleteButton = screen.getByTestId("delete-button");
+		fireEvent.click(deleteButton);
 
-	mock.devServerNetworkError.resetHandlers();
-	mock.devServerNetworkError.close();
+		// Network-level failure branches to the distinct message.
+		const toasterMessage = await screen.findByText("Deleting log network error.");
+		expect(toasterMessage).toBeInTheDocument();
+	});
 });
 
-it('render log item and delete failed correctly', async () => {
+describe('LogItem render and delete failed (confirm cancel then accept)', () => {
+	useMockServer(() => mock.devServerFailed);
 
-	mock.devServerFailed.listen();
-	process.env.NODE_ENV = 'development';
+	it('render log item and delete failed correctly', async () => {
 
-	const contents = "header test contents";
-	const markdownText = "## " + contents;
+		process.env.NODE_ENV = 'development';
 
-	const item = {
-		"logs":[
-			{"contents":markdownText,"timestamp":1655737033793}
-			,{"contents":"12345","timestamp":1655736946977}
-		]
-		,"summary":"123456"
-		,"sortKey":1655736946977
-		,"timestamp":1655736946977
-		,"author":"park108@gmail.com"
-	}
+		const contents = "header test contents";
+		const markdownText = "## " + contents;
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		const item = {
+			"logs":[
+				{"contents":markdownText,"timestamp":1655737033793}
+				,{"contents":"12345","timestamp":1655736946977}
+			]
+			,"summary":"123456"
+			,"sortKey":1655736946977
+			,"timestamp":1655736946977
+			,"author":"park108@gmail.com"
+		}
 
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	render(withQuery(
-		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem
-				author={"park108@gmail.com"}
-				timestamp={1655736946977}
-				contents={markdownText}
-				item={item}
-				showLink={true}
-			/>
-		</MemoryRouter>
-	));
+		const testEntry = {
+			pathname: "/log"
+			, search: ""
+			, hash: ""
+			, state: {}
+			, key: "default"
+		};
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
-	window.confirm = vi.fn(() => false);
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogItem
+					author={"park108@gmail.com"}
+					timestamp={1655736946977}
+					contents={markdownText}
+					item={item}
+					showLink={true}
+				/>
+			</MemoryRouter>
+		));
 
-	const deleteButton = screen.getByTestId("delete-button");
-	expect(deleteButton).toBeDefined();
-	fireEvent.click(deleteButton);
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		window.confirm = vi.fn(() => false);
 
-	window.confirm = vi.fn(() => true);
-	expect(deleteButton).toBeDefined();
-	fireEvent.click(deleteButton);
+		const deleteButton = screen.getByTestId("delete-button");
+		expect(deleteButton).toBeDefined();
+		fireEvent.click(deleteButton);
 
-	await vi.runOnlyPendingTimersAsync();
+		window.confirm = vi.fn(() => true);
+		expect(deleteButton).toBeDefined();
+		fireEvent.click(deleteButton);
 
-	await screen.findByText("Delete");
+		await vi.runOnlyPendingTimersAsync();
 
-	vi.useRealTimers();
+		await screen.findByText("Delete");
 
-	mock.devServerFailed.resetHandlers();
-	mock.devServerFailed.close();
+		vi.useRealTimers();
+	});
 });
 
-it('render log item and delete network error', async () => {
+describe('LogItem render and delete network error', () => {
+	useMockServer(() => mock.devServerNetworkError);
 
-	mock.devServerNetworkError.listen();
-	process.env.NODE_ENV = 'development';
+	it('render log item and delete network error', async () => {
 
-	const contents = "header test contents";
-	const markdownText = "## " + contents;
+		process.env.NODE_ENV = 'development';
 
-	const item = {
-		"logs":[
-			{"contents":markdownText,"timestamp":1655737033793}
-			,{"contents":"12345","timestamp":1655736946977}
-		]
-		,"summary":"123456"
-		,"sortKey":1655736946977
-		,"timestamp":1655736946977
-		,"author":"park108@gmail.com"
-	}
+		const contents = "header test contents";
+		const markdownText = "## " + contents;
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		const item = {
+			"logs":[
+				{"contents":markdownText,"timestamp":1655737033793}
+				,{"contents":"12345","timestamp":1655736946977}
+			]
+			,"summary":"123456"
+			,"sortKey":1655736946977
+			,"timestamp":1655736946977
+			,"author":"park108@gmail.com"
+		}
 
-	const testEntry = {
-		pathname: "/log"
-		, search: ""
-		, hash: ""
-		, state: {}
-		, key: "default"
-	};
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	render(withQuery(
-		<MemoryRouter initialEntries={[ testEntry ]}>
-			<LogItem
-				author={"park108@gmail.com"}
-				timestamp={1655736946977}
-				contents={markdownText}
-				item={item}
-				showLink={true}
-			/>
-		</MemoryRouter>
-	));
+		const testEntry = {
+			pathname: "/log"
+			, search: ""
+			, hash: ""
+			, state: {}
+			, key: "default"
+		};
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
-	window.confirm = vi.fn(() => true);
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogItem
+					author={"park108@gmail.com"}
+					timestamp={1655736946977}
+					contents={markdownText}
+					item={item}
+					showLink={true}
+				/>
+			</MemoryRouter>
+		));
 
-	const deleteButton = screen.getByTestId("delete-button");
-	expect(deleteButton).toBeDefined();
-	fireEvent.click(deleteButton);
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		window.confirm = vi.fn(() => true);
 
-	await vi.runOnlyPendingTimersAsync();
+		const deleteButton = screen.getByTestId("delete-button");
+		expect(deleteButton).toBeDefined();
+		fireEvent.click(deleteButton);
 
-	await screen.findByText("Delete");
+		await vi.runOnlyPendingTimersAsync();
 
-	vi.useRealTimers();
+		await screen.findByText("Delete");
 
-	mock.devServerNetworkError.resetHandlers();
-	mock.devServerNetworkError.close();
+		vi.useRealTimers();
+	});
 });
 
 it('parse unordered list tag correctly', () => {

@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import Log from '../Log/Log';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -42,160 +43,155 @@ test('render log has data in session', async () => {
 			<Log />
 		</MemoryRouter>
 	);
-	
+
 	const logs = await screen.findAllByRole("listitem");
 	expect(logs.length).toBe(7);
 });
 
-test('render log if it logged in', async () => {
+describe('Log render logged-in on prod server (ok)', () => {
+	useMockServer(() => mock.prodServerOk);
 
-	mock.prodServerOk.listen();
-	
-	process.env.NODE_ENV = 'production';
+	test('render log if it logged in', async () => {
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		process.env.NODE_ENV = 'production';
 
-	render(
-        <MemoryRouter initialEntries={[testEntry]}>
-			<Log />
-		</MemoryRouter>
-	);
-	
-	// Get 7 logs
-	const logs = await screen.findAllByRole("listitem");
-	expect(logs.length).toBe(7);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	const seeMoreButton = await screen.findByTestId("seeMoreButton");
-	expect(seeMoreButton).toBeDefined();
-	fireEvent.click(seeMoreButton);
-	
-	// Get 3 more logs
-	const contentsText = await screen.findByText("Noew Version 10! Can i success? Change once again! ...");
-	expect(contentsText).toBeInTheDocument();
+		render(
+            <MemoryRouter initialEntries={[testEntry]}>
+				<Log />
+			</MemoryRouter>
+		);
 
-	const logs2 = await screen.findAllByRole("listitem");
-	expect(logs2.length).toBe(10);	
+		// Get 7 logs
+		const logs = await screen.findAllByRole("listitem");
+		expect(logs.length).toBe(7);
 
-	const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
-	expect(seeMoreButton2).toBeDefined();
-	fireEvent.click(seeMoreButton2);
-	
-	// Click first log
-	// const firstItem = await screen.findByText("123456");
-	// fireEvent.click(firstItem);
+		const seeMoreButton = await screen.findByTestId("seeMoreButton");
+		expect(seeMoreButton).toBeDefined();
+		fireEvent.click(seeMoreButton);
 
-	mock.prodServerOk.resetHandlers();
-	mock.prodServerOk.close();
+		// Get 3 more logs
+		const contentsText = await screen.findByText("Noew Version 10! Can i success? Change once again! ...");
+		expect(contentsText).toBeInTheDocument();
+
+		const logs2 = await screen.findAllByRole("listitem");
+		expect(logs2.length).toBe(10);
+
+		const seeMoreButton2 = await screen.findByTestId("seeMoreButton");
+		expect(seeMoreButton2).toBeDefined();
+		fireEvent.click(seeMoreButton2);
+
+		// Click first log
+		// const firstItem = await screen.findByText("123456");
+		// fireEvent.click(firstItem);
+	});
 });
 
-test('render failed when internal server error on prod server', async () => {
+describe('Log render failed when internal server error on prod server', () => {
+	useMockServer(() => mock.prodServerFailed);
 
-	mock.prodServerFailed.listen();
+	test('render failed when internal server error on prod server', async () => {
 
-	process.env.NODE_ENV = 'production';
+		process.env.NODE_ENV = 'production';
 
-	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-	vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-	render(
-        <MemoryRouter initialEntries={[testEntry]}>
-			<Log />
-		</MemoryRouter>
-	);
+		render(
+            <MemoryRouter initialEntries={[testEntry]}>
+				<Log />
+			</MemoryRouter>
+		);
 
-	const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
-	expect(errorMessage).toBeInTheDocument();
+		const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
+		expect(errorMessage).toBeInTheDocument();
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
-	fireEvent.click(retryButton);
-
-	mock.prodServerFailed.resetHandlers();
-	mock.prodServerFailed.close();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
+		fireEvent.click(retryButton);
+	});
 });
 
-test('render failed when network error on prod server', async () => {
+describe('Log render failed when network error on prod server', () => {
+	useMockServer(() => mock.prodServerNetworkError);
 
-	mock.prodServerNetworkError.listen();
+	test('render failed when network error on prod server', async () => {
 
-	process.env.NODE_ENV = 'production';
+		process.env.NODE_ENV = 'production';
 
-	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-	vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-	render(
-        <MemoryRouter initialEntries={[testEntry]}>
-			<Log />
-		</MemoryRouter>
-	);
+		render(
+            <MemoryRouter initialEntries={[testEntry]}>
+				<Log />
+			</MemoryRouter>
+		);
 
-	const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
-	expect(errorMessage).toBeInTheDocument();
+		const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
+		expect(errorMessage).toBeInTheDocument();
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
-
-	mock.prodServerNetworkError.resetHandlers();
-	mock.prodServerNetworkError.close();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
+	});
 });
 
-test('render logs and getting next failed', async () => {
+describe('Log render logs and getting next failed', () => {
+	useMockServer(() => mock.prodServerFirstOkNextFailed);
 
-	mock.prodServerFirstOkNextFailed.listen();
-	
-	process.env.NODE_ENV = 'production';
+	test('render logs and getting next failed', async () => {
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		process.env.NODE_ENV = 'production';
 
-	render(
-        <MemoryRouter initialEntries={[testEntry]}>
-			<Log />
-		</MemoryRouter>
-	);
-	
-	// Get 7 logs
-	const logs = await screen.findAllByRole("listitem");
-	expect(logs.length).toBe(7);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	const seeMoreButton = await screen.findByTestId("seeMoreButton");
-	expect(seeMoreButton).toBeDefined();
-	fireEvent.click(seeMoreButton);
+		render(
+            <MemoryRouter initialEntries={[testEntry]}>
+				<Log />
+			</MemoryRouter>
+		);
 
-	const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
-	expect(errorMessage).toBeInTheDocument();
+		// Get 7 logs
+		const logs = await screen.findAllByRole("listitem");
+		expect(logs.length).toBe(7);
 
-	mock.prodServerFirstOkNextFailed.resetHandlers();
-	mock.prodServerFirstOkNextFailed.close();
+		const seeMoreButton = await screen.findByTestId("seeMoreButton");
+		expect(seeMoreButton).toBeDefined();
+		fireEvent.click(seeMoreButton);
+
+		const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
+		expect(errorMessage).toBeInTheDocument();
+	});
 });
 
-test('render logs and getting next error', async () => {
+describe('Log render logs and getting next error', () => {
+	useMockServer(() => mock.prodServerFirstOkNextError);
 
-	mock.prodServerFirstOkNextError.listen();
-	
-	process.env.NODE_ENV = 'production';
+	test('render logs and getting next error', async () => {
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		process.env.NODE_ENV = 'production';
 
-	render(
-        <MemoryRouter initialEntries={[testEntry]}>
-			<Log />
-		</MemoryRouter>
-	);
-	
-	// Get 7 logs
-	const logs = await screen.findAllByRole("listitem");
-	expect(logs.length).toBe(7);
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 
-	const seeMoreButton = await screen.findByTestId("seeMoreButton");
-	expect(seeMoreButton).toBeDefined();
-	fireEvent.click(seeMoreButton);
+		render(
+            <MemoryRouter initialEntries={[testEntry]}>
+				<Log />
+			</MemoryRouter>
+		);
 
-	const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
-	expect(errorMessage).toBeInTheDocument();
+		// Get 7 logs
+		const logs = await screen.findAllByRole("listitem");
+		expect(logs.length).toBe(7);
 
-	mock.prodServerFirstOkNextError.resetHandlers();
-	mock.prodServerFirstOkNextError.close();
+		const seeMoreButton = await screen.findByTestId("seeMoreButton");
+		expect(seeMoreButton).toBeDefined();
+		fireEvent.click(seeMoreButton);
+
+		const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
+		expect(errorMessage).toBeInTheDocument();
+	});
 });

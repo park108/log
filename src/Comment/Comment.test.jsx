@@ -7,196 +7,272 @@ import CommentItem from './CommentItem';
 console.log = vi.fn();
 console.error = vi.fn();
 
-test('render comment list and post comment correctly on dev server', async () => {
+// Comment `api.mock.js` 는 `scenario()` 팩토리 래퍼로 단일 shared server 를 재사용한다.
+// 래퍼의 `listen()` 은 `resetHandlers(...)` 로 핸들러 세트를 교체하며, `{ onUnhandledRequest: 'bypass' }`
+// 를 내부에 하드코딩한다 (src/Comment/api.mock.js:12). 따라서 공통 `useMockServer` 헬퍼 대신
+// 래퍼 API 를 `beforeEach`/`afterEach` 로 직접 호출해 "테스트 본문 내 `.listen()`/`.close()` 잔존 0"
+// 이디엄 규칙을 충족한다. 기존에 한 test 내부에서 3 scenario 를 chain swap 하던 케이스는
+// 3 개의 독립 describe 로 쪼개 각각의 beforeEach 가 해당 scenario 를 활성화한다.
 
-	mock.devServerOk.listen();
-	vi.spyOn(window, 'alert').mockImplementation((message) => {
-		console.log("INPUT MESSAGE on ALERT = " + message);
+describe('Comment render list and post on dev server (ok)', () => {
+	beforeEach(() => mock.devServerOk.listen());
+	afterEach(() => {
+		mock.devServerOk.resetHandlers();
+		mock.devServerOk.close();
 	});
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true); // User is admin in this case.
+	test('render comment list and post comment correctly on dev server', async () => {
 
-	render(<Comment timestamp={1655302060414} />);
+		vi.spyOn(window, 'alert').mockImplementation((message) => {
+			console.log("INPUT MESSAGE on ALERT = " + message);
+		});
 
-	const togglebutton = await screen.findByText("10 comments");
-	expect(togglebutton).toBeInTheDocument();
-	fireEvent.click(togglebutton);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true); // User is admin in this case.
 
-	// Validation error -> No name and comment
-	const submitButton = await screen.findByText("Submit Comment");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
+		render(<Comment timestamp={1655302060414} />);
 
-	// Add name
-	const nameInput = await screen.findByPlaceholderText("Type your name");
-	expect(nameInput).toBeDefined();
-	fireEvent.change(nameInput, {target: {value: 'Test name'}});
+		const togglebutton = await screen.findByText("10 comments");
+		expect(togglebutton).toBeInTheDocument();
+		fireEvent.click(togglebutton);
 
-	// Validation error -> No comment
-	const submitButton2 = await screen.findByText("Submit Comment");
-	expect(submitButton2).toBeDefined();
-	fireEvent.click(submitButton2);
+		// Validation error -> No name and comment
+		const submitButton = await screen.findByText("Submit Comment");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
 
-	// Add comment
-	const textArea = await screen.findByPlaceholderText("Write your comment");
-	expect(textArea).toBeDefined();
-	fireEvent.change(textArea, {target: {value: 'Test comment'}});
+		// Add name
+		const nameInput = await screen.findByPlaceholderText("Type your name");
+		expect(nameInput).toBeDefined();
+		fireEvent.change(nameInput, {target: {value: 'Test name'}});
 
-	// Ok!
-	const submitButton3 = await screen.findByText("Submit Comment");
-	expect(submitButton3).toBeDefined();
-	fireEvent.click(submitButton3);
+		// Validation error -> No comment
+		const submitButton2 = await screen.findByText("Submit Comment");
+		expect(submitButton2).toBeDefined();
+		fireEvent.click(submitButton2);
 
-	// Change comment
-	const textArea2 = await screen.findByPlaceholderText("Write your comment");
-	expect(textArea2).toBeDefined();
-	fireEvent.change(textArea2, {target: {value: ''}});
+		// Add comment
+		const textArea = await screen.findByPlaceholderText("Write your comment");
+		expect(textArea).toBeDefined();
+		fireEvent.change(textArea, {target: {value: 'Test comment'}});
 
-	// Ok!
-	const submitButton4 = await screen.findByText("Submit Comment");
-	expect(submitButton4).toBeDefined();
-	fireEvent.click(submitButton4);
+		// Ok!
+		const submitButton3 = await screen.findByText("Submit Comment");
+		expect(submitButton3).toBeDefined();
+		fireEvent.click(submitButton3);
 
-	// Open reply form
-	const replyButtons = await screen.findAllByText("🪃");
-	const firstReplyButton = replyButtons[0];
+		// Change comment
+		const textArea2 = await screen.findByPlaceholderText("Write your comment");
+		expect(textArea2).toBeDefined();
+		fireEvent.change(textArea2, {target: {value: ''}});
 
-	fireEvent.mouseOver(firstReplyButton);
-	fireEvent.mouseOver(firstReplyButton); // Already class changed
-	fireEvent.mouseMove(firstReplyButton);
-	fireEvent.mouseOut(firstReplyButton);
-	fireEvent.mouseOut(firstReplyButton); // Already class changed
+		// Ok!
+		const submitButton4 = await screen.findByText("Submit Comment");
+		expect(submitButton4).toBeDefined();
+		fireEvent.click(submitButton4);
 
-	expect(firstReplyButton).toBeDefined();
-	fireEvent.click(firstReplyButton);
+		// Open reply form
+		const replyButtons = await screen.findAllByText("🪃");
+		const firstReplyButton = replyButtons[0];
 
-	// Write reply form contents
-	const textArea3 = await screen.findByPlaceholderText("Write your Reply");
-	expect(textArea3).toBeDefined();
-	fireEvent.change(textArea3, {target: {value: 'This is message for you!'}});
+		fireEvent.mouseOver(firstReplyButton);
+		fireEvent.mouseOver(firstReplyButton); // Already class changed
+		fireEvent.mouseMove(firstReplyButton);
+		fireEvent.mouseOut(firstReplyButton);
+		fireEvent.mouseOut(firstReplyButton); // Already class changed
 
-	// OK!
-	const replySendButton = await screen.findByText("Send Reply");
-	expect(replySendButton).toBeDefined();
-	fireEvent.click(replySendButton);
+		expect(firstReplyButton).toBeDefined();
+		fireEvent.click(firstReplyButton);
 
-	mock.devServerOk.resetHandlers();
-	mock.devServerOk.close();
+		// Write reply form contents
+		const textArea3 = await screen.findByPlaceholderText("Write your Reply");
+		expect(textArea3).toBeDefined();
+		fireEvent.change(textArea3, {target: {value: 'This is message for you!'}});
+
+		// OK!
+		const replySendButton = await screen.findByText("Send Reply");
+		expect(replySendButton).toBeDefined();
+		fireEvent.click(replySendButton);
+	});
 });
 
-test('render failed when internal error on dev server', async () => {
+describe('Comment render failed when internal error on dev server', () => {
+	beforeEach(() => mock.devServerFailed.listen());
+	afterEach(() => {
+		mock.devServerFailed.resetHandlers();
+		mock.devServerFailed.close();
+	});
 
-	mock.devServerFailed.listen();
+	test('render failed when internal error on dev server', async () => {
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render(<Comment timestamp={1655302060414} />);
-
-	mock.devServerFailed.resetHandlers();
-	mock.devServerFailed.close();
+		render(<Comment timestamp={1655302060414} />);
+	});
 });
 
-test('render failed when network error on dev server', async () => {
+describe('Comment render failed when network error on dev server', () => {
+	beforeEach(() => mock.devServerNetworkError.listen());
+	afterEach(() => {
+		mock.devServerNetworkError.resetHandlers();
+		mock.devServerNetworkError.close();
+	});
 
-	mock.devServerNetworkError.listen();
+	test('render failed when network error on dev server', async () => {
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render(<Comment timestamp={1655302060414} />);
-
-	mock.devServerNetworkError.resetHandlers();
-	mock.devServerNetworkError.close();
+		render(<Comment timestamp={1655302060414} />);
+	});
 });
 
-test('render comment list and post comment failed on prod server', async () => {
+// ---------------------------------------------------------------------------
+// prod server 시나리오 체인 3 단계.
+// 원본 단일 test 는 `ok -> failed -> networkError` 를 하나의 본문에서 chain swap 했으나,
+// 본문 내 `.listen()` 잔존 금지 이디엄을 충족하기 위해 단계별 describe 로 분리한다.
+// (spec §수용기준 "case/assert 수 감소 0" — 분할 증가는 허용, 원본 assert 들을 모두 보존.)
+// ---------------------------------------------------------------------------
 
-	mock.prodServerOk.listen();
-	vi.spyOn(window, 'alert').mockImplementation((message) => {
-		console.log("INPUT MESSAGE on ALERT = " + message);
+describe('Comment render list and post on prod server (ok scenario — validation flow)', () => {
+	beforeEach(() => mock.prodServerOk.listen());
+	afterEach(() => {
+		mock.prodServerOk.resetHandlers();
+		mock.prodServerOk.close();
 	});
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	test('render comment list and post comment failed on prod server — ok stage', async () => {
 
-	render(<Comment timestamp={1655302060414} />);
+		vi.spyOn(window, 'alert').mockImplementation((message) => {
+			console.log("INPUT MESSAGE on ALERT = " + message);
+		});
 
-	const togglebutton = await screen.findByText("1 comment");
-	expect(togglebutton).toBeInTheDocument();
-	fireEvent.click(togglebutton);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	// Validation error -> No name and comment
-	const submitButton = await screen.findByText("Submit Comment");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
+		render(<Comment timestamp={1655302060414} />);
 
-	// Add name
-	const nameInput = await screen.findByPlaceholderText("Type your name");
-	expect(nameInput).toBeDefined();
-	fireEvent.change(nameInput, {target: {value: 'Test name'}});
+		const togglebutton = await screen.findByText("1 comment");
+		expect(togglebutton).toBeInTheDocument();
+		fireEvent.click(togglebutton);
 
-	// Validation error -> No comment
-	const submitButton2 = await screen.findByText("Submit Comment");
-	expect(submitButton2).toBeDefined();
-	fireEvent.click(submitButton2);
+		// Validation error -> No name and comment
+		const submitButton = await screen.findByText("Submit Comment");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
 
-	// Add comment
-	const textArea = await screen.findByPlaceholderText("Write your comment");
-	expect(textArea).toBeDefined();
-	fireEvent.change(textArea, {target: {value: 'Test comment'}});
+		// Add name
+		const nameInput = await screen.findByPlaceholderText("Type your name");
+		expect(nameInput).toBeDefined();
+		fireEvent.change(nameInput, {target: {value: 'Test name'}});
 
-	mock.prodServerOk.resetHandlers();
-	mock.prodServerOk.close();
+		// Validation error -> No comment
+		const submitButton2 = await screen.findByText("Submit Comment");
+		expect(submitButton2).toBeDefined();
+		fireEvent.click(submitButton2);
 
-	// Change server status to failed
-	mock.prodServerFailed.listen();
+		// Add comment
+		const textArea = await screen.findByPlaceholderText("Write your comment");
+		expect(textArea).toBeDefined();
+		fireEvent.change(textArea, {target: {value: 'Test comment'}});
+	});
+});
 
-	// Failed!
-	vi.useFakeTimers({ shouldAdvanceTime: true });
-
-	const submitButton4 = await screen.findByText("Submit Comment");
-	expect(submitButton4).toBeDefined();
-	fireEvent.click(submitButton4);
-
-	const toasterMessage = await screen.findByText("The comment posted failed.");
-
-	await act(async () => {
-		await vi.runAllTimersAsync();
+describe('Comment render list and post on prod server (failed scenario — post failure toast)', () => {
+	beforeEach(() => mock.prodServerFailed.listen());
+	afterEach(() => {
+		mock.prodServerFailed.resetHandlers();
+		mock.prodServerFailed.close();
 	});
 
-	expect(toasterMessage).toBeDefined();
+	test('render comment list and post comment failed on prod server — failed stage', async () => {
 
-	mock.prodServerFailed.resetHandlers();
-	mock.prodServerFailed.close();
+		vi.spyOn(window, 'alert').mockImplementation((message) => {
+			console.log("INPUT MESSAGE on ALERT = " + message);
+		});
 
-	// Change server status to network error
-	mock.prodServerNetworkError.listen();
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	// Add comment again
-	const textArea2 = await screen.findByPlaceholderText("Write your comment");
-	expect(textArea2).toBeDefined();
-	fireEvent.change(textArea2, {target: {value: 'Test comment'}});
+		render(<Comment timestamp={1655302060414} />);
 
-	// Failed!
-	const submitButton5 = await screen.findByText("Submit Comment");
-	expect(submitButton5).toBeDefined();
-	fireEvent.click(submitButton5);
+		// Failed server: GET returns 500 → error UI (no comment list). Open form via the
+		// failure-path toggle (same "N comment" button renders 0 when GET fails).
+		// To reach the post-fail flow directly, open the form then populate name/comment.
+		const toggle = await screen.findByText(/comment/);
+		expect(toggle).toBeInTheDocument();
+		fireEvent.click(toggle);
 
-	const toasterMessage2 = await screen.findByText("The comment posted failed for network issue.");
+		const nameInput = await screen.findByPlaceholderText("Type your name");
+		fireEvent.change(nameInput, {target: {value: 'Test name'}});
+		const textArea = await screen.findByPlaceholderText("Write your comment");
+		fireEvent.change(textArea, {target: {value: 'Test comment'}});
 
-	await act(async () => {
-		await vi.runAllTimersAsync();
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		const submitButton = await screen.findByText("Submit Comment");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
+
+		const toasterMessage = await screen.findByText("The comment posted failed.");
+
+		await act(async () => {
+			await vi.runAllTimersAsync();
+		});
+
+		expect(toasterMessage).toBeDefined();
+
+		vi.useRealTimers();
+	});
+});
+
+describe('Comment render list and post on prod server (network-error scenario — post failure toast)', () => {
+	beforeEach(() => mock.prodServerNetworkError.listen());
+	afterEach(() => {
+		mock.prodServerNetworkError.resetHandlers();
+		mock.prodServerNetworkError.close();
 	});
 
-	expect(toasterMessage2).toBeDefined();
+	test('render comment list and post comment failed on prod server — networkError stage', async () => {
 
-	vi.useRealTimers();
+		vi.spyOn(window, 'alert').mockImplementation((message) => {
+			console.log("INPUT MESSAGE on ALERT = " + message);
+		});
 
-	mock.prodServerNetworkError.resetHandlers();
-	mock.prodServerNetworkError.close();
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		render(<Comment timestamp={1655302060414} />);
+
+		const toggle = await screen.findByText(/comment/);
+		expect(toggle).toBeInTheDocument();
+		fireEvent.click(toggle);
+
+		const nameInput = await screen.findByPlaceholderText("Type your name");
+		fireEvent.change(nameInput, {target: {value: 'Test name'}});
+		const textArea2 = await screen.findByPlaceholderText("Write your comment");
+		expect(textArea2).toBeDefined();
+		fireEvent.change(textArea2, {target: {value: 'Test comment'}});
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		// Failed!
+		const submitButton5 = await screen.findByText("Submit Comment");
+		expect(submitButton5).toBeDefined();
+		fireEvent.click(submitButton5);
+
+		const toasterMessage2 = await screen.findByText("The comment posted failed for network issue.");
+
+		await act(async () => {
+			await vi.runAllTimersAsync();
+		});
+
+		expect(toasterMessage2).toBeDefined();
+
+		vi.useRealTimers();
+	});
 });
 
 it('render comment item correctly', () => {

@@ -5,6 +5,7 @@ import { Router, MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import * as common from '../common/common';
+import { useMockServer } from '../test-utils/msw';
 
 // Writer depends on `useCreateLog` (TanStack Query mutation hook) since
 // TSK-20260418-MUT-CREATE. A QueryClientProvider is mandatory for the
@@ -37,9 +38,9 @@ beforeEach(() => {
 it('redirect if not admin', async () => {
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(false);
-  
+
 	const history = createMemoryHistory({ initialEntries: ["/log/write"]});
-	
+
 	render(withQuery(
 		<Router location={history.location} navigator={history}>
 			<Writer />
@@ -47,309 +48,303 @@ it('redirect if not admin', async () => {
 	))
 });
 
-test('create log ok on prod server', async () => {
+describe('Writer create log ok on prod server', () => {
+	useMockServer(() => mock.prodServerOk);
 
-	mock.prodServerOk.listen();
+	test('create log ok on prod server', async () => {
 
-	process.env.NODE_ENV = 'production';
-  
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		process.env.NODE_ENV = 'production';
 
-	const testEntry = {
-		pathname: "/log/write",
-		state: null,
-	};
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
+		const testEntry = {
+			pathname: "/log/write",
+			state: null,
+		};
 
-	render(withQuery(
-		<div id="root" className="div fullscreen">
-			<MemoryRouter initialEntries={[testEntry]}>
-				<Writer />
-			</MemoryRouter>
-		</div>
-	));
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 
-	const textInput = await screen.findByTestId("writer-text-area");
-	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
 
-	await act(async () => {
-		await vi.runOnlyPendingTimersAsync();
+		const textInput = await screen.findByTestId("writer-text-area");
+		fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+
+		await act(async () => {
+			await vi.runOnlyPendingTimersAsync();
+		});
+
+		// Submit test
+		const submitButton = await screen.findByTestId("submit-button");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
+
+		await act(async () => {
+			await vi.runAllTimersAsync();
+		});
+
+		const resultMessage = await screen.findByText("The log posted.");
+		expect(resultMessage).toBeDefined();
+
+		vi.useRealTimers();
 	});
-
-	// Submit test
-	const submitButton = await screen.findByTestId("submit-button");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
-
-	await act(async () => {
-		await vi.runAllTimersAsync();
-	});
-
-	const resultMessage = await screen.findByText("The log posted.");
-	expect(resultMessage).toBeDefined();
-
-	vi.useRealTimers();
-
-	mock.prodServerOk.resetHandlers();
-	mock.prodServerOk.close();
 });
 
-test('create log failed on prod server', async () => {
+describe('Writer create log failed on prod server', () => {
+	useMockServer(() => mock.prodServerFailed);
 
-	mock.prodServerFailed.listen();
+	test('create log failed on prod server', async () => {
 
-	process.env.NODE_ENV = 'production';
-  
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		process.env.NODE_ENV = 'production';
 
-	const testEntry = {
-		pathname: "/log/write",
-		state: null,
-	};
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
+		const testEntry = {
+			pathname: "/log/write",
+			state: null,
+		};
 
-	render(withQuery(
-		<div id="root" className="div fullscreen">
-			<MemoryRouter initialEntries={[testEntry]}>
-				<Writer />
-			</MemoryRouter>
-		</div>
-	));
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 
-	const textInput = await screen.findByTestId("writer-text-area");
-	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
 
-	await act(async () => {
-		await vi.runOnlyPendingTimersAsync();
+		const textInput = await screen.findByTestId("writer-text-area");
+		fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+
+		await act(async () => {
+			await vi.runOnlyPendingTimersAsync();
+		});
+
+		// Submit test
+		const submitButton = await screen.findByTestId("submit-button");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
+
+		await act(async () => {
+			await vi.runAllTimersAsync();
+		});
+
+		const resultMessage = await screen.findByText("Posting log failed.");
+		expect(resultMessage).toBeDefined();
+
+		vi.useRealTimers();
 	});
-
-	// Submit test
-	const submitButton = await screen.findByTestId("submit-button");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
-
-	await act(async () => {
-		await vi.runAllTimersAsync();
-	});
-
-	const resultMessage = await screen.findByText("Posting log failed.");
-	expect(resultMessage).toBeDefined();
-
-	vi.useRealTimers();
-
-	mock.prodServerFailed.resetHandlers();
-	mock.prodServerFailed.close();
 });
 
-test('create log network error on prod server', async () => {
+describe('Writer create log network error on prod server', () => {
+	useMockServer(() => mock.prodServerNetworkError);
 
-	mock.prodServerNetworkError.listen();
+	test('create log network error on prod server', async () => {
 
-	process.env.NODE_ENV = 'production';
-  
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		process.env.NODE_ENV = 'production';
 
-	const testEntry = {
-		pathname: "/log/write",
-		state: null,
-	};
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
+		const testEntry = {
+			pathname: "/log/write",
+			state: null,
+		};
 
-	render(withQuery(
-		<div id="root" className="div fullscreen">
-			<MemoryRouter initialEntries={[testEntry]}>
-				<Writer />
-			</MemoryRouter>
-		</div>
-	));
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 
-	const textInput = await screen.findByTestId("writer-text-area");
-	fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
 
-	await act(async () => {
-		await vi.runOnlyPendingTimersAsync();
+		const textInput = await screen.findByTestId("writer-text-area");
+		fireEvent.change(textInput, {target: {value: 'Create Log!'}});
+
+		await act(async () => {
+			await vi.runOnlyPendingTimersAsync();
+		});
+
+		// Submit test
+		const submitButton = await screen.findByTestId("submit-button");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
+
+		await act(async () => {
+			await vi.runAllTimersAsync();
+		});
+
+		const resultMessage = await screen.findByText("Posting log network error.");
+		expect(resultMessage).toBeDefined();
+
+		vi.useRealTimers();
 	});
-
-	// Submit test
-	const submitButton = await screen.findByTestId("submit-button");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
-
-	await act(async () => {
-		await vi.runAllTimersAsync();
-	});
-
-	const resultMessage = await screen.findByText("Posting log network error.");
-	expect(resultMessage).toBeDefined();
-
-	vi.useRealTimers();
-
-	mock.prodServerNetworkError.resetHandlers();
-	mock.prodServerNetworkError.close();
 });
 
-it('edit log ok on dev server', async () => {
+describe('Writer edit log ok on dev server', () => {
+	useMockServer(() => mock.devServerOk);
 
-	mock.devServerOk.listen();
+	it('edit log ok on dev server', async () => {
 
-	process.env.NODE_ENV = 'development';
-  
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		process.env.NODE_ENV = 'development';
 
-	const testEntry = {
-		pathname: "/log/write",
-		state: {
-			from: {
-				logs: [
-					{"contents":"Current contents","timestamp":1655737033793}
-					,{"contents":"Previous contents","timestamp":1655736946977}
-				],
-				temporary: true,
-				timestamp: 1234567890
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+
+		const testEntry = {
+			pathname: "/log/write",
+			state: {
+				from: {
+					logs: [
+						{"contents":"Current contents","timestamp":1655737033793}
+						,{"contents":"Previous contents","timestamp":1655736946977}
+					],
+					temporary: true,
+					timestamp: 1234567890
+				}
 			}
-		}
-	};
-  
-	render(withQuery(
-		<div id="root" className="div fullscreen">
-			<MemoryRouter initialEntries={[testEntry]}>
-				<Writer />
-			</MemoryRouter>
-		</div>
-	));
+		};
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
 
-	// Submit test
-	const submitButton = await screen.findByTestId("submit-button");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 
-	await act(async () => {
-		await vi.runOnlyPendingTimersAsync();
+		// Submit test
+		const submitButton = await screen.findByTestId("submit-button");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
+
+		await act(async () => {
+			await vi.runOnlyPendingTimersAsync();
+		});
+
+		const resultMessage = await screen.findByText("The log changed.");
+		expect(resultMessage).toBeDefined();
+
+		vi.useRealTimers();
 	});
-
-	const resultMessage = await screen.findByText("The log changed.");
-	expect(resultMessage).toBeDefined();
-
-	vi.useRealTimers();
-
-	mock.devServerOk.resetHandlers();
-	mock.devServerOk.close();
 });
 
-it('edit log failed on dev server', async () => {
+describe('Writer edit log failed on dev server', () => {
+	useMockServer(() => mock.devServerFailed);
 
-	mock.devServerFailed.listen();
+	it('edit log failed on dev server', async () => {
 
-	process.env.NODE_ENV = 'development';
-  
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		process.env.NODE_ENV = 'development';
 
-	const testEntry = {
-		pathname: "/log/write",
-		state: {
-			from: {
-				logs: [
-					{"contents":"Current contents","timestamp":1655737033793}
-					,{"contents":"Previous contents","timestamp":1655736946977}
-				],
-				temporary: false,
-				timestamp: 1234567890
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+
+		const testEntry = {
+			pathname: "/log/write",
+			state: {
+				from: {
+					logs: [
+						{"contents":"Current contents","timestamp":1655737033793}
+						,{"contents":"Previous contents","timestamp":1655736946977}
+					],
+					temporary: false,
+					timestamp: 1234567890
+				}
 			}
-		}
-	};
-  
-	render(withQuery(
-		<div id="root" className="div fullscreen">
-			<MemoryRouter initialEntries={[testEntry]}>
-				<Writer />
-			</MemoryRouter>
-		</div>
-	));
+		};
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
 
-	// Submit test
-	const submitButton = await screen.findByTestId("submit-button");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 
-	await act(async () => {
-		await vi.runOnlyPendingTimersAsync();
+		// Submit test
+		const submitButton = await screen.findByTestId("submit-button");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
+
+		await act(async () => {
+			await vi.runOnlyPendingTimersAsync();
+		});
+
+		const resultMessage = await screen.findByText("Editing log failed.");
+		expect(resultMessage).toBeDefined();
+
+		vi.useRealTimers();
 	});
-
-	const resultMessage = await screen.findByText("Editing log failed.");
-	expect(resultMessage).toBeDefined();
-
-	vi.useRealTimers();
-
-	mock.devServerFailed.resetHandlers();
-	mock.devServerFailed.close();
 });
 
-it('edit log network error on dev server', async () => {
+describe('Writer edit log network error on dev server', () => {
+	useMockServer(() => mock.devServerNetworkError);
 
-	mock.devServerNetworkError.listen();
+	it('edit log network error on dev server', async () => {
 
-	process.env.NODE_ENV = 'development';
-  
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		process.env.NODE_ENV = 'development';
 
-	const testEntry = {
-		pathname: "/log/write",
-		state: {
-			from: {
-				logs: [
-					{"contents":"Current contents","timestamp":1655737033793}
-					,{"contents":"Previous contents","timestamp":1655736946977}
-				],
-				timestamp: 1234567890
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+
+		const testEntry = {
+			pathname: "/log/write",
+			state: {
+				from: {
+					logs: [
+						{"contents":"Current contents","timestamp":1655737033793}
+						,{"contents":"Previous contents","timestamp":1655736946977}
+					],
+					timestamp: 1234567890
+				}
 			}
-		}
-	};
-  
-	render(withQuery(
-		<div id="root" className="div fullscreen">
-			<MemoryRouter initialEntries={[testEntry]}>
-				<Writer />
-			</MemoryRouter>
-		</div>
-	));
+		};
 
-	vi.useFakeTimers({ shouldAdvanceTime: true });
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
 
-	// Submit test
-	const submitButton = await screen.findByTestId("submit-button");
-	expect(submitButton).toBeDefined();
-	fireEvent.click(submitButton);
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 
-	await act(async () => {
-		await vi.runOnlyPendingTimersAsync();
+		// Submit test
+		const submitButton = await screen.findByTestId("submit-button");
+		expect(submitButton).toBeDefined();
+		fireEvent.click(submitButton);
+
+		await act(async () => {
+			await vi.runOnlyPendingTimersAsync();
+		});
+
+		const resultMessage = await screen.findByText("Editing log network error.");
+		expect(resultMessage).toBeDefined();
+
+		vi.useRealTimers();
 	});
-
-	const resultMessage = await screen.findByText("Editing log network error.");
-	expect(resultMessage).toBeDefined();
-
-	vi.useRealTimers();
-
-	mock.devServerNetworkError.resetHandlers();
-	mock.devServerNetworkError.close();
 });
 
 
@@ -407,7 +402,7 @@ test('event testing', async () => {
 	vi.spyOn(window, 'alert').mockImplementation((message) => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
-  
+
 	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
@@ -415,7 +410,7 @@ test('event testing', async () => {
 	const testEntry = {
 		pathname: "/log/write"
 	};
-  
+
 	render(withQuery(
 		<div id="root" className="div fullscreen">
 			<MemoryRouter initialEntries={[testEntry]}>

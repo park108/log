@@ -2,90 +2,87 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import WebVitalsItem from '../Monitor/WebVitalsItem';
 import * as errorReporter from '../common/errorReporter';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
 vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
-it('render web vitals monitor on dev server', async () => {
+describe('WebVitalsItem render on prod server (ok)', () => {
+	useMockServer(() => mock.prodServerOk);
 
-	mock.prodServerOk.listen();
+	it('render web vitals monitor on dev server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
 
-	const obj = await screen.findByText("POOR");
-	expect(obj).toBeInTheDocument();
+		const obj = await screen.findByText("POOR");
+		expect(obj).toBeInTheDocument();
 
-	const statusBar = await screen.findByTestId("status-bar-CLS");
-	expect(statusBar).toBeInTheDocument();
+		const statusBar = await screen.findByTestId("status-bar-CLS");
+		expect(statusBar).toBeInTheDocument();
 
-	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
-	// popup 이관 검증: focus → role="tooltip" + aria-describedby 설정.
-	// 기존 mouseOver/mouseMove/mouseOut 어서트는 jsdom 한계로 focus 경로로 갱신.
-	expect(statusBar.getAttribute('aria-describedby')).toBeFalsy();
+		// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+		// popup 이관 검증: focus → role="tooltip" + aria-describedby 설정.
+		// 기존 mouseOver/mouseMove/mouseOut 어서트는 jsdom 한계로 focus 경로로 갱신.
+		expect(statusBar.getAttribute('aria-describedby')).toBeFalsy();
 
-	act(() => { fireEvent.focus(statusBar); });
+		act(() => { fireEvent.focus(statusBar); });
 
-	const describedBy = statusBar.getAttribute('aria-describedby');
-	expect(describedBy).toBeTruthy();
-	const tooltip = document.getElementById(describedBy);
-	expect(tooltip).not.toBeNull();
-	expect(tooltip).toHaveAttribute('role', 'tooltip');
-	expect(tooltip).toHaveAttribute('aria-hidden', 'false');
-	// web-vitals-spec §7.2 FR-02 / REQ-20260420-020:
-	// description prop 이 전달되면 tooltip 첫 <li> 에 그 문자열이 렌더되어야 한다.
-	// 기존 counts 마커(🟢/🟡/🔴) 어서트는 보존 (회귀 금지).
-	expect(tooltip.textContent).toMatch(/Cumulative Layout Shift/);
-	expect(tooltip.textContent).toMatch(/🟢|🟡|🔴/);
-
-	mock.prodServerOk.resetHandlers();
-	mock.prodServerOk.close();
+		const describedBy = statusBar.getAttribute('aria-describedby');
+		expect(describedBy).toBeTruthy();
+		const tooltip = document.getElementById(describedBy);
+		expect(tooltip).not.toBeNull();
+		expect(tooltip).toHaveAttribute('role', 'tooltip');
+		expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+		// web-vitals-spec §7.2 FR-02 / REQ-20260420-020:
+		// description prop 이 전달되면 tooltip 첫 <li> 에 그 문자열이 렌더되어야 한다.
+		// 기존 counts 마커(🟢/🟡/🔴) 어서트는 보존 (회귀 금지).
+		expect(tooltip.textContent).toMatch(/Cumulative Layout Shift/);
+		expect(tooltip.textContent).toMatch(/🟢|🟡|🔴/);
+	});
 });
 
-it('render web vitals monitor failed on prod server', async () => {
+describe('WebVitalsItem render on prod server (failed)', () => {
+	useMockServer(() => mock.prodServerFailed);
 
-	mock.prodServerFailed.listen();
+	it('render web vitals monitor failed on prod server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
 
-	fireEvent.click(retryButton);
-
-	mock.prodServerFailed.resetHandlers();
-	mock.prodServerFailed.close();
+		fireEvent.click(retryButton);
+	});
 });
 
-it('render web vitals monitor network error on prod server', async () => {
+describe('WebVitalsItem render on prod server (network error)', () => {
+	useMockServer(() => mock.prodServerNetworkError);
 
-	mock.prodServerNetworkError.listen();
+	it('render web vitals monitor network error on prod server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
 
-	fireEvent.click(retryButton);
-
-	mock.prodServerNetworkError.resetHandlers();
-	mock.prodServerNetworkError.close();
+		fireEvent.click(retryButton);
+	});
 });
 
 describe('WebVitalsItem Retry keyboard activation', () => {
+	useMockServer(() => mock.prodServerFailed);
 
 	it('retry span is keyboard focusable with role=button (a11y pattern B)', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -95,14 +92,9 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButton).toHaveAttribute('tabindex', '0');
 		expect(retryButton).toHaveAttribute('role', 'button');
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 
 	it('retry span activates on Enter key (a11y pattern B)', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -117,14 +109,9 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 
 		const retryButtonAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButtonAfter).toBeInTheDocument();
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 
 	it('retry span activates on Space key and prevents default scroll (a11y pattern B)', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -140,14 +127,9 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 
 		const retryButtonAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButtonAfter).toBeInTheDocument();
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 
 	it('retry span ignores non-activation keys (a11y pattern B negative case)', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -163,8 +145,5 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 		// The error UI is still rendered (no re-mount triggered).
 		const retryButtonAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButtonAfter).toBeInTheDocument();
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 });

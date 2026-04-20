@@ -2,6 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import ApiCallItem from './ApiCallItem';
 import * as errorReporter from '../common/errorReporter';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -20,111 +21,105 @@ const stackPallet = {
 	]
 };
 
-it('render api call monitor on prod server', async () => {
+describe('ApiCallItem render on prod server (ok)', () => {
+	useMockServer(() => mock.prodServerOk);
 
-	mock.prodServerOk.listen();
+	it('render api call monitor on prod server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
+		render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const obj = await screen.findByText("02.01 (Tue)");
-	expect(obj).toBeInTheDocument();
+		const obj = await screen.findByText("02.01 (Tue)");
+		expect(obj).toBeInTheDocument();
 
-	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
-	// popup 이관 검증: focus 시 role="tooltip" + aria-describedby 설정 + blur 후 100ms 숨김.
-	// 기존 mouseOver/mouseMove/mouseOut 는 jsdom pointer event 한계로 불안정 → focus 경로로 갱신.
-	const firstPillar = await screen.findByTestId("api-call-item-log-0");
-	expect(firstPillar).toBeInTheDocument();
+		// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+		// popup 이관 검증: focus 시 role="tooltip" + aria-describedby 설정 + blur 후 100ms 숨김.
+		// 기존 mouseOver/mouseMove/mouseOut 는 jsdom pointer event 한계로 불안정 → focus 경로로 갱신.
+		const firstPillar = await screen.findByTestId("api-call-item-log-0");
+		expect(firstPillar).toBeInTheDocument();
 
-	// 초기: popup 미렌더 (isVisible=false).
-	expect(firstPillar.getAttribute('aria-describedby')).toBeFalsy();
+		// 초기: popup 미렌더 (isVisible=false).
+		expect(firstPillar.getAttribute('aria-describedby')).toBeFalsy();
 
-	act(() => { fireEvent.focus(firstPillar); });
+		act(() => { fireEvent.focus(firstPillar); });
 
-	const describedBy = firstPillar.getAttribute('aria-describedby');
-	expect(describedBy).toBeTruthy();
-	const tooltip = document.getElementById(describedBy);
-	expect(tooltip).not.toBeNull();
-	expect(tooltip).toHaveAttribute('role', 'tooltip');
-	expect(tooltip).toHaveAttribute('aria-hidden', 'false');
-
-	mock.prodServerOk.resetHandlers();
-	mock.prodServerOk.close();
+		const describedBy = firstPillar.getAttribute('aria-describedby');
+		expect(describedBy).toBeTruthy();
+		const tooltip = document.getElementById(describedBy);
+		expect(tooltip).not.toBeNull();
+		expect(tooltip).toHaveAttribute('role', 'tooltip');
+		expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+	});
 });
 
-it('render api call monitor has zero total count on prod server', async () => {
+describe('ApiCallItem render on prod server (no count)', () => {
+	useMockServer(() => mock.prodServerHasNoCount);
 
-	mock.prodServerHasNoCount.listen();
+	it('render api call monitor has zero total count on prod server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
+		render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const obj = await screen.findByText("02.01 (Tue)");
-	expect(obj).toBeInTheDocument();
-
-	mock.prodServerHasNoCount.resetHandlers();
-	mock.prodServerHasNoCount.close();
+		const obj = await screen.findByText("02.01 (Tue)");
+		expect(obj).toBeInTheDocument();
+	});
 });
 
-it('render api call monitor but has no total count on prod server', async () => {
+describe('ApiCallItem render on prod server (no total count)', () => {
+	useMockServer(() => mock.prodServerHasNoTotalCount);
 
-	mock.prodServerHasNoTotalCount.listen();
+	it('render api call monitor but has no total count on prod server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
+		render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
 
-	fireEvent.click(retryButton);
-
-	mock.prodServerHasNoTotalCount.resetHandlers();
-	mock.prodServerHasNoTotalCount.close();
+		fireEvent.click(retryButton);
+	});
 });
 
-it('render api call monitor failed on prod server', async () => {
+describe('ApiCallItem render on prod server (failed)', () => {
+	useMockServer(() => mock.prodServerFailed);
 
-	mock.prodServerFailed.listen();
+	it('render api call monitor failed on prod server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
+		render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
-
-	mock.prodServerFailed.resetHandlers();
-	mock.prodServerFailed.close();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
+	});
 });
 
-it('render api call monitor network error on prod server', async () => {
+describe('ApiCallItem render on prod server (network error)', () => {
+	useMockServer(() => mock.prodServerNetworkError);
 
-	mock.prodServerNetworkError.listen();
+	it('render api call monitor network error on prod server', async () => {
 
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
+		render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
-
-	mock.prodServerNetworkError.resetHandlers();
-	mock.prodServerNetworkError.close();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
+	});
 });
 
 describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
+	useMockServer(() => mock.prodServerFailed);
 
 	it('retry span is keyboard focusable with role=button', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -134,14 +129,9 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButton).toHaveAttribute('tabindex', '0');
 		expect(retryButton).toHaveAttribute('role', 'button');
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 
 	it('retry span activates on Enter key', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -156,14 +146,9 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 
 		const retryButtonAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButtonAfter).toBeInTheDocument();
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 
 	it('retry span activates on Space key and prevents default scroll', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -179,14 +164,9 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 
 		const retryButtonAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButtonAfter).toBeInTheDocument();
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 
 	it('retry span ignores non-activation keys (negative case)', async () => {
-
-		mock.prodServerFailed.listen();
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
@@ -202,8 +182,5 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 		// The error UI is still rendered (no re-mount triggered).
 		const retryButtonAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButtonAfter).toBeInTheDocument();
-
-		mock.prodServerFailed.resetHandlers();
-		mock.prodServerFailed.close();
 	});
 });

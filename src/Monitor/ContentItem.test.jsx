@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import ContentItem from '../Monitor/ContentItem';
 import * as errorReporter from '../common/errorReporter';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -20,97 +21,92 @@ const stackPallet = {
 	]
 };
 
-it('render log on dev server', async () => {
+describe('ContentItem render on dev server (ok, log)', () => {
+	useMockServer(() => mock.devServerOk);
 
-	mock.devServerOk.listen();
+	it('render log on dev server', async () => {
 
-	vi.useFakeTimers({ shouldAdvanceTime: true })
-		.setSystemTime(new Date(1643375805000));
+		vi.useFakeTimers({ shouldAdvanceTime: true })
+			.setSystemTime(new Date(1643375805000));
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
-	const text = await screen.findByText("'22.01");
-	expect(text).toBeInTheDocument();
+		const text = await screen.findByText("'22.01");
+		expect(text).toBeInTheDocument();
 
-	vi.useRealTimers();
-
-	mock.devServerOk.resetHandlers();
-	mock.devServerOk.close();
+		vi.useRealTimers();
+	});
 });
 
-it('render log with no data on dev server', async () => {
+describe('ContentItem render on dev server (no count)', () => {
+	useMockServer(() => mock.devServerHasNoCount);
 
-	mock.devServerHasNoCount.listen();
+	it('render log with no data on dev server', async () => {
 
-	vi.useFakeTimers({ shouldAdvanceTime: true })
-		.setSystemTime(new Date(1643375805000));
+		vi.useFakeTimers({ shouldAdvanceTime: true })
+			.setSystemTime(new Date(1643375805000));
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
-	const text = await screen.findAllByText("0");
-	expect(text[0]).toBeInTheDocument();
+		const text = await screen.findAllByText("0");
+		expect(text[0]).toBeInTheDocument();
 
-	vi.useRealTimers();
-
-	mock.devServerHasNoCount.resetHandlers();
-	mock.devServerHasNoCount.close();
+		vi.useRealTimers();
+	});
 });
 
-it('render log failed on dev server', async () => {
+describe('ContentItem render on dev server (failed)', () => {
+	useMockServer(() => mock.devServerFailed);
 
-	mock.devServerFailed.listen();
+	it('render log failed on dev server', async () => {
 
-	vi.useFakeTimers({ shouldAdvanceTime: true })
-		.setSystemTime(new Date(1643375805000));
+		vi.useFakeTimers({ shouldAdvanceTime: true })
+			.setSystemTime(new Date(1643375805000));
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
 
-	fireEvent.click(retryButton);
+		fireEvent.click(retryButton);
 
-	vi.useRealTimers();
-
-	mock.devServerFailed.resetHandlers();
-	mock.devServerFailed.close();
+		vi.useRealTimers();
+	});
 });
 
-it('render log network error on dev server', async () => {
+describe('ContentItem render on dev server (network error)', () => {
+	useMockServer(() => mock.devServerNetworkError);
 
-	mock.devServerNetworkError.listen();
+	it('render log network error on dev server', async () => {
 
-	vi.useFakeTimers({ shouldAdvanceTime: true })
-		.setSystemTime(new Date(1643375805000));
+		vi.useFakeTimers({ shouldAdvanceTime: true })
+			.setSystemTime(new Date(1643375805000));
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
+		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
-	const retryButton = await screen.findByText("Retry");
-	expect(retryButton).toBeInTheDocument();
+		const retryButton = await screen.findByText("Retry");
+		expect(retryButton).toBeInTheDocument();
 
-	vi.useRealTimers();
-
-	mock.devServerNetworkError.resetHandlers();
-	mock.devServerNetworkError.close();
+		vi.useRealTimers();
+	});
 });
 
 describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
+	useMockServer(() => mock.devServerFailed);
 
 	it('retry span is keyboard focusable with role=button', async () => {
-
-		mock.devServerFailed.listen();
 
 		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
@@ -125,14 +121,9 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		expect(retryButton).toHaveAttribute('role', 'button');
 
 		vi.useRealTimers();
-
-		mock.devServerFailed.resetHandlers();
-		mock.devServerFailed.close();
 	});
 
 	it('retry span activates on Enter key', async () => {
-
-		mock.devServerFailed.listen();
 
 		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
@@ -152,14 +143,9 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		expect(retryAfter).toBeInTheDocument();
 
 		vi.useRealTimers();
-
-		mock.devServerFailed.resetHandlers();
-		mock.devServerFailed.close();
 	});
 
 	it('retry span activates on Space key and prevents default scroll', async () => {
-
-		mock.devServerFailed.listen();
 
 		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
@@ -180,14 +166,9 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		expect(retryAfter).toBeInTheDocument();
 
 		vi.useRealTimers();
-
-		mock.devServerFailed.resetHandlers();
-		mock.devServerFailed.close();
 	});
 
 	it('retry span ignores non-activation keys (negative case)', async () => {
-
-		mock.devServerFailed.listen();
 
 		vi.useFakeTimers({ shouldAdvanceTime: true })
 			.setSystemTime(new Date(1643375805000));
@@ -208,30 +189,26 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		expect(retryAfter).toBeInTheDocument();
 
 		vi.useRealTimers();
-
-		mock.devServerFailed.resetHandlers();
-		mock.devServerFailed.close();
 	});
 });
 
-// TODO: Cannot render component.
-it('render file on dev server', async () => {
+describe('ContentItem render on dev server (ok, file)', () => {
+	useMockServer(() => mock.devServerOk);
 
-	mock.devServerOk.listen();
+	// TODO: Cannot render component.
+	it('render file on dev server', async () => {
 
-	vi.useFakeTimers({ shouldAdvanceTime: true })
-		.setSystemTime(new Date(1643375805000));
+		vi.useFakeTimers({ shouldAdvanceTime: true })
+			.setSystemTime(new Date(1643375805000));
 
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render( <ContentItem title="Files" path="content/file" unit="capacity" stackPallet={ stackPallet.colors } /> );
+		render( <ContentItem title="Files" path="content/file" unit="capacity" stackPallet={ stackPallet.colors } /> );
 
-	const text = await screen.findByText("Loading...");
-	expect(text).toBeInTheDocument();
+		const text = await screen.findByText("Loading...");
+		expect(text).toBeInTheDocument();
 
-	vi.useRealTimers();
-
-	mock.devServerOk.resetHandlers();
-	mock.devServerOk.close();
+		vi.useRealTimers();
+	});
 });

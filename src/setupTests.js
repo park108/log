@@ -16,8 +16,21 @@
 //   • 인자 없는 `vi.useFakeTimers()` / 문자열 인자 `vi.useFakeTimers('modern')` 호출 금지
 //     — 반드시 옵션 객체를 명시 (`{ shouldAdvanceTime: true }` 기본).
 //   • `vi.useRealTimers()` 해제를 각 스위트의 `afterEach` 또는 `afterAll` 에 반드시 포함.
-//   • 의도적 제외: `src/Search/Search.test.jsx:214` 의
+//   • 의도적 제외: `src/Search/Search.test.jsx` 의
 //     `{ shouldAdvanceTime: false }` 는 debounce 타이머 제어가 목적.
+//
+// react-19-test-layer-adaptation-spec (REQ-20260420-004) §FR-02 / TSK-20260420-35-b
+// ------------------------------------------------------------------------------------
+// MSW `setupServer()` 수명주기 이디엄 규칙:
+//   • `server.listen(...)` 은 `beforeEach` / `beforeAll` 에서만 호출.
+//   • `server.close()` 는 `afterEach` / `afterAll` 에서만 호출.
+//   • `listen({ onUnhandledRequest: 'error' })` 기본 옵션 — 핸들러 누락으로
+//     인한 조용한 pass 를 차단.
+//   • 테스트 본문 (`it`/`test` 내부) 의 `.listen()` / `.close()` 직접 호출 금지.
+//     — 선행 실패 시 `close()` 미도달로 다음 테스트의 `listen()` 이 중첩 listen
+//       invariant 를 던지는 재발 방지 목적.
+//   • 공통 헬퍼: `src/test-utils/msw.js` 의 `useMockServer(serverFactory)` 를 사용한다.
+//     각 `describe` 가 고유 server 를 사용할 때는 `describe` 내부에서 호출한다.
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeEach, vi } from 'vitest'
 

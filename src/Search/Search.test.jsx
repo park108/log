@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import Search from './Search';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -35,164 +36,165 @@ const renderWithQueryRouter = (ui, { entries = [testEntry] } = {}) => {
 	);
 };
 
-it('render search result', async () => {
+describe('Search render list result', () => {
+	useMockServer(() => mock.prodServerGetList);
 
-	mock.prodServerGetList.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('render search result', async () => {
 
-	renderWithQueryRouter(<Search />);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	const searchedItem = await screen.findByText("검색을 위해 추가");
-	expect(searchedItem).toBeInTheDocument();
+		renderWithQueryRouter(<Search />);
 
-	const toListButton = await screen.findByText("To list");
-	fireEvent.click(toListButton);
+		const searchedItem = await screen.findByText("검색을 위해 추가");
+		expect(searchedItem).toBeInTheDocument();
 
-	mock.prodServerGetList.resetHandlers();
-	mock.prodServerGetList.close();
+		const toListButton = await screen.findByText("To list");
+		fireEvent.click(toListButton);
+	});
 });
 
-it('render search single result', async () => {
+describe('Search render single result', () => {
+	useMockServer(() => mock.prodServerGetSingle);
 
-	mock.prodServerGetSingle.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('render search single result', async () => {
 
-	renderWithQueryRouter(<Search />);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	const searchedItem = await screen.findByText("검색을 위해 추가");
-	expect(searchedItem).toBeInTheDocument();
+		renderWithQueryRouter(<Search />);
 
-	const toListButton = await screen.findByText("To list");
-	fireEvent.click(toListButton);
+		const searchedItem = await screen.findByText("검색을 위해 추가");
+		expect(searchedItem).toBeInTheDocument();
 
-	mock.prodServerGetSingle.resetHandlers();
-	mock.prodServerGetSingle.close();
+		const toListButton = await screen.findByText("To list");
+		fireEvent.click(toListButton);
+	});
 });
 
-it('render search failed', async () => {
+describe('Search render failed', () => {
+	useMockServer(() => mock.prodServerFailed);
 
-	mock.prodServerFailed.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('render search failed', async () => {
 
-	renderWithQueryRouter(<Search />);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	const searchedItem = await screen.findByText("No search results.");
-	expect(searchedItem).toBeInTheDocument();
+		renderWithQueryRouter(<Search />);
 
-	mock.prodServerFailed.resetHandlers();
-	mock.prodServerFailed.close();
+		const searchedItem = await screen.findByText("No search results.");
+		expect(searchedItem).toBeInTheDocument();
+	});
 });
 
-it('render search network error', async () => {
+describe('Search render network error', () => {
+	useMockServer(() => mock.prodServerNetworkError);
 
-	mock.prodServerNetworkError.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('render search network error', async () => {
 
-	renderWithQueryRouter(<Search />);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	const searchedItem = await screen.findByText("No search results.");
-	expect(searchedItem).toBeInTheDocument();
+		renderWithQueryRouter(<Search />);
 
-	mock.prodServerNetworkError.resetHandlers();
-	mock.prodServerNetworkError.close();
+		const searchedItem = await screen.findByText("No search results.");
+		expect(searchedItem).toBeInTheDocument();
+	});
 });
 
-it('render if has no query string', async () => {
+describe('Search render with no query string', () => {
+	useMockServer(() => mock.prodServerNoData);
 
-	mock.prodServerNoData.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('render if has no query string', async () => {
 
-	const noQueryString = {
-		pathname: "/log/search"
-		, search: ""
-		, hash: ""
-		, state: { queryString: "" }
-		, key: "default"
-	};
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	renderWithQueryRouter(<Search />, { entries: [noQueryString] });
+		const noQueryString = {
+			pathname: "/log/search"
+			, search: ""
+			, hash: ""
+			, state: { queryString: "" }
+			, key: "default"
+		};
 
-	const searchedItem = await screen.findByText("No search results.");
-	expect(searchedItem).toBeInTheDocument();
+		renderWithQueryRouter(<Search />, { entries: [noQueryString] });
 
-	mock.prodServerNoData.resetHandlers();
-	mock.prodServerNoData.close();
+		const searchedItem = await screen.findByText("No search results.");
+		expect(searchedItem).toBeInTheDocument();
+	});
 });
 
-it('render search list and navigate to log list via toList button', async () => {
+describe('Search navigate to log list via toList button', () => {
+	useMockServer(() => mock.prodServerGetList);
 
-	mock.prodServerGetList.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('render search list and navigate to log list via toList button', async () => {
 
-	renderWithQueryRouter(
-		<>
-			<input id="query-string-by-enter"></input>
-			<input id="query-string-by-button"></input>
-			<Search />
-		</>
-	);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	// Test query string initializing
-	document.getElementById("query-string-by-enter").value = "테스트";
-	document.getElementById("query-string-by-button").value = "테스트";
+		renderWithQueryRouter(
+			<>
+				<input id="query-string-by-enter"></input>
+				<input id="query-string-by-button"></input>
+				<Search />
+			</>
+		);
 
-	const toListButton = await screen.findByText("To list");
-	fireEvent.click(toListButton);
+		// Test query string initializing
+		document.getElementById("query-string-by-enter").value = "테스트";
+		document.getElementById("query-string-by-button").value = "테스트";
 
-	mock.prodServerGetList.resetHandlers();
-	mock.prodServerGetList.close();
+		const toListButton = await screen.findByText("To list");
+		fireEvent.click(toListButton);
+	});
 });
 
-it('aborts in-flight fetch on unmount — no setState after unmount', async () => {
+describe('Search aborts in-flight fetch on unmount', () => {
+	useMockServer(() => mock.prodServerGetList);
 
-	mock.prodServerGetList.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('aborts in-flight fetch on unmount — no setState after unmount', async () => {
 
-	const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	const { unmount } = renderWithQueryRouter(<Search />);
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-	// mount 직후 fetch 는 in-flight. 응답 도착 전 unmount.
-	unmount();
+		const { unmount } = renderWithQueryRouter(<Search />);
 
-	// microtask + macrotask 모두 flush
-	await new Promise((r) => setTimeout(r, 0));
+		// mount 직후 fetch 는 in-flight. 응답 도착 전 unmount.
+		unmount();
 
-	// 기대: React "Cannot update unmounted component" 경고가 0. (NFR-01 per REQ-021)
-	const warn = errorSpy.mock.calls.find(args => String(args[0]).includes('unmounted'));
-	expect(warn).toBeUndefined();
+		// microtask + macrotask 모두 flush
+		await new Promise((r) => setTimeout(r, 0));
 
-	mock.prodServerGetList.resetHandlers();
-	mock.prodServerGetList.close();
-	errorSpy.mockRestore();
+		// 기대: React "Cannot update unmounted component" 경고가 0. (NFR-01 per REQ-021)
+		const warn = errorSpy.mock.calls.find(args => String(args[0]).includes('unmounted'));
+		expect(warn).toBeUndefined();
+
+		errorSpy.mockRestore();
+	});
 });
 
-it('render search with no-data payload and no-result banner', async () => {
+describe('Search render with no-data payload', () => {
+	useMockServer(() => mock.prodServerNoData);
 
-	mock.prodServerNoData.listen();
-	vi.stubEnv('PROD', true);
-	vi.stubEnv('DEV', false);
+	it('render search with no-data payload and no-result banner', async () => {
 
-	renderWithQueryRouter(
-		<>
-			<input id="query-string-by-enter"></input>
-			<input id="query-string-by-button"></input>
-			<Search />
-		</>
-	);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
-	const searchedItem = await screen.findByText("No search results.");
-	expect(searchedItem).toBeInTheDocument();
+		renderWithQueryRouter(
+			<>
+				<input id="query-string-by-enter"></input>
+				<input id="query-string-by-button"></input>
+				<Search />
+			</>
+		);
 
-	mock.prodServerNoData.resetHandlers();
-	mock.prodServerNoData.close();
+		const searchedItem = await screen.findByText("No search results.");
+		expect(searchedItem).toBeInTheDocument();
+	});
 });
 
 // --- Loading dots timer cleanup regression guards (REQ-20260420-004, TSK-20260420-16) ---

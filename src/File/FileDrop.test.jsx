@@ -2,6 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import FileDrop from '../File/FileDrop';
 import * as mock from './api.mock';
 import * as common from '../common/common';
+import { useMockServer } from '../test-utils/msw';
 
 console.log = vi.fn();
 console.error = vi.fn();
@@ -30,192 +31,187 @@ test('toggles data-dragover attribute on drag events', () => {
 	expect(dropZone).toHaveAttribute('data-dragover', 'N');
 });
 
-test('getting presigned url failed on dev server', async () => {
+describe('FileDrop presigned url failed on dev server', () => {
+	useMockServer(() => mock.devServerFailed);
 
-	mock.devServerFailed.listen();
-	
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+	test('getting presigned url failed on dev server', async () => {
 
-	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-	vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-	const dropZone = await screen.findByText("Drop files here!");
-	expect(dropZone).toBeDefined();
+		render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
-	const event = {
-		dataTransfer: {
-			files: [
-				{ name: "testfile1.txt", type: "text" },
-				{ name: "testfile2.txt", type: "text" }
-			]
-		}
-	};
+		const dropZone = await screen.findByText("Drop files here!");
+		expect(dropZone).toBeDefined();
 
-	fireEvent.dragOver(dropZone, event);
-	fireEvent.drop(dropZone, event);
-	fireEvent.dragEnter(dropZone, event);
-	fireEvent.dragLeave(dropZone, event);
+		const event = {
+			dataTransfer: {
+				files: [
+					{ name: "testfile1.txt", type: "text" },
+					{ name: "testfile2.txt", type: "text" }
+				]
+			}
+		};
 
-	const failText = await screen.findByText("Upload failed.");
-	expect(failText).toBeInTheDocument();
+		fireEvent.dragOver(dropZone, event);
+		fireEvent.drop(dropZone, event);
+		fireEvent.dragEnter(dropZone, event);
+		fireEvent.dragLeave(dropZone, event);
 
-	mock.devServerFailed.resetHandlers();
-	mock.devServerFailed.close();
-});
-
-test('getting presigned url network error on dev server', async () => {
-
-	mock.devServerNetworkError.listen();
-	
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
-
-	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-	vi.spyOn(common, "isAdmin").mockReturnValue(true);
-
-	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
-
-	const dropZone = await screen.findByText("Drop files here!");
-	expect(dropZone).toBeDefined();
-
-	const event = {
-		dataTransfer: {
-			files: [
-				{ name: "testfile1.txt", type: "text" },
-				{ name: "testfile2.txt", type: "text" }
-			]
-		}
-	};
-
-	fireEvent.drop(dropZone, event);
-
-	const failText = await screen.findByText("Upload failed.");
-	expect(failText).toBeInTheDocument();
-
-	mock.devServerNetworkError.resetHandlers();
-	mock.devServerNetworkError.close();
-});
-
-test('upload ok', async () => {
-
-	mock.devServerOk.listen();
-
-	vi.useFakeTimers({ shouldAdvanceTime: true });
-	
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
-
-	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-	vi.spyOn(common, "isAdmin").mockReturnValue(true);
-
-	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
-
-	const dropZone = await screen.findByText("Drop files here!");
-	expect(dropZone).toBeDefined();
-
-	const event = {
-		dataTransfer: {
-			files: [
-				{ name: "testfile1.txt", type: "text" },
-				{ name: "testfile2.txt", type: "text" }
-			]
-		}
-	};
-
-	fireEvent.drop(dropZone, event);
-
-	const resultText = await screen.findByText("Upload complete.");
-	expect(resultText).toBeInTheDocument();
-
-	await act(async () => {
-		await vi.runAllTimersAsync();
+		const failText = await screen.findByText("Upload failed.");
+		expect(failText).toBeInTheDocument();
 	});
-
-	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
-	expect(dropZoneAgain).toBeDefined();
-
-	vi.useRealTimers();
-
-	mock.devServerOk.resetHandlers();
-	mock.devServerOk.close();
 });
 
-test('getting presigned url ok, but upload failed', async () => {
+describe('FileDrop presigned url network error on dev server', () => {
+	useMockServer(() => mock.devServerNetworkError);
 
-	mock.devServerPresignedUrlOkButUploadFailed.listen();
-	
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
+	test('getting presigned url network error on dev server', async () => {
 
-	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-	vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
-	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-	const dropZone = await screen.findByText("Drop files here!");
-	expect(dropZone).toBeDefined();
+		render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
 
-	const event = {
-		dataTransfer: {
-			files: [
-				{ name: "testfile1.txt", type: "text" },
-				{ name: "testfile2.txt", type: "text" }
-			]
-		}
-	};
+		const dropZone = await screen.findByText("Drop files here!");
+		expect(dropZone).toBeDefined();
 
-	fireEvent.drop(dropZone, event);
+		const event = {
+			dataTransfer: {
+				files: [
+					{ name: "testfile1.txt", type: "text" },
+					{ name: "testfile2.txt", type: "text" }
+				]
+			}
+		};
 
-	const resultText = await screen.findByText("Upload failed.");
-	expect(resultText).toBeInTheDocument();
+		fireEvent.drop(dropZone, event);
 
-	mock.devServerPresignedUrlOkButUploadFailed.resetHandlers();
-	mock.devServerPresignedUrlOkButUploadFailed.close();
-});
-
-test('getting presigned url ok, but upload network error', async () => {
-
-	mock.devServerPresignedUrlOkButUploadNetworkError.listen();
-
-	vi.useFakeTimers({ shouldAdvanceTime: true });
-	
-	vi.stubEnv('DEV', true);
-	vi.stubEnv('PROD', false);
-
-	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-	vi.spyOn(common, "isAdmin").mockReturnValue(true);
-
-	render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
-
-	const dropZone = await screen.findByText("Drop files here!");
-	expect(dropZone).toBeDefined();
-
-	const event = {
-		dataTransfer: {
-			files: [
-				{ name: "testfile1.txt", type: "text" },
-				{ name: "testfile2.txt", type: "text" }
-			]
-		}
-	};
-
-	fireEvent.drop(dropZone, event);
-
-	const resultText = await screen.findByText("Upload failed.");
-	expect(resultText).toBeInTheDocument();
-
-	await act(async () => {
-		await vi.runAllTimersAsync();
+		const failText = await screen.findByText("Upload failed.");
+		expect(failText).toBeInTheDocument();
 	});
+});
 
-	const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
-	expect(dropZoneAgain).toBeDefined();
+describe('FileDrop upload ok on dev server', () => {
+	useMockServer(() => mock.devServerOk);
 
-	vi.useRealTimers();
+	test('upload ok', async () => {
 
-	mock.devServerPresignedUrlOkButUploadNetworkError.resetHandlers();
-	mock.devServerPresignedUrlOkButUploadNetworkError.close();
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
+
+		const dropZone = await screen.findByText("Drop files here!");
+		expect(dropZone).toBeDefined();
+
+		const event = {
+			dataTransfer: {
+				files: [
+					{ name: "testfile1.txt", type: "text" },
+					{ name: "testfile2.txt", type: "text" }
+				]
+			}
+		};
+
+		fireEvent.drop(dropZone, event);
+
+		const resultText = await screen.findByText("Upload complete.");
+		expect(resultText).toBeInTheDocument();
+
+		await act(async () => {
+			await vi.runAllTimersAsync();
+		});
+
+		const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
+		expect(dropZoneAgain).toBeDefined();
+
+		vi.useRealTimers();
+	});
+});
+
+describe('FileDrop presigned url ok but upload failed', () => {
+	useMockServer(() => mock.devServerPresignedUrlOkButUploadFailed);
+
+	test('getting presigned url ok, but upload failed', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
+
+		const dropZone = await screen.findByText("Drop files here!");
+		expect(dropZone).toBeDefined();
+
+		const event = {
+			dataTransfer: {
+				files: [
+					{ name: "testfile1.txt", type: "text" },
+					{ name: "testfile2.txt", type: "text" }
+				]
+			}
+		};
+
+		fireEvent.drop(dropZone, event);
+
+		const resultText = await screen.findByText("Upload failed.");
+		expect(resultText).toBeInTheDocument();
+	});
+});
+
+describe('FileDrop presigned url ok but upload network error', () => {
+	useMockServer(() => mock.devServerPresignedUrlOkButUploadNetworkError);
+
+	test('getting presigned url ok, but upload network error', async () => {
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
+
+		const dropZone = await screen.findByText("Drop files here!");
+		expect(dropZone).toBeDefined();
+
+		const event = {
+			dataTransfer: {
+				files: [
+					{ name: "testfile1.txt", type: "text" },
+					{ name: "testfile2.txt", type: "text" }
+				]
+			}
+		};
+
+		fireEvent.drop(dropZone, event);
+
+		const resultText = await screen.findByText("Upload failed.");
+		expect(resultText).toBeInTheDocument();
+
+		await act(async () => {
+			await vi.runAllTimersAsync();
+		});
+
+		const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
+		expect(dropZoneAgain).toBeDefined();
+
+		vi.useRealTimers();
+	});
 });
