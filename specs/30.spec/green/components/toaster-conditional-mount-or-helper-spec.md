@@ -91,24 +91,24 @@
 ## 테스트 현황
 - [x] 현 HEAD `npm test` (serial) → 0 fail (ae80e56).
 - [x] 우회 셀렉터 1건 존재 확인 (`src/File/File.test.jsx:99`).
-- [ ] FR-02 헬퍼 3종 export.
-- [ ] FR-03 우회 치환 (grep 게이트 0 hits).
-- [ ] FR-06 헬퍼 sanity test.
-- [ ] FR-09 shuffle seed {1,2,3} 0 fail.
-- [ ] `npm run lint` 0 warn/error.
+- [x] FR-02 헬퍼 3종 export. (TSK-48 / a8eee5e)
+- [x] FR-03 우회 치환 (grep 게이트 0 hits). (TSK-48 / a8eee5e)
+- [x] FR-06 헬퍼 sanity test. (TSK-48 — `src/test-utils/toaster.test.js` 8건)
+- [ ] FR-09 shuffle seed {1,2,3} 0 fail. — *pre-existing shuffle 불안정 (LogItem.test.jsx / msw.test.js) 로 미충족. TSK-20260421-49 (`test-isolation-shuffle-safety-cold-start`) 범위로 이관.*
+- [x] `npm run lint` 0 warn/error. (TSK-48 result.md 박제)
 
 ## 수용 기준
-- [ ] (Must) FR-01 — spec §동작 에 옵션 B 채택 명시.
-- [ ] (Must) FR-02 — `src/test-utils/toaster.js` 가 `waitForToasterHidden`, `waitForToasterVisible`, `getToasterElement` 3종 export.
-- [ ] (Must) FR-03 — `src/File/File.test.jsx:99` 우회 셀렉터 제거, 헬퍼 호출로 치환.
-- [ ] (Must) FR-04 — spec §Baseline 에 `<Toaster ` 사용처 8건 박제.
-- [ ] (Must) FR-05 — `grep -rn 'document.querySelector.*data-type=' src --include="*.test.*"` → 0 hits.
-- [ ] (Must) FR-08 — 옵션 A 가 §대안 섹션에 보존됨.
-- [ ] (Must) FR-09 — `npm test -- --run` → 0 fail. `vitest run --sequence.shuffle --sequence.seed={1,2,3}` → 0 fail.
-- [ ] (Should) FR-06 — 헬퍼 sanity test ≥ 1건.
-- [ ] (Should) FR-07 — 다른 Toaster 소비자 테스트 확산 가이드 1문단 박제.
-- [ ] (NFR) NFR-04 — runtime 소스(`src/Toaster/Toaster.jsx`, `src/File/File.jsx` 등 8개 소비자) 변경 0 라인.
-- [ ] (NFR) NFR-02 — 헬퍼 timeout 기본값 `ASYNC_ASSERTION_TIMEOUT_MS` 준수.
+- [x] (Must) FR-01 — spec §동작 에 옵션 B 채택 명시. (inspector seed / a8eee5e 재확인)
+- [x] (Must) FR-02 — `src/test-utils/toaster.js` 가 `waitForToasterHidden`, `waitForToasterVisible`, `getToasterElement` 3종 export. (TSK-48 / a8eee5e)
+- [x] (Must) FR-03 — `src/File/File.test.jsx:99` 우회 셀렉터 제거, 헬퍼 호출로 치환. (TSK-48 / a8eee5e)
+- [x] (Must) FR-04 — spec §Baseline 에 `<Toaster ` 사용처 8건 박제. (현 HEAD `grep -rn "<Toaster " src` → 8 hits in 8 files 재확인)
+- [x] (Must) FR-05 — `grep -rn 'document.querySelector.*data-type=' src --include="*.test.*"` → 0 hits. (현 HEAD 재검증 통과)
+- [x] (Must) FR-08 — 옵션 A 가 §대안 섹션에 보존됨. (spec §대안 유지)
+- [ ] (Must) FR-09 — `npm test -- --run` → 0 fail. `vitest run --sequence.shuffle --sequence.seed={1,2,3}` → 0 fail. — *serial 0 fail 충족 (377/377, TSK-48 result.md). shuffle 은 pre-existing 실패(`LogItem.test.jsx` / `msw.test.js`) 로 미충족, TSK-20260421-49 범위로 이관.*
+- [x] (Should) FR-06 — 헬퍼 sanity test ≥ 1건. (TSK-48 — `src/test-utils/toaster.test.js` 8건)
+- [x] (Should) FR-07 — 다른 Toaster 소비자 테스트 확산 가이드 1문단 박제. (spec §동작 6)
+- [x] (NFR) NFR-04 — runtime 소스(`src/Toaster/Toaster.jsx`, `src/File/File.jsx` 등 8개 소비자) 변경 0 라인. (TSK-48 result.md `git diff` 0 라인 박제)
+- [x] (NFR) NFR-02 — 헬퍼 timeout 기본값 `ASYNC_ASSERTION_TIMEOUT_MS` 준수. (`src/test-utils/toaster.js:39, 57`)
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -123,3 +123,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-009 반영; 옵션 B(test-utils 헬퍼) 채택, 옵션 A 는 대안 보존. runtime 0 변경 + File.test.jsx 우회 1건 치환 + grep 게이트 확정) | all |
+| 2026-04-21 | TSK-20260421-48 / a8eee5e | Must FR-01~05, FR-08 + Should FR-06~07 + NFR-02, NFR-04 ack (inspector drift reconcile). FR-09 만 shuffle 미충족으로 unchecked 유지 (TSK-49 이관). | 테스트 현황, 수용 기준 |
