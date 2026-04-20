@@ -1,16 +1,19 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(session+7)Z
-# Session: 0 promotions + 0 new carves + 2 blocked (stale 2 → 3 on both specs → 50.blocked/spec).
-#   승격 (green → blue): 없음.
-#   carve: 없음 (TSK-46, TSK-47 이미 발행됨 → RULE-01 멱등 재carve 금지).
-#   blocked (hash 불변 3 cycle 도달, planner 절차 5 "2회 이상 정체 → blocked/spec"):
-#     - foundation/test-infra-conventions-grep-gate-lifo-spec.md (hash 54f35c14, stale 3)
-#       → specs/50.blocked/spec/test-infra-conventions-grep-gate-lifo-spec.md + _reason.md.
-#       정체 원인: TSK-46 이 40.task/ready/ 에 발행됨에도 developer 미소진 (unchecked [ ]=15 잔존).
-#     - deps/react-19-findby-option-beta-idiom-spec.md (hash 18ead1c3, stale 3)
-#       → specs/50.blocked/spec/react-19-findby-option-beta-idiom-spec.md + _reason.md.
-#       정체 원인: TSK-47 이 40.task/ready/ 에 발행됨에도 developer 미소진 (unchecked [ ]=15 잔존).
-# ready 큐: TSK-20260421-46, TSK-20260421-47 (count=2, TASK_READY_MAX=10 여유).
-#   TSK-45 blocked (RULE-05 관할), TSK-44 done (96c37df), TSK-43 blocked (RULE-05 관할), TSK-42 done (c18132d).
-# pending green: 0건 (모두 blocked 이동). 다음 cycle 입력 큐 비면 RULE-03 (2) 에 따라 no-op.
-# grep dry-run: N/A (이번 세션 carve 없음).
+# Updated: 2026-04-21T(session+8)Z
+# Session: 0 promotions + 3 new carves + 0 blocked.
+#   승격 (green → blue): 없음 — 세 신규 green 모두 unchecked [ ] 잔존, 변경 이력에 TSK 슬러그/커밋 미박제.
+#   carve:
+#     - toaster-conditional-mount-or-helper-spec.md → TSK-20260421-48 (depends_on=[])
+#     - test-isolation-shuffle-safety-cold-start-spec.md → TSK-20260421-49 (depends_on=[TSK-48])
+#     - file-test-multi-scenario-split-spec.md → TSK-20260421-50 (depends_on=[TSK-48, TSK-49])
+#     의존 체인 근거: toaster helper 선제 도입 → shuffle cold-start(prodServerHasNoData describe + LogItem + msw.test.js) → file-test 분할(prodServerOk describe 에서 헬퍼 재사용).
+#   blocked: 없음 (stale 진입 아님, 신규 발행).
+# grep dry-run: 14/14 match (TSK-48: 4/4, TSK-49: 4/4 baseline 정보 보정 포함, TSK-50: 6/6).
+# ledger entries (stale=0, 신규 cycle):
+components/toaster-conditional-mount-or-helper-spec.md 0a09232a8ec697e48c20b0b32eb99b1b886ff559298464e213f07c50be58eebf 0
+common/test-isolation-shuffle-safety-cold-start-spec.md 639c789bf198b3025e88470f29e548224dc7ec55a0a3a9425c3249d4cc082fef 0
+components/file-test-multi-scenario-split-spec.md f113f25686a07412f8f4353ec8b666f0df0df48ee4c286ebf8e1fcfcf4ce03ea 0
+# ready 큐: TSK-20260421-46, -47 (기존) + -48, -49, -50 (신규) = count=5, TASK_READY_MAX=10 여유.
+#   50.blocked/spec: 5건 (shuffle-safety(구), fake-timer-residual, findby-timing, findby-β, grep-gate-lifo) — RULE-05 운영자 관할.
+#   TSK-45 blocked (α-가설 historical; TSK-49 가 cold-start race 재작성).
+# next cycle: 신규 green 세 건은 TSK-48/49/50 발행 완료 → 다음 cycle 에 ledger 가 동일 hash + stale 증가. 3 cycle 도달 시 50.blocked/spec 이동(RULE-05).
