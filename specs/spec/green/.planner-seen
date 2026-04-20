@@ -1,7 +1,45 @@
 {
   "version": 1,
-  "updated": "2026-04-20T18:20:00Z",
-  "notes": "cycle 66: PROMOTE x3. HEAD advanced 8dcb26d → 4d7b9fc (inspector defer-tag operator UNCHK on 4 watchlist specs: fileitem/loglist/logsingle §5 header + csp-policy §5.1 NFR-01/02 inline). Deferred-aware mechanical §4 re-scan: 3 testing smoke specs PASS all four conditions via §5 section-header defer subtracting 4/4 operator UNCHK each. csp-policy still FAIL Cond-2 (10 active unchecked after inline defer of 2/12 rows). 16 other greens unchanged from cycle 65 verdict. Promoted 3 specs green→blue: testing/fileitem-delete-visual-smoke, testing/loglist-seemore-runtime-smoke, testing/logsingle-runtime-smoke. 0 task/ready carved (3 promotions are first-blue for each file — no prior blue to diff against, so no blue-paired carve; prompt instruction 'blue-paired spec 에서만 diff carve 시도' strictly applied). 0 blocked mv. Commit scope: .planner-seen + 3 mv (green delete + blue add).",
+  "updated": "2026-04-20T06:03:17Z",
+  "notes": "cycle 67 no-op: HEAD static at c2eb015 (cycle 66 planner commit). Zero inspector activity since cycle 66. 17 greens + 14 blues unchanged. Mechanical §4 re-scan of 3 near-promotion watchlist candidates (react-render-patterns, csp-policy, error-boundary) produced identical FAIL signatures vs cycle 66. Idempotence preserved: no spec content edits, no green→blue mv, no task/ready carve, no blocked mv. Sole writer action: append cycle_67_observation block to .planner-seen.",
+  "cycle_67_observation": {
+    "timestamp": "2026-04-20T06:03:17Z",
+    "head_before": "c2eb015 (cycle 66 planner PROMOTE x3 commit)",
+    "head_at_start": "c2eb015 (unchanged)",
+    "inspector_pulse_since_cycle_66": "0 commits. Zero activity from any agent. Working tree clean; `git diff --stat HEAD -- specs/spec/green/` empty; `git status --short specs/spec/` empty.",
+    "green_file_count_start": 17,
+    "green_file_count_end": 17,
+    "blue_file_count_start": 14,
+    "blue_file_count_end": 14,
+    "task_ready_count_start": 0,
+    "task_ready_count_end": 0,
+    "precheck": {
+      "pause_lock": "absent (.claude/locks/ dir empty)",
+      "input_queue_green": "17 files (non-empty)",
+      "downstream_task_ready": "0/10 (slack=10, TASK_READY_MAX=10, backpressure=none)",
+      "proceed": true
+    },
+    "mechanical_gate_scan_deferred_aware": {
+      "method": "Re-verified 3 near-promotion candidates (react-render-patterns, csp-policy, error-boundary) with section-header defer aware scan. Spot-checked WIP section-header counts (grep '^### .*\\[WIP\\]') and [deferred: tag presence. All other 14 greens not re-scanned — no inspector touch since cycle 66 means cycle 66 verdict is valid and re-scanning produces identical result (idempotence).",
+      "near_promotion_recheck": [
+        {"path": "common/react-render-patterns-spec.md", "gates": {"Cond1_WIP_section": 1, "Cond2_UNCHK": 8, "Cond3_ToBe": 0, "Cond4_changelog": "has (pending, REQ-20260420-001) + (pending, REQ-20260419-024) tail"}, "verdict": "HOLD — unchanged from cycle 66. Cond-1 (1 WIP section §5.2 REQ-20260420-001) + Cond-2 (8 UNCHK, no defer) FAIL. Unblock path: either inspector defer-tag §5.2 (single section could subtract majority) OR implementation task close §5.2."},
+        {"path": "common/csp-policy-spec.md", "gates": {"Cond1_WIP_section": 0, "Cond2_UNCHK_active": "10/12 (2 inline defers NFR-01/NFR-02 only)", "Cond3_ToBe": 0, "Cond4_changelog": "PASS"}, "verdict": "HOLD — unchanged. Cond-2 FAIL remains; 10 operator/external rows (FR-13~15, NFR-03+) still active."},
+        {"path": "common/error-boundary-spec.md", "gates": {"Cond1_WIP_section": 1, "Cond2_UNCHK": 9, "Cond3_ToBe": 0, "Cond4_changelog": "PASS", "deferred_sections": 1, "deferred_note": "§7.2 operator baseline defer exists but does not cover §3.2 Suspense / §6 / §7.1.1 REQ-032"}, "verdict": "HOLD — unchanged. Cond-1 (§3.2 Suspense WIP) + Cond-2 (9 active UNCHK outside §7.2 defer) FAIL."}
+      ],
+      "promoted_this_cycle": [],
+      "held_this_cycle": "all 17 greens (same FAIL signatures as cycle 66)",
+      "carve_this_cycle": [],
+      "blocked_this_cycle": []
+    },
+    "blue_paired_carve_scan": "0 carve attempted. Of the 17 remaining greens, 0 have a prior blue predecessor (all promotions in cycles 50/51/58/60/63/66 were first-blue). Per prompt instruction 'blue-paired spec 에서만 diff carve 시도, drift reconcile/defer-tag 만 있는 diff 는 carve 생략', 0 carve possible.",
+    "stalling_assessment": {
+      "definition": "Per planner.md §4: 'same diff-hash 2회 이상 유지 → specs/spec/blocked/'. Applied per-file by last_seen diff signature.",
+      "inspector_head_unchanged": "HEAD identical to cycle 66 end. No diff-hash changes on any green since cycle 66. cycles_partial counters for 17 greens increment by 1 but this is the FIRST cycle with frozen HEAD since cycle 66 promotion burst — not 2 consecutive frozen-diff cycles yet. No blocked escalation triggered this cycle.",
+      "aggregate_progress_context": "Inspector has been actively making forward motion across cycles 58-66 (defer-tag sweeps, To-Be renames, REQ reflections). Cycle 67 is first frozen-diff cycle after positive cycle 66. Watch cycle 68: if HEAD still frozen at c2eb015, the 17 greens will show 2-consecutive frozen-diff signature, but still none have shown no-progress-for-2-cycles history because cycle 66 itself touched the green inventory. Stalling threshold would require cycle 68 + cycle 69 frozen identical diff signatures on the same files.",
+      "conclusion": "No blocked escalation this cycle. Cycle 67 is a no-op idempotent cycle."
+    },
+    "outcome": "NO-OP. 0 promote, 0 carve, 0 blocked. Sole writer action: .planner-seen cycle_67_observation append. RULE-04 report emitted with no-op=false (one .planner-seen edit) but processed=0 because 0 greens promoted, 0 tasks produced, 0 mvs performed. Green inventory unchanged 17→17. Blue inventory unchanged 14→14. task/ready unchanged 0→0."
+  },
   "cycle_66_observation": {
     "timestamp": "2026-04-20T18:20:00Z",
     "head_before": "8dcb26d (inspector rename 19 To-Be headers cycle 65 start)",
