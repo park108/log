@@ -16,9 +16,6 @@ const LogSingle = () => {
 
 	const [itemLoadingStatus, setItemLoadingStatus] = useState("NOW_LOADING"); // DELETED 전이용 최소 유지
 
-	const [logItem, setLogItem] = useState();
-	const [toListButton, setToListButton] = useState();
-
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
@@ -35,6 +32,7 @@ const LogSingle = () => {
 	const found = !hasError && queryData?.body?.Count > 0;
 	const notFound = !hasError && queryData?.body?.Count === 0;
 	const latestData = found ? queryData.body.Items[0] : undefined;
+	const isSearchResult = queryString.get("search");
 
 	useEffect(() => {
 		return () => { setMetaDescription(); }
@@ -65,76 +63,66 @@ const LogSingle = () => {
 		}
 	}, [hasError, notFound]);
 
+	// Toaster center show-state: preserved from prior useEffect([isLoading]).
+	// JSX-in-state 제거 (REQ-20260419-024 FR-02) 후에도 Toaster show prop 전이는 유지.
 	useEffect(() => {
-		if(isLoading) {
-			setIsShowToasterCenter(1);
-			setToListButton("");
-		}
-		else {
-			setIsShowToasterCenter(2);
-
-			const isSearchResult = queryString.get("search");
-
-			if(isSearchResult) {
-				setToListButton(
-					<button className="button button--loglist-seemore" onClick={() => navigate(-1)}>
-						To search result
-					</button>
-				);
-			}
-			else {
-				setToListButton(
-					<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
-						To list
-					</button>
-				);
-			}
-		}
+		setIsShowToasterCenter(isLoading ? 1 : 2);
 	}, [isLoading]);
 
-	useEffect(() => {
-		if("DELETED" === itemLoadingStatus) {
-			setLogItem(
-				<h1 className="h1 h1--notification-result">
-					Deleted
-				</h1>
-			);
-			return;
-		}
-
-		if (hasError || notFound) {
-			setLogItem(<PageNotFound />);
-		}
-		else if (found && latestData) {
-			setLogItem(
-				<Suspense fallback={<div></div>}>
-					<LogItem
-						author={latestData.author}
-						timestamp={latestData.timestamp}
-						contents={latestData.logs[0].contents}
-						item = {latestData}
-						temporary = {latestData.temporary}
-						showComments={true}
-						showLink={true}
-						deleted={() => {
-							setToasterMessage("The log is deleted.");
-							setIsShowToasterBottom(1);
-						}}
-					/>
-				</Suspense>
-			);
-		}
-		else {
-			setLogItem("");
-		}
-
-	}, [itemLoadingStatus, hasError, notFound, found, latestData]);
+	// REQ-20260419-024 FR-01: logItem 파생 변수 (4 분기 — spec §3.2 선호 순 2).
+	let logItem;
+	if (itemLoadingStatus === "DELETED") {
+		logItem = (
+			<h1 className="h1 h1--notification-result">
+				Deleted
+			</h1>
+		);
+	}
+	else if (hasError || notFound) {
+		logItem = <PageNotFound />;
+	}
+	else if (found && latestData) {
+		logItem = (
+			<Suspense fallback={<div></div>}>
+				<LogItem
+					author={latestData.author}
+					timestamp={latestData.timestamp}
+					contents={latestData.logs[0].contents}
+					item = {latestData}
+					temporary = {latestData.temporary}
+					showComments={true}
+					showLink={true}
+					deleted={() => {
+						setToasterMessage("The log is deleted.");
+						setIsShowToasterBottom(1);
+					}}
+				/>
+			</Suspense>
+		);
+	}
+	else {
+		logItem = "";
+	}
 
 	return (
 		<div role="list">
 
 			{ logItem }
-			{ toListButton }
+
+			{/* REQ-20260419-024 FR-02: toListButton 인라인 조건부 (spec §3.2 선호 순 1, Search.jsx 1250e42 선례). */}
+			{!isLoading && (
+				isSearchResult
+					? (
+						<button className="button button--loglist-seemore" onClick={() => navigate(-1)}>
+							To search result
+						</button>
+					)
+					: (
+						<button className="button button--loglist-seemore" onClick={() => navigate("/log")}>
+							To list
+						</button>
+					)
+			)}
 
 			<Suspense fallback={<div></div>}>
 				<Toaster
