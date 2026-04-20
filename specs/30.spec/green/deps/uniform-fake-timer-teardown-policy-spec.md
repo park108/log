@@ -44,23 +44,23 @@
 ## 테스트 현황
 - [x] `src/setupTests.timer-idiom.test.jsx` — 기존 FR-01 어서트 1건 green (TSK-20260420-35-a, commit e4a470b).
 - [x] 현 HEAD `npm run test` 368/368 green (commit 08a64f6 — MSW pair 이후).
-- [ ] 전역 afterEach 추가 후 전 스위트 green 유지 (FR-05).
-- [ ] 메타 어서트 `vi.isFakeTimers() === false` 1건 추가 및 green (FR-03).
-- [ ] `npm run test` 10회 연속 모두 green (FR-06).
-- [ ] `grep -rn "vi\.useRealTimers\(\)" src --include="*.test.js" --include="*.test.jsx"` — body 직접 호출 20건 이상 감소 (FR-02 / Should).
+- [x] 전역 afterEach 추가 후 전 스위트 green 유지 (FR-05).
+- [x] 메타 어서트 `vi.isFakeTimers() === false` 1건 추가 및 green (FR-03).
+- [x] `npm run test` 10회 연속 모두 green (FR-06).
+- [x] `grep -rn "vi\.useRealTimers\(\)" src --include="*.test.js" --include="*.test.jsx"` — body 직접 호출 20건 이상 감소 (FR-02 / Should).
 
 ## 수용 기준
-- [ ] (Must) `grep -n "useRealTimers" src/setupTests.js` → 정확히 1 매칭 + `afterEach` 블록 내부.
-- [ ] (Must) `src/setupTests.timer-idiom.test.jsx` (또는 동급 메타 스위트) 에 `vi.isFakeTimers()` 단정 어서트 1건 추가 + green.
-- [ ] (Must) `src/setupTests.js` 헤더 주석에 "전역 `afterEach` 가 `vi.useRealTimers()` 해제를 담당" 문구 1줄 이상 박제.
-- [ ] (Must) `npm run test` 전 스위트 green + pass 수 baseline 동등 또는 +1 (메타 어서트 추가분).
-- [ ] (Must) `for i in {1..10}; do npm run test; done` 10회 모두 green — fake-timer carry-over flake 재현 0 (FR-06).
-- [ ] (Should) `grep -rn "vi\.useRealTimers\(\)" src --include="*.test.js" --include="*.test.jsx"` body 직접 호출 baseline 대비 20건 이상 감소. `afterEach(...)` 인자 위치 매칭은 제외.
-- [ ] (Should) `npm run lint` 경고·오류 증감 0.
-- [ ] (Should) 소비 followup 2건 (`60.done/2026/04/20/followups/20260420-2158-logsingle-flake-observed-once-during-carve.md`, `...-2159-uniform-aftereach-userealtimers-policy.md`) 의 구조적 해소를 result.md 에 명시.
-- [ ] (NFR) `npm run test` wall-clock 변동 ±5% 내 (afterEach 1개 증가의 오버헤드 허용 범위).
-- [ ] (NFR) REQ-20260420-004 §NFR-03 idiom 주석과 충돌 없음 — `src/setupTests.js:7-20` 수정 시 기존 MSW/env idiom 문단 불변.
-- [ ] (NFR) 메타 어서트 실패 시 원인 식별 가능한 진단 메시지 (기본 `expect(vi.isFakeTimers()).toBe(false)` 로 충분).
+- [x] (Must) `grep -n "useRealTimers" src/setupTests.js` → 정확히 1 매칭 + `afterEach` 블록 내부.
+- [x] (Must) `src/setupTests.timer-idiom.test.jsx` (또는 동급 메타 스위트) 에 `vi.isFakeTimers()` 단정 어서트 1건 추가 + green.
+- [x] (Must) `src/setupTests.js` 헤더 주석에 "전역 `afterEach` 가 `vi.useRealTimers()` 해제를 담당" 문구 1줄 이상 박제.
+- [x] (Must) `npm run test` 전 스위트 green + pass 수 baseline 동등 또는 +1 (메타 어서트 추가분).
+- [x] (Must) `for i in {1..10}; do npm run test; done` 10회 모두 green — fake-timer carry-over flake 재현 0 (FR-06).
+- [x] (Should) `grep -rn "vi\.useRealTimers\(\)" src --include="*.test.js" --include="*.test.jsx"` body 직접 호출 baseline 대비 20건 이상 감소. `afterEach(...)` 인자 위치 매칭은 제외.
+- [x] (Should) `npm run lint` 경고·오류 증감 0.
+- [x] (Should) 소비 followup 2건 (`60.done/2026/04/20/followups/20260420-2158-logsingle-flake-observed-once-during-carve.md`, `...-2159-uniform-aftereach-userealtimers-policy.md`) 의 구조적 해소를 result.md 에 명시.
+- [x] (NFR) `npm run test` wall-clock 변동 ±5% 내 (afterEach 1개 증가의 오버헤드 허용 범위).
+- [x] (NFR) REQ-20260420-004 §NFR-03 idiom 주석과 충돌 없음 — `src/setupTests.js:7-20` 수정 시 기존 MSW/env idiom 문단 불변.
+- [x] (NFR) 메타 어서트 실패 시 원인 식별 가능한 진단 메시지 (기본 `expect(vi.isFakeTimers()).toBe(false)` 로 충분).
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -90,3 +90,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-20 | inspector / — | 최초 등록 (REQ-20260420-007 반영, followup 2건 merge 경로) | all |
+| 2026-04-21 | TSK-20260420-38 / 504bee9 | 전역 afterEach + idiom 주석 박제, body 직접 호출 42 → 8 (34건 감소, ≥20 충과), 메타 어서트 A/B 추가, 10회 연속 green; Must/Should/NFR 전수 PASS | 테스트 현황, 수용 기준 |

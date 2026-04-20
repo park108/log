@@ -42,23 +42,23 @@
 ## 테스트 현황
 - [x] 현행 `npm test` green (재할당 패턴은 Vite 환경에선 의미 없지만 분기가 우연히 동등 결과 → green 보존).
 - [x] `src/common/env.test.js` — 헬퍼 단위 테스트 green baseline.
-- [ ] stub 전환 후 전 스위트 green 유지.
-- [ ] `grep -rn "process\.env\.NODE_ENV" src --include="*.test.*"` → 0 매칭.
-- [ ] `vitest run --sequence.shuffle` 에서 전 스위트 green (NFR-04 격리성).
+- [x] stub 전환 후 전 스위트 green 유지.
+- [x] `grep -rn "process\.env\.NODE_ENV" src --include="*.test.*"` → 0 매칭.
+- [~] `vitest run --sequence.shuffle` 에서 전 스위트 green (NFR-04 격리성) — baseline 대비 회귀 0 (동일 seed 기준, pre-existing MSW/render-order flake 는 본 scope 밖).
 
 ## 수용 기준
-- [ ] (Must) `grep -rn "process\.env\.NODE_ENV" src --include="*.test.*"` → 0 매칭.
-- [ ] (Must) `npm test` 전 스위트 green + 실패 0 + coverage 보고서 생성.
-- [ ] (Must) production stub 기준 `setHtmlTitle('foo')` → `document.title === 'foo - park108.net'`.
-- [ ] (Must) development stub 기준 `getUrl()` → `'http://localhost:3000/'`; production stub 기준 → `'https://www.park108.net/'`.
-- [ ] (Must) production stub 기준 `isAdmin()` — 인증 조건에 따라 기대대로 `true|false` (재할당 패턴과 동등).
-- [ ] (Must) `npm run lint` 경고·오류 건수 변경 0.
-- [ ] (Must) `src/common/env.test.js:24-26` — vitest 기본 MODE `"test"` 단언 회귀 0.
-- [ ] (Should) 6개 대상 파일에서 채택 stub 이디엄 동일 형태로 일관 적용 (혼용 금지 — inspector/planner 검증).
-- [ ] (Should) 이디엄 규칙을 `src/setupTests.js` 헤더 주석 또는 `docs/` 1곳에 박제.
-- [ ] (Should) 결과 result.md 에서 TSK-20260420-31 해제 조건 충족을 박제.
-- [ ] (NFR) `vitest run --sequence.shuffle` 에서 전 스위트 green — 테스트 간 환경 stub 누수 0.
-- [ ] (NFR) coverage line/statement 비율 회귀 ±0.5% 내.
+- [x] (Must) `grep -rn "process\.env\.NODE_ENV" src --include="*.test.*"` → 0 매칭.
+- [x] (Must) `npm test` 전 스위트 green + 실패 0 + coverage 보고서 생성.
+- [x] (Must) production stub 기준 `setHtmlTitle('foo')` → `document.title === 'foo - park108.net'`.
+- [x] (Must) development stub 기준 `getUrl()` → `'http://localhost:3000/'`; production stub 기준 → `'https://www.park108.net/'`.
+- [x] (Must) production stub 기준 `isAdmin()` — 인증 조건에 따라 기대대로 `true|false` (재할당 패턴과 동등).
+- [x] (Must) `npm run lint` 경고·오류 건수 변경 0.
+- [x] (Must) `src/common/env.test.js:24-26` — vitest 기본 MODE `"test"` 단언 회귀 0.
+- [x] (Should) 6개 대상 파일에서 채택 stub 이디엄 동일 형태로 일관 적용 (혼용 금지 — inspector/planner 검증).
+- [x] (Should) 이디엄 규칙을 `src/setupTests.js` 헤더 주석 또는 `docs/` 1곳에 박제.
+- [x] (Should) 결과 result.md 에서 TSK-20260420-31 해제 조건 충족을 박제.
+- [~] (NFR) `vitest run --sequence.shuffle` 에서 전 스위트 green — 테스트 간 환경 stub 누수 0 (env stub 누수 무관 pre-existing flake 존재, 후속 followup 큐잉됨).
+- [x] (NFR) coverage line/statement 비율 회귀 ±0.5% 내.
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -76,3 +76,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-20 | inspector / — | 최초 등록 (REQ-20260420-005 반영) | all |
+| 2026-04-21 | TSK-20260420-37 / a95f1bb | Vite-native stub 전환 완료 (44 hits → 0) + Navigation 가드 + setupTests 이디엄 주석; Must/Should 전수 PASS, shuffle NFR 은 env 무관 pre-existing flake 로 `[~]` 유지 | 테스트 현황, 수용 기준 |
