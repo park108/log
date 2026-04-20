@@ -2,13 +2,14 @@
 
 > **위치**: `package.json` (의존성), `src/index.jsx` (createRoot 사용)
 > **유형**: Build / Runtime baseline
-> **최종 업데이트**: 2026-04-18 (by inspector, WIP — REQ-20260418-012 반영)
-> **상태**: Active (업그레이드 실행 단계)
+> **최종 업데이트**: 2026-04-20 (by inspector, WIP — REQ-20260420-021 반영 — 2차 drift 재해소 목표 추가)
+> **상태**: Active (업그레이드 실행 단계 — 2차 drift 해소 집행 대기)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260417-upgrade-react-19.md` (사전 감사)
 > - `specs/requirements/ready/20260418-react-19-bump-and-testing-library.md` (REQ-20260418-012, 실행 + RTL + deprecation audit)
 > - `specs/requirements/done/2026/04/18/20260418-react-19-bump-execution-drift-resolve.md` (REQ-20260418-040, REQ-012 done 상태와 실태 drift 해소 — 물리 bump 재실행 + post-bump audit §7 박제)
 > - `specs/requirements/done/2026/04/18/20260418-imageitem-imperative-dom-react-refactor.md` (REQ-20260418-026, React 19 strict mode 안전성 — 명령형 DOM mutation 제거, bump 선행 권장)
+> - `specs/requirements/ready/20260420-react-19-bump-drift-resolve-2nd-pass.md` (REQ-20260420-021, REQ-012/040 연속 drift 2차 해소 — 물리 bump 재재실행 + 재발 차단 DoD 게이트 박제 + 메타 회귀 원인 분석)
 
 > 본 문서는 React 런타임 버전과 그에 따른 사용 패턴의 SSoT.
 > 컴포넌트 단위 명세는 별도 spec 에서 관리. 본 문서는 **버전 baseline 및 채택 기능 정책**.
@@ -29,12 +30,14 @@
 
 ## 2. [WIP] 버전 정책
 
-> 관련 요구사항: 20260417-upgrade-react-19, **REQ-20260418-012**, **REQ-20260418-040** (drift 해소 실행)
+> 관련 요구사항: 20260417-upgrade-react-19, **REQ-20260418-012**, **REQ-20260418-040** (drift 해소 실행), **REQ-20260420-021** (2차 drift 재해소 + 재발 차단 게이트)
 
 ### 2.1 현재 baseline
-- `react`: `^18.2.0` — **drift 주의**: REQ-012 는 done 이지만 `package.json:11-12` / `node_modules/react/package.json:7` 모두 `18.2.0` 그대로. `npm outdated` 가 `18.2.0 → 19.2.5` 격차를 보고. REQ-20260418-040 이 물리 bump 를 재실행하여 본 행을 `^19.x` 로 갱신 예정 (inspector 는 REQ-040 머지 후 본 행 baseline 을 갱신).
-- `react-dom`: `^18.2.0` — 동일 drift.
+- `react`: `^18.2.0` — **drift 주의 (2차 누적)**: REQ-012 / REQ-040 모두 done 이지만 `package.json:11-12` / `node_modules/react/package.json:7` 모두 `18.2.0` 그대로. `npm outdated` (2026-04-20) 가 `18.2.0 → 19.2.5` 격차를 보고. **REQ-20260420-021** 이 2차 drift 해소 범위로 발행되어 물리 bump 를 재-재실행 예정. inspector 는 REQ-021 머지 후 본 행 baseline 을 `^19.x` 로 갱신한다.
+- `react-dom`: `^18.2.0` — 동일 drift (2차 누적).
 - `@testing-library/react`: `^13.4.0` (React 18 peer) — 동일 drift (`16.3.2` 목표).
+- `@types/react`: `^18.3.28` — 목표 `^19.x` 와 불일치 (REQ-021 §2.1 관측).
+- `@types/react-dom`: `^18.3.7` — 목표 `^19.x` 와 불일치 (REQ-021 §2.1 관측).
 
 ### 2.2 목표 baseline (WIP — REQ-20260418-012 실행 범위)
 - `react`: `^19.x` (예: 19.2.5)
@@ -115,6 +118,58 @@
 
 **NFR 목표 (REQ-20260418-040 §7)**: 번들 ±5% (NFR-01), `npm test` 35 파일 / 100% (NFR-02), `docs/react-19-audit.md` §7 deprecation 박제 (NFR-03), `react-router-dom@^7.14.1` / `@vitejs/plugin-react@^6.0.1` 호환 영향 0 (NFR-04), spec §2.1 = 코드 실태 post-merge (NFR-05).
 
+## 4.0.2 [WIP] REQ-012/040 2차 drift 재해소 + 재발 차단 게이트 (REQ-20260420-021)
+
+> 관련 요구사항: REQ-20260420-021 FR-01 ~ FR-12, US-01 ~ US-03
+
+**맥락 (2026-04-20 관측 — 2차 drift 확정)**: REQ-20260418-012 에 이어 REQ-20260418-040 (1차 drift 해소) 도 `done/2026/04/18/` 로 아카이브됐으나, 2026-04-20 현재 실태가 여전히 React 18 / RTL 13 계열. **"drift 해소 REQ 조차 drift 상태로 마감되는 메타 회귀"** 발생.
+
+증거 (REQ-021 §2.1):
+- `package.json:11-12`: `"react": "^18.2.0"`, `"react-dom": "^18.2.0"`.
+- `package.json:44`: `"@testing-library/react": "^13.4.0"`.
+- `package.json:46-47`: `"@types/react": "^18.3.28"`, `"@types/react-dom": "^18.3.7"`.
+- `node_modules/react/package.json:"version": "18.2.0"`.
+- `npm outdated` (2026-04-20): `react 18.2.0 → 19.2.5`, `react-dom 18.2.0 → 19.2.5`, `@testing-library/react 13.4.0 → 16.3.2`, `@types/react 18.3.28 → 19.2.14`, `@types/react-dom 18.3.7 → 19.2.3`.
+- 본 spec §2.1 (현재 baseline) 및 §4.0.1 drift-resolve 섹션 모두 체크박스 미소화.
+- `docs/react-19-audit.md` §7 (Post-bump observations) — 2회 연속 미작성.
+
+**하류 차단 리스크 확대**: REQ-040 done 가정 위에 새로 등록되는 하류 REQ 들 (`useActionState`, TanStack Query Suspense, `@types/react@19` 정합, React Compiler 평가) 이 **두 사이클 연속** 잘못된 React 18 전제에서 설계될 위험.
+
+**목표 (FR-01 ~ FR-12)**:
+- FR-01/02/03: `react` / `react-dom` → `^19.x`, `@testing-library/react` → `^16.x`, `@types/react` / `@types/react-dom` → `^19.x` 핀 변경.
+- FR-04: `npm install` 로 `package-lock.json` 재생성 + `node_modules/` 실태 일치.
+- FR-05: 단일 커밋 (또는 인접 fixup 시퀀스) 로 중간 상태 금지.
+- FR-06/07/08: `npm test` 100% PASS (35+ 파일), `npm run build` PASS + 번들 ±5%, `npm run lint` PASS.
+- FR-09: `docs/react-19-audit.md` §7 에 test/build/dev 3단계 결과 **실제 실행 박제** (경고 0 이어도 "0건 확인" 명시).
+- FR-10: 본 REQ 머지 후 inspector 가 본 spec §2.1 baseline 을 `^19.x` 로 갱신 (REQ-021 §3.1 In-Scope 마지막 항목).
+- FR-11: 4건 이상 경고 또는 수정 비용 큰 경고는 `specs/followups/` 로 분기.
+- FR-12 (재발 차단 게이트 제안 — **본 REQ 핵심 차별점**): 본 REQ task 지시서 DoD 에 planner 가 `## 스코프 규칙` (RULE-06) 과 함께 **grep 게이트 1건 이상** 을 박제하도록 요구. 권고안:
+  - `grep -rn '"react": "\^18' package.json` → 0 lines
+  - `grep -rn '"react-dom": "\^18' package.json` → 0 lines
+  - `grep -rn '"@testing-library/react": "\^13' package.json` → 0 lines
+  - `grep -rn '"@types/react": "\^18' package.json` → 0 lines
+  이는 REQ-012/040 이 "의존 문구 미변경 상태" 로 done 이관된 메타 회귀를 **artifact 레벨에서 차단**하는 역할.
+
+**범위 밖 (REQ-021 §3.2)**: React 19 신규 API 채택, React Compiler, React Server Components/Actions, `prop-types` 제거, StrictMode 일시 비활성, `eslint@8 → v9/v10 flat config` 실태 정합 재확인(REQ-20260419-003 done 후 drift 재발 가능성 — 별 REQ), `husky@8 → 9` — 모두 별 REQ.
+
+**수용 기준 (REQ-20260420-021 §10)**:
+- [ ] `grep -rn '"react": "\^18' package.json` → 0 lines
+- [ ] `grep -rn '"react-dom": "\^18' package.json` → 0 lines
+- [ ] `grep -rn '"@testing-library/react": "\^13' package.json` → 0 lines
+- [ ] `grep -rn '"@types/react": "\^18' package.json` → 0 lines
+- [ ] `npm ls react react-dom` → `19.x.y`
+- [ ] `npm ls @testing-library/react` → `16.x.y`
+- [ ] `npm test` 100% PASS (기존 PASS 개수 유지 또는 증가)
+- [ ] `npm run build` PASS, gzip 번들 ±5% 이내
+- [ ] `npm run lint` PASS
+- [ ] `docs/react-19-audit.md` §7 3단계 (test/build/dev) 실행 결과 박제
+- [ ] 4건 이상 또는 수정 비용 큰 deprecation 은 `specs/followups/` 로 분기
+- [ ] 본 REQ 머지 후 inspector 가 §2.1 baseline 을 `^19.x` 로 전환 (본 행 체크 주체 = inspector post-merge 세션).
+
+**NFR 목표 (REQ-20260420-021 §7)**: 번들 ±5% (NFR-01), `npm test` 100% (NFR-02), `docs/react-19-audit.md` §7 박제 (NFR-03), `react-router-dom@^7.14.1` / `@vitejs/plugin-react@^6.0.1` / `@tanstack/react-query@^5.99.0` 호환 영향 0 (NFR-04), spec §2.1 = 실태 post-merge (NFR-05).
+
+**재발 차단 메타 분석 (REQ-021 §13 미결 연계)**: REQ-012 / REQ-040 이 물리 bump 없이 done 이관된 경위 — inspector 매핑 → planner carve → developer 집행 중 어느 단계의 DoD 검증 공백인지에 관한 분석 슬롯을 본 REQ 가 열어둔다 (해답은 본 REQ 머지 시 task `result.md` 에 박제 권고). 유사 "spec→head 미반영" 패턴 진단은 **`meta/drift-resolve-cadence-analysis-spec.md`** (REQ-20260420-027) 가 별 계열로 수행 — 본 spec 은 교차 참조만 유지.
+
 ## 4.1 [WIP] bump 선행 위생 작업 (REQ-20260418-026)
 
 > 관련 요구사항: REQ-20260418-026 FR-01~07, US-03
@@ -159,14 +214,18 @@ React 19 strict mode 의 effect double-invocation / concurrent 렌더 / fiber su
 | 2026-04-18 | (pending, REQ-20260418-040) | REQ-012 done/실태 drift 해소 §4.0.1 신설 — 물리 bump 재실행 + post-bump audit §7 박제 + inspector baseline 갱신 트리거 (WIP) | 2.1, 4.0.1 |
 | 2026-04-19 | (pending, REQ-20260419-025) | `@testing-library/jest-dom` v5 → v6 별 후보 승격 — 별 spec `build/jest-dom-upgrade-spec.md` 신설, §5 "별 후보" 문구 링크 보강 (WIP) | 5 |
 | 2026-04-19 | REQ-20260419-033 | jest-dom v6 drift 해소 — §3.1 baseline `jest-dom@5.17.0` → `^6.9.1` 치환, §5 "별 후보" 문구를 REQ-025 완료 (commit `9a477cf`) 로 갱신 | 3.1, 5 |
+| 2026-04-20 | (pending, REQ-20260420-021) | REQ-012/040 연속 drift 2차 재해소 §4.0.2 신설 — 물리 bump 재-재실행 + FR-12 grep 재발 차단 DoD 게이트 박제 요구 + `@types/react*` 목록 추가 + §2.1 2차 drift 표기 (WIP) | 2.1, 4.0.2, 8 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-upgrade-react-19.md`
 - 실행 요구사항: `specs/requirements/done/2026/04/18/20260418-react-19-bump-and-testing-library.md` (이동 후)
+- 1차 drift 재해소 요구사항: `specs/requirements/done/2026/04/18/20260418-react-19-bump-execution-drift-resolve.md` (REQ-040)
+- 2차 drift 재해소 요구사항: `specs/requirements/ready/20260420-react-19-bump-drift-resolve-2nd-pass.md` (REQ-20260420-021) — FR-12 재발 차단 grep 게이트 포함
 - 선행 권장 요구사항: `specs/requirements/done/2026/04/18/20260418-imageitem-imperative-dom-react-refactor.md` (REQ-026, 명령형 DOM 제거)
 - 관련 spec: `specs/spec/green/styles/css-modules-spec.md` §10.1 (REQ-026 상세 정책)
 - 관련 spec: `specs/spec/green/types/typescript-spec.md` (`@types/react` 핀 — REQ-20260418-019 A)
 - 관련 spec: `specs/spec/green/state/server-state-spec.md` (Suspense Query 패턴)
 - 관련 spec: `specs/spec/green/build/jest-dom-upgrade-spec.md` (REQ-025, `@testing-library/jest-dom` v5 → v6)
+- 관련 spec: `specs/spec/green/meta/drift-resolve-cadence-analysis-spec.md` (REQ-20260420-027) — spec/head drift 메타 진단 (REQ-021 §13 미결 cross-ref)
 - 사전 감사: `docs/react-19-audit.md` §1, §3, §4, §7 (신규)
 - 외부: https://react.dev/blog/2024/12/05/react-19

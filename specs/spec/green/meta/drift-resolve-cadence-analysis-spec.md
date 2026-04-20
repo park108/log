@@ -60,6 +60,9 @@
 | 5 | REQ-004 (search loadingDots cleartimeout) | `20260420-search-loadingdots-cleartimeout-code-realization.md` | spec → code |
 
 > (유사 범주 — `20260419-react-version-spec-jest-dom-v6-baseline-sync.md` jest-dom v6 선행 baseline sync)
+>
+> **인접 메타 회귀 — 본 spec 범위 **밖** (참고용 cross-ref)**:
+> - `specs/requirements/ready/20260420-react-19-bump-drift-resolve-2nd-pass.md` (REQ-20260420-021): React 19 + RTL 16 bump 가 REQ-012(done) → REQ-040(done, 1차 drift 해소) 두 사이클 연속 물리 bump 없이 마감된 **메타 회귀**. 본 spec §2.2 표의 "spec blue 승격됐으나 코드 head 미반영" 카테고리와는 성격이 다름 — REQ-021 은 spec green 조차 baseline 갱신 미완 + code 미반영 양면 drift. 진단은 REQ-021 §13 에서 별도 수행되나, 5+1 패턴으로 볼 수 있는 경우 본 진단 §3.3 에서 반례/교차 샘플로 참조 가능.
 
 ### 2.3 시그널 품질
 
