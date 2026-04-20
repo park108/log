@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import ApiCallItem from './ApiCallItem';
 import * as errorReporter from '../common/errorReporter';
@@ -32,15 +32,23 @@ it('render api call monitor on prod server', async () => {
 	const obj = await screen.findByText("02.01 (Tue)");
 	expect(obj).toBeInTheDocument();
 
-	// Test mouse over, move and out events
+	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+	// popup 이관 검증: focus 시 role="tooltip" + aria-describedby 설정 + blur 후 100ms 숨김.
+	// 기존 mouseOver/mouseMove/mouseOut 는 jsdom pointer event 한계로 불안정 → focus 경로로 갱신.
 	const firstPillar = await screen.findByTestId("api-call-item-log-0");
 	expect(firstPillar).toBeInTheDocument();
 
-	fireEvent.mouseOver(firstPillar);
-	fireEvent.mouseOver(firstPillar); // Already class changed
-	fireEvent.mouseMove(firstPillar);
-	fireEvent.mouseOut(firstPillar);
-	fireEvent.mouseOut(firstPillar); // Already class changed
+	// 초기: popup 미렌더 (isVisible=false).
+	expect(firstPillar.getAttribute('aria-describedby')).toBeFalsy();
+
+	act(() => { fireEvent.focus(firstPillar); });
+
+	const describedBy = firstPillar.getAttribute('aria-describedby');
+	expect(describedBy).toBeTruthy();
+	const tooltip = document.getElementById(describedBy);
+	expect(tooltip).not.toBeNull();
+	expect(tooltip).toHaveAttribute('role', 'tooltip');
+	expect(tooltip).toHaveAttribute('aria-hidden', 'false');
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();

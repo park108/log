@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { log, hasValue, hoverPopup } from '../common/common';
+import { log, hasValue } from '../common/common';
+import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getWebVitals } from './api';
@@ -18,6 +19,11 @@ const WebVitalsItem = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isMount, setIsMount] = useState(false);
 	const [isError, setIsError] = useState(false);
+
+	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+	// 기존 hoverPopup(event, name) 명령형 호출 대체.
+	// useId() 기반 고유 id → 다중 WebVitalsItem 인스턴스 간 ID 충돌 회피.
+	const popup = useHoverPopup();
 
 	const [evaluationResult, setEvaluationResult] = useState({
 		totalCount: 0,
@@ -154,9 +160,8 @@ const WebVitalsItem = (props) => {
 				<div
 					data-testid={"status-bar-" + name}
 					className="div div--monitor-statusbar"
-					onMouseOver={(e) => hoverPopup(e, name)}
-					onMouseMove={(e) => hoverPopup(e, name)}
-					onMouseOut={(e) => hoverPopup(e, name)}
+					tabIndex={0}
+					{...popup.triggerProps}
 				>
 					<span className="span span--monitor-bar span--monitor-good" style={ evaluationResult.good.style }>
 						{ evaluationResult.good.rate}
@@ -168,16 +173,18 @@ const WebVitalsItem = (props) => {
 						{ evaluationResult.poor.rate }
 					</span>
 				</div>
-				<div id={name} className="div div--monitor-pillardetail" style={{display: "none"}}>
-					<ul className="ul ul--monitor-detailpillaritem">
-						<li className="li li--monitor-detailpillaritem">{ description }</li>
-						<li className="li li--monitor-detailpillaritem">
-							🟢 { evaluationResult.good.count } &nbsp;&nbsp;
-							🟡 { evaluationResult.needImprovement.count } &nbsp;&nbsp;
-							🔴 { evaluationResult.poor.count }
-						</li>
-					</ul>
-				</div>
+				{ popup.isVisible && (
+					<div className="div div--monitor-pillardetail" {...popup.contentProps}>
+						<ul className="ul ul--monitor-detailpillaritem">
+							<li className="li li--monitor-detailpillaritem">{ description }</li>
+							<li className="li li--monitor-detailpillaritem">
+								🟢 { evaluationResult.good.count } &nbsp;&nbsp;
+								🟡 { evaluationResult.needImprovement.count } &nbsp;&nbsp;
+								🔴 { evaluationResult.poor.count }
+							</li>
+						</ul>
+					</div>
+				) }
 			</section>
 		);
 	}

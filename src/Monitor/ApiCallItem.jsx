@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
-import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday, hoverPopup } from '../common/common';
+import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday } from '../common/common';
+import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getApiCallStats } from './api';
@@ -135,6 +136,11 @@ const ApiCallItem = (props) => {
 			color: stackPallet[successRateColor].color
 		}
 
+		// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+		// Pillar 인스턴스마다 독립 훅 호출 → useId() 로 고유 id 자동 할당
+		// (기존 `api-call-item-{service}-{index}` 수동 id 충돌 우려 제거).
+		const popup = useHoverPopup();
+
 		return (
 			<div className="div div--monitor-7pillars">
 				<div className="div div--monitor-blank" style={blankHeight}> </div>
@@ -150,18 +156,19 @@ const ApiCallItem = (props) => {
 					data-testid={detailId}
 					className="div div--monitor-pillar"
 					style={pillarStyle}
-					onMouseOver={(event) => hoverPopup(event, detailId)}
-					onMouseMove={(event) => hoverPopup(event, detailId)}
-					onMouseOut={(event) => hoverPopup(event, detailId)}
+					tabIndex={0}
+					{...popup.triggerProps}
 				>
 				</div>
 				<div className="div div--monitor-pillarlegend">{legend}</div>
-				<div id={detailId} className="div div--monitor-pillardetail" style={{display: "none"}}>
-					<ul className="ul ul--monitor-detailpillaritem">
-						<li className="li li--monitor-detailpillaritem">{attr.date.substr(0,10)}</li>
-						<li className="li li--monitor-detailpillaritem">🟢 {attr.succeed} &nbsp;&nbsp; 🔴 {attr.failed}</li>
-					</ul>
-				</div>
+				{ popup.isVisible && (
+					<div className="div div--monitor-pillardetail" {...popup.contentProps}>
+						<ul className="ul ul--monitor-detailpillaritem">
+							<li className="li li--monitor-detailpillaritem">{attr.date.substr(0,10)}</li>
+							<li className="li li--monitor-detailpillaritem">🟢 {attr.succeed} &nbsp;&nbsp; 🔴 {attr.failed}</li>
+						</ul>
+					</div>
+				) }
 			</div>
 		);
 	}

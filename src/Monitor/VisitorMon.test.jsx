@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import VisitorMon from '../Monitor/VisitorMon';
 import * as errorReporter from '../common/errorReporter';
@@ -35,15 +35,22 @@ it('render visitor monitor on prod server', async () => {
 	const obj = await screen.findByText("Rendering Engine");
 	expect(obj).toBeInTheDocument();
 
-	// Test mouse over, move and out events
+	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+	// popup 이관 검증: focus → role="tooltip" + aria-describedby 설정.
+	// 기존 mouseOver/mouseMove/mouseOut 는 jsdom pointer 한계로 focus 경로로 갱신.
 	const statusBar = await screen.findByTestId("visitor-env-Browser-1");
 	expect(statusBar).toBeInTheDocument();
 
-	fireEvent.mouseOver(statusBar);
-	fireEvent.mouseOver(statusBar); // Already class changed
-	fireEvent.mouseMove(statusBar);
-	fireEvent.mouseOut(statusBar);
-	fireEvent.mouseOut(statusBar); // Already class changed
+	expect(statusBar.getAttribute('aria-describedby')).toBeFalsy();
+
+	act(() => { fireEvent.focus(statusBar); });
+
+	const describedBy = statusBar.getAttribute('aria-describedby');
+	expect(describedBy).toBeTruthy();
+	const tooltip = document.getElementById(describedBy);
+	expect(tooltip).not.toBeNull();
+	expect(tooltip).toHaveAttribute('role', 'tooltip');
+	expect(tooltip).toHaveAttribute('aria-hidden', 'false');
 
 	vi.useRealTimers();
 

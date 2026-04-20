@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import WebVitalsItem from '../Monitor/WebVitalsItem';
 import * as errorReporter from '../common/errorReporter';
@@ -22,11 +22,21 @@ it('render web vitals monitor on dev server', async () => {
 	const statusBar = await screen.findByTestId("status-bar-CLS");
 	expect(statusBar).toBeInTheDocument();
 
-	fireEvent.mouseOver(statusBar);
-	fireEvent.mouseOver(statusBar); // Already class changed
-	fireEvent.mouseMove(statusBar);
-	fireEvent.mouseOut(statusBar);
-	fireEvent.mouseOut(statusBar); // Already class changed
+	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
+	// popup 이관 검증: focus → role="tooltip" + aria-describedby 설정.
+	// 기존 mouseOver/mouseMove/mouseOut 어서트는 jsdom 한계로 focus 경로로 갱신.
+	expect(statusBar.getAttribute('aria-describedby')).toBeFalsy();
+
+	act(() => { fireEvent.focus(statusBar); });
+
+	const describedBy = statusBar.getAttribute('aria-describedby');
+	expect(describedBy).toBeTruthy();
+	const tooltip = document.getElementById(describedBy);
+	expect(tooltip).not.toBeNull();
+	expect(tooltip).toHaveAttribute('role', 'tooltip');
+	expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+	// description prop 미전달 환경이라도 counts 마커(🟢/🟡/🔴) 는 렌더되므로 최소 어서트.
+	expect(tooltip.textContent).toMatch(/🟢|🟡|🔴/);
 
 	mock.prodServerOk.resetHandlers();
 	mock.prodServerOk.close();
