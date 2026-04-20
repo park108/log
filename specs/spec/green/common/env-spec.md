@@ -137,8 +137,9 @@ export const mode = () => import.meta.env.MODE;
 `specs/task/blocked/20260418-env-migrate-api-js-sweep.md` (TSK-36) 는 5 도메인 api.js 치환 후 34/85 회귀로 blocked 됨. 원인: 도메인 테스트가 `process.env.NODE_ENV = 'production'` 직접 mutation 으로 prod 분기를 켜는데, 정적 치환된 `isProd=false` 가 mutation 을 반영하지 않아 MSW `/prod` 핸들러 미매칭.
 
 함수형 전환 후 `vi.stubEnv('PROD', true)` 단독으로 `isProd()` 즉시 반영 → TSK-36 재개 가능. 복귀 방식:
-- RULE-05 §1 절차로 blocked/ → ready/ mv (수동 / 운영자), 또는
-- 신규 태스크 생성 (planner).
+- ~~RULE-05 §1 절차로 blocked/ → ready/ mv (수동 / 운영자), 또는~~
+- ~~신규 태스크 생성 (planner).~~
+- **[CLOSED, 2026-04-20]** 운영자 수동 개입(RULE-05 §1) 으로 **신규 태스크 path 채택** — TSK-36 은 재분할되어 `TSK-20260420-11` (`specs/task/ready/20260420-env-functional-getter-full-sweep.md`) 로 대체됨. 신규 태스크는 (A) env.js 함수형 전환 + (B) 호출부 sweep (UserLogin 괄호 + 5 api.js) + (C) 12 도메인 테스트 `vi.stubEnv` migrate 를 한 PR 원자 번들로 묶어 머지. 구 `specs/task/blocked/20260418-env-migrate-api-js-sweep.md` 는 제거, `_reason.md` 는 감사 로그로 보존.
 
 ### 5.2 [WIP] 마이그레이션 패턴
 > 관련 요구사항: REQ-20260418-002 FR-02, FR-04; REQ-20260418-101 FR-03
@@ -293,7 +294,7 @@ N/A (boolean / string).
   - common.js 9 hits 마이그레이션을 REQ-032 에 포함할지 별 후속 (planner) — 권장 = 분리 (5 함수 시그니처 민감).
   - Log/api.js 2 hits 를 REQ-032 에 포함할지 REQ-033 영역 유지 (planner) — 권장 = REQ-033 영역.
   - UserLogin.test.jsx 우회 단순화 (FR-11) REQ-032 vs 별 후속 (planner).
-  - TSK-36 재개 방식: blocked → ready 복귀 (수동 mv) vs 신규 태스크 (planner) — RULE-05 §1.
+  - ~~TSK-36 재개 방식: blocked → ready 복귀 (수동 mv) vs 신규 태스크 (planner) — RULE-05 §1.~~ **[CLOSED, 2026-04-20]** 운영자 수동 개입으로 **신규 태스크 path 채택** → `TSK-20260420-11` carve, 구 TSK-36 제거 (§5.1.2 참조).
 
 ## 10. 변경 이력 (Changelog — via Task)
 | 일자 | TSK | 요약 | 영향 섹션 |
@@ -311,6 +312,7 @@ N/A (boolean / string).
 | 2026-04-19 | (pending, REQ-20260419-038) | REQ-032 §5.1.1 함수형 전환 코드 실현 트리거 — `src/common/env.js` boolean export → `() => boolean` + 호출부 sweep(UserLogin 4 hits 이미 머지) + TSK-36 blocked 해제 cascade; 머지 후 §5.1.1 / §5.1.2 WIP 마감 | 2.3, 5.1.1, 5.1.2 |
 | 2026-04-19 | (pending, REQ-20260419-034) | REQ-012 Phase 2a 코드 실현 트리거 — `src/setupTests.js` `vi.unstubAllEnvs` 글로벌 afterEach 등록 (§5.2 패턴 통합 진입점), Comment.test.jsx 1 파일 PoC; 상세는 server-state-spec §3.7 changelog | 5.2 |
 | 2026-04-20 | (pending, REQ-20260420-002) | Monitor.test.jsx unhandled error 회귀 — MSW 미mock 요청에 의한 `onUnhandledRequest:'error'` 승격 + 언마운트 후 setState 가드 (env mutation 복원 관련 §5.2 패턴 의존) | 5.2 |
+| 2026-04-20 | (operator, RULE-05 §1) | TSK-20260418-36 (api.js only) 재분할 → TSK-20260420-11 (env.js 함수형 + 5 api.js + 12 도메인 테스트 `vi.stubEnv` migrate 번들) carve. §5.1.2 / §9 의 "TSK-36 재개 방식" 미결 closed. 구 blocked 태스크 본문 제거, `_reason.md` 감사 로그 보존 | 5.1.2, 9 |
 
 ## 11. 관련 문서
 - 기원 요구사항:
