@@ -4,13 +4,15 @@
 import js from '@eslint/js';
 import reactPlugin from 'eslint-plugin-react';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default [
   // .eslintignore:2-3 + .eslintrc.yml:28-31 merged into flat-config ignores.
-  // `**/*.d.ts` excluded: ambient type declaration files require the
-  // typescript-eslint parser, which is out-of-scope for the TS foundation task
-  // (TSK-20260420-32). tsc handles their type-check pass via `npm run typecheck`.
-  { ignores: ['build/**', 'coverage/**', 'node_modules/**', '**/__test__/*.js', '**/api.js', '**/*.d.ts'] },
+  // `**/*.d.ts` removed from ignores in TSK-20260420-33 (REQ-20260420-006):
+  // ambient type declaration files are now parsed by the typescript-eslint
+  // parser via the dedicated `.ts/.tsx/.d.ts` block below. No rule set is
+  // applied yet (planner-fixed decision) to keep lint-time regression bounded.
+  { ignores: ['build/**', 'coverage/**', 'node_modules/**', '**/__test__/*.js', '**/api.js'] },
 
   // v9 flat-config defaults enable `reportUnusedDisableDirectives: 'warn'`;
   // legacy v8 default was `false`. Pin to `off` to preserve equivalence (§3.3,
@@ -22,6 +24,16 @@ export default [
 
   // extends: plugin:react/recommended (flat entry point)
   reactPlugin.configs.flat.recommended,
+
+  // typescript-eslint parser block (TSK-20260420-33, REQ-20260420-006).
+  // Parser-only wiring — no rule set applied (planner-fixed "규칙 세트 미적용").
+  // Keeps `.ts/.tsx/.d.ts` syntactically parseable while preserving the existing
+  // JS/JSX user-rule block below, which still matches `.ts/.tsx` via its files
+  // glob and composes per ESLint flat-config merge semantics.
+  {
+    files: ['src/**/*.{ts,tsx}', 'src/**/*.d.ts'],
+    languageOptions: { parser: tseslint.parser },
+  },
 
   {
     // scripts.lint runs `eslint ./src`. Pattern matches the `lint-staged` glob

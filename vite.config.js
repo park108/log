@@ -71,12 +71,13 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'html', 'lcov'],
-			include: ['src/**/*.{js,jsx}'],
+			include: ['src/**/*.{js,jsx,ts,tsx}'],
 			exclude: [
 				'src/index.jsx',
 				'src/reportWebVitals.js',
-				'src/**/*mock.{js,jsx}',
-				'src/**/*.test.{js,jsx}',
+				'src/**/*mock.{js,jsx,ts,tsx}',
+				'src/**/*.test.{js,jsx,ts,tsx}',
+				'src/**/*.d.ts',
 			],
 		},
 	},
