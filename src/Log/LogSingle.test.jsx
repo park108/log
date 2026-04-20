@@ -279,6 +279,27 @@ it('render "Page Not Found" page if API is down', async () => {
 	mock.prodServerNetworkError.close();
 });
 
+// REQ-20260418-005 FR-01 (TSK-20260420-suspense-skeleton-logsingle-phase1):
+// LogSingle 내부 Suspense fallback 이 빈 <div> 가 아닌 Skeleton(variant=detail) 로 교체됐는지
+// 정적 JSX 검증으로 가드. 기존 `<div></div>` fallback 회귀 차단.
+// lazy import 를 동적으로 suspend 시키는 대신, 소스 원문에서 교체가 유지되는지를 확인.
+it('LogSingle source declares Skeleton variant="detail" as Suspense fallback (no empty <div>)', async () => {
+	const fs = await import('node:fs');
+	const path = await import('node:path');
+	const src = fs.readFileSync(path.resolve(__dirname, 'LogSingle.jsx'), 'utf-8');
+
+	// 두 Suspense 블록 모두 Skeleton detail fallback 을 사용해야 한다.
+	const skeletonMatches = src.match(/<Suspense fallback=\{<Skeleton variant="detail" \/>\}>/g);
+	expect(skeletonMatches).not.toBeNull();
+	expect(skeletonMatches.length).toBe(2);
+
+	// 빈 div fallback 이 더 이상 존재하지 않아야 한다.
+	expect(src).not.toMatch(/<Suspense fallback=\{<div><\/div>\}>/);
+
+	// import 도 유지.
+	expect(src).toMatch(/import\s+Skeleton\s+from\s+["']\.\.\/common\/Skeleton["'];/);
+});
+
 // REQ-20260419-023 FR-05: useLog 훅이 useParams 에서 받은 timestamp 로 호출되는지 직접 검증.
 // 기존 useEffect + getLog 직접 호출 경로가 제거됐음을 캐시 키 기반으로 확인.
 it('calls useLog with the timestamp resolved from useParams', async () => {

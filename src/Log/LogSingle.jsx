@@ -5,6 +5,7 @@ import { hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '..
 import { useLog } from './hooks/useLog';
 import * as parser from '../common/markdownParser';
 import PageNotFound from "../common/PageNotFound";
+import Skeleton from "../common/Skeleton";
 
 const LogItem = lazy(() => import('./LogItem'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -83,7 +84,7 @@ const LogSingle = () => {
 	}
 	else if (found && latestData) {
 		logItem = (
-			<Suspense fallback={<div></div>}>
+			<Suspense fallback={<Skeleton variant="detail" />}>
 				<LogItem
 					author={latestData.author}
 					timestamp={latestData.timestamp}
@@ -124,7 +125,7 @@ const LogSingle = () => {
 					)
 			)}
 
-			<Suspense fallback={<div></div>}>
+			<Suspense fallback={<Skeleton variant="detail" />}>
 				<Toaster
 					show={isShowToasterCenter}
 					message="Loading a log..."
