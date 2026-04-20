@@ -7,7 +7,10 @@ import globals from 'globals';
 
 export default [
   // .eslintignore:2-3 + .eslintrc.yml:28-31 merged into flat-config ignores.
-  { ignores: ['build/**', 'coverage/**', 'node_modules/**', '**/__test__/*.js', '**/api.js'] },
+  // `**/*.d.ts` excluded: ambient type declaration files require the
+  // typescript-eslint parser, which is out-of-scope for the TS foundation task
+  // (TSK-20260420-32). tsc handles their type-check pass via `npm run typecheck`.
+  { ignores: ['build/**', 'coverage/**', 'node_modules/**', '**/__test__/*.js', '**/api.js', '**/*.d.ts'] },
 
   // v9 flat-config defaults enable `reportUnusedDisableDirectives: 'warn'`;
   // legacy v8 default was `false`. Pin to `off` to preserve equivalence (§3.3,
@@ -27,7 +30,7 @@ export default [
     // covered via explicit filename arguments (lint-staged). In flat config
     // the `files:` filter supersedes extension defaults, so include `.jsx`
     // here to preserve v8's lint-staged rule coverage on JSX.
-    files: ['src/**/*.{js,jsx}'],
+    files: ['src/**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
