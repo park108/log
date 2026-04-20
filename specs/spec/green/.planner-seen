@@ -1,27 +1,27 @@
 {
   "version": 1,
-  "updated": "2026-04-20T11:30:00Z",
-  "notes": "cycle 72: carve 1 (SearchInput setAttribute→className, REQ-026), no promotions, no blocked isolations. task/ready 9 → 10 (cap reached). Precheck: pause lock absent, input queue 17 greens non-empty, slack entered as 1 (empirical 9/10) — reconciled against cycle 71 observation's stated 10/10. Prior cycle miscounted by +1.",
-  "cycle_72_observation": {
-    "timestamp": "2026-04-20T11:30:00Z",
-    "head_at_start": "5b25cb9 (feat: CSP meta 태그 index.html — DEV-CONSUMED 20260420-csp-meta-tag-index-html)",
-    "head_advance_since_cycle_71_commit": [
-      "5b25cb9 feat: CSP meta 태그 index.html 도입 — developer CONSUMED csp-meta-tag task (drained task/ready 10 → 9)"
+  "updated": "2026-04-20T12:45:00Z",
+  "notes": "cycle 73: carve 1 (CSP dev/prod branch FR-14, TSK-20260420-13, option (a) transformIndexHtml plugin — planner decision recorded). No promotions (csp-policy remains Cond-2 FAIL for FR-12/14/15 non-deferred, inspector action required post-TSK-13 merge). No blocked isolations. task/ready 9 → 10 (cap reached). Precheck: pause lock absent, input queue 17 greens non-empty, slack=1 (empirical post-dev-consume of TSK-11 env-functional-getter at 4c56103).",
+  "cycle_73_observation": {
+    "timestamp": "2026-04-20T12:45:00Z",
+    "head_at_start": "4c56103 (refactor: env.js functional getter + 5 api.js + 12 test migrations — TSK-20260420-11 DEV-CONSUMED, supersedes TSK-20260418-36)",
+    "head_advance_since_cycle_72_commit": [
+      "4c56103 refactor: env.js functional getter TSK-20260420-11 — developer CONSUMED (drained task/ready 10 → 9)"
     ],
-    "developer_pulse_since_cycle_71": "1 task consumption (csp-meta-tag-index-html). Breaks cycle 71's 'zero inspector pulse + zero developer consume' conjunction — stalling deadline (cycle 73) NOT triggering. Deadline resets.",
-    "inspector_pulse_since_cycle_71": "0 commits on green bodies (operator RULE-05 §1 closure of TSK-36 at 6550266 was NOT inspector). Still zero inspector pulse cycles 66-72 (7 consecutive).",
+    "developer_pulse_since_cycle_72": "1 task consumption (env-functional-getter TSK-11). Continues 2-cycle streak (csp-meta in cycle 72 + env-functional-getter in cycle 73). Pipeline pulse healthy.",
+    "inspector_pulse_since_cycle_72": "0 commits on green bodies. Zero inspector pulse streak now cycles 66-73 (8 consecutive). Watchlist escalation remains gated on full pipeline stall (not inspector-only stall) per cycle 72 deadline framework.",
     "green_file_count_start": 17,
     "green_file_count_end": 17,
     "blue_file_count_start": 14,
     "blue_file_count_end": 14,
     "task_ready_count_start": 9,
     "task_ready_count_end": 10,
-    "task_ready_delta_cycle_72": {
+    "task_ready_delta_cycle_73": {
       "removed_via_dev_consume": [
-        "20260420-csp-meta-tag-index-html.md (→ 5b25cb9)"
+        "20260420-env-functional-getter.md (→ 4c56103, TSK-20260420-11)"
       ],
       "added_via_planner_carve": [
-        "20260420-searchinput-setattribute-to-classname-req-026.md (TSK-20260420-12, SearchInput.jsx 명령형 setAttribute 2건 → 선언적 className. REQ-20260418-026 FR-01~07 선행 위생, React 19 bump 사전 작업)"
+        "20260420-csp-dev-prod-branch-transformindexhtml.md (TSK-20260420-13, Vite transformIndexHtml plugin — option (a) dev-strip, REQ-20260419-040 FR-14)"
       ],
       "net_change": "-1 + 1 = 0 (9 → 10 via carve)"
     },
@@ -36,69 +36,84 @@
     },
     "mechanical_gate_scan_promotion_verdict": {
       "method": "Per planner §4: Cond-1=zero [WIP]/[DRAFT]/[TBD]/[TODO]; Cond-2=every unchecked '- [ ]' tagged [deferred] or resolved; Cond-3=no 'To-Be' heading.",
-      "wip_token_and_unchecked_nondeferred_counts_per_spec": {
-        "build/react-version-spec.md": {"wip": 3, "unchecked_nondeferred": 18},
-        "ci/github-actions-ci-spec.md": {"wip": 13, "unchecked_nondeferred": 47},
-        "common/accessibility-spec.md": {"wip": 17, "unchecked_nondeferred": 115},
-        "common/auth-spec.md": {"wip": 2, "unchecked_nondeferred": 20},
-        "common/clipboard-spec.md": {"wip": 7, "unchecked_nondeferred": 30},
-        "common/csp-policy-spec.md": {"wip": 0, "unchecked_nondeferred": 12},
-        "common/env-spec.md": {"wip": 29, "unchecked_nondeferred": 14},
-        "common/error-boundary-spec.md": {"wip": 3, "unchecked_nondeferred": 9},
-        "common/react-render-patterns-spec.md": {"wip": 1, "unchecked_nondeferred": 8},
-        "common/sanitizeHtml-spec.md": {"wip": 11, "unchecked_nondeferred": 24},
-        "state/server-state-spec.md": {"wip": 11, "unchecked_nondeferred": 122},
-        "styles/css-modules-spec.md": {"wip": 11, "unchecked_nondeferred": 102},
-        "testing/app-shell-side-effects-smoke-spec.md": {"wip": 8, "unchecked_nondeferred": 24},
-        "testing/log-mutation-runtime-smoke-spec.md": {"wip": 2, "unchecked_nondeferred": 15},
-        "testing/post-merge-visual-smoke-spec.md": {"wip": 1, "unchecked_nondeferred": 44},
-        "testing/search-abort-runtime-smoke-spec.md": {"wip": 1, "unchecked_nondeferred": 29},
-        "types/typescript-spec.md": {"wip": 4, "unchecked_nondeferred": 14}
+      "wip_token_counts_per_spec": {
+        "build/react-version-spec.md": 3,
+        "ci/github-actions-ci-spec.md": 13,
+        "common/accessibility-spec.md": 17,
+        "common/auth-spec.md": 2,
+        "common/clipboard-spec.md": 7,
+        "common/csp-policy-spec.md": 0,
+        "common/env-spec.md": 29,
+        "common/error-boundary-spec.md": 3,
+        "common/react-render-patterns-spec.md": 1,
+        "common/sanitizeHtml-spec.md": 11,
+        "state/server-state-spec.md": 11,
+        "styles/css-modules-spec.md": 11,
+        "testing/app-shell-side-effects-smoke-spec.md": 8,
+        "testing/log-mutation-runtime-smoke-spec.md": 2,
+        "testing/post-merge-visual-smoke-spec.md": 1,
+        "testing/search-abort-runtime-smoke-spec.md": 1,
+        "types/typescript-spec.md": 4
       },
-      "csp_policy_cond2_check": "WIP=0 (Cond-1 PASS) BUT 12 unchecked non-[deferred] rows (§6.1 FR-01..FR-15 + §6.2 NFR-* checklist, only NFR-01/NFR-02 have [deferred] blocks) → Cond-2 FAIL. Also FR-01 csp-meta-tag was DEV-CONSUMED (5b25cb9) but inspector has not yet flipped '- [ ] FR-01' to '- [x] FR-01'. Planner cannot edit green. Inspector action required.",
+      "csp_policy_cond2_deep_check": {
+        "wip_tokens": 0,
+        "total_unchecked": 5,
+        "deferred_unchecked": 2,
+        "non_deferred_unchecked": 3,
+        "non_deferred_items": [
+          "FR-12 (Should): docs/testing/csp-smoke.md 신설 + 운영자 baseline — spec 본문에 '별 task 큐잉' 평문만 있고 [deferred] 태그 부재",
+          "FR-14: dev/prod 분기 처리 — spec 본문에 '별 task 분리' 평문만 있고 [deferred] 태그 부재 (본 사이클 TSK-13 carve 완료, inspector 가 post-merge flip + option(a) 채택 박제 필요)",
+          "FR-15 (Should): 업로드 CDN 도메인 확인 — '운영자 followup 스텁' 평문만 있고 [deferred] 태그 부재"
+        ],
+        "fr01_flip_verification": "Line 5 header annotates 'inspector — 67794e1 flip: FR-01~FR-13 + NFR-03/04/06 충족 박제'. Line 107 `[x] FR-01`. FR-01 flip CONFIRMED by inspector (prior cycle). Line 9 `index.html:9` has CSP meta tag (grep verified). Prior cycle 72 state file's 'inspector has not yet flipped' note is OUTDATED — flip was performed by 2026-04-20 inspector drift reconcile.",
+        "verdict": "Cond-1 PASS (WIP=0), Cond-2 FAIL (3 non-deferred unchecked remain). Planner cannot edit green; inspector required to either (a) [deferred] tag FR-12/14/15 or (b) flip FR-14 post-TSK-13 merge + [deferred] tag FR-12/15."
+      },
       "promoted_this_cycle": [],
-      "held_this_cycle": "all 17 greens (16 fail Cond-1, 1 fails Cond-2 only — csp-policy)",
+      "held_this_cycle": "all 17 greens (16 fail Cond-1 via WIP tokens, 1 fails Cond-2 only — csp-policy)",
       "blocked_this_cycle": [],
-      "closest_to_promotion": "common/csp-policy-spec.md (only Cond-2 gap; 12 checkboxes need [deferred] tags or [x] flips by inspector post-DEV-CONSUME)"
+      "closest_to_promotion": "common/csp-policy-spec.md (Cond-1 PASS, Cond-2 gap narrowed from 12 to 3 non-deferred items; 1 of which now has in-flight task TSK-13)"
     },
     "carve_decision": {
       "slack_before": 1,
       "slack_after": 0,
-      "carved": ["20260420-searchinput-setattribute-to-classname-req-026.md (TSK-20260420-12)"],
-      "rationale": "task/ready 9/10 (pre-carve) = slack=1. Directive 'aggressive carving' balanced against TASK_READY_MAX=10 cap → exactly 1 carve. Target chosen by criteria: (a) no in-flight overlap, (b) atomic (1 file, ~15 lines, single revert), (c) unblocks larger spec (build/react-version §4.1 WIP reduction; eases React 19 bump REQ-040 strict-mode risk), (d) independent of other in-flight tasks (no depends_on). SearchInput setAttribute→className meets all four.",
+      "carved": ["20260420-csp-dev-prod-branch-transformindexhtml.md (TSK-20260420-13)"],
+      "rationale": "task/ready 9/10 (pre-carve) = slack=1. Directive 'aggressive carving' balanced against TASK_READY_MAX=10 cap → 1 carve. Target chosen by criteria: (a) unblocks closest-to-promotion spec (csp-policy §5.1 FR-14 remains Cond-2 non-deferred; TSK-13 merge allows inspector to flip to [x]), (b) atomic (1 vite.config.js + 1 test file ~15 LOC + 40 LOC), (c) single revert rollback, (d) no in-flight dependency overlap (csp-meta-tag TSK-08 already DONE; FR-14 is downstream), (e) planner decision authority explicit in spec §3.2 (option (a) vs (b)) — TSK-13 records 'option (a) transformIndexHtml plugin' selection with 4-point rationale.",
+      "planner_decision_recorded_in_task": "TSK-20260420-13 §0 selects option (a) over (b). Rationale: HMR eval avoidance, 'unsafe-eval' security regression avoidance, transformIndexHtml safety, dev console noise reduction.",
       "rejected_candidates": [
-        "react-version §2 full bump — too large for 1 PR, spans package.json + 35 test files regression; already covered conceptually by REQ-040 (not yet carved into task/ready due to regression-cost risk)",
-        "sanitizeHtml §* — 11 WIP tokens indicate inspector WIP state; carving risks conflicts with inspector reconciliation",
-        "accessibility §* — 17 WIP + 115 unchecked; high inspector drift, premature to carve",
-        "state/server-state §* — 11 WIP + 122 unchecked; Suspense+Query blocked on React 19 bump",
-        "styles/css-modules §* — 11 WIP + 102 unchecked; large pending spec",
-        "testing/*-smoke-spec.md — manual baselines; carving would create operator work, not developer work — out of planner scope",
-        "types/typescript §* — tsconfig-baseurl-deprecation already in flight; other WIP slots involve TS migration strategy (not atomic)"
+        "csp-policy FR-12 (docs/testing/csp-smoke.md) — docs writing + operator manual baseline hybrid. Operator portion non-developer work — scope contamination. Inspector [deferred] tagging simpler path.",
+        "csp-policy FR-15 (업로드 CDN 도메인 확인) — operator followup stub. Requires human decision (CDN hostname discovery) not in developer scope.",
+        "react-version §2 full React 19 bump — too large, spans package.json + 35+ test files regression.",
+        "sanitizeHtml §* — 11 WIP tokens indicate inspector WIP; carving risks conflicts.",
+        "accessibility §* — 17 WIP + 115 unchecked; high drift, premature.",
+        "state/server-state §* — 11 WIP + 122 unchecked; Suspense+Query blocked on React 19 bump.",
+        "styles/css-modules §* — 11 WIP + 102 unchecked; large pending spec.",
+        "testing/*-smoke-spec.md — manual baselines (operator work, not developer).",
+        "types/typescript §* — TSK-20 already in flight; remaining WIP slots are TS migration strategy (multi-PR)."
       ]
     },
     "stalling_assessment": {
-      "prior_deadline_cycle": 73,
-      "current_cycle": 72,
+      "prior_deadline_cycle": 74,
+      "current_cycle": 73,
       "conjunction_check": {
         "a_zero_inspector_pulse": true,
         "b_zero_developer_task_consumption": false,
         "c_task_ready_stuck_at_cap": false,
-        "verdict": "conjunction FALSE — pipeline is draining (1 dev consume + 1 planner carve this cycle)"
+        "verdict": "conjunction FALSE — pipeline is draining (1 dev consume + 1 planner carve this cycle). Dev pulse 2 cycles consecutive (TSK-08 cycle 72 + TSK-11 cycle 73)."
       },
-      "deadline_reassessment": "pipeline pulse observed (dev + planner). Per cycle 71 rule 'ANY single cycle with ANY pulse resets deadline +2 cycles from that pulse' → new deadline cycle 74. However, zero-inspector-pulse streak extends to 7 cycles (cycles 66-72). Inspector-specific stall watchlist retained.",
-      "inspector_stall_watchlist": "no per-spec escalation yet. Escalation remains gated on full pipeline stall, not inspector-only stall. Operator RULE-05 §1 interventions at cycle 71 (TSK-36 closure) demonstrate alternative unblocking path exists."
+      "deadline_reassessment": "pipeline pulse observed again (dev + planner). Deadline reset +2 cycles from cycle 73 → new deadline cycle 75. Inspector-specific stall streak extends to 8 cycles (66-73). Per operator RULE-05 §1 precedent (cycle 71 TSK-36 closure at 6550266), operator intervention remains alternate unblocking path if inspector stall persists ≥10 cycles without full-pipeline stall trigger."
     },
-    "watchlist_cycle_72": [
-      "common/csp-policy-spec.md — Cond-1 PASS + Cond-2 FAIL (12 unchecked non-deferred). Closest to promotion. FR-01 DEV-CONSUMED at 5b25cb9 but spec checkbox not flipped. Inspector next-pulse priority.",
-      "common/auth-spec.md — REQ-031 DEV-CONSUMED at 1fc05e9. REQ-032 (parsejwt-isadmin-guard) in flight. Inspector pending reconciliation of both.",
-      "common/env-spec.md — TSK-20260420-11 (env-functional-getter) in flight. 29 WIP tokens (highest count). Operator RULE-05 §1 §10 changelog edit applied (6550266).",
-      "common/react-render-patterns-spec.md — 3 tasks in flight (usehoverpopup-hook + 2 hoverpopup-callers). Promotable post-consume + inspector pulse.",
-      "common/clipboard-spec.md — 2 tasks in flight (execcommand-stub + imageselector-toaster).",
+    "watchlist_cycle_73": [
+      "common/csp-policy-spec.md — Cond-1 PASS + Cond-2 FAIL (3 non-deferred remaining: FR-12, FR-14, FR-15). TSK-13 in flight closes FR-14 gap post-merge. Inspector-priority: (a) [deferred] FR-12/15 now, (b) flip FR-14 to [x] post-TSK-13 merge + add §3.2 body annotation 'option (a) 채택 (TSK-20260420-13)'.",
+      "common/auth-spec.md — REQ-031 DEV-CONSUMED at 1fc05e9. REQ-032 (parsejwt-isadmin-guard) in flight. Inspector pending reconciliation of both DEV-CONSUMED merges.",
+      "common/env-spec.md — TSK-20260420-11 DEV-CONSUMED at 4c56103 (this cycle HEAD). 29 WIP tokens (highest). Inspector-priority next pulse: reconcile TSK-11 impact (env.js getter form) + reduce WIP set + flip FR/NFR. Operator RULE-05 §1 §10 changelog edit (6550266) context retained.",
+      "common/react-render-patterns-spec.md — 3 tasks in flight (usehoverpopup-hook TSK + 2 hoverpopup-callers TSKs). Promotable post full 3-task consume + inspector flip.",
+      "common/clipboard-spec.md — 2 tasks in flight (execcommand-stub-sweep + imageselector-toaster).",
       "common/error-boundary-spec.md — suspense-skeleton-logsingle-phase1 in flight.",
       "types/typescript-spec.md — tsconfig-baseurl-deprecation in flight.",
-      "build/react-version-spec.md — NEW task TSK-20260420-12 in flight (SearchInput REQ-026 선행 위생). Post-consume reduces §4.1/§5 명령형 setAttribute 잔존 위치 목록 1 → 0. But §2 full bump (REQ-040) and §4.0.1 drift-resolve blocks (29+ unchecked items) remain — promotion still deferred."
+      "build/react-version-spec.md — TSK-20260420-12 (SearchInput REQ-026 선행 위생) in flight. Post-consume reduces §4.1/§5 명령형 setAttribute 잔존 위치 목록 1 → 0. §2 React 19 bump + §4.0.1 drift-resolve (29+ unchecked) remain.",
+      "common/csp-policy-spec.md — TSK-20260420-13 newly carved (this cycle). Inspector FR-14 flip + option-(a) body annotation pending post-merge."
     ],
     "no_op": false,
-    "writer_area_delta_this_cycle": "task/ready/20260420-searchinput-setattribute-to-classname-req-026.md CREATED (gitignored, not committed per RULE-02 §2.3). .planner-seen appended (committable). No blue/ promotion, no blocked/ isolation. Local commit captures .planner-seen delta only."
+    "writer_area_delta_this_cycle": "task/ready/20260420-csp-dev-prod-branch-transformindexhtml.md CREATED (gitignored via specs/task/ exclusion, not committed per RULE-02 §2.3). .planner-seen updated (committable — specs/spec/green/ is NOT in gitignore, only specs/followups, specs/requirements, specs/task are excluded). No blue/ promotion, no blocked/ isolation. Local commit captures .planner-seen delta only."
   }
 }
