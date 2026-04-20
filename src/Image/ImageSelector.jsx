@@ -163,7 +163,7 @@ const ImageSelector = (props) => {
 
 								const ok = await copyToClipboard(imageForMarkdown);
 								if (ok) {
-									setToasterType("warning");
+									setToasterType("success");
 									setToasterMessage("Markdown string copied.");
 								} else {
 									setToasterType("error");
