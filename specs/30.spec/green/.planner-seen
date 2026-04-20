@@ -1,20 +1,18 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(session+4)Z
-# Session: 0 promotions + 1 blocked move (shuffle-safety stale 2→3 ≥3cycle) + 2 new carves (TSK-46, TSK-47).
-#   carve (green → 40.task/ready):
-#     - foundation/test-infra-conventions-grep-gate-lifo-spec.md (hash 54f35c14, new) → TSK-20260421-46 (문서·주석 보강 + 감사 1회, depends_on=[]).
-#     - deps/react-19-findby-option-beta-idiom-spec.md (hash 18ead1c3, new) → TSK-20260421-47 (β 이디엄 4 케이스 + timing.js 재도입, depends_on=[]). 직전 blocked react-19-findby-timing-stabilization-spec.md (hash b5d9e93e) 와는 별개 — β 재설계로 inspector 가 재발행한 신규 spec.
-#   blocked (green → 50.blocked/spec):
-#     - common/test-isolation-shuffle-safety-spec.md (hash 불변 bd27261f, stale 2 → 3 ≥3cycle). TSK-20260421-45 는 `50.blocked/task/` 격리 상태 (RULE-05 수동 개입 관할, planner 재carve 금지). spec 자체 stale 누적 → `50.blocked/spec/` + `_reason.md`. ledger 제거.
-#   승격 (green → blue): 없음. 두 신규 green 은 이번 세션 최초 carve.
-#   pending green: 없음 (3건 모두 처리 완료 — 2 carve + 1 blocked).
-# ready 큐: TSK-20260421-46, TSK-20260421-47 (count=2, TASK_READY_MAX=10 여유). TSK-45 blocked, TSK-44 done (96c37df), TSK-43 blocked, TSK-42 done (c18132d).
-# carve 계보 (본 세션):
-#   - TSK-46 독립 (문서·주석 수준, depends_on=[]).
-#   - TSK-47 독립 (depends_on=[], supersedes=미표기 — TSK-43 blocked 는 RULE-05 관할; 본 태스크는 inspector 가 재설계한 신규 spec 에서 파생된 새 태스크).
-# grep dry-run (본 세션 carve 2건 실측):
-#   - TSK-46: 6/6 match (afterEach RULE-06=0, ripgrep|rg RULE-06=0, LIFO setupTests=0, afterEach templates=0, RULE-06 wc=26, setupTests wc=81).
-#   - TSK-47: 8/8 match (α findByText+timeout=0, findByText File=10, findByText LogSingle=13, ASYNC_ASSERTION_TIMEOUT_MS src=0, hardcoded 3000/5000/10000=0, waitFor File=0, waitFor LogSingle=0, timing.js missing).
-# 총 grep dry-run 14/14 match.
-30.spec/green/foundation/test-infra-conventions-grep-gate-lifo-spec.md 54f35c1425ae04a122de9356f075a8d7ce4cae667a5c18ac54b39b467aa78ed5 0
-30.spec/green/deps/react-19-findby-option-beta-idiom-spec.md 18ead1c35ecceee29a4cd46cda798de5885bf648f8aee08f43464463731835a3 0
+# Updated: 2026-04-21T(session+5)Z
+# Session: 0 promotions + 0 new carves + 2 filename corrections (RULE-01 Task ID prefix).
+#   filename fix (40.task/ready mv only — RULE-01, .gitignore 영역이지만 규약상 mv 허용):
+#     - 20260421-test-infra-conventions-grep-gate-lifo.md → TSK-20260421-46-test-infra-conventions-grep-gate-lifo.md.
+#     - 20260421-react-19-findby-beta-idiom-stabilization.md → TSK-20260421-47-react-19-findby-beta-idiom-stabilization.md.
+#       (내용 수정 없음. 두 파일 모두 본문에 Task ID 46/47 이미 박제. grep 중복 검증: 20260421 최대=47, 46/47 외 충돌 없음.)
+#   승격 (green → blue): 없음.
+#     - foundation/test-infra-conventions-grep-gate-lifo-spec.md (hash 54f35c14 불변) — TSK-46 미수행 (40.task/ready 에 발행됨, 수용 기준 unchecked 다수 + 변경 이력 미박제). stale 0 → 1.
+#     - deps/react-19-findby-option-beta-idiom-spec.md (hash 18ead1c3 불변) — TSK-47 미수행 (40.task/ready 에 발행됨, 수용 기준 unchecked 다수 + 변경 이력 미박제). stale 0 → 1.
+#   carve: 없음 (TSK-46, TSK-47 이미 발행됨 → 재carve 금지).
+#   blocked: 없음 (stale 1 < 2, blocked 임계 미도달).
+# ready 큐: TSK-20260421-46, TSK-20260421-47 (count=2, TASK_READY_MAX=10 여유).
+#   TSK-45 blocked (RULE-05 관할, 재carve 금지), TSK-44 done (96c37df), TSK-43 blocked (RULE-05 관할), TSK-42 done (c18132d).
+# pending green: 2건 (모두 task 발행됨, developer 대기).
+# grep dry-run: N/A (이번 세션 carve 없음 — 파일명 교정만).
+30.spec/green/foundation/test-infra-conventions-grep-gate-lifo-spec.md 54f35c1425ae04a122de9356f075a8d7ce4cae667a5c18ac54b39b467aa78ed5 1
+30.spec/green/deps/react-19-findby-option-beta-idiom-spec.md 18ead1c35ecceee29a4cd46cda798de5885bf648f8aee08f43464463731835a3 1
