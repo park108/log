@@ -61,7 +61,7 @@ const App = () => {
 			window.removeEventListener('offline', handleStatusChange);
 		}
 
-	}, [isOnline]);
+	}, []);
 
 	const pageNotFound = (
 		<main className="main main--main-contents" style={contentHeight}>

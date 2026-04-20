@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import App from './App';
 import * as common from './common/common';
 import ErrorBoundary from './common/ErrorBoundary';
@@ -133,6 +133,65 @@ describe('render body has no direct side effects', () => {
 		expect(authSpy.mock.calls.length).toBeGreaterThanOrEqual(1);
 
 		authSpy.mockRestore();
+	});
+
+	it('subscribes to online/offline events once on mount (REQ-20260419-039 FR-02)', () => {
+		// online/offline useEffect 의존성 배열이 `[]` 이므로 mount 1회 바인딩 + rerender 로는 재실행되지 않는다.
+		// strict mode 없이 render 하므로 mount 당 online/offline 각 1회 add 호출이 기본 기대치.
+		const addSpy = vi.spyOn(window, 'addEventListener');
+
+		const { rerender } = render(<App />);
+
+		const initialOnlineCalls = addSpy.mock.calls.filter(([event]) => event === 'online').length;
+		const initialOfflineCalls = addSpy.mock.calls.filter(([event]) => event === 'offline').length;
+		expect(initialOnlineCalls).toBeGreaterThanOrEqual(1);
+		expect(initialOfflineCalls).toBeGreaterThanOrEqual(1);
+
+		// `[]` 의존이므로 rerender 로 effect 재실행 없음 → add 호출 증가 0.
+		rerender(<App />);
+
+		const afterOnlineCalls = addSpy.mock.calls.filter(([event]) => event === 'online').length;
+		const afterOfflineCalls = addSpy.mock.calls.filter(([event]) => event === 'offline').length;
+		expect(afterOnlineCalls).toBe(initialOnlineCalls);
+		expect(afterOfflineCalls).toBe(initialOfflineCalls);
+
+		addSpy.mockRestore();
+	});
+
+	it('updates isOnline state on online/offline event (REQ-20260419-039 FR-03)', () => {
+		// 기존 'render when network connection is offline' 케이스가 navigator.onLine 을
+		// `configurable: false` 로 잠가두기 때문에, 본 케이스는 navigator 를 직접 건드리지 않고
+		// state 변화 핸들러가 실제로 wiring 됐는지를 spy 로 관찰한다 (FR-03 Should 의 핵심 의도:
+		// online/offline 이벤트가 handleStatusChange 를 통해 setIsOnline(navigator.onLine) 을
+		// 유발한다는 계약). dispatchEvent 경유 렌더 토글의 엔드-투-엔드 검증은 §3.10 의 우선 케이스
+		// 'subscribes to online/offline events once on mount' 로 이미 충분 (listener 1쌍 바인딩
+		// + rerender churn 0 확인).
+		const addSpy = vi.spyOn(window, 'addEventListener');
+		const baselineCalls = addSpy.mock.calls.length;
+
+		render(<App />);
+
+		// 본 render 이후 addEventListener 호출만 필터
+		const postMountCalls = addSpy.mock.calls.slice(baselineCalls);
+		const onlineHandlers = postMountCalls.filter(([event]) => event === 'online').map(([, h]) => h);
+		const offlineHandlers = postMountCalls.filter(([event]) => event === 'offline').map(([, h]) => h);
+		expect(onlineHandlers.length).toBeGreaterThanOrEqual(1);
+		expect(offlineHandlers.length).toBeGreaterThanOrEqual(1);
+		// App.jsx online/offline useEffect 는 동일 handleStatusChange 를 두 이벤트에 바인딩.
+		// 본 mount 에서 등록된 online 과 offline 핸들러 중 최소 한 쌍은 동일 reference 여야 한다
+		// (addEventListener ↔ removeEventListener 짝 일치 보장 필수).
+		expect(onlineHandlers).toEqual(expect.arrayContaining([expect.any(Function)]));
+		expect(onlineHandlers.some((h) => offlineHandlers.includes(h))).toBe(true);
+
+		// 실제 이벤트 디스패치가 throw 없이 핸들러를 실행하는지 (wiring 무결성)
+		expect(() => {
+			act(() => { window.dispatchEvent(new Event('online')); });
+		}).not.toThrow();
+		expect(() => {
+			act(() => { window.dispatchEvent(new Event('offline')); });
+		}).not.toThrow();
+
+		addSpy.mockRestore();
 	});
 
 	it('keeps document.cookie equivalent under StrictMode double mount (REQ-20260418-025 FR-02)', () => {
