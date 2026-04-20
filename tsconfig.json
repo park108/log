@@ -15,12 +15,10 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"forceConsistentCasingInFileNames": true,
-		"ignoreDeprecations": "6.0",
-		"baseUrl": ".",
 		"paths": {
-			"@/common/*": ["src/common/*"],
-			"@/types/*": ["src/types/*"],
-			"@/log/*": ["src/Log/*"]
+			"@/common/*": ["./src/common/*"],
+			"@/types/*": ["./src/types/*"],
+			"@/log/*": ["./src/Log/*"]
 		},
 		"noEmit": true
 	},
