@@ -1,10 +1,15 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T23:00:00Z
-# Phase 1 ack this session: 0/3. 세 spec 모두 해시 불변(직전 세션 스냅샷과 동일) + WIP 미전진.
-#   - react-19-test-layer: Must §수용 기준 §1/§2 (fake-timer grep 0) 는 TSK-20260420-35-a (e4a470b) 로 직전 세션에 이력 박제 완료. Must §3 (`\.listen(` inline→beforeEach 이동) 과 그 뒤 Must (전체 green / 3회 flake 0 / lint 증감 0 / 10개 파일 회귀 0) 은 pair TSK-20260420-35-b 미발행·미완료 — Must 주관 혼재 지속 → 체크박스 플립 보류 유지. `.listen(` inline 호출 92 hits in 14 files 잔존 (Monitor/File/Comment/Image/Search/Log 전역, WebVitalsItem/ApiCallItem 포함) — teardown 이동 필요. 해시 변경 없어 stale_cycles 0 → 1.
-#   - env-test-stub: `process.env.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행. stale_cycles 3 → 4 (≥3 누적 2세션 연속, planner 태스크화 필요).
-#   - typescript-tooling: `eslint.config.js:13` 의 `**/*.d.ts` ignore 잔존 / `package.json` 의 `typescript-eslint|@typescript-eslint` 0 hits / `vite.config.js:74` coverage include = `['src/**/*.{js,jsx}']` (ts/tsx 미확장). 3개 Must 전량 FAIL. stale_cycles 3 → 4.
-# Phase 2 this session: input queue empty (20.req/ready/ = 0 files). no new green specs produced.
-30.spec/green/deps/react-19-test-layer-adaptation-spec.md 89b92c0f7da628acb3f99df991fd6c821ac864c6d58ca1becc0df8ea8a5ced4c 1
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 4
-30.spec/green/foundation/typescript-tooling-completion-spec.md 2e6ad0f7b9570ae4a6c564fbc57dd4cbc883d351c2084ca45d44ad66e93d742b 4
+# Updated: 2026-04-20T23:30:00Z
+# Phase 1 ack this session: 2/3. 2 specs 전량 Must/Should/NFR PASS (grep 게이트 현 HEAD 재실행 + hook-ack + result.md 이중 확증), 체크박스 flip + 변경 이력 박제 완료.
+#   - react-19-test-layer: TSK-20260420-35-a (e4a470b, ancestor) + TSK-20260420-35-b (08a64f6, ancestor) 쌍으로 Must 전량 ack.
+#       grep 재실행: `vi\.useFakeTimers(\s*)` = 0, `'modern'` = 0, `.listen(` in *.test.* = 7 hits 전량 Comment.test.jsx 의 beforeEach() 내부 (+ 주석 3건, 본문 직접 호출 0). 368/368 green, 3회 flake 0, lint 증감 0, 10개 파일 회귀 0 (split 증가만). Should/NFR 전량 충족.
+#   - typescript-tooling: TSK-20260420-33 (14696b3, ancestor) 로 Must/Should/NFR 전량 ack.
+#       grep 재실행: eslint.config.js `**/*.d.ts` ignores 0 hits (주석 :11 + 파서 블록 files :34 만 잔존 — DoD 허용), package.json `typescript-eslint` 1 hit (:60), vite.config.js coverage include `{js,jsx,ts,tsx}` + `.d.ts` exclude 명시. lint/typecheck/build/test 전량 exit 0.
+#   - env-test-stub: `process.env.NODE_ENV` in `*.test.*` = 44 hits in 6 files (baseline 불변). 대응 task 미발행. stale_cycles 4 → 5 (≥3 누적 3세션 연속).
+# Phase 2 this session:
+#   - input queue: 1 req (20260420-uniform-fake-timer-teardown-policy.md).
+#   - processed: 0 / blocked: 1 (REQ-ID 충돌 — 본 req 가 `REQ-20260420-005` 선언 but 해당 ID 는 이미 `60.done/req/20260420-vite-native-env-stub-strategy.md` 에 할당됨. inspector 는 req 내용 수정 불가 (RULE-01 mv-only), 격리 후 `50.blocked/req/{slug}_reason.md` 에 수동 해제 권장 조치 박제).
+#   - new green specs produced: 0.
+30.spec/green/deps/react-19-test-layer-adaptation-spec.md 16965ee53ffff7fdd0cf694529a02869415f8fec14c63c1b57939ecfb9de7a83 0
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 5
+30.spec/green/foundation/typescript-tooling-completion-spec.md 7bb441e11f99361de9d5abd1ae13573dec089d2f9453832d52129db250ff1549 0

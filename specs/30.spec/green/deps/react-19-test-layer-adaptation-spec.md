@@ -57,24 +57,24 @@ React 19 bump(TSK-20260420-30) 를 차단한 **테스트 레이어 두 패턴** 
 ## 테스트 현황
 - [x] React 18.x 환경 `npm run test` 360/360 green (baseline 2026-04-20).
 - [x] bump 시도 시 53 failed / 307 passed — 패턴 A/B 재현 (reason.md 관찰).
-- [ ] 어댑테이션 후 React 18.x 기준 360/360 green 유지.
-- [ ] `npm run test` 3회 연속 flake 0 (NFR-01).
-- [ ] `npm run lint` 경고·오류 증감 0 (FR-05).
-- [ ] 재발 방지 단위 어서트 1건 이상 (FR-07, Should).
+- [x] 어댑테이션 후 React 18.x 기준 green 유지 (368/368, TSK-35-a/b 결과).
+- [x] `npm run test` 3회 연속 flake 0 (NFR-01) (TSK-35-b result).
+- [x] `npm run lint` 경고·오류 증감 0 (FR-05) (TSK-35-a/b result).
+- [x] 재발 방지 단위 어서트 1건 이상 (FR-07, Should) (`src/setupTests.timer-idiom.test.jsx` + `src/test-utils/msw.test.js`).
 
 ## 수용 기준
-- [ ] (Must) `grep -rn "vi\.useFakeTimers(\s*)" src/ --include="*.test.js" --include="*.test.jsx"` → **인자 없는** 호출 0 매칭 (옵션 객체 또는 async API 형태만 잔존).
-- [ ] (Must) `grep -rn "vi\.useFakeTimers('modern')" src/ --include="*.test.js" --include="*.test.jsx"` → 0 매칭 (`'modern'` 문자열 인자 제거).
-- [ ] (Must) `grep -rn "\.listen(" src/ --include="*.test.js" --include="*.test.jsx"` 결과의 모든 호출이 `beforeEach`/`beforeAll` 블록 내부 (테스트 본문 직접 호출 0). planner 가 발행 시점 재스캔하여 박제.
-- [ ] (Must) `npm run test` exit 0 + 360/360 green + coverage 보고서 생성.
-- [ ] (Must) `npm run test` 3회 연속 실행 — 매회 green + flake 0.
-- [ ] (Must) `npm run lint` 경고·오류 증감 0.
-- [ ] (Must) `src/Toaster/Toaster.test.jsx`, `src/Log/Writer.test.jsx`, `src/Log/LogSingle.test.jsx`, `src/Log/LogItem.test.jsx`, `src/Monitor/VisitorMon.test.jsx`, `src/Monitor/ContentItem.test.jsx`, `src/File/File.test.jsx`, `src/File/FileUpload.test.jsx`, `src/File/FileDrop.test.jsx`, `src/Comment/Comment.test.jsx` 10개 파일의 case 수·assert 수 회귀 0 (삭제 0, 감소 0).
-- [ ] (Should) 공통 MSW 헬퍼 `src/test-utils/msw.js` 추출 — 중복 제거.
-- [ ] (Should) fake-timer + await 이디엄 규칙을 `src/setupTests.js` 헤더 주석 또는 `docs/` 1곳에 박제.
-- [ ] (Should) 패턴 A/B 재현 방지 단위 어서트 1건 이상 추가.
-- [ ] (NFR) `npm run test` wall-clock 회귀 ±10% 내.
-- [ ] (NFR) coverage line/statement 비율 회귀 ±0.5% 내.
+- [x] (Must) `grep -rn "vi\.useFakeTimers(\s*)" src/ --include="*.test.js" --include="*.test.jsx"` → **인자 없는** 호출 0 매칭 (옵션 객체 또는 async API 형태만 잔존).
+- [x] (Must) `grep -rn "vi\.useFakeTimers('modern')" src/ --include="*.test.js" --include="*.test.jsx"` → 0 매칭 (`'modern'` 문자열 인자 제거).
+- [x] (Must) `grep -rn "\.listen(" src/ --include="*.test.js" --include="*.test.jsx"` 결과의 모든 호출이 `beforeEach`/`beforeAll` 블록 내부 (테스트 본문 직접 호출 0). (TSK-35-b result.md §DoD 근거.)
+- [x] (Must) `npm run test` exit 0 + green + coverage 보고서 생성 (pre-push 훅 368/368).
+- [x] (Must) `npm run test` 3회 연속 실행 — 매회 green + flake 0 (TSK-35-b result).
+- [x] (Must) `npm run lint` 경고·오류 증감 0.
+- [x] (Must) `src/Toaster/Toaster.test.jsx`, `src/Log/Writer.test.jsx`, `src/Log/LogSingle.test.jsx`, `src/Log/LogItem.test.jsx`, `src/Monitor/VisitorMon.test.jsx`, `src/Monitor/ContentItem.test.jsx`, `src/File/File.test.jsx`, `src/File/FileUpload.test.jsx`, `src/File/FileDrop.test.jsx`, `src/Comment/Comment.test.jsx` 10개 파일 회귀 0 (삭제 0, 감소 0 — TSK-35-b 에서 split 증가만).
+- [x] (Should) 공통 MSW 헬퍼 `src/test-utils/msw.js` 추출 — 중복 제거.
+- [x] (Should) fake-timer + await 이디엄 규칙을 `src/setupTests.js` 헤더 주석 또는 `docs/` 1곳에 박제.
+- [x] (Should) 패턴 A/B 재현 방지 단위 어서트 1건 이상 추가 (`src/setupTests.timer-idiom.test.jsx` + `src/test-utils/msw.test.js` 5건).
+- [x] (NFR) `npm run test` wall-clock 회귀 ±10% 내 (+6.4%).
+- [x] (NFR) coverage line/statement 비율 회귀 ±0.5% 내 (-0.14% / -0.13%).
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -89,3 +89,4 @@ React 19 bump(TSK-20260420-30) 를 차단한 **테스트 레이어 두 패턴** 
 |------|-----------|------|----------|
 | 2026-04-20 | inspector / — | 최초 등록 (REQ-20260420-004 반영) | all |
 | 2026-04-20 | TSK-20260420-35-a / e4a470b | fake-timer 이디엄 carve 완료 — Must §수용 기준 1/2 (`vi.useFakeTimers()` / `'modern'` grep 0) 실증. MSW lifecycle 은 pair TSK-20260420-35-b 대기 → DoD 체크박스는 pair 완료 시 일괄 플립. | §수용 기준 (부분), §테스트 현황 |
+| 2026-04-20 | TSK-20260420-35-b / 08a64f6 | MSW listen/close 수명주기 훅 이동 완료 — `.listen(` 본문 직접 호출 0, `useMockServer` 헬퍼 + 재발 방지 어서트 5건, 368/368 green, 3회 flake 0. 전 Must/Should/NFR 체크박스 플립 (grep 게이트 현 HEAD 재실행 PASS). | §수용 기준 (전체), §테스트 현황 |
