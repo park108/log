@@ -274,6 +274,26 @@ describe('click login button', () => {
 	});
 });
 
+describe('App mounts cleanly with corrupted access_token (REQ-20260418-032 FR-05)', () => {
+	// parseJwt 입력 가드 + isAdmin fail-safe 가 App 마운트 경로에서 throw 전파를 막는지 회귀 방어.
+	// 손상된 쿠키 상태에서 <App /> 이 화이트 스크린 없이 렌더돼야 한다.
+
+	afterEach(() => {
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+	});
+
+	it('renders without throwing when access_token cookie is a single-part garbage string', async () => {
+		common.setCookie('access_token', 'ZZZ', { site: 'localhost:3000' });
+
+		expect(() => render(<App />)).not.toThrow();
+
+		// 화이트 스크린이 아니라 Navigation 영역의 타이틀이 렌더되는지 확인 (비-admin 모드).
+		const title = await screen.findByText('park108.net');
+		expect(title).toBeInTheDocument();
+	});
+});
+
 describe('ErrorBoundary integration (REQ-20260418-005 FR-06)', () => {
 
 	let consoleErrorSpy;

@@ -42,6 +42,47 @@ it('test parse Jwt token', () => {
 	expect(result['client_id']).toBe("h3m92a27t39sfcat302tiqtko");
 });
 
+describe('parseJwt input guards (REQ-20260418-032 FR-01, FR-03)', () => {
+	// parseJwt 는 손상/비정상 입력에 대해 throw 대신 null sentinel 을 반환해야 한다.
+	// App 마운트 시 isAdmin → parseJwt 경로의 TypeError 전파를 차단하기 위한 경계 계약.
+
+	it('returns null for undefined', () => {
+		expect(common.parseJwt(undefined)).toBeNull();
+	});
+
+	it('returns null for null', () => {
+		expect(common.parseJwt(null)).toBeNull();
+	});
+
+	it('returns null for empty string', () => {
+		expect(common.parseJwt('')).toBeNull();
+	});
+
+	it('returns null when there are no dots (single part)', () => {
+		expect(common.parseJwt('ZZZ')).toBeNull();
+	});
+
+	it('returns null when there are only 2 parts', () => {
+		expect(common.parseJwt('header.signature')).toBeNull();
+	});
+
+	it('returns null when payload base64 is malformed', () => {
+		// atob / decodeURIComponent / JSON.parse 중 하나라도 throw 하면 null.
+		expect(common.parseJwt('header.!!!invalid_base64!!!.signature')).toBeNull();
+	});
+
+	it('does not emit console.error for guarded inputs (FR-06)', () => {
+		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const before = errSpy.mock.calls.length;
+		common.parseJwt(undefined);
+		common.parseJwt('ZZZ');
+		common.parseJwt('header.signature');
+		common.parseJwt('header.!!!invalid!!!.signature');
+		expect(errSpy.mock.calls.length).toBe(before);
+		errSpy.mockRestore();
+	});
+});
+
 describe('get URL by stage', () => {
   
 	it("test URL", () => {
@@ -258,9 +299,32 @@ describe('test isAdmin', () => {
 	it('test not admin', () => {
 		process.env.NODE_ENV = "";
 		common.setCookie("access_token", "eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg");
-	
+
 		const resultDevCommonUser = common.isAdmin();
 		expect(resultDevCommonUser).toBe(false);
+	});
+});
+
+describe('isAdmin fail-safe with corrupted cookie (REQ-20260418-032 FR-02, FR-04)', () => {
+	// isAdmin 은 손상된 access_token 쿠키 상태에서도 throw 하지 않고 false 로 귀결돼야 한다.
+	// App/Navigation/SearchInput 등 25+ 호출처의 마운트 시 화이트 스크린 회귀 방어선.
+
+	afterEach(() => {
+		common.deleteCookie('access_token');
+	});
+
+	it('returns false when access_token is a single-part garbage string', () => {
+		process.env.NODE_ENV = 'development';
+		common.setCookie('access_token', 'ZZZ', { site: 'localhost:3000' });
+		expect(() => common.isAdmin()).not.toThrow();
+		expect(common.isAdmin()).toBe(false);
+	});
+
+	it('returns false when access_token payload is malformed base64', () => {
+		process.env.NODE_ENV = 'development';
+		common.setCookie('access_token', 'header.!!!invalid!!!.sig', { site: 'localhost:3000' });
+		expect(() => common.isAdmin()).not.toThrow();
+		expect(common.isAdmin()).toBe(false);
 	});
 });
 

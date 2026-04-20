@@ -42,13 +42,24 @@ export const log = (logText, type = "INFO") => {
 
 export function parseJwt (token) {
 
-	var base64Url = token.split('.')[1];
-	var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-	var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-		return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-	}).join(''));
+	// Input guard (REQ-20260418-032 FR-01): non-string / empty / malformed → null sentinel.
+	if (!token || typeof token !== 'string') return null;
+	const parts = token.split('.');
+	if (parts.length !== 3) return null;
+	const base64Url = parts[1];
+	if (!base64Url) return null;
 
-	return JSON.parse(jsonPayload);
+	try {
+		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+		const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+			return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+		}).join(''));
+
+		return JSON.parse(jsonPayload);
+	} catch {
+		// atob / decodeURIComponent / JSON.parse 실패 흡수 — 호출부는 null 판정.
+		return null;
+	}
 }
 
 export const getUrl = () => {
@@ -140,10 +151,14 @@ export function isLoggedIn() {
 export function isAdmin() {
 
 	if(!isLoggedIn()) {
-		return false;		
+		return false;
 	}
 
-	const userId = parseJwt(getCookie("access_token")).username;
+	// Fail-safe (REQ-20260418-032 FR-02): parseJwt 는 손상 토큰에 대해 null 을 반환한다.
+	// 그 경우 비-admin 으로 귀결시켜 App 마운트 시 throw 전파를 차단한다.
+	const payload = parseJwt(getCookie("access_token"));
+	if (!payload) return false;
+	const userId = payload.username;
 
 	if ('production' === process.env.NODE_ENV
 		&& "df256e56-7c24-4b19-9172-10acc47ab8f4" === userId) {
