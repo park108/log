@@ -1,7 +1,7 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T12:45:00Z
-# Phase 1 ack this session: 0/0 (green tree empty at entry; no [WIP]/[ ]/To-Be markers to reconcile).
-# Phase 2 produced 3 green specs (REQ-20260420-004/005/006) — tracked at promote time by planner.
-30.spec/green/deps/react-19-test-layer-adaptation-spec.md - 0
-30.spec/green/common/env-test-stub-adaptation-spec.md - 0
-30.spec/green/foundation/typescript-tooling-completion-spec.md - 0
+# Updated: 2026-04-20T21:30:00Z
+# Phase 1 ack this session: 0/3 — 3 green specs carry unticked DoD markers but all map to REQ-004/005/006; no task issued yet (60.done/task/ holds only TSK-20260420-32 → REQ-003, already promoted blue). No ack-eligible candidates this cycle.
+# Phase 2 this session: input queue empty (20.req/ready/ = 0 files); no new green specs produced.
+30.spec/green/deps/react-19-test-layer-adaptation-spec.md - 1
+30.spec/green/common/env-test-stub-adaptation-spec.md - 1
+30.spec/green/foundation/typescript-tooling-completion-spec.md - 1
