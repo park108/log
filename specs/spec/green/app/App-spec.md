@@ -174,6 +174,7 @@ N/A.
   - [x] StrictMode 더블 마운트 시 `auth()` idempotent 검증 — REQ-009 FR-05: `useEffect(() => { common.auth(); }, [])` (commit `b07cbf5`)
   - [x] `auth()` 결과 등가성 (`cookieAfter1 === cookieAfter2`) 자동 테스트 1건 — REQ-20260418-025 FR-01: commit `b5b2ae5` (`common.test.js` `'auth() idempotent cookie result'` describe)
   - [~] App.test StrictMode 이중 마운트 시 cookie 등가성 어서트 (Should) — REQ-20260418-025 FR-02: `common.test.js` 단에서 등가성 PASS 달성; App.test.jsx 추가 어서트는 Should, 별 라운드
+  **[deferred: REQ-20260418-025 FR-03~07 운영자 수동 baseline 대기 — 선행으로 `docs/testing/app-shell-side-effects-smoke.md` 체크리스트 신설 task 필요 (2026-04-20 현재 파일 부재). 본 항목은 `testing/app-shell-side-effects-smoke-spec.md` 소비 아티팩트, 문서 신설 후 operator 수행. planner 는 본 unchecked 를 승격 게이트 계산에서 제외.]**
   - [ ] [WIP] 운영자 수동 스모크 baseline 4 시나리오 (`docs/testing/app-shell-side-effects-smoke.md`) — REQ-20260418-025 FR-03~07: 체크리스트 문서 아직 부재, 운영자 영역
   - [x] ErrorBoundary 적용 후 라우트 격리 회귀 테스트 — REQ-005 FR-06: `src/App.test.jsx:250` "white-screen regression guard" 테스트 + `ErrorBoundary.test.jsx` 4/4 PASS (상세는 `error-boundary-spec.md` §6)
 
@@ -202,6 +203,7 @@ N/A.
 | 2026-04-18 | TSK-20260418-auth-cookie-idempotent-equivalence-test (merged, commit `b5b2ae5`) | REQ-025 FR-01 `auth() idempotent cookie result` 자동 테스트 (`src/common/common.test.js`) — StrictMode 이중 마운트 cookie 등가성 어서트 | 5.2.1, 7 |
 | 2026-04-18 | (REQ-20260418-005, merged) | Skeleton / ErrorFallback 신설 + App.jsx 최상위 Suspense fallback Skeleton 전환 + 3 라우트 ErrorBoundary 래핑 + reportError onError 훅 (상세는 `error-boundary-spec.md` §4) | 5.3, 7, 8 |
 | 2026-04-20 | (inspector drift reconcile) | §5.1/5.2/5.2.1/5.3 "[WIP]" → "완료" ACK: REQ-009 useEffect 격리 (commit `b07cbf5`) + REQ-025 auth 멱등 등가성 자동 테스트 (commit `b5b2ae5`) + REQ-005 ErrorBoundary/Skeleton App.jsx 통합 (src/App.jsx:92-118). §7 체크박스 4 항목 [x] 전환 (resize cleanup / StrictMode idempotent / auth cookie 등가성 자동 / ErrorBoundary 라우트 격리). §8 NFR Status 5 행 "달성" 갱신. 잔여: §7 운영자 수동 스모크 baseline (`docs/testing/app-shell-side-effects-smoke.md` 체크리스트 문서 부재 + REQ-025 FR-03~07 operator). 커밋 영향: 본 spec 단독. | 5.1, 5.2, 5.2.1, 5.3, 7, 8 |
+| 2026-04-20 | (inspector Phase 2 defer-tag) | §7 운영자 수동 스모크 baseline unchecked 1 건에 `[deferred: operator baseline + 선행 docs/testing/app-shell-side-effects-smoke.md 체크리스트 신설 task 대기]` 태깅 — REQ-025 FR-03~07 자동 테스트 영역 밖 operator. §7.1 "Should" App.test StrictMode cookie 등가성 어서트는 `[~]` 유지(active/carveable). 나머지 §1~6/§8/§9 모두 "완료" 또는 active 유지. planner 승격 게이트 계산은 본 unchecked deferred 제외로 본 spec 승격권 진입. 커밋 영향: 본 spec 단독. | 7, 10 |
 
 ## 11. 관련 문서
 - 기원 요구사항:

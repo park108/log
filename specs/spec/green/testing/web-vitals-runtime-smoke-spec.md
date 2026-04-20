@@ -5,8 +5,8 @@
 > - 참조 코드: `src/reportWebVitals.js`, `src/index.jsx:28`, `src/Monitor/WebVitalsMon.jsx`, `src/Monitor/WebVitalsItem.jsx`
 > - 참조 테스트: `src/reportWebVitals.test.js`, `src/Monitor/WebVitalsMon.test.jsx`
 > **유형**: Test / Operational Checklist (수동 스모크)
-> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile — `web-vitals-runtime-smoke.md` 문서 신설 완료 ACK)
-> **상태**: Active (문서 신설 완료 / 운영자 baseline 잔여)
+> **최종 업데이트**: 2026-04-20 (by inspector, drift reconcile + Phase 2 defer-tag — §5 수용 기준 5 행 완료 ACK, operator baseline 2 행 defer-tag)
+> **상태**: Active (문서 신설 + 자동 영역 완료 / 운영자 baseline 1회 수행 대기 — defer-tag)
 > **관련 요구사항**:
 > - `specs/requirements/done/2026/04/18/20260418-web-vitals-inp-runtime-smoke-doc-and-baseline.md` (REQ-20260418-022)
 > - 선행: REQ-20260418-003 (`specs/requirements/done/2026/04/18/20260418-upgrade-web-vitals-inp.md`) — v5 + INP 도입 완료 (TSK-14, commit `60c0cd3`)
@@ -160,12 +160,14 @@ markdown-render-smoke 동일 형식:
 ---
 
 ## 5. 수용 기준 (Acceptance — REQ-20260418-022)
-- [ ] [WIP] `docs/testing/web-vitals-runtime-smoke.md` 신규 파일 존재
-- [ ] [WIP] 5 메트릭(INP/LCP/CLS/FCP/TTFB) 각각 트리거 절차 + 페이로드 검증 단계 + 체크박스 포함
+- [x] `docs/testing/web-vitals-runtime-smoke.md` 신규 파일 존재 — commit `2ec132e` (task `20260418-web-vitals-runtime-smoke-checklist-doc`, 332 lines)
+- [x] 5 메트릭(INP/LCP/CLS/FCP/TTFB) 각각 트리거 절차 + 페이로드 검증 단계 + 체크박스 포함 — 문서 `## 체크리스트 5 메트릭` §3.3.1~3.3.5 (5 metric sections with per-metric checkboxes)
+- **[deferred: REQ-20260418-022 FR-03 운영자 수동 baseline 1회 수행 대기 — `docs/testing/web-vitals-runtime-smoke.md` §Baseline 수행 (web-vitals-runtime, 1회) 슬롯 5 메트릭 `[x]` 0/5 관측 (2026-04-20). 자동 테스트 영역 밖 operator. planner 는 본 항목을 승격 게이트 계산에서 제외.]**
 - [ ] [WIP] "Baseline 수행 예시" 섹션 신규 + 5 메트릭 모두 `[x]` 마감 (운영자/일자/해시/환경 기록)
-- [ ] [WIP] "회귀 시나리오" 섹션이 `reportWebVitals.js`/`index.jsx`/web-vitals lib bump 트리거 명시
-- [ ] [WIP] `web-vitals-spec.md` §7.1 cross-link (완료 — 본 개정)
-- [ ] `npm test`, `npm run lint`, `npm run build` 영향 0 (문서 변경만)
+- [x] "회귀 시나리오" 섹션이 `reportWebVitals.js`/`index.jsx`/web-vitals lib bump 트리거 명시 — 문서 `## 회귀 시나리오 (spec §3.6, FR-04)` 7 트리거 항목(reportWebVitals.js 변경 / index.jsx bootstrap / sendToAnalytics 전송 메서드 / web-vitals bump / React 19 bump / endpoint / 브라우저 정책)
+- [x] `web-vitals-spec.md` §7.1 cross-link — 본 spec §7.1 cross-link 존재 + 문서 §관련 문서 역참조 1행 (doc line 307)
+- [x] `npm test`, `npm run lint`, `npm run build` 영향 0 (문서 변경만) — task `20260418-web-vitals-runtime-smoke-checklist-doc` result.md 검증 PASS
+- **[deferred: operator baseline 세션 직후 산출물. REQ-022 result.md baseline reference 는 위 FR-03 baseline 수행과 동시 박제.]**
 - [ ] 본 REQ-022 result.md 에 baseline 수행 사실 + 박제 위치 reference
 
 > 관련 요구사항: REQ-20260418-022 §10
@@ -196,6 +198,7 @@ markdown-render-smoke 동일 형식:
 |------|-----|------|------|
 | 2026-04-18 | (pending, REQ-20260418-022) | web-vitals 런타임 수동 스모크 spec 초기화 (WIP) | all |
 | 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정: `docs/testing/web-vitals-runtime-smoke.md` 부재 → 존재 (commit `2ec132e`, task `20260418-web-vitals-runtime-smoke-checklist-doc`). 운영자 baseline 수행만 pending manual session. 커밋 영향: 본 spec 단독. | 2 |
+| 2026-04-20 | (inspector drift reconcile + Phase 2 defer-tag) | §5 수용 기준 drift 정정: (a) "문서 신규 파일 존재" / "5 메트릭 트리거 절차" / "회귀 시나리오 섹션" / "§7.1 cross-link" / "npm 영향 0" 5 항목 `[ ][WIP]` → `[x]` 전환 (commit `2ec132e` 관측 근거). (b) 2 항목 (Baseline 5 메트릭 `[x]` 마감 + REQ-022 result.md baseline reference) 에 `[deferred: operator baseline 1회 수행 대기 — 현 baseline 0/5]` 태깅. 자동 영역 5 행은 완료, 운영자 영역 2 행은 defer-tag. 과태깅 방지: §1~4/§6/§7/§9 유지. planner 승격 게이트는 deferred 2 행 제외로 본 spec 승격권 진입. 커밋 영향: 본 spec 단독. | 5, 8 |
 
 ---
 

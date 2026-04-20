@@ -119,6 +119,7 @@ const WEB_VITAL_LIST = [
 - INP 임계치 표시 여부는 §13 미결.
 
 ### 5.4 [WIP] sendToAnalytics 페이로드 검증
+**[deferred: REQ-20260418-022 런타임 수동 스모크 baseline 운영자 수행 대기 — jsdom 자동 테스트 범위 밖. 실 브라우저 `sendBeacon` 페이로드 검증은 `docs/testing/web-vitals-runtime-smoke.md` baseline 으로 박제(현 baseline 0 회). planner 는 본 §5.4 를 승격 게이트 계산에서 제외.]**
 > 관련 요구사항: REQ-20260418-003 FR-05
 - `sendToAnalytics(metric)` 가 `metric.name` 을 그대로 포함해 서버로 전송하는지 재검증.
 - 현재 동작 가정: `index.jsx:28` 의 callback 이 `metric` 객체를 JSON 으로 직렬화 → `sendBeacon` (구체 구현은 별건 점검).
@@ -165,10 +166,12 @@ Metric = {
   - [x] reportWebVitals 가 v5 API (`onCLS/onINP/onFCP/onLCP/onTTFB`) 호출 (TSK-14)
   - [x] WebVitalsMon LIST 에 `INP` 포함, `FID` 미포함 (TSK-14)
 - 미커버 / 추가 (jsdom 한계):
+  **[deferred: 두 항목 모두 jsdom 범위 밖 런타임 경로. REQ-20260418-022 수동 스모크 체크리스트(`docs/testing/web-vitals-runtime-smoke.md`) baseline 운영자 수행으로만 커버 가능. planner 는 본 2 unchecked 를 승격 게이트 계산에서 제외.]**
   - [ ] [WIP] 런타임 `sendBeacon` 경로 실측 검증 — **REQ-022 의 수동 스모크 체크리스트로 커버** (`specs/spec/green/testing/web-vitals-runtime-smoke-spec.md`)
   - [ ] [WIP] INP 콜백 실제 발화(사용자 클릭 + visibilitychange) — jsdom 범위 밖
 
 ### 7.1 [WIP] REQ-20260418-022 런타임 스모크 연계
+**[deferred: REQ-20260418-022 운영자 수동 런타임 스모크 baseline 1회 수행 대기 — `docs/testing/web-vitals-runtime-smoke.md` 현 baseline 0 회(`[x]` 0 건 관측, 2026-04-20). 자동 테스트 영역 밖 cross-link 섹션이며 본 spec 단독 carve 불가. planner 는 본 §7.1 을 승격 게이트 계산에서 제외.]**
 > 관련 요구사항: REQ-20260418-022 FR-01~07, US-01~03
 
 자동 테스트는 콜백 등록과 LIST 라벨까지만 검증하며, **실제 브라우저에서 `onINP`/`onLCP`/`onCLS`/`onFCP`/`onTTFB` 가 사용자 상호작용/`visibilitychange` 시점에 `navigator.sendBeacon` 으로 전송되는지**는 jsdom 범위 밖. 본 spec 은 REQ-022 가 신설하는 `docs/testing/web-vitals-runtime-smoke.md` 체크리스트 및 `specs/spec/green/testing/web-vitals-runtime-smoke-spec.md` 를 **수용 기준 검증 근거** 로 참조한다. REQ-009 / REQ-003 의 FR-05 (runtime INP 보고) 도 동일 근거로 해석.
@@ -198,6 +201,7 @@ Metric = {
 | 2026-04-20 | (inspector drift reconcile) | §4.2 web-vitals 버전 pin `^3.0.4 (실설치 3.1.0)` → `^5.2.0` (post TSK-14, commit `60c0cd3`, package.json 실측). §5.1 "v3.1.0 deprecated" 코드 블록 → v5 onXXX 실측 코드로 교체. §5.2/§5.3 "[WIP]" → "완료" ACK. §8 NFR Status 4행 "달성" 갱신. 잔여: §5.4 sendToAnalytics 페이로드 재검증 (자동 테스트 영역), §7.1 운영자 런타임 스모크 baseline (REQ-022). 커밋 영향: 본 spec 단독. | 4.2, 5.1, 5.2, 5.3, 8 |
 | 2026-04-20 | (pending, REQ-20260420-002) | Monitor.test.jsx unhandled error (CI run #69 exit 1) 원인 박제 — `WebVitalsItem.jsx:97-104` catch branch 의 `setIsError(true)` 가 test teardown 후 비동기 dispatch → `ReferenceError: window is not defined` in `getCurrentEventPriority`. 해소: (a) Monitor.test.jsx MSW 핸들러 등록 or `vi.mock()` 자식 스텁, (b) 4 Monitor* 컴포넌트 fetch `useEffect` 에 `AbortController` / `isMounted` ref 언마운트 가드, (c) REQ-034 §3.7 Phase 2a 글로벌 setupServer 와 수렴. (WIP) | 5.5, 9 |
 | 2026-04-20 | (pending, REQ-20260420-001) | `hoverPopup` 공통 helper 명령형 DOM → 선언적 전환 — 본 spec §4.1 `hoverPopup` 의존성 항목이 신규 아티팩트 (`useHoverPopup` / `<HoverPopup>` / 로컬 state) 로 대체 예정, inspector 후속 라운드에서 §4.1 갱신 트리거. 상세: `common/react-render-patterns-spec.md` §5.2. (WIP) | 4.1 |
+| 2026-04-20 | (inspector Phase 2 defer-tag) | §5.4 sendToAnalytics 페이로드 검증 + §7 2 unchecked(runtime `sendBeacon` / INP 콜백 발화) + §7.1 REQ-022 cross-link 4 섹션에 `[deferred: operator baseline 대기]` 태깅 — 모두 jsdom 범위 밖 런타임 경로, `docs/testing/web-vitals-runtime-smoke.md` baseline 0 회 상태. 나머지 §5.1/5.2/5.3/§6/§7 자동 테스트 영역은 완료 ACK(`60c0cd3`). planner 의 승격 게이트 계산은 §5.4/§7/§7.1 deferred 를 제외하므로 본 spec 은 다음 cycle 승격권 진입. 과태깅 방지: §1~4/5.5/6/8/9 active 유지. 커밋 영향: 본 spec 단독. | 5.4, 7, 7.1, 10 |
 
 ## 11. 관련 문서
 - 기원 요구사항:
