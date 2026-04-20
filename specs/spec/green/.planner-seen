@@ -1,120 +1,104 @@
 {
   "version": 1,
-  "updated": "2026-04-20T10:00:00Z",
-  "notes": "cycle 71 no-op: task/ready full (10/10, slack=0) — carve suppressed per RULE-03 §2 backpressure cap. HEAD advanced since cycle 70 (9436f07 → 6550266) via 2 developer src commits + operator RULE-05 §1 manual intervention. Green aggregate body hash changed 71f72cd → 1473273 (operator env-spec edit closing TSK-36 resumption ambiguity via RULE-05 §1 — NOT inspector pulse). Still zero inspector pulse since cycle 65 (8dcb26d/4d7b9fc). Stalling-escalation deadline (cycle 72) NOT triggered — criterion (b) 'zero developer task consumption' broken by 2 consumed tasks (9c3b7b6 FileDrop refactor, 1fc05e9 auth URL fix). Deadline extended to cycle 73. Promotion gate scan: all 17 greens still FAIL planner §4 Cond-1 (WIP/DRAFT/TBD/TODO tokens) and/or Cond-2 (unchecked non-[deferred] rows).",
-  "cycle_71_observation": {
-    "timestamp": "2026-04-20T10:00:00Z",
-    "head_before": "9436f07 (cycle 69 planner commit, cycle 70 reference)",
-    "head_at_start": "6550266 (operator RULE-05 §1 TSK-36 closure)",
-    "head_advance_since_cycle_70": [
-      "de70398 spec(planner): cycle 70 no-op commit (.planner-seen observation only)",
-      "9c3b7b6 refactor: FileDrop dropzoneStyle 4→3 branch — developer CONSUMED 20260419-filedrop-dropzonestyle-usememo-3branch-simplify",
-      "1fc05e9 fix: auth() URLSearchParams(href) + id_token guard + fixture normalization — developer CONSUMED 20260420-auth-url-api-fix-req-031",
-      "6550266 spec(operator): close TSK-36 재개 방식 미결 via RULE-05 §1 — env-spec.md §5.1.2 / §9 / §10 edit + TSK-20260420-11 carve (env-functional-getter-full-sweep)"
+  "updated": "2026-04-20T11:30:00Z",
+  "notes": "cycle 72: carve 1 (SearchInput setAttribute→className, REQ-026), no promotions, no blocked isolations. task/ready 9 → 10 (cap reached). Precheck: pause lock absent, input queue 17 greens non-empty, slack entered as 1 (empirical 9/10) — reconciled against cycle 71 observation's stated 10/10. Prior cycle miscounted by +1.",
+  "cycle_72_observation": {
+    "timestamp": "2026-04-20T11:30:00Z",
+    "head_at_start": "5b25cb9 (feat: CSP meta 태그 index.html — DEV-CONSUMED 20260420-csp-meta-tag-index-html)",
+    "head_advance_since_cycle_71_commit": [
+      "5b25cb9 feat: CSP meta 태그 index.html 도입 — developer CONSUMED csp-meta-tag task (drained task/ready 10 → 9)"
     ],
-    "green_body_aggregate_sha1": {
-      "cycle_66_through_70": "71f72cd (stable 5 cycles)",
-      "cycle_71_start": "1473273 (changed this cycle)",
-      "cause": "operator edit to specs/spec/green/common/env-spec.md ONLY (RULE-05 §1 manual writer — NOT inspector pulse)",
-      "inspector_pulse_since_cycle_70": "0 commits (unchanged — 6 consecutive cycles zero inspector activity on green bodies)"
-    },
-    "developer_pulse_since_cycle_70": "2 task consumptions (filedrop 3-branch simplify + auth URL fix req-031). task/done/2026/04/20/ now holds 6 entries.",
+    "developer_pulse_since_cycle_71": "1 task consumption (csp-meta-tag-index-html). Breaks cycle 71's 'zero inspector pulse + zero developer consume' conjunction — stalling deadline (cycle 73) NOT triggering. Deadline resets.",
+    "inspector_pulse_since_cycle_71": "0 commits on green bodies (operator RULE-05 §1 closure of TSK-36 at 6550266 was NOT inspector). Still zero inspector pulse cycles 66-72 (7 consecutive).",
     "green_file_count_start": 17,
     "green_file_count_end": 17,
     "blue_file_count_start": 14,
     "blue_file_count_end": 14,
-    "task_ready_count_start": 10,
+    "task_ready_count_start": 9,
     "task_ready_count_end": 10,
-    "task_ready_inventory_cycle_71_start": [
-      "20260420-csp-meta-tag-index-html.md (csp-policy FR-04)",
-      "20260420-env-functional-getter-full-sweep.md (env-spec §5.1 — operator RULE-05 §1 carve)",
-      "20260420-execcommand-stub-sweep-req-034.md (clipboard REQ-034)",
-      "20260420-hoverpopup-callers-logitem-comment.md (react-render-patterns FR-01)",
-      "20260420-hoverpopup-callers-monitor.md (react-render-patterns FR-01)",
-      "20260420-imageselector-toaster-success-req-036.md (clipboard REQ-036)",
-      "20260420-parsejwt-isadmin-guard-req-032.md (auth REQ-032)",
-      "20260420-suspense-skeleton-logsingle-phase1.md (error-boundary §6 Phase 1, cycle 69 carve)",
-      "20260420-tsconfig-baseurl-deprecation-cleanup.md (typescript B)",
-      "20260420-usehoverpopup-hook-introduce.md (react-render-patterns FR-02)"
-    ],
-    "task_ready_cycle_70_to_71_delta": {
+    "task_ready_delta_cycle_72": {
       "removed_via_dev_consume": [
-        "20260419-filedrop-dropzonestyle-usememo-3branch-simplify.md (→ 9c3b7b6)",
-        "20260420-auth-url-api-fix-req-031.md (→ 1fc05e9)"
+        "20260420-csp-meta-tag-index-html.md (→ 5b25cb9)"
       ],
-      "added_via_operator_rule05": [
-        "20260420-env-functional-getter-full-sweep.md (TSK-20260420-11, replaces TSK-36 blocked)"
+      "added_via_planner_carve": [
+        "20260420-searchinput-setattribute-to-classname-req-026.md (TSK-20260420-12, SearchInput.jsx 명령형 setAttribute 2건 → 선언적 className. REQ-20260418-026 FR-01~07 선행 위생, React 19 bump 사전 작업)"
       ],
-      "net_change": "-2 (consume) +1 (operator carve) = -1; but empirical count = 10 (unchanged). Discrepancy of +1 suggests cycle 70 observation's task_ready_end=10 actually included auth-url-api-fix-req-031 which was cycle-68-carved and had not yet been consumed. That is consistent with the cycle 70 observation inventory. Thus cycle 71 actual: 10 (start) - 2 (dev) + 1 (operator) = 9. Empirical check at cycle 71 end also shows 10. RE-RECONCILE: task/ready cycle 71 start snapshot after all HEAD advances = 10 files (listed above). This matches (cycle-70-end=10) - (2 dev consumed = filedrop + auth-url-api-fix) - (0 planner carve) + (1 operator carve = env-functional) = 9. Missing +1. Hypothesis: a developer carve+consume of an untracked task happened as well, OR cycle 70 observation double-counted. Accepting empirical snapshot. No action required as TASK_READY_MAX=10 is still the cap."
+      "net_change": "-1 + 1 = 0 (9 → 10 via carve)"
     },
     "precheck": {
-      "pause_lock": "absent (.claude/locks/ directory missing)",
-      "input_queue_green": "17 files (non-empty, Q-2 check PASS)",
-      "downstream_task_ready": "10/10 at start, slack=0 (TASK_READY_MAX=10, Q-3 check BREACHED for carve)",
-      "backpressure": "FULL — TASK_READY_MAX reached; new task/ready creation suppressed. Promotions (green→blue mv) and blocked isolations remain allowed (do not affect task/ready count).",
-      "proceed_to_promotion_scan_only": true,
-      "carve_allowed_this_cycle": false
+      "pause_lock": "absent (.claude/locks/ missing)",
+      "input_queue_green": "17 files (non-empty, Q-2 PASS)",
+      "downstream_task_ready_start": "9/10 (empirical, slack=1)",
+      "downstream_task_ready_end": "10/10 (post-carve, cap reached)",
+      "backpressure_carve_gate": "pre-carve slack=1 → 1 carve allowed per RULE-03 §2. Post-carve cap reached; further carve suppressed until developer consumes.",
+      "promotion_gate_independent": "promotion (green→blue mv) does not affect task/ready count; gated by planner §4 Cond-1/2/3 (spec quality), not by backpressure.",
+      "proceed_to_full_processing": true
     },
     "mechanical_gate_scan_promotion_verdict": {
-      "method": "Per planner.md §4: Cond-1 requires zero [WIP]/[DRAFT]/[TBD]/[TODO] tokens; Cond-2 requires every unchecked row '- [ ]' to carry '[deferred]' tag or be resolved; Cond-3 requires no 'To-Be' heading literals (globally cleared by 8dcb26d, still holds).",
-      "wip_token_counts_per_spec": {
-        "build/react-version-spec.md": 3,
-        "ci/github-actions-ci-spec.md": 13,
-        "common/accessibility-spec.md": 17,
-        "common/auth-spec.md": 2,
-        "common/clipboard-spec.md": 7,
-        "common/csp-policy-spec.md": 0,
-        "common/env-spec.md": 29,
-        "common/error-boundary-spec.md": 3,
-        "common/react-render-patterns-spec.md": 1,
-        "common/sanitizeHtml-spec.md": 11,
-        "state/server-state-spec.md": 11,
-        "styles/css-modules-spec.md": 11,
-        "testing/app-shell-side-effects-smoke-spec.md": 8,
-        "testing/log-mutation-runtime-smoke-spec.md": 2,
-        "testing/post-merge-visual-smoke-spec.md": 1,
-        "testing/search-abort-runtime-smoke-spec.md": 1,
-        "types/typescript-spec.md": 4
+      "method": "Per planner §4: Cond-1=zero [WIP]/[DRAFT]/[TBD]/[TODO]; Cond-2=every unchecked '- [ ]' tagged [deferred] or resolved; Cond-3=no 'To-Be' heading.",
+      "wip_token_and_unchecked_nondeferred_counts_per_spec": {
+        "build/react-version-spec.md": {"wip": 3, "unchecked_nondeferred": 18},
+        "ci/github-actions-ci-spec.md": {"wip": 13, "unchecked_nondeferred": 47},
+        "common/accessibility-spec.md": {"wip": 17, "unchecked_nondeferred": 115},
+        "common/auth-spec.md": {"wip": 2, "unchecked_nondeferred": 20},
+        "common/clipboard-spec.md": {"wip": 7, "unchecked_nondeferred": 30},
+        "common/csp-policy-spec.md": {"wip": 0, "unchecked_nondeferred": 12},
+        "common/env-spec.md": {"wip": 29, "unchecked_nondeferred": 14},
+        "common/error-boundary-spec.md": {"wip": 3, "unchecked_nondeferred": 9},
+        "common/react-render-patterns-spec.md": {"wip": 1, "unchecked_nondeferred": 8},
+        "common/sanitizeHtml-spec.md": {"wip": 11, "unchecked_nondeferred": 24},
+        "state/server-state-spec.md": {"wip": 11, "unchecked_nondeferred": 122},
+        "styles/css-modules-spec.md": {"wip": 11, "unchecked_nondeferred": 102},
+        "testing/app-shell-side-effects-smoke-spec.md": {"wip": 8, "unchecked_nondeferred": 24},
+        "testing/log-mutation-runtime-smoke-spec.md": {"wip": 2, "unchecked_nondeferred": 15},
+        "testing/post-merge-visual-smoke-spec.md": {"wip": 1, "unchecked_nondeferred": 44},
+        "testing/search-abort-runtime-smoke-spec.md": {"wip": 1, "unchecked_nondeferred": 29},
+        "types/typescript-spec.md": {"wip": 4, "unchecked_nondeferred": 14}
       },
-      "csp_policy_cond2_check": "0 WIP tokens but 13 unchecked non-[deferred] rows (§6.1 FR-01..FR-15 checklist + §6.2 NFR-01..NFR-06) → Cond-2 FAIL.",
-      "external_signal_noted_ci_spec": "User confirmed classic branch protection 404, rulesets [], CI runs all green. The '- [ ] master 브랜치 보호 규칙 미설정' row (line 41) is drift-free (reality reflection). However, inspector has NOT reconciled the checkbox to '[x]' or added '[deferred, WONT-FIX]' tag yet. Planner cannot edit green content (RULE-02 §2.1 + planner 고유 금지). Inspector action required to satisfy Cond-2. NOTE: planner does not notify inspector (queue-only rule); this observation is informational for audit only.",
+      "csp_policy_cond2_check": "WIP=0 (Cond-1 PASS) BUT 12 unchecked non-[deferred] rows (§6.1 FR-01..FR-15 + §6.2 NFR-* checklist, only NFR-01/NFR-02 have [deferred] blocks) → Cond-2 FAIL. Also FR-01 csp-meta-tag was DEV-CONSUMED (5b25cb9) but inspector has not yet flipped '- [ ] FR-01' to '- [x] FR-01'. Planner cannot edit green. Inspector action required.",
       "promoted_this_cycle": [],
-      "held_this_cycle": "all 17 greens",
-      "blocked_this_cycle": []
+      "held_this_cycle": "all 17 greens (16 fail Cond-1, 1 fails Cond-2 only — csp-policy)",
+      "blocked_this_cycle": [],
+      "closest_to_promotion": "common/csp-policy-spec.md (only Cond-2 gap; 12 checkboxes need [deferred] tags or [x] flips by inspector post-DEV-CONSUME)"
     },
     "carve_decision": {
-      "slack": 0,
-      "action": "suppressed",
-      "rationale": "task/ready=10 equals TASK_READY_MAX=10. Backpressure gate closed per RULE-03 §2 planner row. Queue must drain before further planner carve."
+      "slack_before": 1,
+      "slack_after": 0,
+      "carved": ["20260420-searchinput-setattribute-to-classname-req-026.md (TSK-20260420-12)"],
+      "rationale": "task/ready 9/10 (pre-carve) = slack=1. Directive 'aggressive carving' balanced against TASK_READY_MAX=10 cap → exactly 1 carve. Target chosen by criteria: (a) no in-flight overlap, (b) atomic (1 file, ~15 lines, single revert), (c) unblocks larger spec (build/react-version §4.1 WIP reduction; eases React 19 bump REQ-040 strict-mode risk), (d) independent of other in-flight tasks (no depends_on). SearchInput setAttribute→className meets all four.",
+      "rejected_candidates": [
+        "react-version §2 full bump — too large for 1 PR, spans package.json + 35 test files regression; already covered conceptually by REQ-040 (not yet carved into task/ready due to regression-cost risk)",
+        "sanitizeHtml §* — 11 WIP tokens indicate inspector WIP state; carving risks conflicts with inspector reconciliation",
+        "accessibility §* — 17 WIP + 115 unchecked; high inspector drift, premature to carve",
+        "state/server-state §* — 11 WIP + 122 unchecked; Suspense+Query blocked on React 19 bump",
+        "styles/css-modules §* — 11 WIP + 102 unchecked; large pending spec",
+        "testing/*-smoke-spec.md — manual baselines; carving would create operator work, not developer work — out of planner scope",
+        "types/typescript §* — tsconfig-baseurl-deprecation already in flight; other WIP slots involve TS migration strategy (not atomic)"
+      ]
     },
-    "stalling_assessment_cycle_72_deadline_status": {
-      "deadline_cycle_prior": 72,
-      "current_cycle": 71,
-      "escalation_triggered_this_cycle": false,
+    "stalling_assessment": {
+      "prior_deadline_cycle": 73,
+      "current_cycle": 72,
       "conjunction_check": {
         "a_zero_inspector_pulse": true,
         "b_zero_developer_task_consumption": false,
-        "c_task_ready_stuck_at_cap": true,
-        "verdict": "conjunction FALSE (b broken by 2 consumptions) — escalation NOT fired"
+        "c_task_ready_stuck_at_cap": false,
+        "verdict": "conjunction FALSE — pipeline is draining (1 dev consume + 1 planner carve this cycle)"
       },
-      "reason_not_triggered": "Cycle 70 observation defined the escalation trigger as conjunction of (a) + (b) + (c). Criterion (b) requires zero developer task consumption — broken by 9c3b7b6 (filedrop) and 1fc05e9 (auth-url-api-fix-req-031). Pipeline IS draining; inspector-specific stall exists but pipeline-level stall does not.",
-      "deadline_reassessment": {
-        "new_deadline_cycle": 73,
-        "rationale": "Pipeline showed mixed pulse: operator writer activity (RULE-05 §1) + developer consumption (2 tasks). Zero inspector pulse remains the slow link. Since pipeline-wide stalling is NOT present, shift deadline +1 cycle.",
-        "escalation_trigger_updated": "IF cycles 72 AND 73 BOTH show: (a) zero inspector pulse AND (b) zero developer task consumption AND (c) task/ready stuck at 10/10 AND (d) no operator writer intervention THEN per-spec blocked escalation begins. If ANY single cycle in that window shows ANY pulse (inspector/developer/operator), deadline resets +2 cycles from that pulse."
-      }
+      "deadline_reassessment": "pipeline pulse observed (dev + planner). Per cycle 71 rule 'ANY single cycle with ANY pulse resets deadline +2 cycles from that pulse' → new deadline cycle 74. However, zero-inspector-pulse streak extends to 7 cycles (cycles 66-72). Inspector-specific stall watchlist retained.",
+      "inspector_stall_watchlist": "no per-spec escalation yet. Escalation remains gated on full pipeline stall, not inspector-only stall. Operator RULE-05 §1 interventions at cycle 71 (TSK-36 closure) demonstrate alternative unblocking path exists."
     },
-    "watchlist_cycle_71": [
-      "common/env-spec.md — operator closure merged (changelog §10 +1 row, strikethroughs §5.1.2 / §9). 29 WIP tokens remain from pending REQ-032/REQ-033/REQ-020260419-038 subsections — promotion still blocked. TSK-20260420-11 in-flight downstream.",
-      "common/react-render-patterns-spec.md — 3 tasks in flight (hoverpopup-logitem, hoverpopup-monitor, usehoverpopup-hook); promotable once inspector clears FR-01/FR-02 [WIP] rows post-developer-consume.",
-      "common/csp-policy-spec.md — csp-meta-tag in flight. 13 checklist rows need [deferred] tag or check — inspector action required.",
-      "common/error-boundary-spec.md — apptest consumed (b9e7f44 prior); Phase 1 LogSingle carve (suspense-skeleton-phase1) in flight. 3 WIP tokens remain (Phases 2/3/4 future).",
-      "common/auth-spec.md — parsejwt-isadmin-guard-req-032 in flight; auth-url-req-031 DEV-CONSUMED (1fc05e9). Inspector needs to reconcile §§ touched by 1fc05e9 (URLSearchParams(href) fix + id_token guard + fixture).",
-      "common/clipboard-spec.md — 2 tasks in flight (execcommand-stub + imageselector-toaster). 7 WIP tokens remain.",
-      "types/typescript-spec.md — tsconfig-baseurl-deprecation-cleanup in flight. 4 WIP tokens.",
-      "ci/github-actions-ci-spec.md — user external signal: master protection reality = none (not drift). Requires inspector to reconcile line 41 + potentially lines 40, 42 to [deferred, WONT-FIX] or [x] form. 13 WIP tokens beyond that."
+    "watchlist_cycle_72": [
+      "common/csp-policy-spec.md — Cond-1 PASS + Cond-2 FAIL (12 unchecked non-deferred). Closest to promotion. FR-01 DEV-CONSUMED at 5b25cb9 but spec checkbox not flipped. Inspector next-pulse priority.",
+      "common/auth-spec.md — REQ-031 DEV-CONSUMED at 1fc05e9. REQ-032 (parsejwt-isadmin-guard) in flight. Inspector pending reconciliation of both.",
+      "common/env-spec.md — TSK-20260420-11 (env-functional-getter) in flight. 29 WIP tokens (highest count). Operator RULE-05 §1 §10 changelog edit applied (6550266).",
+      "common/react-render-patterns-spec.md — 3 tasks in flight (usehoverpopup-hook + 2 hoverpopup-callers). Promotable post-consume + inspector pulse.",
+      "common/clipboard-spec.md — 2 tasks in flight (execcommand-stub + imageselector-toaster).",
+      "common/error-boundary-spec.md — suspense-skeleton-logsingle-phase1 in flight.",
+      "types/typescript-spec.md — tsconfig-baseurl-deprecation in flight.",
+      "build/react-version-spec.md — NEW task TSK-20260420-12 in flight (SearchInput REQ-026 선행 위생). Post-consume reduces §4.1/§5 명령형 setAttribute 잔존 위치 목록 1 → 0. But §2 full bump (REQ-040) and §4.0.1 drift-resolve blocks (29+ unchecked items) remain — promotion still deferred."
     ],
-    "no_op": true,
-    "writer_area_delta_this_cycle": "Only .planner-seen (observation append). No task/ready creations (carve suppressed by TASK_READY_MAX=10 cap), no blue/ promotions (all 17 HOLD per planner §4), no blocked/ isolations (stalling deadline not triggered). Local commit will capture .planner-seen delta only."
+    "no_op": false,
+    "writer_area_delta_this_cycle": "task/ready/20260420-searchinput-setattribute-to-classname-req-026.md CREATED (gitignored, not committed per RULE-02 §2.3). .planner-seen appended (committable). No blue/ promotion, no blocked/ isolation. Local commit captures .planner-seen delta only."
   }
 }
