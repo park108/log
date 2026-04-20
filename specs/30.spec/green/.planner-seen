@@ -1,4 +1,5 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-20T(session+3)Z
-# Session: foundation/typescript-tooling-completion-spec.md + deps/react-19-test-layer-adaptation-spec.md 4조건 전부 충족 → blue 승격 (mv, 같은 경로·파일명 유지; blue 에는 기존 bootstrap/upgrade spec 과 공존 — REQ 누적 기록). common/env-test-stub-adaptation-spec.md 해시 동일 (58e36c22, stale 3 — 3회 연속 정체). 승격 불가 원인: unchecked 15건 잔존 + 변경 이력에 TSK/커밋 미박제. carve 재발행 불필요 — ready 큐 TSK-20260420-36 이 common green + blue/node-env-helper-migration-spec 양쪽을 paired 로 커버 (supersedes TSK-31, TSK-34). blocked 이동 보류: 정체 원인은 planner 처리 불가가 아니라 developer 소비 대기이므로 50.blocked/spec/ 격리 부적절. stale 누적 기록만.
-30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 3
+# Updated: 2026-04-20T(session+4)Z
+# Session: green/deps/uniform-fake-timer-teardown-policy-spec.md 신규 carve → TSK-20260420-38 발행 (ready=1→2). common/env-test-stub-adaptation-spec.md 해시 동일 (58e36c22, stale 4). 승격 불가 원인 누적: unchecked 13건 + 변경 이력에 TSK/커밋 미박제. 그러나 정체 원인은 planner 처리 불가가 아니라 developer 소비 대기 — ready 큐 TSK-37 이 이 spec 을 paired 로 커버 (supersedes TSK-31, TSK-34, TSK-36). blocked 이동 보류: 50.blocked/spec/ 격리 기준은 "planner 가 carve 불가" 조건이며, 현 상태는 이미 carve 완료·developer 처리 대기이므로 부적절. stale 기록만 유지. foundation/ 빈 폴더 — 처리 대상 없음.
+30.spec/green/common/env-test-stub-adaptation-spec.md 58e36c22ec66ce273be8b5df9afa9c917816b516fb24baf1d0236d2ff09c8e7f 4
+30.spec/green/deps/uniform-fake-timer-teardown-policy-spec.md 3c34ce5a2c55aaeca169c06deab27874663a86e21993e3fd92f7e20bdf68a4a2 0
