@@ -11,7 +11,8 @@ test('getting presigned url failed on dev server', async () => {
 
 	mock.devServerFailed.listen();
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -43,7 +44,8 @@ test('getting presigned url network error on dev server', async () => {
 
 	mock.devServerNetworkError.listen();
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -77,7 +79,8 @@ test('upload ok', async () => {
 
 	vi.useFakeTimers();
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -120,7 +123,8 @@ test('getting presigned url ok, but upload failed', async () => {
 
 	mock.devServerPresignedUrlOkButUploadFailed.listen();
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -154,7 +158,8 @@ test('getting presigned url ok, but upload network error', async () => {
 
 	vi.useFakeTimers();
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);

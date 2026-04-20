@@ -16,7 +16,8 @@ const testEntry = {
 
 it('render monitor if it logged in', async () => {
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -33,7 +34,8 @@ it('render monitor if it logged in', async () => {
 
 it('redirect if not admin', async () => {
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(false);

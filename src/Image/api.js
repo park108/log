@@ -1,7 +1,9 @@
+import { isDev, isProd } from '../common/env';
+
 const BASE = import.meta.env.VITE_IMAGE_API_BASE;
 const getApiUrl = () => {
-	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
-	if (process.env.NODE_ENV === 'development') return BASE + "/test";
+	if (isProd()) return BASE + "/prod";
+	if (isDev()) return BASE + "/test";
 }
 
 export const getImages = async() => {

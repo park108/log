@@ -24,7 +24,8 @@ it('render api call monitor on prod server', async () => {
 
 	mock.prodServerOk.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
@@ -49,7 +50,8 @@ it('render api call monitor has zero total count on prod server', async () => {
 
 	mock.prodServerHasNoCount.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
@@ -64,7 +66,8 @@ it('render api call monitor but has no total count on prod server', async () => 
 
 	mock.prodServerHasNoTotalCount.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
@@ -81,7 +84,8 @@ it('render api call monitor failed on prod server', async () => {
 
 	mock.prodServerFailed.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
@@ -96,7 +100,8 @@ it('render api call monitor network error on prod server', async () => {
 
 	mock.prodServerNetworkError.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
 
@@ -113,7 +118,8 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} />);
 
@@ -129,7 +135,8 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} />);
 
@@ -150,7 +157,8 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} />);
 
@@ -172,7 +180,8 @@ describe('ApiCallItem Retry keyboard activation (a11y pattern B)', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} />);
 

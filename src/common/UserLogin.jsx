@@ -3,13 +3,13 @@ import * as common from '../common/common';
 import { isDev, isProd } from './env';
 
 export const getLoginUrl = () => {
-	if (isProd) return import.meta.env.VITE_COGNITO_LOGIN_URL_PROD;
-	if (isDev) return import.meta.env.VITE_COGNITO_LOGIN_URL_DEV;
+	if (isProd()) return import.meta.env.VITE_COGNITO_LOGIN_URL_PROD;
+	if (isDev()) return import.meta.env.VITE_COGNITO_LOGIN_URL_DEV;
 }
 
 export const getLogoutUrl = () => {
-	if (isProd) return import.meta.env.VITE_COGNITO_LOGOUT_URL_PROD;
-	if (isDev) return import.meta.env.VITE_COGNITO_LOGOUT_URL_DEV;
+	if (isProd()) return import.meta.env.VITE_COGNITO_LOGOUT_URL_PROD;
+	if (isDev()) return import.meta.env.VITE_COGNITO_LOGOUT_URL_DEV;
 }
 
 const UserLogin = () => {

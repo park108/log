@@ -24,7 +24,8 @@ describe('test key up events', () => {
 
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 	
 		render(
 			<MemoryRouter initialEntries={[ testEntry ]}>
@@ -117,7 +118,8 @@ describe('test key up events', () => {
 
 		vi.spyOn(common, "isAdmin").mockReturnValue(false);
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 	
 		render(
 			<MemoryRouter initialEntries={[ testEntry ]}>

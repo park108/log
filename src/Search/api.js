@@ -1,6 +1,8 @@
+import { isProd } from '../common/env';
+
 const BASE = import.meta.env.VITE_SEARCH_API_BASE;
 const getApiUrl = () => {
-	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
+	if (isProd()) return BASE + "/prod";
 	return BASE + "/test";
 }
 

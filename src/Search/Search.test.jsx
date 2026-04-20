@@ -17,7 +17,8 @@ const testEntry = {
 it('render search result', async () => {
 
 	mock.prodServerGetList.listen();
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 	sessionStorage.clear();
 
 	render(
@@ -39,7 +40,8 @@ it('render search result', async () => {
 it('render search single result', async () => {
 
 	mock.prodServerGetSingle.listen();
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 	sessionStorage.clear();
 
 	render(
@@ -61,7 +63,8 @@ it('render search single result', async () => {
 it('render search failed', async () => {
 
 	mock.prodServerFailed.listen();
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 	sessionStorage.clear();
 
 	render(
@@ -80,7 +83,8 @@ it('render search failed', async () => {
 it('render search network error', async () => {
 
 	mock.prodServerNetworkError.listen();
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 	sessionStorage.clear();
 
 	render(
@@ -99,7 +103,8 @@ it('render search network error', async () => {
 it('render if has no query string', async () => {
 
 	mock.prodServerNoData.listen();
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 	sessionStorage.clear();
 
 	const noQueryString = {
@@ -158,7 +163,8 @@ it('render search list from session and get next logs correctly', async () => {
 it('aborts in-flight fetch on unmount — no setState after unmount', async () => {
 
 	mock.prodServerGetList.listen();
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 	sessionStorage.clear();
 
 	const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -200,7 +206,8 @@ it('render search list from session and didnt match query string in session', as
 	sessionStorage.setItem("searchList", JSON.stringify(searchList));
 	sessionStorage.setItem("searchQueryString", "쿼리스트링 불일치");
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render(
 		<MemoryRouter initialEntries={[ testEntry ]}>

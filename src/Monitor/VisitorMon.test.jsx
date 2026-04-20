@@ -27,7 +27,8 @@ it('render visitor monitor on prod server', async () => {
 	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643673600000));
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
@@ -54,7 +55,8 @@ it('render visitor monitor failed on prod server', async () => {
 
 	mock.prodServerFailed.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
@@ -71,7 +73,8 @@ it('render visitor monitor network error on prod server', async () => {
 
 	mock.prodServerNetworkError.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
@@ -88,7 +91,8 @@ it('retry spans are keyboard focusable with role=button (a11y pattern B)', async
 
 	mock.prodServerFailed.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
@@ -108,7 +112,8 @@ it('retry span activates on Enter key (a11y pattern B)', async () => {
 
 	mock.prodServerFailed.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
@@ -131,7 +136,8 @@ it('retry span activates on Space key and prevents default scroll (a11y pattern 
 
 	mock.prodServerFailed.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
@@ -153,7 +159,8 @@ it('retry span ignores non-activation keys (a11y pattern B negative case)', asyn
 
 	mock.prodServerFailed.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<VisitorMon stackPallet={stackPallet.colors}/>);
 

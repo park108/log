@@ -1,6 +1,8 @@
+import { isProd } from '../common/env';
+
 const BASE = import.meta.env.VITE_MONITOR_API_BASE;
 export const getAPI = () => {
-	if (process.env.NODE_ENV === 'production') return BASE + "/prod";
+	if (isProd()) return BASE + "/prod";
 	return BASE + "/test";
 }
 

@@ -17,7 +17,8 @@ const testEntry = {
 
 test('redirect to log when user is not admin', async () => {
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(false);
@@ -33,7 +34,8 @@ test('render files but no data on prod server', async () => {
 
 	mock.prodServerHasNoData.listen();
 	
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -55,7 +57,8 @@ test('render files, next files, delete file and confirm on prod server', async (
 
 	mock.prodServerOk.listen();
 	
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -117,7 +120,8 @@ test('copy URL failure shows error Toaster on prod server', async () => {
 
 	mock.prodServerOk.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -151,7 +155,8 @@ test('render failed when internal error on prod server', async () => {
 
 	vi.useFakeTimers();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -180,7 +185,8 @@ test('render failed when network error on prod server', async () => {
 
 	mock.prodServerNetworkError.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
@@ -202,7 +208,8 @@ test('render files and get next files failed on dev server', async () => {
 
 	mock.devServerOk.listen();
 	
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);

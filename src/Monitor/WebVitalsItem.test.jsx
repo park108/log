@@ -11,7 +11,8 @@ it('render web vitals monitor on dev server', async () => {
 
 	mock.prodServerOk.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
@@ -35,7 +36,8 @@ it('render web vitals monitor failed on prod server', async () => {
 
 	mock.prodServerFailed.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
@@ -52,7 +54,8 @@ it('render web vitals monitor network error on prod server', async () => {
 
 	mock.prodServerNetworkError.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
@@ -71,7 +74,8 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
@@ -87,7 +91,8 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
@@ -108,7 +113,8 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 
@@ -130,7 +136,8 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 
 		mock.prodServerFailed.listen();
 
-		process.env.NODE_ENV = 'production';
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
 
 		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
 

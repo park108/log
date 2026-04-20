@@ -17,7 +17,8 @@ it('render image selector loading images > loading more images > and fail when l
 
 	mock.prodServerOk.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<ImageSelector show={true} />);
 
@@ -65,7 +66,8 @@ it('render image selector loading images > loading more images > and network err
 
 	mock.devServerOk.listen();
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render(<ImageSelector show={true} />);
 
@@ -99,7 +101,8 @@ it('render image selector failed fetching images', async () => {
 
 	mock.devServerFailed.listen();
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render(<ImageSelector show={true} />);
 
@@ -114,7 +117,8 @@ it('render image selector when network error', async () => {
 
 	mock.prodServerNetworkError.listen();
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<ImageSelector show={true} />);
 
@@ -130,7 +134,8 @@ describe('keyboard a11y (REQ-20260418-017 FR-07, REQ-20260418-029, accessibility
 	it('Retry 요소에 tabIndex=0 과 role="button" 이 부여된다', async () => {
 
 		mock.devServerFailed.listen();
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
 		render(<ImageSelector show={true} />);
 
@@ -145,7 +150,8 @@ describe('keyboard a11y (REQ-20260418-017 FR-07, REQ-20260418-029, accessibility
 	it('Enter 키로 Retry 가 활성화되어 "Failed getting images" 가 사라진다', async () => {
 
 		mock.devServerFailed.listen();
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
 		render(<ImageSelector show={true} />);
 
@@ -166,7 +172,8 @@ describe('keyboard a11y (REQ-20260418-017 FR-07, REQ-20260418-029, accessibility
 	it('Space 키로 Retry 가 활성화되어 "Failed getting images" 가 사라진다', async () => {
 
 		mock.devServerFailed.listen();
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
 		render(<ImageSelector show={true} />);
 
@@ -188,7 +195,8 @@ describe('keyboard a11y (REQ-20260418-017 FR-07, REQ-20260418-029, accessibility
 it('shows error Toaster when clipboard write rejects (REQ-20260418-025 FR-04, US-03)', async () => {
 
 	mock.prodServerOk.listen();
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	// Per-case override: clipboard.writeText rejects to simulate permission denied / unavailable.
 	Object.assign(navigator, {

@@ -27,7 +27,8 @@ it('render log on dev server', async () => {
 	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -47,7 +48,8 @@ it('render log with no data on dev server', async () => {
 	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -67,7 +69,8 @@ it('render log failed on dev server', async () => {
 	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -89,7 +92,8 @@ it('render log network error on dev server', async () => {
 	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -111,7 +115,8 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		vi.useFakeTimers('modern')
 			.setSystemTime(new Date(1643375805000));
 
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
 		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -132,7 +137,8 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		vi.useFakeTimers('modern')
 			.setSystemTime(new Date(1643375805000));
 
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
 		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -158,7 +164,8 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		vi.useFakeTimers('modern')
 			.setSystemTime(new Date(1643375805000));
 
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
 		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -185,7 +192,8 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		vi.useFakeTimers('modern')
 			.setSystemTime(new Date(1643375805000));
 
-		process.env.NODE_ENV = 'development';
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
 
 		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
@@ -214,7 +222,8 @@ it('render file on dev server', async () => {
 	vi.useFakeTimers('modern')
 		.setSystemTime(new Date(1643375805000));
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render( <ContentItem title="Files" path="content/file" unit="capacity" stackPallet={ stackPallet.colors } /> );
 

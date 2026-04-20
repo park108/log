@@ -14,7 +14,8 @@ test('render comment list and post comment correctly on dev server', async () =>
 		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 	vi.spyOn(common, "isAdmin").mockResolvedValue(true); // User is admin in this case.
 
 	render(<Comment timestamp={1655302060414} />);
@@ -89,7 +90,8 @@ test('render failed when internal error on dev server', async () => {
 
 	mock.devServerFailed.listen();
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render(<Comment timestamp={1655302060414} />);
 
@@ -101,7 +103,8 @@ test('render failed when network error on dev server', async () => {
 
 	mock.devServerNetworkError.listen();
 
-	process.env.NODE_ENV = 'development';
+	vi.stubEnv('DEV', true);
+	vi.stubEnv('PROD', false);
 
 	render(<Comment timestamp={1655302060414} />);
 
@@ -116,7 +119,8 @@ test('render comment list and post comment failed on prod server', async () => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
 
-	process.env.NODE_ENV = 'production';
+	vi.stubEnv('PROD', true);
+	vi.stubEnv('DEV', false);
 
 	render(<Comment timestamp={1655302060414} />);
 
