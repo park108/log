@@ -33,7 +33,7 @@
 - `prop-types` 사용 (런타임 prop 검증)
 - FRAMEWORK_DESIGN.md 의 "타입 & 검증" 섹션은 TS 기본 전제로 명시
 
-## 3. 도입 정책 (To-Be, WIP)
+## 3. 도입 정책
 > 관련 요구사항: 20260417-migrate-to-typescript
 
 ### 3.1 tsconfig 베이스라인
@@ -145,6 +145,7 @@
 |------|-----|------|------|
 | 2026-04-18 | (pending) | TypeScript 도입 요구사항 등록 (WIP) | 3 |
 | 2026-04-18 | (pending, REQ-20260418-019) | baseline 후속 정리: `@types/react` v19 sync (A), `baseUrl` deprecation 제거 (B), 첫 TS 태스크의 alias 4경로 e2e 검증 의무 (C) (WIP) | 3.1.1, 3.1.2, 3.1.3, 3.2.1, 5.1 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-migrate-to-typescript.md`

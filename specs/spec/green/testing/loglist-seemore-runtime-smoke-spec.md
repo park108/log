@@ -30,7 +30,7 @@
 - `src/Log/LogList.jsx:29-44` — sessionStorage cache 분기 (REQ-007 drift 영역, 20260420 REQ-007 ready).
 - REQ-036 (자동 테스트) 의 §3.2 Out-of-Scope 에 본 REQ 쌍 REQ 로 명시.
 
-## 3. 체크리스트 구성 (To-Be, WIP)
+## 3. 체크리스트 구성
 
 ### 3.1 문서 위치 (FR-01)
 - 신규: `docs/testing/loglist-seemore-runtime-smoke.md`.
@@ -93,6 +93,7 @@
 | 일자 | TSK | 요약 | 영향 섹션 |
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-037) | LogList "See more" 페이지네이션 런타임 수동 스모크 체크리스트 spec 초기화 (4 Must + 1 Should + 1 Could 시나리오) (WIP) | 전체 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-loglist-seemore-runtime-smoke-checklist-doc.md` (REQ-20260419-037)

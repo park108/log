@@ -38,7 +38,7 @@
 - 짧은 클래스명(`.button`, `.article`, `.p`) 을 여러 컴포넌트가 공유 → 영향 범위 추적 곤란
 - Vite 환경 — `*.module.css` 별도 설정 없이 동작
 
-## 3. 목표 (To-Be, WIP)
+## 3. 목표
 > 관련 요구사항: 20260417-css-modules-migration
 
 ### 3.1 마이그레이션 대상 (8개)
@@ -824,3 +824,4 @@ const itemClass = isDeleting
 | 2026-04-19 | (pending, REQ-20260419-017) | 3 체크리스트 묶음 baseline 수행 §10.8 신설 (log-mutation MC/MD 8 + LogItem sanitize F1~F4 + FileDrop 시각 회귀 3 관찰점, 운영자 60분 1회 세션) (WIP) | 10.6, 10.8 |
 | 2026-04-19 | (pending, REQ-20260419-019) | LogItem `setItemClass` 명령형 className state → 선언적 React §10.9 신설 (§10.6 "패턴 reference 연동" 글머리 4차 재적용 박제, `data-deleting` 패턴 도입, Image/File/Log 3 도메인 마무리, useDeleteLog.isPending 단일 SSoT) (WIP) | 10.6, 10.9 |
 | 2026-04-19 | (pending, REQ-20260419-029) | REQ-019 §10.9 To-Be 코드 실현 트리거 — `src/Log/LogItem.jsx` `setItemClass` state 제거 + `data-deleting` 선언적 className 파생, 머지 후 §10.9 WIP → 마감 + 수용 기준 체크박스 일괄 `[x]` | 10.9 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |

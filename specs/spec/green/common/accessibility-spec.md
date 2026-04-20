@@ -446,7 +446,7 @@ plugins:
 - `npm ls eslint-plugin-jsx-a11y` → 미설치.
 - a11y 룰 **0 개** — REQ-017 의 9건이 빌드/CI 에서 검출되지 않은 원인.
 
-### 3.2 목표 설정 (To-Be)
+### 3.2 목표 설정
 - 패키지: `eslint-plugin-jsx-a11y@^6.x` (ESLint 8 호환).
 - `.eslintrc.yml` 갱신:
   - `extends` 에 `plugin:jsx-a11y/recommended` 추가
@@ -948,6 +948,7 @@ const onChangeName = (e) => {
 | 2026-04-19 | (pending, REQ-20260419-014) | `react/no-unknown-property` ignore 목록 dead `enlarged` 1줄 제거 §3.4.3 신설 — REQ-026 후속 정리, `[imageurl, thumbnailurl, enlarged]` → `[imageurl, thumbnailurl]` 축소, REQ-003 flat config 위치 동시 정리 (WIP) | 3.4.3 |
 | 2026-04-19 | (pending, REQ-20260419-021) | 폼 검증 에러 표시 정책 §4.B 신설 — `window.alert(...)` 금지 + `aria-invalid` / `aria-describedby` / `role="alert"` 인라인 메시지 + Toaster 보조 표준 패턴 박제, CommentForm×2 + Writer×1 결함 매트릭스 (WCAG 3.3.1/3.3.3/4.1.2, REQ-017 §13 후속) (WIP) | 4.B |
 | 2026-04-20 | (inspector drift reconcile) | §2.1 표 행 #6/#7/#8 (FileItem filename + 삭제 + ImageSelector Retry) 를 "[WIP] REQ-029 §2.1.1" → "**머지**" 로 ACK: commits `24493bb` (FileItem filename+delete 패턴 B, tasks `20260418-a11y-fileitem-keyboard-activation`) / `695e65d` (ImageSelector Retry 패턴 B, task `20260418-a11y-imageselector-retry-keyboard`); src 관측: `FileItem.jsx` `activateOnKey` import + `tabIndex={0}` + `onKeyDown={activateOnKey(copyFileUrl)}` / `onKeyDown={activateOnKey(confirmDelete)}` 확인, `ImageSelector.jsx:147` `onKeyDown={activateOnKey(handleRetry)}` 확인. 진행률 6/9 → 9/9 마감. REQ-029 §2.1.1 수용 체크박스 및 §2.4 수용 grep 자체는 본 ACK 범위 밖 (아래 §2.1.1 섹션 별 라운드 정리 필요). 커밋 영향: 본 spec 단독. | 2.1 |
+| 2026-04-20 | (inspector drift reconcile) | §3.2 헤더 rename: "(To-Be)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3.2 |
 
 ## 10. 관련 문서
 - 기원 요구사항:

@@ -29,7 +29,7 @@
 - `src/Log/hooks/useLog.js:13-23` — queryKey `['log','detail',timestamp]`.
 - `src/Log/hooks/useDeleteLog.js` — onSuccess `removeQueries` 무효화.
 
-## 3. 체크리스트 구성 (To-Be, WIP)
+## 3. 체크리스트 구성
 
 ### 3.1 문서 위치 (FR-01)
 - 신규: `docs/testing/logsingle-runtime-smoke.md`.
@@ -91,6 +91,7 @@
 | 일자 | TSK | 요약 | 영향 섹션 |
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-030) | LogSingle 단건 상세 조회 경로 런타임 수동 스모크 체크리스트 spec 초기화 (FOUND / NOT_FOUND / DELETED / 캐시 무효화 재진입 4 시나리오) (WIP) | 전체 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-logsingle-runtime-smoke-checklist-doc.md` (REQ-20260419-030)

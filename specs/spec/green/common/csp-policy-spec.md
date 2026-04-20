@@ -38,7 +38,7 @@
   - API Gateway: `VITE_*_API_BASE` 환경변수 — 실제 도메인 1~2개 (운영자 확인 필요).
   - 업로드 CDN: `src/File/api.js` / `src/Image/api.js` 업로드 후 URL (운영자 확인 필요).
 
-## 3. 정책 (To-Be, WIP)
+## 3. 정책
 
 ### 3.1 directive 설계 (REQ-040 FR-01 ~ FR-10)
 
@@ -128,6 +128,7 @@
 | 일자 | TSK | 요약 | 영향 섹션 |
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-040) | CSP meta 태그 defense-in-depth 정책 spec 초기화 (9 directive 설계, dev/prod 분기, 수동 smoke 체크리스트, 빌드 무결성 검증) (WIP) | 전체 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 9. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-csp-meta-defense-in-depth-introduction.md` (REQ-20260419-040)

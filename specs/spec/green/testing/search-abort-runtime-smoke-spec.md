@@ -54,7 +54,7 @@
 
 > 관련 요구사항: REQ-20260419-013 §2 배경
 
-## 3. 체크리스트 구성 (To-Be, WIP)
+## 3. 체크리스트 구성
 > 관련 요구사항: REQ-20260419-013 FR-01 ~ FR-10
 
 ### 3.1 문서 위치 (FR-01)
@@ -342,6 +342,7 @@ useEffect(() => {
 | 2026-04-19 | (pending, REQ-20260419-020) | Search `loadingDots` 타이머 cleanup + stale closure 정합 §3.11 신설 — `clearTimeout(tick)` 함수 인자 버그 수정 + functional updater + `[isLoading]` 단일 의존, Search 도메인 timer cleanup 패턴 SSoT 박제, REQ-021 AbortController 정합과 공존, SA-05 Could 매뉴얼 시나리오 예약 (WIP) | 3.11 |
 | 2026-04-20 | (inspector drift reconcile) | §2 As-Is 정정: `docs/testing/search-abort-runtime-smoke.md` 부재 → 존재 (commit `089a818`, task `20260419-search-abort-runtime-smoke-checklist-doc`). 커밋 영향: 본 spec 단독. | 2 |
 | 2026-04-20 | (pending, REQ-20260420-004) | REQ-020 §3.11 To-Be 코드 실현 트리거 — `src/Search/Search.jsx:98-104` `loadingDots` 타이머 cleanup + `clearTimeout(tick)` 함수 인자 버그 수정 + functional updater + `[isLoading]` 단일 의존; 머지 후 §3.11 WIP 마감 + 수용 기준 체크박스 `[x]` | 3.11 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 9. 관련 문서
 - 기원 요구사항:

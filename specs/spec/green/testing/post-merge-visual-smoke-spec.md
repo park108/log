@@ -66,7 +66,7 @@
 
 ---
 
-## 3. 체크리스트 구성 (To-Be, WIP)
+## 3. 체크리스트 구성
 > 관련 요구사항: REQ-20260418-020 FR-01~06
 
 ### 3.1 공통 형식 (FR-04)
@@ -135,7 +135,7 @@
 
 ---
 
-## 3.B 배치 2 체크리스트 구성 (To-Be, WIP — REQ-20260418-028)
+## 3.B 배치 2 체크리스트 구성 (REQ-20260418-028)
 
 > 관련 요구사항: REQ-20260418-028 FR-01 ~ FR-10, US-01~US-03
 
@@ -242,7 +242,7 @@
 
 ---
 
-## 3.C 배치 3 체크리스트 구성 (To-Be, WIP — REQ-20260418-035, REQ-20260418-037)
+## 3.C 배치 3 체크리스트 구성 (REQ-20260418-035, REQ-20260418-037)
 
 > 관련 요구사항: REQ-20260418-035 FR-01 ~ FR-09, REQ-20260418-037 FR-01 ~ FR-08
 
@@ -467,6 +467,7 @@
 | 2026-04-18 | (pending, REQ-20260418-028) | 배치 2 — Writer preview sanitize / ImageSelector / Keyboard activation 3개 체크리스트 §3.B 신설 (WIP) | 3.B, all (제목) |
 | 2026-04-18 | (pending, REQ-20260418-035, REQ-20260418-037) | 배치 3 — Comment 시각 / ErrorBoundary 런타임 2개 체크리스트 §3.C 신설 (WIP) | 3.C, all (제목) |
 | 2026-04-18 | (pending, REQ-20260418-041) | §3.D 신설 — Writer 저장 실패 경로 dev-only 시뮬레이션 토글 (쿼리 파라미터 / MSW worker 방식 A/B 결정, `import.meta.env.DEV` 가드 + DCE 검증, toaster-visual-smoke §골든 패스 4 실패 경로 baseline 필수 승격) (WIP) | 3.D |
+| 2026-04-20 | (inspector drift reconcile) | §3 / §3.B / §3.C 헤더 rename: "(To-Be, WIP …)" 제거 (REQ 참조는 유지) (planner §4 Cond-3 충족, d0d49c6 선례) | 3, 3.B, 3.C |
 
 ---
 

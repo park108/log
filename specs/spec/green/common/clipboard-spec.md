@@ -82,7 +82,7 @@ REQ-025 머지 결과 (commit `4765eaf` `copyToClipboard` 비동기 전환 + 후
 
 ---
 
-## 3. 도입 정책 (To-Be, WIP)
+## 3. 도입 정책
 > 관련 요구사항: REQ-20260418-022 FR-01~07
 
 ### 3.1 신규 시그니처 (FR-01, FR-02)
@@ -413,3 +413,4 @@ rules:
 | 2026-04-18 | (pending, REQ-20260418-025) | 호출자 3종 `await` 도입 + 테스트 stub 정리 + 거부 분기 테스트 + 런타임 수동 스모크 baseline (WIP) | 3.2.1, 3.3.1, 3.7, 5.1 |
 | 2026-04-18 | (pending, REQ-20260418-034) | §2.3 잔재 현황 갱신 (8건 → 3건 + α) + §3.3.2 전역 sweep 섹션 신설 (옵션 A/B 결정, Phase 1~4 로드맵, §3.3 FR-05 0건 마감) (WIP) | 2.3, 3.3.2 |
 | 2026-04-18 | (pending, REQ-20260418-036) | §3.2.1 호출자별 성공 톤 정책 마감 (warning → success 통일) + §3.2.1.1 ImageSelector 1줄 변경 + 회귀 테스트 보정 + grep 차단 (WIP) | 3.2.1, 3.2.1.1 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |

@@ -41,7 +41,7 @@
 
 > 관련 요구사항: REQ-20260418-005 (완료로 재분류 가능, planner 승격 판단 영역). 본 §2 정정은 inspector drift reconcile — 2026-04-18 당시 "Skeleton/ErrorFallback 부재 + App.jsx 미통합" 표기가 실 코드 관측과 불일치. 실제 통합 작업은 REQ-20260418-005 처리 과정에서 반영 완료됐으나 본 spec 의 As-Is 표가 미갱신 상태로 유지되어 있었음.
 
-## 3. 신규 컴포넌트 (To-Be, WIP)
+## 3. 신규 컴포넌트
 > 관련 요구사항: 20260417-add-error-boundaries
 
 ### 3.1 `src/common/ErrorBoundary.jsx` — **완료**
@@ -297,6 +297,7 @@
 | 2026-04-19 | (pending, REQ-20260419-032) | App.test.jsx ErrorBoundary 통합 describe scope stderrWriteSpy 패턴 확장 §7.1.1 신설 — REQ-007 파일 scope 패턴 1:1 복제, describe scope 로 범위 제한 (WIP) | 7.1, 7.1.1 |
 | 2026-04-20 | (pending, REQ-20260420-005) | `<Suspense fallback={<div></div>}>` 18곳 Skeleton variant 치환 §2 잔여 항목 마감 트리거 — error-boundary-spec §2 마지막 `[ ]` 하위 17 항목 해소, REQ-005 §11 "빈 div fallback 0" 수용 기준 충족, 라우트 전환 플리커 baseline 통일 (WIP) | 2 |
 | 2026-04-20 | (inspector Phase 2 — defer tagging) | §7.2 운영자 baseline 2 행 (`REQ-037 FR-04` 1회 + `REQ-012` 후속 2회) [deferred] 태그 — jsdom 범위 밖 operator / cross-cutting React 19 bump 의존. planner 승격 게이트 제외. 커밋 영향: 본 spec 단독. | 7.2 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 9. 관련 문서
 - 기원 요구사항:

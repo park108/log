@@ -31,7 +31,7 @@
 - `src/File/FileItem.jsx:10, 18-45, 62-67, 101-108` — 삭제 확인 + `div--fileitem-delete` className + 3초 setTimeout + `useDeleteFile` 없이 직접 fetch 구조.
 - `src/File/FileItem.test.jsx:166-254` — 단위 테스트 존재 (delete 성공/실패 분기).
 
-## 3. 체크리스트 구성 (To-Be, WIP)
+## 3. 체크리스트 구성
 
 ### 3.1 문서 위치 (FR-01)
 - 신규: `docs/testing/fileitem-delete-visual-smoke.md`.
@@ -87,6 +87,7 @@
 | 일자 | TSK | 요약 | 영향 섹션 |
 |------|-----|------|-----------|
 | 2026-04-19 | (pending, REQ-20260419-026) | FileItem 삭제 UX 시각/런타임 수동 스모크 체크리스트 spec 초기화 (4 시나리오 FI-01~04, 자매 형식 준수) (WIP) | 전체 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/ready/20260419-fileitem-delete-visual-smoke-checklist-doc.md` (REQ-20260419-026)

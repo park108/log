@@ -40,7 +40,7 @@
 - 캐싱, 재검증, 낙관적 업데이트, 에러 재시도 로직이 도메인마다 중복
 - FRAMEWORK_DESIGN.md 기준 서버 상태는 TanStack Query / SWR 표준 명시
 
-## 3. 도입 정책 (To-Be, WIP)
+## 3. 도입 정책
 > 관련 요구사항: 20260417-adopt-tanstack-query
 
 ### 3.1 Provider 설정 (`src/App.jsx`)
@@ -842,6 +842,7 @@ afterAll(() => server.close());
 | 2026-04-20 | (pending, REQ-20260420-002) | Monitor.test.jsx unhandled error (자식 Monitor* MSW 미mock + 언마운트 후 setState) — Vitest v4 에서 "Unhandled errors" 로 승격, CI exit 1 회귀 가드 (WIP) | 3.6, 3.7 |
 | 2026-04-19 | (pending, REQ-20260419-036) | `src/Log/LogList.test.jsx` 신설 트리거 — seeMoreButton 파생 4 분기 + 클릭·페이지네이션 회귀 보호 최소 5 케이스 (자매 REQ-037 수동 smoke 와 쌍). §4.3.1 renderWithQuery 패턴 적용 | 4.3.1 |
 | 2026-04-19 | (pending, REQ-20260419-035) | `src/Log/Writer.test.jsx` historyData (location.state.from) 편집 진입 경로 테스트 커버리지 2 케이스 추가 — WH-01 history 패널 렌더 / WH-02 미렌더. §3.3.1 commitment 갱신은 없음 | 3.3.1 |
+| 2026-04-20 | (inspector drift reconcile) | §3 헤더 rename: "(To-Be, WIP)" 제거 (planner §4 Cond-3 충족, d0d49c6 선례) | 3 |
 
 ## 8. 관련 문서
 - 기원 요구사항: `specs/requirements/done/2026/04/18/20260417-adopt-tanstack-query.md`
