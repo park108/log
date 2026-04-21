@@ -37,7 +37,7 @@
     ]
   },
   "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx}": "eslint"
+    "src/**/*.{js,jsx,ts,tsx,d.ts}": "eslint"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
