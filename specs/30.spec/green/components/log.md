@@ -78,7 +78,7 @@
 ## 참고
 - **REQ 원문 (완료 처리)**: `specs/60.done/2026/04/21/req/20260421-log-spec-regression-logitem-delete-shuffle-and-findby-idiom.md`.
 - **Consumed followup**: `specs/10.followups/20260421-0541-test-isolation-shuffle-safety-cold-start-spec-from-blocked.md`.
-- **관련 spec**: `specs/30.spec/green/common/test-idioms-spec.md` (REQ-027 FR-02 findBy 이디엄 축).
+- **관련 spec**: `specs/30.spec/green/common/test-idioms.md` (REQ-027 FR-02 findBy 이디엄 축).
 - **RULE 준수**:
   - RULE-07: 불변식 한정 (race 없이 pass = 계약, 실측 seed/failure 수는 task 영역).
   - RULE-01: inspector writer 영역만 (`30.spec/green/**`).

@@ -14,14 +14,14 @@
 #   - 300줄 초과 spec 없음. sub-spec split 불요.
 #
 # Phase 3 this session — 결과 요약:
-#   - REQ-20260421-021 (test-idioms) → create `30.spec/green/common/test-idioms-spec.md` (신규, 6 이디엄 축).
+#   - REQ-20260421-021 (test-idioms) → create `30.spec/green/common/test-idioms.md` (신규, 6 이디엄 축).
 #   - REQ-20260421-022 (common env/admin) → blue `components/common.md` → carry-over to green + § 환경 분기 계약 / § admin gate 계약 신설.
-#   - REQ-20260421-023 (CI foundation) → create `30.spec/green/foundation/ci-spec.md` (신규).
+#   - REQ-20260421-023 (CI foundation) → create `30.spec/green/foundation/ci.md` (신규).
 #   - REQ-20260421-024 (React 19 app-spec) → no-op (blue `app.md` 에 회귀 중점 2 경로 이미 박제 — FR-01 Must 충족, FR-02 "불필요 시 green 생성 금지" 조건 적용).
 #   - REQ-20260421-025 (auth cookie SameSite) → green `components/common.md` 에 § auth() 쿠키 속성 계약 서브섹션 append (REQ-022 편집과 동일 파일).
-#   - REQ-20260421-027 (log-spec shuffle + findBy) → blue `components/log.md` → carry-over to green (§회귀 중점 shuffle 불변식) + test-idioms-spec 에 findBy 이디엄 (7) 추가.
-#   - REQ-20260421-028 (TypeScript foundation/tooling) → create `30.spec/green/foundation/tooling-spec.md` (신규, 4 불변식).
-#   - REQ-20260421-029 (fake-timer teardown 전역) → test-idioms-spec 에 fake-timer teardown 이디엄 (8) 추가.
+#   - REQ-20260421-027 (log-spec shuffle + findBy) → blue `components/log.md` → carry-over to green (§회귀 중점 shuffle 불변식) + test-idioms 에 findBy 이디엄 (7) 추가.
+#   - REQ-20260421-028 (TypeScript foundation/tooling) → create `30.spec/green/foundation/tooling.md` (신규, 4 불변식).
+#   - REQ-20260421-029 (fake-timer teardown 전역) → test-idioms 에 fake-timer teardown 이디엄 (8) 추가.
 #
 # Phase 3 blocked (반려):
 #   - REQ-20260421-020 (logsingle-remediation-vitest4-rescope) → `50.blocked/req/` + `_reason.md`.
@@ -32,11 +32,11 @@
 # 입력 큐: 0건 (세션 종료 시점). 하류 임계치 GREEN_PENDING_MAX=20, 현 green 파일 5 (spec) < 20. 여유 15.
 #
 # 현 ledger:
-specs/30.spec/green/common/test-idioms-spec.md 54b826562021048df29182e7249b839afc5b0ed35cf6e10b58d5895a1ca34389 0
+specs/30.spec/green/common/test-idioms.md 54b826562021048df29182e7249b839afc5b0ed35cf6e10b58d5895a1ca34389 0
 specs/30.spec/green/components/common.md 13f4f98874f0683e88e47a029fe4b83ea0cce8f38554826759c61980a03d60ea 0
 specs/30.spec/green/components/log.md ba029dd112ea5e8323e0873fcf445cdcfd2f1db187e3ca97a95b3252b326c94a 0
-specs/30.spec/green/foundation/ci-spec.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 0
-specs/30.spec/green/foundation/tooling-spec.md 73ac384bba79bdbcf43289bd39ff981d956ce2f56f7e42912c4730c1fbed434c 0
+specs/30.spec/green/foundation/ci.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 0
+specs/30.spec/green/foundation/tooling.md 73ac384bba79bdbcf43289bd39ff981d956ce2f56f7e42912c4730c1fbed434c 0
 #
 # Stale 경고: 0 cycle (신규 등록 세션).
 #
