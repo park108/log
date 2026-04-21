@@ -44,25 +44,25 @@
   - `src/test-utils/msw.test.js:57:29` — `expected ... 1 times, but got 0 times`.
   - 결과: 1 file failed / 3 tests failed.
 - [x] shuffle seed=1, seed=2 → 5/5 pass (shuffle 순서 의존 확인).
-- [ ] FR-01 해소 후 seed=1 0 fail.
-- [ ] FR-01 해소 후 seed=2 0 fail.
-- [ ] FR-01 해소 후 seed=3 0 fail (followup 재현 3 fail 0 건).
-- [ ] TSK-20260421-53 머지 후 재실측 (계약 공존 검증) — `beforeAll`/`afterAll` 환경에서도 어서트 유효.
+- [x] FR-01 해소 후 seed=1 0 fail. (TSK-20260421-55 / 1bbdbb0 — 1 file / 3 tests pass)
+- [x] FR-01 해소 후 seed=2 0 fail. (TSK-20260421-55 / 1bbdbb0 — 1 file / 3 tests pass)
+- [x] FR-01 해소 후 seed=3 0 fail (followup 재현 3 fail 0 건). (TSK-20260421-55 / 1bbdbb0 — baseline 3 fail 확인 후 0 fail)
+- [ ] TSK-20260421-53 머지 후 재실측 (계약 공존 검증) — `beforeAll`/`afterAll` 환경에서도 어서트 유효. **[pending: TSK-20260421-53 실측 대기]**
 
 ## 수용 기준
-- [ ] (Must) FR-01 — `src/test-utils/msw.test.js` 의 `hook 1` / `hook 2` describe 에서 두 sibling `it` 가 같은 `fakeServer` 스파이 상태를 누적 의존하는 패턴 제거 (3안 중 1안 단일 채택, 채택 근거 1~2문장 박제).
-- [ ] (Must) FR-02 — 계약 어서트 축소 (특정 호출 횟수 가정 배제). `beforeEach`/`afterEach` 및 `beforeAll`/`afterAll` 두 환경 모두 PASS.
-- [ ] (Must) FR-03 — `hook 3` override 검증 (`listen` 이 `{ onUnhandledRequest: 'warn' }` 로 호출됨) 무손실 유지.
-- [ ] (Must) FR-04 — `npx vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3-seed 실측 모두 `src/test-utils/msw.test.js` 0 fail. result.md 에 수치 (files / tests) 박제.
-- [ ] (Must) FR-05 — `npm test -- --run` (serial) 0 fail 유지, 47 파일 전체 회귀 0.
-- [ ] (Should) FR-06 — planner 가 본 spec 기반 신규 Task 발행 시점에 원본 green spec `test-isolation-shuffle-safety-cold-start-spec.md` §FR-06 (L97) + §수용 기준 L109 의 `[deferred: TSK-20260421-49 blocked]` 태깅을 `[pending: REQ-20260421-011 TSK-<new>]` 로 전환 (FR-06 Should, planner 담당).
-- [ ] (Should) FR-07 — 신규 Task ID 는 `TSK-YYYYMMDD-NN` 로 발행, TSK-20260421-49/50/52 와 supersede 관계 없음.
-- [ ] (NFR) NFR-01 — `vitest --sequence.shuffle --sequence.seed={1,2,3}` 3-seed 모두 해당 파일 0 fail.
-- [ ] (NFR) NFR-02 — serial 및 shuffle 3-seed 모두 결정적 0 fail.
-- [ ] (NFR) NFR-03 — 수정 파일 ≤ 1 (`src/test-utils/msw.test.js`). `src/test-utils/msw.js` / runtime 소스 / 다른 `*.test.*` 0 수정.
-- [ ] (NFR) NFR-04 — TSK-20260421-53 머지 전/후 양쪽 환경에서 0 fail.
-- [ ] (NFR) NFR-05 — 축소 어서트는 `useMockServer` 계약 ("호출 시점 `listen({ onUnhandledRequest })`", "afterEach 시점 `resetHandlers`/`close`", "override 옵션 전달") 만 검증. 횟수 가정 금지.
-- [ ] (NFR) NFR-06 — 본 spec 및 신규 task 변경 이력에 REQ-20260421-011 + followup 원본 (`specs/60.done/2026/04/21/followups/20260421-0955-msw-test-sibling-it-shuffle-race.md`) 경로 참조.
+- [x] (Must) FR-01 — `src/test-utils/msw.test.js` 의 `hook 1` / `hook 2` describe 에서 두 sibling `it` 가 같은 `fakeServer` 스파이 상태를 누적 의존하는 패턴 제거 (3안 중 (A) 단일 `it` 병합 채택 — vitest 기본 API 만 사용, 수명주기 공존). (TSK-20260421-55 / 1bbdbb0)
+- [x] (Must) FR-02 — 계약 어서트 축소 (특정 호출 횟수 가정 배제). `toHaveBeenCalledTimes` 0건. `beforeEach`/`afterEach` 환경 PASS, `beforeAll`/`afterAll` 환경은 TSK-53 머지 후 재실측 예정 (NFR-04 참조). (TSK-20260421-55 / 1bbdbb0)
+- [x] (Must) FR-03 — `hook 3` override 검증 (`listen` 이 `{ onUnhandledRequest: 'warn' }` 로 호출됨) 무손실 유지 — `toHaveBeenCalledWith` 2건 (hook 1 'error' + hook 3 'warn'). (TSK-20260421-55 / 1bbdbb0)
+- [x] (Must) FR-04 — `npx vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3-seed 실측 모두 `src/test-utils/msw.test.js` 0 fail, 각 1 file / 3 tests pass. (TSK-20260421-55 / 1bbdbb0)
+- [x] (Must) FR-05 — `npm test -- --run` (serial) 0 fail 유지, 47 files / 375 tests pass. (TSK-20260421-55 / 1bbdbb0)
+- [x] (Should) FR-06 — 원본 green spec `test-isolation-shuffle-safety-cold-start-spec.md` §FR-06 L97 태깅 `[pending: REQ-20260421-011 TSK-20260421-55]` 전환 완료 (inspector marker-sync, 1d89844).
+- [x] (Should) FR-07 — 신규 Task ID `TSK-20260421-55` 발행 (planner a4636a7, TSK-49/50/52 와 supersede 관계 없음).
+- [x] (NFR) NFR-01 — `vitest --sequence.shuffle --sequence.seed={1,2,3}` 3-seed 모두 해당 파일 0 fail. (TSK-20260421-55 / 1bbdbb0)
+- [x] (NFR) NFR-02 — serial 및 shuffle 3-seed 모두 결정적 0 fail. (TSK-20260421-55 / 1bbdbb0)
+- [x] (NFR) NFR-03 — 수정 파일 ≤ 1 (`src/test-utils/msw.test.js`). `src/test-utils/msw.js` / runtime 소스 / 다른 `*.test.*` 0 수정. (TSK-20260421-55 / 1bbdbb0)
+- [ ] (NFR) NFR-04 — TSK-20260421-53 머지 전/후 양쪽 환경에서 0 fail. **[pending: TSK-20260421-53 머지 대기 — 현재 어서트는 `toHaveBeenCalled()` + `toHaveBeenCalledWith()` 로 수명주기 무관, 공존 예상]**
+- [x] (NFR) NFR-05 — 축소 어서트는 `useMockServer` 계약 만 검증. 횟수 가정 0건. (TSK-20260421-55 / 1bbdbb0)
+- [x] (NFR) NFR-06 — result.md 및 본 spec 변경 이력에 REQ-20260421-011 + followup 원본 (`20260421-0955-msw-test-sibling-it-shuffle-race.md`) 경로 참조 박제. (TSK-20260421-55 / 1bbdbb0)
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -78,3 +78,4 @@
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-011 반영, `test-isolation-shuffle-safety-cold-start-spec.md` §FR-06 carve-out) | all |
 | 2026-04-21 | inspector / — (marker sync, HEAD=2e9f806) | planner carve 완료 확인 — TSK-20260421-55 가 40.task/ready/ 에 발행됨 (`a4636a7`). 원본 spec `test-isolation-shuffle-safety-cold-start-spec.md` §테스트 현황 L97 의 FR-06 marker 를 `[pending: REQ-20260421-011 TSK-20260421-55]` 로 전환 완료 (본 spec 의 FR-06 Should 이행, planner 미수행분 inspector 보조 처리). 본 spec 자체 WIP 전원 불변 (TSK-55 developer 실측 대기) — stale_cycles 유지. | 변경 이력 |
+| 2026-04-21 | TSK-20260421-55 / 1bbdbb0 (drift reconcile ack) | Must FR-01~05 + Should FR-06/07 + NFR-01/02/03/05/06 전원 PASS 박제 — `src/test-utils/msw.test.js` (A) 단일 `it` 병합 채택, `hook 1`/`hook 2` 두 sibling `it` 를 단일 `it` 로 통합, `hook 3` 무손실. 현 HEAD=e1a9bef 재검증: `grep -c "toHaveBeenCalledTimes" src/test-utils/msw.test.js` = 0, `grep -c "toHaveBeenCalledWith" ...` = 2, `it(` 본문 호출 3 (5→3 감축 확인). hook-ack: `npm run lint` 0 warn/error, `npm test -- --run` 47 files / 375 tests pass, shuffle seed=1/2/3 각 1 file / 3 tests pass (baseline seed=3 3 fail → 0 fail), `npm run build` OK. NFR-04 만 WIP — TSK-20260421-53 머지 후 `beforeAll`/`afterAll` 재실측 필요 (현재 어서트는 수명주기 무관 계약으로 축소되어 공존 예상). | 테스트 현황, 수용 기준, 변경 이력 |

@@ -1,57 +1,66 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=2e9f806, pre-commit)
-# Phase 1 ack this session: 0/41 ack (dev 신규 커밋 0; planner 3건 a4636a7/2a0ff31/2e9f806 만 — src drift 근거 없음).
-# marker-sync 건수: 7 (test-isolation FR-02/06/07/08/11/12/13 marker 정합 전환, [x] flip 은 FR-02 1건 only — 수용기준 L107 이미 PASS 박제분 혼재 해소).
+# Updated: 2026-04-21T (HEAD=e1a9bef, pre-commit)
+# Phase 1 ack this session: 12/13 ack (msw-sibling Must 5/5 + Should 2/2 + NFR 5/6 via TSK-55/1bbdbb0; NFR-04 pending TSK-53 merge).
+# shuffle-cold-start src drift: 0 new ack (TSK-53 still blocked, WIP unchanged from prior session).
 #
 # Phase 1 historical context (reference only):
-#   - 직전 inspector 세션 HEAD=b005644 → 현 HEAD=2e9f806 (planner 3건: 2a0ff31 TSK-53 ledger → a4636a7 promote 2 green→blue + carve TSK-53/55 → 2e9f806 no-op stale 0→1).
-#   - 직전 inspector ack: node-env-helper-migration Must 6/6 + Should 1/1 (TSK-20260420-37/a95f1bb), typescript-bootstrap Must 6/6 + Should 1/1 + NFR 1/3 (TSK-20260420-32/ceb9c60), msw-sibling-it 신규 carve (REQ-20260421-011).
-#   - a4636a7 에서 두 ack-complete spec 이 green→blue 로 promote. 현 green 큐는 2건으로 감소 (shuffle-cold-start + msw-sibling).
-#   - 50.blocked/** 현 상태: 전부 0건 (blocked/{req,spec,task} 비어있음).
-#   - 40.task/ready/: 1건 (TSK-20260421-55 msw-test-sibling-it-shuffle-race). TSK-20260421-53 은 carve 메시지(a4636a7) 에는 있으나 파일 부재 — planner 관할 이슈, inspector 개입 대상 아님.
-#   - 20.req/: 0건 (Phase 3 no-op).
+#   - 직전 inspector 세션 HEAD=1d89844 → 현 HEAD=e1a9bef (planner 1건 2e2c548 no-op cycle stale 0→1; developer 1건 1bbdbb0 TSK-55 소비; manual 1건 e1a9bef RULE-06 수동 박제).
+#   - TSK-20260421-55 (msw.test.js sibling-it shuffle race 해소) developer 소비 완료 — `60.done/2026/04/21/task/20260421-msw-test-sibling-it-shuffle-race/result.md` 박제.
+#   - 50.blocked/** 현 상태: 전부 0건.
+#   - 40.task/ready/: 0건 (TSK-55 소비 후 비어있음).
+#   - 20.req/ 입력: 3건 (처리 완료 후 0건).
+#   - REQ-20260421-013 (grep-gate multiline guideline) 은 이번 req 3건에 포함되지 않음 — 수동 커밋 e1a9bef 로 rules/RULE-06 에 직접 반영됨 (운영자 경로, RULE-05 범위).
 #
-# Phase 1 detail this session (drift reconcile + marker sync, HEAD=2e9f806 재검증):
+# Phase 1 detail this session (drift reconcile + marker flip, HEAD=e1a9bef):
 #
-#   [1] common/test-isolation-shuffle-safety-cold-start-spec.md:
-#       * HEAD 변동 0 (dev 신규 커밋 없음), src drift 0.
-#       * §테스트 현황 marker 7건 정합 전환 수행:
-#         - FR-02 `[deferred: TSK-49 blocked]` → `[x]` (TSK-51/d798635 수용기준 L107 이미 PASS 박제분과 혼재 해소).
-#         - FR-06 `[deferred: TSK-49 blocked; Layer 2 해소 후 재시도]` → `[pending: REQ-20260421-011 TSK-20260421-55]` (독립 spec carve-out, planner a4636a7).
-#         - FR-07 `[deferred: TSK-49 blocked]` → `[deferred: 별건 task 미발행]` (scope-외 사유 명시).
-#         - FR-08 `[deferred: TSK-49 blocked — Layer 2 race 미해소]` → `[pending: TSK-20260421-53 실측]`.
-#         - FR-11 `[pending: Layer 2 신규 TSK-ID 발행]` → `[pending: TSK-20260421-53 (Layer 2 B3 fallback)]`.
-#         - FR-12 `[pending: B1~B4 실측 결과 의존]` → `[pending: TSK-20260421-53 B3 실측 결과 의존]`.
-#         - FR-13 `[pending: Layer 2 신규 TSK-ID]` → `[pending: TSK-52 B1 blocked → TSK-53 B3 fallback 실측]`.
-#       * 변경 이력 1행 박제 (marker sync, HEAD=2e9f806).
-#       * hash 변동: 21543b77 → bea52063. [x] flip 1건 (FR-02) 은 수용기준-테스트현황 혼재 해소 목적 (신규 ack 아님 — 이미 L107 에 박제됨).
-#       * stale_cycles: 1 → 0 (marker sync 로 WIP 상태 갱신).
+#   [1] common/msw-test-sibling-it-shuffle-race-dedicated-spec.md:
+#       * TSK-20260421-55 / 1bbdbb0 ack via `60.done/task/.../result.md` + grep 게이트 현 HEAD 재실행:
+#         - `grep -c "toHaveBeenCalledTimes" src/test-utils/msw.test.js` = 0 (요구 0, PASS).
+#         - `grep -c "toHaveBeenCalledWith" src/test-utils/msw.test.js` = 2 (요구 >= 2, PASS).
+#         - `grep -cE "^[[:space:]]*it\(" src/test-utils/msw.test.js` = 3 (5->3 감축 확인).
+#       * hook-ack: result.md 에 `npm run lint` 0 warn/error, `npm test -- --run` 47 files / 375 tests pass, shuffle seed 1/2/3 각 1 file / 3 tests pass, `npm run build` OK 박제. 커밋 1bbdbb0 은 HEAD=e1a9bef 의 조상 — ack 조건 충족.
+#       * 플립 대상: §테스트 현황 FR-01 seed=1/2/3 3건 + TSK-53 머지 후 재실측 WIP 유지 1건. §수용 기준 Must FR-01~05 + Should FR-06/07 + NFR-01/02/03/05/06 = 12건 [x] flip. NFR-04 는 TSK-53 머지 대기로 WIP 유지.
+#       * 변경 이력 1행 박제 (TSK-55 / 1bbdbb0 drift reconcile ack).
+#       * hash 변동: 4b22c6b0 -> 08f3554a. [x] flip 12건 ack.
+#       * stale_cycles: 1 -> 0 (ack 반영).
 #
-#   [2] common/msw-test-sibling-it-shuffle-race-dedicated-spec.md:
-#       * HEAD 변동 0. WIP 전원 불변 (Must 5/5 + Should 2/2 + NFR 6/6 모두 `- [ ]`).
-#       * 본 spec 의 FR-06 Should ("원본 green spec §FR-06 태깅 전환은 planner 가 신규 Task 발행 시점에 수행") 를 planner 가 미수행 — inspector 가 marker sync 로 보조 이행 (원본 spec L97 갱신).
-#       * 변경 이력 1행 박제 (marker sync 참조).
-#       * hash 변동: e956a40a → 4b22c6b0. ack 근거 없음 (src 변동 0, TSK-55 developer 실측 대기).
-#       * stale_cycles: 1 유지 (marker-sync 는 stale reset 대상 아님 — WIP 불변).
+#   [2] common/test-isolation-shuffle-safety-cold-start-spec.md:
+#       * HEAD 변동 (1d89844->e1a9bef) 중 src drift 0 — LogItem.test.jsx / useDeleteLog.js / msw.js 변경 0.
+#       * WIP 전원 불변 (TSK-53 blocked 상태, B1 B3 반증 후 REQ-20260421-012 layer2-rediagnosis spec 으로 carve).
+#       * ack 근거 없음 — hash 불변, marker 불변.
+#       * hash 유지: bea52063 (변동 0).
+#       * stale_cycles: 0 -> 1 (WIP 불변 + ack 0 -> stale +1).
 #
 # Phase 2 this session: 변화 없음.
-#   - deferred 태깅 신규 전환 없음 (기존 FR-07 만 사유 명시 갱신).
-#   - 300줄 초과 spec 없음 (shuffle-cold-start ~145줄, msw-sibling ~80줄).
+#   - deferred 태깅 신규 전환 없음.
+#   - 300줄 초과 spec 없음.
 #
-# Phase 3 this session: no-op.
-#   - input queue (20.req/): 0건 → 0건.
-#   - downstream threshold GREEN_PENDING_MAX=20 (.claude/pipeline.json 없음). 현 green 2 < 20.
-#   - 처리된 req: 0. blocked: 0. 신규 green: 0. 갱신 green: 2 (marker sync).
+# Phase 3 this session: 3건 신규 spec + 3건 req done mv.
+#   - input queue (20.req/): 3건 -> 0건 (전원 처리).
+#   - downstream threshold GREEN_PENDING_MAX=20 (.claude/pipeline.json 없음). 현 green 5 (2 기존 + 3 신규) < 20.
+#   - 처리된 req: 3 (ci-node20, layer2-rediagnosis, logsingle-prod-timeout). blocked: 0. 신규 green spec: 3. 갱신 green: 1 (msw-sibling ack).
+#   - REQ ID 충돌 (ci-node20 과 layer2-rediagnosis 가 동일 REQ-20260421-012 부여) 는 discovery 작성 원문 문제 — inspector 는 파일명으로 식별, 각기 다른 대상 spec 매핑 가능하므로 blocked 미격리.
+#   - 신규 spec 3건:
+#     * foundation/ci-node20-deprecation-remediation-spec.md — .github/workflows/ci.yml 3 라인 변경 단일 창구.
+#     * common/layer2-cold-start-race-root-cause-rediagnosis-spec.md — B1/B3 반증 후 관측 주도 재진단, shuffle-cold-start §FR-13 fallback 재평가.
+#     * common/logsingle-prod-server-serial-timeout-diagnosis-spec.md — LogSingle.test.jsx:56 flake 관측·결정론화.
 #
 # 현 ledger:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 0
-specs/30.spec/green/common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 4b22c6b0ad4cc4db8fceca6eab4d280ee2d98e4942aace8612ed464c49d06fa0 1
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 1
+specs/30.spec/green/common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 08f3554a13eda228af4d1ddfd8a6e063b990c3c2ab5cbd0492ee1eafd7d9cdc1 0
+specs/30.spec/green/common/layer2-cold-start-race-root-cause-rediagnosis-spec.md 5b96d7c0e87f8e0706ae6f805c16e4fc0f69fd0754c8be2b75cdaf98876ae992 0
+specs/30.spec/green/common/logsingle-prod-server-serial-timeout-diagnosis-spec.md edade2075561a70a7f616e9220b87635735444bd21245931828b67d14c9c54f9 0
+specs/30.spec/green/foundation/ci-node20-deprecation-remediation-spec.md 4fa774338abc2aeed55a3342b71c0b453723a02a572d4e3d813f332f25b4a5ba 0
 #
 # Stale 경고:
-#   - shuffle-safety-cold-start stale=0 (marker sync 반영 — 갱신됨). TSK-53 실측 후 FR-08/11/12/13 flip 가능.
-#   - msw-sibling-it-shuffle-race-dedicated stale=1 (< 3 임계, 경고 없음). TSK-55 developer 실측 대기.
+#   - shuffle-safety-cold-start stale=1 (< 3 임계, 경고 없음). Layer 2 해소는 layer2-rediagnosis spec 의 관측 주도 결과 의존.
+#   - msw-sibling-it-shuffle-race-dedicated stale=0 (ack 12/13). NFR-04 만 TSK-53 머지 대기 — 스테일 카운트 대상 아님.
+#   - 신규 3건 stale=0 (최초 등록).
 #
 # 다음 세션 유의:
-#   - TSK-20260421-53 (Layer 2 B3 msw listen beforeAll) 은 planner carve 메시지(a4636a7)에는 있으나 40.task/ready/ 에 파일 부재 — planner 재발행 또는 developer 가 별도 경로로 소비했는지 확인 필요 (RULE-05 운영자 관할 또는 다음 planner 세션).
-#   - TSK-20260421-55 (sibling-it) 소비 후 msw-sibling green Must 5/5 + Should 2/2 + NFR 6/6 전원 `[x]` flip 가능 — inspector ack 대기.
-#   - 3cycle stale 초과 시 reconcile 보고에 `reconcile: N/M ack (K stale ≥3cycle)` 토큰 추가 (RULE-04).
+#   - planner 가 3 신규 spec 을 carve 할 후보:
+#     * ci-node20: 즉시 carve 가능 (3 라인 diff 단순 task).
+#     * layer2-rediagnosis: 관측·계측 주도 task — DoD 에 "계측 제거 후 runtime functional 수정 0" 명시 필요.
+#     * logsingle-prod-timeout: FR-01 10회 serial 실측 먼저 — FR-05 블록 경로 고려 (재현 실패 시 req blocked).
+#   - TSK-20260421-53 (Layer 2 B3) 는 여전히 발행 중단 상태 (a4636a7 carve 메시지 있으나 40.task/ready/ 부재). REQ-20260421-012 layer2-rediagnosis 결과에 따라 재추천 후보로 교체되거나 신규 TSK 로 대체될 여지 있음 — planner 관할.
+#   - 3cycle stale 초과 시 reconcile 보고에 `reconcile: N/M ack (K stale >=3cycle)` 토큰 추가 (RULE-04).
