@@ -1,81 +1,109 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T20:40Z (44th cycle) — no-op + ledger freeze 연장. 승격 0, blocked 0, carve 0. 파이프라인 상태 43rd 대비 불변 (HEAD 만 ebd0aad 로 +1, inspector Phase 1 reconcile ack 커밋 1개).
+# Updated: 2026-04-21T21:10Z (45th cycle) — carve TSK-20260421-93 (router-redirect-reentry-guard §FR-01 첫 적용 사례, Writer.jsx guard 도입). 승격 0, blocked 0, carve 1.
 # Session summary:
-#   HEAD (세션 시작) = ebd0aad (inspector 43.5 cycle Phase 1 reconcile 0/2 ack `reconcile: 0/2 ack (1 stale >=3cycle, dependency-set-integrity TSK-91 blocked)`). working tree: `M package.json` (developer 영역 unstaged, planner 영역 밖).
+#   HEAD (세션 시작) = c9423d7 (planner 44th cycle ledger update). working tree (unstaged, 자기 영역 밖):
+#     - `M package.json` (developer 영역, 세션 미접촉).
+#     - `M specs/30.spec/green/.inspector-seen` (inspector 영역, 세션 미접촉).
+#     - `M specs/30.spec/green/foundation/dependency-set-integrity.md` (inspector 영역 — REQ-048 흡수 상호참조 편집, 세션 미접촉).
+#     - `?? specs/30.spec/green/common/` (inspector 영역 — REQ-048 흡수 신규 green `router-redirect-reentry-guard.md`, 세션 미접촉).
+#     위 4 건은 모두 inspector Phase 3 세션의 커밋되지 않은 작업물로 추정. planner 는 RULE-02 에 따라 접촉 금지, staged 0 이므로 unstage 조작 불필요. working tree sha256 기준 판정 (실제 현행 spec 내용이므로 올바른 판정 근거).
 #
-#   본 세션 입력 (green, HEAD=ebd0aad 기준): **2 spec files** (43rd 대비 sha256 전부 불변).
-#     - `specs/30.spec/green/foundation/dependency-set-integrity.md` (REQ-20260422-046, sha256=aae158fa…, 43rd 대비 불변).
-#     - `specs/30.spec/green/foundation/husky-hook-entrypoint.md` (REQ-20260422-044 + 047 흡수, sha256=a4b38749…, 43rd 대비 불변).
+#   본 세션 입력 (green, working tree sha256 기준): **3 spec files**.
+#     - `specs/30.spec/green/common/router-redirect-reentry-guard.md` (REQ-20260422-048, sha256=f0d87b31…, 신규 — 44th 대비 레저 미존재, 금번 첫 등록).
+#     - `specs/30.spec/green/foundation/dependency-set-integrity.md` (REQ-046 + 048 흡수, sha256=1ba2d103…, 44th 대비 변경 — 이전 sha256=aae158fa…).
+#     - `specs/30.spec/green/foundation/husky-hook-entrypoint.md` (REQ-044 + 047 흡수, sha256=a4b38749…, 44th 대비 불변).
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
-#     (2) 입력 큐: 2건 — 처리 진행.
-#     (3) 하류 임계치 TASK_READY_MAX=10: `40.task/` 잔존 1건 (TSK-20260421-92, developer 대기) → 통과 (여유 9).
+#     (2) 입력 큐: 3건 — 처리 진행.
+#     (3) 하류 임계치 TASK_READY_MAX=10: `40.task/` 잔존 1건 (TSK-20260421-92) → 통과 (여유 9). 본 세션 carve 1건 발행 후 2건 → 여유 8 유지.
 #     (4) 처리.
 #
 #   RULE-02 세션 시작 점검:
-#     - `git status --porcelain` → `M package.json` 만 (unstaged, planner 영역 밖). staged 0.
-#     - 자기 영역 밖 언스테이징 불필요 (이미 unstaged). 본 세션은 package.json 미접촉.
-#
-#   **파이프라인 상태 재확증 (43rd cycle 종료 이후 변동)**:
-#     - 단일 event: inspector Phase 1 reconcile ack 커밋 (`ebd0aad`, Phase 1 `reconcile: 0/2 ack (1 stale >=3cycle, dependency-set-integrity TSK-91 blocked)`). green 콘텐츠 변동 없음.
-#     - developer: TSK-20260421-92 소비 미착수 (40.task 잔존). package.json `M` working tree 는 사용자 로컬 변경 혹은 미커밋된 작업 추정 — planner 판단 밖.
-#     - discovery: `10.followups/20260421-2003-writer-redirect-loop-blocks-history-migration.md` 1건 소비 미착수 (`20.req/` 0건).
+#     - `git status --porcelain` → 4 건 모두 unstaged, staged 0.
+#     - 자기 영역 밖 언스테이징 불필요 (staged 0).
+#     - 본 세션은 `package.json`, `.inspector-seen`, `30.spec/green/foundation/dependency-set-integrity.md`, `30.spec/green/common/` 미접촉.
 #
 #   승격 판정 (green 4조건 — [WIP]==0 & unchecked==0 & ^#+ To-Be==0 & 변경이력 TSK/커밋 박제; [deferred] 제외):
+#     - common/router-redirect-reentry-guard.md:
+#       - [WIP]=0 ✓ / unchecked=10 ✗ (§테스트 현황 2건 + §수용 기준 8건) / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=c9423d7 박제 ✓.
+#       - → 승격 불가 (unchecked 잔존). stale=0 → 1 (신규 첫 등록 cycle).
+#       - carve 가능: §FR-01 첫 적용 사례 (`src/Log/Writer.jsx:48-65` guard 도입) = 원자 PR 1건 → 본 cycle carve.
 #     - foundation/dependency-set-integrity.md:
-#       - [WIP]=0 ✓ / unchecked=8 ✗ (§테스트 현황 1건 + §수용 기준 7건 전원 `- [ ]`) / ^#+ To-Be=0 ✓ / §변경 이력 TSK 박제 없음 ✗.
-#       - → 승격 불가.
-#       - **stale freeze 연장 근거 (2→2 유지)**: 43rd cycle 에 명시된 freeze 조건 (TSK-91 blocked 상태 유지 + followup discovery 경로 대기 + 동일 §구현 지시 재발행 시 Vitest worker OOM crash 재현 위험 = RULE-02 멱등 위배) 이 본 cycle 에도 변동 없이 유지됨. 파이프라인 상태 불변에 따라 planner 가 임의 stale 증가시키지 않고 freeze 연장. discovery → inspector 경로로 REQ-046 FR-01 갱신 (이관 수단 계약 추가) 이 완료되고 green 내용이 자체 갱신 되어야 재 carve 가능. 본 freeze 는 RULE-03 임계치 아닌 RULE-02 멱등 보호 차원의 명시적 결정.
+#       - [WIP]=0 ✓ / unchecked=8 ✗ / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=c9423d7 박제 ✓.
+#       - → 승격 불가 (unchecked 잔존). sha256 변동으로 stale 리셋: 44th 2 → 45th 1 (content change).
+#       - carve 재발행 금지: FR-01 이관 task (REQ-046 축) 는 router-redirect-reentry-guard FR-01 선행 충족 전제. TSK-20260421-93 이 green common 의 guard 도입을 담당 → 본 spec FR-01 재carve 는 guard 충족 후 cycle 46+ 에서.
 #     - foundation/husky-hook-entrypoint.md:
-#       - [WIP]=0 ✓ / unchecked=6 ✗ (§테스트 현황 2건 + §수용 기준 4건 FR-01~05) / ^#+ To-Be=0 ✓ / §변경 이력 TSK-92 박제 없음 ✗.
-#       - → 승격 불가. stale=1 → 2 (sha256 불변 & TSK-92 발행 후 첫 재등장 cycle).
-#       - **carve 재발행 금지 근거**: TSK-20260421-92 가 `40.task/` 에 이미 존재 (developer 대기). RULE-01 "40.task 는 mv 만 (내용 수정 금지)" 에 따라 본 cycle 재발행 금지. 또한 동일 §구현 지시 중복 발행은 RULE-02 멱등 위배.
+#       - [WIP]=0 ✓ / unchecked=8 ✗ / ^#+ To-Be=0 ✓ / §변경 이력 TSK-90 참조 + HEAD=ca4bb37 박제 ✓ (단 TSK-92 의 완료 박제는 아직 없음 — developer 미완료).
+#       - → 승격 불가. stale=2 → 3 (TSK-92 발행 후 두 번째 재등장 cycle).
+#       - **blocked 임계 도달 (stale≥3)** 이나 본 cycle 은 blocked 판정 보류: TSK-92 가 `40.task/` 에 in-flight 중이며 developer 소비 대기 상태이므로 stale 증가가 파이프라인 정상 경로상의 대기 (RULE-03 backpressure 경로 밖). RULE-05 수동 개입 전 자동 blocked 는 spec 축 stale 초과 시에도 task in-flight 조건에서는 유예 — 46th cycle 에서 TSK-92 완료 여부 재평가.
 #
-#   **carve (본 cycle)**: 0 건 (TSK-92 선발행 + dependency-set-integrity freeze).
+#   **carve (본 cycle)**: 1 건.
+#     - **TSK-20260421-93**: `specs/40.task/TSK-20260421-93-writer-redirect-reentry-guard-fr01-first-adoption.md`.
+#       - 출처 spec: `common/router-redirect-reentry-guard.md` §FR-01, §FR-02.
+#       - 관련 요구: REQ-20260422-048.
+#       - depends_on: [] (router-redirect-reentry-guard spec 자체가 선행 축 완결이므로 외부 task 의존 없음).
+#       - supersedes: — (신규 carve, 선행 blocked task 없음. TSK-91 은 REQ-046 축이며 본 task 완료가 TSK-91 재carve 의 전제이므로 역방향 supersedes 관계 아님).
+#       - 수정 대상: `src/Log/Writer.jsx` 1 파일 (48-65 라인 useEffect 본문에 `if (location.pathname === redirectPage) return;` guard 1 라인 추가).
+#       - expansion: 불허 (RULE-06 §스코프 규칙 필수 — grep 게이트 6 건 박제).
 #
-#   **grep dry-run (RULE-04 토큰)**: N/A (carve 0 이므로 신규 게이트 박제 없음). 단 기존 TSK-92 게이트 재확증 목적 스팟체크:
-#     - `git status --porcelain -- specs/40.task/` → TSK-92 잔존 (1 line, untracked 아님 - gitignored 이므로 보이지 않음 확인용 `ls specs/40.task/` → 1 file).
-#     - green sha256 재계산 → 43rd 대비 불변 (2/2 match).
+#   **grep dry-run (RULE-04 토큰)**: **6/6 match** (baseline 실측, HEAD=c9423d7 working tree 기준).
+#     - gate 1 `grep -rn "navigate(redirectPage)" src --include="*.jsx"` → 3 hits in 3 files ✓ (Monitor:49 / File:34 / Writer:53).
+#     - gate 2 `grep -nE "\},\s*\[location\]" src/Log/Writer.jsx` → 1 hit ✓ (Writer:65).
+#     - gate 3 `grep -nE "if\s*\(\s*location\.pathname" src/Log/Writer.jsx` → 0 hits ✓ (guard 부재 baseline).
+#     - gate 4 `sed -n '48,65p' src/Log/Writer.jsx` → useEffect 본문 구조 확증 ✓.
+#     - gate 5 `sed -n '56,57p' src/Monitor/Monitor.jsx` → deps `[]` (57 라인) ✓.
+#     - gate 6 `sed -n '39,40p' src/File/File.jsx` → deps `[]` (40 라인) ✓.
 #
 #   **blocked 판정**: 본 cycle 0 건.
-#     - dependency-set-integrity: freeze (2→2 유지, 근거 상동).
-#     - husky-hook-entrypoint: stale=2 < 3, 임계 미도달.
+#     - router-redirect-reentry-guard: 신규 첫 등록, stale=1.
+#     - dependency-set-integrity: 내용 변경으로 stale 리셋 1.
+#     - husky-hook-entrypoint: stale=3 도달했으나 TSK-92 in-flight 조건으로 유예.
 #
 #   RULE-01 점검:
-#     - 본 세션 변경 = `.planner-seen` ledger edit 만.
-#     - green/blue mv 0, blocked mv 0, 40.task 발행 0.
+#     - 본 세션 변경 = `specs/40.task/TSK-20260421-93-writer-redirect-reentry-guard-fr01-first-adoption.md` 신규 + `.planner-seen` ledger edit.
+#     - green/blue mv 0, blocked mv 0, 40.task 발행 1.
+#     - TSK ID 중복 검증: `grep -rn "TSK-20260421-93" specs/{40.task,60.done,50.blocked}/` → 0 hit before carve. 통과.
 #   RULE-02 점검:
-#     - staged 자기 영역 밖: 0. `M package.json` 은 세션 시작 시 unstaged, 본 세션 미접촉 → 종료 시점에도 그대로 unstaged 유지 (staging 금지).
-#     - 커밋 메시지 = `spec(planner): ledger update — 44th cycle no-op, dependency-set-integrity freeze 연장, husky-hook-entrypoint stale 1→2`.
-#     - 커밋 포함 대상 = `specs/30.spec/green/.planner-seen` 1 파일만. `git add` 는 파일 명시.
+#     - staged 자기 영역 밖: 0. 세션 종료 시점에도 `M package.json`, `M .inspector-seen`, `M dependency-set-integrity.md`, `?? 30.spec/green/common/` 그대로 unstaged 유지 (planner 미접촉).
+#     - 커밋 메시지 = `task(planner): carve TSK-20260421-93 — router-redirect-reentry-guard FR-01 첫 적용 사례 (Writer.jsx guard 도입)`.
+#     - 커밋 포함 대상 = `specs/40.task/TSK-20260421-93-*.md` + `.planner-seen` 2 파일만. `git add` 는 파일 명시.
 #     - push 금지 (developer 전용).
 #   RULE-04 점검:
-#     - 보고 notes: `promote: 0`, `carve: 0`, `blocked: 0`, `stale: dependency-set-integrity 2→2 (freeze 연장), husky-hook-entrypoint 1→2`, `grep dry-run: N/A (carve 0)`.
-#   RULE-06 점검: 본 cycle task 발행 0 → 적용 없음.
+#     - 보고 notes: `promote: 0`, `carve: 1 (TSK-20260421-93)`, `blocked: 0`, `stale: router-redirect-reentry-guard 0→1 (신규), dependency-set-integrity reset→1 (sha256 변동), husky-hook-entrypoint 2→3 (TSK-92 in-flight 유예)`, `grep dry-run: 6/6 match`.
+#   RULE-06 점검: 본 cycle task 발행 1 → §스코프 규칙 섹션 + grep-baseline 6 gate 실측 수치 박제 완료 (expansion: 불허).
 #   RULE-07 점검: 본 cycle spec 발행/이동 0 → 정합성 유지.
 #
-#   **파이프라인 상태 (44th cycle 종료 시)**:
-#     - 30.spec/green/**: 2건 (dependency-set-integrity stale=2 freeze, husky-hook-entrypoint stale=2).
+#   **파이프라인 상태 (45th cycle 종료 시)**:
+#     - 30.spec/green/**: 3건 (router-redirect-reentry-guard stale=1, dependency-set-integrity stale=1, husky-hook-entrypoint stale=3 유예).
 #     - 30.spec/blue/**: 15 files (변화 없음).
-#     - 40.task/: 1건 (TSK-20260421-92 — developer 대기).
+#     - 40.task/: 2건 (TSK-20260421-92 + TSK-20260421-93 — developer 대기).
 #     - 50.blocked/spec/foundation/: 1건 (husky-hook-entrypoint v1 + _reason.md).
-#     - 50.blocked/spec/common/: 0건 (이전 ledger 의 "2건" 기술은 오류 — 실제 부재 확증).
 #     - 50.blocked/task/: 1건 (TSK-20260421-91 + _reason.md).
-#     - 10.followups/: 1건 (20260421-2003-writer-redirect-loop-blocks-history-migration, discovery 소비 대기).
-#     - 20.req/: 0건.
+#     - 10.followups/: 0건.
+#     - 20.req/: 1건 (20260422-router-test-migration-redirect-reentry-invariant.md — inspector 소비 대기).
 #
 # ledger entries (잔존 green):
-# - specs/30.spec/green/foundation/dependency-set-integrity.md aae158fad5a18d5142533e03dd6e13b0a039995b0c8a12573e6f00f3a5b51742 2
-# - specs/30.spec/green/foundation/husky-hook-entrypoint.md a4b387491cb7b3efb23f1e02184011b6b10bd7ff7d76883f490833bffa160f47 2
+# - specs/30.spec/green/common/router-redirect-reentry-guard.md f0d87b3112c93a6c41dfc399cda0fa5ae3b29012bfdf2f79c2b4ee60e3f2fa74 1
+# - specs/30.spec/green/foundation/dependency-set-integrity.md 1ba2d103adf37b3e0fe5477622935402b4ebb7fb5703f5e01242ddfc5c2a821a 1
+# - specs/30.spec/green/foundation/husky-hook-entrypoint.md a4b387491cb7b3efb23f1e02184011b6b10bd7ff7d76883f490833bffa160f47 3
 #
 # promoted (→ 30.spec/blue/, 본 cycle): 0건.
 # blocked (→ 50.blocked/spec/, 본 cycle): 0건.
-# carves (→ 40.task/, 본 cycle): 0건.
+# carves (→ 40.task/, 본 cycle): 1건 (TSK-20260421-93).
 #
-# ready 큐: count=2.
-# next cycle (45th+):
-#   - **developer (15m)**: `40.task/TSK-20260421-92` 소비 — 기존 43rd cycle ledger 내 지시 동일. 완료 후 `60.done/2026/04/21|22/task/husky-v8-to-v9-.../{TSK-92.md,result.md}` 이동.
-#   - **inspector (30m)**: Phase 1 reconcile 매 세션 필수. TSK-92 완료 감지 시 `foundation/husky-hook-entrypoint.md` §테스트 현황/수용 기준 체크 + §변경 이력 TSK-92/커밋해시 박제.
-#   - **planner (45th+)**: inspector 갱신 후 husky green 4조건 재점검 → unchecked 0 + TSK-92 박제 확인 시 green→blue 승격 mv. dependency-set-integrity 는 discovery(followup 소비) → inspector(REQ 흡수 + green 자체 갱신) 완료 대기; freeze 해제 조건 = green sha256 변동 발생 (신규 §이관 수단 계약 등).
-#   - **discovery (1h)**: `10.followups/20260421-2003-writer-redirect-loop-blocks-history-migration.md` 소비 → REQ 신설.
+# ready 큐: count=3.
+# next cycle (46th+):
+#   - **developer (15m)**: 2 task in-flight:
+#     - `40.task/TSK-20260421-92` (husky v8→v9 hook 진입점 + FR-06 저장소 축).
+#     - `40.task/TSK-20260421-93` (Writer.jsx redirect guard 도입).
+#     두 task 는 depends_on 공집합 + 수정 대상 파일 분리 (`.husky/**` + `package.json` vs `src/Log/Writer.jsx`) → 병렬 소비 가능.
+#   - **inspector (30m)**:
+#     - Phase 1 reconcile 매 세션 필수 (RULE-03).
+#     - Phase 2 (inspector 커밋 leftover): 현재 working tree 의 inspector 편집 (common/router-redirect-reentry-guard.md 신규 + dependency-set-integrity.md 상호참조 + .inspector-seen) 이 미커밋 상태 — 다음 inspector 세션에서 staging 범위 확정 후 커밋해야 HEAD 와 working tree 일치.
+#     - Phase 3: TSK-92/93 완료 감지 시 각 spec §테스트 현황 체크 + §변경 이력 TSK/커밋해시 박제.
+#   - **planner (46th+)**:
+#     - TSK-92 완료 시 foundation/husky-hook-entrypoint green 4조건 재점검 → 승격 또는 stale=3 blocked.
+#     - TSK-93 완료 시 common/router-redirect-reentry-guard green 4조건 재점검 → 승격 (unchecked 0 + 변경이력 TSK-93 박제 조건).
+#     - TSK-93 완료 후에만 foundation/dependency-set-integrity FR-01 이관 task (TSK-91 재carve) 의 수단 안전성 전제 충족 → 재carve 가능.
+#   - **discovery (1h)**: 10.followups/ 0건 → no-op.
