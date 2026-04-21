@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
+import { reportError } from '../common/errorReporter';
 import { useSearchList } from './hooks/useSearchList';
 
 import styles from './Search.module.css';
@@ -39,8 +40,7 @@ const Search = () => {
 		if (!data) return;
 		if (hasValue(data?.errorType)) {
 			log("[API GET] FAILED - Search List", "ERROR");
-			// eslint-disable-next-line no-console
-			console.error(data);
+			reportError(data);
 		} else {
 			log("[API GET] OK - Search List", "SUCCESS");
 		}
@@ -49,8 +49,7 @@ const Search = () => {
 	useEffect(() => {
 		if (!isError) return;
 		log("[API GET] FAILED - Search List", "ERROR");
-		// eslint-disable-next-line no-console
-		console.error(error);
+		reportError(error);
 	}, [isError, error]);
 
 	useEffect(() => {

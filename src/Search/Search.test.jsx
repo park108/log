@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import Search from './Search';
+import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
@@ -11,6 +12,7 @@ import { useMockServer } from '../test-utils/msw';
 beforeEach(() => {
 	vi.spyOn(console, 'log').mockImplementation(() => {});
 	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 });
 
 const testEntry = {
@@ -103,6 +105,51 @@ describe('Search render network error', () => {
 
 		const searchedItem = await screen.findByText("No search results.");
 		expect(searchedItem).toBeInTheDocument();
+	});
+});
+
+// REQ-20260421-039 FR-03 — 도메인 에러 보고는 `reportError` 채널로 흐른다.
+// `console.error` 직접 호출 금지 (FR-02 negative).
+describe('Search reportError 채널 (REQ-20260421-039 FR-03)', () => {
+
+	describe('List API errorType 응답 분기', () => {
+		useMockServer(() => mock.prodServerFailed);
+
+		it('errorType 응답 수신 시 reportError 1회 호출 (payload 포함)', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			renderWithQueryRouter(<Search />);
+
+			// errorType 분기 useEffect 는 data 수신 후 동기 side-effect.
+			// "No search results." 렌더 대기 = data 반영 완료 시점.
+			await screen.findByText("No search results.");
+
+			const calls = errorReporter.reportError.mock.calls;
+			expect(calls.length).toBe(1);
+			// payload 는 errorType 필드를 포함하는 body 객체.
+			expect(calls[0][0]).toMatchObject({ errorType: "500" });
+		});
+	});
+
+	describe('fetch reject catch 분기', () => {
+		useMockServer(() => mock.prodServerNetworkError);
+
+		it('network error 수신 시 reportError 1회 호출', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			renderWithQueryRouter(<Search />);
+
+			await screen.findByText("No search results.");
+
+			const calls = errorReporter.reportError.mock.calls;
+			expect(calls.length).toBe(1);
+			// error 인자는 Error-like (Failed to fetch / network error).
+			expect(calls[0][0]).toBeDefined();
+		});
 	});
 });
 
