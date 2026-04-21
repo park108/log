@@ -3,11 +3,14 @@
 > 적용: 사람 운영자. 에이전트는 blocked 를 재시도하지 않는다.
 
 ## Blocked 해제
-`specs/50.blocked/{req,spec,task}/` 항목:
-1. 같은 폴더 `{slug}_reason.md` 로 사유 확인.
-2. 원인 제거 (의존 task 완료 / spec 보강 / 환경 수정).
-3. 원본을 원래 큐(`20.req/` 또는 `40.task/`)로 `mv` 되돌리거나 삭제.
-4. **후속 처리가 끝나면 `{slug}_reason.md` 및 `50.blocked/**` 잔여 파일은 삭제 원칙** — 잔존 파일은 "미해소 blocker" 로 인지되어 재확인 비용을 유발. 감사 기록이 필요하면 해당 req/task 의 `60.done/.../result.md` 또는 후속 spec 에 사유를 1~2줄 남긴다.
+
+정식 경로: **`blocked → 10.followups/ → discovery → ...`**. 원 큐(`20.req/` / `40.task/` / `30.spec/**`)로 `mv` 원복 금지 (writer 경계).
+
+`/revisit` 스킬이 `{slug}_reason.md` 로 판정:
+- **revive**: `10.followups/` 로 승격 후 원본+reason 삭제.
+- **close**: `60.done/YYYY/MM/DD/revisit/{slug}.md` 1~2줄 감사노트 후 원본+reason 삭제 (승인 필요).
+
+잔존 금지 — `{slug}.md` / `_reason.md` 는 동일 세션에 삭제.
 
 ## 긴급 롤백
 1. `specs/60.done/YYYY/MM/DD/task/{slug}/result.md` 에서 커밋 해시 확인.
