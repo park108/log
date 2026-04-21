@@ -1,43 +1,50 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (17th cycle) — 1 promotion (common.md) + 0 new carve + 0 new blocked.
+# Updated: 2026-04-21T (18th cycle) — 0 promotion + 1 new carve (TSK-65) + 0 new blocked.
 # Session summary:
-#   HEAD=dc2ea5a (`spec(inspector): Phase 1 reconcile 2/5 ack — common.md auth() SameSite [x] x2`).
-#   본 세션 입력 (green): 3 spec files — `components/common.md`, `components/log.md`, `foundation/ci.md`, `foundation/tooling.md`. (`common/` 비어 있음; `common/test-idioms.md` 는 16차에 blue 승격 완료.)
+#   HEAD=dcecda0 (`fix: lint-staged 패턴에 .d.ts 포함 보강`).
+#   본 세션 입력 (green): 3 spec files — `components/log.md` (inspector uncommitted REQ-030 흡수 working-tree 반영), `foundation/ci.md`, `foundation/tooling.md`.
 #
 #   RULE-03 선결 점검:
 #     (1) pause lock 없음 (`.claude/locks/` 부재). `.claude/pipeline.json` 없음 → `TASK_READY_MAX=10` 기본.
-#     (2) 입력 큐: diff 대상 4 spec.
-#     (3) 하류 임계치: `40.task/` = 2 (TSK-63, TSK-64) → 본 세션 +0 = 2, 여유 8 (OK).
+#     (2) 입력 큐: diff 대상 3 spec (working tree 상태 기준).
+#     (3) 하류 임계치: `40.task/` = 0 (17차 carve 3건 TSK-62/63/64 전부 60.done 이동 완료) → 본 세션 +1 (TSK-65) = 1, 여유 9 (OK).
 #     (4) 처리 진입.
 #
-#   각 spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제):
-#     - `components/common.md` (hash=—, stale=0): unchecked=0 / WIP=0 / To-Be=0 / 변경 이력 row 163,164 에 inspector reconcile ack + TSK-20260421-62/9d08c59 박제 → **승격 OK**. mv → `blue/components/common.md` (overwrite 형태; 기존 98L → 신규 182L).
-#     - `components/log.md` (hash=cdd2ba.., stale=0→0): unchecked=1 (§테스트 현황 line 59 "LogItem DELETE shuffle 안정성") — 대응 task **TSK-20260421-63** 이미 40.task/ 큐에 대기 중 → 중복 carve 불필요. 미승격.
-#     - `foundation/ci.md` (hash=626e13.., stale=0→1): unchecked=1 (§테스트 현황 line 48 "수동 Node LTS 상향 주기 시점 engine 호환성 확인 — 별 task 대상"). "별 task 대상" deferred 성격 + 구체 Node 메이저 숫자 박제 금지 정책 → 본 사이클도 task 박제 보류, discovery/운영자 판단 대기. stale 0→1 누적 (≥3cycle 시 50.blocked/spec/ 격리 후보).
-#     - `foundation/tooling.md` (hash=e8d809.., stale=0→0): unchecked=1 (§테스트 현황 line 57 "lint-staged `.d.ts` 포함 보강") — 대응 task **TSK-20260421-64** 이미 40.task/ 큐에 대기 중 → 중복 carve 불필요. 미승격.
+#   세션 시작 시 git 상태 점검 (RULE-02):
+#     - index staged `M specs/30.spec/green/.inspector-seen`, `M specs/30.spec/green/components/log.md` (inspector writer 영역) → `git reset HEAD -- <paths>` 로 언스테이지 (본 세션 커밋에서 배제).
+#     - working tree 잔존 변경 (unstaged): `M specs/30.spec/green/.inspector-seen`, `M specs/30.spec/green/components/log.md` — inspector 본인이 차기 사이클에 커밋 예정, planner 는 터치 금지.
+#     - 현재 working tree 의 log.md 는 REQ-020-030 흡수된 상태이며, 본 세션은 이 working-tree state 를 입력으로 삼는다 (RULE-02 무상태·fs 진실 원칙).
 #
-#   carve 발생: **0건** (16차 TSK-62/63/64 3건 carve 완료분 중 TSK-62 는 60.done 로 이동, TSK-63/64 는 developer 대기 중 — 본 세션은 추가 carve 없음).
+#   각 spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제):
+#     - `components/log.md` (hash=1b0728.., stale=0→0): unchecked=2 (§테스트 현황 line 61 "LogSingle render budget 불변식", §수용 기준 line 73 "REQ-20260421-030 FR-01") → **미승격**. 본 세션 신규 carve TSK-20260421-65 발행 (REQ-030 FR-01 실현).
+#     - `foundation/ci.md` (hash=626e13.., stale=1→2): unchecked=1 (§테스트 현황 line 48 "수동 Node LTS 상향 주기 시점 engine 호환성 확인 — 별 task 대상"). "별 task 대상" deferred 성격 + 구체 Node 메이저 숫자 박제 금지 정책 유지 → 본 사이클도 task 박제 보류, discovery/운영자 판단 대기. stale 1→2 누적 (≥3cycle 시 50.blocked/spec/ 격리 후보 — 차기 사이클 임계).
+#     - `foundation/tooling.md` (hash=e8d809.., stale=0→1): unchecked=1 (§테스트 현황 line 57 "lint-staged `.d.ts` 포함 보강") — 대응 task TSK-20260421-64 는 완료 (dcecda0) 되었으나 green spec 의 marker 는 아직 [x] 로 플립 안 됨 (inspector Phase 1 reconcile 대기). planner 는 marker 플립 권한 없음 (inspector 전용). 본 세션은 carve 불필요 (현실 정합 이미 달성) + 중복 task 발행 금지 → 미승격 유지, stale 0→1.
+#
+#   carve 발생: **1건** (TSK-20260421-65 — LogSingle prod/dev render budget it-timeout 박제, REQ-030 FR-01). green spec §참고 "축 B 위임 노트" 회수 (Vitest 4 시그니처 택일 = 3rd-arg number 형태).
 #   blocked 신규: **0건**.
 #
-#   Task ID 중복 검증: `grep -rn "TSK-20260421-..." specs/{40.task,60.done,50.blocked}/` → 기존 42..64 연속 (54 제외), 본 세션 신규 발행 없음 → 충돌 없음.
+#   Task ID 중복 검증: `grep -rn "TSK-20260421-65" specs/{40.task,60.done,50.blocked}/` → 0 hit → 충돌 없음. 기존 ID 42..64 (54 제외) 연속 승계.
 #
-#   승격 mv (1건):
-#     - `mkdir -p 30.spec/blue/components && mv 30.spec/green/components/common.md 30.spec/blue/components/common.md` — 원자.
-#     - green/components/ 에는 `log.md` 만 잔존.
+#   승격 mv: **0건** (3 green 모두 4조건 미달).
 #
 #   RULE-04/RULE-06 점검:
-#     - 본 세션 신규 발행 task 없음 → grep dry-run 결과 N/A (토큰 생략).
-#     - 기존 큐 TSK-63/64 는 16차 발행분 — 본 세션 rewrite 금지 (RULE-01).
+#     - 본 세션 신규 발행 task = 1 (TSK-65). grep dry-run 4/4 match:
+#         (a) it prod/dev: 2 hits (기대 2) ✓
+#         (b) ASYNC_ASSERTION_TIMEOUT_MS: 4 hits (기대 4 — import 1 + 3 waitFor) ✓
+#         (c) timing.js 상수 선언: 1 hit (기대 1) ✓
+#         (d) literal ms timeout: 0 hits (기대 0) ✓
+#     - TSK-65 는 grep 게이트 포함 → RULE-06 §스코프 규칙 섹션 필수 박제 완료 (expansion=불허 + baseline 4 gates + rationale).
+#     - 기존 큐 task 없음 (17차 TSK-63/64 모두 60.done 이동 완료) — rewrite 대상 0.
 #   RULE-07 정합: 잔존 green 3건 모두 불변식 한정 (시점·incident 귀속 plan 없음) → 50.blocked/spec/ 격리 0건.
 #
 # ledger entries (잔존 green):
-# components/log.md      cdd2ba754bf67416be93feb9825f7023f2b960c13f6b1d354c8ed64844e3b82a  0
-# foundation/ci.md       626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f  1
-# foundation/tooling.md  e8d809041b276e689d35f624cdf86d111d3e93fa059067eef667ea2fee04edfd  0
+# components/log.md      1b0728614a126864255cdff6742507084ef1187ef5809dce45e134f3c5687d66  0
+# foundation/ci.md       626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f  2
+# foundation/tooling.md  e8d809041b276e689d35f624cdf86d111d3e93fa059067eef667ea2fee04edfd  1
 #
-# ready 큐 (본 사이클 +0): count=2, TASK_READY_MAX=10 여유 8.
-# next cycle (18th):
-#   - **developer (15m)**: 40.task/TSK-63, TSK-64 순차 소비 기대. 완료 시 components/log.md, foundation/tooling.md 의 unchecked → inspector reconcile Phase 1 에서 [x] 플립 후 planner 승격.
-#   - **inspector (30m)**: TSK-63/64 머지 후 green log.md/tooling.md reconcile ack. ci.md 는 운영자/discovery 명시 req 없으면 stale 누적.
-#   - **planner (18th+)**: TSK-63/64 완료 + inspector ack 이후 log.md, tooling.md 승격 가능. ci.md 는 unchecked deferred 유지 시 stale=2 으로 누적 (아직 blocked 임계 미만).
-#   - **본 사이클 writer 영역 변경**: `30.spec/blue/components/common.md` overwrite (green→blue promote), `30.spec/green/components/common.md` 제거 (mv out), `.planner-seen` 갱신 1. 커밋 scope = `spec(planner):` (promote 가 본 세션 핵심 산출, carve 없음).
+# ready 큐 (본 사이클 +1): count=1 (TSK-65), TASK_READY_MAX=10 여유 9.
+# next cycle (19th):
+#   - **developer (15m)**: 40.task/TSK-20260421-65 소비 기대. 완료 시 components/log.md §테스트 현황 line 61 / §수용 기준 line 73 unchecked → inspector reconcile Phase 1 에서 [x] 플립 후 planner 승격.
+#   - **inspector (30m)**: (a) 본 세션 uncommitted working-tree 변경 (log.md REQ-030 흡수 + .inspector-seen) 커밋, (b) TSK-64 완료 반영해서 foundation/tooling.md §테스트 현황 line 57 `[x]` 플립 후 3조건 만족 시 planner 승격 후보로, (c) TSK-65 완료 시 log.md marker 플립.
+#   - **planner (19th+)**: TSK-65 완료 + inspector ack 후 log.md 승격 가능 (REQ-027 + REQ-030 양축 완료 흡수). tooling.md 는 inspector marker 플립 (TSK-64 완료 반영) 후 즉시 승격 후보. ci.md 는 unchecked deferred 유지 시 stale=3 으로 누적 → 50.blocked/spec/ 격리 후보 (discovery 재진입 필요).
+#   - **본 사이클 writer 영역 변경**: `40.task/TSK-20260421-65-logsingle-render-budget-it-timeout.md` 신규 생성 + `.planner-seen` 갱신 1. 커밋 scope = `task(planner):` (carve 가 본 세션 핵심 산출).
