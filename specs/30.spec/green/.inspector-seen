@@ -1,76 +1,74 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=690aa74 at session start). Phase 1 reconcile 2/2 ack (TSK-82 D3 File + TSK-83 D4 FileItem) + Phase 3 REQ-041 흡수 (green/foundation/coverage-determinism.md 신설, 택 β 경로).
+# Updated: 2026-04-21T (HEAD=c5eed40 at session start). Phase 1 reconcile 2/2 ack (TSK-84 D5 FileDrop + TSK-85 D6 FileUpload) + Phase 2/3 no-op (입력 큐 0).
 #
 # 세션 시작 상태:
-#   - `git rev-parse HEAD` = `690aa74` (직전 developer 커밋 `refactor: errorReporter 채널 단일화 — D4 FileItem.jsx` — TSK-83).
-#   - 직전 inspector (2d76c6e) 이후 커밋: 2d76c6e (직전 inspector, TSK-80/81 ack) → 337d694 (developer TSK-82 D3 File.jsx) → d028873 (planner no-op 29th) → 690aa74 (developer TSK-83 D4 FileItem.jsx). 본 세션 Phase 1 ack 대상 2건 (TSK-82/83).
-#   - `specs/20.req/` 1 건 (REQ-20260421-041 coverage measurement determinism invariant — Phase 3 흡수 대상).
-#   - `specs/40.task/` 3 건 (TSK-84~86 D5/D6/D7 대기 — developer 미소비, reconcile 관여 없음).
-#   - `specs/60.done/2026/04/21/task/` 에 `errorreporter-migrate-file/` (TSK-82, 337d694), `errorreporter-migrate-fileitem/` (TSK-83, 690aa74) 2 신규 task done.
-#   - green spec 파일: 세션 시작 2개 → 세션 종료 3개 (`common/a11y.md`, `common/error-reporter-channel.md`, `foundation/coverage-determinism.md`).
+#   - `git rev-parse HEAD` = `c5eed40` (직전 developer 커밋 `feat: errorReporter 채널 단일화 — D6 FileUpload.jsx` — TSK-85).
+#   - 직전 inspector (e8287bd) 이후 커밋: e8287bd (직전 inspector, TSK-82/83 ack + REQ-041 흡수) → 5190466 (직전 inspector, stray src/File/FileDrop.{jsx,test.jsx} revert — out-of-writer-scope 회복) → 602a7bc (developer TSK-84 D5 FileDrop.jsx, `refactor:`) → 5689925 (planner TSK-87 carve — coverage run-variance diagnosis) → c5eed40 (developer TSK-85 D6 FileUpload.jsx, `feat:`). 본 세션 Phase 1 ack 대상 2건 (TSK-84/85).
+#   - `specs/20.req/` 0 건 (빈 큐). Phase 2/3 no-op.
+#   - `specs/40.task/` 2 건 (TSK-86 D7 Comment 대기 + TSK-87 coverage run-variance 진단 대기 — developer 미소비, reconcile 관여 없음).
+#   - `specs/60.done/2026/04/21/task/` 에 `errorreporter-migrate-filedrop/` (TSK-84, 602a7bc), `errorreporter-migrate-fileupload/` (TSK-85, c5eed40) 2 신규 task done.
+#   - green spec 파일: 3 파일 불변 (`common/a11y.md`, `common/error-reporter-channel.md`, `foundation/coverage-determinism.md`).
 #
-# Phase 1 drift marker 스캔 (세션 시작 green 2 specs):
+# Phase 1 drift marker 스캔 (세션 시작 green 3 specs):
 #   1. common/a11y.md:
-#      · 본 세션 ack 대상 TSK 없음 (TSK-82/83 은 error-reporter-channel.md 축). 잔존 [ ] marker: 수용 기준 FR-07 (planner promote 영역) 1건 — 불변.
+#      · 본 세션 ack 대상 TSK 없음. 잔존 [ ] marker: 수용 기준 FR-07 (planner promote 영역) 1건 — 불변.
 #      · §drift 정상화 표 잔존 0, §예외 잔존 0, §테스트 현황 잔존 0 (전 세션 상태 유지).
-#      · ack 0 + WIP 불변 → stale_cycles 1 → 2. (3 cycle 미만, 다음 세션 stale 진입 경계; planner promote 대기 지속.)
+#      · ack 0 + WIP 불변 → stale_cycles 2 → 3. **3 cycle 진입 — stale 토큰 박제 대상**. planner promote 강력 촉구 (잔존 Should FR-07 만 남아 있어 promote 경로는 오로지 planner 영역 판단).
 #   2. common/error-reporter-channel.md:
-#      · TSK-82 (337d694, ancestor PASS) result.md DoD 게이트 재실행 @HEAD=690aa74:
-#        - `grep -nE "^\s+console\.(error|warn|info|log)\(" src/File/File.jsx` → 0 hits (baseline 4 → 0).
-#        - `grep -nE "reportError\(" src/File/File.jsx` → 4 hits @L65/L72/L108/L115.
-#        - `grep -nE "from.*errorReporter" src/File/File.jsx` → 1 hit @L6.
-#        - `grep -nE "describe\('File reportError 채널" src/File/File.test.jsx` → 1 hit @L216.
-#        - `grep -nE "vi\.spyOn\(errorReporter, 'reportError'\)" src/File/File.test.jsx` → 2 hits @L229/L259.
-#      · hook-ack (TSK-82 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS / File.test.jsx 9 passed (+2, 회귀 0) / full 429/429 passed / `build` PASS 366ms. Must 주관 혼재 없음 → ack 채택. (result.md §관찰 이슈: LogSingle.test.jsx 5000ms 타임아웃 1회 관측, 2회차 PASS — pre-existing flaky, followup 스텁 — spec 계약 영향 없음.)
-#      · 스코프 준수: TSK-82 result.md §스코프 준수 = `src/File/File.jsx` + `src/File/File.test.jsx` 2 파일 한정.
-#      · TSK-83 (690aa74 = HEAD, ancestor 자명) result.md DoD 게이트 재실행 @HEAD=690aa74:
-#        - `grep -nE "^\s+console\.(error|warn|info|log)\(" src/File/FileItem.jsx` → 0 hits (baseline 2 → 0).
-#        - `grep -nE "reportError\(" src/File/FileItem.jsx` → 2 hits @L36/L44.
-#        - `grep -nE "from.*errorReporter" src/File/FileItem.jsx` → 1 hit @L6.
-#        - `grep -nE "describe\('FileItem reportError 채널" src/File/FileItem.test.jsx` → 1 hit @L248.
-#        - `grep -nE "vi\.spyOn\(errorReporter, 'reportError'\)" src/File/FileItem.test.jsx` → 1 hit @L255.
-#      · hook-ack (TSK-83 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS / FileItem.test.jsx 14 passed (+1, 회귀 0) / full 430/430 passed / `build` PASS 539ms. `690aa74` = HEAD. Must 주관 혼재 없음 → ack 채택. (result.md §관찰 이슈: coverage 런간 fluctuation 재관측 — REQ-20260421-041 로 별 spec 박제 진행 (본 세션 Phase 3), 본 spec 계약 영향 없음.)
-#      · 스코프 준수: TSK-83 result.md §스코프 준수 = `src/File/FileItem.jsx` + `src/File/FileItem.test.jsx` 2 파일 한정.
-#      · 편집: §drift 정상화 표 D3/D4 행 취소선 처리 + "정상화 완료 — TSK-82/83 @커밋" 비고 박제 + 합계 잔존 "@HEAD=690aa74: 12 hits / 3 files" 재박제. §테스트 현황 File.test.jsx / FileItem.test.jsx 각 [x] 플립. §스코프 규칙 grep-baseline (a) 18 hits / 5 files → **잔존 12 hits / 3 files** 재박제. (b) positive 호출식 15 → 21 hits 재박제 (Search 2 + ImageSelector 4 + File 4 + FileItem 2 + Monitor 8 + 정의 1). §rationale (15+18=33 → 21+12=33) 목표값 유지 — 정상화 진행률 64%. §최종 업데이트 갱신. §변경 이력 1행 박제.
-#      · stale_cycles 0 → 0 — 진척 발생 (D3/D4 ack, 상세 박제).
-#   3. foundation/coverage-determinism.md (신규):
-#      · Phase 3 REQ-20260421-041 흡수. FR-06 택 β (신설 경로) 채택.
-#      · 판단 근거: (a) blue `foundation/regression-gate.md` (REQ-037) 는 이미 promoted blue + 회귀 게이트 "존재" 축 semantic 경계 확립. 본 REQ 의 "측정 품질" 축과 의미 경계가 분리 명확 — 증분 시 축 경계 흐림 우려. (b) blue 는 planner writer 영역 — inspector 가 직접 증분 편집 불가 (RULE-01). blue→green 재복사 후 증분 시 noise 큼. (c) 독립 spec 이 audit·의미 경계 유지에 유리.
-#      · RULE-07 자기검증 통과: FR-01 (측정 결정론 불변식 평서문 — 동일 커밋·동일 테스트·동일 런타임 환경 반복 실행 coverage 수치/exit code 일치), FR-02 (수단 허용 집합 6 종 열거 a-f + 택1 이상 결합 + 완전 집합 아님), FR-03 (REQ-037 precondition 관계 1문장), FR-04 (직교 축 3 건), FR-05 (수단 중립성 강제 배제), FR-06 (버전 무관성), FR-07 (결정론 축과 마진 정책 분리). 1회성 incident/릴리스 수리 플랜 배제 — followup "Functions 94% 경계 하향 vs 커버리지 보강" 중 하나 특정 배제, 구체 shuffle seed/reruns N/threshold 수치 조정 Out-of-Scope.
-#      · 수용 기준 §수용 기준 전원 [x] (NFR 포함). §테스트 현황 2건 [ ] (FR-01 0 lines diff 수렴 + FR-02 수단 적용 — planner/developer task 영역).
-#      · stale_cycles 신규 = 0.
+#      · TSK-84 (602a7bc, ancestor PASS) result.md DoD 게이트 재실행 @HEAD=c5eed40:
+#        - `grep -nE "^\s+console\.(error|warn|info|log)\(" src/File/FileDrop.jsx` → 0 hits (baseline 4 → 0).
+#        - `grep -nE "reportError\(" src/File/FileDrop.jsx` → 4 hits @L41/L47/L62/L68.
+#        - `grep -nE "from.*errorReporter" src/File/FileDrop.jsx` → 1 hit @L4.
+#        - `grep -nE "describe\('FileDrop reportError 채널" src/File/FileDrop.test.jsx` → 1 hit @L221.
+#        - `grep -nE "vi\.spyOn\(errorReporter, 'reportError'\)" src/File/FileDrop.test.jsx` → 2 hits @L228/L265.
+#      · hook-ack (TSK-84 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS / FileDrop.test.jsx 8 passed (+2, 회귀 0) / full 432/432 passed / `build` PASS 385ms. Must 주관 혼재 없음 → ack 채택. (result.md §관찰 이슈: LogSingle.test.jsx 5000ms 타임아웃 1/3 실행 재관측 — pre-existing flaky, followup 스텁 — spec 계약 영향 없음.)
+#      · 스코프 준수: TSK-84 result.md §스코프 규칙 준수 = `src/File/FileDrop.jsx` + `src/File/FileDrop.test.jsx` 2 파일 한정 (`git show --stat 602a7bc` 2 files changed 확인).
+#      · TSK-85 (c5eed40 = HEAD, ancestor 자명) result.md DoD 게이트 재실행 @HEAD=c5eed40:
+#        - `grep -nE "^\s+console\.(error|warn|info|log)\(" src/File/FileUpload.jsx` → 0 hits (baseline 4 → 0).
+#        - `grep -nE "reportError\(" src/File/FileUpload.jsx` → 4 hits @L45/L51/L66/L72.
+#        - `grep -nE "from.*errorReporter" src/File/FileUpload.jsx` → 1 hit @L5.
+#        - `grep -nE "describe\('FileUpload reportError 채널" src/File/FileUpload.test.jsx` → 1 hit @L199.
+#        - `grep -nE "vi\.spyOn\(errorReporter, 'reportError'\)" src/File/FileUpload.test.jsx` → 2 hits @L206/L243.
+#      · hook-ack (TSK-85 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS / FileUpload.test.jsx 7 passed (+2, 회귀 0) / full 434/434 passed / `build` PASS 368ms / coverage Statements 97.72 / Branches 94.21 / Functions 94.45 / Lines 98.11 전부 threshold 이상 exit 0. `c5eed40` = HEAD. Must 주관 혼재 없음 → ack 채택.
+#      · 스코프 준수: TSK-85 result.md §스코프 규칙 준수 = `src/File/FileUpload.jsx` + `src/File/FileUpload.test.jsx` 2 파일 한정 (`git show --stat c5eed40` 2 files changed 확인).
+#      · 편집: §drift 정상화 표 D5/D6 행 취소선 처리 + "정상화 완료 — TSK-84/85 @커밋" 비고 박제 + 합계 잔존 "@HEAD=c5eed40: 4 hits / 1 file" 재박제. §테스트 현황 FileDrop.test.jsx / FileUpload.test.jsx 각 [x] 플립. §스코프 규칙 grep-baseline (a) 12 hits / 3 files → **잔존 4 hits / 1 file** 재박제. (b) positive 호출식 21 → 29 hits 재박제 (Search 2 + ImageSelector 4 + File 4 + FileItem 2 + FileDrop 4 + FileUpload 4 + Monitor 8 + 정의 1). §rationale (29+4=33 목표값 유지 — 정상화 진행률 87.5%). §최종 업데이트 갱신. §변경 이력 1행 박제.
+#      · stale_cycles 0 → 0 — 진척 발생 (D5/D6 ack, 상세 박제).
+#   3. foundation/coverage-determinism.md:
+#      · 본 세션 ack 대상 TSK 없음 (TSK-87 coverage run-variance 진단 은 40.task/ 대기, developer 미소비). 잔존 [ ] marker: §테스트 현황 FR-01 (0 lines diff) + FR-02 (수단 적용) 2건 — 불변.
+#      · §수용 기준 전원 [x] 유지.
+#      · ack 0 + WIP 불변 → stale_cycles 0 → 1. (3 cycle 미만, stale 경고 대상 아님.)
 #
-# Phase 1 ack 산출: ACK 2 (TSK-82 D3, TSK-83 D4), 비-ACK 0 평가단위. 분모 M = 2.
-#   토큰 = `reconcile: 2/2 ack`.
+# Phase 1 ack 산출: ACK 2 (TSK-84 D5, TSK-85 D6), 비-ACK 0 평가단위. 분모 M = 2.
+#   토큰 = `reconcile: 2/2 ack (1 stale >=3cycle)` — a11y.md 3 cycle 진입.
 #
-# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md 218줄 / error-reporter-channel.md ~260줄 / coverage-determinism.md ~130줄).
+# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md 218줄 / error-reporter-channel.md ~218줄 / coverage-determinism.md ~140줄).
 #
-# Phase 3 (신규 req 반영): REQ-20260421-041 흡수 완료 — `foundation/coverage-determinism.md` 신설 + `20.req → 60.done/2026/04/21/req/` mv. 하류 임계치 GREEN_PENDING_MAX=20 대비 녹색 3 < 20 여유 17 — 허용.
+# Phase 3 (신규 req 반영): 입력 큐 0 건 → Phase 3 no-op.
 #
 # 변동 spec sha (본 세션 편집 기준):
-#   - `common/a11y.md` e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a (불변) — stale_cycles 1 → 2 (FR-07 planner promote 대기).
-#   - `common/error-reporter-channel.md` 2ac91c378f1fd1008ef433d2fba4de10189eb14fe103434441f260ec0aa785c1 — TSK-82/83 ack 반영, stale_cycles 0 → 0 (진척).
-#   - `foundation/coverage-determinism.md` 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 (신규) — stale_cycles = 0.
+#   - `common/a11y.md` e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a (불변) — stale_cycles 2 → 3 (FR-07 planner promote 대기, **3 cycle 진입**).
+#   - `common/error-reporter-channel.md` cfe4badd3be20bfb4927ac53a0e3957125b3d3e062d325f32a7178bfd31032bd — TSK-84/85 ack 반영, stale_cycles 0 → 0 (진척).
+#   - `foundation/coverage-determinism.md` 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 (불변) — stale_cycles 0 → 1.
 #
 # 현 ledger (post-edit sha):
-specs/30.spec/green/common/a11y.md e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a 2
-specs/30.spec/green/common/error-reporter-channel.md 2ac91c378f1fd1008ef433d2fba4de10189eb14fe103434441f260ec0aa785c1 0
-specs/30.spec/green/foundation/coverage-determinism.md 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 0
+specs/30.spec/green/common/a11y.md e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a 3
+specs/30.spec/green/common/error-reporter-channel.md cfe4badd3be20bfb4927ac53a0e3957125b3d3e062d325f32a7178bfd31032bd 0
+specs/30.spec/green/foundation/coverage-determinism.md 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 1
 #
-# Stale 경고: 0 path ≥ 3 cycle. (a11y.md 는 2 cycle — 다음 세션 3 cycle 진입 경계, planner promote 촉구 대상.)
+# Stale 경고: **1 path ≥ 3 cycle** — `common/a11y.md` (3 cycle). §수용 기준 잔존 Should FR-07 (blue 상호참조 추가 — planner promote 영역) 만 남음. planner 가 다음 사이클에 promote 진행 안 하면 다음 세션 stale=4 진입.
 #
-# Phase 3 입력 큐 (본 세션 시작): 1 건 → 1 processed / 0 blocked.
+# Phase 3 입력 큐 (본 세션 시작): 0 건 → 0 processed / 0 blocked.
 # 하류 임계치: GREEN_PENDING_MAX=20 (default, pipeline.json 없음). 세션 종료 시점 green 파일 3 < 20. 여유 17.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `common/a11y.md` — 잔존 [ ] marker: FR-07 1건 (planner promote 영역, blue `components/{common,comment,log,image}.md` §접근성 상호참조). §drift 정상화 표 / §예외 / §테스트 현황 잔존 0. **promote 후보 성숙** — stale=2, 3 cycle 경계 직전. planner 승격 강력 권장.
-#   - `common/error-reporter-channel.md` — TSK-82/83 ack (D3/D4) 후 D5/D6/D7 (TSK-84~86) 대기. 40.task/ 3 건 대기 — developer 진행 시 세션별 +1~2 ack. 잔존 drift D5/D6/D7 3 지점 수렴 후 promote 가능.
-#   - `foundation/coverage-determinism.md` (신규) — §테스트 현황 FR-01/FR-02 2 건 [ ] (수렴 대기, planner task carve 후 developer 진행). §수용 기준 전원 [x]. promote 는 FR-01 0 lines diff 수렴 시점.
+#   - `common/a11y.md` — 잔존 [ ] marker: Should FR-07 1건. §drift 정상화 표 / §예외 / §테스트 현황 잔존 0. **promote 후보 성숙 — stale=3 진입**. planner 승격 강력 권장.
+#   - `common/error-reporter-channel.md` — TSK-84/85 ack (D5/D6) 후 D7 (TSK-86) 대기. 40.task/ 1 건 대기 — developer 진행 시 추가 +1 ack. 잔존 drift D7 수렴 후 promote 가능 (진행률 87.5% → 100% 근접).
+#   - `foundation/coverage-determinism.md` — §테스트 현황 FR-01/FR-02 2 건 [ ] (수렴 대기, TSK-87 진단 후 수렴 task carve 후 developer 진행). §수용 기준 전원 [x]. promote 는 FR-01 0 lines diff 수렴 시점.
 #
 # 다음 세션 유의:
 #   - 20.req 입력 큐 빈 큐 (본 세션 종료 시점).
-#   - TSK-84~86 (D5/D6/D7, 40.task/ 대기) 중 developer 처리된 것 있으면 Phase 1 에서 각각 ack 재실행 + error-reporter-channel.md 드리프트 표 / 테스트 현황 플립.
-#   - REQ-041 수렴 task 가 planner 에서 carve 되면 향후 developer 진행 후 Phase 1 ack 대상.
-#   - a11y.md stale 3 cycle 진입 — planner 가 promote 진행 안 하면 다음 세션 notes 에 `reconcile: N/M ack (1 stale >=3cycle)` 토큰 박제.
+#   - TSK-86 (D7 Comment) 대기 중 developer 처리되면 Phase 1 에서 ack 재실행 + error-reporter-channel.md 드리프트 표 D7 플립 → gate (a) 0 hit 수렴 → §drift 표 전원 취소선 → promote 조건 성숙.
+#   - TSK-87 (coverage 진단) 은 진단 task 이며 reconcile 결과물이 spec 계약 추가 아닐 경우 planner 후속 carve.
+#   - a11y.md stale 3 cycle 진입 — planner 가 promote 진행 안 하면 다음 세션 stale=4 진입. notes 에 `reconcile: N/M ack (1 stale >=3cycle)` 토큰 지속 박제.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
-#   - 본 세션 편집 대상: `common/error-reporter-channel.md` (TSK-82/83 ack), `foundation/coverage-determinism.md` (신규), `.inspector-seen` ledger. 20.req mv 1 건. 커밋 범위는 spec/green + .inspector-seen + 60.done/req.
+#   - 본 세션 편집 대상: `common/error-reporter-channel.md` (TSK-84/85 ack), `.inspector-seen` ledger. 20.req mv 0 건. 커밋 범위는 spec/green + .inspector-seen.
