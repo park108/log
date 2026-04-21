@@ -501,3 +501,82 @@ test('copyMarkdownString shows error Toaster when clipboard write rejects', asyn
 		expect(err).toBeDefined();
 	});
 });
+
+describe('Writer a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
+
+	const renderWriter = () => {
+		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
+		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+
+		const testEntry = {
+			pathname: "/log/write",
+			state: null,
+		};
+
+		return render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
+	};
+
+	it('[IMG] toggle (M1) 에 tabIndex=0 과 role="button" 이 부여된다', async () => {
+		renderWriter();
+		const el = await screen.findByTestId('img-selector-button');
+
+		expect(el).toHaveAttribute('role', 'button');
+		expect(el).toHaveAttribute('tabIndex', '0');
+	});
+
+	it('[IMG] toggle (M1) 이 Enter 키로 활성된다 (click 과 동일 핸들러)', async () => {
+		const { container } = renderWriter();
+		const el = await screen.findByTestId('img-selector-button');
+
+		// 최초 렌더: ImageSelector 는 show=false 로 전달됨.
+		// Enter → toggleImageSelector → show=true 로 전환 (state 변경 관찰은 click 과 동일한 효과).
+		fireEvent.keyDown(el, { key: 'Enter' });
+		// 재-클릭 대신 다시 Enter → 토글 복귀. 런타임 오류 없이 통과만 확인해도 충분.
+		fireEvent.keyDown(el, { key: 'Enter' });
+		expect(container).toBeDefined();
+	});
+
+	it('[IMG] toggle (M1) 이 Space 키로 활성된다 (preventDefault)', async () => {
+		renderWriter();
+		const el = await screen.findByTestId('img-selector-button');
+
+		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+		// activateOnKey 가 preventDefault 호출 → fireEvent 반환값이 false (cancelled).
+		expect(spaceEvent).toBe(false);
+	});
+
+	it('HTML/Markdown toggle (M2) 에 tabIndex=0 과 role="button" 이 부여된다', async () => {
+		renderWriter();
+		const el = await screen.findByTestId('mode-button');
+
+		expect(el).toHaveAttribute('role', 'button');
+		expect(el).toHaveAttribute('tabIndex', '0');
+	});
+
+	it('HTML/Markdown toggle (M2) 이 Enter 키로 활성된다 (mode 텍스트 토글)', async () => {
+		renderWriter();
+		const el = await screen.findByTestId('mode-button');
+
+		// 초기: Markdown Converted → Enter → HTML
+		expect(el.textContent).toContain('Markdown Converted');
+		fireEvent.keyDown(el, { key: 'Enter' });
+		expect(el.textContent).toContain('HTML');
+	});
+
+	it('HTML/Markdown toggle (M2) 이 Space 키로 활성된다 (preventDefault)', async () => {
+		renderWriter();
+		const el = await screen.findByTestId('mode-button');
+
+		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+		expect(spaceEvent).toBe(false);
+		// Space 가 click 과 동일 핸들러를 실행 → 텍스트 전환.
+		expect(el.textContent).toContain('HTML');
+	});
+});

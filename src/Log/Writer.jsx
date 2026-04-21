@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
+import { activateOnKey } from '../common/a11y';
 import { useCreateLog } from './hooks/useCreateLog';
 import { useUpdateLog } from './hooks/useUpdateLog';
 import * as parser from '../common/markdownParser';
@@ -212,6 +213,9 @@ const Writer = () => {
 
 	const handleChange = ({ target: { value } }) => setArticle(value);
 
+	const toggleImageSelector = () => setIsShowImageSelector(!isShowImageSelector);
+	const toggleMode = () => setIsConvertedHTML(!isConvertedHTML);
+
 	const copyMarkdownString = async (e) => {
 		e.preventDefault();
 		const tag = e.target.value;
@@ -266,8 +270,10 @@ const Writer = () => {
 				<span
 					role="button"
 					data-testid="img-selector-button"
+					tabIndex={0}
 					className="span span--writer-statusbarbutton"
-					onClick={() => setIsShowImageSelector(!isShowImageSelector)}
+					onClick={toggleImageSelector}
+					onKeyDown={activateOnKey(toggleImageSelector)}
 				>
 					[IMG]
 				</span>
@@ -302,7 +308,9 @@ const Writer = () => {
 							<span
 								role="button"
 								data-testid="mode-button"
-								onClick={() => setIsConvertedHTML(!isConvertedHTML)}
+								tabIndex={0}
+								onClick={toggleMode}
+								onKeyDown={activateOnKey(toggleMode)}
 								className="span span--writer-statusbarbutton"
 							>
 								{isConvertedHTML ? "HTML" : "Markdown Converted"}
