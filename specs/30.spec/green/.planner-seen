@@ -1,50 +1,44 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (14th cycle) — 0 new carves + 0 promotions + 0 new blocked.
-# Session summary: no-op cycle — operator ba20cce + /revisit dad60e6 반영, green 2건 stale_cycles 0→1.
-#   HEAD=dad60e6 (`chore(revisit): scanned=4, followup=2, deleted=4`).
-#   선행 운영자/revisit 활동 결과 (본 planner 사이클 이전):
-#     - `ba20cce spec(operator): isolate 3 diagnosis-as-spec files to 50.blocked/spec/` — operator 가 3 diagnosis spec (layer2-rediag + logsingle-diagnosis + logsingle-remediation) 을 `50.blocked/spec/` 로 격리. `logsingle-prod-server-serial-timeout-remediation-spec.md` 는 기존 green → blocked 이동 (planner writer 영역이었으나 operator 수동 개입으로 처리됨, RULE-05).
-#     - `dad60e6 chore(revisit): scanned=4, followup=2, deleted=4` — /revisit 스킬이 blocked 4건을 정리 (close 2 + revive 2). 2 followup 이 `10.followups/` 로 재승격:
-#         `20260421-0528-logsingle-remediation-spec-rescope-from-blocked.md` + `20260421-0528-tsk-60-vitest4-signature-incompat-from-blocked.md`.
-#       작업트리 deletion 상태인 `50.blocked/spec/` 내 6파일은 operator/revisit 영역 — planner writer 영역 외, 본 세션 세션-시작 unstage 로 처리 (RULE-02).
-#     - ready 큐 (`40.task/`) 는 TSK-59 blocked → revisit close / TSK-60 blocked → revisit close / TSK-61 done 으로 모두 비워짐 (count=0, TASK_READY_MAX=10 여유 10).
+# Updated: 2026-04-21T (15th cycle) — 0 new carves + 0 promotions + 0 new blocked.
+# Session summary: no-op cycle — 입력 큐 (`30.spec/green/**`) = 0 spec files. 즉시 no-op.
+#   HEAD=7b527d8 (`docs(rules): RULE-07 spec 콘텐츠 규약 신설 — 불변식/계약 한정, 1회성 진단 반려`).
+#   선행 활동 결과 (본 planner 사이클 이전, 14차 ledger 이후):
+#     - `4d6e144 spec(planner): isolate 14 task-natured specs to 50.blocked/spec/` — 운영자 수동 개입 (RULE-05) 으로 spec 정의 기준 재정립. blue/common 5 + blue/deps 4 + blue/foundation 3 + green/common 2 (14차 ledger 의 두 green 전부) 을 `50.blocked/spec/` 로 격리. 각 `{slug}_reason.md` 에 task 성격 근거 박제. planner 에이전트 세션이 아닌 수동 커밋 (commit message 본문 "수동 개입 (RULE-05)" 명시). components/*-spec.md 9건은 as-is 서술 spec 으로 판정 유지.
+#     - `7b527d8 docs(rules): RULE-07 spec 콘텐츠 규약 신설` — spec 콘텐츠를 불변식/계약/공개 API/이디엄 규약 한정, 1회성 진단·incident patch 플랜 반려. 4d6e144 의 판단 근거를 SSoT 로 박제.
 #
-#   RULE-03 선결 점검: pause lock 없음, `.claude/pipeline.json` 없음 → 기본 TASK_READY_MAX=10. 입력 큐 `30.spec/green/**` = 2 (실측 `find`). 하류 ready 큐 = 0 (여유 10). 처리 진입.
+#   RULE-03 선결 점검 (순서 고정):
+#     (1) pause lock 없음 (`.claude/locks/` 부재). `.claude/pipeline.json` 없음 → 기본 `TASK_READY_MAX=10`.
+#     (2) 입력 큐 `30.spec/green/**` = **0 spec files** (실측 `find specs/30.spec/green -type f` = 2 — `.planner-seen` + `.inspector-seen` 만 잔존, spec 파일 0). → **즉시 no-op**.
+#     (3) 하류 임계치 무관 (`40.task/` = 0, TASK_READY_MAX=10 여유 10 — 참고용).
+#     (4) 처리 진입 안 함.
 #
-#   input green (실측): 2 (13차의 3 중 `logsingle-prod-server-serial-timeout-remediation` 은 operator ba20cce 에서 `50.blocked/spec/` 로 이동됨 → ledger 제외).
+#   14차 ledger 에 기재된 두 green 의 이동:
+#     - `admin-gate-recovery-and-env-config-spec.md` [hash 4b35c6a9, stale_cycles=1]: 4d6e144 로 `50.blocked/spec/` 이동. `{slug}_reason.md` 존재 (task 성격 판정). planner 에이전트 수동 이동 아님 — ledger 제거.
+#     - `test-isolation-shuffle-safety-cold-start-spec.md` [hash 5a077e3e, stale_cycles=1]: 4d6e144 로 `50.blocked/spec/` 이동. `{slug}_reason.md` 존재. ledger 제거.
+#     (stale ≥3 cycle 도달 없음 — 수동 이동 선행.)
 #
-#   승격 평가 (4조건 = [WIP]=0, non-deferred unchecked=0, To-Be=0, 변경 이력 박제):
-#     - admin-gate-recovery-and-env-config [hash 4b35c6a9, 13차 이후 불변]:
-#         [WIP]=0 ✓, To-Be=0 ✓, 변경 이력 = TSK-20260421-61 / 572009f 박제 ✓.
-#         unchecked = 3 (grep `^- \[ \]` 3 hits): L69 FR-06 `[deferred: C3 hit 미발동]` + L80 FR-06 `[deferred: 조건 미발동]` + **L83 NFR-03 (non-deferred, 본문 박제됨 `TSK-20260421-61 / 572009f — 단일 커밋 묶음, NFR-01 충족 범위 안쪽` 이나 checkbox 미전환)**.
-#         **non-deferred unchecked = 1** (NFR-03 marker drift). FR-06 2건 `[deferred]` 토큰 박제.
-#         → **승격 불가**. NFR-03 checkbox 전환은 inspector marker-sync 영역 (RULE-01 writer 매트릭스: planner 는 green 내용 수정 금지). patch 후속 carve 불필요 — NFR-03 충족은 TSK-61 단일 커밋으로 이미 박제 완료.
-#     - test-isolation-shuffle-safety-cold-start [hash 5a077e3e, 13차 이후 불변]:
-#         [WIP]=0 ✓, To-Be=0 ✓, 변경 이력 = TSK-20260421-57 재진단 + TSK-20260421-59 carve 마커 박제 ✓ (실제 해소 commit 은 없음 — TSK-59 blocked / revisit close).
-#         unchecked = 11 — 그 중 2건 `[pending]` / `[deferred]` 토큰 명시 (FR-06 REQ-011 carve-out, FR-07 deferred), 나머지 9건 non-deferred unchecked (FR-03 Should 대안 서술 / FR-04 Could / FR-14 Should / FR-15 Could / NFR-04 / NFR-06 / `npm run lint` / `npm test --run` NFR-02 / FR-06 수용 기준 마커).
-#         → **승격 불가**. TSK-59 blocked 으로 본 green 의 해소 경로 재설계 필요 — `10.followups/20260421-0528-logsingle-remediation-spec-rescope-from-blocked.md` 와 `20.req/20260421-layer2-cold-start-b1prime-failure-fallback-reselection.md` 의 discovery → inspector 소비 후에 본 spec 의 FR-13 fallback 순서 재정의가 이뤄질 것.
+#   상류 큐 현황 (참고, planner 영역 외 — 소비는 discovery/inspector):
+#     - `10.followups/` = 9건 (4d6e144 이후 /revisit 미수행 상태로 blocked → followups 재승격 대기 중 — 본 사이클 기준 followup 파일 9개 존재, slug 전부 `*-from-blocked`).
+#     - `20.req/` = 1건 (`20260421-logsingle-remediation-vitest4-rescope-and-spec-relayering.md`).
+#     - `30.spec/blue/` = 9 spec files (common 0 / components 9 / deps 0 / foundation 0 — 4d6e144 결과 common/deps/foundation 전부 blocked, components 9 유지).
+#     - `50.blocked/spec/` = 14 pair (`*-spec.md` + `*-spec_reason.md`).
 #
-#   carve 판정:
-#     본 사이클 carve 0 — TSK-59/60 blocked 결과 본 green 의 해소 경로가 **spec 재설계 대기** 상태 (B1' warm-up 이 determinstic fail). 재설계 권한은 inspector (green 편집) + discovery (followup→req). planner 가 단독으로 carve 하면 spec 의 fallback chain 과 충돌 + RULE-01 ID 중복 위험 (`grep -rn "TSK-..." specs/{40.task,60.done,50.blocked}/` 선검증 필요 — TSK-59 이미 blocked 로 박제).
-#     admin-gate 는 NFR-03 marker drift 단일 issue → patch 불필요, inspector marker-sync 대기.
-#     grep dry-run: **0/0 match** (carve 부재 — N/A).
+#   carve 판정: 입력 0 → carve N/A. grep dry-run: **0/0 match** (carve 부재 — N/A).
 #
-#   stale 카운트 갱신 (14th cycle 기준, 13차 hash 대비):
-#     - admin-gate-recovery-and-env-config: hash 불변 (4b35c6a9 → 4b35c6a9) → stale_cycles 0 → **1**.
-#     - test-isolation-shuffle-safety-cold-start: hash 불변 (5a077e3e → 5a077e3e) → stale_cycles 0 → **1**.
-#     - logsingle-prod-server-serial-timeout-remediation: operator ba20cce 로 `50.blocked/spec/` 이동 — ledger 에서 제거 (physical deletion 은 /revisit 경로).
-#     - blocked/spec/ 이동 0건 (본 planner 세션). stale ≥3 cycle 도달 항목 0.
+#   ledger 정리:
+#     - admin-gate / test-isolation 두 entry 제거 (green 큐에서 사라짐, 4d6e144 수동 이동).
+#     - 새 green spec 없음 → ledger entries 본문 비움.
 #
-#   blocked 신규: 0. `50.blocked/spec/` 는 작업트리 deletion 상태 (operator/revisit 정리 중, planner 영역 외).
+#   blocked 신규 (planner 세션): 0. 4d6e144 의 14건은 운영자 영역 — ledger 추적 대상 아님 (/revisit 경로 소비 대기).
 #
-#   RULE-06 스코프 규칙 섹션: 본 사이클 신규 task 0 → RULE-06 신규 게이트 작성 없음.
+#   RULE-06 스코프 규칙 섹션: 본 사이클 신규 task 0 → 작성 없음.
 #
 # ledger entries:
-specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 4b35c6a9f2d3e47085c201e5942f425fd8e8f731ee62bf1b0848ca194ddaff43 1
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 5a077e3e539fdfdc4686e86de01b027d77c743753c97ad873782d20e28e100b6 1
+# (empty — no green spec files)
 #
 # ready 큐 (본 사이클 +0): count=0, TASK_READY_MAX=10 여유 10.
-# next cycle (15th):
-#   - **inspector**: admin-gate L83 NFR-03 checkbox `[ ]` → `[x]` marker drift 정정 (본문은 이미 TSK-61 / 572009f 박제됨). `10.followups/` 소비 후 test-isolation 은 `20.req/` 경유 discovery 재작업 (spec re-scope, FR-13 fallback 재정의 반영).
-#   - **planner (15th)**: admin-gate — inspector marker-sync 후 NFR-03 0 non-deferred unchecked 확인 시 green→blue 승격. test-isolation — inspector 의 FR-13 재정의 후 신규 TSK carve.
-#   - **본 사이클 writer 영역 변경**: `.planner-seen` 갱신 1건만. `40.task/**` 변경 0, `30.spec/green/**` 이동 0, `30.spec/blue/**` 변경 0, `50.blocked/spec/` 변경 0. 커밋 scope = `spec(planner):` (ledger 갱신 no-op 사이클, RULE-02 단일 커밋).
+# next cycle (16th):
+#   - **discovery (1h)**: `10.followups/` 9건 소비 → `20.req/` 로 재구성 (blocked 반려 사유를 새 req 에 반영; task 성격 판정받은 14건 중 불변식 조각만 추출). 기존 `20.req/20260421-logsingle-remediation-vitest4-rescope-and-spec-relayering.md` 1건과 병합/선후 판단.
+#   - **inspector (30m)**: discovery 결과물 소비 후 새 `30.spec/green/**` 작성. 이번에는 RULE-07 양성 기준 (시스템이 무엇이어야 하는가 평서문, 반복 검증, 시점 비의존) 엄격 준수 — task 성격 진단 반복 방지.
+#   - **planner (16th+)**: inspector 가 새 green 을 작성하고 충분히 무르익으면 (WIP=0, To-Be=0, non-deferred unchecked=0, 변경 이력 박제) blue 승격. 그 전까지 계속 no-op.
+#   - **본 사이클 writer 영역 변경**: `.planner-seen` 갱신 1건만. `40.task/**` = 0 변경, `30.spec/green/**` 이동 0, `30.spec/blue/**` 변경 0, `50.blocked/spec/` 변경 0. 커밋 scope = `spec(planner):` (ledger-only no-op cycle, RULE-02 단일 커밋).
