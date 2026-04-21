@@ -93,13 +93,13 @@
 ## 테스트 현황
 - [x] 현 HEAD `npm test` (serial) → 0 fail (fd38b44).
 - [x] shuffle seed=1/2/3 에서 cold-start race 재현 (Layer 1 + Layer 2 — HEAD=4bd67ef/ea9d30c 실측 박제).
-- [ ] FR-02 옵션 A 적용 후 LogItem Layer 1 cold-start race 해소. **[deferred: TSK-20260421-49 blocked — Layer 1 옵션 A 적용 완료했으나 Layer 2 race 로 seed=1 1건 잔존; 50.blocked/task/TSK-20260421-49 _reason.md 참조]**
-- [ ] FR-06 msw.test.js sibling-it 독립. **[deferred: TSK-49 blocked; Layer 2 해소 후 재시도 권장]**
-- [ ] FR-07 File.test.jsx cache race 해소. **[deferred: TSK-49 blocked]**
-- [ ] FR-08 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail. **[deferred: TSK-49 blocked — Layer 2 race 미해소]**
-- [ ] FR-11 Layer 2 후보 B1~B4 열거. **[pending: Layer 2 신규 TSK-ID 발행 시 B1~B4 실측 수행]**
-- [ ] FR-12 Layer 2 후보 B5 조건부 확장 판정. **[pending: B1~B4 실측 결과 의존]**
-- [ ] FR-13 1차 추천안 B1 실측 seed=1/2/3 0 fail. **[pending: Layer 2 신규 TSK-ID 발행 후 실측]**
+- [x] FR-02 옵션 A 적용 후 LogItem Layer 1 cold-start race 해소. (2026-04-21, TSK-20260421-51 / commit d798635 — `getBy*` → `findByTestId` 4건 전환 PASS; Layer 2 race 는 TSK-20260421-53 B3 로 이관.)
+- [ ] FR-06 msw.test.js sibling-it 독립. **[pending: REQ-20260421-011 TSK-20260421-55 — 독립 spec `msw-test-sibling-it-shuffle-race-dedicated-spec.md` 로 carve-out, 별도 track 진행]**
+- [ ] FR-07 File.test.jsx cache race 해소. **[deferred: 별건 task 미발행 — shuffle seed 0 fail 달성 후 재평가]**
+- [ ] FR-08 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail. **[pending: TSK-20260421-53 (Layer 2 B3 msw listen beforeAll) 실측 결과 의존]**
+- [ ] FR-11 Layer 2 후보 B1~B4 열거. **[pending: TSK-20260421-53 (Layer 2 B3 fallback) 실측 결과 박제]**
+- [ ] FR-12 Layer 2 후보 B5 조건부 확장 판정. **[pending: TSK-20260421-53 B3 실측 결과 의존]**
+- [ ] FR-13 1차 추천안 B1 실측 seed=1/2/3 0 fail. **[pending: TSK-20260421-52 B1 blocked → TSK-20260421-53 B3 fallback 실측]**
 - [ ] `npm run lint` 0 warn/error.
 
 ## 수용 기준
@@ -140,3 +140,4 @@
 | 2026-04-21 | inspector / — (drift reconcile) | TSK-20260421-49 blocked 관측 (HEAD=ea9d30c). developer 실측으로 옵션 A/B/C 조합 적용 후에도 shuffle seed=1 `LogItem DELETE network-error` 1건 (`findByText("Deleting log network error.")` 5062ms timeout) 잔존 — **Layer 2 (mutation fetch → onError → setState → rerender) race** 가 cold-start race 와 별개로 존재. 본 spec 의 β-가설(sync query cold-start) 은 Layer 1 만 설명. 운영자 해제 시 spec 재개정 (Layer 2 서사 추가, 해결 후보 B1~B4 열거) 필요 — `50.blocked/task/TSK-20260421-49-test-isolation-shuffle-safety-cold-start_reason.md` 참조. FR-02/06/07/08 deferred 태깅. ack 0/5 (테스트 현황). | 테스트 현황, 변경 이력 |
 | 2026-04-21 | inspector / — (REQ-20260421-010 반영) | Layer 1 / Layer 2 구분 서사로 확장. §역할·§동작·§공개 인터페이스 에 Layer 2 (mutation + msw listen + React 19 concurrent first-in-file flush) 근거 박제 (HEAD=fd38b44). FR-11~15 추가 — B1~B4 (테스트층) + B5 (런타임층, 조건부) 후보 열거, 1차 추천안 B1 (warm-up empty render prime) + fallback 순서 (B3→B2→B4→B5) 확정. `src/Log/hooks/useDeleteLog.js:22-38` 확장 조건부 허용 rationale 박제. followup 원본: `specs/60.done/2026/04/21/followups/20260420-2224-logitem-delete-mutation-cold-start-layer2.md`. | 역할, 동작, 공개 인터페이스, 대안, Baseline, 의존성, 테스트 현황, 수용 기준, 스코프 규칙, 변경 이력 |
 | 2026-04-21 | TSK-20260421-51 / d798635 (drift reconcile ack) | FR-02 수용 기준 PASS — `src/Log/LogItem.test.jsx` 의 `getByTestId("delete-button")` 4건 → `await screen.findByTestId("delete-button")` 로 전환 완료. HEAD=d798635 재실측: `getBy*` 0 hits, `findByTestId(...)` 4 hits at :207/:262/:318/:379, `await screen.findByTestId(...)` 4 hits (await 누락 없음). hook-ack: `npm run lint` 0 warn/error, `npm test -- --run` 47 files / 377 tests pass (회귀 0, coverage 97.54% stmts 유지), `npm run build` OK. Layer 1 cold-start `Unable to find [data-testid="delete-button"]` 는 seed 1/2/3 전원 소거됨. Layer 2 (seed=1 `findByText("Deleting log network error.")` timeout) 는 TSK-20260421-52 (ready queue) 로 이관. `## 테스트 현황` 의 FR-02 체크는 "TSK-49 blocked" 호환 마커로 혼재 — `애매하면 marker 유지` 방침 적용, planner 재carve 시 FR-14 에 따라 전환. | 수용 기준, 변경 이력 |
+| 2026-04-21 | inspector / — (marker sync, HEAD=2e9f806) | Phase 1 marker 정합 전환 — §테스트 현황 `[deferred: TSK-49 blocked]`/`[pending: Layer 2 신규 TSK-ID]` 호환 마커를 planner carve 결과(`a4636a7`, `2a0ff31`)에 맞춰 구체 TSK-ID 로 고정. 전환 매핑: FR-02 `[deferred]`→`[x]` (TSK-51/d798635 수용기준 PASS 혼재 해소), FR-06 →`[pending: REQ-011 TSK-55]` (독립 spec carve-out), FR-07 →`[deferred: 별건 task 미발행]`, FR-08 →`[pending: TSK-53 실측]`, FR-11/FR-12/FR-13 →`[pending: TSK-53 B3]`. src 신규 커밋 0 → [x] flip 신규 ack 0건. reconcile: 0/41 ack (marker-sync 7건 별도). | 테스트 현황, 변경 이력 |

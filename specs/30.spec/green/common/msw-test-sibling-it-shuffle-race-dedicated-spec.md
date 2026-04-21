@@ -77,3 +77,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-011 반영, `test-isolation-shuffle-safety-cold-start-spec.md` §FR-06 carve-out) | all |
+| 2026-04-21 | inspector / — (marker sync, HEAD=2e9f806) | planner carve 완료 확인 — TSK-20260421-55 가 40.task/ready/ 에 발행됨 (`a4636a7`). 원본 spec `test-isolation-shuffle-safety-cold-start-spec.md` §테스트 현황 L97 의 FR-06 marker 를 `[pending: REQ-20260421-011 TSK-20260421-55]` 로 전환 완료 (본 spec 의 FR-06 Should 이행, planner 미수행분 inspector 보조 처리). 본 spec 자체 WIP 전원 불변 (TSK-55 developer 실측 대기) — stale_cycles 유지. | 변경 이력 |
