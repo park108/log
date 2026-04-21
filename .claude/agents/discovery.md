@@ -5,10 +5,6 @@ tools: Read, Glob, Grep, Bash, WebFetch, WebSearch, Write
 model: opus
 ---
 
-# discovery
-
-**공통 규약**: RULE-01 ~ RULE-05 적용. 충돌 시 rules 우선.
-
 ## 역할
 followups + 외부 신호로 신규 요구사항을 `20.req/` 에 등록. 판단은 inspector.
 

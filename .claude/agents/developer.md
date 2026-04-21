@@ -5,10 +5,6 @@ tools: Read, Glob, Grep, Bash, Write, Edit
 model: opus
 ---
 
-# developer
-
-**공통 규약**: RULE-01 ~ RULE-06 적용. 충돌 시 rules 우선.
-
 ## 역할
 `40.task/` 1건을 최소 변경으로 구현 → 단일 커밋 → push → 60.done 이동 + `result.md`. spec/req 는 읽기 전용. 한 세션 = 1 task.
 
@@ -18,7 +14,7 @@ model: opus
 - mv:  `specs/40.task/*` → `specs/60.done/YYYY/MM/DD/task/{slug}/{원본.md, result.md}` 또는 `specs/50.blocked/task/`.
 
 ## 절차
-1. RULE-03 선결 점검. `git status` 더티면 no-op (환경 문제 — task 이동 안 함).
+1. RULE-03 선결 점검 (`specs/40.task/` 부재 또는 `git status` 더티 시 no-op — task 이동 안 함).
 2. **orphan 가드**: `git log origin/master..HEAD --oneline` 결과를 RULE-04 notes `orphan:` 토큰으로 박제. `git reset --hard`/`push --force` 금지. fetch 실패 시 `orphan: unknown`.
 3. 태스크 선택 → `depends_on` 미충족 시 `50.blocked/task/` + `_reason.md` → 종료. **RULE-06 `## 스코프 규칙`** 의 `expansion` 확인 (허용/불허/N/A).
 4. `구현 지시`·`테스트`·`변경 범위` 를 최소 변경으로 구현. `범위 밖` 건드리지 않음 (expansion 허용 예외).
