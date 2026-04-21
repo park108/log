@@ -1,54 +1,58 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=bf6757f at session start). Phase 1 reconcile 1/1 ack — TSK-20260421-75 `ci-typecheck-and-coverage-threshold` @5dbf308.
+# Updated: 2026-04-21T (HEAD=5d3a886 at session start). Phase 1 reconcile 0/0 ack (no-op cycle — 입력 큐 0 + 신규 task 커밋 0).
 #
-# 세션 시작 상태 파악 정정:
-#   - 초기 `git rev-parse HEAD` 에서 `08bfe5265df4...` 로 읽혔으나, 이는 컨텍스트 지연에 따른 구 값 반영. **현 HEAD=bf6757f**.
-#   - HEAD 사이에 직전 세션 유입 커밋 2건 추가 확인: `5dbf308` (feat: CI typecheck step + Vitest coverage thresholds 4축 — TSK-75 developer 구현), `bf6757f` (spec(planner): promote components/common.md green→blue — REQ-038 흡수 + TSK-74 ack 버전, planner 24th cycle).
-#   - 이에 따라 TSK-74 (@08bfe52) 는 직전 세션 `bf6757f` 커밋에서 planner 가 이미 components/common.md §테스트 현황/§수용 기준 marker 를 [x] 플립 + §admin gate 계약 FR-04 택1 박제 + §변경 이력 1행 박제 후 green→blue promote 완료. 본 inspector 세션의 TSK-74 ack 는 이미 소비됨 — 중복 처리 배제.
-#   - 본 세션 실 ack 대상: **TSK-75 @5dbf308** (regression-gate.md FR-01/FR-02 현장화).
+# 세션 시작 상태:
+#   - `git rev-parse HEAD` = `5d3a886` (직전 inspector 세션 커밋 `spec(inspector): Phase 1 reconcile 1/1 ack (TSK-75 ...)`).
+#   - 직전 inspector (5d3a886) 이후 developer/planner 커밋 0 — 파이프라인 정지 상태.
+#   - `specs/20.req/` 0 건 (ls total 0) → Phase 3 no-op.
+#   - `specs/40.task/` 0 건 → 신규 task 진행 없음.
+#   - green spec 파일 2개 (common/a11y.md, foundation/regression-gate.md) — 양쪽 sha256 변동 없음 (ledger 와 동일).
 #
-# Phase 1 ack this session: 1/1 — TSK-75 `ci-typecheck-and-coverage-threshold` @5dbf308. 6 grep 게이트 (ci.yml `typecheck\|tsc --noEmit` 1 hit @L31 / vite.config.js `thresholds:` 1 hit @L82 / `lines:` 1 hit @L83 값 98 / `statements:` 1 hit @L84 값 97 / `functions:` 1 hit @L85 값 94 / `branches:` 1 hit @L86 값 94) 전원 PASS @HEAD=bf6757f 재실행 확인. hook-ack (result.md): `npm run lint` PASS, `npm run typecheck` PASS (exit 0), `npm test -- --run` PASS 47 files / **410 tests** (회귀 0), `npm run build` PASS 349ms, coverage thresholds 4축 위반 0 (실측 Stmts 97.72 / Branches 94.21 / Fn 94.45 / Lines 98.11 — 박제 하한 ≥). 5 step 순열 (Install → Lint → Typecheck → Test → Build) 확인. Must 주관 혼재 없음 → 보조 ack 채택. regression-gate.md §테스트 현황 FR-01/FR-02 2 marker [ ] → [x] 플립 + §스코프 규칙 grep-baseline (a)/(c)/(d) 수치 갱신 (0→1 / 0×5→1×5 / 블록 71-82→71-88) + §최종 업데이트 갱신 + §변경 이력 1행 박제.
-#
-# drift marker 스캔 (세션 시작 green 2 spec — components/common.md 는 직전 세션 @bf6757f planner promote green→blue):
-#   1. common/a11y.md 잔존 [ ] marker 스캔:
+# Phase 1 drift marker 스캔 (세션 시작 green 2 spec):
+#   1. common/a11y.md 잔존 [ ] marker (9 건, 이전 세션 동일):
 #      · §테스트 현황: LogItemInfo.test row M4 [ ] (onClick 부재 + hover-popup trigger — FR-02 "(onKey 논의)" 귀결 대기), M5 FR-05 [ ] (실측 귀결 대기), M10 FR-06 [ ] (옵션 A/B 결정 대기), audit FR-08 [ ] (도입 유보 결정 대기).
 #      · §수용 기준: FR-02 Must [ ], FR-03 Must [ ], FR-05 Must [ ], FR-06 Must [ ], FR-07 Should [ ], FR-08 Should [ ].
-#      · 관련 task: 본 cycle 에 M4/M5/M10/audit 커밋 0. M1/M2/M3/M6/M7/M8/M9 는 이미 직전 세션에서 ack 완료. a11y.md stale_cycles 1 → 2 (ack 0 + 잔존 marker 불변).
-#   2. foundation/regression-gate.md 잔존 [ ] marker 스캔 (본 세션 편집 대상):
-#      · §테스트 현황: 2 [ ] → [x] 플립 (FR-01 typecheck step + FR-02 coverage threshold 4축).
-#      · §수용 기준: 모두 [x] (신설 시점부터 본문 박제 축 충족).
-#      · 잔존 [ ] marker: 0 — REQ-037 전체 실현 완결.
-#      · stale_cycles 1 → 0 (본 세션 편집, ack 1).
+#      · 본 세션 신규 ack 대상 task commit 0. M1/M2/M3/M6/M7/M8/M9 는 이미 직전 inspector 세션 이전에 ack 완료.
+#      · M4 / M5 / M10 / audit 관련 새 task 파일도 40.task/ 에 부재 → planner carve 대기 상태 지속.
+#      · stale_cycles 2 → 3 (ack 0 + 잔존 marker 불변 + 세션 ack 기회 1회 경과).
+#      · **stale ≥ 3 cycle 진입** — planner 의 M4/M5/M10/audit task carve 지연이 원인. notes 에 박제.
+#   2. foundation/regression-gate.md 잔존 [ ] marker 스캔:
+#      · §테스트 현황: 0 [ ] (전원 [x]).
+#      · §수용 기준: 0 [ ].
+#      · 잔존 [ ] marker: 0 — REQ-037 전체 실현 완결, planner promote 최우선 후보.
+#      · stale_cycles 0 → 0 (ack·WIP 둘 다 변화 없음, 잔존 [ ] 0 이라 stale 개념 비적용).
 #
-# TSK-75 (@5dbf308) 는 본 세션 Phase 1 ack 대상. 커밋 해시가 HEAD 의 조상임 확인 (git merge-base --is-ancestor PASS, bf6757f 가 5dbf308 의 직후 커밋).
-#
-# Phase 1 ack 산출: ACK 1 (regression-gate.md — TSK-75 FR-01/FR-02 현장화), 비-ACK 0 평가단위. 분모 M = 1.
-#   토큰 = `reconcile: 1/1 ack`.
+# Phase 1 ack 산출: ACK 0, 비-ACK 0 평가단위 (신규 task 커밋 0 + 잔존 marker 변동 0). 분모 M = 0.
+#   토큰 = `reconcile: 0/0 ack (1 stale ≥3cycle — common/a11y.md)`.
 #
 # Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md 203줄 / regression-gate.md 109줄).
 #
 # Phase 3 (신규 req 반영): 입력 큐 0건 — no-op. `specs/20.req/` 비어 있음.
 #
 # 변동 spec sha (본 세션):
-#   - `common/a11y.md` 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c — 미변경, stale_cycles 1 → 2.
-#   - `foundation/regression-gate.md` — 세션 시작 005052a5... → 편집 후 effbe7c43c958c419e7e232931f4ed76f866c1f33583228a86aef9bd5d742ae8. 본 세션 edit (2 marker 플립 + grep-baseline 3 gate 수치 갱신 + 변경 이력 1행 + 최종 업데이트 갱신).
+#   - `common/a11y.md` 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c — 미변경, stale_cycles 2 → 3.
+#   - `foundation/regression-gate.md` effbe7c43c958c419e7e232931f4ed76f866c1f33583228a86aef9bd5d742ae8 — 미변경, stale_cycles 0.
 #
 # 현 ledger:
-specs/30.spec/green/common/a11y.md 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c 2
+specs/30.spec/green/common/a11y.md 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c 3
 specs/30.spec/green/foundation/regression-gate.md effbe7c43c958c419e7e232931f4ed76f866c1f33583228a86aef9bd5d742ae8 0
 #
-# Stale 경고: 0 path ≥ 3 cycle (현 최대 2 cycle — a11y.md).
+# Stale 경고: 1 path ≥ 3 cycle — `common/a11y.md` stale=3. 원인: M4/M5/M10/audit 4 지점의 후속 task 가 planner 에서 carve 되지 않음 (40.task/ 비어 있음). 각 지점별 요구 작업:
+#   - M4 (`src/Log/LogItemInfo.jsx:69-95` versions-button `<span role="button">` + `useHoverPopup`): `onClick` 부재 실측 + hover-popup trigger 가 keyboard 포함 여부 확인 → §FR-02 "(onKey 논의)" 귀결. task 필요: `a11y-pattern-b-logiteminfo-m4-versions` (REQ-033 FR-02/03).
+#   - M5 (`src/Log/LogItemInfo.jsx:99-106` Edit `<Link><span>`): 키보드 활성 실측 → §예외 또는 §drift 표 재분류 (REQ-033 FR-05). task 필요: `a11y-pattern-b-logiteminfo-m5-edit-link` (실측 + spec 갱신 단독 task).
+#   - M10 (`src/Image/ImageItem.jsx:18-34` `<img role="listitem" onClick>`): 옵션 A (tabIndex + onKeyDown + role 변경) 또는 옵션 B (wrapper) 결정 → §예외/§drift 재분류 (REQ-033 FR-06). task 필요: `a11y-pattern-b-imageitem-m10-decide-and-normalize`.
+#   - audit (`src/common/a11y.audit.test.*` 도입 또는 유보): 도입 여부 결정 → §audit 테스트 절 갱신 (REQ-033 FR-08, Should). task 필요: `a11y-audit-test-introduce-or-defer`.
 #
-# 입력 큐: 0건 (no-op Phase 3).
-# 하류 임계치: GREEN_PENDING_MAX=20, 현 green 파일 2 < 20. 여유 18.
+# Phase 3 입력 큐: 0 건 (no-op).
+# 하류 임계치: GREEN_PENDING_MAX=20 (default), 현 green 파일 2 < 20. 여유 18. pipeline.json override 없음.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `foundation/regression-gate.md` — 본 세션 TSK-75 ack 완료 → 잔존 [ ] marker 0. §수용 기준 + §테스트 현황 전원 [x]. **promote 최우선 후보**.
-#   - `common/a11y.md` — 잔존 [ ] 9 marker (M4/M5/M10 + audit + FR-02/03/05/06/07/08). M1/M2/M3/M6/M7/M8/M9 ack 완료, 8/12 진척. promote 대기 — M4/M5/M10/audit task carve 필요.
+#   - `foundation/regression-gate.md` — 잔존 [ ] marker 0. §수용 기준 + §테스트 현황 전원 [x]. **promote 최우선 후보** (직전 세션부터 유지).
+#   - `common/a11y.md` — 잔존 [ ] 9 marker (M4/M5/M10 + audit + FR-02/03/05/06/07/08). 8/12 진척. promote 대기 — M4/M5/M10/audit task carve + 실현 필요.
 #
 # 다음 세션 유의:
-#   - 20.req 비어 있으면 Phase 3 no-op. Phase 1 만 수행.
-#   - a11y.md 잔존 M4/M5/M10/audit 는 각각 별 task carve 대기 (planner 영역).
-#   - regression-gate.md 는 본 세션 ack 완료 — 차기 세션에서 planner promote 가능 (잔존 [ ] 0).
-#   - 직전 세션 흐름: inspector (@fb38744, REQ-036/037/038 흡수) → planner (@d12681b, TSK-73 carve) → developer (@7e6cdea, TSK-73 console spy migration) → inspector (@3eca50e, TSK-73 ack) → planner (@1ed8209, test-idioms promote + TSK-74/75 carve) → developer (@08bfe52, TSK-74 isAdmin migration) → developer (@5dbf308, TSK-75 CI typecheck + coverage) → planner (@bf6757f, components/common.md promote + TSK-74 ack 버전 박제) → **본 inspector 세션 (TSK-75 ack + regression-gate.md marker 플립)**.
-#   - 본 세션 초기 상태 파악 중 blue/components/common.md 에 편집이 잘못 반영된 사건 발생 (Edit 도구 경로 혼선 추정) — `git checkout HEAD -- blue/components/common.md` 로 원복. 차기 세션에서 동일 패턴 재발 시 Edit 도구 직전 실제 파일 존재 여부 `ls` 로 검증 권장.
+#   - 20.req 계속 비어 있으면 Phase 3 no-op 지속. Phase 1 은 pause lock 외 항상 수행.
+#   - a11y.md stale 증가 — planner 세션에서 M4/M5/M10/audit task carve 촉구. planner 가 carve 하면 developer → 본 inspector 가 ack.
+#   - regression-gate.md 는 planner promote 가 1 세션 지연 — 직전 inspector 세션 (5d3a886) 에서 [x] 전원 확보 완료 후 녹색 대기 중. planner 차기 사이클 promote 기대.
+#   - 직전 세션 흐름: inspector 5d3a886 (TSK-75 ack + regression-gate.md [x] 플립) → 본 inspector 세션 (신규 ack 0, stale 1↑).
+#   - 본 세션 편집 대상: `.inspector-seen` ledger 갱신만. 30.spec/green/**/*.md 본문 편집 없음 (신규 ack 0 + 반영할 req 0). 따라서 커밋 범위는 `.inspector-seen` 단일 파일.
