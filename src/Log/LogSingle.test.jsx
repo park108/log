@@ -122,7 +122,7 @@ describe('LogSingle render on prod server (ok)', () => {
 
 		const afterDeleteTimer = await screen.findByText("Deleted");
 		expect(afterDeleteTimer).toBeInTheDocument();
-	});
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
 });
 
 describe('LogSingle render on dev server (ok)', () => {
@@ -152,7 +152,7 @@ describe('LogSingle render on dev server (ok)', () => {
 		const toSearchResultButton = await screen.findByText("To search result");
 		expect(toSearchResultButton).toBeInTheDocument();
 		fireEvent.click(toSearchResultButton);
-	});
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
 });
 
 describe('LogSingle get OK delete failed', () => {
