@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import * as mock from './api.mock'
 import ImageSelector from '../Image/ImageSelector';
+import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
@@ -10,6 +11,7 @@ import { useMockServer } from '../test-utils/msw';
 beforeEach(() => {
 	vi.spyOn(console, 'log').mockImplementation(() => {});
 	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 	Object.assign(navigator, {
 		clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
 	});
@@ -205,5 +207,47 @@ describe('ImageSelector clipboard rejection error Toaster', () => {
 		// Failure message surfaced to the user instead of the success string.
 		const errorText = await screen.findByText('Copy failed (permission denied or unavailable).');
 		expect(errorText).toBeInTheDocument();
+	});
+});
+
+describe('ImageSelector reportError 채널 (REQ-20260421-039 FR-03)', () => {
+
+	describe('first fetch errorType 분기', () => {
+		useMockServer(() => mock.prodServerFailed);
+
+		it('errorType 응답 수신 시 reportError 1회 호출 (payload 포함)', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<ImageSelector show={true} />);
+
+			// errorType 분기 동기 side-effect. "Failed getting images" 렌더 = data 반영 완료.
+			await screen.findByText('Failed getting images');
+
+			const calls = errorReporter.reportError.mock.calls;
+			expect(calls.length).toBe(1);
+			// payload 는 errorType 필드를 포함하는 body 객체 (ERROR_500 fixture).
+			expect(calls[0][0]).toMatchObject({ errorType: '500' });
+		});
+	});
+
+	describe('first fetch network error catch 분기', () => {
+		useMockServer(() => mock.prodServerNetworkError);
+
+		it('network error 수신 시 reportError 1회 호출', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<ImageSelector show={true} />);
+
+			await screen.findByText('Failed getting images');
+
+			const calls = errorReporter.reportError.mock.calls;
+			expect(calls.length).toBe(1);
+			// catch 분기: Error 인스턴스 전달.
+			expect(calls[0][0]).toBeInstanceOf(Error);
+		});
 	});
 });

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, copyToClipboard } from '../common/common';
 import { activateOnKey } from '../common/a11y';
+import { reportError } from '../common/errorReporter';
 import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
 import Toaster from "../Toaster/Toaster";
@@ -44,13 +45,13 @@ const ImageSelector = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - Images", "ERROR");
-					console.error(retrieved);
+					reportError(retrieved);
 					setIsError(true);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Images", "ERROR");
-				console.error(err);
+				reportError(err);
 				setIsError(true);
 			}
 	
@@ -87,13 +88,13 @@ const ImageSelector = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - Next Images", "ERROR");
-					console.error(nextData);
+					reportError(nextData);
 					setIsError(true);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Next Images", "ERROR");
-				console.error(err);
+				reportError(err);
 				setIsError(true);
 			}
 	
