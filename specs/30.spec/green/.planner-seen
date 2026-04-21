@@ -1,86 +1,99 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T12:38Z (29th cycle) — 0 promotion + 0 carve + 0 blocked (no-op, 진척 정상).
+# Updated: 2026-04-21T13:08Z (30th cycle) — 0 promotion + 1 carve + 0 blocked (TSK-87 진단 task carve).
 # Session summary:
-#   HEAD=337d694 (`refactor: errorReporter 채널 단일화 — D3 File.jsx`).
-#   직전 ledger HEAD=d9d026b. 그 사이 커밋 체인:
-#     d9d026b → dd063bf (planner 28th no-op) → 7554a46 (inspector Phase 1 reconcile 2/2 ack TSK-78/79 + Phase 3 REQ-040 흡수)
-#     → 1661242 (dev TSK-80 D1 Search) → 9734e27 (dev TSK-81 D2 ImageSelector) → 2d76c6e (inspector Phase 1 reconcile 2/2 ack TSK-80/81)
-#     → 337d694 (dev TSK-82 D3 File.jsx; inspector ack 미커밋 — 진행중).
-#   28th 사이클 이후 개발 진척 현저 — dev TSK-78/79/80/81/82 (5건 완결 중 4건 inspector ack 완, 1건 ack 대기).
-#   `40.task/` 잔존: TSK-83/84/85/86 (4건) + TSK-82 는 dev 가 src 커밋만 하고 result.md 미기록 / mv 미완 추정 — 본 planner 사이클에선 터치 금지 (developer mv 영역).
+#   HEAD=5190466 (`spec(inspector): revert stray src/File/FileDrop.{jsx,test.jsx} sweep in e8287bd`).
+#   직전 ledger HEAD=337d694. 그 사이 커밋 체인:
+#     337d694 → d028873 (planner 29th no-op, ledger 갱신) → 690aa74 (dev TSK-83 D4 FileItem)
+#       → e8287bd (inspector Phase 1 reconcile 2/2 ack TSK-82 D3 + TSK-83 D4 + Phase 3 REQ-041 신설 coverage-determinism.md 택 β)
+#       → 5190466 (inspector revert — FileDrop.{jsx,test.jsx} working tree 편집이 inspector 영역 밖이었으므로 RULE-02 writer 위반 자진 revert).
+#   본 planner 세션은 e8287bd/5190466 커밋 병렬 발생 — 처음엔 HEAD=690aa74 로 판독하여 coverage-determinism.md 를 untracked 로 인식했으나, 중간 점검에서 HEAD=5190466 으로 전진 확인. HEAD hash 재측정 후 판정 진행.
+#   working tree (HEAD=5190466 기준 미커밋, 본 세션 종료 직전):
+#     - `M specs/30.spec/green/.planner-seen` (본 ledger 갱신 — planner 영역)
+#     - `M src/File/FileDrop.jsx`, `M src/File/FileDrop.test.jsx` (dev TSK-84 D5 진행중 추정; writer 경계상 planner 터치 금지 — 5190466 revert 로 working tree 에 재복귀한 상태)
+#   29th 이후 진척: dev TSK-82/83 (D3/D4) + inspector ack @e8287bd + inspector Phase 3 REQ-041 신설 (3 커밋).
+#   `40.task/` 잔존 (본 세션 시작 시): TSK-84/85/86 (3건). TSK-82/83 은 `60.done/task/errorreporter-migrate-{file,fileitem}/` mv 확인.
+#   본 세션 carve: **TSK-20260421-87** (coverage 런간 fluctuation 주 원인 식별 진단 task) 신규 1건.
 #
-#   본 세션 입력 (green): 2 spec files (HEAD=337d694 기준):
+#   본 세션 입력 (green, HEAD=5190466 기준): 3 spec files:
 #     (1) `common/a11y.md` — HEAD hash=e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a.
-#         직전 ledger hash=4e00e29305b7ade5f52b73b293ad2657161f6460f9432515a401aa5ecc27c6fd — **변경됨** (7554a46 inspector reconcile ack). stale 리셋 → 1.
-#     (2) `common/error-reporter-channel.md` — HEAD hash=e72bd535c80d644af7ea506526461af10903918f3395da9650c9db44daefddf1.
-#         직전 ledger hash=7a7018c6334d4cc6e1c66995b1bf3b407aff81f513fa1d613e9fb60a71b006b2 — **변경됨** (2d76c6e inspector reconcile ack TSK-80/81). stale 리셋 → 1.
+#         직전 ledger hash=e1d6de48.. — **불변** (D3/D4 커밋 + inspector ack 모두 a11y.md 미편집). stale 1→**2**.
+#     (2) `common/error-reporter-channel.md` — HEAD hash=2ac91c378f1fd1008ef433d2fba4de10189eb14fe103434441f260ec0aa785c1.
+#         직전 ledger hash=e72bd535.. — **변경** (e8287bd inspector Phase 1 ack 으로 D3/D4 `[x]` 플립 박제 + §drift 정상화 표 갱신). stale 1→**0 리셋 → 1** (본 세션).
+#     (3) `foundation/coverage-determinism.md` — HEAD hash=47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6.
+#         직전 ledger 없음 — **최초 등록** (e8287bd Phase 3 REQ-041 신설). stale=0.
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
 #     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
-#     (3) 입력 큐: 2 green specs — 통과.
-#     (4) 하류 임계치: `40.task/` = 4 (TSK-83/84/85/86). `TASK_READY_MAX=10` 여유 6 — 통과.
+#     (3) 입력 큐: 3 HEAD green specs — 통과.
+#     (4) 하류 임계치: `40.task/` = 3 (TSK-84/85/86). `TASK_READY_MAX=10` 여유 7 → TSK-87 발행 후 4건, 여유 6 유지 — 통과.
 #     (5) 처리 진입.
 #
 #   세션 시작 시 git 상태 점검 (RULE-02):
-#     working tree: clean (직전 `M src/File/File.{jsx,test.jsx}` 은 337d694 로 커밋 완료).
+#     working tree (본 planner 세션 시작 시점, HEAD=690aa74): 3 파일 수정 + 1 untracked dir — 전부 planner 영역 밖.
+#     세션 중 inspector 커밋 2건 쌓임 (e8287bd, 5190466) — 자기 영역 밖이므로 관찰만.
 #     staged: 0. 자기 영역 밖 staged 항목 없음 → unstage 불요.
-#     세션 시작 HEAD=337d694.
 #
-#   각 green spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제; HEAD 기준):
-#     - `common/a11y.md` (HEAD hash=e1d6de48.., stale 1):
-#         unchecked: **1** 건 잔존 (§수용 기준 FR-07 only) — L180 "blue 승격 시 `30.spec/blue/components/{common,comment,log,image}.md` §접근성 1~2 문장 상호참조 추가. promote 단계 (planner 영역).".
-#         WIP: 0. To-Be: 0. 변경 이력: 5 건 박제 완료 (TSK-69~72/76/77/78/79/REQ-040 전원 수렴).
-#         → **미승격** (unchecked 1 > 0). FR-07 은 "promote 단계 planner 영역" 명시이나, RULE-01 writer 매트릭스상 planner create/edit 권한 = `40.task/` 뿐이며 `30.spec/blue/**` 는 mv only.
-#         blue/components 의 §접근성 절 신설 (comment.md, log.md, image.md 는 해당 절 부재 — `rg -nE "^##+ " specs/30.spec/blue/components/{comment,log,image}.md` 확인) 은 단순 mv 수반 편집 범주를 넘는 spec 콘텐츠 편집 → 규칙 경계 밖.
-#         대안 경로 부재 (developer writer=src/+10.followups 이므로 blue 편집 불가 / inspector writer=green only).
-#         잔존 [ ] 중 신규 carve 대상 여부:
-#           - FR-07 (blue 상호참조) → **carve 불가 범주** (writer 매트릭스상 수행 가능 에이전트 부재). 운영자 수동 개입 또는 rules 정비 필요 — 본 사이클은 stale=1 로 진척 지켜보기.
-#         → **신규 carve 0건**.
-#     - `common/error-reporter-channel.md` (HEAD hash=e72bd535.., stale 1):
-#         unchecked: **9** 건 잔존 (직전 11 에서 D1/D2 플립 — TSK-80/81 ack 반영).
-#           - §테스트 현황 D3–D7 (5건) / grep 게이트 수렴 (1건) / §수용 기준 FR-02 수렴 / FR-03 수렴 / FR-06 (blue 상호참조).
-#         WIP: 0. To-Be: 0. 변경 이력: 2 건 (최초 등록 + 2d76c6e reconcile ack TSK-80/81).
-#         → **미승격** (unchecked 9 > 0). D3 (TSK-82) 는 src 커밋 완 + inspector ack 미완. D4–D7 (TSK-83~86) developer 처리 대기. FR-06 은 a11y.md FR-07 과 동일 계층 (promote 단계 planner) — 별도 따로 논쟁 (단, common.md §에러 처리 절은 기존 존재).
-#         잔존 [ ] 중 신규 carve 대상 여부:
-#           - D3–D7 / grep 게이트 / FR-02/FR-03 수렴 → TSK-82~86 기발행 (중복 carve 금지).
-#           - FR-06 → a11y.md FR-07 과 동일 제약. carve 불가.
-#         → **신규 carve 0건**.
+#   각 green spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제; HEAD=5190466):
+#     - `common/a11y.md` (HEAD hash=e1d6de48.., stale 2):
+#         unchecked: **1** (§수용 기준 FR-07 L180 blue 상호참조).
+#         WIP: 0. To-Be: 0. 변경 이력: 박제 완료.
+#         → **미승격** (unchecked 1 > 0). FR-07 writer 매트릭스 경계 이슈 지속.
+#         → 신규 carve 0건.
+#     - `common/error-reporter-channel.md` (HEAD hash=2ac91c37.., stale 1 — e8287bd 로 hash 변경 리셋):
+#         unchecked: **7** (L193 D5 FileDrop.test, L194 D6 FileUpload.test, L195 D7 Comment.test, L196 grep 게이트 FR-02, L206 FR-02 수렴, L207 FR-03 수렴, L210 FR-06 blue 상호참조).
+#         WIP: 0. To-Be: 0. 변경 이력: 박제 완료.
+#         → **미승격** (unchecked 7 > 0). D5/D6/D7 (TSK-84/85/86) 수행중 / FR-06 writer 경계.
+#         → 신규 carve 0건 (TSK-84~86 기발행).
+#     - `foundation/coverage-determinism.md` (HEAD hash=47062dd8.., 최초 등록 stale=0):
+#         unchecked: **2** (§테스트 현황 L85 FR-01 반복실행 coverage JSON diff 0 / L86 FR-02 수단 택1 이상 적용). 둘 다 명시 `planner 수렴 task 대기`.
+#         WIP: 0. To-Be: 0. 변경 이력: 1건 (inspector 신설).
+#         → **미승격** (unchecked 2 > 0).
+#         잔존 [ ] 중 신규 carve 대상 분석:
+#           - FR-02 수단 택1 이상 적용 은 FR-05 (수단 중립성) 강제 — planner 가 (a~f) 중 하나 독단 선택 불가.
+#           - spec §변경 이력 본문의 "flake 원인 진단 task (env stub 타이밍 / MSW handler swap / async cleanup 3 가설 주범 식별) 은 별 task" 명시 carve 안내.
+#           → 1단계 carve 만 발행 (진단 전용). 수렴 task 는 진단 결과 후 후속 사이클에서 carve.
+#           → 신규 carve **1건**: TSK-20260421-87 (`coverage-run-variance-root-cause-diagnosis`).
+#             - 범위: `specs/10.followups/20260421-XXXX-coverage-variance-root-cause.md` 1개 생성 (src/** 편집 0).
+#             - 가설 1 (pool race) / 가설 2 (async microtask flush) / 가설 3 (shuffle/stub order) 별 N=7 재실행 비교.
+#             - DoD grep: followup 내 "권고|우선 적용|기본값|default" 0 hit (FR-05 중립성 보호).
+#             - 수렴 task 는 진단 결과 기반 별 carve.
 #
-#   carve 발생: **0 건**.
+#   carve 발생: **1건** (TSK-20260421-87).
 #
-#   grep dry-run: N/A (carve 0 — 실행 대상 없음).
+#   grep dry-run (TSK-87 스코프 규칙 baseline 실측, HEAD=5190466):
+#     - thresholds: 1/1 match (`vite.config.js:82`)
+#     - "test" script: 1/1 match (`package.json:21`)
+#     - pre-push npm test: 1/1 match (`.husky/pre-push:4`)
+#     - setupFiles: 1/1 match (`vite.config.js:69`)
+#     - vi.spyOn(console: 50/50 match
+#     - server.use|server.resetHandlers: 7/7 match in 2 files (File.test.jsx 4, ImageSelector.test.jsx 3)
+#     - await Promise.resolve(): 1/1 match (`src/Log/hooks/useLog.test.js:41`)
+#     → **grep dry-run: 7/7 match** (전 baseline 일치, drift 없음).
 #
 #   승격 mv: **0건**.
-#   blocked mv: **0건** (stale 1 — 3 임계치 미도달; a11y.md 는 inspector reconcile 로 HEAD 변경, erc.md 는 TSK-80/81 ack 로 HEAD 변경, 둘 다 진척 정상).
+#   blocked mv: **0건** (a11y stale=2 / erc stale=1 / coverage-det stale=0, 전부 3 임계치 미도달).
 #
-#   RULE-04/RULE-06 점검:
-#     - 본 세션 신규 task 발행 0 → grep 게이트·스코프 규칙 점검 대상 없음.
-#   RULE-07 정합:
-#     - 본 세션 spec 콘텐츠 수정 0 (ledger 주석만). 정합성 유지.
+#   RULE-06 점검 (TSK-87 발행 검증):
+#     - TSK-87 `## 검증/DoD` 에 grep 게이트 1건 (followup 내 "권고|우선 적용|기본값|default" 0 hit) → `## 스코프 규칙` 섹션 **포함** (expansion: 불허 + baseline 7 gate + rationale).
+#     - expansion: 불허 — src/**/vite.config.js/package.json/.husky/**/.github/** 편집 금지 (FR-05 중립성 + RULE-07 정합).
+#   RULE-07 점검 (TSK-87 성격):
+#     - TSK-87 은 **진단 task** (spec 박제된 "flake 원인 진단 task 는 별 task" 지시에 따른 carve). spec 본문 편집 없음. RULE-07 의 spec 불변식 한정 원칙 유지.
 #   RULE-01:
-#     - 본 세션 변경: `30.spec/green/.planner-seen` 만 (ledger 주석 갱신).
-#     - writer 경계 준수: planner 는 `40.task/` create + `30.spec/green/.planner-seen` 갱신만. working tree 는 clean.
+#     - 본 세션 변경: `specs/40.task/TSK-20260421-87-...md` 신설 + `30.spec/green/.planner-seen` 갱신 (둘 다 planner create 허용).
 #   RULE-02:
-#     - 본 세션 변경 영역 = `specs/30.spec/green/.planner-seen` (1 파일).
-#     - staged 자기 영역 밖 없음 — unstage 작업 없음.
-#     - 커밋 scope = `spec(planner):` (ledger 갱신 no-op 사이클).
+#     - 본 세션 변경 영역 = `specs/40.task/TSK-20260421-87-...md` + `specs/30.spec/green/.planner-seen`.
+#     - staged 자기 영역 밖 없음 — unstage 불요.
+#     - 커밋 scope = `task(planner):` (신규 carve 1건).
 #
-#   **운영 관찰 (FR-07/FR-06 블로커 경고)**:
-#     a11y.md L180 / erc.md L208 의 "blue 승격 시 상호참조 추가 — promote 단계 (planner 영역)" 조항은 현행 RULE-01 writer 매트릭스 하에서 수행 경로가 부재:
-#       - planner: `30.spec/blue/**` mv only (content edit 권한 없음)
-#       - developer: `src/` + `10.followups/` only
-#       - inspector: `30.spec/green/**` only
-#     "promote 단계 planner 영역" 문구는 spec 작성자 의도이나 RULE-01 을 엄격 해석하면 planner 가 blue 파일 내용 편집 권한 없음. 이 규칙 간극이 해소되기 전까지 두 spec 모두 영구 미승격 후보.
-#     운영자 판단 경로 (RULE-05):
-#       (a) rules/RULE-01 에 "planner 가 promote mv 수반 blue 상호참조 편집 허용" 조항 추가 → 이후 planner 가 승격 + blue 편집 원자 커밋.
-#       (b) inspector 가 FR-07/FR-06 을 `[deferred]` 로 플립 (Should 등급인 점 근거) → 4조건 충족 → 일반 승격.
-#       (c) FR-07/FR-06 본문을 "승격 후 별도 운영자 편집" 으로 재정의 → inspector 가 spec 본문 수정.
-#     본 planner 사이클은 어떤 경로도 독단 선택 불가 (비대화 원칙 RULE-02) — 관찰 보고만 박제. 30th 사이클 이후 stale 증가 추이 감시.
+#   **운영 관찰**:
+#     - FR-07 (a11y.md) / FR-06 (erc.md) blue 상호참조 blocker 는 writer 매트릭스 경계로 지속 (29th 박제 동일). 운영자 개입 대기.
+#     - FR-05 (coverage-det.md) 수단 중립성은 **2단계 carve** (진단 → 수렴) 로 보호. TSK-87 완결 후 discovery 가 followup 을 req 로 승격하면 다음 planner cycle 이 수렴 task carve.
 #
 # ledger entries (잔존 green):
-# common/a11y.md  e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a  1  # 29th cycle — HEAD hash 변경 (7554a46 inspector TSK-78/79 ack). stale 2→1. 잔존 unchecked 1 건 = FR-07 (writer 매트릭스 경계로 수행 경로 부재; 운영자 개입 대기).
-# common/error-reporter-channel.md  e72bd535c80d644af7ea506526461af10903918f3395da9650c9db44daefddf1  1  # 29th cycle — HEAD hash 변경 (2d76c6e inspector TSK-80/81 ack). stale 2→1. 잔존 unchecked 9 건: D3–D7 + grep 게이트 + FR-02/03 수렴 + FR-06 (TSK-82~86 dev 대기 + FR-06 은 FR-07 동일 제약).
+# common/a11y.md  e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a  2  # 30th cycle — HEAD hash 불변 (D3/D4 커밋 + inspector ack 모두 a11y 미편집). stale 1→2. 잔존 unchecked 1 건 = FR-07 (writer 매트릭스 경계, 운영자 개입 대기).
+# common/error-reporter-channel.md  2ac91c378f1fd1008ef433d2fba4de10189eb14fe103434441f260ec0aa785c1  1  # 30th cycle — HEAD hash 변경 (e8287bd inspector Phase 1 ack TSK-82/83 로 D3/D4 [x] 플립). stale 1→0 리셋→1. 잔존 unchecked 7 건 (D5-D7 + grep 게이트 FR-02 + FR-02/03 수렴 + FR-06 blue 상호참조). TSK-82/83 완결, TSK-84~86 ready.
+# foundation/coverage-determinism.md  47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6  0  # 30th cycle — 최초 등록 (e8287bd inspector Phase 3 REQ-041 흡수 택 β). unchecked 2 건 (§테스트 현황 FR-01 반복실행 0 lines / FR-02 수단 택1 이상). TSK-87 carve (진단 전용, FR-05 중립성 보호). 수렴 task 는 진단 결과 후 후속 carve.
 #
 # promoted (→ 30.spec/blue/):
 # - (없음)
@@ -88,13 +101,15 @@
 # blocked (→ 50.blocked/spec/):
 # - (없음)
 #
-# ready 큐: count=4 (TSK-83/84/85/86), TASK_READY_MAX=10 여유 6.
-# next cycle (30th+):
-#   - **developer (15m)**: TSK-82 result.md 기록 + mv `40.task/TSK-82-... → 60.done/task/<slug>/` 완결. TSK-83~86 병렬 실행 가능 (각자 독립 파일).
+# ready 큐: count=4 (TSK-84/85/86 + TSK-87), TASK_READY_MAX=10 여유 6.
+# next cycle (31st+):
+#   - **developer (15m)**: TSK-84 D5 FileDrop working tree 진행중. TSK-85/86 순차. TSK-87 진단 독립 병렬 가능 (src/** 편집 0 — 임시 편집 후 원복 절차).
 #   - **inspector (30m)**:
-#       (a) TSK-82 완결 시 Phase 1 reconcile ack → erc.md §drift 표 D3 취소선 + §테스트 현황 D3 `[x]` + §스코프 규칙 grep-baseline (a)(b) 갱신.
-#       (b) TSK-83~86 순차 ack.
-#       (c) D1–D7 전원 완결 + grep 게이트 0 hit 시 §수용 기준 FR-02/03 수렴 `[x]` 플립.
-#   - **planner (30th+)**:
-#       (i) a11y.md / erc.md 모두 FR-07/FR-06 unchecked 잔존이 blocker — 운영자 개입 (규칙 정비 or inspector 재조정) 없이는 승격 불가. stale 진척 기록만 수행.
-#       (ii) stale=3 도달 시 blocked 검토 고려 — 본 사이클은 진척 정상으로 보류.
+#       (a) TSK-84~86 순차 Phase 1 reconcile ack.
+#       (b) D1–D7 전원 완결 + grep 게이트 0 hit 수렴 시 erc.md §수용 기준 FR-02/03 수렴 `[x]` 플립.
+#       (c) TSK-87 완결 시 followup 기반으로 coverage-determinism.md §테스트 현황 주범 관측 기록 (FR-05 중립성 유지).
+#   - **discovery (1h)**: TSK-87 산출 followup 을 req 로 승격 또는 close 판정.
+#   - **planner (31st+)**:
+#       (i) a11y.md / erc.md FR-07/FR-06 는 운영자 개입 없이 승격 불가 — stale 누적 관찰.
+#       (ii) coverage-determinism.md 는 TSK-87 followup 소비 req 발행 시 수렴 task carve 진입.
+#       (iii) stale=3 도달 시 blocked 검토.
