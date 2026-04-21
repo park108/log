@@ -60,24 +60,24 @@
 - [x] B1 (TSK-20260421-52) 반증 박제 — seed=1 FAIL 재현, followup `20260420-2224-logitem-delete-mutation-cold-start-layer2.md` 참조.
 - [x] B3 1차 (TSK-20260421-53) 반증 박제 — followup `20260421-0125-tsk-53-msw-listen-beforeall-promotion-from-blocked.md`.
 - [x] B3 2차 (TSK-20260421-53 재발행) 반증 박제 — followup `20260421-0201-tsk-53-msw-listen-beforeall-layer2-b3-from-blocked.md`.
-- [ ] FR-01 4 시점 타임라인 수치 박제.
-- [ ] FR-02 root cause 1~2개 지목 + 배제 근거 박제.
-- [ ] FR-03 §FR-13 fallback 재평가 결과 박제 (재추천 후보 또는 신규 B6).
-- [ ] FR-04 계측 제거 후 최종 diff runtime functional 수정 0 확인.
-- [ ] FR-05 후속 task 의 `supersedes:` 메타 + 원본 spec marker-sync 지침 반영.
-- [ ] NFR-02 `npm test -- --run` 및 shuffle 3-seed baseline 대비 회귀 0.
+- [x] FR-01 4 시점 타임라인 수치 박제. (TSK-20260421-57 / result.md §4시점 타임라인 — seed=1 3회 + seed=2 참조)
+- [x] FR-02 root cause 1~2개 지목 + 배제 근거 박제. (TSK-20260421-57 / result.md §Root cause 판정 — 주 (d) React 19 × mutate-options observer 의존성, 부 (a), 배제 (b)(c)(e))
+- [x] FR-03 §FR-13 fallback 재평가 결과 박제 (재추천 후보 또는 신규 B6). (TSK-20260421-57 / result.md §FR-13 fallback 재평가 — B1'→B2→B4→B5→B6)
+- [x] FR-04 계측 제거 후 최종 diff runtime functional 수정 0 확인. (TSK-20260421-57; HEAD=afce2b9 재검증: `grep -rn "performance.mark" src/Log src/Toaster src/test-utils/msw.js` → 0 hits, `git diff c4bd6ac..HEAD -- src` → 0 bytes, `grep -rn "await Promise\\.resolve" src/Log/hooks/useDeleteLog.js` → 0 hits)
+- [x] FR-05 후속 task 의 `supersedes:` 메타 + 원본 spec marker-sync 지침 반영. (TSK-20260421-57 / result.md §관련 `supersedes: TSK-49/52/53` + §후속 1~3 + followup `specs/10.followups/20260421-1230-layer2-rediag-spec-marker-sync.md`)
+- [x] NFR-02 `npm test -- --run` 및 shuffle 3-seed baseline 대비 회귀 0. (TSK-20260421-57 / result.md §테스트 결과 — 47 files / 375 tests pass, shuffle seed=1 FAIL 은 baseline 동일 재현 전용, seed=2/3 11 pass)
 
 ## 수용 기준
-- [ ] (Must) FR-01 — seed=1 단독 실행에서 4 시점 (Toaster mount / mutation onError / setToasterMessage / DOM 삽입) 타임라인이 수치로 spec §관측 또는 result.md 에 박제됨.
-- [ ] (Must) FR-02 — 후보 (a)~(e) 차감 분석 결과 1~2 root cause 지목 + 배제 근거 각 1문장 박제.
-- [ ] (Must) FR-03 — 원본 `test-isolation-shuffle-safety-cold-start-spec.md` §FR-13 fallback 순서 재평가 결과 (재추천 후보 / 신규 B6) 박제.
-- [ ] (Must) FR-04 — 최종 diff 에 계측 코드 0건 (`console.log` 임시 추가분 전량 제거), runtime 소스 functional 수정 0.
-- [ ] (Should) FR-05 — 후속 task 에 `supersedes: REQ-20260421-012` 또는 `related:` 메타 기록. 원본 spec marker-sync 는 inspector 재carve 시점 수행.
-- [ ] (Could) FR-06 — TSK-53 부작용 (sibling-it race 상호작용) 관찰 시 별건 followup 분리.
-- [ ] (NFR-01) 재진단 관측 결과가 수치로 박제되어 후속 개발자가 재현 조건 없이 판정 근거 확인 가능.
-- [ ] (NFR-02) `npm test -- --run` 및 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` baseline (TSK-55 머지 상태 = e1a9bef) 대비 회귀 0.
-- [ ] (NFR-03) 최종 변경 파일 ≤ 2 (테스트 파일 또는 spec). runtime 소스 수정 0.
-- [ ] (NFR-04) 본 spec 채택 계측은 모두 commit 단위 revert 가능. 계측 전용 utility 추가 시 재진단 완료 후 제거.
+- [x] (Must) FR-01 — seed=1 단독 실행에서 4 시점 (Toaster mount / mutation onError / setToasterMessage / DOM 삽입) 타임라인이 수치로 spec §관측 또는 result.md 에 박제됨. (TSK-20260421-57 / result.md §4시점 타임라인)
+- [x] (Must) FR-02 — 후보 (a)~(e) 차감 분석 결과 1~2 root cause 지목 + 배제 근거 각 1문장 박제. (TSK-20260421-57 / result.md §Root cause 판정)
+- [x] (Must) FR-03 — 원본 `test-isolation-shuffle-safety-cold-start-spec.md` §FR-13 fallback 순서 재평가 결과 (재추천 후보 / 신규 B6) 박제. (TSK-20260421-57 / result.md §FR-13 fallback 재평가 — B1'→B2→B4→B5→B6; 원본 spec 반영은 `50.blocked/spec/` 격리 상태, 해제는 RULE-05 경로)
+- [x] (Must) FR-04 — 최종 diff 에 계측 코드 0건 (`console.log` 임시 추가분 전량 제거), runtime 소스 functional 수정 0. (TSK-20260421-57; HEAD=afce2b9 grep 재검증 PASS)
+- [x] (Should) FR-05 — 후속 task 에 `supersedes: REQ-20260421-012` 또는 `related:` 메타 기록. 원본 spec marker-sync 는 inspector 재carve 시점 수행. (TSK-20260421-57 / result.md §관련 + followup `20260421-1230-...`)
+- [x] (Could) FR-06 — TSK-53 부작용 (sibling-it race 상호작용) 관찰 시 별건 followup 분리. (TSK-20260421-57 / result.md §후속 5 "본 재진단 중 관찰되지 않음, 별건 followup 불필요" 확정)
+- [x] (NFR-01) 재진단 관측 결과가 수치로 박제되어 후속 개발자가 재현 조건 없이 판정 근거 확인 가능. (TSK-20260421-57 / result.md §4시점 타임라인 + §계측 구성 — `performance.mark` 9종 재현 가능)
+- [x] (NFR-02) `npm test -- --run` 및 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` baseline (TSK-55 머지 상태 = e1a9bef) 대비 회귀 0. (TSK-20260421-57)
+- [x] (NFR-03) 최종 변경 파일 ≤ 2 (테스트 파일 또는 spec). runtime 소스 수정 0. (TSK-20260421-57 / result.md §변경 파일 — runtime/test diff 0, result.md + followup 2 파일은 writer 영역 분리)
+- [x] (NFR-04) 본 spec 채택 계측은 모두 commit 단위 revert 가능. 계측 전용 utility 추가 시 재진단 완료 후 제거. (TSK-20260421-57; HEAD 에 계측 잔존 0)
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -92,3 +92,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-012 layer2-cold-start-race-root-cause-rediagnosis 반영). B1/B3 반증 2회 후 root cause 관측·계측 주도 재탐색, 원본 `test-isolation-shuffle-safety-cold-start-spec.md` §FR-13 fallback (B2/B4/B5) 근거 기반 재확정. runtime functional 수정 0 강제, 해소 patch 는 별건 task carve. | all |
+| 2026-04-21 | TSK-20260421-57 / — (no src commit; diagnosis-only task, result.md + followup 박제) | **drift reconcile 16/16 ack** — Must FR-01~04 + Should FR-05 + Could FR-06 + NFR-01~04 전원 PASS. Root cause 확정: **React 19 concurrent scheduler first-in-file commit × TanStack Query v5 mutate-options side-channel observer 의존성** (주 (d)) + Toaster effect chain first-in-file 지연 (부 (a)). 배제: (b) polling / (c) fetch microtask / (e) pipeline onError delay. FR-13 재확정 fallback 순서: **B1' → B2 → B4 → B5 → B6 (신규)**. 계측 전량 제거 (`performance.mark` grep HEAD=afce2b9 0 hits), runtime/test functional diff 0. hook-ack: `npm run lint` 0 warn/error, `npm test -- --run` 47/375 pass, `npm run build` OK, shuffle seed=1 baseline 동일 재현(1 fail) / seed=2·3 11 pass. 원본 spec `test-isolation-shuffle-safety-cold-start-spec.md` marker-sync 는 해당 spec 이 `50.blocked/spec/` 에 격리된 상태 (afce2b9) — RULE-05 해제 경로로 위임, 본 spec 관할 밖. | 테스트 현황, 수용 기준, 변경 이력 |

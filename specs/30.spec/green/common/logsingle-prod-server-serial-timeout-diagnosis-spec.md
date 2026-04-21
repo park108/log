@@ -64,22 +64,22 @@
 - [x] 1회차 serial run 5006ms timeout 재현 박제 (followup `20260421-0212-log-single-prod-server-serial-timeout-flake.md`).
 - [x] 2회차 serial run 375/375 pass 박제 (동일 followup).
 - [x] shuffle seed=3 47 files / 375 tests pass 박제 (동일 followup).
-- [ ] FR-01 10회 serial run 실측 실패율/평균 duration 수치 박제.
-- [ ] FR-02 `mock.prodServerOk` resolve 경로 결정론성 판정 박제.
-- [ ] FR-03 1회차 vs 2회차 차이 상태 1~2개 원인 단서 박제.
-- [ ] FR-04 (조건부) 최소 침습 patch 적용 후 10회 serial 0 fail.
-- [ ] NFR-04 수정 후 `npm test -- --run` 47 files / 375 tests 0 fail, coverage 회귀 0.
+- [x] FR-01 10회 serial run 실측 실패율/평균 duration 수치 박제. (TSK-20260421-58 / result.md §테스트 결과 — baseline 10회 중 run 7 에서 1 fail 5089ms, pass duration 7.02~7.78s / fail 7.06s tests 10.92s, 재현률 10%)
+- [x] FR-02 `mock.prodServerOk` resolve 경로 결정론성 판정 박제. (TSK-20260421-58 / result.md — 지연 0, async chain 1, `await Promise.resolve(fixture)` 동등)
+- [x] FR-03 1회차 vs 2회차 차이 상태 1~2개 원인 단서 박제. (TSK-20260421-58 / result.md §DoD 점검 FR-03 — vitest testTimeout 5000ms 경계 + cold module/JIT warmup; QueryClient/sessionStorage/vi.mock cache 는 격리로 원인 아님)
+- [ ] FR-04 (조건부) 최소 침습 patch 적용 후 10회 serial 0 fail. **[deferred: TSK-20260421-58 3안 모두 실효 없음 확정 — (a) `sessionStorage.clear()` 이미 존재 / (b) `findByText` timeout 확장 1/10 동률 + `src/test-utils/timing.js:2-3` 주석 위배로 revert / (c) fakeTimers 전환은 이미 `findByText` resolve 이후. 운영자 경로 → followup `20260421-1238-logsingle-prod-server-serial-timeout-patch-infeasible.md`]**
+- [x] NFR-04 수정 후 `npm test -- --run` 47 files / 375 tests 0 fail, coverage 회귀 0. (TSK-20260421-58 / result.md §테스트 결과 — 47/375 pass 최종 기준 run, git tracked 변경 0)
 
 ## 수용 기준
-- [ ] (Must) FR-01 — `LogSingle.test.jsx:56` 10회 serial 실측 실패율 + 평균 duration 수치 박제.
-- [ ] (Must) FR-02 — `mock.prodServerOk` resolve latency + 결정론성 판정 박제 (`await Promise.resolve(fixture)` 여부).
-- [ ] (Must) FR-03 — 1회차 실패 · 2회차 성공 차이 원인 단서 1~2개 박제 (QueryClient / sessionStorage / vi.mock cache 중).
-- [ ] (Should) FR-04 — 원인 식별 시 테스트 측 최소 침습 patch 제안 (runtime 수정 0). 10회 serial 0 fail 달성.
-- [ ] (Should) FR-05 — FR-01 재현 실패 시 장비 부하 가설 채택, req + spec `50.blocked/` 격리, 사유 박제.
-- [ ] (NFR-01) FR-04 patch 적용 후 10회 연속 serial run 에서 `LogSingle.test.jsx:56` 0 fail.
-- [ ] (NFR-02) FR-01 10회 실측 수치 (pass/fail, duration 분포) spec / result.md 박제.
-- [ ] (NFR-03) 최종 변경 파일 ≤ 2. `src/Log/LogSingle.jsx` / `src/Log/hooks/**` runtime 수정 0.
-- [ ] (NFR-04) 수정 후 `npm test -- --run` 47 files / 375 tests 0 fail, coverage 회귀 0.
+- [x] (Must) FR-01 — `LogSingle.test.jsx:56` 10회 serial 실측 실패율 + 평균 duration 수치 박제. (TSK-20260421-58 / result.md)
+- [x] (Must) FR-02 — `mock.prodServerOk` resolve latency + 결정론성 판정 박제 (`await Promise.resolve(fixture)` 여부). (TSK-20260421-58 — handler 결정론적, 지연 0, chain 1)
+- [x] (Must) FR-03 — 1회차 실패 · 2회차 성공 차이 원인 단서 1~2개 박제 (QueryClient / sessionStorage / vi.mock cache 중). (TSK-20260421-58 — 원인: vitest testTimeout 5000ms 경계 + cold warmup. 열거 후보는 모두 격리로 배제, 구조적 환경 요인으로 재정의)
+- [ ] (Should) FR-04 — 원인 식별 시 테스트 측 최소 침습 patch 제안 (runtime 수정 0). 10회 serial 0 fail 달성. **[deferred: TSK-20260421-58 3안 (a/b/c) 실증 미채택, `timing.js:2-3` 주석 위배 + 1/10 동률. 운영자 경로 (it-scoped timeout override 또는 runtime 최적화) 는 followup `20260421-1238` 경로]**
+- [ ] (Should) FR-05 — FR-01 재현 실패 시 장비 부하 가설 채택, req + spec `50.blocked/` 격리, 사유 박제. **[deferred: 조건 미발동 — FR-01 10회 실측에서 1/10 재현 성공, 재현 실패 아님. 장비 부하 가설은 10% 재현률의 낮음을 근거로 TSK-58 result.md §후속 에서 강화 기술되었으나, `blocked/` 격리 조건은 미충족]**
+- [ ] (NFR-01) FR-04 patch 적용 후 10회 연속 serial run 에서 `LogSingle.test.jsx:56` 0 fail. **[deferred: FR-04 patch 미채택 → 선결 조건 미성립]**
+- [x] (NFR-02) FR-01 10회 실측 수치 (pass/fail, duration 분포) spec / result.md 박제. (TSK-20260421-58)
+- [x] (NFR-03) 최종 변경 파일 ≤ 2. `src/Log/LogSingle.jsx` / `src/Log/hooks/**` runtime 수정 0. (TSK-20260421-58 — git tracked 변경 0, 모든 runtime/test/api.mock diff 0)
+- [x] (NFR-04) 수정 후 `npm test -- --run` 47 files / 375 tests 0 fail, coverage 회귀 0. (TSK-20260421-58)
 
 ## 스코프 규칙
 - **expansion**: 불허
@@ -95,3 +95,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — | 최초 등록 (REQ-20260421-014 logsingle-prod-server-serial-timeout-diagnosis 반영). `LogSingle.test.jsx:56` 1회차 serial timeout flake 관측·결정론화, runtime 수정 0 강제, testTimeout 상향 금지. FR-05 블록 경로 명시 (장비 부하 가설). | all |
+| 2026-04-21 | TSK-20260421-58 / — (no src commit; diagnosis-only task, result.md + followup 박제) | **drift reconcile 10/14 ack + 4 deferred** — Must FR-01~03 PASS (10회 실측 1/10 재현, prodServerOk 결정론성, testTimeout 5000ms × cold warmup 원인), NFR-02/03/04 PASS (실측 수치 박제, git tracked 변경 0, 47/375 pass). Should FR-04 deferred — 3안 (a/b/c) 실증 미채택 (b 는 `timing.js:2-3` 주석 위배 + 1/10 동률로 revert). Should FR-05 deferred — 조건 "재현 실패" 미발동 (1/10 재현 성공). NFR-01 deferred — FR-04 선결 조건 미성립. 운영자 경로 (it-scoped timeout override / 장비 부하 재측정 / runtime 최적화) 는 followup `specs/10.followups/20260421-1238-logsingle-prod-server-serial-timeout-patch-infeasible.md` 로 위임. hook-ack: `npm run lint` 0 warn/error, `npm test -- --run` 47 files / 375 tests pass 최종 기준, `npm run build` OK. | 테스트 현황, 수용 기준, 변경 이력 |
