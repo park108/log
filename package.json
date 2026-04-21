@@ -22,7 +22,7 @@
     "test:watch": "vitest",
     "lint": "eslint ./src",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "browserslist": {
     "production": [
@@ -52,7 +52,7 @@
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.5.0",
     "history": "^5.3.0",
-    "husky": "^8.0.1",
+    "husky": "^9.0.0",
     "jsdom": "^29.0.2",
     "lint-staged": "^16.4.0",
     "msw": "^2.13.4",
