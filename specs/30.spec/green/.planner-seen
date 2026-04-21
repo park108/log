@@ -1,113 +1,88 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (23rd cycle) — 1 promotion + 2 carves + 0 blocked.
+# Updated: 2026-04-21T (24th cycle) — 1 promotion + 0 carves + 0 blocked.
 # Session summary:
-#   HEAD=3eca50e (`spec(inspector): Phase 1 reconcile 1/1 ack (TSK-73 console spy nondestructive migration)`).
-#   본 세션 입력 (green): 4 spec files —
-#     (1) `common/a11y.md` (hash=2830b440..; 이전 171caada.. → 변경됨 — inspector TSK-72 M7/M8 ack 반영 버전).
-#         unchecked=10 (§drift 표 M4 잔존, §테스트 현황 3건 [ ] (LogItemInfo.test row — M4 대기, M5 실측, M10 결정, audit), §수용 기준 5건 [ ] (FR-02/03/05/06/07/08)).
-#     (2) `common/test-idioms.md` (hash=50eb6310.. @본 승격 직전; 본 세션에서 blue 로 승격 완료).
-#         unchecked=0 / WIP=0 / To-Be=0 / 변경 이력 TSK-73 @7e6cdea 박제 → 4조건 통과, **promote O**.
-#     (3) `components/common.md` (hash=dba93002.. 신규 — 이전 ledger 부재, stale=0 시작).
-#         unchecked=5 (§테스트 현황 2건 [ ] (isAdmin matrix / group claim 부재), §수용 기준 3건 [ ] (FR-03 env 완전 제거 / FR-08 describe 교체 / FR-09 .env.example 4행 제거)), WIP=0, To-Be=0, 변경 이력 REQ-038 흡수 @0f03547 박제.
-#         → 미승격 — REQ-038 migration 구현 task 미발행. 본 세션에서 carve 발행 (TSK-74).
-#     (4) `foundation/regression-gate.md` (hash=005052a5.. 신규, stale=0 시작).
-#         unchecked=2 (§테스트 현황 FR-01 typecheck / FR-02 coverage threshold), WIP=0, To-Be=0, 변경 이력 REQ-037 최초 등록 @0f03547 박제.
-#         → 미승격 — REQ-037 실현 task 미발행. 본 세션에서 carve 발행 (TSK-75).
+#   HEAD=08bfe52 (`feat: isAdmin() cognito:groups 이관 + env 경로 제거 + test describe 교체`).
+#   본 세션 입력 (green): 3 spec files —
+#     (1) `common/a11y.md` (hash=2830b440.. 동일; 이전 23rd cycle 과 동일 내용 — inspector M4/M5/M10/audit 미편집).
+#         unchecked 정합: §테스트 현황 3건 [ ] (L155 LogItemInfo M4 row, L159 M5 실측, L160 M10 결정, L161 audit), §수용 기준 5건 [ ] (FR-02/03/05/06/07/08) 잔존.
+#     (2) `components/common.md` (hash=0fd6bc7b..; 이전 dba93002.. → 변경 — inspector 가 TSK-20260421-74 @08bfe52 Phase 1 ack 반영 편집함).
+#         unchecked=0 / WIP=0 / To-Be=0 / 변경 이력 TSK-20260421-74 @08bfe52 박제 → 4조건 통과, **promote O**.
+#     (3) `foundation/regression-gate.md` (hash=005052a5.. 동일; 이전 23rd cycle 과 동일 내용 — TSK-20260421-75 developer 실현 + inspector ack 미도착).
+#         unchecked=2 (§테스트 현황 FR-01 typecheck / FR-02 coverage thresholds) 잔존.
 #
 #   RULE-03 선결 점검:
 #     (1) pause lock 없음 (`.claude/locks/` 부재).
 #     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
-#     (3) 입력 큐: 4 green spec files.
-#     (4) 하류 임계치: `40.task/` = 0 → 본 세션 +2 = 2, 여유 8 (OK).
+#     (3) 입력 큐: 3 green spec files.
+#     (4) 하류 임계치: `40.task/` = 1 (TSK-75 잔존) → 본 세션 +0 = 1, 여유 9 (OK).
 #     (5) 처리 진입.
 #
-#   세션 시작 시 git 상태 점검 (RULE-02): working tree clean (직전 inspector 세션 @3eca50e 커밋 완료). 자기 영역 밖 staged 0. reset 불필요.
+#   세션 시작 시 git 상태 점검 (RULE-02):
+#     working tree 에 모두 타 에이전트 writer 영역:
+#       - `.github/workflows/ci.yml` (modified, developer 영역, TSK-75 진행 중 가설)
+#       - `vite.config.js` (modified, developer 영역, TSK-75 진행 중 가설)
+#       - `specs/30.spec/green/components/common.md` (modified, inspector 영역)
+#     staged 0 항목 → unstage 불요. planner 는 위 3 파일에 손대지 않으며 본 세션 자기 영역 변경만 단일 커밋.
+#     세션 시작 HEAD=08bfe52, 본 세션 동안 다른 에이전트 커밋 유입 가능성 — 커밋 직전 재점검 원칙 유지.
 #
 #   각 spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제):
-#     - `common/a11y.md` (hash=2830b440..., stale=0 재시작 — 이전 171caada 와 diff 존재):
-#         unchecked=10 (M4 row + §테스트 현황 3 + §수용 기준 5; M7/M8 ack 플립 @1414eae 반영으로 [x] 플립 확인되나 M4/M5/M10/audit 잔존),
+#     - `common/a11y.md` (hash=2830b440..., stale 0 → **1**):
+#         unchecked=10 (LogItemInfo row M4 L155 + M5 L159 + M10 L160 + audit L161 + §수용 기준 5건 L167-172),
 #         WIP=0, To-Be=0,
-#         변경 이력 = 최초(`75498693`) + M9 ack(`28bbf26`) + M1/M2/M3/M6 ack(`0f03547`) + M7/M8 ack(`1414eae`) 4행 ✓
-#         → **미승격**. 본 세션 carve 유보 — M4 (versions-button, hover-popup triggerProps 실측) / M5 (Edit Link 실측) / M10 (img listitem 결정 α/β) / audit (간단형 vs AST형 결정) 4 분기가 결정 분기 또는 실측 선행 — 복합 판단 task 로 현 사이클 원자성 유지 차원 TSK-74/75 2건만 carve. 다음 사이클 또는 inspector 추가 실측 편집 후 재평가.
-#     - `common/test-idioms.md` (hash=50eb6310..., stale=0 → 승격):
+#         변경 이력 4행 박제 ✓
+#         → **미승격**. M4/M5/M10/audit 4 분기 결정·실측 선행 필요 (inspector writer 영역). planner 단독 carve 부적절.
+#         stale=1 유지 (2회 이상 정체 시 blocked 후보).
+#     - `components/common.md` (hash=0fd6bc7b..., stale 0 재시작 — inspector 편집):
 #         unchecked=0, WIP=0, To-Be=0,
-#         변경 이력 = REQ-021(`29d9da0`) + REQ-027/029 흡수 + REQ-036 흡수(`0f03547`) + TSK-73 ack(`7e6cdea` / REQ-036 FR-05) 4행 ✓
-#         → **승격 O**. mv `green/common/test-idioms.md` → `blue/common/test-idioms.md` 수행. 기존 blue/common/test-idioms.md 를 교체 (진화된 9 이디엄 버전).
-#     - `components/common.md` (hash=dba93002..., stale=0, 신규 등장):
-#         unchecked=5, → **미승격**. 본 세션에서 TSK-74 carve (REQ-038 isAdmin cognito:groups migration + env 경로 제거 + test describe 교체 + .env.example 4행 제거).
-#     - `foundation/regression-gate.md` (hash=005052a5..., stale=0, 신규 등장):
-#         unchecked=2, → **미승격**. 본 세션에서 TSK-75 carve (REQ-037 CI typecheck + Vitest coverage thresholds 4축).
+#         변경 이력 10행 박제 (최초 + REQ-022/025/032/038 흡수 + TSK-61/62/66/67/68/74 ack) ✓
+#         → **승격 O**. mv `green/components/common.md` → `blue/components/common.md` 수행 (기존 blue 교체).
+#         잔존 [~] 감사성 marker 3건 (구 REQ-022 FR-02/03 + REQ-032 FR-08 계약 교체 감사 기록) — 승격 판정 제외 (4조건은 `- [ ]` unchecked 한정, `[~]` 는 감사성).
+#     - `foundation/regression-gate.md` (hash=005052a5..., stale 0 → **1**):
+#         unchecked=2 (§테스트 현황 FR-01/FR-02 L54/L55 — TSK-20260421-75 실현 + inspector ack 대기),
+#         WIP=0, To-Be=0,
+#         변경 이력 1행 박제 ✓
+#         → **미승격**. TSK-75 는 40.task/ 잔존 상태이며 working tree 상 ci.yml/vite.config.js 수정 존재 (developer 진행 중 가설). 본 세션 종료 시점 커밋 미도착 → inspector ack 도착 후 재평가.
+#         stale=1 유지.
 #
-#   carve 발생: **2 건**.
-#     - TSK-20260421-74-isadmin-cognito-groups-migration.md:
-#         출처 spec: `30.spec/green/components/common.md` §admin gate 계약 (REQ-20260421-038 FR-01~04/08/09).
-#         범위: `src/common/common.js` isAdmin() 블록 재작성 + `src/common/common.test.js` 2 describe 교체 + `.env.example` 4행 제거.
-#         1 PR 크기 수용 근거: 단일 함수 재작성 + 대응 테스트 describe 교체 + 환경설정 정리 (3 파일, 원자 롤백 단위 `git revert <sha>`, 의존성 0).
-#         결정: FR-04 (α/β/γ) → (α) 리터럴 상수 택 (추가 env 키 방지 + 단순성 + .env.example 4행 제거 목표 정합).
-#         차기 inspector ack 경로: grep 게이트 9 종 (VITE_ADMIN_USER_ID src common.js 3→0 / common.test.js 12→0 / .env.example 2→0, cognito:groups common.js 0→1+ / common.test.js 0→7+, TODO 주석 1→0, const ADMIN_GROUP 0→1, 신 describe 2개 0→1/0→1) 통과 시 common.md green §테스트 현황 2건 [x] + §수용 기준 FR-03/08/09 [x] 플립.
-#     - TSK-20260421-75-ci-typecheck-and-coverage-threshold.md:
-#         출처 spec: `30.spec/green/foundation/regression-gate.md` §동작 FR-01/02.
-#         범위: `.github/workflows/ci.yml` Typecheck step 추가 + `vite.config.js` `test.coverage.thresholds` 4축 선언.
-#         1 PR 크기 수용 근거: 2 파일, 설정 축 단일, 테스트 소스 변경 0, 원자 롤백 단위, 의존성 0.
-#         차기 inspector ack 경로: grep 게이트 6 종 (typecheck/tsc ci.yml 0→1+, thresholds vite.config 0→1+, lines/statements/functions/branches 각 0→1+) 통과 시 regression-gate.md §테스트 현황 2건 [x] 플립.
+#   carve 발생: **0 건**.
+#     - a11y.md: M4/M5/M10/audit 결정 분기 및 실측 선행 필요 (inspector 편집 영역) — carve 유보.
+#     - regression-gate.md: TSK-75 이미 40.task/ 큐에 발행 상태 (23rd cycle carve). 중복 carve 금지. developer/inspector 완결 대기.
+#     - components/common.md: 승격 완료 — carve 불요.
 #
-#   Task ID 중복 검증: `grep -rn "TSK-20260421-74\|TSK-20260421-75" specs/{40.task,60.done,50.blocked}/` → 0 hit @planner 발행 직전 → 가용. 발행 후 2 hit (본 2 task) 예상.
+#   Task ID 중복 검증: 본 세션 신규 carve 0 건 → 중복 검증 대상 없음.
 #
-#   grep dry-run (본 2 task §스코프 규칙 grep-baseline 박제 수치 검증):
-#     TSK-74 @HEAD=3eca50e:
-#       (1) `grep -nE "VITE_ADMIN_USER_ID" src/common/common.js` → **3 hits** ✓ (task 박제 `3 hits in 1 file` 정합).
-#       (2) `grep -nE "cognito:groups" src/common/common.js` → **0 hits** ✓ (task 박제 `0 hits in 0 files` 정합).
-#       (3) `grep -n "VITE_ADMIN_USER_ID" .env.example` → **2 hits** ✓ (task 박제 `2 hits in 1 file` 정합).
-#       (4) `grep -n "TODO: change user id hard coding" src/common/common.js` → **1 hit** ✓.
-#       (5) `grep -nE "VITE_ADMIN_USER_ID" src/common/common.test.js` → **12 hits** ✓.
-#       (6) `grep -nE "describe\(['\"]isAdmin matrix \(REQ-20260421-017" src/common/common.test.js` → **1 hit** ✓.
-#       (7) `grep -nE "describe\(['\"]isAdmin\(\) env 미주입 안전 기본값" src/common/common.test.js` → **1 hit** ✓.
-#     TSK-75 @HEAD=3eca50e:
-#       (1) `grep -nE "typecheck|tsc --noEmit" .github/workflows/ci.yml` → **0 hits** ✓.
-#       (2) `grep -nE "thresholds\s*:" vite.config.js` → **0 hits** ✓.
-#       (3) `grep -nE "coverage\s*:\s*\{" vite.config.js` → **1 hit** ✓.
-#       (4) `grep -nE "lines\s*:|statements\s*:|functions\s*:|branches\s*:" vite.config.js` → **0 hits** ✓.
-#       (5) `grep -n '"typecheck":' package.json` → **1 hit** ✓.
-#     총 12/12 gate 정합.
+#   grep dry-run: 본 세션 신규 task 0 건 → grep dry-run 대상 없음. (이전 23rd cycle TSK-74/75 gate 는 각 task 의 §스코프 규칙에 이미 박제; TSK-74 는 @08bfe52 ack 완료로 gate 수렴 확인.)
 #
-#   승격 mv: **1건** — `30.spec/green/common/test-idioms.md` → `30.spec/blue/common/test-idioms.md`.
+#   승격 mv: **1건** — `30.spec/green/components/common.md` → `30.spec/blue/components/common.md` (기존 blue 교체).
 #   blocked mv: **0건**.
 #
-#   RULE-04/RULE-06 점검:
-#     - TSK-74 §검증/DoD 에 grep 게이트 9+ 건 박제 → §스코프 규칙 섹션 포함 (expansion=불허, grep-baseline 실측, rationale 2줄).
-#     - TSK-75 §검증/DoD 에 grep 게이트 6+ 건 박제 → §스코프 규칙 섹션 포함 (expansion=불허, grep-baseline 실측, rationale 2줄).
-#     - grep dry-run = 12/12 match (RULE-04 notes 박제).
+#   RULE-04/RULE-06 점검: 본 세션 신규 task 발행 0 → grep 게이트 검증 대상 없음.
 #   RULE-07 정합:
-#     - test-idioms.md 승격 — 9 이디엄 계약 평서형 선언 유지, 시점 비의존. blue/common/test-idioms.md 교체 (이전 8 이디엄 → 9 이디엄 진화 반영).
-#     - a11y.md 잔존 — §drift 표 enumeration 은 baseline 시점 현상 기록이며 정상화 진척도 측정 기준. RULE-07 양성.
-#     - components/common.md 잔존 — § admin gate 계약 매트릭스·불변식·안전 기본값·env 경로 제거는 모두 평서형 불변식. 1회성 patch 배제.
-#     - regression-gate.md 잔존 — 2 불변식 (CI typecheck step 포함 / Vitest coverage thresholds 4축 선언) 평서형, 구체 수치 박제 없음.
+#     - components/common.md 승격 — § admin gate 계약 (cognito:groups 매트릭스 + 4 불변식 + 운영 전제) + § auth() 쿠키 속성 계약 + § 환경 분기 계약 은 모두 평서형 시스템 불변식, 시점 비의존, 반복 검증 가능. RULE-07 양성. blue/components/common.md 교체 (REQ-022/025/032 흡수 버전 → REQ-022/025/032/038 흡수 + TSK-74 ack 버전).
+#     - a11y.md 잔존 — §drift 정상화 표 + §예외 (M5/M10) enumeration + §스코프 규칙 baseline 실측 은 baseline 시점 현상 기록이나 정상화 진척도 측정 기준. RULE-07 양성.
+#     - regression-gate.md 잔존 — 2 불변식 (CI typecheck step 포함 / Vitest coverage thresholds 4축 선언) 평서형, 구체 수치 박제 없음. RULE-07 양성.
 #
 # ledger entries (잔존 green):
-# common/a11y.md  2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c  0  # 23rd cycle — inspector M7/M8 ack (@1414eae) 반영 버전. M4/M5/M10/audit 결정 분기 및 실측 선행 task 미carve — 차기 사이클 또는 inspector 추가 편집 후 재평가.
-# components/common.md  dba93002a64d7075da63e3cbbf50288e6fe46791b095cc751559a44d4d153549  0  # 23rd cycle — REQ-038 흡수 버전 (isAdmin cognito:groups 계약 교체). unchecked 5건 잔존 → TSK-74 carve 발행 완료. developer 실현 + inspector ack 후 승격 가능 (차기 24th+ cycle).
-# foundation/regression-gate.md  005052a52faebceebce1a99b79ff15bec7b151693e840e2146af1541e1937a42  0  # 23rd cycle — REQ-037 최초 등록 버전. unchecked 2건 잔존 → TSK-75 carve 발행 완료. developer 실현 + inspector ack 후 승격 가능.
+# common/a11y.md  2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c  1  # 24th cycle — 동일 hash 반복 (M4/M5/M10/audit inspector 편집 미진입). stale=1. 다음 사이클에도 동일 hash 유지 시 stale=2 진입 → 50.blocked/spec/ 후보 (RULE-01/05 경로).
+# foundation/regression-gate.md  005052a52faebceebce1a99b79ff15bec7b151693e840e2146af1541e1937a42  1  # 24th cycle — 동일 hash 반복 (TSK-75 developer 실현 + inspector ack 미도착). stale=1. 다음 사이클에도 동일 hash 유지 시 stale=2 진입 → 50.blocked/spec/ 후보.
 #
 # promoted (→ 30.spec/blue/):
-# - common/test-idioms.md (hash=50eb6310..., TSK-73 ack @7e6cdea 반영 버전; 9 이디엄 진화로 기존 blue (8 이디엄) 교체).
+# - components/common.md (hash=0fd6bc7b93550f80bcc220f28af5416a278498390d7f7561d0a7a562c3e92462; TSK-74 @08bfe52 Phase 1 ack 반영 버전 — 기존 blue (REQ-032 FR-01/03/04/06/07 버전) 교체).
 #
 # blocked (→ 50.blocked/spec/):
 # - (없음)
 #
-# ready 큐 (본 사이클 +2): count=2 (TSK-74, TSK-75), TASK_READY_MAX=10 여유 8.
-# next cycle (24th+):
-#   - **developer (15m)**: TSK-74/75 실현 (독립 PR 2건). TSK-74 = `src/common/common.js` isAdmin() 재작성 + `src/common/common.test.js` 2 describe 교체 + `.env.example` 4행 제거. TSK-75 = `.github/workflows/ci.yml` Typecheck step + `vite.config.js` `thresholds` 4축. 각 `npm run lint/test/build/typecheck` 통과 + grep 게이트 통과.
+# ready 큐: count=1 (TSK-75 잔존), TASK_READY_MAX=10 여유 9.
+# next cycle (25th+):
+#   - **developer (15m)**: TSK-75 완결 (working tree 의 ci.yml + vite.config.js 변경을 `feat: CI typecheck + coverage thresholds` 커밋 + push + result.md 작성 + task mv to 60.done).
 #   - **inspector (30m)**:
-#       (a) TSK-74 ack → `components/common.md` green §테스트 현황 2건 [ ] → [x] + §수용 기준 FR-03/08/09 [ ] → [x]. §스코프 규칙 grep-baseline (b-1)/(b-2) 수치 갱신 (0/3 → 1+/0).
-#       (b) TSK-75 ack → `foundation/regression-gate.md` green §테스트 현황 FR-01/02 [ ] → [x]. §스코프 규칙 grep-baseline (a)(c) 수치 갱신 (0/0 → 1+/1+).
-#       (c) a11y.md 추가 편집 (M4 실측 반영 / M5 귀결 / M10 결정 / audit 결정) 시 marker 플립.
-#   - **planner (24th+)**:
-#       (i) components/common.md 4조건 전원 충족 시 **승격 O** (단, a11y.md FR-07 blue 상호참조 갱신은 a11y 완결 후 별 promote 사이클).
-#       (ii) regression-gate.md 4조건 전원 충족 시 **승격 O**.
-#       (iii) a11y.md 의 M4/M5/M10/audit 결정 분기 carve — 각각 1 PR 크기 독립 task 또는 결정 task + impl task 2단 분할 후보.
+#       (a) TSK-75 ack → `foundation/regression-gate.md` green §테스트 현황 FR-01/02 [ ] → [x]. §스코프 규칙 grep-baseline (a)(c) 현 수치 갱신 (0→1+ / 0→5).
+#       (b) a11y.md 추가 편집 (M4 versions-button 실측 / M5 Edit Link 귀결 / M10 img listitem 결정 / audit 도입 유무 결정) 시 marker 플립 및 §drift 표 갱신.
+#   - **planner (25th+)**:
+#       (i) regression-gate.md 4조건 전원 충족 시 **승격 O**.
+#       (ii) a11y.md 의 M4/M5/M10/audit 4 분기 carve — 각각 1 PR 크기 독립 task 또는 결정 task + impl task 2단 분할 후보. inspector 편집 진척도에 따라.
+#       (iii) a11y.md / regression-gate.md 동일 hash 2사이클 연속 시 **50.blocked/spec/** 이동 + `_reason.md` 박제 (RULE-01/05 경로).
 #   - **본 사이클 writer 영역 변경**:
-#       - `40.task/TSK-20260421-74-isadmin-cognito-groups-migration.md` (신규 carve).
-#       - `40.task/TSK-20260421-75-ci-typecheck-and-coverage-threshold.md` (신규 carve).
-#       - `30.spec/green/common/test-idioms.md` → `30.spec/blue/common/test-idioms.md` (승격 mv, 기존 blue 교체).
+#       - `30.spec/green/components/common.md` → `30.spec/blue/components/common.md` (승격 mv, 기존 blue 교체).
 #       - `30.spec/green/.planner-seen` 갱신 (본 파일).
-#     커밋 scope = `spec(planner):` (promotion + carve 복합; 주 활동은 promotion, carve 2건은 부속).
+#     커밋 scope = `spec(planner):`.
