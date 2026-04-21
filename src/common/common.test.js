@@ -466,13 +466,9 @@ describe('login test', () => {
 
 describe('test isAdmin', () => {
 
-	// REQ-20260421-017 FR-03 — admin user ID 외부화 이후 이 두 회귀 케이스는
-	// `VITE_ADMIN_USER_ID_*` env stub 에 의존한다. 기존 하드코딩 UUID 는 현재도
-	// 실제 운영값과 동일하므로 동일한 리터럴을 stub 값으로 박제한다.
-	beforeEach(() => {
-		vi.stubEnv('VITE_ADMIN_USER_ID_PROD', 'df256e56-7c24-4b19-9172-10acc47ab8f4');
-		vi.stubEnv('VITE_ADMIN_USER_ID_DEV', '051fd5f9-a336-4055-96e5-6e1e125ebd15');
-	});
+	// REQ-20260421-038: admin 판정은 access_token payload 의 `cognito:groups` 배열에
+	// ADMIN_GROUP ('admin') 포함 여부로만 결정된다. 본 회귀 케이스들은 각 it 가 주입하는
+	// JWT payload 의 `cognito:groups` claim 값 유무를 관찰한다 (env stub 경로는 제거됨).
 
 	it('test production admin', () => {
 		stubMode('production');
@@ -493,9 +489,10 @@ describe('test isAdmin', () => {
 
 	it('test development admin', () => {
 		stubMode('development');
+		// payload.cognito:groups = ['admin'] 이 포함된 dev access_token (REQ-20260421-038 FR-01).
 		common.setCookie(
 			"access_token"
-			, "eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg"
+			, "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJjb2duaXRvOmdyb3VwcyI6WyJhZG1pbiJdLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuYXAtbm9ydGhlYXN0LTIuYW1hem9uYXdzLmNvbS9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.sig"
 			, {site: "localhost:3000", expires: 3600}
 		);
 		common.setCookie(
@@ -503,7 +500,7 @@ describe('test isAdmin', () => {
 			, "TEST_ID"
 			, {site: "localhost:3000"}
 		);
-	
+
 		const resultDevAdmin = common.isAdmin();
 		expect(resultDevAdmin).toBe(true);
 	});
@@ -861,26 +858,25 @@ describe("copyToClipboard (async Clipboard API)", () => {
 	});
 });
 
-describe('isAdmin matrix (REQ-20260421-017)', () => {
-	// FR-07 — env 외부화 (`VITE_ADMIN_USER_ID_*`) 이후 isAdmin 경로의 6 케이스 매트릭스.
-	// 기존 `test isAdmin` / `isAdmin fail-safe ...` describe 와 독립 — username 매칭
-	// 분기 × env 분기 × 손상 토큰 분기를 일관된 stub 세트로 박제한다.
-	//
-	// env stub 해제는 `src/setupTests.js` 전역 `afterEach(vi.unstubAllEnvs)` 가 담당.
+describe('isAdmin cognito:groups matrix (REQ-20260421-038 FR-01)', () => {
+	// REQ-20260421-038 FR-01: isAdmin() 은 access_token payload 의 `cognito:groups`
+	// 배열이 ADMIN_GROUP ('admin') 을 포함하는 경우에만 true. 그 외 (쿠키 무 / 손상 토큰
+	// / groups 필드 부재 / [] / admin 미포함 / null / 비-배열) 는 모두 false.
+	// 아래 7 케이스 fixture 는 payload 에 `cognito:groups` claim 만 변주한 최소 JWT 로
+	// 박제 — payload.username 은 동일 상수 'u' (판정에 미사용).
 
-	const PROD_UUID = 'df256e56-7c24-4b19-9172-10acc47ab8f4';
-	const DEV_UUID  = '051fd5f9-a336-4055-96e5-6e1e125ebd15';
-
-	// 미리 생성된 고정 JWT — payload.username 필드로만 username 판정.
-	// prod / dev / mismatch 3종.
-	const JWT_PROD_MATCH = 'eyJraWQiOiJ0S2JQRzgwS2ZJeWdYWk1XRXRRWVwvc3haM0NmVXAzNTR1RlQyeG1kd1l2TT0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJkZjI1NmU1Ni03YzI0LTRiMTktOTE3Mi0xMGFjYzQ3YWI4ZjQiLCJjb2duaXRvOmdyb3VwcyI6WyJhZG1pbiJdLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuYXAtbm9ydGhlYXN0LTIuYW1hem9uYXdzLmNvbVwvYXAtbm9ydGhlYXN0LTJfT1dqd0M1Vk1uIiwidmVyc2lvbiI6MiwiY2xpZW50X2lkIjoiNW9idGhldWxiN29sdjV1aG5rdWJ1bGRncWoiLCJldmVudF9pZCI6IjVjNjc0MjRhLTRmZWQtNDY5My1hNTdhLTY0YThhYjY0MzkzNSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2NTc0NTY2ODksImV4cCI6MTY1NzQ2MDI4OSwiaWF0IjoxNjU3NDU2Njg5LCJqdGkiOiI0ZjUzMTdmYi01ZThlLTRjNDQtOGFjYi0wMDY5MWE4M2U0MjIiLCJ1c2VybmFtZSI6ImRmMjU2ZTU2LTdjMjQtNGIxOS05MTcyLTEwYWNjNDdhYjhmNCJ9.gzJRLPzL9b4vqX4kVnX_yIQbJtPDd-ohm1znwjXttuBIAjlKIYs5_VwQzdEH6CpHZN4slPu2hYENKVXqXZqh0Au3sMOy-ATOX_OQiqerP0WSjAzhpw6kc1spLPlK-LsHvpnVv14F4j33DrDGJspKYR8BRwNUuVafc1lck6h43xwXiG78pt-_QbnLmd8LGAGZmLS4zRaya1WZCsG9SsNXIPcKmOwlbUNw-pbJVTtIS8lTNZr7h8ETFxMO2ryZlfcdYSKZbdab_71xHdOB6S-_zK3Kx7Y1xqKQ2iTIlG4PGmpE3WEV6rZqiWFW4CJALZ127bqWdTEK8RDlr5Xx6-UgUA';
-	const JWT_DEV_MATCH = 'eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg';
-	// payload.username = '00000000-0000-0000-0000-000000000000' (mismatch — neither PROD nor DEV UUID).
-	const JWT_MISMATCH  = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCJ9.sig';
+	// payload = {"username":"u"} — groups 필드 자체 부재.
+	const JWT_NO_GROUPS    = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUifQ.sig';
+	// payload = {"username":"u","cognito:groups":[]}
+	const JWT_EMPTY_GROUPS = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUiLCJjb2duaXRvOmdyb3VwcyI6W119.sig';
+	// payload = {"username":"u","cognito:groups":["user"]}
+	const JWT_USER_ONLY    = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUiLCJjb2duaXRvOmdyb3VwcyI6WyJ1c2VyIl19.sig';
+	// payload = {"username":"u","cognito:groups":["admin"]}
+	const JWT_ADMIN_ONLY   = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUiLCJjb2duaXRvOmdyb3VwcyI6WyJhZG1pbiJdfQ.sig';
+	// payload = {"username":"u","cognito:groups":["admin","editor"]}
+	const JWT_ADMIN_EDITOR = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUiLCJjb2duaXRvOmdyb3VwcyI6WyJhZG1pbiIsImVkaXRvciJdfQ.sig';
 
 	beforeEach(() => {
-		vi.stubEnv('VITE_ADMIN_USER_ID_PROD', PROD_UUID);
-		vi.stubEnv('VITE_ADMIN_USER_ID_DEV', DEV_UUID);
 		common.deleteCookie('access_token');
 	});
 
@@ -899,60 +895,64 @@ describe('isAdmin matrix (REQ-20260421-017)', () => {
 		expect(common.isAdmin()).toBe(false);
 	});
 
-	it('(3) returns false when username does not match either admin UUID', () => {
+	it('(3) returns false when payload has no cognito:groups field', () => {
 		stubMode('development');
-		common.setCookie('access_token', JWT_MISMATCH);
+		common.setCookie('access_token', JWT_NO_GROUPS);
 		expect(common.isAdmin()).toBe(false);
 	});
 
-	it('(4) returns true when username matches PROD UUID under isProd', () => {
-		stubMode('production');
-		common.setCookie('access_token', JWT_PROD_MATCH);
-		expect(common.isAdmin()).toBe(true);
-	});
-
-	it('(5) returns true when username matches DEV UUID under isDev', () => {
+	it('(4) returns false when cognito:groups is an empty array', () => {
 		stubMode('development');
-		common.setCookie('access_token', JWT_DEV_MATCH);
+		common.setCookie('access_token', JWT_EMPTY_GROUPS);
+		expect(common.isAdmin()).toBe(false);
+	});
+
+	it('(5) returns false when cognito:groups does not include admin', () => {
+		stubMode('development');
+		common.setCookie('access_token', JWT_USER_ONLY);
+		expect(common.isAdmin()).toBe(false);
+	});
+
+	it('(6) returns true when cognito:groups is ["admin"]', () => {
+		stubMode('development');
+		common.setCookie('access_token', JWT_ADMIN_ONLY);
 		expect(common.isAdmin()).toBe(true);
 	});
 
-	it('(6) returns false when username matches but neither isProd nor isDev (test mode)', () => {
-		stubMode('test');
-		common.setCookie('access_token', JWT_DEV_MATCH);
-		expect(common.isAdmin()).toBe(false);
+	it('(7) returns true when cognito:groups is ["admin","editor"] (composite)', () => {
+		stubMode('development');
+		common.setCookie('access_token', JWT_ADMIN_EDITOR);
+		expect(common.isAdmin()).toBe(true);
 	});
 });
 
-describe('isAdmin() env 미주입 안전 기본값 (REQ-20260421-032 FR-08)', () => {
-	// 매트릭스 #6 (test mode + env 보유) 와 의미상 중첩되나, 운영자가 .env.*.local 에
-	// VITE_ADMIN_USER_ID_* 키를 누락했을 때 admin 이 영구 비활성화됨을 독립 가독성으로 박제.
-	// FR-08: env 미주입 = admin 영구 비활성화 안전 기본값 계약.
-	// 재사용 fixture: JWT_DEV_MATCH (payload.username = DEV UUID). env 가 빈 값이므로
-	// 어떤 username 이어도 false 로 귀결 — 현 구현은 `(import.meta.env.VITE_ADMIN_USER_ID_PROD || '') === userId`
-	// 빈 문자열 비교로 이미 false 를 안전하게 반환.
-	const JWT_ANYONE = 'eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg';
+describe('isAdmin() group claim 부재 안전 기본값 (REQ-20260421-038 FR-02)', () => {
+	// REQ-20260421-038 FR-02: cognito:groups 가 null · 비-배열 (문자열 · 객체 등) 로
+	// 오발급되어도 isAdmin() 은 false 로 귀결 (안전 기본값). 운영자가 Cognito group
+	// 설정을 누락하면 admin 기능은 영구 비활성화된다.
 
-	beforeEach(() => {
-		// env 미주입 시나리오: 빈 문자열 stub (undefined 와 의미 등가 — `|| ''` fallback).
-		vi.stubEnv('VITE_ADMIN_USER_ID_PROD', '');
-		vi.stubEnv('VITE_ADMIN_USER_ID_DEV', '');
-		// 유효 JWT payload 를 가진 쿠키 주입 — parseJwt 는 ok payload 반환.
-		common.setCookie('access_token', JWT_ANYONE);
-	});
+	// payload = {"username":"u","cognito:groups":null}
+	const JWT_GROUPS_NULL = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUiLCJjb2duaXRvOmdyb3VwcyI6bnVsbH0.sig';
+	// payload = {"username":"u","cognito:groups":"admin"} (문자열 — 비-배열)
+	const JWT_GROUPS_STR  = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUiLCJjb2duaXRvOmdyb3VwcyI6ImFkbWluIn0.sig';
+	// payload = {"username":"u","cognito:groups":{}} (객체 — 비-배열)
+	const JWT_GROUPS_OBJ  = 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6InUiLCJjb2duaXRvOmdyb3VwcyI6e319.sig';
 
 	afterEach(() => {
 		common.deleteCookie('access_token');
-		// env stub 해제는 `src/setupTests.js` 전역 afterEach(vi.unstubAllEnvs) 가 담당.
 	});
 
-	it('returns false in production when VITE_ADMIN_USER_ID_PROD is empty', () => {
-		stubMode('production');
+	it('(a) returns false when cognito:groups is null', () => {
+		stubMode('development');
+		common.setCookie('access_token', JWT_GROUPS_NULL);
 		expect(common.isAdmin()).toBe(false);
 	});
 
-	it('returns false in development when VITE_ADMIN_USER_ID_DEV is empty', () => {
+	it('(b) returns false when cognito:groups is a non-array (string / object)', () => {
 		stubMode('development');
+		common.setCookie('access_token', JWT_GROUPS_STR);
+		expect(common.isAdmin()).toBe(false);
+		common.setCookie('access_token', JWT_GROUPS_OBJ);
 		expect(common.isAdmin()).toBe(false);
 	});
 });

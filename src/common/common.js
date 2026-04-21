@@ -157,7 +157,9 @@ export function isLoggedIn() {
 	return hasValue(getCookie("access_token"));
 }
 
-// TODO: change user id hard coding to IAM authorization (REQ-20260421-017 임시 조치: VITE_ADMIN_USER_ID_* env 외부화 — 차후 IAM 권한화 마일스톤에서 제거 예정)
+// REQ-20260421-038 FR-04 (α): admin group 이름은 리터럴 상수 1회 박제.
+const ADMIN_GROUP = 'admin';
+
 export function isAdmin() {
 
 	if (isDev()) log(`isAdmin: cookie=${isLoggedIn()} env=${isProd() ? 'prod' : isDev() ? 'dev' : 'none'}`, "DEBUG");
@@ -170,18 +172,12 @@ export function isAdmin() {
 	// 그 경우 비-admin 으로 귀결시켜 App 마운트 시 throw 전파를 차단한다.
 	const payload = parseJwt(getCookie("access_token"));
 	if (!payload) return false;
-	const userId = payload.username;
 
-	if (isProd()
-		&& (import.meta.env.VITE_ADMIN_USER_ID_PROD || '') === userId) {
-		return true;
-	}
-	else if (isDev()
-		&& (import.meta.env.VITE_ADMIN_USER_ID_DEV || '') === userId) {
-		return true;
-	}
-
-	return false;
+	// REQ-20260421-038 FR-01/02: 판정 경로는 payload 의 `cognito:groups` 배열이
+	// ADMIN_GROUP 을 포함하는 경우에만 true. 필드 부재·null·비-배열·빈 배열 → false.
+	const groups = payload['cognito:groups'];
+	if (!Array.isArray(groups)) return false;
+	return groups.includes(ADMIN_GROUP);
 }
 
 export function convertToHTML(input) {
