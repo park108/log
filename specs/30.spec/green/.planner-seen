@@ -1,97 +1,78 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T10:38Z (25th cycle) — 1 promotion + 4 carves + 0 blocked.
+# Updated: 2026-04-21T11:09Z (26th cycle) — 0 promotion + 0 carve + 0 blocked (no-op on new work; carve 재발행 불요).
 # Session summary:
-#   HEAD=60ff00d (`spec(inspector): Phase 1 reconcile 0/0 ack (no-op — 입력 큐 0 + 신규 task 0, a11y.md stale=3)`).
-#   본 세션 입력 (green): 2 spec files —
-#     (1) `common/a11y.md` (hash=2830b440..; 23rd/24th/25th cycle 동일 hash — inspector 가 M4/M5/M10/audit 편집 미진입. inspector-seen 상 stale=3 로 승격).
-#         unchecked=10 (§테스트 현황 3건 L155 M4 / L159 M5 / L160 M10 / L161 audit, §수용 기준 6건 L167-172 M4/테스트/M5/M6/FR-07/audit).
-#         stale cycle=3 — blocked 후보 임계. 단, planner 가 본 세션에서 M4/M5/M10/audit 4 개 원자 task carve 로 drift 정상화 가시화 → blocked 이동 유보.
-#         carve 발행: TSK-76 (M4) / TSK-77 (M5) / TSK-78 (M10) / TSK-79 (audit, depends_on [76,77,78]).
-#     (2) `foundation/regression-gate.md` (hash=effbe7c4..; 이전 ledger 24th cycle 005052a5.. → 변경 — inspector 편집 ack @5d3a886).
-#         unchecked=0 / WIP=0 / To-Be=0 / 변경 이력 TSK-20260421-75 @5dbf308 박제 → 4조건 전원 통과, **promote O**.
+#   HEAD=bdc3964 (`feat: a11y 패턴 B — M4 LogItemInfo versions-button 키보드 포커스 접근 경로 부여`).
+#   직전 ledger HEAD=60ff00d. 그 사이 커밋: 11a9bf3 (planner: promote regression-gate + carve TSK-76/77/78/79) → bdc3964 (developer: TSK-76 M4 구현).
 #
-#   RULE-03 선결 점검:
-#     (1) pause lock 없음 (`.claude/locks/` 부재).
+#   본 세션 입력 (green): 1 spec file — `common/a11y.md`.
+#     HEAD 버전 hash=2830b440.. (직전 ledger 와 동일 — stale=4 진입 후보).
+#     working tree hash=93fc61fe.. (inspector uncommitted 변경 존재 — TSK-76 ack 반영 중: §drift M4 행 취소선 + §최종 업데이트 갱신 + §스코프 규칙 HEAD 표기 갱신 + §수용 기준 FR-03 LogItemInfo row M4 [x] 플립 + §변경 이력 TSK-76 row 추가).
+#     → planner 는 **커밋된 상태만 input 으로 간주** (멱등/무상태 원칙, RULE-02). ledger hash 는 HEAD 기준 (`2830b440..`) 유지 — 직전 사이클과 동일 → stale=4.
+#     다만 stale=4 의 blocked 이동 판정은 **파이프라인 진척 유무** 를 종합 고려:
+#       (a) 본 세션 직전 사이클에 4개 carve 발행 (TSK-76/77/78/79) → 경로 정상화 개시.
+#       (b) 본 세션까지 TSK-76 completed + 커밋 (`bdc3964`, developer cycle). TSK-77/78/79 는 40.task/ 큐 대기 중 (count=3).
+#       (c) a11y.md 동일 hash 지속은 **inspector 의 ack 커밋 지연** 탓 (working tree 에 미커밋 diff 존재). 파이프라인 막힘 아님.
+#     → **blocked 유보**. 다음 사이클에 inspector ack 커밋 + a11y.md hash 변경 기대. 변경되지 않으면 재평가.
+#
+#   RULE-03 선결 점검 (순서 고정):
+#     (1) pause lock: `.claude/locks/` 부재 — 통과.
 #     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
-#     (3) 입력 큐: 2 green spec files (components/common.md 는 24th cycle 에 이미 승격 완료).
-#     (4) 하류 임계치: `40.task/` = 0 (TSK-75 완결 mv to 60.done/) → 본 세션 +4 = 4, 여유 6 (OK).
+#     (3) 입력 큐: 1 green spec (common/a11y.md). blue 에 미존재 (신규 추가 대기 중 — 승격 시 신설). 비어있지 않음 → 통과.
+#     (4) 하류 임계치: `40.task/` = 3 (TSK-77/78/79). `TASK_READY_MAX=10` 여유 7 — 통과.
 #     (5) 처리 진입.
 #
 #   세션 시작 시 git 상태 점검 (RULE-02):
-#     working tree 에 modified 항목 0 — clean. staged 0 — unstage 불요.
-#     세션 시작 HEAD=60ff00d, 본 세션 동안 다른 에이전트 커밋 유입 가능성 — 커밋 직전 재점검 원칙 유지.
+#     working tree: `M specs/30.spec/green/common/a11y.md` (inspector uncommitted, RULE-01 상 inspector writer 영역 — planner 는 건드리지 않음).
+#     staged: 0.
+#     자기 영역 밖 staged 항목 없음 → unstage 불요.
+#     세션 시작 HEAD=bdc3964. 본 세션 동안 다른 에이전트 커밋 유입 가능성 — 커밋 직전 재점검 원칙 유지.
 #
-#   각 spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제):
-#     - `common/a11y.md` (hash=2830b440..., stale 3 유지 — planner carve 로 drift 정상화 가시화 → blocked 유보):
-#         unchecked=10 (M4 L155 + M5 L159 + M10 L160 + audit L161 + §수용 기준 6 marker L167-172),
-#         WIP=0, To-Be=0,
-#         변경 이력 4행 박제 (최초 + TSK-69/70/71/72 ack) ✓
-#         → **미승격**. M4/M5/M10/audit 실현 + inspector ack 선행 필요.
-#         carve: TSK-76 (M4 versions-button) / TSK-77 (M5 Edit Link §예외 확정) / TSK-78 (M10 ImageItem 옵션 A) / TSK-79 (audit, depends_on 3개).
-#         stale=3 유지 (본 carve 로 정상화 경로 개시 — 다음 사이클에도 동일 hash 유지 시 developer 진척도 관측 후 blocked 판정).
-#     - `foundation/regression-gate.md` (hash=effbe7c4..., stale 0 재시작 — inspector 편집):
-#         unchecked=0, WIP=0, To-Be=0,
-#         변경 이력 2행 박제 (최초 @0f03547 + TSK-75 ack @5dbf308) ✓
-#         → **승격 O**. mv `green/foundation/regression-gate.md` → `blue/foundation/regression-gate.md` 수행 (blue 에 동일 파일 부재 — 신설 박제).
+#   각 green spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제):
+#     - `common/a11y.md` (HEAD 버전 hash=2830b440.., stale 4):
+#         unchecked: 본 세션 평가는 HEAD 버전 기준 (working tree 미커밋 변경은 input 아님) — 10 건 잔존
+#           §테스트 현황 L155 (M4/M5, M5 [ ] 잔존) / L159 (M5 별도 row) / L160 (M10) / L161 (audit)
+#           §수용 기준 L167 (FR-02 — M5/M10 대기) / L168 (FR-03 — M5 테스트 대기) / L169 (FR-05) / L170 (FR-06) / L171 (FR-07 — planner) / L172 (FR-08).
+#         WIP: 0 (`[WIP]` 토큰 없음).
+#         To-Be: 0 (`^#+ .*To-Be` 매치 없음).
+#         변경 이력 5행 박제 (최초 + TSK-69/70/71/72 + TSK-76 working tree 반영 중 — HEAD 버전에는 TSK-76 row 부재, 본 세션 종료 직후 inspector 커밋 시 5행 확정).
+#         → **미승격**. TSK-77/78/79 완결 + inspector ack 각각 선행 필요. carve 재발행 불요 (이미 발행됨).
+#         stale=4 기록하되 blocked 유보 (파이프라인 진척 확인됨).
 #
-#   carve 발생: **4 건** (모두 common/a11y.md 귀결).
-#     - TSK-20260421-76 `a11y-pattern-b-logiteminfo-m4-versions-button` — M4 versions-button 에 tabIndex={0} 1 속성 부여 + focus → popup 회귀 테스트. onClick/onKeyDown 부여 금지 (hover-popup trigger 특성상 activation 의미 없음 — "(onKey 논의)" 를 "부여 불필요" 로 귀결).
-#     - TSK-20260421-77 `a11y-pattern-b-logiteminfo-m5-edit-link-exemption` — M5 Edit Link span 의 §예외 확정 (부모 `<Link>` native anchor 가 Enter 활성 제공; 자식 span 에 속성 부여 시 포커스 중복 회귀 위험). test-only change — prod 코드 불변.
-#     - TSK-20260421-78 `a11y-pattern-b-imageitem-m10-option-a-button-role` — M10 ImageItem 옵션 A 확정 (role listitem→button + tabIndex={0} + onKeyDown={activateOnKey} + handler 단일 참조 추출). 옵션 B (wrapper) 는 scope 밖.
-#     - TSK-20260421-79 `a11y-pattern-b-audit-test` — audit 테스트 도입 (fs+regex 간단형; AST 유보 근거 박제; exemptions 모듈로 §예외 enumeration). depends_on=[76,77,78].
+#   carve 발생: **0 건**. 직전 사이클에 TSK-76/77/78/79 모두 발행 완료. M5/M10/audit 는 40.task/ 에 이미 대기 (developer 차기 pickup 대상). 새 drift 지점 발견 없음.
 #
-#   Task ID 중복 검증:
-#     - 직전 최대값 TSK-20260421-75. 신규 76/77/78/79 4개 모두 `grep -rn "TSK-20260421-76" specs/{40.task,60.done,50.blocked}/` 등 선검증 0 hit. 중복 없음.
-#     - carve 접미사 `-a,-b` 미사용 (각 task 는 독립 원자 task, carve 체인 없음). `supersedes:` 메타 모두 "(없음)".
+#   Task ID 중복 검증: N/A (신규 발행 0).
 #
-#   grep dry-run: **8/8 match** (HEAD=60ff00d 실측 vs 박제값):
-#     - [TSK-76] `grep -nE 'data-testid="versions-button"' src/Log/LogItemInfo.jsx` → 1 hit (박제 1) ✓
-#     - [TSK-76] `grep -cE 'tabIndex=\{0\}' src/Log/LogItemInfo.jsx` → 2 (박제 2) ✓
-#     - [TSK-77] `grep -nE 'data-testid="edit-button"' src/Log/LogItemInfo.jsx` → 1 hit (박제 1) ✓
-#     - [TSK-77] `grep -nE 'Link to="/log/write"' src/Log/LogItemInfo.jsx` → 1 hit (박제 1) ✓
-#     - [TSK-78] `grep -cE 'role="listitem"' src/Image/ImageItem.jsx` → 1 (박제 1) ✓
-#     - [TSK-78] `grep -rnE 'role="listitem"' src --include="*.jsx" | grep -v ".test."` → 5 hits in 5 files (박제 5) ✓
-#     - [TSK-79] `ls src/common/a11y.audit.test.*` → 0 (박제 0) ✓
-#     - [TSK-79] `grep -rnE 'role="button"' src --include="*.jsx" | grep -v ".test." | grep -v "<button"` → 22 hits in 12 files (박제 22) ✓
+#   grep dry-run: **N/A** (신규 grep 게이트 박제 없음).
 #
-#   승격 mv: **1건** — `30.spec/green/foundation/regression-gate.md` → `30.spec/blue/foundation/regression-gate.md` (blue 신설).
-#   blocked mv: **0건** (a11y.md stale=3 도달하나 carve 로 정상화 경로 개시 → blocked 유보).
+#   승격 mv: **0건**.
+#   blocked mv: **0건** (a11y.md stale=4 도달하나 직전 사이클 carve 후 developer 진척 있음 → blocked 유보. working tree 의 inspector uncommitted ack 가 다음 사이클에 커밋되면 hash 변경 + unchecked 감소 예상).
 #
-#   RULE-04/RULE-06 점검:
-#     - TSK-76/77/78/79 각자 `## 스코프 규칙` 섹션 존재 (grep 게이트 있음 → 필수).
-#     - expansion 4건 모두 "불허".
-#     - grep-baseline 실측 + 라인/파일 열거 박제.
-#     - rationale 1~2줄 박제.
+#   RULE-04/RULE-06 점검: N/A (신규 task 없음).
 #   RULE-07 정합:
-#     - regression-gate.md 승격 — 2 불변식 (CI typecheck step 포함 / Vitest coverage thresholds 4축 선언) 평서형 + 반복 검증 가능 + incident 귀속 없음. RULE-07 양성.
-#     - a11y.md 잔존 — §drift 정상화 표 + §예외 + grep-baseline 은 baseline 측정 기준 (시점 비의존). RULE-07 양성.
+#     - a11y.md 잔존 — §drift 정상화 표 + §예외 + grep-baseline 은 baseline 측정 기준 (시점 비의존). 양성 유지.
 #   RULE-01:
-#     - carve 신설 4 건 모두 `specs/40.task/TSK-YYYYMMDD-NN-<slug>.md` 형식.
-#     - 승격 mv 는 `mkdir -p` 후 `mv` (원자 이동).
-#     - writer 경계 준수: planner 는 40.task/ 생성 + 30.spec/green → 30.spec/blue 이동 + .planner-seen 갱신만. 다른 에이전트 큐 파일 내용 수정 0.
+#     - 승격 mv/carve 신설 0 — 변경 파일은 `.planner-seen` 1건만.
+#     - writer 경계 준수: planner 는 `30.spec/green/.planner-seen` 갱신만. 다른 에이전트 큐 파일 내용 수정 0.
 #   RULE-02:
-#     - 세션 시작 git 상태 clean. 본 세션 변경 영역 = 40.task/{76,77,78,79}.md 신설 + 30.spec/blue/foundation/regression-gate.md 신설 + 30.spec/green/.planner-seen 갱신 + 30.spec/green/foundation/regression-gate.md 삭제 (mv 결과).
-#     - 커밋 scope = `spec(planner):` (promote + carve 복합 — 주 scope 로 통합).
+#     - 본 세션 변경 영역 = `specs/30.spec/green/.planner-seen` 1건 갱신.
+#     - 커밋 scope = `spec(planner):` (no-op 보고 + ledger stale 기록 + blocked 유보 판정).
 #
 # ledger entries (잔존 green):
-# common/a11y.md  2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c  3  # 25th cycle — 동일 hash 반복 (stale=3 유지). 본 세션 TSK-76/77/78/79 carve 로 drift 정상화 경로 개시. developer cycle + inspector ack 선행 후 marker 플립 기대.
+# common/a11y.md  2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c  4  # 26th cycle — HEAD 기준 동일 hash 4 사이클 연속. 단 working tree 에 inspector uncommitted TSK-76 ack diff 존재 (93fc61fe..). blocked 유보 근거: (a) 직전 사이클 TSK-76/77/78/79 carve 발행 + (b) TSK-76 dev 완결 @bdc3964 + (c) 파이프라인 막힘 원인은 inspector ack 커밋 지연 1 건 한정. 다음 사이클에 동일 hash 지속 시 재평가.
 #
 # promoted (→ 30.spec/blue/):
-# - foundation/regression-gate.md (hash=effbe7c43c958c419e7e232931f4ed76f866c1f33583228a86aef9bd5d742ae8; TSK-75 @5dbf308 ack 반영 버전 — blue 신설 박제, 동명 blue 파일 부재).
+# - (없음)
 #
 # blocked (→ 50.blocked/spec/):
 # - (없음)
 #
-# ready 큐: count=4 (TSK-76/77/78/79), TASK_READY_MAX=10 여유 6.
-# next cycle (26th+):
-#   - **developer (15m)**: TSK-76/77/78 병렬 실행 가능 (서로 독립 원자 — LogItemInfo.jsx M4/M5 지점이 동 파일 공유하나 변경 영역 다름: M4 는 L86-91 versions-button / M5 는 L115-123 Edit Link 으로 구조상 충돌 없음. M10 은 별 파일). TSK-79 는 depends_on=[76,77,78] → 선행 3 task 완결 + 커밋 후 실행.
-#   - **inspector (30m)**: TSK-76/77/78 각자 ack 시
-#       (a) a11y.md §drift 표 M4/M10 행 취소선 처리, M5 는 §예외 §M5 절을 "옵션 ① 확정 — TSK-77" 로 갱신.
-#       (b) §테스트 현황 L155(M4)/L159(M5)/L160(M10) marker `[ ]` → `[x]` 플립.
-#       (c) §수용 기준 FR-02/03/05/06 marker 플립.
-#       (d) §스코프 규칙 grep-baseline (a) 15→16 (M10 +1; M4 는 activateOnKey 대상 아님) / (b) 22→23 (M10 +1; M5 유지) 갱신.
-#       (e) TSK-79 ack 시 §테스트 현황 L161 audit + §수용 기준 FR-08 marker 플립.
-#   - **planner (26th+)**:
+# ready 큐: count=3 (TSK-77/78/79), TASK_READY_MAX=10 여유 7.
+# next cycle (27th+):
+#   - **developer (15m)**: TSK-77/78 병렬 실행 가능 (독립 원자, 서로 다른 파일: TSK-77=`src/Log/LogItemInfo.jsx` §M5 Edit Link 스코프 / TSK-78=`src/Image/ImageItem.jsx` M10 옵션 A). 각 완결 + 커밋 후 TSK-79 (depends_on=[76,77,78]) 실행.
+#   - **inspector (30m)**:
+#       (a) **우선순위**: 현재 working tree 의 TSK-76 ack diff 커밋. `spec(inspector): Phase 1 reconcile 1/1 ack (TSK-76 M4)` 커밋하여 a11y.md HEAD hash 변경 트리거.
+#       (b) TSK-77/78/79 각자 ack 시 §drift 표 / §테스트 현황 / §수용 기준 marker 플립 + §스코프 규칙 grep-baseline 갱신.
+#   - **planner (27th+)**:
 #       (i) a11y.md 4조건 전원 충족 시 **승격 O** (M4/M5/M10/audit marker 전원 [x] + 변경 이력 TSK-76/77/78/79 박제 확인 후).
-#       (ii) a11y.md 승격 시 FR-07 (blue 상호참조 — components/common.md / comment.md / log.md / image.md §접근성 1~2 문장) 갱신 동시 처리 — planner 영역.
-#       (iii) a11y.md 동일 hash 4 사이클 연속 시 **50.blocked/spec/** 이동 + `_reason.md` 박제 (carve 후 developer 진척 정체 판정 필요 — 본 ledger 는 stale=3 유지하되 다음 ledger 갱신 시 동일 hash 지속이면 stale=4 → blocked).
+#       (ii) a11y.md 승격 시 FR-07 (blue 상호참조) 갱신 동시 처리 — planner 영역.
+#       (iii) a11y.md 27th 사이클에도 동일 HEAD hash 지속 + unchecked 잔존 + carve 후 developer 진척 정체 시 → **50.blocked/spec/** 이동 + `_reason.md` 박제 고려.
