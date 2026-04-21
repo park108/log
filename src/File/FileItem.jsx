@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
 import { activateOnKey } from '../common/a11y';
+import { reportError } from '../common/errorReporter';
 import { deleteFile } from './api';
 
 const FileItem = (props) => {
@@ -32,7 +33,7 @@ const FileItem = (props) => {
 				setToasterMessage("Upload file failed.");
 				setToasterType("error");
 				setIsShowToaster(1);
-				console.error(res);
+				reportError(res);
 			}
 		}
 		catch(err) {
@@ -40,7 +41,7 @@ const FileItem = (props) => {
 			setToasterMessage("Upload file failed for network issue.");
 			setToasterType("error");
 			setIsShowToaster(1);
-			console.error(err);
+			reportError(err);
 		}
 	}
 

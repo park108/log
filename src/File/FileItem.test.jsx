@@ -1,5 +1,6 @@
 import { render, fireEvent, act, waitFor } from '@testing-library/react';
 import * as common from '../common/common';
+import * as errorReporter from '../common/errorReporter';
 import * as api from './api';
 import FileItem from './FileItem';
 
@@ -237,6 +238,33 @@ describe('FileItem className transition (declarative pattern)', () => {
 		expect(rootAfter).toHaveAttribute('data-deleting', 'Y');
 		expect(rootAfter).toHaveClass('div--fileitem-delete');
 
+		vi.restoreAllMocks();
+	});
+});
+
+// REQ-20260421-039 FR-03 — errorReporter 채널 단일화 (D4 FileItem.jsx).
+// Delete file API 의 errorType 분기 또는 catch 에서 reportError 가 호출된다.
+
+describe('FileItem reportError 채널 (REQ-20260421-039 FR-03)', () => {
+
+	it('reports error via reportError when deleteFile catch path is taken (network error)', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		vi.spyOn(api, 'deleteFile').mockRejectedValue(new Error('network down'));
+
+		const spy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		const { container } = render(<FileItem {...defaultProps} />);
+
+		const deleteSpan = container.querySelector('.span--fileitem-delete');
+
+		await act(async () => {
+			fireEvent.click(deleteSpan);
+		});
+
+		await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
+
+		spy.mockRestore();
 		vi.restoreAllMocks();
 	});
 });
