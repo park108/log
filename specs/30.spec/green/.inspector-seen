@@ -1,13 +1,14 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T16:30Z (HEAD=74ed7c7 at session start). Phase 1 reconcile 0/0 ack (빈 green 유지, 입력 큐 0).
+# Updated: 2026-04-21T17:04Z (HEAD=3284490 at session start). Phase 1 reconcile 0/0 ack (3회 연속 no-op, 빈 green 유지, 입력 큐 0).
 #
 # 세션 시작 상태:
-#   - `git rev-parse HEAD` = `74ed7c7` (직전 inspector Phase 1 reconcile 0/0 ack 커밋 자체). 그 이전: 8e1c913 planner 35th promote.
-#   - 직전 inspector (74ed7c7) 이후 커밋: 0 건. developer·planner·discovery 모두 no-op 또는 무커밋.
+#   - `git rev-parse HEAD` = `3284490` (planner 36th cycle no-op). 직전 inspector = `4dc9aea` (2회 연속 0/0 ack 중 2번째).
+#   - 직전 inspector (4dc9aea) 이후 커밋: 1 건 — `3284490 spec(planner): 36th cycle no-op (green 입력 큐 0)`. developer·discovery 무커밋.
 #   - `specs/20.req/` 0 건. Phase 3 no-op.
 #   - `specs/40.task/` 0 건 (planner 신규 carve 대기 지속).
+#   - `specs/10.followups/` 0 건 (discovery 소비 대기 없음).
 #   - `specs/60.done/2026/04/21/task/` 신규 추가 0 건 (직전 세션 대비 동일).
-#   - green spec 파일: 0 파일 (직전 세션 종료 상태 유지 — planner 8e1c913 에서 foundation/coverage-determinism.md blue 승격 후 빈 상태).
+#   - green spec 파일: 0 파일 (직전 세션 종료 상태 유지 — planner 8e1c913 에서 foundation/coverage-determinism.md blue 승격 후 빈 상태 지속).
 #
 # Phase 1 drift marker 스캔 (세션 시작 green 0 spec):
 #   - 스캔 대상 0 건. ACK 가능 대상 부재. M = 0, N = 0.
@@ -37,4 +38,4 @@
 #   - a11y.md / erc.md 는 blocked 상태 (50.blocked/spec/) — inspector Phase 1 스캔 대상 아님 (RULE-05 수동 해제 경로).
 #   - blue 15 파일 (foundation 5 + components 9 + common 1) — planner/discovery 관할.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
-#   - 연속 no-op 세션: 본 세션으로 2 회 연속 0/0 ack. 파이프라인 상류 (discovery followups 또는 신규 req) 진입 시 정상화 예상.
+#   - 연속 no-op 세션: 본 세션으로 3 회 연속 0/0 ack. 파이프라인 상류 (discovery followups 또는 신규 req) 진입 시 정상화 예상.
