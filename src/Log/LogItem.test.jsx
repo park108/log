@@ -6,6 +6,8 @@ import LogItem from './LogItem';
 import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
 
+// REQ-20260421-007 / TSK-20260421-51 — React 19 concurrent initial commit 의 async flush 에 대응해 delete-button 선택을 findBy* 로 전환 (Layer 1 옵션 A).
+
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
 const stubMode = (mode) => {
@@ -202,7 +204,7 @@ describe('LogItem DELETE 5xx error toaster', () => {
 
 		window.confirm = vi.fn(() => true);
 
-		const deleteButton = screen.getByTestId("delete-button");
+		const deleteButton = await screen.findByTestId("delete-button");
 		fireEvent.click(deleteButton);
 
 		// Error toaster should be visible with the 5xx-specific copy.
@@ -257,7 +259,7 @@ describe('LogItem DELETE network-error toaster', () => {
 
 		window.confirm = vi.fn(() => true);
 
-		const deleteButton = screen.getByTestId("delete-button");
+		const deleteButton = await screen.findByTestId("delete-button");
 		fireEvent.click(deleteButton);
 
 		// Network-level failure branches to the distinct message.
@@ -313,7 +315,7 @@ describe('LogItem render and delete failed (confirm cancel then accept)', () => 
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 		window.confirm = vi.fn(() => false);
 
-		const deleteButton = screen.getByTestId("delete-button");
+		const deleteButton = await screen.findByTestId("delete-button");
 		expect(deleteButton).toBeDefined();
 		fireEvent.click(deleteButton);
 
@@ -374,7 +376,7 @@ describe('LogItem render and delete network error', () => {
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 		window.confirm = vi.fn(() => true);
 
-		const deleteButton = screen.getByTestId("delete-button");
+		const deleteButton = await screen.findByTestId("delete-button");
 		expect(deleteButton).toBeDefined();
 		fireEvent.click(deleteButton);
 
