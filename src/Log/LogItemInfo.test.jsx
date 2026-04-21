@@ -217,3 +217,47 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 		expect(confirmSpy).toHaveBeenCalledWith('Are you sure delete the log?');
 	});
 });
+
+// a11y-spec §패턴 B (REQ-20260421-033 FR-03) — M4 versions-button Tab 포커스 접근 경로.
+// 본 요소는 activation 의미 부재 (hover/focus popup 트리거) → tabIndex={0} 만 부여.
+// onClick / onKeyDown={activateOnKey} 는 부여하지 않는다 (TSK-20260421-76 결정 박제).
+describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03) — M4 versions-button', () => {
+
+	beforeEach(() => {
+		stubMode('production');
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it('M4: versions-button 에 role="button" + tabIndex=0 이 부여된다 (admin)', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo();
+
+		const el = screen.getByTestId('versions-button');
+
+		expect(el).toHaveAttribute('role', 'button');
+		expect(el).toHaveAttribute('tabIndex', '0');
+	});
+
+	it('M4: versions-button focus 시 버전 히스토리 popup 이 표시된다 (aria-describedby 설정)', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo();
+
+		const el = screen.getByTestId('versions-button');
+		// 초기: popup 미렌더.
+		expect(el.getAttribute('aria-describedby')).toBeNull();
+
+		act(() => {
+			fireEvent.focus(el);
+		});
+
+		// focus → aria-describedby 설정 + 동일 id 의 tooltip 렌더.
+		const describedBy = el.getAttribute('aria-describedby');
+		expect(describedBy).toBeTruthy();
+		const popup = document.getElementById(describedBy);
+		expect(popup).not.toBeNull();
+		expect(popup).toHaveAttribute('role', 'tooltip');
+	});
+});

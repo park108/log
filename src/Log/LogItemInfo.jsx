@@ -85,6 +85,7 @@ const LogItemInfo = (props) => {
 						{ hasValue(item) ?
 							<span
 								role="button"
+								tabIndex={0}
 								data-testid="versions-button"
 								className="span span--logitem-version"
 								{...versionPopup.triggerProps}
