@@ -1,101 +1,102 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T22:38Z (48th cycle) — no-op. 4 green sha256 불변 (47th 대비), 관련 carve task 전원 in-flight 대기.
+# Updated: 2026-04-21T23:10Z (49th cycle) — carve TSK-20260421-95 (react-hooks-lint-gate FR-01+FR-02+FR-03+FR-04 도입, 신규 green 1건 소비). 기존 4 green sha256 불변 (48th 대비), 관련 carve task 전원 in-flight 대기 지속.
 # Session summary:
-#   HEAD (세션 시작) = 7aab715 (inspector 47th reconcile 0/4 ack). working tree (unstaged, 자기 영역 밖):
-#     - `M package.json` (developer 영역 in-flight, TSK-20260421-92 husky v9 migration 경로 — `prepare` + `husky` devDep range 수정 진행 중).
-#   planner writer 경계 밖 → 미접촉.
+#   HEAD (세션 시작) = a12f271 (inspector 49th REQ-049 흡수 — react-hooks-lint-gate green 신규 커밋). working tree (unstaged, 자기 영역 밖):
+#     - `M package.json` (developer 영역 in-flight, TSK-20260421-92 husky v9 migration 경로 — `prepare` + `husky` devDep range 수정 진행 중, 48th 와 동일).
+#   planner writer 경계 밖 → 미접촉. `react-hooks-lint-gate.md` 는 inspector 가 a12f271 에서 git-tracked 상태로 커밋 완료 — planner 는 읽기 전용 소비 후 `40.task/` 생성만 수행 (writer 경계 준수).
 #
-#   본 세션 입력 (green, working tree sha256 기준): **4 spec files** (전원 47th 대비 불변).
-#     - `specs/30.spec/green/foundation/useeffect-timer-cleanup.md` (REQ-049, sha256=c3984dc7…, 47th 대비 불변).
-#     - `specs/30.spec/green/common/router-redirect-reentry-guard.md` (REQ-048, sha256=f0d87b31…, 47th 대비 불변).
-#     - `specs/30.spec/green/foundation/dependency-set-integrity.md` (REQ-046 + 048, sha256=1ba2d103…, 47th 대비 불변).
-#     - `specs/30.spec/green/foundation/husky-hook-entrypoint.md` (REQ-044 + 047, sha256=a4b38749…, 47th 대비 불변).
+#   본 세션 입력 (green, working tree sha256 기준): **5 spec files**.
+#     - `specs/30.spec/green/foundation/react-hooks-lint-gate.md` (REQ-049, sha256=46c49636…, 신규 green — inspector a12f271 커밋 반영, 49th carve 대상).
+#     - `specs/30.spec/green/foundation/useeffect-timer-cleanup.md` (REQ-049, sha256=c3984dc7…, 48th 대비 불변).
+#     - `specs/30.spec/green/common/router-redirect-reentry-guard.md` (REQ-048, sha256=f0d87b31…, 48th 대비 불변).
+#     - `specs/30.spec/green/foundation/dependency-set-integrity.md` (REQ-046 + 048, sha256=1ba2d103…, 48th 대비 불변).
+#     - `specs/30.spec/green/foundation/husky-hook-entrypoint.md` (REQ-044 + 047, sha256=a4b38749…, 48th 대비 불변).
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
-#     (2) 입력 큐: 4건 — 처리 진행.
-#     (3) 하류 임계치 TASK_READY_MAX=10 (`pipeline.json` 부재 → 기본): `40.task/` 잔존 3건 (TSK-20260421-92, TSK-20260421-93, TSK-20260421-94) → 여유 7. 본 세션 carve 0건 예정 → 임계 내 여유 유지.
+#     (2) 입력 큐: 5건 — 처리 진행.
+#     (3) 하류 임계치 TASK_READY_MAX=10 (`pipeline.json` 부재 → 기본): `40.task/` 잔존 3건 (TSK-20260421-92, TSK-20260421-93, TSK-20260421-94) → 여유 7. 본 세션 carve 1건 예정 → 발행 후 4건, 임계 내 여유 6 유지.
 #     (4) 처리.
 #
 #   RULE-02 세션 시작 점검:
-#     - `git status --porcelain` → ` M package.json` (1건 관측).
+#     - `git status --porcelain` → ` M package.json` (1건, 세션 중간에 inspector a12f271 커밋으로 `react-hooks-lint-gate.md` 의 `??` 상태는 이미 tracked 로 전환됨).
 #     - staged 자기 영역 밖: 0 → 언스테이징 불필요.
-#     - 본 세션 `package.json` 미접촉.
+#     - 본 세션 `package.json` 미접촉. `react-hooks-lint-gate.md` 읽기 전용 소비.
+#
+#   RULE-07 점검 (입력 spec 양성 기준): `react-hooks-lint-gate.md` FR-01~FR-05 전수 시점 비의존 평서형, grep 반복 검증 가능, 특정 incident/릴리스/날짜 귀속 patch 아님 — 양성. 진행.
 #
 #   승격 판정 (green 4조건 — [WIP]==0 & unchecked==0 & ^#+ To-Be==0 & 변경이력 TSK/커밋해시 박제; [deferred] 제외):
+#     - foundation/react-hooks-lint-gate.md:
+#       - [WIP]=0 ✓ / unchecked=13 ✗ (§테스트 현황 5건 + §수용 기준 8건) / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=73bb995 박제 ✓.
+#       - → 승격 불가 (unchecked 잔존, 관련 carve task TSK-95 금번 발행). stale 0 → 1.
 #     - foundation/useeffect-timer-cleanup.md:
-#       - [WIP]=0 ✓ / unchecked=8 ✗ (§테스트 현황 2건 + §수용 기준 6건) / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=57f343f 박제 ✓.
-#       - → 승격 불가 (unchecked 잔존). stale 1 → 2.
+#       - [WIP]=0 ✓ / unchecked=13 ✗ (§테스트 현황 5건 + §수용 기준 8건) / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=57f343f 박제 ✓.
+#       - → 승격 불가 (unchecked 잔존). stale 2 → 3 (≥3cycle 도달, TSK-94 in-flight 유예 지속).
 #       - 재carve 금지: TSK-20260421-94 이 `40.task/` in-flight (FR-02 첫 적용 사례 `FileUpload.jsx:84-121` cleanup 도입 담당).
 #     - common/router-redirect-reentry-guard.md:
-#       - [WIP]=0 ✓ / unchecked=10 ✗ (§테스트 현황 2건 + §수용 기준 8건) / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=c9423d7 박제 ✓.
-#       - → 승격 불가. stale 3 → 4 (≥3cycle 유지).
-#       - 재carve 금지: TSK-20260421-93 이 `40.task/` in-flight (FR-01 첫 적용 사례 `Writer.jsx:48-65` guard 도입 담당). 중복 carve 는 RULE-01 멱등성 위반.
+#       - [WIP]=0 ✓ / unchecked=10 ✗ / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=c9423d7 박제 ✓.
+#       - → 승격 불가. stale 4 → 5 (≥3cycle 유지, TSK-93 in-flight 유예).
+#       - 재carve 금지: TSK-20260421-93 이 `40.task/` in-flight (FR-01 첫 적용 사례 `Writer.jsx:48-65` guard 도입 담당).
 #     - foundation/dependency-set-integrity.md:
 #       - [WIP]=0 ✓ / unchecked=8 ✗ / ^#+ To-Be=0 ✓ / §변경 이력 HEAD=c9423d7 박제 ✓.
-#       - → 승격 불가. stale 3 → 4 (≥3cycle 유지).
-#       - 재carve 금지: FR-01 이관 (REQ-046 축, TSK-20260421-91 재carve 대상) 은 router-redirect-reentry-guard FR-01 선행 충족 전제 — TSK-93 in-flight 중 수단 안전성 전제 미충족. TSK-93 완료 후 재carve 가능.
+#       - → 승격 불가. stale 4 → 5 (≥3cycle 유지, TSK-93 선행 대기).
+#       - 재carve 금지: FR-01 이관 (REQ-046 축, TSK-20260421-91 재carve 대상) 은 router-redirect-reentry-guard FR-01 선행 충족 전제. TSK-93 완료 후 재carve 가능.
 #     - foundation/husky-hook-entrypoint.md:
 #       - [WIP]=0 ✓ / unchecked=8 ✗ / ^#+ To-Be=0 ✓ / §변경 이력 TSK-90 참조 + HEAD=ca4bb37 박제 ✓.
-#       - → 승격 불가. stale 5 → 6 (sha256 불변, TSK-92 in-flight 유예 지속).
-#       - blocked 임계 초과 상태 지속이나 본 cycle 도 blocked 판정 보류: TSK-92 가 `40.task/` in-flight + developer 가 `package.json` 수정 착수 (working tree diff 관측) → 파이프라인 정상 경로상 적극 대기. RULE-05 수동 개입 없이 자동 blocked 금지.
+#       - → 승격 불가. stale 6 → 7 (sha256 불변, TSK-92 in-flight 유예 지속).
+#       - blocked 임계 초과 상태 지속이나 본 cycle 도 blocked 판정 보류: TSK-92 가 `40.task/` in-flight + developer 가 `package.json` 수정 착수 (working tree diff 48th 대비 동일 유지) → 파이프라인 정상 경로상 적극 대기. RULE-05 수동 개입 없이 자동 blocked 금지.
 #
-#   **grep dry-run (baseline drift 검증, RULE-04 토큰)**: 5/5 match (드리프트 없음 — 관련 task 미실행 상태 확증).
-#     - gate 1 `grep -rnE "setTimeout\(|setInterval\(" src (prod, test 제외)` → 8 hits ≡ useeffect-tc spec baseline 8.
-#     - gate 2 `grep -nE "clearTimeout\(|clearInterval\(" src/File/FileUpload.jsx` → 0 hit ≡ useeffect-tc spec 위반 baseline.
-#     - gate 3 `grep -rnE "retain on unmount" src` → 0 hit ≡ useeffect-tc FR-03 빈 집합 baseline.
-#     - gate 4 `grep -rn "navigate(redirectPage)" src --include="*.jsx"` → 3 hits ≡ rr-guard spec baseline 3 (Writer:53 + Monitor:49 + File:34).
-#     - gate 5 `grep -n '"history"' package.json` → 1 hit ≡ dep-set-int spec baseline (`history ^5.3.0` 잔존).
+#   **grep dry-run (task TSK-95 §스코프 규칙 박제 검증, RULE-04 토큰)**: 5/5 match (드리프트 없음).
+#     - gate (a) `grep -nE "eslint-plugin-react-hooks" package.json` → 0 hits ≡ spec baseline 0 (FR-01 위반 baseline ack).
+#     - gate (b) `grep -nE "eslint-plugin-react-hooks|react-hooks/(rules-of-hooks|exhaustive-deps)" eslint.config.js` → 0 hits ≡ spec baseline 0 (FR-02 위반 baseline ack).
+#     - gate (c) `grep -nE "\"lint\":\s*\"eslint" package.json` → 1 hit (`package.json:23`) ≡ spec baseline 1 hit (FR-03 진입점 존재 baseline). NOTE: spec 은 `:21` 박제하나 실측 `:23` — hit **수** 일치, 라인 번호는 inspector 발행 시점 snapshot 과 현 HEAD 차이. 본 task baseline 은 planner 실측 HEAD=73bb995 값 (`:23`) 으로 재박제.
+#     - gate (d) `grep -rnE "useEffect\s*\(" src --include="*.jsx" --include="*.js" | wc -l` → 56 lines ≡ spec baseline 56 (면적 baseline ack).
+#     - gate (e) `grep -nE "plugin:react-hooks|flat\.recommended" eslint.config.js` → 1 hit (`eslint.config.js:26`) ≡ spec baseline 1 (eslint-plugin-react 독립 패키지 baseline ack).
 #
-#   **carve (본 cycle)**: 0 건.
+#   **carve (본 cycle)**: 1 건.
+#     - `40.task/TSK-20260421-95-eslint-plugin-react-hooks-lint-gate-adoption.md` — FR-01 + FR-02 + FR-03 + FR-04 단일 PR 경계 carve. 3 파일 변경 범위 (`package.json`, `package-lock.json`, `eslint.config.js`) + baseline 박제 문서 1건. RULE-01 TSK ID 중복 검증 완료 (`grep -rn "TSK-20260421-95" specs/{40.task,60.done,50.blocked}/` → 0 hits 사전 ack). RULE-06 §스코프 규칙 **expansion: 불허** + grep-baseline 6 gate 실측 + rationale 박제. depends_on = [] (TSK-92/93/94 와 independent, 수정 파일 disjoint — `package.json` 은 TSK-92 와 공유하나 편집 블록 상이: TSK-92 = `prepare` script + `husky` devDep range, TSK-95 = devDeps 에 `eslint-plugin-react-hooks` 추가 → 병렬 소비 시 rebase 가능 + 충돌 발생 시 RULE-05 경로).
 #   **승격 (본 cycle)**: 0 건.
-#   **blocked (본 cycle)**: 0 건.
+#   **blocked (본 cycle)**: 0 건 (husky stale 7 > ≥3 기준이나 TSK-92 in-flight 유예 유지, 48th 와 동일 판단).
 #
 #   RULE-01 점검:
-#     - 본 세션 변경 = `.planner-seen` ledger edit 1 건.
-#     - green/blue mv 0, blocked mv 0, `40.task/` 신규 0.
-#     - TSK ID 중복 검증 N/A (carve 0).
+#     - 본 세션 변경 = `40.task/TSK-20260421-95-...md` 신규 1 + `.planner-seen` ledger edit 1 = 2 파일.
+#     - green/blue mv 0, blocked mv 0.
+#     - TSK ID 중복 검증: `TSK-20260421-95` → 0 hits in `specs/{40.task,60.done,50.blocked}/` 사전 확증.
+#     - 파일명: `TSK-20260421-95-eslint-plugin-react-hooks-lint-gate-adoption.md` — `TSK-YYYYMMDD-NN-<slug>.md` 스키마 준수.
 #   RULE-02 점검:
 #     - staged 자기 영역 밖: 0. 세션 종료 시점 `M package.json` 그대로 unstaged 유지.
-#     - 커밋 메시지 = `spec(planner): 48th cycle no-op — 4 green sha256 불변, 관련 carve task 전원 in-flight 대기 (stale: useeffect-tc 1→2, rr-guard 3→4, dep-set-int 3→4, husky 5→6 TSK-92 유예)`.
-#     - 커밋 포함 대상 = `.planner-seen` 1 파일. `git add` 파일 명시.
+#     - 커밋 메시지 = `task(planner): carve TSK-20260421-95 — react-hooks 린트 게이트 도입 (eslint-plugin-react-hooks devDep + flat config 등록 + FR-04 severity 정책)`.
+#     - 커밋 포함 대상 = `40.task/TSK-20260421-95-...md` + `.planner-seen` (양쪽 모두 planner writer 영역). `git add` 파일 명시.
 #     - push 금지 (developer 전용).
 #   RULE-04 점검:
-#     - 보고 notes: `promote: 0`, `carve: 0`, `blocked: 0`, `stale: useeffect-tc 1→2, rr-guard 3→4, dep-set-int 3→4, husky 5→6 (TSK-92 in-flight 유예)`, `grep dry-run: 5/5 match`.
-#   RULE-06 점검: 본 cycle task 발행 0 → 해당 없음.
-#   RULE-07 점검: 본 cycle spec 내용 접촉 0 → 정합성 유지.
+#     - 보고 notes: carve 1 (TSK-20260421-95), promote 0, blocked 0, stale 진행 (useeffect-tc 2→3, rr-guard 4→5, dep-set-int 4→5, husky 6→7 유예, react-hooks-lint-gate 0→1), grep dry-run 5/5 match.
+#   RULE-06 점검: TSK-95 §스코프 규칙 present, expansion=불허, grep-baseline 6 gate 실측 박제, rationale 1단락 — 스펙 준수.
+#   RULE-07 점검: 본 cycle spec 내용 접촉 0 (읽기 전용 소비) → 정합성 유지. 신규 green `react-hooks-lint-gate.md` 는 inspector 발행 콘텐츠 자체가 양성 (시점 비의존 평서형).
 #
-#   **파이프라인 상태 (48th cycle 종료 시)**:
-#     - 30.spec/green/**: 4건 (useeffect-tc stale=2, rr-guard stale=4, dep-set-int stale=4, husky stale=6 유예).
+#   **파이프라인 상태 (49th cycle 종료 시)**:
+#     - 30.spec/green/**: 5건 (react-hooks-lint-gate stale=1, useeffect-tc stale=3, rr-guard stale=5, dep-set-int stale=5, husky stale=7 유예).
 #     - 30.spec/blue/**: 15 files (변화 없음).
-#     - 40.task/: 3건 (TSK-92, TSK-93, TSK-94 — developer 대기).
-#     - 50.blocked/spec/foundation/: 1건 (husky-hook-entrypoint v1 + _reason.md).
-#     - 50.blocked/task/: 1건 (TSK-20260421-91 + _reason.md).
+#     - 40.task/: 4건 (TSK-92, TSK-93, TSK-94, TSK-95 — developer 대기).
+#     - 50.blocked/spec/foundation/: 1건 (husky-hook-entrypoint v1 + _reason.md, 변화 없음).
+#     - 50.blocked/task/: 1건 (TSK-20260421-91 + _reason.md, 변화 없음).
 #     - 10.followups/: 0건.
-#     - 20.req/: 1건 (20260422-eslint-plugin-react-hooks-lint-gate-adoption — inspector 입력).
+#     - 20.req/: 1건 (20260422-eslint-plugin-react-hooks-lint-gate-adoption — inspector 입력, 본 cycle 동안 inspector 가 해당 req → 60.done/req/ mv 아직 미완 상태일 가능성 — 49th planner 세션 동안 inspector 독립 세션 진행 중일 수 있음).
 #
 # ledger entries (잔존 green):
-specs/30.spec/green/foundation/useeffect-timer-cleanup.md c3984dc7c0275cb49cff0165f6655e71758bada7e1ce7e0d9aea0cdfa7ff1da0 2
-specs/30.spec/green/common/router-redirect-reentry-guard.md f0d87b3112c93a6c41dfc399cda0fa5ae3b29012bfdf2f79c2b4ee60e3f2fa74 4
-specs/30.spec/green/foundation/dependency-set-integrity.md 1ba2d103adf37b3e0fe5477622935402b4ebb7fb5703f5e01242ddfc5c2a821a 4
-specs/30.spec/green/foundation/husky-hook-entrypoint.md a4b387491cb7b3efb23f1e02184011b6b10bd7ff7d76883f490833bffa160f47 6
+specs/30.spec/green/foundation/react-hooks-lint-gate.md 46c49636fa094aed5651c840f891a3f9e3d74606b145db6a9ea13a17baa7bfac 1
+specs/30.spec/green/foundation/useeffect-timer-cleanup.md c3984dc7c0275cb49cff0165f6655e71758bada7e1ce7e0d9aea0cdfa7ff1da0 3
+specs/30.spec/green/common/router-redirect-reentry-guard.md f0d87b3112c93a6c41dfc399cda0fa5ae3b29012bfdf2f79c2b4ee60e3f2fa74 5
+specs/30.spec/green/foundation/dependency-set-integrity.md 1ba2d103adf37b3e0fe5477622935402b4ebb7fb5703f5e01242ddfc5c2a821a 5
+specs/30.spec/green/foundation/husky-hook-entrypoint.md a4b387491cb7b3efb23f1e02184011b6b10bd7ff7d76883f490833bffa160f47 7
 #
 # promoted (→ 30.spec/blue/, 본 cycle): 0건.
 # blocked (→ 50.blocked/spec/, 본 cycle): 0건.
-# carves (→ 40.task/, 본 cycle): 0건.
+# carves (→ 40.task/, 본 cycle):
+#   - TSK-20260421-95 (react-hooks-lint-gate FR-01+FR-02+FR-03+FR-04 도입, depends_on=[], supersedes 없음).
 #
-# ready 큐: count=4.
-# next cycle (49th+):
-#   - **developer (15m)**: 3 task in-flight (TSK-92 package.json 착수 관측 = husky v9 migration 진행 중):
-#     - `40.task/TSK-20260421-92` (husky v8→v9 hook 진입점 + FR-06 저장소 축).
-#     - `40.task/TSK-20260421-93` (Writer.jsx redirect guard 도입).
-#     - `40.task/TSK-20260421-94` (FileUpload.jsx cleanup return 도입 + 회귀 테스트).
-#     세 task depends_on 공집합 + 수정 대상 파일 분리 (`.husky/**` + `package.json` vs `src/Log/Writer.jsx` vs `src/File/FileUpload.jsx`) → 병렬 소비 가능.
-#   - **inspector (30m)**:
-#     - Phase 1 reconcile 매 세션 필수 (RULE-03).
-#     - Phase 2/3: `20.req/20260422-eslint-plugin-react-hooks-lint-gate-adoption.md` 소비 → RULE-07 양성 판정 시 green 발행.
-#   - **planner (49th+)**:
-#     - TSK-92 완료 시 husky-hook-entrypoint 4조건 재점검 → 승격 또는 50.blocked/spec/ 수동 개입 경로.
-#     - TSK-93 완료 시 router-redirect-reentry-guard 4조건 재점검 → 승격 + dependency-set-integrity FR-01 재carve 가능 (TSK-91 재carve 대상).
-#     - TSK-94 완료 시 useeffect-timer-cleanup 4조건 재점검 → 승격.
-#   - **discovery (1h)**: 10.followups/ 0건 → no-op.
+# ready 큐: count=5.
+# next cycle (50th+):
+#   - developer (15m): 4 task in-flight (TSK-92 in-progress, TSK-93, TSK-94, TSK-95 대기). depends_on 공집합. `package.json` 을 TSK-92 + TSK-95 가 공유 — 병렬 소비 시 rebase 경로 필요 (상이 블록: TSK-92 `prepare`+`husky` devDep range, TSK-95 devDeps `eslint-plugin-react-hooks` 추가).
+#   - inspector (30m): Phase 1 reconcile 필수. Phase 2 에서 req → 60.done/req/ mv 미완 시 완결 수행.
+#   - planner (50th+): TSK-95 완료 → react-hooks-lint-gate 승격 후보 (자매 spec 수단 예시 정합 회복). TSK-92/93/94 완료 시 각각 승격 재점검.
+#   - discovery (1h): 10.followups/ 0건 → no-op.
