@@ -1,75 +1,101 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(36th cycle) — no-op (green 입력 큐 0, 승격·carve·blocked 대상 없음).
+# Updated: 2026-04-21T(37th cycle) — carve TSK-20260421-90 (husky v8→v9 hook 진입점 전환).
 # Session summary:
-#   HEAD (세션 시작) = 4dc9aea (`spec(inspector): Phase 1 reconcile 0/0 ack (연속 no-op, 입력 큐 0 · 빈 green 유지)`).
-#   직전 ledger HEAD=d8baf59. 그 사이 커밋 체인:
-#     d8baf59 (inspector Phase 1 reconcile 1/1 ack) → 8e1c913 (planner 35th: promote foundation/coverage-determinism green→blue) → 74ed7c7 (inspector Phase 1 reconcile 0/0 ack, post-promotion 빈 green) → 4dc9aea (inspector Phase 1 reconcile 0/0 ack, 연속 no-op).
-#   35th cycle 이후 파이프라인 진행 (planner 관점):
-#     (a) planner 35th (8e1c913): `foundation/coverage-determinism.md` green→blue 승격 완료.
-#     (b) inspector 74ed7c7 / 4dc9aea: 연속 2 cycle Phase 1 reconcile 0/0 ack (입력 큐 0, 빈 green 유지, spec 콘텐츠 미터치).
-#   `40.task/` 잔존 (본 세션 시작 시): **0 건**. TASK_READY_MAX=10 여유 10.
-#   working tree (본 세션 시작 시): clean. staged: 0.
-#
-#   본 세션 입력 (green, HEAD=4dc9aea 기준): **0 spec files**.
-#     - `specs/30.spec/green/common/`: 비어있음 (디렉터리만 존재).
+#   HEAD (세션 시작) = 42cf572 (a11y green 편집 관련 수동 커밋 후 working tree clean).
+#   직전 ledger HEAD=4dc9aea. 그 사이 커밋 체인:
+#     4dc9aea → 3284490 (planner 36th cycle no-op) → d1a97a1 (inspector Phase 1 reconcile 0/0 ack 3회 연속 no-op)
+#     → (inspector 가 REQ-20260422-044 흡수 → Phase 3 green 생성: foundation/husky-hook-entrypoint.md)
+#     → 42cf572 (a11y 수동 작업 커밋, planner 영역 밖).
+#   본 세션 입력 (green, HEAD=42cf572 기준): **1 spec file 신규 유입**.
+#     - `specs/30.spec/green/foundation/husky-hook-entrypoint.md` (REQ-20260422-044, sha256=6c384fc4...).
+#     - `specs/30.spec/green/common/`: 비어있음.
 #     - `specs/30.spec/green/components/`: 비어있음.
-#     - `specs/30.spec/green/foundation/`: 비어있음.
-#     - hidden ledger `.inspector-seen` + `.planner-seen` 만 잔존.
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
-#     (2) 입력 큐: **비어있음 → no-op 분기**.
-#     (3)(4) 미도달 (입력 큐 0 에서 종료).
+#     (2) 입력 큐: **1건 (husky-hook-entrypoint.md)** — 처리 진행.
+#     (3) 하류 임계치 TASK_READY_MAX=10 : `40.task/` 잔존 0건 → 통과 (여유 10).
+#     (4) 처리.
 #
-#   승격 판정: 대상 없음 (green spec 0건).
-#   carve 발생: **0건** (green 0건 → diff 대상 부재).
-#   승격 mv: **0건**.
-#   blocked mv: **0건**.
-#   grep dry-run: **N/A** — 본 cycle carve 0 (grep 게이트 박제 대상 없음).
+#   승격 판정 (foundation/husky-hook-entrypoint.md):
+#     - `[WIP]` == 0 → 통과.
+#     - unchecked `- [ ]` == **9건** (§테스트 현황 2 + §수용 기준 7 ─ FR-01~06 + 스코프). → 실패.
+#     - `^#+ .*To-Be` == 0 → 통과.
+#     - §변경 이력 TSK/커밋 = HEAD=d1a97a1 박제됨 → 통과.
+#     → **승격 불가** (unchecked 9건 잔존). Carve 분기.
+#
+#   Carve 분석:
+#     - spec grep-baseline (a)~(f) 6개 게이트 중 (a)(b)(c)(d)(e) 5개 위반 상태, (f) 관찰 계약 baseline 1개.
+#     - FR-01 (.husky/* shim 제거) / FR-02 (prepare 전환) / FR-03 (husky dep ≥9) / FR-06 (.husky/_ 제거) 는 **불가분 원자 단위**:
+#       - `npm install` 이 lockfile + node_modules/husky 를 v8→v9 로 한 번에 교체하므로 분할 시 중간 상태에서 hook broken.
+#       - hook 파일 (pre-commit/pre-push) 재작성은 husky dep 버전 교체와 동시 수행해야 FR-04 관찰 계약 보존.
+#     - 따라서 **TSK 1건 (원자)** 으로 carve. 독립 `git revert` 1회로 롤백 가능.
+#     - depends_on: [] (선행 task 부재).
+#
+#   TSK ID 중복 검증:
+#     - `grep -rn "TSK-20260421-..." specs/{40.task,60.done,50.blocked}/` → 최대 NN=89 사용.
+#     - TSK-20260421-90 → 미사용 확정. 할당.
+#
+#   grep dry-run (baseline 6 gate, HEAD=42cf572 실측):
+#     (a) `grep -nE "\"husky\":\s*\"\^?8" package.json` → 1/1 hit (`package.json:55`). spec 박제 일치.
+#     (b) `grep -nE "\"prepare\":\s*\"husky install\"" package.json` → 1/1 hit (`package.json:25`). 일치.
+#     (c) `grep -rn "_/husky.sh" .husky/` → 2/2 hits (`.husky/pre-commit:2`, `.husky/pre-push:2`). 일치.
+#     (d) `ls -d .husky/_` → 1/1 (존재, husky.sh 포함). 일치.
+#     (e) `node -p "require('./node_modules/husky/package.json').version"` → `8.0.2`. 일치.
+#     (f) `grep -nE "npx lint-staged|npm test" .husky/pre-commit .husky/pre-push` → 2/2 hits
+#         (`.husky/pre-commit:4`, `.husky/pre-push:4`). 일치.
+#     → **grep dry-run: 6/6 match** (drift 없음, spec baseline 과 실측 완전 일치).
+#
+#   발행:
+#     - `specs/40.task/TSK-20260421-90-husky-v8-to-v9-hook-entrypoint-migration.md` (신규).
+#       · §스코프 규칙 섹션 포함 (grep 게이트 DoD 있음 — RULE-06 필수 조건 충족).
+#       · expansion: 불허 (수정 파일 = package.json + .husky/pre-commit + .husky/pre-push + .husky/_ 제거 + package-lock.json 한정).
+#       · baseline 6개 grep 게이트 실측 수치 박제.
+#       · DoD = FR-01~04 + FR-06 에 대응하는 grep 후조건 + lint/test/수동 관찰 계약.
+#
+#   승격 mv: **0건** (승격 불가 확정).
+#   blocked mv: **0건** (신규 유입, stale=0).
+#   carve mv: **0건** (green 은 carve 후에도 원위치 유지 — carve 이벤트는 task 발행이며 green mv 아님).
 #
 #   RULE-01 점검:
-#     - 본 세션 변경 = `.planner-seen` ledger edit 만.
-#     - planner writer 영역 준수 (30.spec/green 내 hidden ledger 편집 허용).
+#     - 본 세션 변경 = `.planner-seen` ledger edit (planner writer 영역) + `40.task/TSK-...` 발행 (planner writer 영역).
+#     - `40.task/**` 는 .gitignore 로 git 추적 제외 (기존 파이프라인 규약).
+#     - green 본문 미터치 (승격 불가 판정 후 원위치 유지).
 #   RULE-02 점검:
 #     - staged 자기 영역 밖 없음 — unstage 불요.
-#     - working tree clean.
-#     - 커밋 scope = `spec(planner): 36th cycle no-op (green 입력 큐 0)`.
+#     - 커밋 scope = `task(planner): carve TSK-20260421-90 (REQ-044 husky v8→v9 hook 진입점 전환)`.
+#     - push 금지 (developer 전용).
 #   RULE-04 점검:
-#     - 보고 notes: `promote: 0` + `carve: 0` + `blocked: 0` + `grep dry-run: N/A (no carve)`.
+#     - 보고 notes: `carve: 0 -> TSK-20260421-90 (1 신규 원자 task)` + `grep dry-run: 6/6 match` + `promote: 0` + `blocked: 0`.
 #   RULE-06 점검:
-#     - 본 cycle carve 0 → `## 스코프 규칙` 섹션 추가 대상 없음.
+#     - TSK-90 에 §스코프 규칙 섹션 박제 (grep 게이트 DoD 有 → 필수 조건 충족).
+#     - baseline = spec grep-baseline 6개 실측 수치 그대로 전사.
+#     - expansion=불허 rationale 박제.
 #   RULE-07 점검:
 #     - spec 콘텐츠 미터치.
 #
 #   **운영 관찰**:
-#     - 35th cycle 종료 시점 예측 ("다음 planner cycle 은 inspector 가 새 green 을 생성할 때까지 no-op 예상") 이 실현됨.
-#     - 본 cycle 종료 시점 파이프라인:
-#       - `30.spec/green/**`: 0건 (hidden ledger 제외, 36th cycle 연속 drain).
-#       - `30.spec/blue/**`: 15 files (components 9 + foundation 5 + common 1 — common/test-idioms).
-#       - `40.task/`: 0 건. 여유 10.
-#       - `50.blocked/spec/common/`: 2 건 (`a11y.md` + `error-reporter-channel.md`, 둘 다 구조적 blocker, /revisit 대기, 상태 무변화).
+#     - 36th cycle 까지 이어진 no-op 체인이 REQ-044 유입으로 종료됨.
+#     - 37th cycle 에서 단일 원자 task carve 발행. TASK_READY_MAX 여유 10→9.
+#     - green 잔존 1건 (husky-hook-entrypoint.md) 는 task DoD 체크박스 충족 및 §변경 이력 커밋 해시 박제 시 차기 이후 cycle 에서 승격 후보.
 #
-#   **파이프라인 상태 (36th cycle 종료 시)**:
-#     - green (잔존 0건): 완전 drain 유지.
-#     - blue: 변경 없음 (15 files).
-#     - 50.blocked/spec/: 2건 (a11y + error-reporter-channel) — 상태 변화 없음, /revisit 대기.
-#     - 40.task/: 0 건 — 상태 변화 없음.
+#   **파이프라인 상태 (37th cycle 종료 시)**:
+#     - 30.spec/green/**: 1건 (foundation/husky-hook-entrypoint.md, stale=0, sha256=6c384fc4...).
+#     - 30.spec/blue/**: 15 files (변경 없음).
+#     - 40.task/: **1건** (TSK-20260421-90).
+#     - 50.blocked/spec/common/: 2건 (a11y + error-reporter-channel) — 변화 없음.
 #
-# ledger entries (잔존 green): 없음 (green 완전 drained, 2cycle 연속).
+# ledger entries (잔존 green):
+# - specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 0
 #
-# promoted (→ 30.spec/blue/):
-# - 35th cycle: `foundation/coverage-determinism.md` (HEAD=d8baf59, commit 8e1c913).
-# - 34th cycle: `components/log.md`.
+# promoted (→ 30.spec/blue/): 본 cycle 0건.
+# blocked (→ 50.blocked/spec/): 본 cycle 0건.
+# carves (→ 40.task/):
+# - 37th cycle: TSK-20260421-90 (husky v8→v9 hook 진입점 전환, REQ-20260422-044, depends_on=[], supersedes=없음).
 #
-# blocked (→ 50.blocked/spec/):
-# - 34th cycle: `common/error-reporter-channel.md` + `_reason.md` — FR-06 writer 매트릭스 구조적 blocker.
-# - 31st cycle: `common/a11y.md` + `_reason.md` — FR-07 writer 매트릭스 구조적 blocker.
-#
-# carves (→ 40.task/): 본 cycle 0건. 직전 34th cycle TSK-20260421-89 는 60.done 완결.
-#
-# ready 큐: count=0. 연속 2 cycle (35th→36th) no-op. inspector 가 새 green spec 을 생성하기 전까지 planner no-op 지속 예상.
-# next cycle (37th+):
-#   - **inspector (30m)**: 새 req 흡수 시 Phase 3 green 생성. Phase 1 reconcile 지속 (`reconcile: N/M ack` 매 세션 필수).
-#   - **discovery (1h)**: 10.followups 소비 + 2건 `_reason.md` `/revisit` 경로 감지 시 req 신설 (운영자 판정 대기).
-#   - **planner (37th+)**: green 재생성 감지 시 carve/승격/blocked 판정. 없으면 no-op.
-#   - **developer (15m)**: 40.task/ 비어있음 → no-op 예상.
+# ready 큐: count=1. 신규 유입 직후.
+# next cycle (38th+):
+#   - **developer (15m)**: TSK-20260421-90 수행 → 성공 시 `60.done/YYYY/MM/DD/task/` 이동, spec §변경 이력 에 TSK 슬러그·커밋 해시 박제 요청.
+#   - **planner (38th+)**: developer 완료 후 green 의 unchecked 9건이 해소되면 승격 판정 재수행. 미해소면 stale=1.
+#   - **inspector (30m)**: Phase 1 reconcile (매 세션 필수 `reconcile: N/M ack`).
+#   - **discovery (1h)**: 10.followups / /revisit 경로.
