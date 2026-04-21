@@ -132,11 +132,13 @@ export function auth() {
 		// RFC 6265bis (REQ-20260421-025 FR-01): SameSite 속성은 Strict | Lax | None 중 하나만 유효.
 		// Cognito Hosted UI redirect 후 top-level navigation 경로에서 쿠키가 전송되어야 하므로 "Lax" 고정.
 		// setCookie 는 options key 를 그대로 cookie string 에 직렬화하므로 표준 속성명 대문자 "SameSite" 로 주입.
-		// 직렬화 결과: "access_token=<v>; path=/; secure; SameSite=Lax; maxAge=3600" (브라우저 인식 속성명 정합).
+		// 지속 속성은 RFC 6265 §5.2.2 표준명 "Max-Age" (하이픈 필수) 로 주입 — camelCase `maxAge` 는
+		// 브라우저가 인식하지 못해 세션 쿠키로 강등됨 (REQ-20260421-032 FR-04/07).
+		// 직렬화 결과: "access_token=<v>; path=/; secure; SameSite=Lax; max-age=3600" (브라우저 인식 속성명 정합).
 		setCookie("access_token", accessToken, {
 			secure: true,
 			SameSite: "Lax",
-			maxAge: 3600,
+			'max-age': 3600,
 		});
 
 		// id_token 이 null 이면 id_token 쿠키를 세팅하지 않는다 (안전 fallthrough).
@@ -145,7 +147,7 @@ export function auth() {
 			setCookie("id_token", idToken, {
 				secure: true,
 				SameSite: "Lax",
-				maxAge: 3600,
+				'max-age': 3600,
 			});
 		}
 	}

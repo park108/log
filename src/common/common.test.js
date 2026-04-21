@@ -326,6 +326,69 @@ describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 	});
 });
 
+describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)', () => {
+	// RFC 6265 §5.2.2 표준 속성명은 `Max-Age` (하이픈 필수). 과거 구현의 camelCase
+	// `maxAge` 는 브라우저가 인식하지 못해 세션 쿠키로 강등되는 회귀가 있었다.
+	// 본 describe 는 auth() 가 access_token/id_token 직렬화 결과에 표준 속성명을
+	// 포함하고, camelCase 오타를 재도입하지 않음을 박제한다 (FR-07 positive/negative).
+	let savedLocation;
+	let cookieSetSpy;
+	let writtenCookies;
+
+	const clearAuthCookies = () => {
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+	};
+
+	beforeEach(() => {
+		stubMode('development');
+		savedLocation = window.location;
+		const mock = new URL('http://localhost:3000');
+		mock.replace = vi.fn();
+		mock.href += '?access_token=AAA#id_token=BBB';
+		delete window.location;
+		window.location = mock;
+		clearAuthCookies();
+
+		writtenCookies = [];
+		const descriptor = Object.getOwnPropertyDescriptor(
+			Object.getPrototypeOf(document),
+			'cookie',
+		) || Object.getOwnPropertyDescriptor(document, 'cookie');
+		const originalSet = descriptor.set.bind(document);
+		cookieSetSpy = vi.spyOn(document, 'cookie', 'set').mockImplementation((v) => {
+			writtenCookies.push(v);
+			originalSet(v);
+		});
+	});
+
+	afterEach(() => {
+		cookieSetSpy.mockRestore();
+		clearAuthCookies();
+		delete window.location;
+		window.location = savedLocation;
+	});
+
+	it('emits standard Max-Age attribute (positive) and avoids camelCase maxAge (negative) on auth cookies', () => {
+		common.auth();
+
+		const authWrites = writtenCookies.filter(
+			(c) => /^access_token=|^id_token=/.test(c),
+		);
+		expect(authWrites.length).toBeGreaterThanOrEqual(2);
+
+		const joined = authWrites.join('\n');
+
+		// positive: 표준 속성명 `max-age=3600` 이 라인 시작 또는 `; ` 다음에 2회 매치.
+		const positiveMatches = joined.match(/(?:^|;\s*)max-age=3600\b/gi);
+		expect(positiveMatches).not.toBeNull();
+		expect(positiveMatches.length).toBeGreaterThanOrEqual(2);
+
+		// negative: camelCase 속성 (예: `maxAge=3600`) 0 매치 — 오타 재도입 차단.
+		expect(joined).not.toMatch(/(?:^|;\s*)maxAge=/);
+	});
+});
+
 describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
 	let savedLocation;
 	const clearAuthCookies = () => {
