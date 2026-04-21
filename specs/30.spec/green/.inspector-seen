@@ -1,46 +1,48 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=9d08c59, Phase 1 reconcile 세션)
-# Phase 1 ack this session: 2/5 ack.
+# Updated: 2026-04-21T (HEAD=dcecda0, Phase 1 reconcile + Phase 3 REQ-030 세션)
+# Phase 1 ack this session: 1/4 ack (marker 단위).
 #
-# drift marker 스캔 (4 spec) — 총 5 marker 발견:
+# drift marker 스캔 (3 spec) — 총 4 marker (components/common.md 은 planner 017c125 에서 green→blue 승격되어 green 제외):
 #   1. `foundation/tooling.md:57` — lint-staged `.d.ts` 포함 보강 (향후 task) → 대응 task 미수행 → [ ] 유지. stale_cycles +=1.
 #   2. `foundation/ci.md:48`       — (수동) Node LTS 상향 시점 engine 확인 → 수동 점검 반복 계약 → [ ] 유지. stale_cycles +=1.
-#   3. `components/common.md:138`  — auth() SameSite 회귀 방어 테스트 → ACK (`9d08c59` / TSK-20260421-62 PASS; `src/common/common.test.js:202` describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)') positive `/SameSite=(Strict|Lax|None)/` + negative `/SameSite=[a-z]|SameSite=false/` 어설션 박제, 383 tests passed 회귀 0) → [x] 플립 + 변경 이력 1행 박제.
-#   4. `components/common.md:155`  — (Must, REQ-025 FR-02 실현) positive/negative 어설션 실제 추가 → ACK (동일 `9d08c59` / TSK-62; `src/common/common.js:133,139` `SameSite: "Lax"` 고정, `grep -nE "sameSite:\s*site" → 0 hit`) → [x] 플립 (동일 변경 이력 행에 통합 박제).
-#   5. `components/log.md:59`      — LogItem DELETE shuffle 안정성 (향후 task 로 실현; spec 은 계약 박제만) → task 미수행 → [ ] 유지. stale_cycles +=1.
+#   3. `components/log.md:59` (구)  — LogItem DELETE shuffle 안정성 (TSK-20260421-63 / `261a51a` 실현) → ACK. [x] 플립 + §변경 이력 1행 박제.
+#   4. `components/log.md` NEW (REQ-030 흡수 결과로 §테스트 현황·§수용 기준에 추가된 1 marker) — LogSingle render budget 불변식. 대응 task 미발행 (planner 영역) → [ ] 유지 (신규 marker). stale_cycles=0.
+#
+# Phase 1 ack 산출: ACK 대상 1 (marker #3), 비 ACK 3 (marker #1 stale+1, #2 stale+1, #4 신규). 토큰 = `reconcile: 1/4 ack`.
 #
 # Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음.
 #
-# Phase 3 (신규 req 반영): 20.req 비어있음 → Phase 3 no-op.
-#
-# 이동: 없음 (20.req 비어있음).
-# blocked: 없음 (반려 대상 없음).
-# 입력 큐: 0건. 하류 임계치 GREEN_PENDING_MAX=20, 현 green 파일 4 (spec) < 20. 여유 16.
+# Phase 3 (신규 req 반영): REQ-20260421-030 (log cold-start render budget invariant) 1건 흡수.
+#   - 대상: `30.spec/green/components/log.md` (blue 존재 → green carry-over 편집).
+#   - RULE-07 자기검증: 추가 문장 (§회귀 중점 line 43, §테스트 현황 line 61, §수용 기준 line 73) 에 Vitest 버전·TSK ID·`npm test`/`--run` 0회 등장 확인. 양성.
+#   - FR-04 택일: `src/test-utils/timing.js` `ASYNC_ASSERTION_TIMEOUT_MS` 상수 참조 (리터럴 ms 미박제). 근거 §변경 이력 1행 박제.
+#   - FR-03: consumed followup (`60.done/2026/04/21/followups/20260421-0554-...`) §참고·§변경 이력 박제.
+#   - 수용기준 4: 축 B 위임 노트 §참고에 박제 (task 계층 위임 명시).
+#   - 이동: `specs/20.req/20260421-log-cold-start-render-budget-invariant.md` → `specs/60.done/2026/04/21/req/`.
 #
 # hook-ack 보조 확인:
-#   - ack 대상 (3)(4) 의 `9d08c59` (2026-04-21 15:25) 은 HEAD=9d08c59 = HEAD. `9d08c59` 메시지 "auth() 쿠키 SameSite 를 RFC 6265bis 유효값 Lax 로 정상화" + result.md DoD "npm run lint PASS / npm test -- --run 47 files / 383 tests PASS (회귀 0) / npm run build PASS" 박제. Must 주관 혼재 없음 (단일 task 실현 2 marker 동시 ack 이나 근거 단일) → ack 보조 확정.
-#   - ledger schema 상 marker 단위 ack 카운트 = 2/5; Must 혼재 검증은 marker 별 독립 수행.
+#   - marker #3: `261a51a` (HEAD=dcecda0 의 조상; dcecda0 은 `fix: lint-staged 패턴에 .d.ts 포함 보강` 으로 무관). 커밋 메시지 "test: LogItem DELETE 테스트 shuffle 안정성 회귀 방어 (seed={1,2,3})" + result.md DoD "npm run lint clean / seed=1/2/3 전부 pass / npm test 47 files 383 tests PASS 회귀 없음 / npm run build 성공" 박제. Must 주관 혼재 없음 (단일 task 실현 1 marker) → ack 보조 확정.
 #
 # 기존 ledger 대비 변동:
-#   - `common/test-idioms.md` 항목 제거 (planner 65cf7c2 에서 green→blue 승격).
-#   - `components/common.md` sha 갱신 (이번 세션 플립 2건 반영).
-#   - 나머지 3 spec 은 본문 변경 없음 — sha 유지, stale_cycles +=1.
+#   - `components/common.md` 항목 제거 (planner 017c125 green→blue 승격).
+#   - `components/log.md` sha 갱신 (Phase 1 ACK + REQ-030 흡수 반영).
+#   - `foundation/*` 2 spec 은 본문 변경 없음 — sha 유지, stale_cycles +=1.
 #
 # 현 ledger:
-specs/30.spec/green/components/common.md ab9893645175bf9caf06c9cad8e03243b85d93bfab2b066223e725ec10575fbb 0
-specs/30.spec/green/components/log.md cdd2ba754bf67416be93feb9825f7023f2b960c13f6b1d354c8ed64844e3b82a 1
-specs/30.spec/green/foundation/ci.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 1
-specs/30.spec/green/foundation/tooling.md e8d809041b276e689d35f624cdf86d111d3e93fa059067eef667ea2fee04edfd 1
+specs/30.spec/green/components/log.md 1b0728614a126864255cdff6742507084ef1187ef5809dce45e134f3c5687d66 0
+specs/30.spec/green/foundation/ci.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 2
+specs/30.spec/green/foundation/tooling.md e8d809041b276e689d35f624cdf86d111d3e93fa059067eef667ea2fee04edfd 2
 #
-# Stale 경고: 0 path ≥ 3 cycle (marker 단위 stale tracking 은 ledger schema 상 path 단위 — 현 최대 1 cycle).
+# Stale 경고: 0 path ≥ 3 cycle (현 최대 2 cycle — foundation/ci.md, foundation/tooling.md).
+#
+# 입력 큐: 처리 후 0건. 하류 임계치 GREEN_PENDING_MAX=20, 현 green 파일 3 (spec) < 20. 여유 17.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `components/common.md` 잔여 [ ] 0건 — REQ-022/025 FR 전원 실현. 본 spec 은 다음 planner 세션 green→blue 승격 후보.
-#   - `components/log.md:59` — LogItem DELETE shuffle 결정성 실현 task carve 대상.
+#   - `components/log.md` 은 marker #4 ([ ]) 신규 추가로 아직 미승격 상태 유지.
 #   - `foundation/tooling.md:57` — lint-staged `.d.ts` glob 보강 task (1 line 수정) carve 대상.
 #   - `foundation/ci.md:48` — 수동 점검 반복 계약. task 불요 (운영자 동선).
 #
 # 다음 세션 유의:
-#   - 20.req 가 다시 찰 경우 Phase 3 재개.
-#   - `components/common.md` 은 잔여 [ ] 없으므로 planner 가 green→blue 승격 검토 가능 — inspector 는 편집 권한만, 승격은 planner 영역.
-#   - Phase 1 ack 추가 후보: LogItem DELETE shuffle task / lint-staged `.d.ts` task 완료 시 해당 marker ack 가능.
+#   - 20.req 다시 차면 Phase 3 재개.
+#   - `components/log.md` 신규 marker (REQ-030 LogSingle render budget) 은 planner 가 task 발행 시 축 B (Vitest 호환 시그니처 마이그레이션) 계약과 묶어 carve 가능.
+#   - `foundation/ci.md:48` stale 누적 시 "수동 체크 반복 계약" 으로 재분류 검토 여지.

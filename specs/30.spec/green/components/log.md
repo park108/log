@@ -1,8 +1,8 @@
 # Log 컴포넌트 (로그 목록 / 단건 / 작성기 서브 라우트)
 
 > **위치**: `src/Log/` (Log.jsx, LogList.jsx, LogSingle.jsx, LogItem.jsx, LogItemInfo.jsx, Writer.jsx, api.js, api.mock.js, hooks/**, Log.css, Writer.css)
-> **관련 요구사항**: REQ-20260421-027
-> **최종 업데이트**: 2026-04-21 (by inspector, REQ-027 shuffle 불변식 흡수)
+> **관련 요구사항**: REQ-20260421-027, REQ-20260421-030
+> **최종 업데이트**: 2026-04-21 (by inspector, REQ-030 render-budget 불변식 흡수)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (2026-04-21, HEAD=29d9da0).
 
@@ -40,6 +40,7 @@
 - `Log.test.jsx` production 모드 (isAdmin=false) 스위트: `+` 버튼 미노출, `/log/write` 라우트 미노출.
 - `LogList` 의 sessionStorage 캐시 회피 경로: 캐시 존재 시 `getLogs` 미호출.
 - **LogItem DELETE shuffle 안정성** (REQ-20260421-027 FR-01): LogItem DELETE 테스트는 `vitest --sequence.shuffle --sequence.seed={1,2,3}` 에서 race 없이 pass 한다. 테스트 간 상호 의존 (module-level cache, MSW handler 잔존 등) 이 없어야 하며, 어떤 seed 조합에서도 결정적 pass 를 보장.
+- **LogSingle render budget 불변식** (REQ-20260421-030 FR-01): `LogSingle` prod render 는 **cold-start** 상태 (모듈/JIT warm-up 미선행, 파일 첫 테스트로 섞인 경우 포함) 에서도 정해진 render budget 안에 mount 및 첫 어설션을 완료한다. budget 상한은 `src/test-utils/timing.js` 의 `ASYNC_ASSERTION_TIMEOUT_MS` 를 polling 상한으로 사용하는 비동기 어설션의 수렴 시간으로 정의하며, 특정 러너 버전·커맨드 플래그·재현 횟수에 귀속되지 않는 **boolean 계약** (budget 초과 여부) 으로만 환원된다. dev render 도 동일 계약을 공유한다.
 
 ## 의존성
 - 외부: `react`, `react-router-dom`, `prop-types`, `@tanstack/react-query`.
@@ -56,7 +57,8 @@
 - [x] `src/Log/Log.test.jsx`, `LogList` / `LogSingle` / `LogItem` / `LogItemInfo` / `Writer` 각 `.test.jsx`.
 - [x] 훅 테스트: `hooks/useLog.test.js`, `useLogList.test.js`, `useCreateLog.test.js`, `useUpdateLog.test.js`, `useDeleteLog.test.js`.
 - [x] `__fixtures__/` 에 API 응답 샘플 박제.
-- [ ] LogItem DELETE shuffle 안정성 — seed={1,2,3} 불문 결정적 pass (향후 task 로 회귀 방어 실현; 본 spec 은 계약 박제만).
+- [x] LogItem DELETE shuffle 안정성 — seed={1,2,3} 불문 결정적 pass (TSK-20260421-63 / `261a51a`; `src/Log/LogItem.test.jsx` `beforeAll` warm-up 박제, seed=1/2/3 + 임의 seed 전부 11/11 pass, 전체 383 tests PASS 회귀 0).
+- [ ] LogSingle render budget 불변식 — cold-start 에서 render/assert 가 budget 상한 이내 수렴 (향후 task 로 회귀 방어 실현; 본 spec 은 계약 박제만).
 
 ## 수용 기준 (현재 상태)
 - [x] (Must) `/log/` 접근 시 `LogList` 렌더. 세션 캐시가 있으면 네트워크 호출 0.
@@ -68,18 +70,30 @@
 - [x] (Should) `props.isPostSuccess` true 변화 시 `LogList` 재페치 트리거.
 - [x] (NFR) 모든 하위 라우트는 `React.lazy` + `Suspense(fallback=<div/>)` 로 코드 스플릿.
 - [x] (Must, REQ-20260421-027 FR-01) LogItem DELETE 테스트는 `vitest --sequence.shuffle --sequence.seed={1,2,3}` 에서 race 없이 pass 한다.
+- [ ] (Must, REQ-20260421-030 FR-01) `LogSingle` prod/dev render 는 cold-start 에서도 render budget 상한 (`src/test-utils/timing.js` `ASYNC_ASSERTION_TIMEOUT_MS` 를 polling 상한으로 하는 어설션의 수렴 시간) 이내 mount 및 첫 어설션을 완료한다.
 
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-20 | operator / — | 최초 등록 (as-is 서술 spec, blue) | all |
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-027 FR-01 흡수 — blue `components/log.md` → green carry-over. § 회귀 중점에 "LogItem DELETE 테스트는 `vitest --sequence.shuffle --sequence.seed={1,2,3}` 에서 race 없이 pass" 불변식 1줄 추가. consumed followup: `specs/10.followups/20260421-0541-test-isolation-shuffle-safety-cold-start-spec-from-blocked.md`. 선행 done req: `20260421-test-isolation-shuffle-safety-cold-start-spec-reseed-from-followup.md` (REQ-017), `20260421-layer2-cold-start-race-root-cause-rediagnosis.md` (REQ-012), `20260420-react-19-findby-timing-stabilization.md`. | §회귀 중점, §스코프 규칙, §테스트 현황, §수용 기준 |
+| 2026-04-21 | inspector / 261a51a | Phase 1 reconcile — LogItem DELETE shuffle 안정성 marker [x] 플립 (TSK-20260421-63 / `261a51a` `beforeAll` warm-up, seed=1/2/3 + 임의 seed 전부 pass, 전체 383 tests PASS 회귀 0 박제). | §테스트 현황 |
+| 2026-04-21 | inspector / REQ-20260421-030 | FR-01~04 흡수 — §회귀 중점에 "LogSingle render budget 불변식" 1~2줄 추가 (cold-start 에서도 render/assert 가 budget 이내 수렴하는 boolean 계약). §테스트 현황·§수용 기준에 대응 미완료 [ ] 1행 추가. budget 수치 박제 방식은 **FR-04 택일: `src/test-utils/timing.js` 상수 참조** — 근거: 리터럴 ms 박제는 spec 이 러너 default timeout 경계 값에 귀속되어 시점 중립성 약화. 상수 참조는 단일 진입점 유지 + 러너·버전 중립. consumed followup: `specs/60.done/2026/04/21/followups/20260421-0554-logsingle-vitest4-rescope-and-spec-relayering-from-blocked.md`. | §회귀 중점, §테스트 현황, §수용 기준, §참고 |
 
 ## 참고
-- **REQ 원문 (완료 처리)**: `specs/60.done/2026/04/21/req/20260421-log-spec-regression-logitem-delete-shuffle-and-findby-idiom.md`.
-- **Consumed followup**: `specs/10.followups/20260421-0541-test-isolation-shuffle-safety-cold-start-spec-from-blocked.md`.
-- **관련 spec**: `specs/30.spec/green/common/test-idioms.md` (REQ-027 FR-02 findBy 이디엄 축).
+- **REQ 원문 (완료 처리)**:
+  - `specs/60.done/2026/04/21/req/20260421-log-spec-regression-logitem-delete-shuffle-and-findby-idiom.md` (REQ-027).
+  - `specs/60.done/2026/04/21/req/20260421-log-cold-start-render-budget-invariant.md` (REQ-030).
+- **Consumed followup**:
+  - `specs/10.followups/20260421-0541-test-isolation-shuffle-safety-cold-start-spec-from-blocked.md` (REQ-027 선행; 이미 `60.done/followups/` 이동).
+  - `specs/60.done/2026/04/21/followups/20260421-0554-logsingle-vitest4-rescope-and-spec-relayering-from-blocked.md` (REQ-030 선행 축 A/B 분리).
+- **선행 done req (render budget 진단 계보)**:
+  - `specs/60.done/2026/04/21/req/20260421-logsingle-prod-server-serial-timeout-diagnosis.md` (REQ-014 원인 진단 — cold module/JIT warm-up × 기본 async assertion timeout 경계).
+  - `specs/60.done/2026/04/21/req/20260421-logsingle-prod-server-serial-timeout-remediation.md` (REQ-016 1차 remediation plan).
+- **관련 spec**: `specs/30.spec/blue/common/test-idioms.md` (findBy 이디엄 축 — `ASYNC_ASSERTION_TIMEOUT_MS` polling 정합).
+- **관련 상수**: `src/test-utils/timing.js` `ASYNC_ASSERTION_TIMEOUT_MS` — 본 spec 의 render budget 상한 참조 지점. 수치 자체는 spec 본문에 박제하지 않음 (시점 중립성 보존).
+- **축 B 위임 노트 (REQ-20260421-030 §참고 위임)**: Vitest 러너 호환 시그니처 택일 (options-as-2nd 객체 vs 3rd-arg number 등 버전별 deprecated/removed 대응) · 적용 범위 (it 단위 budget override) · supersedes 관계 등 1회성 마이그레이션 계약은 본 spec 본문에 포함하지 않는다. 해당 계약은 planner 가 후속 task 문서 (`40.task/**`) 에 박제한다. 본 spec 은 "render budget 계약" 만 유지 (RULE-07 양성 기준).
 - **RULE 준수**:
-  - RULE-07: 불변식 한정 (race 없이 pass = 계약, 실측 seed/failure 수는 task 영역).
+  - RULE-07: 불변식 한정 — "race 없이 pass" / "budget 이내 수렴" 은 boolean 계약. 실측 seed·ms 수치·Vitest 버전·TSK ID 는 task 영역으로 위임.
   - RULE-01: inspector writer 영역만 (`30.spec/green/**`).
-  - RULE-06: grep-baseline 수치 박제.
+  - RULE-06: grep-baseline 수치 박제 (REQ-027 FR-04(a) 경로 유지).
