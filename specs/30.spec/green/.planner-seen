@@ -1,88 +1,75 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-22T16:00Z (35th cycle) — 1 promotion + 0 blocked + 0 carve (green drained).
+# Updated: 2026-04-21T(36th cycle) — no-op (green 입력 큐 0, 승격·carve·blocked 대상 없음).
 # Session summary:
-#   HEAD (세션 시작) = d8baf59 (`spec(inspector): Phase 1 reconcile 1/1 ack (TSK-89 coverage-determinism FR-02 (g-2) fileParallelism false 수렴)`).
-#   직전 ledger HEAD=80ee2ae. 그 사이 커밋 체인:
-#     80ee2ae (inspector REQ-043 흡수) → 97f1808 (planner 34th cycle: promote log + block erc + carve TSK-89) → e290e8c (developer: chore: coverage 측정 결정론 수단 (g-2) fileParallelism false 박제) → d8baf59 (inspector Phase 1 reconcile 1/1 ack TSK-89 — §테스트 현황 2건 [ ]→[x] 플립 + §변경 이력 엔트리 박제).
-#   34th cycle 이후 파이프라인 진행 (planner 관점):
-#     (a) planner 34th 카브 TSK-20260421-89 발행.
-#     (b) developer e290e8c 수행 (수단 (g-2) `vite.config.js` `test.fileParallelism: false` 1행 박제) + TSK 파일 60.done/task/ 로 mv.
-#     (c) inspector d8baf59 Phase 1 reconcile 1/1 ack — `foundation/coverage-determinism.md` §테스트 현황 FR-01/FR-02 플립 [x] + §변경 이력 엔트리 박제.
-#   `40.task/` 잔존 (본 세션 시작 시): **0 건** (TSK-89 60.done mv 완료). TASK_READY_MAX=10 여유 10.
+#   HEAD (세션 시작) = 4dc9aea (`spec(inspector): Phase 1 reconcile 0/0 ack (연속 no-op, 입력 큐 0 · 빈 green 유지)`).
+#   직전 ledger HEAD=d8baf59. 그 사이 커밋 체인:
+#     d8baf59 (inspector Phase 1 reconcile 1/1 ack) → 8e1c913 (planner 35th: promote foundation/coverage-determinism green→blue) → 74ed7c7 (inspector Phase 1 reconcile 0/0 ack, post-promotion 빈 green) → 4dc9aea (inspector Phase 1 reconcile 0/0 ack, 연속 no-op).
+#   35th cycle 이후 파이프라인 진행 (planner 관점):
+#     (a) planner 35th (8e1c913): `foundation/coverage-determinism.md` green→blue 승격 완료.
+#     (b) inspector 74ed7c7 / 4dc9aea: 연속 2 cycle Phase 1 reconcile 0/0 ack (입력 큐 0, 빈 green 유지, spec 콘텐츠 미터치).
+#   `40.task/` 잔존 (본 세션 시작 시): **0 건**. TASK_READY_MAX=10 여유 10.
 #   working tree (본 세션 시작 시): clean. staged: 0.
 #
-#   본 세션 입력 (green, HEAD=d8baf59 기준): 1 spec file:
-#     (1) `foundation/coverage-determinism.md` — HEAD 기준 unchecked=0, WIP=0, To-Be=0, deferred=0, §변경 이력에 TSK-20260421-89 @e290e8c 박제 완료 (4조건 전부 충족).
-#         → **승격 조건 만족**: `mv green/foundation/coverage-determinism.md → blue/foundation/coverage-determinism.md`. blue 측 동명 파일 부재 (첫 등록).
+#   본 세션 입력 (green, HEAD=4dc9aea 기준): **0 spec files**.
+#     - `specs/30.spec/green/common/`: 비어있음 (디렉터리만 존재).
+#     - `specs/30.spec/green/components/`: 비어있음.
+#     - `specs/30.spec/green/foundation/`: 비어있음.
+#     - hidden ledger `.inspector-seen` + `.planner-seen` 만 잔존.
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
-#     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
-#     (3) 입력 큐: 1 HEAD green spec — 통과.
-#     (4) 하류 임계치: `40.task/` = 0 → 0 (carve 0). 여유 10. 통과.
-#     (5) 처리 진입.
+#     (2) 입력 큐: **비어있음 → no-op 분기**.
+#     (3)(4) 미도달 (입력 큐 0 에서 종료).
 #
-#   승격 판정 (HEAD=d8baf59):
-#     - `foundation/coverage-determinism.md`:
-#         unchecked: **0** (§테스트 현황 2행 + §수용 기준 11행 전원 [x]).
-#         WIP: 0. To-Be: 0. deferred: 0. 변경 이력: TSK-20260421-89 @e290e8c 박제 완료.
-#         → **승격**: `mv green/foundation/coverage-determinism.md → blue/foundation/coverage-determinism.md`.
-#
-#   carve 발생: **0건**. 승격 후 green 전체 drained (hidden ledger `.inspector-seen` / `.planner-seen` 만 잔존). carve 대상 spec 부재.
-#
-#   승격 mv: **1건** (`green/foundation/coverage-determinism.md → blue/foundation/coverage-determinism.md`).
+#   승격 판정: 대상 없음 (green spec 0건).
+#   carve 발생: **0건** (green 0건 → diff 대상 부재).
+#   승격 mv: **0건**.
 #   blocked mv: **0건**.
-#
-#   grep dry-run: **N/A** — 본 cycle 은 carve 0 (grep 게이트 박제 대상 없음).
+#   grep dry-run: **N/A** — 본 cycle carve 0 (grep 게이트 박제 대상 없음).
 #
 #   RULE-01 점검:
-#     - 본 세션 변경 = (a) coverage-determinism.md mv green→blue, (b) .planner-seen edit.
-#     - planner writer 영역 준수 (30.spec/green→blue mv + ledger).
-#     - 이동 원자성: mkdir -p → mv 순.
+#     - 본 세션 변경 = `.planner-seen` ledger edit 만.
+#     - planner writer 영역 준수 (30.spec/green 내 hidden ledger 편집 허용).
 #   RULE-02 점검:
 #     - staged 자기 영역 밖 없음 — unstage 불요.
 #     - working tree clean.
-#     - 커밋 scope = `spec(planner): promote foundation/coverage-determinism green→blue (35th cycle)`.
+#     - 커밋 scope = `spec(planner): 36th cycle no-op (green 입력 큐 0)`.
 #   RULE-04 점검:
-#     - 보고 notes: `promote: 1` + `carve: 0` + `blocked: 0` + `grep dry-run: N/A (no carve)`.
+#     - 보고 notes: `promote: 0` + `carve: 0` + `blocked: 0` + `grep dry-run: N/A (no carve)`.
 #   RULE-06 점검:
 #     - 본 cycle carve 0 → `## 스코프 규칙` 섹션 추가 대상 없음.
 #   RULE-07 점검:
-#     - spec 콘텐츠 미터치 — mv 만.
-#     - promoted coverage-determinism.md 본문은 시스템 불변식 (측정 결정론 + 수단 허용 집합 a~g + precondition 관계 + 수단 중립성 + 버전 무관성 + 축 분리). RULE-07 정합.
+#     - spec 콘텐츠 미터치.
 #
 #   **운영 관찰**:
-#     - `foundation/coverage-determinism.md` blue 승격 완료 — REQ-20260421-041 + REQ-20260421-043 2 REQ blue 박제.
+#     - 35th cycle 종료 시점 예측 ("다음 planner cycle 은 inspector 가 새 green 을 생성할 때까지 no-op 예상") 이 실현됨.
 #     - 본 cycle 종료 시점 파이프라인:
-#       - `10.followups/`: (별도 집계, discovery 입력 큐) — 본 planner 관심 밖.
-#       - `20.req/`: (별도 집계, inspector 입력 큐).
-#       - `30.spec/green/**`: **비어있음** (hidden ledger 제외). inspector 다음 cycle 에 신규 req 흡수 시 재생성.
-#       - `30.spec/blue/**`: 14 files (components 9 + foundation 5 + common 1 — common/test-idioms).
+#       - `30.spec/green/**`: 0건 (hidden ledger 제외, 36th cycle 연속 drain).
+#       - `30.spec/blue/**`: 15 files (components 9 + foundation 5 + common 1 — common/test-idioms).
 #       - `40.task/`: 0 건. 여유 10.
-#       - `50.blocked/spec/common/`: 2 건 (`a11y.md` + `error-reporter-channel.md`, 둘 다 구조적 blocker, /revisit 대기).
-#     - 다음 planner cycle 은 inspector 가 새 green 을 생성할 때까지 no-op 예상.
+#       - `50.blocked/spec/common/`: 2 건 (`a11y.md` + `error-reporter-channel.md`, 둘 다 구조적 blocker, /revisit 대기, 상태 무변화).
 #
-#   **파이프라인 상태 (35th cycle 종료 시)**:
-#     - green (잔존 0건): 완전 drain.
-#     - blue 신규 승격: `foundation/coverage-determinism.md`.
-#     - 50.blocked/spec/ (잔존 2건): `common/a11y.md` (31st cycle) + `common/error-reporter-channel.md` (34th cycle).
-#     - 40.task/: 0 건.
+#   **파이프라인 상태 (36th cycle 종료 시)**:
+#     - green (잔존 0건): 완전 drain 유지.
+#     - blue: 변경 없음 (15 files).
+#     - 50.blocked/spec/: 2건 (a11y + error-reporter-channel) — 상태 변화 없음, /revisit 대기.
+#     - 40.task/: 0 건 — 상태 변화 없음.
 #
-# ledger entries (잔존 green): 없음 (green 완전 drained).
+# ledger entries (잔존 green): 없음 (green 완전 drained, 2cycle 연속).
 #
 # promoted (→ 30.spec/blue/):
-# - 35th cycle: `foundation/coverage-determinism.md` (unchecked=0, WIP=0, To-Be=0, deferred=0, §변경 이력에 TSK-89 @e290e8c + REQ-043 흡수 + REQ-041 최초등록 박제). HEAD=d8baf59 기준 판정. mv 완료. blue 신규 등록.
+# - 35th cycle: `foundation/coverage-determinism.md` (HEAD=d8baf59, commit 8e1c913).
 # - 34th cycle: `components/log.md`.
 #
 # blocked (→ 50.blocked/spec/):
 # - 34th cycle: `common/error-reporter-channel.md` + `_reason.md` — FR-06 writer 매트릭스 구조적 blocker.
 # - 31st cycle: `common/a11y.md` + `_reason.md` — FR-07 writer 매트릭스 구조적 blocker.
 #
-# carves (→ 40.task/): 본 cycle 0건. 직전 34th cycle TSK-20260421-89 는 developer e290e8c / inspector d8baf59 ack 경로로 60.done 완결.
+# carves (→ 40.task/): 본 cycle 0건. 직전 34th cycle TSK-20260421-89 는 60.done 완결.
 #
-# ready 큐: count=0. next cycle 진입시 inspector 가 새 green spec 생성할 때까지 planner no-op 예상.
-# next cycle (36th+):
-#   - **inspector (30m)**: 새 req 있으면 Phase 3 흡수 → green 생성. Phase 1 reconcile 지속 (`reconcile: N/M ack` 매 세션 필수).
+# ready 큐: count=0. 연속 2 cycle (35th→36th) no-op. inspector 가 새 green spec 을 생성하기 전까지 planner no-op 지속 예상.
+# next cycle (37th+):
+#   - **inspector (30m)**: 새 req 흡수 시 Phase 3 green 생성. Phase 1 reconcile 지속 (`reconcile: N/M ack` 매 세션 필수).
 #   - **discovery (1h)**: 10.followups 소비 + 2건 `_reason.md` `/revisit` 경로 감지 시 req 신설 (운영자 판정 대기).
-#   - **planner (36th+)**: green 재생성 감지 시 carve/승격/blocked 판정. 없으면 no-op.
+#   - **planner (37th+)**: green 재생성 감지 시 carve/승격/blocked 판정. 없으면 no-op.
 #   - **developer (15m)**: 40.task/ 비어있음 → no-op 예상.
