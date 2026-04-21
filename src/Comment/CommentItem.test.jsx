@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import * as common from '../common/common';
 import CommentItem from './CommentItem';
@@ -132,5 +133,60 @@ describe('CommentItem rendering + hoverPopup migration', () => {
 		});
 
 		expect(screen.queryByText('Reply this message')).toBeNull();
+	});
+});
+
+describe('CommentItem a11y 패턴 B (REQ-20260421-033 FR-03) — M8 reply-toggle', () => {
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	const renderItem = (openReplyForm = () => {}) => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		// Suspense wrapper — Enter 로 isShowReplyForm=true 전환 시 CommentForm (lazy) 가
+		// suspend 해도 에러 없이 fallback 렌더되도록.
+		return render(
+			<Suspense fallback={<div data-testid="suspense-fallback" />}>
+				<CommentItem
+					isHidden={false}
+					isAdminComment={false}
+					message="hi"
+					name="Tester"
+					logTimestamp={1655302060414}
+					timestamp={1655302060414}
+					openReplyForm={openReplyForm}
+					reply={() => {}}
+				/>
+			</Suspense>
+		);
+	};
+
+	it('reply-toggle-button 에 tabIndex=0 과 role="button" 이 부여된다', () => {
+		renderItem();
+		const el = screen.getByTestId('reply-toggle-button');
+
+		expect(el).toHaveAttribute('role', 'button');
+		expect(el).toHaveAttribute('tabIndex', '0');
+	});
+
+	it('reply-toggle-button 이 Enter 키로 활성된다 (openReplyForm 콜백 호출)', () => {
+		const openReplyForm = vi.fn();
+		renderItem(openReplyForm);
+		const el = screen.getByTestId('reply-toggle-button');
+
+		fireEvent.keyDown(el, { key: 'Enter' });
+
+		// Enter → toggleReplyForm → props.openReplyForm(true) 호출 (click 과 동일 경로).
+		expect(openReplyForm).toHaveBeenCalledWith(true);
+	});
+
+	it('reply-toggle-button 이 Space 키로 활성된다 (preventDefault)', () => {
+		renderItem();
+		const el = screen.getByTestId('reply-toggle-button');
+
+		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+		// activateOnKey 가 preventDefault 호출 → fireEvent 반환값이 false (cancelled).
+		expect(spaceEvent).toBe(false);
 	});
 });

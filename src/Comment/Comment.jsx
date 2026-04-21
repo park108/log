@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, isAdmin } from '../common/common';
+import { activateOnKey } from '../common/a11y';
 import { getComments, postComment } from './api';
 
 import styles from './Comment.module.css';
@@ -170,11 +171,17 @@ const Comment = (props) => {
 		}
 	}, [isShow, isOpenReplyForm]);
 
+	const toggleShow = () => setIsShow(!isShow);
+
 	return (
 		<section className={`section ${styles.sectionLogitemComment}`}>
 			<span
+				role="button"
+				tabIndex={0}
+				data-testid="comment-toggle-button"
 				className={`span ${styles.spanCommentTogglebutton}`}
-				onClick={() => setIsShow(!isShow)}
+				onClick={toggleShow}
+				onKeyDown={activateOnKey(toggleShow)}
 			>
 				{ buttonText }
 			</span>

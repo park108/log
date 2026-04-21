@@ -2,6 +2,7 @@ import React, { useState, lazy } from "react";
 import PropTypes from 'prop-types';
 import { hasValue, getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
+import { activateOnKey } from '../common/a11y';
 
 import styles from './Comment.module.css';
 
@@ -49,9 +50,12 @@ const CommentItem = (props) => {
 	const replyButton = isHidden && !isAdmin() ? ""
 		: isReply ? ""
 		: <div
-			className={`div ${styles.divCommentReplybutton}`}
+			role="button"
+			tabIndex={0}
 			data-testid="reply-toggle-button"
+			className={`div ${styles.divCommentReplybutton}`}
 			onClick={toggleReplyForm}
+			onKeyDown={activateOnKey(toggleReplyForm)}
 			{...replyPopup.triggerProps}
 		>
 			🪃

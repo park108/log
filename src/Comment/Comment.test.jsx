@@ -278,3 +278,52 @@ it('render hidden comment item correctly', () => {
 	const messageText = screen.getByText("🥷 Hidden Message 🥷");
 	expect(messageText).toBeInTheDocument();
 });
+
+describe('Comment a11y 패턴 B (REQ-20260421-033 FR-03) — M7 toggle', () => {
+	useMockServer(() => mock.devServerOk);
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it('comment-toggle-button 에 tabIndex=0 과 role="button" 이 부여된다', async () => {
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		render(<Comment logTimestamp={1655302060414} />);
+
+		const el = await screen.findByTestId('comment-toggle-button');
+		expect(el).toHaveAttribute('role', 'button');
+		expect(el).toHaveAttribute('tabIndex', '0');
+	});
+
+	it('comment-toggle-button 이 Enter 키로 활성된다 (click 과 동일 핸들러)', async () => {
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		render(<Comment logTimestamp={1655302060414} />);
+
+		const el = await screen.findByTestId('comment-toggle-button');
+		// 초기: isShow=false → CommentForm 미렌더.
+		expect(screen.queryByPlaceholderText('Write your comment')).toBeNull();
+
+		fireEvent.keyDown(el, { key: 'Enter' });
+
+		// Enter → toggleShow → isShow=true → CommentForm 렌더.
+		const textArea = await screen.findByPlaceholderText('Write your comment');
+		expect(textArea).toBeInTheDocument();
+	});
+
+	it('comment-toggle-button 이 Space 키로 활성된다 (preventDefault)', async () => {
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		render(<Comment logTimestamp={1655302060414} />);
+
+		const el = await screen.findByTestId('comment-toggle-button');
+
+		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+		// activateOnKey 가 preventDefault 호출 → fireEvent 반환값이 false (cancelled).
+		expect(spaceEvent).toBe(false);
+	});
+});
