@@ -1,47 +1,36 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=fc656a7, post Phase 3 신규 등록 3건)
-# Phase 1 ack this session: 0/0 ack (green pending=0 직전 사이클, 재진단 결과 ack 는 직전 세션에서 종료).
-# 직전 inspector 세션 (d93c3e6) 이후 HEAD 전진: 0752480 (planner promote 3 green→blue), afce2b9 (planner blocked shuffle-safety), 965cd5e (docs RULE-05 단일화), fc656a7 (revisit scanned=1 followup=1).
-# 직전 사이클까지 green/common 의 3 spec (msw-sibling / layer2-rediagnosis / logsingle-diagnosis) 은 0752480 에서 blue 승격 — green 디스크 0건 상태로 리셋.
-# test-isolation-shuffle-safety-cold-start-spec.md 는 afce2b9 에서 50.blocked/spec/ 격리 → fc656a7 revive 로 디스크 삭제됐다가 본 세션 REQ-20260421-017 (test-isolation reseed) 에서 신규 재등록.
+# Updated: 2026-04-21T (HEAD=6fe66f0, no-op cycle since seed)
+# Phase 1 ack this session: 0/3 ack — 입력 큐 비고 src 변경 0건, drift reconcile 대상 마커 모두 [pending: 후속 task carve 대기] / [deferred] 태깅 상태로 planner/RULE-05 영역.
+# 직전 inspector 세션 (6fe66f0 = seed 3 green specs) 이후 HEAD 전진: 0건. Working tree clean.
 #
 # Phase 1 this session:
-#   - green pending = 0 (전부 blue 승격 또는 blocked/revive 삭제). drift reconcile 대상 0.
-#   - reconcile: 0/0 ack — 신규 [WIP] / [ ] / To-Be 마커 수정 0건.
-#   - .inspector-seen 갱신: 신규 등록 3 spec sha256 등록, stale=0.
+#   - green pending = 3 (test-isolation reseed + logsingle remediation + admin-gate). 3 spec 모두 직전 세션에서 신규 등록.
+#   - 모든 spec 의 unchecked 마커는 `[pending: 후속 task carve 대기]` (planner 영역) 또는 `[deferred: 조건 미발동]` (RULE-04 제외). hooks ack 가능한 src 변경 0 (6fe66f0..HEAD 빈 range).
+#   - reconcile: 0/3 ack — 신규 [WIP] / [ ] / To-Be 마커 수정 0건. stale_cycles += 1 (3 spec 동일 sha256).
 #
 # Phase 2 this session:
-#   - test-isolation 재등록 spec 의 §테스트 현황 4 stale 마커 (`[pending: TSK-...-53]`, `[pending: TSK-...-52 B1 blocked]`) → `[x] TSK-20260421-57 재진단 완료, 해소 patch 별건 carve 대기` 전환 (FR-08/FR-11/FR-12/FR-13 4 지점).
-#   - logsingle-remediation spec 의 FR-04 (B) / FR-05 (C) / FR-06 fallback 항목 [pending] 태깅.
-#   - admin-gate spec 의 FR-06 username fallback [deferred: C3 hit 미발동] 태깅.
-#   - 300줄 초과 spec 없음 (max ~250 test-isolation). sub-spec split 불요.
+#   - 입력 큐 (`20.req/`) 비어있음 → 신규 spec 0건, deferred 태깅 추가 0건.
+#   - 300줄 초과 spec 없음 (max ~190 admin-gate, ~250 test-isolation). sub-spec split 불요.
 #
-# Phase 3 this session: 신규 등록 3건 + REQ done 이동 4건.
-#   - 신규 spec:
-#     · `specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md` (REQ-20260421-017 reseed; baseline = `git show 1d89844:...` 143 lines + delta-set TSK-57 반영).
-#     · `specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md` (REQ-20260421-016; diagnosis 별건 후속 remediation, (A) it-scoped timeout override 1차 채택, fallback (B)(C) 박제).
-#     · `specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md` (REQ-20260421-017 admin-gate; 진단 C1~C5 + admin user ID 외부화 + 쿠키 속성 정정 + 회귀 매트릭스. ID 충돌 메모: test-isolation REQ-017 과 동일 ID, discovery 측 정정 별도).
-#   - REQ-015 (layer2-rediag-spec-marker-sync-and-b1prime-carve): blue 의 layer2-cold-start-race-root-cause-rediagnosis-spec.md 는 직전 세션에서 marker-sync 완료 (FR-01~FR-03 기충족). FR-04~FR-07 (test-isolation) 은 본 세션 REQ-017 신규 spec 에서 자연 충족. 추가 작업 0 으로 done 이동.
-#   - REQ-016 (logsingle remediation): 신규 spec 등록 → done 이동.
-#   - REQ-017 admin-gate: 신규 spec 등록 → done 이동.
-#   - REQ-017 test-isolation reseed: 신규 spec 등록 → done 이동.
+# Phase 3 this session:
+#   - 입력 큐 0건 → 신규 반영 0건, REQ done 이동 0건, blocked 0건.
 #
-# 입력 큐: 4건 → 0건. 하류 임계치 GREEN_PENDING_MAX=20, 현 green 3 < 20. 여유 17.
+# 입력 큐: 0건. 하류 임계치 GREEN_PENDING_MAX=20, 현 green 3 < 20. 여유 17.
 #
 # 현 ledger:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md d3cfd475d5004f5d6e8ad8d992eef169595f07ed52492f5a2f921d4c5b60c8ee 0
-specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md 5cc1a5b0dda0a47f50a7ce1c1eb84d39f6454e82198c3ccb9e409b6938f31cf2 0
-specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 48022e440b4fcdb2e08de1def7c170b4e8692e952a24efaaa2b396aeba76a6f4 0
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md d3cfd475d5004f5d6e8ad8d992eef169595f07ed52492f5a2f921d4c5b60c8ee 1
+specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md 5cc1a5b0dda0a47f50a7ce1c1eb84d39f6454e82198c3ccb9e409b6938f31cf2 1
+specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 48022e440b4fcdb2e08de1def7c170b4e8692e952a24efaaa2b396aeba76a6f4 1
 #
-# Stale 경고: 없음 (신규 등록).
+# Stale 경고: 1 cycle (≥3 cycle 도달 시 RULE-04 토큰 박제). 임계 미도달.
 #
-# 승격 가능성 (planner 관할, 참조용):
-#   - test-isolation reseed: §테스트 현황 미체크 5건 (FR-06 [pending REQ-011], FR-07 [deferred], FR-03/04/14/15 + NFR + lint). 일부 [deferred]/[pending] 태깅 완료, Must FR-01/02/05/08/11/12/13 PASS. 본 spec 자체는 marker-sync 완료 — planner 가 후속 patch task (B1') carve 후 PASS 확인 시 승격 가능. 즉시 승격은 부적합 (해소 patch 미실행).
-#   - logsingle-remediation: 신규 등록, [pending] 다수 — planner 가 후속 task (FR-01 (A) it-scoped override) carve 후 승격.
-#   - admin-gate: 신규 등록, FR-01/02/NFR-04 PASS, FR-03/04/05/07 [pending] — planner 가 후속 patch task carve 후 승격.
+# 승격 가능성 (planner 관할, 참조용; 직전 세션 평가 그대로 유지):
+#   - test-isolation reseed: marker-sync 완료, 해소 patch (B1') carve 미수행 — 즉시 승격 부적합.
+#   - logsingle-remediation: FR-01 (A) it-scoped override patch carve 미수행 — 즉시 승격 부적합.
+#   - admin-gate: FR-03/04/05/07 patch carve 미수행 — 즉시 승격 부적합.
+#   → 3 spec 모두 planner 의 후속 task carve 대기. 본 inspector 사이클은 추가 작업 없음.
 #
 # 다음 세션 유의:
-#   - 50.blocked/spec/ 의 test-isolation-shuffle-safety-cold-start-spec.md 는 fc656a7 revive 삭제됨. 본 세션 재등록 spec 은 동일 slug 신규 파일.
-#   - blue 의 layer2-cold-start-race-root-cause-rediagnosis-spec.md (0752480 promote) 는 marker-sync 완료 상태 — REQ-015 FR-01~03 추가 편집 불필요.
-#   - REQ-017 ID 중복 (admin-gate vs test-isolation reseed) — 본 세션 spec 두 개로 분리 작성. 향후 ID 정합은 discovery 측 책임.
-#   - 10.followups/ 잔존 active: 직전 세션 marker-sync followup 2건은 fc656a7 revisit 으로 처리됨.
+#   - planner 가 후속 patch task carve 후 developer 가 src commit 발행하면 다음 inspector 사이클에서 hooks ack 가능 (해당 task done/result.md 의 commit hash 가 HEAD ancestor + DoD grep 게이트 PASS 조건).
+#   - 본 세션 working tree clean — 자기 writer 영역 변경은 본 ledger 1행 갱신만. 단일 커밋 발행.
+#   - REQ 입력 큐 0 + green 변경 0 = no-op true (Phase 1 ledger 갱신 commit 만 발생).
