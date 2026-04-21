@@ -1,46 +1,50 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T12:08Z (28th cycle) — 0 promotion + 0 carve + 0 blocked (no-op 진행형).
+# Updated: 2026-04-21T12:38Z (29th cycle) — 0 promotion + 0 carve + 0 blocked (no-op, 진척 정상).
 # Session summary:
-#   HEAD=d9d026b (`test: a11y 패턴 B audit 테스트 도입 (role="button" 전수 검증)`).
-#   직전 ledger HEAD=a419a20. 그 사이 커밋: 66ad3f3 (planner 27th — TSK-80~86 carve + ledger) → 6b083b7 (dev TSK-78 — M10 옵션 A) → d9d026b (dev TSK-79 — audit 테스트).
-#   27th 사이클 carve 7건 (TSK-80~86) 모두 40.task/ 에 잔존. TSK-78/79 는 60.done/ 로 이관 완료.
+#   HEAD=337d694 (`refactor: errorReporter 채널 단일화 — D3 File.jsx`).
+#   직전 ledger HEAD=d9d026b. 그 사이 커밋 체인:
+#     d9d026b → dd063bf (planner 28th no-op) → 7554a46 (inspector Phase 1 reconcile 2/2 ack TSK-78/79 + Phase 3 REQ-040 흡수)
+#     → 1661242 (dev TSK-80 D1 Search) → 9734e27 (dev TSK-81 D2 ImageSelector) → 2d76c6e (inspector Phase 1 reconcile 2/2 ack TSK-80/81)
+#     → 337d694 (dev TSK-82 D3 File.jsx; inspector ack 미커밋 — 진행중).
+#   28th 사이클 이후 개발 진척 현저 — dev TSK-78/79/80/81/82 (5건 완결 중 4건 inspector ack 완, 1건 ack 대기).
+#   `40.task/` 잔존: TSK-83/84/85/86 (4건) + TSK-82 는 dev 가 src 커밋만 하고 result.md 미기록 / mv 미완 추정 — 본 planner 사이클에선 터치 금지 (developer mv 영역).
 #
-#   본 세션 입력 (green): 2 spec files (HEAD 기준):
-#     (1) `common/a11y.md` — HEAD hash=4e00e29305b7ade5f52b73b293ad2657161f6460f9432515a401aa5ecc27c6fd (직전 ledger 동일). stale 1 → 2.
-#         working tree M (unstaged) — inspector writer 영역 작업중 (TSK-78/79 ack 반영 편집). planner 는 HEAD 기준으로만 판정 — working tree 터치 금지 (RULE-01 writer 경계).
-#     (2) `common/error-reporter-channel.md` — HEAD hash=7a7018c6334d4cc6e1c66995b1bf3b407aff81f513fa1d613e9fb60a71b006b2 (직전 ledger 동일). stale 1 → 2.
+#   본 세션 입력 (green): 2 spec files (HEAD=337d694 기준):
+#     (1) `common/a11y.md` — HEAD hash=e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a.
+#         직전 ledger hash=4e00e29305b7ade5f52b73b293ad2657161f6460f9432515a401aa5ecc27c6fd — **변경됨** (7554a46 inspector reconcile ack). stale 리셋 → 1.
+#     (2) `common/error-reporter-channel.md` — HEAD hash=e72bd535c80d644af7ea506526461af10903918f3395da9650c9db44daefddf1.
+#         직전 ledger hash=7a7018c6334d4cc6e1c66995b1bf3b407aff81f513fa1d613e9fb60a71b006b2 — **변경됨** (2d76c6e inspector reconcile ack TSK-80/81). stale 리셋 → 1.
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
 #     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
 #     (3) 입력 큐: 2 green specs — 통과.
-#     (4) 하류 임계치: `40.task/` = 7 (TSK-80~86 잔존; TSK-78/79 done 이관). `TASK_READY_MAX=10` 여유 3 — 통과.
+#     (4) 하류 임계치: `40.task/` = 4 (TSK-83/84/85/86). `TASK_READY_MAX=10` 여유 6 — 통과.
 #     (5) 처리 진입.
 #
 #   세션 시작 시 git 상태 점검 (RULE-02):
-#     working tree: `M specs/30.spec/green/common/a11y.md` (inspector writer 영역 — planner 는 건드리지 않음 / inspector Phase 1 reconcile 준비중으로 추정).
+#     working tree: clean (직전 `M src/File/File.{jsx,test.jsx}` 은 337d694 로 커밋 완료).
 #     staged: 0. 자기 영역 밖 staged 항목 없음 → unstage 불요.
-#     세션 시작 HEAD=d9d026b.
+#     세션 시작 HEAD=337d694.
 #
 #   각 green spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제; HEAD 기준):
-#     - `common/a11y.md` (HEAD hash=4e00e293.., stale 2):
-#         unchecked: 7 건 잔존 (HEAD 미변경) — §테스트 현황 M10 / audit / §수용 기준 FR-02 / FR-03 / FR-06 / FR-07 / FR-08.
-#         WIP: 0, To-Be: 0, 변경 이력 박제 5 건 (TSK-76/77 최신).
-#         → **미승격**. TSK-78/79 완결 (60.done) 하지만 inspector ack 미커밋 — unstaged diff 로 확인 (편집중). planner 다음 사이클 대기.
+#     - `common/a11y.md` (HEAD hash=e1d6de48.., stale 1):
+#         unchecked: **1** 건 잔존 (§수용 기준 FR-07 only) — L180 "blue 승격 시 `30.spec/blue/components/{common,comment,log,image}.md` §접근성 1~2 문장 상호참조 추가. promote 단계 (planner 영역).".
+#         WIP: 0. To-Be: 0. 변경 이력: 5 건 박제 완료 (TSK-69~72/76/77/78/79/REQ-040 전원 수렴).
+#         → **미승격** (unchecked 1 > 0). FR-07 은 "promote 단계 planner 영역" 명시이나, RULE-01 writer 매트릭스상 planner create/edit 권한 = `40.task/` 뿐이며 `30.spec/blue/**` 는 mv only.
+#         blue/components 의 §접근성 절 신설 (comment.md, log.md, image.md 는 해당 절 부재 — `rg -nE "^##+ " specs/30.spec/blue/components/{comment,log,image}.md` 확인) 은 단순 mv 수반 편집 범주를 넘는 spec 콘텐츠 편집 → 규칙 경계 밖.
+#         대안 경로 부재 (developer writer=src/+10.followups 이므로 blue 편집 불가 / inspector writer=green only).
 #         잔존 [ ] 중 신규 carve 대상 여부:
-#           - M10 / FR-06 (FR-06 완결 근거) → TSK-78 완결 + inspector ack 대기. carve 불요.
-#           - audit / FR-08 → TSK-79 완결 + inspector ack 대기. carve 불요.
-#           - FR-02 (§drift 표 M1–M9 전 지점 4속성 동시 부여) → TSK-69~72/76 완결 기박제. inspector ack 시 M10 포함 수렴. carve 불요.
-#           - FR-03 (§회귀 단위 테스트 계약 5단 구성) → 관련 테스트 전원 박제 완료 (M1/M2/M3/M4/M5/M6/M7/M8/M9/M10). inspector ack 시 수렴. carve 불요.
-#           - FR-07 (blue 승격 시 components/{common,comment,log,image}.md §접근성 상호참조 추가) → **promote 단계 planner 영역**. spec 승격 시점에 직접 처리 — task carve 대상 아님.
+#           - FR-07 (blue 상호참조) → **carve 불가 범주** (writer 매트릭스상 수행 가능 에이전트 부재). 운영자 수동 개입 또는 rules 정비 필요 — 본 사이클은 stale=1 로 진척 지켜보기.
 #         → **신규 carve 0건**.
-#     - `common/error-reporter-channel.md` (HEAD hash=7a7018c6.., stale 2):
-#         unchecked: 11 건 잔존 (HEAD 미변경) — §테스트 현황 D1–D7 각 1 + grep 게이트 수렴 1 / §수용 기준 FR-02 수렴 + FR-03 수렴 + FR-06 (blue 상호참조).
-#         WIP: 0, To-Be: 0, 변경 이력 1 건 (최초 등록).
-#         → **미승격**. D1–D7 정상화 task (TSK-80~86) 40.task/ 에 발행 완료, developer 처리 대기.
+#     - `common/error-reporter-channel.md` (HEAD hash=e72bd535.., stale 1):
+#         unchecked: **9** 건 잔존 (직전 11 에서 D1/D2 플립 — TSK-80/81 ack 반영).
+#           - §테스트 현황 D3–D7 (5건) / grep 게이트 수렴 (1건) / §수용 기준 FR-02 수렴 / FR-03 수렴 / FR-06 (blue 상호참조).
+#         WIP: 0. To-Be: 0. 변경 이력: 2 건 (최초 등록 + 2d76c6e reconcile ack TSK-80/81).
+#         → **미승격** (unchecked 9 > 0). D3 (TSK-82) 는 src 커밋 완 + inspector ack 미완. D4–D7 (TSK-83~86) developer 처리 대기. FR-06 은 a11y.md FR-07 과 동일 계층 (promote 단계 planner) — 별도 따로 논쟁 (단, common.md §에러 처리 절은 기존 존재).
 #         잔존 [ ] 중 신규 carve 대상 여부:
-#           - D1–D7 / grep 게이트 / FR-02/FR-03 수렴 → TSK-80~86 기발행. carve 불요 (중복 carve 금지).
-#           - FR-06 (blue 승격 시 blue/components/common.md §에러 처리 상호참조 추가) → **promote 단계 planner 영역**. task carve 대상 아님.
+#           - D3–D7 / grep 게이트 / FR-02/FR-03 수렴 → TSK-82~86 기발행 (중복 carve 금지).
+#           - FR-06 → a11y.md FR-07 과 동일 제약. carve 불가.
 #         → **신규 carve 0건**.
 #
 #   carve 발생: **0 건**.
@@ -48,7 +52,7 @@
 #   grep dry-run: N/A (carve 0 — 실행 대상 없음).
 #
 #   승격 mv: **0건**.
-#   blocked mv: **0건** (stale 2 — 3 임계치 미도달; 파이프라인 진척 정상 — TSK-78/79 dev 완결, inspector ack 대기).
+#   blocked mv: **0건** (stale 1 — 3 임계치 미도달; a11y.md 는 inspector reconcile 로 HEAD 변경, erc.md 는 TSK-80/81 ack 로 HEAD 변경, 둘 다 진척 정상).
 #
 #   RULE-04/RULE-06 점검:
 #     - 본 세션 신규 task 발행 0 → grep 게이트·스코프 규칙 점검 대상 없음.
@@ -56,16 +60,27 @@
 #     - 본 세션 spec 콘텐츠 수정 0 (ledger 주석만). 정합성 유지.
 #   RULE-01:
 #     - 본 세션 변경: `30.spec/green/.planner-seen` 만 (ledger 주석 갱신).
-#     - writer 경계 준수: planner 는 `40.task/` create + `30.spec/green/.planner-seen` 갱신만. working tree `M a11y.md` 는 inspector writer 영역 — 터치 금지.
+#     - writer 경계 준수: planner 는 `40.task/` create + `30.spec/green/.planner-seen` 갱신만. working tree 는 clean.
 #   RULE-02:
 #     - 본 세션 변경 영역 = `specs/30.spec/green/.planner-seen` (1 파일).
 #     - staged 자기 영역 밖 없음 — unstage 작업 없음.
 #     - 커밋 scope = `spec(planner):` (ledger 갱신 no-op 사이클).
-#     - `a11y.md` 의 working tree unstaged 변경은 커밋에 포함하지 않음 (`git add` 파일 명시로 방어).
+#
+#   **운영 관찰 (FR-07/FR-06 블로커 경고)**:
+#     a11y.md L180 / erc.md L208 의 "blue 승격 시 상호참조 추가 — promote 단계 (planner 영역)" 조항은 현행 RULE-01 writer 매트릭스 하에서 수행 경로가 부재:
+#       - planner: `30.spec/blue/**` mv only (content edit 권한 없음)
+#       - developer: `src/` + `10.followups/` only
+#       - inspector: `30.spec/green/**` only
+#     "promote 단계 planner 영역" 문구는 spec 작성자 의도이나 RULE-01 을 엄격 해석하면 planner 가 blue 파일 내용 편집 권한 없음. 이 규칙 간극이 해소되기 전까지 두 spec 모두 영구 미승격 후보.
+#     운영자 판단 경로 (RULE-05):
+#       (a) rules/RULE-01 에 "planner 가 promote mv 수반 blue 상호참조 편집 허용" 조항 추가 → 이후 planner 가 승격 + blue 편집 원자 커밋.
+#       (b) inspector 가 FR-07/FR-06 을 `[deferred]` 로 플립 (Should 등급인 점 근거) → 4조건 충족 → 일반 승격.
+#       (c) FR-07/FR-06 본문을 "승격 후 별도 운영자 편집" 으로 재정의 → inspector 가 spec 본문 수정.
+#     본 planner 사이클은 어떤 경로도 독단 선택 불가 (비대화 원칙 RULE-02) — 관찰 보고만 박제. 30th 사이클 이후 stale 증가 추이 감시.
 #
 # ledger entries (잔존 green):
-# common/a11y.md  4e00e29305b7ade5f52b73b293ad2657161f6460f9432515a401aa5ecc27c6fd  2  # 28th cycle — HEAD hash 불변. stale 1→2. inspector TSK-78/79 ack working tree 편집중 (unstaged).
-# common/error-reporter-channel.md  7a7018c6334d4cc6e1c66995b1bf3b407aff81f513fa1d613e9fb60a71b006b2  2  # 28th cycle — HEAD hash 불변. stale 1→2. TSK-80~86 40.task/ 에 잔존 — developer 처리 대기.
+# common/a11y.md  e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a  1  # 29th cycle — HEAD hash 변경 (7554a46 inspector TSK-78/79 ack). stale 2→1. 잔존 unchecked 1 건 = FR-07 (writer 매트릭스 경계로 수행 경로 부재; 운영자 개입 대기).
+# common/error-reporter-channel.md  e72bd535c80d644af7ea506526461af10903918f3395da9650c9db44daefddf1  1  # 29th cycle — HEAD hash 변경 (2d76c6e inspector TSK-80/81 ack). stale 2→1. 잔존 unchecked 9 건: D3–D7 + grep 게이트 + FR-02/03 수렴 + FR-06 (TSK-82~86 dev 대기 + FR-06 은 FR-07 동일 제약).
 #
 # promoted (→ 30.spec/blue/):
 # - (없음)
@@ -73,14 +88,13 @@
 # blocked (→ 50.blocked/spec/):
 # - (없음)
 #
-# ready 큐: count=7 (TSK-80/81/82/83/84/85/86), TASK_READY_MAX=10 여유 3.
-# next cycle (29th+):
-#   - **developer (15m)**: TSK-80~86 중 독립 원자 병렬 실행 가능 (각자 다른 파일). depends_on 모두 [].
+# ready 큐: count=4 (TSK-83/84/85/86), TASK_READY_MAX=10 여유 6.
+# next cycle (30th+):
+#   - **developer (15m)**: TSK-82 result.md 기록 + mv `40.task/TSK-82-... → 60.done/task/<slug>/` 완결. TSK-83~86 병렬 실행 가능 (각자 독립 파일).
 #   - **inspector (30m)**:
-#       (a) a11y.md working tree 편집 커밋 시 TSK-78/79 Phase 1 reconcile ack (HEAD hash 변경 → planner stale 리셋).
-#       (b) TSK-80~86 순차 ack 시 error-reporter-channel.md §drift 표 취소선 + §테스트 현황 D1–D7 marker 플립 + §스코프 규칙 grep-baseline (a) hits 감소 + (b) hits 증가 갱신.
-#       (c) D1–D7 전원 완결 시 §수용 기준 FR-02 수렴 / FR-03 수렴 [x] 플립.
-#   - **planner (29th+)**:
-#       (i) a11y.md 4조건 전원 충족 시 승격 O (inspector ack 후 잔존 unchecked = {FR-07 blue 상호참조} 1건 — promote 단계에서 동시 처리).
-#       (ii) error-reporter-channel.md 4조건 전원 충족 시 승격 O (D1–D7 완결 + grep 게이트 0 hit 수렴 + FR-06 blue 상호참조 동시 처리).
-#       (iii) stale=3 도달 시 (30th+) blocked 검토 — 현재는 진척 정상이므로 대기.
+#       (a) TSK-82 완결 시 Phase 1 reconcile ack → erc.md §drift 표 D3 취소선 + §테스트 현황 D3 `[x]` + §스코프 규칙 grep-baseline (a)(b) 갱신.
+#       (b) TSK-83~86 순차 ack.
+#       (c) D1–D7 전원 완결 + grep 게이트 0 hit 시 §수용 기준 FR-02/03 수렴 `[x]` 플립.
+#   - **planner (30th+)**:
+#       (i) a11y.md / erc.md 모두 FR-07/FR-06 unchecked 잔존이 blocker — 운영자 개입 (규칙 정비 or inspector 재조정) 없이는 승격 불가. stale 진척 기록만 수행.
+#       (ii) stale=3 도달 시 blocked 검토 고려 — 본 사이클은 진척 정상으로 보류.
