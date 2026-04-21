@@ -2,7 +2,7 @@
 
 > **위치**: CI workflow (`.github/workflows/*.yml`), Vitest coverage 구성 (`vite.config.js` 또는 `vitest.config.*`).
 > **관련 요구사항**: REQ-20260421-037
-> **최종 업데이트**: 2026-04-21 (by inspector, REQ-037 흡수 — FR-07 택 β 신설)
+> **최종 업데이트**: 2026-04-21 (by inspector, Phase 1 reconcile 1/1 ack — TSK-20260421-75 `ci-typecheck-and-coverage-threshold` @5dbf308 — FR-01/FR-02 현장화)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD=0f03547).
 
@@ -43,16 +43,16 @@ GitHub Actions CI workflow (`.github/workflows/*.yml`) 는 `npm ci` 이후 `npm 
 - **expansion**: N/A (본 spec 은 grep 게이트 계약 문서가 아니라 baseline 수치 박제).
 - **grep-baseline** (inspector 세션 시점 HEAD=0f03547 실측):
 
-  (a) FR-01 측 positive (목표) — `grep -nE "typecheck|tsc --noEmit" .github/workflows/*.yml` → **목표 1+ hit**. 현 시점 baseline: **0 hit** (HEAD=0f03547).
+  (a) FR-01 측 positive (목표) — `grep -nE "typecheck|tsc --noEmit" .github/workflows/*.yml` → **목표 1+ hit**. 현 시점 (HEAD=5dbf308 / bf6757f): **1 hit** @`ci.yml:31` — TSK-20260421-75 수렴.
   (b) FR-01 측 보조 (현장 근거) — `grep -n '"typecheck":' package.json` → `:24` 1 hit (스크립트 `"typecheck": "tsc --noEmit"` 정의 존재).
-  (c) FR-02 측 positive (목표) — `grep -nE "thresholds\s*:" vite.config.js` → **목표 1+ hit**, 동시에 `grep -nE "lines\s*:|statements\s*:|functions\s*:|branches\s*:" vite.config.js` → **각 1+ hit**. 현 시점 baseline: **0 hit × 5** (HEAD=0f03547).
-  (d) FR-02 측 보조 (현장 근거) — `grep -nE "coverage\s*:\s*\{" vite.config.js` → `:71` 1 hit (`test.coverage` 블록 71~82 행 존재, `thresholds` 필드 미선언).
+  (c) FR-02 측 positive (목표) — `grep -nE "thresholds\s*:" vite.config.js` → **목표 1+ hit**, 동시에 `grep -nE "lines\s*:|statements\s*:|functions\s*:|branches\s*:" vite.config.js` → **각 1+ hit**. 현 시점 (HEAD=5dbf308 / bf6757f): **1 hit × 5** @`vite.config.js:82-86` — TSK-20260421-75 수렴 (실측 정수 내림 수치: lines 98 / statements 97 / functions 94 / branches 94).
+  (d) FR-02 측 보조 (현장 근거) — `grep -nE "coverage\s*:\s*\{" vite.config.js` → `:71` 1 hit (`test.coverage` 블록 71~88 행 존재, `thresholds` 필드 선언 완료).
 
 - **rationale**: gate (a)(c) 는 본 불변식의 **목표값** (충족 시 CI 회귀 게이트가 완결). gate (b)(d) 는 **현장 근거** — 스크립트·블록 자체는 존재하나 workflow 연결·threshold 선언이 없는 상태. planner/developer 가 workflow step 삽입 + threshold 선언을 task 로 실현하면 gate (a)(c) 가 목표값으로 수렴. 수치 상한은 본 spec 관할 아님 (운영자 결정).
 
 ## 테스트 현황
-- [ ] (Must, REQ-037 FR-01) `.github/workflows/*.yml` step 순열에 `npm run typecheck` (또는 `npx tsc --noEmit`) 1 step 이상 포함 — 현 baseline: 0 hit, 목표: 1+ hit. planner/developer 영역 편집.
-- [ ] (Must, REQ-037 FR-02) `vite.config.js` `test.coverage.thresholds = { lines, statements, functions, branches }` 선언 — 현 baseline: 0 hit, 목표: 5 필드 (thresholds 본체 + 4축) 모두 1+ hit. planner/developer 영역 편집.
+- [x] (Must, REQ-037 FR-01) `.github/workflows/ci.yml:31` `run: npm run typecheck` 1 step 편입 (Lint → Typecheck → Test → Build 5 step 순열) — `5dbf308` / TSK-20260421-75 PASS. (baseline 0 hit → 1 hit)
+- [x] (Must, REQ-037 FR-02) `vite.config.js:82-86` `test.coverage.thresholds = { lines: 98, statements: 97, functions: 94, branches: 94 }` 4축 선언 + `thresholds` 본체 1 필드 = 5 필드 모두 1+ hit — `5dbf308` / TSK-20260421-75 PASS. 수치는 실측 정수 내림 하한 (Stmts 97.63→97, Branches 94.21→94, Fn 94.19→94, Lines 98.02→98). (baseline 0 hit × 5 → 5 hit × 5)
 - [x] (Must, REQ-037 FR-03) 본 spec §역할 / §동작 FR-03 에 "회귀 게이트 차원 직교" 1문장 박제.
 - [x] (Should, REQ-037 FR-04) 본 spec §동작 FR-04 에 REQ-20260421-035 dep bump gate 와의 관계 1문장 박제.
 - [x] (Must, REQ-037 FR-05) 본 spec §스코프 규칙 grep-baseline 에 4 gate (a)(b)(c)(d) 실측 수치 박제.
@@ -77,6 +77,7 @@ GitHub Actions CI workflow (`.github/workflows/*.yml`) 는 `npm ci` 이후 `npm 
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-04-21 | inspector / 5dbf308 (TSK-20260421-75) | **Phase 1 reconcile 1/1 ack** — TSK-75 `ci-typecheck-and-coverage-threshold` result.md 의 6 grep 게이트 전원 PASS @HEAD=bf6757f 재실행 확인: `typecheck\|tsc --noEmit` in `.github/workflows/ci.yml` **1 hit** @L31 `run: npm run typecheck` (baseline 0 → 1), `thresholds\s*:` in `vite.config.js` **1 hit** @L82, `lines\s*:` **1 hit** @L83 (값 98), `statements\s*:` **1 hit** @L84 (값 97), `functions\s*:` **1 hit** @L85 (값 94), `branches\s*:` **1 hit** @L86 (값 94). hook-ack (result.md): `npm run lint` PASS, `npm run typecheck` PASS (exit 0), `npm test -- --run` PASS 47 files / **410 tests** (회귀 0), `npm run build` PASS 349ms, coverage thresholds 4축 위반 0 (실측 Stmts 97.72 / Branches 94.21 / Fn 94.45 / Lines 98.11 — 박제 하한 초과). 5 step 순열 Install → Lint → Typecheck → Test → Build 확인. Must 주관 혼재 없음 → 보조 ack 채택. §테스트 현황 FR-01 + FR-02 2 marker [ ] → [x] 플립. §스코프 규칙 grep-baseline (a)(c)(d) 현 수치 갱신 (0→1 / 0×5→1×5 / 블록 71-82→71-88). §최종 업데이트 갱신 + §변경 이력 본 행 박제. 잔존 [ ] marker: 0 — REQ-037 전체 실현 완결. planner promote 후보 (§수용 기준 전원 [x] + §테스트 현황 전원 [x]). 부수 관찰 (result.md §관찰 이슈): 실측 coverage 가 박제 하한보다 여유 (Stmts +0.63 / Branch +0.21 / Func +0.45 / Lines +0.11) — 운영자 상향 결정 시 별 spec/task. GitHub Actions UI 수동 확인 (Typecheck step 표시 + 5 step PASS) 은 push 후 운영자 축. | §최종 업데이트 / §스코프 규칙 grep-baseline / §테스트 현황 / 본 이력 |
 | 2026-04-21 | inspector / 0f03547 | 최초 등록 (REQ-20260421-037). FR-07 택 **β 신설 경로** — `foundation/regression-gate.md` 독립 spec. 판단 근거: 기존 `foundation/ci.md` (3 불변식, CI 환경 축 — REQ-023/034) 와 `foundation/tooling.md` (4 불변식, 도구 구성 축 — REQ-028) 는 각자 semantic 경계가 확립. REQ-037 의 2 불변식 (typecheck step 포함 + coverage threshold 4축) 은 **회귀 게이트 축** 으로 두 기존 spec 과 직교하며, 기존 spec 에 증분 추가 시 각 spec 의 주 담당 축이 흐려질 우려. 독립 spec 경로가 audit·의미 경계 유지에 유리. 현장 근거 (HEAD=0f03547): `.github/workflows/ci.yml:24-34` 4 step 순열 (`npm ci` → `lint` → `test` → `build`) typecheck 부재, `package.json:24` 스크립트 존재, `vite.config.js:71-82` `test.coverage` 블록 존재하나 `thresholds` 미선언. 선행 done req: REQ-20260421-023 (foundation/ci.md 신설), REQ-20260421-034 (ci.md 재발행), REQ-20260421-028 (foundation/tooling.md 4 불변식 박제). 연관 open req: REQ-20260421-035 (dep bump gate — 본 spec FR-04 관계). consumed: REQ-20260421-037 자체. RULE-07 자기검증 — FR-01/FR-02 는 "CI workflow 에 typecheck 포함", "Vitest coverage threshold 4축 선언" 의 평서형 불변식 (버전 무관, 반복 검증 가능), 구체 숫자·step 순서·incident 수리 계획 0. | all (신설) |
 
 ## 참고
