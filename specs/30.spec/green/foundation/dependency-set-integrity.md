@@ -1,8 +1,8 @@
 # Dependency 집합 정합성 — 미사용 direct dep 금지 불변식
 
 > **위치**: `package.json` (`dependencies`, `devDependencies`), `src/**`, 빌드·테스트·툴링 진입점 설정 파일 (`vite.config.*`, `vitest.config.*`, `tsconfig*.json`, `eslint.config.*`, `.husky/**`, `setupTests*.js`, `src/test-utils/**`), `docs/dependency-inventory.md` (예외 목록 박제 위치).
-> **관련 요구사항**: REQ-20260422-046
-> **최종 업데이트**: 2026-04-22 (by inspector, 신규 등록)
+> **관련 요구사항**: REQ-20260422-046, REQ-20260422-048 (FR-01 이관 수단 안전성 상호참조)
+> **최종 업데이트**: 2026-04-22 (by inspector, REQ-048 상호참조 추가)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD=`06a8fb9`).
 
@@ -26,6 +26,8 @@
 ### FR-01 — 미사용 direct dep 제거 (REQ-046 FR-01, 첫 적용 사례: `history`)
 
 `package.json` 의 `dependencies` + `devDependencies` 에 나열된 각 key 에 대해, 본 spec §FR-02 의 4 축 매치 규칙을 적용했을 때 어느 축에도 매치되지 않으면 해당 key 는 `package.json` 에서 제거된다. 본 불변식의 **첫 적용 사례**는 `history` (v5.3.0) — react-router-dom v7 자체 내장 history 구현으로 대체된 후 저장소 내 단일 사용 지점 (`src/Log/Writer.test.jsx:2` 의 `createMemoryHistory` import) 이 남은 레거시 direct dep — 의 제거이며, 해당 제거 직전에 소비 지점은 react-router-dom `MemoryRouter initialEntries={[...]}` 패턴으로 의미 등가 이관된다 (동 파일 내 이관 참조 패턴 `src/Log/Writer.test.jsx:80-81` 기 존재).
+
+**이관 수단 안전성 전제 조건**: 본 FR-01 의 첫 적용 사례 이관 (`createMemoryHistory` → `<MemoryRouter initialEntries={[...]}>`) 은 `common/router-redirect-reentry-guard.md` (REQ-20260422-048) §FR-01 / §FR-02 의 재진입 차단 guard 불변식이 이관 대상 컴포넌트 (`src/Log/Writer.jsx:48-65`) 에 **사전 충족** 된 상태에서만 수행 가능하다. guard 미충족 상태에서의 이관은 Vitest worker 무한 재렌더 루프 경로 재발 (OOM 크래시) 로 FR-01 의 DoD (`npm test` PASS + 4축 coverage threshold) 를 위반한다. 두 축은 차원 직교 — 본 spec 은 **집합 정합성**, router-redirect-reentry-guard 는 **redirect useEffect 재진입 안전성** — 이며, 후자가 선행 충족되어야 본 spec FR-01 의 이관이 성립한다.
 
 ### FR-02 — 집합 정합성 4 축 매치 규칙 (REQ-046 FR-03)
 
@@ -66,6 +68,7 @@ FR-02 의 (a)(b)(c)(d) 4 축 어디에도 자연스럽게 매치되지 않지만
   - `foundation/tooling.md` — 툴링 CLI 진입점 집합 정의. FR-02 (b) 축의 설정 파일 화이트리스트 근거.
   - `foundation/husky-hook-entrypoint.md` — `.husky/**` 이 FR-02 (b) 축 설정 파일 화이트리스트 내 참조 지점.
   - `common/test-idioms.md` §4 — FR-01 첫 적용 사례 (`history` 이관) 시 테스트 이디엄 준수 경계.
+  - `common/router-redirect-reentry-guard.md` (REQ-20260422-048) — FR-01 첫 적용 사례 이관의 **수단 안전성 전제 조건** (redirect useEffect 재진입 차단 guard 선행 충족). 본 spec FR-01 DoD 성립 조건.
 
 ## 스코프 규칙
 
@@ -108,6 +111,7 @@ FR-02 의 (a)(b)(c)(d) 4 축 어디에도 자연스럽게 매치되지 않지만
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-22 | inspector / HEAD=06a8fb9 | 최초 등록 (REQ-20260422-046 흡수). `package.json` 의 `dependencies`/`devDependencies` 각 key 가 `src/**` 정적 import · CLI/설정 참조 · 타입 meta · peer 충족 4 축 중 최소 하나에 매치돼야 한다는 "bump 전 집합 정합성" 시스템 불변식 박제. `dependency-bump-gate.md` (REQ-035) 와 차원 분리 (전자 = bump 후 결과, 본 spec = bump 전 집합). 첫 적용 사례 = `history` (v5.3.0) direct dep 제거 + `src/Log/Writer.test.jsx` 의 `createMemoryHistory` → `MemoryRouter initialEntries` 이관. baseline 실측: `package.json:54` (`history ^5.3.0`), `src/Log/Writer.test.jsx:2,51` (2 hits), 이관 참조 패턴 `src/Log/Writer.test.jsx:80` 기 존재, `docs/dependency-inventory.md` 부재 (예외 빈 집합), `history` subpath 0 hit. RULE-07 자기검증: (i) FR-01~05 평서형 계약, (ii) 반복 검증 가능 (정적 grep·정규식 재현), (iii) 시점·이벤트 귀속 없음 (특정 릴리스 번호 본문 부재, §변경 이력 의 HEAD 해시는 baseline 스냅샷 용도), (iv) `foundation/dependency-bump-gate.md` 와 명시적 차원 분리. 1회성 진단/incident patch 플랜 부재. | 신규 전 섹션 |
+| 2026-04-22 | inspector / HEAD=c9423d7 | REQ-20260422-048 흡수 상호참조 반영. §FR-01 본문에 `common/router-redirect-reentry-guard.md` (REQ-048) §FR-01/§FR-02 의 "이관 수단 안전성 전제 조건" 박제 추가 (첫 적용 사례 이관은 redirect useEffect 재진입 차단 guard 가 `src/Log/Writer.jsx:48-65` 에 선행 충족된 상태에서만 성립). §의존성 역의존 목록에 `common/router-redirect-reentry-guard.md` 추가. 두 축 차원 직교 명시 (본 spec = 집합 정합성, router-redirect-reentry-guard = redirect useEffect 재진입 안전성). TSK-20260421-91 blocked 사실 (OOM 394s 크래시) 은 REQ-048 §역할 · §변경 이력 에 배경으로만 언급되고 본 spec FR-01 본문에서는 "이관 수단 안전성 전제 조건" 이라는 수단 중립 평서형 표현으로만 박제 — 특정 incident 귀속 문구 배제. RULE-07 자기검증 유지 (시점 비의존 · 반복 검증 가능). RULE-06: 본 세션 grep-baseline 재측정 불요 (§FR-02 4 축 매치 규칙 변경 없음, 본 세션은 상호참조 박제 한정). RULE-01: inspector writer 영역만 (green/foundation 상호참조 편집 + green/common 신규 + 20.req → 60.done/req mv). | §역할, §FR-01, §의존성 역의존, §변경 이력 |
 
 ## 참고
 

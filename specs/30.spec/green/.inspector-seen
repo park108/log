@@ -1,58 +1,63 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T20:34Z (HEAD=8f08d29).
-# Session outcome: Phase 1 reconcile 0/2 ack (1 stale ≥3cycle) — dependency-set-integrity stale_cycles 2→3 (TSK-20260421-91 blocked, 미완료 유지); husky-hook-entrypoint stale_cycles 0→1 (TSK-20260421-92 in-flight, 미완료); Phase 2 deferred/split 0; Phase 3 no-op (20.req/ 빈 큐).
+# Updated: 2026-04-22T<sessionUTC>Z (HEAD=c9423d7).
+# Session outcome: Phase 1 reconcile 0/2 ack (1 stale ≥3cycle) — dependency-set-integrity stale 3→4 (TSK-20260421-91 blocked 유지), husky-hook-entrypoint stale 1→2 (TSK-20260421-92 in-flight 유지). Phase 2 deferred/split 0. Phase 3: REQ-20260422-048 흡수 (신규 `common/router-redirect-reentry-guard.md` + `foundation/dependency-set-integrity.md` 상호참조 편집).
 #
-# 세션 시작 상태 (HEAD=8f08d29):
-#   - `git rev-parse HEAD` = `8f08d29` (bdc3964 직후 추가 planner/inspector 커밋 체인 말단으로 추정; 직전 ledger 기준 HEAD=ca4bb37 → 그 이후 사이클에서 후속 커밋 누적).
-#   - Working tree: `M package.json` (unstaged) — developer in-flight (TSK-20260421-92 husky v9 migration). inspector writer 경계 밖이라 세션 시작 시 `git reset HEAD -- package.json` 실행 (이미 unstaged 였으므로 멱등 no-op, diff 유지).
-#   - `specs/20.req/` 0 건 (빈 큐) → Phase 3 no-op.
-#   - `specs/40.task/` 1 건 (`TSK-20260421-92-husky-v8-to-v9-hook-entrypoint-migration-fr06-respec.md`, developer 할당 대기/진행).
-#   - `specs/10.followups/` 1 건 (`20260421-2003-writer-redirect-loop-blocks-history-migration.md`, discovery 입력 — 본 inspector 세션과 무관).
+# 세션 시작 상태 (HEAD=c9423d7):
+#   - `git rev-parse HEAD` = `c9423d7` (직전 ledger HEAD=8f08d29 이후 planner ledger 1 커밋 누적).
+#   - Working tree: `M package.json` (unstaged) — developer in-flight (TSK-20260421-92 husky v9 migration). inspector writer 경계 밖이라 건드리지 않음.
+#   - `specs/20.req/` 1 건 (`20260422-router-test-migration-redirect-reentry-invariant.md`, REQ-048).
+#   - `specs/40.task/` 1 건 (`TSK-20260421-92-husky-v8-to-v9-hook-entrypoint-migration-fr06-respec.md`, developer 진행 중).
 #   - `specs/50.blocked/task/` TSK-20260421-91 격리 (`_reason.md` 동반). RULE-05 운영자 `/revisit` 경로 대기.
-#   - `specs/50.blocked/spec/foundation/husky-hook-entrypoint.md` 잔존 (직전 세션 green 재등록 시 운영자 경로로 미처리). RULE-05 수동 개입 대상.
-#   - `specs/30.spec/green/**` 유효 집합 2 spec (foundation/): dependency-set-integrity.md, husky-hook-entrypoint.md. common/, components/ 비어 있음.
+#   - `specs/50.blocked/spec/foundation/husky-hook-entrypoint.md` 잔존. RULE-05 수동 개입 대상.
+#   - `specs/30.spec/green/**` 세션 시작 유효 집합 2 spec (foundation/): dependency-set-integrity.md, husky-hook-entrypoint.md. common/, components/ 비어 있음.
 #   - `.claude/locks/` 부재 → 정상 진행.
 #
 # Phase 1 drift marker 스캔 (rg "\[WIP\]|- \[ \]|To-Be" 30.spec/green/):
-#   - `foundation/dependency-set-integrity.md` (sha aae158fa..., 130L):
-#     · markers: `- [ ]` 7 (§테스트 현황 2건 [(b)(c) — 줄 89] + §수용 기준 Must 5건 [FR-01 history key, FR-01 src imports, FR-02 4축, FR-04 직교축, NFR 재현성, 스코프 한정] + Should 1건 [FR-03 docs 예외])., `[WIP]` 0, `To-Be` 0.
-#     · 대응 task TSK-20260421-91 = `50.blocked/task/` 격리 상태 (result.md 부재). grep -rn "TSK-20260421-91" specs/60.done/ → 0 hit.
-#     · 실측 HEAD=8f08d29 게이트 재실행:
-#       - `grep -n '"history"' package.json` → 1 hit (54: `"history": "^5.3.0",`) — FR-01 (a) 위반 유지.
-#       - `grep -rnE "from 'history'|createMemoryHistory" src` → 2 hits in `src/Log/Writer.test.jsx` (2,51) — FR-01 (b)(c) 위반 유지.
+#   - `foundation/dependency-set-integrity.md` (sha aae158fa..., 130L 세션 시작 시점):
+#     · markers: `- [ ]` 7 (§테스트 현황 2건 + §수용 기준 Must 5건 + Should 1건). `[WIP]` 0, `To-Be` 0.
+#     · 대응 task TSK-20260421-91 = `50.blocked/task/` 격리 (result.md 부재, grep -rn "TSK-20260421-91" specs/60.done/ → 0 hit).
+#     · 실측 HEAD=c9423d7 게이트 재실행:
+#       - `grep -n '"history"' package.json` → 1 hit (54) — FR-01 (a) 위반 유지.
+#       - `grep -rnE "from 'history'|createMemoryHistory" src` → 2 hits in Writer.test.jsx (2,51) — FR-01 (b)(c) 위반 유지.
 #       - `docs/dependency-inventory.md` 예외 목록 작성 여부 미확인 (Should, ack 애매 → marker 유지).
-#     · ACK 가능 = 0. 본 spec flip 대상에 포함. stale_cycles: 2 → **3** (임계 도달, stale 경고 발생).
+#     · ACK 가능 = 0. stale_cycles: 3 → **4** (경고 지속).
+#     · 본 세션 Phase 3 (REQ-048 흡수) 에서 §역할 (REQ-048 상호참조) / §FR-01 (이관 수단 안전성 전제) / §의존성 역의존 / §변경 이력 편집 발생. marker 플립 (`- [ ]` → `- [x]`) 은 없음 — 여전히 drift 게이트 (history key / Writer.test.jsx imports) 미충족. stale 카운트는 drift marker 기준이라 흡수 편집과 무관하게 4 유지.
 #   - `foundation/husky-hook-entrypoint.md` (sha a4b38749..., 119L):
-#     · markers: `- [ ]` 7 (§테스트 현황 2건 [(f)(a)(b)(c)(e) 2줄] + §수용 기준 Must 4건 [FR-01 husky.sh, FR-02 prepare, FR-03 version, FR-04 관찰계약] + Should 1건 [FR-05 도구중립] + 스코프 1건), `[WIP]` 0, `To-Be` 0. (FR-06 이미 [x] — REQ-20260422-047 재정의로 박제.)
-#     · 대응 task TSK-20260421-92 = `40.task/` in-flight (result.md 부재). grep -rn "TSK-20260421-92" specs/60.done/ → 0 hit.
-#     · 실측 HEAD=8f08d29 게이트 재실행:
-#       - `.husky/pre-commit` → `. "$(dirname "$0")/_/husky.sh"` 포함 — FR-01 위반 유지.
+#     · markers: `- [ ]` 7 (§테스트 현황 2건 + §수용 기준 Must 4건 + Should 1건 + 스코프 1건). FR-06 이미 [x].
+#     · 대응 task TSK-20260421-92 = `40.task/` in-flight (result.md 부재, grep -rn "TSK-20260421-92" specs/60.done/ → 0 hit).
+#     · 실측 HEAD=c9423d7 게이트 재실행:
+#       - `.husky/pre-commit` → `. "$(dirname "$0")/_/husky.sh"` 포함 (2번 라인) — FR-01 위반 유지.
 #       - `.husky/pre-push` → 동일 husky.sh source 포함 — FR-01 위반 유지.
-#       - `package.json.scripts.prepare` (HEAD) → `"husky install"` — FR-02 위반 유지. (unstaged working tree 에서 `"husky"` 로 변경되었으나 HEAD 기준 unack.)
-#       - `package.json.devDependencies.husky` (HEAD) → `"^8.0.1"` — FR-03 위반 유지. (unstaged 에서 `^9.0.0` 로 변경 in-flight.)
+#       - `package.json.scripts.prepare` (HEAD:25) → `"husky install"` — FR-02 위반 유지. (unstaged working tree 에서 `"husky"` 변경 in-flight.)
+#       - `package.json.devDependencies.husky` (HEAD:55) → `"^8.0.1"` — FR-03 위반 유지. (unstaged 에서 `^9.0.0` 변경 in-flight.)
 #       - FR-04/05 관찰 계약·도구중립은 본문 메타, 전환 task 완료 전까지 marker 유지.
-#     · ACK 가능 = 0. 본 spec flip 대상에 포함. stale_cycles: 0 → 1.
-#   - 종합 ack: N=0, M=2 (flip-eligible unchecked spec 수). 토큰 = `reconcile: 0/2 ack (1 stale ≥3cycle)` — dependency-set-integrity 가 stale 임계 도달.
+#     · ACK 가능 = 0. stale_cycles: 1 → **2** (임계 미도달).
+#   - 종합 ack: N=0, M=2. 토큰 = `reconcile: 0/2 ack (1 stale ≥3cycle)` — dependency-set-integrity stale=4 (≥3 유지).
 #
 # Phase 2 (deferred/split):
-#   - 라인 수 dependency-set-integrity 130L / husky-hook-entrypoint 119L — 모두 < 300, split 불요.
+#   - 라인 수 dependency-set-integrity 134L / husky-hook-entrypoint 119L / router-redirect-reentry-guard 134L — 모두 < 300, split 불요.
 #   - 신규 `[deferred: ...]` 태깅 0. 기존 태깅 유지.
 #
 # Phase 3 (신규 반영):
-#   - 입력 큐 0 건 → no-op.
+#   - 입력 큐 1 건 (REQ-20260422-048). 하류 green 유효 집합 세션 시작 2 < GREEN_PENDING_MAX 20 → 진행.
+#   - REQ-048 RULE-07 자기검증: FR-01~05 는 평서형 불변식 (정적 grep 재현 가능 · 시점 비의존). "첫 적용 사례" (Writer.jsx:48-65) 는 불변식 적용 경계의 증거 박제로 본문 기재, 계약 범위는 임의 redirect useEffect 에 재적용. TSK-20260421-91 blocked / OOM 은 §역할 · §변경 이력 배경 증거로만 언급, FR 본문에 특정 incident 귀속 문구 부재 → 양성 기준 충족.
+#   - 신규 파일: `specs/30.spec/green/common/router-redirect-reentry-guard.md` (신규 134L). 기존 파일 편집: `specs/30.spec/green/foundation/dependency-set-integrity.md` (§역할 / §FR-01 / §의존성 / §변경 이력 / 메타 헤더 REQ-048 추가).
+#   - REQ-048 원본 mv: `specs/20.req/20260422-router-test-migration-redirect-reentry-invariant.md` → `specs/60.done/2026/04/22/req/`.
 #
-# 하류 임계치 (GREEN_PENDING_MAX=20 default; `.claude/pipeline.json` 부재 확인):
-#   - 세션 종료 시점 green 유효 집합 2 < 20. 여유 18. backpressure none.
+# 하류 임계치 (GREEN_PENDING_MAX=20 default; `.claude/pipeline.json` 부재):
+#   - 세션 종료 시점 green 유효 집합 3 < 20. 여유 17. backpressure none.
 #
-# Stale 경고 (≥ 3 cycle): **1 건** — `foundation/dependency-set-integrity.md` (stale_cycles=3). 대응 task TSK-20260421-91 이 `50.blocked/task/` 격리 상태로 발전 정지. 운영자 RULE-05 `/revisit` 경로로 followup 승격 (`10.followups/` → discovery → planner carve 재시도) 필요. inspector 는 재시도 금지 (RULE-02 fail-fast).
+# Stale 경고 (≥ 3 cycle): **1 건** — `foundation/dependency-set-integrity.md` (stale_cycles=4). 대응 task TSK-20260421-91 이 `50.blocked/task/` 격리 상태. 운영자 RULE-05 `/revisit` 경로 필요. 본 세션 REQ-048 흡수로 이관 수단 안전성 계약이 선행 박제되었으므로, `/revisit` 후 discovery → planner 재carve 시 REQ-046 축 task 는 REQ-048 축 task (Writer.jsx guard 도입) 완료를 선결 조건으로 둘 수 있게 됨.
 #
 # 변동 spec sha (세션 종료 시점, inspector 관할 green 집합):
-specs/30.spec/green/foundation/dependency-set-integrity.md aae158fad5a18d5142533e03dd6e13b0a039995b0c8a12573e6f00f3a5b51742 3
-specs/30.spec/green/foundation/husky-hook-entrypoint.md a4b387491cb7b3efb23f1e02184011b6b10bd7ff7d76883f490833bffa160f47 1
+specs/30.spec/green/foundation/dependency-set-integrity.md 1ba2d103adf37b3e0fe5477622935402b4ebb7fb5703f5e01242ddfc5c2a821a 4
+specs/30.spec/green/foundation/husky-hook-entrypoint.md a4b387491cb7b3efb23f1e02184011b6b10bd7ff7d76883f490833bffa160f47 2
+specs/30.spec/green/common/router-redirect-reentry-guard.md f0d87b3112c93a6c41dfc399cda0fa5ae3b29012bfdf2f79c2b4ee60e3f2fa74 0
 #
 # 다음 세션 유의:
-#   - dependency-set-integrity stale_cycles=3 (경고 발생). 운영자 `/revisit` 로 TSK-91 revive 여부 판정 전까지 ledger stale 카운트 지속 증가 (다음 세션 4).
-#   - TSK-20260421-92 (husky v9 migration) developer 진행 중. 완료 시 `60.done/2026/MM/DD/task/TSK-20260421-92*/result.md` 생성 → 다음 inspector 세션에서 husky-hook-entrypoint FR-01~FR-04 markers flip 시도. FR-05 Should 는 본문 메타 unchecked 유지 가능 (애매 시 marker 유지 원칙).
-#   - 20.req/ 빈 큐 → Phase 3 trigger 대기.
+#   - dependency-set-integrity stale_cycles=4 (경고 지속). `/revisit` TSK-91 판정 전까지 stale 카운트 증가 (다음 5). REQ-048 흡수로 이관 수단 안전성 계약이 spec 으로 박제되어 재carve task 가 "Writer.jsx guard 도입 선행 → Writer.test.jsx 이관 후행" 순으로 의존 체인 구성 가능.
+#   - TSK-20260421-92 (husky v9 migration) developer 진행 중. 완료 시 husky-hook-entrypoint FR-01~04 flip 시도.
+#   - `common/router-redirect-reentry-guard.md` (REQ-048) 에 대한 신규 task carve (planner 관할) 대기. 예상 scope: `src/Log/Writer.jsx:48-65` redirect guard 도입 한정 (expansion 불허).
+#   - 20.req/ 빈 큐 → 다음 세션 Phase 3 trigger 대기.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
 #   - unstaged `package.json` developer in-flight 이므로 inspector 는 건드리지 않음 (writer 경계).
