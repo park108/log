@@ -1,88 +1,89 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T(40th cycle) — promote components/{log,common} green→blue (REQ-045 FR-02/03 재실현) + husky green stale 1→2 유보.
+# Updated: 2026-04-21T19:08Z (41st cycle) — carve TSK-20260421-91 (REQ-046 FR-01 history direct dep 제거) + husky green stale 2→3 blocked 격리.
 # Session summary:
-#   HEAD (세션 시작) = 1dd7d64 (39th cycle `spec(inspector): Phase 1 reconcile 0/0 ack (husky stale=2, Phase 2/3 no-op)`). working tree:
-#     - M package.json (developer TSK-20260421-90 husky v8→v9 전환 작업 진행 중: `"prepare": "husky install"` → `"husky"`, `"husky": "^8.0.1"` → `"^9.1.7"` unstaged; planner 영역 밖 — 불간섭).
-#     - ?? specs/30.spec/green/components/{common,log}.md (39th cycle c765f3c inspector 세션이 REQ-045 재흡수로 재작성한 신규 green 2건, untracked).
-#   직전 ledger HEAD = 0a216a6 (38th cycle planner). 그 사이 2 커밋 = c765f3c (39th inspector REQ-045 재흡수) + 1dd7d64 (39th inspector Phase 1 ack).
+#   HEAD (세션 시작) = e950276 (41st inspector `spec(inspector): Phase 1 reconcile 0/0 ack + Phase 3 REQ-046 흡수 (dependency-set-integrity 신설)`, origin/master 보다 +1 앞섬). working tree: clean (inspector 가 dependency-set-integrity.md 를 이미 커밋 포함하여 origin 미푸시 상태로 HEAD 에 박제).
 #
-#   38th cycle 운영 관찰 해석:
-#     - 38th cycle 에서 components/common.md 는 mv 실행 후 blue 가 HEAD 와 byte-equal 로 관측되어 REQ-045 FR-03 상호참조 박제 소실. inspector 재흡수 기대 노트.
-#     - 39th cycle (c765f3c) 에서 inspector 가 Phase 3 로 REQ-045 를 다시 흡수하여 green `components/log.md` (FR-02) + `components/common.md` (FR-03) 를 재작성함. 지시문 상의 "외부 동기화로 재출현" 은 실체상 inspector 재흡수. 본 40th cycle 에서 **정상 승격 경로** 로 blue 박제 완성.
-#
-#   본 세션 입력 (green, HEAD=1dd7d64 기준): **3 spec files**.
-#     - `specs/30.spec/green/foundation/husky-hook-entrypoint.md` (REQ-20260422-044, sha256=6c384fc4..., 39th cycle 기준 stale=1 잔존).
-#     - `specs/30.spec/green/components/log.md` (재유입, REQ-20260422-045 FR-02, sha256=cfce073d...).
-#     - `specs/30.spec/green/components/common.md` (재유입, REQ-20260422-045 FR-03, sha256=7a83f917...).
+#   본 세션 입력 (green, HEAD=06a8fb9 기준): **2 spec files**.
+#     - `specs/30.spec/green/foundation/husky-hook-entrypoint.md` (REQ-20260422-044, sha256=6c384fc4..., 40th cycle 기준 stale=2 held).
+#     - `specs/30.spec/green/foundation/dependency-set-integrity.md` (REQ-20260422-046, sha256=aae158fa..., 41st cycle 신규 유입).
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
-#     (2) 입력 큐: 3건 — 처리 진행.
-#     (3) 하류 임계치 TASK_READY_MAX=10: `40.task/` 잔존 1건 (TSK-90) → 통과 (여유 9).
+#     (2) 입력 큐: 2건 — 처리 진행.
+#     (3) 하류 임계치 TASK_READY_MAX=10: `40.task/` 잔존 0건 → 통과 (여유 10).
 #     (4) 처리.
 #
 #   승격 판정 (green 4조건 — [WIP]==0 & unchecked==0 & ^#+ To-Be==0 & 변경이력 TSK/REQ 박제; [deferred] 제외):
-#     - components/log.md:    [WIP]=0 / unchecked=0 / To-Be=0 / 변경이력 `REQ-20260422-045 FR-02 흡수` 행 박제 → **승격 OK**.
-#     - components/common.md: [WIP]=0 / unchecked=0 / To-Be=0 / 변경이력 `REQ-20260422-045 FR-03 흡수` 행 박제 → **승격 OK**.
-#     - foundation/husky-hook-entrypoint.md: [WIP]=0 / unchecked=**9건** (§테스트 현황 2 + §수용 기준 7) / To-Be=0 / 변경이력 TSK-90 박제 없음 → **승격 불가**. stale 1→2.
+#     - foundation/husky-hook-entrypoint.md: [WIP]=0 / unchecked=**9건** (§테스트 현황 2 + §수용 기준 7) / To-Be=0 / 변경이력 TSK-90 박제 없음 → **승격 불가**. stale 2→3.
+#     - foundation/dependency-set-integrity.md: [WIP]=0 / unchecked=**5건** (§테스트 현황 1 + §수용 기준 4) / To-Be=0 / 변경이력 TSK 박제 없음 (신규 유입 baseline) → **승격 불가, carve 대상**. stale 0→1.
 #
-#   Carve 분석 (재유입 2 green):
-#     - 2 green 모두 spec-level 상호참조 1~2줄 박제 증분. 선행 done (REQ-20260421-033 a11y 패턴 B · REQ-20260421-039 reportError 단일 채널) 에 의해 code 는 이미 반영됨. 본 green 증분은 선행 done 의 code 결과를 blue spec 에 박제하는 것이 목적이며 추가 코드 변경 불필요. **차기 task carve 0건**.
+#   **husky green 격리 판정 (40th cycle 유보 → 41st cycle 강제 격리)**:
+#     - 40th cycle 판단 근거 (`dev active — unstaged package.json 편집 관찰`) 검증 실패:
+#       - 현 HEAD=e950276 에서 `git status --porcelain package.json` → 0 (unstaged 없음 재확인).
+#       - `specs/10.followups/20260421-1841-husky-v9-shim-dir-regeneration-spec-drift.md` (dev 발행 2026-04-21T18:41Z, HEAD=06a8fb9 기준) + `specs/10.followups/20260421-1847-husky-v9-migration-spec-drift-from-blocked.md` (revisit 2026-04-21T18:47Z) 2건 관찰 → **dev 는 TSK-20260421-90 을 spec FR-06 구조적 drift 로 blocked 판정 완료, `/revisit` 경로로 followups 공식 이관됨**.
+#       - `40.task/TSK-20260421-90*` 부재 + `50.blocked/task/` 부재 + `60.done/.../task/` 중 TSK-90 부재 → 파이프라인 현재 husky green 의 재시도 경로 0.
+#     - 결론: stale=3 (3회 연속 정체) + dev 진전 0 (실제로 blocked 확정) → RULE-01 planner mv 권한 (`30.spec/** → 50.blocked/spec/`) 발동.
+#     - mv 실행: `specs/30.spec/green/foundation/husky-hook-entrypoint.md` → `specs/50.blocked/spec/foundation/husky-hook-entrypoint.md` + `_reason.md` 동반 박제.
 #
-#   grep dry-run: 본 cycle 신규 task 0 → `grep dry-run: 0/0 match`.
+#   Carve 분석 (신규 green `dependency-set-integrity.md`):
+#     - **TSK-20260421-91**: `history` direct dep 제거 + `src/Log/Writer.test.jsx` `MemoryRouter initialEntries` 이관 (REQ-046 FR-01 첫 적용 사례).
+#       - 수정 파일: `package.json`, `src/Log/Writer.test.jsx`, `package-lock.json` (npm 재생성).
+#       - 1 PR 크기, 독립 롤백 가능, depends_on=[].
+#       - expansion: 불허 (spec 와 정합).
+#       - grep-baseline 6 gate 박제 (spec gate 와 1:1 대응, (d) gate 는 실측 10 hits — spec 박제 "1 hit" 과 차이 있으나 spec §FR-01 본문 "이관 참조 패턴 기 존재" 의미와 정합).
 #
-#   Post-promote gate 실측 (blue 박제 확인):
-#     - `grep -cE "activateOnKey|패턴 B" specs/30.spec/blue/components/log.md` → **4 hits** (inspector 예상 ≥1, 통과).
-#     - `grep -cE "reportError|REQ-20260421-039" specs/30.spec/blue/components/common.md` → **4 hits** (inspector 예상 ≥2, 통과).
-#     - `grep -c "호출측 경유 계약" specs/30.spec/blue/components/common.md` → **3 hits** (38th cycle 실측 0 → 본 cycle 실측 3; REQ-045 FR-03 박제 실질 완성).
-#     - `grep -c "REQ-20260422-045" specs/30.spec/blue/components/log.md` → **4 hits**.
-#     - `grep -c "REQ-20260422-045" specs/30.spec/blue/components/common.md` → **4 hits**.
-#
-#   승격 mv (2건 실행):
-#     - `specs/30.spec/green/components/common.md` → `specs/30.spec/blue/components/common.md` (byte-diff 실재: §관련 요구사항 + REQ-045 행 추가 + §에러 처리 호출측 경유 계약 1행 추가 + §변경 이력 1행 추가).
-#     - `specs/30.spec/green/components/log.md` → `specs/30.spec/blue/components/log.md` (byte-diff 실재: §관련 요구사항 + REQ-045 행 추가 + §동작 하위 §접근성 4줄 추가 + §변경 이력 1행 추가).
-#   blocked mv: 0건 (husky green stale=2, 임계치 도달했으나 **파이프라인 active — TSK-20260421-90 developer 수행 중 (unstaged package.json 편집 관찰)** → 33rd cycle coverage-determinism 유보 전례 적용하여 blocked 격리 보류).
-#   carve mv: 0건.
+#   **grep dry-run (carve 박제 전 실제 실행, 41st cycle)**:
+#     - `grep -nE "\"dependencies\":|\"devDependencies\":" package.json` → 2 hits (expected 2 ✓).
+#     - `grep -n '"history"' package.json` → 1 hit (`package.json:54`, expected 1 ✓).
+#     - `grep -rnE "from 'history'|from \"history\"|createMemoryHistory" src` → 2 hits (`src/Log/Writer.test.jsx:2,51`, expected 2 ✓).
+#     - `grep -nE "MemoryRouter initialEntries" src/Log/Writer.test.jsx` → 10 hits (lines 80, 127, 174, 228, 277, 325, 362, 413, 490, 520; spec 박제 1 hit 은 이관 참조 패턴 존재 증빙 의미로 정합).
+#     - `ls docs/dependency-inventory.md` → exit=1 (예외 빈 집합 ✓).
+#     - `grep -rnE "from 'history/'|from \"history/\"" src` → 0 hits (subpath 부재 ✓).
+#   → **grep dry-run: 6/6 match** (dependency-set-integrity 기준).
 #
 #   RULE-01 점검:
-#     - 본 세션 변경 = `.planner-seen` ledger edit (planner writer 영역) + 2 spec green→blue mv (planner writer 영역 고유 mv 권한).
-#     - blue 본문 수정 0 (mv 만).
+#     - 본 세션 변경 = `.planner-seen` ledger edit (planner writer 영역) + 1 spec mv (`30.spec/green → 50.blocked/spec`) + 1 blocked reason 신규 (writer 영역) + 1 task 신규 (writer 영역).
+#     - blue 본문 수정 0 (본 cycle 승격 0).
 #   RULE-02 점검:
-#     - staged 자기 영역 밖: 없음 (M package.json unstaged — unstage 불요).
-#     - 커밋 scope = `spec(planner): promote components/{log,common} green→blue 재실현 (REQ-045 FR-02/03)`.
-#     - 커밋 포함 대상 = blue/components/{log,common}.md + green/components/{log,common}.md 삭제 + .planner-seen.
+#     - staged 자기 영역 밖: 없음 (세션 시작 시 `git status` clean + `dependency-set-integrity.md` untracked inspector 산물, 본 세션에서 planner 가 직접 수정 없음 — git add 대상은 green/ 파일 자체가 mv 없이 잔존).
+#     - 커밋 메시지 = `task(planner): carve TSK-20260421-91 (REQ-046 history dep 제거) + block husky-hook-entrypoint green (stale=3)`.
+#     - 커밋 포함 대상 = `40.task/TSK-20260421-91-*.md` (A) + `50.blocked/spec/foundation/husky-hook-entrypoint.md` (R from green; A at blocked) + `50.blocked/spec/foundation/husky-hook-entrypoint_reason.md` (A) + `30.spec/green/foundation/dependency-set-integrity.md` (A, inspector 산물 tracked 화) + `.planner-seen` (M).
 #     - push 금지 (developer 전용).
 #   RULE-04 점검:
-#     - 보고 notes: `promote: 2 (components/{log,common} redeliver)` + `carve: 0` + `grep dry-run: 0/0 match` + `husky stale=2 held (dev active)`.
+#     - 보고 notes: `carve: REQ-046 -> TSK-20260421-91` + `grep dry-run: 6/6 match` + `blocked: husky-hook-entrypoint (stale=3, dev blocked→followups)`.
 #   RULE-06 점검:
-#     - 본 cycle 신규 task 0 → §스코프 규칙 섹션 박제 없음. RULE-06 무관.
+#     - 신규 task 1건 grep 게이트 포함 → §스코프 규칙 섹션 박제. baseline 6 gate 실측 박제 (planner 41st cycle dry-run 결과).
 #   RULE-07 점검:
-#     - 승격 2 green 모두 RULE-07 양성 기준 충족 (시스템 불변식 평서문, 반복 검증 가능 상호참조 계약; 시점 비의존).
+#     - 신규 green `dependency-set-integrity.md` 는 평서형 불변식 계약 (FR-01~05), 특정 릴리스·날짜 귀속 없음, `history` 는 "첫 적용 사례" 로 §변경 이력 박제 (재적용 가능한 일반 불변식). 양성 기준 충족.
+#     - 격리된 husky green 은 FR-06 의 RULE-07 위반 가능성이 blocked reason 에 박제됨 (husky v9 런타임 동작과 구조적 충돌 — `/revisit` → discovery 재진입 경로에서 해소 기대).
 #
 #   **운영 관찰**:
-#     - 38th cycle 의 common 증분 소실은 39th cycle inspector Phase 3 재흡수로 해소. 본 40th cycle 에서 blue 박제 완성 확인 (3 hits "호출측 경유 계약" / 4 hits REQ-045).
-#     - husky green (TSK-90) 은 developer 가 현재 수행 중 (package.json diff 관찰: prepare + husky dep 2 지점 이미 편집). stale=2 이나 **blocked 격리 보류** — 33rd cycle coverage-determinism stale=3 유보 전례. 다음 cycle 에 TSK-90 result + inspector reconcile + 변경 이력 박제 기대.
-#     - 만약 차기 cycle (41st+) 에도 husky green 의 §변경 이력 에 TSK-90 박제 부재이고 dev 진전도 관찰되지 않으면 stale=3 도달 — blocked 격리 수행.
+#     - 40th cycle "dev active" 유보 판단은 사후 오판 (revisit 처리 시점 18:47Z vs 40th cycle 판단 시점 간 시간차). 실측 가능한 파이프라인 상태 (10.followups/ + 40.task/ + 50.blocked/task/) 직접 조회 → dev 진전 여부 객관 판정 원칙 강화 필요.
+#     - 41st cycle 에서 husky green 격리 수행 → 정식 해제 경로 = 10.followups/ 2건 기반 discovery → 신규 req → inspector green 재작성 → planner 신규 task (supersedes: TSK-20260421-90 메타). stale 카운팅 재시작.
+#     - 신규 green `dependency-set-integrity.md` 는 REQ-046 (bump 전 집합 정합성) 축 — 기존 REQ-035 dependency-bump-gate 와 차원 직교. 첫 적용 사례 (`history`) 완료 후 spec 승격 판정 재수행.
 #
-#   **파이프라인 상태 (40th cycle 종료 시)**:
-#     - 30.spec/green/**: 1건 (foundation/husky-hook-entrypoint.md, stale=2, sha256=6c384fc4...).
-#     - 30.spec/blue/**: 18 files (기존 18 — components/log + common 은 38th cycle 에 path-level 승격 완료 상태였고, 본 세션은 content-level 재박제; 파일 count 불변).
-#     - 40.task/: 1건 (TSK-20260421-90 husky v8→v9 hook 진입점 전환 — developer 대기/수행 중).
+#   **파이프라인 상태 (41st cycle 종료 시)**:
+#     - 30.spec/green/**: 1건 (foundation/dependency-set-integrity.md, stale=1, sha256=aae158fa...).
+#     - 30.spec/blue/**: 15 files (변화 없음).
+#     - 40.task/: 1건 (TSK-20260421-91 history 제거 + Writer.test.jsx 이관 — developer 대기).
 #     - 50.blocked/spec/common/: 2건 (a11y + error-reporter-channel) — 변화 없음.
+#     - 50.blocked/spec/foundation/: **1건 신규** (husky-hook-entrypoint + _reason.md; stale=3 격리).
+#     - 10.followups/: 2건 (husky-v9 관련, discovery 대기 중).
 #
 # ledger entries (잔존 green):
-# - specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 2
+# - specs/30.spec/green/foundation/dependency-set-integrity.md aae158fad5a18d5142533e03dd6e13b0a039995b0c8a12573e6f00f3a5b51742 1
 #
-# promoted (→ 30.spec/blue/, 본 cycle):
-# - specs/30.spec/green/components/log.md → specs/30.spec/blue/components/log.md (REQ-045 FR-02, §접근성 소절 4행 + §변경 이력 1행 실 박제).
-# - specs/30.spec/green/components/common.md → specs/30.spec/blue/components/common.md (REQ-045 FR-03, §에러 처리 1행 + §변경 이력 1행 실 박제 — 38th cycle 소실분 재실현).
+# promoted (→ 30.spec/blue/, 본 cycle): 0건.
 #
-# blocked (→ 50.blocked/spec/, 본 cycle): 0건.
-# carves (→ 40.task/, 본 cycle): 0건.
+# blocked (→ 50.blocked/spec/, 본 cycle):
+# - specs/30.spec/green/foundation/husky-hook-entrypoint.md → specs/50.blocked/spec/foundation/husky-hook-entrypoint.md (stale=3, REQ-044; 해제 경로 = 10.followups/ 2건 기반 discovery 재진입).
 #
-# ready 큐: count=1 (husky green). 추가 유입 대기.
-# next cycle (41st+):
-#   - **developer (15m)**: TSK-20260421-90 수행 완료 → 성공 시 spec §변경 이력 에 TSK 슬러그·커밋 해시 박제 요청.
-#   - **planner (41st+)**: husky green 승격 판정 재수행. stale=3 도달이되 dev 진전 0 이면 50.blocked/spec/foundation/ 격리 + `_reason.md`.
-#   - **inspector (30m)**: Phase 1 reconcile (매 세션 필수 `reconcile: N/M ack`). TSK-90 완료 감지 시 husky green marker 9건 ACK.
-#   - **discovery (1h)**: 10.followups / /revisit 경로.
+# carves (→ 40.task/, 본 cycle):
+# - REQ-20260422-046 FR-01 첫 적용 사례 → TSK-20260421-91 (history direct dep 제거 + Writer.test.jsx MemoryRouter 이관, 파일 3개, expansion 불허, grep-baseline 6 gate 박제).
+#
+# ready 큐: count=1 (dependency-set-integrity green, task 수행 후 §변경 이력 박제 시 승격 예정).
+# next cycle (42nd+):
+#   - **developer (15m)**: TSK-20260421-91 수행 → 성공 시 커밋 + spec §변경 이력 에 TSK 슬러그·커밋 해시 박제 요청 (inspector 경로 경유).
+#   - **planner (42nd+)**: dependency-set-integrity 승격 판정. 성공 시 green→blue mv.
+#   - **inspector (30m)**: Phase 1 reconcile 매 세션 필수 `reconcile: N/M ack`. TSK-91 완료 감지 시 dependency-set-integrity green marker 5건 ACK.
+#   - **discovery (1h)**: 10.followups/ husky-v9 2건 기반 신규 req (FR-06 재박제/삭제/수단치환 중 1 택) 승격 → inspector 로 전달.
