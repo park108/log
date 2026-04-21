@@ -134,7 +134,7 @@
 - [x] `ErrorBoundary.test.jsx`, `ErrorFallback.test.jsx`, `Navigation.test.jsx`, `Skeleton.test.jsx`, `UserLogin.test.jsx`.
 - [x] `useHoverPopup.test.jsx` — Enter/Blur/Touch/Escape 분기.
 - [x] `errorReporter.test.js` — `console.error` 위임.
-- [ ] `isAdmin()` 6 매트릭스 전 행 회귀 테스트 (REQ-022 FR-02; 현 `common.test.js` 커버리지 감사 대상).
+- [x] `isAdmin()` 6 매트릭스 전 행 회귀 테스트 (REQ-022 FR-02; `common.test.js:670` `describe('isAdmin matrix (REQ-20260421-017)')` 6 케이스 박제 — `572009f` / TSK-20260421-61 PASS).
 - [ ] `auth()` SameSite 회귀 방어 테스트 (REQ-025 FR-02; positive/negative 어설션 추가 대상).
 
 ## 수용 기준 (현재 상태)
@@ -160,6 +160,7 @@
 | 2026-04-20 | operator / — | 최초 등록 (as-is 서술 spec, blue) | all |
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-022 흡수 — blue `components/common.md` → green carry-over + § 환경 분기 계약 / § admin gate 계약 2개 섹션 신설. `isAdmin()` 6 매트릭스 표 박제. `VITE_ADMIN_USER_ID_{PROD,DEV}` 외부화 + `setCookie` SameSite/expires/maxAge 계약 박제. `process.env.NODE_ENV` 런타임 0 hit 확인 (baseline). consumed followups: `20260421-0541-admin-gate-recovery-and-env-config-spec-from-blocked.md`, `20260421-0541-node-env-helper-migration-spec-from-blocked.md`. 선행 done req: REQ-20260421-017, `20260420-migrate-node-env-to-env-helper`. | §역할, §공개 인터페이스, §환경 분기 계약 (신설), §admin gate 계약 (신설), §동작, §회귀 중점, §수용 기준, §테스트 현황 |
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-025 흡수 — § auth() 쿠키 속성 계약 서브섹션 신설. `auth()` SameSite RFC 6265bis 유효값 (`Strict|Lax|None`) 불변식 + 회귀 방어 단위 테스트 계약 박제. consumed followup: `20260421-0541-auth-cookie-samesite-correctness-and-operator-verification-from-blocked.md`. 원 blocked req (축소 대상): `specs/50.blocked/req/20260421-auth-cookie-samesite-correctness-and-operator-verification.md`. RULE-07 정합 — DevTools 실측·분기형 patch 제안 배제. baseline 실측: gate (a) 0 hit — 현 `src/common/common.js:138,144` 은 `sameSite: site` 도메인 문자열 주입 상태 (계약 미준수). 향후 task 로 정상화 대상. | §auth() 쿠키 속성 계약 (신설), §회귀 중점, §수용 기준, §테스트 현황 |
+| 2026-04-21 | inspector / reconcile | Phase 1 ack — §테스트 현황 `isAdmin()` 6 매트릭스 항목 `[ ]` → `[x]` 플립. 근거: `572009f` / TSK-20260421-61 (HEAD 조상) — `src/common/common.test.js:670` `describe('isAdmin matrix (REQ-20260421-017)')` 6 케이스 박제, result DoD 에 `npm test -- --run → 47 files / 381 tests passed (기존 375 + 신규 6)` + `grep "describe.*isAdmin" → 3 hits` 박제. SameSite 2 항목 (테스트 현황 line 138, 수용 기준 REQ-025 FR-02 실현) 는 현 `common.js:138,144` 가 `sameSite: site` 도메인 문자열 상태로 계약 미준수 유지 — `[ ]` 보존. | §테스트 현황 |
 
 ## 참고
 - **REQ 원문 (완료 처리)**:

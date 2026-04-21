@@ -1,49 +1,41 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=29d9da0, new-specs session — 8 req processed)
-# Phase 1 ack this session: 0/0 ack (reconcile 대상 unchecked 마커 0 — 세션 시작 시 green 내 `[ ]`·`[WIP]`·`To-Be` 없음).
+# Updated: 2026-04-21T (HEAD=1eb4a53, Phase 1 reconcile 세션)
+# Phase 1 ack this session: 1/6 ack.
 #
-# 직전 inspector 세션 (911d939) 이후 HEAD 전진: 4건 — 6413d44 (planner no-op 13) + 4d6e144 (planner blocked isolation 14) + 20ecce0 (revisit scanned=16) + 7b527d8 (RULE-07 추가) + ba20cce 언급된 3개 spec + 29d9da0 (blue rename) — ledger 에 있던 3개 spec (`test-isolation-shuffle-safety-cold-start-spec.md`, `logsingle-prod-server-serial-timeout-remediation-spec.md`, `admin-gate-recovery-and-env-config-spec.md`) 은 파일시스템 상 부재 (operator/revisit 사이클 중 정리됨).
+# drift marker 스캔 (5 spec) — 총 6 marker 발견:
+#   1. `foundation/tooling.md:57` — lint-staged `.d.ts` 포함 보강 (향후 task) → 대응 task 미수행 → [ ] 유지.
+#   2. `foundation/ci.md:48`       — (수동) Node LTS 상향 시점 engine 확인 → 수동 점검 반복 계약 → [ ] 유지.
+#   3. `components/common.md:137`  — isAdmin() 6 매트릭스 회귀 테스트 감사 → ACK (572009f / TSK-20260421-61 PASS; `common.test.js:670` describe('isAdmin matrix (REQ-20260421-017)') 6 케이스 박제, 381 tests passed, 3 isAdmin describe 블록) → [x] 플립 + 변경 이력 1행 박제.
+#   4. `components/common.md:138`  — auth() SameSite 회귀 방어 테스트 → 현 `common.js:138,144` 가 `sameSite: site` (도메인 문자열) 로 RFC 6265bis 유효값 미준수 baseline (0 hit). task 미수행 → [ ] 유지.
+#   5. `components/common.md:155`  — (Must, REQ-025 FR-02 실현) positive/negative 어설션 실제 추가 (향후 task) → 위와 동일 미준수 → [ ] 유지.
+#   6. `components/log.md:59`      — LogItem DELETE shuffle 안정성 (향후 task 로 실현; spec 은 계약 박제만) → task 미수행 → [ ] 유지.
 #
-# Phase 1 this session:
-#   - 세션 시작 시 green 파일 = 0 (marker 제외). `[WIP]`·`[ ]`·`To-Be` 0 → reconcile 대상 0.
-#   - reconcile: 0/0 ack (stale_cycles 증가 대상 0; 이전 ledger 의 3 spec 은 부재 상태로 ledger 에서 dropped).
+# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음.
 #
-# Phase 2 this session:
-#   - 입력 큐 진입 req 총 8건 (REQ-020, 021, 022, 023, 024, 025, 026, 027, 028, 029).
-#     - 정확히는 세션 내 discovery 가 연속 생산하여 최종 10 req 관찰. 각 req 에 대해 RULE-07 자체검증 후 처리.
-#   - 300줄 초과 spec 없음. sub-spec split 불요.
+# Phase 3 (신규 req 반영): 20.req 비어있음 → Phase 3 no-op.
 #
-# Phase 3 this session — 결과 요약:
-#   - REQ-20260421-021 (test-idioms) → create `30.spec/green/common/test-idioms.md` (신규, 6 이디엄 축).
-#   - REQ-20260421-022 (common env/admin) → blue `components/common.md` → carry-over to green + § 환경 분기 계약 / § admin gate 계약 신설.
-#   - REQ-20260421-023 (CI foundation) → create `30.spec/green/foundation/ci.md` (신규).
-#   - REQ-20260421-024 (React 19 app-spec) → no-op (blue `app.md` 에 회귀 중점 2 경로 이미 박제 — FR-01 Must 충족, FR-02 "불필요 시 green 생성 금지" 조건 적용).
-#   - REQ-20260421-025 (auth cookie SameSite) → green `components/common.md` 에 § auth() 쿠키 속성 계약 서브섹션 append (REQ-022 편집과 동일 파일).
-#   - REQ-20260421-027 (log-spec shuffle + findBy) → blue `components/log.md` → carry-over to green (§회귀 중점 shuffle 불변식) + test-idioms 에 findBy 이디엄 (7) 추가.
-#   - REQ-20260421-028 (TypeScript foundation/tooling) → create `30.spec/green/foundation/tooling.md` (신규, 4 불변식).
-#   - REQ-20260421-029 (fake-timer teardown 전역) → test-idioms 에 fake-timer teardown 이디엄 (8) 추가.
+# 이동: 없음 (20.req 비어있음).
+# blocked: 없음 (반려 대상 없음).
+# 입력 큐: 0건. 하류 임계치 GREEN_PENDING_MAX=20, 현 green 파일 5 (spec) < 20. 여유 15.
 #
-# Phase 3 blocked (반려):
-#   - REQ-20260421-020 (logsingle-remediation-vitest4-rescope) → `50.blocked/req/` + `_reason.md`.
-#     사유: RULE-07 반려 — 특정 incident (TSK-20260421-60 blocked) + 특정 릴리스 (Vitest 4.1.4) patch plan 성격. spec 잔존 invariant 비율 과소 (FR-04 (나) 1~2줄뿐, FR-01~12 대부분 task plan). patch 플랜·task/planner 계약 혼재.
-#   - REQ-20260421-026 (layer2 FR-13 재지정) → `50.blocked/req/` + `_reason.md`.
-#     사유: 대상 파일 `30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md` 부재 (`/revisit` 사이클 `20ecce0` 또는 `operator ba20cce` 시점에 정리됨). 편집 전제 FR-01~03 충족 불가.
-#
-# 입력 큐: 0건 (세션 종료 시점). 하류 임계치 GREEN_PENDING_MAX=20, 현 green 파일 5 (spec) < 20. 여유 15.
+# hook-ack 보조 확인:
+#   - ack 대상 (3) 의 `572009f` (2026-04-21 14:07) 은 HEAD=1eb4a53 조상. `572009f` 메시지 "isAdmin 매트릭스 회귀 테스트" + result.md DoD "npm test -- --run 47 files / 381 tests passed" 박제. Must 주관 혼재 없음 → ack 보조 확정.
 #
 # 현 ledger:
-specs/30.spec/green/common/test-idioms.md 54b826562021048df29182e7249b839afc5b0ed35cf6e10b58d5895a1ca34389 0
-specs/30.spec/green/components/common.md 13f4f98874f0683e88e47a029fe4b83ea0cce8f38554826759c61980a03d60ea 0
-specs/30.spec/green/components/log.md ba029dd112ea5e8323e0873fcf445cdcfd2f1db187e3ca97a95b3252b326c94a 0
+specs/30.spec/green/common/test-idioms.md 7447ef35bbb4c6659d5b737b79ad487bf527458a650921d6aa86b7918a1a9c6a 0
+specs/30.spec/green/components/common.md a96a73c3855747448c17a13563069f16da48969e96619f2bc39bc96d4bad6acc 0
+specs/30.spec/green/components/log.md cdd2ba754bf67416be93feb9825f7023f2b960c13f6b1d354c8ed64844e3b82a 0
 specs/30.spec/green/foundation/ci.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 0
-specs/30.spec/green/foundation/tooling.md 73ac384bba79bdbcf43289bd39ff981d956ce2f56f7e42912c4730c1fbed434c 0
+specs/30.spec/green/foundation/tooling.md e8d809041b276e689d35f624cdf86d111d3e93fa059067eef667ea2fee04edfd 0
 #
-# Stale 경고: 0 cycle (신규 등록 세션).
+# Stale 경고: 0 cycle (marker 단위 stale tracking 은 ledger schema 상 path 단위이므로 본 session 범위 밖).
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - 5 spec 전원 수용 기준 상당수 `[x]`. 잔여 `[ ]` = isAdmin 6매트릭스 테스트 실현 (REQ-022), SameSite 회귀 테스트 실현 (REQ-025), lint-staged `.d.ts` 보강 (REQ-028), LogItem DELETE shuffle 결정성 실현 (REQ-027). 이들은 planner task carve 대상이며 spec 자체는 녹색 상태.
+#   - `components/common.md` 잔여 [ ] 2건 (line 138, 155) — SameSite 정상화 task carve 후 해소 가능. 우선 순위: 운영 쿠키 속성 실측 회귀 위험.
+#   - `components/log.md:59` — LogItem DELETE shuffle 결정성 실현 task carve 대상.
+#   - `foundation/tooling.md:57` — lint-staged `.d.ts` glob 보강 task (1 line 수정) carve 대상.
+#   - `foundation/ci.md:48` — 수동 점검 반복 계약. task 불요 (운영자 동선).
 #
 # 다음 세션 유의:
-#   - REQ-024 no-op 감사: blue `app.md` 이미 §동작 §1-3 + §테스트 현황 에 online/offline 및 reportWebVitals sendBeacon 박제. React 19 회귀 중점 라벨만 부재이나 FR-03 은 Should 이므로 편집 안 함. 추후 동일 upgrade 재발 시 green carry-over 검토.
-#   - blocked 2건 (REQ-020, 026) 는 RULE-05 경로 (`/revisit` → `10.followups/`) 로만 해제 가능.
-#   - discovery 가 세션 중 지속 생산 — 다음 inspector 사이클에서 입력 큐 재확인 필수.
+#   - 20.req 가 다시 찰 경우 Phase 3 재개.
+#   - Phase 1 ack 추가 후보: SameSite 정상화 task 완료 시 common.md line 138/155 ack 가능.
