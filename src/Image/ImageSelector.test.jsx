@@ -27,16 +27,17 @@ describe('ImageSelector loading > loading more > and fail on prod server', () =>
 
 		render(<ImageSelector show={true} />);
 
-		// Get 4 images
-		const imageItems = await screen.findAllByRole("listitem");
+		// Get 4 images — TSK-20260421-78: ImageItem role 변경(listitem→button) 이후
+		// data-testid 로 정밀 selecting (role="button" 은 See More 버튼과 공유 중이므로 count 기반 assertion 에 부적합).
+		const imageItems = await screen.findAllByTestId("imageItem");
 		expect(imageItems.length).toBe(4);
 
 		// After click see more button, added 2 more images
-		const seeMoreButton = await screen.findByRole("button");
+		const seeMoreButton = await screen.findByRole("button", { name: /see\s*more/i });
 		expect(seeMoreButton).toBeDefined();
 
 		fireEvent.click(seeMoreButton);
-		const imageItems2 = await screen.findAllByRole("listitem");
+		const imageItems2 = await screen.findAllByTestId("imageItem");
 		expect(imageItems2.length).toBe(6);
 
 		// Click first image — copyMarkdownString is now async, so await writeText resolution
@@ -49,7 +50,7 @@ describe('ImageSelector loading > loading more > and fail on prod server', () =>
 		// Swap handler to failure response (mirrors prodServerFailed).
 		server.use(mock.prodFailedHandler);
 
-		const seeMoreButton2 = screen.getByRole("button");
+		const seeMoreButton2 = screen.getByRole("button", { name: /see\s*more/i });
 		expect(seeMoreButton2).toBeDefined();
 
 		fireEvent.click(seeMoreButton2);
@@ -72,21 +73,22 @@ describe('ImageSelector loading > loading more > and network error on dev server
 
 		render(<ImageSelector show={true} />);
 
-		// Get 4 images
-		const imageItems = await screen.findAllByRole("listitem");
+		// Get 4 images — TSK-20260421-78: ImageItem role 변경(listitem→button) 이후
+		// data-testid 로 정밀 selecting.
+		const imageItems = await screen.findAllByTestId("imageItem");
 		expect(imageItems.length).toBe(4);
 
 		// After click see more button, added 2 more images
-		const seeMoreButton = await screen.findByRole("button");
+		const seeMoreButton = await screen.findByRole("button", { name: /see\s*more/i });
 		expect(seeMoreButton).toBeDefined();
 
 		fireEvent.click(seeMoreButton);
-		await waitFor(() => expect(screen.getAllByRole("listitem").length).toBe(6));
+		await waitFor(() => expect(screen.getAllByTestId("imageItem").length).toBe(6));
 
 		// Swap handler to network error (mirrors devServerNetworkError).
 		server.use(mock.devNetworkErrorHandler);
 
-		const seeMoreButton3 = await screen.findByRole("button");
+		const seeMoreButton3 = await screen.findByRole("button", { name: /see\s*more/i });
 		expect(seeMoreButton3).toBeDefined();
 
 		fireEvent.click(seeMoreButton3);
@@ -192,7 +194,8 @@ describe('ImageSelector clipboard rejection error Toaster', () => {
 
 		render(<ImageSelector show={true} />);
 
-		const imageItems = await screen.findAllByRole("listitem");
+		// TSK-20260421-78: ImageItem role 변경(listitem→button) 이후 data-testid 로 정밀 selecting.
+		const imageItems = await screen.findAllByTestId("imageItem");
 		expect(imageItems.length).toBe(4);
 
 		// Enlarge → shrink + copy flow; the shrink click triggers copyMarkdownString.

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import PropTypes from 'prop-types';
 import styles from './ImageSelector.module.css';
+import { activateOnKey } from "../common/a11y";
 
 const ImageItem = (props) => {
 
@@ -15,22 +16,26 @@ const ImageItem = (props) => {
 	const className = isEnlarged ? selectedClass : baseClass;
 	const src = isEnlarged ? fullsizeImageUrl : thumbnailImageUrl;
 
+	const handleToggle = (e) => {
+		if (isEnlarged) {
+			props.copyMarkdownString(e);
+		}
+		setIsEnlarged((prev) => !prev);
+	};
+
 	return (
 		<img className={className}
 			data-testid="imageItem"
-			role="listitem"
+			role="button"
+			tabIndex={0}
 			src={src}
 			alt={props.fileName}
 			title={props.fileName}
 			imageurl={fullsizeImageUrl}
 			thumbnailurl={thumbnailImageUrl}
 			data-enlarged={isEnlarged ? "Y" : "N"}
-			onClick={(e) => {
-				if (isEnlarged) {
-					props.copyMarkdownString(e);
-				}
-				setIsEnlarged((prev) => !prev);
-			}}
+			onClick={handleToggle}
+			onKeyDown={activateOnKey(handleToggle)}
 		/>
 	);
 }
