@@ -2,7 +2,7 @@
 
 > **위치**: `src/Log/LogItem.test.jsx` 의 DELETE 5xx / network-error 계열 test (`:207, :262, :318, :379` 의 `await screen.findByTestId("delete-button")` + `:266` 의 `findByText("Deleting log network error.")`); 보조 대상 `src/test-utils/msw.test.js:29, 37, 57` (sibling-it 의존 — REQ-011 별도 carve-out), `src/File/File.test.jsx:35` 의 `prodServerHasNoData` describe (QueryClient cache race).
 > **관련 요구사항**: REQ-20260421-007 (Layer 1, REQ-20260421-004 재작성분), REQ-20260421-010 (Layer 2 서사 확장), REQ-20260421-012 (Layer 2 재진단), REQ-20260421-015 (재진단 결과 marker-sync), REQ-20260421-017 (blocked → followup → green 재등록 — 본 파일)
-> **최종 업데이트**: 2026-04-21 (by inspector, REQ-017 재등록 + REQ-015 marker-sync 자연 충족)
+> **최종 업데이트**: 2026-04-21 (by inspector, marker-sync — TSK-20260421-59 carve 반영)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (2026-04-21, HEAD=fc656a7). 본 파일은 `8th cycle` planner 격리 (`bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730` 불변, `afce2b9` 격리 → `fc656a7` revive 삭제) 후 `/revisit` 경로로 followup 승격되어 본 사이클에서 재등록된 spec 이다. 이전 blocked spec 은 α-가설("vi.spyOn 12건 누수 → admin 분기 오염") 기반이었으나 developer 실측(TSK-20260421-45)에서 재현 실패의 주원인이 아님으로 확인. Layer 1 (sync query cold-start) 은 REQ-007 기반으로 옵션 A 로 해결됐으나 TSK-20260421-49 실측에서 옵션 A/B/C 조합 적용 후에도 `findByText("Deleting log network error.")` 5062ms timeout 이 shuffle seed=1 에서 1건 잔존 — 이는 **Layer 2 (mutation + msw listen + React 19 concurrent first-in-file flush race)** 로 식별됨. TSK-20260421-57 재진단 결과 Root cause = **React 19 concurrent first-in-file commit × mutate-options observer 의존성** (주), 부차 Toaster mount latency, 배제 (b) polling / (c) fetch micro-task / (e) QueryClient pipeline.
 
@@ -102,10 +102,10 @@
 - [x] FR-02 옵션 A 적용 후 LogItem Layer 1 cold-start race 해소. (2026-04-21, TSK-20260421-51 / commit d798635 — `getBy*` → `findByTestId` 4건 전환 PASS; Layer 2 race 는 후속 patch task 대기.)
 - [ ] FR-06 msw.test.js sibling-it 독립. **[pending: REQ-20260421-011 TSK-20260421-55 — 독립 spec `msw-test-sibling-it-shuffle-race-dedicated-spec.md` 로 carve-out, 별도 track 진행]**
 - [ ] FR-07 File.test.jsx cache race 해소. **[deferred: 별건 task 미발행 — shuffle seed 0 fail 달성 후 재평가]**
-- [x] FR-08 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail. **[x] TSK-20260421-57 재진단 완료, 해소 patch 별건 carve 대기**
-- [x] FR-11 Layer 2 후보 B1'~B6 열거. **[x] TSK-20260421-57 재진단 완료, 해소 patch 별건 carve 대기**
-- [x] FR-12 Layer 2 후보 B5/B6 조건부 확장 판정. **[x] TSK-20260421-57 재진단 완료, 해소 patch 별건 carve 대기**
-- [x] FR-13 1차 추천안 B1' 실측 seed=1/2/3 0 fail. **[x] TSK-20260421-57 재진단 완료, 해소 patch 별건 carve 대기**
+- [x] FR-08 `vitest run --sequence.shuffle --sequence.seed={1,2,3}` 3회 0 fail. **[x] TSK-20260421-57 재진단 완료, TSK-20260421-59 (B1' warm-up) ready 대기**
+- [x] FR-11 Layer 2 후보 B1'~B6 열거. **[x] TSK-20260421-57 재진단 완료, TSK-20260421-59 (B1' warm-up) ready 대기**
+- [x] FR-12 Layer 2 후보 B5/B6 조건부 확장 판정. **[x] TSK-20260421-57 재진단 완료, TSK-20260421-59 (B1' warm-up) ready 대기**
+- [x] FR-13 1차 추천안 B1' 실측 seed=1/2/3 0 fail. **[x] TSK-20260421-57 재진단 완료, TSK-20260421-59 (B1' warm-up) ready 대기**
 - [ ] `npm run lint` 0 warn/error.
 
 ## 수용 기준
@@ -149,3 +149,4 @@
 | 2026-04-21 | inspector / — (marker sync, HEAD=2e9f806) | Phase 1 marker 정합 전환 — §테스트 현황 호환 마커를 planner carve 결과(`a4636a7`, `2a0ff31`)에 맞춰 구체 TSK-ID 로 고정. | 테스트 현황, 변경 이력 |
 | 2026-04-21 | TSK-20260421-57 / — (재진단) | Root cause = React 19 concurrent first-in-file commit × mutate-options observer 의존성 (주), 부차 Toaster mount latency. FR-13 fallback chain `B1' → B2 → B4 → B5 → B6` 로 재확정 (B3 은 1·2차 반증으로 제거). result.md §4 시점 타임라인 + §Root cause 판정 박제. | 역할, 동작, 공개 인터페이스, 대안, 테스트 현황, 수용 기준, 변경 이력 |
 | 2026-04-21 | inspector / — (REQ-20260421-017 + REQ-20260421-015 반영, HEAD=fc656a7) | blocked → followup (revive) → green 재등록. TSK-20260421-57 재진단 결과 반영 (Root cause = React 19 first-in-file × mutate-options observer). FR-13 1차 추천안 B1 → B1' 교체. B6 항목 신설 (mutate-options 제거 + options-level onError 주입). FR-11 B1/B3 항목에 2026-04-21 반증 주석 append. §테스트 현황 stale 마커 4 지점 → `[x] TSK-20260421-57 재진단 완료, 해소 patch 별건 carve 대기` 전환. REQ-015 FR-04~FR-07 자연 충족. | all |
+| 2026-04-21 | inspector / — (marker-sync, HEAD=ec35206) | planner carve 반영 — §테스트 현황 의 `해소 patch 별건 carve 대기` 4 지점을 `TSK-20260421-59 (B1' warm-up) ready 대기` 로 구체 TSK-ID 고정 (`40.task/20260421-layer2-cold-start-b1prime-warmup.md` 발행). ack 0건. | 테스트 현황, 변경 이력 |

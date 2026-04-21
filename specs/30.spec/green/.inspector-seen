@@ -1,16 +1,21 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=6fe66f0, no-op cycle since seed)
-# Phase 1 ack this session: 0/3 ack — 입력 큐 비고 src 변경 0건, drift reconcile 대상 마커 모두 [pending: 후속 task carve 대기] / [deferred] 태깅 상태로 planner/RULE-05 영역.
-# 직전 inspector 세션 (6fe66f0 = seed 3 green specs) 이후 HEAD 전진: 0건. Working tree clean.
+# Updated: 2026-04-21T (HEAD=572009f, marker-sync + TSK-61 hooks ack cycle)
+# Phase 1 ack this session: 7/M ack (admin-gate FR-03/04/05/07 + NFR-01/02 + 부분 NFR-03; M=Phase1 대상 unchecked 마커 총수).
+#   - TSK-20260421-61 / 572009f PASS — DoD grep 게이트 8/8 + npm test/lint/build 전원 OK. 572009f 는 HEAD 직계 (HEAD = 572009f).
+#   - 3 spec 중 admin-gate 만 Phase 1 ack 발동. test-isolation / logsingle 은 marker-sync 만 (TSK-59/60 ready 미수행).
+#
+# 직전 inspector 세션 (f758f77 = no-op cycle) 이후 HEAD 전진: 3건 — 570f11d (planner carve) + ec35206 (docs/claude) + 572009f (developer TSK-61).
 #
 # Phase 1 this session:
-#   - green pending = 3 (test-isolation reseed + logsingle remediation + admin-gate). 3 spec 모두 직전 세션에서 신규 등록.
-#   - 모든 spec 의 unchecked 마커는 `[pending: 후속 task carve 대기]` (planner 영역) 또는 `[deferred: 조건 미발동]` (RULE-04 제외). hooks ack 가능한 src 변경 0 (6fe66f0..HEAD 빈 range).
-#   - reconcile: 0/3 ack — 신규 [WIP] / [ ] / To-Be 마커 수정 0건. stale_cycles += 1 (3 spec 동일 sha256).
+#   - green pending = 3 (test-isolation reseed + logsingle remediation + admin-gate). 3 spec 전원 sha256 변경.
+#   - admin-gate: FR-03 외부화 + FR-04 진단 로그 + FR-05 쿠키 속성 정정 + FR-07 매트릭스 회귀 테스트 + NFR-01/02/04 수용 기준 `[x]` flip (§테스트 현황 5 지점 + §수용 기준 7 지점). 근거: TSK-20260421-61 result.md + HEAD 직계 572009f + DoD grep 게이트 재실행 전원 PASS.
+#   - test-isolation: marker-sync 만 (§테스트 현황 4 지점 `TSK-20260421-57 재진단 완료, 해소 patch 별건 carve 대기` → `TSK-20260421-59 (B1' warm-up) ready 대기`).
+#   - logsingle-remediation: marker-sync 만 (§테스트 현황 4 지점 `후속 task carve 대기` → `TSK-20260421-60 ready 대기`).
+#   - reconcile: 7/M ack (admin-gate 1 spec 에서 hooks ack 7건; test-isolation/logsingle 은 ack 0, marker-sync 만). M 집계는 Phase 1 대상 unchecked 마커 총합.
 #
 # Phase 2 this session:
 #   - 입력 큐 (`20.req/`) 비어있음 → 신규 spec 0건, deferred 태깅 추가 0건.
-#   - 300줄 초과 spec 없음 (max ~190 admin-gate, ~250 test-isolation). sub-spec split 불요.
+#   - 300줄 초과 spec 없음 (max 152 test-isolation, 108 admin-gate, 99 logsingle). sub-spec split 불요.
 #
 # Phase 3 this session:
 #   - 입력 큐 0건 → 신규 반영 0건, REQ done 이동 0건, blocked 0건.
@@ -18,19 +23,21 @@
 # 입력 큐: 0건. 하류 임계치 GREEN_PENDING_MAX=20, 현 green 3 < 20. 여유 17.
 #
 # 현 ledger:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md d3cfd475d5004f5d6e8ad8d992eef169595f07ed52492f5a2f921d4c5b60c8ee 1
-specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md 5cc1a5b0dda0a47f50a7ce1c1eb84d39f6454e82198c3ccb9e409b6938f31cf2 1
-specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 48022e440b4fcdb2e08de1def7c170b4e8692e952a24efaaa2b396aeba76a6f4 1
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 5a077e3e539fdfdc4686e86de01b027d77c743753c97ad873782d20e28e100b6 0
+specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md d532a0852ce22eff4675f5b889f1624767c34e6f1c3cdc8b89704f8b22b7e2ef 0
+specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 4b35c6a9f2d3e47085c201e5942f425fd8e8f731ee62bf1b0848ca194ddaff43 0
 #
-# Stale 경고: 1 cycle (≥3 cycle 도달 시 RULE-04 토큰 박제). 임계 미도달.
+# Stale 경고: 0 cycle (marker-sync + ack 로 드리프트 진행, 3 spec 전원 sha256 변경).
 #
-# 승격 가능성 (planner 관할, 참조용; 직전 세션 평가 그대로 유지):
-#   - test-isolation reseed: marker-sync 완료, 해소 patch (B1') carve 미수행 — 즉시 승격 부적합.
-#   - logsingle-remediation: FR-01 (A) it-scoped override patch carve 미수행 — 즉시 승격 부적합.
-#   - admin-gate: FR-03/04/05/07 patch carve 미수행 — 즉시 승격 부적합.
-#   → 3 spec 모두 planner 의 후속 task carve 대기. 본 inspector 사이클은 추가 작업 없음.
+# 승격 가능성 (planner 관할, 참조용):
+#   - admin-gate: FR-01/02/03/04/05/07 + NFR-01/02/04 전원 [x]. 잔여 [ ] = FR-06 (deferred) + NFR-03 (부분). planner 검토 후 green→blue promotion 후보.
+#   - test-isolation reseed: B1' warm-up patch (TSK-59) ready. developer pick up 대기.
+#   - logsingle-remediation: TSK-60 (it-scoped `{ timeout: 10000 }` override) ready. developer pick up 대기.
 #
 # 다음 세션 유의:
-#   - planner 가 후속 patch task carve 후 developer 가 src commit 발행하면 다음 inspector 사이클에서 hooks ack 가능 (해당 task done/result.md 의 commit hash 가 HEAD ancestor + DoD grep 게이트 PASS 조건).
-#   - 본 세션 working tree clean — 자기 writer 영역 변경은 본 ledger 1행 갱신만. 단일 커밋 발행.
-#   - REQ 입력 큐 0 + green 변경 0 = no-op true (Phase 1 ledger 갱신 commit 만 발생).
+#   - developer 가 TSK-59/60 수행 완료하면 다음 inspector 사이클에서 대응 §테스트 현황 마커 ack flip 가능.
+#   - admin-gate spec 은 planner promotion 판정 대기 — inspector 추가 작업 없음.
+#   - REQ 입력 큐 0 + marker-sync + ack = no-op false (Phase 1 + marker-sync commit 발생).
+#
+# 본 사이클 관찰 참고 (RULE-02):
+#   - developer 세션이 inspector staging 과 겹치는 시점에 병렬 commit (572009f) 을 발행했으나, 자기 영역(`src/common/**`, `.env.example`) 만 포함된 정합 커밋. inspector 영역은 다음 단계에서 본 사이클 commit 으로 정상 박제.

@@ -2,7 +2,7 @@
 
 > **위치**: `src/Log/LogSingle.test.jsx:56` (`LogSingle render on prod server (ok) > render LogSingle on prod server` `it`) / 보조 `src/Log/api.mock.js` (`mock.prodServerOk`), `src/Log/LogSingle.jsx`, `src/test-utils/timing.js` (`ASYNC_ASSERTION_TIMEOUT_MS`)
 > **관련 요구사항**: REQ-20260421-016 (logsingle-prod-server-serial-timeout-remediation), REQ-20260421-014 (선행 — diagnosis 진단 완료, 본 spec 의 근거)
-> **최종 업데이트**: 2026-04-21 (by inspector, Phase 3 신규 등록 — diagnosis 별건 후속 remediation)
+> **최종 업데이트**: 2026-04-21 (by inspector, marker-sync — TSK-20260421-60 carve 반영)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD=fc656a7). 본 spec 은 TSK-20260421-58 (diagnosis) 결과로 확정된 cold module/JIT warm-up 5000ms 경계 timeout flake (10% 재현률) 의 **해소 경로** 를 정식화한다. diagnosis spec (`logsingle-prod-server-serial-timeout-diagnosis-spec.md`, 30.spec/blue) 의 FR-04 3안 (a/b/c) 은 모두 실효 없음으로 확정 — 본 spec 은 (A) it-scoped timeout override / (B) 장비 부하 재측정 후 정책 수용 / (C) runtime initial fetch 최적화 의 fallback chain 을 박제하고 (A) 를 1차 채택한다.
 
@@ -59,10 +59,10 @@
 ## 테스트 현황
 - [x] TSK-20260421-58 baseline 10회 실측 (fail run 7, 5089ms, 재현률 10%) — diagnosis 결과 박제 완료 (`/tmp/tsk58/run_baseline_{1..10}.log`).
 - [x] FR-04 3안 (a/b/c) 모두 실효 없음 확정 — diagnosis result.md 박제.
-- [ ] FR-01 (A) it-scoped `{ timeout: 10000 }` override 적용. **[pending: 본 spec 의 후속 task carve 대기]**
-- [ ] FR-02 (A) 적용 후 30회 연속 serial 0 fail. **[pending: FR-01 적용 후 실측]**
-- [ ] FR-03 (A) 코드 주석 박제 (`REQ-20260421-016` + cold-start warm-up 근거). **[pending: FR-01 적용 시 동시 박제]**
-- [ ] FR-07 최종 diff 단일 파일 검증. **[pending: FR-01 적용 후 git show --stat]**
+- [ ] FR-01 (A) it-scoped `{ timeout: 10000 }` override 적용. **[pending: TSK-20260421-60 ready 대기 (`40.task/20260421-logsingle-prod-server-timeout-it-scoped-override.md`)]**
+- [ ] FR-02 (A) 적용 후 30회 연속 serial 0 fail. **[pending: TSK-20260421-60 result.md 박제]**
+- [ ] FR-03 (A) 코드 주석 박제 (`REQ-20260421-016` + cold-start warm-up 근거). **[pending: TSK-20260421-60 동시 박제]**
+- [ ] FR-07 최종 diff 단일 파일 검증. **[pending: TSK-20260421-60 git show --stat]**
 - [ ] FR-08 인터프리테이션 주석 (it-scoped 는 금지 범위 외) 박제. **[deferred: 본 spec 자체에 박제 완료, blue diagnosis spec 직접 편집은 promotion 정책 위반]**
 - [ ] (조건부) FR-04 (B) 장비 부하 재측정 결과 박제. **[pending: FR-02 미달 시]**
 - [ ] (조건부) FR-05 (C) 별건 REQ flag. **[pending: FR-04 (B) 미달 시]**
@@ -96,3 +96,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — (REQ-20260421-016 반영, HEAD=fc656a7) | Phase 3 신규 등록 — diagnosis 별건 후속 remediation. (A) it-scoped `{ timeout: 10000 }` override 1차 채택, fallback (B) 장비 부하 재측정 / (C) runtime 최적화 별건 REQ flag. FR-08 인터프리테이션 (it-scoped 는 diagnosis spec 금지 범위 외) 박제. | all |
+| 2026-04-21 | inspector / — (marker-sync, HEAD=ec35206) | planner carve 반영 — §테스트 현황 `후속 task carve 대기` 마커 4 지점 → `TSK-20260421-60 ready 대기` 로 구체 TSK-ID 고정 (`40.task/20260421-logsingle-prod-server-timeout-it-scoped-override.md` 발행). ack 0건. | 테스트 현황, 변경 이력 |

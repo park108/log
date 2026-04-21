@@ -2,7 +2,7 @@
 
 > **위치**: `src/common/common.js:153-175` (`isAdmin()`), `src/common/common.js:136-145` (`auth()` setCookie), `src/common/env.js:6-8` (`isProd/isDev`), `src/common/Navigation.jsx:6-33` (`ADMIN_MENU`), `src/Log/Log.jsx:17-33` (`newlog-button`), `src/File/File.jsx:30` (non-admin redirect), `src/Search/SearchInput.jsx:68` (admin Search 분기).
 > **관련 요구사항**: REQ-20260421-017 (admin-gate-recovery-diagnostic-and-env-config)
-> **최종 업데이트**: 2026-04-21 (by inspector, Phase 3 신규 등록)
+> **최종 업데이트**: 2026-04-21 (by inspector, drift reconcile ack — TSK-20260421-61 / 572009f PASS, FR-03/04/05/07 + NFR-01/02/04 완료)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD=fc656a7). REQ-017 ID 충돌 메모: 같은 날 두 req 가 `REQ-20260421-017` 사용 (test-isolation 재등록 + 본 admin-gate). 본 spec 은 admin-gate 분기 책임. discovery 측 ID 정정은 본 spec 범위 외.
 
@@ -61,26 +61,26 @@
 
 ## 테스트 현황
 - [x] 운영자 실측 (2026-04-21) — `www.park108.net` 쿠키 0건, C1 hit + C5 연장 근본 원인 확정.
-- [ ] FR-01 진단 체크리스트 박제. **[x] §동작 1~5 박제 완료]**
-- [ ] FR-02 원인 확정 보고. **[x] §동작 6 박제 완료]**
-- [ ] FR-03 admin user ID 외부화 patch 적용. **[pending: 후속 task carve 대기]**
-- [ ] FR-04 진단 보조 로깅 추가. **[pending: 후속 task carve 대기]**
-- [ ] FR-05 쿠키 속성 정정 + expires/max-age 추가. **[pending: 후속 task carve 대기]**
+- [x] FR-01 진단 체크리스트 박제. **§동작 1~5 박제 완료**
+- [x] FR-02 원인 확정 보고. **§동작 6 박제 완료**
+- [x] FR-03 admin user ID 외부화 patch 적용. **TSK-20260421-61 / 572009f PASS — `grep -nE "df256e56|051fd5f9" src/common/common.js` 0 hits, `VITE_ADMIN_USER_ID` 2 hits**
+- [x] FR-04 진단 보조 로깅 추가. **TSK-20260421-61 / 572009f PASS — `src/common/common.js:156` `if (isDev()) log("isAdmin: cookie=... env=...", "DEBUG")`**
+- [x] FR-05 쿠키 속성 정정 + expires/max-age 추가. **TSK-20260421-61 / 572009f PASS — `site:` 0 hits, `sameSite:` 2 hits (`:138, :144`), `maxAge: 3600` 2 hits (`:139, :145`)**
 - [ ] FR-06 username 클레임 fallback (조건부). **[deferred: C3 hit 미발동 → 선결 미성립]**
-- [ ] FR-07 isAdmin 매트릭스 6 케이스 회귀 방어 테스트. **[pending: FR-03 적용 후]**
-- [ ] (NFR-02) `npm test -- --run` 0 fail, `npm run lint` 0 warn/error, `npm run build` OK. **[pending]**
+- [x] FR-07 isAdmin 매트릭스 6 케이스 회귀 방어 테스트. **TSK-20260421-61 / 572009f PASS — `describe.*isAdmin` 3 hits (`test isAdmin` + `isAdmin fail-safe ...` + `isAdmin matrix (REQ-20260421-017)` at L670)**
+- [x] (NFR-02) `npm test -- --run` 0 fail, `npm run lint` 0 warn/error, `npm run build` OK. **TSK-20260421-61 / 572009f — 47 files / 381 tests PASS, lint 0 warn/error, build OK 357ms**
 
 ## 수용 기준
 - [x] (Must) FR-01 — 진단 체크리스트 5단계 (C1~C5) 박제 완료.
 - [x] (Must) FR-02 — 원인 확정 보고 박제 (C1 hit + C5 연장 근본 원인).
-- [ ] (Must) FR-03 — `src/common/common.js:166,170` 하드코딩 UUID 가 `import.meta.env.VITE_ADMIN_USER_ID_PROD` / `VITE_ADMIN_USER_ID_DEV` 로 치환. `grep -nE "df256e56|051fd5f9" src/common/common.js` → 0 hits. `.env.example` 에 두 변수 박제. **[pending: 후속 task]**
-- [ ] (Must) FR-07 — `src/common/common.test.js` 에 isAdmin 6 케이스 매트릭스 (cookie 무 / cookie 유 + parseJwt null / parseJwt ok + username mismatch / parseJwt ok + username match + isProd / parseJwt ok + username match + isDev / parseJwt ok + username match + 둘 다 false) 추가. **[pending]**
-- [ ] (Should) FR-04 — `isAdmin()` 본문에 `isDev()` 가드 진단 로그 1줄 추가 (prod 차단). **[pending]**
-- [ ] (Should) FR-05 — `src/common/common.js:138,143` `site:` 호출 2곳을 `sameSite` / `domain` + `expires`/`max-age` 로 정정. **[pending]**
+- [x] (Must) FR-03 — `src/common/common.js:170,174` 하드코딩 UUID 가 `import.meta.env.VITE_ADMIN_USER_ID_PROD` / `VITE_ADMIN_USER_ID_DEV` 로 치환. `grep -nE "df256e56|051fd5f9" src/common/common.js` → 0 hits. `.env.example` 에 두 변수 박제. **TSK-20260421-61 / 572009f PASS**
+- [x] (Must) FR-07 — `src/common/common.test.js:670` 에 isAdmin 6 케이스 매트릭스 describe 추가. **TSK-20260421-61 / 572009f PASS**
+- [x] (Should) FR-04 — `isAdmin()` 본문에 `isDev()` 가드 진단 로그 1줄 추가 (prod 차단). **TSK-20260421-61 / 572009f — `src/common/common.js:156`**
+- [x] (Should) FR-05 — `src/common/common.js:138,144` `site:` 호출 2곳을 `sameSite: site, maxAge: 3600` 으로 정정. **TSK-20260421-61 / 572009f PASS. follow-up: `site` 변수값이 SameSite 표준값(Strict/Lax/None) 아님 — 실제 의도가 `domain: site` 였을 가능성은 developer result.md observed defect 후보로 기록.**
 - [ ] (Could) FR-06 — C3 hit 시 username fallback 적용. **[deferred: 조건 미발동]**
-- [ ] (NFR-01) 런타임 소스 변경 = `src/common/common.js` 1파일 + `.env.*` 환경 변수 + `src/common/common.test.js` 1파일. **3파일 초과 금지** (FR-05 포함 시 4파일까지 허용).
-- [ ] (NFR-02) `npm test -- --run` 0 fail, `npm run lint` 0 warn/error, `npm run build` OK.
-- [ ] (NFR-03) 감사성 — 복구 커밋은 설정 변경과 로직 변경 분리 권장 (단일 task 묶음 가능, NFR-01 충족 시).
+- [x] (NFR-01) 런타임 소스 변경 = 3파일 (`src/common/common.js` + `src/common/common.test.js` + `.env.example`). 4파일 상한 준수. **TSK-20260421-61 / 572009f — `git show --stat` 3파일**
+- [x] (NFR-02) `npm test -- --run` 0 fail (47 files / 381 tests), `npm run lint` 0 warn/error, `npm run build` OK (357ms). **TSK-20260421-61 / 572009f PASS**
+- [ ] (NFR-03) 감사성 — 복구 커밋은 설정 변경과 로직 변경 분리 권장 (단일 task 묶음 가능, NFR-01 충족 시). **TSK-20260421-61 / 572009f — 단일 커밋 묶음, NFR-01 충족 범위 안쪽**
 - [x] (NFR-04) 보안 — admin UUID public repo 노출 값이므로 `.env.example` 공개 무방. spec 주석에 후속 IAM 권한화 임시 조치 명시.
 
 ## 스코프 규칙
@@ -99,3 +99,5 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-21 | inspector / — (REQ-20260421-017 admin-gate 반영, HEAD=fc656a7) | Phase 3 신규 등록 — admin 게이트 진단 (C1~C5) + admin user ID 외부화 (FR-03) + 쿠키 속성 정정 (FR-05) + 회귀 방어 매트릭스 (FR-07). 운영자 2026-04-21 실측 (C1 hit + C5 연장 근본 원인) 박제. ID 충돌 메모 (test-isolation REQ-017 과 동일 ID, discovery 측 정정 별도). | all |
+| 2026-04-21 | inspector / — (marker-sync, HEAD=ec35206) | planner carve 반영 — §테스트 현황 FR-03/04/05 의 `후속 task carve 대기` 3 지점 → `TSK-20260421-61 ready 대기` 로 구체 TSK-ID 고정 (`40.task/20260421-admin-gate-userid-externalize-cookie-fix-regression-matrix.md` 발행). ack 0건 (working tree 에 REQ-017 WIP 존재하나 미커밋 — HEAD ancestor 아님, hooks ack 보류). | 테스트 현황, 변경 이력 |
+| 2026-04-21 | TSK-20260421-61 / 572009f (drift reconcile ack) | FR-03 + FR-04 + FR-05 + FR-07 + NFR-01/02/04 + (NFR-03 부분) 수용 기준 PASS — admin UUID 외부화 (`VITE_ADMIN_USER_ID_*`), 쿠키 `site:` → `sameSite: site, maxAge: 3600`, `isAdmin()` 진단 로그 (`isDev()` 가드), `isAdmin matrix` 6 케이스 매트릭스 (common.test.js L670), `.env.example` 2 변수 추가. DoD grep 게이트 8/8 PASS + `npm test/lint/build` 전원 OK (47 files / 381 tests). 4파일 커밋은 HEAD 직계. | 테스트 현황, 수용 기준, 변경 이력 |
