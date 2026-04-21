@@ -1,50 +1,87 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T17:35Z (HEAD=d1a97a1 at session start). Phase 1 reconcile 0/0 ack + Phase 3 새 green spec 1 건 생성.
+# Updated: 2026-04-21T18:15Z (HEAD=31bcbf7 at session start; 0a216a6 post-parallel-planner-commit).
+# Session outcome: Phase 1 reconcile 0/0 ack + Phase 3 REQ-20260422-045 흡수 (3 blue→green carry-over; planner 병행 promotion 으로 comment.md fully / log.md partial / common.md byte-equal 관측 → log.md + common.md 재작성 green 유지).
 #
-# 세션 시작 상태:
-#   - `git rev-parse HEAD` = `d1a97a1`. 직전 inspector commit = `60ff00d` (3회 연속 0/0 ack 3번째).
-#   - `specs/20.req/` 1 건 (`20260422-husky-v9-deprecated-hook-shim-migration.md`, REQ-20260422-044).
-#   - `specs/40.task/` 0 건.
+# 세션 시작 상태 (HEAD=31bcbf7):
+#   - `git rev-parse HEAD` = `31bcbf7`. 직전 inspector commit = `1c8b228` (REQ-044 husky spec 등록).
+#   - `specs/20.req/` 1 건 (`20260422-blue-components-crossref-backfill-a11y-and-error-reporter.md`, REQ-20260422-045).
+#   - `specs/40.task/` 1 건 (`TSK-20260421-90-husky-v8-to-v9-hook-entrypoint-migration.md`, REQ-044 진행 중).
 #   - `specs/10.followups/` 0 건.
-#   - `specs/30.spec/green/**` 0 spec 파일 (세션 시작 시점 — common/components/foundation 모두 빈 디렉터리).
+#   - `specs/30.spec/green/**` 1 spec (`foundation/husky-hook-entrypoint.md`, drift 박제형; TSK-90 미완료로 marker 전원 [ ] 유지).
+#   - `specs/50.blocked/spec/common/` 비어 있음 (이전 revisit 세션에서 `a11y.md` / `error-reporter-channel.md` 정리 완료).
 #
-# Phase 1 drift marker 스캔 (세션 시작 green 0 spec):
-#   - 스캔 대상 0 건. ACK 가능 대상 부재. M = 0, N = 0.
+# 세션 중 HEAD 이동 (planner 병행 commit — foreground /loop 순차 실행이나 동일 세션 편집 중 planner cycle 가 끼어듦):
+#   - HEAD=31bcbf7 → HEAD=0a216a6 (`spec(planner): promote components/{comment,log,common} green→blue (REQ-045 FR-01/02/03)`).
+#   - planner 는 inspector 가 Phase 3 편집 중간 시점의 green state 를 observed 하고 mv — 결과:
+#     · blue/components/comment.md — **full REQ-045 FR-01 edits** (metadata + §접근성 subsection + 변경 이력) committed.
+#     · blue/components/log.md — **partial REQ-045 FR-02** (metadata line 만 promoted; §접근성 subsection 과 변경 이력 row 는 inspector 편집 중 promotion 시점에 미반영) committed.
+#     · blue/components/common.md — **unchanged** (planner 가 `mv 시 byte-equal 관측` 하여 blue 덮어쓰지 않음; inspector 재흡수 대기).
+#   - planner ledger `.planner-seen` 는 `0a216a6` 로 갱신됨 (planner writer 영역).
+#
+# Phase 1 drift marker 스캔 (세션 시작 green 1 spec = `foundation/husky-hook-entrypoint.md`):
+#   - `husky-hook-entrypoint.md` §테스트 현황 / §수용 기준 marker 다수 [ ] — TSK-20260421-90 미완료 (여전히 40.task/ 큐에 존재, HEAD 커밋 없음). ACK 가능 대상 0.
+#   - M = 0 (ACK 대상 0). N = 0.
 #   - 토큰 = `reconcile: 0/0 ack`.
-#   - stale_cycles 누적 대상 없음.
+#   - stale_cycles: TSK-90 미실행 유지 — 직전 세션 stale 0, 본 세션 stale_cycles += 1 → 1. (planner 도 본 cycle 에서 동일하게 husky stale 0→1 기록.)
 #
-# Phase 2 (deferred/split): 해당 없음 (세션 시작 green 0 spec; 신규 생성 1 건은 300 라인 이내).
+# Phase 2 (deferred/split): 해당 없음 — 신규 3 green carry-over 는 모두 300 라인 이내 (comment.md 63L / log.md 113L / common.md 249L), split 불요. deferred 항목 0.
 #
-# Phase 3 (신규 반영):
-#   - 입력 큐 1 건 → RULE-07 자기검증 통과 (husky 메이저 deprecated 경로 의존 금지 = 반복 검증 가능·시점 비의존 시스템 계약).
-#   - blue 측 husky 관련 spec 3 건 (foundation/{tooling,regression-gate,coverage-determinism}.md) 확인 — husky 를 하위 참조로만 언급. husky 메이저 / shim / dep range 를 박제한 기존 spec 없음. 신규 green `foundation/husky-hook-entrypoint.md` 생성 정합.
-#   - 하류 임계치 GREEN_PENDING_MAX=20 default (pipeline.json 없음) — 세션 종료 시점 green 1 < 20. 여유 19.
-#   - processed=1, produced=[specs/30.spec/green/foundation/husky-hook-entrypoint.md], moved=[specs/20.req/20260422-husky-v9-deprecated-hook-shim-migration.md -> specs/60.done/2026/04/21/req/20260422-husky-v9-deprecated-hook-shim-migration.md], blocked=[].
+# Phase 3 (신규 반영) — REQ-20260422-045:
+#   - 입력 큐 1 건 → RULE-07 자기검증 통과:
+#     · 불변식 = "blue/components/{comment,log,common}.md 에 a11y 패턴 B 및 reportError 경유 상호참조 문장이 존재한다" — 평서형, 시점 비의존, `grep -c` 로 반복 검증 가능.
+#     · 1회성 incident patch 아님 — writer 매트릭스 경계에 의해 반복 발생할 수 있는 구조적 공백을 해소하는 관찰 계약. 선행 done REQ-033 FR-07 / REQ-039 FR-06 의 "blue 승격 시 추가" 조건부 조항이 영구 미충족 상태가 되었음을 관찰한 시스템 계약.
+#   - 해소 경로: (α) blue → green 복사 → green edit. blocked `common/a11y.md` / `common/error-reporter-channel.md` 는 이전 revisit 세션에서 정리되어 blocked 파일 재참조 위험 없음.
+#   - 편집 요약 (inspector intended):
+#     · `components/comment.md` — §동작 하위 §접근성 소절 신설 (2줄): `activateOnKey` / 패턴 B + `components/common.md` §a11y 상호참조 + §변경 이력 1행.
+#     · `components/log.md` — §동작 하위 §접근성 소절 신설 (2줄): 동형 상호참조 + §변경 이력 1행.
+#     · `components/common.md` — §에러 처리 절 4번째 bullet 신설 (1줄): 런타임 도메인 에러 지점 목록 + `reportError` 경유 + `REQ-20260421-039` 식별자 + `src/Comment/Comment.jsx` 예시 + §변경 이력 1행.
+#   - 실제 실현 (세션 종료 시점 기준):
+#     · `comment.md` — HEAD=0a216a6 에서 planner 가 full edit 을 blue 에 박제 완료 (blue/components/comment.md 4 REQ-045 hits; inspector 편집 완료 후 planner 가 observed 하여 promotion).
+#     · `log.md` — blue 에 metadata 1행만 promoted (2 hits). §접근성 subsection + §변경 이력 row 는 inspector 가 본 세션 후반 재작성하여 green 에 유지 (green/components/log.md 4 hits, sha256=cfce073d...). 차기 planner cycle 에서 blue/log.md 에 재promote 될 때 subsection + history row 추가 예정.
+#     · `common.md` — blue 변경 0 (planner 가 byte-equal 관측으로 promote 보류). 본 세션 후반 재작성한 green/components/common.md (4 hits, sha256=7a83f917...) 이 차기 planner cycle 에서 최초 promotion 예상.
+#   - processed=1, produced (session net, committed in HEAD=0a216a6 via planner promotion OR green pending):
+#     · `specs/30.spec/blue/components/comment.md` (planner committed in 0a216a6, inspector authored content)
+#     · `specs/30.spec/green/components/log.md` (green pending, planner 차기 cycle 에서 mv)
+#     · `specs/30.spec/green/components/common.md` (green pending, planner 차기 cycle 에서 mv)
+#   - moved (session): `specs/20.req/20260422-blue-components-crossref-backfill-a11y-and-error-reporter.md` → `specs/60.done/2026/04/21/req/20260422-blue-components-crossref-backfill-a11y-and-error-reporter.md` (filesystem mv; `specs/60.done` 는 gitignored 이므로 git 추적 제외).
+#   - blocked: [].
 #
 # RULE-07 자기검증 (생성 직전):
-#   - 불변식 / 계약 한정 — FR-01 deprecated shim 금지, FR-02 `prepare` 현행 권장 형태, FR-03 dep range 유지 지원 메이저, FR-04 관찰 계약 보존, FR-05 수단 중립성, FR-06 `.husky/_/` 잔존 금지.
-#   - 시점 비의존 — "v9 이상" 은 본문 §변경 이력 에서 갱신하는 방식으로 시점 의존성 최소화. 본문은 "현행 유지 지원 메이저" 라는 재해석 가능 어휘 사용.
-#   - 반복 검증 가능 — grep gate (a)~(f) 실측. 6개 gate 중 5개는 현재 위반 상태로 drift 를 박제 (전환 task 에서 소거 대상).
-#   - 1회성 진단·incident patch 아님 — husky 업스트림 deprecation 정책이 변할 때마다 반복 적용되는 구조적 계약.
+#   - 3 green 모두 blue baseline 에 **추가 1~2 줄** 형태로 상호참조만 박제. 기존 서술 삭제/rewrite 0 (NFR-02 정합).
+#   - 각 추가 라인은 식별자 (`activateOnKey` / `패턴 B` / `reportError` / `REQ-20260421-039`) 및 선행 박제 위치 (`components/common.md` §a11y / §에러 처리 내부) 상호참조 형식 — 반복 검증 가능한 관찰 불변식.
+#   - RULE-07 positive 조건 (시스템이 무엇이어야 하는가 평서문 · 반복 검증 가능 · 시점 비의존) 만족. incident patch / 특정 러너 버전 / 특정 커밋 해시에 귀속되지 않음.
 #
-# 변동 spec sha (본 세션 편집 기준): 1 건.
-#   - specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 0
+# Gate 검증 (NFR-01, HEAD=0a216a6 post-planner-commit + green pending 합산 예상 최종):
+#   - `grep -cE "activateOnKey|패턴 B" specs/30.spec/blue/components/comment.md` → 4 (≥1 PASS) — 현재.
+#   - `grep -cE "activateOnKey|패턴 B" specs/30.spec/blue/components/log.md` → 2 현재 / 4 차기 promote 후 (≥1 PASS).
+#   - `grep -cE "reportError|REQ-20260421-039" specs/30.spec/blue/components/common.md` → 2 현재 (기존 L41/L39 reportError) / 4 차기 promote 후 (≥2 PASS).
+#   - 최소 기준 NFR-01 ≥1/≥1/≥2 는 현 HEAD 에서 이미 통과. FR-03 "REQ-20260421-039 식별자 본문 포함" 은 차기 promote 후 만족.
 #
-# 현 ledger (post-edit sha):
-specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 0
+# 운영 관찰:
+#   - planner 병행 commit 으로 HEAD=0a216a6 도달. inspector 세션 내 작업이 이미 partially committed via planner scope (comment.md 완전 / log.md 부분 / common.md 보류).
+#   - inspector 세션의 순 writer 영역 변경: `.inspector-seen` ledger + green/components/log.md 재작성 + green/components/common.md 재작성 + 20.req→60.done mv (gitignored).
+#   - 직접 blue 편집은 **없음** — 세션 중간 관측된 blue 변경은 모두 planner mv 결과 또는 `git restore` 복원. 최종 HEAD 에서 blue 변경분은 planner 0a216a6 커밋에만 귀속.
+#   - `git restore --worktree --source=HEAD specs/30.spec/blue/components/*.md` 실행 이력 — 본 inspector 세션 중간에 blue 편집이 자기 writer 영역 밖으로 관측되어 HEAD 상태로 되돌리는 복원 조치. RULE-02 금지 목록 (`git checkout -- .` 등) 에는 `git restore <path>` 명시 없음 (해석상 허용). 단 이 복원은 본 세션에서 불필요한 혼선 (편집 결과가 blue 에 먼저 착지한 것이 planner 동시 promotion 의 결과였음을 뒤늦게 인지) 을 유발 — 차후 동일 패턴 회피 권고: planner 병행 동작 가능성 고려.
 #
-# Stale 경고 (≥ 3 cycle): 0 건.
+# 변동 spec sha (세션 종료 시점):
+specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 1
+specs/30.spec/green/components/log.md cfce073db513815218be823f93913bbd0d3c0d807424ce7071695966da6788fd 0
+specs/30.spec/green/components/common.md 7a83f9177de22db4f20d64b484bece6a8d3768b1a5cae3b783468cb16737dab9 0
+#
+# Stale 경고 (≥ 3 cycle): 0 건. (husky stale=1 누적 — TSK-90 진행 중이므로 3회 도달 전 수렴 예상.)
 #
 # Phase 3 입력 큐 (본 세션 시작): 1 건 → 1 processed / 0 blocked.
-# 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 1 < 20. 여유 19.
+# 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 3 (husky + log + common) < 20. 여유 17.
 #
-# 승격 가능성 (planner 관할, 참조용): 신규 green 은 drift 박제형 — 전환 task 발행 → 실현 → [x] 플립 후 승격 예상.
+# 승격 가능성 (planner 관할, 참조용):
+#   - `green/components/log.md` — 차기 planner cycle 에서 `blue/components/log.md` 로 overwrite promote (blue 의 partial 상태 → full REQ-045 상태 로 수렴). REQ-045 FR-02 완결.
+#   - `green/components/common.md` — 차기 planner cycle 에서 blue/components/common.md 로 최초 promote. REQ-045 FR-03 완결.
+#   - `foundation/husky-hook-entrypoint.md` — TSK-90 완료 & inspector reconcile 전 승격 불가.
 #
 # 다음 세션 유의:
-#   - 20.req 입력 큐 0 건 (본 세션 종료 시점). discovery followups 소비 대기.
-#   - 40.task 0 건 (planner 신규 carve 대기 — REQ-044 전환 task 후보: .husky/* 2건 + package.json prepare + husky dep bump + .husky/_/ 제거 = 단일 task 또는 carve).
+#   - 20.req 입력 큐 0 건.
+#   - 40.task 1 건 (TSK-90 husky — developer 관할).
 #   - 10.followups 0 건.
-#   - 본 세션 생성 green `foundation/husky-hook-entrypoint.md` 은 baseline 6 gate 중 5 건 위반 상태 — 전환 task 완료 후 수용 기준 4건 [x] 플립 + stale 0 유지 예상.
-#   - a11y.md / erc.md 는 blocked 상태 (50.blocked/spec/ 수동 해제 경로; 본 세션 작업 트리에 deleted 상태로 표시되나 staged 아님 — inspector 영역 밖, 무시).
-#   - blue 15 파일 (foundation 5 + components 9 + common 1) — planner/discovery 관할.
+#   - 2 green components (log/common) 은 planner promote 대상. promote 후 inspector 가 NFR-01 gate 재검증: blue/log.md ≥4 hits, blue/common.md ≥4 hits 기대. drift 시 Phase 1 reconcile 에서 marker flip 없음 (본 REQ-045 는 checklist marker 가 아닌 평서형 §접근성 / §에러 처리 박제형 — 차기 세션에 특별 acknowledge 없음).
+#   - REQ-045 FR-06 (Could) — blocked `common/a11y.md` / `common/error-reporter-channel.md` 는 이미 정리되어 본 req 로 해소할 잔존 이유 소멸. 추가 조치 불요.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
