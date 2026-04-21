@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getFiles, getNextFiles	 } from './api';
 import { log, hasValue, isAdmin, isMobile, setHtmlTitle } from '../common/common';
+import { reportError } from '../common/errorReporter';
 import Toaster from "../Toaster/Toaster";
 import FileItem from './FileItem';
 import FileDrop from './FileDrop';
@@ -61,14 +62,14 @@ const File = (props) => {
 					log("[API GET] FAILED - Files", "ERROR");
 					setToasterMessage("Get files failed.");
 					setIsShowToasterBottom(1);
-					console.error(newData);
+					reportError(newData);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Files", "ERROR");
 				setToasterMessage("Get files failed.");
 				setIsShowToasterBottom(1);
-				console.error(err);
+				reportError(err);
 			}
 	
 			setIsLoading(false);
@@ -104,14 +105,14 @@ const File = (props) => {
 					log("[API GET] FAILED - Next Files", "ERROR");
 					setToasterMessage("Get more files failed.");
 					setIsShowToasterBottom(1);
-					console.error(nextData);
+					reportError(nextData);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Next Files", "ERROR");
 				setToasterMessage("Get more files failed for network issue.");
 				setIsShowToasterBottom(1);
-				console.error(err);
+				reportError(err);
 			}
 	
 			setIsLoading(false);

@@ -2,6 +2,7 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';
+import * as errorReporter from '../common/errorReporter';
 import File from '../File/File';
 import { useMockServer } from '../test-utils/msw';
 import { ASYNC_ASSERTION_TIMEOUT_MS } from '../test-utils/timing';
@@ -209,6 +210,76 @@ describe('File render failed when network error on prod server', () => {
 
 		const failMessage = await screen.findByText("Get files failed.");
 		expect(failMessage).toBeDefined();
+	});
+});
+
+describe('File reportError 채널 (REQ-20260421-039 FR-03)', () => {
+	// Files first fetch errorType 분기 실패 시 reportError(newData) 가 호출된다.
+	describe('Files first fetch errorType 분기', () => {
+		useMockServer(() => mock.prodServerFailed);
+
+		test('reports error via reportError when errorType branch is taken', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+			vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+			const spy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+			render(
+				<MemoryRouter initialEntries={[testEntry]}>
+					<File />
+				</MemoryRouter>
+			);
+
+			await screen.findByText("Get files failed.");
+			await waitFor(
+				() => expect(spy).toHaveBeenCalledTimes(1),
+				{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+			);
+
+			spy.mockRestore();
+		});
+	});
+
+	// Files next fetch catch (network error) 시 reportError(err) 가 호출된다.
+	describe('Files next fetch 실패', () => {
+		const server = useMockServer(() => mock.devServerOk);
+
+		test('reports error via reportError when next fetch network-errors', async () => {
+
+			vi.stubEnv('DEV', true);
+			vi.stubEnv('PROD', false);
+
+			vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+			vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+			const spy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+			render(
+				<MemoryRouter initialEntries={[testEntry]}>
+					<File />
+				</MemoryRouter>
+			);
+
+			// 첫 페이지 로드 완료 대기 (reportError 호출 없음 — 성공 경로).
+			const seeMoreButton = await screen.findByTestId("seeMoreButton");
+			expect(seeMoreButton).toBeDefined();
+
+			// 다음 페이지 fetch 를 네트워크 에러로 전환 → catch 경로 → reportError 호출.
+			server.use(mock.networkErrorGetHandler);
+			fireEvent.click(seeMoreButton);
+
+			await screen.findByText("Get more files failed for network issue.");
+			await waitFor(
+				() => expect(spy).toHaveBeenCalledTimes(1),
+				{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
+			);
+
+			spy.mockRestore();
+		});
 	});
 });
 
