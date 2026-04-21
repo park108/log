@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import UserLogin, { getLoginUrl, getLogoutUrl } from './UserLogin';
 import * as common from './common';
 
@@ -89,5 +89,58 @@ describe("get login/logout url correctly", () => {
     setEnv(false, true);
     const url = getLogoutUrl();
     expect(url).toContain("park108.net");
+  });
+});
+
+describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
+
+  let originalLocation;
+
+  beforeEach(() => {
+    originalLocation = window.location;
+    delete window.location;
+    window.location = { ...originalLocation, href: '' };
+  });
+
+  afterEach(() => {
+    window.location = originalLocation;
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it('login span 에 tabIndex=0 과 role="button" 이 부여된다', () => {
+    setEnv(true, false);
+
+    render(<UserLogin />);
+    const el = screen.getByTestId('login-button');
+
+    expect(el).toHaveAttribute('role', 'button');
+    expect(el).toHaveAttribute('tabIndex', '0');
+  });
+
+  it('Enter 키로 login 이 활성된다 (click 과 동일 핸들러)', () => {
+    setEnv(true, false);
+    vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
+
+    render(<UserLogin />);
+    const el = screen.getByTestId('login-button');
+
+    fireEvent.keyDown(el, { key: 'Enter' });
+
+    expect(window.location.href).toContain('localhost:3000');
+  });
+
+  it('Space 키로 login 이 활성된다 (click 과 동일 핸들러 + preventDefault)', () => {
+    setEnv(true, false);
+    vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
+
+    render(<UserLogin />);
+    const el = screen.getByTestId('login-button');
+
+    const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+
+    // activateOnKey 가 preventDefault 호출 → fireEvent 의 반환값이 false (cancelled)
+    expect(spaceEvent).toBe(false);
+    expect(window.location.href).toContain('localhost:3000');
   });
 });
