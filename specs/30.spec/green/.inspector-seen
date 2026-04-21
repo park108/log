@@ -1,58 +1,44 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=75498693 at session start, Phase 1 reconcile + Phase 3 REQ-033 신규 흡수)
-# Phase 1 ack this session: 0/N — 직전 세션 ack 후 신규 task PASS 박제 없음. stale 1 path 누적.
+# Updated: 2026-04-21T (HEAD=8b2cb30 at session start, Phase 1 reconcile 8/8 ack — components/common.md REQ-032 잔존 marker 8건 일괄 플립).
+# Phase 1 ack this session: 8/8 — 8 [ ] marker @ components/common.md (테스트 현황 3 + 수용 기준 5) 전원 PASS (TSK-66/67/68 hash 모두 HEAD 조상 + DoD grep 게이트 재실행 PASS). a11y.md 13 [ ] marker 대응 task 부재 → 유지.
 #
-# drift marker 스캔 (4 spec @ 세션 시작 — components/common.md, components/log.md, foundation/ci.md, foundation/tooling.md):
-#   1. `foundation/ci.md:48`        — (수동) Node LTS 상향 시점 engine 호환성 확인. 수동 점검 반복 계약. 본 세션도 대응 task 미수행 → [ ] 유지. stale_cycles 3 → 4 (≥3 경고 지속).
-#   2. `components/common.md:165~189` — REQ-032 흡수로 직전 세션 신규 발행한 8 marker (auth() Cognito-실형 / cookie 지속 속성명 / env 미주입 + Must FR-01/04/06/07/08). 본 세션 신규 task 결과 박제 없음 → [ ] 유지. stale_cycles 0 → 1.
-#   3. `components/log.md`           — 직전 세션에 marker #3, #4 모두 ACK 완료. 잔존 [ ] marker 0 — planner promote 가능. stale_cycles=0 (변동 없음).
-#   4. `foundation/tooling.md`       — 직전 세션 ack. 잔존 [ ] marker 0. promote 가능. stale_cycles=0 (변동 없음).
+# drift marker 스캔 (2 spec @ 세션 시작 — common/a11y.md, components/common.md. 직전 세션 이후 planner 가 components/log.md·foundation/tooling.md green→blue 승격 완료 + foundation/ci.md blocked/spec 이동):
+#   1. `components/common.md:165~189` — REQ-032 흡수 8 [ ] marker 묶음 (테스트 현황 FR-06/07/08 3 marker + 수용 기준 FR-01/04/06/07/08 5 marker). 본 세션에 TSK-66 (FR-01/06), TSK-67 (FR-04/07), TSK-68 (FR-08) 결과 박제 확인 → DoD grep 게이트 HEAD 재실행 전원 PASS → 8 marker 전원 `[x]` 플립. stale_cycles 1 → 0.
+#      · TSK-66 `c5ad57d` (HEAD 조상 확인): (a) indexOf('#id_token=') 0 hit / (b) .hash 1 hit / (c) access_token=AAA&id_token=BBB 2 hit / (d) describe auth() Cognito 1 hit.
+#      · TSK-67 `0fb0ca1` (HEAD 조상 확인): (a) maxAge:<n> 0 hit / (b) 'max-age': 3600 2 hit @ L141,150 / (c) describe auth() cookie persistence attr 1 hit @ L329 / (d) max-age=3600 2 hit / (e) maxAge= 2 hit.
+#      · TSK-68 `8b2cb30` (HEAD 조상 확인): (a) describe isAdmin() env 미주입 1 hit @ L923 / (b) VITE_ADMIN_USER_ID_PROD 5 hit / (c) isAdmin()).toBe|toEqual(false) 8 hit / (d) REQ-20260421-032 FR-08 1 hit / (e) describe isAdmin 3 hit.
+#      · hook-ack 보조: 3 result.md 모두 `npm run lint` PASS + `npm test -- --run` PASS (385 → 386 → 388) + `npm run build` PASS + "회귀 0" 박제. Must 주관 혼재 없음 (객관 grep 게이트 기반).
+#   2. `common/a11y.md:149~167` — REQ-033 흡수 13 [ ] marker (§테스트 현황 8 + §수용 기준 5). 본 세션까지 대응 task carve/수행 없음 (60.done/task/**/result.md 에 REQ-033 키워드 0 hit). [ ] 유지. stale_cycles 0 → 1.
+#      · planner 영역 대기: M1–M9 정상화 + M5/M10 결정 분기 + audit 테스트 (Should) 3축 carve 후보.
 #
-# Phase 1 ack 산출: ACK 0, 비-ACK 2 (#1 stale, #2 신규 marker). 토큰 = `reconcile: 0/2 ack (1 stale ≥3cycle)`.
-#   - 분모 M=2: 본 세션 reconcile 시점에 [ ] 마커가 살아있는 spec path 의 "ack 평가 단위" 수.
-#     · #1 (foundation/ci.md:48) — 1 단위 (변경 없음으로 ack 불가).
-#     · #2 (components/common.md REQ-032 5 [ ] 묶음) — 1 단위 (대응 task 일괄 carve 대기).
-#   - #3, #4 는 잔존 [ ] marker 0 — reconcile 평가 대상 외.
+# Phase 1 ack 산출: ACK 8 (components/common.md 일괄), 비-ACK 0 평가단위. 분모 M = "이번 세션 평가 가능한 단위" 8 (a11y 는 task 부재로 평가 대상 외, stale 누적만 ledger 추적).
+#   토큰 = `reconcile: 8/8 ack`.
 #
-# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md ~200줄).
+# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md 195줄 / components/common.md 222줄).
 #
-# Phase 3 (신규 req 반영): 입력 큐 1건 처리 — REQ-033 흡수 (1 신규 spec 신설).
-#   - REQ-20260421-033 (a11y 패턴 B 키보드 활성 불변식 + drift): RULE-07 자기검증 — 결과 FR (FR-01 패턴 B 시스템 불변식 / FR-04 grep 게이트 baseline / FR-08 audit 테스트 Should 박제) 만 시스템 불변식·계약 형태로 박제. drift 정상화 enumeration (M1–M9) + 결정 분기 위임 (M5/M10) 은 baseline 시점 enumeration 으로 향후 정상화 진척도 측정 기준. 1회성 진단·DevTools 실측·incident patch 부재. 양성.
-#     - 대상: `30.spec/green/common/a11y.md` (blue 부재 → green 신규).
-#     - 신설 섹션: §역할 (동음이의 주의 박제), §공개 인터페이스 (`activateOnKey` 시그니처/동작/사용 금지), §패턴 B 불변식 (포지티브 4 속성 + 핸들러 단일 참조 + 예외 enumeration), §예외 (Native 자동 면제 + M5/M10 결정 분기), §drift 정상화 대상 (M1/M2/M3/M4/M6/M7/M8/M9 표), §의존성, §스코프 규칙 (expansion 불허 + grep-baseline (a)(b)(c) 실측), §회귀 방어 단위 테스트 계약 (5단 idiom), §audit 테스트 (FR-08 Should), §회귀 중점, §테스트 현황 ([x] 5 + [ ] 8 marker 박제 — task 위임), §수용 기준 ([x] 3 + [ ] 6 marker), §변경 이력 1행, §참고.
-#     - grep-baseline 실측: positive `onKeyDown=\{activateOnKey` 8 hits in 7 files / role="button" (테스트·native button 제외) 19 hits in 11 files. 정상화 완료 시 ≥17 hits 목표 명시.
-#     - 이동: `specs/20.req/20260421-a11y-pattern-b-keyboard-activation-invariant-and-drift.md` → `specs/60.done/2026/04/21/req/`.
+# Phase 3 (신규 req 반영): 입력 큐 0건 — 처리 없음. 50.blocked/req 비어있음.
 #
 # 변동 spec sha:
-#   - `common/a11y.md` 신규 — sha 7dd9830f7a699856a0668ae073d95793dccad7cdc55e4a0e477036cfe39d6390, stale_cycles=0.
-#   - `components/common.md` sha 동일 (73b1454...) — 본문 무변경, marker #2 stale_cycles 0 → 1.
-#   - `components/log.md` sha 동일 (0f9f5f1...) — 변동 없음, stale_cycles=0.
-#   - `foundation/ci.md` sha 동일 (626e133...) — 본문 무변경, stale_cycles 3 → 4.
-#   - `foundation/tooling.md` sha 동일 (28d92d7...) — 변동 없음, stale_cycles=0.
+#   - `common/a11y.md` sha 동일 (7dd9830f...) — 본문 무변경, marker stale_cycles 0 → 1.
+#   - `components/common.md` sha 174929482f9a06ec2005b6af655f7c5b3351e235e2152f7a43a27fb2bd606fab — 본 세션 edit (8 marker [ ]→[x] + 변경 이력 1행 박제), stale_cycles 1 → 0.
+#   - `components/log.md` — planner 가 blue 로 승격 완료 (ledger 에서 제거).
+#   - `foundation/tooling.md` — planner 가 blue 로 승격 완료 (ledger 에서 제거).
+#   - `foundation/ci.md` — planner 가 50.blocked/spec 으로 이동 완료 (ledger 에서 제거).
 #
 # 현 ledger:
-specs/30.spec/green/common/a11y.md 7dd9830f7a699856a0668ae073d95793dccad7cdc55e4a0e477036cfe39d6390 0
-specs/30.spec/green/components/common.md 73b145426ef80ec3767222df2e2f5eab5090d6eafec2a62f1e394bd310b4499f 1
-specs/30.spec/green/components/log.md 0f9f5f1de801d6039a45a5f401b037f353858e4eae8f52f68989a29a009b34e7 0
-specs/30.spec/green/foundation/ci.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 4
-specs/30.spec/green/foundation/tooling.md 28d92d7fad152b7013b6df5c9e29e11d396c4d82dc4d2efadad8e04680e09baf 0
+specs/30.spec/green/common/a11y.md 7dd9830f7a699856a0668ae073d95793dccad7cdc55e4a0e477036cfe39d6390 1
+specs/30.spec/green/components/common.md 174929482f9a06ec2005b6af655f7c5b3351e235e2152f7a43a27fb2bd606fab 0
 #
-# Stale 경고: 1 path ≥ 3 cycle — `foundation/ci.md` (수동 점검 반복 계약 — Node LTS 상향 시점 engine 확인). 운영자 동선 의존 항목으로 task 발행 부적합. 4 cycle 누적 도달. 운영자 재분류 강력 권고 — 후보:
-#   - (a) `[ ]` 항목을 §운영 루브릭 (또는 README 운영 노트) 으로 이전 후 본 spec 에서 제거 → ledger 에서 해당 marker 자연 소멸.
-#   - (b) 본 spec 본문에서 "Node LTS 상향 시 engine 호환성 확인" 을 평서형 시스템 정책으로 흡수 (예: "메이저 액션 floating tag 정책에 따라 Node 메이저 변동 시 운영자가 engine 정합성을 PR 게이트로 확인한다") + `[ ]` 제거 → 평서 박제로 전환.
+# Stale 경고: 0 path ≥ 3 cycle. 직전 세션 `foundation/ci.md` 4 cycle 경고는 planner 가 본 세션 이전 blocked/spec 으로 이동하여 해소. a11y.md 13 marker 는 1 cycle 시작 — 임계치 이하.
 #
-# 입력 큐: 처리 후 0건 (1 처리: 1 absorb).
-# 하류 임계치: GREEN_PENDING_MAX=20, 현 green 파일 5 (spec, a11y.md 신설 후) < 20. 여유 15.
+# 입력 큐: 처리 후 0건 (0 처리).
+# 하류 임계치: GREEN_PENDING_MAX=20, 현 green 파일 2 (common/a11y.md, components/common.md) < 20. 여유 18.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `components/log.md` — marker #3, #4 (REQ-030) 전부 ACK (직전 세션). 잔존 [ ] marker 0 — promote 가능 (green→blue).
-#   - `foundation/tooling.md` — 잔존 [ ] marker 0 — promote 가능. §스코프 규칙 (b) baseline 박제 텍스트 ("현실 미달 상태") 는 historic note 로 보존 (변경 이력 ack 박제로 보완 완료).
-#   - `components/common.md` — REQ-022/025 흡수분 + REQ-032 신규 마커 5건 동시 박제. promote 전 REQ-032 task carve 1건 (auth hash 파싱 + setCookie 지속 속성명 정정 + 회귀 테스트 케이스 A/B/지속속성/env 미주입) 통과 후 promote 권장.
-#   - `common/a11y.md` — 신규 발행. 본 spec 의 §FR-02/03/05/06/08 task 단계 통과 + §FR-07 (blue 상호참조 갱신) promote 단계 동시 처리 권장. 단, 핵심 불변식 (FR-01/04) 는 본 발행 시점 박제 완료 — `components/log.md` / `foundation/tooling.md` 와 동시 promote 가능 후보.
-#   - `foundation/ci.md:48` — 4 cycle 누적 stale. 위 2 후보 (a)/(b) 중 하나로 운영자 재분류 후 marker 제거 또는 평서 박제 전환 권장.
+#   - `components/common.md` — 잔존 [ ] marker 0 (본 세션 8 marker 전원 플립). §변경 이력 TSK-66/67/68 3 커밋 박제 완료. **promote 가능** (green→blue, REQ-022/025/032 완결).
+#   - `common/a11y.md` — 잔존 [ ] marker 13 (§테스트 현황 8 + §수용 기준 5). promote 대기 — 3 task carve (M1–M9 정상화 / M5·M10 결정 분기 / audit 테스트 Should) 통과 필요.
 #
 # 다음 세션 유의:
-#   - 20.req 다시 차면 Phase 3 재개. REQ-031 blocked 처리 (직전 세션) 후 운영자가 followup 으로 재투입 — 정식 경로 (10.followups → discovery → ...) 만 수용 (10.followups/20260421-0731-react-19-runtime-bump-reattempt-from-blocked.md 가 대기).
-#   - `components/common.md` REQ-032 [ ] 5 marker 는 단일 task carve 또는 분할 (code 정상화 / 회귀 테스트 두 그룹) 에서 ACK 흐름 발생 예정.
-#   - `common/a11y.md` REQ-033 [ ] 8 marker (테스트 6 + 결정 분기 2) 는 M1–M9 정상화 + M5/M10 결정 분기 + audit 테스트 도입 (Should) 의 3 task carve 분할 후보.
-#   - `foundation/ci.md:48` 4 cycle stale — 운영자 재분류 후보 (a) 본 marker 를 §운영 루브릭/README 로 이전 후 spec 에서 제거 / (b) 평서 박제 전환.
+#   - 20.req 다시 차면 Phase 3 재개. 현재 10.followups 2건 대기 중 (discovery 영역): `20260421-0731-react-19-runtime-bump-reattempt-from-blocked.md`, `20260421-0746-ci-node-lts-cadence-runbook-from-blocked.md`.
+#   - `common/a11y.md` REQ-033 13 marker 는 향후 세션에서 task 결과 박제 시 순차 ack. 2 세션 내 진척 없으면 stale 경고 (stale_cycles ≥ 3).
+#   - components/common.md 는 planner 가 다음 30m 주기에 green→blue 승격 수행 가능.
