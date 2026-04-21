@@ -20,5 +20,6 @@ agent 는 **자기 입력 큐만 읽고 자기 출력 큐에만 쓴다**.
 | [RULE-04](rules/RULE-04-REPORT.md) | stdout 보고 블록·관용 토큰 |
 | [RULE-05](rules/RULE-05-MANUAL.md) | blocked 해제·긴급 롤백·정지·override |
 | [RULE-06](rules/RULE-06-TASK-SCOPE.md) | 스코프 규칙 섹션·grep 게이트 정합성 |
+| [RULE-07](rules/RULE-07-SPEC-CONTENT.md) | spec 콘텐츠 — 불변식/계약 한정, 1회성 진단 반려 |
 
 에이전트 문서 ↔ rules 충돌 시 **rules 우선**. 규약은 `rules/` 에서만 변경.
