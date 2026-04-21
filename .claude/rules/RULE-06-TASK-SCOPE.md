@@ -28,4 +28,11 @@ grep 게이트가 `afterEach` 등록 잔존을 검증할 때는 `afterEach\s*\([
 예: `rg -nE "afterEach\s*\([^)]*vi\.useRealTimers\s*\(\s*\)" src --glob="*.test.{js,jsx}"`
 멀티라인 블록은 `rg --multiline -U` 또는 `-A 3` 컨텍스트 + 수동 필터.
 
+**블록 경계 false-positive**: `[\s\S]*?` 는 경계 미존중 — 인접 `afterAll {...server.close}` 까지 매치. 블록 내부 한정은 `[^{}]*?`, nested 허용 시 `(?:[^{}]|\{[^{}]*\})*?`. 검증: block 1 에서 1 hit, 인접 block 2 동일 token 은 미매치.
+
+**grep-count**: `grep -c` 는 구조 인식 불가. `grep -cE "^[[:space:]]*<token>\s*\("` 로 본문 호출 한정 + baseline 에 제외 규칙·수치·샘플 라인 박제.
+
+**체크리스트 (planner / inspector)**: baseline 실제 실행·수치 복사 / multiline 은 block boundary fixture 통과 / count 는 import·주석 제외 계산법 명시.
+
 발행된 `40.task/**` 는 rewrite 금지 (RULE-01). 본 규약은 차기 발행부터.
+<!-- 2026-04-21: 블록 경계 false-positive + grep-count + 체크리스트 (REQ-20260421-013) -->
