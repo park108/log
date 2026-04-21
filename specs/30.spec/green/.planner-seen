@@ -1,99 +1,109 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T13:38Z (31st cycle) — 0 promotion + 0 carve + 1 blocked (common/a11y.md stale=3 → 50.blocked/spec/common/).
+# Updated: 2026-04-21T23:30Z (32nd cycle) — 0 promotion + 1 carve (TSK-88) + 0 blocked.
 # Session summary:
-#   HEAD=c5eed40 (`feat: errorReporter 채널 단일화 — D6 FileUpload.jsx` — TSK-85).
-#   직전 ledger HEAD=5190466. 그 사이 커밋 체인:
-#     5190466 (inspector revert FileDrop 스윕) → 602a7bc (dev TSK-84 D5 FileDrop `refactor:`) → 5689925 (planner 30th — TSK-87 carve)
-#       → c5eed40 (dev TSK-85 D6 FileUpload `feat:`) → 본 세션 시작.
-#   30th 이후 진척: dev TSK-84/85 (D5/D6) 2건 ack (inspector `.inspector-seen` 에 박제), TSK-86 40.task/ 대기 (미소비), TSK-87 40.task/ 대기.
-#   `40.task/` 잔존 (본 세션 시작 시): TSK-86 D7 Comment + TSK-87 coverage 진단 (2건).
-#   working tree (본 세션 시작 시, 참고): M inspector-seen / M erc.md (inspector 편집) / M Comment.jsx / M Comment.test.jsx (developer 영역, TSK-86 진행중 추정) — 전부 planner 영역 밖, 터치 금지.
-#   본 세션 입력 (green, HEAD=c5eed40 기준): 3 spec files:
-#     (1) `common/a11y.md` — HEAD hash=e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a.
-#         직전 ledger hash=e1d6de48.. — **불변** (D5/D6 커밋 + inspector ack 모두 a11y.md 미편집). stale 2→**3**.
-#     (2) `common/error-reporter-channel.md` — HEAD hash=cfe4badd3be20bfb4927ac53a0e3957125b3d3e062d325f32a7178bfd31032bd.
-#         직전 ledger hash=2ac91c37.. — **변경** (c5eed40 inspector Phase 1 ack 으로 D5/D6 `[x]` 플립 박제 + §drift 정상화 표 D5/D6 취소선 + §스코프 규칙 baseline (a) 4 hits / 1 file / (b) 29 hits 재박제). stale 1→0 리셋→**1**.
-#     (3) `foundation/coverage-determinism.md` — HEAD hash=47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6.
-#         직전 ledger hash=47062dd8.. — **불변**. stale 0→**1**.
+#   HEAD=a2b9119 (`spec(planner): block common/a11y.md — FR-07 구조적 blocker + stale=3` — 31st cycle 산출).
+#   직전 ledger HEAD=c5eed40. 그 사이 커밋 체인:
+#     c5eed40 (dev TSK-85 D6 FileUpload) → 0596869 (inspector TSK-84/85 Phase 1 reconcile ack) → 9fe3e05 (dev TSK-86 D7 Comment `refactor:`)
+#       → a2b9119 (planner 31st — a11y.md blocked mv) → 본 세션 시작.
+#   31st 이후 진척:
+#     (a) developer TSK-86 D7 Comment 완결 (9fe3e05).
+#     (b) inspector 가 erc.md 에 D7 Phase 1 reconcile ack 반영 (커밋 외 working tree 관찰 — .inspector-seen 은 미확인).
+#     (c) inspector 가 REQ-042 신설 후 blue→green carry-over 로 `components/log.md` 신규 green 박제 (working tree `??`).
+#     (d) TSK-86, TSK-87 은 40.task/ 에서 소비 완료 (ready 큐 → 0 상태로 진입).
+#   `40.task/` 잔존 (본 세션 시작 시): **0 건**. TASK_READY_MAX=10 여유 10.
+#   working tree (본 세션 시작 시):
+#     M specs/30.spec/green/common/error-reporter-channel.md (inspector 작성중 추정 — planner 영역 밖, 터치 금지)
+#     ?? specs/30.spec/green/components/ (신규 green 추가 — `components/log.md` REQ-042 흡수)
+#     staged: 0.
+#   본 세션 입력 (green, HEAD=a2b9119 기준): 3 spec files:
+#     (1) `common/error-reporter-channel.md` — HEAD hash=5aca42135818c028299704b15e41f6794ed5fa90ea2cb9a5eda3ba4ea8107612.
+#         직전 ledger hash=cfe4badd.. — **변경** (inspector 가 TSK-86 D7 ack 박제: §drift 표 D7 취소선 + §테스트 현황 D7 [x] 플립 + §스코프 규칙 baseline 갱신 + §수용 기준 FR-02/FR-03 수렴 `[x]` 플립 추정). stale 1→0 리셋→**1**.
+#     (2) `foundation/coverage-determinism.md` — HEAD hash=47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6.
+#         직전 ledger hash=47062dd8.. — **불변** (TSK-87 진단 working tree 상태 아직 반영되지 않음, discovery/inspector 경로 미진행). stale 1→**2**.
+#     (3) `components/log.md` — HEAD hash=f72edff685fec937928b61bff883682b91ce617ef99de87d0085033d20b52661.
+#         ledger 미등록 → **신규 등장** (inspector 가 REQ-042 흡수하며 blue `components/log.md` → green carry-over). stale=**0** (첫 관측).
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
 #     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
 #     (3) 입력 큐: 3 HEAD green specs — 통과.
-#     (4) 하류 임계치: `40.task/` = 2 (TSK-86/TSK-87). `TASK_READY_MAX=10` 여유 8 — 통과 (신규 carve 발행 여유 충분, 단 본 세션은 carve 0).
+#     (4) 하류 임계치: `40.task/` = 0. `TASK_READY_MAX=10` 여유 10 — 통과.
 #     (5) 처리 진입.
 #
 #   세션 시작 시 git 상태 점검 (RULE-02):
-#     working tree: `M .inspector-seen`, `M common/error-reporter-channel.md`, `M Comment.jsx`, `M Comment.test.jsx` — 전부 planner 영역 밖.
-#     staged: 0. 자기 영역 밖 staged 항목 없음 → unstage 불요.
+#     working tree: `M common/error-reporter-channel.md`, `?? components/` — inspector 영역 (녹색 spec 편집 / 신규 spec 추가). planner 영역 밖 → 터치 금지. staged: 0. 자기 영역 밖 staged 없음 → unstage 불요.
 #
-#   각 green spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제; HEAD=c5eed40):
-#     - `common/a11y.md` (HEAD hash=e1d6de48.., stale 2→3):
-#         unchecked: **1** (L180 수용 기준 FR-07 blue 상호참조).
-#         WIP: 0. To-Be: 0. 변경 이력: 박제 완료.
-#         → **미승격** (unchecked 1 > 0). 구조적 blocker (FR-07 가 blue 편집 요구 — planner/inspector 어느 쪽도 독단 수행 불가, writer 매트릭스 순환).
-#         → **stale=3 도달 + 구조적 blocker** → RULE-03 "같은 diff-hash 2회 이상 정체" 기준 `50.blocked/spec/common/a11y.md` 격리 + `_reason.md` 작성. RULE-05 `/revisit` 경로 진입.
+#   각 green spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제; HEAD=a2b9119):
+#     - `common/error-reporter-channel.md` (HEAD hash=5aca4213.., stale 1):
+#         unchecked: **1** (L213 수용 기준 FR-06 blue components/common.md §에러 처리 절 상호참조 1~2 문장 추가).
+#         WIP: 0. To-Be: 0. 변경 이력: 박제 완료 (TSK-80~86 7개 inspector ack).
+#         → **미승격** (unchecked 1 > 0).
+#         구조적 blocker 재평가: FR-06 는 blue 편집 요구 — writer 매트릭스 (planner mv only, inspector 영역 밖 편집 불가) 순환. 단 stale 이 1 (hash 변경으로 리셋됨) 이라 **격리 기준 (≥3) 미도달**. 차기 cycle 까지 유보 + 다음 hash 불변 cycle 에서 stale 2→3 도달 시 a11y.md 와 동일 구조 격리 고려.
 #         → 신규 carve 0건.
-#     - `common/error-reporter-channel.md` (HEAD hash=cfe4badd.., stale 1 — c5eed40 로 hash 변경 리셋):
-#         unchecked: **5** (L197 D7 Comment.test FR-03, L198 grep 게이트 FR-02, L208 FR-02 수렴, L209 FR-03 수렴, L212 FR-06 blue 상호참조).
-#         WIP: 0. To-Be: 0. 변경 이력: 박제 완료 (직전 30th 에서 관측한 unchecked 7 → c5eed40 inspector ack 반영 후 5로 감소 — D5/D6 테스트 2건 [x] 플립).
-#         → **미승격** (unchecked 5 > 0). D7 (TSK-86 기발행, developer working tree 진행중) + FR-02/FR-03 수렴 대기 + FR-06 구조적 blocker.
-#         → 신규 carve 0건 (TSK-86 기발행, FR-06 는 blue 편집 구조 blocker — D7 완료 후 FR-06 단독 잔존 시 재평가).
-#     - `foundation/coverage-determinism.md` (HEAD hash=47062dd8.., stale 0→1):
+#     - `foundation/coverage-determinism.md` (HEAD hash=47062dd8.., stale 1→2):
 #         unchecked: **2** (§테스트 현황 L85 FR-01 반복실행 coverage JSON diff 0 / L86 FR-02 수단 택1 이상 적용). 둘 다 명시 `planner 수렴 task 대기`.
 #         WIP: 0. To-Be: 0. 변경 이력: 1건 (inspector 신설 @690aa74).
 #         → **미승격** (unchecked 2 > 0).
-#         잔존 [ ] carve 대상 분석:
-#           - FR-02 수단 택1 이상 적용 은 FR-05 (수단 중립성) 강제 — planner 가 (a~f) 중 하나 독단 선택 불가.
-#           - TSK-87 (coverage 진단 task, 40.task/ 대기) 가 수단 선택 근거를 제공하는 **선행 task** — 진단 완결 전 수렴 task carve 불가.
-#           → 신규 carve 0건 (TSK-87 완결 → discovery 가 followup→req 승격 후 다음 planner cycle 에서 수렴 task carve).
+#         FR-05 수단 중립성 + TSK-87 (coverage 진단 task) 소비 후 followup→req→수렴 task 2단계 경로. TSK-87 완결 여부 불명 (40.task/ 에서 소비됨, 60.done/task/ 미확인 — 본 세션 planner 관점 관찰 범위 밖). 수렴 task carve 불가 (진단 완결 근거 부재).
+#         → 신규 carve 0건. stale 2 — 다음 cycle 에서 hash 불변 시 3 도달 → blocked 격리 고려 (`50.blocked/spec/foundation/`). 단 구조상 planner 가 수단 중립 하에 FR-02 수단 택1 이상 적용 task 를 carve 하는 것 자체는 이론상 가능하나 (coverage-determinism.md 은 FR-05 "어느 하나도 필수 지정 하지 않음" 강제), FR-02 는 "planner/developer 는 실측 원인 조사 후 idempotent 수렴 경로를 선택" 명시 — TSK-87 의 원인 조사 결과 완결이 선행 조건. 고로 본 cycle 에서도 유보.
+#     - `components/log.md` (HEAD hash=f72edff6.., 신규 등록 stale=0):
+#         unchecked: **2** (§테스트 현황 L63 REQ-042 FR-01 render-budget 실효 margin / §수용 기준 L76 REQ-042 FR-01 동일 boolean 계약).
+#         WIP: 0. To-Be: 0. 변경 이력: TSK-20260421-63 / TSK-20260421-65 / inspector 박제 박제 완료.
+#         → **미승격** (unchecked 2 > 0).
+#         REQ-042 FR-01 은 boolean 계약 ("render-budget 상수 ≠ vitest 기본 testTimeout") 로 명확. FR-06 수단 중립성 하에 planner 가 수렴 task carve 가능 (spec 이 수단을 강제하지 않음 — 수단 택일은 developer 영역).
+#         → 신규 carve **1건**: **TSK-20260421-88** (`logsingle-render-budget-effective-margin`). 수단 3 옵션 (α `vite.config.js testTimeout` 명시 / β `LOGSINGLE_RENDER_BUDGET_MS` 별도 상수 / γ `ASYNC_ASSERTION_TIMEOUT_MS` 값 변경) 열거 + developer 택일 박제. spec 스코프 규칙 "expansion 불허" + 3 파일 한정 (`vite.config.js` / `src/test-utils/timing.js` / `src/Log/LogSingle.test.jsx`).
 #
-#   carve 발생: **0건**.
+#   carve 발생: **1건** (TSK-88 신규; supersedes 없음 — 기존 task 분할 아님).
 #
-#   grep dry-run: 본 세션 신규 carve 0 → grep dry-run N/A. notes 에 `grep dry-run: 0/0 match` 박제.
+#   grep dry-run (TSK-88 §스코프 규칙 baseline 실측 @HEAD=a2b9119):
+#     gate (a) `grep -nE "export const ASYNC_ASSERTION_TIMEOUT_MS" src/test-utils/timing.js` → **1 hit** @L5 (`export const ASYNC_ASSERTION_TIMEOUT_MS = 5000;`) — 기대 1, 일치.
+#     gate (b) `grep -nE "testTimeout\s*:" vite.config.js` → **0 hits** (vitest 기본 5000 사용 — margin=0 원인) — 기대 0, 일치.
+#     gate (c) `grep -nE "\}\s*,\s*ASYNC_ASSERTION_TIMEOUT_MS\s*\)" src/Log/LogSingle.test.jsx` → **2 hits** @L129 (prod render) @L159 (dev render) — 기대 2, 일치.
+#     총 3/3 match.
 #
 #   승격 mv: **0건**.
-#   blocked mv: **1건** — `specs/30.spec/green/common/a11y.md` → `specs/50.blocked/spec/common/a11y.md` + `specs/50.blocked/spec/common/a11y_reason.md` 신규 작성.
+#   blocked mv: **0건**.
 #
 #   RULE-01 점검:
-#     - 본 세션 변경 = `specs/50.blocked/spec/common/a11y.md` (mv-in) + `specs/50.blocked/spec/common/a11y_reason.md` (create) + `specs/30.spec/green/.planner-seen` (edit).
-#     - mv: `30.spec/green/** → 50.blocked/spec/**` planner writer matrix 허용.
+#     - 본 세션 변경 = `specs/40.task/TSK-20260421-88-logsingle-render-budget-effective-margin.md` (create) + `specs/30.spec/green/.planner-seen` (edit).
+#     - planner writer 영역 준수.
 #   RULE-02 점검:
 #     - staged 자기 영역 밖 없음 — unstage 불요.
-#     - 커밋 scope = `spec(planner):` (blocked 격리).
-#   RULE-05 점검:
-#     - blocked 격리 시 `_reason.md` 작성 및 `/revisit` 경로 진입 준비. `10.followups/` revive 는 운영자 판정.
+#     - 커밋 scope = `task(planner):` (신규 task 발행).
+#   RULE-04 점검:
+#     - 보고 notes: `grep dry-run: 3/3 match` + `carve: -> TSK-88` (신규 단일).
 #   RULE-06 점검:
-#     - 신규 carve 0 → RULE-06 적용 대상 없음.
+#     - TSK-88 §스코프 규칙 baseline 실측 hits 박제 완료 (gate (a)(b)(c) 각 1/0/2 hits + expansion 불허 명시 + rationale 박제).
 #   RULE-07 점검:
-#     - 격리 대상 `a11y.md` 본문은 RULE-07 정합 (시스템 불변식 + 계약). 격리 사유는 writer 매트릭스 순환 (구조적 blocker) 이며 spec 콘텐츠 결함 아님. `_reason.md` 에 해소 경로 (운영자 revive/close) 명시.
+#     - `components/log.md` 본문은 시스템 불변식 (REQ-042 boolean 계약) 한정. 본 planner cycle 은 spec 콘텐츠 미터치.
 #
 #   **운영 관찰**:
-#     - a11y.md 격리 성립 — FR-07 구조적 blocker 는 operator `/revisit` 로만 해소 가능. discovery 가 "blue components §접근성 상호참조 추가 req" 신설 → inspector 가 blue→green 복사·편집 후 재승격 경로.
-#     - error-reporter-channel.md 는 FR-06 동일 구조적 blocker 존재하나 D7 완결 전 stale 누적 없음 (hash 변경 유지). D7 + FR-02/03 수렴 후 FR-06 단독 잔존 시점 재평가.
-#     - coverage-determinism.md 는 FR-05 수단 중립성 보호 하에 TSK-87 진단 → followup → req → 수렴 task 의 2단계 경로. 현재 1단계 (TSK-87 발행됨) 진행 중.
+#     - `error-reporter-channel.md` 는 D7 완결 + FR-02/03 수렴 완료로 FR-06 단독 잔존. 구조적 blocker (blue/components/common.md 편집은 inspector writer 영역 + planner mv only). 다음 cycle 에서 hash 불변 시 stale 2 → 후 cycle 3 도달 시 a11y.md 선례에 따라 격리 고려. 단 운영자 주의: FR-06 구조적 blocker 는 inspector 가 blue→green 복사 후 green common.md 편집 + promote 경로로만 해소 가능 (planner 단독 불가).
+#     - `coverage-determinism.md` 는 stale=2. TSK-87 완결·followup→req→수렴 task 경로 진행 여부 다음 planner cycle 에서 재평가. hash 불변 지속 시 stale=3 격리 → `/revisit` 경로 권고.
+#     - `components/log.md` 는 TSK-88 수렴 후 재평가. 수렴 수단 발견적 — developer 가 α/β/γ 중 택일.
 #
-# ledger entries (잔존 green; a11y.md 는 blocked 이동으로 제거):
-specs/30.spec/green/common/error-reporter-channel.md cfe4badd3be20bfb4927ac53a0e3957125b3d3e062d325f32a7178bfd31032bd 1  # 31st cycle — HEAD hash 변경 (c5eed40 inspector Phase 1 ack TSK-84/85 로 D5/D6 [x] 플립 + §drift 표 취소선 + §스코프 규칙 baseline 갱신). stale 1→0 리셋→1. 잔존 unchecked 5건 (L197 D7 test + L198 grep 게이트 + L208 FR-02 수렴 + L209 FR-03 수렴 + L212 FR-06 blue 상호참조). TSK-86 (D7) 기발행·developer working tree 진행중. TSK-85 완결 이후 D7 완료 대기.
-specs/30.spec/green/foundation/coverage-determinism.md 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 1  # 31st cycle — HEAD hash 불변 (REQ-041 흡수 이후 편집 없음). stale 0→1. unchecked 2건 (§테스트 현황 FR-01 반복실행 0 lines diff / FR-02 수단 택1 이상). TSK-87 (진단 전용) 40.task/ 대기. FR-05 수단 중립성 보호 2단계 carve 경로.
+# ledger entries (잔존 green):
+specs/30.spec/green/common/error-reporter-channel.md 5aca42135818c028299704b15e41f6794ed5fa90ea2cb9a5eda3ba4ea8107612 1  # 32nd cycle — HEAD hash 변경 (a2b9119 inspector TSK-86 D7 ack 반영: §drift D7 취소선 + §테스트 현황 D7 [x] 플립 + §스코프 규칙 baseline (a) 0 hit 수렴 + (b) 33 hits 재박제 + §수용 기준 FR-02/FR-03 수렴 `[x]` 플립). stale 1→0 리셋→1. 잔존 unchecked 1건 (L213 FR-06 blue components/common.md 상호참조). 구조적 blocker (blue 편집 writer 매트릭스 순환) — stale 기준 미도달 (1<3) 로 carve/promote/blocked 모두 차기 cycle 유보.
+specs/30.spec/green/foundation/coverage-determinism.md 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 2  # 32nd cycle — HEAD hash 불변 (inspector 편집 없음, TSK-87 진단 결과 미박제). stale 1→2. unchecked 2건 (§테스트 현황 FR-01 반복실행 0 lines diff / FR-02 수단 택1 이상). FR-05 수단 중립성 + TSK-87 완결·followup→req 선행 경로. 다음 cycle 하나 더 불변 시 stale=3 격리 권고.
+specs/30.spec/green/components/log.md f72edff685fec937928b61bff883682b91ce617ef99de87d0085033d20b52661 0  # 32nd cycle — 신규 등록 (inspector 가 REQ-042 흡수하며 blue→green carry-over). stale=0. unchecked 2건 (§테스트 현황 FR-01 margin>0 / §수용 기준 FR-01 동일 boolean 계약). TSK-88 carve 발행 — developer 수단 택일 대기.
 #
 # promoted (→ 30.spec/blue/):
 # - (없음)
 #
 # blocked (→ 50.blocked/spec/):
-# - specs/30.spec/green/common/a11y.md → specs/50.blocked/spec/common/a11y.md (stale=3 도달 + FR-07 구조적 blocker; reason: writer 매트릭스 순환 — planner/inspector 어느 쪽도 blue 편집 단독 수행 불가; RULE-05 /revisit 경로 진입).
+# - (본 세션 없음)
 #
-# ready 큐: count=2 (TSK-86 / TSK-87), TASK_READY_MAX=10 여유 8.
-# next cycle (32nd+):
-#   - **developer (15m)**: TSK-86 D7 Comment working tree 진행중. TSK-87 진단 독립 병렬 가능.
+# ready 큐: count=1 (TSK-88), TASK_READY_MAX=10 여유 9.
+# next cycle (33rd+):
+#   - **developer (15m)**: TSK-88 LogSingle render-budget 실효 margin 수단 택일 (α/β/γ) 후 수렴.
 #   - **inspector (30m)**:
-#       (a) TSK-86 완결 시 Phase 1 reconcile ack + erc.md §drift 정상화 표 D7 취소선 + §테스트 현황 D7 [x] 플립 + §스코프 규칙 baseline (a) 0 hit 수렴 시 §수용 기준 FR-02/FR-03 수렴 `[x]` 플립.
-#       (b) TSK-87 완결 시 followup 기반으로 coverage-determinism.md §테스트 현황 주범 관측 기록 (FR-05 중립성 유지).
-#       (c) a11y.md blocked 이동 후 inspector `.inspector-seen` ledger 에서 해당 entry 제거 (다음 inspector cycle 에서 자율 갱신).
+#       (a) TSK-88 완결 시 Phase 1 reconcile ack + `components/log.md` §테스트 현황 / §수용 기준 REQ-042 FR-01 `[x]` 플립.
+#       (b) TSK-87 완결·followup 기반 coverage-determinism.md §테스트 현황 주범 관측 기록 (FR-05 중립성 유지).
+#       (c) erc.md 는 FR-06 단독 잔존 — blue common.md §에러 처리 상호참조 추가가 필요하면 blue→green carry-over 경로로 green common.md 편집 후 승격.
 #   - **discovery (1h)**:
-#       (i) TSK-87 산출 followup 을 req 로 승격 또는 close 판정 (coverage 진단 결과 기반).
-#       (ii) a11y.md `_reason.md` 가 `/revisit` 으로 `10.followups/` revive 되면 "blue components §접근성 상호참조 추가 req" 신설 (운영자 판정 필요).
-#   - **planner (32nd+)**:
-#       (i) erc.md 는 D7 완결 + FR-02/03 수렴 후 FR-06 단독 잔존 시 재평가 — 동일 구조적 blocker 격리 고려.
-#       (ii) coverage-determinism.md 는 TSK-87 followup 소비 req 발행 시 수렴 task carve 진입.
-#       (iii) 신규 a11y-related req (operator revive 시) 가 inspector 에서 green spec 으로 흡수되면 다음 planner cycle 에서 promote 경로 재진입.
+#       (i) TSK-87 산출 followup 을 req 로 승격 또는 close 판정.
+#       (ii) a11y.md `_reason.md` `/revisit` 시 "blue components §접근성 상호참조 추가 req" 신설 (운영자 판정).
+#   - **planner (33rd+)**:
+#       (i) erc.md 는 FR-06 단독 잔존 유지 + hash 불변 2회 더 누적 시 격리 (a11y.md 선례).
+#       (ii) coverage-determinism.md 는 본 cycle stale=2. 다음 hash 불변 시 stale=3 → 격리 (`/revisit` 경로).
+#       (iii) components/log.md 는 TSK-88 완결 + inspector ack 후 promote 가능.
