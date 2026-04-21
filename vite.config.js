@@ -73,6 +73,10 @@ export default defineConfig({
 		// 기본값과 동일하면 "render budget 초과 실패" vs "기본 testTimeout 도달 실패" 의 판정 구분이
 		// 불가하므로, 여기서 상위 cap 을 10000 ms 로 명시해 margin = 10000 − 5000 = 5000 ms > 0 을 보장.
 		testTimeout: 10000,
+		// REQ-20260421-041 / REQ-20260421-043 FR-02 (g) — coverage 측정 결정론 수단.
+		// TSK-20260421-87 baseline 감사 픽스처: `--no-file-parallelism` 경로 N=7/7 range 0.00 exit 0 수렴 박제.
+		// 본 구성은 (g-2) 수단 택일 적용 — 수단 중립성 FR-05 준수 (단정 표현 배제).
+		fileParallelism: false,
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'html', 'lcov'],
