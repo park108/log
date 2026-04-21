@@ -1,58 +1,49 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=2f2bc89, pre-commit)
-# Phase 1 ack this session: 0/1 ack (1 stale — shuffle-cold-start stale=1→2, 경고 임계(=3) 미도달).
+# Updated: 2026-04-21T (HEAD=d798635, pre-commit)
+# Phase 1 ack this session: 1/1 ack (shuffle-cold-start FR-02 수용 기준 PASS via TSK-20260421-51 / d798635; stale 2→0).
 #
 # Phase 1 historical context (reference only):
-#   - 이전 inspector 세션 HEAD=fb8adb0 → 현 HEAD=2f2bc89:
-#       * c5d6f2d spec(planner): file-test-multi-scenario-split 을 50.blocked/spec/ 로 이관 (stale=3 도달). shuffle-cold-start hash 불변 stale 0→1.
-#       * 8356971 spec(inspector): ledger refresh — no-op reconcile (본 ledger 의 "이전" 세션).
-#       * 02817d0 chore(triage): /revisit 가 50.blocked/** 전량 정리. tracked 14 파일 삭제:
-#           - spec: fake-timer-teardown-residual-cleanup, react-19-findby-option-beta-idiom (TSK-47 done),
-#             test-infra-conventions-grep-gate-lifo (TSK-46 done), react-19-findby-timing-stabilization (historical α),
-#             test-isolation-shuffle-safety (superseded by cold-start-spec REQ-010),
-#             file-test-multi-scenario-split (followup 승격: 20260421-0017-file-test-multi-scenario-split-spec-from-blocked.md),
-#             toaster-conditional-mount-or-helper (followup 승격: 20260421-0017-toaster-conditional-mount-or-helper-spec-from-blocked.md).
-#           - task: TSK-20260421-43 (α superseded by β TSK-47),
-#             TSK-20260421-49 (B1~B5 흡수 → green spec FR-11~15, commit 3bf6f2b),
-#             TSK-20260421-50 (followup 승격: 20260421-0017-tsk-50-file-test-multi-scenario-split-from-blocked.md).
-#         결과적으로 50.blocked/{spec,task,req}/ 3 폴더 전량 비었음. 이전 ledger 의 "blocked 잔여" 경고 전부 해소.
-#       * 2f2bc89 chore: /triage → /revisit 명령 rename (spec/src 무관).
-#   - 50.blocked/** 현 상태: 전량 비었음. 과거 ledger 기록의 잔여 blocked 목록은 본 세션에서 무효화.
-#   - 40.task/ready/ 0건. developer 활동 없음 (`git log fb8adb0..HEAD -- src/` = 0 commit).
+#   - 이전 inspector 세션 HEAD=2f2bc89 → 현 HEAD=d798635:
+#       * 42a6cdb spec(inspector): ledger refresh post-triage — 0/1 ack; shuffle stale 1→2; no-op reconcile (이전 세션).
+#       * e2bcb51 spec(planner): carve TSK-20260421-51 (Layer 1 findByTestId cold-start) + TSK-20260421-52 (Layer 2 B1 warm-up). depends_on=[TSK-51] 로 TSK-52 대기.
+#       * d798635 test: LogItem DELETE 케이스 sync→async query 전환 (Layer 1 FR-02 옵션 A) — developer 완료, `npm test -- --run` 377/377 pass, build OK, lint 0 warn. shuffle seed=1: Layer 1 소거·Layer 2 1건 잔존 (기대 동작), seed=2: 0 fail, seed=3: 3 fail (msw.test.js sibling-it race — 범위 외 followup 스텁 발행).
+#   - 50.blocked/** 현 상태: 전량 비어있음 유지.
+#   - 40.task/ready/ 1건: TSK-20260421-52 (Layer 2 B1 warm-up, depends_on=[TSK-51] 충족 — developer 진행 대기).
 #   - 20.req/ready/ 0건. discovery 활동 없음.
-#   - 10.followups/ 3건 (triage 승격분) — discovery 입력 큐, inspector 접근 범위 외.
+#   - 10.followups/ 4건 (triage 승격분 3 + TSK-51 발행분 `20260421-0955-msw-test-sibling-it-shuffle-race.md` 1) — discovery 입력 큐, inspector 접근 범위 외.
 #
-# Phase 1 detail this session (drift reconcile, HEAD=2f2bc89 재실측):
+# Phase 1 detail this session (drift reconcile, HEAD=d798635 재실측):
 #   - common/test-isolation-shuffle-safety-cold-start-spec.md (REQ-20260421-007 + REQ-20260421-010):
-#       * 대응 task TSK-20260421-49 는 02817d0 에서 삭제됨 (B1~B5 서사가 본 spec FR-11~15 로 흡수 완료, historical artefact). 후속 Task 는 planner 가 FR-13 의 1차 추천안 B1 (warm-up render prime) 기반으로 신규 TSK-ID 로 carve 예정 (FR-15 지침).
-#       * HEAD=2f2bc89 grep 재실측:
-#           - `grep -n "getByTestId.*delete-button" src/Log/LogItem.test.jsx` → 4 hits at :205, :260, :316, :377 (FR-02 대상 미적용 — spec 기대 후=0 hits 미달).
-#           - `grep -n "findByTestId.*delete-button" src/Log/LogItem.test.jsx` → 0 hits (FR-02 적용 후=4 hits 미달).
-#           - `grep -n "ASYNC_ASSERTION_TIMEOUT_MS" src/test-utils/timing.js` → 1 hit at :5 (선결 의존 충족 유지).
-#           - `grep -n "findByText.*Drop files here" src/File/File.test.jsx` → 1 hit at :53 (FR-07 옵션 2 baseline).
-#           - `grep -n "beforeAll.*render" src/Log/LogItem.test.jsx` → 0 hits (B1 미적용).
+#       * 대응 task TSK-20260421-51 / commit d798635 — HEAD 조상 확인 (`git merge-base --is-ancestor d798635 HEAD` OK).
+#       * HEAD=d798635 grep 재실측 (FR-02 DoD 재실행):
+#           - `grep -n "getByTestId(\"delete-button\")" src/Log/LogItem.test.jsx` → **0 hits** (baseline 4 → 0, FR-02 기대 PASS).
+#           - `grep -n "findByTestId(\"delete-button\")" src/Log/LogItem.test.jsx` → **4 hits** at :207/:262/:318/:379 (baseline 0 → 4, FR-02 기대 PASS).
+#           - `grep -n "await screen.findByTestId(\"delete-button\")" src/Log/LogItem.test.jsx` → **4 hits** (await 누락 0, DoD 충족).
+#           - `grep -n "ASYNC_ASSERTION_TIMEOUT_MS" src/test-utils/timing.js` → 1 hit at :5 (선결 의존 유지).
+#           - `grep -n "findByText.*Drop files here" src/File/File.test.jsx` → 1 hit at :53 (FR-07 미적용 유지).
+#           - `grep -n "beforeAll" src/Log/LogItem.test.jsx` → 0 hits (B1 미적용, TSK-52 대기).
 #           - `grep -n "await Promise.resolve" src/Log/hooks/useDeleteLog.js` → 0 hits (B5 미적용).
-#       * 이번 세션 ack: 0건. hash 60be59b 유지 (3bf6f2b 에서 Layer 2 확장 반영 후 3사이클 불변).
-#       * stale 판정: 이전 세션 stale=1 기록. 이번 세션 hash 불변 + ack 0 → stale 1→2.
-#       * deferred/pending 태깅: FR-14 지침대로 `[deferred: TSK-20260421-49 blocked]` 는 planner carve 전환 대기. 본 세션 inspector 는 carve 미수행 — 태깅 유지. TSK-49 삭제 사실은 현실/spec 문구 간 historical drift 이지만 본문 수정 트리거는 게이트 PASS 한정 — 수정 불가.
-#   - (previous) components/file-test-multi-scenario-split-spec.md: 02817d0 에서 50.blocked/spec/ 이관 후 tracked 삭제. 본 ledger 에서 제거.
+#       * hook-ack: d798635 result.md — `npm run lint` 0 warn/error, `npm test -- --run` 47 files / 377 tests pass (회귀 0 명시: "React 18 baseline 회귀 없음; coverage 97.54% stmts / 93.87% branches 유지"), `npm run build` ✓ built in 366ms. HEAD 조상성·훅 통과·회귀 0 문구 3요건 전원 충족.
+#       * 본 세션 ack: **1건 (FR-02 수용 기준 체크박스 flip)**. 수용 기준 섹션의 FR-02 는 순수 grep 기반 (Must, 비혼재) — 플립 안전. `## 테스트 현황` 의 FR-02 는 "TSK-49 blocked" deferred 마커와 의미 혼재 (Layer 1 race 해소 광의) — 애매하면 marker 유지 원칙 적용, planner 재carve 시 FR-14 에 따라 `[pending: TSK-20260421-52]` 로 전환 예정.
+#       * stale 판정: 이전 세션 stale=2 기록. 이번 세션 hash 변경 (60be59b → 21543b7) + ack 1 → stale 2→0.
+#       * 기타 FR (FR-05/06/07/08/11/12/13) 는 미플립 유지: FR-05 는 이미 §동작 1 박제 완료이나 별도 ack 트리거 없음, FR-06/07 는 구현 미착수, FR-08 는 shuffle seed 3회 0 fail 전원 충족 미달 (Layer 2 미해소), FR-11~13 는 텍스트 박제 완료이나 Layer 2 실측 PASS 와 묶여있어 flip 보류.
 #
-# Phase 2 this session: deferred 태깅 변화 없음. 300줄 초과 spec 없음 (141 lines) → 분할 없음.
+# Phase 2 this session: deferred 태깅 변화 없음. spec 파일 라인 142 (300줄 미만) → 분할 없음. [deferred: TSK-20260421-49 blocked] 마커는 FR-14 가이드대로 planner 영역 — 본 세션 inspector 전환 미수행.
 #
 # Phase 3 this session:
 #   - input queue (20.req/ready/): 0건. 처리할 신규 req 없음.
-#   - downstream threshold GREEN_PENDING_MAX=20 (기본, .claude/pipeline.json 없음). 현 green 1 < 20 (file-test-split 제거로 2→1 감소).
-#   - 처리된 req: 0. blocked: 0. 신규 green: 0. 갱신 green: 0. mv: 없음.
+#   - downstream threshold GREEN_PENDING_MAX=20 (기본, .claude/pipeline.json 없음). 현 green 1 < 20.
+#   - 처리된 req: 0. blocked: 0. 신규 green: 0. 갱신 green: 1 (FR-02 ack 반영).
 #
 # 현 ledger:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 60be59b96e3eba221c65332860b0d993b60bbb4d0d667f414817c60c30e0c858 2
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 21543b775c3e0f64b5f75aed161bf0722caf2dc4136efbf7996299baf60a92c3 0
 #
 # Stale 경고:
-#   - shuffle-safety-cold-start stale=2: 경고 임계(=3) 미도달. 다음 세션 hash/ack 불변 시 stale=3 도달 예상 — planner 가 RULE-05 기준으로 blocked 이관 판단 가능.
-#     * ack 경로: planner 가 FR-13 의 1차 추천안 B1 을 신규 TSK-ID 로 carve → developer 가 seed 1/2/3 0 fail 달성 → inspector 가 FR-02/06/07/08/B1 grep 게이트 전원 PASS 확인 → `[deferred] → [x]` 플립.
-#     * inspector 자체 루프 ack 경로 없음 (외부 planner/developer 협업 필수).
+#   - shuffle-safety-cold-start stale=0: ack 반영으로 리셋. 다음 세션은 TSK-20260421-52 (Layer 2 B1 warm-up) 완료 여부가 FR-11/13 ack 트리거. FR-06/07 는 별건 task carve 필요.
 #
 # 다음 세션 유의:
-#   - planner 가 shuffle-safety-cold-start spec 기반으로 Layer 2 B1 우선 신규 Task 를 carve 시, inspector 는 다음 세션에서 `[deferred: TSK-20260421-49 blocked]` → `[pending: <신규 TSK-ID>]` 전환 감지 가능 (FR-14 가이드). 단 `[x]` 플립은 여전히 grep 게이트 PASS 한정.
-#   - green 1 개 ack 경로가 외부에 종속 — inspector 자체 루프로는 해소 불가. 반복 no-op 보고로 시그널 유지.
-#   - 50.blocked/** 이 전량 비어있어 이전 세션 대비 "RULE-05 pending" 경고 페이로드 대폭 감소.
+#   - TSK-20260421-52 이 완료되면 (`beforeAll(async () => { render(<div/>); await Promise.resolve(); unmount(); })` 블록 주입 + shuffle seed=1/2/3 0 fail): FR-11/13 수용 기준 flip 후보.
+#     * grep: `grep -n "beforeAll" src/Log/LogItem.test.jsx` → 1+ hits 기대.
+#     * Layer 2 해소로 FR-08 (shuffle 0 fail 3 seed) 도 조건부 ack 가능.
+#   - TSK-52 실패 시 B3 → B2 → B4 → B5 fallback 은 별건 task 대상 (planner 수행).
+#   - `## 테스트 현황` 의 [deferred: TSK-20260421-49 blocked] 마커는 planner 재carve 시 [pending: TSK-20260421-52] 로 전환 기대 (FR-14).
