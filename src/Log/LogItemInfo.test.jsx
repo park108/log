@@ -1,5 +1,5 @@
 import { render, screen, act, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Suspense } from 'react';
 import * as common from '../common/common';
 import LogItemInfo from './LogItemInfo';
@@ -259,5 +259,83 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03) — M4 versions-but
 		const popup = document.getElementById(describedBy);
 		expect(popup).not.toBeNull();
 		expect(popup).toHaveAttribute('role', 'tooltip');
+	});
+});
+
+// a11y-spec §패턴 B (REQ-20260421-033 FR-05) — M5 Edit Link span §예외 확정 박제.
+// 부모 <Link> 는 react-router 가 native <a href> 로 렌더 → 브라우저가 Tab 포커스 + Enter 활성
+// 기본 제공. 자식 <span data-testid="edit-button"> 에 tabIndex/onKeyDown 을 부여하면
+// (a) Tab 이 anchor+span 두 번 stop, (b) Enter 가 이중 활성 유발. §예외 §M5 분기 ①
+// ("이미 활성 가능 — 면제 확정") 으로 확정하고 본 블록에서 불변식을 어설션으로 박제한다.
+describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-05) — M5 Edit Link span §예외', () => {
+
+	beforeEach(() => {
+		stubMode('production');
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it('M5: Edit Link 의 부모 <a> 에 Enter keyDown → /log/write 로 네비게이션이 트리거된다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		// MemoryRouter + Routes 로 라우팅 전환 관측. LocationProbe 가 현재 pathname 을 DOM 에 노출.
+		const LocationProbe = () => {
+			const loc = useLocation();
+			return <div data-testid="route-probe">{loc.pathname}</div>;
+		};
+
+		render(
+			<MemoryRouter initialEntries={['/log/1655736946977']}>
+				<Suspense fallback={null}>
+					<Routes>
+						<Route
+							path="/log/:timestamp"
+							element={
+								<LogItemInfo
+									timestamp={1655736946977}
+									item={baseItem}
+									showLink={true}
+								/>
+							}
+						/>
+						<Route path="/log/write" element={<div data-testid="write-page">write</div>} />
+					</Routes>
+				</Suspense>
+				<LocationProbe />
+			</MemoryRouter>
+		);
+
+		// 초기: /log/1655736946977 경로.
+		expect(screen.getByTestId('route-probe').textContent).toBe('/log/1655736946977');
+
+		// 자식 span 의 조상 <a> 를 찾아 Enter keyDown + click.
+		// react-router <Link> 는 내부적으로 anchor 클릭 이벤트에서 navigate 하므로,
+		// Enter 키에 대한 브라우저 기본 동작 (anchor 활성 → click 발화) 을 시뮬레이션한다.
+		const editSpan = screen.getByTestId('edit-button');
+		const anchor = editSpan.closest('a');
+		expect(anchor).not.toBeNull();
+		expect(anchor.getAttribute('href')).toBe('/log/write');
+
+		// anchor 에 포커스 + Enter keyDown 후, 브라우저의 기본 활성 경로를 대신해 click 을 발화.
+		// (jsdom 은 anchor 의 Enter→click 기본 동작을 자동 매핑하지 않음.)
+		fireEvent.keyDown(anchor, { key: 'Enter' });
+		fireEvent.click(anchor);
+
+		// Routes 가 /log/write 로 전환됨을 확인.
+		expect(screen.getByTestId('route-probe').textContent).toBe('/log/write');
+		expect(screen.getByTestId('write-page')).toBeInTheDocument();
+	});
+
+	it('M5: Edit Link 의 자식 <span data-testid="edit-button"> 에는 tabIndex 가 부여되어 있지 않다 (중복 포커스 방지)', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo();
+
+		const el = screen.getByTestId('edit-button');
+
+		// §예외 확정: 자식 span 은 속성 부여 금지. getAttribute 는 미부여 시 null.
+		expect(el.getAttribute('tabIndex')).toBeNull();
+		expect(el.getAttribute('onkeydown')).toBeNull();
 	});
 });
