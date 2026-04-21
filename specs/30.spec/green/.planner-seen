@@ -1,53 +1,50 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (13th cycle) — 0 new carves + 0 promotions + 0 new blocked.
-# Session summary: no-op cycle — TSK-61 developer 반영 + inspector marker-sync 반영을 ledger 에 흡수.
-#   HEAD=911d939 (inspector reconcile `7/M ack — TSK-20260421-61 / 572009f PASS + marker-sync (TSK-59/60 carve)`).
-#   RULE-03 선결 통과: pause lock 없음 (.claude/locks/ 미존재), `.claude/pipeline.json` 없음 → 기본 TASK_READY_MAX=10.
-#     ready 큐 진입시: 2 (TSK-59 b1prime warm-up, TSK-60 it-scoped timeout override). TSK-61 은 developer 소비 완료 → 60.done/2026/04/21/task/20260421-admin-gate-userid-externalize-cookie-fix-regression-matrix.
-#     본 사이클 carve 발행 0 → ready 큐 2 (여유 8).
-#     input green (실측): 3 → 3 (승격 대상 0 — 4조건 불충족, 모든 patch 경로 이미 ready/done 박제 완료 → 신규 carve 불필요).
+# Updated: 2026-04-21T (14th cycle) — 0 new carves + 0 promotions + 0 new blocked.
+# Session summary: no-op cycle — operator ba20cce + /revisit dad60e6 반영, green 2건 stale_cycles 0→1.
+#   HEAD=dad60e6 (`chore(revisit): scanned=4, followup=2, deleted=4`).
+#   선행 운영자/revisit 활동 결과 (본 planner 사이클 이전):
+#     - `ba20cce spec(operator): isolate 3 diagnosis-as-spec files to 50.blocked/spec/` — operator 가 3 diagnosis spec (layer2-rediag + logsingle-diagnosis + logsingle-remediation) 을 `50.blocked/spec/` 로 격리. `logsingle-prod-server-serial-timeout-remediation-spec.md` 는 기존 green → blocked 이동 (planner writer 영역이었으나 operator 수동 개입으로 처리됨, RULE-05).
+#     - `dad60e6 chore(revisit): scanned=4, followup=2, deleted=4` — /revisit 스킬이 blocked 4건을 정리 (close 2 + revive 2). 2 followup 이 `10.followups/` 로 재승격:
+#         `20260421-0528-logsingle-remediation-spec-rescope-from-blocked.md` + `20260421-0528-tsk-60-vitest4-signature-incompat-from-blocked.md`.
+#       작업트리 deletion 상태인 `50.blocked/spec/` 내 6파일은 operator/revisit 영역 — planner writer 영역 외, 본 세션 세션-시작 unstage 로 처리 (RULE-02).
+#     - ready 큐 (`40.task/`) 는 TSK-59 blocked → revisit close / TSK-60 blocked → revisit close / TSK-61 done 으로 모두 비워짐 (count=0, TASK_READY_MAX=10 여유 10).
+#
+#   RULE-03 선결 점검: pause lock 없음, `.claude/pipeline.json` 없음 → 기본 TASK_READY_MAX=10. 입력 큐 `30.spec/green/**` = 2 (실측 `find`). 하류 ready 큐 = 0 (여유 10). 처리 진입.
+#
+#   input green (실측): 2 (13차의 3 중 `logsingle-prod-server-serial-timeout-remediation` 은 operator ba20cce 에서 `50.blocked/spec/` 로 이동됨 → ledger 제외).
 #
 #   승격 평가 (4조건 = [WIP]=0, non-deferred unchecked=0, To-Be=0, 변경 이력 박제):
-#     - admin-gate-recovery-and-env-config [hash 4b35c6a9, prev 48022e44 — inspector marker-sync + TSK-61 PASS 반영으로 변동]:
-#         [WIP]=0, To-Be=0, 변경 이력 = TSK-20260421-61 / 572009f 박제 ✓.
-#         unchecked = 3 (실측 grep `^- \[ \]` 3 hits): L69 FR-06 `[deferred]` (C3 hit 미발동) + L80 FR-06 `[deferred]` (조건 미발동) + L83 NFR-03 (본문 `TSK-20260421-61 / 572009f — 단일 커밋 묶음, NFR-01 충족 범위 안쪽` 충족 박제됐으나 checkbox 미전환).
-#         **non-deferred unchecked = 1** (NFR-03 marker drift). FR-06 2건 `[deferred]` 토큰 박제됨.
-#         → **승격 불가**. NFR-03 checkbox 전환은 inspector marker-sync 영역 (planner writer 권한 외 — RULE-01 매트릭스). patch 후속 carve 불필요 — NFR-03 충족은 이미 TSK-61 단일 커밋 묶음으로 박제됨, marker 만 drift.
-#     - test-isolation-shuffle-safety-cold-start [hash 5a077e3e, prev d3cfd475]:
-#         [WIP]=0, To-Be=0, 변경 이력 = TSK-20260421-59 (B1' warm-up) ready 마커 박제 (실제 commit hash 는 TSK-59 완료 후 ack).
-#         unchecked = 12 — 그 중 1건 `[deferred]` (FR-07 File.test.jsx 별건 task 미발행), 2건 `[pending: TSK-...]` (FR-06 REQ-011 / FR-08·11·12·13 의 TSK-59 ready), non-deferred unchecked 8 (FR-03 옵션 B 대안 서술 / FR-04 Could 조건부 / FR-14 Should planner 수행 / FR-15 Could 발행 지침 / NFR-04 / NFR-06 / `npm run lint` / `npm test --run` NFR-02).
-#         → **승격 불가**. TSK-59 완료 후 patch 반영 PASS + inspector marker-sync 후 재평가.
-#     - logsingle-prod-server-serial-timeout-remediation [hash d532a085, prev 5cc1a5b0]:
-#         [WIP]=0, To-Be=0, 변경 이력 = TSK-20260421-60 (it-scoped timeout override) ready 마커 박제.
-#         unchecked = 12 — 그 중 1건 `[deferred]` (FR-08 인터프리테이션 — 본 spec 자체 박제 완료, blue 직접 편집 promotion 정책 위반), 4건 `[pending: TSK-20260421-60 ...]` (FR-01/02/03/07), 2건 `[pending: 조건부 — FR-02/04 미달 시]` (FR-04 B / FR-05 C), 나머지 5건 = 수용 기준 (Must FR-01/02/03/07 + Should FR-04/06 + Could FR-05/09 + NFR-01/02/03/05) 의 non-deferred unchecked.
-#         → **승격 불가**. TSK-60 완료 후 patch 반영 PASS + inspector marker-sync 후 재평가.
+#     - admin-gate-recovery-and-env-config [hash 4b35c6a9, 13차 이후 불변]:
+#         [WIP]=0 ✓, To-Be=0 ✓, 변경 이력 = TSK-20260421-61 / 572009f 박제 ✓.
+#         unchecked = 3 (grep `^- \[ \]` 3 hits): L69 FR-06 `[deferred: C3 hit 미발동]` + L80 FR-06 `[deferred: 조건 미발동]` + **L83 NFR-03 (non-deferred, 본문 박제됨 `TSK-20260421-61 / 572009f — 단일 커밋 묶음, NFR-01 충족 범위 안쪽` 이나 checkbox 미전환)**.
+#         **non-deferred unchecked = 1** (NFR-03 marker drift). FR-06 2건 `[deferred]` 토큰 박제.
+#         → **승격 불가**. NFR-03 checkbox 전환은 inspector marker-sync 영역 (RULE-01 writer 매트릭스: planner 는 green 내용 수정 금지). patch 후속 carve 불필요 — NFR-03 충족은 TSK-61 단일 커밋으로 이미 박제 완료.
+#     - test-isolation-shuffle-safety-cold-start [hash 5a077e3e, 13차 이후 불변]:
+#         [WIP]=0 ✓, To-Be=0 ✓, 변경 이력 = TSK-20260421-57 재진단 + TSK-20260421-59 carve 마커 박제 ✓ (실제 해소 commit 은 없음 — TSK-59 blocked / revisit close).
+#         unchecked = 11 — 그 중 2건 `[pending]` / `[deferred]` 토큰 명시 (FR-06 REQ-011 carve-out, FR-07 deferred), 나머지 9건 non-deferred unchecked (FR-03 Should 대안 서술 / FR-04 Could / FR-14 Should / FR-15 Could / NFR-04 / NFR-06 / `npm run lint` / `npm test --run` NFR-02 / FR-06 수용 기준 마커).
+#         → **승격 불가**. TSK-59 blocked 으로 본 green 의 해소 경로 재설계 필요 — `10.followups/20260421-0528-logsingle-remediation-spec-rescope-from-blocked.md` 와 `20.req/20260421-layer2-cold-start-b1prime-failure-fallback-reselection.md` 의 discovery → inspector 소비 후에 본 spec 의 FR-13 fallback 순서 재정의가 이뤄질 것.
 #
 #   carve 판정:
-#     본 사이클 carve 0 — 모든 green 의 patch 경로가 이미 (TSK-61 done) 또는 ready (TSK-59, TSK-60) 큐에 박제됨. 추가 carve 는 RULE-01 중복 발행 위험 (`grep -rn "TSK-..." specs/{40.task,60.done,50.blocked}/` 기존 ID 와 충돌 회피). 신규 후속 task 는 TSK-59/60 완료 후 spec re-evaluation 시점에 발행.
+#     본 사이클 carve 0 — TSK-59/60 blocked 결과 본 green 의 해소 경로가 **spec 재설계 대기** 상태 (B1' warm-up 이 determinstic fail). 재설계 권한은 inspector (green 편집) + discovery (followup→req). planner 가 단독으로 carve 하면 spec 의 fallback chain 과 충돌 + RULE-01 ID 중복 위험 (`grep -rn "TSK-..." specs/{40.task,60.done,50.blocked}/` 선검증 필요 — TSK-59 이미 blocked 로 박제).
+#     admin-gate 는 NFR-03 marker drift 단일 issue → patch 불필요, inspector marker-sync 대기.
 #     grep dry-run: **0/0 match** (carve 부재 — N/A).
 #
-#   stale 카운트 갱신 (13th cycle 기준):
-#     - 3개 green 모두 content sha256 변경 (inspector marker-sync `911d939` + TSK-61 PASS 반영) → stale_cycles 리셋 0.
-#       - test-isolation-shuffle-safety-cold-start: 2 → 0 (hash d3cfd475 → 5a077e3e)
-#       - logsingle-prod-server-serial-timeout-remediation: 2 → 0 (hash 5cc1a5b0 → d532a085)
-#       - admin-gate-recovery-and-env-config: 2 → 0 (hash 48022e44 → 4b35c6a9)
-#     - blocked/spec/ 이동 0건. stale ≥3 cycle 도달 항목 0.
+#   stale 카운트 갱신 (14th cycle 기준, 13차 hash 대비):
+#     - admin-gate-recovery-and-env-config: hash 불변 (4b35c6a9 → 4b35c6a9) → stale_cycles 0 → **1**.
+#     - test-isolation-shuffle-safety-cold-start: hash 불변 (5a077e3e → 5a077e3e) → stale_cycles 0 → **1**.
+#     - logsingle-prod-server-serial-timeout-remediation: operator ba20cce 로 `50.blocked/spec/` 이동 — ledger 에서 제거 (physical deletion 은 /revisit 경로).
+#     - blocked/spec/ 이동 0건 (본 planner 세션). stale ≥3 cycle 도달 항목 0.
 #
-#   blocked 신규: 0. `50.blocked/spec/` 빈 상태 유지. `50.blocked/task/` 빈 상태 유지.
+#   blocked 신규: 0. `50.blocked/spec/` 는 작업트리 deletion 상태 (operator/revisit 정리 중, planner 영역 외).
 #
-#   RULE-06 스코프 규칙 섹션:
-#     - 본 사이클 신규 task 0 → RULE-06 신규 게이트 작성 없음. 기존 ready 2건 (TSK-59/60) 의 스코프 규칙 섹션은 직전 사이클 (12th) 에 박제 완료, rewrite 금지 (RULE-01).
+#   RULE-06 스코프 규칙 섹션: 본 사이클 신규 task 0 → RULE-06 신규 게이트 작성 없음.
 #
 # ledger entries:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 5a077e3e539fdfdc4686e86de01b027d77c743753c97ad873782d20e28e100b6 0
-specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md d532a0852ce22eff4675f5b889f1624767c34e6f1c3cdc8b89704f8b22b7e2ef 0
-specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 4b35c6a9f2d3e47085c201e5942f425fd8e8f731ee62bf1b0848ca194ddaff43 0
+specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 4b35c6a9f2d3e47085c201e5942f425fd8e8f731ee62bf1b0848ca194ddaff43 1
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 5a077e3e539fdfdc4686e86de01b027d77c743753c97ad873782d20e28e100b6 1
 #
-# ready 큐 (본 사이클 +0): count=2, TASK_READY_MAX=10 여유 8.
-#   - `specs/40.task/20260421-layer2-cold-start-b1prime-warmup.md` (TSK-20260421-59)
-#   - `specs/40.task/20260421-logsingle-prod-server-timeout-it-scoped-override.md` (TSK-20260421-60)
-# next cycle (14th):
-#   - **developer**: TSK-59 / TSK-60 순차 소비. 각 task expansion=불허 준수.
-#   - **inspector**: developer 커밋 후 drift reconcile — green `[pending: TSK-59/60 ready 대기]` 마커를 PASS commit hash 로 marker-sync. admin-gate NFR-03 행 (L83) 의 checkbox `[ ]` → `[x]` marker drift 정정.
-#   - **planner (다음 사이클)**: TSK-59/60 완료 후 green 2종 재평가 — non-deferred unchecked 제거 여부 + 변경 이력 TSK 박제 여부 → 4조건 충족 시 승격. admin-gate 는 inspector NFR-03 marker drift 정정 후 재평가 (현 상태 non-deferred unchecked 1 = NFR-03 marker only).
-#   - **본 사이클 writer 영역 변경**: `.planner-seen` 갱신 1건만. `40.task/**` 변경 0, `30.spec/green/**` 이동 0, `30.spec/blue/**` 변경 0, `50.blocked/spec/` 변경 0. 커밋 scope = spec(planner) (no-op 사이클 ledger 갱신 — RULE-02 `{scope}({agent}): {요약}` 단일 커밋).
+# ready 큐 (본 사이클 +0): count=0, TASK_READY_MAX=10 여유 10.
+# next cycle (15th):
+#   - **inspector**: admin-gate L83 NFR-03 checkbox `[ ]` → `[x]` marker drift 정정 (본문은 이미 TSK-61 / 572009f 박제됨). `10.followups/` 소비 후 test-isolation 은 `20.req/` 경유 discovery 재작업 (spec re-scope, FR-13 fallback 재정의 반영).
+#   - **planner (15th)**: admin-gate — inspector marker-sync 후 NFR-03 0 non-deferred unchecked 확인 시 green→blue 승격. test-isolation — inspector 의 FR-13 재정의 후 신규 TSK carve.
+#   - **본 사이클 writer 영역 변경**: `.planner-seen` 갱신 1건만. `40.task/**` 변경 0, `30.spec/green/**` 이동 0, `30.spec/blue/**` 변경 0, `50.blocked/spec/` 변경 0. 커밋 scope = `spec(planner):` (ledger 갱신 no-op 사이클, RULE-02 단일 커밋).
