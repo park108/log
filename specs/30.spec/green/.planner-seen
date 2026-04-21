@@ -1,122 +1,88 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-22T15:30Z (34th cycle) — 1 promotion + 1 blocked + 1 carve.
+# Updated: 2026-04-22T16:00Z (35th cycle) — 1 promotion + 0 blocked + 0 carve (green drained).
 # Session summary:
-#   HEAD (세션 시작) = f3d53f2 (`spec(planner): no-op (33rd cycle) — coverage-determinism stale=3 유보 (파이프라인 active)`).
-#   **HEAD (세션 중반 진전)** = 80ee2ae (`spec(inspector): Phase 1 reconcile 0/0 ack + Phase 3 REQ-20260421-043 흡수 (coverage-determinism FR-02 (g) pool/worker 병행성 축)`) — inspector 세션이 본 planner 세션과 병행 진행하여 REQ-043 흡수 편집을 HEAD index 에 커밋. planner 는 본 전환을 세션 중반에 재감지하여 cov-det 재평가 + carve 결단.
-#   직전 ledger HEAD=1414eae. 그 사이 커밋 체인 (git log --oneline):
-#     1414eae (a11y M7/M8 Comment) → 1a74079 (inspector Phase 1 reconcile 1/1 ack TSK-88 REQ-042 FR-01 render-budget margin 수렴) → f3d53f2 (planner 33rd cycle no-op) → 80ee2ae (inspector REQ-043 흡수 — FR-02 (g) pool/worker 병행성 축 추가).
-#   33rd 이후 진척:
-#     (a) inspector 1a74079 가 `components/log.md` TSK-88 ack marker 플립을 HEAD index 에 커밋.
-#     (b) planner 33rd cycle (f3d53f2) 자가 ledger-only no-op 커밋.
-#     (c) **inspector 80ee2ae 가 `foundation/coverage-determinism.md` 에 REQ-043 흡수 커밋** — FR-02 에 (g) 테스트 pool/worker 병행성 제어 축 1항 추가 + §스코프 규칙 (c) 에 TSK-87 baseline 감사 픽스처 pointer 박제 + 변경 이력 엔트리 추가 + 관련 요구사항 라인 REQ-043 추가 + 최종 업데이트 갱신.
-#   `40.task/` 잔존 (본 세션 시작 시): **0 건**. TASK_READY_MAX=10 여유 10.
-#   working tree (본 세션 시작 시):
-#     M specs/30.spec/green/foundation/coverage-determinism.md (inspector REQ-043 흡수 편집 in-progress). 세션 중반 inspector 커밋 완료로 working tree clean 상태 전환.
-#     staged: 0. 자기 영역 밖 staged 없음 → unstage 불요.
-#   본 세션 입력 (green, HEAD=80ee2ae 기준 최종): 3 spec files (중반까지) → 2 spec files (promote/block 후):
-#     (1) `common/error-reporter-channel.md` — HEAD hash=5aca42135818c028299704b15e41f6794ed5fa90ea2cb9a5eda3ba4ea8107612 (세션 시작 기준).
-#         직전 ledger hash=5aca4213.. — **불변**. stale 2→**3** (격리 기준 도달). → **blocked mv 진행**.
-#     (2) `foundation/coverage-determinism.md` — HEAD hash (f3d53f2 기준) = 47062dd8.. — 직전 ledger hash 불변. 세션 중반 inspector 80ee2ae 커밋으로 **hash 변경** → `git show 80ee2ae:...|sha256sum` = **66bfe606390bc12104b52dd52dcea78578cd7ab1347c7f7363e7cfc3a6274f68**. stale 3→**0** (hash 변경 리셋). FR-02 (g) 축 박제 완료 → **carve 조건 성숙**. → **carve 1건 발행** (TSK-20260421-89).
-#     (3) `components/log.md` — HEAD hash (f3d53f2 기준) = inspector 1a74079 ack 반영값.
-#         HEAD 기준 unchecked=0, WIP=0, To-Be=0, 변경 이력 박제 완료. → **승격 mv 완료**.
+#   HEAD (세션 시작) = d8baf59 (`spec(inspector): Phase 1 reconcile 1/1 ack (TSK-89 coverage-determinism FR-02 (g-2) fileParallelism false 수렴)`).
+#   직전 ledger HEAD=80ee2ae. 그 사이 커밋 체인:
+#     80ee2ae (inspector REQ-043 흡수) → 97f1808 (planner 34th cycle: promote log + block erc + carve TSK-89) → e290e8c (developer: chore: coverage 측정 결정론 수단 (g-2) fileParallelism false 박제) → d8baf59 (inspector Phase 1 reconcile 1/1 ack TSK-89 — §테스트 현황 2건 [ ]→[x] 플립 + §변경 이력 엔트리 박제).
+#   34th cycle 이후 파이프라인 진행 (planner 관점):
+#     (a) planner 34th 카브 TSK-20260421-89 발행.
+#     (b) developer e290e8c 수행 (수단 (g-2) `vite.config.js` `test.fileParallelism: false` 1행 박제) + TSK 파일 60.done/task/ 로 mv.
+#     (c) inspector d8baf59 Phase 1 reconcile 1/1 ack — `foundation/coverage-determinism.md` §테스트 현황 FR-01/FR-02 플립 [x] + §변경 이력 엔트리 박제.
+#   `40.task/` 잔존 (본 세션 시작 시): **0 건** (TSK-89 60.done mv 완료). TASK_READY_MAX=10 여유 10.
+#   working tree (본 세션 시작 시): clean. staged: 0.
+#
+#   본 세션 입력 (green, HEAD=d8baf59 기준): 1 spec file:
+#     (1) `foundation/coverage-determinism.md` — HEAD 기준 unchecked=0, WIP=0, To-Be=0, deferred=0, §변경 이력에 TSK-20260421-89 @e290e8c 박제 완료 (4조건 전부 충족).
+#         → **승격 조건 만족**: `mv green/foundation/coverage-determinism.md → blue/foundation/coverage-determinism.md`. blue 측 동명 파일 부재 (첫 등록).
 #
 #   RULE-03 선결 점검 (순서 고정):
 #     (1) pause lock: `.claude/locks/` 부재 — 통과.
 #     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
-#     (3) 입력 큐: 3 HEAD green specs — 통과.
-#     (4) 하류 임계치: `40.task/` = 0 (carve 1 후 = 1, 여유 9). `TASK_READY_MAX=10` — 통과.
+#     (3) 입력 큐: 1 HEAD green spec — 통과.
+#     (4) 하류 임계치: `40.task/` = 0 → 0 (carve 0). 여유 10. 통과.
 #     (5) 처리 진입.
 #
-#   각 green spec 승격/carve 판정 (HEAD=80ee2ae 최종 기준):
-#     - `components/log.md`:
-#         unchecked: **0** (§테스트 현황 5행 + §수용 기준 11행 전원 [x]).
-#         WIP: 0. To-Be: 0. 변경 이력: TSK-63 shuffle / TSK-65 render budget / REQ-042 흡수 @a2b9119 / TSK-88 ack @c563025 박제 완료.
-#         → **승격**: `mv green/components/log.md → blue/components/log.md` (기존 blue 덮어쓰기; green 최신 — REQ-042 흡수 + TSK-88 ack 반영).
-#     - `common/error-reporter-channel.md` (stale 2→3):
-#         unchecked: 1 (L213 FR-06 — blue `components/common.md` §에러 처리 절 상호참조 1~2 문장 추가).
-#         구조적 blocker: blue 편집 writer 매트릭스 순환 불가 (planner mv only + inspector green only).
-#         stale=3 + `a11y.md` 선례 (31st cycle 격리) 일관성 → **격리**: `mv green/common/error-reporter-channel.md → 50.blocked/spec/common/error-reporter-channel.md` + `_reason.md` 신설.
-#     - `foundation/coverage-determinism.md` (HEAD hash 변경, stale 3→0):
-#         unchecked: 2 (§테스트 현황 FR-01 / FR-02). FR-02 수단 집합에 (g) 축 박제 완료 (inspector 80ee2ae).
-#         carve 조건 재평가: (α) (g) 축 spec 박제 완료 → 수단 중립성 FR-05 준수 상태에서 task 수단 택일 정당화, (β) TSK-20260421-87 baseline 감사 픽스처 확보 (`--no-file-parallelism` N=7/7 range 0.00 exit 0 수렴 실측), (γ) grep baseline 실측 0 hits (vite.config.js 에 pool/worker 축 미설정) → 변동 폭 명확.
-#         → **carve 1건**: TSK-20260421-89 (coverage-determinism pool/parallelism convergence; depends_on [TSK-20260421-87]).
+#   승격 판정 (HEAD=d8baf59):
+#     - `foundation/coverage-determinism.md`:
+#         unchecked: **0** (§테스트 현황 2행 + §수용 기준 11행 전원 [x]).
+#         WIP: 0. To-Be: 0. deferred: 0. 변경 이력: TSK-20260421-89 @e290e8c 박제 완료.
+#         → **승격**: `mv green/foundation/coverage-determinism.md → blue/foundation/coverage-determinism.md`.
 #
-#   carve 발생: **1건** — TSK-20260421-89 (FR-02 (g) 수단 택1 적용 → FR-01 수렴).
-#   carve ID 중복 검증: `grep -rn "TSK-20260421-89"` 결과 본 task 1 파일만 hit. 유일성 확인.
-#   supersedes: 없음 (신규 carve, 기존 task 분할 아님).
+#   carve 발생: **0건**. 승격 후 green 전체 drained (hidden ledger `.inspector-seen` / `.planner-seen` 만 잔존). carve 대상 spec 부재.
 #
-#   grep dry-run (TSK-89 §스코프 규칙 grep-baseline 5개 실측):
-#     (1) `grep -nE "(fileParallelism|singleFork|singleThread|pool\s*:|maxWorkers|poolOptions)" vite.config.js` → 기대 0 / 실측 **0** (rc=1, no matches).
-#     (2) `grep -nE "\-\-no-file-parallelism" package.json` → 기대 0 / 실측 **0** (rc=1).
-#     (3) `grep -n "\"test\":" package.json` → 기대 1 / 실측 **1** @L21.
-#     (4) `grep -nE "testTimeout" vite.config.js` → 기대 1 (value 필드만) / 실측 **3** (주석 L72/L73 + 값 L75). drift 감지 → task 박제 정정 (주석 2 + 값 필드 1 명시 + 주석 제외 계산법 명시). RULE-06 grep-count 권고 준수.
-#     (5) `grep -nE "REQ-20260421-041|REQ-20260421-043" vite.config.js package.json` → 기대 0 / 실측 **0** (rc=1).
-#     총 **5/5 match (drift fixed on #4)**.
+#   승격 mv: **1건** (`green/foundation/coverage-determinism.md → blue/foundation/coverage-determinism.md`).
+#   blocked mv: **0건**.
 #
-#   승격 mv: **1건** (`green/components/log.md → blue/components/log.md`).
-#   blocked mv: **1건** (`green/common/error-reporter-channel.md → 50.blocked/spec/common/error-reporter-channel.md` + `_reason.md` 신설).
-#   carve: **1건** (TSK-20260421-89).
+#   grep dry-run: **N/A** — 본 cycle 은 carve 0 (grep 게이트 박제 대상 없음).
 #
 #   RULE-01 점검:
-#     - 본 세션 변경 = (a) log.md mv green→blue, (b) erc.md mv green→50.blocked/spec/common/, (c) erc_reason.md 신설, (d) TSK-89 신설, (e) .planner-seen edit.
-#     - planner writer 영역 준수 (30.spec/green→blue mv + 30.spec→50.blocked/spec mv + 50.blocked/spec/**_reason.md 신설 + 40.task/ 신설 + ledger).
+#     - 본 세션 변경 = (a) coverage-determinism.md mv green→blue, (b) .planner-seen edit.
+#     - planner writer 영역 준수 (30.spec/green→blue mv + ledger).
 #     - 이동 원자성: mkdir -p → mv 순.
-#     - Task ID: TSK-20260421-89 — 생성 직전 grep 중복 검증 통과 (본 task 1 파일만 hit).
 #   RULE-02 점검:
 #     - staged 자기 영역 밖 없음 — unstage 불요.
-#     - working tree clean (inspector 80ee2ae 커밋으로 M 해소됨).
-#     - 커밋 scope = `spec(planner): promote log.md green→blue + block erc.md FR-06 + carve TSK-89 coverage-determinism (g)`.
+#     - working tree clean.
+#     - 커밋 scope = `spec(planner): promote foundation/coverage-determinism green→blue (35th cycle)`.
 #   RULE-04 점검:
-#     - 보고 notes: `grep dry-run: 5/5 match (drift fixed)` + `carve: TSK-20260421-89 (new; depends_on TSK-87)` + `promote: 1` + `blocked: 1`.
-#   RULE-05 점검:
-#     - erc.md `_reason.md` 작성 — 운영자 `/revisit` 입력 큐 진입. revive 권장 경로 박제.
+#     - 보고 notes: `promote: 1` + `carve: 0` + `blocked: 0` + `grep dry-run: N/A (no carve)`.
 #   RULE-06 점검:
-#     - TSK-89 `## 스코프 규칙` 섹션 필수 (grep 게이트 5개 포함) — 박제 완료. expansion: 불허. grep-baseline 5건 실측 박제. rationale 박제. RULE-06 grep-count 권고 (주석 제외 계산법 명시) 준수.
+#     - 본 cycle carve 0 → `## 스코프 규칙` 섹션 추가 대상 없음.
 #   RULE-07 점검:
-#     - spec 콘텐츠 미터치 — 본 cycle planner 증분은 mv + ledger + _reason.md + TSK.
-#     - promoted log.md / blocked erc.md / green cov-det 본문 모두 시스템 불변식 (RULE-07 정합).
-#     - TSK-89 본문은 수단 적용 지시 (spec 의 FR-02 (g) 축 소비) — 1 PR 크기·독립 롤백 가능·수단 중립 표현 (FR-05 준수).
+#     - spec 콘텐츠 미터치 — mv 만.
+#     - promoted coverage-determinism.md 본문은 시스템 불변식 (측정 결정론 + 수단 허용 집합 a~g + precondition 관계 + 수단 중립성 + 버전 무관성 + 축 분리). RULE-07 정합.
 #
 #   **운영 관찰**:
-#     - `components/log.md` blue 승격 완료 — REQ-020/027/030/042 4 REQ blue 박제.
-#     - `common/error-reporter-channel.md` 격리 완료 — `a11y.md` 선례 두 번째 "Should 등급 FR-xx blue 상호참조" 구조적 blocker. 두 건 /revisit → 10.followups → discovery → inspector 순환 해소 대기.
-#     - `foundation/coverage-determinism.md` — carve TSK-89 발행. developer 수행 후 inspector Phase 1 reconcile ack → §테스트 현황 / §수용 기준 marker 플립 → planner 승격 경로. TSK-89 완결 후 cov-det unchecked=0 도달 전망.
-#     - 다음 planner cycle 은 (i) TSK-89 완결 후 cov-det 승격 + blue 잔존 spec 재점검 중심.
+#     - `foundation/coverage-determinism.md` blue 승격 완료 — REQ-20260421-041 + REQ-20260421-043 2 REQ blue 박제.
+#     - 본 cycle 종료 시점 파이프라인:
+#       - `10.followups/`: (별도 집계, discovery 입력 큐) — 본 planner 관심 밖.
+#       - `20.req/`: (별도 집계, inspector 입력 큐).
+#       - `30.spec/green/**`: **비어있음** (hidden ledger 제외). inspector 다음 cycle 에 신규 req 흡수 시 재생성.
+#       - `30.spec/blue/**`: 14 files (components 9 + foundation 5 + common 1 — common/test-idioms).
+#       - `40.task/`: 0 건. 여유 10.
+#       - `50.blocked/spec/common/`: 2 건 (`a11y.md` + `error-reporter-channel.md`, 둘 다 구조적 blocker, /revisit 대기).
+#     - 다음 planner cycle 은 inspector 가 새 green 을 생성할 때까지 no-op 예상.
 #
-#   **파이프라인 상태 (34th cycle 종료 시)**:
-#     - green (잔존 1건): `foundation/coverage-determinism.md` (stale=0 리셋, carve TSK-89 대기).
-#     - blue 신규 승격: `components/log.md`.
+#   **파이프라인 상태 (35th cycle 종료 시)**:
+#     - green (잔존 0건): 완전 drain.
+#     - blue 신규 승격: `foundation/coverage-determinism.md`.
 #     - 50.blocked/spec/ (잔존 2건): `common/a11y.md` (31st cycle) + `common/error-reporter-channel.md` (34th cycle).
-#     - 40.task/: 1건 (TSK-20260421-89, 여유 9).
+#     - 40.task/: 0 건.
 #
-# ledger entries (잔존 green):
-specs/30.spec/green/foundation/coverage-determinism.md 66bfe606390bc12104b52dd52dcea78578cd7ab1347c7f7363e7cfc3a6274f68 0  # 34th cycle — HEAD hash 변경 (inspector 80ee2ae REQ-043 흡수 커밋으로 FR-02 (g) pool/worker 병행성 제어 축 1항 추가 + §스코프 규칙 (c) TSK-87 baseline pointer + 변경 이력 엔트리). stale 3→0 (hash 변경 리셋). 본 cycle carve TSK-89 발행 — (g) 수단 (g-1~g-4 택일) 적용 FR-01 수렴 경로. developer 수행 → inspector ack → planner 승격 경로 기대.
+# ledger entries (잔존 green): 없음 (green 완전 drained).
 #
 # promoted (→ 30.spec/blue/):
-# - 34th cycle: `components/log.md` (unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK-63/65/88 + REQ-042 흡수 박제 완료). HEAD=f3d53f2 기준 판정. mv 완료. 기존 blue 덮어쓰기 (green 이 REQ-042 흡수 + TSK-88 ack 반영으로 최신).
+# - 35th cycle: `foundation/coverage-determinism.md` (unchecked=0, WIP=0, To-Be=0, deferred=0, §변경 이력에 TSK-89 @e290e8c + REQ-043 흡수 + REQ-041 최초등록 박제). HEAD=d8baf59 기준 판정. mv 완료. blue 신규 등록.
+# - 34th cycle: `components/log.md`.
 #
 # blocked (→ 50.blocked/spec/):
-# - 34th cycle: `common/error-reporter-channel.md` + `_reason.md` — FR-06 "blue 승격 시 추가" 조건부 요구, writer 매트릭스 구조적 blocker (a11y.md 동형). stale=3 도달. RULE-05 /revisit 입력 큐 진입.
+# - 34th cycle: `common/error-reporter-channel.md` + `_reason.md` — FR-06 writer 매트릭스 구조적 blocker.
+# - 31st cycle: `common/a11y.md` + `_reason.md` — FR-07 writer 매트릭스 구조적 blocker.
 #
-# carves (→ 40.task/):
-# - 34th cycle: TSK-20260421-89 `coverage-determinism-pool-parallelism-convergence.md`
-#   - 근거 spec: `specs/30.spec/green/foundation/coverage-determinism.md` §불변식 FR-02 (g) + §테스트 현황 + §수용 기준.
-#   - depends_on: [TSK-20260421-87] (baseline 감사 픽스처 근거).
-#   - supersedes: 없음.
-#   - 수단 중립: (g-1) CLI 플래그 (package.json) / (g-2) fileParallelism:false (vite.config.js) / (g-3) poolOptions.forks.singleFork:true (vite.config.js) / (g-4) maxWorkers:1 또는 pool:'threads'+singleThread (vite.config.js). developer 실측 후 택일.
-#   - expansion: 불허. 편집 1 파일 원칙 (package.json 또는 vite.config.js).
-#   - DoD 핵심: N=5 run 4축 수치 range 0.00 전수, exit code 5/5=0, coverage threshold 4축 PASS, LogSingle render-budget margin 보존.
-#   - grep dry-run: 5/5 match (drift fixed on #4 testTimeout hit count 정정).
+# carves (→ 40.task/): 본 cycle 0건. 직전 34th cycle TSK-20260421-89 는 developer e290e8c / inspector d8baf59 ack 경로로 60.done 완결.
 #
-# ready 큐: count=1 (TSK-20260421-89, 여유 9; TASK_READY_MAX=10).
-# next cycle (35th+):
-#   - **developer (15m)**:
-#       (a) TSK-20260421-89 수행. 수단 택일 (g-1~g-4) + N=5 run 픽스처 박제 + 회귀 0 확인.
-#   - **inspector (30m)**:
-#       (a) TSK-89 완결 result.md 감지 → Phase 1 reconcile ack → `foundation/coverage-determinism.md` §테스트 현황 L87/L88 [ ]→[x] 플립 + §변경 이력 엔트리 추가.
-#       (b) 잔존 20.req 처리 (현 큐 상태 재확인).
-#   - **discovery (1h)**:
-#       (i) a11y.md / error-reporter-channel.md `_reason.md` `/revisit` 시 "blue components §접근성 / §에러 처리 상호참조 추가 req" 신설 (운영자 판정).
-#   - **planner (35th+)**:
-#       (i) TSK-89 완결 + inspector ack 후 cov-det 4조건 충족 시 blue 승격 (`mv green/foundation/coverage-determinism.md → blue/foundation/coverage-determinism.md`).
-#       (ii) 신규 green carry-over 감지 시 carve/격리 판정.
+# ready 큐: count=0. next cycle 진입시 inspector 가 새 green spec 생성할 때까지 planner no-op 예상.
+# next cycle (36th+):
+#   - **inspector (30m)**: 새 req 있으면 Phase 3 흡수 → green 생성. Phase 1 reconcile 지속 (`reconcile: N/M ack` 매 세션 필수).
+#   - **discovery (1h)**: 10.followups 소비 + 2건 `_reason.md` `/revisit` 경로 감지 시 req 신설 (운영자 판정 대기).
+#   - **planner (36th+)**: green 재생성 감지 시 carve/승격/blocked 판정. 없으면 no-op.
+#   - **developer (15m)**: 40.task/ 비어있음 → no-op 예상.
