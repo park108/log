@@ -1,87 +1,71 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=5adc828, pre-commit)
-# Phase 1 ack this session: 10/13 ack (ci-node20 Must 6/7 + Should 1/1 + NFR 4/6 via TSK-56/5adc828).
-# ci-node20 FR-06 / NFR-02 / NFR-04 3건은 CI run 24701522811 의 LogSingle.test.jsx:56 timeout 로 deferred 태깅 (TSK-58 완료 후 재실측).
-# 타 4 spec 은 TSK-57 / TSK-58 40.task ready 단계, ack 0건 (WIP 불변).
+# Updated: 2026-04-21T (HEAD=2c62821, pre-commit)
+# Phase 1 ack this session: 0/13 ack. 모든 WIP marker 불변 (src drift 0건, 이전 세션 이후 developer 신규 커밋 0).
+# 이전 세션 ack (10/13 ci-node20 via TSK-56/5adc828) 은 1514531 에서 박제됨. 본 세션에서는 추가 ack 없음.
 #
 # Phase 1 historical context (reference only):
-#   - 직전 inspector 세션 HEAD=e1a9bef → 현 HEAD=5adc828 (planner 1건 98ca5b8 TSK-56/57/58 carve; developer 1건 5adc828 TSK-56 소비).
-#   - TSK-20260421-56 (ci-node20 actions v4→v6 + node-version 20→24) developer 소비 완료 — `60.done/2026/04/21/task/20260421-ci-node20-deprecation-remediation/result.md` 박제.
-#   - 40.task/ (planner writer area) 2건 대기: `20260421-layer2-cold-start-root-cause-rediagnosis.md` (TSK-57), `20260421-logsingle-prod-server-serial-timeout-diagnosis.md` (TSK-58).
+#   - 직전 inspector 세션 HEAD=5adc828 → 현 HEAD=2c62821 (차이: 1514531 inspector reconcile 커밋 + 2c62821 planner promote 커밋).
+#   - planner 는 ci-node20 green→blue 승격 수행 (2c62821) — 본 세션 inspector 관점에서 green 5건 → 4건으로 축소됨.
+#     * 승격 근거: unchecked 4건 전부 [deferred: TSK-58 완료 후 재실측] 태깅 → [WIP]/To-Be/non-deferred 0 조건 충족.
+#   - developer 활동: 0건 (e1a9bef 이후 src 변경 없음). git diff --stat e1a9bef..HEAD -- src = empty.
+#   - 40.task/ 상태: `20260421-logsingle-prod-server-serial-timeout-diagnosis.md` 1건 ready (TSK-58).
+#     * TSK-57 (layer2-rediagnosis) task 파일은 60.done/.../20260421-layer2-cold-start-root-cause-rediagnosis/ 로 이동된 상태이나 result.md 부재 — developer 미완료. 본 ledger 는 src/green 기준 reconcile 만 수행, 40.task/60.done 파일 시스템 상태는 planner/operator 관할.
 #   - 50.blocked/** 현 상태: 전부 0건.
 #   - 20.req/ 입력: 0건.
 #
-# Phase 1 detail this session (drift reconcile + marker flip, HEAD=5adc828):
+# Phase 1 detail this session (drift reconcile, HEAD=2c62821):
 #
-#   [1] foundation/ci-node20-deprecation-remediation-spec.md:
-#       * TSK-20260421-56 / 5adc828 ack via `60.done/task/.../result.md` + grep 게이트 현 HEAD 재실행:
-#         - `grep -n "actions/checkout@v4" .github/workflows/ci.yml` = 0 hits (요구 0, PASS).
-#         - `grep -n "actions/setup-node@v4" .github/workflows/ci.yml` = 0 hits (요구 0, PASS).
-#         - `grep -n "node-version: '20'" .github/workflows/ci.yml` = 0 hits (요구 0, PASS).
-#         - `grep -n "actions/checkout@v6" .github/workflows/ci.yml` = 1 hit at :16 (요구 1, PASS).
-#         - `grep -n "actions/setup-node@v6" .github/workflows/ci.yml` = 1 hit at :19 (요구 1, PASS).
-#         - `grep -n "node-version: '24'" .github/workflows/ci.yml` = 1 hit at :21 (요구 1, PASS).
-#         - `git diff --stat 1bbdbb0 5adc828 -- .github/workflows/ci.yml` = 1 file / 3 insertions / 3 deletions (요구 일치, PASS).
-#         - `git diff 1bbdbb0 HEAD -- package.json package-lock.json` = 비어있음 (요구 변경 0, PASS).
-#       * hook-ack: result.md 에 로컬 `npm run lint` 0 warn/error, `npm test -- --run` 47 files / 375 tests pass, `npm run build` OK 박제. CI run 24701522811 deprecation annotation 0건 (FR-05 달성). 커밋 5adc828 은 HEAD 의 조상 — ack 조건 충족.
-#       * 플립 대상: §테스트 현황 FR-01/02/03 diff-stat + FR-05 annotation 0 + FR-07 package 불변 3건. §수용 기준 Must FR-01/02/03/04/05/07 + Should FR-08 + NFR-01/03/05/06 = 10건 [x] flip.
-#       * 플립 제외 (deferred): FR-06 / NFR-02 / NFR-04 3건 — CI run 24701522811 에서 `LogSingle.test.jsx:56` 5016ms timeout 1건 fail (Node 24 러너에서도 재현). §FR-08 경로로 TSK-58 이관됨, 재실측은 TSK-58 완료 후. §테스트 현황 L56 도 동일 사유로 deferred 태깅.
-#       * 변경 이력 1행 박제 (TSK-56 / 5adc828 drift reconcile ack).
-#       * hash 변동: 4fa77433 -> 1ae7dd90. [x] flip 10건 ack + 3건 deferred 태깅.
-#       * stale_cycles: 0 -> 0 (ack 반영).
-#
-#   [2] common/msw-test-sibling-it-shuffle-race-dedicated-spec.md:
-#       * HEAD 변동 (e1a9bef->5adc828) 중 `src/test-utils/msw.test.js` drift 0 — 변경 파일 없음.
-#       * WIP 전원 불변 (NFR-04 TSK-53 머지 대기 1건).
+#   [1] common/msw-test-sibling-it-shuffle-race-dedicated-spec.md:
+#       * HEAD 변동 (5adc828->2c62821) 중 src 변경 0 — `src/test-utils/msw.test.js`, `src/test-utils/msw.js` 불변.
+#       * WIP 전원 불변 (NFR-04 TSK-53 머지 대기 1건, `[pending: TSK-20260421-53 실측 대기]`).
 #       * ack 근거 없음 — hash 불변, marker 불변.
 #       * hash 유지: 08f3554a (변동 0).
-#       * stale_cycles: 0 -> 1 (WIP 불변 + ack 0 -> stale +1).
-#
-#   [3] common/test-isolation-shuffle-safety-cold-start-spec.md:
-#       * HEAD 변동 중 `src/Log/LogItem.test.jsx` / `src/Log/hooks/useDeleteLog.js` / `src/test-utils/msw.js` 변경 0.
-#       * WIP 전원 불변 (TSK-53 발행 중단 + TSK-57 layer2-rediagnosis 결과 의존).
-#       * ack 근거 없음.
-#       * hash 유지: bea52063 (변동 0).
 #       * stale_cycles: 1 -> 2 (WIP 불변 + ack 0 -> stale +1).
 #
-#   [4] common/layer2-cold-start-race-root-cause-rediagnosis-spec.md:
-#       * 신규 spec (직전 세션 등록). TSK-57 이 40.task/ 대기 단계 — developer 미소비.
-#       * WIP 불변, ack 0.
-#       * hash 유지: 5b96d7c0 (변동 0).
-#       * stale_cycles: 0 -> 1.
+#   [2] common/test-isolation-shuffle-safety-cold-start-spec.md:
+#       * HEAD 변동 중 `src/Log/LogItem.test.jsx` / `src/Log/hooks/useDeleteLog.js` / `src/test-utils/msw.js` 변경 0.
+#       * WIP 전원 불변 (FR-06/07/08/11/12/13 각 [pending: TSK-53/55 ...] 또는 [deferred]).
+#       * ack 근거 없음 — TSK-53 (Layer 2 B3) 여전히 발행 중단, TSK-57 layer2-rediagnosis 미완료.
+#       * hash 유지: bea52063 (변동 0).
+#       * stale_cycles: 2 -> 3 (WIP 불변 + ack 0 -> stale +1). **>=3 stale 경고 기준 도달.**
 #
-#   [5] common/logsingle-prod-server-serial-timeout-diagnosis-spec.md:
-#       * 신규 spec. TSK-58 이 40.task/ 대기 단계 — developer 미소비.
-#       * 단, CI run 24701522811 에서 본 spec §FR-08 근거 (Node 24 러너 재현) 보강 가능한 관찰 데이터 존재 — 현재 수용 기준 marker 는 수치 박제 요구이므로 TSK-58 실측 전 flip 불가.
-#       * WIP 불변, ack 0.
+#   [3] common/layer2-cold-start-race-root-cause-rediagnosis-spec.md:
+#       * WIP 불변 (FR-01/02/03/04/05 Must/Should + NFR-02 모두 unchecked).
+#       * TSK-57 관련 — 40.task/ 에서 60.done/ 로 이동된 파일 관찰되나 developer commit + result.md 없음. src 변경 0 → ack 불가.
+#       * hash 유지: 5b96d7c0 (변동 0).
+#       * stale_cycles: 1 -> 2.
+#
+#   [4] common/logsingle-prod-server-serial-timeout-diagnosis-spec.md:
+#       * WIP 불변. TSK-58 이 40.task/ 에서 ready 대기 중 — developer 미소비.
 #       * hash 유지: edade207 (변동 0).
-#       * stale_cycles: 0 -> 1.
+#       * stale_cycles: 1 -> 2.
 #
 # Phase 2 this session:
-#   - ci-node20 spec 의 FR-06 / NFR-02 / NFR-04 + §테스트 현황 L56 에 `[deferred: TSK-58 ...]` 태깅 신규 추가 (3건 marker + §테스트 현황 1건). 사유: CI run 24701522811 LogSingle flake 는 §FR-08 경로로 TSK-58 에 이관 — 본 spec 관할 밖.
+#   - ci-node20 spec 은 2c62821 에서 green→blue 승격 완료 — 본 세션 inspector 관할 밖.
+#   - 4개 남은 green spec 의 `[deferred:...]` / `[pending:...]` 태깅은 기존 세션에서 이미 박제. 신규 전환 없음.
 #   - 300줄 초과 spec 없음 (max 143 in shuffle-safety-cold-start).
 #
 # Phase 3 this session: 0건 (20.req/ 비어있음).
 #   - input queue: 0건.
-#   - downstream threshold GREEN_PENDING_MAX=20, 현 green 5 < 20.
-#   - 신규 spec 생성 없음. 기존 1 spec 갱신 (ci-node20).
+#   - downstream threshold GREEN_PENDING_MAX=20, 현 green 4 < 20. 여유 16.
 #
 # 현 ledger:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 2
-specs/30.spec/green/common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 08f3554a13eda228af4d1ddfd8a6e063b990c3c2ab5cbd0492ee1eafd7d9cdc1 1
-specs/30.spec/green/common/layer2-cold-start-race-root-cause-rediagnosis-spec.md 5b96d7c0e87f8e0706ae6f805c16e4fc0f69fd0754c8be2b75cdaf98876ae992 1
-specs/30.spec/green/common/logsingle-prod-server-serial-timeout-diagnosis-spec.md edade2075561a70a7f616e9220b87635735444bd21245931828b67d14c9c54f9 1
-specs/30.spec/green/foundation/ci-node20-deprecation-remediation-spec.md 1ae7dd90e7ee09569bf333bf3b97714f0f427b73f133d1a4e59be4e4370f9330 0
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 3
+specs/30.spec/green/common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 08f3554a13eda228af4d1ddfd8a6e063b990c3c2ab5cbd0492ee1eafd7d9cdc1 2
+specs/30.spec/green/common/layer2-cold-start-race-root-cause-rediagnosis-spec.md 5b96d7c0e87f8e0706ae6f805c16e4fc0f69fd0754c8be2b75cdaf98876ae992 2
+specs/30.spec/green/common/logsingle-prod-server-serial-timeout-diagnosis-spec.md edade2075561a70a7f616e9220b87635735444bd21245931828b67d14c9c54f9 2
 #
 # Stale 경고:
-#   - test-isolation-shuffle-safety-cold-start stale=2 (< 3 임계, 경고 없음). Layer 2 해소는 TSK-57 layer2-rediagnosis 결과 의존.
-#   - msw-sibling-it-shuffle-race-dedicated stale=1 (< 3 임계). NFR-04 만 TSK-53/57 머지 대기.
-#   - 신규 2건 (layer2-rediagnosis, logsingle-prod-timeout) stale=1 (첫 홀드 사이클). TSK-57/58 소비 대기.
-#   - ci-node20 stale=0 (ack 10/13 반영).
+#   - **test-isolation-shuffle-safety-cold-start stale=3 — RULE-04 `reconcile: N/M ack (K stale >=3cycle)` 토큰 부착 대상.**
+#     경로: FR-06 (TSK-55 merged, 원본 spec marker 전환 완료지만 §테스트 현황 L97 여전히 pending 표기), FR-07 (별건 task 미발행), FR-08/11/12/13 (TSK-53 발행 중단 + TSK-57 layer2-rediagnosis 미완료 — TSK-57 완료 시 B3 폐기 및 신 fallback 재확정 예상).
+#     planner/operator 검토 필요: TSK-53 재carve 또는 supersede 명시 (TSK-57 결과 반영 후).
+#   - msw-sibling stale=2 (< 3). NFR-04 만 TSK-53 머지 대기. TSK-57 결과에 따라 B3 대체 시 NFR-04 재정의 필요.
+#   - layer2-rediagnosis stale=2 (< 3). TSK-57 developer 미완료.
+#   - logsingle-prod-timeout stale=2 (< 3). TSK-58 ready 대기.
 #
 # 다음 세션 유의:
-#   - TSK-57 / TSK-58 는 planner 의 40.task/ 에 대기 중. developer 소비 후 각 spec 의 [deferred: ...] 태깅이 해소 가능.
-#     * TSK-58 완료 시 ci-node20 FR-06 / NFR-02 / NFR-04 재실측 수행 — CI 재run 후 ack.
-#     * TSK-57 완료 시 shuffle-safety-cold-start §FR-13 fallback 재평가 + msw-sibling NFR-04 경로 재확인 가능.
-#   - TSK-20260421-53 (Layer 2 B3) 는 여전히 발행 중단 상태 (a4636a7 carve 메시지 있으나 40.task/ 부재). REQ-20260421-012 layer2-rediagnosis 결과에 따라 교체 판단 — planner 관할.
-#   - 3cycle stale 초과 시 reconcile 보고에 `reconcile: N/M ack (K stale >=3cycle)` 토큰 추가 (RULE-04).
+#   - TSK-58 (logsingle flake) developer 소비 시 logsingle-prod-timeout-diagnosis-spec 의 FR-01/02/03 수용기준 ack 가능.
+#     * TSK-58 완료 후 blue 의 ci-node20 FR-06 / NFR-02 / NFR-04 재실측도 연쇄 수행 — 그러나 blue 영역 편집은 planner 영역.
+#   - TSK-57 (layer2-rediagnosis) 은 40.task/ 에 부재하고 60.done/ 에 task 파일만 존재 (result.md 없음). developer 미완료로 보임.
+#     * 다음 세션까지 해소되지 않으면 operator 개입 필요 — 40.task/ 재발행 또는 blocked 격리 (본 inspector 관할 밖).
+#   - shuffle-safety-cold-start 는 TSK-57 결과 의존이 크므로 TSK-57 미완료 동안 ack 0 지속. 3cycle 초과 시 operator 검토 권장.
