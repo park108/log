@@ -1,54 +1,57 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T10:30:00Z (HEAD=fd38b44, pre-commit)
-# Phase 1 ack this session: 0/3 ack (1 stale >=3cycle; 1 spec content-extended this session resets stale).
+# Updated: 2026-04-21T11:15:00Z (HEAD=fb8adb0, pre-commit)
+# Phase 1 ack this session: 0/2 ack (1 stale >=3cycle — file-test-split stale=5 경고 임계 초과 지속).
+#
 # Phase 1 historical context (reference only):
-#   - 이전 inspector 세션 HEAD=ee03a7c → 현 HEAD=fd38b44 사이:
-#       * 0f59484 spec(inspector): ledger refresh — 0/3 ack (2 stale=3); no-op reconcile.
-#       * fd38b44 spec(planner): no-op cycle — 3 green hash unchanged; stale +1 (toaster=2).
-#         (주: toaster=2 는 planner side ledger; inspector ledger 기준 toaster spec 은 ack 완료로 stale=0.)
-#   - 50.blocked/task/ 잔여 (HEAD=fd38b44): TSK-20260421-43, TSK-20260421-49, TSK-20260421-50 — 불변, RULE-05 관할.
-#   - 50.blocked/spec/ 5건 불변.
-#   - 40.task/ready/ 0건. developer 활동 없음 (`git log ee03a7c..HEAD -- src/` = 0 commit).
+#   - 이전 inspector 세션 HEAD=3bf6f2b → 현 HEAD=fb8adb0:
+#       * fb8adb0 spec(planner): block toaster-conditional-mount-or-helper at stale=3
+#         - toaster spec 이 50.blocked/spec/ 로 이동 (23bfc92 hash 3사이클 정체, FR-09 unchecked 2건 `[deferred]` 토큰 부재 4조건 미충족).
+#         - planner-side shuffle hash 변동(6e5e507→60be59b) / file-split stale 1→2 는 planner ledger 관측치.
+#           (본 inspector ledger 의 shuffle hash 60be59b 은 3bf6f2b 세션 이후 불변으로, planner 의 "6e5e507→60be59b" 변동은 3bf6f2b 세션에서 inspector 가 spec 확장한 결과를 planner 가 재인식한 것.)
+#   - 50.blocked/task/ 잔여: TSK-20260421-43, TSK-20260421-49, TSK-20260421-50 — 불변 (RULE-05 관할).
+#   - 50.blocked/spec/ 6건: fake-timer-teardown-residual-cleanup, react-19-findby-option-beta-idiom, react-19-findby-timing-stabilization, test-infra-conventions-grep-gate-lifo, test-isolation-shuffle-safety (이전), toaster-conditional-mount-or-helper (신규 이번 사이클).
+#   - 40.task/ready/ 0건. developer 활동 없음 (`git log 3bf6f2b..HEAD -- src/` = 0 commit).
+#   - 20.req/ready/ 0건. discovery 활동 없음.
 #
-# Phase 1 detail this session (drift reconcile, HEAD=fd38b44 재실측):
-#   - components/toaster-conditional-mount-or-helper-spec.md (REQ-20260421-009):
-#       * 대응 커밋 a8eee5e (TSK-20260421-48 done, 0225335 에서 Must 6/7 + Should 2/2 + NFR 2/2 flip 완료).
-#       * 현 HEAD=fd38b44 재검증:
-#           - `grep -rn "waitForToasterHidden|waitForToasterVisible|getToasterElement" src` → 25 hits in 3 files (ack 유지).
-#           - `grep -rn "document.querySelector.*data-type=" src --include="*.test.*"` → 0 hits (ack 유지).
-#           - `grep -rn "<Toaster " src` → 8 hits in 7 files (runtime 0 변경 NFR-04 유지).
-#       * 유일한 unchecked FR-09 (shuffle seed 0 fail) 은 TSK-20260421-49 Layer 2 race 차단으로 경로 차단 상태.
-#       * 이번 세션 추가 ack: 0건. stale=0 유지 (hash drift 정지).
+# Phase 1 detail this session (drift reconcile, HEAD=fb8adb0 재실측):
 #   - common/test-isolation-shuffle-safety-cold-start-spec.md (REQ-20260421-007 + REQ-20260421-010):
-#       * 대응 task TSK-20260421-49 가 50.blocked/task/ 유지. ack 불가.
-#       * HEAD=fd38b44 grep 재실측: `getByTestId("delete-button")` 여전히 4 hits at :205, :260, :316, :377 (FR-02 미적용 상태 유지).
-#       * **이번 세션 Phase 3 에서 REQ-20260421-010 반영으로 Layer 1 / Layer 2 구분 서사 확장**: FR-11~15 추가 (B1~B4 테스트층 + B5 런타임층 조건부 후보, 1차 추천안 B1 warm-up render prime + fallback 순서 B3→B2→B4→B5).
-#       * 이번 세션 drift reconcile: 실질 내용 변경 (Layer 2 서사 추가) → stale 리셋. 2→0.
+#       * 대응 task TSK-20260421-49 여전히 50.blocked/task/ 유지. depends 경로 차단.
+#       * HEAD=fb8adb0 grep 재실측:
+#           - `grep -n "getByTestId.*delete-button" src/Log/LogItem.test.jsx` → 4 hits at :205, :260, :316, :377 (FR-02 대상 미적용 상태 유지; spec 기대 후=0 hits 미달).
+#           - `grep -n "findByTestId.*delete-button" src/Log/LogItem.test.jsx` → 0 hits (FR-02 적용 후=4 hits 미달).
+#           - `grep -n "ASYNC_ASSERTION_TIMEOUT_MS" src/test-utils/timing.js` → 1 hit at :5 (선결 의존 충족 유지).
+#       * 이번 세션 추가 ack: 0건. hash 60be59b 유지 (직전 3bf6f2b 에서 Layer 2 확장 반영 후 불변).
+#       * stale 판정: 직전 세션 stale=0 (spec 확장으로 리셋). 이번 세션 hash 불변 + ack 0 → stale 0→1.
 #   - components/file-test-multi-scenario-split-spec.md (REQ-20260421-008):
-#       * 대응 task TSK-20260421-50 가 50.blocked/task/ 유지 (depends_on TSK-49 미충족).
-#       * 파일 비중첩 (File.test.jsx prodServerOk vs LogItem.test.jsx) — 운영자 판단으로 depends_on TSK-49 해제 시 TSK-50 독립 진행 가능 (blocked_reason 에 경로 명시).
-#       * FR-01~05, FR-07, FR-09 deferred 태깅 유지 (6c2517f 세션 박제).
-#       * 이번 세션 drift reconcile: 상태 변화 없음. ack 0건. stale=3→4 (경고 임계 초과).
+#       * 대응 task TSK-20260421-50 여전히 50.blocked/task/ 유지 (depends_on TSK-49 미충족).
+#       * HEAD=fb8adb0 grep 재실측:
+#           - `grep -n "test\\|describe" src/File/File.test.jsx` → `prodServerOk` describe 내부 단일 test 여전 at :61 (FR-07 미적용, 분할 0/5).
+#           - `grep -n "vi.useFakeTimers" src/File/File.test.jsx` → 2 hits at :165, :235 (internal error/network error describe 기존 사용; spec FR-05 대상인 `prodServerOk` Delete refresh test 와 무관).
+#           - `grep -n "vi.spyOn(api" src/File/File.test.jsx` → 0 hits (FR-04/05 미적용).
+#           - `grep -n "findByText.*Drop files here" src/File/File.test.jsx` → 1 hit at :53 (FR-07 옵션 대상 baseline 유지).
+#       * 이번 세션 drift reconcile: 상태 변화 없음. ack 0건. stale=4→5 (경고 임계 초과 지속).
 #
-# Phase 2 this session: deferred 태깅 변화 없음 (shuffle-spec 은 Layer 2 pending 태그 추가, file-test-split 은 기존 유지). 300줄 초과 spec 없음 → 분할 없음.
+# Phase 2 this session: deferred 태깅 변화 없음. 300줄 초과 spec 없음 (141/83 lines) → 분할 없음.
+#
 # Phase 3 this session:
-#   - input queue (20.req/ready/): 1건 (`20260421-logitem-delete-mutation-cold-start-layer2-race.md` — REQ-20260421-010).
-#   - downstream threshold GREEN_PENDING_MAX=20 (기본). 현 green 3 < 20 (하류 여유 충분).
-#   - 처리된 req: 1 (REQ-010 → shuffle-safety-cold-start spec 확장 반영).
-#   - blocked: 0 / 신규 green: 0 / 갱신 green: 1 (test-isolation-shuffle-safety-cold-start-spec.md).
-#   - mv: specs/20.req/ready/20260421-logitem-delete-mutation-cold-start-layer2-race.md → specs/60.done/2026/04/21/req/.
+#   - input queue (20.req/ready/): 0건. 처리할 신규 req 없음.
+#   - downstream threshold GREEN_PENDING_MAX=20 (기본). 현 green 2 < 20 (하류 여유 충분; fb8adb0 에서 toaster blocked 이동으로 3→2 감소).
+#   - 처리된 req: 0. blocked: 0. 신규 green: 0. 갱신 green: 0. mv: 없음.
 #
 # 현 ledger:
-specs/30.spec/green/components/file-test-multi-scenario-split-spec.md - 4
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md - 0
-specs/30.spec/green/components/toaster-conditional-mount-or-helper-spec.md - 0
+specs/30.spec/green/components/file-test-multi-scenario-split-spec.md 6488570be7d4c6586fdcc912c53a5cfeaf8020ff5add354ba34ea760df280197 5
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 60be59b96e3eba221c65332860b0d993b60bbb4d0d667f414817c60c30e0c858 1
 #
-# Stale 경고: 1건 stale=4 (file-test-split). RULE-05 운영자 개입 필요 신호 (경고 임계 초과).
-#   - 권장 조치 (운영자):
-#       a) TSK-20260421-50 의 depends_on TSK-49 해제 여부 판단 (파일 비중첩 검증됨). 해제 시 TSK-50 을 40.task/ready/ 로 복귀 가능.
-#       b) 또는 TSK-50 도 신규 Task 로 재carve (Layer 2 해소 신규 TSK 에 순차 의존 걸기).
-#   - shuffle-safety-cold-start spec 은 본 세션 Layer 2 확장으로 planner 재carve 경로 재개. 신규 TSK-YYYYMMDD-NN 발행 시 TSK-49 는 supersedes 메타로만 참조.
+# Stale 경고:
+#   - file-test-multi-scenario-split stale=5 (경고 임계 초과 2사이클 지속).
+#     * RULE-05 운영자 개입 권장 조치 (재확인):
+#         a) TSK-20260421-50 의 depends_on TSK-49 해제 여부 판단 (파일 비중첩 검증됨 — src/File/File.test.jsx prodServerOk vs src/Log/LogItem.test.jsx). 해제 시 TSK-50 을 40.task/ready/ 로 복귀 가능.
+#         b) 또는 TSK-50 도 신규 Task 로 재carve (Layer 2 해소 신규 TSK 에 순차 의존 걸기).
+#     * 본 spec 자체는 내용 드리프트 없이 waiting 상태 — 다음 세션 stale=6 상승 예상.
+#   - shuffle-safety-cold-start stale=1: Layer 2 확장 반영 후 planner 재carve 대기. planner 가 신규 TSK (B1 warm-up render prime) 발행 시 stale 리셋 + [pending: Layer 2 신규 TSK-ID] 태그 전환 경로 개통.
+#   - toaster-conditional-mount-or-helper: fb8adb0 에서 50.blocked/spec/ 로 이동, 본 ledger 추적 대상에서 제외. RULE-05 운영자 관할 (FR-09 unchecked 는 TSK-49 Layer 2 해소 종속).
+#
 # 다음 세션 유의:
-#   - planner 가 본 세션 확장된 shuffle-safety-cold-start spec 을 기반으로 Layer 2 신규 Task 를 carve 하면 [deferred: TSK-49 blocked] 태그가 [pending] 또는 [x] 로 전환 가능.
-#   - file-test-split stale=4 지속 시 운영자 개입 권장. 다음 세션 stale=5 상승 예상.
-#   - toaster FR-09 는 TSK-49 Layer 2 해소에 종속. Layer 2 신규 TSK 완료 시 독립 ack 가능.
+#   - planner 가 shuffle-safety-cold-start spec 기반으로 Layer 2 신규 Task (B1 우선) carve 시 inspector 는 [deferred: TSK-49 blocked] → [pending: Layer 2 신규 TSK-ID] 전환 가능 (spec FR-14 가이드).
+#   - file-test-split stale=5 지속 시 다음 세션 stale=6 예상. 운영자 개입 없이는 ack 경로 없음 — 반복 보고로 시그널 유지.
+#   - green 2 개 모두 ack 경로가 외부(TSK-49 Layer 2 해소 또는 운영자 개입)에 종속 — inspector 자체 루프로는 해소 불가.
