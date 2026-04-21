@@ -1,8 +1,8 @@
 # Comment 컴포넌트 (로그 단건 코멘트 스레드 / 폼)
 
 > **위치**: `src/Comment/` (Comment.jsx, CommentItem.jsx, CommentForm.jsx, api.js, api.mock.js, Comment.module.css)
-> **관련 요구사항**: — (as-is 서술 spec)
-> **최종 업데이트**: 2026-04-20 (by operator, as-is snapshot)
+> **관련 요구사항**: REQ-20260422-045
+> **최종 업데이트**: 2026-04-21 (by inspector, REQ-20260422-045 흡수 — §접근성 a11y 패턴 B 상호참조 신설)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (2026-04-20).
 
@@ -32,6 +32,10 @@
 - `Suspense` 내 `CommentItem` lazy 로드 지연 동안 polling 중복 호출 방지.
 - `Toaster` 의 `show` 1↔2 라이프사이클 재진입 (연속 post 시 토스트 재노출).
 
+### 접근성 (REQ-20260422-045 FR-01)
+- 토글·답글·폼 제출 등 `div`/`span` 기반 클릭 핸들러는 키보드 활성화 경로로 공통 헬퍼 `activateOnKey` (패턴 B) 를 경유한다. 헬퍼 본체 및 Enter/Space 키 계약 박제 위치: `components/common.md` §a11y (`a11y.js`) (선행 done: REQ-20260421-033).
+- 토스트 경유 상태 변화는 접근성 경로와 독립이며, `activateOnKey` 는 `<input>`/`<textarea>` 에는 사용하지 않는다 (호출부 책임; `components/common.md` §수용 기준 Should).
+
 ## 의존성
 - 외부: `react`, `prop-types`.
 - 내부: `common/common` (`log`, `hasValue`, `isAdmin`), `Toaster/Toaster` (lazy), `./api` (`getComments`, `postComment`), `Comment.module.css`.
@@ -56,3 +60,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-20 | operator / — | 최초 등록 (as-is 서술 spec) | all |
+| 2026-04-21 | inspector / REQ-20260422-045 | **REQ-045 FR-01 흡수** — blue `components/comment.md` → green carry-over 후 §동작 하위 §접근성 소절 신설 (2줄). `activateOnKey` / 패턴 B 식별자 + `components/common.md` §a11y 상호참조 박제. 기존 §공개 인터페이스·§동작·§회귀 중점·§의존성·§수용 기준 서술 수정 0 (NFR-02 준수). 선행 done: REQ-20260421-033 FR-07 "blue 승격 시 comment/log/common/image.md §접근성 상호참조" Should 항 — writer 매트릭스상 blue 직접 편집 불가로 영구 미충족 상태였던 것을 본 green 경유 경로로 해소. RULE-07 자기검증: 상호참조 문장 존재는 `grep -c` 로 반복 검증 가능한 시스템 관찰 불변식, 1회성 incident patch 아님. | §최종 업데이트, §관련 요구사항, §동작 (§접근성 신설), 본 이력 |

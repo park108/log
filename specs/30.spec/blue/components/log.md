@@ -1,8 +1,8 @@
 # Log 컴포넌트 (로그 목록 / 단건 / 작성기 서브 라우트)
 
 > **위치**: `src/Log/` (Log.jsx, LogList.jsx, LogSingle.jsx, LogItem.jsx, LogItemInfo.jsx, Writer.jsx, api.js, api.mock.js, hooks/**, Log.css, Writer.css)
-> **관련 요구사항**: REQ-20260421-027, REQ-20260421-030, REQ-20260421-042
-> **최종 업데이트**: 2026-04-21 (by inspector, Phase 1 reconcile 1/1 ack — TSK-20260421-88 @c563025 REQ-042 FR-01 수렴)
+> **관련 요구사항**: REQ-20260421-027, REQ-20260421-030, REQ-20260421-042, REQ-20260422-045
+> **최종 업데이트**: 2026-04-21 (by inspector, REQ-20260422-045 흡수 — §접근성 a11y 패턴 B 상호참조 신설)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (2026-04-21, HEAD=c563025).
 
