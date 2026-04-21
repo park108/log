@@ -1,44 +1,49 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (15th cycle) — 0 new carves + 0 promotions + 0 new blocked.
-# Session summary: no-op cycle — 입력 큐 (`30.spec/green/**`) = 0 spec files. 즉시 no-op.
-#   HEAD=7b527d8 (`docs(rules): RULE-07 spec 콘텐츠 규약 신설 — 불변식/계약 한정, 1회성 진단 반려`).
-#   선행 활동 결과 (본 planner 사이클 이전, 14차 ledger 이후):
-#     - `4d6e144 spec(planner): isolate 14 task-natured specs to 50.blocked/spec/` — 운영자 수동 개입 (RULE-05) 으로 spec 정의 기준 재정립. blue/common 5 + blue/deps 4 + blue/foundation 3 + green/common 2 (14차 ledger 의 두 green 전부) 을 `50.blocked/spec/` 로 격리. 각 `{slug}_reason.md` 에 task 성격 근거 박제. planner 에이전트 세션이 아닌 수동 커밋 (commit message 본문 "수동 개입 (RULE-05)" 명시). components/*-spec.md 9건은 as-is 서술 spec 으로 판정 유지.
-#     - `7b527d8 docs(rules): RULE-07 spec 콘텐츠 규약 신설` — spec 콘텐츠를 불변식/계약/공개 API/이디엄 규약 한정, 1회성 진단·incident patch 플랜 반려. 4d6e144 의 판단 근거를 SSoT 로 박제.
+# Updated: 2026-04-21T (16th cycle) — 3 new task carves + 1 promotion + 0 new blocked.
+# Session summary:
+#   HEAD=51fe201 (`spec(inspector): Phase 1 reconcile 1/6 ack — common.md isAdmin matrix [x]`).
+#   본 세션 입력: green spec 5개 (`common/test-idioms.md`, `components/common.md`, `components/log.md`, `foundation/ci.md`, `foundation/tooling.md`).
 #
-#   RULE-03 선결 점검 (순서 고정):
-#     (1) pause lock 없음 (`.claude/locks/` 부재). `.claude/pipeline.json` 없음 → 기본 `TASK_READY_MAX=10`.
-#     (2) 입력 큐 `30.spec/green/**` = **0 spec files** (실측 `find specs/30.spec/green -type f` = 2 — `.planner-seen` + `.inspector-seen` 만 잔존, spec 파일 0). → **즉시 no-op**.
-#     (3) 하류 임계치 무관 (`40.task/` = 0, TASK_READY_MAX=10 여유 10 — 참고용).
-#     (4) 처리 진입 안 함.
+#   RULE-03 선결 점검:
+#     (1) pause lock 없음 (`.claude/locks/` 부재). `.claude/pipeline.json` 없음 → `TASK_READY_MAX=10` 기본.
+#     (2) 입력 큐 5 spec files (15차 ledger 의 0 → 5 증가).
+#     (3) 하류 임계치: `40.task/` = 0 → +3 = 3, TASK_READY_MAX=10 여유 7 (OK).
+#     (4) 처리 진입.
 #
-#   14차 ledger 에 기재된 두 green 의 이동:
-#     - `admin-gate-recovery-and-env-config-spec.md` [hash 4b35c6a9, stale_cycles=1]: 4d6e144 로 `50.blocked/spec/` 이동. `{slug}_reason.md` 존재 (task 성격 판정). planner 에이전트 수동 이동 아님 — ledger 제거.
-#     - `test-isolation-shuffle-safety-cold-start-spec.md` [hash 5a077e3e, stale_cycles=1]: 4d6e144 로 `50.blocked/spec/` 이동. `{slug}_reason.md` 존재. ledger 제거.
-#     (stale ≥3 cycle 도달 없음 — 수동 이동 선행.)
+#   각 spec 분석 (승격 4조건: WIP=0, unchecked `[ ]`=0, To-Be=0, 변경 이력 박제):
+#     - common/test-idioms.md (`hash=ce0bef..` 추정, stale=0): unchecked=0 / WIP=0 / To-Be=0 / 변경 이력 inspector/29d9da0 박제 → **승격**.
+#     - components/common.md (`hash=...`, stale=0): unchecked=2 (`auth() SameSite 회귀 방어 테스트`, `(Must, REQ-025 FR-02 실현)`) → 미승격. TSK-62 carve.
+#     - components/log.md (stale=0): unchecked=1 (LogItem DELETE shuffle) → 미승격. TSK-63 carve.
+#     - foundation/ci.md (stale=0): unchecked=1 (수동 Node LTS 호환성, 별 task 대상) → 미승격. carve 보류 — "별 task 대상" 의 deferred 성격, 운영자 판단 시점 의존이므로 본 사이클 task 박제 보류 (다음 사이클 또는 명시 req 발행 대기).
+#     - foundation/tooling.md (stale=0): unchecked=1 (lint-staged `.d.ts` 보강) → 미승격. TSK-64 carve.
 #
-#   상류 큐 현황 (참고, planner 영역 외 — 소비는 discovery/inspector):
-#     - `10.followups/` = 9건 (4d6e144 이후 /revisit 미수행 상태로 blocked → followups 재승격 대기 중 — 본 사이클 기준 followup 파일 9개 존재, slug 전부 `*-from-blocked`).
-#     - `20.req/` = 1건 (`20260421-logsingle-remediation-vitest4-rescope-and-spec-relayering.md`).
-#     - `30.spec/blue/` = 9 spec files (common 0 / components 9 / deps 0 / foundation 0 — 4d6e144 결과 common/deps/foundation 전부 blocked, components 9 유지).
-#     - `50.blocked/spec/` = 14 pair (`*-spec.md` + `*-spec_reason.md`).
+#   carve 발생 (3건): TSK-20260421-62 (auth SameSite), TSK-20260421-63 (LogItem DELETE shuffle), TSK-20260421-64 (lint-staged d.ts). 신규 carve 이므로 `supersedes:` 메타 없음 (분할 없음 — 각 spec § 단일 unchecked → 단일 task).
 #
-#   carve 판정: 입력 0 → carve N/A. grep dry-run: **0/0 match** (carve 부재 — N/A).
+#   grep dry-run 결과 (RULE-04 토큰):
+#     - TSK-62: 4 baselines 박제, 4/4 match (sameSite 2 / SameSite=valid 0 / SameSite=invalid 0 / sameSite:site 2).
+#     - TSK-63: 2 baselines 박제, 2/2 match (describe DELETE 4 / useMockServer 4).
+#     - TSK-64: 3 baselines 박제, 3/3 match (lint-staged 2 / src pattern 1 / d.ts 0).
+#     - 합계: **9/9 match**.
 #
-#   ledger 정리:
-#     - admin-gate / test-isolation 두 entry 제거 (green 큐에서 사라짐, 4d6e144 수동 이동).
-#     - 새 green spec 없음 → ledger entries 본문 비움.
+#   Task ID 중복 검증: `grep -rn "TSK-20260421-(62|63|64)" specs/` → 본인 파일 3 hits 만 → 충돌 없음.
 #
-#   blocked 신규 (planner 세션): 0. 4d6e144 의 14건은 운영자 영역 — ledger 추적 대상 아님 (/revisit 경로 소비 대기).
+#   승격 mv (1건):
+#     - `30.spec/green/common/test-idioms.md` → `30.spec/blue/common/test-idioms.md`. (mkdir -p blue/common 선행 후 mv 원자.)
+#     - green/common/ 디렉터리는 빈 채로 잔존 (planner 영역 외 — inspector 가 차후 새 spec 추가 시 활용 가능).
 #
-#   RULE-06 스코프 규칙 섹션: 본 사이클 신규 task 0 → 작성 없음.
+#   blocked 신규: 0. stale ≥ 3 cycle 없음 (전 spec 신규 등록 또는 carry-over).
+#
+#   RULE-06 스코프 규칙 섹션: 신규 task 3건 모두 grep 게이트 1건+ 포함 → 전건 § 스코프 규칙 섹션 신설 + grep-baseline 실측 박제.
+#   RULE-07 정합 점검: green spec 5건 전부 불변식 한정 (시점·incident 귀속 plan 없음) → 50.blocked/spec/ 격리 0건.
 #
 # ledger entries:
-# (empty — no green spec files)
+# components/common.md   <hash>  0
+# components/log.md      <hash>  0
+# foundation/ci.md       <hash>  0
+# foundation/tooling.md  <hash>  0
 #
-# ready 큐 (본 사이클 +0): count=0, TASK_READY_MAX=10 여유 10.
-# next cycle (16th):
-#   - **discovery (1h)**: `10.followups/` 9건 소비 → `20.req/` 로 재구성 (blocked 반려 사유를 새 req 에 반영; task 성격 판정받은 14건 중 불변식 조각만 추출). 기존 `20.req/20260421-logsingle-remediation-vitest4-rescope-and-spec-relayering.md` 1건과 병합/선후 판단.
-#   - **inspector (30m)**: discovery 결과물 소비 후 새 `30.spec/green/**` 작성. 이번에는 RULE-07 양성 기준 (시스템이 무엇이어야 하는가 평서문, 반복 검증, 시점 비의존) 엄격 준수 — task 성격 진단 반복 방지.
-#   - **planner (16th+)**: inspector 가 새 green 을 작성하고 충분히 무르익으면 (WIP=0, To-Be=0, non-deferred unchecked=0, 변경 이력 박제) blue 승격. 그 전까지 계속 no-op.
-#   - **본 사이클 writer 영역 변경**: `.planner-seen` 갱신 1건만. `40.task/**` = 0 변경, `30.spec/green/**` 이동 0, `30.spec/blue/**` 변경 0, `50.blocked/spec/` 변경 0. 커밋 scope = `spec(planner):` (ledger-only no-op cycle, RULE-02 단일 커밋).
+# ready 큐 (본 사이클 +3): count=3, TASK_READY_MAX=10 여유 7.
+# next cycle (17th):
+#   - **inspector (30m)**: 4건 잔존 green spec 의 unchecked 항목 진행도에 따라 추가 grep gate / baseline 갱신. ci.md 의 "별 task 대상" 항목은 운영자/discovery 판단 영역.
+#   - **planner (17th+)**: 4건 green 의 unchecked 가 [x] 로 전환되면 (developer 가 TSK-62/63/64 완료 후 inspector reconcile 거쳐) 승격 진입.
+#   - **본 사이클 writer 영역 변경**: `40.task/` +3 (TSK-62/63/64), `30.spec/green/` -1 (test-idioms.md mv out), `30.spec/blue/` +1 (test-idioms.md mv in), `.planner-seen` 갱신 1. 커밋 scope = `task(planner):` (carve 가 본 세션 핵심 산출).
