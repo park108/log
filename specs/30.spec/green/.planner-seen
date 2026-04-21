@@ -1,44 +1,73 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (7th cycle, no-op — inspector marker-sync 반영, ledger 정정)
-# Session: 0 promotions + 0 new carves + 0 blocked.
-#   RULE-03 선결 통과: pause lock 없음, input green=2 (shuffle-cold-start, msw-test-sibling), ready=1 (TSK-20260421-55) → TASK_READY_MAX=10 여유 9.
-#     HEAD=1d89844 (inspector marker-sync 7).
-#     실측 hash (HEAD=1d89844, 직전 ledger 와 **다름** → inspector marker-sync 편집 반영 → stale 리셋):
-#       - shuffle-cold-start: bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 (직전 21543b77 → 변동; marker sync L97/99~102 반영).
-#       - msw-test-sibling-it-shuffle-race: 4b22c6b0ad4cc4db8fceca6eab4d280ee2d98e4942aace8612ed464c49d06fa0 (직전 e956a403 → 변동; marker sync 변경 이력 한 줄 추가).
-#     blocked 디렉토리 관측:
-#       - 50.blocked/spec/ 비어있음.
-#       - 50.blocked/task/ 비어있음.
-#       - 50.blocked/req/ 비어있음.
-#     ready 큐 현황 (실측):
-#       - 20260421-msw-test-sibling-it-shuffle-race.md (TSK-20260421-55, REQ-011).
-#       (주: 직전 ledger 주석은 TSK-20260421-53 도 ready 로 적었으나 실측상 부재.
-#        TSK-53 은 두 번 blocked 되어 followup 으로 discovery 재처리 대기 —
-#        `10.followups/20260421-0125-tsk-53-...` + `20260421-0201-tsk-53-...` 2건 생존.
-#        planner 는 blocked→ready 재발행 권한 없음 (RULE-05 수동 해제).)
-#   승격 평가 (4조건):
-#     - shuffle-cold-start: unchecked `- [ ]` = 23. `[WIP]` = 0, `^#+ .*To-Be` = 0.
-#       real unchecked (deferred/pending 제외) = 17건 (L103/106/108~117/119~122).
-#       → 승격 불가.
-#     - msw-test-sibling-it-shuffle-race: unchecked = 17. `[WIP]` = 0, `^#+ .*To-Be` = 0.
-#       real unchecked = 15건 (L47~50/53~57/59~65 — FR-06 Should 1건 pending 제외).
-#       → 승격 불가. TSK-55 developer 소비 대기.
-#   carve 판정: 본 사이클 신규 carve 0.
-#     - shuffle-cold-start 의 FR-08/11/12/13 은 TSK-53 실측 결과 의존. TSK-53 은 10.followups 로 피드백 중 (두 번째 재발행 실패) — discovery→inspector→planner 재투입 이후에만 재carve. 조기 carve 금지 (scope creep).
-#     - shuffle-cold-start FR-07 (File.test.jsx cache race) 은 `[deferred: shuffle seed 0 fail 달성 후 재평가]` 태깅. TSK-53 소비 이전엔 발행 대상 아님.
-#     - TSK-54 (Layer 2 B2 describe.sequential) 역시 B1/B3 실패 확정 이후에만 등장 — 현 시점 carve 금지.
-#     - msw-sibling 은 TSK-55 단일 task 로 carve 완료. 추가 분할 불필요.
-#   stale 카운트 (hash 변동 → 리셋):
-#     - shuffle-cold-start: 1 → 0 (hash 변동 = inspector marker-sync 편집 = 활성 진행).
-#     - msw-test-sibling-it-shuffle-race: 1 → 0 (hash 변동).
-#   grep dry-run: 0/0 match (신규 태스크 생성 0건).
-#   blocked: 없음 (신규 격리 0).
+# Updated: 2026-04-21T (8th cycle) — 3 carves + 0 promotions.
+# Session summary: 0 promotions + 3 new carves (TSK-56/57/58) + 0 blocked.
+#   HEAD=e1a9bef (RULE-06 false-positive 보강).
+#   RULE-03 선결 통과: pause lock 없음, `.claude/pipeline.json` 없음 → 기본 TASK_READY_MAX=10.
+#     input green (실측): 5
+#       1) common/msw-test-sibling-it-shuffle-race-dedicated-spec.md (hash 08f3554a)
+#       2) common/test-isolation-shuffle-safety-cold-start-spec.md (hash bea52063)
+#       3) common/layer2-cold-start-race-root-cause-rediagnosis-spec.md (hash 5b96d7c0) [신규]
+#       4) common/logsingle-prod-server-serial-timeout-diagnosis-spec.md (hash edade207) [신규]
+#       5) foundation/ci-node20-deprecation-remediation-spec.md (hash 4fa77433) [신규]
+#     ready 큐 (실측 진입시): 0 → 3 (carve 후) → 여유 7.
+#     blocked 디렉토리 관측: 50.blocked/spec/ 비어있음, 50.blocked/task/ 비어있음, 50.blocked/req/ 비어있음.
+#
+#   승격 평가 (4조건 = [WIP]=0, unchecked=0 (deferred 제외), To-Be=0, 변경 이력 박제):
+#     - msw-test-sibling-it-shuffle-race: unchecked 2 (둘 다 [pending: TSK-53]; deferred 아님 → 카운트 유지). → 승격 불가.
+#         TSK-53 은 layer2-rediagnosis (TSK-57) 로 supersede 됨 — 재진단 결과에 따라 inspector marker-sync 가 pending 태깅 전환 예상.
+#     - test-isolation-shuffle-safety-cold-start: unchecked 23 (FR-06/07/08/11/12/13 등 deferred/pending 혼재). → 승격 불가.
+#     - layer2-cold-start-race-root-cause-rediagnosis [신규]: unchecked 16 (TSK-57 carve 대기). → 승격 불가.
+#     - logsingle-prod-server-serial-timeout-diagnosis [신규]: unchecked 14 (TSK-58 carve 대기). → 승격 불가.
+#     - foundation/ci-node20-deprecation-remediation [신규]: unchecked 18 (TSK-56 carve 대기). → 승격 불가.
+#     전 5건 모두 WIP=0, To-Be=0 이지만 unchecked>0 → 승격 대상 0.
+#
+#   carve 판정 (원자 태스크 분할, 1 PR 크기, 독립 롤백):
+#     - TSK-20260421-56 (ci-node20-deprecation-remediation):
+#         `.github/workflows/ci.yml` 3 라인 변경 — actions v4→v6 + node-version 20→24. 단일 파일.
+#         depends_on=[]; supersedes=[].
+#     - TSK-20260421-57 (layer2-cold-start-root-cause-rediagnosis):
+#         seed=1 단독 실행 4 시점 관측 + FR-13 fallback 재확정 박제. 계측은 최종 제거 (functional 변경 0).
+#         depends_on=[]; supersedes=[TSK-49, TSK-52, TSK-53] (historical, blocked).
+#     - TSK-20260421-58 (logsingle-prod-server-serial-timeout-diagnosis):
+#         `LogSingle.test.jsx:56` 10회 serial 실측 + prodServerOk 결정론성 + 최소 침습 patch.
+#         depends_on=[]; supersedes=[].
+#     세 carve 모두 서로 독립 (파일 비중첩: ci.yml / LogItem.test.jsx+Toaster+useDeleteLog / LogSingle.test.jsx+api.mock.js).
+#     ID 배정 검증: grep TSK-20260421-5[4-9] 결과 55 만 사용 중 → 56/57/58 안전.
+#     TSK-54 는 a4636a7 에서 "B2 future fallback 유보" 로 기록 — 본 사이클은 layer2-rediagnosis (B2/B4/B5 fallback 재평가) 로 대체되므로 54 는 유보 유지.
+#
+#   grep dry-run (모든 게이트 실측):
+#     TSK-56 (ci-node20): 7/7 match — v4 3 hits, v6 0 hits, engines 0, node-version '20' 1 hit, '24' 0 hits.
+#     TSK-57 (rediagnosis): 5/5 match — findByText network-error 1, server.listen 3 (본문 1 + 주석 2, 주석 명시), performance.mark 0, console.log baseline 박제, await Promise.resolve 0.
+#     TSK-58 (logsingle): 5/5 match — render LogSingle on prod server 1, prodServerOk 1, ASYNC_ASSERTION_TIMEOUT_MS 4, sessionStorage 3, vi.useFakeTimers 1.
+#     합계 17/17 match.
+#
+#   stale 카운트 갱신:
+#     - msw-test-sibling-it-shuffle-race: hash 4b22c6b0 → 08f3554a 변동 (developer TSK-55 / 1bbdbb0 완료 후 재실측 박제). stale 0 → 0 (리셋).
+#     - test-isolation-shuffle-safety-cold-start: hash bea52063 불변 (TSK-53 블록·supersede 로 대기). stale 0 → 1.
+#     - layer2-cold-start-race-root-cause-rediagnosis: 신규 진입 (hash 5b96d7c0). stale 0.
+#     - logsingle-prod-server-serial-timeout-diagnosis: 신규 진입 (hash edade207). stale 0.
+#     - foundation/ci-node20-deprecation-remediation: 신규 진입 (hash 4fa77433). stale 0.
+#
+#   blocked: 0 신규. 스테일 ≥ 2 사이클 항목 없음 (shuffle-cold-start 가 1 — 아직 blocked 대상 아님).
+#
+#   RULE-06 스코프 규칙 섹션 (grep 게이트 포함 태스크) 박제 여부:
+#     TSK-56: [포함] expansion 불허, grep-baseline 실측, rationale 박제.
+#     TSK-57: [포함] expansion 불허, grep-baseline 실측 (server.listen 주석 2건 명시), rationale 박제.
+#     TSK-58: [포함] expansion 불허, grep-baseline 실측, rationale 박제.
+#
 # ledger entries:
-common/test-isolation-shuffle-safety-cold-start-spec.md bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 0
-common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 4b22c6b0ad4cc4db8fceca6eab4d280ee2d98e4942aace8612ed464c49d06fa0 0
-# ready 큐: (count=1, TASK_READY_MAX=10 여유 9).
+common/test-isolation-shuffle-safety-cold-start-spec.md bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 1
+common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 08f3554a13eda228af4d1ddfd8a6e063b990c3c2ab5cbd0492ee1eafd7d9cdc1 0
+common/layer2-cold-start-race-root-cause-rediagnosis-spec.md 5b96d7c0e87f8e0706ae6f805c16e4fc0f69fd0754c8be2b75cdaf98876ae992 0
+common/logsingle-prod-server-serial-timeout-diagnosis-spec.md edade2075561a70a7f616e9220b87635735444bd21245931828b67d14c9c54f9 0
+foundation/ci-node20-deprecation-remediation-spec.md 4fa774338abc2aeed55a3342b71c0b453723a02a572d4e3d813f332f25b4a5ba 0
+# ready 큐 (신규 carve 반영): count=3, TASK_READY_MAX=10 여유 7.
+#   - 20260421-ci-node20-deprecation-remediation.md (TSK-20260421-56, REQ-012 ci-node20).
+#   - 20260421-layer2-cold-start-root-cause-rediagnosis.md (TSK-20260421-57, REQ-012 layer2).
+#   - 20260421-logsingle-prod-server-serial-timeout-diagnosis.md (TSK-20260421-58, REQ-014).
 # next cycle:
-#   - TSK-55 developer 소비 → code ok → inspector drift reconcile 로 FR-01~05 ack → 다음 planner 사이클 4조건 재평가.
-#   - TSK-53 은 discovery/inspector 재처리 필요 (followup 2건). planner 는 대기만.
-#   - TSK-53 해소 이후 shuffle-cold-start 의 FR-08/11/12/13 drift reconcile 시점에 후속 carve 가능 (TSK-54 / FR-07).
-#   - 본 사이클 writer 영역 변경: `.planner-seen` 만 (RULE-01 green 본문 편집 권한 없음; 40.task/ 신규 0건).
+#   - developer 가 TSK-56/57/58 을 각각 소비 (우선순위: ci-node20 < layer2-rediagnosis ~ logsingle, 상호 독립).
+#   - TSK-57 재진단 결과에 따라 inspector marker-sync 가 `test-isolation-shuffle-safety-cold-start-spec.md` §FR-13 fallback 재작성 → 후속 해소 task carve (B2/B4/B5/B6).
+#   - msw-test-sibling-it-shuffle-race 의 NFR-04 pending 은 TSK-57 재진단 완료 후 TSK-53 계약 재평가 시점에 inspector 가 flip.
+#   - shuffle-cold-start stale 1 → 2 진입 시 50.blocked/spec/ 격리 검토 (차기 사이클).
+#   - 본 사이클 writer 영역 변경: 40.task/ 3건 신규 + `.planner-seen` (RULE-01 green 본문 편집 권한 없음).
