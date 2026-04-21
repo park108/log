@@ -1,8 +1,8 @@
 # common 모듈 (공용 유틸 / UI / 훅)
 
 > **위치**: `src/common/` (common.js, env.js, env.d.ts, a11y.js, codeHighlighter.js, markdownParser.js, sanitizeHtml.js, errorReporter.js, useHoverPopup.js, ErrorBoundary.jsx, ErrorFallback.jsx, Footer.jsx, Navigation.jsx, PageNotFound.jsx, Skeleton.jsx, UserLogin.jsx, ErrorFallback.css, Skeleton.css, + 대응 `.test.*`)
-> **관련 요구사항**: REQ-20260421-022, REQ-20260421-025
-> **최종 업데이트**: 2026-04-21 (by inspector, REQ-022/025 env/admin/auth 계약 흡수)
+> **관련 요구사항**: REQ-20260421-022, REQ-20260421-025, REQ-20260421-032
+> **최종 업데이트**: 2026-04-21 (by inspector, REQ-032 admin-gate 잔존 결함 흡수 — auth() 토큰 추출 + 쿠키 지속 속성명 + env 미주입 회귀 계약)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (2026-04-21, HEAD=29d9da0).
 
@@ -18,7 +18,7 @@
 - `parseJwt(token)` — 실패 시 null (REQ-20260418-032 FR-01).
 - `getUrl()` — production vs development 기준 URL.
 - `getCookie`, `setCookie`, `deleteCookie`.
-- `auth()` — URL fragment `#id_token=` + query `access_token` 을 쿠키로 흡수.
+- `auth()` — URL **해시 프래그먼트** (`#access_token=...&id_token=...&...`) 를 우선 파싱하여 `access_token` / `id_token` 을 추출하고, 부재 시 query string 경로로 fallback (하위 호환 보존). 추출된 토큰을 보안 쿠키로 흡수 (REQ-20260421-032 FR-01/03).
 - `isLoggedIn()`, `isAdmin()` — `parseJwt` null 시 비-admin (REQ-20260418-032 FR-02).
 - `convertToHTML`, `decodeHTML`.
 - `getFormattedDate(ts, format?)`, `getFormattedTime(ts)`, `getWeekday(ts)`, `getFormattedSize(bytes)`.
@@ -74,26 +74,50 @@
 | 6 | 유 | ok | match | isProd·isDev 둘 다 `false` | `false` |
 
 - **admin user ID 외부화 불변식**: admin user ID 는 `import.meta.env.VITE_ADMIN_USER_ID_PROD` / `VITE_ADMIN_USER_ID_DEV` 로 외부 주입한다. 두 값 모두 빈 문자열이면 `isAdmin()` 은 항상 `false` (6 매트릭스의 전 행이 빈 env 에서 `false` 로 귀결).
+- **env 미주입 안전 기본값 (REQ-20260421-032 FR-08)**: `.env.*.local` 에 `VITE_ADMIN_USER_ID_PROD` / `VITE_ADMIN_USER_ID_DEV` 키 자체가 없을 때도 `isAdmin()` 은 항상 `false` 를 귀결한다 (`undefined || ''` → 빈 문자열 비교). 운영자가 env 주입을 누락하면 admin 기능은 영구 비활성화되며, 이는 보안상 안전한 기본값이다.
 - **코드 위치**: `src/common/common.js` `isAdmin()` (현 HEAD 기준 `:155-179`).
 
-## auth() 쿠키 속성 계약 (REQ-20260421-022 / REQ-20260421-025)
+## auth() 쿠키 속성 계약 (REQ-20260421-022 / REQ-20260421-025 / REQ-20260421-032)
 
-### setCookie 속성 불변식 (REQ-022 FR-04)
+### auth() 토큰 추출 계약 (REQ-20260421-032 FR-01/03)
+`auth()` 는 Cognito Hosted UI 의 OAuth 2.0 implicit flow (`response_type=token`) 응답 형식 — 모든 토큰이 **URL 해시 프래그먼트** 단일 구역에 `&` 로 연결 (`https://<host>/#access_token=<v>&id_token=<v>&expires_in=<n>&token_type=Bearer`) — 을 1차 추출 경로로 한다. 다음 순서로 시도하고 처음 성공한 값을 채택한다:
+1. `new URL(href).hash` 의 leading `#` 제거 후 `URLSearchParams` 로 파싱 → `.get('access_token')` / `.get('id_token')`.
+2. (fallback) `new URL(href).searchParams.get('access_token')` / `.get('id_token')` — 기존 `?access_token=...#id_token=...` 혼합 형식 픽스처 호환을 위한 하위 호환 경로.
+두 경로 모두 `null` 이면 쿠키는 설정되지 않는다 (안전 fallthrough). `id_token` 도 동일 이중 경로 (프래그먼트 우선) 로 추출하며, `indexOf('#id_token=')` + 수동 `substring` 패턴은 사용하지 않는다.
+
+### setCookie 속성 불변식 (REQ-022 FR-04 / REQ-032 FR-04)
 `setCookie(name, value, opts?)` 는 다음 속성 계약을 만족한다:
 - `secure: true` — HTTPS only.
 - `sameSite` — RFC 6265bis 유효값 `Strict | Lax | None` 중 하나.
-- `expires` 또는 `maxAge` 명시 — Cognito access_token TTL 과 정합 (기본 1h, 즉 3600s).
+- **지속 속성명 정합**: cookie string 직렬화 결과가 RFC 6265 §5.2.2 표준 속성명 `Max-Age` (대소문자 무관, 단 하이픈 필수) 또는 `Expires` 를 포함한다. camelCase 오타 (`maxAge=...`) 는 브라우저가 알 수 없는 속성으로 무시되어 쿠키가 세션 쿠키로 강등되므로 금지. `auth()` 가 박는 `access_token` / `id_token` 쿠키는 Cognito access_token TTL (기본 3600s) 과 정합하는 `Max-Age=3600` 직렬화를 보장한다.
 
 ### auth() SameSite 계약 (REQ-20260421-025 FR-01)
 `auth()` 가 `setCookie` 로 박는 `access_token` / `id_token` 쿠키의 `SameSite` 속성은 RFC 6265bis 유효값 (`Strict` | `Lax` | `None`) 중 하나만 사용한다. 비표준값 (`'strict'` 소문자, `'false'`, 도메인 문자열 주입, 속성 누락 등) 은 금지.
 
-### 회귀 방어 단위 테스트 계약 (REQ-20260421-025 FR-02)
-`src/common/common.test.js` (또는 동급) 는 `auth()` 호출 후 `document.cookie` 문자열에 대해 아래 어설션을 포함한다:
+### 회귀 방어 단위 테스트 계약 (REQ-20260421-025 FR-02 / REQ-20260421-032 FR-06/07/08)
+`src/common/common.test.js` (또는 동급) 는 다음 어설션을 모두 포함한다:
+
+**(a) SameSite — REQ-025 FR-02**
+`auth()` 호출 후 `document.cookie` 문자열에 대해:
 - positive: `/SameSite=(Strict|Lax|None)/` 정규식 1+ 매치.
 - negative: `/SameSite=[a-z]|SameSite=false|SameSite=\"/` 0 매치 (비표준값 금지).
 
+**(b) Cognito-실형 토큰 추출 — REQ-032 FR-06**
+Cognito Hosted UI implicit flow 의 실제 redirect 형식 픽스처에 대해 `auth()` 호출 후 쿠키 추출 결과를 어서트한다:
+- 케이스 A: `mock.href = 'https://<host>/#access_token=AAA&id_token=BBB&expires_in=3600&token_type=Bearer'` → `getCookie('access_token') === 'AAA'` + `getCookie('id_token') === 'BBB'`.
+- 케이스 B: `mock.href = 'https://<host>/#access_token=AAA&id_token=BBB'` (trailing 파라미터 없음) → 동일 어설션.
+기존 `?access_token=...#id_token=...` 혼합 형식 픽스처는 fallback 경로 호환 보장 차원에서 보존한다.
+
+**(c) Cookie 지속 속성명 — REQ-032 FR-07**
+`auth()` 실행 후 수집한 cookie 문자열 직렬화 결과에 대해:
+- positive: `/(?:^|;\s*)max-age=3600\b/i` 2 회 매치 (access_token + id_token).
+- negative: `/(?:^|;\s*)maxAge=/.test(cookieString)` false (camelCase 오타 재도입 차단).
+
+**(d) env 미주입 → admin false — REQ-032 FR-08**
+`isAdmin()` 매트릭스에 "쿠키 유효 + JWT ok + env 빈 값" 행을 명시적으로 분리해 스텁 (`{ VITE_ADMIN_USER_ID_PROD: '', VITE_ADMIN_USER_ID_DEV: '' }`) → `isAdmin() === false` 를 어서트한다. 매트릭스 #6 과 의미상 중첩되더라도 "env 누락 = admin 박탈" 가독성을 위해 독립 `describe` 블록으로 분리.
+
 ## 동작
-- `auth()` 는 URL 에서 토큰 추출 후 보안 쿠키로 기록. `App.jsx` 마운트 시 1회 호출. 쿠키 속성은 위 § auth() 쿠키 속성 계약 을 준수.
+- `auth()` 는 URL 의 **해시 프래그먼트 우선** 경로 (Cognito Hosted UI implicit flow 응답 형식) → query string fallback 순서로 토큰을 추출하고, 추출 성공 시 보안 쿠키로 기록. `App.jsx` 마운트 시 1회 호출. 쿠키 속성은 위 § auth() 쿠키 속성 계약 을 준수.
 - `isAdmin()` 은 `isLoggedIn()` + `parseJwt` + 환경별 외부 주입 userId 비교. 손상 토큰은 null → 비-admin 귀결 (매트릭스 #2). env 미주입 시 매트릭스 전 행 `false`.
 - `log()` 는 `isDev()` 에서만 `console.log` 출력 — 프로덕션 빌드에서는 무해.
 - `copyToClipboard()` 실패 경로는 false 반환 + ERROR 로그. 호출부는 Toaster 로 사용자 피드백.
@@ -106,6 +130,8 @@
 - `copyToClipboard` 가 `navigator.clipboard?.writeText` 가드로 미지원 브라우저에서도 throw 하지 않음.
 - `isAdmin()` 6 매트릭스 전 행 회귀 (특히 env 빈 값 → false).
 - `auth()` SameSite 정합 — 비표준값 주입 시 브라우저가 쿠키를 거부할 수 있음.
+- `auth()` 토큰 추출 — Cognito Hosted UI 응답이 hash fragment 단일 구역에 모든 토큰을 담는 형식이므로, `searchParams.get('access_token')` 단독 의존 시 쿠키가 영구 미설정. 해시 프래그먼트 우선 경로 보존이 회귀 핵심.
+- `setCookie` 지속 속성명 — camelCase (`maxAge=...`) 직렬화는 브라우저가 무시 → 쿠키가 세션 쿠키로 강등. `Max-Age=` (또는 `Expires=`) 표준 속성명 직렬화 보존이 회귀 핵심.
 
 ## 의존성
 - 외부: `react`, `prop-types`, `dompurify`, `marked` 또는 상응 마크다운 파서, `highlight.js` 또는 상응 (구현 파일 기준).
@@ -136,6 +162,9 @@
 - [x] `errorReporter.test.js` — `console.error` 위임.
 - [x] `isAdmin()` 6 매트릭스 전 행 회귀 테스트 (REQ-022 FR-02; `common.test.js:670` `describe('isAdmin matrix (REQ-20260421-017)')` 6 케이스 박제 — `572009f` / TSK-20260421-61 PASS).
 - [x] `auth()` SameSite 회귀 방어 테스트 (REQ-025 FR-02; `common.test.js:202` `describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)')` — positive `/SameSite=(Strict|Lax|None)/` + negative `/SameSite=[a-z]|SameSite=false/` 어설션 박제 — `9d08c59` / TSK-20260421-62 PASS).
+- [x] `auth()` Cognito-실형 토큰 추출 회귀 방어 테스트 (REQ-032 FR-06; `common.test.js:202` `describe('auth() Cognito-실형 토큰 추출 (REQ-20260421-032 FR-06)')` 케이스 A·B 박제 — `c5ad57d` / TSK-20260421-66 PASS).
+- [x] `auth()` 쿠키 지속 속성명 회귀 방어 테스트 (REQ-032 FR-07; `common.test.js:329` `describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)')` positive `max-age=3600` + negative `maxAge=` 어설션 박제 — `0fb0ca1` / TSK-20260421-67 PASS).
+- [x] `isAdmin()` env 미주입 분리 회귀 테스트 (REQ-032 FR-08; `common.test.js:923` `describe('isAdmin() env 미주입 안전 기본값 (REQ-20260421-032 FR-08)')` 2 케이스 박제 — `8b2cb30` / TSK-20260421-68 PASS).
 
 ## 수용 기준 (현재 상태)
 - [x] (Must) `parseJwt` 는 손상 입력에 null 반환, `isAdmin` 은 그 경로에서 false 귀결.
@@ -153,6 +182,11 @@
 - [x] (Must, REQ-025 FR-01) `auth()` 쿠키 SameSite = RFC 6265bis 유효값 불변식 박제.
 - [x] (Must, REQ-025 FR-02) `auth()` SameSite 회귀 방어 단위 테스트 계약 박제.
 - [x] (Must, REQ-025 FR-02 실현) `common.test.js` 에 positive/negative 어설션 실제 추가 — `9d08c59` / TSK-20260421-62 완료 (`src/common/common.js:133,139` `SameSite: "Lax"` + 단위 테스트 직렬화 캡처 spy 로 검증).
+- [x] (Must, REQ-032 FR-01) `auth()` 토큰 추출 계약 — Cognito Hosted UI implicit flow 의 hash fragment 단일 구역 형식을 1차 추출 경로로 보장 (해시 우선 → query fallback). `c5ad57d` / TSK-20260421-66 — `src/common/common.js:124` `new URL(...).hash` → `URLSearchParams` 우선 + searchParams fallback 구조로 재작성. `grep -nE "indexOf\(['\"]#id_token=" src/common/common.js` → 0 hits, `grep -nE "\.hash\b" src/common/common.js` → 1 hit.
+- [x] (Must, REQ-032 FR-04) `setCookie` 지속 속성명 정합 — cookie string 직렬화 결과가 `Max-Age=` (또는 `Expires=`) 표준 속성명을 포함. camelCase `maxAge=` 직렬화 0. `0fb0ca1` / TSK-20260421-67 — `src/common/common.js:141,150` `'max-age': 3600` 2회. `grep -nE "maxAge:\s*[0-9]+" src/common/common.js` → 0 hits.
+- [x] (Must, REQ-032 FR-06) `auth()` Cognito-실형 토큰 추출 회귀 방어 단위 테스트 케이스 A·B 박제. `c5ad57d` / TSK-20260421-66 — `common.test.js:202` describe + 케이스 A (trailing params) / 케이스 B (bare) it 2건.
+- [x] (Must, REQ-032 FR-07) `auth()` 쿠키 지속 속성 회귀 방어 단위 테스트 (positive `max-age=3600` 2 회 + negative camelCase 0) 박제. `0fb0ca1` / TSK-20260421-67 — `common.test.js:329` describe + positive/negative 어설션.
+- [x] (Should, REQ-032 FR-08) `isAdmin()` env 미주입 분리 회귀 테스트 박제. `8b2cb30` / TSK-20260421-68 — `common.test.js:923` describe + prod/dev 2 it, `npm test -- --run → 47 files / 388 tests PASS`.
 
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
@@ -162,11 +196,14 @@
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-025 흡수 — § auth() 쿠키 속성 계약 서브섹션 신설. `auth()` SameSite RFC 6265bis 유효값 (`Strict|Lax|None`) 불변식 + 회귀 방어 단위 테스트 계약 박제. consumed followup: `20260421-0541-auth-cookie-samesite-correctness-and-operator-verification-from-blocked.md`. 원 blocked req (축소 대상): `specs/50.blocked/req/20260421-auth-cookie-samesite-correctness-and-operator-verification.md`. RULE-07 정합 — DevTools 실측·분기형 patch 제안 배제. baseline 실측: gate (a) 0 hit — 현 `src/common/common.js:138,144` 은 `sameSite: site` 도메인 문자열 주입 상태 (계약 미준수). 향후 task 로 정상화 대상. | §auth() 쿠키 속성 계약 (신설), §회귀 중점, §수용 기준, §테스트 현황 |
 | 2026-04-21 | inspector / reconcile | Phase 1 ack — §테스트 현황 `isAdmin()` 6 매트릭스 항목 `[ ]` → `[x]` 플립. 근거: `572009f` / TSK-20260421-61 (HEAD 조상) — `src/common/common.test.js:670` `describe('isAdmin matrix (REQ-20260421-017)')` 6 케이스 박제, result DoD 에 `npm test -- --run → 47 files / 381 tests passed (기존 375 + 신규 6)` + `grep "describe.*isAdmin" → 3 hits` 박제. SameSite 2 항목 (테스트 현황 line 138, 수용 기준 REQ-025 FR-02 실현) 는 현 `common.js:138,144` 가 `sameSite: site` 도메인 문자열 상태로 계약 미준수 유지 — `[ ]` 보존. | §테스트 현황 |
 | 2026-04-21 | inspector / reconcile | Phase 1 ack — §테스트 현황 `auth() SameSite 회귀 방어 테스트` + §수용 기준 `(Must, REQ-025 FR-02 실현)` 2 항목 `[ ]` → `[x]` 플립. 근거: `9d08c59` / TSK-20260421-62 (HEAD 조상) — `src/common/common.js:133,139` `SameSite: "Lax"` 고정 (`grep -nE "SameSite=(Strict\|Lax\|None)" → 1 hit`, `grep -nE "sameSite:\s*site" → 0 hit`) + `src/common/common.test.js:202` `describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)')` positive `/SameSite=(Strict\|Lax\|None)/` (line 257) + negative `/SameSite=[a-z]\|SameSite=false/` (line 273-274) 어설션 박제. result DoD: `npm run lint` PASS / `npm test -- --run → 47 files / 383 tests PASS (기존 381 + 신규 2, 회귀 0)` / `npm run build` PASS. Must 주관 혼재 없음. | §테스트 현황, §수용 기준 |
+| 2026-04-21 | inspector / reconcile | Phase 1 ack — §테스트 현황 3 marker (FR-06/07/08) + §수용 기준 5 marker (FR-01/04/06/07/08) `[ ]` → `[x]` 일괄 플립. 근거: `c5ad57d` / TSK-20260421-66 (FR-01/06, `src/common/common.js:124` hash 우선 파싱 + `common.test.js:202` describe 박제, DoD grep (a) 0 hit / (b) 1 hit / (c) 2 hit / (d) 1 hit 재실행 PASS), `0fb0ca1` / TSK-20260421-67 (FR-04/07, `common.js:141,150` `'max-age': 3600` 2회 + `common.test.js:329` describe 박제, DoD grep (a) 0 hit / (b) 2 hit / (c) 1 hit / (d) 2 hit / (e) 2 hit 재실행 PASS), `8b2cb30` / TSK-20260421-68 (FR-08, `common.test.js:923` describe 박제, DoD grep (a) 1 hit / (b) 5 hit / (c) 8 hit / (d) 1 hit / (e) 3 hit 재실행 PASS). 3 커밋 모두 HEAD(`8b2cb30`) 조상. 잔존 [ ] marker 0 — planner promote 후보. | §테스트 현황, §수용 기준 |
+| 2026-04-21 | inspector / REQ-20260421-032 | REQ-032 흡수 — admin 게이트 잔존 결함 (D1 auth() 프래그먼트 미추출 + D2 cookie maxAge 오타 + D3 env 미주입) 의 결과 FR 만 시스템 불변식 형태로 박제. 신설/확장: § 공개 인터페이스 `auth()` 한 줄 (해시 우선 + query fallback), § auth() 쿠키 속성 계약 → § auth() 토큰 추출 계약 (FR-01/03) 서브섹션 신설 + § setCookie 속성 불변식 에 지속 속성명 정합 항목 보강 (FR-04), § admin gate 계약 에 env 미주입 안전 기본값 항목 보강 (FR-08), § 회귀 방어 단위 테스트 계약 에 (b) Cognito-실형 (FR-06) / (c) 쿠키 지속 속성명 (FR-07) / (d) env 미주입 분리 (FR-08) 3 절 추가, § 회귀 중점 2 항목 추가 (토큰 추출 / 지속 속성명), § 동작 갱신, § 테스트 현황 + § 수용 기준 에 미실현 [ ] 5 marker 추가. RULE-07 자기검증: incident 진단·DevTools 실측·1회성 patch 플랜은 본 spec 본문에 포함하지 않고 결과 계약만 박제 — req §개요/§배경/§근본원인 D1~D3 진단 산문은 60.done/req/ 원문에 보존. 차기 task carve 대상 (planner 영역): code 정상화 (`auth()` hash 파싱 + `setCookie` 지속 속성명 정정) + 회귀 테스트 케이스 A/B/지속속성/env 미주입. NFR-01 (3 파일 변경 상한) 은 task 영역 metric. consumed: REQ-20260421-032 자체. | §역할 헤더, §공개 인터페이스, §auth() 토큰 추출 계약 (신설), §setCookie 속성 불변식 (보강), §admin gate 계약 (보강), §회귀 방어 단위 테스트 계약 (확장), §회귀 중점, §동작, §테스트 현황, §수용 기준, §변경 이력, §참고 |
 
 ## 참고
 - **REQ 원문 (완료 처리)**:
   - `specs/60.done/2026/04/21/req/20260421-common-env-admin-contracts-absorption.md` (REQ-20260421-022).
   - `specs/60.done/2026/04/21/req/20260421-auth-cookie-samesite-rfc6265bis-invariant.md` (REQ-20260421-025).
+  - `specs/60.done/2026/04/21/req/20260421-admin-gate-residual-defects-auth-fragment-cookie-maxage-env-empty.md` (REQ-20260421-032).
 - **Consumed followups (3건)**:
   - `specs/10.followups/20260421-0541-admin-gate-recovery-and-env-config-spec-from-blocked.md`
   - `specs/10.followups/20260421-0541-node-env-helper-migration-spec-from-blocked.md`
@@ -179,4 +216,7 @@
 - **코드 위치**:
   - `src/common/env.js` — `isDev()/isProd()/mode()`.
   - `src/common/common.js` — `isAdmin()` / `setCookie()` / `auth()`.
-- **외부 근거**: RFC 6265bis (draft) — SameSite 속성 값 집합 `{Strict, Lax, None}` 정의.
+- **외부 근거**:
+  - RFC 6265bis (draft) — SameSite 속성 값 집합 `{Strict, Lax, None}` 정의.
+  - RFC 6265 §5.2.2 — cookie 지속 속성명 `Max-Age` (대소문자 무관, 하이픈 필수) 정의. 알 수 없는 속성은 무시되어 cookie 가 세션 쿠키로 강등.
+  - AWS Cognito Hosted UI — `response_type=token` (OAuth 2.0 implicit grant) 응답 시 모든 토큰을 URL hash fragment 단일 구역에 `&` 로 연결한 형식으로 반환.
