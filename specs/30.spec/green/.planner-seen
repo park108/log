@@ -1,38 +1,46 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (3rd cycle, post TSK-49 operator cleanup)
-# Session: 0 promotions + 2 new carves (TSK-51, TSK-52) + 0 blocked.
-#   컨텍스트: RULE-03 선결 통과 — pause 없음, input 1 (shuffle-cold-start), ready 0 → 2 (TASK_READY_MAX=10 여유 10 → 8).
+# Updated: 2026-04-21T (4th cycle, post TSK-52 B1 blocked → B3 fallback carve)
+# Session: 0 promotions + 1 new carve (TSK-53 B3 fallback) + 0 blocked.
+#   컨텍스트: RULE-03 선결 통과 — pause 없음, input green=1 (shuffle-cold-start), ready 0 → 1 (TASK_READY_MAX=10 여유 10 → 9).
 #     실측 hash (이번 사이클):
-#       - shuffle-cold-start: 60be59b… 불변 (ledger stale 1 → 0; carve 로 spec 소비 progress 발생).
-#     blocked 디렉토리 관측: 50.blocked/task/ 빈상태, 50.blocked/spec/ 빈상태.
-#       → 직전 사이클 이동 file-split 및 이전 기록 TSK-43/49/50, toaster spec 등 **모두 운영자 정리 완료** (RULE-05).
-#       → 이전 ledger 의 "TSK-49 blocked 상태" 전제가 해소 → spec FR-15 + §동작 13 "신규 Task ID 발행" 경로 활성.
-#     LogItem.test.jsx 실측: getByTestId 4건 (:205/:260/:316/:377) 유지, findByTestId/beforeAll 0건 — TSK-49 원본이 원복되었거나 미merge 상태로 Layer 1 도 미수행 (spec baseline 과 일치).
+#       - shuffle-cold-start: 21543b7… (직전 60be59b… 에서 변경 — inspector 가 TSK-20260421-51 / d798635 FR-02 수용 기준 PASS 및 §변경 이력 추가 박제 반영). spec progress 있음 → stale 리셋/유지 0.
+#     HEAD=2dc4635 (TSK-51 merge 반영).
+#     blocked 디렉토리 관측:
+#       - 50.blocked/spec/ 빈상태.
+#       - 50.blocked/task/ : `20260421-logitem-layer2-warmup-render-prime.md` (TSK-20260421-52) + `_reason.md` 1쌍 존재. developer 직전 세션에서 B1 warm-up 적용 후 seed=1 여전히 fail 로 격리 (spec §동작 9 B3 fallback 지시 명시).
+#     LogItem.test.jsx 실측 (HEAD=2dc4635): `getByTestId("delete-button")` 0 hits, `findByTestId("delete-button")` 4 hits at :207/:262/:318/:379 (TSK-51 적용 유효), `beforeAll` 0 hits (TSK-52 의 B1 warm-up 은 커밋되지 않고 git restore 로 원복됨 — _reason.md 명시).
+#     msw.js 실측 (HEAD=2dc4635): `beforeAll` 0 / `afterAll` 0 / `server.listen` 3 (주석 2 + 코드 1@ :50) / `beforeEach` 3 / `afterEach` 3 / `server.close` 3 — B3 미적용 baseline.
 #   승격 평가 (4조건; shuffle-cold-start):
-#     - WIP=0, To-Be=0, 변경이력 박제 OK.
-#     - unchecked 25건 중 5건 `[deferred: TSK-49 blocked]`, 4건 `[pending: Layer 2 신규 TSK-ID]`, 수용 기준 16건 미태깅 → 승격 불가.
-#     - 주: `[deferred]` → `[pending: TSK-20260421-51/52]` 전환 (FR-14) 은 inspector 영역 (planner 가 spec 수정 금지 — RULE-01 writer 매트릭스).
+#     - [WIP] == 0, ^#+ .*To-Be == 0, §변경 이력 박제 OK.
+#     - unchecked `- [ ]` = 24건 (수용 기준 16건 + 테스트 현황 8건, 대부분 `[deferred: TSK-49 blocked]` / `[pending: Layer 2 신규 TSK-ID]` 태깅; FR-02 만 [x]) → 승격 불가.
+#     - `[deferred]` 태깅은 spec 의 FR-14 에 따라 planner 재carve 시 `[pending: TSK-53]` 으로 inspector 가 전환 예정.
 #   carve (원자 태스크, 1 PR 크기, 독립 롤백):
-#     - TSK-20260421-51 — Layer 1 FR-02 옵션 A (sync→async query 전환, `src/Log/LogItem.test.jsx` 단일 파일, depends_on=[]).
-#     - TSK-20260421-52 — Layer 2 FR-11/13 B1 (warm-up beforeAll empty render prime, `src/Log/LogItem.test.jsx` 단일 파일, depends_on=[TSK-20260421-51]).
-#     FR-06 (msw.test.js sibling-it) / FR-07 (File.test.jsx cache race) / B2~B5 fallback 은 Layer 2 해소 결과 의존 — 본 사이클 carve 범위 외 (scope creep 방지).
-#   grep dry-run: 7/7 match
-#     G1 getByTestId("delete-button") src/Log/LogItem.test.jsx → 4 hits (spec baseline 4 일치).
-#     G2 findByTestId("delete-button") src/Log/LogItem.test.jsx → 0 hits (spec baseline 0 일치).
-#     G3 await screen.findByTestId("delete-button") src/Log/LogItem.test.jsx → 0 hits (TSK-51 DoD 변환 baseline 일치).
-#     G4 beforeAll src/Log/LogItem.test.jsx → 0 hits (spec baseline 0 일치).
-#     G5 warm-up src/Log/LogItem.test.jsx → 0 hits (TSK-52 DoD baseline 일치).
-#     G6 await Promise.resolve src/Log/hooks/useDeleteLog.js → 0 hits (B5 미적용 baseline 일치).
-#     G7 server.listen src/test-utils/msw.js → 3 hits (B3 미적용 baseline 일치).
-#   blocked: 없음.
+#     - TSK-20260421-53 — Layer 2 B3 msw listen beforeAll 승격 (`src/test-utils/msw.js` 단일 파일, depends_on=[]).
+#       출처: spec §동작 9 / FR-11/FR-13 2차 fallback.
+#       근거: TSK-52 B1 실측 seed=1 fail 잔존 — `50.blocked/task/20260421-logitem-layer2-warmup-render-prime_reason.md` 의 "해석" 섹션이 B3 를 다음 후보로 명시.
+#       영향: `useMockServer` 호출부 17+ 파일 (File/Log/Comment/Monitor/Search/Image) 에 수명주기 변경 전파 — 호출부 API 계약 불변 전제, 전체 회귀 실측 필수 (spec §동작 9).
+#     TSK-20260421-54~ (B2 describe.sequential / B4 describe shuffle:false / B5 runtime microtask), FR-06 / FR-07 는 본 사이클 carve 범위 외 — B3 실측 결과 의존 (scope creep 방지).
+#   grep dry-run: 10/10 match
+#     G1 getByTestId("delete-button") src/Log/LogItem.test.jsx → 0 hits (TSK-51 완료 전제 일치).
+#     G2 findByTestId("delete-button") src/Log/LogItem.test.jsx → 4 hits (spec baseline 일치).
+#     G3 beforeAll src/Log/LogItem.test.jsx → 0 hits (TSK-52 blocked 원복 baseline 일치).
+#     G4 beforeAll src/test-utils/msw.js → 0 hits (B3 미적용 baseline 일치).
+#     G5 afterAll src/test-utils/msw.js → 0 hits (B3 미적용 baseline 일치).
+#     G6 server.listen src/test-utils/msw.js → 3 hits (주석 2 + 코드 1, baseline 일치).
+#     G7 beforeEach src/test-utils/msw.js → 3 hits (주석 1 + import 1 + 호출 1, baseline 일치).
+#     G8 server.close src/test-utils/msw.js → 3 hits (주석 2 + 코드 1, baseline 일치).
+#     G9 multiline "beforeEach(...) { ... server.listen" src/test-utils/msw.js → 1 hit at :49-50 (B3 게이트 baseline 일치).
+#     G10 multiline "afterEach(...) { ... server.close" src/test-utils/msw.js → 1 hit at :53-55 (B3 게이트 baseline 일치).
+#   blocked: 없음 (planner 신규 격리 0; TSK-52 blocked 는 직전 developer 세션 조치, 본 세션 관측만).
 # ledger entries:
-common/test-isolation-shuffle-safety-cold-start-spec.md 60be59b96e3eba221c65332860b0d993b60bbb4d0d667f414817c60c30e0c858 0
+common/test-isolation-shuffle-safety-cold-start-spec.md 21543b775c3e0f64b5f75aed161bf0722caf2dc4136efbf7996299baf60a92c3 0
 # 아카이브 (이동됨 — 운영자 정리 완료):
 # components/file-test-multi-scenario-split-spec.md 6488570be7d4c6586fdcc912c53a5cfeaf8020ff5add354ba34ea760df280197 (operator cleanup)
 # components/toaster-conditional-mount-or-helper-spec.md 23bfc9260ee53be3135e18f2826876ab761b28db2a7ad37ee3a7696d62aa6ba5 (operator cleanup)
-# ready 큐: (count=2, TASK_READY_MAX=10 여유 8).
+# ready 큐: (count=1, TASK_READY_MAX=10 여유 9).
 # next cycle:
-#   - TSK-51/52 developer 소비 대기 (15m 주기).
-#   - shuffle-cold-start spec 은 inspector 가 `[deferred]` → `[pending: TSK-51/52]` 전환 (FR-14 이행) 후 planner 재평가.
-#     TSK-51/52 done 시 FR-02/08/11/13 수용 기준 체크 가능 → 승격 경로 열림.
-#   - FR-06/07, B2~B5 후속 carve 는 Layer 2 해소 결과 의존 — 조기 carve 금지 (scope creep 방지).
+#   - TSK-53 developer 소비 대기 (15m 주기). B3 실측 shuffle seed=1 에서 LogItem DELETE network-error 0 fail 달성 시 FR-11/13 부분 PASS → inspector ack 후보.
+#   - TSK-52 (50.blocked/task/) 운영자 정리 대기 — RULE-05. 정리 완료 전까지 planner 는 재carve 안 함.
+#   - shuffle-cold-start spec 은 inspector 가 `[deferred: TSK-49 blocked]` → `[pending: TSK-20260421-53]` 전환 (FR-14 이행) 후 planner 재평가.
+#     TSK-53 done 시 FR-08/11/13 수용 기준 체크 가능 → 승격 경로 일부 열림. 완전 승격은 FR-06/07 별건 carve 까지 필요.
+#   - FR-06 (msw.test.js sibling-it) / FR-07 (File.test.jsx cache race) / B2/B4/B5 fallback 은 TSK-53 결과 의존 — 조기 carve 금지 (scope creep 방지).
