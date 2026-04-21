@@ -27,5 +27,10 @@ specs/
 | inspector | `30.spec/green/**` | `20.req/*` → `60.done/req/` 또는 `50.blocked/req/` |
 | planner | `40.task/` | `30.spec/green/F` → `30.spec/blue/F`, `30.spec/**` → `50.blocked/spec/` |
 
+## 파일 이름
+- spec: `30.spec/{blue,green}/**/<slug>.md`, `50.blocked/spec/**/<slug>.md` — **`-spec` suffix 금지** (디렉터리 경로로 식별).
+- blocked reason: `<slug>_reason.md` (동일 디렉터리).
+- req: `20.req/<YYYYMMDD>-<slug>.md`. task: `40.task/TSK-<YYYYMMDD>-<NN>-<slug>.md`.
+
 ## Task ID
 `TSK-YYYYMMDD-NN`. 생성 직전 `grep -rn "TSK-..." specs/{40.task,60.done,50.blocked}/` 중복 검증. carve: `-a,-b` 접미사 + `supersedes:` 메타.
