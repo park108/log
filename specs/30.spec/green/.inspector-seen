@@ -1,17 +1,18 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T16:04Z (HEAD=8e1c913 at session start). Phase 1 reconcile 0/0 ack (post-promotion 빈 green).
+# Updated: 2026-04-21T16:30Z (HEAD=74ed7c7 at session start). Phase 1 reconcile 0/0 ack (빈 green 유지, 입력 큐 0).
 #
 # 세션 시작 상태:
-#   - `git rev-parse HEAD` = `8e1c913` (직전 planner 35th cycle promote; 그 직전 inspector d8baf59 = TSK-89 ack; 그 직전 developer e290e8c = TSK-89 feat).
-#   - 직전 inspector (d8baf59) 이후 커밋: 8e1c913 (planner promote foundation/coverage-determinism green→blue) 1건.
+#   - `git rev-parse HEAD` = `74ed7c7` (직전 inspector Phase 1 reconcile 0/0 ack 커밋 자체). 그 이전: 8e1c913 planner 35th promote.
+#   - 직전 inspector (74ed7c7) 이후 커밋: 0 건. developer·planner·discovery 모두 no-op 또는 무커밋.
 #   - `specs/20.req/` 0 건. Phase 3 no-op.
-#   - `specs/40.task/` 0 건 (planner 신규 carve 대기).
+#   - `specs/40.task/` 0 건 (planner 신규 carve 대기 지속).
 #   - `specs/60.done/2026/04/21/task/` 신규 추가 0 건 (직전 세션 대비 동일).
-#   - green spec 파일: 0 파일. 직전 세션 말 `foundation/coverage-determinism.md` 1건 → planner 8e1c913 blue 승격 이동 완료.
+#   - green spec 파일: 0 파일 (직전 세션 종료 상태 유지 — planner 8e1c913 에서 foundation/coverage-determinism.md blue 승격 후 빈 상태).
 #
 # Phase 1 drift marker 스캔 (세션 시작 green 0 spec):
 #   - 스캔 대상 0 건. ACK 가능 대상 부재. M = 0, N = 0.
 #   - 토큰 = `reconcile: 0/0 ack`.
+#   - marker 존재하는 spec 없으므로 stale_cycles 누적 대상 없음.
 #
 # Phase 2 (deferred/split): 해당 없음 (green 0 spec).
 #
@@ -23,7 +24,7 @@
 #
 # 현 ledger (post-edit sha): 비어 있음.
 #
-# Stale 경고 (≥ 3 cycle): 0 건.
+# Stale 경고 (≥ 3 cycle): 0 건 (marker 존재 spec 부재 → 카운터 자체 없음).
 #
 # Phase 3 입력 큐 (본 세션 시작): 0 건 → 0 processed / 0 blocked.
 # 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 파일 0 < 20. 여유 20.
@@ -31,8 +32,9 @@
 # 승격 가능성 (planner 관할, 참조용): 해당 없음 (green 0).
 #
 # 다음 세션 유의:
-#   - 20.req 입력 큐 0 건 (본 세션 종료 시점).
-#   - 40.task 0 건 (planner 신규 carve 대기).
+#   - 20.req 입력 큐 0 건 (본 세션 종료 시점). discovery followups 소비 대기.
+#   - 40.task 0 건 (planner 신규 carve 대기 지속).
 #   - a11y.md / erc.md 는 blocked 상태 (50.blocked/spec/) — inspector Phase 1 스캔 대상 아님 (RULE-05 수동 해제 경로).
 #   - blue 15 파일 (foundation 5 + components 9 + common 1) — planner/discovery 관할.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
+#   - 연속 no-op 세션: 본 세션으로 2 회 연속 0/0 ack. 파이프라인 상류 (discovery followups 또는 신규 req) 진입 시 정상화 예상.
