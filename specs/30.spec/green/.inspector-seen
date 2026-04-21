@@ -1,41 +1,50 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T17:04Z (HEAD=3284490 at session start). Phase 1 reconcile 0/0 ack (3회 연속 no-op, 빈 green 유지, 입력 큐 0).
+# Updated: 2026-04-21T17:35Z (HEAD=d1a97a1 at session start). Phase 1 reconcile 0/0 ack + Phase 3 새 green spec 1 건 생성.
 #
 # 세션 시작 상태:
-#   - `git rev-parse HEAD` = `3284490` (planner 36th cycle no-op). 직전 inspector = `4dc9aea` (2회 연속 0/0 ack 중 2번째).
-#   - 직전 inspector (4dc9aea) 이후 커밋: 1 건 — `3284490 spec(planner): 36th cycle no-op (green 입력 큐 0)`. developer·discovery 무커밋.
-#   - `specs/20.req/` 0 건. Phase 3 no-op.
-#   - `specs/40.task/` 0 건 (planner 신규 carve 대기 지속).
-#   - `specs/10.followups/` 0 건 (discovery 소비 대기 없음).
-#   - `specs/60.done/2026/04/21/task/` 신규 추가 0 건 (직전 세션 대비 동일).
-#   - green spec 파일: 0 파일 (직전 세션 종료 상태 유지 — planner 8e1c913 에서 foundation/coverage-determinism.md blue 승격 후 빈 상태 지속).
+#   - `git rev-parse HEAD` = `d1a97a1`. 직전 inspector commit = `60ff00d` (3회 연속 0/0 ack 3번째).
+#   - `specs/20.req/` 1 건 (`20260422-husky-v9-deprecated-hook-shim-migration.md`, REQ-20260422-044).
+#   - `specs/40.task/` 0 건.
+#   - `specs/10.followups/` 0 건.
+#   - `specs/30.spec/green/**` 0 spec 파일 (세션 시작 시점 — common/components/foundation 모두 빈 디렉터리).
 #
 # Phase 1 drift marker 스캔 (세션 시작 green 0 spec):
 #   - 스캔 대상 0 건. ACK 가능 대상 부재. M = 0, N = 0.
 #   - 토큰 = `reconcile: 0/0 ack`.
-#   - marker 존재하는 spec 없으므로 stale_cycles 누적 대상 없음.
+#   - stale_cycles 누적 대상 없음.
 #
-# Phase 2 (deferred/split): 해당 없음 (green 0 spec).
+# Phase 2 (deferred/split): 해당 없음 (세션 시작 green 0 spec; 신규 생성 1 건은 300 라인 이내).
 #
-# Phase 3 (신규 반영): 입력 큐 `specs/20.req/` 0 건 → no-op. 하류 임계치 GREEN_PENDING_MAX=20 default (pipeline.json 없음) — 세션 종료 시점 green 0 < 20. 여유 20.
+# Phase 3 (신규 반영):
+#   - 입력 큐 1 건 → RULE-07 자기검증 통과 (husky 메이저 deprecated 경로 의존 금지 = 반복 검증 가능·시점 비의존 시스템 계약).
+#   - blue 측 husky 관련 spec 3 건 (foundation/{tooling,regression-gate,coverage-determinism}.md) 확인 — husky 를 하위 참조로만 언급. husky 메이저 / shim / dep range 를 박제한 기존 spec 없음. 신규 green `foundation/husky-hook-entrypoint.md` 생성 정합.
+#   - 하류 임계치 GREEN_PENDING_MAX=20 default (pipeline.json 없음) — 세션 종료 시점 green 1 < 20. 여유 19.
+#   - processed=1, produced=[specs/30.spec/green/foundation/husky-hook-entrypoint.md], moved=[specs/20.req/20260422-husky-v9-deprecated-hook-shim-migration.md -> specs/60.done/2026/04/21/req/20260422-husky-v9-deprecated-hook-shim-migration.md], blocked=[].
 #
-# RULE-07 자기검증: 본 세션 콘텐츠 편집 0 건 (ledger meta-write 한정, 불변식·계약 영향 없음).
+# RULE-07 자기검증 (생성 직전):
+#   - 불변식 / 계약 한정 — FR-01 deprecated shim 금지, FR-02 `prepare` 현행 권장 형태, FR-03 dep range 유지 지원 메이저, FR-04 관찰 계약 보존, FR-05 수단 중립성, FR-06 `.husky/_/` 잔존 금지.
+#   - 시점 비의존 — "v9 이상" 은 본문 §변경 이력 에서 갱신하는 방식으로 시점 의존성 최소화. 본문은 "현행 유지 지원 메이저" 라는 재해석 가능 어휘 사용.
+#   - 반복 검증 가능 — grep gate (a)~(f) 실측. 6개 gate 중 5개는 현재 위반 상태로 drift 를 박제 (전환 task 에서 소거 대상).
+#   - 1회성 진단·incident patch 아님 — husky 업스트림 deprecation 정책이 변할 때마다 반복 적용되는 구조적 계약.
 #
-# 변동 spec sha (본 세션 편집 기준): 0 건.
+# 변동 spec sha (본 세션 편집 기준): 1 건.
+#   - specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 0
 #
-# 현 ledger (post-edit sha): 비어 있음.
+# 현 ledger (post-edit sha):
+specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 0
 #
-# Stale 경고 (≥ 3 cycle): 0 건 (marker 존재 spec 부재 → 카운터 자체 없음).
+# Stale 경고 (≥ 3 cycle): 0 건.
 #
-# Phase 3 입력 큐 (본 세션 시작): 0 건 → 0 processed / 0 blocked.
-# 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 파일 0 < 20. 여유 20.
+# Phase 3 입력 큐 (본 세션 시작): 1 건 → 1 processed / 0 blocked.
+# 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 1 < 20. 여유 19.
 #
-# 승격 가능성 (planner 관할, 참조용): 해당 없음 (green 0).
+# 승격 가능성 (planner 관할, 참조용): 신규 green 은 drift 박제형 — 전환 task 발행 → 실현 → [x] 플립 후 승격 예상.
 #
 # 다음 세션 유의:
 #   - 20.req 입력 큐 0 건 (본 세션 종료 시점). discovery followups 소비 대기.
-#   - 40.task 0 건 (planner 신규 carve 대기 지속).
-#   - a11y.md / erc.md 는 blocked 상태 (50.blocked/spec/) — inspector Phase 1 스캔 대상 아님 (RULE-05 수동 해제 경로).
+#   - 40.task 0 건 (planner 신규 carve 대기 — REQ-044 전환 task 후보: .husky/* 2건 + package.json prepare + husky dep bump + .husky/_/ 제거 = 단일 task 또는 carve).
+#   - 10.followups 0 건.
+#   - 본 세션 생성 green `foundation/husky-hook-entrypoint.md` 은 baseline 6 gate 중 5 건 위반 상태 — 전환 task 완료 후 수용 기준 4건 [x] 플립 + stale 0 유지 예상.
+#   - a11y.md / erc.md 는 blocked 상태 (50.blocked/spec/ 수동 해제 경로; 본 세션 작업 트리에 deleted 상태로 표시되나 staged 아님 — inspector 영역 밖, 무시).
 #   - blue 15 파일 (foundation 5 + components 9 + common 1) — planner/discovery 관할.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
-#   - 연속 no-op 세션: 본 세션으로 3 회 연속 0/0 ack. 파이프라인 상류 (discovery followups 또는 신규 req) 진입 시 정상화 예상.
