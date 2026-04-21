@@ -1,56 +1,38 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T15:45Z (HEAD=e290e8c at session start). Phase 1 reconcile 1/1 ack (TSK-20260421-89 coverage-determinism FR-02 (g-2) fileParallelism false convergence).
+# Updated: 2026-04-21T16:04Z (HEAD=8e1c913 at session start). Phase 1 reconcile 0/0 ack (post-promotion 빈 green).
 #
 # 세션 시작 상태:
-#   - `git rev-parse HEAD` = `e290e8c` (직전 developer TSK-89 feat; 그 직전 planner 97f1808 = promote log.md + block erc.md + carve TSK-89; 그 직전 inspector 80ee2ae = REQ-043 흡수).
-#   - 직전 inspector (80ee2ae) 이후 커밋: 97f1808 (planner promote/block/carve) → e290e8c (developer TSK-89 feat).
+#   - `git rev-parse HEAD` = `8e1c913` (직전 planner 35th cycle promote; 그 직전 inspector d8baf59 = TSK-89 ack; 그 직전 developer e290e8c = TSK-89 feat).
+#   - 직전 inspector (d8baf59) 이후 커밋: 8e1c913 (planner promote foundation/coverage-determinism green→blue) 1건.
 #   - `specs/20.req/` 0 건. Phase 3 no-op.
 #   - `specs/40.task/` 0 건 (planner 신규 carve 대기).
-#   - `specs/60.done/2026/04/21/task/` TSK-89 (coverage-determinism-pool-parallelism-convergence) 신규 추가 — 본 세션 Phase 1 ack 대상.
-#   - green spec 파일: 1 파일 (`foundation/coverage-determinism.md`). `common/error-reporter-channel.md` = planner 97f1808 에서 50.blocked/spec/ 격리 이동 (FR-06 구조적 blocker). `components/log.md` = planner 97f1808 에서 blue 승격 완료.
+#   - `specs/60.done/2026/04/21/task/` 신규 추가 0 건 (직전 세션 대비 동일).
+#   - green spec 파일: 0 파일. 직전 세션 말 `foundation/coverage-determinism.md` 1건 → planner 8e1c913 blue 승격 이동 완료.
 #
-# Phase 1 drift marker 스캔 (세션 시작 green 1 spec):
-#   1. foundation/coverage-determinism.md:
-#      · 본 세션 ack 대상: TSK-20260421-89 (commit e290e8c, `chore: coverage 측정 결정론 수단 (g-2) fileParallelism false 박제`). depends_on TSK-87 @a2b9119 (baseline 감사 픽스처).
-#      · ack 게이트 재실행 @HEAD=e290e8c:
-#        - `git merge-base --is-ancestor e290e8c HEAD` → exit 0 (ANCESTOR OK). HEAD=e290e8c 자체.
-#        - `grep -nE "REQ-20260421-041" vite.config.js` → 1 hit @L76 (task DoD 게이트 "주석 박제 게이트 ≥ 1 hit" 충족).
-#        - `grep -nE "(fileParallelism|singleFork|singleThread|maxWorkers|pool\s*:|--no-file-parallelism)" vite.config.js` → 2 hits (L77 주석 내 `--no-file-parallelism` + L79 값 `fileParallelism: false`) — task DoD 게이트 "grep-baseline 잔존 확인 ≥ 1 hit" 충족.
-#        - developer result.md N=5 4축 range 0.00 전수 / exit 5/5 = 0 전수 / 436/436 PASS / 4축 threshold PASS / lint / build / typecheck PASS / LogSingle render-budget margin=5000ms 보존 → "회귀 0" ack 문구 확보.
-#        - commit 메시지 "N=5 재실측에서 4축 ... range=0.00 전수, exit code 5/5=0 완전 수렴 확인" 박제.
-#      · 본 세션 Phase 1 편집:
-#        - §테스트 현황 FR-01 [ ]→[x] (1건). 수렴 근거 (TSK-89 @e290e8c, N=5 4축 수치, range 0.00, exit 전수 0) 1행 박제.
-#        - §테스트 현황 FR-02 [ ]→[x] (1건). 수단 택일 근거 ((g-2) `fileParallelism: false`, 편집 파일 `vite.config.js`) 1행 박제. 열거 범위 (a~f) → (a~g) 로 갱신.
-#        - §변경 이력 top 행 신규 1 row 박제 (TSK-89 ack). `TSK-20260421-89` + `e290e8c` 토큰 박제, scope 준수 (`src/**`·`vite.config.js`·`package.json`·`.husky/**`·`.github/workflows/**` 변경 0) + RULE-07 정합 (불변식 FR-01~FR-07 본문 변경 0) + 회귀 0 문구 박제.
-#        - §불변식 FR-01~FR-07 본문 변경 0. §역할 / §공개 인터페이스 / §차원 분리 명시 / §의존성 / §스코프 규칙 / §수용 기준 / §참고 변경 0 (FR-02 열거 (g) 는 직전 80ee2ae 에서 박제 완료 — 본 세션 재편집 없음).
-#      · sha 변동: 66bfe606…a6274f68 → 3bddc88d…c9e81d80b. stale_cycles 0 → 0 (ack 으로 리셋 유지).
-#      · 잔존 [ ]: 0 건 — §테스트 현황 전수 [x] 전환 완료. promote 조건 성숙 (planner 영역) — 차기 세션 planner 가 blue 승격 판단.
+# Phase 1 drift marker 스캔 (세션 시작 green 0 spec):
+#   - 스캔 대상 0 건. ACK 가능 대상 부재. M = 0, N = 0.
+#   - 토큰 = `reconcile: 0/0 ack`.
 #
-# Phase 1 ack 산출: ACK 1 (TSK-20260421-89 @e290e8c FR-01 + FR-02 수렴), 비-ACK 0. 분모 M = 1.
-#   토큰 = `reconcile: 1/1 ack`.
+# Phase 2 (deferred/split): 해당 없음 (green 0 spec).
 #
-# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (coverage-determinism.md ~142줄 post-edit).
+# Phase 3 (신규 반영): 입력 큐 `specs/20.req/` 0 건 → no-op. 하류 임계치 GREEN_PENDING_MAX=20 default (pipeline.json 없음) — 세션 종료 시점 green 0 < 20. 여유 20.
 #
-# Phase 3 (신규 반영): 입력 큐 `specs/20.req/` 0 건 → no-op. 하류 임계치 GREEN_PENDING_MAX=20 default (pipeline.json 없음) — 세션 종료 시점 green 1 < 20. 여유 19.
+# RULE-07 자기검증: 본 세션 콘텐츠 편집 0 건 (ledger meta-write 한정, 불변식·계약 영향 없음).
 #
-# RULE-07 자기검증: 본 세션 편집은 §테스트 현황 ack 플립 + §변경 이력 감사 pointer 추가 한정. 불변식 본문 (FR-01~FR-07) 수정 없음. 신규 RULE-07 반려 시그널 부재 (1회성 incident·감사·TODO 나열 없음).
+# 변동 spec sha (본 세션 편집 기준): 0 건.
 #
-# 변동 spec sha (본 세션 편집 기준):
-#   - `foundation/coverage-determinism.md` 66bfe606…a6274f68 → 3bddc88d…c9e81d80b. TSK-89 ack 플립 + 변경 이력 증분. stale_cycles = 0 (ack 리셋).
-#
-# 현 ledger (post-edit sha):
-specs/30.spec/green/foundation/coverage-determinism.md 3bddc88d3d5ca895ea9f2229568fdd9191444f04446f2f720176ddac9e81d80b 0
+# 현 ledger (post-edit sha): 비어 있음.
 #
 # Stale 경고 (≥ 3 cycle): 0 건.
 #
 # Phase 3 입력 큐 (본 세션 시작): 0 건 → 0 processed / 0 blocked.
-# 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 파일 1 < 20. 여유 19.
+# 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 파일 0 < 20. 여유 20.
 #
-# 승격 가능성 (planner 관할, 참조용):
-#   - `foundation/coverage-determinism.md` — §테스트 현황 FR-01 / FR-02 양쪽 [x] 수렴. §수용 기준 전수 [x] 유지. **promote 조건 성숙** — 차기 planner 주기에서 blue 승격 판단.
+# 승격 가능성 (planner 관할, 참조용): 해당 없음 (green 0).
 #
 # 다음 세션 유의:
 #   - 20.req 입력 큐 0 건 (본 세션 종료 시점).
-#   - 40.task 0 건 (planner 신규 carve 대기 / 또는 coverage-determinism.md blue 승격).
+#   - 40.task 0 건 (planner 신규 carve 대기).
 #   - a11y.md / erc.md 는 blocked 상태 (50.blocked/spec/) — inspector Phase 1 스캔 대상 아님 (RULE-05 수동 해제 경로).
+#   - blue 15 파일 (foundation 5 + components 9 + common 1) — planner/discovery 관할.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
