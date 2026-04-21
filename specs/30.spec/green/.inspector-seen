@@ -1,74 +1,65 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=d9d026b at session start). Phase 1 reconcile 2/2 ack (TSK-78 M10 + TSK-79 audit) + Phase 3 REQ-20260421-040 흡수.
+# Updated: 2026-04-21T (HEAD=9734e27 at session start). Phase 1 reconcile 2/2 ack (TSK-80 D1 Search + TSK-81 D2 ImageSelector). Phase 2/3 no-op (20.req 빈 큐).
 #
 # 세션 시작 상태:
-#   - `git rev-parse HEAD` = `d9d026b` (직전 developer 커밋 `test: a11y 패턴 B audit 테스트 도입 (role="button" 전수 검증)` — TSK-79).
-#   - 직전 inspector (a419a20) 이후 커밋: a419a20 (직전 inspector, TSK-77 M5 ack) → 6b083b7 (developer TSK-78 M10) → 66ad3f3 (planner carve TSK-80~86 errorReporter D1~D7) → d9d026b (developer TSK-79 audit). 본 세션은 TSK-78/79 2건 Phase 1 ack 대상.
-#   - `specs/20.req/` 1 건 (REQ-20260421-040 — a11y M5 grep-baseline 블록 경계 정밀화).
-#   - `specs/40.task/` 7 건 (TSK-80~86 errorReporter D1~D7) — 본 inspector 세션 reconcile 관여 없음 (developer 대기).
-#   - `specs/60.done/2026/04/21/task/` 에 `a11y-pattern-b-imageitem-m10-option-a-button-role/` (TSK-78, 6b083b7), `a11y-pattern-b-audit-test/` (TSK-79, d9d026b) 2 신규 task done.
+#   - `git rev-parse HEAD` = `9734e27` (직전 developer 커밋 `refactor: errorReporter 채널 단일화 — D2 ImageSelector` — TSK-81).
+#   - 직전 inspector (7554a46) 이후 커밋: 7554a46 (직전 inspector, TSK-78/79 + REQ-040) → dd063bf (planner no-op 28th cycle) → 1661242 (developer TSK-80 D1 Search) → 9734e27 (developer TSK-81 D2 ImageSelector). 본 세션은 TSK-80/81 2건 Phase 1 ack 대상.
+#   - `specs/20.req/` 0 건 (빈 큐 — Phase 3 no-op).
+#   - `specs/40.task/` 5 건 (TSK-82~86 — File/FileItem/FileDrop/FileUpload/Comment D3~D7 대기) — 본 inspector 세션 reconcile 관여 없음 (developer 미소비).
+#   - `specs/60.done/2026/04/21/task/` 에 `errorreporter-migrate-search/` (TSK-80, 1661242), `errorreporter-migrate-image-selector/` (TSK-81, 9734e27) 2 신규 task done.
 #   - green spec 파일: 2개 (`common/a11y.md`, `common/error-reporter-channel.md`).
 #
 # Phase 1 drift marker 스캔 (세션 시작 green 2 specs):
 #   1. common/a11y.md:
-#      · TSK-78 (6b083b7, ancestor PASS) result.md DoD 게이트 재실행 @HEAD=d9d026b:
-#        - `grep -nE 'role="button"' src/Image/ImageItem.jsx` → 1 hit @L29 (`role="listitem"` → `button` 교체 확인).
-#        - `grep -nE 'role="listitem"' src/Image/ImageItem.jsx` → 0 hits.
-#        - `grep -nE 'tabIndex=\{0\}' src/Image/ImageItem.jsx` → 1 hit @L30.
-#        - `grep -nE 'onKeyDown=\{activateOnKey' src/Image/ImageItem.jsx` → 1 hit @L38.
-#        - `grep -nE 'import \{ activateOnKey \}' src/Image/ImageItem.jsx` → 1 hit @L4.
-#        - `grep -nE "describe\('ImageItem a11y 패턴 B" src/Image/ImageItem.test.jsx` → 1 hit @L50.
-#        - `grep -cE "fireEvent\.keyDown" src/Image/ImageItem.test.jsx` → 4.
-#      · hook-ack (TSK-78 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS 47 files / 419 tests (414→419 +5, 회귀 0) / `build` PASS 403ms. Pre-push 재시도 2회차 (1회차 Functions coverage 93.66% flake, 2회차 94.45% PASS — result.md `관찰 이슈` 로 followups 후보 박제). Must 주관 혼재 없음 (spec 계약 자체 영향 없음) → ack 채택.
-#      · 스코프 준수: TSK-78 result.md §스코프 준수 = `src/Image/ImageItem.jsx` 본체 한정 + `src/Image/ImageSelector.test.jsx` selector 정밀화 (§테스트 섹션 "scope 내 허용" 해석). `useHoverPopup` / `activateOnKey` 본체 변경 0. `src/Image/ImageSelector.jsx` `role="list"` 보존.
-#      · TSK-79 (d9d026b = HEAD, ancestor 자명) result.md DoD 게이트 재실행 @HEAD=d9d026b:
-#        - `ls src/common/a11y.audit.test.js` 존재 / `ls src/common/a11y.audit.exemptions.js` 존재.
-#        - `grep -nE "describe\('a11y 패턴 B audit" src/common/a11y.audit.test.js` → 1 hit @L197.
-#        - `grep -nE "PATTERN_B_EXEMPTIONS" src/common/a11y.audit.exemptions.js` → 2 hits (export const @L18 + export default @L27).
-#        - `grep -cE "PATTERN_B_EXEMPTIONS" src/common/a11y.audit.test.js` → 7 (import + 본문 6 참조).
-#        - `npm test -- --run src/common/a11y.audit.test.js` → 4 it PASS (audit 위반 0).
-#      · hook-ack (TSK-79 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS 48 files / 423 tests (419→423 +4, 회귀 0) / `build` PASS 372ms. `d9d026b` = HEAD (ancestor trivially PASS). Must 주관 혼재 없음 → ack 채택. 관찰 이슈 (AST 이관 / baseline 수치 경미 불일치) 는 spec §audit 테스트 §구현 선택 유보 조항으로 이미 수용 상태 — spec 계약 영향 없음.
-#      · 편집: §예외 §M5 ("확정 면제") 행에 **회귀 baseline (블록 경계 준수)** subsection 추가 (REQ-040 FR-04) + §예외 §M10 "설계 분기 위임" → "옵션 A 확정 정상화 완료" 로 재분류 (§drift 표 pointer) + §drift 정상화 표 에 M10 행 신설 (정상화 완료 취소선, TSK-78 @6b083b7) + §테스트 현황 M10 / audit 각 `[x]` 플립 + §수용 기준 FR-02/03/06/08 `[x]` 플립 + REQ-040 FR-03/FR-04 항목 2행 추가 + §스코프 규칙 (b) "role=button 전수" 22 hits in 12 files → 23 hits in 13 files 재박제 + (a) "activateOnKey 사용 수" 15 hits in 11 files → 16 hits in 12 files 재박제 + (c) "블록 경계 false-positive 방지 — grep idiom 경고 (REQ-040 FR-03)" 절 전면 재작성 (경고 + 대체 idiom 3종 + 사용 금지 패턴 박제) + §expansion 문구 M10 포함 + audit 자동 게이트 pointer + §rationale 갱신 + §최종 업데이트 갱신 + §변경 이력 1 행 append.
-#      · stale_cycles 0 → 0 — 진척 발생 (M10 + audit ack + REQ-040 흡수). 잔존 [ ] marker: 수용 기준 FR-07 (planner promote 영역) 1건 — 본 drift 표 잔존 0, 예외 §M5/M10 잔존 0, §테스트 현황 잔존 0.
+#      · 본 세션 ack 대상 TSK 없음 (TSK-80/81 은 error-reporter-channel.md 축). 잔존 [ ] marker: 수용 기준 FR-07 (planner promote 영역) 1건 — 불변.
+#      · §drift 정상화 표 잔존 0, §예외 잔존 0, §테스트 현황 잔존 0 (전 세션 상태 유지).
+#      · ack 0 + WIP 불변 → stale_cycles 0 → 1. (3 cycle 미만; planner promote 대기 상태.)
 #   2. common/error-reporter-channel.md:
-#      · 신설 후 하류 task TSK-80~86 (D1–D7 정상화) carve 완료 (66ad3f3, planner) 상태 — 7건 40.task/ 대기. developer 진행 시 1건씩 ack 발생 예상. 본 세션 시점 developer 아직 소비 안 함 → 본 spec 변경 없음.
-#      · stale_cycles 1 → 2 — WIP marker 불변 + ack 0 (task 발행되었으나 developer 미소비). 3 cycle 미만.
+#      · TSK-80 (1661242, ancestor PASS) result.md DoD 게이트 재실행 @HEAD=9734e27:
+#        - `grep -nE "^\s+console\.(error|warn|info|log)\(" src/Search/Search.jsx` → 0 hits (baseline 2 → 0).
+#        - `grep -nE "reportError\(" src/Search/Search.jsx` → 2 hits @L43/L52.
+#        - `grep -nE "from.*errorReporter" src/Search/Search.jsx` → 1 hit @L4.
+#        - `grep -nE "describe\('Search reportError 채널" src/Search/Search.test.jsx` → 1 hit @L113.
+#        - `grep -nE "vi\.spyOn\(errorReporter, 'reportError'\)" src/Search/Search.test.jsx` → 1 hit @L15.
+#      · hook-ack (TSK-80 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS 48 files / **425 tests** (423→425 +2, 회귀 0) / `build` PASS 423ms. Must 주관 혼재 없음 → ack 채택.
+#      · 스코프 준수: TSK-80 result.md §스코프 준수 = `src/Search/Search.jsx` + `src/Search/Search.test.jsx` 2 파일 한정. D2–D7 / M10 경계 밖 무변경.
+#      · TSK-81 (9734e27 = HEAD, ancestor 자명) result.md DoD 게이트 재실행 @HEAD=9734e27:
+#        - `grep -nE "^\s+console\.(error|warn|info|log)\(" src/Image/ImageSelector.jsx` → 0 hits (baseline 4 → 0).
+#        - `grep -nE "reportError\(" src/Image/ImageSelector.jsx` → 4 hits @L48/L54/L91/L97.
+#        - `grep -nE "from.*errorReporter" src/Image/ImageSelector.jsx` → 1 hit @L5.
+#        - `grep -nE "describe\('ImageSelector reportError 채널" src/Image/ImageSelector.test.jsx` → 1 hit @L213.
+#        - `grep -nE "vi\.spyOn\(errorReporter, 'reportError'\)" src/Image/ImageSelector.test.jsx` → 1 hit @L14.
+#      · hook-ack (TSK-81 result.md §테스트 결과): `npm run lint` PASS / `typecheck` PASS / `test -- --run` PASS 48 files / **427 tests** (425→427 +2, 회귀 0) / `build` PASS 402ms. `9734e27` = HEAD. Must 주관 혼재 없음 → ack 채택.
+#      · 스코프 준수: TSK-81 result.md §스코프 준수 = `src/Image/ImageSelector.jsx` + `src/Image/ImageSelector.test.jsx` 2 파일 한정. D1/D3–D7 / M10 (TSK-78) 경계 밖 무변경.
+#      · 편집: §drift 정상화 표 D1/D2 행 취소선 처리 + "정상화 완료 — TSK-80/81 @커밋" 비고 박제 + 합계에 "잔존 @HEAD=9734e27: 18 hits / 6 files" 재박제. §테스트 현황 Search.test.jsx / ImageSelector.test.jsx 각 [x] 플립 (이디엄 실측 @L 박제). §스코프 규칙 grep-baseline (a) "24 hits / 8 files → 잔존 18 hits / 5 files" 재박제 (D1/D2 라인 취소선 + 잔존 5 파일 enumeration). (b) positive 집계 방법론 정정 — 호출식 한정 `reportError\(` 은 App.jsx import/prop reference 매치 안 함, 발행 시점 19 hits 는 JSDoc/주석 over-count. HEAD=9734e27 실측 **15 hits** (정의 1 + Monitor 4×2 + Search 2 + ImageSelector 4) 재박제. App.jsx prop reference 4 hits 는 별도 gate `reportError[^(]` 안내. §rationale 수정 (19+24=43 → 15+18=33 목표값 재추정). §최종 업데이트 갱신. §변경 이력 1행 append.
+#      · stale_cycles 2 → 0 — 진척 발생 (D1/D2 ack, 상세 박제).
 #
-# Phase 1 ack 산출: ACK 2 (TSK-78 M10, TSK-79 audit), 비-ACK 0 평가단위. 분모 M = 2.
+# Phase 1 ack 산출: ACK 2 (TSK-80 D1, TSK-81 D2), 비-ACK 0 평가단위. 분모 M = 2.
 #   토큰 = `reconcile: 2/2 ack`.
 #
-# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md 217줄 / error-reporter-channel.md 237줄).
+# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md 217줄 / error-reporter-channel.md ~250줄).
 #
-# Phase 3 (신규 req 반영):
-#   · REQ-20260421-040 (a11y-m5-grep-baseline-block-boundary-precision-and-m5-finalization):
-#     - RULE-07 자기검증 통과. 불변식·계약 추가 — 블록 경계 false-positive idiom 경고는 향후 JSX 속성 스캔 전반에 재사용 가능한 시스템 계약. `[\s\S]{0,N}` 패턴의 경계 미준수는 재현 가능·시점 비의존 (특정 incident/릴리스 귀속 아님 — 본 req 는 a11y.md §스코프 규칙·§예외 본문 정밀화로 수렴).
-#     - 대응 blue spec 부재 (a11y 는 green-only). `common/a11y.md` 에 직접 반영.
-#     - FR-01/02 (M5 marker 플립) 은 TSK-77 reconcile 세션에서 이미 완료 상태 (L155/L159/L169 모두 `[x]`). 추가 작업 0.
-#     - FR-03 (§스코프 규칙 (c) 절 블록 경계 경고 + 대체 idiom 3종) — 전면 재작성. 고정 라인 범위 / DOM 어설션 우선 / opening-tag 경계 한정 스캐너 (audit 테스트) 박제. 사용 금지 패턴 (`[\s\S]{0,200}` multi-span) 명시.
-#     - FR-04 (§예외 §M5 회귀 baseline 블록 경계 준수 재박제) — 보조 gate `sed -n '117,123p' src/Log/LogItemInfo.jsx | grep -E '(tabIndex|onKeyDown)'` → 0 match (실측 확인) + DOM 어설션 우선 gate 로 재박제. 사용 금지 패턴 명시.
-#     - FR-05 (inspector writer 영역 한정) — src 편집 0 자동 준수.
-#     - FR-06 (RULE-06 확장 후보 박제) — a11y.md §변경 이력 에 FR-03/FR-04 반영 내역 박제. rules/ 본문 갱신은 별도 운영자 루트 (본 req §참고 에 명시).
-#     - 20.req → 60.done/req/ 이동 완료.
-#     - 처리 1건, blocked 0.
+# Phase 3 (신규 req 반영): `specs/20.req/` 빈 큐 → no-op. 하류 임계치 무관.
 #
 # 변동 spec sha (본 세션):
-#   - `common/a11y.md` e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a — TSK-78/79 ack + REQ-040 흡수 반영, stale_cycles 0 유지 (진척).
-#   - `common/error-reporter-channel.md` 7a7018c6334d4cc6e1c66995b1bf3b407aff81f513fa1d613e9fb60a71b006b2 (불변) — stale_cycles 1 → 2.
+#   - `common/a11y.md` e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a (불변) — stale_cycles 0 → 1 (FR-07 planner promote 대기).
+#   - `common/error-reporter-channel.md` <post-edit sha TBD — see below> — TSK-80/81 ack 반영, stale_cycles 2 → 0 (진척).
 #
-# 현 ledger:
-specs/30.spec/green/common/a11y.md e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a 0
-specs/30.spec/green/common/error-reporter-channel.md 7a7018c6334d4cc6e1c66995b1bf3b407aff81f513fa1d613e9fb60a71b006b2 2
+# 현 ledger (post-edit sha 는 커밋 직전 재계산 — inspector 는 편집 후 sha 를 바로 박제하지 않고 다음 세션 시작 시점에서 검증):
+specs/30.spec/green/common/a11y.md e1d6de4806b2dd89fa50794c3b71be094207d489a4b1f662f02781a522d7b78a 1
+specs/30.spec/green/common/error-reporter-channel.md - 0
 #
 # Stale 경고: 0 path ≥ 3 cycle.
 #
-# Phase 3 입력 큐 (본 세션 시작): 1 건 → 1 processed / 0 blocked.
+# Phase 3 입력 큐 (본 세션 시작): 0 건 → 0 processed / 0 blocked.
 # 하류 임계치: GREEN_PENDING_MAX=20 (default, pipeline.json 없음). 세션 종료 시점 green 파일 2 < 20. 여유 18.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `common/a11y.md` — 잔존 [ ] marker: FR-07 (blue 승격 시 `components/{common,comment,log,image}.md` §접근성 1~2 문장 상호참조 추가, planner promote 영역) 1건. §drift 정상화 표 잔존 0, §예외 잔존 0, §테스트 현황 잔존 0. audit 자동 게이트 가동. **promote 후보로 성숙** — planner 가 `components/` 의 3~4 md 에 상호참조 박제 + a11y.md green→blue 승격 가능. REQ-033 는 사실상 완결 (FR-01~FR-06, FR-08 모두 [x]; FR-07 만 promote 작업).
-#   - `common/error-reporter-channel.md` — 신설 후 TSK-80~86 carve 완료 (planner 66ad3f3). developer 진행 시 D1~D7 정상화 후 inspector ack → 잔존 [ ] 0 수렴 시 promote 후보.
+#   - `common/a11y.md` — 잔존 [ ] marker: FR-07 (blue 승격 시 `components/{common,comment,log,image}.md` §접근성 1~2 문장 상호참조 추가, planner promote 영역) 1건. §drift 정상화 표 잔존 0, §예외 잔존 0, §테스트 현황 잔존 0. audit 자동 게이트 가동. **promote 후보로 성숙** — planner 가 `components/` 의 3~4 md 에 상호참조 박제 + a11y.md green→blue 승격 가능. 본 세션 stale=1, 3 cycle 전 planner 승격 권장.
+#   - `common/error-reporter-channel.md` — TSK-80/81 ack (D1/D2) 후 D3–D7 (TSK-82~86) 대기. developer 진행 시 세션별 +1~2 ack. 잔존 [ ] 8건 (D3/D4/D5/D6/D7 test 5 + FR-02 grep 수렴 1 + 수용기준 FR-02 수렴/FR-03 수렴 2). 전 drift 수렴 후 promote 가능.
 #
 # 다음 세션 유의:
-#   - 20.req 입력 큐 비어 있음 (세션 종료 시점). Phase 1 만 수행 예상.
+#   - 20.req 입력 큐 여전히 비어 있음 (본 세션 종료 시점). Phase 1 만 수행 예상.
+#   - TSK-82~86 (D3–D7, 40.task/ 대기) 중 developer 처리된 것 있으면 Phase 1 에서 각각 ack 재실행.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
-#   - 본 세션 편집 대상: `common/a11y.md` (TSK-78/79 ack + REQ-040 흡수), `.inspector-seen` ledger, 20.req mv → 60.done/req. 커밋 범위는 spec/green + .inspector-seen + 20.req → 60.done/req.
+#   - 본 세션 편집 대상: `common/error-reporter-channel.md` (TSK-80/81 ack), `.inspector-seen` ledger. 20.req mv 없음 (빈 큐). 커밋 범위는 spec/green + .inspector-seen.
