@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, copyToClipboard, hasValue } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
+import { activateOnKey } from '../common/a11y';
 import LinkButton from '../static/link.svg?react';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -20,6 +21,23 @@ const LogItemInfo = (props) => {
 	const linkPopup = useHoverPopup();
 	const versionPopup = useHoverPopup();
 
+	// a11y-spec §패턴 B (REQ-20260421-033 FR-02/03) — M3 link-copy
+	// arrow 추출: onClick/onKeyDown 이 동일 핸들러 단일 참조를 공유하도록.
+	const copyLogLink = (e) => {
+		e.preventDefault();
+		copyToClipboard(getUrl() + "log/" + timestamp);
+		setIsShowToaster(1);
+	};
+
+	// a11y-spec §패턴 B — M6 delete
+	// confirm(...) 팩토리 반환값 (confirmAction) 을 로컬 const 로 추출해
+	// onClick/onKeyDown 이 동일 참조를 공유하도록.
+	const handleDelete = confirm(
+		"Are you sure delete the log?",
+		props.delete,
+		() => log("Deleting aborted")
+	);
+
 	return (
 		<section className="section section--logitem-info">
 			<h1 className="h1 h1--logitem-title">
@@ -28,12 +46,11 @@ const LogItemInfo = (props) => {
 			<span className="span span--logitem-toolbarblank"></span>
 			{ !props.showLink ? "" : (
 				<span
+					role="button"
+					tabIndex={0}
 					data-testid="link-copy-button"
-					onClick={(e) => {
-						e.preventDefault();
-						copyToClipboard(getUrl() + "log/" + timestamp);
-						setIsShowToaster(1);
-					} }
+					onClick={copyLogLink}
+					onKeyDown={activateOnKey(copyLogLink)}
 					className="span span--logitem-toolbaricon"
 				>
 					<LinkButton />
@@ -107,11 +124,11 @@ const LogItemInfo = (props) => {
 					<span className="span span--logitem-separator">|</span>
 					<span
 						role="button"
+						tabIndex={0}
 						data-testid="delete-button"
 						className="span span--logitem-toolbarmenu"
-						onClick={
-							confirm("Are you sure delete the log?", props.delete, () => log("Deleting aborted"))
-						}
+						onClick={handleDelete}
+						onKeyDown={activateOnKey(handleDelete)}
 					>
 						Delete
 					</span>

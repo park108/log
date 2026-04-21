@@ -135,3 +135,85 @@ describe('LogItemInfo hoverPopup migration', () => {
 		expect(screen.queryByText('Click to Clipboard')).toBeNull();
 	});
 });
+
+// a11y-spec §패턴 B (REQ-20260421-033 FR-03) — M3 link-copy / M6 delete 회귀.
+describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
+
+	beforeEach(() => {
+		stubMode('production');
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it('M3: link-copy-button 에 role="button" + tabIndex=0 이 부여된다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		renderInfo();
+
+		const el = screen.getByTestId('link-copy-button');
+
+		expect(el).toHaveAttribute('role', 'button');
+		expect(el).toHaveAttribute('tabIndex', '0');
+	});
+
+	it('M3: Enter 키로 link-copy 가 활성된다 (click 과 동일 핸들러 → copyToClipboard 호출)', () => {
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockImplementation(() => {});
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		renderInfo();
+
+		const el = screen.getByTestId('link-copy-button');
+		fireEvent.keyDown(el, { key: 'Enter' });
+
+		expect(copySpy).toHaveBeenCalledTimes(1);
+		expect(copySpy).toHaveBeenCalledWith(expect.stringContaining('log/1655736946977'));
+	});
+
+	it('M3: Space 키로 link-copy 가 활성된다 (preventDefault + copyToClipboard 호출)', () => {
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockImplementation(() => {});
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		renderInfo();
+
+		const el = screen.getByTestId('link-copy-button');
+		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+
+		// activateOnKey 가 preventDefault 호출 → fireEvent 반환값 false (cancelled).
+		expect(spaceEvent).toBe(false);
+		expect(copySpy).toHaveBeenCalledTimes(1);
+	});
+
+	it('M6: delete-button 에 role="button" + tabIndex=0 이 부여된다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo({ delete: vi.fn() });
+
+		const el = screen.getByTestId('delete-button');
+
+		expect(el).toHaveAttribute('role', 'button');
+		expect(el).toHaveAttribute('tabIndex', '0');
+	});
+
+	it('M6: Enter 키로 delete 가 활성된다 (window.confirm 호출 → props.delete 실행)', () => {
+		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const deleteFn = vi.fn();
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo({ delete: deleteFn });
+
+		const el = screen.getByTestId('delete-button');
+		fireEvent.keyDown(el, { key: 'Enter' });
+
+		expect(confirmSpy).toHaveBeenCalledWith('Are you sure delete the log?');
+		expect(deleteFn).toHaveBeenCalledTimes(1);
+	});
+
+	it('M6: Space 키로 delete 가 활성된다 (preventDefault + window.confirm 호출)', () => {
+		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo({ delete: vi.fn() });
+
+		const el = screen.getByTestId('delete-button');
+		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+
+		expect(spaceEvent).toBe(false);
+		expect(confirmSpy).toHaveBeenCalledWith('Are you sure delete the log?');
+	});
+});
