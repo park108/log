@@ -68,6 +68,11 @@ export default defineConfig({
 		environment: 'jsdom',
 		setupFiles: './src/setupTests.js',
 		css: true,
+		// REQ-20260421-042 FR-01 / TSK-20260421-88 — render-budget 상수 (it 3rd arg 로 전달되는
+		// ASYNC_ASSERTION_TIMEOUT_MS = 5000) 와 vitest 기본 testTimeout (5000) 간 양의 margin 확보.
+		// 기본값과 동일하면 "render budget 초과 실패" vs "기본 testTimeout 도달 실패" 의 판정 구분이
+		// 불가하므로, 여기서 상위 cap 을 10000 ms 로 명시해 margin = 10000 − 5000 = 5000 ms > 0 을 보장.
+		testTimeout: 10000,
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'html', 'lcov'],
