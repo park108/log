@@ -1,51 +1,74 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T18:34Z (HEAD=c765f3c).
-# Session outcome: Phase 1 reconcile 0/0 ack (husky stale 1→2); Phase 2 no-op (deferred 0); Phase 3 no-op (20.req 빈 큐).
+# Updated: 2026-04-22T19:03Z (HEAD=06a8fb9).
+# Session outcome: Phase 1 reconcile 0/0 ack (husky green 이 planner 에 의해 50.blocked/spec/ 로 격리됨 — 본 inspector 관할 밖 작업 상태); Phase 2 deferred/split 0; Phase 3 REQ-20260422-046 흡수 (dependency-set-integrity 신설).
 #
-# 세션 시작 상태 (HEAD=c765f3c):
-#   - `git rev-parse HEAD` = `c765f3c`. 직전 inspector commit = `c765f3c` (본인, REQ-045 흡수 세션 커밋).
-#   - `specs/20.req/` 0 건 — Phase 3 no-op.
-#   - `specs/40.task/` 1 건 (`TSK-20260421-90-husky-v8-to-v9-hook-entrypoint-migration.md`, REQ-044 — developer 대기).
-#   - `specs/10.followups/` 0 건.
-#   - `specs/30.spec/green/**` 3 spec: `foundation/husky-hook-entrypoint.md` (markers 9건) / `components/log.md` (REQ-045 carry-over) / `components/common.md` (REQ-045 carry-over).
-#   - `specs/50.blocked/spec/common/` 비어 있음.
+# 세션 시작 상태 (HEAD=06a8fb9):
+#   - `git rev-parse HEAD` = `06a8fb9`. 직전 inspector commit = `1dd7d64`.
+#   - `specs/20.req/` 1 건 (`20260422-unused-legacy-dep-removal-history-and-surface-minimization.md` = REQ-20260422-046).
+#   - `specs/40.task/` 0 건 (TSK-20260421-90 원본 followup 2건으로 revisit 이관됨 — 아래 §planner-action 참조).
+#   - `specs/10.followups/` **2 건** 발견 (dev + revisit 발행):
+#     · `20260421-1841-husky-v9-shim-dir-regeneration-spec-drift.md` (dev 발행 2026-04-21T18:41Z).
+#     · `20260421-1847-husky-v9-migration-spec-drift-from-blocked.md` (revisit 처리 2026-04-21T18:47Z).
+#     → discovery 경로 재진입 대기 — 본 inspector 입력 큐 아님 (10.followups 는 discovery writer).
+#   - `specs/30.spec/green/**` 세션 시작 시점 1 spec: `foundation/husky-hook-entrypoint.md`.
 #   - `.claude/locks/` 에 pause lock 없음 — 정상 진행.
+#   - 직전 inspector 세션 대비 변동: planner 가 `components/log.md` + `components/common.md` 를 green→blue 재승격 (커밋 06a8fb9) — green 에서 제거됨.
+#
+# ※ 세션 중 관찰된 planner 의 uncommitted 작업 (inspector writer 영역 밖 — 관할 외):
+#   - planner 가 41st cycle 에서 husky green 을 stale=3 판정 + followup 2건 발행을 근거로 `30.spec/green/foundation/husky-hook-entrypoint.md` → `50.blocked/spec/foundation/` mv + `husky-hook-entrypoint_reason.md` 박제 (mtime 04:10 local ≈ 19:10Z).
+#   - RULE-01 매트릭스: planner 의 `30.spec/** → 50.blocked/spec/` mv 권한 범위. inspector 가 개입/되돌리지 않음.
+#   - 결과: 본 inspector 세션 종료 시점 green 유효 집합 = { `foundation/dependency-set-integrity.md` } (신설 1건).
+#   - git status 상 husky 삭제 + `50.blocked/spec/foundation/**` 추가는 **unstaged** 상태 — planner 세션에서 별도 커밋 예상. 본 inspector 커밋에는 포함되지 않음 (RULE-02 writer 경계).
 #
 # Phase 1 drift marker 스캔:
-#   - `husky-hook-entrypoint.md`: `- [ ]` 총 9건 (§테스트 현황 L75/L76 2건 + §수용 기준 L80~L86 7건). 모두 TSK-20260421-90 수행 결과에 귀속. 해당 task 는 `specs/40.task/` 큐에 잔존 — `result.md` 미존재 — 커밋 해시 역추적 불가. ACK 대상 0.
-#   - `components/log.md`: `[WIP]` 0 / `- [ ]` 0 / `To-Be` 0 — drift marker 없음 (평서형 §접근성 박제). reconcile 대상 0.
-#   - `components/common.md`: `[WIP]` 0 / `- [ ]` 0 / `To-Be` 0 — drift marker 없음 (평서형 §에러 처리 bullet 박제). reconcile 대상 0.
-#   - M = 0 (ACK 가능 대상 0). N = 0 (ack'd 0).
-#   - 토큰 = `reconcile: 0/0 ack`.
-#   - stale_cycles:
-#     · `foundation/husky-hook-entrypoint.md` — 직전 세션 stale=1 (HEAD=c765f3c ledger 기록 값). 본 세션 ACK 0 · WIP 불변 → stale += 1 → **2**. (< 3, 경고 미출력.)
-#     · `components/log.md` — marker 0 · reconcile 대상 아님. stale=0 유지.
-#     · `components/common.md` — marker 0 · reconcile 대상 아님. stale=0 유지.
+#   - `foundation/husky-hook-entrypoint.md`: 세션 시작 시점 green 에 존재 → markers 9건. 하지만 세션 중 planner 가 blocked 로 mv — **reconcile 대상에서 제외** (green 집합 이탈). ACK 대상 0.
+#     · 실측 6 grep gate (HEAD=06a8fb9): 모두 여전히 violated (`package.json:55` `"husky": "^8.0.1"`, `package.json:25` `"prepare": "husky install"`, `.husky/pre-commit:2` & `.husky/pre-push:2` `_/husky.sh`, `.husky/_` 존재, 설치 실측 8.0.2, `npx lint-staged`/`npm test` 2 hits baseline). 본 상태는 blocked reason 과 정합 (FR-06 구조적 drift 는 green 유지 시에도 해소 불가).
+#   - `foundation/dependency-set-integrity.md`: 본 세션 Phase 3 에서 신설 — 신규 파일 stale_cycles = 0 초기화. `- [ ]` 7건 / `[WIP]` 0 / To-Be 0 (박제 baseline — reconcile 대상 아님, drift 가 아님).
+#   - M = 0 (ACK 가능 대상 0, green 집합 내 완료 드리프트 없음). N = 0.
+#   - 토큰 = `reconcile: 0/0 ack` (stale ≥3cycle 동반 없음 — husky 는 blocked 이탈로 ledger 삭제, stale 누적 중단).
 #
 # Phase 2 (deferred/split):
-#   - 라인 수: husky 86L / log 113L / common 249L — 전원 < 300. split 불요.
-#   - deferred 태깅 신규 0 (input 0). planner 태스크화 불가 관찰 0.
+#   - 라인 수: dependency-set-integrity 약 120L — < 300. split 불요.
+#   - deferred 태깅 신규 0.
 #
 # Phase 3 (신규 반영):
-#   - 입력 큐 0 건. no-op.
+#   - 입력 큐 1 건: REQ-20260422-046 (미사용 legacy dep 제거 + 집합 정합성 불변식).
+#   - RULE-07 콘텐츠 자기검증 — 양성 판정:
+#     · FR-03 (4 축 매치 규칙) = 시스템 불변식 (정적 grep 재현 가능, 시점 비의존).
+#     · FR-01/02 는 첫 적용 사례 (`history`) — baseline 박제형 spec. 반복 적용 가능한 계약 (임의 direct dep) 을 본 spec 이 커버.
+#     · NFR-03 "정적 grep·정규식 / import 그래프" 는 재현성 박제.
+#     · 특정 릴리스·이벤트 귀속 없음 (본문 내 "HEAD=06a8fb9" 는 baseline 스냅샷 해시 용도).
+#     · `dependency-bump-gate.md` 와 축 직교 (§FR-04) — 중복 박제 없음.
+#     → RULE-07 통과.
+#   - blue 대응: 부재 → green 신규. `specs/30.spec/green/foundation/dependency-set-integrity.md` 신설.
+#   - baseline grep 실측 확증 (본 inspector 세션, HEAD=06a8fb9):
+#     · (a) `grep -nE "\"(dependencies|devDependencies)\":" package.json` → 2 hits (:6, :42).
+#     · (b) `grep -n '"history"' package.json` → 1 hit (:54 `"history": "^5.3.0"`).
+#     · (c) `grep -rnE "from 'history'|createMemoryHistory" src` → 2 hits (Writer.test.jsx:2, :51).
+#     · (d) `grep -nE "MemoryRouter initialEntries" src/Log/Writer.test.jsx` → 1 hit (:80).
+#     · (e) `ls docs/dependency-inventory.md` → 0 hit (부재, 예외 빈 집합).
+#     · (f) `grep -rnE "from 'history/'" src` → 0 hit.
+#   - 차원 분리 확인: `foundation/dependency-bump-gate.md` (REQ-035, bump 후 결과) vs 본 spec (bump 전 집합) — §FR-04 에 명시.
+#   - req 원본 이동: `specs/20.req/20260422-...md` → `specs/60.done/2026/04/22/req/`.
+#
+# 하류 임계치 (GREEN_PENDING_MAX=20, default; `.claude/pipeline.json` 부재):
+#   - 세션 종료 시점 green 유효 집합 1 < 20. 여유 19.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `green/components/log.md` — 차기 planner cycle 에서 `blue/components/log.md` overwrite promote 예상 (REQ-045 FR-02 full 수렴, subsection + 변경 이력 row 반영).
-#   - `green/components/common.md` — 차기 planner cycle 에서 `blue/components/common.md` 최초 promote 예상 (REQ-045 FR-03 full 수렴).
-#   - `foundation/husky-hook-entrypoint.md` — TSK-90 완료 & inspector reconcile 전 승격 불가 (stale=2).
+#   - `foundation/dependency-set-integrity.md` — 본 세션 신설. unchecked 7건 잔존 (§테스트 현황 (b)(c) 2 + §수용 기준 Must 4 + Should 1). 승격 판정은 planner 몫. 원자 단위 분석 힌트: `history` 제거 + Writer.test.jsx 이관 + `package-lock.json` 재해결이 불가분 → 단일 TSK carve 예상.
 #
-# 변동 spec sha (세션 종료 시점, 전 세션과 byte-equal — inspector 편집 0):
-specs/30.spec/green/foundation/husky-hook-entrypoint.md 6c384fc4140de8e11f41877c693d705f2a22189d9d5bb669ef3ac57daff4101b 2
-specs/30.spec/green/components/log.md cfce073db513815218be823f93913bbd0d3c0d807424ce7071695966da6788fd 0
-specs/30.spec/green/components/common.md 7a83f9177de22db4f20d64b484bece6a8d3768b1a5cae3b783468cb16737dab9 0
+# 변동 spec sha (세션 종료 시점, inspector 관할 green 집합):
+specs/30.spec/green/foundation/dependency-set-integrity.md aae158fad5a18d5142533e03dd6e13b0a039995b0c8a12573e6f00f3a5b51742 0
 #
-# Stale 경고 (≥ 3 cycle): 0 건. (husky stale=2; 다음 cycle 에서 TSK-90 미완료면 stale=3 도달 → 경고 토큰 동반 예정.)
+# (참고, 관할 밖 — planner 가 세션 중 blocked 이관 중):
+#   specs/50.blocked/spec/foundation/husky-hook-entrypoint.md (mtime 02:35, size 11207) + husky-hook-entrypoint_reason.md (mtime 04:10). planner 커밋 대기.
 #
-# Phase 3 입력 큐 (본 세션 시작): 0 건 → 0 processed / 0 blocked.
-# 하류 임계치: GREEN_PENDING_MAX=20 (default, `.claude/pipeline.json` 부재). 세션 종료 시점 green 3 < 20. 여유 17.
+# Stale 경고 (≥ 3 cycle): **0 건** (husky 는 green 집합 이탈 — ledger 에서 제거. blocked 경로는 본 inspector 관할 밖).
+#
+# Phase 3 입력 큐 (본 세션 시작): 1 건 → 1 processed / 0 blocked.
 #
 # 다음 세션 유의:
-#   - 20.req 입력 큐 0 건 유지 시 Phase 3 지속 no-op.
-#   - TSK-90 완료 전까지 husky stale 누적 — 다음 세션 stale=3 도달 시 RULE-04 notes 에 `reconcile: 0/0 ack (1 stale ≥3cycle)` 박제.
-#   - 2 green components (log/common) 은 planner promote 대상. promote 후 blue 에서 NFR-01 gate 재검증: `grep -cE "activateOnKey|패턴 B" blue/components/log.md` ≥1, `grep -cE "reportError|REQ-20260421-039" blue/components/common.md` ≥2.
+#   - 10.followups/ 2건 (husky v9 drift) 은 discovery 입력 큐 — discovery 세션이 소비 후 신규 req (FR-06 재박제 또는 삭제 또는 수단 치환) 발행 시 inspector Phase 3 에 재진입 예상.
+#   - 신규 `dependency-set-integrity.md` 의 차기 승격 판정은 planner 몫.
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
+#   - planner 의 41st cycle blocked mv 가 별도 커밋으로 반영되기 전까지 git status 상 husky 삭제 + 50.blocked/spec/foundation/** 는 unstaged 로 관찰됨. 다음 inspector 세션 시작 시 이미 커밋 반영 예상.
