@@ -2,7 +2,6 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import FileDrop from '../File/FileDrop';
 import * as mock from './api.mock';
 import * as common from '../common/common';
-import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
@@ -215,82 +214,5 @@ describe('FileDrop presigned url ok but upload network error', () => {
 
 		const dropZoneAgain = await screen.findByText("Drop files here!"); // Result message change to ready in few seconds
 		expect(dropZoneAgain).toBeDefined();
-	});
-});
-
-describe('FileDrop reportError 채널 (REQ-20260421-039 FR-03)', () => {
-
-	describe('Pre-signed URL fetch failed', () => {
-		useMockServer(() => mock.devServerFailed);
-
-		test('reports error via reportError when pre-signed URL fetch fails', async () => {
-
-			const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
-
-			vi.stubEnv('DEV', true);
-			vi.stubEnv('PROD', false);
-
-			vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-			vi.spyOn(common, "isAdmin").mockReturnValue(true);
-
-			render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
-
-			const dropZone = await screen.findByText("Drop files here!");
-			expect(dropZone).toBeDefined();
-
-			const event = {
-				dataTransfer: {
-					files: [
-						{ name: "testfile1.txt", type: "text" }
-					]
-				}
-			};
-
-			fireEvent.drop(dropZone, event);
-
-			const failText = await screen.findByText("Upload failed.");
-			expect(failText).toBeInTheDocument();
-
-			expect(reportErrorSpy).toHaveBeenCalled();
-
-			reportErrorSpy.mockRestore();
-		});
-	});
-
-	describe('PUT upload failed after pre-signed URL ok', () => {
-		useMockServer(() => mock.devServerPresignedUrlOkButUploadFailed);
-
-		test('reports error via reportError when PUT upload fails', async () => {
-
-			const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
-
-			vi.stubEnv('DEV', true);
-			vi.stubEnv('PROD', false);
-
-			vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
-			vi.spyOn(common, "isAdmin").mockReturnValue(true);
-
-			render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
-
-			const dropZone = await screen.findByText("Drop files here!");
-			expect(dropZone).toBeDefined();
-
-			const event = {
-				dataTransfer: {
-					files: [
-						{ name: "testfile1.txt", type: "text" }
-					]
-				}
-			};
-
-			fireEvent.drop(dropZone, event);
-
-			const failText = await screen.findByText("Upload failed.");
-			expect(failText).toBeInTheDocument();
-
-			expect(reportErrorSpy).toHaveBeenCalled();
-
-			reportErrorSpy.mockRestore();
-		});
 	});
 });

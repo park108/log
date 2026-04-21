@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue } from '../common/common';
-import { reportError } from '../common/errorReporter';
 import { getPreSignedUrl, putFile } from './api';
 
 const REFRESH_TIMEOUT = 3000;
@@ -38,13 +37,13 @@ const FileDrop = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - Presigned URL", "ERROR");
-					reportError(preSignedUrlData);
+					console.error(preSignedUrlData);
 					if(isLast) setIsUploading("FAILED");
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Presigned URL", "ERROR");
-				reportError(err);
+				console.error(err);
 				if(isLast) setIsUploading("FAILED");
 			}
 
@@ -59,13 +58,13 @@ const FileDrop = (props) => {
 					}
 					else {
 						log("[API PUT] FAILED - File: " + name, "ERROR");
-						reportError(res);
+						console.error(res);
 						if(isLast) setIsUploading("FAILED");
 					}
 				}
 				catch(err) {
 					log("[API PUT] FAILED - File: " + name, "ERROR");
-					reportError(err);
+					console.error(err);
 					if(isLast) setIsUploading("FAILED");
 				}
 			}
