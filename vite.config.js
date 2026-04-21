@@ -79,6 +79,12 @@ export default defineConfig({
 				'src/**/*.test.{js,jsx,ts,tsx}',
 				'src/**/*.d.ts',
 			],
+			thresholds: {
+				lines: 98,
+				statements: 97,
+				functions: 94,
+				branches: 94,
+			},
 		},
 	},
 })
