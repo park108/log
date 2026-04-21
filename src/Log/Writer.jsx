@@ -49,6 +49,7 @@ const Writer = () => {
 
 		if(!isAdmin()) {
 			const redirectPage = "/log";
+			if (location.pathname === redirectPage) return;
 			log("Redirect to " + redirectPage);
 			navigate(redirectPage);
 			return;
