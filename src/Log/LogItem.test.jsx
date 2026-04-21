@@ -1,10 +1,11 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import LogItem from './LogItem';
 import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
+import { beforeAll } from 'vitest';
 
 // REQ-20260421-007 / TSK-20260421-51 — React 19 concurrent initial commit 의 async flush 에 대응해 delete-button 선택을 findBy* 로 전환 (Layer 1 옵션 A).
 
@@ -35,6 +36,38 @@ const withQuery = (node) => (
 		{node}
 	</QueryClientProvider>
 );
+
+// REQ-20260421-027 / TSK-20260421-63 — shuffle seed=1 cold-start race 방어.
+// `LogItem` 은 `LogItemInfo` (delete-button) 와 `Toaster` 를 `lazy()` 로 로드한다.
+// 파일 단위 beforeAll 에서 한 번 render 해 두면 dynamic import + initial mount
+// 경로가 module cache 에 고정되어, 이후 어떤 describe 가 파일 첫 실행으로
+// 섞여도 `findByTestId("delete-button")` + `findByText(...)` 가 1000ms 기본
+// polling 안에 결정적으로 충족된다. render 본체는 즉시 cleanup 해 테스트 간
+// DOM / React 상태 격리 불변식 (REQ-20260420-004 §FR-01) 을 깨뜨리지 않는다.
+beforeAll(async () => {
+	vi.spyOn(common, 'isLoggedIn').mockResolvedValue(true);
+	vi.spyOn(common, 'isAdmin').mockResolvedValue(true);
+	render(withQuery(
+		<MemoryRouter>
+			<LogItem
+				author={'park108@gmail.com'}
+				timestamp={1655736946977}
+				contents={'## warm-up'}
+				item={{
+					logs: [{ contents: '## warm-up', timestamp: 1655736946977 }],
+					summary: 'w',
+					sortKey: 1655736946977,
+					timestamp: 1655736946977,
+					author: 'park108@gmail.com',
+				}}
+				showLink={false}
+			/>
+		</MemoryRouter>
+	));
+	await screen.findByTestId('delete-button');
+	cleanup();
+	vi.restoreAllMocks();
+});
 
 it('render log item correctly', async () => {
 
