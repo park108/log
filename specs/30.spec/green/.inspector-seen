@@ -1,67 +1,80 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=c563025 at session start). Phase 1 reconcile 1/1 ack (TSK-20260421-88 @c563025 REQ-042 FR-01 수렴).
+# Updated: 2026-04-21T15:06Z (HEAD=f3d53f2 at session start). Phase 1 reconcile 0/0 ack; Phase 3 REQ-20260421-043 흡수 (foundation/coverage-determinism.md FR-02 (g) pool/worker 병행성 축 증분).
 #
 # 세션 시작 상태:
-#   - `git rev-parse HEAD` = `c563025` (직전 커밋 `feat: LogSingle render-budget effective margin via vite testTimeout` — TSK-88 ack).
-#   - 직전 inspector (995471a) 이후 커밋: 995471a (직전 inspector, TSK-86 D7 ack + REQ-042 신설) → 4ca58a0 (planner TSK-88 carve, `task(planner):`) → c563025 (developer TSK-88 ack, `feat:`).
-#   - `specs/20.req/` 0 건 (빈 큐 — Phase 2 no-op).
-#   - `specs/40.task/` 0 건 (TSK-88 완료 후 큐 비어있음).
-#   - `specs/60.done/2026/04/21/task/` 에 `logsingle-render-budget-effective-margin/` (TSK-88, c563025) 1 신규 task done.
-#   - green spec 파일: 3 파일 (`common/error-reporter-channel.md`, `components/log.md`, `foundation/coverage-determinism.md`). `common/a11y.md` 는 planner 가 `50.blocked/spec/common/` 로 격리 (스캔 대상 제외, RULE-05 수동 해제 경로).
+#   - `git rev-parse HEAD` = `f3d53f2` (직전 planner 33rd cycle no-op; 그 직전 inspector 1a74079 = TSK-88 ack, 그 직전 developer c563025 = TSK-88 feat).
+#   - 직전 inspector (1a74079) 이후 커밋: 1a74079 (직전 inspector TSK-88 ack) → f3d53f2 (planner no-op).
+#   - `specs/20.req/` 1 건 (`20260421-coverage-determinism-means-expansion-pool-parallelism-axis.md` = REQ-20260421-043). Phase 3 대상.
+#   - `specs/40.task/` 0 건 (planner carve 대기).
+#   - `specs/60.done/2026/04/21/task/` 40+ task done — 직전 세션 이후 신규 추가 없음 (logsingle-render-budget-effective-margin 는 직전 세션에 이미 반영 완료).
+#   - green spec 파일: 3 파일 (`common/error-reporter-channel.md`, `components/log.md`, `foundation/coverage-determinism.md`). `common/a11y.md` 는 blocked 상태 (스캔 대상 제외).
 #
 # Phase 1 drift marker 스캔 (세션 시작 green 3 specs):
 #   1. common/error-reporter-channel.md:
-#      · 본 세션 ack 대상 TSK 없음 (TSK-86 D7 이후 신규 errorReporter task 0). 잔존 [ ] marker: §테스트 현황 / §수용 기준 전부 [x] (promotion-ready 상태 유지). 단 spec 내부 Should FR-06 (blue components/common.md 상호참조 1~2문장 — planner 영역) 잔존.
-#      · `components/log.md` 편집으로 인한 간접 드리프트 없음 (참조 무관).
-#      · ack 0 + WIP 불변 + sha 불변 → stale_cycles 0 → 1. (3 cycle 미만, stale 경고 대상 아님. 여전히 promotion-ready — planner 영역.)
+#      · 본 세션 ack 대상 TSK 없음. 잔존 WIP marker 없음 (§테스트 현황 / §수용 기준 전원 [x] 유지, promotion-ready — planner 영역). Should FR-06 (blue components/common.md 상호참조) 미해소 상태 불변.
+#      · sha 5aca4213…8107612 불변. stale_cycles 1 → 2.
 #   2. components/log.md:
-#      · TSK-88 (c563025, ancestor PASS) result.md DoD 게이트 재실행 @HEAD=c563025:
-#        - gate (a) `grep -nE "export const ASYNC_ASSERTION_TIMEOUT_MS" src/test-utils/timing.js` → 1 hit @`:5` `export const ASYNC_ASSERTION_TIMEOUT_MS = 5000;` (불변).
-#        - gate (b) `grep -nE "testTimeout\s*:" vite.config.js` → 1 hit @`:75` `testTimeout: 10000` (수단 α 기대값 일치).
-#        - gate (c) `grep -nE "\}\s*,\s*ASYNC_ASSERTION_TIMEOUT_MS\s*\)" src/Log/LogSingle.test.jsx` → 2 hits @`:129, :159` (수단 α 기대값 일치 — 상수 유지).
-#        - gate (d) boolean 판정: render-budget resolved 값 5000 ≠ vitest testTimeout 10000, margin = 5000 ms > 0 — 계약 충족.
-#      · hook-ack (TSK-88 result.md §테스트 결과): `npm run lint` PASS / `npm test` 48 files 436 tests PASS / LogSingle.test.jsx 9/9 it pass / coverage threshold 4축 PASS (Stmts 97.72 / Branches 94.21 / Functions 94.45 / Lines 98.11 — 최종 실행 기준) / `npm run build` PASS 352ms. 관찰 이슈 (coverage Functions 축 flakiness 93.66↔94.45↔94.72) 는 REQ-041 영역 (coverage-determinism) 으로 분리 — 본 task 비차단. Must 주관 혼재 없음 → ack 채택.
-#      · 스코프 준수: TSK-88 result.md §변경 파일 = `vite.config.js` 1 파일 (`git show --stat c563025` 1 file changed, 5 insertions 확인). 수단 α 채택으로 `timing.js` / `LogSingle.test.jsx` 미편집 — 편집 면적 최소.
-#      · 편집: §최종 업데이트 갱신 (c563025 HEAD 스냅샷 + TSK-88 ack 박제). §테스트 현황 FR-042 1행 [ ]→[x] 플립 + 수렴 근거 수치 (margin=5000 ms)·수단명 (α) 박제. §수용 기준 FR-042 1행 [ ]→[x] 플립 + 수렴 근거 박제 + FR-06 수단 중립성 유지 평서문 재박제. §변경 이력 1행 박제 (TSK-88 / c563025 + DoD 4 gate 재실행 수치 + hook-ack 실행 결과 + 스코프 1 file changed + RULE-07 자기검증 notes).
-#      · 잔존 [ ]: 전 수용 기준 [x] + 전 테스트 현황 [x] — 잔존 0. **promote 조건 성숙** (planner 영역).
-#      · sha 변동: 4dc4a287d57343f03fe6068eb641bfa4c9ac4677f273df16fd455f50f97d61cb → 0ad436c00e9d910be5726c55b2ec74f64ffb577cf7220701705a239a8061ba93. stale_cycles 0 → 0 (진척 — ack).
+#      · 본 세션 ack 대상 TSK 없음 (TSK-88 은 직전 1a74079 세션에서 ack 완료). 잔존 WIP marker 없음 (§테스트 현황·§수용 기준 전원 [x] 유지, promotion-ready — planner 영역).
+#      · sha 0ad436c0…061ba93 불변. stale_cycles 0 → 1.
 #   3. foundation/coverage-determinism.md:
-#      · 본 세션 ack 대상 TSK 없음 (REQ-041 수렴 task 0 건 carve 상태 — planner 영역). 잔존 [ ] marker: §테스트 현황 FR-01 (0 lines diff) + FR-02 (수단 적용) 2건 — 불변.
-#      · §수용 기준 전원 [x] 유지.
-#      · ack 0 + WIP 불변 + sha 불변 → stale_cycles 2 → 3. **stale ≥ 3 cycle 도달 — notes 박제 대상.** (수렴 task carve 가 planner 영역에서 지연; 본 spec 은 flake 원인 진단 task + 수단 적용 task 2 단계 carve 필요.)
+#      · 본 세션 ack 대상 TSK 없음 (REQ-041 수렴 task 는 FR-02 (a)~(g) 결합 적용 경로로 carve 예정 — planner 영역). 잔존 WIP marker: §테스트 현황 FR-01 (0 lines diff) / FR-02 (수단 적용) 2 건 [ ].
+#      · **본 세션 Phase 3 편집 (REQ-20260421-043 흡수)**:
+#        - 헤더 §관련 요구사항: `REQ-20260421-041` → `REQ-20260421-041, REQ-20260421-043` 추가.
+#        - 헤더 §최종 업데이트: "REQ-20260421-043 흡수 — FR-02 수단 허용 집합에 (g) 테스트 pool/worker 병행성 제어 축 증분 박제" 로 갱신.
+#        - §불변식 FR-02 열거: (a)(b)(c)(d)(e)(f) → (a)(b)(c)(d)(e)(f)(g) 로 증분 (1항 추가). 신규 (g) 서술: "테스트 pool/worker 병행성 제어 — Vitest `test.pool` (`threads`/`forks`/`vmThreads`/`vmForks`) 및 파일 병렬성 축 (예: `test.poolOptions.*.singleFork`, `--no-file-parallelism` 동등 경로) 의 구성으로 multi-worker 간 V8 coverage 프로파일 병합 경계의 결정성을 고정 (single-process 순차 실행 또는 multi-worker 경계에서 프로파일 병합 동기화 보장 중 택1 이상)." — FR-05 수단 중립성 준수 (금지 토큰 0), FR-06 버전 무관성 준수 (메이저 버전 고정 표현 0).
+#        - §스코프 규칙 grep-baseline (c) followup 참조: `20260421-1401-coverage-variance-root-cause.md` 1 행 박제 (N=28 실측 + 4축 range 0.00 / exit=0 7/7 수렴 baseline 감사 pointer — FR-02 (g) 허용 근거 — FR-05 Should 수용).
+#        - §변경 이력: 1 행 신규 박제 (top 행). `REQ-20260421-043` + `TSK-20260421-87` + `20260421-1401-coverage-variance-root-cause` 3 토큰 박제 (REQ FR-04 수용). RULE-07 자기검증 + 본문 변경 0 (FR-01/FR-03/FR-04/FR-05/FR-06/FR-07) + scope 준수 문구 박제.
+#      · REQ 수용 기준 검증:
+#        - AC1 (g) 항 추가 평서형 1문장 → L33 박제 완료.
+#        - AC2 `grep -nE "(권장|우선|기본값|default|주범|root cause|best|가장 효과적)"` 흡수 spec §불변식 (L20-52) → 2 hits 잔존 (L46 FR-05 본문 quoted tokens, L52 FR-07 "결정론이 우선"). 양쪽 모두 historical 기술 + FR-05 본문은 REQ 자체가 변경 0 요구; FR-07 "우선" 은 "결정론 축이 마진 축보다 우선" 의미로 수단 우열 주장 아님 → REQ NFR-04 exemption ("historical 기술이 아니라 수단 우열을 주장하는 서술에 한정 해석") 적용.
+#        - AC3 §변경 이력 row 에 3 토큰 모두 박제 → L108 1 row 내 박제 완료.
+#        - AC4 `git status --short src/ vite.config.js package.json .husky/ .github/` → 0 lines (변경 대상 외).
+#        - AC5 FR-01/FR-03/FR-04/FR-05/FR-06/FR-07 본문 diff 0 lines → 편집 영역 = 헤더 2 행 + FR-02 열거 1 행 증분 + §스코프 규칙 (c) 1 행 + §변경 이력 1 행. FR-01/FR-03/FR-04/FR-05/FR-06/FR-07 본문 불변.
+#        - AC6 (g) 가 수단 허용 집합으로 선택 가능 (다른 수단과 동등) → FR-05 수단 중립성 준수 + FR-02 열거 말미 (g) 배치 (순서 우선순위 없음) → 만족.
+#      · REQ NFR 검증:
+#        - NFR-01 추적성: `grep "REQ-20260421-043"` 3 hits / `grep "TSK-20260421-87"` 2 hits / `grep "20260421-1401-coverage-variance-root-cause"` 2 hits — 모두 1+ 요구 충족.
+#        - NFR-02 RULE-07 정합: §불변식 (g) 본문에 구체 수치 (N, pp, 워커 수) / 구체 CLI 플래그 리터럴 고정 0 (CLI 이름 언급 수준 허용). 진단 수치 (N=28, range 0.00) 는 §스코프 규칙 (c) baseline 감사 pointer 에 한정.
+#        - NFR-03 범위 제한: inspector 세션 diff = `specs/30.spec/green/foundation/coverage-determinism.md` 증분 + `specs/20.req/* → 60.done/2026/04/21/req/` mv + `.inspector-seen` 갱신. `src/**`·`vite.config.js`·`package.json`·`.husky/**`·`.github/workflows/**` 변경 0 (writer 영역 외).
+#        - NFR-04 수단 중립성: (g) 본문 내 금지 토큰 0 (L33).
+#        - NFR-05 버전 무관성: (g) 본문에 메이저 버전 고정 표현 0. API/CLI 이름 언급은 허용.
+#      · sha 변동: 47062dd8…d88dbab6 → 66bfe606…a6274f68. stale_cycles 3 → 0 (진척 — REQ-043 증분 흡수로 spec 갱신).
+#      · 잔존 [ ]: §테스트 현황 FR-01 (0 lines diff) / FR-02 (수단 적용) 2 건 — FR-02 (g) 증분으로 수단 허용 집합은 확장되었으나 적용 (=planner task carve → developer 수렴) 은 본 세션 범위 외.
 #
-# Phase 1 ack 산출: ACK 1 (TSK-88 @c563025 REQ-042 FR-01), 비-ACK 0. 분모 M = 1.
-#   토큰 = `reconcile: 1/1 ack (1 stale ≥3cycle: foundation/coverage-determinism.md)`.
+# Phase 1 ack 산출: ACK 0 (신규 task done 0 since 1a74079), 비-ACK 0. 분모 M = 0.
+#   토큰 = `reconcile: 0/0 ack`.
 #
-# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (log.md ~110줄 / error-reporter-channel.md ~240줄 / coverage-determinism.md ~140줄).
+# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (coverage-determinism.md ~138줄 / log.md ~110줄 / error-reporter-channel.md ~240줄).
 #
-# Phase 3 (신규 반영): 입력 큐 `specs/20.req/` 0 건. 하류 임계치 GREEN_PENDING_MAX=20 default (pipeline.json 없음) — 세션 종료 시점 green 3 < 20. 여유 17. **Phase 3 no-op (빈 입력 큐).**
+# Phase 3 (신규 반영): 입력 큐 `specs/20.req/` 1 건 (REQ-20260421-043) → processed 1 / moved 1 (→ `60.done/2026/04/21/req/`). 하류 임계치 GREEN_PENDING_MAX=20 default (pipeline.json 없음) — 세션 종료 시점 green 3 < 20. 여유 17. Phase 3 진행 → 완료.
+#
+# RULE-07 자기검증 (흡수 대상 REQ-20260421-043):
+#   - (g) 는 "pool 병행성이 coverage 측정 결정론의 재현 가능한 결정적 변수" 라는 시스템 성질을 수단 집합 확장으로 박제. 반복 검증 가능 (N=28 실측 fixture), 시점 비의존 (특정 incident/릴리스/날짜 귀속 없음), 1회성 incident patch 플랜 아님, 평서형 긍정문 1문장. → RULE-07 positive 기준 충족, 반려 시그널 (관측·측정·분석·재현·TODO 나열 중심, 특정 incident 귀속) 부재 → 흡수 진행.
 #
 # 변동 spec sha (본 세션 편집 기준):
-#   - `common/error-reporter-channel.md` 5aca42135818c028299704b15e41f6794ed5fa90ea2cb9a5eda3ba4ea8107612 (불변) — stale_cycles 0 → 1.
-#   - `components/log.md` 0ad436c00e9d910be5726c55b2ec74f64ffb577cf7220701705a239a8061ba93 — TSK-88 ack 반영. stale_cycles 0 → 0 (진척).
-#   - `foundation/coverage-determinism.md` 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 (불변) — stale_cycles 2 → 3. **stale 경고 발동.**
+#   - `common/error-reporter-channel.md` 5aca4213…8107612 (불변) — stale_cycles 1 → 2.
+#   - `components/log.md` 0ad436c0…061ba93 (불변) — stale_cycles 0 → 1.
+#   - `foundation/coverage-determinism.md` 66bfe606…a6274f68 — REQ-043 흡수. stale_cycles 3 → 0 (진척, REQ-043 증분 반영).
 #
 # 현 ledger (post-edit sha):
-specs/30.spec/green/common/error-reporter-channel.md 5aca42135818c028299704b15e41f6794ed5fa90ea2cb9a5eda3ba4ea8107612 1
-specs/30.spec/green/components/log.md 0ad436c00e9d910be5726c55b2ec74f64ffb577cf7220701705a239a8061ba93 0
-specs/30.spec/green/foundation/coverage-determinism.md 47062dd81da542c931603a31c5baf424f03409e9c4aa607b844e7018d88dbab6 3
+specs/30.spec/green/common/error-reporter-channel.md 5aca42135818c028299704b15e41f6794ed5fa90ea2cb9a5eda3ba4ea8107612 2
+specs/30.spec/green/components/log.md 0ad436c00e9d910be5726c55b2ec74f64ffb577cf7220701705a239a8061ba93 1
+specs/30.spec/green/foundation/coverage-determinism.md 66bfe606390bc12104b52dd52dcea78578cd7ab1347c7f7363e7cfc3a6274f68 0
 #
-# Stale 경고 (≥ 3 cycle): 1 건 — `foundation/coverage-determinism.md` stale=3.
-#   원인: REQ-041 수렴 task 미 carve (planner 영역). §테스트 현황 FR-01 (0 lines diff) / FR-02 (수단 적용) 양쪽 [ ] 대기 중.
-#   권장 조치 (planner 영역): (a) flake 원인 진단 task carve (env stub 타이밍 / MSW handler swap / async cleanup 3 가설 중 주범 식별), (b) 수단 적용 task carve (FR-02 a~f 중 택1+ 결합).
+# Stale 경고 (≥ 3 cycle): 0 건.
+#   - foundation/coverage-determinism.md 는 REQ-043 증분 반영으로 진척 (stale=0 리셋).
+#   - common/error-reporter-channel.md stale=2 (≥ 3 미만, 경고 대상 아님). 여전히 promote 조건 성숙 — planner 영역.
+#   - components/log.md stale=1 (≥ 3 미만, 경고 대상 아님). promote 조건 성숙 — planner 영역.
 #
-# Phase 3 입력 큐 (본 세션 시작): 0 건 → 0 processed / 0 blocked.
+# Phase 3 입력 큐 (본 세션 시작): 1 건 → 1 processed / 0 blocked.
 # 하류 임계치: GREEN_PENDING_MAX=20 (default). 세션 종료 시점 green 파일 3 < 20. 여유 17.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `common/error-reporter-channel.md` — 전 drift D1~D7 수렴 (gate (a) = 0), FR-02/FR-03 수렴 2건 [x], 잔존 Should FR-06 1건만 (blue components/common.md 상호참조). **promote 조건 성숙 (강력 권장)** — 직전 세션 대비 변동 없음.
-#   - `components/log.md` — REQ-042 FR-01 수렴 완료 (TSK-88 @c563025). §테스트 현황·§수용 기준 전원 [x]. REQ-027/030/042 모두 수렴. **promote 조건 성숙 (신규)** — 본 세션 ack 후 즉시 승격 가능.
-#   - `foundation/coverage-determinism.md` — §테스트 현황 FR-01/FR-02 2 건 [ ] (수렴 대기). §수용 기준 전원 [x]. promote 는 FR-01 0 lines diff 수렴 시점.
+#   - `common/error-reporter-channel.md` — 전 drift D1~D7 수렴, 잔존 Should FR-06 (blue components/common.md 상호참조) 1 건만. **promote 조건 성숙 (유지)**.
+#   - `components/log.md` — REQ-042 FR-01 수렴 (TSK-88 @c563025). §테스트 현황·§수용 기준 전원 [x]. **promote 조건 성숙 (유지)**.
+#   - `foundation/coverage-determinism.md` — §테스트 현황 FR-01 (0 lines diff) / FR-02 (수단 적용) 2 건 [ ] (수렴 대기). REQ-043 증분으로 수단 집합 (a~g) 확장. promote 는 FR-01 0 lines diff 수렴 시점. 차기 carve 대상 (planner 영역): (a) flake 원인 진단 task (주 원인 = pool race — TSK-87 @a2b9119 result 이미 식별), (b) 수단 적용 task — FR-02 (a~g) 중 (g) pool 병행성 제어가 N=28 실측에서 유효함이 확인된 상태 (단, FR-05 중립성에 따라 planner 선택 자유).
 #
 # 다음 세션 유의:
 #   - 20.req 입력 큐 0 건 (본 세션 종료 시점).
-#   - 40.task 0 건 (planner 신규 carve 대기: REQ-041 수렴 task + error-reporter-channel/components-log promote).
+#   - 40.task 0 건 (planner 신규 carve 대기).
 #   - a11y.md 는 blocked 상태 — inspector Phase 1 스캔 대상 아님 (RULE-05 수동 해제 경로).
 #   - Phase 1 은 pause lock 외 항상 수행. `reconcile: N/M ack` 토큰 RULE-04 notes 박제 필수.
-#   - 본 세션 편집 대상: `components/log.md` (TSK-88 ack 마커 2 플립 + 변경 이력 1행), `.inspector-seen` ledger 갱신. 20.req mv 0 건. 커밋 범위는 spec/green + .inspector-seen.
