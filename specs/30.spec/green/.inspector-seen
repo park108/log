@@ -1,48 +1,55 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=dcecda0, Phase 1 reconcile + Phase 3 REQ-030 세션)
-# Phase 1 ack this session: 1/4 ack (marker 단위).
+# Updated: 2026-04-21T (HEAD=585d381 at session start, Phase 1 reconcile + Phase 3 REQ-032 흡수 + REQ-031 blocked)
+# Phase 1 ack this session: 3/4 ack (line 단위; 1 stale ≥3cycle).
 #
-# drift marker 스캔 (3 spec) — 총 4 marker (components/common.md 은 planner 017c125 에서 green→blue 승격되어 green 제외):
-#   1. `foundation/tooling.md:57` — lint-staged `.d.ts` 포함 보강 (향후 task) → 대응 task 미수행 → [ ] 유지. stale_cycles +=1.
-#   2. `foundation/ci.md:48`       — (수동) Node LTS 상향 시점 engine 확인 → 수동 점검 반복 계약 → [ ] 유지. stale_cycles +=1.
-#   3. `components/log.md:59` (구)  — LogItem DELETE shuffle 안정성 (TSK-20260421-63 / `261a51a` 실현) → ACK. [x] 플립 + §변경 이력 1행 박제.
-#   4. `components/log.md` NEW (REQ-030 흡수 결과로 §테스트 현황·§수용 기준에 추가된 1 marker) — LogSingle render budget 불변식. 대응 task 미발행 (planner 영역) → [ ] 유지 (신규 marker). stale_cycles=0.
+# drift marker 스캔 (3 spec @ 세션 시작 = log.md / ci.md / tooling.md) — 총 4 marker line:
+#   1. `foundation/tooling.md:57` — lint-staged `.d.ts` 포함 보강 → ACK. TSK-20260421-64 / `dcecda0` (HEAD 조상) 실현. DoD 게이트 재실행: `grep -nE "d\.ts" package.json` → 1 hit (`:40` `"src/**/*.{js,jsx,ts,tsx,d.ts}"`). [x] 플립 + §변경 이력 1행 박제. stale_cycles=0.
+#   2. `foundation/ci.md:48`       — (수동) Node LTS 상향 시점 engine 호환성 확인 → 수동 점검 반복 계약. 대응 task 미수행 → [ ] 유지. stale_cycles 2 → 3 (≥3 경고 진입).
+#   3. `components/log.md:61` (테스트 현황) — LogSingle render budget 불변식 (REQ-030 FR-01) → ACK. TSK-20260421-65 / `585d381` (HEAD 자체) 실현.
+#   4. `components/log.md:73` (수용 기준) — 동일 REQ-030 FR-01 의 dual axis 박제 → ACK. 동일 task `585d381`.
+#       DoD 게이트 재실행: `it('render LogSingle on (prod\|dev) server'` 2 hits, `}, ASYNC_ASSERTION_TIMEOUT_MS);` 2 hits (`:125, :155`), `timeout:\s*[0-9]+` 0 hits.
+#       result.md DoD 박제: 9/9 it pass / 47 files 383 tests pass / lint 0 / build 0. Must 주관 혼재 없음. 양쪽 라인 [x] 플립 + §변경 이력 1행 박제. stale_cycles=0.
 #
-# Phase 1 ack 산출: ACK 대상 1 (marker #3), 비 ACK 3 (marker #1 stale+1, #2 stale+1, #4 신규). 토큰 = `reconcile: 1/4 ack`.
+# Phase 1 ack 산출: ACK 3 (#1 / #3 / #4), 비-ACK 1 (#2). 토큰 = `reconcile: 3/4 ack (1 stale ≥3cycle)`.
 #
 # Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음.
 #
-# Phase 3 (신규 req 반영): REQ-20260421-030 (log cold-start render budget invariant) 1건 흡수.
-#   - 대상: `30.spec/green/components/log.md` (blue 존재 → green carry-over 편집).
-#   - RULE-07 자기검증: 추가 문장 (§회귀 중점 line 43, §테스트 현황 line 61, §수용 기준 line 73) 에 Vitest 버전·TSK ID·`npm test`/`--run` 0회 등장 확인. 양성.
-#   - FR-04 택일: `src/test-utils/timing.js` `ASYNC_ASSERTION_TIMEOUT_MS` 상수 참조 (리터럴 ms 미박제). 근거 §변경 이력 1행 박제.
-#   - FR-03: consumed followup (`60.done/2026/04/21/followups/20260421-0554-...`) §참고·§변경 이력 박제.
-#   - 수용기준 4: 축 B 위임 노트 §참고에 박제 (task 계층 위임 명시).
-#   - 이동: `specs/20.req/20260421-log-cold-start-render-budget-invariant.md` → `specs/60.done/2026/04/21/req/`.
+# Phase 3 (신규 req 반영): 입력 큐 2건 처리 — REQ-032 흡수, REQ-031 blocked.
+#   - REQ-20260421-032 (admin gate 잔존 결함 D1/D2/D3): RULE-07 자기검증 — 결과 FR (FR-01 토큰 추출 / FR-04 지속 속성명 / FR-06/07/08 회귀 테스트 계약 / D3 env 미주입 안전 기본값) 만 시스템 불변식 형태로 박제, 진단·DevTools 실측·1회성 patch 플랜은 제외. 양성.
+#     - 대상: `30.spec/green/components/common.md` (blue 존재 → green carry-over 후 편집).
+#     - 신설/확장 섹션: §공개 인터페이스 auth() 1줄, §auth() 토큰 추출 계약 (신설), §setCookie 속성 불변식 (지속 속성명 정합 보강), §admin gate 계약 (env 미주입 안전 기본값 보강), §회귀 방어 단위 테스트 계약 (b)(c)(d) 절 추가, §회귀 중점 2 항목, §동작 갱신, §테스트 현황 + §수용 기준 [ ] 5 marker 추가 (FR-01/04/06/07/08 task 위임).
+#     - 이동: `specs/20.req/20260421-admin-gate-residual-defects-...md` → `specs/60.done/2026/04/21/req/`.
+#   - REQ-20260421-031 (React 19 runtime bump 재착수): RULE-07 반려 — "특정 18→19 bump 시점에 귀속된 1회성 마이그레이션 plan + 감사성 박제". §개요·§목표·FR-01~03/FR-11 모두 1회성 액션. 시스템 불변식 부분 (FR-04/07/09) 은 이미 `30.spec/blue/common/test-idioms.md` + `30.spec/blue/components/common.md` NFR 에 박제 완료 — 신규 spec 항목 신설 필요성 없음.
+#     - 이동 (race 결과): `specs/20.req/20260421-react-19-runtime-bump-reattempt.md` → `specs/50.blocked/req/` (inspector mv) → 외부 `/revisit` 이 동일 세션 내 (16:31 vs inspector 16:32) `10.followups/20260421-0731-react-19-runtime-bump-reattempt-from-blocked.md` 로 정식 승격 (RULE-05 revive 경로). 결과적으로 blocked/req 는 비어있고 followup 에 정식 경로로 자리잡혔음 (정합 상태). inspector 가 작성한 `_reason.md` 는 동일 race 에서 정리되었으나 followup 본문에 reason 인용 박제 보존.
 #
 # hook-ack 보조 확인:
-#   - marker #3: `261a51a` (HEAD=dcecda0 의 조상; dcecda0 은 `fix: lint-staged 패턴에 .d.ts 포함 보강` 으로 무관). 커밋 메시지 "test: LogItem DELETE 테스트 shuffle 안정성 회귀 방어 (seed={1,2,3})" + result.md DoD "npm run lint clean / seed=1/2/3 전부 pass / npm test 47 files 383 tests PASS 회귀 없음 / npm run build 성공" 박제. Must 주관 혼재 없음 (단일 task 실현 1 marker) → ack 보조 확정.
+#   - marker #1: `dcecda0` (HEAD=585d381 의 조상). 커밋 메시지 "fix: lint-staged 패턴에 .d.ts 포함 보강" + task 디렉터리 `60.done/2026/04/21/task/lint-staged-include-dts/TSK-20260421-64-...md` 박제. result.md 부재이나 단일 1-line `package.json` 변경이 게이트 충족 자체 — 보조 ack 확정.
+#   - marker #3, #4: `585d381` (HEAD 자체). 커밋 메시지 "test: LogSingle prod/dev render budget it-level timeout 박제 (REQ-030 FR-01 실현)" + result.md DoD "lint PASS / 47 files 383 tests pass / 9/9 it pass / build PASS". Must 주관 혼재 없음 → ack 보조 확정.
 #
 # 기존 ledger 대비 변동:
-#   - `components/common.md` 항목 제거 (planner 017c125 green→blue 승격).
-#   - `components/log.md` sha 갱신 (Phase 1 ACK + REQ-030 흡수 반영).
-#   - `foundation/*` 2 spec 은 본문 변경 없음 — sha 유지, stale_cycles +=1.
+#   - `components/common.md` 항목 신규 추가 (REQ-032 흡수로 green 재 carry-over).
+#   - `components/log.md` sha 갱신 (Phase 1 ACK 2 line 플립 + §변경 이력 1행 박제).
+#   - `foundation/tooling.md` sha 갱신 (Phase 1 ACK 1 line 플립 + §변경 이력 1행 박제).
+#   - `foundation/ci.md` sha 동일 — 본문 무변경, stale_cycles 2 → 3.
 #
 # 현 ledger:
-specs/30.spec/green/components/log.md 1b0728614a126864255cdff6742507084ef1187ef5809dce45e134f3c5687d66 0
-specs/30.spec/green/foundation/ci.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 2
-specs/30.spec/green/foundation/tooling.md e8d809041b276e689d35f624cdf86d111d3e93fa059067eef667ea2fee04edfd 2
+specs/30.spec/green/components/common.md 73b145426ef80ec3767222df2e2f5eab5090d6eafec2a62f1e394bd310b4499f 0
+specs/30.spec/green/components/log.md 0f9f5f1de801d6039a45a5f401b037f353858e4eae8f52f68989a29a009b34e7 0
+specs/30.spec/green/foundation/ci.md 626e1330c6535a7b2fe3b493e377298b39ae3d78ad5140850d3c8de5ea7ea74f 3
+specs/30.spec/green/foundation/tooling.md 28d92d7fad152b7013b6df5c9e29e11d396c4d82dc4d2efadad8e04680e09baf 0
 #
-# Stale 경고: 0 path ≥ 3 cycle (현 최대 2 cycle — foundation/ci.md, foundation/tooling.md).
+# Stale 경고: 1 path ≥ 3 cycle — `foundation/ci.md` (수동 점검 반복 계약 — Node LTS 상향 시점 engine 확인). 운영자 동선 의존 항목으로 task 발행 부적합. 다음 세션에서도 동일 stale 누적 예상 — RULE-07 적부 재검토 (재분류 / split / drop) 후보.
 #
-# 입력 큐: 처리 후 0건. 하류 임계치 GREEN_PENDING_MAX=20, 현 green 파일 3 (spec) < 20. 여유 17.
+# 입력 큐: 처리 후 0건 (2 처리: 1 absorb / 1 blocked).
+# 하류 임계치: GREEN_PENDING_MAX=20, 현 green 파일 4 (spec) < 20. 여유 16.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `components/log.md` 은 marker #4 ([ ]) 신규 추가로 아직 미승격 상태 유지.
-#   - `foundation/tooling.md:57` — lint-staged `.d.ts` glob 보강 task (1 line 수정) carve 대상.
-#   - `foundation/ci.md:48` — 수동 점검 반복 계약. task 불요 (운영자 동선).
+#   - `components/common.md` — REQ-032 [ ] 5 marker 추가 → 미승격 유지. 차기 task carve 대상 (auth() hash 파싱 + setCookie 지속 속성명 정정 + 회귀 테스트 케이스 A/B/지속속성/env 미주입). NFR-01 (3 파일 변경 상한) 은 task 영역 metric.
+#   - `components/log.md` — marker #3, #4 (REQ-030) 전부 ACK. 잔존 [ ] marker 0 — planner 차기 사이클 promote 가능 (green→blue).
+#   - `foundation/tooling.md` — marker #1 ACK 후 잔존 [ ] marker 0 — promote 가능. 단, §스코프 규칙 (b) 의 baseline 박제 텍스트 ("현실 미달 상태") 는 historic note 로 보존 (변경 이력에 ack 박제로 보완).
+#   - `foundation/ci.md:48` — 수동 점검 반복 계약. task 불요. stale 3 cycle 누적 시점에 운영자 재분류 검토 (수동 체크 반복 계약 → spec 본문 외 운영 루브릭으로 이전).
 #
 # 다음 세션 유의:
-#   - 20.req 다시 차면 Phase 3 재개.
-#   - `components/log.md` 신규 marker (REQ-030 LogSingle render budget) 은 planner 가 task 발행 시 축 B (Vitest 호환 시그니처 마이그레이션) 계약과 묶어 carve 가능.
-#   - `foundation/ci.md:48` stale 누적 시 "수동 체크 반복 계약" 으로 재분류 검토 여지.
+#   - 20.req 다시 차면 Phase 3 재개. REQ-031 blocked 처리 후 운영자가 followup 으로 재투입할 가능성 — 정식 경로 (10.followups → discovery → ...) 만 수용.
+#   - `components/common.md` 의 REQ-032 [ ] 5 marker 는 단일 task carve 또는 분할 (code 정상화 / 회귀 테스트 두 그룹) 에서 ACK 흐름 발생 예정.
+#   - `foundation/ci.md:48` stale ≥3 — 운영자 재분류 권고.

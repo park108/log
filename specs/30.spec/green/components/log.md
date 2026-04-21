@@ -58,7 +58,7 @@
 - [x] 훅 테스트: `hooks/useLog.test.js`, `useLogList.test.js`, `useCreateLog.test.js`, `useUpdateLog.test.js`, `useDeleteLog.test.js`.
 - [x] `__fixtures__/` 에 API 응답 샘플 박제.
 - [x] LogItem DELETE shuffle 안정성 — seed={1,2,3} 불문 결정적 pass (TSK-20260421-63 / `261a51a`; `src/Log/LogItem.test.jsx` `beforeAll` warm-up 박제, seed=1/2/3 + 임의 seed 전부 11/11 pass, 전체 383 tests PASS 회귀 0).
-- [ ] LogSingle render budget 불변식 — cold-start 에서 render/assert 가 budget 상한 이내 수렴 (향후 task 로 회귀 방어 실현; 본 spec 은 계약 박제만).
+- [x] LogSingle render budget 불변식 — cold-start 에서 render/assert 가 budget 상한 이내 수렴 (TSK-20260421-65 / `585d381` 실현; `src/Log/LogSingle.test.jsx:125, :155` prod/dev `it` 종결에 `}, ASYNC_ASSERTION_TIMEOUT_MS);` 박제, 9/9 it pass / 47 files 383 tests pass / lint 0 / build 0).
 
 ## 수용 기준 (현재 상태)
 - [x] (Must) `/log/` 접근 시 `LogList` 렌더. 세션 캐시가 있으면 네트워크 호출 0.
@@ -70,7 +70,7 @@
 - [x] (Should) `props.isPostSuccess` true 변화 시 `LogList` 재페치 트리거.
 - [x] (NFR) 모든 하위 라우트는 `React.lazy` + `Suspense(fallback=<div/>)` 로 코드 스플릿.
 - [x] (Must, REQ-20260421-027 FR-01) LogItem DELETE 테스트는 `vitest --sequence.shuffle --sequence.seed={1,2,3}` 에서 race 없이 pass 한다.
-- [ ] (Must, REQ-20260421-030 FR-01) `LogSingle` prod/dev render 는 cold-start 에서도 render budget 상한 (`src/test-utils/timing.js` `ASYNC_ASSERTION_TIMEOUT_MS` 를 polling 상한으로 하는 어설션의 수렴 시간) 이내 mount 및 첫 어설션을 완료한다.
+- [x] (Must, REQ-20260421-030 FR-01) `LogSingle` prod/dev render 는 cold-start 에서도 render budget 상한 (`src/test-utils/timing.js` `ASYNC_ASSERTION_TIMEOUT_MS` 를 polling 상한으로 하는 어설션의 수렴 시간) 이내 mount 및 첫 어설션을 완료한다. (TSK-20260421-65 / `585d381` — prod/dev `it` 3rd-arg timeout 박제로 계약 강제.)
 
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
@@ -79,6 +79,7 @@
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-027 FR-01 흡수 — blue `components/log.md` → green carry-over. § 회귀 중점에 "LogItem DELETE 테스트는 `vitest --sequence.shuffle --sequence.seed={1,2,3}` 에서 race 없이 pass" 불변식 1줄 추가. consumed followup: `specs/10.followups/20260421-0541-test-isolation-shuffle-safety-cold-start-spec-from-blocked.md`. 선행 done req: `20260421-test-isolation-shuffle-safety-cold-start-spec-reseed-from-followup.md` (REQ-017), `20260421-layer2-cold-start-race-root-cause-rediagnosis.md` (REQ-012), `20260420-react-19-findby-timing-stabilization.md`. | §회귀 중점, §스코프 규칙, §테스트 현황, §수용 기준 |
 | 2026-04-21 | inspector / 261a51a | Phase 1 reconcile — LogItem DELETE shuffle 안정성 marker [x] 플립 (TSK-20260421-63 / `261a51a` `beforeAll` warm-up, seed=1/2/3 + 임의 seed 전부 pass, 전체 383 tests PASS 회귀 0 박제). | §테스트 현황 |
 | 2026-04-21 | inspector / REQ-20260421-030 | FR-01~04 흡수 — §회귀 중점에 "LogSingle render budget 불변식" 1~2줄 추가 (cold-start 에서도 render/assert 가 budget 이내 수렴하는 boolean 계약). §테스트 현황·§수용 기준에 대응 미완료 [ ] 1행 추가. budget 수치 박제 방식은 **FR-04 택일: `src/test-utils/timing.js` 상수 참조** — 근거: 리터럴 ms 박제는 spec 이 러너 default timeout 경계 값에 귀속되어 시점 중립성 약화. 상수 참조는 단일 진입점 유지 + 러너·버전 중립. consumed followup: `specs/60.done/2026/04/21/followups/20260421-0554-logsingle-vitest4-rescope-and-spec-relayering-from-blocked.md`. | §회귀 중점, §테스트 현황, §수용 기준, §참고 |
+| 2026-04-21 | inspector / 585d381 | Phase 1 reconcile — LogSingle render budget marker [x] 플립 (TSK-20260421-65 / `585d381` `src/Log/LogSingle.test.jsx:125, :155` prod/dev `it` 종결에 `}, ASYNC_ASSERTION_TIMEOUT_MS);` 박제로 budget 상한을 테스트 계층 per-test timeout 으로 강제). DoD 게이트 재실행: `it('render LogSingle on (prod\|dev) server'` 2 hits 유지, `}, ASYNC_ASSERTION_TIMEOUT_MS);` 2 hits, `timeout:\s*[0-9]+` 0 hits (리터럴 ms 박제 0 — 시점 중립성 유지). 9/9 it pass / 47 files 383 tests pass / lint 0 / build 0. | §테스트 현황, §수용 기준 |
 
 ## 참고
 - **REQ 원문 (완료 처리)**:
