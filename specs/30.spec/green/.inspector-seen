@@ -1,85 +1,59 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=2a0ff31, pre-commit)
-# Phase 1 ack this session: 2/2 ack (node-env-helper-migration Must 6/6 + Should 1/1 via TSK-20260420-37/a95f1bb; typescript-bootstrap Must 6/6 + Should 1/1 + NFR 1/3 via TSK-20260420-32/ceb9c60; shuffle-cold-start 무변동 stale=0 유지).
+# Updated: 2026-04-21T (HEAD=b005644, pre-commit)
+# Phase 1 ack this session: 0/2 ack (no new dev commits since prior inspector session HEAD=b005644; input queue empty; all 4 green sha256 unchanged).
 #
 # Phase 1 historical context (reference only):
-#   - 이전 inspector 세션 HEAD=d798635 → 현 HEAD=2a0ff31:
-#       * 2dc4635 spec(inspector): reconcile 1/1 ack — FR-02 PASS via TSK-51/d798635; stale 2->0 (이전 세션 commit).
-#       * 2a0ff31 spec(planner): carve TSK-20260421-53 (Layer 2 B3 msw listen beforeAll) + ledger refresh.
-#   - 50.blocked/** 현 상태: blocked/task TSK-20260421-52 1건 (operator 수동 해제 대기).
-#   - 40.task/ready/ 1건: TSK-20260421-53 (Layer 2 B3 msw listen beforeAll, 이전 세션 carve).
-#   - 20.req/ready/ 이전 1건 (REQ-20260421-011 msw sibling-it shuffle race dedicated) → Phase 3 에서 처리 후 60.done/2026/04/21/req/ 이동.
-#   - 10.followups/ discovery 큐 (inspector 범위 외).
+#   - 이전 inspector 세션 HEAD=b005644 → 현 HEAD=b005644 (동일, dev/planner 신규 커밋 없음).
+#   - 직전 ack: node-env-helper-migration (Must 6/6 + Should 1/1 via TSK-20260420-37/a95f1bb), typescript-bootstrap (Must 6/6 + Should 1/1 + NFR 1/3 via TSK-20260420-32/ceb9c60), msw-sibling-it 신규 carve (REQ-20260421-011 → green).
+#   - 50.blocked/** 현 상태: blocked/task 0건 (TSK-20260421-52 이전 해제). blocked/req 0건. blocked/spec 0건.
+#   - 40.task/ready/ 0건 (이전 세션 TSK-20260421-53 이미 소비되었거나 아직 planner 큐). 확인: `ls 40.task/ready` → empty.
+#   - 20.req/ready/ 0건 (Phase 2/3 no-op).
 #
-# Phase 1 detail this session (drift reconcile, HEAD=2a0ff31 재실측):
+# Phase 1 detail this session (drift reconcile, HEAD=b005644 재검증):
 #
-#   [1] common/node-env-helper-migration-spec.md (REQ-20260420-002):
-#       * 사용자 드리프트 발견: blue spec unchecked 8 vs src 충족 (grep 0 hits).
-#       * 대응 task TSK-20260420-37 / commit a95f1bb — HEAD 조상 확인 (`git merge-base --is-ancestor a95f1bb HEAD` OK).
-#       * HEAD=2a0ff31 grep 재실측 (Must DoD 전량 재실행):
-#           - `grep -rn "process\.env\.NODE_ENV" src/ --include="*.js" --include="*.jsx" | grep -v "\.test\."` → **0 hits** (baseline 11 → 0, Must FR-01 PASS).
-#           - `grep -rn "process\.env\.NODE_ENV" src/ --include="*.js" --include="*.jsx"` → **0 hits** (테스트 포함 전수 0 — stub 전환도 완료).
-#           - `npm run lint` → exit 0, 0 warn / 0 error (Must 재실측 PASS).
-#           - `npm test` (과거 완료 박제): a95f1bb result.md — 46 files / 368 tests pass. 현 HEAD d798635 377/377 유지, 회귀 0.
-#           - `setHtmlTitle` prod / `getUrl` prod/dev / `isAdmin` → common.test.js 통과 (a95f1bb DoD 박제).
-#       * hook-ack: a95f1bb result.md — `npm run lint` clean, `npm test` 368/368 pass (회귀 0 명시), `npm run build` exit 0. HEAD 조상성·훅 통과·회귀 0 문구 3요건 전원 충족.
-#       * blue → green carve (blue 직접 수정 금지, RULE-01 inspector 쓰기 권한 범위). green 신규 파일 생성 + Must 6/6 + Should 1/1 체크박스 flip. NFR 1건 (gzip 번들 크기) 은 수치 박제 없음 → `[deferred: 별건 carve 필요]` 태깅.
-#       * 본 세션 ack: **7건 (Must 6 + Should 1)**. NFR 1건 deferred.
-#       * stale 판정: 신규 green 파일 — N/A (최초 등록).
+#   [1] common/test-isolation-shuffle-safety-cold-start-spec.md:
+#       * HEAD 무변동, sha256 21543b77... 동일. WIP (`- [ ]`) 다수 존재 (FR-02/06/07/08/11/12/13 + Must FR-01/05/06/07/08/11/12/13/NFR-02 등).
+#       * 대응 dep TSK-20260421-49 (Layer 2) 여전히 미완료 (done/task/21/ 내 TSK-49 폴더 없음). Layer 2 race 미해소.
+#       * 재실측 생략 (WIP 불변, src 무변동, 대응 task 미완료 — ack 근거 없음).
+#       * stale_cycles: 0 → **1** (WIP 불변 + ack 0건).
 #
-#   [2] foundation/typescript-bootstrap-spec.md (REQ-20260420-003):
-#       * 사용자 드리프트 발견: blue spec unchecked 13 vs src 부분 충족 (`src/types/env.d.ts` 존재, `.ts` ≥1).
-#       * 대응 task TSK-20260420-32 / commit ceb9c60 — HEAD 조상 확인 (`git merge-base --is-ancestor ceb9c60 HEAD` OK).
-#       * HEAD=2a0ff31 grep 재실측 (Must DoD 전량 재실행):
-#           - `npm run typecheck` → exit 0 (Must PASS).
-#           - `find src -name "*.ts" -o -name "*.tsx" | wc -l` → **2** (≥ 1 Must PASS). 파일: `src/common/env.d.ts`, `src/types/env.d.ts`.
-#           - `tsc --noEmit --listFiles | grep -c "src/.*\.ts"` → **2** (≥ 1 Must PASS).
-#           - `grep -n "files:" eslint.config.js` → `:34` 파서 블록 (`src/**/*.{ts,tsx}`,`src/**/*.d.ts`) + `:45` 사용자 규칙 블록 (`src/**/*.{js,jsx,ts,tsx}`). Must PASS (`files` 확장 확인).
-#           - `grep -n "lint-staged"` directly followed by glob → `package.json:40` `"src/**/*.{js,jsx,ts,tsx}": "eslint"` (Must PASS).
-#           - `npm run lint` → exit 0, 0 warn / 0 error (과거 ceb9c60 + 현 HEAD 재실측 양쪽 PASS).
-#           - `grep -rn "from '@/types" src/` → 1 hit (`src/common/env.d.ts:5` — `import type {} from '@/types/env';`, Should PASS).
-#           - `.jsx` 파일 0 수정 — TSK-32 변경 파일 목록 (env.d.ts 2건 + eslint.config.js + package.json) 확인, NFR PASS.
-#       * hook-ack: ceb9c60 result.md — `npm run lint` clean, `npm test` 360/360 pass, `npm run build` 335ms exit 0, `npm run typecheck` exit 0, typecheck listFiles grep 2. HEAD 조상성·훅 통과·회귀 0 3요건 충족. 부수 TSK-20260420-33 (typescript-eslint `.d.ts` 파서 블록) 도 관련 — `eslint.config.js:34` 파서 블록 추가는 TSK-33 소관이지만 본 spec §공개 인터페이스/§스코프 의 "파서 도입 불허" 와 충돌하지 않음 (규칙 세트 미적용 planner-fixed).
-#       * blue → green carve. green 신규 파일 생성 + Must 6/6 + Should 1/1 + NFR 1/3 체크박스 flip. NFR 2건 (Vite 빌드 시간 회귀, coverage include) 은 수치 박제 없음/followup 스텁 상태 → `[deferred]` 태깅.
-#       * 본 세션 ack: **8건 (Must 6 + Should 1 + NFR 1)**. NFR 2건 deferred.
-#       * stale 판정: 신규 green 파일 — N/A (최초 등록).
+#   [2] common/node-env-helper-migration-spec.md:
+#       * HEAD 무변동, sha256 69e99590... 동일. Must 6/6 + Should 1/1 모두 `[x]` (이전 세션 flip 완료). 잔존 unchecked 는 NFR gzip 1건 `[deferred]` 태깅.
+#       * ack-pending 항목 없음 — planner promote 대기 상태.
+#       * stale_cycles: **0 유지** (WIP-less; NFR deferred 는 stale 카운팅 대상 아님).
 #
-#   [3] deps/react-19-upgrade-spec.md (REQ-20260420-001):
-#       * 사용자 드리프트 의심 지적: 실제 미충족 (package.json react ^18.2.0 유지).
-#       * 재실측: `grep '"react":' package.json` → `^18.2.0` (bump 미실행). `@testing-library/react` `^13.4.0`, `@types/react` `^18.3.28`, `@types/react-dom` `^18.3.7` — 전량 pre-bump.
-#       * 판정: **drift 아님**. blue spec unchecked 상태 유지가 baseline. 계획 단계 (관련 task 미carve). green carve 불필요.
-#       * 본 세션 ack: **0건**.
+#   [3] foundation/typescript-bootstrap-spec.md:
+#       * HEAD 무변동, sha256 5a86ebc5... 동일. Must 6/6 + Should 1/1 + NFR 1/3 모두 `[x]` (이전 세션 flip 완료). 잔존 unchecked 는 NFR 2건 `[deferred]` 태깅.
+#       * ack-pending 항목 없음 — planner promote 대기 상태.
+#       * stale_cycles: **0 유지** (WIP-less; NFR deferred 는 stale 카운팅 대상 아님).
 #
-#   [4] common/test-isolation-shuffle-safety-cold-start-spec.md (기존 green, 이전 세션 ack):
-#       * 본 세션 변경 없음. sha256 21543b7... 동일. stale=0 유지 (이전 세션 reset).
-#       * 재검증 생략 — 이전 세션 FR-02 ack 이후 HEAD 무관련 커밋만 (2a0ff31 planner carve TSK-53).
+#   [4] common/msw-test-sibling-it-shuffle-race-dedicated-spec.md:
+#       * HEAD 무변동, sha256 e956a40a... 동일. Must 5/5 + Should 2/2 + NFR 6/6 모두 `- [ ]` (이전 세션 신규 carve, planner Task 발행 대기).
+#       * ack 근거 없음 (대응 Task 미발행, src 무변동).
+#       * stale_cycles: 0 → **1** (WIP 불변 + ack 0건; planner carve 대기 상태 계측).
 #
-# Phase 2 this session: deferred 태깅 변화.
-#   - node-env-helper-migration NFR gzip: `[deferred: 별건 carve 필요]` 신규 태깅.
-#   - typescript-bootstrap NFR 2건: `[deferred]` 신규 태깅 (각각 빌드 시간 수치 박제 없음, coverage include TSK-32 followup 스텁 큐잉됨).
-#   - 300줄 초과 spec 없음 (신규 2건 각각 약 80~90줄, msw-sibling carve 약 100줄).
+# Phase 2 this session: 변화 없음.
+#   - deferred 태깅 신규 전환 없음.
+#   - 300줄 초과 spec 없음 (shuffle-safety ~120줄, node-env ~75줄, typescript-bootstrap ~75줄, msw-sibling ~70줄).
 #
-# Phase 3 this session:
-#   - input queue (20.req/ready/): **1건 → 0건**.
-#     * REQ-20260421-011 (msw.test.js sibling-it shuffle race dedicated, FR-06 carve-out) → 처리 완료.
-#     * 신규 green spec `specs/30.spec/green/common/msw-test-sibling-it-shuffle-race-dedicated-spec.md` carve. FR-06 원본 green spec (`test-isolation-shuffle-safety-cold-start-spec.md`) 은 §FR-06/L109 `[deferred: TSK-20260421-49 blocked]` 태깅 유지 — planner 의 신규 Task 발행 시점에 `[pending: REQ-20260421-011 TSK-<new>]` 전환 (FR-06 Should, planner 담당).
-#     * 원본 req: `specs/20.req/ready/20260421-msw-test-sibling-it-shuffle-race-dedicated.md` → `specs/60.done/2026/04/21/req/` mv.
-#   - downstream threshold GREEN_PENDING_MAX=20 (기본, .claude/pipeline.json 없음). 현 green 4 (shuffle-cold-start, node-env-helper, typescript-bootstrap, msw-sibling) < 20.
-#   - 처리된 req: 1. blocked: 0. 신규 green: 3 (node-env-helper, typescript-bootstrap, msw-sibling). 갱신 green: 0.
+# Phase 3 this session: no-op.
+#   - input queue (20.req/ready/): 0건 → 0건.
+#   - downstream threshold GREEN_PENDING_MAX=20 (.claude/pipeline.json 없음). 현 green 4 < 20.
+#   - 처리된 req: 0. blocked: 0. 신규 green: 0. 갱신 green: 0.
 #
 # 현 ledger:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 21543b775c3e0f64b5f75aed161bf0722caf2dc4136efbf7996299baf60a92c3 0
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 21543b775c3e0f64b5f75aed161bf0722caf2dc4136efbf7996299baf60a92c3 1
 specs/30.spec/green/common/node-env-helper-migration-spec.md 69e99590e31f62e726b4bd78d0753b34b1fc96c4545a7aaf275328ab19483223 0
 specs/30.spec/green/foundation/typescript-bootstrap-spec.md 5a86ebc542eba28915e16dbeeb6a4e5b48722427b6ef81a166ca3009c541878b 0
-specs/30.spec/green/common/msw-test-sibling-it-shuffle-race-dedicated-spec.md e956a40a36f46c10d7b49c543a49868c8041ba7c2d99970d9c80bed25efb3fb4 0
+specs/30.spec/green/common/msw-test-sibling-it-shuffle-race-dedicated-spec.md e956a40a36f46c10d7b49c543a49868c8041ba7c2d99970d9c80bed25efb3fb4 1
 #
 # Stale 경고:
-#   - 신규 3건 stale=0 (최초 등록).
-#   - shuffle-safety-cold-start stale=0 유지.
+#   - shuffle-safety-cold-start stale=1 (< 3 임계, 경고 없음). TSK-49 Layer 2 해소 대기 상태 — planner/operator 검토 지속.
+#   - msw-sibling-it-shuffle-race-dedicated stale=1 (< 3 임계, 경고 없음). planner 의 신규 Task 발행 대기.
+#   - node-env-helper-migration / typescript-bootstrap stale=0 (WIP-less, NFR deferred). planner promote green→blue 대기.
 #
 # 다음 세션 유의:
-#   - node-env-helper-migration / typescript-bootstrap green 은 Must 전원 ack — planner 가 green→blue promote + blue 원본 갱신 가능. promote 후 REQ-20260420-002 / REQ-20260420-003 done req 마감 가능 (done/req 확인 후 별도 action).
-#   - typescript-bootstrap NFR 2건 (Vite 빌드 시간 회귀, coverage include) 은 별건 task carve 필요 시 planner 소관. coverage include 는 TSK-20260420-32 §관찰 2 followup 스텁 상태.
-#   - node-env-helper-migration NFR 1건 (gzip 번들 크기 회귀 ±1%) 도 별건 task carve 필요.
-#   - msw-sibling-it-shuffle-race-dedicated 는 planner 의 신규 Task 발행 대기. 발행 시 원본 green spec §FR-06 태깅 전환 잊지 말 것 (본 spec §수용 기준 FR-06 Should).
-#   - react-19-upgrade 는 pre-bump 상태 유지 — blue unchecked 정상. 별도 action 불필요.
+#   - node-env-helper-migration / typescript-bootstrap 는 Must 전원 ack — planner 가 promote 하면 REQ-20260420-002 / -003 마감 가능. promote 전까지 green 에 위치, stale 카운팅 대상 아님.
+#   - shuffle-safety-cold-start 는 Layer 2 TSK-49 (blocked 해제됨? 실측 이후 미재생) 현황 — 50.blocked/task 비어있음. TSK-20260421-53 (B3 msw listen beforeAll) 은 이전 세션 planner carve 후 40.task/ready 에서 소비됨 (현 ready 큐 empty; done/task/21/ 에도 TSK-53 폴더 미존재 — developer 실행 대기 또는 다른 경로). 다음 사이클 developer 실행 결과 박제 필요.
+#   - msw-sibling-it-shuffle-race-dedicated green 은 planner 의 Task 발행 대기. 발행 시 원본 shuffle-safety spec §FR-06 태깅 전환 (planner 담당).
+#   - 3cycle stale 초과 시 reconcile 보고에 `reconcile: N/M ack (K stale ≥3cycle)` 토큰 추가 (RULE-04).
