@@ -1,84 +1,68 @@
 # inspector Phase 1 ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (HEAD=d12681b at session end, Phase 1 reconcile 3/3 ack — TSK-70 + TSK-71 + TSK-72 (세션 중 developer 커밋)).
-# Phase 1 ack this session: 3/3 — (1) TSK-70 `a11y-pattern-b-writer-m1-m2` @36b4ba5 6 grep 게이트 PASS @HEAD 재실행, (2) TSK-71 `a11y-pattern-b-logiteminfo-m3-m6` @0f03547 6 grep 게이트 PASS @HEAD 재실행, (3) TSK-72 `a11y-pattern-b-comment-m7-m8` @1414eae 10 grep 게이트 PASS @HEAD=d12681b 재실행 (세션 중 developer cycle 커밋). a11y.md §drift 정상화 표 M1/M2/M3/M6/M7/M8 행 취소선 + §테스트 현황 Writer.test / Comment.test / CommentItem.test row [x] + §스코프 규칙 grep-baseline (a) 9→15 / (b) 19→22 갱신 + §변경 이력 2행 박제.
+# Updated: 2026-04-21T (HEAD=7e6cdea at session start; session-end 커밋 후 갱신). Phase 1 reconcile 1/1 ack — TSK-73 console-spy-nondestructive-migration @7e6cdea.
+# Phase 1 ack this session: 1/1 — TSK-73 `console-spy-nondestructive-migration` @7e6cdea 4 grep 게이트 (negative 본 0, negative 보조 0, vi.restoreAllMocks in setupTests.js 1 @L75, positive vi.spyOn(console,... 50 hits / 23 files) 전원 PASS @HEAD=7e6cdea 재실행 확인. hook-ack (result.md): `npm run lint` PASS, `npm test -- --run` PASS 409 (베이스라인 409 유지 — 회귀 0), `npm run build` PASS 425ms. Must 주관 혼재 없음 → 보조 ack 채택. test-idioms.md §테스트 현황 이디엄 (9) marker [ ] → [x] 플립 (43→0 hits 목표 달성) + §변경 이력 1행 박제.
 #
-# drift marker 스캔 (세션 시작 2 spec — common/a11y.md + components/common.md; 세션 종료 시점 4 spec — 신규 test-idioms.md + regression-gate.md):
-#   1. common/a11y.md 잔존 [ ] marker (세션 중 TSK-72 @1414eae developer 커밋으로 M7/M8 추가 ack):
-#      · §테스트 현황: LogItemInfo.test row 부분 ack (M3/M6 done, M4 잔존 [ ]), M5 FR-05 [ ], M10 FR-06 [ ], audit FR-08 [ ].
+# drift marker 스캔 (세션 시작 4 spec):
+#   1. common/a11y.md 잔존 [ ] marker 스캔:
+#      · §테스트 현황: LogItemInfo.test row M4 [ ] (onClick 부재 + hover-popup trigger — FR-02 "(onKey 논의)" 귀결 대기), M5 FR-05 [ ] (실측 귀결 대기), M10 FR-06 [ ] (옵션 A/B 결정 대기), audit FR-08 [ ] (도입 유보 결정 대기).
 #      · §수용 기준: FR-02 Must [ ], FR-03 Must [ ], FR-05 Must [ ], FR-06 Must [ ], FR-07 Should [ ], FR-08 Should [ ].
-#      · a11y.md stale_cycles 1 → 0 (Phase 1 ack 3 task 반영 — M1/M2/M3/M6/M7/M8 6 지점 플립 + grep-baseline 갱신).
-#   2. common/test-idioms.md (신규, REQ-036 흡수): §테스트 현황 이디엄 (9) console spy 마이그레이션 1 [ ] (목표 0 hit, 현 43 hits / 21 files). planner carve 대기. stale_cycles 0.
-#   3. components/common.md (REQ-038 흡수 후): §테스트 현황 2 [ ] (isAdmin cognito:groups matrix + group claim 부재 안전 기본값 2 describe 교체 대기), §수용 기준 3 [ ] (FR-03 env 경로 제거 + FR-08 describe 교체 + FR-09 .env.example 편집). planner carve 대기. stale_cycles 0.
-#   4. foundation/regression-gate.md (신규, REQ-037 흡수): §테스트 현황 2 [ ] (FR-01 typecheck step / FR-02 coverage threshold). planner carve 대기. stale_cycles 0.
+#      · 관련 task: 본 cycle 에 M4/M5/M10/audit 커밋 0. a11y.md stale_cycles 0 → 1 (ack 0 + 잔존 marker 불변).
+#   2. common/test-idioms.md 잔존 [ ] marker 스캔 후 [x] 플립:
+#      · §테스트 현황: 이디엄 (9) console spy 비파괴 [ ] → [x] (TSK-73 @7e6cdea ack). 잔존 [ ] 없음.
+#      · §수용 기준: 모두 [x]. 잔존 0.
+#      · stale_cycles 0 → 0 (ack 1 — marker 감소 방향).
+#   3. components/common.md (REQ-038 흡수 후) 잔존 [ ] marker 스캔:
+#      · §테스트 현황: 2 [ ] (isAdmin cognito:groups matrix + group claim 부재 안전 기본값 2 describe 교체 대기).
+#      · §수용 기준: 3 [ ] (FR-03 env 경로 제거 + FR-08 describe 교체 + FR-09 .env.example 편집).
+#      · 관련 task: 본 cycle 에 REQ-038 migration 커밋 0. stale_cycles 0 → 1.
+#   4. foundation/regression-gate.md 잔존 [ ] marker 스캔:
+#      · §테스트 현황: 2 [ ] (FR-01 typecheck step workflow 편집 + FR-02 coverage threshold vite.config.js 편집).
+#      · §수용 기준: 모두 [x] — 본문 박제 축은 이미 충족, 실현 축은 §테스트 현황 행으로 이관됨.
+#      · 관련 task: 본 cycle 에 REQ-037 실현 커밋 0. stale_cycles 0 → 1.
 #
-# TSK-69 (@28bbf26) 는 직전 세션에서 이미 ack 완료. 본 세션에서 TSK-70/71/72 이 HEAD 조상 확인 + grep 게이트 × 3 재실행 PASS. TSK-72 는 세션 중 developer cycle 이 커밋 (기존 40.task 대기 → done).
-#   · TSK-70 `a11y-pattern-b-writer-m1-m2` @36b4ba5 grep 게이트 검증:
-#     (a) `onKeyDown={activateOnKey` in Writer.jsx → **2 hits** @L276,313 (M1/M2) — PASS (기대 2).
-#     (b) `tabIndex={0}` in Writer.jsx → **2 hits** @L273,311 — PASS (기대 2).
-#     (c) `import.*activateOnKey` in Writer.jsx → **1 hit** @L4 — PASS (기대 1).
-#     (d) `describe.*Writer a11y 패턴 B` in Writer.test.jsx → **1 hit** @L505 — PASS.
-#     (e) `fireEvent.keyDown` in Writer.test.jsx → 5 hits — PASS (≥4).
-#     (f) inline arrow `onClick={() => setIsShow..` 0 hits — PASS.
-#     hook-ack (TSK-70 result.md): `npm run lint` PASS (경고 0), `npm test -- --run` PASS 397 (391+6), `npm run build` PASS 364ms, 회귀 0, Must 주관 혼재 없음.
-#   · TSK-71 `a11y-pattern-b-logiteminfo-m3-m6` @0f03547 grep 게이트 검증:
-#     (a) `onKeyDown={activateOnKey` in LogItemInfo.jsx → **2 hits** @L53,131 (M3/M6) — PASS (기대 2).
-#     (b) `tabIndex={0}` in LogItemInfo.jsx → **2 hits** @L50,127 — PASS (기대 2).
-#     (c) `import.*activateOnKey` in LogItemInfo.jsx → **1 hit** @L6 — PASS.
-#     (d) `describe.*LogItemInfo a11y 패턴 B` in LogItemInfo.test.jsx → **1 hit** @L140 — PASS.
-#     (e) `data-testid="link-copy-button"` in LogItemInfo.jsx → **1 hit** @L51 — PASS (보존).
-#     (f) `data-testid="delete-button"` in LogItemInfo.jsx → **1 hit** @L128 — PASS (보존).
-#     hook-ack (TSK-71 result.md): `npm run lint` PASS, `npm test -- --run` PASS 403 (397+6), `npm run build` PASS 378ms, 회귀 0, Must 주관 혼재 없음.
+# TSK-73 (@7e6cdea) 는 본 세션 Phase 1 ack 대상. 커밋 해시가 HEAD 의 조상임 확인 (git merge-base --is-ancestor PASS).
+#   · TSK-73 grep 게이트 검증:
+#     (a) negative 본 `^console\.(log|warn|error|debug|info)\s*=\s*vi\.fn` in src/**/*.test.{js,jsx} → **0 hits / 0 files** — PASS (목표 0, 43→0 마이그레이션 완료).
+#     (b) negative 보조 `^console\.(log|warn|error|debug|info)\s*=\s*(\(\s*\)|function)` in src/**/*.test.{js,jsx} → **0 hits** — PASS.
+#     (c) `vi\.restoreAllMocks` in src/setupTests.js → **1 hit** @L75 — PASS (전역 teardown 정책 박제).
+#     (d) positive `vi\.spyOn\s*\(\s*console\s*,` in src/**/*.test.{js,jsx} → **50 hits / 23 files** — PASS (≥28 기준 충족; 기존 7 + 신규 43 hits 전환).
+#   hook-ack (TSK-73 result.md): `npm run lint` PASS (no issues), `npm test -- --run` PASS **409** (베이스라인 409 유지 — 회귀 0), `npm run build` PASS **425ms**. Must 주관 혼재 없음 → 보조 ack 채택.
+#   부수 관찰 (result.md §관찰 이슈): Monitor 4 파일 (ApiCallItem/ContentItem/VisitorMon/WebVitalsItem) 의 module-level `vi.spyOn(errorReporter, ...)` 도 동일 restoreAllMocks 복원 메커니즘 귀결로 beforeEach 이관 — scope 내 일관성 유지로 판단. followup 불요.
 #
-# Phase 1 ack 산출: ACK 3 (a11y.md 관련 3 task — TSK-70/71/72 박제), 비-ACK 0 평가단위. 분모 M = 3.
-#   · TSK-72 grep 게이트 검증 (추가):
-#     (a) `onKeyDown={activateOnKey` in Comment.jsx → **1 hit** @L184 — PASS.
-#     (b) `tabIndex={0}` in Comment.jsx → **1 hit** @L180 — PASS.
-#     (c) `import.*activateOnKey` in Comment.jsx → **1 hit** @L4 — PASS.
-#     (d) `data-testid="comment-toggle-button"` in Comment.jsx → **1 hit** @L181 — PASS (신규).
-#     (e) `onKeyDown={activateOnKey` in CommentItem.jsx → **1 hit** @L58 — PASS.
-#     (f) `tabIndex={0}` in CommentItem.jsx → **1 hit** @L54 — PASS.
-#     (g) `import.*activateOnKey` in CommentItem.jsx → **1 hit** @L5 — PASS.
-#     (h) `data-testid="reply-toggle-button"` in CommentItem.jsx → **1 hit** @L55 — PASS (보존).
-#     (i) `describe Comment a11y 패턴 B` in Comment.test.jsx → **1 hit** @L282 — PASS.
-#     (j) `describe CommentItem a11y 패턴 B` in CommentItem.test.jsx → **1 hit** @L139 — PASS.
-#     hook-ack (TSK-72 result.md): `npm run lint` PASS, `npm test -- --run` PASS 409 (403+6), `npm run build` PASS 329ms, 회귀 0, Must 주관 혼재 없음.
-#   토큰 = `reconcile: 3/3 ack`.
+# Phase 1 ack 산출: ACK 1 (test-idioms.md / 이디엄 9 — TSK-73 박제), 비-ACK 0 평가단위. 분모 M = 1.
+#   토큰 = `reconcile: 1/1 ack`.
 #
-# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md 197줄 / test-idioms.md 168줄 / components/common.md 233줄 / regression-gate.md 67줄).
+# Phase 2 (deferred/split): 해당 없음. 300줄 초과 spec 없음 (a11y.md ~200줄 / test-idioms.md ~170줄 / components/common.md ~230줄 / regression-gate.md ~75줄).
 #
-# Phase 3 (신규 req 반영): 입력 큐 3건 → 3건 모두 처리 완료. 반려 0.
-#   · REQ-20260421-036 (console spy 비파괴 이디엄) → common/test-idioms.md 에 이디엄 (9) 추가 (FR-07 택 a 확장 경로). 3 grep gate (positive 7/6 + negative 본 43/21 + negative 보조 0) 실측 박제.
-#   · REQ-20260421-037 (CI typecheck + coverage threshold regression-gate) → foundation/regression-gate.md 신설 (FR-07 택 β 독립 spec 경로). 4 gate baseline 실측 박제.
-#   · REQ-20260421-038 (isAdmin Cognito Groups migration) → components/common.md § admin gate 계약 전면 재작성 (env 경로 → group claim 기반 교체). 2 gate baseline (b-1 0 / b-2 3 hits) 실측 박제.
+# Phase 3 (신규 req 반영): 입력 큐 0건 — no-op. 20.req 비어 있음.
 #
-# 변동 spec sha:
-#   - `common/a11y.md` 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c — 본 세션 edit (TSK-70/71/72 ack + drift 표 취소선 M1/M2/M3/M6/M7/M8 + grep-baseline (a) 9→15 / (b) 19→22 갱신 + 변경이력 2 행), stale_cycles 1 → 0.
-#   - `common/test-idioms.md` a2bed0ab29c137f060913531f8944105a6f12d63956de2e55dc4e46cf3270332 — 본 세션 신규 (blue→green 복사 + REQ-036 이디엄 (9) 추가).
-#   - `components/common.md` dba93002a64d7075da63e3cbbf50288e6fe46791b095cc751559a44d4d153549 — 본 세션 신규 green (blue→green 복사 + REQ-038 § admin gate 계약 교체).
-#   - `foundation/regression-gate.md` 005052a52faebceebce1a99b79ff15bec7b151693e840e2146af1541e1937a42 — 본 세션 신규 (REQ-037 신설 경로).
+# 변동 spec sha (본 세션):
+#   - `common/a11y.md` 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c — 미변경 (직전 세션 sha 동일), stale_cycles 0 → 1.
+#   - `common/test-idioms.md` 72193855b40be54cd4964efabfa88bcc5470ad43c778ed30508b5af23da8896f — 본 세션 edit (이디엄 9 marker 플립 + 수치 치환 + 변경이력 1행), sha 변동.
+#   - `components/common.md` dba93002a64d7075da63e3cbbf50288e6fe46791b095cc751559a44d4d153549 — 미변경, stale_cycles 0 → 1.
+#   - `foundation/regression-gate.md` 005052a52faebceebce1a99b79ff15bec7b151693e840e2146af1541e1937a42 — 미변경, stale_cycles 0 → 1.
 #
 # 현 ledger:
-specs/30.spec/green/common/a11y.md 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c 0
-specs/30.spec/green/common/test-idioms.md a2bed0ab29c137f060913531f8944105a6f12d63956de2e55dc4e46cf3270332 0
-specs/30.spec/green/components/common.md dba93002a64d7075da63e3cbbf50288e6fe46791b095cc751559a44d4d153549 0
-specs/30.spec/green/foundation/regression-gate.md 005052a52faebceebce1a99b79ff15bec7b151693e840e2146af1541e1937a42 0
+specs/30.spec/green/common/a11y.md 2830b440123cf36e60a1f7ef7c594eb10221b6f9a7c112331dcd2b602ac3831c 1
+specs/30.spec/green/common/test-idioms.md 72193855b40be54cd4964efabfa88bcc5470ad43c778ed30508b5af23da8896f 0
+specs/30.spec/green/components/common.md dba93002a64d7075da63e3cbbf50288e6fe46791b095cc751559a44d4d153549 1
+specs/30.spec/green/foundation/regression-gate.md 005052a52faebceebce1a99b79ff15bec7b151693e840e2146af1541e1937a42 1
 #
-# Stale 경고: 0 path ≥ 3 cycle.
+# Stale 경고: 0 path ≥ 3 cycle (현 최대 1 cycle).
 #
-# 입력 큐: 처리 후 0건 (3 처리).
-# 하류 임계치: GREEN_PENDING_MAX=20, 현 green 파일 4 (a11y.md + test-idioms.md + components/common.md + foundation/regression-gate.md) < 20. 여유 16.
+# 입력 큐: 0건 (no-op Phase 3).
+# 하류 임계치: GREEN_PENDING_MAX=20, 현 green 파일 4 < 20. 여유 16.
 #
 # 승격 가능성 (planner 관할, 참조용):
-#   - `components/common.md` — 직전 세션 완결 상태였으나 REQ-038 흡수로 5 신규 [ ] marker 추가. promote 대기 (REQ-038 migration task carve → 실현 → ack → 잔존 [ ] 0 수렴 시점 가능).
-#   - `common/a11y.md` — 잔존 [ ] 9 marker (M4/M5/M10 + audit + FR-02/03/05/06/07/08). M1/M2/M3/M6/M7/M8/M9 ack 완료, 8/12 진척. promote 대기 — 추가 task carve 필요 (M4 onKey 논의, M5/M10 결정, audit 도입, blue 상호참조 planner).
-#   - `common/test-idioms.md` — 잔존 [ ] 1 marker (이디엄 9 console spy 마이그레이션). promote 대기 — 마이그레이션 전수 task 완료 시점.
-#   - `foundation/regression-gate.md` — 잔존 [ ] 2 marker (FR-01 typecheck step / FR-02 coverage threshold). promote 대기.
+#   - `common/test-idioms.md` — 본 세션 이디엄 (9) marker [x] 플립으로 잔존 [ ] 0 수렴. promote 후보 (§수용 기준 전원 [x] 확인 — REQ-021/027/029/036 모두 [x]; 승격 가능).
+#   - `common/a11y.md` — 잔존 [ ] 9 marker (M4/M5/M10 + audit + FR-02/03/05/06/07/08). M1/M2/M3/M6/M7/M8/M9 ack 완료, 8/12 진척. promote 대기 — 추가 task carve 필요.
+#   - `components/common.md` — REQ-038 migration task 미발행. promote 대기.
+#   - `foundation/regression-gate.md` — 잔존 [ ] 2 marker. promote 대기 — FR-01/FR-02 2 task carve 필요.
 #
 # 다음 세션 유의:
-#   - 20.req 다시 차면 Phase 3 재개. 현재 20.req 0 / 10.followups 2건 대기 (discovery 영역).
-#   - TSK-72 (M7/M8 Comment) 완료 (본 세션 중 @1414eae 커밋) — 추가 작업 없음.
-#   - 본 세션 중 planner 가 TSK-73 console spy 비파괴 마이그레이션 carve (@d12681b) 완료 — REQ-036 흡수 즉시 task 화. developer 다음 cycle 진입 대기.
-#   - REQ-038 FR-04 (admin group 이름 α/β/γ 택1) 은 planner/developer task 단계 결정 대기. 결정 후 components/common.md § admin gate 계약 또는 §변경 이력 에 추가 박제 예정.
-#   - REQ-038 migration task carve (planner 영역): (1) common.js isAdmin() 재작성 + TODO 제거, (2) .env.example 4 행 제거 + (β) 택 시 VITE_ADMIN_GROUP_NAME 키 추가, (3) common.test.js describe 2 블록 교체. task 별 독립 carve 가능.
-#   - REQ-037 regression-gate.md 는 FR-01/FR-02 2 task 독립 carve 가능 (workflow step 추가 / coverage threshold 선언).
-#   - REQ-036 console spy 마이그레이션 은 21 파일 × 43 hits — planner 가 Log/File/Monitor/기타 4 소묶음 또는 단일 전수 task 중 판단.
+#   - 20.req 비어 있으면 Phase 3 no-op. Phase 1 만 수행.
+#   - REQ-038 migration task (3 carve 가능): (1) common.js isAdmin() 재작성 + env 경로 제거, (2) .env.example 4 행 제거 + (β) 택 시 VITE_ADMIN_GROUP_NAME 키 추가, (3) common.test.js describe 2 블록 교체. planner 영역.
+#   - REQ-037 regression-gate task 2 carve 가능: (1) .github/workflows/*.yml typecheck step 추가, (2) vite.config.js coverage thresholds 선언. planner 영역.
+#   - REQ-038 FR-04 (admin group 이름 α/β/γ 택1) 은 planner/developer task 단계 결정 대기.
+#   - a11y.md 잔존 M4/M5/M10/audit 는 각각 별 task carve 대기.
+#   - 직전 세션에서 planner 가 TSK-73 carve (@d12681b) + developer 가 실현 (@7e6cdea) 완료 — REQ-036 흡수 → task → code 루프 1 cycle 내 완결.

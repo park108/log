@@ -2,7 +2,7 @@
 
 > **위치**: `src/**/*.test.{js,jsx}` 전역 이디엄 불변식. 소비 유틸: `src/common/env.js`, `src/test-utils/msw.js` (또는 동급), `src/**/api.mock.js`, `src/setupTests.js`.
 > **관련 요구사항**: REQ-20260421-021, REQ-20260421-027, REQ-20260421-029, REQ-20260421-036
-> **최종 업데이트**: 2026-04-21 (by inspector, REQ-036 console spy 비파괴 이디엄 흡수 — 이디엄 (9) 신설)
+> **최종 업데이트**: 2026-04-21 (by inspector, Phase 1 reconcile 1/1 — TSK-73 `console-spy-nondestructive-migration` @7e6cdea 이디엄 (9) 마이그레이션 완료 ack)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=0f03547; 발행 시 baseline HEAD=672a4df).
 
@@ -123,7 +123,7 @@ fake-timer teardown 은 `src/setupTests.js` 전역 `afterEach(() => { ...; vi.us
 - [x] 이디엄 (6) fake-timer 진입점: 옵션 객체 46 occurrences, 인자 없는·문자열 호출 0 hit.
 - [x] 이디엄 (7) findBy* 기본: 202 hits 다수 파일 async query 채택.
 - [x] 이디엄 (8) fake-timer teardown: `src/setupTests.js:68-71` 전역 `afterEach` 에 `vi.useRealTimers()` 포함. 파일별 명시 2 hits (선택).
-- [ ] 이디엄 (9) console spy 비파괴 보존 (REQ-036): positive `vi.spyOn(console, ...)` 7 hits / 6 files 존재. negative 본 `console.X = vi.fn()` 43 hits / 21 files 잔존 (현 baseline, 목표 0). 마이그레이션 별 task (planner 영역 carve 대상).
+- [x] 이디엄 (9) console spy 비파괴 보존 (REQ-036): positive `vi.spyOn(console, ...)` 50 hits / 23 files (HEAD=7e6cdea 실측, 7→50 +43 — TSK-73 마이그레이션 결과). negative 본 `console.X = vi.fn()` **0 hits** / 0 files (43→0, 목표 달성). negative 보조 `console.X = (...)|function` **0 hits** 유지. `src/setupTests.js:75` 전역 `afterEach` 에 `vi.restoreAllMocks()` 1행 박제 (TSK-20260421-73 @7e6cdea).
 
 ## 수용 기준
 - [x] (Must, FR-01) 테스트에서 환경 분기 stub 은 `vi.stubEnv` 또는 `vi.mock('@/common/env', ...)` 로 표현된다. `process.env.NODE_ENV` 재할당 0.
@@ -151,6 +151,7 @@ fake-timer teardown 은 `src/setupTests.js` 전역 `afterEach(() => { ...; vi.us
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-027 FR-02 흡수 — §동작 이디엄 (7) findBy* 기본 이디엄 섹션 신설. consumed followup: `specs/10.followups/20260421-0541-test-isolation-shuffle-safety-cold-start-spec-from-blocked.md`. 선행 done req: `20260421-test-isolation-shuffle-safety-cold-start-spec-reseed-from-followup.md` (REQ-017). baseline: 202 hits `findBy` 다수 파일 채택. | §역할, §공개 인터페이스, §동작, §스코프 규칙, §테스트 현황, §수용 기준 |
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-029 FR-01 흡수 — §동작 이디엄 (8) fake-timer teardown 전역 정책 섹션 신설. consumed followup: `specs/10.followups/20260421-0541-uniform-fake-timer-teardown-policy-spec-from-blocked.md`. 선행 done req: `specs/60.done/2026/04/20/req/20260420-uniform-fake-timer-teardown-policy.md` (TSK-20260420-38), `specs/60.done/2026/04/21/req/20260421-fake-timer-teardown-residual-cleanup.md`. baseline: `src/setupTests.js:68-71` 복합 afterEach 1 block hit (의미 동등 `vi.useRealTimers()` 포함). RULE-07 정합 — 인프라 계약 한정, 수치 타겟·TSK ID 귀속 plan 배제. | §역할, §공개 인터페이스, §동작, §스코프 규칙, §테스트 현황, §수용 기준 |
 | 2026-04-21 | inspector / 0f03547 | REQ-20260421-036 흡수 — §동작 이디엄 (9) console spy 비파괴 보존 신설. FR-07 택 (a) 확장 경로 — 기존 8 이디엄 bank 에 9번째 이디엄 1건 추가 박제 (신설 spec 보다 기존 test-idioms bank 응집도 유지가 유리; 별 `test-console-policy.md` 신설 시 동일 주제 spec 2개로 분산되어 audit 비효율). 3 gate grep-baseline (positive 7/6, negative 본 43/21, negative 보조 0) 실측 박제 (HEAD=0f03547). REQ-20260421-035 FR-02 "런타임 경고 0" 과 **측정 채널 보존 축 vs 결과 불변식 축** 으로 직교 관계 명시. 21 파일 × 43 hits 마이그레이션은 별 task 경로 (본 spec 은 불변식만 박제). consumed: REQ-20260421-036 자율 탐색 (followup 부재). RULE-07 자기검증 — 평서형 "module-level 재할당 금지" + "vi.spyOn + teardown 형태 허용" 불변식, React/Vitest 버전 무관, 특정 파일·incident 귀속 patch 0. | §역할, §동작, §회귀 중점, §스코프 규칙, §테스트 현황, §수용 기준 |
+| 2026-04-21 | inspector / 7e6cdea (TSK-20260421-73) | **Phase 1 reconcile 1/1 ack** — TSK-73 `console-spy-nondestructive-migration` result.md 의 4 grep 게이트 (negative 본 `^console\.(log|warn|error|debug|info)\s*=\s*vi\.fn` → **0** / negative 보조 `^console\.\w+\s*=\s*(\(\s*\)\|function)` → **0** / `vi\.restoreAllMocks` in `src/setupTests.js` → **1** @L75 / positive `vi\.spyOn\s*\(\s*console\s*,` → **50** hits / 23 files) 전원 PASS @HEAD=7e6cdea 재실행 확인. hook-ack: `npm run lint` PASS, `npm test -- --run` PASS 409 (베이스라인 409 유지 — 회귀 0), `npm run build` PASS 425ms. §테스트 현황 이디엄 (9) marker `[x]` 플립 (43→0 hits, 목표 달성) + 본 이력 박제. 수치 치환: positive 7/6 → 50/23 (+43 spy 전환 — setupTests 전역 restoreAllMocks 정책 정합), negative 본 43/21 → 0/0 (목표값 수렴), 보조 0 유지. §스코프 규칙 (9) 섹션 baseline 수치는 "HEAD=0f03547 실측" 으로 원본 보존 (감사 트레일; 향후 본 이디엄 관련 신규 req 흡수 시 재실측·갱신). | §최종 업데이트 / §테스트 현황 / 본 이력 |
 
 ## 참고
 - **REQ**: `specs/60.done/2026/04/21/req/20260421-test-idioms-spec-consolidation.md` (본 spec 반영 후 이동).
