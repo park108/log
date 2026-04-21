@@ -1,45 +1,39 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-22T00:00:00Z
-# Session: 0 promotions + 0 new carves + 1 blocked (toaster).
-#   컨텍스트: RULE-03 선결 통과 — pause 없음, input 3, ready 0 (여유 10).
+# Updated: 2026-04-22T00:00:00Z (2nd cycle)
+# Session: 0 promotions + 0 new carves + 1 blocked (file-split).
+#   컨텍스트: RULE-03 선결 통과 — pause 없음, input 2, ready 0 (여유 10).
 #     실측 hash 비교 (이번 사이클):
-#       - toaster: 23bfc92… 불변 (ledger stale=2 → 3) → 50.blocked/spec/ 이동.
-#       - file-split: 6488570… 불변 (ledger stale=1 → 2).
-#       - shuffle: 6e5e507… → 60be59b… **변동** (ledger stale=1 → 0 리셋).
+#       - shuffle-cold-start: 60be59b… 불변 (ledger stale=0 → 1).
+#       - file-split: 6488570… 불변 (ledger stale=2 → 3) → 50.blocked/spec/ 이동.
 #   승격 평가 (4조건: WIP=0, unchecked=0, To-Be=0, 변경이력 박제; `[deferred]` 제외):
-#     - toaster-conditional-mount-or-helper-spec.md:
-#         WIP=0, To-Be=0, 변경이력 TSK-48 / a8eee5e 박제 OK.
-#         unchecked 2건(L97, L107) 모두 `[deferred]` 토큰 **부재** — 인라인 서술
-#         "TSK-20260421-49 범위로 이관" 만 있음. 4조건 미충족.
-#         hash 동일 + stale=3 → 50.blocked/spec/ 이동 + _reason.md 작성.
-#     - test-isolation-shuffle-safety-cold-start-spec.md (hash 변동):
+#     - test-isolation-shuffle-safety-cold-start-spec.md:
 #         WIP=0, To-Be=0, 변경이력 박제 OK.
-#         unchecked 25건 — `[deferred]` 태깅 5건(테스트 현황 FR-02/06/07/08, +
-#         FR-11~13 `[pending]` 토큰은 `[deferred]` 와 다름 → 미해소로 카운트).
-#         수용 기준 섹션 20건(L106~122) 태깅 부재 → 승격 불가.
-#         hash 변동 → stale 0 리셋.
+#         unchecked 25건 — `[deferred]` 태깅 7건 (테스트 현황 FR-02/06/07/08/
+#         + 일부), `[pending]` 토큰 5건 (승격 제외 토큰 아님 → 미해소로 카운트),
+#         수용 기준 17건 (L106~122) 태깅 부재 → 승격 불가.
+#         hash 동일 → stale 0 → 1.
 #     - file-test-multi-scenario-split-spec.md:
-#         unchecked 19건 중 `[deferred]` 태깅 7건(테스트 현황 FR-01~05/07/09),
-#         수용 기준 섹션 12건(L56~67) 태깅 부재 → 승격 불가.
-#         hash 동일 → stale 1→2.
+#         WIP=0, To-Be=0, 변경이력 박제 OK.
+#         unchecked 19건 중 `[deferred]` 태깅 7건 (테스트 현황 FR-01~05/07/09),
+#         수용 기준 12건 (L56~67) 태깅 부재 → 승격 불가.
+#         hash 동일 + stale=3 → 50.blocked/spec/ 이동 + _reason.md 작성.
 #   carve: 신규 없음.
 #     TSK-43, TSK-49, TSK-50 은 50.blocked/task/ 격리 상태 (RULE-05 운영자 관할).
 #     동일 범위 재carve 는 멱등 위반 + RULE-02 fail-fast 원칙 위반.
 #   blocked (이번 사이클 이동 1건):
-#     - components/toaster-conditional-mount-or-helper-spec.md → 50.blocked/spec/
-#       (stale=3, hash=23bfc92…, 의존 TSK-49 blocked — _reason.md 참조).
+#     - components/file-test-multi-scenario-split-spec.md → 50.blocked/spec/
+#       (stale=3, hash=6488570…, depends_on TSK-49 blocked — _reason.md 참조).
 #   grep dry-run: N/A (신규 carve 없음).
 # ledger entries:
-common/test-isolation-shuffle-safety-cold-start-spec.md 60be59b96e3eba221c65332860b0d993b60bbb4d0d667f414817c60c30e0c858 0
-components/file-test-multi-scenario-split-spec.md 6488570be7d4c6586fdcc912c53a5cfeaf8020ff5add354ba34ea760df280197 2
+common/test-isolation-shuffle-safety-cold-start-spec.md 60be59b96e3eba221c65332860b0d993b60bbb4d0d667f414817c60c30e0c858 1
 # 아카이브 (이동됨):
-# components/toaster-conditional-mount-or-helper-spec.md 23bfc9260ee53be3135e18f2826876ab761b28db2a7ad37ee3a7696d62aa6ba5 3 → 50.blocked/spec/
+# components/file-test-multi-scenario-split-spec.md 6488570be7d4c6586fdcc912c53a5cfeaf8020ff5add354ba34ea760df280197 3 → 50.blocked/spec/
+# components/toaster-conditional-mount-or-helper-spec.md 23bfc9260ee53be3135e18f2826876ab761b28db2a7ad37ee3a7696d62aa6ba5 3 → 50.blocked/spec/ (직전 사이클)
 # ready 큐: (count=0, TASK_READY_MAX=10 여유 10).
 #   50.blocked/task: TSK-43, TSK-49, TSK-50 (각 + _reason.md — RULE-05 관할).
-#   50.blocked/spec: 6건 (이번 사이클 toaster 추가 — RULE-05 관할).
+#   50.blocked/spec: 7건 (이번 사이클 file-split 추가 — RULE-05 관할).
 # next cycle:
-#   - shuffle: hash 변동 감지 (inspector 가 L96~99 에 `[deferred]` 태깅 박제한 변경으로
-#     추정). 남은 수용 기준 섹션 20건 태깅 확산이 승격 경로.
-#   - file-split: inspector 가 수용 기준 섹션 unchecked 12건에 `[deferred]` 태깅 확산 →
-#     승격 후보. 동일 hash 지속 시 stale 2 → 3 에서 50.blocked/spec/ 이동.
-#   - 또는 운영자가 TSK-49/50 blocked 해제 시 실측 경로 재개.
+#   - shuffle-cold-start: inspector 가 수용 기준 섹션 17건 (L106~122) 에
+#     `[deferred]` 태깅 확산 또는 운영자가 TSK-49 blocked 해제 → 승격 경로 재개.
+#     hash 불변 지속 시 stale 1 → 2 → 3 에서 50.blocked/spec/ 이동.
+#   - 입력 큐 1건만 남음 (shuffle-cold-start); 다음 사이클 승격 없으면 planner no-op.
