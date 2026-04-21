@@ -5,8 +5,12 @@ import Comment from './Comment';
 import CommentItem from './CommentItem';
 import { useMockServer } from '../test-utils/msw';
 
-console.log = vi.fn();
-console.error = vi.fn();
+// REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
+// 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
+beforeEach(() => {
+	vi.spyOn(console, 'log').mockImplementation(() => {});
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+});
 
 // Comment api.mock.js scenario() 는 SetupServerApi 호환 서브셋을 노출 (TSK-20260420-41).
 // 본 스위트는 useMockServer(() => mock.xxx) 단일 이디엄으로 통일한다.

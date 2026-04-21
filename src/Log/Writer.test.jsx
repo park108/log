@@ -32,10 +32,11 @@ const withQuery = (node) => (
 	</QueryClientProvider>
 );
 
-console.log = vi.fn();
-console.error = vi.fn();
-
+// REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
+// 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
 beforeEach(() => {
+	vi.spyOn(console, 'log').mockImplementation(() => {});
+	vi.spyOn(console, 'error').mockImplementation(() => {});
 	Object.defineProperty(navigator, 'clipboard', {
 		value: { writeText: vi.fn().mockResolvedValue(undefined) },
 		configurable: true,

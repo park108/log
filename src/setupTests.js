@@ -65,9 +65,14 @@ import { afterEach, beforeEach, vi } from 'vitest'
 // 로직이 timer 해제 부작용에 영향받지 않도록 env 를 먼저 해제한다.
 //   • vitest `afterEach` 실행 순서는 inner (describe) → outer (setup 파일) = LIFO.
 //     전역 teardown 의 사후 상태를 로컬 describe 훅에서 단정하려면 `it` 본문 직렬화 또는 `afterAll` 사용.
+// REQ-20260421-036 FR-05 — console spy 비파괴 이디엄 전역 복원.
+// 파일별 `vi.spyOn(console, '<method>')` 가 teardown 에서 원본 참조로 복원되도록 보장.
+// 본 1행은 `vi.spyOn` 계열만 복원하며, 기존에 module-level 로 덮인 직접 재할당
+// (`console.X = vi.fn()`) 은 복원하지 못하므로 본 task 에서 모든 직접 재할당을 제거한다.
 afterEach(() => {
 	vi.unstubAllEnvs();
 	vi.useRealTimers();
+	vi.restoreAllMocks();
 });
 
 // clipboard-spec §3.3.2 (REQ-20260418-034) — 옵션 B 전역 sweep.

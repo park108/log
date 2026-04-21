@@ -4,9 +4,14 @@ import WebVitalsItem from '../Monitor/WebVitalsItem';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
-console.log = vi.fn();
-console.error = vi.fn();
-vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+// REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
+// 전역 `vi.restoreAllMocks()` (setupTests.js) 가 각 테스트 후 spy 를 원본으로
+// 복원하므로 module-level `vi.spyOn(errorReporter, ...)` 도 beforeEach 로 이관한다.
+beforeEach(() => {
+	vi.spyOn(console, 'log').mockImplementation(() => {});
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+});
 
 describe('WebVitalsItem render on prod server (ok)', () => {
 	useMockServer(() => mock.prodServerOk);

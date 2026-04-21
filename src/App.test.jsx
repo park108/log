@@ -6,9 +6,6 @@ import ErrorBoundary from './common/ErrorBoundary';
 import ErrorFallback from './common/ErrorFallback';
 import { reportError } from './common/errorReporter';
 
-console.log = vi.fn();
-console.error = vi.fn();
-
 // REQ-20260421-003 / TSK-20260421-44 — getUrl() 렌더 경로 (App.jsx:77) stubMode 가드.
 // getUrl() 런타임이 isDev()/isProd() (= `import.meta.env.DEV/PROD`) 경유로 전환돼
 // vitest 기본 MODE='test' 에서도 `<a href={common.getUrl()}>park108.net</a>` 의
@@ -20,7 +17,13 @@ const stubMode = (mode) => {
 	vi.stubEnv('PROD', mode === 'production');
 };
 
-beforeEach(() => stubMode('test'));
+// REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
+// 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
+beforeEach(() => {
+	vi.spyOn(console, 'log').mockImplementation(() => {});
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+	stubMode('test');
+});
 afterEach(() => vi.unstubAllEnvs());
 
 // REQ-20260420-018 FR-02: 테스트 간 navigator.onLine 오염을 차단하기 위해

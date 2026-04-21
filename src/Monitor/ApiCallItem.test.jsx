@@ -4,9 +4,16 @@ import ApiCallItem from './ApiCallItem';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
-console.log = vi.fn();
-console.error = vi.fn();
-vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+// REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
+// 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
+beforeEach(() => {
+	vi.spyOn(console, 'log').mockImplementation(() => {});
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+});
+// 기존 module-level `vi.spyOn(errorReporter, 'reportError')` 는 전역
+// `vi.restoreAllMocks()` (setupTests.js) 가 추가된 이후 각 테스트 시작 시점에
+// 복원되므로 beforeEach 내부로 재등록 일원화한다.
 
 const stackPallet = {
 	pallet: "Red to Green",
