@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock';
 import * as common from '../common/common';
+import * as errorReporter from '../common/errorReporter';
 import Comment from './Comment';
 import CommentItem from './CommentItem';
 import { useMockServer } from '../test-utils/msw';
@@ -329,5 +330,82 @@ describe('Comment a11y 패턴 B (REQ-20260421-033 FR-03) — M7 toggle', () => {
 		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
 		// activateOnKey 가 preventDefault 호출 → fireEvent 반환값이 false (cancelled).
 		expect(spaceEvent).toBe(false);
+	});
+});
+
+// REQ-20260421-039 FR-03 / TSK-20260421-86 — errorReporter 채널 단일화 D7.
+// `console.error` → `reportError` 치환 검증. M7 a11y describe 와 직교한 별개 블록.
+describe('Comment reportError 채널 (REQ-20260421-039 FR-03)', () => {
+	describe('GET Comments errorType 분기 (devServerFailed)', () => {
+		useMockServer(() => mock.devServerFailed);
+
+		it('errorType 가 존재하면 reportError 1회 호출', async () => {
+			const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+			// devServerFailed: GET returns ERROR_500 JSON ({ errorType: "500", ... })
+			// → hasValue(newData.errorType) === true → Comment.jsx:93 분기 → reportError(newData).
+			vi.stubEnv('DEV', true);
+			vi.stubEnv('PROD', false);
+
+			render(<Comment logTimestamp={1655302060414} />);
+
+			// initial GET 완료 대기 — 버튼 텍스트가 "... comments" → "Add a comment" 로 전이.
+			await screen.findByText('Add a comment');
+
+			expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+			const firstArg = reportErrorSpy.mock.calls[0][0];
+			expect(firstArg).toHaveProperty('errorType');
+
+			reportErrorSpy.mockRestore();
+		});
+	});
+
+	describe('POST Comment non-200 분기 (prodServerFailed)', () => {
+		useMockServer(() => mock.prodServerFailed);
+
+		it('POST 응답 statusCode 가 200 아니면 reportError 추가 호출', async () => {
+			const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+			// prodServerFailed: GET returns ERROR_500, POST returns ERROR_500.
+			// 초기 GET 실패 시점에도 reportError 가 호출되므로 POST 분기는 그 "이후" 호출 로 구분.
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<Comment logTimestamp={1655302060414} />);
+
+			// 초기 GET 실패로 reportError 최소 1회 호출 (`:93` 분기). count 0 확정까지 대기.
+			await screen.findByText('Add a comment');
+			const getPhaseCallCount = reportErrorSpy.mock.calls.length;
+			expect(getPhaseCallCount).toBeGreaterThanOrEqual(1);
+
+			// POST 경로: 폼을 열어 name/comment 채우고 Submit → POST 실패 (statusCode != 200)
+			// → Comment.jsx:49 분기 → reportError(res) 추가 호출.
+			const toggle = screen.getByTestId('comment-toggle-button');
+			fireEvent.click(toggle);
+
+			const nameInput = await screen.findByPlaceholderText('Type your name');
+			fireEvent.change(nameInput, { target: { value: 'Test name' } });
+			const textArea = await screen.findByPlaceholderText('Write your comment');
+			fireEvent.change(textArea, { target: { value: 'Test comment' } });
+
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			try {
+				const submitButton = await screen.findByText('Submit Comment');
+				fireEvent.click(submitButton);
+
+				// POST 실패 토스터 렌더 → `:49` 분기 통과 보장.
+				await screen.findByText('The comment posted failed.');
+
+				await act(async () => {
+					await vi.runAllTimersAsync();
+				});
+			} finally {
+				vi.useRealTimers();
+			}
+
+			expect(reportErrorSpy.mock.calls.length).toBeGreaterThan(getPhaseCallCount);
+
+			reportErrorSpy.mockRestore();
+		});
 	});
 });

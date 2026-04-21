@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, isAdmin } from '../common/common';
 import { activateOnKey } from '../common/a11y';
+import { reportError } from '../common/errorReporter';
 import { getComments, postComment } from './api';
 
 import styles from './Comment.module.css';
@@ -46,7 +47,7 @@ const Comment = (props) => {
 			}
 			else {
 				log("[API POST] FAILED - Comment", "ERROR");
-				console.error(res);
+				reportError(res);
 
 				setToasterMessage("The comment posted failed.");
 				setToasterType("error");
@@ -55,7 +56,7 @@ const Comment = (props) => {
 		}
 		catch(err) {
 			log("[API POST] FAILED - Comment", "ERROR");
-			console.error(err);
+			reportError(err);
 
 			setToasterMessage("The comment posted failed for network issue.");
 			setToasterType("error");
@@ -90,12 +91,12 @@ const Comment = (props) => {
 				}
 				else {
 					log("[API GET] FAILED - Comments", "ERROR");
-					console.error(newData);
+					reportError(newData);
 				}
 			}
 			catch(err) {
 				log("[API GET] FAILED - Comments", "ERROR");
-				console.error(err);
+				reportError(err);
 			}
 	
 			setIsLoading(false);
