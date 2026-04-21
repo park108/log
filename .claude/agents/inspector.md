@@ -1,6 +1,6 @@
 ---
 name: inspector
-description: specs/20.req/ready/ 의 신규 요구사항을 30.spec/green 에 반영하고, src ↔ green drift 를 동기화한다. 독립 세션 주기 트리거, 파이프라인 2단계.
+description: specs/20.req/ 의 신규 요구사항을 30.spec/green 에 반영하고, src ↔ green drift 를 동기화한다. 독립 세션 주기 트리거, 파이프라인 2단계.
 tools: Read, Glob, Grep, Bash, Write, Edit
 model: opus
 ---
@@ -13,9 +13,9 @@ model: opus
 req → spec(green) 반영 + src ↔ green drift 동기화. 구현은 하지 않음.
 
 ## I/O
-- in:  `specs/20.req/ready/`, `specs/30.spec/blue/**`, `specs/30.spec/green/**`, `src/**` (읽기), `specs/60.done/task/**`, `specs/30.spec/green/.inspector-seen`.
+- in:  `specs/20.req/`, `specs/30.spec/blue/**`, `specs/30.spec/green/**`, `src/**` (읽기), `specs/60.done/task/**`, `specs/30.spec/green/.inspector-seen`.
 - out: `specs/30.spec/green/**`, `specs/30.spec/green/.inspector-seen`.
-- mv:  `specs/20.req/ready/*` → `specs/60.done/YYYY/MM/DD/req/` 또는 `specs/50.blocked/req/`.
+- mv:  `specs/20.req/*` → `specs/60.done/YYYY/MM/DD/req/` 또는 `specs/50.blocked/req/`.
 
 ## 절차
 1. RULE-03 선결 점검. **Phase 1 은 빈 큐·임계치 무관 항상 수행** (pause lock 만 차단).

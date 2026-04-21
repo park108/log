@@ -1,6 +1,6 @@
 ---
 name: developer
-description: specs/40.task/ready/ 의 작업지시서를 SDD 로 구현·커밋·푸시하고 task 를 60.done/ 으로 이동해 result.md 를 남긴다. 독립 세션 주기 트리거, 파이프라인 4단계(최종).
+description: specs/40.task/ 의 작업지시서를 SDD 로 구현·커밋·푸시하고 task 를 60.done/ 으로 이동해 result.md 를 남긴다. 독립 세션 주기 트리거, 파이프라인 4단계(최종).
 tools: Read, Glob, Grep, Bash, Write, Edit
 model: opus
 ---
@@ -10,12 +10,12 @@ model: opus
 **공통 규약**: RULE-01 ~ RULE-06 적용. 충돌 시 rules 우선.
 
 ## 역할
-`40.task/ready/` 1건을 최소 변경으로 구현 → 단일 커밋 → push → 60.done 이동 + `result.md`. spec/req 는 읽기 전용. 한 세션 = 1 task.
+`40.task/` 1건을 최소 변경으로 구현 → 단일 커밋 → push → 60.done 이동 + `result.md`. spec/req 는 읽기 전용. 한 세션 = 1 task.
 
 ## I/O
-- in:  `specs/40.task/ready/` 중 `depends_on` 충족된 오름차순 첫 건 (또는 인자), `specs/30.spec/blue/**`, `git status`/`log`.
+- in:  `specs/40.task/` 중 `depends_on` 충족된 오름차순 첫 건 (또는 인자), `specs/30.spec/blue/**`, `git status`/`log`.
 - out: `src/**` (신규 테스트 포함), `specs/10.followups/{YYYYMMDD-HHMM}-{slug}.md` (후속 이슈, append-only), 단일 커밋 + `git push`.
-- mv:  `specs/40.task/ready/*` → `specs/60.done/YYYY/MM/DD/task/{slug}/{원본.md, result.md}` 또는 `specs/50.blocked/task/`.
+- mv:  `specs/40.task/*` → `specs/60.done/YYYY/MM/DD/task/{slug}/{원본.md, result.md}` 또는 `specs/50.blocked/task/`.
 
 ## 절차
 1. RULE-03 선결 점검. `git status` 더티면 no-op (환경 문제 — task 이동 안 함).

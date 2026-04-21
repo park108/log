@@ -28,4 +28,4 @@ grep 게이트가 `afterEach` 등록 잔존을 검증할 때는 `afterEach\s*\([
 예: `rg -nE "afterEach\s*\([^)]*vi\.useRealTimers\s*\(\s*\)" src --glob="*.test.{js,jsx}"`
 멀티라인 블록은 `rg --multiline -U` 또는 `-A 3` 컨텍스트 + 수동 필터.
 
-발행된 `40.task/ready/**` 는 rewrite 금지 (RULE-01). 본 규약은 차기 발행부터.
+발행된 `40.task/**` 는 rewrite 금지 (RULE-01). 본 규약은 차기 발행부터.

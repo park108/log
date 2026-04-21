@@ -20,10 +20,10 @@
 
 | 에이전트 | 역할 | 주기 | 입력 → 출력 |
 |---|---|---|---|
-| **discovery** | followups + 외부 신호로 요구사항 발굴 | 1~2회/일 | `10.followups/`, 코드/문서 → `20.req/ready/` |
-| **inspector** | req 를 spec(green) 에 반영 + drift 동기화 | ~1h | `20.req/ready/`, `30.spec/blue` → `30.spec/green` |
-| **planner** | spec diff 를 원자 태스크로 carve + green 승격 | ~1h | `30.spec/green` vs `blue` → `40.task/ready/` |
-| **developer** | 태스크 1건 구현·커밋·푸시 | ~15m | `40.task/ready/` → `src/`, `60.done/task/` |
+| **discovery** | followups + 외부 신호로 요구사항 발굴 | 1~2회/일 | `10.followups/`, 코드/문서 → `20.req/` |
+| **inspector** | req 를 spec(green) 에 반영 + drift 동기화 | ~1h | `20.req/`, `30.spec/blue` → `30.spec/green` |
+| **planner** | spec diff 를 원자 태스크로 carve + green 승격 | ~1h | `30.spec/green` vs `blue` → `40.task/` |
+| **developer** | 태스크 1건 구현·커밋·푸시 | ~15m | `40.task/` → `src/`, `60.done/task/` |
 
 **push 는 developer 만**. 나머지는 로컬 커밋까지다.
 
@@ -32,10 +32,10 @@
 ```
 specs/
   10.followups/         developer 가 남기는 후속 관찰 → discovery 가 소비
-  20.req/ready/         요구사항 대기열
+  20.req/         요구사항 대기열
   30.spec/blue/         승인된 baseline 명세 (planner 만 mv)
   30.spec/green/        작업 중 명세 (inspector 만 편집)
-  40.task/ready/        원자 작업지시서 (1건 = 1 PR 크기)
+  40.task/        원자 작업지시서 (1건 = 1 PR 크기)
   50.blocked/{req,spec,task}/   격리 + {slug}_reason.md
   60.done/YYYY/MM/DD/   날짜별 아카이브
 ```
@@ -50,10 +50,10 @@ flowchart TD
     end
 
     FU[10.followups/]
-    REQ[20.req/ready/]
+    REQ[20.req/]
     GREEN[30.spec/green/]
     BLUE[30.spec/blue/]
-    TASK[40.task/ready/]
+    TASK[40.task/]
     CODE[src/ + git push]
 
     DISC((discovery))
@@ -133,9 +133,9 @@ flowchart TD
 
 | agent | 주기 | 하류 임계치 |
 |---|---|---|
-| discovery | 1~2회/일 | `20.req/ready/` 15건 |
+| discovery | 1~2회/일 | `20.req/` 15건 |
 | inspector | ~1h | `30.spec/green` 미승격 20건 |
-| planner | ~1h | `40.task/ready/` 10건 |
+| planner | ~1h | `40.task/` 10건 |
 | developer | ~15m | — (최종 단계) |
 
 임계치는 `.claude/pipeline.json` 으로 override 가능 (RULE-05). 전체 또는 특정 에이전트를 멈추려면 `.claude/locks/pipeline.pause` 또는 `.claude/locks/<agent>.pause` 파일만 생성하면 된다.
@@ -148,21 +148,21 @@ flowchart TD
 
 1. `specs/50.blocked/{req,spec,task}/{slug}_reason.md` 에서 사유 확인
 2. 원인 제거 (의존 task 완료 / spec 보강 / 환경 수정)
-3. 원본을 원래 큐(`ready/` 등)로 `mv` 로 되돌리거나 삭제
+3. 원본을 원래 큐(`20.req/` 또는 `40.task/`)로 `mv` 로 되돌리거나 삭제
 
 배포를 되돌려야 하면 **`git revert`** 를 쓴다. `git reset --hard` 는 규약상 금지 (RULE-02). revert 사실은 해당 task 의 `result.md` 하단에 append 한다.
 
-### `/triage` — blocked 큐 정리 보조 스킬
+### `/revisit` — blocked 큐 정리 보조 스킬
 
-blocked 항목이 쌓이면 수동 분류가 귀찮아진다. `/triage` 슬래시 커맨드 (`.claude/commands/triage.md`) 가 이를 돕는다.
+blocked 항목이 쌓이면 수동 분류가 귀찮아진다. `/revisit` 슬래시 커맨드 (`.claude/commands/revisit.md`) 가 이를 돕는다.
 
 - **B 경로 (해소방안 있음) — 자동**: `reason.md` 에 actionable 한 후속 제안 (`## 후속 필요 사항` / `## 제안` / `## 해소 방안`) 이 있으면, 내용을 `10.followups/` 로 승격하고 원본·reason 파일을 삭제한다. discovery 가 다음 사이클에 새 요구사항으로 흡수.
-- **A 경로 (이미 해소됨) — 승인 후 삭제**: 지목된 REQ/TSK 가 `60.done/` 에 있거나, 재현 절차가 현재 코드로 재현 불가인 경우. 사용자 승인 후 감사노트(`60.done/YYYY/MM/DD/triage/<slug>.md`) 1줄 남기고 삭제.
+- **A 경로 (이미 해소됨) — 승인 후 삭제**: 지목된 REQ/TSK 가 `60.done/` 에 있거나, 재현 절차가 현재 코드로 재현 불가인 경우. 사용자 승인 후 감사노트(`60.done/YYYY/MM/DD/revisit/<slug>.md`) 1줄 남기고 삭제.
 - **C 경로 (불분명) — 승인 후 삭제**: flake 재현 실패·외부 원인 해소·중복 격리 등 후속이 무의미한 경우. A 와 동일한 승인 절차.
 
-스킵 조건: `.claude/locks/triage.pause` 존재 시 전체 no-op, `{slug}_keep.marker` 존재 시 해당 항목 보존.
+스킵 조건: `.claude/locks/revisit.pause` 존재 시 전체 no-op, `{slug}_keep.marker` 존재 시 해당 항목 보존.
 
-이 스킬은 RULE-05 의 수동 프로세스를 대체하지 않는다 — 원래 큐(`ready/`)로 되돌리는 "복귀" 경로는 여전히 사람이 직접 `mv` 한다. `/triage` 는 "더 이상 살릴 필요 없는 blocked 잔재" 를 정리해 followup 큐로 넘기거나 깨끗이 비우는 용도다.
+이 스킬은 RULE-05 의 수동 프로세스를 대체하지 않는다 — 원래 큐(`20.req/` 또는 `40.task/`)로 되돌리는 "복귀" 경로는 여전히 사람이 직접 `mv` 한다. `/revisit` 는 "더 이상 살릴 필요 없는 blocked 잔재" 를 정리해 followup 큐로 넘기거나 깨끗이 비우는 용도다.
 
 ## 커밋 규약 요약
 

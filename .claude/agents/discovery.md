@@ -1,6 +1,6 @@
 ---
 name: discovery
-description: 프로젝트 맥락과 followups 큐를 스캔해 신규 요구사항을 도출하여 specs/20.req/ready/ 에 등록한다. 독립 세션 주기 트리거, 파이프라인 1단계.
+description: 프로젝트 맥락과 followups 큐를 스캔해 신규 요구사항을 도출하여 specs/20.req/ 에 등록한다. 독립 세션 주기 트리거, 파이프라인 1단계.
 tools: Read, Glob, Grep, Bash, WebFetch, WebSearch, Write
 model: opus
 ---
@@ -10,11 +10,11 @@ model: opus
 **공통 규약**: RULE-01 ~ RULE-05 적용. 충돌 시 rules 우선.
 
 ## 역할
-followups + 외부 신호로 신규 요구사항을 `20.req/ready/` 에 등록. 판단은 inspector.
+followups + 외부 신호로 신규 요구사항을 `20.req/` 에 등록. 판단은 inspector.
 
 ## I/O
-- in:  `specs/10.followups/*.md`, `src/**`, `package.json`, `git log`, WebFetch/WebSearch, 중복 회피용 `20.req/ready/` + `60.done/req/**`.
-- out: `specs/20.req/ready/{YYYYMMDD}-{slug}.md`.
+- in:  `specs/10.followups/*.md`, `src/**`, `package.json`, `git log`, WebFetch/WebSearch, 중복 회피용 `20.req/` + `60.done/req/**`.
+- out: `specs/20.req/{YYYYMMDD}-{slug}.md`.
 - mv:  `specs/10.followups/*` → `specs/60.done/YYYY/MM/DD/followups/`.
 
 ## 절차

@@ -60,10 +60,10 @@ reason.md 를 완독하고 아래 순서로 판정.
    ```
    <slug> — 분류: {A|C}
    근거: <1~2줄>
-   제안: 삭제 + 감사노트 `60.done/YYYY/MM/DD/triage/<slug>.md` 1줄 사유
+   제안: 삭제 + 감사노트 `60.done/YYYY/MM/DD/revisit/<slug>.md` 1줄 사유
    ```
 2. 승인 받은 항목만 실행:
-   - 감사노트 생성 (경로: `specs/60.done/YYYY/MM/DD/triage/<slug>.md`, 내용: `- blocked reason 요약 1~2줄 + 삭제 근거 1줄`).
+   - 감사노트 생성 (경로: `specs/60.done/YYYY/MM/DD/revisit/<slug>.md`, 내용: `- blocked reason 요약 1~2줄 + 삭제 근거 1줄`).
    - 원본 + reason.md 삭제.
 3. 거부된 항목은 `skipped` 로 기록.
 
@@ -75,7 +75,7 @@ reason.md 를 완독하고 아래 순서로 판정.
 ## 보고 (세션 말미 stdout, RULE-04 형식 준용)
 
 ```
-## /triage @ <UTC ISO-8601>
+## /revisit @ <UTC ISO-8601>
 - scanned: <n>
 - to-followup: [<slug>, ...]        # B 자동 실행
 - proposed-delete: [<slug>(A), ...] # 승인 대기 또는 승인 후 삭제
@@ -86,6 +86,6 @@ reason.md 를 완독하고 아래 순서로 판정.
 
 ## 커밋
 - followup 은 gitignore → 커밋 대상 아님.
-- 감사노트 (`60.done/.../triage/**`) 는 tracked → 세션 말미 단일 커밋:
-  `chore(triage): {scanned=N, followup=K, deleted=M}`
+- 감사노트 (`60.done/.../revisit/**`) 는 tracked → 세션 말미 단일 커밋:
+  `chore(revisit): {scanned=N, followup=K, deleted=M}`
 - push 금지 (사용자 또는 developer 가 처리).
