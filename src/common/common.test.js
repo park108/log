@@ -199,6 +199,54 @@ describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => 
 	});
 });
 
+describe('auth() Cognito-실형 토큰 추출 (REQ-20260421-032 FR-06)', () => {
+	// Cognito Hosted UI implicit flow (`response_type=token`) 는 모든 토큰을 URL hash fragment
+	// 단일 구역에 `&` 로 연결해 반환한다. query string 은 비어 있으므로, `searchParams.get('access_token')`
+	// 단독 의존은 `null` 을 반환하여 쿠키가 세팅되지 않고 로그인이 실효된다.
+	// 본 describe 는 FR-01 (hash fragment 우선 파싱) + FR-06 (Cognito-실형 회귀 방어) 계약을 박제한다.
+	let savedLocation;
+	const clearAuthCookies = () => {
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+	};
+
+	beforeEach(() => {
+		savedLocation = window.location;
+		clearAuthCookies();
+		stubMode('development');
+	});
+
+	afterEach(() => {
+		clearAuthCookies();
+		delete window.location;
+		window.location = savedLocation;
+	});
+
+	it('extracts access_token and id_token from hash fragment with trailing parameters (Cognito canonical form)', () => {
+		const mockLocation = new URL('http://localhost:3000/#access_token=AAA&id_token=BBB&expires_in=3600&token_type=Bearer');
+		mockLocation.replace = vi.fn();
+		delete window.location;
+		window.location = mockLocation;
+
+		common.auth();
+
+		expect(common.getCookie('access_token')).toBe('AAA');
+		expect(common.getCookie('id_token')).toBe('BBB');
+	});
+
+	it('extracts access_token and id_token from hash fragment without trailing parameters', () => {
+		const mockLocation = new URL('http://localhost:3000/#access_token=AAA&id_token=BBB');
+		mockLocation.replace = vi.fn();
+		delete window.location;
+		window.location = mockLocation;
+
+		common.auth();
+
+		expect(common.getCookie('access_token')).toBe('AAA');
+		expect(common.getCookie('id_token')).toBe('BBB');
+	});
+});
+
 describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 	// setCookie 는 options 의 key 를 cookie string 에 그대로 직렬화하지만,
 	// jsdom document.cookie getter 는 name=value 만 반환하고 속성(SameSite, secure, path 등)은

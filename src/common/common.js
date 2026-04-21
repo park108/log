@@ -113,16 +113,21 @@ export function deleteCookie(name) {
 
 export function auth() {
 
-	const accessToken = new URL(window.location.href).searchParams.get("access_token");
-
-	const idTokenStart = window.location.href.indexOf("#id_token=");
-	const idTokenEnd = window.location.href.indexOf("&", idTokenStart);
-	const idToken = window.location.href.substring(
-		idTokenStart + 10,
-		idTokenEnd === -1 ? undefined : idTokenEnd,
+	// REQ-20260421-032 FR-01/06: Cognito Hosted UI implicit flow (`response_type=token`) 는
+	// 모든 토큰을 URL hash fragment 단일 구역에 `&` 로 연결해 반환한다.
+	// (예: `https://<host>/#access_token=<v>&id_token=<v>&expires_in=<n>&token_type=Bearer`)
+	// 따라서 hash fragment 를 `URLSearchParams` 로 우선 파싱하고, 부재 시 query string 으로 fallback.
+	// 수동 `indexOf` / `substring` 파싱은 제거 (trailing 파라미터 부재 시 전체 href 를 id_token 값으로
+	// 오인하는 기존 회귀 방지).
+	const u = new URL(window.location.href);
+	const hashParams = new URLSearchParams(
+		u.hash.startsWith('#') ? u.hash.slice(1) : u.hash,
 	);
 
-	if(null != accessToken) {
+	const accessToken = hashParams.get("access_token") ?? u.searchParams.get("access_token");
+	const idToken = hashParams.get("id_token") ?? u.searchParams.get("id_token");
+
+	if (accessToken !== null && accessToken !== undefined) {
 
 		// RFC 6265bis (REQ-20260421-025 FR-01): SameSite 속성은 Strict | Lax | None 중 하나만 유효.
 		// Cognito Hosted UI redirect 후 top-level navigation 경로에서 쿠키가 전송되어야 하므로 "Lax" 고정.
@@ -134,11 +139,15 @@ export function auth() {
 			maxAge: 3600,
 		});
 
-		setCookie("id_token", idToken, {
-			secure: true,
-			SameSite: "Lax",
-			maxAge: 3600,
-		});
+		// id_token 이 null 이면 id_token 쿠키를 세팅하지 않는다 (안전 fallthrough).
+		// 기존 `substring` 구현은 `idTokenStart === -1` 에도 전체 href 를 반환하는 버그가 있었다.
+		if (idToken !== null && idToken !== undefined) {
+			setCookie("id_token", idToken, {
+				secure: true,
+				SameSite: "Lax",
+				maxAge: 3600,
+			});
+		}
 	}
 }
 
