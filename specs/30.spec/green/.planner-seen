@@ -1,71 +1,53 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (12th cycle) — 3 new carves (TSK-59/60/61) + 0 promotions + 0 new blocked.
-# Session summary: 3 atomic task carves from 3 new green specs (inspector seed `6fe66f0`).
-#   HEAD=f758f77 (inspector no-op `reconcile: 0/3 ack, 3 green stale 0->1`).
+# Updated: 2026-04-21T (13th cycle) — 0 new carves + 0 promotions + 0 new blocked.
+# Session summary: no-op cycle — TSK-61 developer 반영 + inspector marker-sync 반영을 ledger 에 흡수.
+#   HEAD=911d939 (inspector reconcile `7/M ack — TSK-20260421-61 / 572009f PASS + marker-sync (TSK-59/60 carve)`).
 #   RULE-03 선결 통과: pause lock 없음 (.claude/locks/ 미존재), `.claude/pipeline.json` 없음 → 기본 TASK_READY_MAX=10.
-#     ready 큐 진입시: 0 (이전 TSK-58 developer 소비 완료 상태).
-#     본 사이클 carve 발행 3 → ready 큐 3 (여유 7).
-#     input green (실측): 3 → 3 (승격 대상 0 — 4조건 불충족).
+#     ready 큐 진입시: 2 (TSK-59 b1prime warm-up, TSK-60 it-scoped timeout override). TSK-61 은 developer 소비 완료 → 60.done/2026/04/21/task/20260421-admin-gate-userid-externalize-cookie-fix-regression-matrix.
+#     본 사이클 carve 발행 0 → ready 큐 2 (여유 8).
+#     input green (실측): 3 → 3 (승격 대상 0 — 4조건 불충족, 모든 patch 경로 이미 ready/done 박제 완료 → 신규 carve 불필요).
 #
 #   승격 평가 (4조건 = [WIP]=0, non-deferred unchecked=0, To-Be=0, 변경 이력 박제):
-#     - test-isolation-shuffle-safety-cold-start [hash d3cfd475]:
-#         [WIP]=0, To-Be=0, unchecked 12 — 그 중 2건 `[deferred]` (FR-07 File.test.jsx, FR-14 marker 전환), 2건 `[pending: TSK 발행]` (FR-06/REQ-011), 나머지 8건 (`npm run lint`, FR-03 대안 서술, FR-04 조건부, FR-15, NFR-04/06, NFR-02 `npm test`) 은 non-deferred. 변경 이력 최신 = REQ-017 반영 (inspector `fc656a7`, no TSK 박제).
-#         → **승격 불가**. 신규 carve TSK-59 (B1' warm-up) 발행.
-#     - logsingle-prod-server-serial-timeout-remediation [hash 5cc1a5b0]:
-#         [WIP]=0, To-Be=0, unchecked 19 — 그 중 1건 `[deferred]` (FR-08), 나머지 18건 non-deferred (FR-01/02/03/07 patch 적용 대기 + FR-04/05/06/09 조건부 pending + NFR 전원 pending). 변경 이력 최신 = inspector seed (`fc656a7`, no TSK 박제).
-#         → **승격 불가**. 신규 carve TSK-60 (it-scoped timeout override) 발행.
-#     - admin-gate-recovery-and-env-config [hash 48022e44]:
-#         [WIP]=0, To-Be=0, unchecked 16 — 그 중 2건 `[deferred]` (FR-06 C3 미발동 2회), 나머지 14건 non-deferred (FR-03/04/05/07 patch 적용 대기 + NFR 전원 pending). `[x]` 오타 markup (`- [ ] FR-01 ... **[x] ...완료]**` 2건은 checkbox 미전환 — planner 영역 아님, inspector marker-sync 대상). 변경 이력 최신 = inspector seed (`fc656a7`, no TSK 박제).
-#         → **승격 불가**. 신규 carve TSK-61 (admin user ID 외부화 + 쿠키 속성 정정 + 진단 로그 + isAdmin 매트릭스) 발행.
+#     - admin-gate-recovery-and-env-config [hash 4b35c6a9, prev 48022e44 — inspector marker-sync + TSK-61 PASS 반영으로 변동]:
+#         [WIP]=0, To-Be=0, 변경 이력 = TSK-20260421-61 / 572009f 박제 ✓.
+#         unchecked = 3 (실측 grep `^- \[ \]` 3 hits): L69 FR-06 `[deferred]` (C3 hit 미발동) + L80 FR-06 `[deferred]` (조건 미발동) + L83 NFR-03 (본문 `TSK-20260421-61 / 572009f — 단일 커밋 묶음, NFR-01 충족 범위 안쪽` 충족 박제됐으나 checkbox 미전환).
+#         **non-deferred unchecked = 1** (NFR-03 marker drift). FR-06 2건 `[deferred]` 토큰 박제됨.
+#         → **승격 불가**. NFR-03 checkbox 전환은 inspector marker-sync 영역 (planner writer 권한 외 — RULE-01 매트릭스). patch 후속 carve 불필요 — NFR-03 충족은 이미 TSK-61 단일 커밋 묶음으로 박제됨, marker 만 drift.
+#     - test-isolation-shuffle-safety-cold-start [hash 5a077e3e, prev d3cfd475]:
+#         [WIP]=0, To-Be=0, 변경 이력 = TSK-20260421-59 (B1' warm-up) ready 마커 박제 (실제 commit hash 는 TSK-59 완료 후 ack).
+#         unchecked = 12 — 그 중 1건 `[deferred]` (FR-07 File.test.jsx 별건 task 미발행), 2건 `[pending: TSK-...]` (FR-06 REQ-011 / FR-08·11·12·13 의 TSK-59 ready), non-deferred unchecked 8 (FR-03 옵션 B 대안 서술 / FR-04 Could 조건부 / FR-14 Should planner 수행 / FR-15 Could 발행 지침 / NFR-04 / NFR-06 / `npm run lint` / `npm test --run` NFR-02).
+#         → **승격 불가**. TSK-59 완료 후 patch 반영 PASS + inspector marker-sync 후 재평가.
+#     - logsingle-prod-server-serial-timeout-remediation [hash d532a085, prev 5cc1a5b0]:
+#         [WIP]=0, To-Be=0, 변경 이력 = TSK-20260421-60 (it-scoped timeout override) ready 마커 박제.
+#         unchecked = 12 — 그 중 1건 `[deferred]` (FR-08 인터프리테이션 — 본 spec 자체 박제 완료, blue 직접 편집 promotion 정책 위반), 4건 `[pending: TSK-20260421-60 ...]` (FR-01/02/03/07), 2건 `[pending: 조건부 — FR-02/04 미달 시]` (FR-04 B / FR-05 C), 나머지 5건 = 수용 기준 (Must FR-01/02/03/07 + Should FR-04/06 + Could FR-05/09 + NFR-01/02/03/05) 의 non-deferred unchecked.
+#         → **승격 불가**. TSK-60 완료 후 patch 반영 PASS + inspector marker-sync 후 재평가.
 #
-#   carve 판정 (원자 태스크 분할):
-#     본 사이클 carve 3건, 모두 신규 TSK-ID (grep 중복 검증 완료 — 최대 기존 ID = TSK-58):
-#       1) **TSK-20260421-59** `20260421-layer2-cold-start-b1prime-warmup.md`
-#          - 출처: test-isolation-shuffle-safety-cold-start §동작 §8 (FR-11, FR-13 — 1차 추천안 B1').
-#          - 범위: `src/Log/LogItem.test.jsx` 단일. `beforeAll` warm-up (LogItem + QueryClientProvider 통합) 추가. runtime 0 변경.
-#          - DoD: shuffle seed=1/2/3 3회 0 fail + seed=1 10회 안정성 + lint/build.
-#          - grep 게이트 7건 (beforeAll=0→1, REQ-010=0→≥1, B1'=0→≥1, await Promise.resolve=0 유지, describe.sequential=0 유지, getByTestId=0 유지, findByTestId=4 유지).
-#       2) **TSK-20260421-60** `20260421-logsingle-prod-server-timeout-it-scoped-override.md`
-#          - 출처: logsingle-prod-server-serial-timeout-remediation §동작 §1~§2 (FR-01/02/03/07).
-#          - 범위: `src/Log/LogSingle.test.jsx` 단일. `:56` `it` 에 `{ timeout: 10000 }` 3번째 인자 + REQ/TSK 주석. 전역 config 0 변경.
-#          - DoD: `npm test -- --run` 30회 serial 0/30 timeout + it 개수 9 불변 + testTimeout 0 hits 유지.
-#          - grep 게이트 6건 (it 매치=1 유지, REQ-016=0→≥1, TSK-60=0→≥1, it total=9 유지, testTimeout=0 유지, ASYNC_ASSERTION_TIMEOUT_MS=1 유지).
-#       3) **TSK-20260421-61** `20260421-admin-gate-userid-externalize-cookie-fix-regression-matrix.md`
-#          - 출처: admin-gate-recovery §동작 §7~§11 (FR-03/04/05/07; FR-06 deferred).
-#          - 범위: `src/common/common.js` + `src/common/common.test.js` + `.env.example` (NFR-01 상한 ≤4 준수). admin 게이트 소비자 8+ 파일 0 변경.
-#          - DoD: df256e56|051fd5f9=0, VITE_ADMIN_USER_ID≥2 (common.js + .env.example), site:=0, sameSite≥2, maxAge≥2, describe isAdmin=3, 변경 파일 ≤4, lint/test/build.
-#          - grep 게이트 9건.
-#     grep dry-run: **22/22 match** (모든 baseline 실측 박제, 기대 hit 수 일치 확인).
-#       - TSK-59: 7 baseline 실측 (getByTestId=0, findByTestId=4, beforeAll=0, REQ-010=0, B1'=0, await Promise.resolve=0, describe.sequential=0).
-#       - TSK-60: 6 baseline 실측 (it match=1, REQ-016=0, TSK-60=0, it total=9, testTimeout=0/0, ASYNC_ASSERTION_TIMEOUT_MS=1).
-#       - TSK-61: 9 baseline 실측 (df256e56|051fd5f9=2, VITE common.js=0, VITE .env.example=0, site:=2, sameSite:=0, maxAge:=0, describe isAdmin=2, expires: call-site=0, TODO=1).
+#   carve 판정:
+#     본 사이클 carve 0 — 모든 green 의 patch 경로가 이미 (TSK-61 done) 또는 ready (TSK-59, TSK-60) 큐에 박제됨. 추가 carve 는 RULE-01 중복 발행 위험 (`grep -rn "TSK-..." specs/{40.task,60.done,50.blocked}/` 기존 ID 와 충돌 회피). 신규 후속 task 는 TSK-59/60 완료 후 spec re-evaluation 시점에 발행.
+#     grep dry-run: **0/0 match** (carve 부재 — N/A).
 #
-#   stale 카운트 갱신 (12th cycle 기준):
-#     - 3개 green 모두 content sha256 불변 (본 사이클 inspector no-op 영향) → stale_cycles += 1.
-#       - test-isolation-shuffle-safety-cold-start: 1 → 2
-#       - logsingle-prod-server-serial-timeout-remediation: 1 → 2
-#       - admin-gate-recovery-and-env-config: 1 → 2
-#     - 승격 판정 조건 "같은 diff-hash 2회 이상 정체" 는 **pending marker 해소 경로가 발행된 task 완료 의존** 이므로 `50.blocked/spec/` 이동 금지 — patch 미수행 상태의 기능적 blocker 는 task 경로 (TSK-59/60/61) 로 해소. 3-cycle 임계 도달 시에도 green 큐 유지 (planner carve 완료 = 해소 경로 확보).
+#   stale 카운트 갱신 (13th cycle 기준):
+#     - 3개 green 모두 content sha256 변경 (inspector marker-sync `911d939` + TSK-61 PASS 반영) → stale_cycles 리셋 0.
+#       - test-isolation-shuffle-safety-cold-start: 2 → 0 (hash d3cfd475 → 5a077e3e)
+#       - logsingle-prod-server-serial-timeout-remediation: 2 → 0 (hash 5cc1a5b0 → d532a085)
+#       - admin-gate-recovery-and-env-config: 2 → 0 (hash 48022e44 → 4b35c6a9)
+#     - blocked/spec/ 이동 0건. stale ≥3 cycle 도달 항목 0.
 #
-#   blocked 신규: 0. `50.blocked/spec/` 현 비어있음 (이전 `test-isolation-shuffle-safety-spec.md` 원본은 revive 경로로 정리 완료 추정).
+#   blocked 신규: 0. `50.blocked/spec/` 빈 상태 유지. `50.blocked/task/` 빈 상태 유지.
 #
 #   RULE-06 스코프 규칙 섹션:
-#     - TSK-59/60/61 모두 grep DoD 게이트 포함 → `## 스코프 규칙` 섹션 필수 작성 완료.
-#     - TSK-59: expansion=불허 (runtime 변경 시 즉시 blocked/task/ 격리).
-#     - TSK-60: expansion=불허 (runtime 변경은 (C) 별건 REQ).
-#     - TSK-61: expansion=불허 (NFR-01 4파일 상한).
+#     - 본 사이클 신규 task 0 → RULE-06 신규 게이트 작성 없음. 기존 ready 2건 (TSK-59/60) 의 스코프 규칙 섹션은 직전 사이클 (12th) 에 박제 완료, rewrite 금지 (RULE-01).
 #
 # ledger entries:
-specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md d3cfd475d5004f5d6e8ad8d992eef169595f07ed52492f5a2f921d4c5b60c8ee 2
-specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md 5cc1a5b0dda0a47f50a7ce1c1eb84d39f6454e82198c3ccb9e409b6938f31cf2 2
-specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 48022e440b4fcdb2e08de1def7c170b4e8692e952a24efaaa2b396aeba76a6f4 2
+specs/30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md 5a077e3e539fdfdc4686e86de01b027d77c743753c97ad873782d20e28e100b6 0
+specs/30.spec/green/common/logsingle-prod-server-serial-timeout-remediation-spec.md d532a0852ce22eff4675f5b889f1624767c34e6f1c3cdc8b89704f8b22b7e2ef 0
+specs/30.spec/green/common/admin-gate-recovery-and-env-config-spec.md 4b35c6a9f2d3e47085c201e5942f425fd8e8f731ee62bf1b0848ca194ddaff43 0
 #
-# ready 큐 (본 사이클 +3): count=3, TASK_READY_MAX=10 여유 7.
+# ready 큐 (본 사이클 +0): count=2, TASK_READY_MAX=10 여유 8.
 #   - `specs/40.task/20260421-layer2-cold-start-b1prime-warmup.md` (TSK-20260421-59)
 #   - `specs/40.task/20260421-logsingle-prod-server-timeout-it-scoped-override.md` (TSK-20260421-60)
-#   - `specs/40.task/20260421-admin-gate-userid-externalize-cookie-fix-regression-matrix.md` (TSK-20260421-61)
-# next cycle (13th):
-#   - **developer**: 3 task 순차 소비 가능. 각 task expansion=불허 준수 (grep 게이트 위반 시 즉시 blocked/task/ 격리).
-#   - **inspector**: developer 커밋 후 drift reconcile — green `[pending: 후속 task carve 대기]` 마커를 TSK-59/60/61 구체 ID 로 marker-sync + DoD grep 게이트 PASS 조건 확인.
-#   - **planner (다음 사이클)**: TSK-59/60/61 완료 후 green 3종 재평가 — non-deferred unchecked 제거 여부 + 변경 이력 TSK 박제 여부 → 4조건 충족 시 승격. 미충족 (예: admin-gate (NFR-02) 는 NFR check list 성격 — test/lint/build PASS 후 inspector 반영) 항목은 inspector marker-sync 영역.
-#   - **본 사이클 writer 영역 변경**: `40.task/20260421-*.md` 3파일 신규 + `.planner-seen` 갱신. `30.spec/green/**` 이동 0, `30.spec/blue/**` 변경 0, `50.blocked/spec/` 변경 0. 커밋 scope = task(planner) (3 task 신규 발행 — RULE-02 `{scope}({agent}): {요약}` 단일 커밋).
+# next cycle (14th):
+#   - **developer**: TSK-59 / TSK-60 순차 소비. 각 task expansion=불허 준수.
+#   - **inspector**: developer 커밋 후 drift reconcile — green `[pending: TSK-59/60 ready 대기]` 마커를 PASS commit hash 로 marker-sync. admin-gate NFR-03 행 (L83) 의 checkbox `[ ]` → `[x]` marker drift 정정.
+#   - **planner (다음 사이클)**: TSK-59/60 완료 후 green 2종 재평가 — non-deferred unchecked 제거 여부 + 변경 이력 TSK 박제 여부 → 4조건 충족 시 승격. admin-gate 는 inspector NFR-03 marker drift 정정 후 재평가 (현 상태 non-deferred unchecked 1 = NFR-03 marker only).
+#   - **본 사이클 writer 영역 변경**: `.planner-seen` 갱신 1건만. `40.task/**` 변경 0, `30.spec/green/**` 이동 0, `30.spec/blue/**` 변경 0, `50.blocked/spec/` 변경 0. 커밋 scope = spec(planner) (no-op 사이클 ledger 갱신 — RULE-02 `{scope}({agent}): {요약}` 단일 커밋).
