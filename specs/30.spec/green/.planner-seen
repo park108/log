@@ -1,36 +1,44 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (6th cycle, no-op — awaiting TSK-53/55 developer consumption)
+# Updated: 2026-04-21T (7th cycle, no-op — inspector marker-sync 반영, ledger 정정)
 # Session: 0 promotions + 0 new carves + 0 blocked.
-#   RULE-03 선결 통과: pause lock 없음, input green=2 (shuffle-cold-start, msw-test-sibling), ready=2 (TASK_READY_MAX=10 여유 8).
-#     실측 hash (이번 사이클):
-#       - shuffle-cold-start: 21543b775c3e0f64b5f75aed161bf0722caf2dc4136efbf7996299baf60a92c3 (직전 세션 동일; inspector/operator 편집 0).
-#       - msw-test-sibling-it-shuffle-race: e956a40a36f46c10d7b49c543a49868c8041ba7c2d99970d9c80bed25efb3fb4 (직전 세션 동일; inspector/operator 편집 0).
-#     HEAD=5e83b27 (commands chore 커밋).
+#   RULE-03 선결 통과: pause lock 없음, input green=2 (shuffle-cold-start, msw-test-sibling), ready=1 (TSK-20260421-55) → TASK_READY_MAX=10 여유 9.
+#     HEAD=1d89844 (inspector marker-sync 7).
+#     실측 hash (HEAD=1d89844, 직전 ledger 와 **다름** → inspector marker-sync 편집 반영 → stale 리셋):
+#       - shuffle-cold-start: bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 (직전 21543b77 → 변동; marker sync L97/99~102 반영).
+#       - msw-test-sibling-it-shuffle-race: 4b22c6b0ad4cc4db8fceca6eab4d280ee2d98e4942aace8612ed464c49d06fa0 (직전 e956a403 → 변동; marker sync 변경 이력 한 줄 추가).
 #     blocked 디렉토리 관측:
 #       - 50.blocked/spec/ 비어있음.
 #       - 50.blocked/task/ 비어있음.
 #       - 50.blocked/req/ 비어있음.
-#     ready 큐 현황:
-#       - 20260421-msw-listen-beforeall-layer2-b3.md (TSK-20260421-53, Layer 2 B3).
+#     ready 큐 현황 (실측):
 #       - 20260421-msw-test-sibling-it-shuffle-race.md (TSK-20260421-55, REQ-011).
+#       (주: 직전 ledger 주석은 TSK-20260421-53 도 ready 로 적었으나 실측상 부재.
+#        TSK-53 은 두 번 blocked 되어 followup 으로 discovery 재처리 대기 —
+#        `10.followups/20260421-0125-tsk-53-...` + `20260421-0201-tsk-53-...` 2건 생존.
+#        planner 는 blocked→ready 재발행 권한 없음 (RULE-05 수동 해제).)
 #   승격 평가 (4조건):
-#     - shuffle-cold-start: unchecked 24 = deferred 5 + pending 4 + real 15. `[WIP]` 0 / `^#+ .*To-Be` 0. real unchecked 잔존 → 승격 불가 (carve 대기: TSK-53 / 후속 B2·FR-07 보류 / FR-11 B3 inspector ack 대기).
-#     - msw-test-sibling-it-shuffle-race: unchecked 17 = deferred 1 + pending 1 + real 15. `[WIP]` 0 / `^#+ .*To-Be` 0. real unchecked 잔존 → 승격 불가 (TSK-55 developer 소비 대기).
+#     - shuffle-cold-start: unchecked `- [ ]` = 23. `[WIP]` = 0, `^#+ .*To-Be` = 0.
+#       real unchecked (deferred/pending 제외) = 17건 (L103/106/108~117/119~122).
+#       → 승격 불가.
+#     - msw-test-sibling-it-shuffle-race: unchecked = 17. `[WIP]` = 0, `^#+ .*To-Be` = 0.
+#       real unchecked = 15건 (L47~50/53~57/59~65 — FR-06 Should 1건 pending 제외).
+#       → 승격 불가. TSK-55 developer 소비 대기.
 #   carve 판정: 본 사이클 신규 carve 0.
-#     - shuffle-cold-start 의 남은 FR 중 TSK-54 (B2 describe.sequential) / FR-07 File.test.jsx cache race 는 **TSK-53 실측 결과 의존** — 조기 carve 금지 (scope creep).
-#     - msw-test-sibling-it-shuffle-race 의 FR/NFR 는 TSK-55 단일 태스크로 이미 carve 완료 — 추가 분할 불필요.
-#   stale 카운트 (동일 hash 연속 관측):
-#     - shuffle-cold-start: 0 → 1 (첫 정체 사이클, 임계치 ≥2 미달 → blocked 격리 대상 아님; TSK-53 ready 소비 대기이므로 정체가 아니라 normal).
-#     - msw-test-sibling-it-shuffle-race: 0 → 1 (동일).
-#     둘 다 TSK-53/55 developer 소비 대기 중 — green 본문 편집이 없는 게 정상 (FR 충족은 code ok 이후 inspector drift reconcile 로 박제). 정체 알림 아님.
-#   grep dry-run: 0/0 match (신규 태스크 0 — 생성 없음).
+#     - shuffle-cold-start 의 FR-08/11/12/13 은 TSK-53 실측 결과 의존. TSK-53 은 10.followups 로 피드백 중 (두 번째 재발행 실패) — discovery→inspector→planner 재투입 이후에만 재carve. 조기 carve 금지 (scope creep).
+#     - shuffle-cold-start FR-07 (File.test.jsx cache race) 은 `[deferred: shuffle seed 0 fail 달성 후 재평가]` 태깅. TSK-53 소비 이전엔 발행 대상 아님.
+#     - TSK-54 (Layer 2 B2 describe.sequential) 역시 B1/B3 실패 확정 이후에만 등장 — 현 시점 carve 금지.
+#     - msw-sibling 은 TSK-55 단일 task 로 carve 완료. 추가 분할 불필요.
+#   stale 카운트 (hash 변동 → 리셋):
+#     - shuffle-cold-start: 1 → 0 (hash 변동 = inspector marker-sync 편집 = 활성 진행).
+#     - msw-test-sibling-it-shuffle-race: 1 → 0 (hash 변동).
+#   grep dry-run: 0/0 match (신규 태스크 생성 0건).
 #   blocked: 없음 (신규 격리 0).
 # ledger entries:
-common/test-isolation-shuffle-safety-cold-start-spec.md 21543b775c3e0f64b5f75aed161bf0722caf2dc4136efbf7996299baf60a92c3 1
-common/msw-test-sibling-it-shuffle-race-dedicated-spec.md e956a40a36f46c10d7b49c543a49868c8041ba7c2d99970d9c80bed25efb3fb4 1
-# ready 큐: (count=2, TASK_READY_MAX=10 여유 8).
+common/test-isolation-shuffle-safety-cold-start-spec.md bea5206339c77c7dbebb414531177e06dc17da7f32174cb8485ba3663f5b0730 0
+common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 4b22c6b0ad4cc4db8fceca6eab4d280ee2d98e4942aace8612ed464c49d06fa0 0
+# ready 큐: (count=1, TASK_READY_MAX=10 여유 9).
 # next cycle:
-#   - developer 가 TSK-53 / TSK-55 소비하면 code ok → inspector drift reconcile 로 FR 박제 → 다음 planner 사이클에서 4조건 재평가.
-#   - 둘 다 실측/ack 되면 FR-08/11/13 (shuffle) + FR-01~05 (msw-sibling) 통과. 잔여 FR (FR-06 tagging, FR-07 File.test.jsx, TSK-54 B2) 은 drift reconcile 기준으로 후속 carve.
-#   - stale ≥ 2 도달 시에도 TSK-53/55 가 ready 에 남아있는 한 정체 아님 — developer 소비 또는 blocked 격리 시에만 재평가 (RULE-03 임계치 운용 해석).
-#   - 본 사이클 writer 영역 변경: `.planner-seen` 만 (RULE-01 green 본문 편집 권한 없음).
+#   - TSK-55 developer 소비 → code ok → inspector drift reconcile 로 FR-01~05 ack → 다음 planner 사이클 4조건 재평가.
+#   - TSK-53 은 discovery/inspector 재처리 필요 (followup 2건). planner 는 대기만.
+#   - TSK-53 해소 이후 shuffle-cold-start 의 FR-08/11/12/13 drift reconcile 시점에 후속 carve 가능 (TSK-54 / FR-07).
+#   - 본 사이클 writer 영역 변경: `.planner-seen` 만 (RULE-01 green 본문 편집 권한 없음; 40.task/ 신규 0건).
