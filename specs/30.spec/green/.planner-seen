@@ -1,111 +1,93 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (20th cycle) — 1 promotion + 4 new carves (TSK-69/70/71/72) + 0 new blocked.
+# Updated: 2026-04-21T (21st cycle) — 2 promotions (ci.md, dependency-bump-gate.md) + 0 new carves + 0 blocked.
 # Session summary:
-#   HEAD=87afb0c (`spec(inspector): Phase 1 reconcile 8/8 ack — components/common.md REQ-032 완결`).
-#   본 세션 입력 (green): 2 spec files — `components/common.md` (inspector 8/8 ack → 4조건 전부 충족), `common/a11y.md` (REQ-033 a11y 패턴 B, 19th cycle 유예 — 본 cycle carve 개시).
+#   HEAD=28bbf26 (`feat: a11y 패턴 B 정상화 — M9 UserLogin login/logout`).
+#   본 세션 입력 (green): 3 spec files —
+#     (1) `common/a11y.md` — 20th cycle carve 개시 후 inspector 가 TSK-69 @28bbf26 결과 반영 ([x] 플립 + §drift 표 M9 행 취소선 + §스코프 규칙 gate (a) 8→9 갱신).
+#     (2) `foundation/ci.md` — **신규** (inspector REQ-20260421-034 재발행, 원 blocked 판본 `626e1330..` 대체 재발행).
+#     (3) `foundation/dependency-bump-gate.md` — **신규** (inspector REQ-20260421-035 흡수, blocked req `react-19-runtime-bump-reattempt` followup (b) 갈래 spec-grade 추출).
 #
 #   RULE-03 선결 점검:
-#     (1) pause lock 없음 (`.claude/locks/` 부재). `.claude/pipeline.json` 없음 → `TASK_READY_MAX=10` 기본.
-#     (2) 입력 큐: 2 green spec files.
-#     (3) 하류 임계치: `40.task/` = 0 (19차 carve TSK-66/67/68 전부 60.done 이동 완료 — `c5ad57d`/`0fb0ca1`/`8b2cb30` 커밋) → 본 세션 +4 (TSK-69/70/71/72) = 4, 여유 6 (OK).
-#     (4) 처리 진입.
+#     (1) pause lock 없음 (`.claude/locks/` 부재).
+#     (2) `.claude/pipeline.json` 부재 → `TASK_READY_MAX=10` 기본.
+#     (3) 입력 큐: 3 green spec files.
+#     (4) 하류 임계치: `40.task/` = 3 (TSK-70/71/72 잔존, TSK-69 는 60.done 이동 완료 @28bbf26) → 본 세션 +0 = 3, 여유 7 (OK).
+#     (5) 처리 진입.
 #
-#   세션 시작 시 git 상태 점검 (RULE-02): working tree clean. staged 항목 0 → reset 불필요.
+#   세션 시작 시 git 상태 점검 (RULE-02): modified `specs/30.spec/green/common/a11y.md` (inspector 영역) + untracked `specs/30.spec/green/foundation/` (inspector 영역 2 신규 파일). 양쪽 모두 planner writer 영역 밖 → **staged 항목 0, reset 불필요**. 승격 mv 로 자기 영역 (blue) 으로 이동 후 커밋.
 #
 #   각 spec 승격 판정 (4조건: unchecked=0, WIP=0, To-Be=0, 변경 이력 TSK/커밋 박제):
-#     - `components/common.md` (hash=73b145.. @ 19th → 새 hash 87afb0c inspector ack 반영):
-#         unchecked=0 (19차 대비 REQ-032 FR-01/04/06/07/08 5 marker 전부 [x] 플립 — inspector 커밋 `87afb0c` reconcile 8/8 ack 완결),
-#         WIP=0,
-#         To-Be=0,
-#         변경 이력에 TSK-66 (`c5ad57d`) + TSK-67 (`0fb0ca1`) + TSK-68 (`8b2cb30`) 3 커밋 해시 박제 ✓
-#         → **승격 O**. `mv green/components/common.md → blue/components/common.md` 수행.
-#     - `common/a11y.md` (hash=7dd983.., stale=0→1):
-#         unchecked=9 (Must, REQ-033 FR-02/03 × M1~M9 정상화 7 marker + FR-05 M5 실측 + FR-06 M10 결정 + FR-07 blue 상호참조 + FR-08 audit 테스트 Should),
-#         WIP=0,
-#         To-Be=0,
-#         변경 이력 = 19차 최초 등록 1행 (carve 진입 대상) → **미승격** + 본 cycle 단계 carve 개시.
+#     - `common/a11y.md` (hash=bd32ed2b16f8d3a1c5b8b1e34e87743d8d6d91808c9374d2ce0b41075f36db53, 이전 7dd9830f.. 대비 변경됨 — inspector 편집 반영 → stale=0 유지):
+#         unchecked=13 (Must, REQ-033 FR-03 M1~M8 테스트 [ ] 4종 + FR-05/06/08 [ ] 3종 + FR-02 M1~M8 정상화 [ ] 1종 + FR-03/05/06 수용 기준 [ ] 3종 + FR-07 상호참조 [ ] 1종 + FR-08 audit 수용 기준 [ ] 1종),
+#         WIP=0, To-Be=0,
+#         변경 이력 = 최초 등록 (`75498693`) + M9 ack (`28bbf26`, TSK-20260421-69) 2행 ✓
+#         → **미승격**. 20th cycle ledger 지침대로 TSK-70/71/72 실현 후 inspector 재진입 → marker 플립 → 22nd+ cycle 에서 FR-05/06/08 결정 분기 carve.
 #
-#   carve 발생: **4건** (19차 ledger 예고 권장 순서 중 상반부 4 묶음):
-#     - TSK-20260421-69: M9 UserLogin login/logout (`src/common/UserLogin.jsx:17-36`) 단독 — 최단 hunk.
-#     - TSK-20260421-70: M1+M2 Writer statusbar toggle 2 지점 (`src/Log/Writer.jsx:266,302`) — 동일 파일 2 hunk.
-#     - TSK-20260421-71: M3+M6 LogItemInfo onClick 2 지점 (`src/Log/LogItemInfo.jsx:30,108`) — M4 (versions-button, onClick 부재) 는 §범위 밖 유예.
-#     - TSK-20260421-72: M7+M8 Comment/CommentItem 2 파일 (`src/Comment/Comment.jsx:174`, `src/Comment/CommentItem.jsx:50`).
-#     4건 전부 depends_on=[] (서로 다른 파일 — 독립 병합 가능).
+#     - `foundation/ci.md` (신규 등장 → 이전 ledger 부재 → stale=0):
+#         unchecked=0 ✓ (§테스트 현황 [x]×3, §수용 기준 [x]×7 전부 플립),
+#         WIP=0 ✓, To-Be=0 ✓,
+#         변경 이력 = inspector 재발행 1행 (`28bbf26`, REQ-20260421-034) ✓
+#         → **승격 O**. `mv green/foundation/ci.md → blue/foundation/ci.md`. blue/foundation/ 기존재 (tooling.md 공존).
 #
-#   carve 유예 (§범위 밖 분기):
-#     - M4 (versions-button, `onClick` 부재 + hover-popup trigger) — 패턴 B §불변식 "onClick 을 바인딩한 모든 지점" 전제 미성립. inspector 재진입으로 spec §예외 절 박제 또는 §drift 표 유지 결정. TSK-71 task 의 §범위 밖 에 명시.
-#     - M5 (`<Link><span>` Edit, FR-05 결정 분기) — 실측 필요 (차기 사이클).
-#     - M10 (`<img listitem>`, FR-06 옵션 A/B 결정) — 설계 분기 (차기 사이클).
-#     - FR-08 audit 테스트 (Should) — 4 패턴 B 정상화 완료 후 개시가 자연스러움 (차기 사이클).
-#     - FR-07 blue 상호참조 갱신 — a11y.md green→blue promote 단계 (planner 영역, M1~M9 정상화 완료 이후).
+#     - `foundation/dependency-bump-gate.md` (신규 등장 → 이전 ledger 부재 → stale=0):
+#         unchecked=0 ✓ (§테스트 현황 [x]×4, §수용 기준 [x]×6),
+#         WIP=0 ✓, To-Be=0 ✓,
+#         변경 이력 = inspector 흡수 1행 (`28bbf26`, REQ-20260421-035) ✓
+#         → **승격 O**. `mv green/foundation/dependency-bump-gate.md → blue/foundation/dependency-bump-gate.md`.
 #
-#   Task ID 중복 검증: `grep -rn "TSK-20260421-{69,70,71,72}" specs/{40.task,60.done,50.blocked}/` → 각각 0 hit → 충돌 없음. 19차 마지막 ID 68 연속 승계.
+#   승격 전 grep-baseline dry-run 검증:
+#     [ci.md §스코프 규칙 3 gate]
+#       (a) `grep -nE "uses:\s*actions/checkout@" .github/workflows/*.yml` → 1 hit (`ci.yml:16` `actions/checkout@v6`) ✓ 일치
+#       (b) `grep -nE "uses:\s*actions/setup-node@" .github/workflows/*.yml` → 1 hit (`ci.yml:19` `actions/setup-node@v6`) ✓ 일치
+#       (c) `grep -nE "uses:\s*actions/(checkout|setup-node)@v[0-9]+\.[0-9]+\.[0-9]+" .github/workflows/*.yml` → 0 hit (exit 1) ✓ 일치
+#     [dependency-bump-gate.md §스코프 규칙 3 gate]
+#       (a) `grep -nE "\"(dependencies|devDependencies)\":" package.json` → 2 hits (`package.json:6` dependencies, `package.json:42` devDependencies) ✓ 일치
+#       (b) `grep -rnE "findDOMNode|\"ref\":\s*['\"][^'\"]+['\"]|defaultProps\s*=\s*\{" src --include="*.js" --include="*.jsx" --exclude="*.test.*"` → 0 hit (exit 1) ✓ 일치
+#       (c) `grep -nE "console\.(warn|error)" src/setupTests.js` → 0 hit (exit 1) ✓ 일치
+#   총 6/6 gate 정합 (positive 4/4 hit + negative 2/2 pass) — 두 spec 의 §스코프 규칙 grep-baseline 박제 수치와 완전 일치. 승격 검증 통과.
 #
-#   승격 mv: **1건** (common.md).
+#   carve 발생: **0 건**. 이유:
+#     - a11y.md 잔존 drift 는 20th cycle 에서 TSK-70/71/72 carve 완료 (M1/M2, M3/M6, M7/M8). 본 사이클 신규 carve 대상 없음. FR-05/06/08 결정 분기 carve 는 TSK-70/71/72 실현 후 자연 순서 유지 (22nd+ cycle).
+#     - ci.md, dependency-bump-gate.md 는 두 spec 모두 신규 등장 즉시 4조건 전원 충족 → carve 대상 아님, 즉시 승격.
+#
+#   Task ID 중복 검증: 본 세션 신규 task 발행 0건 → 검증 생략 (기존 TSK-20260421-{42..72} 중 결번 TSK-20260421-54 확인 — 타 agent 영역, 무관).
+#
+#   승격 mv: **2건** (foundation/ci.md, foundation/dependency-bump-gate.md).
 #   blocked mv: **0건**.
 #
 #   RULE-04/RULE-06 점검:
-#     - 본 세션 신규 발행 task = 4. 전부 grep 게이트 포함 → RULE-06 §스코프 규칙 섹션 필수 박제 완료 (expansion=불허 + grep-baseline 실측 + rationale) × 4건.
-#     - grep dry-run 실측 매치:
-#         TSK-69 (6 baseline):
-#           (a) UserLogin.jsx activateOnKey → 0 hit ✓
-#           (b) UserLogin.jsx tabIndex → 0 hit ✓
-#           (c) UserLogin.test.jsx fireEvent.keyDown → 0 hit ✓
-#           (d) UserLogin.test.jsx describe a11y 패턴 B → 0 hit ✓
-#           (e) UserLogin.jsx role="button" → 1 hit ✓
-#           (f) UserLogin.jsx login-button testid → 1 hit ✓
-#         TSK-70 (7 baseline):
-#           (a) Writer.jsx activateOnKey → 0 hit ✓
-#           (b) Writer.jsx tabIndex → 0 hit ✓
-#           (c) Writer.test.jsx activateOnKey|a11y → 0 match ✓
-#           (d) Writer.jsx img-selector testid → 1 hit ✓
-#           (e) Writer.jsx mode-button testid → 1 hit ✓
-#           (f) Writer.jsx role="button" → 5 hits ✓
-#           (g) Writer.jsx <button count → 3 ✓
-#         TSK-71 (7 baseline):
-#           (a) LogItemInfo.jsx activateOnKey → 0 hit ✓
-#           (b) LogItemInfo.jsx tabIndex → 0 hit ✓
-#           (c) LogItemInfo.jsx role="button" → 4 hits ✓
-#           (d) LogItemInfo.jsx versions-button testid → 1 hit ✓
-#           (e) LogItemInfo.jsx edit-button testid → 1 hit ✓
-#           (f) LogItemInfo.jsx versionPopup triggerProps → 1 hit ✓
-#           (g) LogItemInfo.jsx linkPopup triggerProps → 1 hit ✓
-#         TSK-72 (11 baseline):
-#           (a) Comment.jsx activateOnKey → 0 hit ✓
-#           (b) CommentItem.jsx activateOnKey → 0 hit ✓
-#           (c) Comment.jsx tabIndex → 0 hit ✓
-#           (d) CommentItem.jsx tabIndex → 0 hit ✓
-#           (e) Comment.jsx role="button" → 0 hit ✓
-#           (f) CommentItem.jsx role="button" → 0 hit ✓
-#           (g) Comment.jsx comment-toggle-button → 0 hit ✓
-#           (h) CommentItem.jsx reply-toggle-button testid → 1 hit ✓
-#           (i) CommentItem.jsx replyPopup triggerProps → 1 hit ✓
-#           (j) CommentItem.jsx onClick toggleReplyForm → 1 hit ✓
-#           (k) useHoverPopup.js onKeyDown → 0 hit ✓ (triggerProps 가 onKeyDown 미포함 확인 — M8 spread 뒤 onKeyDown 선언 override 충돌 없음)
-#       총 31/31 match ✓.
-#     - 전체 4 task 가 `## 스코프 규칙` 섹션 포함 (RULE-06 정합).
-#     - 기존 큐 task 없음 — rewrite 대상 0.
-#   RULE-07 정합: 본 세션은 spec 콘텐츠 발행 없음 (inspector 영역). carve 된 task 는 모두 a11y.md 의 §drift 표 (시스템 불변식의 베이스라인 enumeration) 지점을 1 PR 크기로 분할한 실현 task — spec 본문 변경 없음. common.md 승격은 내용 변경 0 (순수 mv).
+#     - 본 세션 신규 발행 task = 0 → RULE-06 §스코프 규칙 섹션 박제 의무 없음.
+#     - 기존 큐 task (TSK-70/71/72) 는 20th cycle 에서 §스코프 규칙 완비 상태 발행 — 본 세션 rewrite 금지 (RULE-01) 정상 준수.
+#     - grep dry-run = 6/6 match (두 spec 승격 검증 gate — RULE-04 notes 박제).
+#   RULE-07 정합:
+#     - a11y.md: 패턴 B 4 속성 동시 부여 시스템 불변식 박제 지속.
+#     - ci.md: §기능 불변식 3건 (action 사용 + LTS 최신 + 메이저 floating) + §스코프 규칙 3 gate 평서형 선언 한정. 1회성 진단·incident patch 부재.
+#     - dependency-bump-gate.md: §기능 불변식 2건 (FR-01 회귀 0 + FR-02 런타임 deprecated API 경고 0) 평서형 선언. grep-time 정적 차원 vs 런타임 경고 차원 분리 명시. 특정 React 런타임 버전 귀속 없음.
+#   본 세션 spec 콘텐츠 수정 0 (planner 는 mv 만).
 #
 # ledger entries (잔존 green):
-# common/a11y.md  7dd9830f7a699856a0668ae073d95793dccad7cdc55e4a0e477036cfe39d6390  1  # 20th cycle carve 개시 (TSK-69/70/71/72 4건 발행). 잔존 drift: M4 (onClick 부재) / M5 (FR-05 실측) / M10 (FR-06 결정) / audit (FR-08 Should) / blue 상호참조 (FR-07 promote 단계). 4 task 실현 후 inspector 재진입 → [ ] 마커 플립 → 21st+ cycle 에서 나머지 결정 분기 carve 후 promote 후보.
+# common/a11y.md  bd32ed2b16f8d3a1c5b8b1e34e87743d8d6d91808c9374d2ce0b41075f36db53  0  # 21st cycle — inspector M9 ack 반영 버전. TSK-70/71/72 실현 대기 (developer 큐). 차기 carve 후보: FR-05 (M5 실측), FR-06 (M10 결정 A/B), FR-08 (audit 테스트 Should). FR-07 blue 상호참조 갱신은 a11y.md green→blue promote 단계 (planner).
 #
 # promoted (→ 30.spec/blue/):
-# - components/common.md  (20th cycle — 19차 inspector 8/8 ack 결과 반영)
+# - foundation/ci.md  (21st cycle — REQ-20260421-034 재발행 즉시 4조건 충족)
+# - foundation/dependency-bump-gate.md  (21st cycle — REQ-20260421-035 흡수 즉시 4조건 충족)
 #
 # blocked (→ 50.blocked/spec/):
 # - (없음)
 #
-# ready 큐 (본 사이클 +4): count=4 (TSK-69/70/71/72), TASK_READY_MAX=10 여유 6.
-# next cycle (21st):
-#   - **developer (15m)**: 4 task 동시 소비 가능 (depends_on=[] 서로 다른 파일). 병합 순서 무관.
-#   - **inspector (30m)**: TSK-69/70/71/72 완료 반영하여 a11y.md green §테스트 현황 + §수용 기준 의 M1~M9 중 정상화된 8 지점 marker [ ] → [x] 플립. M5/M10 결정 분기는 별도 req 재발행 또는 §예외 박제로 처리.
-#   - **planner (21st+)**: a11y.md 의 FR-05/06/08 결정 분기 + audit 테스트 carve. 전체 marker 해소 시 blue promote + FR-07 blue 상호참조 갱신.
+# ready 큐 (본 사이클 +0): count=3 (TSK-70/71/72), TASK_READY_MAX=10 여유 7.
+# next cycle (22nd+):
+#   - **developer (15m)**: TSK-70/71/72 동시 소비 가능 (depends_on=[] 서로 다른 파일 — Writer.jsx / LogItemInfo.jsx / Comment,CommentItem.jsx). 병합 순서 무관.
+#   - **inspector (30m)**: 발행된 task 결과 반영하여 a11y.md green §테스트 현황 + §수용 기준 의 M1/M2 (TSK-70), M3/M6 (TSK-71), M7/M8 (TSK-72) marker [ ] → [x] 플립. §drift 표 해당 행 취소선. §스코프 규칙 gate (a) hits 수 업데이트 (9 → 15 예상).
+#   - **planner (22nd+)**:
+#       (i) TSK-70/71/72 전원 60.done 이동 + inspector marker 플립 완료 확인 후,
+#       (ii) FR-05 (M5 `Link<span>` 실측 task) carve — 단일 task, grep-baseline 포함.
+#       (iii) FR-06 (M10 `<img listitem>` 옵션 A/B 결정 + 구현 task) carve — 결정 후 spec §예외 갱신 필요 시 inspector 재진입 선행.
+#       (iv) FR-08 (audit 테스트 도입 Should) carve.
+#       (v) FR-07 blue 상호참조 갱신은 a11y.md 의 Must 항목 전수 [x] 후 promote 단계.
 #   - **본 사이클 writer 영역 변경**:
-#       - `40.task/TSK-20260421-69-a11y-pattern-b-userlogin-m9.md` 신규
-#       - `40.task/TSK-20260421-70-a11y-pattern-b-writer-m1-m2.md` 신규
-#       - `40.task/TSK-20260421-71-a11y-pattern-b-logiteminfo-m3-m6.md` 신규
-#       - `40.task/TSK-20260421-72-a11y-pattern-b-comment-m7-m8.md` 신규
-#       - `30.spec/green/components/common.md` → `30.spec/blue/components/common.md` (mv 승격)
+#       - `30.spec/green/foundation/ci.md` → `30.spec/blue/foundation/ci.md` (mv 승격)
+#       - `30.spec/green/foundation/dependency-bump-gate.md` → `30.spec/blue/foundation/dependency-bump-gate.md` (mv 승격)
+#       - `30.spec/green/foundation/` rmdir (빈 디렉터리 정리)
 #       - `.planner-seen` 갱신.
-#     커밋 scope = `task(planner):` (carve 4건 + promotion 1건 복합 — 본 세션 핵심 산출은 carve 이므로 task scope).
+#     커밋 scope = `spec(planner):` (promotion 2건 단일 산출 — carve 부재).
