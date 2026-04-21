@@ -919,3 +919,36 @@ describe('isAdmin matrix (REQ-20260421-017)', () => {
 		expect(common.isAdmin()).toBe(false);
 	});
 });
+
+describe('isAdmin() env 미주입 안전 기본값 (REQ-20260421-032 FR-08)', () => {
+	// 매트릭스 #6 (test mode + env 보유) 와 의미상 중첩되나, 운영자가 .env.*.local 에
+	// VITE_ADMIN_USER_ID_* 키를 누락했을 때 admin 이 영구 비활성화됨을 독립 가독성으로 박제.
+	// FR-08: env 미주입 = admin 영구 비활성화 안전 기본값 계약.
+	// 재사용 fixture: JWT_DEV_MATCH (payload.username = DEV UUID). env 가 빈 값이므로
+	// 어떤 username 이어도 false 로 귀결 — 현 구현은 `(import.meta.env.VITE_ADMIN_USER_ID_PROD || '') === userId`
+	// 빈 문자열 비교로 이미 false 를 안전하게 반환.
+	const JWT_ANYONE = 'eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg';
+
+	beforeEach(() => {
+		// env 미주입 시나리오: 빈 문자열 stub (undefined 와 의미 등가 — `|| ''` fallback).
+		vi.stubEnv('VITE_ADMIN_USER_ID_PROD', '');
+		vi.stubEnv('VITE_ADMIN_USER_ID_DEV', '');
+		// 유효 JWT payload 를 가진 쿠키 주입 — parseJwt 는 ok payload 반환.
+		common.setCookie('access_token', JWT_ANYONE);
+	});
+
+	afterEach(() => {
+		common.deleteCookie('access_token');
+		// env stub 해제는 `src/setupTests.js` 전역 afterEach(vi.unstubAllEnvs) 가 담당.
+	});
+
+	it('returns false in production when VITE_ADMIN_USER_ID_PROD is empty', () => {
+		stubMode('production');
+		expect(common.isAdmin()).toBe(false);
+	});
+
+	it('returns false in development when VITE_ADMIN_USER_ID_DEV is empty', () => {
+		stubMode('development');
+		expect(common.isAdmin()).toBe(false);
+	});
+});
