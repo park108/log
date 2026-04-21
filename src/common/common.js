@@ -135,12 +135,14 @@ export function auth() {
 
 		setCookie("access_token", accessToken, {
 			secure: true,
-			site: site
+			sameSite: site,
+			maxAge: 3600,
 		});
 
 		setCookie("id_token", idToken, {
 			secure: true,
-			site: site
+			sameSite: site,
+			maxAge: 3600,
 		});
 	}
 }
@@ -149,8 +151,10 @@ export function isLoggedIn() {
 	return hasValue(getCookie("access_token"));
 }
 
-// TODO: change user id hard coding to IAM authorization
+// TODO: change user id hard coding to IAM authorization (REQ-20260421-017 임시 조치: VITE_ADMIN_USER_ID_* env 외부화 — 차후 IAM 권한화 마일스톤에서 제거 예정)
 export function isAdmin() {
+
+	if (isDev()) log(`isAdmin: cookie=${isLoggedIn()} env=${isProd() ? 'prod' : isDev() ? 'dev' : 'none'}`, "DEBUG");
 
 	if(!isLoggedIn()) {
 		return false;
@@ -163,11 +167,11 @@ export function isAdmin() {
 	const userId = payload.username;
 
 	if (isProd()
-		&& "df256e56-7c24-4b19-9172-10acc47ab8f4" === userId) {
+		&& (import.meta.env.VITE_ADMIN_USER_ID_PROD || '') === userId) {
 		return true;
 	}
 	else if (isDev()
-		&& "051fd5f9-a336-4055-96e5-6e1e125ebd15" === userId) {
+		&& (import.meta.env.VITE_ADMIN_USER_ID_DEV || '') === userId) {
 		return true;
 	}
 
