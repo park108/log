@@ -199,6 +199,85 @@ describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => 
 	});
 });
 
+describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
+	// setCookie 는 options 의 key 를 cookie string 에 그대로 직렬화하지만,
+	// jsdom document.cookie getter 는 name=value 만 반환하고 속성(SameSite, secure, path 등)은
+	// 노출하지 않는다. 따라서 실제 할당되는 cookie 문자열을 document.cookie setter 를 spy 로
+	// 가로채 캡처한다 (REQ-20260421-025 FR-02 positive/negative 어설션).
+	let savedLocation;
+	let cookieSetSpy;
+	let writtenCookies;
+
+	const clearAuthCookies = () => {
+		common.deleteCookie('access_token');
+		common.deleteCookie('id_token');
+	};
+
+	beforeEach(() => {
+		stubMode('development');
+		savedLocation = window.location;
+		const mock = new URL('http://localhost:3000');
+		mock.replace = vi.fn();
+		mock.href += '?access_token=AAA#id_token=BBB';
+		delete window.location;
+		window.location = mock;
+		clearAuthCookies();
+
+		// document.cookie setter 를 spy 하여 실제 직렬화된 cookie 문자열 수집.
+		writtenCookies = [];
+		const descriptor = Object.getOwnPropertyDescriptor(
+			Object.getPrototypeOf(document),
+			'cookie',
+		) || Object.getOwnPropertyDescriptor(document, 'cookie');
+		const originalSet = descriptor.set.bind(document);
+		cookieSetSpy = vi.spyOn(document, 'cookie', 'set').mockImplementation((v) => {
+			writtenCookies.push(v);
+			originalSet(v);
+		});
+	});
+
+	afterEach(() => {
+		cookieSetSpy.mockRestore();
+		clearAuthCookies();
+		delete window.location;
+		window.location = savedLocation;
+	});
+
+	it('emits SameSite=(Strict|Lax|None) on access_token and id_token cookies (positive)', () => {
+		common.auth();
+
+		// auth() 가 세팅하는 두 쿠키 (access_token, id_token) 직렬화 문자열 수집.
+		const authWrites = writtenCookies.filter(
+			(c) => /^access_token=|^id_token=/.test(c),
+		);
+		expect(authWrites.length).toBeGreaterThanOrEqual(2);
+
+		// positive: SameSite 속성이 RFC 6265bis 유효값 (Strict | Lax | None) 으로 1+ 매치.
+		const joined = authWrites.join('\n');
+		expect(joined).toMatch(/SameSite=(Strict|Lax|None)/);
+	});
+
+	it('does not emit non-RFC SameSite values (negative — lowercase / false / quoted / domain string)', () => {
+		common.auth();
+
+		const authWrites = writtenCookies.filter(
+			(c) => /^access_token=|^id_token=/.test(c),
+		);
+		const joined = authWrites.join('\n');
+
+		// negative: 비표준값 표현 0 매치.
+		// - SameSite=<lowercase word> (예: SameSite=strict, SameSite=lax)
+		// - SameSite=false
+		// - SameSite=" (따옴표 시작 — 도메인 등 이상 주입)
+		// - SameSite=park108.net / SameSite=localhost:3000 (도메인 문자열 — 이전 회귀)
+		expect(joined).not.toMatch(/SameSite=[a-z]/);
+		expect(joined).not.toMatch(/SameSite=false/);
+		expect(joined).not.toMatch(/SameSite="/);
+		expect(joined).not.toMatch(/SameSite=park108\.net/);
+		expect(joined).not.toMatch(/SameSite=localhost/);
+	});
+});
+
 describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
 	let savedLocation;
 	const clearAuthCookies = () => {

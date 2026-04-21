@@ -124,24 +124,19 @@ export function auth() {
 
 	if(null != accessToken) {
 
-		let site = "";
-		
-		if (isProd()) {
-			site = "park108.net";
-		}
-		else if (isDev()) {
-			site = "localhost:3000";
-		}
-
+		// RFC 6265bis (REQ-20260421-025 FR-01): SameSite 속성은 Strict | Lax | None 중 하나만 유효.
+		// Cognito Hosted UI redirect 후 top-level navigation 경로에서 쿠키가 전송되어야 하므로 "Lax" 고정.
+		// setCookie 는 options key 를 그대로 cookie string 에 직렬화하므로 표준 속성명 대문자 "SameSite" 로 주입.
+		// 직렬화 결과: "access_token=<v>; path=/; secure; SameSite=Lax; maxAge=3600" (브라우저 인식 속성명 정합).
 		setCookie("access_token", accessToken, {
 			secure: true,
-			sameSite: site,
+			SameSite: "Lax",
 			maxAge: 3600,
 		});
 
 		setCookie("id_token", idToken, {
 			secure: true,
-			sameSite: site,
+			SameSite: "Lax",
 			maxAge: 3600,
 		});
 	}
