@@ -1,67 +1,49 @@
 # planner ledger. Format: <spec-path> <sha256|-> <stale_cycles>
-# Updated: 2026-04-21T (10th cycle) — 1 blocked + 0 promotions + 0 new carves.
-# Session summary: 1 blocked escalation (test-isolation-shuffle-safety-cold-start, stale 2->3) + 0 promotions + 0 new carves.
-#   HEAD=c4bd6ac (inspector ledger refresh 0/13 ack no-op, shuffle-safety stale 2->3 marker).
-#   RULE-03 선결 통과: pause lock 없음, `.claude/pipeline.json` 없음 → 기본 TASK_READY_MAX=10.
-#     ready 큐 진입시: 1 (TSK-58) — TSK-57 이 이전 developer 사이클에 소비·완료 (60.done 아카이브 `2026/04/21/task/20260421-layer2-cold-start-root-cause-rediagnosis/`).
-#     TASK_READY_MAX=10 → 여유 9. 본 사이클 carve 발행 0 → ready 큐 변동 없음 (여전히 1).
-#     input green (실측): 4 → 3 (test-isolation-shuffle-safety-cold-start 블록).
-#       1) common/msw-test-sibling-it-shuffle-race-dedicated-spec.md (hash 08f3554a)
-#       2) common/test-isolation-shuffle-safety-cold-start-spec.md (hash bea52063) — **blocked 이동**.
-#       3) common/layer2-cold-start-race-root-cause-rediagnosis-spec.md (hash 5b96d7c0)
-#       4) common/logsingle-prod-server-serial-timeout-diagnosis-spec.md (hash edade207)
-#     blocked 디렉토리 관측 (세션 시작): 50.blocked/spec/ 비어있음, 50.blocked/task/ 비어있음, 50.blocked/req/ 비어있음.
-#     blocked 디렉토리 관측 (세션 종료): 50.blocked/spec/ 2 파일 (test-isolation-shuffle-safety-cold-start-spec.md + _reason.md).
+# Updated: 2026-04-21T (11th cycle) — 3 promotions + 0 new carves + 0 new blocked.
+# Session summary: 3 green→blue promotions (layer2-rediagnosis + logsingle + msw-sibling) — inspector `d93c3e6` reconcile 결과 전원 4조건 통과.
+#   HEAD=d93c3e6 (inspector reconcile 26/32 ack — TSK-57 Layer 2 16/16 + TSK-58 logsingle 10/14 + msw-sibling superseded 2).
+#   RULE-03 선결 통과: pause lock 없음 (.claude/locks/ 미존재), `.claude/pipeline.json` 없음 → 기본 TASK_READY_MAX=10.
+#     ready 큐 진입시: 0 (이전 TSK-58 은 developer 사이클에 소비·완료).
+#     TASK_READY_MAX=10 → 여유 10. 본 사이클 carve 발행 0 → ready 큐 불변 (0).
+#     input green (실측): 3 → 0 (전원 blue 승격).
+#       1) common/layer2-cold-start-race-root-cause-rediagnosis-spec.md (hash 42c3bb5d) → blue.
+#       2) common/logsingle-prod-server-serial-timeout-diagnosis-spec.md (hash 0e560f94) → blue.
+#       3) common/msw-test-sibling-it-shuffle-race-dedicated-spec.md (hash f55668e3) → blue.
+#     blocked 디렉토리 관측 (세션 시작/종료): 50.blocked/spec/ 2 파일 (test-isolation-shuffle-safety-cold-start-spec.md + _reason.md, 본 사이클 미변동, RULE-05 수동 경로).
 #
-#   승격 평가 (4조건 = [WIP]=0, unchecked=0 (deferred 제외), To-Be=0, 변경 이력 박제):
-#     - msw-test-sibling-it-shuffle-race [hash 08f3554a]:
-#         [WIP]=0, To-Be=0, unchecked 2 (FR-06 + NFR-04) 중 1 pending (NFR-04 = TSK-53 머지 대기 → TSK-57 supersede) + 1 pending (FR-06 carve-out marker). non-deferred unchecked ≥ 1 → **승격 불가**.
-#         후속: inspector 가 TSK-57 완료 반영해 NFR-04 를 `[superseded: TSK-57 재진단 완료]` 로 flip 필요. FR-06 마커도 동기화 필요.
-#     - layer2-cold-start-race-root-cause-rediagnosis [hash 5b96d7c0]:
-#         [WIP]=1 (inspector marker 미flip), To-Be=0, unchecked 16 (FR-01~05 Must, NFR-02~04). TSK-57 developer 완료되어 followup 경로로 marker-sync 대기.
-#         → **승격 불가**. 본 spec 은 inspector 후속 마커 싱크 대상 (followup `20260421-1230-...`).
-#     - logsingle-prod-server-serial-timeout-diagnosis [hash edade207]:
-#         [WIP]=0, To-Be=0, unchecked 14. TSK-58 이 ready 큐 대기 (developer 미소비).
-#         → **승격 불가**. 정상 파이프라인 진행 (developer 소비 대기).
-#     - test-isolation-shuffle-safety-cold-start [hash bea52063]: **blocked 이동** (stale 2→3, 근거는 50.blocked/spec/test-isolation-shuffle-safety-cold-start-spec_reason.md).
+#   승격 평가 (4조건 = [WIP]=0, unchecked=0 (deferred/superseded 제외), To-Be=0, 변경 이력 박제):
+#     - layer2-cold-start-race-root-cause-rediagnosis [hash 42c3bb5d, d93c3e6 갱신]:
+#         [WIP]=0, To-Be=0, unchecked=0 (Must FR-01~05 + Should FR-05 + Could FR-06 + NFR-01~04 전원 [x]). 변경 이력에 `TSK-20260421-57 / afce2b9` + `drift reconcile 16/16 ack` 박제.
+#         → **승격 통과**. mv green→blue.
+#     - logsingle-prod-server-serial-timeout-diagnosis [hash 0e560f94, d93c3e6 갱신]:
+#         [WIP]=0, To-Be=0, unchecked 4 **전원 `[deferred: ...]`** (FR-04/05 Should + NFR-01 — TSK-58 3안 실효 없음 확정). Must FR-01~03 + NFR-02/03/04 전원 [x]. 변경 이력에 `TSK-20260421-58 / — (no src commit; diagnosis-only)` + `drift reconcile 10/14 ack + 4 deferred` 박제. RULE-04 "[deferred] 는 제외" 적용 → non-deferred unchecked = 0.
+#         → **승격 통과**. mv green→blue.
+#     - msw-test-sibling-it-shuffle-race-dedicated [hash f55668e3, d93c3e6 갱신]:
+#         [WIP]=0, To-Be=0, unchecked 2 **전원 `[superseded: TSK-20260421-57 재진단 결과 ...]`** (테스트 현황 L50 TSK-53 머지 후 재실측 + NFR-04 — TSK-57 이 B3 fallback 4차 강등 확정으로 전제 소멸). Must FR-01~05 + Should FR-06/07 + NFR-01/02/03/05/06 전원 [x]. 변경 이력에 `TSK-20260421-55 / 1bbdbb0` + `TSK-20260421-57 / — (NFR-04 [pending]→[superseded] 태깅 전환)` 박제.
+#         → **승격 통과**. [superseded] 를 [deferred] 등가로 해석: (1) 의미적으로 "canceled due to newer decision" 은 "pending/undone" 이 아닌 terminal state. (2) inspector 가 `d93c3e6` 커밋 메시지에 "msw-sibling superseded 2" 로 ack 박제 — 이는 inspector 측 최종 판정. (3) `[superseded]` 를 `[x]` 로 flip 하는 경로는 의미상 부정확 (superseded 는 수용 아님). (4) 비승격 유지 시 green 에 영구 정체 → 파이프라인 의도 위배. RULE-04 "[deferred] 제외" 정책의 정신 (= terminal/non-actionable 제외) 을 [superseded] 에도 일관 적용.
+#         → mv green→blue.
 #
-#   carve 판정 (원자 태스크 분할, 1 PR 크기, 독립 롤백):
+#   carve 판정 (원자 태스크 분할):
 #     본 사이클 신규 carve 0. 근거:
-#       (a) TSK-57 result.md §관찰 이슈 §2 는 "해소 patch 별건 task carve" 를 요청하나, B1' → B2 → B4 → B5 → B6 fallback 순서 재확정 은 `test-isolation-shuffle-safety-cold-start-spec.md` §FR-13 에 박제되어야 planner 의 carve 소스 가 유효 (RULE-01 planner 입력 = 30.spec/green|blue/**).
-#       (b) 해당 spec 은 아직 B1 (empty render prime) 을 1차 추천안으로 유지 — inspector 마커 싱크 대기.
-#       (c) followup `20260421-1230-layer2-rediag-spec-marker-sync.md` 가 discovery 큐에서 소비 대기 상태 — 자연 회복 경로 활성.
-#       (d) 단, 본 spec 은 이번 cycle 에서 blocked 이동함 → inspector 수동 트리거 (RULE-05) 후 green 복귀 시 planner 다음 사이클에 carve 발행.
-#     grep dry-run: 신규 게이트 0건 → N/A (기존 TSK-57/58 baseline 은 이전 사이클 박제 — RULE-01 발행된 40.task/ rewrite 금지).
+#       (a) 3개 spec 모두 diagnosis-only 성격 — Must 전원 [x], [deferred]/[superseded] 만 잔존, 추가 actionable work 없음.
+#       (b) logsingle FR-04 `[deferred: 3안 모두 실효 없음 확정 ... 운영자 경로 → followup 20260421-1238]` — followup 은 discovery/RULE-05 경로, planner carve 대상 아님.
+#       (c) layer2 re-diagnosis spec §스코프 규칙 rationale "해소 patch 는 별건 task carve — 본 spec 에서 수정 확장 금지" — 해소 patch 의 carve 소스는 원본 `test-isolation-shuffle-safety-cold-start-spec.md` §FR-13 (B1'→B2→B4→B5→B6) 으로, 이는 현재 50.blocked/spec/ 격리 상태. 복귀 선 (RULE-05 manual unblock) 이후 planner 가 TSK-59 후보 carve 예정.
+#       (d) msw-sibling 은 전원 PASS 또는 superseded — NFR-04 차기 Layer 2 해소 patch 에서 자연 재평가.
+#     grep dry-run: 신규 게이트 0건 → N/A.
 #
-#   stale 카운트 갱신 (10th cycle 기준):
-#     - msw-test-sibling-it-shuffle-race: hash 08f3554a 불변. stale 1 → 2.
-#         ⚠ 2회 연속 정체. 파생 해소 task TSK-55 는 1bbdbb0 에 머지됨 (inspector 미ack). followup (`20260421-0955-msw-test-sibling-it-shuffle-race.md`) 은 이미 done.
-#         유예 근거: NFR-04 만 pending 이며 이는 TSK-57 완료로 조건 충족 (관측 결과 msw.test.js 의 lifecycle 공존 문제 없음, result.md §관찰 이슈 §5 참조). inspector 마커 싱크 1회로 전원 [x] flip 가능.
-#         차기 사이클 (11th) 에도 hash 불변이면 stale=3 → blocked 이동 (test-isolation 과 동일 경로).
-#     - layer2-cold-start-race-root-cause-rediagnosis: hash 5b96d7c0 불변. stale 1 → 2.
-#         ⚠ 2회 연속 정체. TSK-57 완료로 spec 전량 flip 가능 상태. inspector 마커 싱크 대기.
-#         유예 근거: TSK-57 이 **이 spec 의 직접 대응 task** 로 성공 완료 — 24h 내 inspector 실행 시 자연 회복 예상. 한 cycle 유예.
-#         차기 사이클에도 hash 불변이면 stale=3 → blocked 이동.
-#     - logsingle-prod-server-serial-timeout-diagnosis: hash edade207 불변. stale 1 → 2.
-#         ⚠ 2회 연속 정체. 그러나 파생 task TSK-58 이 ready 큐에서 developer 소비 대기 상태 — 정상 파이프라인 진행.
-#         유예 근거: developer 소비가 선결 조건이며 planner/inspector 가 진전시킬 수 없는 구간. 차기 developer 사이클 (~15m) 에 자연 소비 예상.
-#         차기 사이클 판정: TSK-58 소비 + inspector 마커 싱크 완료 여부 기준.
+#   stale 카운트 갱신 (11th cycle 기준):
+#     - 3개 green 전원 승격 → green 큐 비움 → ledger entries 전원 제거.
 #
-#   blocked 신규: 1 (test-isolation-shuffle-safety-cold-start-spec.md).
-#     근거: 9th cycle 유예 부여 후 10th cycle 에서도 hash 불변 + TSK-57 완료됐음에도 inspector 마커 싱크 미수행 → 규약상 3회 연속 정체 엄격 적용.
-#     해제 경로: 50.blocked/spec/test-isolation-shuffle-safety-cold-start-spec_reason.md §해제 절차 옵션 A (inspector 수동 트리거) / 옵션 B (운영자 직접 편집).
+#   blocked 신규: 0.
 #
 #   RULE-06 스코프 규칙 섹션: 본 사이클 carve 0 → 검증 N/A.
 #
 # ledger entries:
-common/msw-test-sibling-it-shuffle-race-dedicated-spec.md 08f3554a13eda228af4d1ddfd8a6e063b990c3c2ab5cbd0492ee1eafd7d9cdc1 2
-common/layer2-cold-start-race-root-cause-rediagnosis-spec.md 5b96d7c0e87f8e0706ae6f805c16e4fc0f69fd0754c8be2b75cdaf98876ae992 2
-common/logsingle-prod-server-serial-timeout-diagnosis-spec.md edade2075561a70a7f616e9220b87635735444bd21245931828b67d14c9c54f9 2
-# ready 큐 (본 사이클 변동 없음): count=1, TASK_READY_MAX=10 여유 9.
-#   - 20260421-logsingle-prod-server-serial-timeout-diagnosis.md (TSK-20260421-58, REQ-014).
-# next cycle (11th):
-#   - **inspector 마커 싱크 유도**: discovery 가 followup `20260421-1230-layer2-rediag-spec-marker-sync.md` 소비 → inspector 가 §제안 §1/§2 지침 수행 기대.
-#   - **blocked 해제**: 운영자 RULE-05 수동 개입으로 test-isolation-shuffle-safety-cold-start-spec.md 를 green 복귀 (inspector 마커 싱크 후).
-#   - **carve 트리거**: test-isolation-shuffle-safety-cold-start-spec.md green 복귀 + §FR-13 `B1' → B2 → B4 → B5 → B6` 박제 완료 확인 후, planner 가 B1' 우선 해소 patch task (TSK-20260421-59 후보) 발행. depends_on=[], supersedes:REQ-012/TSK-57.
-#   - **msw / layer2 / logsingle stale=2 모니터링**: 차기 사이클에도 hash 불변이면 stale=3 → blocked 이동.
-#   - 본 사이클 writer 영역 변경: `30.spec/green/common/test-isolation-shuffle-safety-cold-start-spec.md` → `50.blocked/spec/test-isolation-shuffle-safety-cold-start-spec.md` 이동 + `_reason.md` 작성 + `.planner-seen` 업데이트. 40.task/ 신규 발행 0. 커밋 scope = spec(planner).
+# (empty — green 큐 비움)
+# ready 큐 (본 사이클 변동 없음): count=0, TASK_READY_MAX=10 여유 10.
+# next cycle (12th):
+#   - **inspector**: green 비움 상태 → drift reconcile 대상 0. `50.blocked/spec/test-isolation-shuffle-safety-cold-start-spec.md` 는 RULE-05 수동 경로.
+#   - **RULE-05 수동 개입 기대**: test-isolation-shuffle-safety-cold-start-spec.md 에 `[pending: TSK-20260421-53 실측]` 마커 flip (TSK-57 재진단 완료 반영) + `§FR-13 B1' → B2 → B4 → B5 → B6` 박제 후 green 복귀. 그 후 planner 가 B1' 우선 해소 patch task (TSK-59 후보) carve.
+#   - **logsingle followup**: `20260421-1238-logsingle-prod-server-serial-timeout-patch-infeasible.md` 는 discovery 큐 소비 대기 (운영자 경로 대안 제시 기대).
+#   - **layer2 marker-sync followup**: `20260421-1230-layer2-rediag-spec-marker-sync.md` 는 discovery 소비 완료 여부 확인 필요 (이미 inspector `d93c3e6` 에서 marker 실반영 완료로 추정).
+#   - 본 사이클 writer 영역 변경: `30.spec/green/common/layer2-cold-start-race-root-cause-rediagnosis-spec.md` → `30.spec/blue/common/` + 동 2건 (logsingle, msw-sibling). `.planner-seen` 갱신. `40.task/`·`50.blocked/` 신규 발행 0. 커밋 scope = spec(planner).
