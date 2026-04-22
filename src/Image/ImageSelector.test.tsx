@@ -44,8 +44,8 @@ describe('ImageSelector loading > loading more > and fail on prod server', () =>
 
 		// Click first image — copyMarkdownString is now async, so await writeText resolution
 		// before proceeding to avoid leaking unhandled promise state into the next assertions.
-		fireEvent.click(imageItems2[0]); // enlarge
-		fireEvent.click(imageItems2[0]); // shrink and copy markdown string
+		fireEvent.click(imageItems2[0]!); // enlarge
+		fireEvent.click(imageItems2[0]!); // shrink and copy markdown string
 
 		await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalled());
 
@@ -201,8 +201,8 @@ describe('ImageSelector clipboard rejection error Toaster', () => {
 		expect(imageItems.length).toBe(4);
 
 		// Enlarge → shrink + copy flow; the shrink click triggers copyMarkdownString.
-		fireEvent.click(imageItems[0]);
-		fireEvent.click(imageItems[0]);
+		fireEvent.click(imageItems[0]!);
+		fireEvent.click(imageItems[0]!);
 
 		// Failure message surfaced to the user instead of the success string.
 		const errorText = await screen.findByText('Copy failed (permission denied or unavailable).');
@@ -225,10 +225,10 @@ describe('ImageSelector reportError 채널 (REQ-20260421-039 FR-03)', () => {
 			// errorType 분기 동기 side-effect. "Failed getting images" 렌더 = data 반영 완료.
 			await screen.findByText('Failed getting images');
 
-			const calls = errorReporter.reportError.mock.calls;
+			const calls = vi.mocked(errorReporter.reportError).mock.calls;
 			expect(calls.length).toBe(1);
 			// payload 는 errorType 필드를 포함하는 body 객체 (ERROR_500 fixture).
-			expect(calls[0][0]).toMatchObject({ errorType: '500' });
+			expect(calls[0]![0]).toMatchObject({ errorType: '500' });
 		});
 	});
 
@@ -244,10 +244,10 @@ describe('ImageSelector reportError 채널 (REQ-20260421-039 FR-03)', () => {
 
 			await screen.findByText('Failed getting images');
 
-			const calls = errorReporter.reportError.mock.calls;
+			const calls = vi.mocked(errorReporter.reportError).mock.calls;
 			expect(calls.length).toBe(1);
 			// catch 분기: Error 인스턴스 전달.
-			expect(calls[0][0]).toBeInstanceOf(Error);
+			expect(calls[0]![0]).toBeInstanceOf(Error);
 		});
 	});
 });

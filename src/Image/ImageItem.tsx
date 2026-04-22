@@ -31,6 +31,13 @@ const ImageItem = (props: ImageItemProps): React.ReactElement => {
 		setIsEnlarged((prev) => !prev);
 	};
 
+	// 커스텀 lowercase 속성 (`imageurl` / `thumbnailurl`) 은 `ImgHTMLAttributes` 에 정의되지 않아
+	// spread 로 우회 전달한다. 테스트에서 `getAttribute("imageurl")` 로 읽는 런타임 계약 유지.
+	const customAttrs = {
+		imageurl: fullsizeImageUrl,
+		thumbnailurl: thumbnailImageUrl,
+	} as Record<string, string>;
+
 	return (
 		<img className={className}
 			data-testid="imageItem"
@@ -39,11 +46,10 @@ const ImageItem = (props: ImageItemProps): React.ReactElement => {
 			src={src}
 			alt={props.fileName}
 			title={props.fileName}
-			imageurl={fullsizeImageUrl}
-			thumbnailurl={thumbnailImageUrl}
+			{...customAttrs}
 			data-enlarged={isEnlarged ? "Y" : "N"}
 			onClick={handleToggle}
-			onKeyDown={activateOnKey(handleToggle)}
+			onKeyDown={activateOnKey(handleToggle as () => void)}
 		/>
 	);
 }

@@ -175,7 +175,7 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 						tabIndex={0}
 						role="button"
 						onClick={handleRetry}
-						onKeyDown={activateOnKey(handleRetry)}
+						onKeyDown={activateOnKey(handleRetry as () => void)}
 					>Retry</span>
 				</div>
 			);
