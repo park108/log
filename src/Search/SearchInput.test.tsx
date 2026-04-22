@@ -20,9 +20,9 @@ const testEntry = {
 
 describe('test key up events', () => {
 
-	let inputElement = null;
-	let searchButton = null;
-	let mobileSearchButton = null;
+	let inputElement: HTMLInputElement | null = null;
+	let searchButton: HTMLElement | null = null;
+	let mobileSearchButton: HTMLElement | null = null;
 
 	it('firing keyUp event', async () => {
 
@@ -30,14 +30,14 @@ describe('test key up events', () => {
 
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
-	
+
 		render(
 			<MemoryRouter initialEntries={[ testEntry ]}>
 				<SearchInput />
 			</MemoryRouter>
 		);
 
-		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
+		inputElement = screen.getAllByPlaceholderText("Input search string...")[0] as HTMLInputElement;
 		searchButton = screen.getByText("go");
 		mobileSearchButton = screen.getByText("search");
 
@@ -47,10 +47,10 @@ describe('test key up events', () => {
 
 		inputElement.value = "테스트";
 		fireEvent.keyUp(inputElement, { keyCode: 13 });
-		
+
 		expect(searchButton).toBeDefined();
 		fireEvent.click(searchButton);
-		
+
 		expect(mobileSearchButton).toBeDefined();
 		fireEvent.click(mobileSearchButton);
 		fireEvent.click(mobileSearchButton);
@@ -94,7 +94,7 @@ describe('test key up events', () => {
 		fireEvent.click(toggle);
 
 		const mobileSearch = document.getElementById("mobile-search");
-		expect(mobileSearch.getAttribute("class")).toContain("search-mobile");
+		expect(mobileSearch!.getAttribute("class")).toContain("search-mobile");
 	});
 
 	it('mobile search toggle activates on Space key (click synthesis)', async () => {
@@ -115,7 +115,7 @@ describe('test key up events', () => {
 		fireEvent.click(toggle);
 
 		const mobileSearch = document.getElementById("mobile-search");
-		expect(mobileSearch.getAttribute("class")).toContain("search-mobilehide");
+		expect(mobileSearch!.getAttribute("class")).toContain("search-mobilehide");
 	});
 
 	it('firing search when the search string is null', async () => {
@@ -131,7 +131,7 @@ describe('test key up events', () => {
 			</MemoryRouter>
 		);
 
-		inputElement = screen.getAllByPlaceholderText("Input search string...")[0];
+		inputElement = screen.getAllByPlaceholderText("Input search string...")[0] as HTMLInputElement;
 
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 

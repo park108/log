@@ -26,7 +26,7 @@ const testEntry = {
 // REQ-20260420-028 §3.3: Search 는 App 레벨 Provider 를 소비하지만 테스트는 per-call
 // QueryClient 로 캐시 누수를 차단한다 (createQueryTestWrapper 와 동일 정책: retry:false,
 // staleTime:0, gcTime:0).
-const renderWithQueryRouter = (ui, { entries = [testEntry] } = {}) => {
+const renderWithQueryRouter = (ui: React.ReactNode, { entries = [testEntry] } = {}) => {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false, staleTime: 0, gcTime: 0 },
@@ -126,10 +126,10 @@ describe('Search reportError 채널 (REQ-20260421-039 FR-03)', () => {
 			// "No search results." 렌더 대기 = data 반영 완료 시점.
 			await screen.findByText("No search results.");
 
-			const calls = errorReporter.reportError.mock.calls;
+			const calls = vi.mocked(errorReporter.reportError).mock.calls;
 			expect(calls.length).toBe(1);
 			// payload 는 errorType 필드를 포함하는 body 객체.
-			expect(calls[0][0]).toMatchObject({ errorType: "500" });
+			expect(calls[0]![0]).toMatchObject({ errorType: "500" });
 		});
 	});
 
@@ -145,10 +145,10 @@ describe('Search reportError 채널 (REQ-20260421-039 FR-03)', () => {
 
 			await screen.findByText("No search results.");
 
-			const calls = errorReporter.reportError.mock.calls;
+			const calls = vi.mocked(errorReporter.reportError).mock.calls;
 			expect(calls.length).toBe(1);
 			// error 인자는 Error-like (Failed to fetch / network error).
-			expect(calls[0][0]).toBeDefined();
+			expect(calls[0]![0]).toBeDefined();
 		});
 	});
 });
@@ -193,8 +193,8 @@ describe('Search navigate to log list via toList button', () => {
 		);
 
 		// Test query string initializing
-		document.getElementById("query-string-by-enter").value = "테스트";
-		document.getElementById("query-string-by-button").value = "테스트";
+		(document.getElementById("query-string-by-enter") as HTMLInputElement).value = "테스트";
+		(document.getElementById("query-string-by-button") as HTMLInputElement).value = "테스트";
 
 		const toListButton = await screen.findByText("To list");
 		fireEvent.click(toListButton);
