@@ -8,9 +8,32 @@ import styles from './Comment.module.css';
 
 const CommentForm = lazy(() => import('./CommentForm'));
 
-const CommentItem = (props) => {
+interface CommentReplyPayload {
+	logTimestamp?: number;
+	isAdminComment: boolean;
+	message: string;
+	name: string;
+	commentTimestamp?: number;
+	isHidden: boolean;
+}
 
-	const [isShowReplyForm, setIsShowReplyForm] = useState(false);
+interface CommentItemProps {
+	isHidden: boolean;
+	isAdminComment: boolean;
+	message: string;
+	name: string;
+	logTimestamp?: number;
+	commentTimestamp?: number;
+	timestamp: number;
+	// eslint-disable-next-line no-unused-vars
+	openReplyForm: (isOpened: boolean) => void;
+	// eslint-disable-next-line no-unused-vars
+	reply: (comment: CommentReplyPayload) => void;
+}
+
+const CommentItem = (props: CommentItemProps): React.ReactElement => {
+
+	const [isShowReplyForm, setIsShowReplyForm] = useState<boolean>(false);
 
 	const isHidden = props.isHidden;
 	const isAdminComment = props.isAdminComment;
@@ -24,12 +47,12 @@ const CommentItem = (props) => {
 	// 기존 hoverPopup(event, "reply-popup-" + timestamp) 명령형 호출 대체.
 	const replyPopup = useHoverPopup();
 
-	const toggleReplyForm = () => {
+	const toggleReplyForm = (): void => {
 		setIsShowReplyForm(!isShowReplyForm);
 		props.openReplyForm(!isShowReplyForm);
 	}
 
-	const postReply = (comment) => {
+	const postReply = (comment: CommentReplyPayload): void => {
 		props.reply(comment);
 		setIsShowReplyForm(false);
 	}
@@ -45,7 +68,7 @@ const CommentItem = (props) => {
 	const timestampText
 		= isHidden && !isAdmin()
 		? ""
-		: getFormattedDate(timestamp) + " " + getFormattedTime(timestamp);
+		: getFormattedDate(timestamp as number) + " " + getFormattedTime(timestamp as number);
 
 	const replyButton = isHidden && !isAdmin() ? ""
 		: isReply ? ""
@@ -74,8 +97,8 @@ const CommentItem = (props) => {
 	const replyForm = isHidden && !isAdmin() ? ""
 		: isShowReplyForm ? <CommentForm
 				isReply={true}
-				logTimestamp={logTimestamp}
-				commentTimestamp={timestamp}
+				logTimestamp={logTimestamp as number | undefined}
+				commentTimestamp={timestamp as number | undefined}
 				post={postReply}
 			/>
 		: ""

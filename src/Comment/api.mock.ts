@@ -1,23 +1,33 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, type RequestHandler, type SharedOptions } from 'msw'
 import { setupServer } from 'msw/node'
 import { ERROR_500, OK_200 } from '../__fixtures__/common'
 import { commentsProdOne, commentsDevTen } from './__fixtures__/comments'
 
-const API_URL = import.meta.env.VITE_COMMENT_API_BASE;
+const API_URL = import.meta.env.VITE_COMMENT_API_BASE as string;
+
+interface CommentScenarioServer {
+	// eslint-disable-next-line no-unused-vars
+	listen: (opts?: Partial<SharedOptions>) => void;
+	// eslint-disable-next-line no-unused-vars
+	resetHandlers: (...h: RequestHandler[]) => void;
+	// eslint-disable-next-line no-unused-vars
+	use: (...h: RequestHandler[]) => void;
+	close: () => void;
+}
 
 const server = setupServer();
 let active = false;
 
-const scenario = (...handlers) => ({
-	listen: (opts = {}) => {
+const scenario = (...handlers: RequestHandler[]): CommentScenarioServer => ({
+	listen: (opts: Partial<SharedOptions> = {}) => {
 		if (!active) {
 			server.listen({ onUnhandledRequest: 'error', ...opts });
 			active = true;
 		}
 		server.resetHandlers(...handlers);
 	},
-	resetHandlers: (...h) => server.resetHandlers(...handlers, ...h),
-	use: (...h) => server.use(...h),
+	resetHandlers: (...h: RequestHandler[]) => server.resetHandlers(...handlers, ...h),
+	use: (...h: RequestHandler[]) => server.use(...h),
 	close: () => {
 		if (active) {
 			server.close();
@@ -53,5 +63,5 @@ export const devServerFailed = scenario(
 
 export const devServerNetworkError = scenario(
 	http.get(API_URL + "/test", () => HttpResponse.error()),
-	http.post(API_URL + "/test", async () => HttpResponse.error()),
+	http.post(API_URL + "/test", () => HttpResponse.error()),
 );

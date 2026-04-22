@@ -1,39 +1,57 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from "react";
 import PropTypes from 'prop-types';
 import { hasValue, isAdmin } from '../common/common';
 
 import styles from './Comment.module.css';
 
-const CommentForm = (props) => {
+interface CommentSubmitPayload {
+	logTimestamp?: number;
+	isAdminComment: boolean;
+	message: string;
+	name: string;
+	commentTimestamp?: number;
+	isHidden: boolean;
+}
 
-	const [message, setMessage] = useState("");
-	const [userName, setUserName] = useState("");
-	const [isHidden, setIsHidden] = useState(false);
-	const [messageDisabled, setMessageDisabled] = useState("");
+interface CommentFormProps {
+	logTimestamp?: number;
+	commentTimestamp?: number;
+	// eslint-disable-next-line no-unused-vars
+	post: (comment: CommentSubmitPayload) => void;
+	isPosting?: boolean;
+	isReply?: boolean;
+}
+
+const CommentForm = (props: CommentFormProps): React.ReactElement => {
+
+	const [message, setMessage] = useState<string>("");
+	const [userName, setUserName] = useState<string>("");
+	const [isHidden, setIsHidden] = useState<boolean>(false);
+	const [messageDisabled, setMessageDisabled] = useState<string>("");
 
 	const logTimestamp = props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
 
-	const userNameRef = useRef(null);
-	const messageRef = useRef(null);
+	const userNameRef = useRef<HTMLInputElement | null>(null);
+	const messageRef = useRef<HTMLTextAreaElement | null>(null);
 
-	const postComment = (e) => {
+	const postComment = (e: FormEvent<HTMLFormElement>): void => {
 
 		e.preventDefault();
 
 		if(0 === userName.length) {
 			alert("Please input your name.");
-			userNameRef.current.focus();
+			userNameRef.current?.focus();
 			return;
 		}
 
 		if(message.length < 5) {
 			alert("Please comment at least 5 characters.");
-			messageRef.current.focus();
+			messageRef.current?.focus();
 			return;
 		}
 
-		const comment = {
+		const comment: CommentSubmitPayload = {
 			logTimestamp: logTimestamp,
 			isAdminComment: isAdmin(),
 			message: message,
@@ -68,9 +86,9 @@ const CommentForm = (props) => {
 				type="text"
 				className={`input ${styles.inputCommentName}`}
 				placeholder="Type your name"
-				onChange={ ({target: { value } }) => setUserName(value) }
+				onChange={ ({ target: { value } }: ChangeEvent<HTMLInputElement>) => setUserName(value) }
 				value={userName}
-				disabled={ isAdmin() || props.isPosting ? "disabled" : "" }
+				disabled={ Boolean(isAdmin() || props.isPosting) }
 				autoFocus
 			/>
 			<textarea
@@ -78,15 +96,15 @@ const CommentForm = (props) => {
 				className={`textarea ${styles.textareaCommentForm}`}
 				placeholder={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
 				value={message}
-				disabled={messageDisabled}
-				onChange={ ({ target: { value } }) => setMessage(value) }
+				disabled={messageDisabled === "disabled"}
+				onChange={ ({ target: { value } }: ChangeEvent<HTMLTextAreaElement>) => setMessage(value) }
 			/>
 			<div className={`div ${styles.divCommentInputhidden}`}>
 				<input
 					type="checkbox"
 					id="hidden"
 					className={`input ${styles.inputCommentHidden}`}
-					onChange={ ({target: { checked } }) => setIsHidden(checked) }
+					onChange={ ({ target: { checked } }: ChangeEvent<HTMLInputElement>) => setIsHidden(checked) }
 				/>
 				<label htmlFor="hidden" className={`label ${styles.labelCommentHidden}`}>
 					🥷 Hidden Message

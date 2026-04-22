@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy, type ReactNode } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, isAdmin } from '../common/common';
 import { activateOnKey } from '../common/a11y';
@@ -11,26 +11,53 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
 const CommentItem = lazy(() => import('./CommentItem'));
 const CommentForm = lazy(() => import('./CommentForm'));
 
-const Comment = (props) => {
+interface CommentItemData {
+	sortKey: string;
+	timestamp: number;
+	commentTimestamp?: number;
+	logTimestamp: number;
+	message: string;
+	name: string;
+	isHidden: boolean;
+	isAdminComment: boolean;
+}
 
-	const [reload, setReload] = useState(true);
-	const [isLoading, setIsLoading] = useState(false);
-	const [isShow, setIsShow] = useState(false);
-	const [isOpenReplyForm, setIsOpenReplyForm] = useState(false);
-	const [isPosting, setIsPosting] = useState(false);
+interface CommentPostPayload {
+	logTimestamp: number;
+	isAdminComment: boolean;
+	message: string;
+	name: string;
+	commentTimestamp?: number;
+	isHidden: boolean;
+}
 
-	const [comments, setComments] = useState([]);
-	const [buttonText, setButtonText] = useState("... comments");
-	const [commentThread, setCommentThread] = useState("");
-	const [commentForm, setCommentForm] = useState("");
+interface CommentProps {
+	logTimestamp?: number;
+}
 
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage, setToasterMessage] = useState("");
-	const [toasterType, setToasterType] = useState("success");
+type ToasterShow = 0 | 1 | 2;
+type ToasterType = "information" | "success" | "warning" | "error";
+
+const Comment = (props: CommentProps): React.ReactElement => {
+
+	const [reload, setReload] = useState<boolean>(true);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [isShow, setIsShow] = useState<boolean>(false);
+	const [isOpenReplyForm, setIsOpenReplyForm] = useState<boolean>(false);
+	const [isPosting, setIsPosting] = useState<boolean>(false);
+
+	const [comments, setComments] = useState<CommentItemData[]>([]);
+	const [buttonText, setButtonText] = useState<string>("... comments");
+	const [commentThread, setCommentThread] = useState<ReactNode>("");
+	const [commentForm, setCommentForm] = useState<ReactNode>("");
+
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShow>(0);
+	const [toasterMessage, setToasterMessage] = useState<string>("");
+	const [toasterType, setToasterType] = useState<ToasterType>("success");
 
 	let logTimestamp = props.logTimestamp;
 
-	const postNewComment = async(comment) => {
+	const postNewComment = async (comment: CommentPostPayload): Promise<void> => {
 
 		setIsPosting(true);
 
@@ -72,18 +99,18 @@ const Comment = (props) => {
 
 	useEffect(() => {
 
-		const fetchData = async(timestamp) => {
+		const fetchData = async (timestamp: number | undefined): Promise<void> => {
 
 			setIsLoading(true);
 
 			try {
-				const res = await getComments(timestamp, isAdmin());
+				const res = await getComments(timestamp as number, isAdmin());
 				const newData = await res.json();
-	
+
 				if(!hasValue(newData.errorType)) {
 					log("[API GET] OK - Comments", "SUCCESS");
 
-					newData.body.Items.sort((a, b) => {
+					newData.body.Items.sort((a: CommentItemData, b: CommentItemData) => {
 						return (a.sortKey < b.sortKey) ? -1 : 1
 					});
 
@@ -98,7 +125,7 @@ const Comment = (props) => {
 				log("[API GET] FAILED - Comments", "ERROR");
 				reportError(err);
 			}
-	
+
 			setIsLoading(false);
 			setIsPosting(false);
 		}
@@ -128,7 +155,7 @@ const Comment = (props) => {
 			setCommentThread(
 				<div className={`div ${styles.divCommentThread}`}>
 					<Suspense fallback={<div></div>}>
-						{comments.map(data => (				
+						{comments.map(data => (
 							<CommentItem
 								key={data.timestamp}
 								isAdminComment={data.isAdminComment}
@@ -138,7 +165,7 @@ const Comment = (props) => {
 								commentTimestamp={data.commentTimestamp}
 								timestamp={data.timestamp}
 								isHidden={data.isHidden}
-								openReplyForm={(isOpened) => {
+								openReplyForm={(isOpened: boolean) => {
 									setIsOpenReplyForm(isOpened);
 								}}
 								reply={postNewComment}
@@ -172,7 +199,7 @@ const Comment = (props) => {
 		}
 	}, [isShow, isOpenReplyForm]);
 
-	const toggleShow = () => setIsShow(!isShow);
+	const toggleShow = (): void => setIsShow(!isShow);
 
 	return (
 		<section className={`section ${styles.sectionLogitemComment}`}>
@@ -190,7 +217,7 @@ const Comment = (props) => {
 			{ commentThread }
 			{ commentForm }
 
-			<Toaster 
+			<Toaster
 				show={isShowToaster}
 				message={toasterMessage}
 				position={"bottom"}

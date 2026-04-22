@@ -1,4 +1,21 @@
-export const commentsProdOne = {
+interface CommentFixtureItem {
+	sortKey: string;
+	logTimestamp: number;
+	timestamp: number;
+	message: string;
+	isHidden: boolean;
+	isAdminComment: boolean;
+	name: string;
+	commentTimestamp?: number;
+}
+
+interface CommentsListPage {
+	Items: CommentFixtureItem[];
+	Count: number;
+	ScannedCount: number;
+}
+
+export const commentsProdOne: CommentsListPage = {
 	Items: [
 		{ sortKey: "1655392348834-0000000000000", logTimestamp: 1655302060414, timestamp: 1655392348834, message: "Posting Test", isHidden: false, isAdminComment: false, name: "Posting Test" },
 	],
@@ -6,7 +23,7 @@ export const commentsProdOne = {
 	ScannedCount: 1,
 };
 
-export const commentsDevTen = {
+export const commentsDevTen: CommentsListPage = {
 	Items: [
 		{ sortKey: "1655389504138-0000000000000", logTimestamp: 1655302060414, timestamp: 1655389504138, message: "나는 엉망으로 살고 있구나!", isHidden: false, isAdminComment: true, name: "Jongkil Park" },
 		{ sortKey: "1655389797918-0000000000000", logTimestamp: 1655302060414, timestamp: 1655389797918, message: "내가 썼지만 숨겨져서 못보지롱?", isHidden: true, isAdminComment: false, name: "숨겨져있는 나" },
