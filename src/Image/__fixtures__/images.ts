@@ -1,10 +1,31 @@
-const lastEvalKey = {
+interface S3ImageItem {
+	size: number;
+	bucket: string;
+	url: string;
+	key: string;
+	timestamp: number;
+}
+
+interface LastEvaluatedKey {
+	key: string;
+	bucket: string;
+	timestamp: number;
+}
+
+interface ImagesListPage {
+	Items: S3ImageItem[];
+	Count: number;
+	ScannedCount: number;
+	LastEvaluatedKey: LastEvaluatedKey;
+}
+
+const lastEvalKey: LastEvaluatedKey = {
 	key: "https://park108-image-dev.s3.ap-northeast-2.amazonaws.com/thumbnail/20220221-adef6fdb-00fb-49af-bdb6-72b42054a19d.png",
 	bucket: "park108-image-dev",
 	timestamp: 1645425943454,
 };
 
-export const imagesListFirst4 = {
+export const imagesListFirst4: ImagesListPage = {
 	Items: [
 		{ size: 6203, bucket: "park108-image-dev", url: "https://park108-image-dev.s3.ap-northeast-2.amazonaws.com/thumbnail/20220606-2b06c374-1b08-4e40-887c-4209f3912272.png", key: "thumbnail/20220606-2b06c374-1b08-4e40-887c-4209f3912272.png", timestamp: 1654522284871 },
 		{ size: 3567, bucket: "park108-image-dev", url: "https://park108-image-dev.s3.ap-northeast-2.amazonaws.com/thumbnail/20220221-69732ca3-b1c6-4285-a840-0f36ac5b1da4.png", key: "thumbnail/20220221-69732ca3-b1c6-4285-a840-0f36ac5b1da4.png", timestamp: 1645425964565 },
@@ -16,7 +37,7 @@ export const imagesListFirst4 = {
 	LastEvaluatedKey: lastEvalKey,
 };
 
-export const imagesListNext2 = {
+export const imagesListNext2: ImagesListPage = {
 	Items: [
 		{ size: 3567, bucket: "park108-image-dev", url: "https://park108-image-dev.s3.ap-northeast-2.amazonaws.com/thumbnail/20220221-5d50f8e3-ee14-4627-bd34-b0405bd52d14.png", key: "thumbnail/20220221-5d50f8e3-ee14-4627-bd34-b0405bd52d14.png", timestamp: 1645425942996 },
 		{ size: 2488, bucket: "park108-image-dev", url: "https://park108-image-dev.s3.ap-northeast-2.amazonaws.com/thumbnail/20211212-676e3432-1e1b-4f10-8f29-afba42da9ce9.jpg", key: "thumbnail/20211212-676e3432-1e1b-4f10-8f29-afba42da9ce9.jpg", timestamp: 1639269525326 },

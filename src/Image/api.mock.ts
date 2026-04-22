@@ -3,9 +3,9 @@ import { setupServer } from 'msw/node'
 import { ERROR_500 } from '../__fixtures__/common'
 import { imagesListFirst4, imagesListNext2 } from './__fixtures__/images'
 
-const API_URL = import.meta.env.VITE_IMAGE_API_BASE;
+const API_URL = import.meta.env.VITE_IMAGE_API_BASE as string;
 
-const imageListHandler = (path) => http.get(path, async ({ request }) => {
+const imageListHandler = (path: string) => http.get(path, async ({ request }) => {
 	const qs = request.url.split("?")[1] || "";
 	const ts = qs.split("=")[1];
 	if (qs === "") return HttpResponse.json({ body: imagesListFirst4 });

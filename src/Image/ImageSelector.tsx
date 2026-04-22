@@ -9,39 +9,69 @@ import Toaster from "../Toaster/Toaster";
 
 import styles from './ImageSelector.module.css';
 
-const ImageSelector = (props) => {
+interface ImageSelectorProps {
+	show?: boolean;
+}
 
-	const [isLoading, setIsLoading] = useState(false);
-	const [isError, setIsError] = useState(false);
-	const [isGetNextData, setIsGetNextData] = useState(false);
+interface S3ImageItemData {
+	key: string;
+	url: string;
+	size?: number;
+	bucket?: string;
+	timestamp?: number;
+}
 
-	const [images, setImages] = useState([]);
-	const [imageSelectorClass, setImageSelectorClass] = useState(`div ${styles.divImageSelectorhide}`);
-	const [lastTimestamp, setLastTimestamp] = useState(undefined);
-	const [seeMoreButton, setSeeMoreButton] = useState(undefined);
-	
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage ,setToasterMessage] = useState("");
-	const [toasterType, setToasterType] = useState("warning");
+interface LastEvaluatedKeyData {
+	timestamp?: number;
+	[k: string]: unknown;
+}
+
+interface ImagesResponseBody {
+	Items?: S3ImageItemData[];
+	LastEvaluatedKey?: LastEvaluatedKeyData;
+}
+
+interface ImagesResponse {
+	errorType?: string;
+	body?: ImagesResponseBody;
+}
+
+type ToasterShowState = 0 | 1 | 2;
+type ToasterKind = "information" | "success" | "warning" | "error";
+
+const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
+
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [isError, setIsError] = useState<boolean>(false);
+	const [isGetNextData, setIsGetNextData] = useState<boolean>(false);
+
+	const [images, setImages] = useState<S3ImageItemData[]>([]);
+	const [imageSelectorClass, setImageSelectorClass] = useState<string>(`div ${styles.divImageSelectorhide}`);
+	const [lastTimestamp, setLastTimestamp] = useState<number | undefined>(undefined);
+	const [seeMoreButton, setSeeMoreButton] = useState<React.ReactElement | undefined>(undefined);
+
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(0);
+	const [toasterMessage, setToasterMessage] = useState<string>("");
+	const [toasterType, setToasterType] = useState<ToasterKind>("warning");
 
 	useEffect(() => {
 
-		const fetchFirst = async () => {
-	
+		const fetchFirst = async (): Promise<void> => {
+
 			setIsLoading(true);
-	
+
 			try {
 				const res = await getImages();
-				const retrieved = await res.json();
-	
+				const retrieved = await res.json() as ImagesResponse;
+
 				if(!hasValue(retrieved.errorType)) {
 					log("[API GET] OK - Images", "SUCCESS");
-					
-					const newImages = retrieved.body.Items;
-					const lastEvaluatedKey = retrieved.body.LastEvaluatedKey;
-	
-					setImages(hasValue(newImages) ? newImages : []);
-					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
+					const newImages = retrieved.body?.Items;
+					const lastEvaluatedKey = retrieved.body?.LastEvaluatedKey;
+
+					setImages(hasValue(newImages) ? (newImages as S3ImageItemData[]) : []);
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
 					log("[API GET] FAILED - Images", "ERROR");
@@ -54,10 +84,10 @@ const ImageSelector = (props) => {
 				reportError(err);
 				setIsError(true);
 			}
-	
+
 			setIsLoading(false);
 		}
-		
+
 		if(props.show) {
 			fetchFirst();
 			setImageSelectorClass(`div ${styles.divImageSelector}`);
@@ -69,22 +99,22 @@ const ImageSelector = (props) => {
 
 	useEffect(() => {
 
-		const fetchMore = async (timestamp) => {
-		
+		const fetchMore = async (timestamp: number | undefined): Promise<void> => {
+
 			setIsLoading(true);
-	
+
 			try {
-				const res = await getNextImages(timestamp);
-				const nextData = await res.json();
-	
+				const res = await getNextImages(timestamp as number);
+				const nextData = await res.json() as ImagesResponse;
+
 				if(!hasValue(nextData.errorType)) {
 					log("[API GET] OK - Next Images", "SUCCESS");
-	
-					const newImages = images.concat(nextData.body.Items);
-					const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
-		
-					setImages(hasValue(nextData.body.Items) ? newImages : []);
-					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
+					const newImages = images.concat(nextData.body?.Items ?? []);
+					const lastEvaluatedKey = nextData.body?.LastEvaluatedKey;
+
+					setImages(hasValue(nextData.body?.Items) ? newImages : []);
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
 					log("[API GET] FAILED - Next Images", "ERROR");
@@ -97,7 +127,7 @@ const ImageSelector = (props) => {
 				reportError(err);
 				setIsError(true);
 			}
-	
+
 			setIsLoading(false);
 		}
 
@@ -134,7 +164,7 @@ const ImageSelector = (props) => {
 	}
 	else {
 		if(isError) {
-			const handleRetry = (e) => {
+			const handleRetry = (e: React.SyntheticEvent): void => {
 				e.preventDefault();
 				setIsError(false);
 			};
@@ -153,13 +183,13 @@ const ImageSelector = (props) => {
 		else {
 			return (
 				<div className={imageSelectorClass} role="list">
-					{ images.map( data => 
+					{ images.map( data =>
 						<ImageItem
 							key={data.key}
 							fileName={data.key}
 							url={data.url}
-							copyMarkdownString={async (e) => {
-								const url = e.target.getAttribute("imageurl");
+							copyMarkdownString={async (e: React.SyntheticEvent<HTMLImageElement>) => {
+								const url = (e.target as HTMLImageElement).getAttribute("imageurl");
 								const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
 
 								const ok = await copyToClipboard(imageForMarkdown);
@@ -176,7 +206,7 @@ const ImageSelector = (props) => {
 					) }
 
 					{ seeMoreButton }
-					
+
 					<Toaster
 						show={isShowToaster}
 						message={toasterMessage}

@@ -3,7 +3,16 @@ import PropTypes from 'prop-types';
 import styles from './ImageSelector.module.css';
 import { activateOnKey } from "../common/a11y";
 
-const ImageItem = (props) => {
+// eslint-disable-next-line no-unused-vars
+type ImageCopyHandler = (e: React.SyntheticEvent<HTMLImageElement>) => void | Promise<void>;
+
+interface ImageItemProps {
+	fileName?: string;
+	url: string;
+	copyMarkdownString: ImageCopyHandler;
+}
+
+const ImageItem = (props: ImageItemProps): React.ReactElement => {
 
 	const thumbnailImageUrl = props.url;
 	const fullsizeImageUrl = thumbnailImageUrl.replace("thumbnail/", "");
@@ -11,12 +20,12 @@ const ImageItem = (props) => {
 	const baseClass = `img ${styles.imgImageImageitem}`;
 	const selectedClass = `img ${styles.imgImageImageitem} ${styles.imgImageSelected}`;
 
-	const [isEnlarged, setIsEnlarged] = useState(false);
+	const [isEnlarged, setIsEnlarged] = useState<boolean>(false);
 
 	const className = isEnlarged ? selectedClass : baseClass;
 	const src = isEnlarged ? fullsizeImageUrl : thumbnailImageUrl;
 
-	const handleToggle = (e) => {
+	const handleToggle = (e: React.SyntheticEvent<HTMLImageElement>): void => {
 		if (isEnlarged) {
 			props.copyMarkdownString(e);
 		}
