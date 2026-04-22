@@ -1,0 +1,3 @@
+# inspector Phase 1 drift reconcile seen-state
+# format: <spec-path>\t<marker-hash>\t<stale_cycles>
+# cleared after drain (b9e22be) — no WIP markers to track.
