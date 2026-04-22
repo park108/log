@@ -66,24 +66,24 @@
 - **rationale**: gate (a) 는 본 불변식의 **목표값** (충족 시 tsc 인식 경로 완결). gate (b)(c) 는 **현장 근거** — 현 시점 대상 파일 1건에서 43 hit 집중. gate (d) 는 **수단 중립성 상태 확인** — 3 수단 (types 필드 / triple-slash / 파일 import) 중 어느 것도 아직 선정되지 않은 상태로 baseline 박제. gate (e) 는 FR-03 전제 관계 검증. 목표값 달성 수치 상한·방법은 본 spec 관할 밖 (planner/developer task 영역, `foundation/src-typescript-migration` 파생 task 편입 가능).
 
 ## 테스트 현황
-- [ ] FR-01 게이트: `npm run typecheck 2>&1 | grep -cE "TS2304"` → 0 (현 baseline 43, 대상 파일 1건).
+- [x] FR-01 게이트: `npm run typecheck 2>&1 | grep -cE "TS2304"` → 0 (현 baseline 43, 대상 파일 1건).
 - [ ] FR-02 수단 중립성: 달성 수단이 단일 수단에 귀속되지 않음 — 수단 선정 후 본 spec 본문·파생 task·파생 PR 에서 "기본값/권장/우선/default/best" 라벨 0 hit.
 - [ ] FR-03 precondition 검증: FR-01 달성 후 CI typecheck step (`ci.yml:31`) 이 green 유지 · TS2304 0 hit 유지.
-- [ ] FR-04 직교성 검증: FR-01 달성 시점에 `npm test` 전체 PASS 유지 (런타임 경로 회귀 0).
-- [ ] FR-05 수단 라벨 0: `grep -rnE "기본값|권장|우선|default|best" specs/30.spec/green/foundation/tsconfig-test-ambient-globals.md specs/40.task/**/*tsconfig-test-ambient* specs/60.done/**/*tsconfig-test-ambient*` 결과가 예시/참고/인용 제외 0.
+- [x] FR-04 직교성 검증: FR-01 달성 시점에 `npm test` 전체 PASS 유지 (런타임 경로 회귀 0).
+- [x] FR-05 수단 라벨 0: `grep -rnE "기본값|권장|우선|default|best" specs/30.spec/green/foundation/tsconfig-test-ambient-globals.md specs/40.task/**/*tsconfig-test-ambient* specs/60.done/**/*tsconfig-test-ambient*` 결과가 예시/참고/인용 제외 0.
 - [ ] FR-06 버전 무관 표현: 본 spec 본문에 "vitest 4.x", "TypeScript 6.x" 등 버전 고정 표현 0 hit.
 
 ## 수용 기준
-- [ ] (Must, FR-01) `npm run typecheck` 실행 시 `src/**/*.test.{ts,tsx}` 대상 TS2304 vitest globals 계열 0 hit.
+- [x] (Must, FR-01) `npm run typecheck` 실행 시 `src/**/*.test.{ts,tsx}` 대상 TS2304 vitest globals 계열 0 hit.
 - [ ] (Must, FR-02) 달성 수단이 tsconfig `types` / triple-slash / 파일 import / 별도 `vitest.d.ts` 중 어느 단일 수단에도 귀속되지 않는다 (결과 박제만, 수단 선정은 task 위임).
 - [ ] (Must, FR-03) `foundation/regression-gate` FR-01 의 typecheck step 이 본 불변식 달성 후 상시 green 유지.
-- [ ] (Must, FR-04) `foundation/src-typescript-migration` FR-04 (b) 와 FR-01 이 동시 성립 (tsc 경로 + vitest 런타임 경로 직교 동시 동작).
-- [ ] (Must, FR-05) 본 spec · 파생 task · 파생 PR 에서 수단 라벨 박제 0 건.
+- [x] (Must, FR-04) `foundation/src-typescript-migration` FR-04 (b) 와 FR-01 이 동시 성립 (tsc 경로 + vitest 런타임 경로 직교 동시 동작).
+- [x] (Must, FR-05) 본 spec · 파생 task · 파생 PR 에서 수단 라벨 박제 0 건.
 - [ ] (Should, FR-06) 본 spec 본문은 vitest/TypeScript/Node 버전 고정 표현을 포함하지 않는다.
-- [ ] (NFR-01) 추적성 — `grep -rn "REQ-20260422-052" specs/30.spec/green/foundation/tsconfig-test-ambient-globals.md` → 2+ hit + consumed followup 경로 1 hit.
-- [ ] (NFR-02) baseline 재현 — 동일 HEAD (`5bf5d6a`) 에서 `npm run typecheck 2>&1 | grep -cE "TS2304"` → 43 반환 (박제 재현 가능).
-- [ ] (NFR-03) 범위 제한 — 파생 task/PR 의 diff 가 `src/**` 런타임 로직 변경 0, `vite.config.js` · `package.json` scripts 변경 0, `.github/workflows/**` 변경 0 (tsconfig.json 또는 ambient `.d.ts` 에 한정).
-- [ ] (NFR-04) 차원 분리 — `foundation/regression-gate` (step 존재) / `foundation/src-typescript-migration` (확장자 수렴 + 런타임 혼재 허용) / `foundation/tooling` (ESLint·alias·파서·coverage include) 와 축 분리 — 교집합 문장 재박제 0 (참조만).
+- [x] (NFR-01) 추적성 — `grep -rn "REQ-20260422-052" specs/30.spec/green/foundation/tsconfig-test-ambient-globals.md` → 2+ hit + consumed followup 경로 1 hit.
+- [x] (NFR-02) baseline 재현 — 동일 HEAD (`5bf5d6a`) 에서 `npm run typecheck 2>&1 | grep -cE "TS2304"` → 43 반환 (박제 재현 가능).
+- [x] (NFR-03) 범위 제한 — 파생 task/PR 의 diff 가 `src/**` 런타임 로직 변경 0, `vite.config.js` · `package.json` scripts 변경 0, `.github/workflows/**` 변경 0 (tsconfig.json 또는 ambient `.d.ts` 에 한정).
+- [x] (NFR-04) 차원 분리 — `foundation/regression-gate` (step 존재) / `foundation/src-typescript-migration` (확장자 수렴 + 런타임 혼재 허용) / `foundation/tooling` (ESLint·alias·파서·coverage include) 와 축 분리 — 교집합 문장 재박제 0 (참조만).
 
 ## 참고
 
@@ -141,3 +141,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-04-22 | inspector / (this commit) | 최초 등록 — REQ-20260422-052 흡수. FR-07 판단으로 **신규 spec 신설** 경로 채택 (근거: §참고 "축 귀속 판단 근거"). FR-01~05 Must + FR-06 Should 박제. baseline HEAD=`5bf5d6a` 실측 — `npm run typecheck 2>&1 \| grep -cE "TS2304"` **43 hit**, 대상 파일 `src/Toaster/Toaster.test.tsx` 1건. 수단 중립성 (tsconfig `types` / triple-slash / 파일 import / `vitest.d.ts`) 박제 — 수단 선정은 planner/task 위임. `foundation/regression-gate` FR-01 (typecheck step) 의 precondition 관계 + `foundation/src-typescript-migration` FR-04 (b) (런타임 경로) 직교 관계 명시. consumed followup: `specs/10.followups/20260422-0042-vitest-globals-tsconfig-types.md` (TSK-20260422-01 result 파생). RULE-07 자기검증 — 평서형·반복 검증 가능·시점 비의존·incident 귀속 부재. RULE-06 §스코프 규칙 `expansion: N/A` + 5 gate (a~e) 실측 수치 박제. | all (신설) |
+| 2026-04-22 | inspector reconcile / `f34419e` | Phase 1 drift reconcile — TSK-20260422-05 (`f34419e`, HEAD 조상) 산출 이후 HEAD=`46f4484` 재실측. `npm run typecheck 2>&1 \| grep -cE "TS2304"` **0 hit** (43→0 수렴). §테스트 현황 FR-01/FR-04/FR-05 + §수용 기준 FR-01/FR-04/FR-05/NFR-01/NFR-02/NFR-03/NFR-04 총 10 체크박스 flip. FR-02 (단일 수단 귀속 여부 해석 여지)·FR-03 (CI typecheck step rc=1 잔존, FR-01 범위 밖 island TS2769/TS2345 계열) · FR-06 (§참고 현장 근거 line 114 `^4.1.4`·`^6.0.3` 실측 인용을 버전 고정 표현으로 간주할지 해석 여지) 3건은 보수적 marker 유지. reconcile ack: 10. | §테스트 현황 / §수용 기준 / 본 §변경 이력 |
