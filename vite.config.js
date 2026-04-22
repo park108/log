@@ -82,8 +82,8 @@ export default defineConfig({
 			reporter: ['text', 'html', 'lcov'],
 			include: ['src/**/*.{js,jsx,ts,tsx}'],
 			exclude: [
-				'src/index.jsx',
-				'src/reportWebVitals.js',
+				'src/index.{js,jsx,ts,tsx}',
+				'src/reportWebVitals.{js,jsx,ts,tsx}',
 				'src/**/*mock.{js,jsx,ts,tsx}',
 				'src/**/*.test.{js,jsx,ts,tsx}',
 				'src/**/*.d.ts',
