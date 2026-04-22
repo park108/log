@@ -31,18 +31,30 @@
 //   • `listen()` 인자 누락 (항상 `onUnhandledRequest: 'error'` 기본).
 
 import { beforeEach, afterEach } from 'vitest';
+import type { SharedOptions } from 'msw';
+
+/**
+ * 본 헬퍼가 요구하는 server 의 최소 계약. MSW 의 `SetupServerApi` 와 호환되며,
+ * 테스트에서 주입되는 fake server (listen/resetHandlers/close 스파이) 도 충족한다.
+ */
+export interface MockServerLike {
+	// eslint-disable-next-line no-unused-vars
+	listen(options?: Partial<SharedOptions>): unknown;
+	resetHandlers(): unknown;
+	close(): unknown;
+}
+
+export interface UseMockServerOptions {
+	onUnhandledRequest?: SharedOptions['onUnhandledRequest'];
+}
 
 /**
  * MSW server 수명주기 훅 바인딩.
- *
- * @param {() => import('msw/node').SetupServerApi} serverFactory
- *   server 인스턴스를 반환하는 factory. 모듈 스코프 singleton 을 그대로 돌려주는 형태 권장.
- * @param {object} [options]
- * @param {import('msw/node').SharedOptions['onUnhandledRequest']} [options.onUnhandledRequest='error']
- *   누락 핸들러에 대한 처리. 기본 `'error'` 로 조용한 pass 를 차단.
- * @returns {import('msw/node').SetupServerApi} server 인스턴스 (테스트 본문에서 `server.use(...)` 등에 사용).
  */
-export function useMockServer(serverFactory, options = {}) {
+export function useMockServer<S extends MockServerLike>(
+	serverFactory: () => S,
+	options: UseMockServerOptions = {},
+): S {
 	const { onUnhandledRequest = 'error' } = options;
 	const server = serverFactory();
 

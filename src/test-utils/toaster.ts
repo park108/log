@@ -18,11 +18,17 @@
 import { waitFor } from '@testing-library/react';
 import { ASYNC_ASSERTION_TIMEOUT_MS } from './timing';
 
+export type ToasterType = 'information' | 'success' | 'warning' | 'error';
+export type ToasterPosition = 'center' | 'bottom';
+export interface ToasterWaitOptions {
+	timeout?: number;
+}
+
 /**
  * 지정 `type` / `position` 조합의 Toaster 엘리먼트 단일 조회.
  * 매칭되는 엘리먼트가 없으면 `null` 반환.
  */
-export function getToasterElement(type, position) {
+export function getToasterElement(type: ToasterType, position: ToasterPosition): Element | null {
 	return document.querySelector(
 		`[role="alert"][data-type="${type}"][data-position="${position}"]`
 	);
@@ -31,12 +37,12 @@ export function getToasterElement(type, position) {
 /**
  * Toaster 가 숨김 상태(`data-show` ∈ {"0", "2", "none"} 또는 DOM 부재) 에 도달할 때까지 대기.
  * `data-show="1"` 이면 재시도하다가 `timeout` 초과 시 reject.
- *
- * @param {string} type "information" | "success" | "warning" | "error"
- * @param {string} position "center" | "bottom"
- * @param {{ timeout?: number }} [opts]
  */
-export function waitForToasterHidden(type, position, { timeout = ASYNC_ASSERTION_TIMEOUT_MS } = {}) {
+export function waitForToasterHidden(
+	type: ToasterType,
+	position: ToasterPosition,
+	{ timeout = ASYNC_ASSERTION_TIMEOUT_MS }: ToasterWaitOptions = {},
+): Promise<void> {
 	return waitFor(() => {
 		const el = getToasterElement(type, position);
 		if (!el) return;
@@ -49,12 +55,12 @@ export function waitForToasterHidden(type, position, { timeout = ASYNC_ASSERTION
 /**
  * Toaster 가 표시 상태(`data-show="1"`) 에 도달할 때까지 대기.
  * 엘리먼트 부재 또는 다른 값이면 재시도, `timeout` 초과 시 reject.
- *
- * @param {string} type
- * @param {string} position
- * @param {{ timeout?: number }} [opts]
  */
-export function waitForToasterVisible(type, position, { timeout = ASYNC_ASSERTION_TIMEOUT_MS } = {}) {
+export function waitForToasterVisible(
+	type: ToasterType,
+	position: ToasterPosition,
+	{ timeout = ASYNC_ASSERTION_TIMEOUT_MS }: ToasterWaitOptions = {},
+): Promise<void> {
 	return waitFor(() => {
 		const el = getToasterElement(type, position);
 		const show = el?.getAttribute('data-show');

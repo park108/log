@@ -17,11 +17,17 @@ afterEach(() => {
 	document.body.innerHTML = '';
 });
 
+interface MountToasterOptions {
+	type?: string;
+	position?: string;
+	show?: string | number | undefined;
+}
+
 /**
  * 단일 toaster 노드 생성 헬퍼 (test-local).
  * data-show 값이 `undefined` 면 attribute 자체를 생략 (data-show=null 케이스).
  */
-function mountToaster({ type = 'information', position = 'center', show }) {
+function mountToaster({ type = 'information', position = 'center', show }: MountToasterOptions): HTMLDivElement {
 	const el = document.createElement('div');
 	el.setAttribute('role', 'alert');
 	el.setAttribute('data-type', type);
@@ -36,8 +42,8 @@ describe('getToasterElement', () => {
 		mountToaster({ type: 'information', position: 'center', show: '0' });
 		const el = getToasterElement('information', 'center');
 		expect(el).not.toBeNull();
-		expect(el.getAttribute('data-type')).toBe('information');
-		expect(el.getAttribute('data-position')).toBe('center');
+		expect(el!.getAttribute('data-type')).toBe('information');
+		expect(el!.getAttribute('data-position')).toBe('center');
 	});
 
 	it('매칭이 없으면 null 을 반환한다', () => {
