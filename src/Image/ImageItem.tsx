@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import styles from './ImageSelector.module.css';
 import { activateOnKey } from "../common/a11y";
 
-// eslint-disable-next-line no-unused-vars
 type ImageCopyHandler = (e: React.SyntheticEvent<HTMLImageElement>) => void | Promise<void>;
 
 interface ImageItemProps {

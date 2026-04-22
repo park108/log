@@ -16,7 +16,6 @@ interface CommentSubmitPayload {
 interface CommentFormProps {
 	logTimestamp?: number;
 	commentTimestamp?: number;
-	// eslint-disable-next-line no-unused-vars
 	post: (comment: CommentSubmitPayload) => void;
 	isPosting?: boolean;
 	isReply?: boolean;

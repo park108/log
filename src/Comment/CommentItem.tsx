@@ -25,9 +25,7 @@ interface CommentItemProps {
 	logTimestamp?: number;
 	commentTimestamp?: number;
 	timestamp: number;
-	// eslint-disable-next-line no-unused-vars
 	openReplyForm: (isOpened: boolean) => void;
-	// eslint-disable-next-line no-unused-vars
 	reply: (comment: CommentReplyPayload) => void;
 }
 

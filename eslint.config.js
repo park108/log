@@ -25,16 +25,6 @@ export default [
   // extends: plugin:react/recommended (flat entry point)
   reactPlugin.configs.flat.recommended,
 
-  // typescript-eslint parser block (TSK-20260420-33, REQ-20260420-006).
-  // Parser-only wiring — no rule set applied (planner-fixed "규칙 세트 미적용").
-  // Keeps `.ts/.tsx/.d.ts` syntactically parseable while preserving the existing
-  // JS/JSX user-rule block below, which still matches `.ts/.tsx` via its files
-  // glob and composes per ESLint flat-config merge semantics.
-  {
-    files: ['src/**/*.{ts,tsx}', 'src/**/*.d.ts'],
-    languageOptions: { parser: tseslint.parser },
-  },
-
   {
     // scripts.lint runs `eslint ./src`. Pattern matches the `lint-staged` glob
     // in package.json so both `npm run lint` and pre-commit see the same
@@ -73,6 +63,25 @@ export default [
       'react/prop-types': 'off',
       'no-unused-vars': ['warn', { caughtErrors: 'none' }],
       'react/no-unknown-property': ['error', { ignore: ['imageurl', 'thumbnailurl', 'enlarged'] }],
+    },
+  },
+
+  // typescript-eslint parser block (TSK-20260420-33, REQ-20260420-006).
+  // Parser wiring + TS-aware unused-vars rule (TSK-20260422-12, REQ-20260422-053
+  // §동작 5 FR-01~04). The vanilla `no-unused-vars` rule flags TS signature-node
+  // params (function-type, method-signature, interface method) as false-positives;
+  // the TS-aware rule below neutralises the vanilla rule inherited from the
+  // JS/JSX user-rule block above. Flat-config resolves duplicate rule keys by
+  // taking the last occurrence, so this block must appear after the JS/JSX
+  // block to dominate. `caughtErrors: 'none'` preserves v8 parity with the
+  // JS/JSX block. JS/JSX rules remain bit-for-bit untouched.
+  {
+    files: ['src/**/*.{ts,tsx}', 'src/**/*.d.ts'],
+    languageOptions: { parser: tseslint.parser },
+    plugins: { '@typescript-eslint': tseslint.plugin },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { caughtErrors: 'none' }],
+      'no-unused-vars': 'off',
     },
   },
 ];

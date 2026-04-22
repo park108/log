@@ -38,7 +38,6 @@ import type { SharedOptions } from 'msw';
  * 테스트에서 주입되는 fake server (listen/resetHandlers/close 스파이) 도 충족한다.
  */
 export interface MockServerLike {
-	// eslint-disable-next-line no-unused-vars
 	listen(options?: Partial<SharedOptions>): unknown;
 	resetHandlers(): unknown;
 	close(): unknown;

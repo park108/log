@@ -6,11 +6,8 @@ import { commentsProdOne, commentsDevTen } from './__fixtures__/comments'
 const API_URL = import.meta.env.VITE_COMMENT_API_BASE as string;
 
 interface CommentScenarioServer {
-	// eslint-disable-next-line no-unused-vars
 	listen: (opts?: Partial<SharedOptions>) => void;
-	// eslint-disable-next-line no-unused-vars
 	resetHandlers: (...h: RequestHandler[]) => void;
-	// eslint-disable-next-line no-unused-vars
 	use: (...h: RequestHandler[]) => void;
 	close: () => void;
 }
