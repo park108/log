@@ -3,6 +3,9 @@ import { setupServer } from 'msw/node'
 import { ERROR_500 } from '../__fixtures__/common'
 import {
 	webVitalsProd,
+	webVitalsProdAllGood,
+	webVitalsProdNeedsImprovement,
+	webVitalsProdEmpty,
 	apiCallStats700,
 	apiCallStatsNoTotalCount,
 	apiCallStatsNoCount,
@@ -17,6 +20,18 @@ export const prodServerOk = setupServer(
 	http.get(API_URL + "/prod", async () => HttpResponse.json({ body: webVitalsProd })),
 	http.get(API_URL + "/prod/api/log", async () => HttpResponse.json({ statusCode: 200, body: apiCallStats700 })),
 	http.get(API_URL + "/prod/useragent", async () => HttpResponse.json({ statusCode: 200, body: visitorsProd() })),
+);
+
+export const prodServerAllGood = setupServer(
+	http.get(API_URL + "/prod", async () => HttpResponse.json({ body: webVitalsProdAllGood })),
+);
+
+export const prodServerNeedsImprovement = setupServer(
+	http.get(API_URL + "/prod", async () => HttpResponse.json({ body: webVitalsProdNeedsImprovement })),
+);
+
+export const prodServerEmpty = setupServer(
+	http.get(API_URL + "/prod", async () => HttpResponse.json({ body: webVitalsProdEmpty })),
 );
 
 export const prodServerHasNoTotalCount = setupServer(

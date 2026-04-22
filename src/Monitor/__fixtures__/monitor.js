@@ -11,6 +11,34 @@ export const webVitalsProd = {
 	ScannedCount: 12725,
 };
 
+export const webVitalsProdAllGood = {
+	Count: 4,
+	Items: [
+		{ evaluation: "GOOD", id: "v2-a", name: "CLS", timestamp: 1, value: 0.01 },
+		{ evaluation: "GOOD", id: "v2-b", name: "CLS", timestamp: 2, value: 0.02 },
+		{ evaluation: "GOOD", id: "v2-c", name: "CLS", timestamp: 3, value: 0.03 },
+		{ evaluation: "GOOD", id: "v2-d", name: "CLS", timestamp: 4, value: 0.04 },
+	],
+	ScannedCount: 4,
+};
+
+export const webVitalsProdNeedsImprovement = {
+	Count: 4,
+	Items: [
+		{ evaluation: "GOOD", id: "v2-a", name: "CLS", timestamp: 1, value: 0.01 },
+		{ evaluation: "NEEDS IMPROVEMENT", id: "v2-b", name: "CLS", timestamp: 2, value: 0.13 },
+		{ evaluation: "NEEDS IMPROVEMENT", id: "v2-c", name: "CLS", timestamp: 3, value: 0.14 },
+		{ evaluation: "NEEDS IMPROVEMENT", id: "v2-d", name: "CLS", timestamp: 4, value: 0.15 },
+	],
+	ScannedCount: 4,
+};
+
+export const webVitalsProdEmpty = {
+	Count: 0,
+	Items: [],
+	ScannedCount: 0,
+};
+
 const FROM = 1643375805000; // 2022.01.28
 const DAY_MS = 1000 * 60 * 60 * 24;
 

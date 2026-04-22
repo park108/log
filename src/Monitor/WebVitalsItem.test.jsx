@@ -84,6 +84,53 @@ describe('WebVitalsItem render on prod server (network error)', () => {
 	});
 });
 
+describe('WebVitalsItem evaluation branches', () => {
+
+	describe('all good (good rate >= 75)', () => {
+		useMockServer(() => mock.prodServerAllGood);
+
+		it('renders GOOD evaluation label when all items are GOOD', async () => {
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			const label = await screen.findByText("GOOD");
+			expect(label).toBeInTheDocument();
+		});
+	});
+
+	describe('needs improvement (neither good nor poor dominates)', () => {
+		useMockServer(() => mock.prodServerNeedsImprovement);
+
+		it('renders NEEDS IMPROVEMENT evaluation label when improvement counts dominate', async () => {
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			const label = await screen.findByText("NEEDS IMPROVEMENT");
+			expect(label).toBeInTheDocument();
+		});
+	});
+
+	describe('empty result set (totalCount = 0)', () => {
+		useMockServer(() => mock.prodServerEmpty);
+
+		it('renders None evaluation label when the backend returns zero items', async () => {
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			const statusBar = await screen.findByTestId("status-bar-CLS");
+			expect(statusBar).toBeInTheDocument();
+			const label = await screen.findByText("None");
+			expect(label).toBeInTheDocument();
+		});
+	});
+});
+
 describe('WebVitalsItem Retry keyboard activation', () => {
 	useMockServer(() => mock.prodServerFailed);
 
