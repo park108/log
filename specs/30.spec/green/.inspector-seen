@@ -1,3 +1,6 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# cleared after drain (b9e22be) — no WIP markers to track.
+# 2026-04-22 @ 5bf5d6a — no completion-ready WIP markers in green.
+# src-typescript-migration.md: 6 [ ] markers (FR-01~06 게이트·수용기준) — 파생 task 전원 미완료 상태 (TSK-20260422-01 island 1 tile only), 정상 WIP.
+# tsconfig-test-ambient-globals.md: 6 [ ] markers — 최초 등록 신규 spec, 파생 task 미발행 상태, 정상 WIP.
+# reconcile this session: 0/0 ack (no completion evidence to flip).
