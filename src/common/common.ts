@@ -1,6 +1,6 @@
 import { isDev, isProd } from './env';
 
-export const setHtmlTitle = (title) => {
+export const setHtmlTitle = (title: string): void => {
 	if(isProd()) {
 		document.title = title + " - park108.net";
 	}
@@ -11,14 +11,14 @@ export const setHtmlTitle = (title) => {
 
 const DEFAULT_META_DESCRIPTION = "park108.net is a personal journal of Jongkil Park the developer";
 
-export const setMetaDescription = (desc = DEFAULT_META_DESCRIPTION) => {
+export const setMetaDescription = (desc: string = DEFAULT_META_DESCRIPTION): void => {
 	const meta = document.getElementsByTagName('meta');
 	if(meta.description !== undefined) {
 		meta.description.content = desc;
 	}
 }
 
-export const hasValue = (obj) => {
+export const hasValue = (obj: unknown): boolean => {
 	return (undefined !== obj
 		&& null !== obj
 		&& "undefined" !== obj
@@ -28,7 +28,7 @@ export const hasValue = (obj) => {
 	);
 }
 
-export const log = (logText, type = "INFO") => {
+export const log = (logText: string, type: string = "INFO"): void => {
 	if (isDev()) {
 
 		const now = Math.floor(new Date().getTime());
@@ -42,7 +42,7 @@ export const log = (logText, type = "INFO") => {
 	}
 }
 
-export function parseJwt (token) {
+export function parseJwt (token: unknown): Record<string, unknown> | null {
 
 	// Input guard (REQ-20260418-032 FR-01): non-string / empty / malformed → null sentinel.
 	if (!token || typeof token !== 'string') return null;
@@ -64,16 +64,17 @@ export function parseJwt (token) {
 	}
 }
 
-export const getUrl = () => {
+export const getUrl = (): string | undefined => {
 	if (isProd()) {
 		return "https://www.park108.net/";
 	}
 	else if (isDev()) {
 		return "http://localhost:3000/";
 	}
+	return undefined;
 }
 
-export function getCookie(name) {
+export function getCookie(name: string): string | undefined {
 	let matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([$?*|{}^])/g, '\\$1') + "=([^;]*)"
 	));
@@ -81,7 +82,10 @@ export function getCookie(name) {
 	return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
-export function setCookie(name, value, options = {}) {
+type CookieOptionValue = string | number | boolean | Date;
+type CookieOptions = Record<string, CookieOptionValue>;
+
+export function setCookie(name: string, value: string, options: CookieOptions = {}): void {
 
 	options = {
 		path: '/',
@@ -105,13 +109,13 @@ export function setCookie(name, value, options = {}) {
 	document.cookie = updatedCookie;
 }
 
-export function deleteCookie(name) {
+export function deleteCookie(name: string): void {
 	setCookie(name, "", {
 		'max-age': -1
 	})
 }
 
-export function auth() {
+export function auth(): void {
 
 	// REQ-20260421-032 FR-01/06: Cognito Hosted UI implicit flow (`response_type=token`) 는
 	// 모든 토큰을 URL hash fragment 단일 구역에 `&` 로 연결해 반환한다.
@@ -153,14 +157,14 @@ export function auth() {
 	}
 }
 
-export function isLoggedIn() {
+export function isLoggedIn(): boolean {
 	return hasValue(getCookie("access_token"));
 }
 
 // REQ-20260421-038 FR-04 (α): admin group 이름은 리터럴 상수 1회 박제.
 const ADMIN_GROUP = 'admin';
 
-export function isAdmin() {
+export function isAdmin(): boolean {
 
 	if (isDev()) log(`isAdmin: cookie=${isLoggedIn()} env=${isProd() ? 'prod' : isDev() ? 'dev' : 'none'}`, "DEBUG");
 
@@ -180,15 +184,15 @@ export function isAdmin() {
 	return groups.includes(ADMIN_GROUP);
 }
 
-export function convertToHTML(input) {
+export function convertToHTML(input: string): string {
 	return input.replace(/(\n|\r\n)/g, "<br />");
 }
 
-export function decodeHTML(input) {
+export function decodeHTML(input: string): string {
 	return input.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
 
-export function getFormattedDate(timestamp, format = "yyyy-mm-dd") {
+export function getFormattedDate(timestamp: number, format: string = "yyyy-mm-dd"): string {
 
 	const date = new Date(timestamp);
 	
@@ -210,7 +214,7 @@ export function getFormattedDate(timestamp, format = "yyyy-mm-dd") {
 	}
 }
 
-export function getFormattedTime(timestamp) {
+export function getFormattedTime(timestamp: number): string {
 
 	const time = new Date(timestamp);
 
@@ -225,10 +229,10 @@ export function getFormattedTime(timestamp) {
 	return formattedTime;
 }
 
-export function getFormattedSize(size) {
+export function getFormattedSize(size: number): string {
 
 	let unit = "";
-	let scaled = size;
+	let scaled: number | string = size;
 
 	if(0 === scaled) {
 		unit = "";
@@ -265,7 +269,7 @@ export function getFormattedSize(size) {
 	return Number(scaled).toLocaleString() + " " + unit;
 }
 
-export function getWeekday(timestamp) {
+export function getWeekday(timestamp: number): string {
 
 	const time = new Date(timestamp);
 
@@ -280,7 +284,11 @@ export function getWeekday(timestamp) {
 		: "Sat";
 }
 
-export const confirm = (message = "", onConfirm, onCancel) => {
+export const confirm = (
+	message: string = "",
+	onConfirm?: unknown,
+	onCancel?: unknown,
+): (() => void) | undefined => {
 
 	if (!onConfirm || typeof onConfirm !== "function") {
 		return;
@@ -291,21 +299,21 @@ export const confirm = (message = "", onConfirm, onCancel) => {
 
 	const confirmAction = () => {
 		if (window.confirm(message)) {
-			onConfirm();
+			(onConfirm as () => void)();
 		} else {
-			onCancel();
+			(onCancel as () => void)();
 		}
 	};
 
 	return confirmAction;
 }
 
-export const isMobile = () => {
+export const isMobile = (): boolean => {
 	let hasTouchPoint = navigator.maxTouchPoints;
 	return hasTouchPoint > 0;
 }
 
-export const setFullscreen = (isFullscreen) => {
+export const setFullscreen = (isFullscreen: boolean): void => {
 
 	let root = document.getElementById("root");
 
@@ -370,38 +378,44 @@ export const userAgentParser = () => {
 	return userAgentInfo;
 }
 
-export const hoverPopup = (e, popupElementId) => {
-	
+interface HoverPopupEventLike {
+	type: string;
+	clientX?: number;
+	clientY?: number;
+}
+
+export const hoverPopup = (e: HoverPopupEventLike, popupElementId: string): void => {
+
 	const popup = document.getElementById(popupElementId);
-	const currentDisplay = popup.style.display;
+	const currentDisplay = (popup as HTMLElement).style.display;
 
 	if("mouseover" === e.type) {
 		if(currentDisplay === "none") {
-			popup.style.display = "";
+			(popup as HTMLElement).style.display = "";
 		}
 	}
 	else if("mousemove" === e.type) {
-		const left  = e.clientX  + 5 + "px";
-		const top  = e.clientY  + 5 + "px";
-		popup.style.left = left;
-		popup.style.top = top;
+		const left  = (e.clientX as number) + 5 + "px";
+		const top  = (e.clientY as number) + 5 + "px";
+		(popup as HTMLElement).style.left = left;
+		(popup as HTMLElement).style.top = top;
 	}
 	else {
 		if(currentDisplay !== "none") {
-			popup.style.display = "none";
+			(popup as HTMLElement).style.display = "none";
 		}
 	}
 }
 
 
-export const copyToClipboard = async (value = "") => {
+export const copyToClipboard = async (value: string = ""): Promise<boolean> => {
 	if (navigator.clipboard?.writeText) {
 		try {
 			await navigator.clipboard.writeText(value);
 			log("Copy to Clipboard: " + value);
 			return true;
 		} catch (err) {
-			log("Clipboard write rejected: " + err.message, "ERROR");
+			log("Clipboard write rejected: " + (err as Error).message, "ERROR");
 			return false;
 		}
 	}

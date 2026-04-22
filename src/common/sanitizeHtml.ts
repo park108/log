@@ -34,7 +34,7 @@ function ensureHook() {
 }
 
 // DOMPurify 가 window 없는 환경에서 로드되면 sanitize 가 없을 수 있다 (spec §5.3).
-export default function sanitizeHtml(dirtyHtml) {
+export default function sanitizeHtml(dirtyHtml: string | null | undefined): string {
 	if (dirtyHtml === null || dirtyHtml === undefined || dirtyHtml === '') return '';
 	if (typeof window === 'undefined') return '';
 	if (!DOMPurify || typeof DOMPurify.sanitize !== 'function') return '';

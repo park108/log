@@ -6,7 +6,7 @@
  *
  * Spec: `specs/30.spec/green/common/error-boundary-spec.md` §4.3
  */
-export function reportError(error, errorInfo) {
+export function reportError(error: unknown, errorInfo?: unknown): void {
 	// eslint-disable-next-line no-console
 	console.error('[reportError]', error, errorInfo);
 }

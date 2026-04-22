@@ -21,12 +21,40 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
+interface UseHoverPopupOptions {
+	closeOnEscape?: boolean;
+}
+
+interface TriggerProps {
+	onMouseEnter: () => void;
+	onMouseLeave: () => void;
+	onFocus: () => void;
+	onBlur: () => void;
+	onTouchStart: () => void;
+	'aria-describedby': string | undefined;
+}
+
+interface ContentProps {
+	id: string;
+	role: 'tooltip';
+	'aria-hidden': boolean;
+	onMouseEnter: () => void;
+	onMouseLeave: () => void;
+}
+
+export interface UseHoverPopupResult {
+	triggerProps: TriggerProps;
+	contentProps: ContentProps;
+	isVisible: boolean;
+	id: string;
+}
+
 const HIDE_DELAY_MS = 100;
 
-export function useHoverPopup({ closeOnEscape = true } = {}) {
+export function useHoverPopup({ closeOnEscape = true }: UseHoverPopupOptions = {}): UseHoverPopupResult {
 	const [isVisible, setIsVisible] = useState(false);
 	const id = useId();
-	const timerRef = useRef(null);
+	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const clearPendingHide = useCallback(() => {
 		if (timerRef.current) {
@@ -52,7 +80,7 @@ export function useHoverPopup({ closeOnEscape = true } = {}) {
 	// Escape 키 → 즉시 닫힘 (WCAG 2.1 SC 1.4.13 "dismissible").
 	useEffect(() => {
 		if (!closeOnEscape || !isVisible) return undefined;
-		const onKey = (e) => {
+		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
 				clearPendingHide();
 				setIsVisible(false);

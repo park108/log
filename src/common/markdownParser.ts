@@ -4,7 +4,7 @@ import { codeHighlighter } from './codeHighlighter';
 // out of a single-quoted HTML attribute context (or an attribute name).
 // Used by the <img> and <a> emitters below as a defense-in-depth layer
 // on top of sanitizeHtml at render time (REQ-20260418-001 FR-07).
-const escapeHtmlAttr = (s) => {
+const escapeHtmlAttr = (s: unknown): string => {
 	if(s === undefined || s === null) return '';
 	return String(s)
 		.replace(/&/g, '&amp;')
@@ -19,7 +19,7 @@ const escapeHtmlAttr = (s) => {
 // - When no leading tabs are present, floor(leading spaces / 2) = depth.
 // Returns { depth, prefixLength } so the caller can strip the prefix
 // before running the marker detection on the remainder.
-export const computeDepth = (line) => {
+export const computeDepth = (line: unknown): { depth: number; prefixLength: number } => {
 
 	if(typeof line !== "string" || line.length === 0) {
 		return { depth: 0, prefixLength: 0 };
@@ -42,9 +42,17 @@ export const computeDepth = (line) => {
 	return { depth: Math.floor(spaces / 2), prefixLength: spaces };
 }
 
-export const markdownToHtml = (input) => {
+interface ParsedNode {
+	type: string;
+	text: string;
+	closure?: string;
+	itemOf?: string;
+	depth?: number;
+}
 
-	let parsed = [];
+export const markdownToHtml = (input: string): string => {
+
+	let parsed: ParsedNode[] = [];
 	let str = input;
 	let prev = 0;
 
@@ -331,7 +339,7 @@ export const markdownToHtml = (input) => {
 	return str;
 }
 
-const inlineParsing = (parsed, delimeter, tagName) => {
+const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string): ParsedNode[] => {
 
 	let searchFrom = 0;
 	let start = -1;
@@ -384,11 +392,11 @@ const inlineParsing = (parsed, delimeter, tagName) => {
 // item-closing </li>: if the next <li> open is at a deeper depth we drop
 // the pending </li> (the outer <li> stays open to host the nested list);
 // otherwise we flush it and continue.
-const bindListItem = (parsed, tagName) => {
+const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 
-	const output = [];
-	const depthStack = [];
-	let pendingCloseLi = null; // {type,text,itemOf,depth} waiting to be flushed
+	const output: ParsedNode[] = [];
+	const depthStack: number[] = [];
+	let pendingCloseLi: ParsedNode | null = null; // {type,text,itemOf,depth} waiting to be flushed
 
 	const openTag = "<" + tagName + ">";
 	const closeTag = "</" + tagName + ">";
@@ -485,7 +493,7 @@ const bindListItem = (parsed, tagName) => {
 	return output;
 }
 
-const stringify = (arr) => {
+const stringify = (arr: ParsedNode[]): string => {
 
 	let str = "";
 
@@ -496,6 +504,6 @@ const stringify = (arr) => {
 	return str;
 }
 
-const isNumeric = (str) => {
+const isNumeric = (str: string): boolean => {
 	return /^\d+$/.test(str);
 }

@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import './Skeleton.css';
 
 /*
@@ -9,19 +10,28 @@ import './Skeleton.css';
  * Spec: `specs/30.spec/green/common/error-boundary-spec.md` §3.2
  */
 
-const VALID_VARIANTS = ['page', 'list', 'detail'];
+type SkeletonVariant = 'page' | 'list' | 'detail';
 
-const VARIANT_BLOCK_COUNT = {
+interface SkeletonProps {
+	variant?: SkeletonVariant | string;
+}
+
+const VALID_VARIANTS: readonly SkeletonVariant[] = ['page', 'list', 'detail'];
+
+const VARIANT_BLOCK_COUNT: Record<SkeletonVariant, number> = {
 	page: 4,
 	list: 5,
 	detail: 5,
 };
 
-export default function Skeleton({ variant = 'page' }) {
-	const safeVariant = VALID_VARIANTS.includes(variant) ? variant : 'page';
+export default function Skeleton({ variant = 'page' }: SkeletonProps) {
+	const safeVariant: SkeletonVariant =
+		VALID_VARIANTS.includes(variant as SkeletonVariant)
+			? (variant as SkeletonVariant)
+			: 'page';
 	const blockCount = VARIANT_BLOCK_COUNT[safeVariant];
 
-	const blocks = [];
+	const blocks: ReactElement[] = [];
 	for (let i = 0; i < blockCount; i += 1) {
 		blocks.push(<div key={i} className="skeleton__block" />);
 	}

@@ -1,18 +1,24 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import { Link, useLocation } from 'react-router-dom';
 import { getUrl, isAdmin } from './common';
 import SearchInput from '../Search/SearchInput';
 
-const ADMIN_MENU = [
+interface AdminMenuEntry {
+	path: string;
+	name: string;
+}
+
+const ADMIN_MENU: readonly AdminMenuEntry[] = [
 	{ path: "/log", name: "log" },
 	{ path: "/file", name: "file" },
 	{ path: "/monitor", name: "mon" },
 ];
-  
+
 const Navigation = () => {
 
 	const location = useLocation();
-	const [adminMenu, setAdminMenu] = useState();
+	const [adminMenu, setAdminMenu] = useState<ReactNode>();
 
 	useEffect(() => {
 		if(isAdmin()) {

@@ -15,14 +15,19 @@ import './ErrorFallback.css';
  *   - Render error   → "예기치 않은 오류가 발생했습니다"
  */
 
-function isNetworkError(error) {
+interface ErrorFallbackProps {
+	error?: Error | null;
+	reset?: () => void;
+}
+
+function isNetworkError(error: Error | null | undefined): boolean {
 	if (!error) return false;
 	if (error.name === 'NetworkError') return true;
 	const message = error.message ?? '';
 	return /failed to fetch|network/i.test(message);
 }
 
-export default function ErrorFallback({ error, reset }) {
+export default function ErrorFallback({ error, reset }: ErrorFallbackProps) {
 	const networkError = isNetworkError(error);
 	const message = networkError
 		? '연결을 확인하고 다시 시도하세요'

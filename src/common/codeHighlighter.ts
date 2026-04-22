@@ -1,4 +1,4 @@
-export const codeHighlighter = (lang, code) => {
+export const codeHighlighter = (lang: string, code: string): string => {
 
 	const language = lang.toLowerCase().trim();
 
@@ -40,7 +40,7 @@ const SYNTAX_KOTLIN = {
 	]
 };
 
-const highlighterKotlin = (code) => {
+const highlighterKotlin = (code: string): string => {
 
 	code = code.replace("<", "&lt");
 	code = replaceLiteral(code);
@@ -56,7 +56,7 @@ const highlighterKotlin = (code) => {
 	return code;
 }
 
-const replaceLiteral = (line) => {
+const replaceLiteral = (line: string): string => {
 	const start = line.indexOf("\"");
 	if(start > -1) {
 		const next = line.indexOf("\"", start + 1);
@@ -71,15 +71,15 @@ const replaceLiteral = (line) => {
 	return line;
 }
 
-const replaceReservedWord = (frontSpace, keyword, rearSpace, line) => {
+const replaceReservedWord = (frontSpace: string, keyword: string, rearSpace: string, line: string): string => {
 	return line.replace(frontSpace + keyword + rearSpace, frontSpace + "<span class='span span--kotlin-reserved'>" + keyword + "</span>" + rearSpace);
 }
 
-const replaceAnnotation = (keyword, line) => {
+const replaceAnnotation = (keyword: string, line: string): string => {
 	return line.replace(keyword, "<span class='span span--kotlin-annotation'>" + keyword + "</span>");
 }
 
-const highlighterYaml = (code) => {
+const highlighterYaml = (code: string): string => {
 
 	let lastChar = '';
 	let sharp = -1;

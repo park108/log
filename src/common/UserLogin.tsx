@@ -1,21 +1,23 @@
-import React from "react";
+import type { SyntheticEvent } from "react";
 import * as common from '../common/common';
 import { isDev, isProd } from './env';
 import { activateOnKey } from './a11y';
 
-export const getLoginUrl = () => {
+export const getLoginUrl = (): string | undefined => {
 	if (isProd()) return import.meta.env.VITE_COGNITO_LOGIN_URL_PROD;
 	if (isDev()) return import.meta.env.VITE_COGNITO_LOGIN_URL_DEV;
+	return undefined;
 }
 
-export const getLogoutUrl = () => {
+export const getLogoutUrl = (): string | undefined => {
 	if (isProd()) return import.meta.env.VITE_COGNITO_LOGOUT_URL_PROD;
 	if (isDev()) return import.meta.env.VITE_COGNITO_LOGOUT_URL_DEV;
+	return undefined;
 }
 
 const UserLogin = () => {
 
-	const handleLoginClick = (e) => {
+	const handleLoginClick = (e: SyntheticEvent) => {
 		e.preventDefault();
 
 		if(common.isLoggedIn()) {

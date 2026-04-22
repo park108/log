@@ -15,7 +15,14 @@
  * 관련 task result.md 에 박제한다.
  */
 
-export const PATTERN_B_EXEMPTIONS = [
+export interface PatternBExemption {
+	file: string;
+	testId?: string;
+	lineHint?: number;
+	rationale: string;
+}
+
+export const PATTERN_B_EXEMPTIONS: readonly PatternBExemption[] = [
 	{
 		file: 'src/Log/LogItemInfo.jsx',
 		testId: 'edit-button',
