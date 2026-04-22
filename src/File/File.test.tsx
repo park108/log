@@ -106,7 +106,7 @@ describe('File render files, next, delete on prod server', () => {
 			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
 		);
 		const buttonsBeforeSeeMore2 = screen.getAllByRole("button");
-		fireEvent.click(buttonsBeforeSeeMore2[0]);
+		fireEvent.click(buttonsBeforeSeeMore2[0]!);
 		await waitFor(
 			() => expect(screen.getByText(/URL copied\.$/)).toBeInTheDocument(),
 			{ timeout: ASYNC_ASSERTION_TIMEOUT_MS }
@@ -125,7 +125,7 @@ describe('File render files, next, delete on prod server', () => {
 		});
 		const buttonsForDelete = screen.queryAllByRole("button");
 		if (buttonsForDelete.length > 1) {
-			fireEvent.click(buttonsForDelete[1]);
+			fireEvent.click(buttonsForDelete[1]!);
 		}
 	});
 });
@@ -154,7 +154,7 @@ describe('File copy URL failure on prod server', () => {
 		);
 
 		const buttons = await screen.findAllByRole("button");
-		const firstFile = buttons[0];
+		const firstFile = buttons[0]!;
 		fireEvent.click(firstFile);
 
 		const errorToast = await screen.findByText("Copy failed (permission denied or unavailable).");
@@ -323,7 +323,7 @@ describe('File render files and get next files failed on dev server', () => {
 
 		// Delete
 		const buttons = await screen.findAllByRole("button");
-		const firstDeleteButton = buttons[1];
+		const firstDeleteButton = buttons[1]!;
 
 		vi.spyOn(window, 'confirm').mockImplementation((message) => {
 			console.log("INPUT MESSAGE on ALERT = " + message);
@@ -352,7 +352,7 @@ describe('File render files and get next files failed on dev server', () => {
 
 		// Delete
 		const buttons2 = await screen.findAllByRole("button");
-		const firstDeleteButton2 = buttons2[1];
+		const firstDeleteButton2 = buttons2[1]!;
 
 		fireEvent.click(firstDeleteButton2);
 

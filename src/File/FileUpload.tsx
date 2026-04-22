@@ -91,7 +91,7 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 		}
 
 		for(let i = 0; i < files.length; i++) {
-			uploadFile(files[i], i === files.length - 1);
+			uploadFile(files[i] as File, i === files.length - 1);
 		}
 
 	}, [files]);

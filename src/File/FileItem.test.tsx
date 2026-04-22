@@ -41,7 +41,7 @@ describe('FileItem keyboard activation (a11y pattern B) — filename div', () =>
 		const { container } = render(<FileItem {...defaultProps} />);
 
 		const filenameDiv = container.querySelector('.div--fileitem-filename');
-		fireEvent.keyDown(filenameDiv, { key: 'Enter' });
+		fireEvent.keyDown(filenameDiv!, { key: 'Enter' });
 
 		expect(spy).toHaveBeenCalledTimes(1);
 		expect(spy).toHaveBeenCalledWith(defaultProps.url);
@@ -57,7 +57,7 @@ describe('FileItem keyboard activation (a11y pattern B) — filename div', () =>
 
 		const filenameDiv = container.querySelector('.div--fileitem-filename');
 		// fireEvent.keyDown returns false when the event was cancelled (preventDefault called).
-		const spaceEvent = fireEvent.keyDown(filenameDiv, { key: ' ' });
+		const spaceEvent = fireEvent.keyDown(filenameDiv!, { key: ' ' });
 		expect(spaceEvent).toBe(false);
 		expect(spy).toHaveBeenCalledTimes(1);
 
@@ -71,7 +71,7 @@ describe('FileItem keyboard activation (a11y pattern B) — filename div', () =>
 		const { container } = render(<FileItem {...defaultProps} />);
 
 		const filenameDiv = container.querySelector('.div--fileitem-filename');
-		const otherEvent = fireEvent.keyDown(filenameDiv, { key: 'x' });
+		const otherEvent = fireEvent.keyDown(filenameDiv!, { key: 'x' });
 		expect(otherEvent).toBe(true);
 		expect(spy).not.toHaveBeenCalled();
 
@@ -85,7 +85,7 @@ describe('FileItem keyboard activation (a11y pattern B) — filename div', () =>
 		const { container } = render(<FileItem {...defaultProps} />);
 
 		const filenameDiv = container.querySelector('.div--fileitem-filename');
-		fireEvent.click(filenameDiv);
+		fireEvent.click(filenameDiv!);
 
 		expect(spy).toHaveBeenCalledTimes(1);
 		expect(spy).toHaveBeenCalledWith(defaultProps.url);
@@ -114,7 +114,7 @@ describe('FileItem keyboard activation (a11y pattern B) — delete span', () => 
 		const { container } = render(<FileItem {...defaultProps} />);
 
 		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		fireEvent.keyDown(deleteSpan, { key: 'Enter' });
+		fireEvent.keyDown(deleteSpan!, { key: 'Enter' });
 
 		expect(confirmAction).toHaveBeenCalledTimes(1);
 
@@ -129,7 +129,7 @@ describe('FileItem keyboard activation (a11y pattern B) — delete span', () => 
 		const { container } = render(<FileItem {...defaultProps} />);
 
 		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		const spaceEvent = fireEvent.keyDown(deleteSpan, { key: ' ' });
+		const spaceEvent = fireEvent.keyDown(deleteSpan!, { key: ' ' });
 
 		expect(spaceEvent).toBe(false);
 		expect(confirmAction).toHaveBeenCalledTimes(1);
@@ -145,7 +145,7 @@ describe('FileItem keyboard activation (a11y pattern B) — delete span', () => 
 		const { container } = render(<FileItem {...defaultProps} />);
 
 		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		const otherEvent = fireEvent.keyDown(deleteSpan, { key: 'x' });
+		const otherEvent = fireEvent.keyDown(deleteSpan!, { key: 'x' });
 
 		expect(otherEvent).toBe(true);
 		expect(confirmAction).not.toHaveBeenCalled();
@@ -161,7 +161,7 @@ describe('FileItem keyboard activation (a11y pattern B) — delete span', () => 
 		const { container } = render(<FileItem {...defaultProps} />);
 
 		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		fireEvent.click(deleteSpan);
+		fireEvent.click(deleteSpan!);
 
 		expect(confirmAction).toHaveBeenCalledTimes(1);
 
@@ -190,7 +190,7 @@ describe('FileItem className transition (declarative pattern)', () => {
 		vi.spyOn(window, 'confirm').mockReturnValue(true);
 		vi.spyOn(api, 'deleteFile').mockResolvedValue({
 			json: async () => ({ statusCode: 200 }),
-		});
+		} as unknown as Response);
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
@@ -201,7 +201,7 @@ describe('FileItem className transition (declarative pattern)', () => {
 		const deleteSpan = container.querySelector('.span--fileitem-delete');
 
 		await act(async () => {
-			fireEvent.click(deleteSpan);
+			fireEvent.click(deleteSpan!);
 		});
 
 		await waitFor(() => {
@@ -217,13 +217,13 @@ describe('FileItem className transition (declarative pattern)', () => {
 		vi.spyOn(window, 'confirm').mockReturnValue(true);
 		vi.spyOn(api, 'deleteFile').mockResolvedValue({
 			json: async () => ({ statusCode: 200 }),
-		});
+		} as unknown as Response);
 
 		const { container, rerender } = render(<FileItem {...defaultProps} />);
 
 		const deleteSpan = container.querySelector('.span--fileitem-delete');
 		await act(async () => {
-			fireEvent.click(deleteSpan);
+			fireEvent.click(deleteSpan!);
 		});
 
 		await waitFor(() => {
@@ -259,7 +259,7 @@ describe('FileItem reportError 채널 (REQ-20260421-039 FR-03)', () => {
 		const deleteSpan = container.querySelector('.span--fileitem-delete');
 
 		await act(async () => {
-			fireEvent.click(deleteSpan);
+			fireEvent.click(deleteSpan!);
 		});
 
 		await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));

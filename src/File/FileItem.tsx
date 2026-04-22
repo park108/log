@@ -37,7 +37,7 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 
 			if(200 === status.statusCode) {
 				log("[API DELETE] OK - File: " + props.fileName, "SUCCESS");
-				setTimeout(refreshFiles, refreshTimeout);
+				setTimeout(() => refreshFiles?.(), refreshTimeout);
 			}
 			else {
 				log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
@@ -89,10 +89,10 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 				</div>
 				<div className="div div--fileitem-statusbar">
 					<span className="span span--fileitem-modifieddate">
-						{getFormattedDate(props.lastModified)}
+						{getFormattedDate(props.lastModified as number)}
 					</span>
 					<span className="span span--fileitem-modifiedtime">
-						{getFormattedTime(props.lastModified)}
+						{getFormattedTime(props.lastModified as number)}
 					</span>
 					<span className="span span--fileitem-size">
 						{((props.size as number) * 1).toLocaleString()} bytes
@@ -100,7 +100,7 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 					<span className="span span--fileitem-toolbar">
 						<span
 							onClick={confirmDelete}
-							onKeyDown={activateOnKey(confirmDelete)}
+							onKeyDown={activateOnKey(confirmDelete as () => void)}
 							className="span span--fileitem-delete"
 							role="button"
 							tabIndex={0}

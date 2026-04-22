@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_FILE_API_BASE as string;
 
 const lastTimestampParam = (request: Request): string => {
 	const qs = request.url.split("?")[1];
-	return qs ? qs.split("=")[1] : "";
+	return qs ? (qs.split("=")[1] ?? "") : "";
 }
 
 export const prodServerHasNoData = setupServer(
