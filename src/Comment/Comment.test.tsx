@@ -29,7 +29,7 @@ describe('Comment render list and post on dev server (ok)', () => {
 		vi.stubEnv('PROD', false);
 		vi.spyOn(common, "isAdmin").mockResolvedValue(true); // User is admin in this case.
 
-		render(<Comment timestamp={1655302060414} />);
+		render(<Comment />);
 
 		const togglebutton = await screen.findByText("10 comments");
 		expect(togglebutton).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe('Comment render list and post on dev server (ok)', () => {
 
 		// Open reply form
 		const replyButtons = await screen.findAllByText("🪃");
-		const firstReplyButton = replyButtons[0];
+		const firstReplyButton = replyButtons[0]!;
 
 		fireEvent.mouseOver(firstReplyButton);
 		fireEvent.mouseOver(firstReplyButton); // Already class changed
@@ -103,7 +103,7 @@ describe('Comment render failed when internal error on dev server', () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
-		render(<Comment timestamp={1655302060414} />);
+		render(<Comment />);
 	});
 });
 
@@ -115,7 +115,7 @@ describe('Comment render failed when network error on dev server', () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
-		render(<Comment timestamp={1655302060414} />);
+		render(<Comment />);
 	});
 });
 
@@ -138,7 +138,7 @@ describe('Comment render list and post on prod server (ok scenario — validatio
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<Comment timestamp={1655302060414} />);
+		render(<Comment />);
 
 		const togglebutton = await screen.findByText("1 comment");
 		expect(togglebutton).toBeInTheDocument();
@@ -178,7 +178,7 @@ describe('Comment render list and post on prod server (failed scenario — post 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<Comment timestamp={1655302060414} />);
+		render(<Comment />);
 
 		// Failed server: GET returns 500 → error UI (no comment list). Open form via the
 		// failure-path toggle (same "N comment" button renders 0 when GET fails).
@@ -220,7 +220,7 @@ describe('Comment render list and post on prod server (network-error scenario �
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<Comment timestamp={1655302060414} />);
+		render(<Comment />);
 
 		const toggle = await screen.findByText(/comment/);
 		expect(toggle).toBeInTheDocument();
@@ -260,6 +260,8 @@ it('render comment item correctly', () => {
 			logTimestamp={1655302060414}
 			commentTimestamp={1655302099999}
 			timestamp={1655302060414}
+			openReplyForm={() => {}}
+			reply={() => {}}
 		/>
 	);
 	const messageText = screen.getByText(message);
@@ -278,6 +280,8 @@ it('render hidden comment item correctly', () => {
 			logTimestamp={1655302060414}
 			commentTimestamp={1655302099999}
 			timestamp={1655302060414}
+			openReplyForm={() => {}}
+			reply={() => {}}
 		/>
 	);
 	const messageText = screen.getByText("🥷 Hidden Message 🥷");
@@ -353,7 +357,7 @@ describe('Comment reportError 채널 (REQ-20260421-039 FR-03)', () => {
 			await screen.findByText('Add a comment');
 
 			expect(reportErrorSpy).toHaveBeenCalledTimes(1);
-			const firstArg = reportErrorSpy.mock.calls[0][0];
+			const firstArg = reportErrorSpy.mock.calls[0]![0];
 			expect(firstArg).toHaveProperty('errorType');
 
 			reportErrorSpy.mockRestore();

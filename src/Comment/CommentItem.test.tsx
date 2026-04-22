@@ -29,6 +29,8 @@ describe('CommentItem rendering + hoverPopup migration', () => {
 				logTimestamp={1655302060414}
 				commentTimestamp={1655302099999}
 				timestamp={1655302060414}
+				openReplyForm={() => {}}
+				reply={() => {}}
 			/>
 		);
 		expect(screen.getByText(message)).toBeInTheDocument();
@@ -45,6 +47,8 @@ describe('CommentItem rendering + hoverPopup migration', () => {
 				logTimestamp={1655302060414}
 				commentTimestamp={1655302099999}
 				timestamp={1655302060414}
+				openReplyForm={() => {}}
+				reply={() => {}}
 			/>
 		);
 		expect(screen.getByText("🥷 Hidden Message 🥷")).toBeInTheDocument();

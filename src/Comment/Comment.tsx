@@ -168,7 +168,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 								openReplyForm={(isOpened: boolean) => {
 									setIsOpenReplyForm(isOpened);
 								}}
-								reply={postNewComment}
+								reply={postNewComment as (comment: { logTimestamp?: number; isAdminComment: boolean; message: string; name: string; commentTimestamp?: number; isHidden: boolean }) => void}
 							/>
 						))}
 					</Suspense>
@@ -188,7 +188,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 				<Suspense fallback={<div></div>}>
 					<CommentForm
 						logTimestamp={logTimestamp}
-						post={postNewComment}
+						post={postNewComment as (comment: { logTimestamp?: number; isAdminComment: boolean; message: string; name: string; commentTimestamp?: number; isHidden: boolean }) => void}
 						isPosting={isPosting}
 					/>
 				</Suspense>
