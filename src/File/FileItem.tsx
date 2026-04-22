@@ -6,22 +6,33 @@ import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { deleteFile } from './api';
 
-const FileItem = (props) => {
+interface FileItemProps {
+	deleted?: () => void;
+	fileName?: string;
+	url?: string;
+	lastModified?: number;
+	size?: number;
+}
 
-	const [isDeleting, setIsDeleting] = useState(false);
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterMessage ,setToasterMessage] = useState("");
-	const [toasterType, setToasterType] = useState("success");
+type ToasterShowState = 0 | 1 | 2;
+type ToasterKind = "information" | "success" | "warning" | "error";
+
+const FileItem = (props: FileItemProps): React.ReactElement => {
+
+	const [isDeleting, setIsDeleting] = useState<boolean>(false);
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(0);
+	const [toasterMessage, setToasterMessage] = useState<string>("");
+	const [toasterType, setToasterType] = useState<ToasterKind>("success");
 
 	const refreshFiles = props.deleted;
 	const refreshTimeout = 3000;
 
-	const deleteFileItem = async() => {
+	const deleteFileItem = async () => {
 
 		setIsDeleting(true);
 
 		try {
-			const res = await deleteFile(props.fileName);
+			const res = await deleteFile(props.fileName as string);
 			const status = await res.json();
 
 			if(200 === status.statusCode) {
@@ -46,7 +57,7 @@ const FileItem = (props) => {
 	}
 
 	const copyFileUrl = async () => {
-		const ok = await copyToClipboard(props.url);
+		const ok = await copyToClipboard(props.url as string);
 		if (ok) {
 			setToasterMessage(props.fileName + " URL copied.");
 			setToasterType("success");
@@ -58,7 +69,7 @@ const FileItem = (props) => {
 	}
 
 	const abort = () => log("Deleting aborted");
-	const confirmDelete = confirm("Are you sure delete '" + props.fileName+ "'?", deleteFileItem, abort);
+	const confirmDelete = confirm("Are you sure delete '" + (props.fileName as string) + "'?", deleteFileItem, abort);
 
 	const className = isDeleting
 		? "div div--fileitem div--fileitem-delete"
@@ -84,7 +95,7 @@ const FileItem = (props) => {
 						{getFormattedTime(props.lastModified)}
 					</span>
 					<span className="span span--fileitem-size">
-						{(props.size * 1).toLocaleString()} bytes
+						{((props.size as number) * 1).toLocaleString()} bytes
 					</span>
 					<span className="span span--fileitem-toolbar">
 						<span

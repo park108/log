@@ -1,6 +1,33 @@
-export const PRESIGNED_URL = "https://aws.test.upload.url.com";
+interface S3FileItem {
+	size: number;
+	bucket: string;
+	url: string;
+	key: string;
+	timestamp: number;
+}
 
-export const filesListFirst7 = {
+interface LastEvaluatedKey {
+	key: string;
+	bucket: string;
+	timestamp: number;
+}
+
+interface FilesListPage {
+	Items: S3FileItem[];
+	Count: number;
+	ScannedCount: number;
+	LastEvaluatedKey: LastEvaluatedKey;
+}
+
+interface FilesListPageNoKey {
+	Items: S3FileItem[];
+	Count: number;
+	ScannedCount: number;
+}
+
+export const PRESIGNED_URL: string = "https://aws.test.upload.url.com";
+
+export const filesListFirst7: FilesListPage = {
 	Items: [
 		{ size: 49955, bucket: "park108-log-dev", url: "https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220606_log_CQRS.png", key: "20220606_log_CQRS.png", timestamp: 1654522279342 },
 		{ size: 34022, bucket: "park108-log-dev", url: "https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/20220221_ecr_repo.png", key: "20220221_ecr_repo.png", timestamp: 1645425962599 },
@@ -15,7 +42,7 @@ export const filesListFirst7 = {
 	LastEvaluatedKey: { key: "house_price.pdf", bucket: "park108-log-dev", timestamp: 1643637384614 },
 };
 
-export const filesListNext3 = {
+export const filesListNext3: FilesListPage = {
 	Items: [
 		{ size: 8836521, bucket: "park108-log-dev", url: "https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/308142rg.jpg", key: "308142rg.jpg", timestamp: 1639269515238 },
 		{ size: 2942795, bucket: "park108-log-dev", url: "https://park108-log-dev.s3.ap-northeast-2.amazonaws.com/501985ld.jpg", key: "501985ld.jpg", timestamp: 1639268308087 },
@@ -26,7 +53,7 @@ export const filesListNext3 = {
 	LastEvaluatedKey: { key: "227100fg.jpg", bucket: "park108-log-dev", timestamp: 1638746700070 },
 };
 
-export const filesListNext3NoKey = {
+export const filesListNext3NoKey: FilesListPageNoKey = {
 	Items: filesListNext3.Items,
 	Count: 3,
 	ScannedCount: 3,

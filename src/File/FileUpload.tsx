@@ -7,37 +7,52 @@ import { getPreSignedUrl, putFile } from './api';
 
 const REFRESH_TIMEOUT = 3000;
 
-const FileUpload = (props) => {
+interface FileUploadProps {
+	callbackAfterUpload: () => void;
+}
 
-	const [files, setFiles] = useState([]);
-	const [isUploading, setIsUploading] = useState("READY");
-	
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterType, setToasterType] = useState("success");
-	const [toasterMessage ,setToasterMessage] = useState("");
+type UploadState = "READY" | "UPLOADING" | "COMPLETE" | "FAILED";
+type ToasterShowState = 0 | 1 | 2;
+type ToasterKind = "information" | "success" | "warning" | "error";
+
+interface PreSignedUrlResponse {
+	errorType?: string;
+	body?: {
+		UploadUrl?: string;
+	};
+}
+
+const FileUpload = (props: FileUploadProps): React.ReactElement => {
+
+	const [files, setFiles] = useState<File[]>([]);
+	const [isUploading, setIsUploading] = useState<UploadState>("READY");
+
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(0);
+	const [toasterType, setToasterType] = useState<ToasterKind>("success");
+	const [toasterMessage, setToasterMessage] = useState<string>("");
 
 	const refreshFiles = props.callbackAfterUpload;
 
 	useEffect(() => {
 
-		const uploadFile = async(item, isLast) => {
-	
+		const uploadFile = async (item: File, isLast: boolean): Promise<void> => {
+
 			setIsUploading("UPLOADING");
-	
-			let name = item.name;
-			let type = encodeURIComponent(item.type);
-			
-			let preSignedUrlData = "";
+
+			const name = item.name;
+			const type = encodeURIComponent(item.type);
+
+			let preSignedUrlData: PreSignedUrlResponse | string = "";
 			let uploadUrl = "";
 			let isSuccess = false;
 	
 			try {
 				const res = await getPreSignedUrl(name, type);
-				preSignedUrlData = await res.json();
-	
-				if(!hasValue(preSignedUrlData.errorType)) {
+				preSignedUrlData = await res.json() as PreSignedUrlResponse;
+
+				if(!hasValue((preSignedUrlData as PreSignedUrlResponse).errorType)) {
 					log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
-					uploadUrl = preSignedUrlData.body.UploadUrl;
+					uploadUrl = (preSignedUrlData as PreSignedUrlResponse).body!.UploadUrl as string;
 					isSuccess = true;
 				}
 				else {
@@ -84,15 +99,15 @@ const FileUpload = (props) => {
 	useEffect(() => {
 
 		if("READY" === isUploading) {
-			document.getElementById('file-upload-for-mobile').disabled = false;
+			(document.getElementById('file-upload-for-mobile') as HTMLInputElement).disabled = false;
 		}
 		else if("UPLOADING" === isUploading) {
-			document.getElementById('file-upload-for-mobile').disabled = true;
+			(document.getElementById('file-upload-for-mobile') as HTMLInputElement).disabled = true;
 		}
 		else if("COMPLETE" === isUploading) {
 
-			document.getElementById('file-upload-for-mobile').value = "";
-		
+			(document.getElementById('file-upload-for-mobile') as HTMLInputElement).value = "";
+
 			setToasterMessage("Upload complete.");
 			setToasterType("success");
 			setIsShowToaster(1);
@@ -105,8 +120,8 @@ const FileUpload = (props) => {
 		}
 		else {
 
-			document.getElementById('file-upload-for-mobile').value = "";
-		
+			(document.getElementById('file-upload-for-mobile') as HTMLInputElement).value = "";
+
 			setToasterMessage("Upload failed.");
 			setToasterType("error");
 			setIsShowToaster(1);
@@ -127,15 +142,15 @@ const FileUpload = (props) => {
 				type="file"
 				aria-label="file-upload"
 				multiple
-				onChange={( e) => {
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 					e.preventDefault();
-				
-					let newFiles = [];
-			
-					for(let file of e.target.files) {
+
+					const newFiles: File[] = [];
+
+					for(const file of (e.target.files as FileList)) {
 						newFiles.push(file);
 					}
-			
+
 					setFiles(newFiles);
 				} }
 			/>

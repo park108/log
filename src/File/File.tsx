@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, CSSProperties } from "react";
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getFiles, getNextFiles	 } from './api';
@@ -11,18 +11,47 @@ import FileUpload from "./FileUpload";
 
 import './File.css';
 
-const File = (props) => {
+interface FileProps {
+	contentHeight?: CSSProperties;
+}
 
-	const [isLoading, setIsLoading] = useState(false);
-	const [isGetData, setIsGetData] = useState(false);
-	const [isGetNextData, setIsGetNextData] = useState(false);
+interface S3FileItemData {
+	key: string;
+	url?: string;
+	size?: number;
+	bucket?: string;
+	timestamp?: number;
+}
 
-	const [files, setFiles] = useState([]);
-	const [lastTimestamp, setLastTimestamp] = useState(undefined);
+interface LastEvaluatedKeyData {
+	timestamp?: number;
+	[k: string]: unknown;
+}
 
-	const [isShowToaster, setIsShowToaster] = useState(1);
-	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
-	const [toasterMessage, setToasterMessage] = useState("");
+interface FilesResponseBody {
+	Items?: S3FileItemData[];
+	LastEvaluatedKey?: LastEvaluatedKeyData;
+}
+
+interface FilesResponse {
+	errorType?: string;
+	body?: FilesResponseBody;
+}
+
+type ToasterShowState = 0 | 1 | 2;
+
+const File = (props: FileProps): React.ReactElement => {
+
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [isGetData, setIsGetData] = useState<boolean>(false);
+	const [isGetNextData, setIsGetNextData] = useState<boolean>(false);
+
+	const [files, setFiles] = useState<S3FileItemData[]>([]);
+	const [lastTimestamp, setLastTimestamp] = useState<number | undefined>(undefined);
+
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(1);
+	const [isShowToasterBottom, setIsShowToasterBottom] = useState<ToasterShowState>(0);
+	const [toasterMessage, setToasterMessage] = useState<string>("");
 
 	const navigate = useNavigate();
 
@@ -41,22 +70,22 @@ const File = (props) => {
 
 	useEffect(() => {
 
-		const fetchFirst = async () => {
-	
+		const fetchFirst = async (): Promise<void> => {
+
 			setIsLoading(true);
-	
+
 			try {
 				const res = await getFiles();
-				const newData = await res.json();
-	
+				const newData = await res.json() as FilesResponse;
+
 				if(!hasValue(newData.errorType)) {
 					log("[API GET] OK - Files", "SUCCESS");
-	
-					const newFiles = newData.body.Items;
-					const lastEvaluatedKey = newData.body.LastEvaluatedKey;
-	
-					setFiles(hasValue(newFiles) ? newFiles : []);
-					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
+					const newFiles = newData.body?.Items;
+					const lastEvaluatedKey = newData.body?.LastEvaluatedKey;
+
+					setFiles(hasValue(newFiles) ? (newFiles as S3FileItemData[]) : []);
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
 					log("[API GET] FAILED - Files", "ERROR");
@@ -84,22 +113,22 @@ const File = (props) => {
 
 	useEffect(() => {
 
-		const fetchMore = async (timestamp) => {
-	
+		const fetchMore = async (timestamp: number | undefined): Promise<void> => {
+
 			setIsLoading(true);
-	
+
 			try {
-				const res = await getNextFiles(timestamp);
-				const nextData = await res.json();
-	
+				const res = await getNextFiles(timestamp as number);
+				const nextData = await res.json() as FilesResponse;
+
 				if(!hasValue(nextData.errorType)) {
 					log("[API GET] OK - Next Files", "SUCCESS");
-					
-					const newFiles = files.concat(nextData.body.Items);
-					const lastEvaluatedKey = nextData.body.LastEvaluatedKey;
-		
-					setFiles(hasValue(nextData.body.Items) ? newFiles : []);
-					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
+
+					const newFiles = files.concat(nextData.body?.Items ?? []);
+					const lastEvaluatedKey = nextData.body?.LastEvaluatedKey;
+
+					setFiles(hasValue(nextData.body?.Items) ? newFiles : []);
+					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
 					log("[API GET] FAILED - Next Files", "ERROR");

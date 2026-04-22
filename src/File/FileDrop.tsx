@@ -6,33 +6,46 @@ import { getPreSignedUrl, putFile } from './api';
 
 const REFRESH_TIMEOUT = 3000;
 
-const FileDrop = (props) => {
+interface FileDropProps {
+	callbackAfterUpload: () => void;
+}
 
-	const [files, setFiles] = useState([]);
-	const [isUploading, setIsUploading] = useState("READY");
-	const [isDragOver, setIsDragOver] = useState(false);
+type UploadState = "READY" | "UPLOADING" | "COMPLETE" | "FAILED";
+
+interface PreSignedUrlResponse {
+	errorType?: string;
+	body?: {
+		UploadUrl?: string;
+	};
+}
+
+const FileDrop = (props: FileDropProps): React.ReactElement => {
+
+	const [files, setFiles] = useState<File[]>([]);
+	const [isUploading, setIsUploading] = useState<UploadState>("READY");
+	const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
 	const refreshFiles = props.callbackAfterUpload;
 
 	useEffect(() => {
 
-		const uploadFile = async(item, isLast)  => {
+		const uploadFile = async (item: File, isLast: boolean): Promise<void> => {
 
 			setIsUploading("UPLOADING");
 
-			let name = item.name;
-			let type = encodeURIComponent(item.type);
+			const name = item.name;
+			const type = encodeURIComponent(item.type);
 
-			let preSignedUrlData = "";
+			let preSignedUrlData: PreSignedUrlResponse | string = "";
 			let uploadUrl = "";
 			let isSuccess = false;
 
 			try {
 				const res = await getPreSignedUrl(name, type);
-				preSignedUrlData = await res.json();
+				preSignedUrlData = await res.json() as PreSignedUrlResponse;
 
-				if(!hasValue(preSignedUrlData.errorType)) {
-					uploadUrl = preSignedUrlData.body.UploadUrl;
+				if(!hasValue((preSignedUrlData as PreSignedUrlResponse).errorType)) {
+					uploadUrl = (preSignedUrlData as PreSignedUrlResponse).body!.UploadUrl as string;
 					log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
 					isSuccess = true;
 				}
@@ -109,22 +122,22 @@ const FileDrop = (props) => {
 		<div className={className}
 			data-testid="dropzone"
 			data-dragover={isDragOver ? 'Y' : 'N'}
-			onDragOver={(e) => e.preventDefault()}
-			onDragEnter={(e) => {
+			onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
+			onDragEnter={(e: React.DragEvent<HTMLDivElement>) => {
 				e.preventDefault();
 				setIsDragOver(true);
 			}}
-			onDragLeave={(e) => {
+			onDragLeave={(e: React.DragEvent<HTMLDivElement>) => {
 				e.preventDefault();
 				setIsDragOver(false);
 			}}
-			onDrop={(e) => {
+			onDrop={(e: React.DragEvent<HTMLDivElement>) => {
 				e.preventDefault();
 				setIsDragOver(false);
 
-				let newFiles = [];
+				const newFiles: File[] = [];
 
-				for(let file of e.dataTransfer.files) {
+				for(const file of e.dataTransfer.files) {
 					newFiles.push(file);
 				}
 
