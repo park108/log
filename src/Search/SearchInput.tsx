@@ -5,20 +5,22 @@ import { isAdmin } from '../common/common';
 import styles from './Search.module.css';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
-  
-const SearchInput = () => {
 
-	const [isGetData, setIsGetData] = useState(false);
+type ToasterShowState = 0 | 1 | 2;
 
-	const [queryString, setQueryString] = useState("");
+const SearchInput = (): React.ReactElement => {
 
-	const [toaster, setToaster] = useState();
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+	const [isGetData, setIsGetData] = useState<boolean>(false);
+
+	const [queryString, setQueryString] = useState<string>("");
+
+	const [toaster, setToaster] = useState<React.ReactNode>();
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(0);
+	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState<boolean>(false);
 
 	const navigate = useNavigate();
 
-	const handleKeyUp = async (e) => {
+	const handleKeyUp = async (e: React.KeyboardEvent<HTMLInputElement>): Promise<void> => {
 		e.preventDefault();
 
 		if(13 === e.keyCode) {

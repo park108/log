@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node'
 import { ERROR_500 } from '../__fixtures__/common'
 import { searchResults6, searchResults1, searchResultsNoData } from './__fixtures__/search'
 
-const API_URL = import.meta.env.VITE_SEARCH_API_BASE;
+const API_URL = import.meta.env.VITE_SEARCH_API_BASE as string;
 
 export const prodServerGetList = setupServer(
 	http.get(API_URL + "/prod", async () => HttpResponse.json({ body: searchResults6 })),

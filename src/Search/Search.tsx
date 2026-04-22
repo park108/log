@@ -6,17 +6,39 @@ import { useSearchList } from './hooks/useSearchList';
 
 import styles from './Search.module.css';
 
-const Search = () => {
+interface SearchItem {
+	timestamp: number;
+	contents: string;
+	author: string;
+}
 
-	const [queryString, setQueryString] = useState("");
-	const [loadingDots, setLoadingDots] = useState("");
+interface SearchListBody {
+	QueryString?: string;
+	TotalCount?: number;
+	ProcessingTime?: number;
+	Items?: SearchItem[];
+}
+
+interface SearchListResponse {
+	errorType?: string;
+	body?: SearchListBody;
+}
+
+interface SearchLocationState {
+	queryString: string;
+}
+
+const Search = (): React.ReactElement => {
+
+	const [queryString, setQueryString] = useState<string>("");
+	const [loadingDots, setLoadingDots] = useState<string>("");
 
 	const location = useLocation();
 	const navigate = useNavigate();
 
 	useEffect(() => {
 		if(hasValue(location.state)) {
-			setQueryString(location.state.queryString);
+			setQueryString((location.state as SearchLocationState).queryString);
 		}
 	}, []);
 
@@ -26,10 +48,10 @@ const Search = () => {
 
 	const { data, isLoading, isError, error } = useSearchList(queryString, {
 		enabled: queryString.length > 0,
-	});
+	}) as { data: SearchListResponse | undefined; isLoading: boolean; isError: boolean; error: Error | null };
 
 	const body = data?.body;
-	const searchedList = body?.Items ?? [];
+	const searchedList: SearchItem[] = body?.Items ?? [];
 	const totalCount = (body?.TotalCount ?? 0) * 1;
 	const processingTime = (body?.ProcessingTime ?? 0) * 1;
 
@@ -58,7 +80,7 @@ const Search = () => {
 			return;
 		}
 		const id = setInterval(
-			() => setLoadingDots(prev => prev.length >= 3 ? "" : prev + "."),
+			() => setLoadingDots((prev: string) => prev.length >= 3 ? "" : prev + "."),
 			300
 		);
 		return () => clearInterval(id);
@@ -67,15 +89,15 @@ const Search = () => {
 	const toListButton = (
 		<button className="button button--loglist-seemore" onClick={() => {
 
-			const searchInput1 = document.getElementById("query-string-by-enter");
-			const searchInput2 = document.getElementById("query-string-by-button");
+			const searchInput1 = document.getElementById("query-string-by-enter") as HTMLInputElement | null;
+			const searchInput2 = document.getElementById("query-string-by-button") as HTMLInputElement | null;
 
 			if(hasValue(searchInput1)) {
-				searchInput1.value = "";
+				(searchInput1 as HTMLInputElement).value = "";
 			}
 
 			if(hasValue(searchInput2)) {
-				searchInput2.value = "";
+				(searchInput2 as HTMLInputElement).value = "";
 			}
 
 			navigate("/log");
@@ -116,7 +138,7 @@ const Search = () => {
 					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
 
-				{searchedList.map(data => (
+				{searchedList.map((data: SearchItem) => (
 					<div className="div--loglist-item" key={data.timestamp} role="listitem">
 						<Link to={{
 							pathname: "/log/" + data.timestamp,
@@ -124,7 +146,7 @@ const Search = () => {
 						}}>
 							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
 							<div className="div--loglist-contents">{
-								data.contents.split(queryString).map((parsed, index, arr) => (
+								data.contents.split(queryString).map((parsed: string, index: number, arr: string[]) => (
 									<span key={index}>
 										{parsed}
 										{ index == arr.length - 1

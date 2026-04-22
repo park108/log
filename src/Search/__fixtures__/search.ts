@@ -1,4 +1,17 @@
-export const searchResults6 = {
+export interface SearchItem {
+	timestamp: number;
+	contents: string;
+	author: string;
+}
+
+export interface SearchListPayload {
+	QueryString: string;
+	TotalCount: number;
+	ProcessingTime: number;
+	Items: SearchItem[];
+}
+
+export const searchResults6: SearchListPayload = {
 	QueryString: "테스트",
 	TotalCount: 6,
 	ProcessingTime: 1472,
@@ -12,7 +25,7 @@ export const searchResults6 = {
 	],
 };
 
-export const searchResults1 = {
+export const searchResults1: SearchListPayload = {
 	QueryString: "테스트",
 	TotalCount: 1,
 	ProcessingTime: 1472,
@@ -21,7 +34,7 @@ export const searchResults1 = {
 	],
 };
 
-export const searchResultsNoData = {
+export const searchResultsNoData: SearchListPayload = {
 	QueryString: "테스트",
 	TotalCount: 0,
 	ProcessingTime: 1472,
