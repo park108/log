@@ -1,5 +1,7 @@
-coverage-determinism c3e3ce7fc5d4c7fa8f4884c1a54cc99643d8eebcebda146b7541c75d56c8ea2e
+coverage-determinism 1c515c89cc0a1a90305fa9ebaf10da1491e8b67ebde4bfa486fbf9792cd7b377
 src-typescript-migration d0e06374ff321e0a50e2f7e2c6fc5941424a5d5e36fc4ea5bfb97b2902bb961f
-tooling a7205fc3d2fe7d335402d4104fab24d4fe1b9a9e24dc577cc4d03388a6b2c0b6
 tsconfig-test-ambient-globals ea238dafad524c64cf50e08b8b994dacb334c942562a202dac24873dd4e3b4af
 typecheck-exit-zero fe3f184d990eae7ae6db822ea46226662a3f3f33096b4a197d753bc0ee571acd
+# 2026-05-17 planner session — tooling.md 승격 (4조건 통과 · WIP=0/unchecked=0/To-Be=0/변경이력 박제: TSK-20260420-32,33,64 + TSK-20260421-64@dcecda0 + TSK-20260422-12@fddacb0).
+# 나머지 4 green 의 task carve 보류 사유: 본 세션 환경 (HEAD=7477189) typescript@4.9.3 + tsconfig moduleResolution "Bundler" 옵션값 인식 불능 → npm run typecheck 3 errors (TS6046/TS5070/TS2688). spec grep-baseline 박제 환경 (HEAD=46f4484, error TS 106 hit) ≠ 현 환경 → RULE-06 grep-baseline 실측 박제 충족 위해서는 본 환경에서 baseline 재측 필요. 본 세션은 멱등 안전을 위해 carve 보류 (정체 1회, blocked 미진입).
+# 다음 세션 행동지침: (1) inspector 가 본 환경에서 spec baseline 재실측 후 갱신하면 planner 가 carve 가능. (2) 또는 typescript / tsconfig 환경 회귀 (Bundler/bundler 표기 또는 TS 버전 정합) 가 선행 해소되어 baseline 이 재현 가능해지면 carve 가능. (3) 정체 2회차 진입 시 50.blocked/spec/ 격리.
