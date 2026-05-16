@@ -111,3 +111,25 @@ island-proptypes-removal f5c84bbd2ac2b7da430c1d784593fb536eca4e85
 #     (4) RULE-05 /revisit 으로 TSK-20260517-01 가 followups 진입 후 discovery 흡수 → 20.req/ 발행 → inspector spec 재흡수 (island-proptypes-removal 갱신 또는 별 spec 분기) → planner 재진입 가능. 본 흐름 정합 시 신규 Task ID 는 -06 부터 또는 spec 재흡수 시점 hash 변경으로 carve 재계산.
 #     (5) 본 tick 의 회수 사유는 (i) RULE-01 충돌 검증 누락 (50.blocked/task 미스캔) 의 사후 정합 회복 + (ii) RULE-02 재시도 금지 + (iii) 환경 회귀 미회복. (i) 은 본 tick 박제로 표준화 — 차기 tick 부터 RULE-01 grep 검증은 50.blocked/task/ 포함.
 #     (6) working tree `src/Toaster/Toaster.tsx` unstaged mod 는 developer writer 영역 — planner 미접촉. discovery 또는 developer 가 환경 회복 후 처리.
+# 2026-05-17 planner session (10th tick @HEAD=3e7af7e) — spec hash 동일 + RULE-05 /revisit 부분 진척 (blocked → followups) + discovery 미흡수 → carve 보류 (정체 1회차 누적).
+#   재실행 baseline (HEAD=3e7af7e 실측):
+#     - green spec hash: island-proptypes-removal `f5c84bbd2ac2b7da430c1d784593fb536eca4e85` (9th tick 박제와 동일 — inspector 미터치 검증).
+#     - working tree: clean (9th tick 박제 `src/Toaster/Toaster.tsx` unstaged mod 해소 — developer 별 세션 정리 또는 git restore. RULE-01 src/ 는 developer writer 영역, planner 미접촉).
+#     - 50.blocked/task/: **비어있음** (9th tick 박제 TSK-20260517-01-island-proptypes-removal-toaster.md + _reason.md 가 RULE-05 /revisit 처리 완료 — chore(revisit) followup 승격).
+#     - 50.blocked/spec/foundation/: **비어있음** (7th tick 격리 toolchain-version-coherence 도 followup 승격 완료).
+#     - 10.followups/: 1건 — `20260516-2319-TSK-20260517-01-island-proptypes-removal-toaster-from-blocked.md` (RULE-05 revive). discovery 미흡수 — planner writer 영역 밖. 다른 followups (husky/island-regression-guard/toolchain-version-coherence-from-blocked) 는 discovery 흡수 후 60.done/followups/ 또는 20.req/ 진입 완료 (현재 followups 디렉터리에 부재).
+#     - 20.req/: 1건 — `20260517-runtime-dep-version-coherence.md` (toolchain-version-coherence-from-blocked followup 의 discovery 흡수 산출물 추정 — inspector 미흡수, planner 영역 밖).
+#     - 40.task/: 비어있음 (9th tick 회수 후 잔존 0).
+#     - 환경 회귀 부분 회복: `node_modules/@eslint/js` 존재 (rc=0) — 9th tick ERR_MODULE_NOT_FOUND 해소. 단 본 tick 은 pre-commit hook full path / typecheck rc / lint rc 실측 생략 (carve 자체 보류 결정으로 게이트 재검증 불필요 + RULE-02 비대화 모호하면 blocked).
+#     - Task ID footprint: `TSK-20260517-01` 은 10.followups/ 에 from-blocked 형태로 박제 잔존 (3 hit — followup body 메타 라인). 40.task/ + 60.done/ + 50.blocked/ 부재 — discovery 흡수 시점부터 ID 재산정 결정 가능 (RULE-05 close 시 60.done/followups/ 아카이브, revive 시 신규 req → 새 spec hash → 새 Task ID 산정).
+#   본 세션 처리:
+#     - carve 0건: spec hash 동일 (f5c84bbd) + RULE-05 /revisit 진척이 (i) blocked → followups 만 완료 + (ii) discovery 흡수 → req 발행 미완료 + (iii) inspector spec 재흡수 미완료 → 9th tick 행동지침 (4) "discovery 흡수 → 20.req/ 발행 → inspector spec 재흡수 → planner 재진입 가능" 충족 단계 1/3. planner 진입 조건 미달. 동일 spec 본문에 대한 재carve 는 RULE-02 "재시도 없음" 위반 + Task ID 산정 모호 (-01 재사용 vs -06+ 신규).
+#     - 격리 0건: 정체 1회차 누적 — 9th tick 행동지침 (3) "정체 1회차 → 2회차 진입 = 11th tick" 조건 잔존. 본 tick 은 1회차 카운트 진입 (격리 후보 도래 시점은 11th tick).
+#     - 승격 0건: §테스트 현황 + §수용 기준 unchecked `- [ ]` 24건 잔존 (FR-01~06 + NFR-01~03 측정 항목) → RULE-01 승격 4조건 (`[WIP]` 0 + unchecked 0 + `^#+ .*To-Be` 0 + 변경 이력 박제) 중 unchecked == 0 위반. 박제 자체 정합 (시점 박제 의존 분리 평서화).
+#   다음 세션 (11th tick) 행동지침:
+#     (1) 10.followups/20260516-2319-TSK-20260517-01-island-proptypes-removal-toaster-from-blocked.md 는 discovery writer 영역 — planner 미접촉. discovery 흡수 → 20.req/ 발행 후에야 inspector → green spec 재편집 흐름 가능.
+#     (2) spec hash 가 본 tick 박제 (f5c84bbd) 와 동일 + 10.followups/ 의 from-blocked 잔존 + 20.req/ 신규 island-proptypes-removal 부재 시 → 정체 2회차 진입 → 50.blocked/spec/foundation/island-proptypes-removal.md 격리 + _reason.md 박제 (RULE-05 정식 복귀 경로 결정 의존 + discovery 흐름 정체 + Task ID 산정 결정 불능). 정식 복귀 경로는 RULE-05 /revisit.
+#     (3) spec hash 가 달라지면 (inspector 가 spec 재편집 — REQ-062 갱신 흡수 또는 별 spec 분기) 정체 카운트 리셋 → carve 절차 재진입. 신규 Task ID 는 RULE-01 grep `TSK-20260517-` 전수 (40.task + 60.done + 50.blocked + 10.followups + 20.req) 스캔 후 미충돌 최소 NN 선택.
+#     (4) RULE-01 grep 표준에 10.followups/ + 20.req/ 추가 권고 박제 — 9th tick 표준화 (50.blocked/task/ 포함) 의 후속 정합. ID 재사용 분쟁 회피 목적.
+#     (5) 환경 회귀: `@eslint/js` 모듈 부분 회복. 단 9th tick 박제 pre-commit hook 실패 사유 (full pipeline = typecheck + lint + test) 의 다른 카테고리 회복 여부는 carve 재시도 직전 실측 박제 필수.
+#     (6) 20.req/20260517-runtime-dep-version-coherence.md 는 inspector writer 영역 — planner 미접촉. 흡수 후 신규 green spec 진입 시 carve 절차 재진입 (단 toolchain-version-coherence 의 후신이라면 5th-7th tick 박제 "수단 중립 메타 spec → developer writer 영역 침투" 격리 사유 재발 가능 — inspector 흡수 시점 RULE-07 정합 검증 의존).
