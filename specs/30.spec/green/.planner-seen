@@ -86,3 +86,28 @@ island-regression-guard 0c2adb1fb76269a077ce8c49a5ee0a9d954d6806d8c3dfbd27037465
 #     (3) 새 green spec 진입 시 (예: 20.req/20260517-island-prop-types-removal inspector 흡수 후) carve 절차 재진입 — RULE-01 Task ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무 이행. 현재 환경 회귀 미회복이므로 game-day / lint baseline 게이트 요구 spec 은 carve 보류 (5th tick 박제 island-regression-guard 격리 사유와 동일 패턴).
 #     (4) 7th tick 종료 시점 green 큐 비움 — 8th tick 진입 시 green 비어있고 입력 큐 (`30.spec/green/**`) 무 → RULE-03 선결 점검 (2) 충족 시 no-op (입력 큐 비면 무해 종료).
 #     (5) blocked 4건 (toolchain-version-coherence + 기존 3건 followups 승격 완료) 의 환경 회복 후 일괄 해소 흐름은 토폴로지상 root cause = toolchain-version-coherence — 본 spec 의 followup 승격 + req 재흡수 + green 재박제 사이클이 선행되어야 husky-pre-push-typecheck + island-regression-guard 도 followup → green 진행 가능.
+island-proptypes-removal f5c84bbd2ac2b7da430c1d784593fb536eca4e85
+# 2026-05-17 planner session (9th tick @HEAD=07eaf10) — 신규 green spec island-proptypes-removal 1차 노출 + Task ID 충돌 발견 → carve 0건 (재시도 금지 RULE-02).
+#   재실행 baseline (HEAD=07eaf10 실측):
+#     - green spec hash: island-proptypes-removal `f5c84bbd2ac2b7da430c1d784593fb536eca4e85` (commit 07eaf10 inspector REQ-062 흡수 — 본 tick 1차 노출).
+#     - 본 spec §스코프 규칙 grep-baseline (a)~(f) 6건 실측 정합: (a) island 5dir PropTypes 39 hit / 10 files (spec 박제 46/11 과 7 hit / 1 file 격차 — Toaster.tsx working tree drift 반영. HEAD 기준 `git show HEAD:src/Toaster/Toaster.tsx | grep -c "PropTypes"` = 7 → spec 박제 일치) / (b) import 11 hit / 11 files (HEAD 기준) / (c) propTypes selector 11 files (HEAD 기준) / (d) interface XxxProps 15 hit / (e) 비-island Log/Monitor 41 hit / 12 files / (f) package.json:10 `"prop-types"` 1 hit.
+#     - working tree drift: `src/Toaster/Toaster.tsx` unstaged mod (PropTypes import line 2 + selector line 87 블록 제거 — −10 lines). developer 미커밋 잔존 (블록 처리 후 git restore 미수행 또는 별 세션 추가 작업). RULE-01 src/ 는 developer writer 영역 — planner 미접촉.
+#     - 50.blocked/task/: TSK-20260517-01-island-proptypes-removal-toaster.md + _reason.md 2 파일 존재 (gitignored — git status 무노출. 직전 developer 세션이 본 task 시도 후 pre-commit hook `@eslint/js` 환경 회귀로 블록 + RULE-05 진입). 본 task 의 `범위 밖` 섹션이 후속 TSK-20260517-02 (Comment), -03 (File), -04 (Image), -05 (common) 4건을 명시 참조 — 사전 carve 계획 박제됨.
+#     - 50.blocked/spec/foundation/: toolchain-version-coherence.md + _reason.md 잔존 (7th tick 격리 — RULE-05 /revisit 대기).
+#     - 10.followups/: 3건 (husky-pre-push-typecheck-from-blocked + island-regression-guard-from-blocked + toolchain-version-coherence-from-blocked) — discovery 영역, planner 미접촉.
+#     - 20.req/: 비어있음.
+#     - 40.task/: 본 tick 진입 시점 비어있음. 본 tick 종료 시점도 비어있음 (생성 시도 후 회수).
+#     - 환경 회귀 지속: node_modules 부재 잔존 (vite/vitest/eslint 의존성 ERR_MODULE_NOT_FOUND `@eslint/js` — 직전 11+ 커밋 동일 박제 chain).
+#   본 세션 처리:
+#     - carve 시도: island-proptypes-removal §동작 1.1/1.2/1.3 게이트 충족을 위한 island 5 dir 별 원자 task carve 안 작성 — TSK-20260517-01 (Toaster) / -02 (common) / -03 (Image) / -04 (Comment) / -05 (File). 각 디렉터리 단일 PR / 독립 롤백 / RULE-06 §스코프 규칙 grep-baseline 실측 박제 (5/5) / grep dry-run 검증 20/20 match (단 Toaster 는 HEAD 기준 7/1/1/1 + working tree 0/0/0/1 분리 박제).
+#     - 충돌 발견: 50.blocked/task/TSK-20260517-01-island-proptypes-removal-toaster.md + _reason.md 사전 존재 (gitignored — 본 세션 진입 시 RULE-01 중복 검증 grep `TSK-20260517-` 가 40.task / 60.done 만 스캔하고 50.blocked/task 미포함하여 1차 누락). RULE-01 명시 "grep -rn 'TSK-...' specs/{40.task,60.done,50.blocked}/" 50.blocked 포함 재실행 시 TSK-20260517-01 collision 검출.
+#     - 회수 결정: RULE-02 "Fail-fast: 실패·충돌 → blocked/. 재시도 없음." + RULE-02 "재시도 없음" + RULE-05 "blocked → 10.followups/ → discovery → ..." (정식 복귀 경로) 위반 회피. 본 세션이 생성한 5 task 파일은 모두 회수 (40.task/ 비우기) — 본 task 발행은 직전 50.blocked/task/TSK-20260517-01 의 RULE-05 /revisit 미수행 상태에서 재시도로 분류됨. 본 시점 환경 회귀도 미회복 (직전 reason.md 의 차단 사유 = pre-commit hook `@eslint/js` resolve 실패 — 본 tick 미해소). 회수 수단: `rm` (5 파일 모두 본 세션 내부 신규 + uncommitted + gitignored. RULE-02 "삭제 필요 시 mv 로 대체" 는 산출물 보존 원칙 — 세션 내부 authoring draft 의 충돌 폐기는 mv 대체 부적합. 안전성: gitignored 영역이므로 git history 영향 0).
+#     - 격리 0건: green spec 본문 자체는 RULE-07 정합 (불변식 평서 + 시점 비의존) + 1차 노출 + 정체 카운트 0 → 격리 부적합.
+#     - 승격 0건: §테스트 현황 + §수용 기준 unchecked `- [ ]` 17건 잔존 (FR-01~06 + NFR-01~03) → RULE-01 승격 4조건 미충족 (unchecked == 0 위반).
+#   다음 세션 (10th tick) 행동지침:
+#     (1) 50.blocked/task/TSK-20260517-01 + _reason.md 는 RULE-05 정식 복귀 경로 — /revisit 스킬이 _reason.md 판정 후 10.followups/ revive. planner 영역 미접촉.
+#     (2) 환경 회귀 (node_modules 부재 + pre-commit hook `@eslint/js` resolve 실패) 운영자 해소 선행 필요 — `npm ci` 또는 동등. 50.blocked/spec/foundation/toolchain-version-coherence.md 의 §동작 1~3 자연 수렴 의존.
+#     (3) island-proptypes-removal hash 가 본 tick 박제 (f5c84bbd) 와 동일 + 50.blocked/task/TSK-20260517-01 잔존 시 → 본 spec 의 task carve 는 10th tick 진입 시점에도 RULE-05 미해소 사유로 보류. 본 spec 자체는 직전 carve attempt 박제로 정체 1회차 카운트 (10th tick 진입 시 격리 후보 도래 = 정체 1회차 → 2회차 진입 = 11th tick).
+#     (4) RULE-05 /revisit 으로 TSK-20260517-01 가 followups 진입 후 discovery 흡수 → 20.req/ 발행 → inspector spec 재흡수 (island-proptypes-removal 갱신 또는 별 spec 분기) → planner 재진입 가능. 본 흐름 정합 시 신규 Task ID 는 -06 부터 또는 spec 재흡수 시점 hash 변경으로 carve 재계산.
+#     (5) 본 tick 의 회수 사유는 (i) RULE-01 충돌 검증 누락 (50.blocked/task 미스캔) 의 사후 정합 회복 + (ii) RULE-02 재시도 금지 + (iii) 환경 회귀 미회복. (i) 은 본 tick 박제로 표준화 — 차기 tick 부터 RULE-01 grep 검증은 50.blocked/task/ 포함.
+#     (6) working tree `src/Toaster/Toaster.tsx` unstaged mod 는 developer writer 영역 — planner 미접촉. discovery 또는 developer 가 환경 회복 후 처리.
