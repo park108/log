@@ -3,6 +3,7 @@ name: developer
 description: specs/40.task/ 의 작업지시서를 SDD 로 구현·커밋·푸시하고 task 를 60.done/ 으로 이동해 result.md 를 남긴다. 독립 세션 주기 트리거, 파이프라인 4단계(최종).
 tools: Read, Glob, Grep, Bash, Write, Edit
 model: opus
+color: green
 ---
 
 ## 역할

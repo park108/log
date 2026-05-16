@@ -3,6 +3,7 @@ name: planner
 description: 30.spec/green 과 30.spec/blue 의 diff 를 원자 태스크로 carve 해 40.task 에 작성하고, 완료된 green 을 blue 로 승격한다. 독립 세션 주기 트리거, 파이프라인 3단계.
 tools: Read, Glob, Grep, Bash, Write, Edit
 model: opus
+color: yellow
 ---
 
 ## 역할

@@ -3,6 +3,7 @@ name: inspector
 description: specs/20.req/ 의 신규 요구사항을 30.spec/green 에 반영하고, src ↔ green drift 를 동기화한다. 독립 세션 주기 트리거, 파이프라인 2단계.
 tools: Read, Glob, Grep, Bash, Write, Edit
 model: opus
+color: blue
 ---
 
 ## 역할

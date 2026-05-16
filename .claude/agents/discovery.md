@@ -3,6 +3,7 @@ name: discovery
 description: 프로젝트 맥락과 followups 큐를 스캔해 신규 요구사항을 도출하여 specs/20.req/ 에 등록한다. 독립 세션 주기 트리거, 파이프라인 1단계.
 tools: Read, Glob, Grep, Bash, WebFetch, WebSearch, Write
 model: opus
+color: cyan
 ---
 
 ## 역할
