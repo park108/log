@@ -1,4 +1,11 @@
-typecheck-exit-zero b682e83ab5c7ab0b21db5e8e24ac0c5e05d556a17081677cdabb60dabe17d644
-# 2026-05-17 planner session (2nd tick @HEAD=a1755b5) — 환경 회귀 (typescript@4.9.3 installed + tsconfig moduleResolution "Bundler" 미인식) 미해소 지속. tsc --noEmit rc=2 + TS6046/TS5070/TS2688 3 hit 박제. blocked 3건: coverage-determinism (hash 1c515c8 unchanged, 2회차 정체) + src-typescript-migration (hash d0e0637 unchanged, 2회차 정체) + tsconfig-test-ambient-globals (hash ea238da unchanged, 2회차 정체) → 50.blocked/spec/foundation/ + _reason.md 박제 (RULE-01 mv 매트릭스: planner writer 권한). typecheck-exit-zero 는 직전 tick 이후 inspector 가 [x] re-gate 박제 추가로 hash 변경 (fe3f184 → b682e83), 본 세션 정체 1회 재카운트.
-# 본 세션 carve 0건. typecheck-exit-zero 잔여 미수렴 (FR-01 repo 전체 rc=0 / FR-02 5항목 동시 / FR-04 수단 라벨 / FR-06 버전 무관) 는 본 환경에서 typecheck baseline 자체가 재현 불능이므로 RULE-06 grep-baseline 실측 박제 + grep dry-run 충족 불가.
-# 다음 세션 행동지침: (1) 운영자가 typescript 환경 회귀 해소 (devDep installed 정합 또는 moduleResolution 표기 정합 — node16/nodenext/lower-case bundler) → inspector 가 본 환경 baseline 재실측 → planner carve 가능. (2) typecheck-exit-zero 정체 2회차 진입 시 (다음 tick 에서 동일 hash b682e83 유지면) 50.blocked/spec/ 격리. (3) blocked 3건은 RULE-05 /revisit 경로로만 복귀 — green 큐로 재진입 금지 (writer 경계).
+husky-pre-push-typecheck 32abb51f432766af64b7e3e317ff81d26e4a3f552f980cc929e2ce42d2df4c43
+island-regression-guard 0c2adb1fb76269a077ce8c49a5ee0a9d954d6806d8c3dfbd27037465b23bb005
+# 2026-05-17 planner session (3rd tick @HEAD=4c84b86) — typescript 환경 회귀 미해소 지속. tsc --noEmit rc=2 + TS2688/TS6046/TS5070 3 hit (모두 tsconfig 경로 / src/** 0 hit). 직전 tick (2nd) 의 행동지침 (typecheck-exit-zero 동일 hash b682e83 유지 시 2회차 격리) 충족 — typecheck-exit-zero.md hash b682e83a 직전과 동일 → 50.blocked/spec/foundation/ 격리 + _reason.md 박제.
+# 본 세션 carve 0건. island-regression-guard (1차 노출) + husky-pre-push-typecheck (1차 노출) 둘 다 carve 유보:
+#   (i) husky-pre-push-typecheck: 본 spec §동작 FR-07 명시 의존 ("파생 task 발행은 typecheck-exit-zero FR-01 수렴 후") 미충족. spec 박제 자체는 유효 (시점 분리 평서화).
+#   (ii) island-regression-guard: 환경 회귀 (ESLint `@eslint/js` 모듈 ERR_MODULE_NOT_FOUND) 로 `npm run lint` baseline 재현 불가 — RULE-06 grep dry-run / game-day 검증 불가능. 8 island 0 hit static baseline 은 정합하나 task 발행 시 RULE-06 grep-baseline 실측 박제 요건 충족 불가.
+# 다음 세션 행동지침:
+#   (1) 운영자가 환경 회귀 (typescript@4.9.3 installed + moduleResolution Bundler 미인식 + @eslint/js 모듈 미해석 — npm install 또는 devDep 정합) 해소 → planner 재진입.
+#   (2) 본 2 spec hash 가 본 세션 박제 (32abb51f / 0c2adb1f) 와 동일 유지된 채 환경 회복되면 다음 tick 에서 carve 진행.
+#   (3) typecheck-exit-zero 는 RULE-05 /revisit 경로로만 복귀 — green 큐로 재진입 금지 (writer 경계). 직전 tick blocked 3건 (coverage-determinism · src-typescript-migration · tsconfig-test-ambient-globals) 은 4c84b86 revisit 으로 followup 승격 후 삭제 완료.
+#   (4) 본 2 spec hash 가 본 세션 박제와 동일 유지된 채 환경 미회복 다음 tick 진입 시 정체 1회차 재카운트 (시점 정체 vs 환경 정체 분리). 2회차 진입 시 격리 후보.
