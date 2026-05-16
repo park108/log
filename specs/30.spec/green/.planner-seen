@@ -65,3 +65,24 @@ island-regression-guard 0c2adb1fb76269a077ce8c49a5ee0a9d954d6806d8c3dfbd27037465
 #     (3) 환경 회복 (`npm install` 정합 또는 devDep 다운그레이드) 시 toolchain-version-coherence 의 § 동작 3.1 (preprocessing 0 hit) 자연 수렴 — inspector 가 §테스트 현황 + §수용 기준 항목 측정 통과 처리 후 § 변경 이력 박제 → planner 다음 tick 승격 4조건 충족 시 green→blue 승격.
 #     (4) 10.followups/ 의 2건 (husky/island from-blocked) 은 discovery 가 7th tick 진입 전 흡수 → 20.req/ 발행 가능. 본 흐름은 planner 영역 밖 — 모니터만.
 #     (5) 새 green spec 진입 시 (예: island-prop-types-removal req 흡수 후) carve 절차 재진입 — RULE-01 Task ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무 이행.
+# 2026-05-17 planner session (7th tick @HEAD=f136f21) — toolchain-version-coherence 정체 2회차 도달 → 격리.
+#   재실행 baseline (HEAD=f136f21 실측):
+#     - 본 spec 파일 git log last commit: `946dca1` (inspector REQ-061 흡수 — 이후 미터치). working tree clean.
+#     - 본 spec blob hash: `813b6cf3bb705b14e61fbfaebc2863dc9bf54d30` (6th tick 박제 `813b6cf3` 와 동일 — content unchanged 검증).
+#     - node_modules/typescript@4.9.3 잔존 (devDep `^6.0.3` ↔ installed 격차 2 메이저 — 3rd/4th/5th/6th tick 박제와 동일).
+#     - npm run typecheck rc=2 + preprocessing 카테고리 `TS6046|TS5070|TS2688` 3 hit 잔존 (동일 패턴).
+#     - npm ls typescript `invalid:` 7 hit 잔존 (msw peer 등 — 동일 패턴).
+#     - 50.blocked/spec/foundation/: 본 tick 진입 시 비어있음 (6th tick 종료 시점 동일 — 5th tick 격리 2건은 81c08d1 revisit followup 승격 후 삭제 완료).
+#     - 10.followups/: 2건 (husky-pre-push-typecheck-from-blocked + island-regression-guard-from-blocked) — planner 미접촉.
+#     - 20.req/: 1건 (20260517-island-prop-types-removal) — inspector writer 영역, planner 미접촉.
+#     - .inspector-seen: writer 경계 미접촉.
+#   본 세션 처리:
+#     - carve 0건: toolchain-version-coherence — 6th tick 행동지침 (1) 충족 (hash `813b6cf3` 동일 + 환경 미회복 + 정체 2회차 진입) → 50.blocked/spec/foundation/toolchain-version-coherence.md 격리 + _reason.md 박제.
+#     - 격리 결정 근거 박제 (_reason.md): (i) 수단 중립 메타 spec 의 task 결정 권한 부재 ("의도적으로 하지 않는 것: 특정 메이저로의 업/다운그레이드 자체"), (ii) developer writer 영역 (`src/`, `10.followups/`) 밖 산출물 침투 우려 (`package.json` / `node_modules/typescript/package.json` / `tsconfig.json` / `package-lock.json`), (iii) 환경 회복 의존 — § 동작 3 자연 수렴은 § 동작 1·2 정합 결과, (iv) 5th 1차 노출 + 6th 정체 1회차 + 7th 정체 2회차 누적.
+#     - 승격 0건: 본 spec 격리 — 승격 대상 부재.
+#   다음 세션 (8th tick) 행동지침:
+#     (1) 50.blocked/spec/foundation/toolchain-version-coherence.md 는 RULE-05 정식 복귀 경로 — /revisit 스킬이 _reason.md 판정 후 10.followups/ 승격. planner 영역 미접촉 (writer 경계).
+#     (2) 환경 회복 (운영자: `npm install` 또는 devDep 다운그레이드 또는 installed 업그레이드 또는 lockfile 재정합 — 본 spec 수단 중립) 선행 시 inspector 가 본 spec 의 § 테스트 현황 + § 수용 기준 측정 통과 처리 후 § 변경 이력 박제 → /revisit revive 경로로 followups 진입 → 재흡수 가능.
+#     (3) 새 green spec 진입 시 (예: 20.req/20260517-island-prop-types-removal inspector 흡수 후) carve 절차 재진입 — RULE-01 Task ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무 이행. 현재 환경 회귀 미회복이므로 game-day / lint baseline 게이트 요구 spec 은 carve 보류 (5th tick 박제 island-regression-guard 격리 사유와 동일 패턴).
+#     (4) 7th tick 종료 시점 green 큐 비움 — 8th tick 진입 시 green 비어있고 입력 큐 (`30.spec/green/**`) 무 → RULE-03 선결 점검 (2) 충족 시 no-op (입력 큐 비면 무해 종료).
+#     (5) blocked 4건 (toolchain-version-coherence + 기존 3건 followups 승격 완료) 의 환경 회복 후 일괄 해소 흐름은 토폴로지상 root cause = toolchain-version-coherence — 본 spec 의 followup 승격 + req 재흡수 + green 재박제 사이클이 선행되어야 husky-pre-push-typecheck + island-regression-guard 도 followup → green 진행 가능.
