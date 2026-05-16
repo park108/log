@@ -26,3 +26,22 @@ island-regression-guard 0c2adb1fb76269a077ce8c49a5ee0a9d954d6806d8c3dfbd27037465
 #     (2) 환경 회복 + 두 spec hash 동일 유지 시: husky-pre-push-typecheck 는 FR-07 게이트 통과 (tsc rc=0 + error TS 0 hit) 후 carve 진행. island-regression-guard 는 npm run lint baseline 실측 (게이트 (c)(d) 효능 부재 negative 재검증) + game-day fixture (src/Comment/Probe.jsx 도입 시 rc ≠ 0) 픽스처 박제 검증 후 carve 진행.
 #     (3) 환경 미회복 5th tick 진입 + 두 spec hash 동일 유지 시: 본 행동지침 (4)(직전 tick 박제) 의 "2회차 진입 시 격리 후보" 충족 → 50.blocked/spec/foundation/ 두 spec 격리 + _reason.md 박제 (typescript + ESLint 환경 회귀 잔존). 정식 복귀 경로는 RULE-05 /revisit.
 #     (4) 본 tick 박제 hash 와 5th tick 진입 시점 hash 달라지면 (inspector 가 spec 재편집) 정체 카운트 리셋 → 환경 회복 가정 carve 절차로 재진입.
+# 2026-05-17 planner session (5th tick @HEAD=946dca1) — 환경 회귀 미회복 2회차 누적 + 신규 spec 1차 노출 분리 처리.
+#   재실행 baseline (HEAD=946dca1 실측):
+#     - tsc --noEmit: TS2688 vitest/globals + TS6046 moduleResolution + TS5070 resolveJsonModule 3 hit 잔존 (3rd / 4th tick 박제와 동일 — tsconfig 경로 / src/** 0 hit).
+#     - npm run lint: ERR_MODULE_NOT_FOUND `@eslint/js` 잔존 (3rd / 4th tick 박제와 동일).
+#     - green spec hash 정합: husky-pre-push-typecheck 32abb51f (3rd/4th tick 박제와 동일) + island-regression-guard 0c2adb1f (3rd/4th tick 박제와 동일) — inspector 미터치 검증.
+#     - green 신규: toolchain-version-coherence 82bf016d (5th tick 1차 노출 — 4th tick 후 inspector 가 REQ-061 흡수 신규 등록). 본 spec 은 환경 회귀 자체를 불변식으로 박제한 spec (devDep ↔ installed ↔ tsconfig enum 정합 룰).
+#     - 50.blocked/spec/foundation/: 본 tick 진입 시 비어있음. 본 tick 종료 시 2건 격리 (husky-pre-push-typecheck + island-regression-guard).
+#     - .inspector-seen: writer 경계 미접촉.
+#   본 세션 처리:
+#     - carve 0건: (i) husky-pre-push-typecheck → 본 tick 환경 미회복 + hash 동일 2회차 누적 → 50.blocked/spec/foundation/ 격리 + _reason.md 박제 (4th tick 행동지침 (3) 충족).
+#     - carve 0건: (ii) island-regression-guard → 본 tick 환경 미회복 + hash 동일 2회차 누적 → 50.blocked/spec/foundation/ 격리 + _reason.md 박제 (4th tick 행동지침 (3) 충족).
+#     - carve 0건: (iii) toolchain-version-coherence → 1차 노출. 본 spec 의 task 발행은 `package.json` / `node_modules` / `tsconfig.json` / `package-lock.json` 변경 — developer writer 영역 (`src/`, `10.followups/`) 밖 침투 가능성 + spec 자체가 환경 회복 의존 메타 spec (수단 중립 박제) 으로 carve 절차 적용 부적합. 1차 노출 + 정체 카운트 0 이므로 격리 부적합. 본 tick 은 carve / 격리 둘 다 보류.
+#     - 승격 0건: 두 격리 spec 모두 §테스트 현황 + §수용 기준 unchecked `- [ ]` 다수 잔존 (FR-01~07 / FR-01~06 측정 항목) → RULE-01 승격 4조건 미충족 (unchecked 0 항목 위반). toolchain-version-coherence 도 §테스트 현황 + §수용 기준 unchecked 다수 (FR-01~05 + NFR-01~02) → 승격 부적격.
+#   다음 세션 (6th tick) 행동지침:
+#     (1) 50.blocked/spec/foundation/ 의 2건 (husky-pre-push-typecheck + island-regression-guard) 은 RULE-05 정식 복귀 경로 — /revisit 스킬이 _reason.md 판정 후 10.followups/ 승격. planner 영역 미접촉 (writer 경계).
+#     (2) toolchain-version-coherence 박제 후 운영자가 §동작 1~5 정합 수렴 시 (devDep 다운그레이드 또는 installed 업그레이드 또는 lockfile 재정합 — 본 spec 수단 중립) → tsc preprocessing 카테고리 0 hit + npm run lint 정상화 동시 달성 가능.
+#     (3) toolchain-version-coherence 의 task 발행은 본 spec 의 §역할 박제 ("의도적으로 하지 않는 것: 특정 메이저로의 업/다운그레이드 자체") 와 RULE-01 developer writer 영역 (`src/`, `10.followups/`) 경계의 정합 검증 후에만 가능. 다음 tick 진입 시점 hash 가 본 tick 박제 (82bf016d) 와 동일 + 환경 미회복 유지면 정체 1회차 재카운트. 동일 hash 2회차 진입 + 환경 미회복 시 격리 후보 (4th tick 의 husky/island 격리 룰과 동일 적용).
+#     (4) 본 tick 진입 시점 hash 와 다음 tick 진입 시점 hash 달라지면 (inspector 가 spec 재편집) 정체 카운트 리셋.
+#     (5) 환경 회복 + green spec 신규 진입 시 carve 절차 재진입 — RULE-01 Task ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무.
