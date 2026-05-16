@@ -9,3 +9,20 @@ island-regression-guard 0c2adb1fb76269a077ce8c49a5ee0a9d954d6806d8c3dfbd27037465
 #   (2) 본 2 spec hash 가 본 세션 박제 (32abb51f / 0c2adb1f) 와 동일 유지된 채 환경 회복되면 다음 tick 에서 carve 진행.
 #   (3) typecheck-exit-zero 는 RULE-05 /revisit 경로로만 복귀 — green 큐로 재진입 금지 (writer 경계). 직전 tick blocked 3건 (coverage-determinism · src-typescript-migration · tsconfig-test-ambient-globals) 은 4c84b86 revisit 으로 followup 승격 후 삭제 완료.
 #   (4) 본 2 spec hash 가 본 세션 박제와 동일 유지된 채 환경 미회복 다음 tick 진입 시 정체 1회차 재카운트 (시점 정체 vs 환경 정체 분리). 2회차 진입 시 격리 후보.
+# 2026-05-17 planner session (4th tick @HEAD=ffaa752) — 환경 회귀 미회복 1회차 재카운트.
+#   재실행 baseline (HEAD=ffaa752 실측):
+#     - tsc --noEmit: TS2688 vitest/globals + TS6046 moduleResolution + TS5070 resolveJsonModule 3 hit 잔존 (직전 tick 과 동일 — tsconfig 경로 / src/** 0 hit).
+#     - npm run lint: ERR_MODULE_NOT_FOUND `@eslint/js` 잔존 (직전 tick 과 동일 — `eslint.config.js` 의 `@eslint/js` import 미해석).
+#     - green spec hash 정합: husky-pre-push-typecheck 32abb51f (3rd tick 박제와 동일) + island-regression-guard 0c2adb1f (3rd tick 박제와 동일) — inspector 미터치 검증.
+#     - 50.blocked/spec/ 비어있음 (직전 tick 박제 typecheck-exit-zero 는 81c08d1 chore(revisit) 1건 + 4c84b86 chore(revisit) 3건으로 followup 승격 후 삭제 완료 — 정식 RULE-05 경로 정합).
+#     - 10.followups/ 비어있음 (discovery 흡수 또는 done 처리 완료).
+#   본 세션 처리:
+#     - carve 0건: (i) husky-pre-push-typecheck 는 spec FR-07 의존 게이트 (typecheck-exit-zero FR-01 rc=0 수렴 후 task 발행) 미충족 — spec 자체 박제 의존 작동 중 (정체 사유가 spec 평서문 자체).
+#     - carve 0건: (ii) island-regression-guard 는 RULE-06 grep-baseline 실측 박제 의무 + game-day 게이트 fire/silence 픽스처 박제 의무 둘 다 `npm run lint` ERR_MODULE_NOT_FOUND 로 충족 불능.
+#     - 격리 보류: 직전 tick (3rd) 행동지침 (4) 의 "환경 정체 재카운트 1회차" 본 tick 해당 — 격리 시점은 5th tick (재카운트 2회차 진입) 도달 시.
+#     - 승격 0건: 두 spec 모두 §테스트 현황 + §수용 기준 unchecked `- [ ]` 다수 잔존 (FR-01~07 측정 항목 + FR-01~06 수용 항목) — RULE-01 승격 4조건 (`[WIP]` 0 + unchecked 0 + `^#+ .*To-Be` 0 + 변경 이력 박제) 중 unchecked 0 미충족. 박제 자체 정합 (시점 박제 의존 분리 평서화).
+#   다음 세션 (5th tick) 행동지침:
+#     (1) 환경 회귀 운영자 해소 필요 — `npm install` 후 typescript devDep 정합 + `@eslint/js` 모듈 설치/devDep 추가. 본 회귀는 planner writer 영역 밖.
+#     (2) 환경 회복 + 두 spec hash 동일 유지 시: husky-pre-push-typecheck 는 FR-07 게이트 통과 (tsc rc=0 + error TS 0 hit) 후 carve 진행. island-regression-guard 는 npm run lint baseline 실측 (게이트 (c)(d) 효능 부재 negative 재검증) + game-day fixture (src/Comment/Probe.jsx 도입 시 rc ≠ 0) 픽스처 박제 검증 후 carve 진행.
+#     (3) 환경 미회복 5th tick 진입 + 두 spec hash 동일 유지 시: 본 행동지침 (4)(직전 tick 박제) 의 "2회차 진입 시 격리 후보" 충족 → 50.blocked/spec/foundation/ 두 spec 격리 + _reason.md 박제 (typescript + ESLint 환경 회귀 잔존). 정식 복귀 경로는 RULE-05 /revisit.
+#     (4) 본 tick 박제 hash 와 5th tick 진입 시점 hash 달라지면 (inspector 가 spec 재편집) 정체 카운트 리셋 → 환경 회복 가정 carve 절차로 재진입.
