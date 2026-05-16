@@ -167,3 +167,42 @@ runtime-dep-version-coherence 9e2c0f9e7614f25d1f99d3aacf30e7d1eeda2b98
 #     (6) 새 green spec 진입 시 (예: devbin-install-integrity req 흡수 또는 island-proptypes-removal 갱신 흡수) carve 절차 재진입 — RULE-01 Task ID 전수 grep (40.task/ + 60.done/ + 50.blocked/ + 10.followups/ + 20.req/ — 10th 행동지침 (4) 표준) + RULE-06 §스코프 규칙 grep-baseline 실측 박제 + grep dry-run 검증 의무.
 #     (7) Task ID 채번 정합: `TSK-20260517-01` 은 60.done/followups + 20.req/ 본문 메타 참조로 박제됨 — 재사용 금지. 신규 발행은 `TSK-20260517-02` 부터 (단조 증가). RULE-05 close 처리된 -01 은 60.done 영구 박제로 ID 풀에서 제외.
 #     (8) 본 tick 박제 시점 baseline (HEAD=0305fb1) 와 12th tick 진입 시점 baseline 격차 분석: HEAD 변경 시 (a) 두 green spec hash 동일성 재실측, (b) 10.followups + 20.req 새 항목 검출, (c) 50.blocked 진입 항목 검출, (d) Task ID 전수 grep 재실행. 격차 항목 별 행동지침 (1)~(7) 분기 적용.
+# 2026-05-17 planner session (12th tick @HEAD=89c7b5c) — devbin-install-integrity 신규 1차 노출 (수단 중립 메타 spec — carve 보류) + island-proptypes-removal 정체 3회차 도달 (격리 보류 — 후속 spec 발행 진척 신호로 RULE-02 fail-fast 유보) + runtime-dep-version-coherence 정체 2회차 누적 (carve 보류 — 수단 중립 메타 spec).
+#   재실행 baseline (HEAD=89c7b5c 실측):
+#     - green spec hash 정합: island-proptypes-removal `f5c84bbd2ac2b7da430c1d784593fb536eca4e85` (9th/10th/11th tick 박제와 동일 — inspector 미터치 검증, 정체 3회차 도달) + runtime-dep-version-coherence `9e2c0f9e7614f25d1f99d3aacf30e7d1eeda2b98` (11th tick 박제와 동일 — inspector 미터치, 정체 2회차 누적) + devbin-install-integrity `948827ca8820c615f4f9a7ba5222a81d84776373` (12th tick 1차 노출 — inspector REQ-064 흡수 산출물).
+#     - working tree: clean.
+#     - 50.blocked/{task,spec}/: 비어있음 (10th-11th tick 진척 유지).
+#     - 10.followups/: 비어있음 (11th tick 진척 유지 — 60.done/2026/05/17/followups/ 박제 유지).
+#     - 20.req/: 1건 — `20260517-path-alias-resolver-coherence.md` (REQ-065 신규 discovery 흡수 산출물). inspector 미흡수, planner writer 영역 밖.
+#     - 40.task/: 비어있음 (TASK_READY_MAX=10 미달 — RULE-03).
+#     - 60.done/2026/05/17/req/: 3건 누적 (toolchain-version-coherence + runtime-dep-version-coherence + devbin-install-integrity — 12th tick 신규 추가).
+#     - 환경 회귀: 본 tick 은 typecheck / lint / pre-commit hook 실측 생략 (carve 자체 보류 결정으로 게이트 재검증 불필요). 직전 11+ 커밋 chain (REQ-064 본문 8+ 커밋 박제) 미회복 가정.
+#     - Task ID footprint 전수 (RULE-01 표준 + 10th-11th tick 권고 박제 — 40.task + 60.done + 50.blocked + 10.followups + 20.req): `TSK-20260517-01` 만 존재 (60.done/2026/05/17/followups/ + 20.req/* 본문 메타 참조). `TSK-20260517-02~99` 미사용 — 신규 carve 가능 시 -02+ 부터 채번 가능.
+#   본 세션 처리:
+#     - carve 0건: island-proptypes-removal (정체 3회차 진입).
+#       (i) 11th tick 행동지침 (2) "hash 동일 ∧ 환경 회귀 미회복 + 정체 3회차 누적 진입 시 RULE-02 fail-fast 발동 후보". 본 tick: hash `f5c84bbd` 동일 + inspector 미터치 + 정체 3회차 도달.
+#       (ii) 그러나 inspector 우선순위 분기 신호 검출 — 12th tick 진입 시점 inspector 가 island 갱신 (§변경 이력 추가) 대신 (a) devbin-install-integrity 신규 green spec 박제 (REQ-064 흡수) 진척 + (b) 20.req/path-alias-resolver-coherence (REQ-065) discovery 발행 진척 (inspector 미흡수). 본 두 후속 산출물은 island 의 환경 회귀 차단 사유 (pre-commit hook `@eslint/js` resolve 실패) 의 **메타 패턴 분기** — devbin install 정합 + path alias 정합. inspector 가 island 갱신을 stale 처리한 것이 아니라 **선행 메타 spec 정착 후 island 재진입** 의 토폴로지 신호로 해석 가능.
+#       (iii) 따라서 RULE-02 fail-fast 발동은 본 tick 보류 — 격리 결정 대신 정체 3회차 카운트 박제. 13th tick 진입 시 (a) island hash 변경 (inspector 재흡수) 시 카운트 리셋, (b) island hash 동일 + 후속 메타 spec (devbin / path-alias) 진척 정체 시 4회차 누적 → RULE-02 fail-fast 발동 후보 재검토 (이번엔 정식 격리 발동 강력 후보).
+#       (iv) carve 자체 부적합 사유 직전 박제 유지: (a) hash 미변경 → RULE-02 재시도 금지, (b) Task ID 산정 모호 (-01 의 60.done 영구 박제 후 신규 -02+ 채번 정합성), (c) 환경 회귀 미회복 (pre-commit hook full pipeline rc=0 미확보 — carve 시 즉시 50.blocked/task/ 재진입 예측).
+#     - carve 0건: runtime-dep-version-coherence (정체 2회차 누적).
+#       (i) 11th tick 행동지침 (3) "hash 동일 + 정체 2회차 진입 = 13th tick 도달 + hash 동일 + 환경 미회복 시 격리 후보 (toolchain-version-coherence 5th-7th tick 격리 패턴 동일 적용)". 본 tick 은 12th 진입 → 격리 후보 도래 미달.
+#       (ii) carve 보류 사유 11th tick 박제 유지: 수단 중립 메타 spec (§역할 "의도적으로 하지 않는 것: 특정 메이저로의 업/다운그레이드 운영 task" — 수단 결정 권한 부재 + developer writer 영역 (`src/`, `10.followups/`) 밖 산출물 (`package.json` / `node_modules/<pkg>/` / `package-lock.json` / blue spec 박제) 침투 우려).
+#       (iii) RULE-07 정합: § 동작 1~7 평서형·반복 검증 가능·시점 비의존·incident 귀속 부재 → 격리 부적합 (spec 박제 자체 정합).
+#     - carve 0건: devbin-install-integrity (1차 노출 — 정체 0회차).
+#       (i) 본 spec §역할 line 10 명시 "의도적으로 하지 않는 것: `npm ci` / `npm install` / `pnpm` / `yarn` 등 install 수단 라벨 부여 (RULE-07 수단 중립), 특정 패키지의 특정 메이저로의 업/다운그레이드 자체 (REQ-061/063 관할), 환경 회복 운영 task 자체 (developer 영역)" + § 동작 6.1 "본 spec 본문에 수단 라벨 박제 부재 자기 검증".
+#       (ii) 본 spec 의 효능 도달 산출물 = `node_modules/<pkg>/` (install 산출) / `node_modules/.bin/<cmd>` (PATH symlink) / `package-lock.json` (lockfile 재정합) — 모두 developer writer 영역 (`src/`, `10.followups/`) 밖. toolchain-version-coherence 5th-7th tick 격리 사유 + runtime-dep-version-coherence 11th tick carve 보류 사유와 동일 패턴 — 수단 중립 메타 spec 의 task 분할은 (a) 수단 결정 권한 부재 + (b) 산출물 경계 침투 충돌 → carve 보류.
+#       (iii) RULE-07 정합 검증: § 동작 1~7 모두 평서형·반복 검증 가능 (`ls` + `node -p` + `command -v` + `npm ls` 1-line)·시점 비의존 (특정 패키지 이름·메이저 숫자는 §스코프 규칙 grep-baseline 에만 박제, 효능 평서문은 "존재" + "격차 0" 자체)·incident 귀속 부재. → spec 박제 자체 정합 (격리 부적합).
+#       (iv) RULE-01 grep 중복 검증 전수: `TSK-20260517-01` 만 존재 (60.done/followups + 20.req 본문 메타). 신규 발행 시 -02 부터 채번 가능하나, carve 결정 자체가 위 (i)(ii) 사유로 보류.
+#       (v) 정체 카운트 0 — 1차 노출. 13th tick 진입 시 hash 동일 + 환경 회귀 미회복 + 후속 inspector spec 갱신 미진척 시 정체 1회차 누적. 14th tick 진입 시 정체 2회차 → 격리 후보 도래 (toolchain-version-coherence 5th-7th 격리 패턴 시계열 정합).
+#     - 격리 0건: 세 spec 모두 격리 부적합 (island 정체 3회차이나 inspector 우선순위 분기 신호로 RULE-02 fail-fast 유보 / runtime 정체 2회차 누적이나 행동지침 (3) 격리 후보 도래 미달 / devbin 1차 노출).
+#     - 승격 0건: 세 spec 모두 §테스트 현황 + §수용 기준 unchecked `- [ ]` 잔존 (island 24 / runtime 28 / devbin 32 = 총 84건) → RULE-01 승격 4조건 (`[WIP]` 0 + unchecked 0 + `^#+ .*To-Be` 0 + 변경 이력 박제) 중 unchecked == 0 위반. 박제 자체 정합 (`[WIP]` 0 hit + `To-Be` 0 hit + 변경 이력 박제 모두 정합).
+#   다음 세션 (13th tick) 행동지침:
+#     (1) 20.req/20260517-path-alias-resolver-coherence.md (REQ-065) 는 inspector writer 영역 — planner 미접촉. inspector 흡수 → green spec 신규 박제 (path alias resolver 메타 spec) 또는 기존 spec §변경 이력 추가 흐름 가능. 흡수 시점 hash 변경 → carve 재진입 가능 (단 수단 중립 메타 spec 패턴 검출 시 carve 보류 카테고리 진입).
+#     (2) island-proptypes-removal hash 가 본 tick 박제 (f5c84bbd) 와 동일 + 정체 4회차 누적 진입 시 → RULE-02 fail-fast 발동 후보 강력 (격리 결정 재검토). 격리 결정 시 _reason.md 박제 사유: (a) hash 4 tick 미변경 + (b) inspector 우선순위 분기 신호가 후속 메타 spec 정착 완료 후에도 island 재진입 미수행 + (c) Task ID 산정 모호 (TSK-20260517-01 60.done 영구 박제 후 -02+ 채번 정합성 불능) + (d) 환경 회귀 미회복 시 carve 시점 즉시 50.blocked/task/ 재진입 예측.
+#     (3) island-proptypes-removal hash 변경 (inspector 가 §변경 이력 박제 또는 본문 수정 — REQ-062 갱신 흡수 또는 환경 회복 후 신규 시점 박제) 시 정체 카운트 리셋 → carve 절차 재진입 가능. 신규 Task ID 는 RULE-01 grep 전수 (40.task + 60.done + 50.blocked + 10.followups + 20.req) 스캔 후 미충돌 -02 부터 채번.
+#     (4) runtime-dep-version-coherence hash 동일 + 정체 3회차 진입 (13th tick) 시 → 격리 후보 도래 시점 (행동지침 (3) 11th tick 박제 정합). 환경 회복 + inspector spec 본문 수단 라벨 검토 후 (a) 격리 결정 또는 (b) 정체 4회차 누적 (14th tick) 까지 격리 유보 분기. 본 spec 의 carve 자체 부적합은 수단 중립 메타 spec 패턴 (developer writer 영역 침투 우려) 으로 13th tick 박제 유지.
+#     (5) devbin-install-integrity hash 동일 + 정체 1회차 누적 (13th tick) 진입 시 → 14th tick 정체 2회차 → 격리 후보 도래 (5th-7th tick toolchain-version-coherence 격리 패턴 시계열 정합). hash 변경 (inspector 가 §변경 이력 박제) 시 정체 카운트 리셋.
+#     (6) hash 변경 시 RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무 (RULE-04 notes `grep dry-run: N/N match` 토큰). RULE-06 정밀 패턴 권고 — `afterEach 등록 한정 패턴` + `블록 경계 false-positive 회피` + `grep -c 본문 호출 한정` 박제 (본 tick 신규 RULE-06 §정밀 패턴 권고 섹션 추가 반영).
+#     (7) Task ID 채번 정합 (10th-11th tick 표준 + 본 tick 박제 유지): `TSK-20260517-01` 60.done/followups + 20.req 본문 메타 박제 → 재사용 금지. RULE-05 close 처리된 -01 은 60.done 영구 박제로 ID 풀에서 제외. 신규 발행은 `TSK-20260517-02` 부터 (단조 증가). 12th tick 종료 시점 grep 전수: 40.task / 50.blocked / 10.followups / 20.req 의 `TSK-20260517-02~99` 미사용 — 신규 carve 가능 시 -02 부터 채번 가능.
+#     (8) 본 tick 박제 시점 baseline (HEAD=89c7b5c) 와 13th tick 진입 시점 baseline 격차 분석: HEAD 변경 시 (a) 세 green spec hash 동일성 재실측, (b) 10.followups + 20.req 새 항목 검출, (c) 50.blocked 진입 항목 검출, (d) Task ID 전수 grep 재실행, (e) 환경 회귀 회복 신호 (typecheck / lint / pre-commit hook full pipeline rc) 검출. 격차 항목 별 행동지침 (1)~(7) 분기 적용.
+#     (9) RULE-07 정합 검증 (12th tick 박제): 세 green spec (island / runtime / devbin) 모두 § 동작 평서형·반복 검증 가능·시점 비의존·incident 귀속 부재 → 격리 부적합. carve 보류 사유는 수단 중립 메타 spec 패턴 (runtime / devbin) 또는 환경 회귀 + Task ID 산정 모호 (island) — RULE-07 위반과 직교.
