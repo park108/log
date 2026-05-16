@@ -1,7 +1,4 @@
-coverage-determinism 1c515c89cc0a1a90305fa9ebaf10da1491e8b67ebde4bfa486fbf9792cd7b377
-src-typescript-migration d0e06374ff321e0a50e2f7e2c6fc5941424a5d5e36fc4ea5bfb97b2902bb961f
-tsconfig-test-ambient-globals ea238dafad524c64cf50e08b8b994dacb334c942562a202dac24873dd4e3b4af
-typecheck-exit-zero fe3f184d990eae7ae6db822ea46226662a3f3f33096b4a197d753bc0ee571acd
-# 2026-05-17 planner session — tooling.md 승격 (4조건 통과 · WIP=0/unchecked=0/To-Be=0/변경이력 박제: TSK-20260420-32,33,64 + TSK-20260421-64@dcecda0 + TSK-20260422-12@fddacb0).
-# 나머지 4 green 의 task carve 보류 사유: 본 세션 환경 (HEAD=7477189) typescript@4.9.3 + tsconfig moduleResolution "Bundler" 옵션값 인식 불능 → npm run typecheck 3 errors (TS6046/TS5070/TS2688). spec grep-baseline 박제 환경 (HEAD=46f4484, error TS 106 hit) ≠ 현 환경 → RULE-06 grep-baseline 실측 박제 충족 위해서는 본 환경에서 baseline 재측 필요. 본 세션은 멱등 안전을 위해 carve 보류 (정체 1회, blocked 미진입).
-# 다음 세션 행동지침: (1) inspector 가 본 환경에서 spec baseline 재실측 후 갱신하면 planner 가 carve 가능. (2) 또는 typescript / tsconfig 환경 회귀 (Bundler/bundler 표기 또는 TS 버전 정합) 가 선행 해소되어 baseline 이 재현 가능해지면 carve 가능. (3) 정체 2회차 진입 시 50.blocked/spec/ 격리.
+typecheck-exit-zero b682e83ab5c7ab0b21db5e8e24ac0c5e05d556a17081677cdabb60dabe17d644
+# 2026-05-17 planner session (2nd tick @HEAD=a1755b5) — 환경 회귀 (typescript@4.9.3 installed + tsconfig moduleResolution "Bundler" 미인식) 미해소 지속. tsc --noEmit rc=2 + TS6046/TS5070/TS2688 3 hit 박제. blocked 3건: coverage-determinism (hash 1c515c8 unchanged, 2회차 정체) + src-typescript-migration (hash d0e0637 unchanged, 2회차 정체) + tsconfig-test-ambient-globals (hash ea238da unchanged, 2회차 정체) → 50.blocked/spec/foundation/ + _reason.md 박제 (RULE-01 mv 매트릭스: planner writer 권한). typecheck-exit-zero 는 직전 tick 이후 inspector 가 [x] re-gate 박제 추가로 hash 변경 (fe3f184 → b682e83), 본 세션 정체 1회 재카운트.
+# 본 세션 carve 0건. typecheck-exit-zero 잔여 미수렴 (FR-01 repo 전체 rc=0 / FR-02 5항목 동시 / FR-04 수단 라벨 / FR-06 버전 무관) 는 본 환경에서 typecheck baseline 자체가 재현 불능이므로 RULE-06 grep-baseline 실측 박제 + grep dry-run 충족 불가.
+# 다음 세션 행동지침: (1) 운영자가 typescript 환경 회귀 해소 (devDep installed 정합 또는 moduleResolution 표기 정합 — node16/nodenext/lower-case bundler) → inspector 가 본 환경 baseline 재실측 → planner carve 가능. (2) typecheck-exit-zero 정체 2회차 진입 시 (다음 tick 에서 동일 hash b682e83 유지면) 50.blocked/spec/ 격리. (3) blocked 3건은 RULE-05 /revisit 경로로만 복귀 — green 큐로 재진입 금지 (writer 경계).
