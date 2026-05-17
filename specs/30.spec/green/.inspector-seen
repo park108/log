@@ -1,65 +1,68 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ HEAD=`3bc98e5` → THIS (49차 tick) — reconcile 0/13 ack (9 stale ≥3cycle). 본 tick 외부 ack 트리거 0 (직전 inspector commit 23afcb7 이후 planner no-op 1건 3bc98e5 만 — src 변경 0). Phase 2 REQ-088 신규 1건 흡수 (green +1 → 13).
+# 2026-05-17 @ HEAD=`e7d6e92` → THIS (50차 tick) — reconcile 0/14 ack (10 stale ≥3cycle). 본 tick 외부 ack 트리거 0 (직전 inspector commit 299f37c 이후 planner self-commit 1건 e7d6e92 만 — TSK-21 carve 발행, src 변경 0). Phase 2 REQ-089 신규 1건 흡수 (green +1 → 14).
 #
 # 본 세션 디스크 실측 (tick 시작 시점):
-#  - 직전 inspector commit: `23afcb7` (48차 tick — reconcile 0/12 ack, Phase 2 REQ-087 흡수)
-#  - 직전 inspector 이후 commit: `3bc98e5` planner 48차 no-op (HEAD)
-#  - src 변경 (23afcb7..HEAD): 0 file, 0 line — developer commit 0건
-#  - 입력 큐 (20.req/): **1건** — `20260517-island-proptypes-spec-absorption.md` (REQ-088 신규)
-#  - 12 green spec hash: 전수 무변동 (직전 tick 동일 hash 누적)
-#  - 신규 green spec: `foundation/island-proptypes-zero.md` (REQ-088 흡수 결과 — 본 tick 도래)
+#  - 직전 inspector commit: `299f37c` (49차 tick — reconcile 0/13 ack, Phase 2 REQ-088 흡수 + 신규 spec island-proptypes-zero.md 박제)
+#  - 직전 inspector 이후 commit: `e7d6e92` planner 50차 carve 1 (TSK-20260517-21 island-proptypes-zero-recovery 발행 — 5 island 디렉터리 selector 57→0 hit 회복 task)
+#  - src 변경 (299f37c..HEAD): 0 file, 0 line — developer commit 0건
+#  - 입력 큐 (20.req/): **1건** — `20260517-husky-pre-push-typecheck-spec-absorption.md` (REQ-089 신규)
+#  - 13 green spec hash: 전수 무변동 (직전 tick 동일 hash 누적)
+#  - 신규 green spec: `foundation/husky-pre-push-typecheck.md` (REQ-089 흡수 결과 — 본 tick 도래)
 #
 # Phase 1 reconcile 처리 (외부 ack 트리거 0 누적 tick):
-#  - 본 tick 외부 commit 도래는 planner no-op 만 (3bc98e5) — task 결과 hash 0건, developer 영역 변경 0건.
-#  - 12 green spec marker 회수 트리거 0 — 전수 marker 무변동 + hook-ack 발화 후보 0.
-#  - 따라서 12 green spec stale_cycles 일률 +1 누적:
-#    · 9 cycle → 10 (sanitizeHtml, markdownParser, accessibility, css-modules)
-#    · 8 cycle → 9 (tooling)
-#    · 5 cycle → 6 (node-modules-extraneous-coherence)
-#    · 4 cycle → 5 (lint-warning-zero-gate)
-#    · 2 cycle → 3 (diagnostic-script-auto-channel-coverage, npm-script-prefix-coherence, spec-carve-precondition, test-helpers)
-#    · 0 cycle → 1 (eslint-react-hooks-lint-gate — 직전 tick 신규 박제)
-#  - 신규 spec (island-proptypes-zero.md) stale_cycles=0 (방금 발행 — 다음 tick 부터 카운트).
-#  - reconcile ack 토큰: **`reconcile: 0/13 ack`** (분모 12 → 13, 신규 spec 포함).
+#  - 본 tick 외부 commit 도래는 planner self-commit 만 (e7d6e92 — TSK-21 carve 발행) — task 결과 hash 0건, developer 영역 변경 0건.
+#  - 13 green spec marker 회수 트리거 0 — 전수 marker 무변동 + hook-ack 발화 후보 0.
+#  - 따라서 13 green spec stale_cycles 일률 +1 누적:
+#    · 10 cycle → 11 (sanitizeHtml, markdownParser, accessibility, css-modules)
+#    · 9 cycle → 10 (tooling)
+#    · 6 cycle → 7 (node-modules-extraneous-coherence)
+#    · 5 cycle → 6 (lint-warning-zero-gate)
+#    · 3 cycle → 4 (diagnostic-script-auto-channel-coverage, npm-script-prefix-coherence, spec-carve-precondition, test-helpers)
+#    · 1 cycle → 2 (eslint-react-hooks-lint-gate)
+#    · 0 cycle → 1 (island-proptypes-zero — 직전 tick 신규 박제, 본 tick planner TSK-21 carve 발행 — task 회수 후 hook-ack 후보)
+#  - 신규 spec (husky-pre-push-typecheck.md) stale_cycles=0 (방금 발행 — 다음 tick 부터 카운트).
+#  - reconcile ack 토큰: **`reconcile: 0/14 ack`** (분모 13 → 14, 신규 spec 포함).
 #  - hook-ack 후보 0 (HEAD 의 조상 commit 0건 + npm test/lint/build "회귀 0" 문구 0건). Must 주관 혼재 분리 평가 N/A.
 #  - WIP/unchecked marker 일률 무변동 → stale_cycles 일률 +1 (RULE-03 inspector Phase 1 stale 조건 충족).
+#  - 10 stale ≥3cycle: sanitizeHtml(11) + markdownParser(11) + accessibility(11) + css-modules(11) + tooling(10) + node-modules-extraneous-coherence(7) + lint-warning-zero-gate(6) + diagnostic-script-auto-channel-coverage(4) + npm-script-prefix-coherence(4) + spec-carve-precondition(4) + test-helpers(4) — 11건 (≥3 cycle 임계 충족 11 항목, ≥4 cycle 4건은 본 tick 신규 진입 — 외부 ack 트리거 0 누적).
 #
 # Phase 2 처리:
-#  - 입력 큐 1건 (REQ-088) — `20260517-island-proptypes-spec-absorption.md`.
+#  - 입력 큐 1건 (REQ-089) — `20260517-husky-pre-push-typecheck-spec-absorption.md`.
 #  - RULE-07 자기검증:
-#    · 평서형 불변식 — "TS island 확정 디렉터리 내부 PropTypes selector 0 hit" (island 정의 세 번째 축).
-#    · 시점 비의존 — React 메이저 / prop-types 패키지 메이저 / TS 메이저 무관 박제 (NFR-01).
-#    · 반복 검증 가능 — `grep -rnE` extended regex 단일 명령 (M-B selector 정밀) + (M-A 광역) 분기.
-#    · incident 귀속 0 — REQ-062 spec 박제 미흡수 audit 는 §변경 이력 + §참고 한정. §역할~§의존성 영역 절대 수치 / 시점 좌표 박제 0 (G4 자기 검증).
-#    · 1회성 patch 0 — island 정의 세 번째 축 (PropTypes 0) 시스템 게이트 박제. 회복 수단 (단순 import 삭제 / codemod / ESLint rule) 비박제 — 수단 중립 (G3 자기 검증).
+#    · 평서형 불변식 — "`.husky/pre-push` 훅 typecheck 효능 명령 1+ hit + type 오류 push 차단" (local early signal 채널).
+#    · 시점 비의존 — husky 메이저 / Node 메이저 / TS 메이저 / git 메이저 무관 박제 (NFR-07).
+#    · 반복 검증 가능 — `grep -nE` extended regex 단일 명령 (M-A pre-push typecheck + M-B 기존 명령 보존) + 보조 게이트 (M-C `git push --dry-run` rc).
+#    · incident 귀속 0 — REQ-060 spec 박제 미흡수 audit 는 §변경 이력 + §참고 한정. §역할~§의존성 영역 절대 수치 / 시점 좌표 박제 0 (G4 자기 검증 PASS).
+#    · 1회성 patch 0 — pre-push hook typecheck 채널 시스템 게이트 박제. 회복 수단 (호출 위치 / 호출 형태 / 직렬화 방식) 비박제 — 수단 중립 (G3 자기 검증 PASS).
 #    → 양성 정합 PASS.
-#  - 흡수 결정: 신규 spec carve 결정 (vs `typecheck-island-extension.md` blue 영역 흡수 vs 자매 메타 spec 흡수). 결정 근거:
-#    · (a) `typecheck-island-extension.md` 는 blue 영역 (planner writer) — inspector 직접 편집 writer 경계 외. blue→green 복사 후 흡수 가능하나 island 정의 후반부 (typecheck) 채널과 PropTypes 0 채널이 직교 도메인 (정적 타입 vs 런타임 검증) — 채널 분리 자매 메타 spec 양식 정합.
-#    · (b) 자매 메타 spec (REQ-077 typecheck island + REQ-087 hook 규칙) 와 동질 패턴 — 각 채널 별 spec 박제 패턴 일관.
-#    · (c) RULE-07 단일 효능 박제 원칙 정합.
-#  - 신규 spec 작성: `30.spec/green/foundation/island-proptypes-zero.md` (120 lines, 300 미만 — sub-spec 분할 불필요).
+#  - 흡수 결정: 신규 spec carve 결정 (vs `regression-gate.md` blue 영역 흡수 vs `typecheck-island-extension.md` blue 영역 흡수). 결정 근거:
+#    · (a) `regression-gate.md` (REQ-037 blue) 의 CI workflow typecheck step (final guard) 와 본 spec 의 pre-push hook (early signal) 은 채널 직교 (시점 + scope 분리 보완) — 단일 spec 흡수 시 RULE-07 단일 효능 박제 원칙 위반 + 채널 혼합 검색 noise 증가.
+#    · (b) `typecheck-island-extension.md` (REQ-077 blue) 의 §역할 명시적으로 "GitHub Actions / husky / lint-staged 게이트 설정 변경 관할" 을 자기 out-of-scope 로 박제 (REQ-060 / REQ-037 위임) — 흡수 후보 아님 (req §참고 명시).
+#    · (c) blue 영역 직접 편집 inspector writer 영역 외 (blue→green 복사 후 흡수는 spec 본문 양식 일률 변화 + 자매 메타 spec 양식 일관성 손실).
+#    · (d) 자매 메타 spec (REQ-077 typecheck island + REQ-087 hook 규칙 + REQ-088 PropTypes 0) 와 동질 패턴 — 각 채널 별 spec 박제 자매 메타 효능 양식 정합.
+#  - 신규 spec 작성: `30.spec/green/foundation/husky-pre-push-typecheck.md` (125 lines, 300 미만 — sub-spec 분할 불필요).
 #  - §carve-precondition 절 (P1)(P2)(P3) 3 차원 평서 박제 — `spec-carve-precondition.md` REQ-085 메타 효능 자기 적용.
-#  - 직교 축 명시: `typecheck-island-extension.md` (REQ-077) typecheck 채널 / `eslint-react-hooks-lint-gate.md` (REQ-087) hook 규칙 채널 / `lint-warning-zero-gate.md` (REQ-080) warning 채널 / `spec-carve-precondition.md` (REQ-085) carve-precondition 채널 — 본 spec 은 island 정의 세 번째 축 (PropTypes 0) 채널 직교.
-#  - REQ mv: `20.req/20260517-island-proptypes-spec-absorption.md` → `60.done/req/2026/05/17/20260517-island-proptypes-spec-absorption.md`.
+#  - 직교 축 명시: `regression-gate.md` (REQ-037) CI workflow typecheck final guard 채널 / `typecheck-island-extension.md` (REQ-077) island typecheck 효능 채널 / `coverage-determinism.md` (REQ-041) coverage 측정 결정론 채널 / `runtime-dep-version-coherence` (REQ-066) deps coherence 채널 — 본 spec 은 pre-push hook local early signal 채널 직교.
+#  - REQ mv: `20.req/20260517-husky-pre-push-typecheck-spec-absorption.md` → `60.done/req/2026/05/17/20260517-husky-pre-push-typecheck-spec-absorption.md`.
 #  - blocked 0건.
 #
 # 자기 검증 결과:
-#  - G3 정밀 패턴 (수단 라벨 자기 검증): `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/island-proptypes-zero.md | grep -vE '\`[^\`]*default[^\`]*\`' | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit PASS (백틱 코드 식별자 `defaultProps` 면제 정밀 패턴 — RULE-06 §체크리스트 정밀 패턴 권고 정합).
-#  - G4 시점 비의존 자기 검증: `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/island-proptypes-zero.md | grep -cE "48 hit|57 hit|13 파일|46 hit|11 파일"` → 0 hit PASS (본문 §역할~§의존성 절대 수치 0).
-#  - G1 광역 baseline 재실측: 48 hit / 13 파일 (REQ-088 본문 46 hit / 11 파일과 +2 hit / +2 파일 — 자기 진단 주석 신규 박제 audit).
-#  - G2 selector 정밀 baseline 재실측: 57 hit (회복 대상 zero-point).
+#  - G3 정밀 패턴 (수단 라벨 자기 검증): `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/husky-pre-push-typecheck.md | grep -vE '\`[^\`]*default[^\`]*\`' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit PASS (백틱 코드 식별자 면제 정밀 패턴 — RULE-06 §체크리스트 정밀 패턴 권고 정합).
+#  - G4 시점 비의존 자기 검증: `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/husky-pre-push-typecheck.md | grep -cE "0 hit|1 hit|2 hit|2 행|line 1|line 2|:40|:31"` → 0 hit PASS (본문 §역할~§의존성 절대 수치 / 라인 좌표 0). 1차 패스 후 (I5)(I7) §회귀 중점 (P2) 4 hit 검출 → 평서 표현 회수 (rc 0 / error TS 잔존 부재 / 호출 잔존 부재 / hit count 부재) → 재실측 0 hit.
+#  - G1 baseline 재실측: `.husky/pre-commit` typecheck 0 hit PASS.
+#  - G2 baseline 재실측: `.husky/pre-push` typecheck 0 hit (회복 대상 zero-point).
 #
 # 백프레셔 분기:
-#  - GREEN_PENDING_MAX=20 임계치 미달 (13 green spec — 12+1) — 가용 분기 유지 (Phase 2 처리 진행 정합).
+#  - GREEN_PENDING_MAX=20 임계치 미달 (14 green spec — 13+1) — 가용 분기 유지 (Phase 2 처리 진행 정합).
 #  - 입력 큐 잔여: 0건 (Phase 2 1건 흡수 완료).
 #
-# req mv: 1건 (REQ-088 → 60.done/req/2026/05/17/). 격리: 0건.
+# req mv: 1건 (REQ-089 → 60.done/req/2026/05/17/). 격리: 0건.
 #
 # 본 세션 commit diff:
-#  - specs/30.spec/green/foundation/island-proptypes-zero.md (신규 — REQ-088 흡수)
+#  - specs/30.spec/green/foundation/husky-pre-push-typecheck.md (신규 — REQ-089 흡수)
 #  - specs/30.spec/green/.inspector-seen (갱신 — Phase 1 stale +1 + Phase 2 신규 박제)
-#  - specs/60.done/2026/05/17/req/20260517-island-proptypes-spec-absorption.md (mv from 20.req/)
+#  - specs/60.done/2026/05/17/req/20260517-husky-pre-push-typecheck-spec-absorption.md (mv from 20.req/)
 # RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 0 변경 — RULE-05 /revisit 경로 의존).
 # RULE-02 working tree (src 영역) 미접촉 정합.
 # RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
@@ -67,34 +70,36 @@
 #
 # 입력 큐 잔여: 0건.
 # 차기 inspector tick 우선순위 (직전 tick 누적 + 본 tick 신규):
-#  (1) foundation/island-proptypes-zero.md (NEW) — 4 §테스트 현황 marker [ ] + 1 §수용 기준 marker [ ]. 차기 planner carve 후 developer 수행 + DoD 회수 시 marker 플립 (island 5 디렉터리 selector 정밀 grep 0 hit 수렴 + Search 자기 정합 검증 + 신규 island 수렴 시 자동 적용 검증). carve-precondition 자기 박제 — (P2) 선행 `typecheck-island-extension.md` blue 승격 done 만족 / (P3) chain 부재.
-#  (2) foundation/eslint-react-hooks-lint-gate.md — 6 §테스트 현황 marker + 8 §수용 기준 marker + 6 §비기능 기준 marker. 차기 planner carve 후 developer 수행 + DoD 회수 시 marker 플립.
-#  (3) foundation/spec-carve-precondition.md FR-02·FR-03·FR-04·FR-05 marker — 5 외부 carve-active spec §carve-precondition 절 박제 회수 후 marker 플립. 본 tick 신규 island-proptypes-zero 가 §carve-precondition 절 박제하여 자매 정합 +1.
-#  (4) foundation/diagnostic-script-auto-channel-coverage.md (I10)/FR-10 marker — `check:spec-coherence` CI step 부착 task 발행/회수 후 hook-ack — planner 영역 carve 대기.
-#  (5) foundation/diagnostic-script-auto-channel-coverage.md (I5) 회귀 fixture 재현성 + Could FR-06 marker — fixture-자동화 task 또는 신규 진단 script 추가 이벤트 대기.
-#  (6) foundation/lint-warning-zero-gate.md (I9) + Could FR-06 marker — 미래 `reportUnusedDisableDirectives: 'off'→'warn'` 전환 이벤트 대기.
-#  (7) common/test-helpers.md (I4) typecheck island 확장 흡수 비용 수렴 + Should FR-05 marker — 차기 island 확장 회복 task 발행/회수 후 hook-ack.
-#  (8) common/sanitizeHtml.md I2/I5 marker (stale ≥ 10 cycle).
-#  (9) common/accessibility.md I5 marker (stale ≥ 10 cycle).
-#  (10) styles/css-modules.md I3/I4 marker (stale ≥ 10 cycle).
-#  (11) common/markdownParser.md I6 marker — TSK-13 fixture 도입이 본 marker 효능 충족 여부 본문 게이트 정밀 검토 후 hook-ack 평가 (stale ≥ 10 cycle).
-#  (12) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 운영자 회수 후 marker 플립 (stale ≥ 9 cycle).
-#  (13) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker — 신규 dep 이벤트 후 동일 PR 안에 G1·G2 동시 충족 재검증 (stale ≥ 6 cycle).
-#  (14) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
-#  (15) planner 영역 후보: spec-carve-precondition / npm-script-prefix-coherence / test-helpers + 신규 eslint-react-hooks-lint-gate + 신규 island-proptypes-zero (모두 잔존 marker 로 promote 평가 미도래, eslint-react-hooks-lint-gate / island-proptypes-zero 는 carve 후보).
-#  (16) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신 — blue 영역이라 inspector 직접 수정 불가 (writer 경계). 별 followup 또는 별 req 후보 (운영자 영역).
+#  (1) foundation/husky-pre-push-typecheck.md (NEW) — 2 §테스트 현황 marker [ ] + 1 §수용 기준 marker [ ]. 차기 planner carve 후 developer 수행 + DoD 회수 시 marker 플립 (pre-push hook typecheck 호출 1+ hit + type 오류 도입 push 차단 검증 + 기존 명령 보존 검증). carve-precondition 자기 박제 — (P2) 선행 `typecheck-island-extension.md` blue 승격 done 만족 / (P3) chain 부재 / (P1) FR-06 의존 typecheck-exit-zero 수렴 후 발행 가능.
+#  (2) foundation/island-proptypes-zero.md — 4 §테스트 현황 marker + 1 §수용 기준 marker. 본 tick planner TSK-21 carve 발행 — developer 수행 + DoD 회수 시 hook-ack 후보 (5 island 디렉터리 selector 57→0 hit 회복).
+#  (3) foundation/eslint-react-hooks-lint-gate.md — 6 §테스트 현황 marker + 8 §수용 기준 marker + 6 §비기능 기준 marker. 차기 planner carve 후 developer 수행 + DoD 회수 시 marker 플립.
+#  (4) foundation/spec-carve-precondition.md FR-02·FR-03·FR-04·FR-05 marker — 6 외부 carve-active spec §carve-precondition 절 박제 회수 후 marker 플립. 본 tick 신규 husky-pre-push-typecheck 가 §carve-precondition 절 박제하여 자매 정합 +1 (누적 3 신규 spec — island-proptypes-zero / eslint-react-hooks-lint-gate / husky-pre-push-typecheck).
+#  (5) foundation/diagnostic-script-auto-channel-coverage.md (I10)/FR-10 marker — `check:spec-coherence` CI step 부착 task 발행/회수 후 hook-ack — planner 영역 carve 대기.
+#  (6) foundation/diagnostic-script-auto-channel-coverage.md (I5) 회귀 fixture 재현성 + Could FR-06 marker — fixture-자동화 task 또는 신규 진단 script 추가 이벤트 대기.
+#  (7) foundation/lint-warning-zero-gate.md (I9) + Could FR-06 marker — 미래 `reportUnusedDisableDirectives: 'off'→'warn'` 전환 이벤트 대기.
+#  (8) common/test-helpers.md (I4) typecheck island 확장 흡수 비용 수렴 + Should FR-05 marker — 차기 island 확장 회복 task 발행/회수 후 hook-ack.
+#  (9) common/sanitizeHtml.md I2/I5 marker (stale ≥ 11 cycle).
+#  (10) common/accessibility.md I5 marker (stale ≥ 11 cycle).
+#  (11) styles/css-modules.md I3/I4 marker (stale ≥ 11 cycle).
+#  (12) common/markdownParser.md I6 marker — TSK-13 fixture 도입이 본 marker 효능 충족 여부 본문 게이트 정밀 검토 후 hook-ack 평가 (stale ≥ 11 cycle).
+#  (13) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 운영자 회수 후 marker 플립 (stale ≥ 10 cycle).
+#  (14) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker — 신규 dep 이벤트 후 동일 PR 안에 G1·G2 동시 충족 재검증 (stale ≥ 7 cycle).
+#  (15) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
+#  (16) planner 영역 후보: spec-carve-precondition / npm-script-prefix-coherence / test-helpers + 신규 eslint-react-hooks-lint-gate + 신규 island-proptypes-zero (carve 됨 — TSK-21, developer 수행 후 hook-ack) + 신규 husky-pre-push-typecheck (carve 후보, FR-06 typecheck-exit-zero 수렴 의존 — REQ-054 blocked/revisit 경로 의존 — carve-precondition (P1) 자가 차단 신호 누적 시 carve 보류).
+#  (17) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신 — blue 영역이라 inspector 직접 수정 불가 (writer 경계). 별 followup 또는 별 req 후보 (운영자 영역).
 #
 # == seen-state ==
-specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	6
-specs/30.spec/green/foundation/tooling.md	ack-94f362a	9
-specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	5
-specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	3
-specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	3
-specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	3
-specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	3
-specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	10
-specs/30.spec/green/common/markdownParser.md	baseline-893cdea	10
-specs/30.spec/green/common/accessibility.md	baseline-893cdea	10
-specs/30.spec/green/styles/css-modules.md	baseline-893cdea	10
-specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	1
-specs/30.spec/green/foundation/island-proptypes-zero.md	new-req-088-absorb-3bc98e5	0
+specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	7
+specs/30.spec/green/foundation/tooling.md	ack-94f362a	10
+specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	6
+specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	4
+specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	4
+specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	4
+specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	4
+specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	11
+specs/30.spec/green/common/markdownParser.md	baseline-893cdea	11
+specs/30.spec/green/common/accessibility.md	baseline-893cdea	11
+specs/30.spec/green/styles/css-modules.md	baseline-893cdea	11
+specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	2
+specs/30.spec/green/foundation/island-proptypes-zero.md	new-req-088-absorb-3bc98e5	1
+specs/30.spec/green/foundation/husky-pre-push-typecheck.md	new-req-089-absorb-e7d6e92	0
