@@ -2,7 +2,7 @@
 
 > **위치**: `src/Monitor/Monitor.css:120-126` (`.div--monitor-pillar:focus-visible` / `.div--monitor-statusbar:focus-visible`).
 > **관련 요구사항**: REQ-20260420-021, REQ-20260517-076 FR-04
-> **최종 업데이트**: 2026-05-17 (by inspector — REQ-076 흡수 최초 박제)
+> **최종 업데이트**: 2026-05-18 (by inspector — 68차 tick Phase 1 hook-ack, `f0cb7b4` 회수 — (I5) WCAG SC 2.4.7 결과 효능 marker 플립).
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`893cdea`).
 
@@ -37,7 +37,7 @@
 - [x] (I2) outline ≥ 2px: `src/Monitor/Monitor.css:124` `outline: 2px solid var(--color-focus-ring, currentColor)` 박제. HEAD=`893cdea` 실측 PASS.
 - [x] (I3) outline-offset (Should): `src/Monitor/Monitor.css:125` `outline-offset: 2px` 박제.
 - [x] (I4) `:focus-visible` 한정 (`:focus` 전반 미사용): `grep -nE ":focus[^-]" src/Monitor/Monitor.css` → 0 hit (조건 — `:focus` 단독 사용 없음). HEAD=`893cdea` 실측 PASS.
-- [ ] (I5) WCAG SC 2.4.7 결과 효능: `src/common/a11y.audit.test.ts` 또는 별 회귀 fixture 가 키보드 Tab 순회 후 focus indicator 시각 측정. 별 task / 별 spec 위임.
+- [x] (I5) WCAG SC 2.4.7 결과 효능: `src/common/a11y.focus-visible.test.ts` (4 it / F1~F4) 신규 회귀 fixture 박제 (`f0cb7b4` 회수). F1 `.div--monitor-pillar:focus-visible` + `.div--monitor-statusbar:focus-visible` 2 hit 보존 ((I1)(I5) 게이트) + F2 outline ≥ 2px 본문 확인 ((I2) WCAG visible focus indicator) + F3 `:focus` 단독 0 hit ((I4) 마우스 click 시각 노이즈 차단) + F4 `:focus-visible → :focus` 가공 치환 시 fail 신호 박제 (사이클 검증). HEAD=`0ed832c` 재실측 `npx vitest run src/common/a11y.focus-visible.test.ts` → 4/4 PASS.
 - [x] (I6) 범위 제한: 정의상 항상 참.
 
 ## 수용 기준
@@ -60,6 +60,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-05-18 | inspector (Phase 1 hook-ack) / `f0cb7b4` | hook-ack 1 marker 플립 — (I5) WCAG SC 2.4.7 결과 효능 위임 채널 박제. `src/common/a11y.focus-visible.test.ts` 신규 4 it (F1 규칙 존재 + F2 outline ≥ 2px + F3 `:focus` 단독 0 + F4 사이클 검증) — `npx vitest run src/common/a11y.focus-visible.test.ts` → 4/4 PASS (HEAD=`0ed832c` 재실측). CSS 자체 변경 0 (read-only 검증 대상). hook-ack 본질: HEAD 조상 + DoD test PASS + 직접 spec grep (I1) `:focus-visible` 2 hit 보존 + (I4) `:focus` 단독 0 hit 보존. scope = Monitor 도메인 baseline 한정 (spec §의존성 정합). 신규 도메인 `div` 기반 popup trigger 도입 시 별 task 회수 영역. | §테스트 현황 |
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-076 흡수) / pending | 최초 박제 — `div` 기반 popup trigger `:focus-visible` 표시 6 축 (I1~I6) 게이트. baseline: `src/Monitor/Monitor.css:122-126` 박제 + `:focus` 단독 0 hit (I4) PASS. 원전 REQ-20260420-021 보존 (Monitor 도메인 한정). | all |
 
 ## 참고

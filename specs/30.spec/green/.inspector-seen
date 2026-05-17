@@ -60,3 +60,74 @@
 # RULE-07 자기 검증 — Phase 1 1 marker spec 4 ack (TSK-04 / `760a491` 회수 hook-ack — task 격리 상태 무관 spec marker 플립 정합). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-002/003/004/005/006 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 5건 (REQ-002/003/004/005/006 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+#
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`0ed832c` → THIS (68차 tick) — reconcile 6/20 ack (2 spec / 6 marker; 8 stale ≥29cycle 외부 의존 누적; 직전 67차 4/20 ack 이후 `0ed832c` package-manager 4축 회수 + `f0cb7b4` a11y focus-visible fixture 2 chain hook-ack 진입)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `5dab670` (67차 tick — Phase 1 4/20 ack TSK-04 (runtime-fetch-unmount-safety) hook-ack + Phase 2 backpressure no-op 6건 REQ-002~007).
+#  - tick 진입 시 HEAD == `0ed832c` (feat: 패키지 매니저 4축 정합 (I2)(I3) 동반 회복 — CI npm 메이저 채널 + lockfileVersion 3 회수, 외부 developer commit).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `0ed832c` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `5dab670` 후): 3건 —
+#     · `f0cb7b4` (test: Monitor `:focus-visible` 회귀 fixture 박제 — WCAG 2.4.7 결과 효능 정적 검증. `src/common/a11y.focus-visible.test.ts` 신규 4 it (F1~F4) + CSS 변경 0. accessibility.md (I5) 위임 채널 박제).
+#     · `4b8e775` (spec(planner): 86차 tick no-op 6회차 누적 — inspector 67차 hook-ack 1 spec 추가 진입 surface + TSK-05 격리 + REQ-007 발행 surface 박제. `.planner-seen` self-only 78 line 추가).
+#     · `0ed832c` (feat: 패키지 매니저 4축 정합 (I2)(I3) 동반 회복. `.github/workflows/ci.yml:22 npm-version: '10'` 1 hit 추가 + `package-lock.json` lockfileVersion 2→3 자동 rewrite + `package.json` `packageManager: "npm@10.9.2"` corepack pin 추가 — TSK-20260518-06 회수 `60.done/2026/05/18/task/package-manager-ci-lockfile-coherence/`. `npm install` 1회 실행 동반 효과로 deps-coherence drift 동시 회복 — TSK-04/TSK-05 blocked 사유 해소 신호).
+#  - src/ 영역 commit = 1 (`f0cb7b4` — src/common/a11y.focus-visible.test.ts 신규 1 파일 72 line).
+#  - CI/패키지 매니저 영역 commit = 1 (`0ed832c` — `.github/workflows/ci.yml` + `package.json` + `package-lock.json` 3 파일).
+#  - test/spec 본문 commit = 1 (`f0cb7b4` 의 a11y.focus-visible.test.ts 신규 describe block 4 it).
+#  - spec marker 영향 후보 = 2 spec / 6 marker (TSK-06 / `0ed832c` → package-manager-major-coherence.md (I2)+(I3)+(I4)+Must FR-02+Must FR-03 5 marker ack 후보 + `f0cb7b4` → accessibility.md (I5) 1 marker ack 후보 — 위임 채널 fixture 박제로 WCAG SC 2.4.7 결과 효능 마커 회복).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 6건 유지 (REQ-002 mount-id + REQ-003 meta-description + REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps-coherence — 직전 67차 tick 6건 누적 잔존).
+#  - 20 green spec hash 시작점 (직전 67차 박제 20 entry 유지):
+#    · 20 기존 spec 중 18 spec stale_cycles += 1 (2 spec hook-ack 후보 — package-manager-major-coherence + accessibility 는 marker flip 후 stale_cycles 0 초기화).
+#    · runtime-fetch-unmount-safety (직전 67차 ack 1 spec) 도 본 tick hook-ack 없음 → stale_cycles 0 → 1 진입.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `0ed832c` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 2건):
+#  - package-manager-major-coherence.md (TSK-20260518-06 / `0ed832c` 회수, `60.done/2026/05/18/task/package-manager-ci-lockfile-coherence/` 정상 mv):
+#     · (I2): baseline G2 `grep -nE "npm-version|node-version-file|corepack" .github/workflows/ci.yml` → 0 hit MISS → HEAD `0ed832c` 재실측 → 1 hit @`:22` (`npm-version: '10'`) PASS. `[ ]→[x]` 플립.
+#     · (I3): baseline G3 `grep -nE "lockfileVersion" package-lock.json` → 1 hit @`:4` 값 `2` (npm 7~8 메이저 포맷, 격차 1) MISS → HEAD 재실측 → 1 hit @`:4` 값 `3` (npm 10 메이저 호환 포맷 격차 0) PASS. `[ ]→[x]` 플립.
+#     · (I4): 4축 격차 0 동시 박제 — (I1) `engines.npm: ">=10"` + `packageManager: "npm@10.9.2"` (직전 d12b6a0) + (I2) `ci.yml:22 npm-version: '10'` (0ed832c) + (I3) `lockfileVersion: 3` (0ed832c) — 4 채널 동시 PASS. `[ ]→[x]` 플립.
+#     · Must FR-02: (I2) 회복과 동일 — `actions/setup-node` step `npm-version: '10'` 명시 입력 박제, CI step `npm -v` 메이저 == FR-01 채널 메이저 (10 == 10) 격차 0. `[ ]→[x]` 플립.
+#     · Must FR-03: (I3) 회복과 동일 — lockfile rewrite 수행, `lockfileVersion: 3` 박제, npm 10 메이저 호환 포맷 격차 0. `[ ]→[x]` 플립.
+#     · hook-ack: 60.done/2026/05/18/task/package-manager-ci-lockfile-coherence/result.md DoD — `npm run check:npm-coherence` rc=0 + stdout `package-manager coherence: engines.npm=>=10 packageManager=npm@10.9.2 aligned` (격차 라벨 0 hit) + `npm ci` rc=0 (510 packages 0 vulnerabilities) + `npm run lint` rc=0 warning 0 + `npm run typecheck` rc=0 + `npm test` 460/460 PASS (coverage Statements 97.54% / Branches 94.07% / Functions 94.37% / Lines 98.31%) + `npm run build` rc=0 (728ms) + 자매 진단 4종 (check:deps + check:vite-env + check:node-coherence + check:spec-coherence) 전수 rc=0 — 회귀 0. HEAD 조상 정합. 추가 동반 효과: 직전 TSK-04/TSK-05 blocked 사유 (`scripts/check-deps-coherence.sh` G1 extraneous eslint-plugin-react-hooks@5.2.0 ≠ 0 + G2 declared 29 ≠ installed 30) 가 본 task 의 `npm install` 1회 lockfile rewrite 로 동반 reconcile (extraneous=0 + declared 29 = installed 29).
+#     · 변경 이력 1행 박제 (TSK-20260518-06 / `0ed832c`). stale_cycles 0 초기화.
+#  - accessibility.md (`f0cb7b4` 회수, task 산출물 디스크 부재 — TSK-20260518-05 라벨 commit message 박제이나 `60.done/task/monitor-focus-visible-css-audit-fixture/` 디스크 미배치):
+#     · (I5): baseline `[ ]` "src/common/a11y.audit.test.ts 또는 별 회귀 fixture 가 키보드 Tab 순회 후 focus indicator 시각 측정. 별 task / 별 spec 위임" → HEAD `0ed832c` 재실측 → `src/common/a11y.focus-visible.test.ts` 신규 4 it (F1 규칙 존재 + F2 outline ≥ 2px + F3 `:focus` 단독 0 hit + F4 사이클 검증) 박제 + `npx vitest run src/common/a11y.focus-visible.test.ts` → 4/4 PASS. `[ ]→[x]` 플립.
+#     · hook-ack: task 산출물 디스크 부재 — 직접 DoD 본질 = HEAD 조상 + 직접 grep PASS + test 4 PASS + (I1) `:focus-visible` 2 hit 보존 + (I4) `:focus` 단독 0 hit 보존. 보수적 적용 — 본 marker 의 위임 채널 박제 효능 그 자체 (test fixture 4 it) 가 spec §동작 (I5) 평서 ("WCAG SC 2.4.7 결과 효능 박제") 와 직접 1:1 매핑 PASS — flip 정합.
+#     · 변경 이력 1행 박제 (`f0cb7b4`). stale_cycles 0 초기화.
+#  - 나머지 18 green spec 전수 hook-ack 후보 없음 (직전 `5dab670` 이후 a11y focus + 패키지매니저 영역 한정 commit — 다른 spec 본문 영향 0). 18 spec 전수 stale_cycles += 1.
+#  - node-modules-extraneous-coherence.md (G3) 신규 dep 이벤트 후 동시 충족 사례 — `0ed832c` 가 `npm install` 1회 + lockfile rewrite 동반 효과로 deps-coherence drift 회복 (extraneous=0 + declared 29 = installed 29). 본 사례 1건 추가 박제 가능하나 marker 의도 = "재검증으로 marker 플립 누적" + N 임계 spec 본문 미정의 → 보수적 보류 (별 inspector tick 누적 시 재고). stale_cycles += 1.
+#  - **2 marker spec 6 ack / 20 total spec → Phase 1 6/20 ack.** seen-state 갱신 (2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1).
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 6건 (REQ-002/003/004/005/006/007 — 직전 67차 tick 6건 누적 동일):
+#     (a) REQ-20260518-002 mount-id-token-coherence — 보류 잔존 (6 tick째).
+#     (b) REQ-20260518-003 meta-description-default-fallback-token-coherence — 보류 잔존 (5 tick째).
+#     (c) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 잔존 (4 tick째).
+#     (d) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 잔존 (3 tick째).
+#     (e) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 잔존 (2 tick째).
+#     (f) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 잔존 (2 tick째, 직전 67차 신규 발행).
+#  - 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~26 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-002/003/004/005/006/007 6건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 2 spec 6 marker ack 로 package-manager-major-coherence (전 marker 9/9 + Must/Should/NFR 전수 PASS — 4조건 충족) + accessibility (6/6 (I1~I6) + Must/Should 전수 PASS — 4조건 충족) 양 spec promote 4조건 충족 진입 가능 — 차기 planner tick 영역.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-002/003/004/005/006/007 보류, 20.req/ 디스크 큐 6건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/package-manager-major-coherence.md ((I2)+(I3)+(I4)+Must FR-02+Must FR-03 marker 5건 flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/common/accessibility.md ((I5) marker 1건 flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1 + 68차 박제)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `6/20 ack` 박제.
+# RULE-03 (d) 정합 — Phase 2 backpressure no-op (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 6건).
+# RULE-07 자기 검증 — Phase 1 2 marker spec 6 ack (TSK-06 / `0ed832c` 회수 + `f0cb7b4` test fixture 회수 hook-ack — 양 spec marker 플립 정합). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-002~007 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 6건 (REQ-002/003/004/005/006/007 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
