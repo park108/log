@@ -20,9 +20,9 @@ it('render Toaster no show', () => {
 		show={0}
 	/>);
 	const toaster = screen.getByText("Test message");
-	expect(toaster).toHaveClass(styles.divToasterCenter);
-	expect(toaster).toHaveClass(styles.divToasterError);
-	expect(toaster).toHaveClass(styles.divToasterHide);
+	expect(toaster).toHaveClass(styles.divToasterCenter!);
+	expect(toaster).toHaveClass(styles.divToasterError!);
+	expect(toaster).toHaveClass(styles.divToasterHide!);
 	expect(toaster).toHaveAttribute('data-show', '0');
 });
 
@@ -34,10 +34,10 @@ it('render information Toaster in center', () => {
 		show={1}
 	/>);
 	const toaster = screen.getByText("Test message");
-	expect(toaster).toHaveClass(styles.divToasterCenter);
-	expect(toaster).toHaveClass(styles.divToasterInformation);
-	expect(toaster).not.toHaveClass(styles.divToasterHide);
-	expect(toaster).not.toHaveClass(styles.divToasterFadeout);
+	expect(toaster).toHaveClass(styles.divToasterCenter!);
+	expect(toaster).toHaveClass(styles.divToasterInformation!);
+	expect(toaster).not.toHaveClass(styles.divToasterHide!);
+	expect(toaster).not.toHaveClass(styles.divToasterFadeout!);
 	expect(toaster).toHaveAttribute('data-position', 'center');
 	expect(toaster).toHaveAttribute('data-type', 'information');
 });
@@ -50,10 +50,10 @@ it('render success Toaster in bottom', () => {
     show={1}
   />);
 	const toaster = screen.getByText("Test message");
-	expect(toaster).toHaveClass(styles.divToasterBottom);
-	expect(toaster).toHaveClass(styles.divToasterSuccess);
-	expect(toaster).not.toHaveClass(styles.divToasterHide);
-	expect(toaster).not.toHaveClass(styles.divToasterFadeout);
+	expect(toaster).toHaveClass(styles.divToasterBottom!);
+	expect(toaster).toHaveClass(styles.divToasterSuccess!);
+	expect(toaster).not.toHaveClass(styles.divToasterHide!);
+	expect(toaster).not.toHaveClass(styles.divToasterFadeout!);
 });
 
 it('render error Toaster in bottom', () => {
@@ -64,8 +64,8 @@ it('render error Toaster in bottom', () => {
     show={1}
   />);
 	const toaster = screen.getByText("Test message");
-	expect(toaster).toHaveClass(styles.divToasterBottom);
-	expect(toaster).toHaveClass(styles.divToasterError);
+	expect(toaster).toHaveClass(styles.divToasterBottom!);
+	expect(toaster).toHaveClass(styles.divToasterError!);
 });
 
 it('render success Toaster faded out', async () => {
@@ -83,9 +83,9 @@ it('render success Toaster faded out', async () => {
 
 	await vi.advanceTimersByTimeAsync(2000);
 
-	expect(toaster).toHaveClass(styles.divToasterBottom);
-	expect(toaster).toHaveClass(styles.divToasterSuccess);
-	expect(toaster).toHaveClass(styles.divToasterFadeout);
+	expect(toaster).toHaveClass(styles.divToasterBottom!);
+	expect(toaster).toHaveClass(styles.divToasterSuccess!);
+	expect(toaster).toHaveClass(styles.divToasterFadeout!);
 
 	await vi.runOnlyPendingTimersAsync();
 });
@@ -103,9 +103,9 @@ it('preserves position/type classes after hide (show=2 + timeout)', async () => 
 	const toaster = screen.getByRole('alert');
 	await vi.advanceTimersByTimeAsync(1000);
 
-	expect(toaster).toHaveClass(styles.divToasterBottom);
-	expect(toaster).toHaveClass(styles.divToasterSuccess);
-	expect(toaster).toHaveClass(styles.divToasterHide);
+	expect(toaster).toHaveClass(styles.divToasterBottom!);
+	expect(toaster).toHaveClass(styles.divToasterSuccess!);
+	expect(toaster).toHaveClass(styles.divToasterHide!);
 
 	await vi.runOnlyPendingTimersAsync();
 });
