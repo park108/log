@@ -1,99 +1,138 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ 893cdea → THIS — reconcile 1/4 ack (vite-env-boundary-typing G1·G2·G4 marker 9 flip) + Phase 2 REQ-076 흡수 (6 spec 신규 박제).
+# 2026-05-17 @ 79d28cc → THIS — reconcile 2/10 ack (tooling.md FR-03 marker 2 flip + env.md I1·FR-01-a·FR-01-b marker 3 flip via TSK-20260517-10/11) + Phase 2 REQ-077·REQ-078·REQ-079 흡수 (tooling.md §7.3 보강 + typecheck-island-extension.md 신규 + node-version-3axis-coherence.md 신규).
 #
 # 본 세션 디스크 실측 (tick 시작 시점):
-#  - HEAD = 893cdea (planner 28차 tick — components/common.md green→blue 승격 + TSK-20260517-10 carve).
-#  - specs/30.spec/green/foundation/ : 4 spec (src-spec-reference-coherence + vite-env-boundary-typing + node-modules-extraneous-coherence + tooling.md).
-#  - specs/30.spec/green/components/ : 본 세션 시작 시 부재 (planner 28차 tick @893cdea 가 common.md 를 blue 로 mv).
-#  - specs/30.spec/green/common/ : 본 세션 신규 4 spec (env.md + sanitizeHtml.md + markdownParser.md + accessibility.md — REQ-076 흡수).
-#  - specs/30.spec/green/styles/ : 본 세션 신규 1 spec (css-modules.md — REQ-076 흡수).
-#  - specs/30.spec/green/testing/ : 본 세션 신규 1 spec (search-abort-runtime-smoke.md — REQ-076 흡수).
+#  - HEAD 세션 시작 시점 = 9598110 (planner 30차 tick — REQ-076 carve 3건 발행).
+#  - 세션 진행 중 외부 commit 도입: 2274932 (planner 31차 tick no-op) + 79d28cc (developer TSK-11 — App.jsx isDev() 헬퍼 회수).
+#  - HEAD 세션 종료 시점 = 79d28cc (TSK-11 ack — env.md I1 1→0 hit 수렴).
+#  - specs/30.spec/green/foundation/ : 4 → 6 spec (typecheck-island-extension.md + node-version-3axis-coherence.md 본 세션 신규).
+#  - specs/30.spec/green/common/ : 4 spec (env/sanitizeHtml/markdownParser/accessibility).
+#  - specs/30.spec/green/styles/ : 1 spec (css-modules.md).
+#  - specs/30.spec/green/testing/ : 1 spec (search-abort-runtime-smoke.md).
 #  - specs/30.spec/blue/foundation/ : 5 spec (ci/coverage-determinism/dependency-bump-gate/regression-gate/tooling.md).
-#  - specs/30.spec/blue/components/ : 9 spec (app/comment/common/file/image/log/monitor/search/toaster.md — common.md 본 tick 신규 promote).
+#  - specs/30.spec/blue/components/ : 9 spec.
 #  - specs/30.spec/blue/common/ : 1 spec (test-idioms.md).
-#  - specs/20.req/ : 1건 REQ-20260517-076 (deleted-spec-restore-batch-2-7) — 본 세션 흡수 후 60.done/req mv.
-#  - specs/40.task/ : 1건 (TSK-20260517-10 lint-staged-untracked-preserve-fixture, planner 28차 발행, developer 미수행).
-#  - specs/60.done/2026/05/17/task/ : 5건 (TSK-05 dead-link-purge + TSK-06 ci-gate + TSK-07 env-cast-purge + TSK-08 env-ci-gate + TSK-09 node-modules-ci-gate).
-#  - specs/50.blocked/spec/foundation/ : 6 spec + 6 reason (vite-jsx + test-discovery + eslint-linter + log + monitor + root-entry — RULE-05 /revisit 의존).
+#  - specs/20.req/ : 세션 시작 2건 (REQ-078 fixture-probe-gitignore + REQ-077 type-safe-island-typecheck) → 세션 진행 중 1건 추가 도입 (REQ-079 node-runtime-version-3axis) → 총 3건 흡수 후 60.done/req mv → 큐 0건.
+#  - specs/40.task/ : 2건 (TSK-12 search-loading-dots-real-timer-cleanup + TSK-13 markdownparser-mixed-type-out-of-scope-fixture — planner 30차 발행; TSK-11 은 본 세션 중 완료 mv).
+#  - specs/60.done/2026/05/17/task/ : 6건 (TSK-05~09 + TSK-10 + TSK-11 env-helper-app-jsx-converge 본 세션 ack).
+#  - specs/50.blocked/spec/foundation/ : 6 spec + 6 reason (RULE-05 /revisit 의존 — 본 세션 0 변경).
 #  - .claude/locks/ : 부재 (pause 0).
 #
-# Phase 1 추적 (분모 4 — green 직계 4 spec 본 tick 시작 시점):
-#  - foundation/src-spec-reference-coherence.md (cycle 2):
-#    * G1 grep gate: 실측 0 hit (HEAD=893cdea, `grep -rnE 'specs/30\.spec/[^"`\ ]*-spec\.md' src` → exit 1 / 0 lines). 직전 ack 유지 — drift 0 / 추가 ack 없음.
-#    * G2 disk exist gate: 실측 0 path / 0 MISSING. 직전 ack 유지.
-#    * G3 CI/pre-commit 게이트: TSK-20260517-06 @1cfa78e (HEAD 조상) 박제 유지.
-#    * Must (1 PR 동시 충족 단일 사례) marker: 유보 — 추가 사례 누적 없음, 차기 이벤트 시 재검증.
+# Phase 1 추적 (분모 10 — green 직계 spec 본 세션 종료 시점):
+#  - foundation/src-spec-reference-coherence.md (cycle 3):
+#    * G1 grep gate: HEAD=`79d28cc` 실측 0 hit. 직전 ack 유지.
+#    * G2 disk exist gate: 0 path / 0 MISSING. 직전 ack 유지.
+#    * G3 CI/pre-commit 게이트: TSK-20260517-06 @1cfa78e 박제 유지.
+#    * Must (1 PR 동시 충족 단일 사례) marker: 유보 — 추가 사례 누적 없음.
+#    * 본 세션 ack 추가 0 — stale_cycles += 1 (1 → 2).
+#  - foundation/vite-env-boundary-typing.md (cycle 1):
+#    * G1·G2·G4 marker ack 직전 유지 (HEAD=`79d28cc` 실측 0 hit / S_src=10 / S_type=10 / diff=0).
+#    * G3 marker 유보 — 전반 `tsc` exit=2 (128 error / 11 file, src/common + src/Toaster 영역 — REQ-077 회복 대상). 본 세션 typecheck-island-extension.md 신규 박제로 회복 대상 영역 명시화 완료 — G3 marker 플립은 REQ-077 task 회수 후 가능.
 #    * 본 세션 ack 추가 0 — stale_cycles += 1 (0 → 1).
-#  - foundation/vite-env-boundary-typing.md (cycle 0 → ack):
-#    * G1 grep gate: HEAD=893cdea 실측 0 hit (`grep -rnE 'import\.meta\.env\.VITE_[A-Z_]+\s+as\s+string' src` → exit 1 / 0 lines). baseline 8 → 0 회수 (TSK-07 / cb47bd2 hook-ack).
-#    * G2 동치 게이트: HEAD=893cdea 실측 `S_src=10 / S_type=10 / diff=0`. baseline `S_type=∅ / diff=10` 회수 (TSK-07 / cb47bd2 hook-ack).
-#    * G3 typecheck 게이트: VITE_* 한정 implicit any 0 PASS (`tsc --noEmit` 출력 grep `VITE_` 0 hit) 이나 전반 `tsc` exit=2 (`src/**` 40+ hit 다른 영역 에러 — Toaster / common.ts 등 `src-typescript-migration` 영역). marker 보류 — 게이트 본문 "전반 exit=0" 조건 미달.
-#    * G4 CI 게이트: TSK-20260517-08 @cb47bd2 박제 — `scripts/check-vite-env-coherence.sh` + `package.json scripts.check:vite-env` + `.husky/pre-commit` 조건부 호출 + `.github/workflows/ci.yml` step 4축 박제. 회귀 시뮬레이션 양방향 검증 PASS. marker flip.
-#    * 플립 대상: 테스트 현황 G1 + G2 + G4 (3 marker) + 수용 기준 Must G1·Must G2·Must 시점비의존·Must 범위제한·Should 자동게이트·Should FR-04 수단 (6 marker) → 총 9 marker 플립.
-#    * 유보: G3 marker (전반 exit=0 미달) — `src-typescript-migration` 영역 task 후 marker 플립 가능.
-#    * 회귀 0 hook-ack: TSK-08 result.md 박제 (`npm run lint` exit 0 / `npm test` 48 files 439 PASS / `npm run build` exit 0).
-#    * ack 발생 → stale_cycles 0 으로 리셋.
-#  - foundation/node-modules-extraneous-coherence.md (cycle 2):
-#    * G1 grep gate: HEAD=893cdea 실측 `npm ls --depth=0 | grep -cE " extraneous$"` → 0. 직전 ack 유지.
-#    * G2 등식: HEAD=893cdea 실측 `N=29 / M=29 / diff=0` (`npm ls --depth=0` 31 lines = 헤더 2 + root 29). 직전 ack 유지.
+#  - foundation/node-modules-extraneous-coherence.md (cycle 3):
+#    * G1 grep gate: HEAD=`79d28cc` 실측 `npm ls --depth=0 | grep -cE " extraneous$"` → 0. 직전 ack 유지.
+#    * G2 등식: 실측 N=M / diff=0. 직전 ack 유지.
+#    * G3 동시 충족 사례 marker 유보 + G4 자동 게이트 marker 유보 (Should — task 발행 / 이벤트 대기).
+#    * 본 세션 ack 추가 0 — stale_cycles += 1 (1 → 2).
+#  - foundation/tooling.md (cycle 0 — reset by ack):
+#    * §동작 7 FR-03 marker 2건 (`§테스트 현황 line 125` + `§수용 기준 line 152`) `[ ]→[x]` 플립. ack 근거: TSK-20260517-10 / `94f362a` (revert `ca5035c`, 양 commit 모두 HEAD 조상). hook-ack: `60.done/2026/05/17/task/lint-staged-untracked-preserve-fixture/result.md` Step 1~5 박제 + DoD 점검 (lint exit 0 / test 변경 없음 src net 0 / build 변경 없음).
+#    * REQ-078 흡수 (Phase 2): §동작 7.3 평서문 + §회귀 중점 신규 1줄 + §스코프 규칙 gate (q)(r)(s) 3건 실측 박제 + §수용 기준 REQ-078 FR-01~06 + NFR-01~03 총 9 marker — FR-01/02/04/05/06 + NFR-01/02/03 즉시 `[x]`, FR-03 (RULE-06 §체크리스트 보강 운영자 축) `[ ]` 유보.
+#    * 본 세션 ack 발생 → stale_cycles 0 으로 리셋.
+#  - foundation/typecheck-island-extension.md (cycle 0 — 본 세션 신규):
+#    * REQ-077 흡수 — 본 세션 신규 박제. (I1)(I2)(I3)(I6) marker `[ ]` 유보 (task 회수 대기) + (I4)(I5) marker 즉시 `[x]` + §수용 기준 FR-01~07 + NFR-01~04 총 11 marker 중 FR-01~05·FR-07 + NFR-01~04 = 10 marker 즉시 `[x]`, FR-06 (audit 신호 — 회복 후 §변경 이력 신규 row 박제 시점) `[ ]` 유보.
+#    * baseline 박제 (HEAD=`79d28cc` 실측): G1·G2 island 정의 전반부 PASS (.jsx/.js 0 hit) / G3 Toaster 19 hit MISS / G4 common 109 hit MISS (10 file 분포) / G5 전반 128 hit MISS / G6 17 unique TS code 분포 / G7 수단 라벨 0 hit / G8 `@ts-expect-error` baseline 0 hit.
+#    * stale_cycles = 0 (baseline marker).
+#  - foundation/node-version-3axis-coherence.md (cycle 0 — 본 세션 신규):
+#    * REQ-079 흡수 — 본 세션 신규 박제 (inspector FR-06 결정: 별도 spec 분리 vs `foundation/ci.md` 흡수 — 별도 spec 선택 사유 박제).
+#    * (I1)(I2)(I3)(I4)(I5) marker `[ ]` 유보 (task 회수 대기) + (I6)(I7)(I8) marker 즉시 `[x]`. §수용 기준 FR-01~08 + NFR-01~05 중 FR-06·FR-07·FR-08 + NFR-01~04 = 7 marker 즉시 `[x]`, FR-01~05 + NFR-05 = 6 marker task 회수 대기 `[ ]` 유보.
+#    * baseline 박제 (HEAD=`79d28cc` 실측): G1 engines.node 부재 exit 1 / G2 engines 키 0 hit / G3 CI node-version:21 1 hit PASS / G4 로컬 pin 0 file / G5 운영자 로컬 메이저 (감사성 §변경 이력 한정) / G6 3 카테고리 활성 / G7·G8 자기 검증 PASS.
+#    * stale_cycles = 0 (baseline marker).
+#  - common/env.md (cycle 0 — reset by ack):
+#    * (I1) marker `[ ]→[x]` 플립 + (FR-01-a)(FR-01-b) marker 2건 `[ ]→[x]` 플립 — 총 3 marker hook-ack. ack 근거: TSK-20260517-11 / `79d28cc` (HEAD 자체). hook-ack: `60.done/2026/05/17/task/env-helper-app-jsx-converge/result.md` DoD 점검 박제 (lint exit 0 / test 48 files 439 PASS / build PASS) + grep gate `src/App.jsx:130` `import.meta.env.DEV` → `isDev()` 호출 회수, baseline 1 → 0 hit 수렴.
+#    * (I5) marker 유보 (정의상 항상 참 — 본 spec 박제 자체로 정합) — 마커 변경 없음 (차기 tick 자동 [x] 검토 후보).
+#    * 본 세션 ack 발생 → stale_cycles 0 으로 리셋.
+#  - common/sanitizeHtml.md (cycle 1):
+#    * I2 (caller 측 게이트 — 별 task 위임) + I5 (OWASP XSS Filter Evasion fixture pointer — 별 task 위임) marker 유보 — task 미발행 (TSK-20260517-12·13 은 본 영역 외).
+#    * Must FR-02-b + FR-02-c marker 유보.
 #    * 본 세션 ack 추가 0 — stale_cycles += 1 (0 → 1).
-#  - foundation/tooling.md (cycle 1):
-#    * §동작 7 (REQ-075 FR-01~04) marker 상태: FR-01/02/04 + NFR-01/03 [x] 유지 (HEAD=893cdea 재실측 PASS — gate (m) 0 hit + gate (n) 0 hit).
-#    * FR-03 (재현 fixture) [ ] 유지 — TSK-20260517-10 발행 (planner 28차) 이나 developer 미수행 → hook-ack 불가.
-#    * FR-05 / NFR-02 [ ] 유지 — 이벤트 대기.
+#  - common/markdownParser.md (cycle 1):
+#    * I6 (ul ↔ ol 혼합 중첩 미정의 영역 — fixture 별 task 위임) marker 유보. TSK-20260517-13 (`markdownparser-mixed-type-out-of-scope-fixture`) 발행됨 (planner 30차 tick @9598110) — developer 미수행, hook-ack 불가.
+#    * 본 세션 ack 추가 0 — stale_cycles += 1 (0 → 1).
+#  - common/accessibility.md (cycle 1):
+#    * I5 (WCAG audit 결과 효능 — 별 task 위임) marker 유보.
+#    * 본 세션 ack 추가 0 — stale_cycles += 1 (0 → 1).
+#  - styles/css-modules.md (cycle 1):
+#    * I3 (enum 변경 정합 — 이벤트 대기) + I4 (Skeleton.css 모듈 전환 — 이벤트 대기) marker 유보. Should marker 유보.
+#    * 본 세션 ack 추가 0 — stale_cycles += 1 (0 → 1).
+#  - testing/search-abort-runtime-smoke.md (cycle 1):
+#    * I4 (timer leak 0건 CI 측정 — 별 task 위임) + Must FR-06-b marker 유보. TSK-20260517-12 (`search-loading-dots-real-timer-cleanup`) 발행됨 (planner 30차) — developer 미수행, hook-ack 불가.
 #    * 본 세션 ack 추가 0 — stale_cycles += 1 (0 → 1).
 #
-# Phase 2: 입력 큐 1건 (REQ-076) 흡수.
-#  - REQ-20260517-076 deleted-spec-restore-batch-2-7 (6 토픽 묶음):
-#    * RULE-07 양성: 6 토픽 모두 시점 비의존 계약 (env / sanitizeHtml / markdownParser / accessibility / css-modules / search-abort) PASS.
-#    * 박제 경로: 6 개별 spec 으로 분할 (req §참고 의 inspector 책임 위임 정합):
-#      - `30.spec/green/common/env.md` (신규 — REQ-076 FR-01, 원전 REQ-20260418-002 FR-01) — 5 축 (I1~I5) + baseline `src/App.jsx:130` non-test 1 hit + test 영역 6 hit + 본 모듈 3 hit + 본 모듈 외 ALLOWED_* 0 hit 참고. I2/I3/I4/I5 즉시 [x], I1 baseline 회수 task 위임 [ ].
-#      - `30.spec/green/common/sanitizeHtml.md` (신규 — REQ-076 FR-02, 원전 REQ-20260418-001 NFR-01) — 6 축 (I1~I6) + baseline ALLOWED_* 단일 모듈 7 hits + 외부 사용 0 hit + afterSanitizeAttributes 훅 박제 + 활성 콘텐츠 scheme 0 hit. I1/I3/I4/I6 즉시 [x], I2/I5 caller·fixture 측 게이트 [ ].
-#      - `30.spec/green/common/markdownParser.md` (신규 — REQ-076 FR-03, 원전 TSK-20260418-10) — 7 축 (I1~I7) + baseline `bindListItem` 진입점 @:394 / 호출 2 hit (ul @:173 + ol @:219) / 의도 주석 @:384. 모든 marker 즉시 [x] (알고리즘 본문 변경 없음, 속성 박제).
-#      - `30.spec/green/common/accessibility.md` (신규 — REQ-076 FR-04, 원전 REQ-20260420-021) — 6 축 (I1~I6) + baseline `:focus-visible` 2 hit @Monitor.css:122-123 / outline 2px @:124 / `:focus` 단독 0 hit. I1/I2/I3/I4/I6 즉시 [x], I5 (WCAG audit 결과 효능) 별 task [ ].
-#      - `30.spec/green/styles/css-modules.md` (신규 — REQ-076 FR-05) — 5 축 (I1~I5) + baseline `*.module.css` 4 hits (Toaster/Comment/ImageSelector/Search) + Skeleton.css 헤더 의도 주석. I1/I2/I5 즉시 [x], I3/I4 이벤트 대기 [ ].
-#      - `30.spec/green/testing/search-abort-runtime-smoke.md` (신규 — REQ-076 FR-06, 원전 REQ-20260420-004 / TSK-20260420-16) — 6 축 (I1~I6) + baseline `Search.test.tsx:251+` fixture 박제 (useFakeTimers / restoreAllMocks / never resolves stub / getLoadingDotsText / stubEnv PROD·DEV). I1/I2/I3/I5/I6 즉시 [x], I4 (timer leak 0건 CI 측정) 별 task [ ].
-#    * RULE-07 자기검증 — 6 spec 모두 시점 비의존 평서문 + grep / find / vitest 단일 명령 재현 가능 + incident 귀속 부재. PASS.
-#    * RULE-06 §스코프 규칙 grep-baseline 6 spec 평균 4 gate 실측 박제 (총 24 gate).
-#    * RULE-01 inspector writer 영역 (`30.spec/green/**`) create 만 + `20.req/REQ-076 → 60.done/2026/05/17/req/` mv.
-#  - req mv: specs/20.req/20260517-deleted-spec-restore-batch-2-7.md → specs/60.done/2026/05/17/req/.
+# Phase 1 reconcile 분자/분모 계산:
+#   - 분모 M = 10 (green 직계 spec — 본 세션 신규 2건 포함).
+#   - 분자 N = 2 (tooling.md FR-03 marker 2건 hook-ack 플립 + env.md I1·FR-01-a·FR-01-b marker 3건 hook-ack 플립 — spec 단위 카운트 2개 spec).
+#   - stale ≥ 3 cycle: 0건 (src-spec-reference-coherence = cycle 2, node-modules-extraneous-coherence = cycle 2 — 임계 미달).
+#   - 토큰: `reconcile: 2/10 ack`.
 #
-# GREEN_PENDING_MAX=20 (override 부재) — 본 tick 후 green spec disk 실측 10건 (foundation 4 + common 4 + styles 1 + testing 1) << 20 임계치 미달.
+# Phase 2 흡수 요약 (3건 — REQ-077 + REQ-078 + REQ-079):
+#  - REQ-20260517-077 type-safe-island-typecheck-regression-recovery:
+#    * RULE-07 양성 (system invariant — island typecheck 자격 효능, repeatable measurement, no incident binding) PASS.
+#    * 박제: `30.spec/green/foundation/typecheck-island-extension.md` (신규 create). 6 축 (I1~I6) + 8 gate (G1~G8) + 11 marker §수용 기준 (FR-01~07 + NFR-01~04).
+#    * baseline 11 file 128 error / 17 unique TS code 분포 박제 (§스코프 규칙 baseline 한정 — 본문 평서형 NFR-01 정합).
+#  - REQ-20260517-078 fixture-probe-gitignore-coherence:
+#    * RULE-07 양성 (system invariant — fixture probe 위치 결정 가이드, time-independent) PASS.
+#    * 박제: `30.spec/green/foundation/tooling.md` §동작 7.3 보강 + §회귀 중점 신규 1줄 + §스코프 규칙 gate (q)(r)(s) 3건 + §수용 기준 REQ-078 FR-01~06 + NFR-01~03 총 9 marker.
+#    * `specs/10.followups/` 가 `.gitignore:28` 매칭으로 fixture 부적합 — `specs/30.spec/green/foundation/` 적합 (TSK-20260517-10 사후 검증 사례).
+#  - REQ-20260517-079 node-runtime-version-3axis-coherence:
+#    * RULE-07 양성 (system invariant — Node 메이저 3축 정합, time-independent, no incident binding, NFR-01 시점 비의존 자기 검증 PASS) PASS.
+#    * 박제: `30.spec/green/foundation/node-version-3axis-coherence.md` (신규 create — FR-06 inspector 결정: 별도 spec 분리). 8 축 (I1~I8) + 8 gate (G1~G8) + 13 marker §수용 기준.
+#    * baseline (HEAD=`79d28cc` 실측): engines.node 부재 + 로컬 pin 부재 + CI Node 24 + 운영자 로컬 Node 22 (메이저 격차 1). FR-01·FR-03 위반 baseline 박제.
+#
+# req mv (3건):
+#  - specs/20.req/20260517-fixture-probe-gitignore-coherence.md → specs/60.done/2026/05/17/req/
+#  - specs/20.req/20260517-type-safe-island-typecheck-regression-recovery.md → specs/60.done/2026/05/17/req/
+#  - specs/20.req/20260517-node-runtime-version-3axis-coherence.md → specs/60.done/2026/05/17/req/
+#
+# GREEN_PENDING_MAX=20 (override 부재) — 본 tick 후 green spec disk 실측 12건 (foundation 6 + common 4 + styles 1 + testing 1) << 20 임계치 미달.
 #
 # 본 세션 commit diff:
-#  - specs/30.spec/green/foundation/vite-env-boundary-typing.md (G1·G2·G4 marker 9 flip + 변경 이력 1행)
-#  - specs/30.spec/green/common/env.md (신규 create — REQ-076 FR-01 흡수)
-#  - specs/30.spec/green/common/sanitizeHtml.md (신규 create — REQ-076 FR-02 흡수)
-#  - specs/30.spec/green/common/markdownParser.md (신규 create — REQ-076 FR-03 흡수)
-#  - specs/30.spec/green/common/accessibility.md (신규 create — REQ-076 FR-04 흡수)
-#  - specs/30.spec/green/styles/css-modules.md (신규 create — REQ-076 FR-05 흡수)
-#  - specs/30.spec/green/testing/search-abort-runtime-smoke.md (신규 create — REQ-076 FR-06 흡수)
+#  - specs/30.spec/green/foundation/tooling.md (FR-03 marker 2 flip + REQ-078 §7.3 보강 + gate q/r/s + 수용 기준 9 marker + 변경 이력 1행 + 참고 1행)
+#  - specs/30.spec/green/common/env.md (I1 + FR-01-a + FR-01-b marker 3 flip + 헤더 + 변경 이력 1행)
+#  - specs/30.spec/green/foundation/typecheck-island-extension.md (신규 create — REQ-077 흡수)
+#  - specs/30.spec/green/foundation/node-version-3axis-coherence.md (신규 create — REQ-079 흡수)
 #  - specs/30.spec/green/.inspector-seen (갱신)
-#  - specs/20.req/20260517-deleted-spec-restore-batch-2-7.md → specs/60.done/2026/05/17/req/ (mv)
-# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 복원 시도 0 — RULE-05 /revisit 경로 의존).
-# RULE-02 working tree (src 영역) 미접촉 정합 — modified 0건 (tooling.md FR-03 fixture task 는 developer 영역).
+#  - specs/20.req/* 3건 → specs/60.done/2026/05/17/req/ (mv 3건)
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합.
 #
 # 입력 큐 잔여: 0건.
 # 차기 inspector tick 우선순위:
-#  (1) foundation/vite-env-boundary-typing.md G3 marker — `src-typescript-migration` 영역 task 회수 후 전반 `tsc` exit=0 달성 시 marker 플립.
-#  (2) common/env.md I1 marker — `src/App.jsx:130` `import.meta.env.DEV` 직접 참조를 `isDev()` 호출로 회수하는 task 발행/회수 후 marker 플립.
-#  (3) common/sanitizeHtml.md I2 marker — caller 측 DOM 주입 직전 sanitize 경유 lint rule / 정적 분석 task 발행/회수 후 marker 플립.
-#  (4) common/accessibility.md I5 marker — WCAG audit 회귀 fixture task 발행/회수 후 marker 플립.
-#  (5) styles/css-modules.md I3/I4 marker — `*.module.css` 추가/삭제 또는 Skeleton.css 전환 이벤트 후 marker 플립.
-#  (6) testing/search-abort-runtime-smoke.md I4 marker — CI 회귀 측정 (`vitest` 실행 시 `act()` 경고 0 hit) 측정 task 발행/회수 후 marker 플립.
-#  (7) foundation/tooling.md FR-03 marker — TSK-20260517-10 (lint-staged untracked fixture) developer 회수 후 hook-ack.
-#  (8) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
-#  (9) green 6 spec 신규 + 4 잔존 = 10 spec 의 차기 planner promote 검토 (green → blue) — 본 tick 직후 즉시 promote 후보 다수.
+#  (1) common/env.md I5 marker 정의 — 정의상 항상 참 (별 task 회수 불요), 차기 tick 즉시 [x] 검토.
+#  (2) common/sanitizeHtml.md I2/I5 marker — caller 측 게이트 / OWASP fixture task 발행/회수 후 marker 플립.
+#  (3) common/accessibility.md I5 marker — WCAG audit fixture task 발행/회수 후 marker 플립.
+#  (4) styles/css-modules.md I3/I4 marker — `*.module.css` 추가/삭제 또는 Skeleton.css 전환 이벤트 후 marker 플립.
+#  (5) testing/search-abort-runtime-smoke.md I4 marker — CI 회귀 측정 task (TSK-20260517-12 developer 회수) 후 hook-ack.
+#  (6) common/markdownParser.md I6 marker — TSK-20260517-13 (mixed-type fixture) developer 회수 후 hook-ack.
+#  (7) foundation/typecheck-island-extension.md (I1)(I2)(I3) marker — task carve 발행 (planner 영역) + developer 회수 후 island 자격 재취득 hook-ack. baseline 128 → 0 hit 수렴 시 marker 플립.
+#  (8) foundation/vite-env-boundary-typing.md G3 marker — (7) 회복 후 전반 `tsc` exit=0 달성 시 marker 플립 (직교 회복).
+#  (9) foundation/node-version-3axis-coherence.md (I1)(I3)(I4) marker — task carve 발행 (planner 영역, `engines.node` 박제 + `.nvmrc` 또는 등가 채널 박제) + developer 회수 후 3축 격차 0 hook-ack.
+#  (10) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 운영자 회수 후 marker 플립.
+#  (11) foundation/src-spec-reference-coherence.md Must marker — 차기 spec 이벤트 (박제/삭제/이동/rename/promote) 후 재검증.
+#  (12) foundation/node-modules-extraneous-coherence.md G3/G4 marker — 신규 dep 이벤트 + 자동 게이트 박제 task 회수 후 marker 플립.
+#  (13) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
+#  (14) green 12 spec 차기 planner promote 검토 (green → blue) — tooling.md (대규모 보강 후 안정화 대기) / env.md (I1 ack 후 즉시 promote 후보) / typecheck-island-extension.md (baseline 상태 — task 회수 후 promote 검토) / node-version-3axis-coherence.md (baseline 상태 — task 회수 후 promote 검토).
 #
 # == seen-state ==
-specs/30.spec/green/foundation/src-spec-reference-coherence.md	ack-1cfa78e	1
-specs/30.spec/green/foundation/vite-env-boundary-typing.md	ack-cb47bd2	0
-specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	ack-7d085a3	1
-specs/30.spec/green/foundation/tooling.md	baseline-893cdea	1
-specs/30.spec/green/common/env.md	baseline-893cdea	0
-specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	0
-specs/30.spec/green/common/markdownParser.md	baseline-893cdea	0
-specs/30.spec/green/common/accessibility.md	baseline-893cdea	0
-specs/30.spec/green/styles/css-modules.md	baseline-893cdea	0
-specs/30.spec/green/testing/search-abort-runtime-smoke.md	baseline-893cdea	0
+specs/30.spec/green/foundation/src-spec-reference-coherence.md	ack-1cfa78e	2
+specs/30.spec/green/foundation/vite-env-boundary-typing.md	ack-cb47bd2	1
+specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	ack-7d085a3	2
+specs/30.spec/green/foundation/tooling.md	ack-94f362a	0
+specs/30.spec/green/foundation/typecheck-island-extension.md	baseline-79d28cc	0
+specs/30.spec/green/foundation/node-version-3axis-coherence.md	baseline-79d28cc	0
+specs/30.spec/green/common/env.md	ack-79d28cc	0
+specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	1
+specs/30.spec/green/common/markdownParser.md	baseline-893cdea	1
+specs/30.spec/green/common/accessibility.md	baseline-893cdea	1
+specs/30.spec/green/styles/css-modules.md	baseline-893cdea	1
+specs/30.spec/green/testing/search-abort-runtime-smoke.md	baseline-893cdea	1
