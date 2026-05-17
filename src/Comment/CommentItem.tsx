@@ -1,5 +1,4 @@
 import React, { useState, lazy } from "react";
-import PropTypes from 'prop-types';
 import { hasValue, getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
@@ -130,17 +129,5 @@ const CommentItem = (props: CommentItemProps): React.ReactElement => {
 		</div>
 	);
 }
-
-CommentItem.propTypes = {
-	isHidden: PropTypes.bool,
-	isAdminComment: PropTypes.bool,
-	message: PropTypes.string,
-	name: PropTypes.string,
-	logTimestamp: PropTypes.number,
-	commentTimestamp: PropTypes.number,
-	timestamp: PropTypes.number,
-	openReplyForm: PropTypes.func,
-	reply: PropTypes.func,
-};
 
 export default CommentItem;

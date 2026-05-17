@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import PropTypes from 'prop-types';
 import styles from './ImageSelector.module.css';
 import { activateOnKey } from "../common/a11y";
 
@@ -53,11 +52,5 @@ const ImageItem = (props: ImageItemProps): React.ReactElement => {
 		/>
 	);
 }
-
-ImageItem.propTypes = {
-	fileName: PropTypes.string,
-	url: PropTypes.string,
-	copyMarkdownString: PropTypes.func,
-};
 
 export default ImageItem;

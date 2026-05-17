@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import PropTypes from 'prop-types';
 import { log, hasValue, copyToClipboard } from '../common/common';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
@@ -220,9 +219,5 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 		}
 	}
 }
-
-ImageSelector.propTypes = {
-	show: PropTypes.bool,
-};
 
 export default ImageSelector;

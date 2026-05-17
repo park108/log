@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, CSSProperties } from "react";
 import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { getFiles, getNextFiles	 } from './api';
 import { log, hasValue, isAdmin, isMobile, setHtmlTitle } from '../common/common';
 import { reportError } from '../common/errorReporter';
@@ -222,10 +221,6 @@ const File = (props: FileProps): React.ReactElement => {
 			/>
 		</main>
 	);
-}
-
-File.propTypes = {
-	contentHeight: PropTypes.object,
 }
 
 export default File;

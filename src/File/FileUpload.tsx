@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
 import { log, hasValue } from '../common/common';
 import { reportError } from '../common/errorReporter';
@@ -166,9 +165,5 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 		</div>
 	);	
 }
-
-FileUpload.propTypes = {
-	callbackAfterUpload: PropTypes.func,
-};
 
 export default FileUpload;

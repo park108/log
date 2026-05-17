@@ -1,6 +1,5 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import PropTypes from 'prop-types';
 
 interface ErrorBoundaryFallbackArgs {
 	error: Error | null;
@@ -44,11 +43,5 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 		return this.props.children;
 	}
 }
-
-(ErrorBoundary as unknown as { propTypes: object }).propTypes = {
-	fallback: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
-	onError: PropTypes.func,
-	children: PropTypes.node.isRequired,
-};
 
 export default ErrorBoundary;

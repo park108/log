@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from "react";
-import PropTypes from 'prop-types';
 import { hasValue, isAdmin } from '../common/common';
 
 import styles from './Comment.module.css';
@@ -115,12 +114,5 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 		</form>
 	);
 }
-
-CommentForm.propTypes = {
-	logTimestamp: PropTypes.number,
-	commentTimestamp: PropTypes.number,
-	post: PropTypes.func,
-	isPosting: PropTypes.bool,
-};
 
 export default CommentForm;

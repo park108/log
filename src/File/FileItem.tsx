@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import PropTypes from 'prop-types';
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
 import { activateOnKey } from '../common/a11y';
@@ -121,13 +120,5 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 		</div>
 	);
 }
-
-FileItem.propTypes = {
-	deleted: PropTypes.func,
-	fileName: PropTypes.string,
-	url: PropTypes.string,
-	lastModified: PropTypes.number,
-	size: PropTypes.number,
-};
 
 export default FileItem;

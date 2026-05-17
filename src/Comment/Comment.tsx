@@ -1,5 +1,4 @@
 import React, { useState, useEffect, Suspense, lazy, type ReactNode } from "react";
-import PropTypes from 'prop-types';
 import { log, hasValue, isAdmin } from '../common/common';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
@@ -227,10 +226,6 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			/>
 		</section>
 	);
-}
-
-Comment.propTypes = {
-	logTimestamp: PropTypes.number,
 }
 
 export default React.memo(Comment);

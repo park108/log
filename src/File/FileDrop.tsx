@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import PropTypes from 'prop-types';
 import { log, hasValue } from '../common/common';
 import { reportError } from '../common/errorReporter';
 import { getPreSignedUrl, putFile } from './api';
@@ -147,10 +146,6 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 			{dropzoneText}
 		</div>
 	);
-}
-
-FileDrop.propTypes = {
-	callbackAfterUpload: PropTypes.func,
 }
 
 export default FileDrop;

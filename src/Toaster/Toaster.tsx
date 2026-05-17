@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import PropTypes from 'prop-types';
 
 import styles from './Toaster.module.css';
 
@@ -83,14 +82,5 @@ const Toaster = (props: ToasterProps): React.ReactElement => {
 		</div>
 	);
 }
-
-Toaster.propTypes = {
-	duration: PropTypes.number,
-	show: PropTypes.number,
-	position: PropTypes.string,
-	message: PropTypes.string,
-	type: PropTypes.string,
-	completed: PropTypes.func,
-};
 
 export default Toaster;
