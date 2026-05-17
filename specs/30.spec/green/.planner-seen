@@ -5791,3 +5791,73 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (6) **신규 surface 모니터링** — REQ-015 vitest-globals-tri-channel-coherence (104차 진입) 4조건 검증 미진입 — inspector 77차+ Phase 1 ack 진행 후 평가 가능. 106차+ tick 신규 spec 추가 여부 점검 (현 21 spec — GREEN_PENDING_MAX=20 +1 누적 14 tick).
 #     (7) **RULE-03 선결 점검 정합** — 본 tick (105차) input queue (`30.spec/green/**` 21 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (40.task/ = 1건 → 처리 진입 시점 9건 여유) + pause lock 부재 → 처리 진입. carve 0건 + promote 재시도 회피 3차 (멱등 정합) = pipeline 시도 발생하지 않음, RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 false (input queue 측정 + 4조건 박제 + stale 게이트 박제 + chicken-egg 결합 정식 박제 — 실효 처리 0건이나 baseline 박제 발생).
 #     (8) **105차 핵심 박제 — stale 게이트 3차 누적 = pipeline 자율 회복 한계 도달 = RULE-05 수동 개입 신호 강화 단계 + 50.blocked/spec/ 이동 회피 결정 박제 (spec 본문 결함 없음)**. 106차+ 진입 시 우선순위: (a) TSK-14 회수 발화 여부 점검 → 회수 시 inspector 77차+ hook-ack 트리거 + REQ-097 marker flip 진행 단계. (b) 미회수 시 carve chain stale 1차 누적 + stale 게이트 4차 누적 진입 + RULE-05 수동 개입 신호 추가 강화 박제 의무. (c) inspector 76차+ 추가 발화 시 spec-carve-precondition / src-spec-reference-coherence 에 fixture 약결합 FR 박제 모니터링 — 박제 시 stale 게이트 우회 carve 양식 발화 분기 진입 가능.
+
+# === planner 106차 tick @ 2026-05-18 ===
+# HEAD: bfcf9dd (inspector 77차 tick Phase 1 reconcile 0/20 ack — 정체 2차 누적; 직전 105차 baseline `47e1ee1` 이후 외부 commit 1건 (`bfcf9dd` inspector self-only)).
+# input-queue: 30.spec/green/** = 20 spec (foundation 15 + common 3 + styles 1 + testing 1) — 105차 21 spec → 1 spec 감소 (음? 재측정). 실측: foundation 15 + common 3 + styles 1 + testing 1 = 20 spec. 105차 21 spec 박제 오기 가능성 — 105차 재측정으로 20 spec baseline 정합. GREEN_PENDING_MAX=20 임계 == (15 tick 누적 +1).
+# 40.task/ = 0 (TSK-14 미회수 — `50.blocked/task/TSK-20260518-14-root-scripts-spec-reference-stale-recovery_reason.md` 격리 발화, developer 세션 결정론 fixture 충돌). 105차 박제 "TSK-14 회수 대기" 가설 → 실제 결과: blocked 격리 (회수 X). TASK_READY_MAX=10 미달 (9건 여유).
+# 50.blocked/task/ = 3 → **4건** (TSK-20260518-14 신규 격리 추가): monitor-focus-visible-css-audit-fixture + visitormon-fetch-unmount-safety + TSK-20260518-03-eslint-react-hooks-rules-activation + TSK-20260518-14-root-scripts-spec-reference-stale-recovery.
+# 60.done/2026/05/18/task/ = 10 (변동 0).
+# 20.req/ = 13건 (변동 0). 10.followups/ = 0건. 50.blocked/spec/ = 0건 (영구 비움 유지 — 본 tick stale 게이트 4차 누적이나 잔존 결정 박제).
+# 선결 점검 (RULE-03):
+#   (1) pause lock 부재 (`.claude/locks/*.pause` 0건) — pass.
+#   (2) input queue 비어있지 않음 (20 spec) — pass.
+#   (3) TASK_READY_MAX 미달 (40.task/ = 0) — pass.
+#   → 처리 진입.
+# 처리 결과:
+#   carve: 0건.
+#   promote: 0건.
+#   blocked spec ingest: 0건 (50.blocked/spec/ 변동 0 — 유지).
+# Promote 4조건 (green 20 spec 전수 측정):
+#   - 전수 결과: 4조건 모두 미달 (unchecked `- [ ]` > 0 잔존 spec 20건). 105차 베이스라인 (21 spec) 와 비교 — 동일 미달 패턴. promote 재시도 회피 4차 누적.
+#   - foundation/csp-meta-dev-strip-prod-preserve (U=21), eslint-react-hooks-lint-gate (U=20), index-html-public-asset-reference-coherence (U=15), index-html-root-mount-id-token-coherence (U=16), manifest-icons-sizes-token-disk-coherence (U=7), meta-description-default-fallback-token-coherence (U=16), meta-robots-robotstxt-policy-semantic-coherence (U=4), root-config-spec-reference-coherence (U=9), spec-carve-precondition (U=4 — 외부 carve-active spec §carve-precondition 절 박제 inspector writer 의무), tooling (U=6), 기타 외 (U≥1) — 전수 unchecked > 0.
+# **TSK-14 격리 결과 박제 (105차 가설 → 실제 결정)**:
+#   - 105차 박제 가설: "TSK-14 회수 대기 모드 (1~2 tick 회수 cycle 전례 — TSK-11/12/13)".
+#   - 106차 실측 결과: TSK-14 → `50.blocked/task/TSK-20260518-14-root-scripts-spec-reference-stale-recovery_reason.md` 격리 (회수 X).
+#   - 격리 사유 (reason.md 박제): RULE-06 expansion 불허 + `npm test` 검증 게이트 충돌 — task scope (scripts/*.sh 3 file × 1 line) 적용 시 scope 밖 fixture (src/__tests__/root-config-spec-reference-coherence.test.ts:305 G-B/FR-02 + :346 G-C/FR-03) 결정론 단언 2건 FAIL. fixture 회복은 task §변경 범위 외 + expansion 불허 명시 → developer scope 밖 변경 불가.
+#   - 핵심 (carve 의도 ↔ 실제 결과 mismatch 정식 박제): planner 104차 carve 시 §범위 밖 #3 사전 예고 ("`src/__tests__/root-config-spec-reference-coherence.test.ts` G-B/G-C set 재측정 후 hardcoded path set 갱신 필요 시 — 별 carve (후속)") + §테스트 마지막 줄 사전 예고 ("fixture 단언 결정론 점검 (fixture 가 hardcoded path set 사용 시 baseline 재측정 필요할 수 있음 — 결과 측정 후 별 carve 분기 가능)") — **그러나** §DoD `npm test` rc=0 게이트가 fixture FAIL 을 차단. planner 의도 (fixture 갱신은 후속 carve) ↔ 실 발화 (DoD `npm test` 단언) 간 양식 mismatch 7차 누적 (104차 6차 → 106차 7차).
+# **planner 106차 carve 양식 분기 평가 결과 (TSK-14 격리 후 surface 분기)**:
+#   (a) **recovery task 양식 (TSK-14 surface 재carve — fixture 갱신 + sh 회복 묶음, expansion 허용)**: RULE-05 첫줄 ("에이전트는 blocked 를 재시도하지 않는다") **위반 — 불허**. blocked surface 재carve = blocked 재시도 정합 위반. 정식 해소 경로: 운영자 `/revisit` 으로 `10.followups/` 승격 → discovery → 신규 req → inspector spec → planner 신규 carve (양식 변경 — fixture + sh 묶음 + expansion 허용).
+#   (b) **신규 surface carve 평가 — 전수 미해당 박제**:
+#     - eslint-react-hooks-lint-gate.md (REQ-079) — TSK-20260518-03 (`50.blocked/task/`) 격리 surface = RULE-05 재시도 금지.
+#     - manifest-icons-sizes-token-disk-coherence.md — TSK-11 회수 완료, 잔존 unchecked 5건 모두 `[deferred]` (자동 발화 채널 / maskable safe-zone / 자원 형식 확장 / 성능 측정 / 형식 독립성) — 별 axis / 별 carve 영역.
+#     - root-config-spec-reference-coherence.md (REQ-097) — TSK-14 격리 surface = RULE-05 재시도 금지. 잔존 unchecked 9건 중 4건 (FR-02/FR-03/NFR-01/NFR-03) `[deferred]` + 5건 (FR-05 외) chain 활성.
+#     - index-html-root-mount-id-token-coherence.md — TSK-07 (mount-id-token-coherence-fixture) 회수 완료. 잔존 unchecked 16건 모두 `[deferred]` 또는 chain 활성 (자동 발화 채널 / 결정론 / 멱등 / 성능 / 자체 진단 제외 / 시점 비의존 / 측정 별 axis).
+#     - csp-meta-dev-strip-prod-preserve.md — TSK-10 (csp-meta-build-artifact-preservation-fixture) 회수 완료. 잔존 unchecked 21건 — FR-01/FR-02/FR-03/FR-04 동작 fixture 회복 완료 박제 신호 없음 (inspector hook-ack 트리거 대기) + FR-05 발화 채널 별 carve + 결정론·멱등·성능 측정 별 axis.
+#     - 기타 spec — 동일 패턴 (chain 활성 / `[deferred]` / inspector writer 영역).
+#   (c) **inspector writer 영역 surface (spec-carve-precondition.md FR-02~FR-05)**: 5 외부 carve-active spec 본문에 §carve-precondition 절 박제 의무 — inspector writer 영역, planner 미접촉. 본 tick 실측: 2 외부 carve-active spec (eslint-react-hooks-lint-gate + island-proptypes-zero) §carve-precondition 절 박제됨 (105차 추가 베이스라인 박제 — 6 carve-active spec 중 3 hit, 0→3 진행 inspector 책임).
+#   (d) **stale 게이트 우회 carve 양식 (inspector writer 의존)**: spec-carve-precondition.md 또는 src-spec-reference-coherence.md 에 fixture 약결합 FR 박제 시 우회 carve 양식 분기 진입 가능 — inspector writer 영역, 본 tick 미박제 (76~77차 진입 신호 없음).
+# **결정**: carve 0건 (planner 영역 surface 모두 (a) blocked 재시도 정합 위반 / (b) chain 활성 / (c) inspector writer 의존 / (d) `[deferred]` 별 axis). 양식 mismatch 7차 누적.
+# **stale 게이트 4차 누적 박제 — RULE-05 수동 개입 신호 추가 강화 박제 의무**:
+#   - 102차~106차 (5 tick 연속) src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 green path 주석 stale 잔존.
+#   - 106차 신규 stale 게이트 추가: src/__tests__/root-config-spec-reference-coherence.test.ts:305/346 hardcoded path set (4 green) 잔존 — TSK-14 격리로 회복 미진행. 6 stale 게이트 누적 (manifest-icons 1 + robots-policy 1 + root-config 2 + ?).
+#   - 105차 박제 "promote 재시도 회피 3차 + stale 게이트 3차 누적 = RULE-05 수동 개입 신호 강화 단계" → 106차 4차 누적 진입 = **RULE-05 수동 개입 신호 추가 강화 박제 의무 단계** 도달.
+#   - 50.blocked/spec/ 이동 회피 결정 유지 — spec 본문 결함 부재, 환경 측 stale 결함 (fixture hardcoded path set + spec promote chicken-egg coupling).
+# **chicken-egg coupling 4차 박제** (105차 정식 박제 후 1 tick 누적):
+#   - src/__tests__/ fixture hardcoded green path set ↔ green spec promote = 무한 루프 결합.
+#   - promote 발화 → green 부재화 → fixture 단언 STALE → npm test FAIL → developer 격리.
+#   - fixture 회복 (4 green → 1 green) → developer scope (`src/__tests__/`) 진입 → task scope (scripts/*.sh) 외 → expansion 불허 격리.
+#   - 단일 에이전트 writer 영역 한계 도달 = (1) inspector 가 spec FR 박제 (fixture 약결합 FR — 수단 위임 양식) 으로 해소 가능, 또는 (2) 운영자 RULE-05 단일 PR 경로 (RULE-01 writer 영역 매트릭스 위반 수반 — green promote + src/__tests__/ fixture 갱신 + scripts/*.sh 회복 묶음).
+# **carve chain stale 1차 누적 진입 박제**:
+#   - 105차 박제 "TSK-13 = 2 tick 회수 baseline" + "TSK-14 미회수 시 carve chain stale 1차 누적" → 106차 실측: TSK-14 격리 (회수 아님이나 더 강한 신호 — blocked 격리) → **carve chain stale 1차 누적 + blocked 격리 박제** (단순 미회수보다 강한 신호).
+#   - 다음 tick (107차+) 진입 시 carve chain stale 2차 누적 + blocked 격리 잔존 (4건) = pipeline 자율 회복 완전 한계 도달 박제 가능.
+# **inspector 77차 ack 진행 박제 (105차 가설 검증)**:
+#   - 105차 박제 가설: "inspector 76차+ hook-ack 정체 2차 누적 진입 점검 - 75차 22 ack 정점 → 76차 0 ack 1차 정체 → 77차+ 미진입 + 정체 잔존".
+#   - 106차 실측 (HEAD bfcf9dd commit msg 박제): "Phase 1 reconcile 0/20 ack (정체 2차 누적)" — 가설 정합 (정체 2차 누적 확정).
+#   - 외부 src/ commit 0건 잔존 (TSK-14 격리, 105차 promote 재시도 회피 3차 누적, src/ 변경 surface 부재). reconcile 0/20 ack 잔존.
+# **Task ID footprint** (106차 박제 — 신규 채번 0건): 누적 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~14` 박제 (재사용 영구 금지, 변동 0). 107차+ 신규 carve 시 `TSK-20260518-15` 부터 (`TSK-20260518-15` 0 hit 박제 — 미발화 유지, 106차 grep 재검증 완료).
+# **106차 진입 시점 큐 측정**: 60.done/2026/05/17/task/ = 27 (변동 0). 60.done/2026/05/18/task/ = 10 (변동 0). 40.task/ = **0건** (TSK-14 격리로 1 감소). 50.blocked/task/ = **4건** (TSK-14 신규 격리). 50.blocked/spec/foundation/ = 0건 (유지). 20.req/ = 13건. 10.followups/ = 0건.
+# **TASK_READY_MAX 정합**: 106차 종료 시 40.task/ = 0건 → 임계치 10건 → **10건 여유**.
+# **106차 milestone 박제 — promote 재시도 회피 4차 + stale 게이트 4차 누적 + carve chain stale 1차 + blocked 격리 1건 신규 추가 + carve 0건 + chicken-egg coupling 4차 누적**:
+#   - 105차 (3차) → 106차 (4차) — pipeline 자율 회복 한계 도달 박제 진행 단계.
+#   - RULE-05 수동 개입 신호 추가 강화 박제 의무 단계 도달.
+#   - 50.blocked/spec/ 이동 회피 결정 유지 (spec 본문 결함 부재).
+# **다음 세션 (107차) 행동지침**:
+#   (1) **TSK-14 blocked reason 운영자 `/revisit` 발화 모니터링** — 정식 해소 경로 `blocked → 10.followups/ → discovery → ...` 발화 시 (a) 신규 req 발화 → inspector spec 박제 (fixture + sh 묶음 양식 + expansion 허용) → planner 신규 carve (양식 변경, TSK-20260518-15 채번 가능), (b) close 판정 시 감사노트만 박제 후 종결. 107차+ tick 발화 시점 진입 가능.
+#   (2) **stale 게이트 4차 누적 → 5차+ 진입 시 RULE-05 수동 개입 신호 추가 강화 박제 의무** — 6 stale 게이트 (manifest-icons + robots-policy + root-config × 2) 잔존. 107차+ 진입 시 5차 누적 + 50.blocked/spec/ 이동 회피 결정 박제 유지 (spec 본문 결함 부재 — 환경 측 stale 결함).
+#   (3) **carve chain stale 2차 누적 박제 점검 — 107차 진입 시점 carve 0건 잔존 시 2차 누적 진입** — pipeline 자율 회복 완전 한계 도달 박제 가능.
+#   (4) **inspector 78차+ hook-ack 트리거 모니터링** — 외부 src/ commit 0건 잔존 시 reconcile 0/20 ack 잔존 (정체 3차 누적). spec-carve-precondition FR-02 inspector writer 의무 (6 carve-active spec §carve-precondition 절 박제 — 현 3 hit) 진행 시 hook-ack 트리거 가능.
+#   (5) **carve 양식 분기 평가 — 107차+ 진입 시 surface** — (a) recovery task 양식 (TSK-14 후속 — 운영자 `/revisit` 의존, 재carve 직접 금지), (b) lint rule fixture 양식 (sanitizeHtml OWASP fixture 확장 — 미평가 surface), (c) 메타 spec 정정 axis (inspector writer 의존), (d) stale 게이트 우회 carve 양식 (inspector writer 의존), (e) Monitor 자매 audit (runtime-fetch-unmount-safety FR-05 — 미평가 surface). 동형 패턴 9차 적용 시점.
+#   (6) **신규 surface 모니터링** — 본 tick 신규 surface 평가 — (a) sanitizeHtml.md (U=4) — 운영 fixture OWASP 직교 axis 박제 평가, (b) runtime-fetch-unmount-safety.md (U=3) — Monitor 자매 audit 평가. 107차+ tick 전수 §carve-precondition 절 박제 상태 점검 후 신규 surface 평가 진입.
+#   (7) **RULE-03 선결 점검 정합** — 본 tick (106차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (40.task/ = 0건 → 처리 진입 시점 10건 여유) + pause lock 부재 → 처리 진입. carve 0건 + promote 재시도 회피 4차 (멱등 정합) + stale 게이트 4차 누적 + blocked 격리 1건 신규 추가 = pipeline 시도 발생하지 않음, RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 true (입력 큐 처리 결과 외부 산출물 0건, 단 메타 박제 .planner-seen 1건 발생).
+#   (8) **106차 핵심 박제 — stale 게이트 4차 누적 + carve chain stale 1차 + blocked 격리 1건 신규 추가 = RULE-05 수동 개입 신호 추가 강화 박제 의무 단계 도달**. 107차+ 진입 시 우선순위: (a) TSK-14 운영자 `/revisit` 발화 여부 점검 → 발화 시 신규 req → inspector → planner 양식 변경 carve 발화 가능 단계. (b) 미발화 시 carve chain stale 2차 누적 + blocked 격리 잔존 진입 + RULE-05 수동 개입 신호 추가 강화 박제 의무 누적. (c) inspector 78차+ 추가 발화 시 spec-carve-precondition FR-02 6 carve-active spec §carve-precondition 절 박제 진행 (현 3 hit) 모니터링.
