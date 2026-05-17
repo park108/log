@@ -1,47 +1,47 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ baseline HEAD=`a5edd2d` → THIS (59차 tick) — reconcile 0/16 ack (5 stale ≥20cycle 외부 의존 + 신규 csp-meta 1건 0cycle)
+# 2026-05-17 @ baseline HEAD=`60e8def` → THIS (60차 tick) — reconcile 0/17 ack (6 stale ≥21cycle 외부 의존 + 신규 index-html-public-asset 1건 0cycle)
 #
 # 본 세션 디스크 실측 (tick 시작 시점, baseline) — chain rewrite 사후 정정:
-#  - 직전 inspector self-commit: `e5c15c9` (58차 tick — Phase 1 0/18 ack + Phase 2 REQ-097 흡수).
-#  - tick 진입 시 HEAD == `a5edd2d` (planner 68차 self-commit — promote 2: REQ-094 app.md + REQ-096 web-vitals + carve 1: TSK-30 REQ-097 axis B/C).
-#  - tick 작업 중 HEAD 변동 없음 (직전 inspector self-commit 후 외부 chain: 1 planner self-commit + 1 discovery commit = 2건; spec/src 도입 차분 0 — planner self-only + discovery REQ-098 발행만).
-#  - tick 종료 시 HEAD == `a5edd2d` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
-#  - 외부 commit 분포 (직전 inspector self-commit `e5c15c9` 후): 2건. spec marker 영향 후보 = 0 (a5edd2d 는 planner promote 2 — green→blue 이동 + green-side carve 1, src/test 영역 도입 차분 0; 659e835 는 discovery REQ-098 발행 — 20.req/ 진입만, src/test 영역 차분 0).
-#  - 입력 큐 (20.req/): 본 tick 진입 시 1건 (REQ-098), 종료 시 0건.
-#  - 16 green spec hash 시작점 (직전 58차 박제 18 entry → planner 68차 promote 2 (components/app.md + foundation/web-vitals-api-surface-coherence.md) 디스크 부재 -2 = 16 entry; csp-meta 본 tick 박제 +1 = 17 entry):
-#    · 직전 58차 18 entry seen-state 중 `components/app.md` (1cycle) 는 68차 planner promote 결과 디스크 부재 (본 tick 첫 인지) → seen-state 제거.
-#    · 직전 58차 18 entry seen-state 중 `foundation/web-vitals-api-surface-coherence.md` (1cycle) 도 68차 planner promote 결과 디스크 부재 → seen-state 제거.
-#    · 본 tick 박제 `foundation/csp-meta-dev-strip-prod-preserve.md` 추가.
-#  - 본 tick 진입 시 working tree 상태 (HEAD `a5edd2d` 비교):
+#  - 직전 inspector self-commit: `ac30437` (59차 tick — Phase 1 0/16 ack + Phase 2 REQ-098 흡수).
+#  - tick 진입 시 HEAD == `60e8def` (planner 70차 self-commit — TSK-31 carve (REQ-098 G-D (b) 2회 연속 멱등 fixture) + promote 0 + 격리 0).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `60e8def` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `ac30437` 후): 1건 (`60e8def` planner self-only — `.planner-seen` + `TSK-31` 신규).
+#  - src/test 영역 commit = 0. spec marker 영향 후보 = 0 (planner self-only — green/blue spec 본문 미접촉, 40.task/ 신규 task 등재만; 본 task 회수는 차기 inspector tick 의 ack 후보).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 1건 (REQ-099), 종료 시 0건.
+#  - 17 green spec hash 시작점 (직전 59차 박제 17 entry 유지 — planner 70차 promote 0 / 격리 0 으로 green 디스크 변동 0):
+#    · 17 기존 spec 전수 stale_cycles += 1.
+#    · 본 tick 박제 `foundation/index-html-public-asset-reference-coherence.md` 추가.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `60e8def` 비교):
 #    · `scripts/check-spec-coherence.sh` modified (TSK-30 회수 in-progress — green→blue redirect, inspector 영역 밖) — staged 없음 (RULE-02 세션 시작 unstage 불필요).
 #    · 기타 영역 변동 없음.
 #
 # Phase 1 reconcile 처리 (ack 트리거 commit 없음 — 직전 inspector tick 이후 src/test 영역 commit 0):
-#  - 16 기존 spec 전수 hook-ack 후보 없음 (직전 `e5c15c9` 이후 외부 src/test 영역 commit 0 — a5edd2d 는 planner self-only / 659e835 는 discovery self-only). 16 spec 전수 stale_cycles += 1.
-#  - 본 tick 박제 csp-meta-dev-strip-prod-preserve — 16 marker [ ] 전수 미회복 (baseline G-A 1 hit 보존 + G-B/C/D 5 it 박제 + G-E 발화 채널 1/2 박제). 차기 planner tick 부터 carve 후보 chain 진입 가능.
-#  - 0 marker flip / 0 spec 본문 수정. 본 세션 ack 0 — Phase 1 자체로는 무수정. seen-state 갱신만 (app.md 제거 + web-vitals 제거 + csp-meta 추가).
+#  - 17 기존 spec 전수 hook-ack 후보 없음 (직전 `ac30437` 이후 외부 src/test 영역 commit 0 — `60e8def` 는 planner self-only). 17 spec 전수 stale_cycles += 1.
+#  - 본 tick 박제 index-html-public-asset-reference-coherence — 16 marker [ ] 전수 미회복 (baseline G-A 4 hit + G-B 4 파일 + G-C build artifact 4 자원 + G-D 양면 값 동치 + G-E icons 2 항목 + G-F JSON valid + byte-equal + G-G 양면 분리 + G-H 발화 채널 0 hit). 차기 planner tick 부터 carve 후보 chain 진입 가능.
+#  - 0 marker flip / 0 spec 본문 수정. 본 세션 ack 0 — Phase 1 자체로는 무수정. seen-state 갱신만 (index-html-public-asset 추가).
 #
 # Phase 2 처리:
-#  - REQ-098 (csp-meta-dev-strip-prod-preserve-asymmetry) 흡수 — RULE-07 자기 검증 PASS: (a) 평서 (dev serve strip + prod build preserve 비대칭 출력 모드 시스템 계약), (b) 반복 검증 가능 (`grep -c "Content-Security-Policy" build/index.html` + dev `transformIndexHtml.handler` fixture), (c) 시점 비의존 (G-F 박제 — vite/plugin-react 메이저 bump 또는 index.html CSP directive 갱신 후 동일 측정), (d) incident 비의존 (회귀 차단 채널 박제 — 4 회귀 가설 검출 박제). 자매 spec `foundation/root-config-spec-reference-coherence.md` (green, REQ-097) 의 §Out-of-Scope 명시 "정합 spec 신규 박제" 결과 효능 axis 보완 — 두 spec 직교 axis (REQ-097 참조 path 정합 vs 본 spec CSP 동작 계약).
-#  - 신규 박제 — `foundation/csp-meta-dev-strip-prod-preserve.md` (zero-point baseline: G-A 1 hit 보존 / G-B/C/D 5 it unit fixture 박제 / G-E 발화 채널 1/2 vitest discovery ✓ + build artifact pre-push/CI ✗).
-#  - §스코프 규칙 grep-baseline 실측 박제 (HEAD `a5edd2d` 기준 박제, REQ-098 §배경 HEAD `7477189` 이후 CSP 동작 영역 도입 차분 0): G-A 1 hit / G-B/C/D 5 it / G-E 1/2 / `expansion N/A` (빌드 시스템 횡단 게이트 — task 발행 시점에 planner 재계산).
+#  - REQ-099 (index-html-public-asset-reference-coherence) 흡수 — RULE-07 자기 검증 PASS: (a) 평서 (4종 정적 자원 참조 ↔ 3-축 정합 시스템 계약), (b) 반복 검증 가능 (`grep -c` + `test -f` + JSON parse + 값 추출 동치 비교 fixture), (c) 시점 비의존 (G-I 박제 — vite 메이저 bump / index.html 참조 갱신 / manifest 키 갱신 후 동일 측정), (d) incident 비의존 (회귀 차단 채널 박제 — 4 회귀 가설 검출 박제). 자매 spec `foundation/csp-meta-dev-strip-prod-preserve.md` (green, REQ-098) 와 동일 파일 (`index.html`) 의 별 axis (CSP meta 1 element vs 정적 자원 link/meta 4 element 정합). 자매 `foundation/root-config-spec-reference-coherence.md` (green, REQ-097) 와 별 axis (spec `.md` 참조 path 정합 vs `public/**` 정적 asset 참조 path 정합).
+#  - 신규 박제 — `foundation/index-html-public-asset-reference-coherence.md` (zero-point baseline: G-A 4 hit 보존 / G-B 4 파일 실재 / G-C build artifact 4 자원 + grep 4 hit / G-D 양면 값 `"#000000"` 동치 / G-E icons 2 항목 실재 / G-F JSON valid + 462 byte-equal / G-G 양면 분리 박제 / G-H 발화 채널 0 hit).
+#  - §스코프 규칙 grep-baseline 실측 박제 (HEAD `60e8def` 기준 박제, REQ-099 §배경 HEAD `7477189` 이후 index.html / public/ / build/ 영역 도입 차분 0): G-A 4 / G-B 4 / G-C 4+4 / G-D 동치 / G-E 2 / G-F valid+byte-equal / G-G 분리 / G-H 0 / `expansion N/A` (빌드 시스템 횡단 게이트 — task 발행 시점에 planner 재계산).
 #  - RULE-06 정합: §스코프 규칙 baseline 실측 + `expansion N/A` 명시. RULE-01 정합: inspector writer 영역만 (`30.spec/green/foundation/` create).
-#  - 신규 흡수: 1건 (REQ-098). 격리 0건. 디스크 green 16→17 (csp-meta 추가).
+#  - 신규 흡수: 1건 (REQ-099). 격리 0건. 디스크 green 17→18 (index-html-public-asset 추가).
 #
-# req mv: 1건 (REQ-098 → `60.done/2026/05/17/req/`, .gitignore 등재로 git 추적 외 디스크 큐).
+# req mv: 1건 (REQ-099 → `60.done/2026/05/17/req/`, .gitignore 등재로 git 추적 외 디스크 큐).
 #
 # 본 세션 commit diff:
-#  - specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md (신규 박제)
+#  - specs/30.spec/green/foundation/index-html-public-asset-reference-coherence.md (신규 박제)
 #  - specs/30.spec/green/.inspector-seen (본 갱신)
-#  - specs/60.done/2026/05/17/req/20260517-csp-meta-dev-strip-prod-preserve-asymmetry.md (REQ-098 mv — .gitignore 등재로 commit diff 미박제)
+#  - specs/60.done/2026/05/17/req/20260517-index-html-public-asset-reference-coherence.md (REQ-099 mv — .gitignore 등재로 commit diff 미박제)
 #
 # RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 0 변경 — RULE-05 /revisit 경로 의존).
 # RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. scripts/check-spec-coherence.sh modified 는 inspector 영역 밖 (TSK-30 회수 in-progress) — 본 세션 unstaged 유지.
 # RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
 # RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** + 20.req/ 디스크 큐 mv 만; `.planner-seen` 미접촉).
-# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/16 ack` 박제. GREEN_PENDING_MAX=20 임계치 미달 (16→17 green spec, Phase 2 1건 흡수).
-# RULE-07 자기 검증 — Phase 1 0 marker flip (ack 트리거 src commit 0). REQ-098 신규 spec 자기 검증 PASS (평서 + 반복 검증 가능 + 시점 비의존 + incident 비의존 + 수단 중립).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/17 ack` 박제. GREEN_PENDING_MAX=20 임계치 미달 (17→18 green spec, Phase 2 1건 흡수).
+# RULE-07 자기 검증 — Phase 1 0 marker flip (ack 트리거 src commit 0). REQ-099 신규 spec 자기 검증 PASS (평서 + 반복 검증 가능 + 시점 비의존 + incident 비의존 + 수단 중립).
 #
 # 입력 큐 잔여: 0건.
 # 차기 inspector tick 우선순위 (직전 tick 누적 + 본 tick 갱신):
@@ -54,32 +54,34 @@
 #  (7) foundation/diagnostic-script-auto-channel-coverage.md (I10)/FR-10 marker — `check:spec-coherence` CI step 부착 task 발행/회수 후 hook-ack.
 #  (8) foundation/lint-warning-zero-gate.md (I9) + Could FR-06 marker.
 #  (9) common/test-helpers.md (I4) + Should FR-05 marker.
-#  (10) common/sanitizeHtml.md I2/I5 marker (stale ≥ 20 cycle).
-#  (11) common/accessibility.md I5 marker (stale ≥ 20 cycle).
-#  (12) styles/css-modules.md I3/I4 marker (stale ≥ 20 cycle).
-#  (13) common/markdownParser.md I6 marker (stale ≥ 20 cycle).
-#  (14) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 회수 후 marker 플립 (stale ≥ 19 cycle).
-#  (15) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker (stale ≥ 16 cycle).
-#  (16) foundation/root-config-spec-reference-coherence.md (직전 58차 박제) — 11 marker [ ] 전수 미회복 (TSK-30 carve 진행 중 — `scripts/check-spec-coherence.sh:3` green→blue redirect working tree modified). 차기 hook-ack 후보 commit 진입 시 marker 플립.
-#  (17) foundation/csp-meta-dev-strip-prod-preserve.md (본 tick 박제) — 16 marker [ ] 전수 미회복. 차기 planner tick 부터 carve 후보 (수렴 수단: build artifact pre-push hook 부착 vs CI step 신설 vs `check:csp-artifact` package.json script 박제 + 2회 연속 동작 멱등 fixture 신규 박제 — 모두 task 영역).
-#  (18) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
-#  (19) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신.
+#  (10) common/sanitizeHtml.md I2/I5 marker (stale ≥ 21 cycle).
+#  (11) common/accessibility.md I5 marker (stale ≥ 21 cycle).
+#  (12) styles/css-modules.md I3/I4 marker (stale ≥ 21 cycle).
+#  (13) common/markdownParser.md I6 marker (stale ≥ 21 cycle).
+#  (14) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 회수 후 marker 플립 (stale ≥ 20 cycle).
+#  (15) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker (stale ≥ 17 cycle).
+#  (16) foundation/root-config-spec-reference-coherence.md (직전 58차 박제) — 11 marker [ ] 전수 미회복 (TSK-30 회수 in-progress — `scripts/check-spec-coherence.sh:3` green→blue redirect working tree modified). 차기 hook-ack 후보 commit 진입 시 marker 플립.
+#  (17) foundation/csp-meta-dev-strip-prod-preserve.md (직전 59차 박제) — 16 marker [ ] 전수 미회복. TSK-31 carve 진입 (REQ-098 G-D (b) 2회 연속 멱등 fixture) — 회수 후 marker 플립 후보.
+#  (18) foundation/index-html-public-asset-reference-coherence.md (본 tick 박제) — 16 marker [ ] 전수 미회복. 차기 planner tick 부터 carve 후보 (수렴 수단: 단위 테스트 + filesystem assertion + JSON parse + 값 추출 동치 비교 fixture 박제 + pre-push hook 또는 CI step 또는 `check:public-asset-coherence` package.json script 신설 — 모두 task 영역).
+#  (19) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
+#  (20) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신.
 #
 # == seen-state ==
-specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	16
-specs/30.spec/green/foundation/tooling.md	req-095-absorb-e19d870	4
-specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	15
-specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	13
-specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	13
-specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	13
-specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	13
-specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	20
-specs/30.spec/green/common/markdownParser.md	baseline-893cdea	20
-specs/30.spec/green/common/accessibility.md	baseline-893cdea	20
-specs/30.spec/green/styles/css-modules.md	baseline-893cdea	20
-specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	11
-specs/30.spec/green/foundation/island-proptypes-zero.md	hook-ack-3-marker-flip-761730d	10
-specs/30.spec/green/foundation/package-manager-major-coherence.md	hook-ack-4-marker-flip-d12b6a0	6
-specs/30.spec/green/testing/runtime-fetch-unmount-safety.md	hook-ack-2-marker-flip-4fac538	3
-specs/30.spec/green/foundation/root-config-spec-reference-coherence.md	new-req-097-absorb-659e835	1
-specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md	new-req-098-absorb-a5edd2d	0
+specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	17
+specs/30.spec/green/foundation/tooling.md	req-095-absorb-e19d870	5
+specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	16
+specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	14
+specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	14
+specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	14
+specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	14
+specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	21
+specs/30.spec/green/common/markdownParser.md	baseline-893cdea	21
+specs/30.spec/green/common/accessibility.md	baseline-893cdea	21
+specs/30.spec/green/styles/css-modules.md	baseline-893cdea	21
+specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	12
+specs/30.spec/green/foundation/island-proptypes-zero.md	hook-ack-3-marker-flip-761730d	11
+specs/30.spec/green/foundation/package-manager-major-coherence.md	hook-ack-4-marker-flip-d12b6a0	7
+specs/30.spec/green/testing/runtime-fetch-unmount-safety.md	hook-ack-2-marker-flip-4fac538	4
+specs/30.spec/green/foundation/root-config-spec-reference-coherence.md	new-req-097-absorb-659e835	2
+specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md	new-req-098-absorb-a5edd2d	1
+specs/30.spec/green/foundation/index-html-public-asset-reference-coherence.md	new-req-099-absorb-60e8def	0
