@@ -2,7 +2,7 @@
 
 > **위치**: `package.json` (`engines.node`), `.github/workflows/ci.yml` (`actions/setup-node with.node-version`), repo root pin 파일 (`.nvmrc` / `.node-version` / `.tool-versions`).
 > **관련 요구사항**: REQ-20260517-079
-> **최종 업데이트**: 2026-05-17 (by inspector — REQ-079 흡수 최초 박제, HEAD=`79d28cc`)
+> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 reconcile I2 marker 1건 self-ack 플립 — CI `with.node-version` 박제 본 spec 발행 시점 PASS marker 회수)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`79d28cc` 박제 시점).
 
@@ -43,7 +43,7 @@
 
 ## 테스트 현황
 - [ ] (I1) `engines.node` 존재 게이트: `node -e "const p=require('./package.json'); process.exit(p.engines && p.engines.node ? 0 : 1)"` → exit 0. 현재 baseline: exit 1 (HEAD=`79d28cc` 실측, **FR-01 위반**). task 수행 후 marker 플립.
-- [ ] (I2) CI `with.node-version` 메이저 박제: `grep -nE "node-version:" .github/workflows/ci.yml` → 1 hit @`.github/workflows/ci.yml:21` (HEAD=`79d28cc` 실측 PASS — `foundation/ci.md` §2 정합). 본 spec 박제 시점 PASS — 마커 즉시 `[x]`.
+- [x] (I2) CI `with.node-version` 메이저 박제: `grep -nE "node-version:" .github/workflows/ci.yml` → 1 hit @`.github/workflows/ci.yml:21` (HEAD=`472611f` 실측 PASS, `79d28cc` baseline 무변동 — `foundation/ci.md` §2 정합). self-ack — 본 spec 박제 시점 PASS marker 회수.
 - [ ] (I3) 로컬 dev pin 존재: `ls .nvmrc .node-version .tool-versions 2>/dev/null | wc -l` ≥ 1. 현재 baseline: 0 (HEAD=`79d28cc` 실측, **FR-03 위반**). task 수행 후 marker 플립.
 - [ ] (I4) 3축 메이저 격차 0: 진단 명령 stdout 에 격차 카테고리 0 hit. 현재 baseline: `engines.node 부재` + `local-pin 부재` 2 hit (HEAD=`79d28cc` 실측, **FR-02 + FR-04 위반 — FR-01·FR-03 위반에 종속**). task 수행 후 marker 플립.
 - [ ] (I5) 위반 검출 단일성: 진단 명령 1 명령 박제 + grep 가능한 라벨 박제. 본 spec 박제 자체로 정합 박제 가능 (§동작 5 명령 정의) — task 단 진단 명령 실현 후 marker 플립.
@@ -83,6 +83,7 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-079 흡수) / pending (HEAD=`79d28cc`) | 최초 박제 — Node 런타임 메이저 3축 동시 정합 (engines.node 존재 + CI with.node-version + 로컬 dev pin) 8 축 (I1~I8) 게이트. baseline: engines.node 부재 (G1 exit 1 / G2 0 hit) + 로컬 pin 부재 (G4 0 file) + CI Node 24 (G3 `.github/workflows/ci.yml:21`) + 운영자 로컬 Node 22 (메이저 격차 1). FR-06 inspector 결정: 별도 spec 분리 (foundation/ci.md 흡수 대비 효능 — 게이트 단일성 + ci.md §3 보존 + 변경 영향 분리). consumed req: `specs/20.req/20260517-node-runtime-version-3axis-coherence.md` (REQ-079) → `60.done/2026/05/17/req/` mv. 선행 done req (메타 패턴): REQ-20260421-023 (ci.md 출처) + REQ-20260421-034 (재발행 — §3 조건부 보존) + REQ-20260517-061 (toolchain) + REQ-20260517-063 (runtime dep) + REQ-20260517-073 (node_modules). RULE-07 자기검증 — (I1)~(I8) 모두 평서형·반복 검증 가능 (`node -e` + `grep` + `ls` 단일 명령)·시점 비의존 (구체 Node 메이저 본문 박제 0 — G7 0 hit)·incident 귀속 부재·수단 중립 (격차 해소 수단 3 카테고리 라벨 0 — G8 0 hit). RULE-06 §스코프 규칙 8 gate (G1~G8) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/node-version-3axis-coherence.md` create). | all |
+| 2026-05-17 | inspector (Phase 1 reconcile, self-ack) / HEAD=`472611f` | (I2) marker 1건 `[ ]→[x]` 플립. self-ack 근거: §테스트 현황 본문 "HEAD=`79d28cc` 실측 PASS — 본 spec 박제 시점 PASS — 마커 즉시 `[x]`" 평서 + §스코프 규칙 (G3) "실측 PASS" + `foundation/ci.md` §2 정합 — 본 spec 발행 시점 PASS marker 회수 (직전 세션 누락분). HEAD=`472611f` 재실측 `grep -nE "node-version:" .github/workflows/ci.yml` → 1 hit @`:21` 무변동. 본 spec 본문 / 게이트 / baseline 수치 변경 0 — marker 정합 회수만 박제. 잔여 (I1)(I3)(I4)(I5) marker 는 TSK-20260517-14 (`node-version-3axis-coherence-recover`) 회수 대기 유지. | §테스트 현황 (I2) |
 
 ## 참고
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-node-runtime-version-3axis-coherence.md` (REQ-079 — 본 세션 mv).

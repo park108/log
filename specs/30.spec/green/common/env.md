@@ -2,7 +2,7 @@
 
 > **위치**: `src/common/env.ts` 의 `isDev` / `isProd` / `mode` 3 헬퍼.
 > **관련 요구사항**: REQ-20260418-002 FR-01, REQ-20260517-076 FR-01
-> **최종 업데이트**: 2026-05-17 (by inspector — REQ-076 흡수 최초 박제; Phase 1 reconcile I1 + FR-01-b marker 2건 hook-ack 플립 by TSK-20260517-11 / `79d28cc`)
+> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 reconcile I5 marker 1건 self-ack 플립 — 정의상 항상 참 marker §rationale 등가 정합)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`893cdea` 박제 시점).
 
@@ -39,7 +39,7 @@
 - [x] (I2) lazy 평가: `src/common/env.ts:5-7` 본문이 모두 화살표 함수 형태 (`(): boolean => import.meta.env.X`) — 모듈 최상단 캡처 0. HEAD=`893cdea` 실측 PASS.
 - [x] (I3) tree-shake 가능: 헬퍼 본문이 `import.meta.env.X` 단일 표현 (부수 계산 / branch 0). HEAD=`893cdea` 실측 PASS.
 - [x] (I4) API surface: `grep -nE "^export " src/common/env.ts` → 3 hits (isDev, isProd, mode). HEAD=`893cdea` 실측 PASS.
-- [ ] (I5) 범위 제한: 정의상 항상 참 — task 발행 시 게이트 baseline 재측정.
+- [x] (I5) 범위 제한: 정의상 항상 참 — task 발행 시 게이트 baseline 재측정. HEAD=`472611f` 박제 정합 — `vite.config.*` / `vitest.config.*` / 빌드 스크립트 / test 영역 (`*.test.{ts,tsx,js,jsx}` / `setupTests.*`) 의 `import.meta.env` 참조는 본 게이트 면제 (rationale 박제 + §수용 기준 Must 범위 제한 marker 와 등가).
 
 ## 수용 기준
 - [x] (Must, FR-01-a) `isDev()` / `isProd()` / `mode()` 3 헬퍼가 `src/common/env.ts` 에서 export 되며 lazy 평가. 본 spec §공개 인터페이스 + §동작 (I2) 박제. HEAD=`79d28cc` 실측 PASS (`grep -nE "isDev|isProd|^export.*mode" src/common/env.ts` → 3 hits @:5-7 — 함수형 export 박제).
@@ -64,6 +64,7 @@
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-076 흡수) / pending | 최초 박제 — `src/common/env.ts` 단일 헬퍼 경유 + lazy 평가 + tree-shake 가능 + API surface 고정 5 축 (I1~I5) 게이트. baseline: env.ts 3 헬퍼 export / non-test 영역 직접 참조 1 hit (`src/App.jsx:130`) / test 영역 6 hit (게이트 면제). 원전 REQ-20260418-002 FR-01 보존. | all |
 | 2026-05-17 | inspector (Phase 1 reconcile) / TSK-20260517-11 `79d28cc` | (I1) + FR-01-a + FR-01-b marker 3건 `[ ]→[x]` 플립. ack: `60.done/2026/05/17/task/env-helper-app-jsx-converge/result.md` DoD 점검 (lint exit 0 / test 48 files 439 PASS / build PASS) + grep 게이트 `src/App.jsx:130` `import.meta.env.DEV` → `isDev()` 호출 회수로 baseline 1 → 0 hit 수렴. src 변경: `src/App.jsx` import 1줄 + 표현식 1건 치환. | §테스트 현황 (I1) + §수용 기준 FR-01-a/FR-01-b |
+| 2026-05-17 | inspector (Phase 1 reconcile, self-ack) / HEAD=`472611f` | (I5) marker 1건 `[ ]→[x]` 플립. self-ack 근거: §스코프 규칙 rationale "(I5) 범위 제한은 정의상 항상 참" + §수용 기준 Must 범위 제한 marker (이미 `[x]`) 와 등가 — task 회수 불요한 self-evident 박제. 본 spec 본문 / 게이트 변경 0 — marker 정합 회수만 박제. | §테스트 현황 (I5) |
 
 ## 참고
 - **REQ 원문**: `specs/60.done/2026/04/18/req/` (REQ-20260418-002 — 단일 진입점 정책), `specs/60.done/2026/05/17/req/20260517-deleted-spec-restore-batch-2-7.md` (REQ-076, 본 세션 mv 후).
