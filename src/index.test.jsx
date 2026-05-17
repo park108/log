@@ -1,5 +1,5 @@
 // TSK-20260517-28 / REQ-20260517-094 — 루트 엔트리 부트 비콘 4 불변식 fixture.
-// spec: specs/30.spec/green/components/app.md §동작 8 (B1~B4) + §수용 기준 (FR-01~FR-04).
+// spec: specs/30.spec/blue/components/app.md §동작 8 (B1~B4) + §수용 기준 (FR-01~FR-04).
 //
 // 본 fixture 는 `src/index.jsx` 부트 시점 2종 비콘 (sendToAnalytics reportWebVitals 콜백,
 // sendCounter 모듈 즉시 호출) 의 4 불변식을 단일 fixture 로 박제한다:
