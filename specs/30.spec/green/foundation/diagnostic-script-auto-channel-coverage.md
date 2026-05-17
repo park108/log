@@ -1,0 +1,115 @@
+# 진단 script ↔ 자동 채널 부착 정합 — `scripts/check-*.sh` 박제 시 자동 채널 1+ 부착 메타 효능 불변식
+
+> **위치**: `scripts/check-*.sh` (또는 동등 효능 진단 script — `scripts/<name>-coherence.sh` / `scripts/check-<name>.sh` 패턴), `.github/workflows/*.yml` (CI step), `.husky/*` (git hook), `package.json` (`scripts.check:*` / `scripts.lint:*` 진입점).
+> **관련 요구사항**: REQ-20260517-081
+> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제, REQ-081 흡수)
+
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`4b5cc1d` 박제 시점).
+
+## 역할
+repo 의 진단 script (`scripts/check-*.sh` 또는 동등 효능 패턴 — `scripts/<name>-coherence.sh` 명명 + `package.json scripts.check:<name>` 또는 `scripts.lint:<name>` 진입점 노출) 가 1+ 박제될 때, 그 효능 (rc ≠ 0 검출) 이 자동 채널 (`.github/workflows/*.yml` step / `.husky/*` git hook / `npm run <script>` 의 wrapper 채널) 중 **최소 1+** 에서 회귀 시점 차단되어야 한다는 시스템 메타 효능 불변식. `foundation/src-spec-reference-coherence.md` (G3) / `foundation/node-modules-extraneous-coherence.md` (G4) / `foundation/vite-env-boundary-typing.md` (G4) / `foundation/node-version-3axis-coherence.md` (I5) 의 **단일 게이트 부착 박제** 와 보완 관계 — 각 spec 은 1 게이트 단위, 본 spec 은 N 진단 script ↔ 자동 채널 매트릭스 정합 메타. 의도적으로 하지 않는 것: 게이트 부착 수단 (CI step 추가 vs pre-push hook vs pre-commit unconditional vs aggregator `npm run check:all` vs staged 매칭 조건부 vs unconditional) 선정 (수단 중립 — task 위임), 각 진단 script 자체의 진단 로직 (각 단일 게이트 spec 영역), 진단 script 신규 추가 (예: `check-husky-version-coherence.sh` 등 — 별 req 후보), 진단 script rollback / 격리 운영 (RULE-05 영역), ESLint / `tsc` / Vitest / `vite build` 등 도구 직접 호출의 자동 채널 부착 (별 영역 — `tooling.md` / `regression-gate.md` / `lint-warning-zero-gate.md` 각 spec 관할), 본 spec 본문에 구체 진단 script 파일명 / hit count 박제 (시점 비의존성 — §변경 이력 / §스코프 규칙 baseline / §참고 한정), 진단 script 의 stdout 라벨 grep-ability (각 spec 영역 — `node-version-3axis-coherence.md` §동작 5 등).
+
+## 공개 인터페이스
+- 측정 대상:
+  - `scripts/check-*.sh` 패턴 (또는 동등 효능 — `scripts/<name>-coherence.sh` 명명 + `package.json scripts.check:<name>` 또는 `scripts.lint:<name>` 진입점).
+  - `.github/workflows/*.yml` step (CI 자동 채널).
+  - `.husky/pre-commit` / `.husky/pre-push` (git hook 자동 채널).
+- 측정 명령:
+  - (A) 진단 script 카탈로그: `ls scripts/check-*.sh` 또는 `find scripts -name "check-*.sh"` → N script.
+  - (B) 자동 채널 매트릭스: 각 `scripts/check-<name>.sh` 에 대해 `grep -rnE "check-<name>|check:<short>|lint:<short>" .github/workflows/ .husky/` → hit count.
+  - (C) 메타 효능 PASS 조건: 각 진단 script 별 (B) 결과 ≥ 1 hit (자동 채널 1+ 부착).
+
+## 동작
+1. **(I1) 진단 script 박제 시 자동 채널 1+ 부착 메타 효능**: repo 에 `scripts/check-*.sh` (또는 동등 효능 진단 script) 가 1+ 박제될 때, 각 script 별로 자동 채널 (`.github/workflows/*.yml` step / `.husky/pre-commit` / `.husky/pre-push` / 동등 효능 채널) 중 **최소 1+** 가 그 진단 script (직접 `bash scripts/<name>.sh` 또는 간접 `npm run <short>`) 를 호출하며, 진단 script rc ≠ 0 시 자동 채널이 fail-fast (CI job fail / git operation 차단) 한다. 본 효능은 진단 script 박제 자체의 명목적 효능 (격차 검출 가능성) 과 실제 효능 (격차 발생 시 자동 차단) 의 격차 0 보장.
+2. **(I2) 측정 매트릭스 단일성**: 본 메타 효능은 단일 절차 — (a) `ls scripts/check-*.sh` 로 진단 script 카탈로그 N 박제, (b) 각 script 별 `grep -rnE "check-<name>|check:<short>|lint:<short>" .github/workflows/ .husky/` → hit count, (c) 모든 script 의 hit count ≥ 1 → 메타 효능 PASS. 어느 진단 script 라도 hit count = 0 시 메타 효능 FAIL.
+3. **(I3) 자동 채널 종류 중립성**: 자동 채널은 (a) CI workflow step 단독 / (b) pre-commit 단독 / (c) pre-push 단독 / (d) 다중 채널 동시 — 어느 조합이든 채널 1+ 가 효능 활성 시 본 메타 불변식 충족. 다중 채널 동시 충족은 보호 표면 누적이며 필수 조건 아님. 단 staged 매칭 조건부 호출 (예: `.husky/pre-commit` 의 `git diff --cached --name-only --diff-filter=ACM` 매칭) 은 staged 범위 매칭 시점에만 활성 — 매칭 범위 박제 시 인정.
+4. **(I4) baseline 매트릭스 박제**: 본 spec 박제 시점 (또는 task 회수 시점) 의 진단 script ↔ 자동 채널 매트릭스 (N × 3 cell — CI / pre-commit / pre-push) 를 §스코프 규칙 grep-baseline 한정 박제. 본 baseline 은 회귀 detection 의 zero-point — 회귀 발생 시 baseline 위반 즉시 surface. 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 은 매트릭스 수치 / 진단 script 파일명 박제 0.
+5. **(I5) 회귀 fixture 재현성**: 임시 fixture (예: `scripts/check-probe.sh` 신규 추가 + `npm run check:probe` 진입점 추가 + 자동 채널 부착 잊음) 도입 시 자동 매트릭스 검증 (별 측정 script 또는 CI step) 이 rc ≠ 0 으로 fail. fixture 제거 시 rc=0 회복. 본 fixture 는 PR diff 에 남기지 않는다 (`tooling.md` §동작 7.3 패턴 정합 + REQ-078 FR-04 fixture 경로 sanity 게이트 정합).
+6. **(I6) 시점 비의존성 (RULE-07)**: 본 spec 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 어디서도 구체 진단 script 파일명 또는 매트릭스 cell 분포 (script 개수 / 채널 개수 / 부착 cell 수치) 박제 0. 파일명 / 수치 / 매트릭스 분포는 §변경 이력 메타 1회 부속 + §스코프 규칙 baseline + §참고 감사성 메타 한정 (자매 spec `lint-warning-zero-gate` / `node-version-3axis-coherence` 동일 패턴).
+7. **(I7) 수단 중립**: 효능 충족 수단 — (a) CI workflow step 추가 (`run: npm run check:<name>` 또는 `run: bash scripts/check-<name>.sh`), (b) pre-push hook 부착 (`npm run check:<name> || exit 1`), (c) pre-commit unconditional 호출 (staged 매칭 무관), (d) pre-commit staged 조건부 호출 (staged 범위 박제 시), (e) 통합 aggregator (`npm run check:all`) 단일 진입점 — 어느 쪽이든 본 효능 충족. 본 spec 은 수단 후보 라벨 부여 0 (§스코프 규칙 (G7) 게이트 박제 — `awk` + `grep` 0 hit 자기 검증).
+8. **(I8) 직교 정합**: 본 메타 효능 게이트는 (a) `foundation/src-spec-reference-coherence.md` G3 (단일 진단 script 부착) + `foundation/node-modules-extraneous-coherence.md` G4 + `foundation/vite-env-boundary-typing.md` G4 + `foundation/node-version-3axis-coherence.md` I5 와 **보완** 관계 (각 spec 은 1 단위 게이트 부착, 본 spec 은 N 진단 script 매트릭스 메타), (b) `regression-gate.md` FR-01 CI typecheck step 박제와 **직교** (typecheck step 1축 vs 진단 script N축), (c) `lint-warning-zero-gate.md` FR-01 ESLint warning 게이트와 **영역 직교** (ESLint rule level vs `scripts/check-*.sh` 패턴) — 패턴 동질 (효능 게이트의 자동 채널 1+ 부착) + 영역 직교 (ESLint warning 1축 vs 진단 script N축), (d) `tooling.md` §동작 6 ESLint flat-config last-write-wins 와 직교 (rule 정의 의미론 vs 자동 채널 부착), (e) `tooling.md` gate (j) `npm run lint` warning 0 측정 시점과 직교 (도구 측정 vs 진단 script 채널). 어느 한 축 위반이 다른 축의 게이트를 자동 충족시키지 않는다.
+9. **(I9) 스코프 경계 명시**: 본 메타 효능은 `scripts/check-*.sh` 또는 동등 효능 진단 script 패턴 한정. `eslint` / `tsc` / `vitest` / `vite build` 같은 도구 직접 호출은 본 메타 효능 영역 아님 — 각 영역 spec (`tooling.md` / `regression-gate.md` / `lint-warning-zero-gate.md` / `typecheck-island-extension.md`) 관할. 본 (I9) 는 메타 효능의 적용 표면을 명시 — 도구 호출은 별 영역.
+
+### 회귀 중점
+- repo 에 `scripts/check-*.sh` 가 1+ 박제되나 자동 채널 (`.github/workflows/*.yml` step / `.husky/pre-commit` / `.husky/pre-push`) 중 어느 것도 그 진단 script 를 호출하지 않으면 (I1)(I2) 위반 — 진단 script 박제의 명목 효능 (격차 검출 가능성) 만 존재하고 실제 효능 (회귀 시점 자동 차단) 0.
+- `scripts/check-<new>.sh` 신규 추가 PR 시 자동 채널 부착 잊음 — (I1) 위반. 본 메타 효능 게이트가 활성된 상태라면 매트릭스 검증 (별 측정 또는 inspector audit) 이 즉시 surface.
+- 기존 자동 채널 호출 라인이 제거 / 주석 처리되며 다른 채널이 보전되지 않으면 (I3) 채널 1+ 조건 약화 — 다른 채널 부재 시 (I1) 위반.
+- staged 매칭 조건부 호출의 매칭 범위 (예: `.husky/pre-commit` 의 `^(src/|specs/30\.spec/)` 패턴) 가 좁아지며 진단 script 의 적용 표면을 벗어나면 사실상 호출 0 — 매칭 범위 박제 의무 (I3 후단).
+- 본 spec 본문에 구체 진단 script 파일명 박제 시 (I6) 위반 — 시점 비의존성 무력화 (진단 script 추가 / 제거 / rename 이벤트 시 spec 본문 갱신 의무 발생).
+- 본 spec 본문에 수단 후보 라벨 박제 시 (I7) 위반 — RULE-07 정합 무력화.
+- `eslint` / `tsc` / `vitest` / `vite build` 등 도구 직접 호출의 자동 채널 부착 / 누락이 본 spec 위반으로 카운트되면 (I9) 위반 — 본 메타 효능의 적용 표면을 벗어남 (별 영역 spec).
+
+## 의존성
+- 외부: GitHub Actions (`jobs.<job_id>.steps[].run` exit code ≠ 0 시 job fail), husky (`.husky/<hook>` script exit ≠ 0 시 git operation 차단), npm (`npm run <script>` child process exit code 전파).
+- 내부: `scripts/check-*.sh` (또는 동등 패턴), `.github/workflows/*.yml`, `.husky/pre-commit`, `.husky/pre-push`, `package.json` (`scripts.check:*` / `scripts.lint:*` 진입점).
+- 역의존 (보완 / 직교): `foundation/src-spec-reference-coherence.md` (G3 단일 게이트 부착 사례), `foundation/node-modules-extraneous-coherence.md` (G4 단일 게이트 부착 사례), `foundation/vite-env-boundary-typing.md` (G4 단일 게이트 부착 사례), `foundation/node-version-3axis-coherence.md` (I5 npm script 노출 사례), `foundation/lint-warning-zero-gate.md` (패턴 동질 메타, 영역 직교 — ESLint rule level), `foundation/regression-gate.md` (FR-01 typecheck step 1축, 직교), `foundation/tooling.md` (도구 측정 시점, 직교).
+
+## 테스트 현황
+- [x] (I1) 진단 script ↔ 자동 채널 1+ 부착 메타 효능 박제. baseline 매트릭스 (HEAD=`4b5cc1d` 실측): 진단 script N=4 중 자동 채널 1+ 부착 3 script (`check-deps-coherence` CI+pre-push 2 채널 / `check-vite-env-coherence` CI+pre-commit 2 채널 / `check-spec-coherence` pre-commit 1 채널 staged 조건부) + 자동 채널 0 부착 1 script (`check-node-version-coherence` — npm script 노출만, 자동 호출 0). 본 spec 박제 자체로 메타 효능 박제 — 회귀 시점 차단 가능성은 baseline 매트릭스의 zero-point cell 의 채움 이벤트 후 marker 누적 (자동 채널 부착 0 → 1+ 전환).
+- [x] (I2) 측정 매트릭스 단일성. §공개 인터페이스 (A)(B)(C) 절차 박제 — 본 spec 박제 자체로 정합 박제 (`ls` + `grep` + 카운트 단일 절차).
+- [x] (I3) 자동 채널 종류 중립성. §동작 3 평서 박제 — 본 spec 박제 자체로 정합 박제 (단일 채널 / 다중 채널 / 조건부 매칭 어느 조합도 수용).
+- [x] (I4) baseline 매트릭스 박제. §스코프 규칙 (G1)(G2)(G3) 4×3 매트릭스 실측 박제 (HEAD=`4b5cc1d`).
+- [ ] (I5) 회귀 fixture 재현성. 임시 fixture 도입 시 자동 매트릭스 검증 rc ≠ 0 + 제거 시 rc=0 회복. 별 task (자동 매트릭스 검증 script 또는 CI step) 회수 후 fixture 사이클 실증 시 marker 플립.
+- [x] (I6) 시점 비의존성. §스코프 규칙 (G4) `awk` + `grep` 0 hit 자기 검증 박제. 본 spec 박제 시점 PASS.
+- [x] (I7) 수단 중립. §스코프 규칙 (G5) `awk` + `grep` 0 hit 자기 검증 박제. 본 spec 박제 시점 PASS.
+- [x] (I8) 직교 정합. §역할 + §동작 8 에 7개 관련 spec 과의 보완/직교 평서 박제. 본 spec 박제 자체로 정합 박제.
+- [x] (I9) 스코프 경계 명시. §역할 + §동작 9 + §회귀 중점 마지막 1줄 박제. 본 spec 박제 자체로 정합 박제.
+
+## 수용 기준
+- [ ] (Must, FR-01) repo 의 `scripts/check-*.sh` (또는 동등 효능 진단 script) 가 1+ 박제될 때 자동 채널 (`.github/workflows/*.yml` step / `.husky/*` hook / `npm run` wrapper) 중 **최소 1+** 가 해당 진단 script (직접 또는 간접) 를 호출 + rc ≠ 0 시 자동 채널 fail-fast. baseline 매트릭스 (HEAD=`4b5cc1d` 실측) 4 script 중 1 script 자동 채널 0 부착 — zero-point cell 채움 task 회수 후 marker 플립.
+- [ ] (Must, FR-02) 진단 script 1+ 박제 시 자동 채널 부착 0 인 경우 spec 위반. 검증 명령 — 각 `scripts/check-<name>.sh` 에 대해 `grep -rnE "check-<name>|check:<short>|lint:<short>" .github/workflows/ .husky/` → 1+ hit. baseline 매트릭스 zero-point cell 채움 + 회귀 fixture 사이클 실증 후 marker 플립.
+- [x] (Must, FR-03) baseline 매트릭스 박제. §스코프 규칙 (G1)(G2)(G3) 4×3 매트릭스 실측 박제 (HEAD=`4b5cc1d`).
+- [x] (Must, FR-04) 시점 비의존성 자기 검증. `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md | grep -cE "check-deps-coherence\.sh|check-spec-coherence\.sh|check-vite-env-coherence\.sh|check-node-version-coherence\.sh"` → 0 hit (본문 §역할 + §동작 + §회귀 중점 + §의존성 어디서도 구체 진단 script 파일명 박제 0). §스코프 규칙 (G4) 박제.
+- [ ] (Should, FR-05) 직교 정합 — 본 메타 효능 게이트는 7개 관련 spec 과 보완/직교 관계 (§동작 8 평서). 본 spec 박제 자체로 정합 박제 가능하나, task 회수 후 자동 채널이 다른 게이트 (typecheck / spec coherence / deps / env / Node 메이저 / ESLint warning) 와 동시 활성 시 cross-gate 정합 hook-ack — 차기 이벤트 발생 후 marker 플립.
+- [ ] (Could, FR-06) 신규 진단 script 추가 PR 시 본 메타 효능 게이트 자동 활성 — `scripts/check-<new>.sh` 추가 + 자동 채널 부착 잊음 → 매트릭스 검증 rc ≠ 0 차단. 미래 변경 시점의 자동 보호 표면 박제 — 차기 신규 진단 script 추가 이벤트 발생 후 marker 플립.
+- [x] (Must, FR-07) 수단 라벨 0. `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit. §스코프 규칙 (G5) 박제.
+- [x] (Must, FR-08) 스코프 경계 명시. §역할 + §동작 9 + §회귀 중점 마지막 1줄 박제 — `eslint` / `tsc` / `vitest` / `vite build` 도구 직접 호출은 본 메타 효능 영역 아님 (별 영역 spec). 본 spec 박제 자체로 정합 박제.
+- [x] (NFR-01) 시점 비의존. FR-04 동치. 본문 박제 0 + 감사성 메타 1회 부속 (§변경 이력 / §스코프 규칙 / §참고) 정합.
+- [x] (NFR-02) 게이트 메타성. §공개 인터페이스 (A)(B)(C) 단일 절차 박제 — 복수 게이트 AND 필수 분기 명시 부재 (매트릭스 측정 단일 절차 충분).
+- [x] (NFR-03) RULE-07 정합. 결과 효능 (진단 script 박제 → 자동 채널 부착 1+) 만 박제. 1회성 진단 (예: "현재 `check-node-version-coherence.sh` 가 CI 미부착") 은 본 spec 의 1회성 진단·릴리스 귀속 patch 가 아니라 baseline 박제 — 시점 비의존 평서 (§역할 "진단 script 박제 시 자동 채널 부착 1+") 가 본문, baseline 매트릭스는 §스코프 규칙 / §변경 이력 / §참고 한정.
+- [x] (NFR-04) RULE-06 정합. §스코프 규칙 grep-baseline 6 gate (G1~G6) 실측 박제 (HEAD=`4b5cc1d`).
+- [ ] (NFR-05) RULE-02 정합. task 회수 시 변경 표면 = `.github/workflows/*.yml` 1+ step 추가 또는 `.husky/pre-{commit,push}` 1+ 호출 추가 또는 양쪽 (수단 중립). `scripts/check-*.sh` 자체 변경 0 (각 단일 게이트 spec 영역). `src/**` 변경 0. task 회수 후 marker 플립.
+- [x] (NFR-06) 도구 영역 제외. FR-08 동치. `eslint` / `tsc` / `vitest` / `vite build` 등 도구 직접 호출은 본 메타 효능 영역 아님.
+
+## 스코프 규칙
+- **expansion**: N/A (자동 채널 부착 박제 — task 발행 시점에 planner 가 scope 규칙 재계산).
+- **grep-baseline** (HEAD=`4b5cc1d`, 2026-05-17 — REQ-081 흡수 시점 실측):
+  - (G1) **[진단 script 카탈로그]** `ls scripts/check-*.sh` → **4 file**: `check-deps-coherence.sh`, `check-node-version-coherence.sh`, `check-spec-coherence.sh`, `check-vite-env-coherence.sh`.
+  - (G2) **[자동 채널 매트릭스 — 직접 측정]** 각 진단 script 별 `grep -rnE "<basename>|check:<short>|lint:<short>" .github/workflows/ .husky/` → matrix (4 script × 3 채널 = 12 cell):
+    - `check-deps-coherence`: CI=1 (`.github/workflows/ci.yml:28` `run: npm run check:deps`) / pre-commit=0 / pre-push=1 (`.husky/pre-push:1` `npm run check:deps || exit 1`) → 자동 채널 2 부착.
+    - `check-vite-env-coherence`: CI=1 (`.github/workflows/ci.yml:34` `run: npm run check:vite-env`) / pre-commit=1 (`.husky/pre-commit:12` `bash scripts/check-vite-env-coherence.sh || exit 1` staged 조건부 `:11`) / pre-push=0 → 자동 채널 2 부착.
+    - `check-spec-coherence`: CI=0 / pre-commit=1 (`.husky/pre-commit:6` `bash scripts/check-spec-coherence.sh || exit 1` staged 조건부 `:5`) / pre-push=0 → 자동 채널 1 부착 (조건부).
+    - `check-node-version-coherence`: CI=0 / pre-commit=0 / pre-push=0 → **자동 채널 0 부착** (FR-01 zero-point cell).
+  - (G3) **[매트릭스 합산]** 4 script × 3 채널 = 12 cell, 부착 cell 5/12 (CI 2 + pre-commit 2 + pre-push 1), 미부착 cell 7/12. 진단 script 별 자동 채널 부착 1+ 충족 3/4 (`check-node-version-coherence` 1건 zero-point).
+  - (G4) **[FR-04 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md | grep -cE "check-deps-coherence\.sh|check-spec-coherence\.sh|check-vite-env-coherence\.sh|check-node-version-coherence\.sh"` → **0 hit** (본문 §역할 + §동작 + §회귀 중점 + §의존성 어디서도 구체 진단 script 파일명 박제 0). HEAD=`4b5cc1d` 박제 시점 실측 PASS.
+  - (G5) **[FR-07 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본문 §역할 + §동작 + §회귀 중점 한정 — 수단 후보 라벨 부여 0). HEAD=`4b5cc1d` 박제 시점 실측 PASS.
+  - (G6) **[FR-08 스코프 경계 자기 검증]** §역할 + §동작 9 + §회귀 중점 마지막 1줄에 "`eslint` / `tsc` / `vitest` / `vite build`" 도구 호출 별 영역 명시 박제. `grep -cE "eslint.*tsc.*vitest.*vite build|도구 직접 호출은 본.*영역 아님" specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` → 1+ hit (스코프 경계 평서 박제).
+- **rationale**: (G1) 진단 script 카탈로그 baseline — task 회수 시점 재측정 (N 변동 가능 — 신규 추가 / 제거 / rename). (G2)(G3) 본 spec 핵심 메타 baseline — 4×3 매트릭스 5/12 부착 + 1 script zero-point (`check-node-version-coherence`). FR-01·FR-02 회복 대상은 zero-point cell 채움 (자동 채널 1+ 부착 → matrix coverage 4/4). (G4)(G5)(G6) RULE-07 정합 자기 검증.
+
+## 변경 이력
+| 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
+|------|-----------|------|----------|
+| 2026-05-17 | inspector (Phase 2, REQ-20260517-081 흡수) / pending (HEAD=`4b5cc1d`) | 최초 박제 — 진단 script ↔ 자동 채널 부착 9 축 (I1~I9) 메타 효능 불변식. baseline 매트릭스 (HEAD=`4b5cc1d` 실측): 진단 script N=4 (`check-deps-coherence` / `check-vite-env-coherence` / `check-spec-coherence` / `check-node-version-coherence`) × 3 채널 (CI / pre-commit / pre-push) = 12 cell, 부착 5 cell + 미부착 7 cell. 진단 script 별 자동 채널 1+ 충족 3/4 — `check-node-version-coherence` zero-point cell 1건 (자동 채널 0 부착, npm script 노출 `check:node-coherence` 만). 본 spec 분리 결정 근거: 기존 단일 게이트 spec (`src-spec-reference-coherence` G3 / `node-modules-extraneous-coherence` G4 / `vite-env-boundary-typing` G4 / `node-version-3axis-coherence` I5) 의 1 단위 부착 박제와 보완 관계 — N 진단 script 매트릭스 정합 메타는 별 축 (RULE-07 spec 단일성 + 변경 영향 분리). `lint-warning-zero-gate.md` 와 패턴 동질 (효능 게이트 자동 채널 1+ 부착) + 영역 직교 (ESLint warning rule level 1축 vs `scripts/check-*.sh` N축 메타). consumed req: `specs/20.req/20260517-diagnostic-script-auto-channel-coverage.md` (REQ-081) → `60.done/2026/05/17/req/` mv. 선행 자매 spec (단일 게이트 부착 사례): `foundation/src-spec-reference-coherence.md` G3 (REQ-071, TSK-06 / `1cfa78e`) / `foundation/node-modules-extraneous-coherence.md` G4 (REQ-073, TSK-09 / `7d085a3`) / `foundation/vite-env-boundary-typing.md` G4 (REQ-072, TSK-08 / `cb47bd2`) / `foundation/node-version-3axis-coherence.md` I5 (REQ-079, TSK-14 / `3910ba8` — npm script 노출만). 선행 자매 spec (패턴 동질 메타): `foundation/lint-warning-zero-gate.md` (REQ-080) — 본 세션 직전 박제. RULE-07 자기검증 — (I1)~(I9) 모두 평서형·반복 검증 가능 (`ls` + `grep` 단일 절차)·시점 비의존 (G4 0 hit — 구체 진단 script 파일명 본문 박제 0)·incident 귀속 부재 (REQ-081 §배경 의 회귀 가설은 시점 비의존 시나리오)·수단 중립 (G5 0 hit — 수단 후보 5 카테고리 라벨 0)·스코프 경계 명시 (G6 박제 — 도구 직접 호출 별 영역). RULE-06 §스코프 규칙 6 gate (G1~G6) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` create). | all |
+
+## 참고
+- **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-diagnostic-script-auto-channel-coverage.md` (REQ-081 — 본 세션 mv).
+- **선행 자매 spec (단일 게이트 부착 사례 — 본 spec 의 보완 관계)**:
+  - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071, TSK-06 / `1cfa78e`) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` staged 조건부 + `package.json scripts.lint:spec-coherence`. 본 spec 매트릭스의 1 cell (pre-commit staged 조건부 1).
+  - `specs/30.spec/green/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073, TSK-09 / `7d085a3`) G4 — `scripts/check-deps-coherence.sh` + CI step + pre-push. 본 spec 매트릭스의 2 cell.
+  - `specs/30.spec/green/foundation/vite-env-boundary-typing.md` (REQ-20260517-072, TSK-08 / `cb47bd2`) G4 — `scripts/check-vite-env-coherence.sh` + CI step + pre-commit staged 조건부. 본 spec 매트릭스의 2 cell.
+  - `specs/30.spec/blue/foundation/node-version-3axis-coherence.md` (REQ-20260517-079, TSK-14 / `3910ba8`, green→blue 승격 `4b5cc1d`) I5 — `scripts/check-node-version-coherence.sh` + `npm run check:node-coherence`. **본 spec 매트릭스의 zero-point cell** (자동 채널 0 부착 — npm script 노출만, CI / hook 어느 것도 호출 0). 본 spec 의 직접 motivating 사례.
+- **선행 자매 spec (패턴 동질 메타)**:
+  - `specs/30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-20260517-080) — ESLint warning → 자동 채널 rc ≠ 0 게이트. 본 spec 과 패턴 동질 (효능 게이트의 자동 채널 1+ 부착) + 영역 직교 (ESLint rule level vs `scripts/check-*.sh` 메타).
+- **관련 spec (보완 / 직교)**:
+  - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037) — CI typecheck step 1축 박제. 본 spec 과 직교 (typecheck step 1축 vs 진단 script N축).
+  - `specs/30.spec/green/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — §동작 6 ESLint flat-config last-write-wins / gate (j) `npm run lint` warning 0. 본 spec 과 직교 (rule 정의 의미론 / 도구 측정 vs 진단 script 채널).
+  - `specs/30.spec/green/foundation/typecheck-island-extension.md` (REQ-077) — `tsc` error TS 0 island 게이트. 본 spec 과 직교 (`tsc` 직접 호출 vs `scripts/check-*.sh` 패턴).
+- **외부 레퍼런스**:
+  - GitHub Actions 공식 — `jobs.<job_id>.steps[].run` exit code ≠ 0 시 job fail (`https://docs.github.com/en/actions/using-jobs/setting-a-default-shell-and-working-directory`). CI step 부착 ⇒ rc ≠ 0 fail-fast.
+  - husky 공식 — `.husky/<hook>` script exit ≠ 0 시 hook fail → git operation 차단 (`https://typicode.github.io/husky/getting-started.html`). pre-commit fail ⇒ commit 차단, pre-push fail ⇒ push 차단.
+  - npm 공식 — `npm run <script>` child process exit code 전파 (`https://docs.npmjs.com/cli/v10/commands/npm-run-script`) — CI step / hook 의 wrapper 로 안전.
+- **감사성 메타 (1회 부속, NFR-01 정합)**: HEAD=`4b5cc1d` 실측 시점 진단 script 카탈로그 4 file (`check-deps-coherence.sh` / `check-node-version-coherence.sh` / `check-spec-coherence.sh` / `check-vite-env-coherence.sh`) × 3 채널 매트릭스 — 본문 박제 0 (본 §참고 한정 + §스코프 규칙 (G2) 한정).
+- **RULE 준수**:
+  - RULE-07: 9 불변식 (I1~I9) 모두 시점 비의존 (G4 0 hit 자기 검증) · 평서형 · 반복 검증 가능 (`ls` + `grep` 단일 절차) · incident 귀속 부재 · 수단 박제 0 (G5 0 hit 자기 검증) · 스코프 경계 명시 (G6 박제).
+  - RULE-06: grep-baseline 6 gate (G1~G6) 실측 박제 (HEAD=`4b5cc1d`).
+  - RULE-01: inspector writer 영역만 (`30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` create).

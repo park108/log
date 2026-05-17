@@ -2,7 +2,7 @@
 
 > **위치**: `npm run typecheck` (tsc --noEmit) + `src/Toaster/**` + `src/common/**` 디렉터리 경계.
 > **관련 요구사항**: REQ-20260517-077
-> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 reconcile I6 marker 1건 self-ack 플립 — 측정 명령 박제 본 spec 발행 시점 PASS marker 회수)
+> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 reconcile I1·I2·I3 + FR-06 marker 4건 hook-ack 플립 — TSK-20260517-15·16 회수 / `964f294`+`689b87b` baseline 128 → 0)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (REQ-077 박제 시점 HEAD=`79d28cc`).
 
@@ -41,9 +41,9 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
 - 직교: `foundation/tooling.md` (ESLint / lint-staged / Vitest coverage 도구 축, typecheck 와 분리), `foundation/src-spec-reference-coherence.md` (src ↔ spec 참조 정합 축).
 
 ## 테스트 현황
-- [ ] (I1) `src/Toaster/` typecheck 0 hit — baseline 19 error (HEAD=`79d28cc` 실측, `TS2769` 19건 CSS Module 인덱스). task 수행 후 0 hit 수렴 시 marker 플립.
-- [ ] (I2) `src/common/` typecheck 0 hit — baseline 109 error (HEAD=`79d28cc` 실측, 10 file 분포: `common.test.ts` 62 + `common.ts` 11 + `ErrorBoundary.test.tsx` 9 + `Navigation.test.tsx` 8 + `UserLogin.test.tsx` 6 + `a11y.audit.test.ts` 6 + `UserLogin.tsx` 3 + `markdownParser.ts` 2 + `useHoverPopup.ts` 1 + `ErrorBoundary.tsx` 1). task 수행 후 0 hit 수렴 시 marker 플립.
-- [ ] (I3) 전반 typecheck `error TS` 0 hit + exit=0 — baseline 128 error 11 file (HEAD=`79d28cc`). (I1) + (I2) 합산 PASS 시 marker 플립.
+- [x] (I1) `src/Toaster/` typecheck 0 hit — baseline 19 error (HEAD=`79d28cc` 실측, `TS2769` 19건 CSS Module 인덱스). hook-ack TSK-20260517-16 (`src-toaster-typecheck-island-recover`) `689b87b` (HEAD 조상) — `src/Toaster/Toaster.test.tsx` 19 line CSS Module 인덱스 수렴 (단일 파일 변경 19+/19-). HEAD=`4b5cc1d` 재실측 `npx tsc --noEmit 2>&1 | grep -E "^src/Toaster/" | grep -cE "error TS"` → 0 hit PASS.
+- [x] (I2) `src/common/` typecheck 0 hit — baseline 109 error (HEAD=`79d28cc` 실측, 10 file 분포: `common.test.ts` 62 + `common.ts` 11 + `ErrorBoundary.test.tsx` 9 + `Navigation.test.tsx` 8 + `UserLogin.test.tsx` 6 + `a11y.audit.test.ts` 6 + `UserLogin.tsx` 3 + `markdownParser.ts` 2 + `useHoverPopup.ts` 1 + `ErrorBoundary.tsx` 1). hook-ack TSK-20260517-15 (`src-common-typecheck-island-recover`) `964f294` (HEAD 조상) — URL/Location mock 헬퍼 3종 (setLocation/restoreLocation/mockUrlLocation) + implicit any 38건 명시 + possibly undefined 13건 narrow + arithmetic 8건 number 통일 + 기타. HEAD=`4b5cc1d` 재실측 `npx tsc --noEmit 2>&1 | grep -E "^src/common/" | grep -cE "error TS"` → 0 hit PASS.
+- [x] (I3) 전반 typecheck `error TS` 0 hit + exit=0 — baseline 128 error 11 file (HEAD=`79d28cc`). (I1) + (I2) 합산 PASS 시 marker 플립. hook-ack: HEAD=`4b5cc1d` 재실측 `npx tsc --noEmit` rc=0 + `grep -cE "error TS"` → 0 hit PASS (baseline 128 → 0 수렴, TSK-15·16 동반 머지로 도래).
 - [x] (I4) island 정의 후반부 위임 — REQ-059 FR-01 island 정의의 후반부 (typecheck 0 hit) 를 본 spec 이 두 디렉터리로 확장. 본 spec 박제 자체로 정합 박제.
 - [x] (I5) 수단 중립 — §동작 5 에 수단 후보 4 카테고리 박제, 라벨 0. RULE-07 정합.
 - [x] (I6) 회귀 baseline 측정 명령 박제 — §동작 6 3 명령 박제. 본 spec 박제 자체로 정합 박제 (RULE-07 양성 평서 + 반복 검증). self-ack — HEAD=`472611f` 재실측 baseline 무변동 (Toaster 19 / common 109 / total 128). task (TSK-15/16) 진행 시 baseline 재측정 박제 가능.
@@ -54,7 +54,7 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
 - [x] (Must, FR-03) 회복 효능 단일 명령 박제 — §동작 3 + §스코프 규칙 gate (G3) `npm run typecheck` exit=0 + `npm run typecheck 2>&1 | grep -cE "error TS"` → 0 hit.
 - [x] (Must, FR-04) 수단 라벨 금지 — §역할 + §동작 5 + §회귀 중점 어디서도 "기본값" / "권장" / "우선" / "default" / "best practice" 부여 0. `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/green/foundation/typecheck-island-extension.md` → 0 hit (§스코프 규칙 baseline gate 박제).
 - [x] (Should, FR-05) §동작 6 회귀 baseline 측정 명령 3건 박제 (파일별 / error code 분포 / 디렉터리별 0 hit 확인).
-- [ ] (Should, FR-06) island 자격 재취득 시점의 audit 신호 박제 — `Toaster` + `common` 0 hit 달성 후 본 req 가 `60.done/req/` 이동 시점이 island 확정 시계열의 신규 entry. 본 spec 의 §변경 이력에 신규 row 박제 시점에 marker 플립.
+- [x] (Should, FR-06) island 자격 재취득 시점의 audit 신호 박제 — `Toaster` + `common` 0 hit 달성 후 본 req 가 `60.done/req/` 이동 시점이 island 확정 시계열의 신규 entry. 본 spec 의 §변경 이력에 신규 row 박제 시점에 marker 플립. hook-ack: 본 세션 §변경 이력 신규 row (HEAD=`4b5cc1d`) 박제 — Toaster + common 두 디렉터리 island 자격 재취득 audit 신호 확정.
 - [x] (Must, FR-07) task 단 위임 명시 — §역할 "회복 수단 선정" out-of-scope + §동작 5 수단 자유 평서 + §회귀 중점 정책/우회 박제.
 - [x] (NFR-01) 시점 비의존성 — 본문 (§동작 1~6) 에 128 error / 11 file 절대 수치 박제 0. 수치는 §테스트 현황 baseline + §스코프 규칙 baseline 한정. 본문은 "Toaster + common island 자격 유지" 평서형.
 - [x] (NFR-02) 회귀 게이트 정합 — 본 spec 회복 후 `foundation/regression-gate.md` FR-01 + REQ-060 게이트가 자동 작동, 별도 게이트 신설 0.
@@ -89,6 +89,7 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-077 흡수) / pending | 최초 박제 — `src/Toaster/` + `src/common/` 디렉터리의 typecheck island 자격 (REQ-059 island 정의 후반부) 효능 6 축 (I1~I6) 게이트 + 회복 baseline (128 error / 11 file / 17 unique TS code). consumed req: `specs/20.req/20260517-type-safe-island-typecheck-regression-recovery.md` (REQ-077) → `60.done/2026/05/17/req/` mv. 선행 island 확정 (참조): `afaa219` (Image), `f23e664` (Search), `e1abf17` (File), `a1fedbc` (planner carve). 선행 followup (감사 pointer): `specs/10.followups/20260517-0354-toaster-test-typecheck-tsx-undefined.md` (TSK-20260517-09 회귀 0 검증 단계 진단, source_task: TSK-20260517-09). RULE-07 자기검증 — (I1)~(I6) 모두 평서형·반복 검증 가능 (`tsc` + `find` + `grep` 단일 명령)·시점 비의존 (island 정의 + 회복 효능은 보편 계약)·incident 귀속 부재 (TSK-20260517-09 좌표는 감사 pointer + §스코프 규칙 baseline 한정)·수단 중립 (회복 수단 4 카테고리 라벨 0)·우회 회피 (NFR-04 baseline 박제). RULE-06 §스코프 규칙 8 gate (G1~G8) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/typecheck-island-extension.md` create). | all |
 | 2026-05-17 | inspector (Phase 1 reconcile, self-ack) / HEAD=`472611f` | (I6) marker 1건 `[ ]→[x]` 플립. self-ack 근거: §테스트 현황 본문 "마커 즉시 `[x]` 가능 — 측정 명령은 RULE-07 양성 평서 + 반복 검증" 평서 — 본 spec 발행 시점 PASS marker 회수 (직전 세션 누락분). HEAD=`472611f` 재실측 baseline 무변동 — Toaster G3=19 / common G4=109 / total G5=128 / escape G8=0. TSK-20260517-15·16 (`src-common-typecheck-island-recover` + `src-toaster-typecheck-island-recover`) 카브 발행됨 (planner 32차 @`472611f`) — developer 미회수, (I1)(I2)(I3) marker hook-ack 대기 유지. | §테스트 현황 (I6) |
+| 2026-05-17 | inspector (Phase 1 reconcile, hook-ack) / HEAD=`4b5cc1d` | (I1)(I2)(I3) marker 3건 + (Should, FR-06) marker 1건 총 4건 `[ ]→[x]` 플립. hook-ack 근거: TSK-20260517-15 `964f294` (HEAD 조상 — src/common/ 109 → 0) + TSK-20260517-16 `689b87b` (HEAD 조상 — src/Toaster/ 19 → 0). HEAD=`4b5cc1d` 재실측: `npx tsc --noEmit` rc=0 + `grep -E "^src/(Toaster|common)/" | grep -cE "error TS"` → 0 hit + 전반 `grep -cE "error TS"` → 0 hit (baseline 128 → 0 수렴). TSK-15 회복 분포 (URL/Location mock 비호환 13+13+13 → 헬퍼 3종 흡수 / implicit any 38건 → 명시 / possibly undefined 13건 → narrow / arithmetic 8건 → number 통일 / 기타). TSK-16 회복 분포 (CSS Module 인덱스 `TS2769` 19건 → 19+/19- 단일 파일 변경). 본 row 박제 자체가 (FR-06) 의 island 자격 재취득 시점 audit 신호 (Toaster + common 두 디렉터리). G8 baseline (NFR-04 우회 주석) HEAD=`4b5cc1d` 재실측 `grep -rn "@ts-expect-error\|@ts-ignore" src/Toaster src/common` → 0 hit 유지 — 우회 정책 회피 준수. (I4)(I5)(I7) 직전 ack 유지. node-version-3axis-coherence 승격 (4b5cc1d planner 36차) 효능과 동일 시점 island 자격 재취득 — typecheck island 정의 확장 완수. | §테스트 현황 (I1)(I2)(I3), §수용 기준 (Should, FR-06), 본 이력 |
 
 ## 참고
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-type-safe-island-typecheck-regression-recovery.md` (REQ-077 — 본 세션 mv).

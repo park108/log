@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 시스템 불변식 — `src/types/env.d.ts` 의 `ImportMetaEnv` 확장과 `src/**` 전체의 `import.meta.env.VITE_*` 참조. 단일 식별자 없음 (게이트는 grep + tsc 측정).
 > **관련 요구사항**: REQ-20260517-072
-> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 ack — G1·G2·G4 marker flip @cb47bd2)
+> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 reconcile — G3 marker hook-ack @4b5cc1d 플립, 전반 tsc exit=0 도래 TSK-15·16 동반)
 
 > 본 spec 은 시스템 횡단 게이트. 라인 번호 박제 없음 — 16 hit / 8 cast / 10 key baseline 은 §스코프 규칙 grep-baseline 에 박제 (시점 비의존, RULE-07 §양성 기준 정합).
 
@@ -36,13 +36,13 @@
 ## 테스트 현황
 - [x] (G1) `grep -rnE 'import\.meta\.env\.VITE_[A-Z_]+\s+as\s+string' src` → 0 hit 게이트 — HEAD=`cb47bd2` 실측 0 hit (baseline 8 → 0 회수, TSK-07 수렴 ack).
 - [x] (G2) `S_src == S_type` 집합 동치 — HEAD=`cb47bd2` 실측 `S_src=10 / S_type=10 / diff=0` (baseline `S_src=10 / S_type=0 / diff=10` → 회수, TSK-07 수렴 ack).
-- [ ] (G3) `npm run typecheck` exit=0 + `VITE_*` 참조 지점 implicit `any` 0 — `VITE_*` 한정 implicit any 0 hit 확인 (`tsc --noEmit` 출력 grep 0 hit), 전반 `tsc` exit=2 (`src/**` 기존 40+ hit Toaster 등 영역 에러로 미수렴 — REQ-061 / src-typescript-migration 영역). marker 보류 — VITE_* 한정 PASS 이나 게이트 본문 "전반 exit=0" 조건 미달.
+- [x] (G3) `npm run typecheck` exit=0 + `VITE_*` 참조 지점 implicit `any` 0 — hook-ack: TSK-20260517-15 `964f294` (HEAD 조상 — src/common/ 109 → 0) + TSK-20260517-16 `689b87b` (HEAD 조상 — src/Toaster/ 19 → 0) 동반 머지로 전반 `tsc` exit=0 도래. HEAD=`4b5cc1d` 재실측: `npx tsc --noEmit` rc=0 + `npx tsc --noEmit 2>&1 | grep -E "VITE_" | wc -l` → 0 hit PASS (baseline 128 → 0 전반 수렴). `typecheck-island-extension.md` (I3) hook-ack 와 동시 도래 — 직교 축 정합 (VITE_* 타입 정합 + island 자격) 동시 충족.
 - [x] (G4) CI / pre-commit 훅 / `npm run lint` 부속 스텝 박제 — TSK-20260517-08 / `cb47bd2` 수렴 ack: `scripts/check-vite-env-coherence.sh` (α 수단) + `package.json scripts.check:vite-env` + `.husky/pre-commit` 조건부 호출 (src/** staged 시) + `.github/workflows/ci.yml` step 박제. 회귀 시뮬레이션 양방향 검증 (G1·G2 재삽입 → exit=1 → 원복 → exit=0).
 
 ## 수용 기준
 - [x] (Must) `grep -rnE 'import\.meta\.env\.VITE_[A-Z_]+\s+as\s+string' src` → 0 hit. baseline 8 hits in 8 files → HEAD=`cb47bd2` 실측 0 hit (TSK-07 수렴 ack).
 - [x] (Must) `S_src == S_type` 동치 — `grep -rohE "import\.meta\.env\.VITE_[A-Z_]+" src | sort -u` 와 `src/types/env.d.ts` 의 `readonly VITE_*` 선언 집합이 동일. baseline `S_src=10 / S_type=0` → HEAD=`cb47bd2` 실측 `S_src=10 / S_type=10 / diff=0` (TSK-07 수렴 ack).
-- [ ] (Must) `npm run typecheck` (REQ-061 수렴 후) exit=0 + `VITE_*` 참조 지점 implicit `any` 0. VITE_* 한정 PASS (HEAD=`9e5f00a` 후속 측정 — `tsc --noEmit` 출력 내 VITE_ 관련 에러 0 hit), 전반 `tsc` exit=2 (40+ hit 다른 영역 에러 — `src-typescript-migration` / Toaster 영역). marker 보류 — 게이트 본문 "전반 exit=0" 조건 미달.
+- [x] (Must) `npm run typecheck` (REQ-061 수렴 후) exit=0 + `VITE_*` 참조 지점 implicit `any` 0. hook-ack: HEAD=`4b5cc1d` 재실측 `npx tsc --noEmit` rc=0 + VITE_* 관련 에러 0 hit PASS — TSK-15·16 (`964f294`+`689b87b`) 회수로 전반 `tsc` exit=2 → exit=0 도래.
 - [x] (Must) 본 세 게이트는 신규 `VITE_*` 키 도입·제거·rename 등 이벤트 후 1 PR 안에 동시 충족 (시점 비의존) — TSK-07 + TSK-08 통합 단일 PR `cb47bd2` 가 `src/{File,Image,Comment,Search}/api{,.mock}.ts` 8 hit 회수 (G1) + `src/types/env.d.ts` `ImportMetaEnv` 확장 10 키 (G2) + CI/pre-commit 박제 (G4) 동시 충족 사례로 ack.
 - [x] (Should) 본 게이트는 CI lint step 또는 pre-commit 훅 또는 `npm run lint`/`npm run typecheck` 부속 스텝으로 자동 실행 — PR 단계 회귀 검출. 수단 (custom ESLint rule / npm script / husky hook) 선정은 task 위임 — TSK-08 / `cb47bd2` 수렴 ack (수단 α + γ 복합: `scripts/check-vite-env-coherence.sh` + `npm run check:vite-env` + `.husky/pre-commit` 조건부 호출 + `.github/workflows/ci.yml` step).
 - [x] (Should) FR-04 수단 택1 (α: 확장만 + 직접 참조 유지, β: helper 모듈 경유 단일화, γ: 혼합) — task 단계 planner / developer 가 본 spec §변경 이력에 박제. 어느 경로든 G1·G2·G3 동시 충족 — TSK-07 / `cb47bd2` 수단 α 채택 (확장만 + 직접 참조 유지, helper 모듈 도입 0 hit).
@@ -73,3 +73,4 @@
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-072 흡수) / pending | 최초 박제 — `VITE_*` 진입점 타입 박제 + `as string` 캐스팅 0 hit + 키 enumerate 동치 + tsc 정적 안전성 4 축 게이트. baseline 16 hit / 8 cast / 10 key / S_type=∅. | all |
 | 2026-05-17 | inspector (Phase 1 ack) / `cb47bd2` (TSK-07 + TSK-08 통합) | G1·G2·G4 marker 플립. G1: `grep -rnE 'import\.meta\.env\.VITE_[A-Z_]+\s+as\s+string' src` → 0 hit (baseline 8 → 0). G2: `S_src=10 / S_type=10 / diff=0` (baseline `S_type=∅ / diff=10` → 회수). G4: `scripts/check-vite-env-coherence.sh` (α) + `package.json scripts.check:vite-env` + `.husky/pre-commit` 조건부 호출 + `.github/workflows/ci.yml` step 4축 박제 (수단 α + γ 복합, β 미채택 — flat-config last-write-wins 회피). Must 시점비의존 (1 PR 동시 충족 단일 사례 ack) + Must 범위 제한 + Should 자동 게이트 + Should FR-04 수단 택1 (α) 동시 플립. G3 marker 보류 — VITE_* 한정 implicit any 0 hit PASS (`tsc --noEmit` 출력 grep) 이나 전반 `tsc` exit=2 (`src/**` 40+ hit 다른 영역 에러 — Toaster / common.ts 등, `src-typescript-migration` 영역). 회귀 시뮬레이션 양방향 검증 (G1 `src/File/api.ts:3` 재삽입 → exit=1 → 원복 → exit=0 / G2 env.d.ts 키 제거 → exit=1 → 원복 → exit=0). 회귀 0 hook-ack: `npm run lint` exit=0 / `npm test` 48 files / 439 tests / `npm run build` exit=0 (`cb47bd2` 시점 task result.md 박제). | 테스트 현황 G1·G2·G4, 수용 기준 Must G1·G2·시점비의존·범위제한 + Should 자동게이트·FR-04 수단 |
+| 2026-05-17 | inspector (Phase 1 reconcile, hook-ack) / HEAD=`4b5cc1d` | (G3) marker 1건 + (Must G3) marker 1건 총 2건 `[ ]→[x]` 플립. hook-ack 근거: TSK-20260517-15 `964f294` (HEAD 조상 — src/common/ 109 → 0) + TSK-20260517-16 `689b87b` (HEAD 조상 — src/Toaster/ 19 → 0) 동반 머지로 전반 `tsc` exit=2 → exit=0 도래. HEAD=`4b5cc1d` 재실측: `npx tsc --noEmit` rc=0 + `npx tsc --noEmit 2>&1 \| grep -E "VITE_" \| wc -l` → 0 hit PASS — G3 게이트 본문 "전반 exit=0" 조건 충족 (직전 보류 사유 해소). `typecheck-island-extension.md` (I3) 와 동시 도래 — 직교 축 정합 (VITE_* 타입 박제 + island 자격 회복) 동시 충족. 본 spec 전 marker `[x]` 수렴 (green→blue 승격 후보 — planner 영역). | 테스트 현황 G3, 수용 기준 Must G3, 본 이력 |
