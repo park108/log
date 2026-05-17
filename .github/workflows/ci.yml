@@ -27,6 +27,9 @@ jobs:
       - name: Check deps coherence
         run: npm run check:deps
 
+      - name: Check Node version coherence
+        run: npm run check:node-coherence
+
       - name: Lint
         run: npm run lint
 
