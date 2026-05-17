@@ -1,34 +1,37 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ 0e961fc → THIS — reconcile 0/3 ack (0 stale ≥3cycle).
+# 2026-05-17 @ 949c03c → THIS — reconcile 0/0 ack (분모 0 — 직전 추적 3 spec 모두 planner 20th tick 격리 mv 외부 이탈).
 #
-# 본 세션 디스크 실측: working tree 에 deletion (green) + 50.blocked 위치 untracked 패턴이 직전 세션에 이어 또 다시 등장.
-#  - `30.spec/green/foundation/test-discovery-population-coherence.md` (D) + `50.blocked/spec/foundation/test-discovery-population-coherence.md` (??) + 동일 위치 `_reason.md` (??)
-#  - `30.spec/green/foundation/eslint-linter-options-default-override.md` (D) + `50.blocked/spec/foundation/eslint-linter-options-default-override.md` (??) — _reason.md 미박제 (planner staging 중)
-# planner 19th tick 격리 WIP. 직전 16th(devbin/path-alias) → 17th 패턴, 18th(vite-jsx) → 19th 패턴과 동일. 본 inspector 세션은 RULE-02 writer 경계 (inspector ≠ 50.blocked/spec/) 정합으로 unstage / 복원 미수행 — 차기 planner tick 의 격리 commit 확정 책임 유지. 50.blocked/spec/foundation/test-discovery-population-coherence_reason.md 의 운영 메타 (3.해소 경로 + 4.메타) 는 RULE-05 /revisit 정식 경로 의존 — 본 inspector 가 재흡수 시도 금지.
+# 본 세션 디스크 실측:
+#  - specs/30.spec/green/foundation/ : 빈 디렉터리 (파일 0).
+#  - specs/30.spec/green/components/ : 디렉터리 부재.
+#  - specs/30.spec/green/ 직계: marker 파일 2개 (.planner-seen, .inspector-seen) 만 잔존.
+#  - working tree clean (`git status --short` 0 lines, HEAD = 949c03c).
+#  - specs/20.req/ : 0건.
+#  - specs/40.task/ : 0건.
+#  - specs/50.blocked/spec/foundation/ : 6 spec + 6 reason (vite-jsx + test-discovery + eslint-linter + log + monitor + root-entry — 직전 5 + planner 18th 흡수 1).
+#  - specs/50.blocked/req/ : 디렉터리 부재 (직전 누적 상태 노트의 "REQ-064/065/066 격리 잔존" 은 spec/foundation/ 격리 오기로 판정).
 #
 # Phase 1 추적 분모 재계산:
-#  - 직전 세션 박제 5 spec 중 2건 (test-discovery, eslint-linter) → planner WIP mv 로 본 tick 시작 시점 외부 이탈 → 분모 제거 (직전 박제와 동일 처리: 분모는 디스크 실측 기준).
-#  - 잔여 3 spec (log/monitor/root-entry) → 디스크 잔존 + hash 안정 (HEAD a952918 단일 commit) + WIP 불변 (각 20/20/24 unchecked) + task 미발행 (40.task/ 비어있음) → ack 0건. 직전 baseline `NEWLY-CREATED-64babbd-baseline` → 본 세션부터 실제 git hash 박제. ack 0 + WIP 불변 → stale_cycles 0 → 1.
+#  - 직전 세션 (61fbbed) 박제 3 spec (log/monitor/root-entry) 전건 → planner 20th tick (949c03c) R100 mv 격리 → 본 tick 시작 시점 외부 이탈 → 분모 제거 (직전 박제와 동일 처리: 분모는 디스크 실측 기준).
+#  - 잔여 0 spec → ack 시도 자체 불가 (분모 0).
 #
-# 분모 3 / ack 0. RULE-04 토큰: `reconcile: 0/3 ack (0 stale ≥3cycle — 1st)`.
+# 분모 0 / ack 0. RULE-04 토큰: `reconcile: 0/0 ack`.
 #
-# Phase 2: 입력 큐 비어있음 (specs/20.req/ 0건). no-op.
+# Phase 2: 입력 큐 specs/20.req/ 0건. no-op.
 #
-# 40.task/ 디스크 실측: 0건. 5 spec 모두 task 미발행 → ack 시도 불가 자체. log/monitor/root-entry 의 island 수렴 task 발행 precondition (REQ-064 devbin-install-integrity / REQ-065 path-alias / REQ-066 vite-jsx-transform 모두 50.blocked 격리 + 환경 회귀 미회복) 유지. test-discovery/eslint-linter 는 평서형 spec 으로 `[ ]` marker 자체 부재.
+# 40.task/ 디스크 실측: 0건. 격리된 6 spec 모두 task 발행 precondition (REQ-064 devbin-install-integrity / REQ-065 path-alias / REQ-066 vite-jsx-transform 환경 회귀 + island 수렴 3 spec 의 hash 안정 정체 ≥2회차) 미해소. RULE-05 /revisit 정식 경로 의존.
 #
-# ID 충돌 박제 (직전 세션 이월): REQ-20260517-068 ID 가 직전 세션에서 2 req (eslint-linter-options-default-override + log-island-convergence) 에 중복 발행. 차기 discovery 세션 책임 (ID 재배정 또는 메타 정정 followup). spec 정합 자체 영향 0.
+# ID 충돌 박제 (직전 세션 이월): REQ-20260517-068 ID 가 직전 직전 세션에서 2 req (eslint-linter-options-default-override + log-island-convergence) 에 중복 발행. 차기 discovery 세션 책임 (ID 재배정 또는 메타 정정 followup). spec 정합 자체 영향 0.
 #
-# 본 세션 commit diff = `specs/30.spec/green/.inspector-seen` 갱신 단일 (1 file change). 5 신규 spec 의 working tree deletion 2건은 inspector writer 영역 정합 후속 (planner WIP mv 추적 외부 이탈 = inspector touch 0). green 측 deletion 복원 미수행 (RULE-02 destructive 금지 정합).
+# 본 세션 commit diff = `specs/30.spec/green/.inspector-seen` 갱신 단일 (1 file change). green 측 spec touch 0 (분모 0 — touch 대상 없음). RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 복원 시도 0 — RULE-05 /revisit 경로 의존).
+#
+# GREEN_PENDING_MAX=20 — 본 tick 후 green spec disk 실측 0건 << 20 임계치 미달.
 #
 # 입력 큐 잔여: 0건. 차기 inspector tick 우선순위:
-#  (1) planner 19th tick 의 test-discovery / eslint-linter 격리 commit 확정 시점에 seen-state 분기 재정합 (영구 외부 이탈 또는 mv 원복 시 1st 로 재출발).
-#  (2) log/monitor/root-entry 3 spec 의 2nd cycle 추적 (현 stale_cycles=1, marker hash 박제 완료 — 차기 hash 변경 검출 시 cycle 카운트 리셋).
-#  (3) 3 spec 의 island 수렴 task 발행 precondition (REQ-064 + REQ-065 + REQ-066 격리 해소) 모니터링. RULE-05 /revisit 정식 경로 의존.
-#
-# GREEN_PENDING_MAX=20 — 본 tick 후 green spec disk 실측 3건 (5신규 - 2 planner WIP mv = 3) << 20 임계치 미달. 차기 planner 19th commit 확정 후 0~3 범위.
+#  (1) discovery 가 격리 6 spec 의 _reason.md 를 RULE-05 /revisit → followups 승격 시 신규 req 흡수.
+#  (2) Phase 1 추적 분모 0 유지 (디스크 실측 0 spec) — green 신규 spec 박제 시 1st cycle baseline hash 박제.
+#  (3) ID 충돌 REQ-068 dup 모니터링 (discovery 책임).
 #
 # == seen-state ==
-specs/30.spec/green/foundation/log-island-convergence.md	9d8e1b43373647dbdff5810893af964ee67af4b1	1
-specs/30.spec/green/foundation/monitor-island-convergence.md	01acbefd9ddfc60215d321823342f2bc2f636933	1
-specs/30.spec/green/foundation/root-entry-island-convergence.md	389ef8eea9d2fdeda164a96fa1a6a0e1b291a6e2	1
+# (분모 0 — 항목 없음)
