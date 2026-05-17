@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Toaster from "../Toaster/Toaster";
 import { log, hasValue } from '../common/common';
 import { reportError } from '../common/errorReporter';
@@ -32,7 +32,16 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 
 	const refreshFiles = props.callbackAfterUpload;
 
+	// REQ-093 (I2)(FR-02) — unmount-safety 채널 박제 (TSK-27).
+	// React 19 의 unmounted setState silent-ignore 와 REQ-091 console.error fail-fast 정합 위해
+	// pending `getPreSignedUrl` / `putFile` 가 unmount 후 응답을 받더라도 `setIsUploading`
+	// (UPLOADING / FAILED / COMPLETE) 발화를 0 hit 로 박제한다. 수단 = `cancelled` ref (수단 중립 (b) 채택).
+	const cancelledUploadRef = useRef<boolean>(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledUploadRef;
+		cancelled.current = false;
 
 		const uploadFile = async (item: File, isLast: boolean): Promise<void> => {
 
@@ -44,10 +53,12 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 			let preSignedUrlData: PreSignedUrlResponse | string = "";
 			let uploadUrl = "";
 			let isSuccess = false;
-	
+
 			try {
 				const res = await getPreSignedUrl(name, type);
 				preSignedUrlData = await res.json() as PreSignedUrlResponse;
+
+				if(cancelled.current) return;
 
 				if(!hasValue((preSignedUrlData as PreSignedUrlResponse).errorType)) {
 					log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
@@ -61,16 +72,19 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Presigned URL", "ERROR");
 				reportError(err);
 				if(isLast) setIsUploading("FAILED");
 			}
-	
+
 			if(isSuccess) {
-	
+
 				try {
 					const res = await putFile(uploadUrl, item.type, item);
-	
+
+					if(cancelled.current) return;
+
 					if(200 === res.status) {
 						log("[API PUT] OK - File: " + name, "SUCCESS");
 						if(isLast) setIsUploading("COMPLETE");
@@ -82,6 +96,7 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 					}
 				}
 				catch(err) {
+					if(cancelled.current) return;
 					log("[API PUT] FAILED - File: " + name, "ERROR");
 					reportError(err);
 					if(isLast) setIsUploading("FAILED");
@@ -92,6 +107,10 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 		for(let i = 0; i < files.length; i++) {
 			uploadFile(files[i] as File, i === files.length - 1);
 		}
+
+		return (): void => {
+			cancelled.current = true;
+		};
 
 	}, [files]);
 
