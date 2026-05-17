@@ -32,13 +32,13 @@
 ## 테스트 현황
 - [x] (G1) `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit 게이트 — TSK-20260517-05 회수 (11 hit → 0 hit, HEAD=`7154b8e` 실측 0 hit).
 - [x] (G2) src 추출 spec 참조 경로 전원 `test -e` 통과 — TSK-20260517-05 회수 (7 MISSING → 0, 참조 자체 삭제로 추출 paths 비어짐, HEAD=`7154b8e` 실측 0 path).
-- [ ] (G3) CI / pre-commit 훅 / `npm run lint` 부속 스텝 박제 — 회귀 방지 자동 게이트 (TSK-20260517-06 발행, 미시행 — 40.task 큐 잔존).
+- [x] (G3) CI / pre-commit 훅 / `npm run lint` 부속 스텝 박제 — 회귀 방지 자동 게이트 (TSK-20260517-06 회수, `scripts/check-spec-coherence.sh` + `.husky/pre-commit` conditional 호출 + `package.json scripts.lint:spec-coherence` 노출, HEAD=`1cfa78e` 실측).
 
 ## 수용 기준
 - [x] (Must) `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit. baseline 11 hit / 8 file → TSK-20260517-05 회수 후 0 hit (HEAD=`7154b8e` 실측, inspector Phase 1 ack).
 - [x] (Must) src 내 `specs/30\.spec/(blue|green)/.*\.md` 패턴 매칭 경로 N 개 추출 후 각 경로에 `test -e` → 전원 통과. baseline 7 경로 / 7 MISSING → TSK-20260517-05 회수 후 0 path / 0 MISSING (HEAD=`7154b8e` 실측, inspector Phase 1 ack).
 - [ ] (Must) 본 두 게이트는 spec 박제·삭제·이동·rename·green→blue promote 등 이벤트 후 1 PR 안에 0 hit / 0 MISSING 유지 — 단일 사례 (TSK-20260517-05) 박제, 차기 이벤트 후 재검증으로 marker 플립 누적.
-- [ ] (Should) 본 게이트는 CI lint step 또는 pre-commit 훅 또는 `npm run lint` 부속 스텝으로 자동 실행 — PR 단계 회귀 검출. 수단 (custom ESLint rule / npm script / husky hook) 선정은 task 위임 (TSK-20260517-06 발행, 미시행).
+- [x] (Should) 본 게이트는 CI lint step 또는 pre-commit 훅 또는 `npm run lint` 부속 스텝으로 자동 실행 — PR 단계 회귀 검출. 수단 (custom ESLint rule / npm script / husky hook) 선정은 task 위임 (TSK-20260517-06 회수 — `scripts/check-spec-coherence.sh` 단일 POSIX shell + `.husky/pre-commit` conditional 호출 + `package.json scripts.lint:spec-coherence` 노출, HEAD=`1cfa78e` 실측).
 - [x] (Must, 범위 제한) `docs/**`, `README.md`, `eslint.config.js`, `vite.config.ts`, `vitest.config.ts`, `package.json` 등 src 외부 spec 참조는 본 게이트 위반으로 카운트되지 않음 (필요 시 별도 spec) — 정의상 항상 참, marker 플립.
 
 ## 스코프 규칙
@@ -66,3 +66,4 @@
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-071 흡수) / `a4037ec` | 최초 박제 — `src/**` ↔ `specs/30.spec/**` 참조 경로 정합 두 축 게이트 (RULE-01 suffix 금지 + 디스크 실재). baseline 11 hit / 7 path / 7 MISSING. | all |
 | 2026-05-17 | inspector (Phase 1 ack, TSK-20260517-05 회수) / `7154b8e` | G1 11 hit → 0 hit / G2 7 MISSING → 0 MISSING 실측 PASS. 테스트현황 G1·G2 + 수용기준 Must G1·Must G2·Must 범위제한 marker 플립. Should CI 게이트 (G3) 는 TSK-20260517-06 미시행으로 `[ ]` 유지. | 테스트 현황, 수용 기준 |
+| 2026-05-17 | inspector (Phase 1 ack, TSK-20260517-06 회수) / `1cfa78e` | G3 CI/pre-commit 게이트 박제 — `scripts/check-spec-coherence.sh` POSIX shell + `.husky/pre-commit` conditional staged 매칭 호출 + `package.json scripts.lint:spec-coherence` 노출. 테스트현황 G3 + 수용기준 Should marker 플립. | 테스트 현황, 수용 기준 |
