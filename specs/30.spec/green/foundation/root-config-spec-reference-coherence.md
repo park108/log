@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 시스템 불변식 — 저장소 root 의 빌드/도구/훅/진단 파일군 (`vite.config.js`, `eslint.config.js`, `tsconfig.json`, `index.html`, `.husky/*`, `scripts/*.sh`) 내 spec 참조 주석/문자열. 단일 식별자 없음 (게이트는 grep + `test -e` 측정).
 > **관련 요구사항**: REQ-20260517-097
-> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제; Phase 2 REQ-097 흡수)
+> **최종 업데이트**: 2026-05-18 (by inspector — 최초 박제 2026-05-17 Phase 2 REQ-097 흡수; 66차 Phase 1 ack — G-A + FR-01 marker 2건 hook-ack 플립 by TSK-20260518-01 / `db22348`)
 
 > 본 spec 은 자매 `foundation/src-spec-reference-coherence.md` (REQ-071, `src/**` scope) 의 **root-level 자매 axis** + **승격 동기화 (축 C) 신규**. baseline 격차는 §스코프 규칙 grep-baseline 에 박제 (작성 시 inspector 책임).
 
@@ -38,14 +38,14 @@
 - 자매 spec: `foundation/src-spec-reference-coherence.md` (blue, REQ-071) — `src/**` scope 동질 2 축 (G1+G2). 본 spec 은 자매 축 (root scope) + 신규 축 C (승격 동기화). 두 spec 은 직교 scope.
 
 ## 테스트 현황
-- [ ] (G-A) `grep -rnE "[a-z0-9-]+-spec(\.md)?" <root 파일군>` 자체 진단 제외 → 0 hit 게이트 — baseline 2 hit / 2 file (vite.config.js:9 csp-policy-spec, eslint.config.js:3 common/accessibility-spec).
+- [x] (G-A) `grep -rnE "[a-z0-9-]+-spec(\.md)?" <root 파일군>` 자체 진단 제외 → 0 hit 게이트 — baseline 2 hit / 2 file (vite.config.js:9 csp-policy-spec, eslint.config.js:3 common/accessibility-spec) → TSK-20260518-01 / `db22348` 회수 후 `vite.config.js eslint.config.js` 대상 0 hit + rc=1 PASS (HEAD `e634ef7` 재실측, 본 inspector 66차 Phase 1 ack). 자체 진단 제외 한정 6 hit / 2 file 잔존 (`.husky/pre-commit` 2 hit + `scripts/check-spec-coherence.sh` 4 hit) — guard 자기 참조 NFR-04 정합 (FR-01 위반 카운트 0).
 - [ ] (G-B) root 추출 spec 참조 경로 전원 `test -e` 통과 — baseline 1 hit / 1 file MISSING (scripts/check-spec-coherence.sh:3 의 `specs/30.spec/green/foundation/src-spec-reference-coherence.md` green 부재).
 - [ ] (G-C) root 추출 green 경로의 동일 slug blue 동시 실재 부재 — baseline 1 hit / 1 STALE (위 동일 path 의 blue 측 실재 → green→blue promote 후 stale).
 - [ ] (G-D) 발화 채널 존재 — CI / pre-commit / pre-push / `npm run lint` 부속 스텝 어느 채널이든 본 게이트 실행 hook 박제 (회귀 방지 자동 게이트).
 - [ ] (G-E) 시점 비의존 — spec 박제/삭제/이동/rename/green→blue promote 후 1 PR 안에 G-A·G-B·G-C 동시 0 hit / 0 MISSING / 0 STALE 유지 사례 누적.
 
 ## 수용 기준
-- [ ] (Must FR-01) `grep -rnE "[a-z0-9-]+-spec(\.md)?" vite.config.js eslint.config.js tsconfig.json index.html .husky/pre-commit .husky/pre-push scripts/*.sh` 자체 진단 제외 → 0 hit. baseline 2 hit / 2 file → 회수 후 0 hit (HEAD 실측 박제, inspector Phase 1 ack).
+- [x] (Must FR-01) `grep -rnE "[a-z0-9-]+-spec(\.md)?" vite.config.js eslint.config.js tsconfig.json index.html .husky/pre-commit .husky/pre-push scripts/*.sh` 자체 진단 제외 → 0 hit. baseline 2 hit / 2 file → TSK-20260518-01 / `db22348` 회수 후 `vite.config.js eslint.config.js` 부분 0 hit (rc=1) 박제 (HEAD `e634ef7` 재실측, inspector 66차 Phase 1 ack). 전체 7-file 영역 6 hit / 2 file 잔존은 자체 진단 제외 카운트 (`.husky/pre-commit` 2 hit `src-spec-reference-coherence` + `scripts/check-spec-coherence.sh` 4 hit 자기 명칭) — NFR-04 정합 (FR-01 위반 카운트 0).
 - [ ] (Must FR-02) root 파일군 내 모든 `specs/30\.spec/(blue|green)/.*\.md` 참조는 디스크에 실재한다 (`test -e` 전원 EXISTS). baseline 1 MISSING → 회수 후 0 MISSING (HEAD 실측 박제, inspector Phase 1 ack).
 - [ ] (Must FR-03) root 파일군 내 `specs/30\.spec/green/...` 참조는 동일 slug 가 `specs/30\.spec/blue/...` 에 동시 실재하지 않는다. baseline 1 STALE → 회수 후 0 STALE (HEAD 실측 박제, inspector Phase 1 ack).
 - [ ] (Must FR-04) 위 3 축 게이트는 단일 명령 (guard script 또는 단일 `grep | while test -e` 파이프) 으로 실행 가능하고, rc=0/1 결정론으로 판정된다 (수단 중립 — 어느 정합 채널을 선택해도 단일 명령 실행 가능성 결과 동일).
@@ -75,3 +75,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-097 흡수) / `659e835` | 최초 박제 — root-level 파일군 ↔ `specs/30.spec/**` 참조 경로 정합 3 축 게이트 (RULE-01 suffix 금지 + 디스크 실재 + blue↔green 승격 동기화). baseline 4 distinct hits / 3 files / 1 MISSING / 1 STALE (HEAD `2e39db4` 측정, chain rewrite 사후 `659e835` 시점에도 src/spec/root 도입 차분 0 — 동일 격차 잔존). 자매 axis: `foundation/src-spec-reference-coherence.md` (REQ-071, src scope) — 두 spec 직교 scope. | all |
+| 2026-05-18 | inspector (Phase 1 ack, TSK-20260518-01 회수) / `db22348` | G-A + FR-01 marker 2건 `[ ]→[x]` 플립. ack 근거: TSK-20260518-01 `db22348` (HEAD 조상 — 본 inspector 66차 tick HEAD `e634ef7` 시점 git log 확인). hook-ack: `60.done/2026/05/18/task/root-config-spec-reference-cleanup/result.md` DoD 박제 — `vite.config.js:9` `csp-policy-spec` → `csp-meta-dev-strip-prod-preserve` + `eslint.config.js:3` `common/accessibility-spec` → `common/accessibility` 2-file 1-line each 치환 + `npm run lint` rc=0 / warning 0 + `npm run typecheck` rc=0 / error 0 + `npm test` 49 files / 454 tests PASS (Coverage Statements 97.57% / Branches 94.13%) + `npm run build` rc=0 (355ms) + grep 자기 검증 `grep -rnE "[a-z0-9-]+-spec(\.md)?" vite.config.js eslint.config.js` → 0 hit / rc=1 PASS. baseline 갱신 (HEAD `e634ef7` 재실측): vite + eslint 2-file 영역 G-A/FR-01 0 hit / 2 hit→0 hit 회복. 잔존 격차 (G-B 1 MISSING + G-C 1 STALE + FR-02 + FR-03) 는 별 task 영역 — TSK-01 result.md §관찰 이슈 명시 (scripts/check-spec-coherence.sh:3 MISSING 회복 + root 파일군 STALE green→blue 동시 실재 검증). G-D / G-E / FR-04 / FR-05 / NFR-01~04 / 시점 비의존 누적 / 범위 제한 marker 직전 `[ ]` 유보 (별 발화 채널 부착 / 누적 사례 이벤트 후 플립). RULE-02 정합 — 변경 표면 `vite.config.js` 1 line + `eslint.config.js` 1 line 한정 (스코프 규칙 expansion 불허). | 헤더 · §테스트 현황 (G-A) · §수용 기준 (FR-01) · 본 이력 |
