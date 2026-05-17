@@ -2864,3 +2864,103 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #       (11) 격리 분기 누적 박제 (16회차 + 17회차 진입 시): 본 57차 박제 정체 카운트 16회차 도달 10 spec → 외부 의존 면제 분기 유지. 58th tick 진입 시 17회차 도달 시 동일 면제 분기 적용 — 외부 이벤트 미발생 + RULE-07 §양성 평서 정합 + 자기 writer 영역 분리 + 자가 차단 신호 충족 위반 회피 시 격리 비대상 유지.
 #       (12) 본 tick promote/carve/격리 분기 명시화: 57차 = no-op (carve 0 + promote 0 + 격리 0). developer 57차 commit `0ff5280` (TSK-24 회수 — console-error-runtime-zero (I1)(I2)(I3)(I4) marker 플립) chain 진입 + spec 본문 marker 플립 박제 — 단 spec 본문 자체 hash 무변동 (marker 플립은 unchecked 변환을 통해 진행, 본문 텍스트 변경 없음 박제 모델) + inspector hook-ack tick 미진입 → console-error-runtime-zero unchecked 8 유지 → 승격 4조건 미충족. 차기 inspector tick chain (TSK-23 회수 commit `d12b6a0` hook-ack — package-manager-major-coherence (I1)(I4) marker 플립 / TSK-24 회수 commit `0ff5280` hook-ack — console-error-runtime-zero 4 marker 플립 / spec-carve-precondition marker 플립 / tooling+lint-warning-zero-gate marker 플립 / island-proptypes-zero I2 + I3 hook-ack) + 58th tick 분기.
 #       (13) no-op 연속 누적: 본 57차 carve+promote+격리 모두 0 → 누적 1회차 (56차 promote 1 발행 후 0 회귀 → 57차 +1 = 1회차). 58th tick 진입 시 hash 무변동 + chain 진입 0 commit no-op 시 +1 → 2회차.
+# 2026-05-17 planner session (58th tick @HEAD=cac6fa2) — promote 1 + carve 1 (TSK-25 FileUpload setTimeout cleanup).
+#     (i) 선결 점검 (RULE-03): pause lock 0 (`.claude/locks/` 부재) / 입력 큐 17 (working tree 신규 2 untracked + 2 marker flip 진행 + 13 hash 무변동) / 40.task/ 0건 < 10 → 통과.
+#     (ii) HEAD baseline: working tree `cac6fa2` (57차 박제 commit HEAD). 57차 → 58차 도입 차분 (inspector 영역, working tree 미커밋):
+#         - 2 spec marker flip 진행 (working tree 미커밋): foundation/package-manager-major-coherence.md (I1)(I5)(FR-01)(FR-04) 4 marker 플립 (529f4a4 → 53b0d39) + testing/console-error-runtime-zero.md (I1)(I2)(I3)(I4)(FR-01)(FR-02)(FR-03)(FR-04) 8 marker 플립 (b769663 → d5bdeb5).
+#         - 2 신규 spec 진입 (working tree untracked): components/file.md (REQ-092 흡수, blue→green 복사 + FileUpload setTimeout cleanup 불변식 박제) + testing/runtime-fetch-unmount-safety.md (REQ-093 흡수, 도메인 fetch 응답 적용 unmount-safety 일관성 박제).
+#     (iii) 환경 회복 신호 재검증 (58th tick): tsc rc=0 + lint rc=0 PASS (19세션 누적). working tree 변경 영향 0 (spec 본문 marker 플립 + 신규 spec 박제는 산출물 비포함).
+#     (iv) 입력 큐 `specs/30.spec/green/**` 전수 측정 (58th — 17 spec):
+#         - common/accessibility.md fa58c616 (57차 무변동)
+#         - common/markdownParser.md 80e20a34 (57차 무변동)
+#         - common/sanitizeHtml.md f33c38cc (57차 무변동)
+#         - common/test-helpers.md 20f79e22 (57차 무변동)
+#         - components/file.md (NEW — REQ-092 흡수, blue→green 복사 + timer cleanup 불변식 박제 — untracked)
+#         - foundation/diagnostic-script-auto-channel-coverage.md 566a71c5 (57차 무변동)
+#         - foundation/eslint-react-hooks-lint-gate.md ca40a43e (57차 무변동)
+#         - foundation/island-proptypes-zero.md e1502b5f (57차 무변동)
+#         - foundation/lint-warning-zero-gate.md 7c0db082 (57차 무변동)
+#         - foundation/node-modules-extraneous-coherence.md 77af8bab (57차 무변동)
+#         - foundation/npm-script-prefix-coherence.md 2f83fff0 (57차 무변동)
+#         - foundation/package-manager-major-coherence.md 529f4a49 → 53b0d39 (working tree 미커밋 marker flip — inspector hook-ack 4 marker)
+#         - foundation/spec-carve-precondition.md 866b3808 (57차 무변동)
+#         - foundation/tooling.md b2c1299b (57차 무변동)
+#         - styles/css-modules.md a0b75e71 (57차 무변동)
+#         - testing/console-error-runtime-zero.md b7696639 → d5bdeb5 (working tree 미커밋 marker flip — inspector hook-ack 8 marker, **본 tick promote 도달 → green→blue mv**)
+#         - testing/runtime-fetch-unmount-safety.md (NEW — REQ-093 흡수, 도메인 fetch unmount-safety 일관성 박제 — untracked)
+#     (v) 승격 판정 (RULE-01 4조건) 17 spec 전수 측정:
+#         - common/accessibility.md W=0 U=1 T=0 H=2 → 미충족.
+#         - common/markdownParser.md W=0 U=1 T=0 H=3 → 미충족.
+#         - common/sanitizeHtml.md W=0 U=4 T=0 H=2 → 미충족.
+#         - common/test-helpers.md W=0 U=3 T=0 H=9 → 미충족.
+#         - components/file.md W=0 U=5 T=0 H=4 → 미충족 (FR-01/FR-02/FR-03/I1/I2 회복 대상 zero-point).
+#         - foundation/diagnostic-script-auto-channel-coverage.md W=0 U=4 T=0 H=12 → 미충족.
+#         - foundation/eslint-react-hooks-lint-gate.md W=0 U=20 T=0 H=1 → 미충족.
+#         - foundation/island-proptypes-zero.md W=0 U=2 T=0 H=10 → 미충족.
+#         - foundation/lint-warning-zero-gate.md W=0 U=2 T=0 H=10 → 미충족.
+#         - foundation/node-modules-extraneous-coherence.md W=0 U=3 T=0 H=3 → 미충족.
+#         - foundation/npm-script-prefix-coherence.md W=0 U=2 T=0 H=11 → 미충족.
+#         - foundation/package-manager-major-coherence.md W=0 U=5 T=0 H=10 → 미충족 (marker flip 4/9, 잔여 5 — FR-02/FR-03/I2/I3/I4 외부 후속 task 의존).
+#         - foundation/spec-carve-precondition.md W=0 U=4 T=0 H=11 → 미충족.
+#         - foundation/tooling.md W=0 U=3 T=0 H=18 → 미충족.
+#         - styles/css-modules.md W=0 U=3 T=0 H=2 → 미충족.
+#         - **testing/console-error-runtime-zero.md W=0 U=0 T=0 H=8** → **4조건 전수 충족 → promote (green→blue mv)**.
+#         - testing/runtime-fetch-unmount-safety.md W=0 U=11 T=0 H=2 → 미충족 (FR-01/FR-02/FR-03/FR-04/FR-05/I1/I2/I3/I4/I6/I7 회복 대상 zero-point).
+#         → 1 spec promote / 16 spec 미충족.
+#     (vi) carve 분기 — 16 잔존 spec carve surface 가시화 분석:
+#         - components/file.md (REQ-092 신규) — clearTimeout zero-point + unmount race test 시나리오 zero-point + setTimeout 2 hit @line 115,129 baseline 박제 → **TSK-25 carve 채번 (1 PR 크기, 독립 롤백 가능, 자매 직교 spec 박제 chain 우선 진입)**.
+#         - package-manager-major-coherence.md — TSK-23 회수 done 후 marker flip 4/9 진행 (working tree 미커밋). 잔여 FR-02 (CI 채널 npm 메이저 추종) + FR-03 (lockfile rewrite) — **carve 후보 가시화** (별 후속 task). 본 tick carve 회피 — (a) inspector marker flip 미커밋 (working tree 잔존) — commit 후 hook-ack 안정 surface 확정 후 별 tick carve 분기, (b) backlog 누적 회피 (TSK-25 1건 carve + 인접 신규 spec 2건 surface — 추가 carve 시 backlog), (c) FR-02/FR-03 별 channel — CI workflow + lockfile rewrite 별 진단 영역 — 별 task 분할 권장.
+#         - runtime-fetch-unmount-safety.md (REQ-093 신규) — Image/File/Monitor 3 domain async fetch unmount race carve surface 가시화 (G2 0 hit zero-point). spec §carve-precondition (P3) "도메인별 회복 task carve 는 단계적 — Image / File / Monitor 각각 1 task 또는 통합 1 task — planner 영역 판단" 박제. 본 tick carve 회피 — (a) TSK-25 1건 carve + 신규 spec 박제 chain 진입 우선, (b) 3 domain 분할 시 backlog 누적 회피, (c) §carve-precondition (P2) 의 REQ-091 console-error-runtime-zero green carve-active 의존이 본 tick promote 후 blue done 으로 정합 변환 — 다음 inspector hook-ack tick 시점 별 carve.
+#         - 13 외 spec — hash 무변동 + marker 플립 부재 → 신규 surface 가시화 0.
+#         - 본 58차 carve 결정: 1건 발행 (TSK-25 file.md REQ-092 회복).
+#     (vii) grep dry-run (HEAD=`cac6fa2` 본 58th, TSK-25 baseline 실측):
+#         - `grep -nE "setTimeout\s*\(" src/File/FileUpload.tsx` → 2 hit @line 115, 129 (G1 baseline 박제 정합).
+#         - `grep -nE "clearTimeout" src/File/FileUpload.tsx` → 0 hit (G2 zero-point — 본 task 회복 대상 정합).
+#         - `grep -nE "unmount\s*\(\s*\)" src/File/FileUpload.test.tsx` → 0 hit (G3 zero-point — 본 task 회복 대상 정합).
+#         - `grep -nE "useFakeTimers|runAllTimers" src/File/FileUpload.test.tsx` → 4 hit @line 86, 114, 161, 189 (기존 fixture 정합 — 신규 unmount 시나리오 추가 시 5+ hit 도달 가능).
+#         - RULE-04 notes 토큰: `grep dry-run: 4/4 match`.
+#     (viii) Task ID footprint 전수 (RULE-01 grep `specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/`):
+#         - 점유: TSK-20260517-01~-03, -05~-24 (영구 박제 + 본 tick TSK-25 신규 채번 → 점유 23개). -04 미발행 유지 (range 표기 컨텍스트 1 hit, 실제 점유 0).
+#         - 본 tick 채번 1건 (TSK-25 — file.md REQ-092 회복).
+#     (ix) 40.task/ 백프레셔: 본 58th 진입 0건 → 발행 1건 = 1건 (TASK_READY_MAX 10 → 9 여유).
+#     (x) RULE-07 §양성 평서 정합: 17 spec 전수 §양성 평서 정합 유지 — 신규 2 spec (file.md REQ-092 + runtime-fetch-unmount-safety.md REQ-093) 자기 검증 G4/G5 박제 PASS (시점 비의존 + 수단 라벨 0). 자동 격리 0건.
+#     (xi) 정체 카운트 (58th 진입):
+#         - 10 baseline spec 17회차 진입 (42차~58차). 외부 의존 면제 분기 유지.
+#         - spec-carve-precondition 14회차 (44차~58차).
+#         - eslint-react-hooks-lint-gate 11회차 (48차~58차).
+#         - island-proptypes-zero 9회차 (50차~58차).
+#         - package-manager-major-coherence 5회차 (54차~58차 — marker flip 4/9 진행, 잔여 FR-02/FR-03 별 후속 task carve 의존, inspector commit 대기).
+#         - **console-error-runtime-zero — promote 도달 정체 카운트 종료** (54차~58차 5회차 도달 — 본 tick mv green→blue 종료, blue baseline 진입).
+#         - components/file.md 1회차 (58차 — 신규 박제, TSK-25 carve 채번).
+#         - runtime-fetch-unmount-safety.md 1회차 (58차 — 신규 박제, carve 후보 surface 가시화 후속 tick 분기).
+#         - 격리 비대상 유지 (외부 이벤트 미발생 + RULE-07 §양성 정합 + 자기 writer 영역 분리 + 자가 차단 신호 충족 위반 회피).
+#     (xii) HEAD 격차 분석:
+#         - (a) green spec hash 변경: 4건 (2 marker flip working tree + 2 신규 untracked — inspector 영역, planner 자기 영역 변경 0).
+#         - (b) 40.task/ 진입/이탈: TSK-25 신규 발행 (1건 진입). 60.done 이탈 0건.
+#         - (c) 60.done/2026/05/17/task/: 20개 무변동.
+#         - (d) 50.blocked/task/: 0건 유지.
+#         - (e) 20.req/: 2건 이탈 (REQ-092 + REQ-093 inspector 흡수 → 60.done/req/ mv).
+#         - (f) 10.followups/: 신규 1건 잔존 (`20260517-1952-setuptests-rule07-token-baseline-pre-existing.md` — discovery 영역, planner 영역 밖 모니터만).
+#         - (g) 50.blocked/spec/foundation/: 무변동.
+#         - (h) 환경 회복 신호: tsc rc=0 + lint rc=0 PASS (19세션 누적).
+#     (xiii) 본 58차 carve/promote/격리 분기 명시화: 58차 = promote 1 (console-error-runtime-zero.md green→blue) + carve 1 (TSK-25 file.md REQ-092 회복) + 격리 0. inspector working tree marker flip 미커밋 + 2 신규 spec untracked 진입 chain 진입 시점 — console-error-runtime-zero.md (b7696639 → d5bdeb5) 4조건 전수 충족 (W=0 + U=0 + T=0 + H=8) → mv green→blue + components/file.md REQ-092 신규 박제 surface 가시화 (clearTimeout zero-point + unmount race zero-point + setTimeout 2 hit baseline) → TSK-25 채번.
+#     (xiv) 다음 세션 (59th tick) 행동지침:
+#       (1) 승격 판정 멱등 게이트: 59th tick 진입 시 어느 green spec 이 hash 변경 + unchecked=0 도달 시 mv green→blue 즉시 분기. 잠재 후보:
+#         (a) components/file.md FR-01/FR-02/FR-03/I1/I2 marker 플립 — TSK-25 회수 + inspector hook-ack chain 의존.
+#         (b) package-manager-major-coherence.md FR-02 (CI 채널) + FR-03 (lockfile rewrite) marker 플립 — 별 후속 task 채번 + 회수 + inspector hook-ack chain 의존.
+#         (c) runtime-fetch-unmount-safety.md FR-01~FR-05 + I1~I4/I6/I7 marker 플립 — Image/File/Monitor 3 domain 회복 task 채번 + 회수 + inspector hook-ack chain 의존.
+#         (d) spec-carve-precondition FR-02~FR-05 4 marker 플립 (외부 carve-active spec §carve-precondition 절 박제 회수 완료 시 동시 플립).
+#         (e) tooling.md + lint-warning-zero-gate.md blue 승격 → eslint-react-hooks-lint-gate.md §carve-precondition (P2) 자가 차단 해제.
+#         (f) island-proptypes-zero.md (I2)(I3) marker 외부 island 진입 의존 — RULE-07 §양성 정합 self-defer 유지.
+#       (2) carve 재발행 금지 (멱등): TSK-25 회수 완료 (40.task/ 이탈 → 60.done/task/) 까지 components/file.md REQ-092 channel 재carve 금지. package-manager-major-coherence FR-02 / FR-03 별 후속 task carve 는 inspector working tree marker flip commit + hook-ack 안정 surface 확정 후 신규 surface 가시화 시점에 분기. runtime-fetch-unmount-safety.md REQ-093 Image/File/Monitor 3 domain 회복 task carve 는 inspector hook-ack chain 진입 후 신규 surface 가시화 시점에 분기 (§carve-precondition (P3) 단계적 박제). 다른 13 spec hash 무변동 + marker 플립 부재 시 carve surface 0 유지.
+#       (3) 40.task/ 백프레셔: 본 58th 종료 시 1건 (TSK-25 잔존). 임계치 9건 여유.
+#       (4) 정체 카운트: 10 spec 17회차 + spec-carve-precondition 14회차 + eslint-react-hooks-lint-gate 11회차 + island-proptypes-zero 9회차 + package-manager-major-coherence 5회차 + components/file.md 1회차 + runtime-fetch-unmount-safety.md 1회차 누적. console-error-runtime-zero promote 도달로 정체 카운트 종료. 59th tick 진입 시 HEAD hash 무변동 시 +1회차. 외부 의존 면제 분기 유지.
+#       (5) 환경 회복 분기: 19세션 누적 → 20세션 진입 분기 (59th tick 진입 시 측정).
+#       (6) 신규 REQ 흡수 분기 (Phase 2): 20.req/ 본 tick 이탈 2건 (REQ-092 + REQ-093 inspector 흡수 → 60.done/req/) + 10.followups/ 신규 1건 잔존 (`20260517-1952-setuptests-rule07-token-baseline-pre-existing.md` — discovery 영역 planner 영역 밖 모니터만). 신규 followup 진입 surface 의존.
+#       (7) Task ID footprint: 본 tick 채번 1건 (TSK-25). 59th tick 신규 carve 시 -26+ 채번 (영구 박제 -01~-03, -05~-25 재사용 금지 + -04 미발행 유지).
+#       (8) HEAD 격차 분석: 59th tick 진입 시점 baseline 격차 — (a) green spec hash 변경 (inspector marker flip commit / 신규 REQ 흡수 신규 spec), (b) 40.task/ 진입/이탈 (TSK-25 developer 회수 시 60.done/task/ 진입), (c) 60.done/2026/05/17/task/ 신규, (d) 50.blocked/task/ 진입, (e) 20.req/ 변동, (f) 10.followups/ 변동, (g) 50.blocked/spec/ 변동, (h) 환경 회복 신호.
+#       (9) inspector hook-ack 누적 분기: 58차 inspector working tree marker flip 미커밋 잔존 — 59th tick 진입 시 inspector commit 후 spec hash 변경 → 4 marker (package-manager) + 8 marker (console-error-runtime-zero — promote 직전 hash) hook-ack 안정 surface 확정. 추가 hook-ack 후보: (a) TSK-25 회수 commit hook-ack — components/file.md FR-01/FR-02/FR-03 marker 플립 + I1/I2 marker 플립, (b) island-proptypes-zero I2 + I3 marker 외부 island 진입 hook-ack, (c) spec-carve-precondition marker 플립, (d) tooling+lint-warning-zero-gate marker 플립.
+#       (10) grep dry-run 본 58th 종료: carve 1건 — `grep dry-run: 4/4 match` 박제.
+#       (11) 격리 분기 누적 박제 (17회차 + 18회차 진입 시): 본 58차 박제 정체 카운트 17회차 도달 10 spec → 외부 의존 면제 분기 유지. 59th tick 진입 시 18회차 도달 시 동일 면제 분기 적용 — 외부 이벤트 미발생 + RULE-07 §양성 평서 정합 + 자기 writer 영역 분리 + 자가 차단 신호 충족 위반 회피 시 격리 비대상 유지.
+#       (12) 본 tick promote/carve/격리 분기 명시화: 58차 = promote 1 (console-error-runtime-zero.md green→blue) + carve 1 (TSK-25 — file.md REQ-092 회복) + 격리 0. inspector working tree marker flip 미커밋 + 2 신규 spec untracked 진입 chain 진입 — console-error-runtime-zero.md 4조건 전수 충족 (W=0 + U=0 + T=0 + H=8) mv green→blue. components/file.md REQ-092 신규 박제 surface (clearTimeout zero-point + unmount race zero-point + setTimeout 2 hit baseline) TSK-25 채번 (1 PR 크기 + 독립 롤백 가능 + 자매 직교 spec 박제 chain 우선 진입). 차기 inspector tick chain 분기 (working tree marker flip commit 후 hook-ack 안정 + TSK-25 회수 commit hook-ack + 잔여 marker 플립 chain).
+#       (13) no-op 연속 누적 리셋: 본 58차 promote 1 + carve 1 발행으로 누적 리셋 (57차 1회차 → 58차 발행으로 0 회귀) → 59th 진입 시 0회차 (carve 발행 시 또는 hash 무변동 no-op 시 +1).
