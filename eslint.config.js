@@ -1,6 +1,6 @@
 // ESLint flat config — ported 1:1 from legacy .eslintrc.yml + .eslintignore.
 // Migration artifact for TSK-20260420-26 (REQ-20260420-022, REQ-20260419-003,
-// SPEC common/accessibility-spec §3.4.2). Semantic changes: 0.
+// SPEC common/accessibility §3.4.2). Semantic changes: 0.
 import js from '@eslint/js';
 import reactPlugin from 'eslint-plugin-react';
 import globals from 'globals';
