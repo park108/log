@@ -72,4 +72,25 @@ describe('stripCspMetaInDev (vite plugin)', () => {
 		const matches = result.match(/Content-Security-Policy/g) || []
 		expect(matches).toHaveLength(1)
 	})
+
+	it('is idempotent when applied twice consecutively (single CSP meta input)', () => {
+		const plugin = stripCspMetaInDev()
+		const html = [
+			'<!DOCTYPE html>',
+			'<html>',
+			'  <head>',
+			'    <meta charset="utf-8" />',
+			'    <meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\';">',
+			'    <title>x</title>',
+			'  </head>',
+			'  <body></body>',
+			'</html>',
+		].join('\n')
+
+		const r1 = plugin.transformIndexHtml.handler(html)
+		const r2 = plugin.transformIndexHtml.handler(r1)
+
+		expect(r1).not.toContain('Content-Security-Policy')
+		expect(r2).toBe(r1)
+	})
 })
