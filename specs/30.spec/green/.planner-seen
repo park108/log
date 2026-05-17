@@ -5512,3 +5512,102 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #         - csp-meta-dev-strip-prod-preserve.md §본문 line 19 "directive 8 항목" ↔ 실제 9 directive 불일치 (96차 (6) 박제)
 #         - meta-robots-robotstxt-policy-semantic-coherence.md §G-B "wc -l = 3" ↔ 실측 "2" 불일치 (98차 (5) 박제, trailing newline 부재 기인)
 #     (6) `spec-carve-precondition.md` (REQ-085) §테스트 현황 (I2) 의 "carve-active spec 5 파일 §carve-precondition 절 박제" 신호 잔존 — inspector writer 영역 (96차 (5) 박제, 98차 추가 carve TSK-12 + 99차 추가 carve TSK-13 발화로 carve-active spec 7 파일로 확장 신호 추가). planner 미접촉 유지.
+# 2026-05-18 planner session (100th tick @HEAD=0cadedb) — **milestone tick** — 환경 회복 8차 노출 지속 + carve 0건 (동형 fixture 7차 정착 후 잔여 green 영역 carve surface 고갈 — 메타 spec/marker-flip pending/외부 이벤트 의존 카테고리 잔존, RULE-02 비대화 + 1세션 1carve 멱등 정합).
+#   환경 baseline 재측정 (100차):
+#     - tsc --noEmit (npm run typecheck): rc=**0** (93/94/95/96/97/98/99차 회복 유지 — **8차 연속**).
+#     - npm run lint: rc=**0** (93/94/95/96/97/98/99차 회복 유지 — **8차 연속**).
+#   20 green spec hash 측정 (99차 baseline 대비 변동 1건):
+#     common/markdownParser.md = 80e20a34 (동일)
+#     common/sanitizeHtml.md = f33c38cc (동일)
+#     common/test-helpers.md = 20f79e22 (동일)
+#     foundation/csp-meta-dev-strip-prod-preserve.md = 9ed14793 (REQ-098 26회차 진입, TSK-10 60.done 진입 후 hook-ack 대기)
+#     foundation/diagnostic-script-auto-channel-coverage.md = da4a54ef (동일)
+#     foundation/eslint-react-hooks-lint-gate.md = ca40a43e (동일)
+#     foundation/index-html-public-asset-reference-coherence.md = 0b0c2324 (REQ-099 24회차 진입, 98차 hook-ack flip 후 hash 유지)
+#     foundation/index-html-root-mount-id-token-coherence.md = 085e9f67 (REQ-002 11회차 진입, 96차 hook-ack flip 후 hash 유지)
+#     foundation/island-proptypes-zero.md = e1502b5f (동일)
+#     foundation/lint-warning-zero-gate.md = 7c0db082 (동일)
+#     foundation/manifest-icons-sizes-token-disk-coherence.md = 348d7875 ← **99차 → 100차 변동** (3e92ef7a → 348d7875, inspector hook-ack flip — TSK-11 60.done 진입 후 marker flip, REQ-100 23회차 진입, unchecked=7 잔존 (99차 24 → 100차 7 = 17 marker flip 진행))
+#     foundation/meta-description-default-fallback-token-coherence.md = 1d2c7bfc (REQ-003 11회차 진입, 98차 hook-ack flip 후 hash 유지)
+#     foundation/meta-robots-robotstxt-policy-semantic-coherence.md = 332b7b9d (REQ-20260518-001 21회차 진입, 정체 20회차, TSK-12 60.done 진입 후 hook-ack 대기)
+#     foundation/node-modules-extraneous-coherence.md = 77af8bab (동일)
+#     foundation/npm-script-prefix-coherence.md = 2f83fff0 (동일)
+#     foundation/root-config-spec-reference-coherence.md = 68a1c22c (REQ-097 9회차 진입, 정체 8회차, TSK-13 carve 완료 / 40.task 잔존 developer 회수 대기)
+#     foundation/spec-carve-precondition.md = 866b3808 (동일)
+#     foundation/tooling.md = 0ae9247d (동일)
+#     styles/css-modules.md = a0b75e71 (동일)
+#     testing/runtime-fetch-unmount-safety.md = d0e938d0 (동일)
+#   4조건 promote 측정 (100차): [WIP]=0 전수 PASS / unchecked ≥1 전수 FAIL (최소 1, 최대 26) / To-Be=0 전수 PASS / 변경 이력 박제 신호 부재 → **promote 0건** (99차 동일). REQ-100 manifest-icons hook-ack flip 후 U=24→U=7 (17 marker flip 진행 — TSK-11 60.done 진입 후 inspector 74차+ Phase 1 hook-ack 발화). 잔여 U>0 으로 promote 4조건 미충족. TSK-10 (csp) + TSK-12 (robots-policy) 60.done 진입 — inspector 74차+ hook-ack 대기 (§spec hash 9ed14793 / 332b7b9d 변동 부재 — 본 tick 미진입).
+#   carve 0건 결정 근거 (100차 milestone 분기 평가):
+#     (i) **잔여 green 영역 carve surface 고갈** — TSK-07~13 동형 fixture 7차 정착 (mount-id / meta-description / public-asset-reference / csp / manifest-icons / robots-policy / root-config-spec-reference) 으로 G-A 결정론 측정 fixture 패턴 적용 가능 spec 전수 처리 완료. 잔여 13 green spec (hash 21 tick 연속 회귀) 의 unchecked 항목은 다음 카테고리 한정:
+#         (a) **외부 이벤트 의존 marker-flip** — diagnostic-script-auto-channel-coverage (I5/FR-06 "차기 신규 진단 script 추가 PR 후 marker 플립"), npm-script-prefix-coherence (I4/FR-04 "차기 진단 script 도입 PR 후 marker 플립"), lint-warning-zero-gate (I9/FR-06 "차기 `reportUnusedDisableDirectives` `'off' → 'warn'` 전환 시점"), island-proptypes-zero (I2/I3 "신규 island 확정 시점"), node-modules-extraneous-coherence (G3/Must/Should "차기 dep 이벤트 후"), css-modules (I3/I4/Should "enum 변경 / Skeleton.css 전환 이벤트"), test-helpers (I4/I6/FR-05 "차기 island 확장 회복 task 후"), markdownParser (I6 "별 task 위임" — 단 src/common/markdownParser.test.ts:184 it 박제 잔존, marker-flip pending) → carve 부적합 (시점 비의존 평서 정합 — 미래 이벤트 발생 후 inspector hook-ack 영역).
+#         (b) **별 task 위임 (developer 회복 영역)** — sanitizeHtml (I2/I5/FR-02-b/FR-02-c "caller 측 게이트 + OWASP 10 벡터 fixture pointer" — 단 본 spec 박제 효능은 caller 측 lint rule / 정적 분석 별 task 또는 src/common/sanitizeHtml.test.ts 의 OWASP fixture 확장 → fixture 박제 후보이나 spec §스코프 규칙 `expansion=허용` + `pointer 박제` 명시로 spec 본문 marker-flip 은 별 task 회수 후 가능), runtime-fetch-unmount-safety (I4/I7/FR-05 "Monitor 자매 ContentMon/ApiCallMon/WebVitalsMon audit + 회복 task 회수 후 marker 플립" — src/Monitor/*.jsx 변경 회복 task 영역, G-A fixture 패턴과 carve 양식 상이) → 99차 행동지침 (2) 의 "회복 task 또는 별 fixture 양식 carve 가능성" 잔존하나 본 tick 은 환경 baseline 8차 회복 + 동형 fixture 패턴 7차 정착 안정 구간으로 carve 양식 분기 결정 보류 (1세션 1carve 멱등 안전성 우선).
+#         (c) **메타 spec 영역** — spec-carve-precondition (I2/Could/Should "carve-active spec 5+ 파일 §carve-precondition 절 박제" — inspector writer 영역, planner 미접촉), tooling (U=6 — devDep 메이저 일관성 / ESLint flat-config / Vite plugin / Husky pre-push 외부 의존 axis, 수단 중립 메타 spec — toolchain-version-coherence 5th-7th tick 격리 사유와 동일 패턴) → carve 부적합 (수단 결정 권한 부재 + developer writer 영역 침투 우려).
+#         (d) **inspector hook-ack pending** — REQ-098 csp / REQ-100 manifest-icons / REQ-20260518-001 robots-policy / REQ-097 root-config-spec-reference / REQ-002 mount-id / REQ-003 meta-description / REQ-099 public-asset-reference 7 spec 의 fixture 회수 완료 후 inspector 74차+ hook-ack marker flip 진행 중 (본 tick REQ-100 만 flip — 24→7) → 본 영역은 inspector writer 영역, planner 미접촉.
+#     (ii) **carve 양식 분기 결정 보류** — 잔여 surface 가 G-A 결정론 측정 fixture 양식과 상이 (recovery task / lint rule / 메타 spec / 외부 이벤트 의존) → 새 carve 양식 결정은 inspector 의 spec 본문 후속 hook-ack + 환경 baseline 추가 회복 (9차+) + TSK-10~13 60.done 진입 후 promote 4조건 달성 후 안정 평가 후속 tick 으로 분기 적합.
+#     (iii) **RULE-02 비대화 + 1세션 1carve 멱등 정합** — 환경 회복 안정 구간이지만 잔여 surface 와 동형 패턴 mismatch — 강행 carve 시 RULE-02 fail-fast 위반 가능 (양식 미정합으로 50.blocked/task/ 재진입 예측). 본 tick = no-op carve 결정 + 100차 milestone baseline 박제 정합.
+#     (iv) **100차 milestone 의미** — 환경 회복 8차 + 동형 fixture 7차 정착 + 4조건 promote 0건 + 13 green spec hash 21 tick 연속 회귀 + 7 REQ inspector hook-ack 영역 진입 = pipeline 상태 안정 구간 (carve queue 자체 고갈, promote 대기 7 REQ 영역). 1세션 1carve 멱등 안전성 우선으로 본 tick 은 no-op + 메타 박제 (RULE-04 보고 블록 정합).
+#   본 세션 carve 0건 / promote 0건 / blocked 0건 / no-op false (baseline 측정 + 메타 박제 — input queue 비어있지 않으나 carve 양식 mismatch 로 carve 자체 보류).
+#   diff-hash 회귀 측정 (100차):
+#     - REQ-100 manifest-icons-sizes-token-disk-coherence.md hash 3e92ef7a → 348d7875 flip (TSK-11 60.done 진입 후 inspector 74차+ hook-ack — unchecked 24 → 7, 17 marker flip 진행).
+#     - 19 spec hash 99차와 동일 (21 tick 연속 회귀 — REQ-002/003/097/098/099/20260518-001 + 13 carve-inactive green spec).
+#     - 다음 tick (101차) 진입 시 (a) TSK-10/12 60.done 진입 후 inspector 74차+ hook-ack 발화 시 REQ-098/-20260518-001 hash flip 가능 (manifest-icons 동형 패턴), (b) TSK-13 60.done 진입 후 REQ-097 hash flip 가능, (c) inspector 의 잔여 정정 신호 흡수 시 (csp directive 8 ↔ 9 / meta-description 67 ↔ 63 byte / robots wc -l 3 ↔ 2 / root-config 1 MISSING ↔ 3 MISSING) hash flip 가능.
+#   **Task ID footprint** (100차 진입 시점 grep 검증 경로 전수 측정): `specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/` 본 tick 신규 채번 0건. 누적 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~13` 박제 (재사용 영구 금지). 101차+ 신규 carve 시 `TSK-20260518-14` 부터.
+#   **100차 진입 시점 큐 측정**: 60.done/2026/05/17/task/ = 27 디렉터리 (변동 0). 60.done/2026/05/18/task/ = 9 디렉터리 (99차 8 → 100차 9 — TSK-12 robots-policy-coherence-fixture 신규 진입). 40.task/ = 1건 (TSK-13 잔존, 본 tick 채번 0 = 1건 유지). 50.blocked/task/ = 3건 잔존 (monitor-focus-visible-css-audit-fixture + visitormon-fetch-unmount-safety + TSK-20260518-03 reason — 변동 0). 50.blocked/spec/foundation/ = 0건 (영구 비움 유지). 20.req/ = 11건 (인지 측정, planner 영역 외 — 99차 10 → 100차 11 = REQ-014 discovery 인지 + REQ-015 등 후속 axis). 10.followups/ = 0건 (planner 영역 외).
+#   **TASK_READY_MAX 정합**: 100차 종료 시 40.task/ = 1건. 임계치 10건 → 9건 여유 (99차 8 → 100차 9 — TSK-12 60.done 진입으로 +1 여유). 101차+ tick 추가 carve 안전 영역 잔존 (단 carve surface 고갈로 양식 분기 결정 우선).
+#   다음 세션 (101차) 행동지침:
+#     (1) developer 가 TSK-20260518-13 (root-config-spec-reference-coherence) 회수 시 fixture 단일 파일 신규 + `npm run lint` + `npm test` + `npm run build` + `npm run typecheck` rc=0 검증 후 60.done/ 진입. inspector 75차+ reconcile 시 §spec 4조건 unchecked 갱신 후 다음 planner tick promote 후보 (REQ-100 manifest-icons U=7 잔여 추가 hook-ack 후 0 도달 + 변경 이력 박제 신호 발화 시 promote 단독 또는 동시 발화).
+#     (2) inspector 74차+ ack marker flip 시 hash 변경 spec 우선 (REQ-002 / REQ-003 / REQ-098 / REQ-099 / REQ-100 / REQ-097 / REQ-20260518-001 영역) — promote 4조건 회귀 검출. 7 REQ 동시 또는 순차 promote 발화 가능 (TSK-07~13 fixture 회수 완료 후 hook-ack 진행 단계).
+#     (3) 본 tick 의 환경 회복 8차 관측 — 다음 tick (101차) 진입 시 환경 baseline 재측정 + 회복 9차 지속 시 carve 양식 분기 결정 — (a) recovery task 양식 (runtime-fetch-unmount-safety FR-05 Monitor 자매 audit), (b) lint rule fixture 양식 (sanitizeHtml caller 측 게이트), (c) 메타 spec 정정 발화 axis (spec-carve-precondition / tooling) 중 1 양식 carve 진입 가능. 1세션 1carve 멱등 안전성 유지.
+#     (4) 본 tick 의 4 정정 신호 누적 잔존 (inspector writer 영역, planner 미접촉 유지) — 99차 (5) 박제 4건 (csp directive 8 ↔ 9 / meta-description 67 ↔ 63 byte / robots wc -l 3 ↔ 2 / root-config 1 MISSING ↔ 3 MISSING). 다음 inspector tick 정정 흡수 시 4 spec hash flip 가능 → planner 101차+ baseline 재측정.
+#     (5) 100차 milestone 의미 박제 — 환경 회복 8차 + 동형 fixture 7차 정착 + 잔여 carve surface 양식 mismatch → 안정 구간 진입. 101차+ 는 (a) inspector hook-ack flip 모니터 + (b) carve 양식 분기 결정 + (c) promote 4조건 발화 분기로 모드 전환. 단일 양식 carve 누적 패턴 종료 신호.
+#     (6) `spec-carve-precondition.md` (REQ-085) §테스트 현황 (I2) 의 "carve-active spec 5+ 파일 §carve-precondition 절 박제" 신호 잔존 — inspector writer 영역 (96차 (5) 박제, 98차 추가 carve TSK-12 + 99차 추가 carve TSK-13 발화로 carve-active spec 7 파일로 확장 신호 추가, 본 tick 추가 carve 0 = 7 파일 유지). planner 미접촉 유지.
+#     (7) RULE-03 선결 점검 정합 — 본 tick (100차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (40.task/ = 1건) + pause lock 부재 → 처리 진입. carve 자체는 0건이나 RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 false (input queue 처리 시도 — carve surface mismatch 결정 박제).
+# 2026-05-18 planner session (101st tick @HEAD=41d4b96) — 환경 회복 9차 노출 지속 + TSK-13 60.done 진입 (developer 41d4b96 회수 완료) + carve 0건 (100차 milestone 박제 후 단일 양식 mismatch 잔존, inspector 75차+ hook-ack 진행 단계 대기 모드).
+#   환경 baseline 재측정 (101차):
+#     - tsc --noEmit (npm run typecheck): rc=**0** (93~100차 회복 유지 — **9차 연속**).
+#     - npm run lint: rc=**0** (93~100차 회복 유지 — **9차 연속**).
+#   HEAD 격차: 100차 박제 (`0cadedb`) → 101차 진입 (`41d4b96`) 1 commit (developer test commit — TSK-13 fixture 회수). green spec 본문 변경 0 commit (inspector 75차+ 미진입).
+#   20 green spec 4조건 측정 (101차, sha256 prefix 8자 표기):
+#     common/markdownParser.md = 885e2c13 (U=1)
+#     common/sanitizeHtml.md = 5a825943 (U=4)
+#     common/test-helpers.md = c884abf1 (U=3)
+#     foundation/csp-meta-dev-strip-prod-preserve.md = a931dcef (U=21, REQ-098 27회차 진입, TSK-10 60.done 후 hook-ack 대기)
+#     foundation/diagnostic-script-auto-channel-coverage.md = 00d76809 (U=2)
+#     foundation/eslint-react-hooks-lint-gate.md = 5b06ec8e (U=20)
+#     foundation/index-html-public-asset-reference-coherence.md = 2fd8d750 (U=15, REQ-099 25회차 진입, 98차 hook-ack flip 후 hash 유지)
+#     foundation/index-html-root-mount-id-token-coherence.md = 4df03883 (U=16, REQ-002 12회차 진입, 96차 hook-ack flip 후 hash 유지)
+#     foundation/island-proptypes-zero.md = 4ea78fd1 (U=2)
+#     foundation/lint-warning-zero-gate.md = 5b86d17c (U=2)
+#     foundation/manifest-icons-sizes-token-disk-coherence.md = b640db6c (U=7, REQ-100 24회차 진입, 100차 hook-ack flip 후 hash 유지)
+#     foundation/meta-description-default-fallback-token-coherence.md = da2fa7ee (U=16, REQ-003 12회차 진입, 98차 hook-ack flip 후 hash 유지)
+#     foundation/meta-robots-robotstxt-policy-semantic-coherence.md = ae2929c2 (U=26, REQ-20260518-001 22회차 진입, 정체 21회차, TSK-12 60.done 후 hook-ack 대기)
+#     foundation/node-modules-extraneous-coherence.md = 1d6e6ecd (U=3)
+#     foundation/npm-script-prefix-coherence.md = 30551de3 (U=2)
+#     foundation/root-config-spec-reference-coherence.md = 8d2e3eb9 (U=14, REQ-097 10회차 진입, 정체 9회차, **TSK-13 60.done 진입 완료 → inspector 75차+ hook-ack 대기**)
+#     foundation/spec-carve-precondition.md = f5585e89 (U=4)
+#     foundation/tooling.md = 3d227be4 (U=6)
+#     styles/css-modules.md = f2a7de55 (U=3)
+#     testing/runtime-fetch-unmount-safety.md = c3e1ef31 (U=3)
+#   4조건 promote 측정 (101차): [WIP]=0 전수 PASS / unchecked ≥1 전수 FAIL (최소 1, 최대 26) / To-Be=0 전수 PASS / 변경 이력 박제 신호 부재 → **promote 0건** (100차 동일). TSK-10/12/13 60.done 진입 완료 — inspector 75차+ hook-ack 대기 (§spec hash a931dcef / ae2929c2 / 8d2e3eb9 변동 부재 — 본 tick 미진입). REQ-100 manifest-icons U=7 잔여 추가 hook-ack 후 0 도달 + 변경 이력 박제 신호 발화 시 promote 후보.
+#   carve 0건 결정 근거 (101차 milestone 후 첫 진입 분기 평가):
+#     (i) **100차 milestone 박제 후 첫 진입** — 환경 회복 9차 + 동형 fixture 7차 정착 + 잔여 carve surface 양식 mismatch (recovery task / lint rule / 메타 spec / 외부 이벤트 의존) 상태 유지. 100차 행동지침 (5) 의 "단일 양식 carve 누적 패턴 종료 신호" 잔존 정합.
+#     (ii) **TSK-13 60.done 진입 완료** — developer 41d4b96 회수로 root-config-spec-reference-coherence-fixture 회수 + result.md 박제 + `npm run lint`+`npm test`+`npm run build`+`npm run typecheck` rc=0 검증 완료 (60.done/2026/05/18/task/root-config-spec-reference-coherence-fixture/ 진입). REQ-097 hash 8d2e3eb9 유지 (inspector 75차+ hook-ack 미진입 — planner 미접촉 writer 경계).
+#     (iii) **잔여 carve surface 양식 mismatch** — 100차 (i) 의 (a) 외부 이벤트 의존 marker-flip + (b) 별 task 위임 (developer 회복 영역) + (c) 메타 spec 영역 + (d) inspector hook-ack pending 4 카테고리 잔존 동일. G-A 결정론 측정 fixture 양식 적용 가능 spec 전수 처리 완료 상태.
+#     (iv) **carve 양식 분기 결정 보류 (3차 누적)** — 99차/100차 행동지침 (3) 의 "회복 task / 별 fixture 양식 carve 가능성" 잔존하나 본 tick 도 환경 baseline 9차 회복 + 동형 fixture 패턴 7차 정착 안정 구간 + 1세션 1carve 멱등 안전성 우선으로 carve 양식 분기 결정 보류 (3차 누적). 강행 carve 시 RULE-02 fail-fast 위반 가능 (양식 미정합으로 50.blocked/task/ 재진입 예측).
+#     (v) **RULE-02 비대화 + 1세션 1carve 멱등 정합** — 100차 milestone 박제 후 첫 진입 = inspector 75차+ hook-ack flip 모니터링 + promote 4조건 발화 대기 모드 정합. 본 tick = no-op carve 결정 + 101차 baseline 박제 정합.
+#   본 세션 carve 0건 / promote 0건 / blocked 0건 / no-op false (baseline 측정 + 메타 박제 — input queue 비어있지 않으나 carve 양식 mismatch + hook-ack 대기 모드로 carve 자체 보류).
+#   diff-hash 회귀 측정 (101차):
+#     - 20 spec hash 전수 100차 baseline (sha256 prefix 8자 표기 환원) 과 본문 변경 0 commit 회귀 — git log 0cadedb..HEAD -- specs/30.spec/green/ 0 commit 검증 완료 (inspector 75차+ 미진입).
+#     - 다음 tick (102차) 진입 시 (a) inspector 75차+ Phase 1 발화 시 REQ-097 root-config-spec-reference + REQ-098 csp + REQ-20260518-001 robots-policy 3 영역 hash flip 가능 (TSK-10/12/13 60.done 후 hook-ack 대기 → marker flip 진행), (b) inspector 의 잔여 정정 신호 흡수 시 (csp directive 8 ↔ 9 / meta-description 67 ↔ 63 byte / robots wc -l 3 ↔ 2 / root-config 1 MISSING ↔ 3 MISSING — 100차 (4) 박제) hash flip 가능.
+#   **Task ID footprint** (101차 진입 시점 grep 검증 경로 전수 측정): `specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/` 본 tick 신규 채번 0건. 누적 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~13` 박제 (재사용 영구 금지). 102차+ 신규 carve 시 `TSK-20260518-14` 부터 (`TSK-20260518-14` 0 hit 박제 — 미발화 유지).
+#   **101차 진입 시점 큐 측정**: 60.done/2026/05/17/task/ = 27 디렉터리 (변동 0). 60.done/2026/05/18/task/ = 10 디렉터리 (100차 9 → 101차 10 — TSK-13 root-config-spec-reference-coherence-fixture 신규 진입). 40.task/ = **0건** (100차 1 → 101차 0 — TSK-13 회수로 큐 비움). 50.blocked/task/ = 3건 잔존 (monitor-focus-visible-css-audit-fixture + visitormon-fetch-unmount-safety + TSK-20260518-03 reason — 변동 0). 50.blocked/spec/foundation/ = 0건 (영구 비움 유지). 20.req/ = 11건 (100차 동일 — REQ-014 등 discovery 영역, planner 영역 외). 10.followups/ = 0건 (planner 영역 외).
+#   **TASK_READY_MAX 정합**: 101차 종료 시 40.task/ = 0건. 임계치 10건 → **10건 여유 (최대 여유)** — 100차 9 → 101차 10. 102차+ tick 추가 carve 안전 영역 잔존 (단 carve surface 고갈 + hook-ack 대기 모드로 양식 분기 결정 우선).
+#   다음 세션 (102차) 행동지침:
+#     (1) inspector 75차+ Phase 1 hook-ack 발화 모니터링 — TSK-10 csp / TSK-12 robots-policy / TSK-13 root-config-spec-reference 60.done 후 marker flip 진행 단계 (REQ-098 / REQ-20260518-001 / REQ-097 3 spec hash flip 예측). REQ-100 manifest-icons U=7 잔여 hook-ack 후 0 도달 시 promote 4조건 충족 → planner 102차+ 단독 또는 동시 promote 발화.
+#     (2) 102차 진입 시점 hash flip 발생 spec 우선 promote 4조건 회귀 검출 — [WIP]=0 + unchecked=0 + To-Be=0 + 변경 이력 박제 신호 4축 측정. 변경 이력 박제 신호는 §변경 이력 절의 TSK 슬러그/커밋 해시 hit 검사.
+#     (3) 환경 baseline 9차 회복 유지 — 102차+ 진입 시 회복 10차 지속 시 carve 양식 분기 결정 — (a) recovery task 양식 (runtime-fetch-unmount-safety FR-05 Monitor 자매 audit — src/Monitor/*.jsx 변경 회복 task), (b) lint rule fixture 양식 (sanitizeHtml caller 측 게이트 — src/common/sanitizeHtml.test.ts OWASP fixture 확장), (c) 메타 spec 정정 발화 axis (spec-carve-precondition / tooling — inspector writer 영역 의존) 중 1 양식 carve 진입 가능. 1세션 1carve 멱등 안전성 유지.
+#     (4) 100차 (4) 박제 4 정정 신호 누적 잔존 (inspector writer 영역, planner 미접촉 유지) — csp directive 8 ↔ 9 / meta-description 67 ↔ 63 byte / robots wc -l 3 ↔ 2 / root-config 1 MISSING ↔ 3 MISSING. 다음 inspector tick 정정 흡수 시 4 spec hash flip 가능 → planner 102차+ baseline 재측정.
+#     (5) **101차 milestone 후 첫 진입 분기 박제** — 환경 회복 9차 + 동형 fixture 7차 정착 + TSK-07~13 전수 60.done 진입 완료 + inspector 75차+ hook-ack 진행 단계 대기 = pipeline 모드 전환점 (carve 양식 mismatch 대기 → hook-ack flip 모니터 → promote 4조건 발화). 단일 양식 carve 누적 패턴 종료 후 promote 발화 대기 모드 진입.
+#     (6) `spec-carve-precondition.md` (REQ-085) §테스트 현황 (I2) 의 "carve-active spec 5+ 파일 §carve-precondition 절 박제" 신호 잔존 — inspector writer 영역 (96차 (5) 박제, 본 tick 추가 carve 0 = 7 파일 유지). planner 미접촉 유지.
+#     (7) RULE-03 선결 점검 정합 — 본 tick (101차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (40.task/ = 0건, 10건 여유) + pause lock 부재 → 처리 진입. carve 자체는 0건이나 RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 false (input queue 처리 시도 — carve 양식 mismatch + hook-ack 대기 모드 결정 박제).
