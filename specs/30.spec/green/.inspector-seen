@@ -1,37 +1,46 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ 949c03c → THIS — reconcile 0/0 ack (분모 0 — 직전 추적 3 spec 모두 planner 20th tick 격리 mv 외부 이탈).
+# 2026-05-17 @ a4037ec → THIS — reconcile 0/0 ack (분모 0 — 직전 누적 격리 6 spec 외부 이탈 + 본 tick 신규 박제 1 spec 은 baseline cycle 0).
 #
-# 본 세션 디스크 실측:
+# 본 세션 디스크 실측 (tick 시작 시점):
 #  - specs/30.spec/green/foundation/ : 빈 디렉터리 (파일 0).
 #  - specs/30.spec/green/components/ : 디렉터리 부재.
 #  - specs/30.spec/green/ 직계: marker 파일 2개 (.planner-seen, .inspector-seen) 만 잔존.
-#  - working tree clean (`git status --short` 0 lines, HEAD = 949c03c).
-#  - specs/20.req/ : 0건.
+#  - working tree clean (HEAD = a4037ec).
+#  - specs/20.req/ : 1건 (20260517-src-spec-reference-path-coherence.md → REQ-20260517-071).
 #  - specs/40.task/ : 0건.
-#  - specs/50.blocked/spec/foundation/ : 6 spec + 6 reason (vite-jsx + test-discovery + eslint-linter + log + monitor + root-entry — 직전 5 + planner 18th 흡수 1).
-#  - specs/50.blocked/req/ : 디렉터리 부재 (직전 누적 상태 노트의 "REQ-064/065/066 격리 잔존" 은 spec/foundation/ 격리 오기로 판정).
+#  - specs/50.blocked/spec/foundation/ : 6 spec + 6 reason (vite-jsx + test-discovery + eslint-linter + log + monitor + root-entry — 직전 누적 동일).
+#  - specs/50.blocked/req/ : 디렉터리 부재.
+#  - .claude/locks/ : 부재 (pause 0).
 #
 # Phase 1 추적 분모 재계산:
-#  - 직전 세션 (61fbbed) 박제 3 spec (log/monitor/root-entry) 전건 → planner 20th tick (949c03c) R100 mv 격리 → 본 tick 시작 시점 외부 이탈 → 분모 제거 (직전 박제와 동일 처리: 분모는 디스크 실측 기준).
-#  - 잔여 0 spec → ack 시도 자체 불가 (분모 0).
+#  - 직전 tick (949c03c) 박제 3 spec 외부 이탈 후 본 tick 시작 시점 green spec disk 실측 0건 — 분모 0 유지.
+#  - 본 tick 신규 박제 1 spec (foundation/src-spec-reference-coherence.md) 은 baseline cycle 0 — Phase 1 ack 대상 아님 (차기 tick 부터 추적).
 #
 # 분모 0 / ack 0. RULE-04 토큰: `reconcile: 0/0 ack`.
 #
-# Phase 2: 입력 큐 specs/20.req/ 0건. no-op.
+# Phase 2: 입력 큐 1건 (REQ-20260517-071) 흡수.
+#  - RULE-07 자기검증 양성: "시점 비의존", "src 가 spec 을 가리킬 때 항상 정합" 상시 시스템 계약, 측정 가능한 grep / `test -e` 게이트 2개 (FR-01/FR-02), §FR/§수용 기준 본문 hit 수 비의존 (NFR-03 명시).
+#  - 박제 위치: foundation/ (tooling/regression-gate 와 동축의 시스템 횡단 게이트).
+#  - 신규 spec: specs/30.spec/green/foundation/src-spec-reference-coherence.md (RULE-01 `-spec` suffix 금지 정합 — `-spec` suffix 없는 slug).
+#  - baseline 박제: HEAD=a4037ec 실측 (req §배경과 동일) — 11 hit / 8 file / 7 path / 7 MISSING.
+#  - req mv: specs/20.req/20260517-src-spec-reference-path-coherence.md → specs/60.done/2026/05/17/req/.
 #
-# 40.task/ 디스크 실측: 0건. 격리된 6 spec 모두 task 발행 precondition (REQ-064 devbin-install-integrity / REQ-065 path-alias / REQ-066 vite-jsx-transform 환경 회귀 + island 수렴 3 spec 의 hash 안정 정체 ≥2회차) 미해소. RULE-05 /revisit 정식 경로 의존.
+# 40.task/ 디스크 실측: 0건. 격리된 6 spec 모두 task 발행 precondition 미해소 (RULE-05 /revisit 정식 경로 의존).
+# 본 신규 spec 1건은 task 발행 precondition 충족 — planner 차기 tick 흡수 후보. baseline 측정값 (11 hit / 7 MISSING) 박제 정합 → task 발행 시 grep-baseline 재계산 정합.
 #
-# ID 충돌 박제 (직전 세션 이월): REQ-20260517-068 ID 가 직전 직전 세션에서 2 req (eslint-linter-options-default-override + log-island-convergence) 에 중복 발행. 차기 discovery 세션 책임 (ID 재배정 또는 메타 정정 followup). spec 정합 자체 영향 0.
+# GREEN_PENDING_MAX=20 — 본 tick 후 green spec disk 실측 1건 << 20 임계치 미달.
 #
-# 본 세션 commit diff = `specs/30.spec/green/.inspector-seen` 갱신 단일 (1 file change). green 측 spec touch 0 (분모 0 — touch 대상 없음). RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 복원 시도 0 — RULE-05 /revisit 경로 의존).
-#
-# GREEN_PENDING_MAX=20 — 본 tick 후 green spec disk 실측 0건 << 20 임계치 미달.
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/src-spec-reference-coherence.md (신규)
+#  - specs/30.spec/green/.inspector-seen (갱신)
+#  - specs/20.req/20260517-src-spec-reference-path-coherence.md → specs/60.done/2026/05/17/req/ (mv)
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 복원 시도 0 — RULE-05 /revisit 경로 의존).
 #
 # 입력 큐 잔여: 0건. 차기 inspector tick 우선순위:
-#  (1) discovery 가 격리 6 spec 의 _reason.md 를 RULE-05 /revisit → followups 승격 시 신규 req 흡수.
-#  (2) Phase 1 추적 분모 0 유지 (디스크 실측 0 spec) — green 신규 spec 박제 시 1st cycle baseline hash 박제.
-#  (3) ID 충돌 REQ-068 dup 모니터링 (discovery 책임).
+#  (1) 신규 박제 src-spec-reference-coherence.md baseline cycle 1 ack 추적 시작 (planner 가 본 spec 흡수 후 task 발행 → developer 가 11 hit 회수 시 reconcile 대상).
+#  (2) 격리 6 spec _reason.md 의 RULE-05 /revisit → followups 승격 시 신규 req 흡수.
+#  (3) ID 충돌 REQ-068 dup 모니터링 (discovery 책임 잔존).
 #
 # == seen-state ==
-# (분모 0 — 항목 없음)
+specs/30.spec/green/foundation/src-spec-reference-coherence.md	baseline-a4037ec	0
