@@ -3766,3 +3766,60 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #    (16) **Monitor 도메인 (REQ-093 FR-03) carve 분기**: 61차 박제 (14) 와 동일 자가 차단 영구 유지 (REQ-077 typecheck-island-extension blue spec §역할 박제 — 별 src-typescript-migration 영역, 외부 surface 의존, 해소 경로 = 별 REQ 흡수 → 별 spec 박제 → 별 task carve).
 #    (17) **RULE-04 보고 token 박제**: promote 0 + carve 0 + 격리 0 + no-op true + 자기 영역 commit 1 (.planner-seen 71차 노트 갱신 단일 commit). grep dry-run token 미발화 (carve 0).
 #    (18) **hook chain forensics 재측정 분기**: 본 71차 commit 시점 67차 박제 5c34c48 / 177da6a / dd23d77 자동 chain 재발 surface 측정 분기 진입. 본 71차 commit 후 git log + git status 측정 후 박제. 68차 commit `a5edd2d` + 69차 commit `f03bab7` + 70차 commit `60e8def` 단일 commit 정합 박제 누적 — chain 재발 0 박제 (3-tick PASS 누적 → 4-tick PASS 분기 진입).
+# 2026-05-17 planner session (72nd tick @HEAD=c3d0cab) — carve 0 + promote 0 + 격리 0 (no-op 2회차 누적).
+#   진입 baseline (HEAD=c3d0cab 실측):
+#     - HEAD chain (71차 종료 60e8def → 72차 진입 c3d0cab): 71차 self 6a699fb + developer TSK-31 회수 e8f47bf (`test:` stripCspMetaInDev 2회 연속 멱등 fixture 박제 — vite.config.test.js +1 it) + inspector REQ-099 흡수 838db36 (foundation/index-html-public-asset-reference-coherence.md 신규 박제 + Phase 1 reconcile 0/17 ack) + discovery REQ-100 발행 c3d0cab. 71차 박제 (7) HEAD 격차 후보 5건 (a~e) 중 (a)(c)(e) 진행 + (b) TSK-31 60.done mv 완료 (60.done/2026/05/17/task/csp-strip-applied-twice-idempotent-fixture/ 진입 — 26 → 27) + (d) inspector hook-ack chain 미진입 (REQ-098 G-D / REQ-097 G-B/G-C marker 플립 surface 측정 대기).
+#     - working tree clean. 18 green spec 진입 (71차 17 + REQ-099 흡수 신규 1 = 18). 60.done/2026/05/17/task/ = 27 디렉터리 (71차 26 + TSK-31 csp-strip-applied-twice-idempotent-fixture 1건). 40.task/ = 0건 (TSK-31 회수 완료 — 71차 1건 → 72차 0건). 20.req/ = 1건 (REQ-100 manifest-icons-sizes-token-disk-coherence — discovery 신규 발행, inspector 미흡수). 10.followups/ = 0건. 50.blocked/spec/foundation/ = 0건 (디렉터리 빈 잔존). 50.blocked/task/ = 0건.
+#   18 green spec hash + 4조건 gate 측정 (HEAD=c3d0cab 실측):
+#     (1) common/accessibility.md `fa58c616` (무변동, W=0 U=1 T=0 H=1).
+#     (2) common/markdownParser.md `80e20a34` (무변동, W=0 U=1 T=0 H=1).
+#     (3) common/sanitizeHtml.md `f33c38cc` (무변동, W=0 U=4 T=0 H=1).
+#     (4) common/test-helpers.md `20f79e22` (무변동, W=0 U=3 T=0 H=1).
+#     (5) foundation/csp-meta-dev-strip-prod-preserve.md `9ed14793` (무변동, W=0 U=21 T=0 H=1. REQ-098 신규 spec 3회차 진입 — TSK-31 회수 commit `e8f47bf` 후에도 inspector hook-ack 미진입 → G-D (b) marker 플립 surface 측정 대기).
+#     (6) foundation/diagnostic-script-auto-channel-coverage.md `566a71c5` (무변동, W=0 U=4 T=0 H=1).
+#     (7) foundation/eslint-react-hooks-lint-gate.md `ca40a43e` (무변동, W=0 U=20 T=0 H=1).
+#     (8) foundation/index-html-public-asset-reference-coherence.md `d322b5a3` (**신규 박제**, W=0 U=29 T=0 H=1. REQ-099 흡수 인스펙터 commit `838db36`. G-A~G-J 10 결과 효능 박제. 1회차 진입).
+#     (9) foundation/island-proptypes-zero.md `e1502b5f` (무변동, W=0 U=2 T=0 H=1).
+#    (10) foundation/lint-warning-zero-gate.md `7c0db082` (무변동, W=0 U=2 T=0 H=1).
+#    (11) foundation/node-modules-extraneous-coherence.md `77af8bab` (무변동, W=0 U=3 T=0 H=1).
+#    (12) foundation/npm-script-prefix-coherence.md `2f83fff0` (무변동, W=0 U=2 T=0 H=1).
+#    (13) foundation/package-manager-major-coherence.md `53b0d39f` (무변동, W=0 U=5 T=0 H=1).
+#    (14) foundation/root-config-spec-reference-coherence.md `08a2beac` (무변동, W=0 U=16 T=0 H=1 — REQ-097 신규 spec 4회차 진입. TSK-30 회수 chain 종결 후 inspector hook-ack 미진입 surface 유지).
+#    (15) foundation/spec-carve-precondition.md `866b3808` (무변동, W=0 U=4 T=0 H=1).
+#    (16) foundation/tooling.md `0ae9247d` (무변동, W=0 U=6 T=0 H=1).
+#    (17) styles/css-modules.md `a0b75e71` (무변동, W=0 U=3 T=0 H=1).
+#    (18) testing/runtime-fetch-unmount-safety.md `4c2214a3` (무변동, W=0 U=7 T=0 H=1).
+#   본 72차 NET 효과:
+#     - **carve 0건**: 신규 REQ-099 spec G-A~G-G 7 결과 효능 baseline 측정 결과 전수 만족 → carve scope 없음. (a) G-A `grep -cE "manifest|favicon|apple.touch.icon|theme.color" index.html` = 4 (baseline 박제 동일 — 회귀 0), (b) G-B `public/manifest.json` + `public/favicon.ico` + `public/apple-icon-precomposed.png` + `public/logo192.png` 4 파일 실재, (c) G-C build artifact 4 자원 + grep 4 동치 보존 (Vite `publicDir` 자동 복사), (d) G-D theme-color 양면 값 `"#000000"` 동치, (e) G-E icons[*].src 2 항목 디스크 실재, (f) G-F JSON valid + 462 byte byte-equal, (g) G-G 양면 분리 박제 (apple-icon-precomposed.png ∉ icons / favicon.ico ∈ icons). G-H 발화 채널 0 hit baseline 은 수단 영역 (FR-08 "발화 채널 존재" 계약 자체만 박제 — pre-commit / pre-push / CI / `check:public-asset-coherence` script 선정은 §83 명시 수단 위임). 따라서 planner carve scope 외 — 후속 task 발행은 운영자 결정 영역. 잔여 17 green spec 도 71차 박제 (3) carve 후보 surface 전수 변동 0 — (i) REQ-097 축 A 선결 외부 의존 미해소, (ii) REQ-097 축 D 선결 inspector hook-ack 미진입 (G-B/G-C marker 미플립), (iii) REQ-098 잔여 16 marker 외부/수단/결정 영역 의존 자가 차단, (iv) REQ-098 G-D (b) TSK-31 회수 완료 (재carve 영구 금지 + inspector hook-ack 미진입), (v~ix) Monitor 도메인 / runtime-fetch / tooling / package-manager / lint-warning-zero / island-proptypes 자가 차단 유지.
+#     - **promote 0건**: 18 green spec 전수 unchecked > 0 → 4조건 (`[WIP]` == 0 + unchecked `- [ ]` == 0 + `^#+ .*To-Be` == 0 + `## 변경 이력` 박제) 중 unchecked 조건 미충족. REQ-099 신규 spec U=29 + REQ-098 신규 spec U=21 + REQ-097 축 root-config U=16 + 기존 15 spec 전수 unchecked > 0.
+#     - **격리 0건**: 18 green spec 전수 RULE-07 §양성 평서 + 시점 비의존 + 시스템 불변식 정합 유지. REQ-099 신규 spec 도 §역할 평서 + §동작 결과 효능 + §시점 비의존 (G-I) 정합 — 격리 0. 외부 의존 면제 분기 (61차 박제 (11) 룰) 28회차 누적 — 9 spec 28회차 도달 + REQ-097 신규 spec 4회차 도달 + REQ-098 신규 spec 3회차 진입 + REQ-099 신규 spec 1회차 진입.
+#     - **hash 변동 0건** (18 → 17 무변동 + 1 신규 박제): 17 기존 green spec hash 전수 무변동 (71차 종료 대비). 1 신규 spec `index-html-public-asset-reference-coherence.md` (REQ-099) hash `d322b5a3` 박제 (inspector 영역 발화).
+#   다음 세션 (73rd tick) 행동지침:
+#     (1) **inspector hook-ack chain**: 71차 박제 (1) 와 동일 — TSK-31 회수 commit `e8f47bf` 후 REQ-098 G-D (b) marker 플립 surface 측정 대기. TSK-30 회수 commit `1652343` 후 REQ-097 G-B/G-C marker 플립 surface 측정 대기. planner 영역 밖 (inspector 영역) — 모니터링만.
+#     (2) **REQ-100 흡수 분기**: 20.req/ 잔존 REQ-100 (manifest-icons-sizes-token-disk-coherence) inspector 흡수 시점 신규 spec 박제 chain 진입 가능성 surface. REQ-099 §79 Out-of-Scope "public/ 자원 자체의 콘텐츠 정합 — 별 axis" 결과 효능 axis 보완. baseline 양방향 격차 측정값 박제 (`icons[0]` favicon.ico = {24x24 declared-missing-actual, 48x48 actual-missing-declared} / `icons[1]` logo192.png = {512x512 declared-missing-actual}) → 흡수 시점 신규 spec 박제 chain → 잠재 carve 후보 surface 진입. planner 영역 밖 (inspector 영역) — 모니터링만.
+#     (3) **carve 후보 surface 잔존** (71차 (3) 와 정합 + REQ-099 추가):
+#       (a) REQ-097 축 A — 2 hit / 2 file. 회수 수단 (정합 spec slug 박제 / 참조 주석 삭제) 모두 외부/결정 영역 의존. planner 영역 carve 보류.
+#       (b) REQ-097 축 D — TSK-30 회수 chain 종결 후 inspector G-B/G-C marker 플립 PASS 후 carve 진입.
+#       (c) REQ-098 G-D (b) — TSK-31 회수 chain 종결 (재carve 영구 금지). inspector hook-ack 미진입 surface.
+#       (d) REQ-098 잔여 16 marker — 외부/수단/결정 영역 의존 자가 차단 유지.
+#       (e) REQ-099 G-A~G-G — 7 결과 효능 전수 baseline 만족 → carve scope 없음. G-H "발화 채널 존재" 계약 baseline 0 hit 은 수단 영역 (planner carve scope 외 — 운영자 결정 영역).
+#       (f) runtime-fetch-unmount-safety 잔여 7 marker — Monitor 도메인 자가 차단 + 외부 surface 의존.
+#       (g) tooling.md hook-ack 6 marker — 다음 inspector tick 측정 후 승격 분기.
+#       (h) package-manager-major-coherence FR-02 / FR-03 — 외부 의존 자가 차단 유지.
+#       (i) lint-warning-zero-gate blue 승격 → eslint-react-hooks-lint-gate (P2) 자가 차단 해제 chain — hash 무변동 surface 의존.
+#       (j) island-proptypes-zero (I2)(I3) marker 외부 island 진입 의존 — self-defer 유지.
+#     (4) **carve 재발행 금지 (멱등)**: TSK-01~31 모두 재carve 영구 금지. REQ-094 + REQ-096 chain 종결 (68차 mv). REQ-097 chain = TSK-30 회수 박제 + 축 A / 축 D 별 task chain 후속 진입 의존. REQ-098 chain = TSK-31 회수 박제 + 잔여 16 marker 외부 의존. REQ-099 chain = 7 효능 baseline 만족 + G-H 발화 채널 수단 영역.
+#     (5) **40.task/ 백프레셔**: 본 72차 종료 시 0건 (TSK-31 회수 완료). 임계치 10건 → 10건 여유.
+#     (6) **신규 REQ 흡수 분기**: 20.req/ 1건 잔존 (REQ-100 manifest-icons-sizes-token-disk-coherence, inspector 미흡수) → planner 영역 밖. 흡수 시점 carve 분기 surface 진입.
+#     (7) **HEAD 격차 분석 (73rd tick 진입 시점)**: baseline 격차 — (a) inspector REQ-100 흡수 commit (신규 spec 박제 가능성), (b) inspector hook-ack chain commit (REQ-098 G-D / REQ-097 G-B/G-C marker 플립 후보), (c) 본 72차 .planner-seen 갱신 단일 commit (no-op carve 0).
+#     (8) **Task ID footprint**: 본 tick 채번 0건 (no-op). 73차 신규 carve 시 -32+ 채번 (영구 박제 -01~-31 재사용 금지 + -04 미발행 유지).
+#     (9) **정체 카운트 (격리 분기 명시화)**: 본 72차 진입 시 17 기존 green spec 전수 hash 무변동 (71차 대비) + 1 신규 spec 박제. 정체 카운트 +1회차 누적 (기존 9 spec 28회차 도달 + REQ-097 신규 spec 4회차 도달 + REQ-098 신규 spec 3회차 진입 + REQ-099 신규 spec 1회차 진입). 외부 의존 면제 분기 유지 (61차 박제 (11) 룰).
+#    (10) **환경 회복 분기**: 34세션 누적 PASS → 35세션 진입 분기 (73rd tick 측정). 본 72차 측정 `npm run typecheck --silent` RC=0 PASS 유지 (외부 멱등).
+#    (11) **inspector hook-ack 누적 분기**: 71차 (11) 와 동일 누적 — 추가 hook-ack 후보: (a) TSK-30 회수 commit `1652343` 후 REQ-097 G-B/G-C marker 플립, (b) TSK-31 회수 commit `e8f47bf` 후 REQ-098 G-D (b) marker 플립, (c) island-proptypes-zero I2/I3 marker 외부 island 진입, (d) spec-carve-precondition marker 플립, (e) tooling.md 잔여 6 marker 측정, (f) runtime-fetch-unmount-safety 잔여 7 marker 단계적 진입, (g) REQ-100 흡수 분기 (신규 spec 박제 가능성), (h) REQ-099 G-A~G-J marker 점진 hook-ack (baseline 7 효능 만족 surface 측정 후).
+#    (12) **grep dry-run 본 72차 종료**: carve 0건 → grep dry-run 측정 0 (no-op token 박제 — RULE-04 notes 의 grep dry-run token 은 carve 발생 시 발화. 본 tick 미발화 정합).
+#    (13) **격리 분기 누적 박제 (28회차 진입)**: 본 72차 박제 정체 카운트 28회차 도달 9 spec + REQ-097 신규 spec 4회차 도달 + REQ-098 신규 spec 3회차 진입 + REQ-099 신규 spec 1회차 진입 → 외부 의존 면제 분기 유지 (RULE-07 §양성 평서 정합 박제 + 외부 surface 의존 자가 차단 신호). 73rd tick 진입 시 29회차 / 5회차 / 4회차 / 2회차 도달 시 동일 면제 분기 적용.
+#    (14) **본 tick promote/carve/격리 분기 명시화**: 72차 = carve 0 + promote 0 + 격리 0 (3-zero no-op 2회차 누적). 17 기존 hash 무변동 + 1 신규 spec 박제 + 71차 발행 TSK-31 회수 chain 종결.
+#    (15) **no-op 누적 (리셋 분기)**: 60차 carve 1 → 61차 no-op 1 → 62차 no-op 2 → 63차 promote+carve → 64차 no-op 1 → 65차 no-op 2 → 66차 carve 1 (정정) → 67차 net 0 (revert) → 68차 promote 2 + carve 1 → 69차 no-op 1 → 70차 carve 1 (리셋) → 71차 no-op 1 → **72차 no-op 2회차 누적 (REQ-099 신규 spec G-A~G-G 7 효능 baseline 만족 + 외부 의존 면제 28회차 유지 + TSK-31 회수 chain 종결 inspector hook-ack 대기)**.
+#    (16) **Monitor 도메인 (REQ-093 FR-03) carve 분기**: 61차 박제 (14) 와 동일 자가 차단 영구 유지 (REQ-077 typecheck-island-extension blue spec §역할 박제 — 별 src-typescript-migration 영역, 외부 surface 의존, 해소 경로 = 별 REQ 흡수 → 별 spec 박제 → 별 task carve).
+#    (17) **RULE-04 보고 token 박제**: promote 0 + carve 0 + 격리 0 + no-op true + 자기 영역 commit 1 (.planner-seen 72차 노트 갱신 단일 commit). grep dry-run token 미발화 (carve 0).
+#    (18) **hook chain forensics 재측정 분기**: 본 72차 commit 시점 67차 박제 5c34c48 / 177da6a / dd23d77 자동 chain 재발 surface 측정 분기 진입. 68차 commit `a5edd2d` + 69차 commit `f03bab7` + 70차 commit `60e8def` + 71차 commit `6a699fb` 단일 commit 정합 박제 누적 — chain 재발 0 박제 (4-tick PASS 누적 → 5-tick PASS 분기 진입). 본 72차 commit 후 git log + git status 측정.
