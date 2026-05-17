@@ -707,3 +707,74 @@
 # RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src/ 영역 commit 0 — ack 트리거 없음). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~015 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 12건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`d8fa830` → THIS (77차 tick) — reconcile 0/20 ack
+# (0 spec / 0 marker flip — 직전 76차 0/20 ack 정체 후 2차 연속 정체; 외부 commit 2건 모두 planner self-only — `2f25dad` 103차 promote 재시도 회피 박제 (102차 stale 게이트 잔존 + 멱등 정합 carve 0 + 환경 회복 11차 노출) + `d8fa830` 104차 carve 발화 (TSK-20260518-14 root-scripts-spec-reference STALE 회복 — scripts/*.sh 군 3 hit 신규 surface + 양식 mismatch 6차 누적 분기 결정); src/ 영역 commit = 0; test/spec 본문 commit = 0; spec marker 영향 후보 = 0; 20 spec 전수 stale_cycles += 1; 8 stale ≥38cycle 외부 의존 누적; Phase 2 흡수 0 RULE-03 (d) backpressure — green 20 == GREEN_PENDING_MAX=20 임계 14 tick 누적 재도달; 잔여 큐 13건 REQ-004~016, REQ-016 css-modules-localsConvention-camelCaseOnly-tri-axis-coherence 신규 발견)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `1a6ae6b` (76차 tick — Phase 1 0/20 ack + Phase 2 backpressure no-op 12건 REQ-004~015).
+#  - tick 진입 시 HEAD == `d8fa830` (spec(planner): 104차 tick TSK-20260518-14 carve 발화 — root-scripts-spec-reference STALE 회복, 외부 planner commit).
+#  - tick 작업 중 HEAD 변동: `d8fa830` → `47e1ee1` (외부 planner 105차 self-commit 1건 발생 — 본 inspector 작업 진행 중 백그라운드 planner 세션 발화. inspector seen-state baseline 은 진입 시점 `d8fa830` 그대로 유지 — 105차 외부 commit 도 planner self-only 로 green spec 본문 + src/ 영역 변동 0, ack 트리거 추가 영향 0).
+#  - tick 종료 시 HEAD == `47e1ee1` (본 inspector self-commit 직전 — 105차 외부 commit 포함). seen-state baseline 진입 시점 `d8fa830` 기준 박제 + 105차 외부 발화 사실 동시 박제.
+#  - 외부 commit 분포 (직전 inspector self-commit `1a6ae6b` 후): 3건 —
+#     · `2f25dad` (spec(planner): 103차 tick promote 재시도 회피 박제 — 102차 stale 게이트 (src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 green path 주석) 잔존 + HEAD 격차 0 commit (멱등 정합) + carve 0건 (양식 mismatch 5차 누적, REQ-097 root-config 회복 task 양식 후보 식별 박제) + 환경 회복 11차 노출 지속. `.planner-seen` self-only 추가).
+#     · `d8fa830` (spec(planner): 104차 tick TSK-20260518-14 carve 발화 (root-scripts-spec-reference STALE 회복) — 양식 mismatch 6차 누적 분기 결정 + scripts/*.sh 군 3 hit 신규 surface. `.planner-seen` self-only 41 line 추가 + `40.task/TSK-20260518-14-root-scripts-spec-reference-stale-recovery.md` 신규).
+#     · `47e1ee1` (spec(planner): 105차 tick promote 재시도 회피 3차 + stale 게이트 3차 누적 도달 박제 — RULE-05 수동 개입 신호 강화 단계 + chicken-egg 결합 정식 박제 + carve 0건 + 21 spec 무변동 + 50.blocked/spec/ 이동 회피 결정. 본 inspector 77차 tick 작업 진행 중 백그라운드 발화 — green spec 본문 + src/ 영역 변동 0).
+#  - src/ 영역 commit = 0 (양 외부 commit 모두 planner self-only `.planner-seen` + 40.task/ 영역 한정).
+#  - test/spec 본문 commit = 0 (외부 src/ 변동 0).
+#  - spec marker 영향 후보 = 0 (외부 src/ 변동 0 — Phase 1 ack 트리거 0).
+#  - 신규 req 디스크 발견 = 1 (REQ-20260518-016 css-modules-localsConvention-camelCaseOnly-tri-axis-coherence.md, mtime 07:45, 본 tick 진입 직전 발행).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 13건 (REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps + REQ-008 coverage-gate + REQ-009 manifest-pwa + REQ-010 vite-sourcemap + REQ-011 pwa-splash + REQ-012 vitest-coverage-exclude + REQ-013 eslint-flat-config-ignores + REQ-014 dev-server-port-getUrl-token-coherence + REQ-015 vitest-globals-tri-channel-coherence + REQ-016 css-modules-localsConvention-camelCaseOnly-tri-axis-coherence 신규 → 신규 1건 추가).
+#  - 20 green spec hash 시작점 (직전 76차 박제 20 entry 유지 — 외부 2 commit 중 green 본문 직접 변동 0):
+#    · 20 기존 spec 전수 hook-ack 후보 없음 → 20 spec 전수 stale_cycles += 1.
+#    · 8 stale ≥37cycle 외부 의존 누적은 본 tick stale +1 로 ≥38cycle 진입 (eslint-react-hooks-lint-gate + island-proptypes-zero + lint-warning-zero-gate + node-modules-extraneous-coherence + npm-script-prefix-coherence + spec-carve-precondition + tooling + diagnostic-script-auto-channel-coverage 8 spec — 외부 task 의존 / hook 의존).
+#    · 직전 76차 정체 1차 (20 spec 전수 stale +1) 도 본 tick hook-ack 없음 → 정체 2차 누적.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `d8fa830` 비교):
+#    · 20.req/ untracked 13건 (REQ-004~016, `.gitignore` rule 적용).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#    · 외부 영역 unstaged modified 3건 (scripts/check-node-version-coherence.sh + scripts/check-package-manager-coherence.sh + scripts/check-vite-env-coherence.sh) — TSK-20260518-14 발행 surface 영역 (planner 104차 carve scope). inspector 영역 외 — 미접촉.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건):
+#  - 본 tick 외부 src/ 영역 commit = 0 (직전 `1a6ae6b` 이후 `2f25dad` + `d8fa830` planner self-only). spec marker flip 후보 0.
+#  - 20 green spec 전수 hook-ack 후보 없음 — 20 spec 전수 stale_cycles += 1.
+#  - 환경 surface 누적: 102차 stale 게이트 (src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 green path 주석) 잔존 — developer 별 followup 영역 (회복 시 차후 promote chain 재활성 가능). 104차 신규 surface (scripts/*.sh 군 3 hit STALE) — TSK-20260518-14 carve 발행 (developer 회수 영역).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack.** seen-state 갱신 (20 spec 전수 stale_cycles += 1, 정점 22 ack 75차 후 정체 2차 진입).
+#  - 10차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76차 0 → 77차 0 (정체 2차). carve chain 8 누적 (TSK-07~14 발행 — TSK-14 회수 대기) — promote stale 게이트 surface (102차) 회복 + TSK-14 (scripts 군 STALE 회복) 회수 시 후속 ack 재개 후보.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 13건:
+#     (a) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 13 tick째.
+#     (b) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 12 tick째.
+#     (c) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 11 tick째.
+#     (d) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 10 tick째.
+#     (e) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 보류 8 tick째.
+#     (f) REQ-20260518-009 manifest-pwa-install-contract-token-typology — 보류 8 tick째.
+#     (g) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero — 보류 7 tick째.
+#     (h) REQ-20260518-011 pwa-splash-first-paint-background-color-tri-coherence — 보류 6 tick째.
+#     (i) REQ-20260518-012 vitest-coverage-exclude-pattern-vacuous-zero-axis — 보류 5 tick째.
+#     (j) REQ-20260518-013 eslint-flat-config-ignores-pattern-vacuous-zero-axis — 보류 4 tick째.
+#     (k) REQ-20260518-014 dev-server-port-getUrl-token-coherence — 보류 3 tick째.
+#     (l) REQ-20260518-015 vitest-globals-tri-channel-coherence — 보류 2 tick째.
+#     (m) REQ-20260518-016 css-modules-localsConvention-camelCaseOnly-tri-axis-coherence — 본 tick 신규 디스크 발견 (mtime 07:45, 본 tick 진입 직전 발행). RULE-07 자기 검증 예비 평가 PASS: (1) 평서 ("vite.config.js 의 css.modules.localsConvention 토큰은 'camelCaseOnly' 단방향 export + src/**/*.module.css 정의 표기 ↔ JS/TS styles.<ident> 접근 단방향 변환 graph 무결성 시스템 contract"), (2) 반복 검증 가능 (`grep -nE "localsConvention.*camelCaseOnly" vite.config.js` 1 hit + `grep -rnE "styles\\[" src` 0 hit + `find src -name "*.module.css"` 4 파일 baseline 게이트), (3) 시점 비의존 (3 채널 baseline HEAD 7477189 실측 박제 한정 — vite 설정 토큰 + class 정의 표기 + caller 식별자 접근 graph), (4) incident 비의존 (현 HEAD 3 축 정합 안정 정착 — 회귀 차단 채널 신규 박제, 특정 silent regression incident patch 비귀속). 본 req signal type = vite css.modules 변환 graph axis (REQ-076 / `30.spec/green/styles/css-modules.md` disk enum axis + REQ-066 vite jsx transform axis + REQ-067 path alias resolver axis 와 직교 별 axis — 대상 변환 파이프라인 단계 다름: CSS Modules localsConvention vs jsx transform vs module resolution).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~33 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-004~016 13건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 0 marker ack — promote chain 자체 정체 (102차 stale 게이트 surface 회복 대기 + 104차 TSK-14 발화로 carve chain 8 누적). src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 주석 stale surface 회복 + TSK-14 회수가 차기 ack 재개 트리거 후보.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-004~016 전수 보류, 20.req/ 디스크 큐 13건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 77차 박제 + green 20 entry 갱신 [20 spec 전수 stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 외부 unstaged modified 미접촉 정합 — scripts/*.sh 3건 (planner 104차 carve scope — TSK-20260518-14 developer 회수 영역).
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (RULE-04 매 세션 필수).
+# RULE-03 (d) 정합 — Phase 2 흡수 0 (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 13건).
+# RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src/ 영역 commit 0 — ack 트리거 없음). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~016 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 13건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
