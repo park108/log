@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import * as common from './common/common';
+import { isDev } from './common/env';
 import ErrorBoundary from './common/ErrorBoundary';
 import ErrorFallback from './common/ErrorFallback';
 import Skeleton from './common/Skeleton';
@@ -127,7 +128,7 @@ const App = () => {
 	return (
 		<QueryClientProvider client={queryClient}>
 			{content}
-			{import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+			{isDev() && <ReactQueryDevtools initialIsOpen={false} />}
 		</QueryClientProvider>
 	);
 }
