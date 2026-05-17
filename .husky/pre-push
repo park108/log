@@ -1,1 +1,2 @@
+npm run check:deps || exit 1
 npm test

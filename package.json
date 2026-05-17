@@ -23,6 +23,7 @@
     "lint": "eslint ./src",
     "lint:spec-coherence": "bash scripts/check-spec-coherence.sh",
     "check:vite-env": "bash scripts/check-vite-env-coherence.sh",
+    "check:deps": "bash scripts/check-deps-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky"
   },
