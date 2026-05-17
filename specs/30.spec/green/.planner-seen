@@ -4269,3 +4269,32 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #    (19) **hash 검증 강화 분기 확정 박제**: 78차 박제 (19) 의 79th tick 측정 시 hash 박제 검증 강화 분기 (working-tree clean 확인 후 git hash-object 측정) 실행 완료 — 79차 working-tree clean 확인 → git hash-object 측정 → 20 spec 전수 78차 baseline 동일 hash 재현 정합. 77차 박제 hash 측정 오류 정정 분기 (78차 노트 (19)) 79차 재검증 PASS. 80th tick 이후 동일 측정 룰 유지 (working-tree clean + git hash-object 직접 측정).
 #    (20) **REQ-20260518-003 inspector 미흡수 1tick 누적 박제**: 78차 박제 (20) 와 동일 surface 유지 — discovery commit `621122c` 박제 후 79차 진입 시점 inspector 미흡수 1tick 누적 (78차 0tick + 79차 1tick). 80th tick 이후 inspector 흡수 chain 진입 시 신규 spec 박제 가능성 (양면 67 byte ASCII literal 동치 시스템 불변식 후보).
 #    (21) **사상 최장 no-op 9회차 누적 박제**: 78차 (21) 직전 기록 (8회차) 갱신. 79차 9회차 누적 박제 surface — 자가 차단 surface 유지 + 신규 REQ 2건 inspector 미흡수 (REQ-20260518-002 4tick / REQ-20260518-003 1tick) + 20 spec hash 78차 baseline 동일 회귀 (4 tick 연속 surface 박제). 80th tick 이후 inspector 흡수 chain 진입 시점 carve 분기 surface 발화 가능성 영구 모니터링 분기 박제.
+#
+# === 80th tick (2026-05-18, planner manual 3rd-stage) ===
+# - **NET 효과**: carve 6 (TSK-20260518-01~06) + promote 0 + 격리 0. no-op false. 사상 최장 no-op 누적 9회차 (79차) 종결.
+# - **carve 분기 발화** (78차/79차 행동지침 (3) 자가 차단 surface 일부 해제):
+#   - TSK-20260518-01 `root-config-spec-reference-cleanup` ← spec `root-config-spec-reference-coherence.md` G-A (자체 진단 텍스트 회복 — `vite.config.js:9` + `eslint.config.js:3` 2 hit → 0 hit).
+#   - TSK-20260518-02 `check-spec-coherence-ci-cell` ← spec `diagnostic-script-auto-channel-coverage.md` FR-10 (CI cell 비대칭 0 회복 — `ci.yml` step 추가 1줄).
+#   - TSK-20260518-03 `eslint-react-hooks-rules-activation` ← spec `eslint-react-hooks-lint-gate.md` FR-01~04 (`eslint-plugin-react-hooks` plugin + rules-of-hooks + exhaustive-deps + fixture cycle).
+#   - TSK-20260518-04 `visitormon-unmount-safety` ← spec `runtime-fetch-unmount-safety.md` FR-03 (`VisitorMon.jsx` cleanup return + cancelled / signal / isMounted 가드 + fixture).
+#   - TSK-20260518-05 `monitor-focus-visible-css-audit-fixture` ← spec `accessibility.md` (I5) (Monitor `:focus-visible` outline 정적 회귀 fixture 박제).
+#   - TSK-20260518-06 `package-manager-ci-lockfile-coherence` ← spec `package-manager-major-coherence.md` FR-02 + FR-03 (CI npm 추종 채널 + lockfileVersion rewrite 동반 회수).
+# - **grep dry-run**: 6/6 match (RULE-04 token). 모든 task baseline 실측 + spec 본문 baseline 정합 확인. TSK-01 의 8 hit (2 회복 대상 + 6 자체 진단 제외) 분기 박제.
+# - **carve 미발화 spec 잔존** (이전 차단 surface 유지):
+#   - island-proptypes-zero (I2)(I3) — 신규 island 진입 의존, self-defer.
+#   - lint-warning-zero-gate (I9) / FR-06 — 미래 ESLint config 이벤트 의존.
+#   - tooling.md / npm-script-prefix / css-modules / test-helpers — 미래 이벤트 marker.
+#   - sanitizeHtml (I2)(I5) — caller 측 lint rule + OWASP fixture 본문 검증 별 spec 영역.
+#   - markdownParser (I6) — ul ↔ ol 혼합 중첩 별 spec 후보.
+#   - manifest-icons / index-html-public-asset / meta-robots / csp-meta — 대형 fixture chain, 본 80th tick 미진입 (carve 후보 surface 유지 다음 tick 분기).
+#   - spec-carve-precondition FR-02~05 — inspector writer 영역 (planner mv only).
+# - **TASK_READY_MAX**: 본 80th tick 종료 시 40.task/ = 6건. 임계치 10건 → 4건 여유.
+# - **HEAD chain**: 79차 종료 commit (`56d2f80`) → 80th tick 진입 동일 → carve 6 + .planner-seen 노트 박제 단일 commit.
+# - **80th tick 종료 행동지침 (81th tick 진입 분기)**:
+#   (1) **40.task/ 6건 developer 회수 분기**: 신규 carve 6건 developer (15m 트리거) 회수 chain 진입 가능. developer 영역.
+#   (2) **TASK_READY_MAX 4건 여유**: 81th tick 진입 시 추가 carve 가능 분기 — `manifest-icons-sizes-token-disk-coherence` / `index-html-public-asset-reference-coherence` / `meta-robots-robotstxt-policy-semantic-coherence` / `csp-meta-dev-strip-prod-preserve` 4 대형 fixture chain (각 spec G-A~G-J 10+ marker) carve 후보 surface 진입 가능.
+#   (3) **no-op 누적 리셋**: 79차 9회차 → 80th tick carve 6 발화로 누적 리셋 (no-op false). 81th tick 진입 분기에서 신규 카운팅.
+#   (4) **Task ID footprint**: 80th tick 시점 채번 6건 (`TSK-20260518-01~06`). 81th tick 신규 carve 시 `TSK-20260518-07` 부터 채번.
+#   (5) **carve 재발행 금지 (멱등)**: TSK-20260517-01~31 + TSK-20260518-01~06 모두 재carve 영구 금지.
+#   (6) **promote 분기 모니터링**: 20 green spec 전수 unchecked > 0 surface 유지 — 발행 task 회수 chain 종결 + spec `## 변경 이력` 박제 후 marker 플립 시점에 promote 4조건 충족 진입 가능.
+# - **RULE-04 token 박제 본 80th tick**: carve 6 + promote 0 + 격리 0 + no-op false + `grep dry-run: 6/6 match`.
