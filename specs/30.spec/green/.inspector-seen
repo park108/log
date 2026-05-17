@@ -1,112 +1,87 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ HEAD=`cac6fa2` → THIS (53차 tick) — reconcile 12/17 ack (8 stale ≥3cycle, 본 tick 외부 ack 트리거 2 commits + 1 promote 환원). 본 tick 진입 시 17 green spec (직전 16 - 1 promote husky-pre-push-typecheck blue 승격 + 2 신규 spec).
+# 2026-05-17 @ baseline HEAD=`f380dea` → THIS (54차 tick) — reconcile 0/16 ack (13 stale ≥3cycle, 본 tick 외부 ack 트리거 0 commits + 1 promote 환원 (console-error-runtime-zero green→blue 58차 planner)). 본 tick 진입 시 16 green spec (직전 17 - 1 promote console-error-runtime-zero).
+# 세션 도중 race: developer commit `7b15126` "fix: FileUpload setTimeout cleanup 불변식 회복 — effect cleanup + unmount race fixture" 진입 (HEAD 갱신 = `7b15126`). 본 tick baseline 측정 시점 (f380dea) 기준으로 ack 0 박제, `7b15126` hook-ack 는 차기 (55차) tick 에서 components/file.md 5 marker 검증.
 #
-# 본 세션 디스크 실측 (tick 시작 시점):
-#  - 직전 inspector commit: `7343118` (52차 tick — reconcile 2/16 ack, husky-pre-push-typecheck (I2)(I5) 평서 정합 후행 hook-ack)
-#  - 직전 inspector 이후 commit 7건:
-#    · `27873b1` planner 56차 promote — husky-pre-push-typecheck green→blue 승격 (green - 1)
-#    · `0ff5280` developer feat — `src/setupTests.js` console.error runtime fail-fast assertion REQ-091 (I1)~(I4) marker 플립 트리거
-#    · `d12b6a0` developer feat — `package.json` engines.npm + check:npm-coherence 단일 진단 채널 REQ-090 (I1) + (I4) marker 플립 트리거
-#    · `cac6fa2` (HEAD) — chore 또는 무관 commit (본 tick 시작 시점)
-#    · 기타 4 commits — task 회수 / pre-push hook 관련 (REQ-089 + REQ-088)
-#  - 입력 큐 (20.req/): 2건 — `20260517-fileupload-settimeout-cleanup.md` (REQ-092) + `20260517-domain-fetch-unmount-race-coherence.md` (REQ-093, mv 직후 진입)
-#  - 17 green spec hash: 2 변동 (package-manager-major-coherence.md (I1)(I5)(FR-01)(FR-04) 4 marker + console-error-runtime-zero.md (I1)(I2)(I3)(I4)(FR-01)(FR-02)(FR-03)(FR-04) 8 marker 플립) + 15 무변동
-#  - 신규 green spec: 2건 (components/file.md blue→green 복사 + REQ-092 흡수 + testing/runtime-fetch-unmount-safety.md REQ-093 신규 carve)
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector commit: `f380dea` (53차 tick — reconcile 12/17 ack, package-manager 4 + console-error-runtime-zero 8 marker hook-ack + REQ-092/093 흡수)
+#  - tick 진입 시 HEAD == `f380dea` (자기 자신). 직전 inspector commit 후 외부 commit 분포:
+#    · `a7acfe2` planner 58차 promote 1 + carve 1 — console-error-runtime-zero green→blue 승격 (green - 1) + TSK-20260517-25 file.md REQ-092 회복 carve
+#    · `2293592` planner 58차 보완 — blue/testing/console-error-runtime-zero.md 추가 박제 (lint-staged hook chain 영향 보완) + .planner-seen 58차 박제
+#    · 위 2건 planner self-commit 은 본 inspector commit `f380dea` 직전 진입 — 본 tick 시점에서는 HEAD 의 조상 (이미 53차 reconcile 시 반영된 상태)
+#  - 입력 큐 (20.req/): 0건 (전 tick 2건 REQ-092/093 흡수 완료)
+#  - 16 green spec hash: 전수 무변동 (외부 commit 0 + src/ 영역 working tree 변경 2 파일 미커밋 — hook-ack 후보 0)
+#  - 외부 working tree 변경 (inspector 영역 밖, 미접촉):
+#    · `src/File/FileUpload.tsx` (M, +14 −3) — TSK-20260517-25 회복 in-progress (clearTimeout 패턴 도입 흔적)
+#    · `src/File/FileUpload.test.tsx` (M, +93) — unmount race fixture 도입
+#  - 세션 도중 외부 race commit (본 tick reconcile 분모 외):
+#    · `7b15126` developer fix — FileUpload setTimeout cleanup + unmount race fixture (HEAD 갱신, baseline 측정 후 진입). components/file.md (I1)(I2)(FR-01)(FR-02)(FR-03) 5 marker hook-ack 후보 — 차기 tick 에서 검증/플립.
 #
-# Phase 1 reconcile 처리 (외부 ack 트리거 2 commits + 1 promote 환원):
-#  - package-manager-major-coherence.md 4 marker hook-ack — `d12b6a0` (HEAD ancestor PASS) + TSK-20260517-23 result.md "rc=0" + grep 게이트 G1~G4 재실측 4 채널 동시 PASS:
-#    · (I1) `node -e "...engines.npm..."` exit=0 + `grep -nE "\"packageManager\":|\"npm\":" package.json` → 1 hit @`:34` PASS
-#    · (I4) 4축 격차 중 (I1) 회복 박제 + (I2)(I3) 후속 chain 대기 평서 박제 (4축 동시 회복은 후속 chain — 본 marker 는 [ ] 유지)
-#    · (I5) `scripts/check-package-manager-coherence.sh` 진입 + `npm run check:npm-coherence` npm script + fixture rc=2 격차 라벨 검증 PASS
-#    · (Must FR-01)(Must FR-04) (I1)(I5) 와 동등 surface 박제
-#    · §변경 이력 row 추가 — HEAD=`cac6fa2` (검증 HEAD=`d12b6a0` ∈ HEAD ancestor) + 4 marker 박제. RULE-07 정합 (객관 grep surface + 수단 라벨 0).
-#  - console-error-runtime-zero.md 8 marker hook-ack — `0ff5280` (HEAD ancestor PASS) + TSK-20260517-24 result.md "rc=0 440/440 PASS" + grep 게이트 G1~G3 재실측 3 채널 동시 PASS:
-#    · (I1)(FR-01) `grep -nP "expect\([^)]*\)\.not\.toHaveBeenCalledWith\(" src/setupTests.js` → 1 hit PASS
-#    · (I2)(FR-02) 동일 fail-fast assertion 의 RUNTIME_WARNING_PATTERN 4 카테고리 통합 정규식 매칭 — `npm test` rc=0 (440/440 PASS) → 위반 발화 0 surface
-#    · (I3)(FR-03) `grep -nP "vi\.spyOn\(console,\s*['\"]error['\"]\)" src/setupTests.js` → 2 hit PASS + silence legacy 15 hit 보존 (G2 baseline 동치)
-#    · (I4)(FR-04) (M-B) 단일 channel 진단 + AssertionError fixture 검증 PASS (result.md 박제)
-#    · §변경 이력 row 추가 — HEAD=`cac6fa2` (검증 HEAD=`0ff5280` ∈ HEAD ancestor) + 8 marker 박제. **본 spec 전수 marker [x] 수렴 — green→blue promote 후보**. RULE-07 정합 (객관 grep surface + 수단 라벨 0, 보조 ack notes — TSK-24 G6 [~] 수단 라벨 사전-existing 주석 2 hit 는 (I7) 별 spec 자기 검증 영역, 본 (I1)~(I4) marker 와 직교).
-#  - hook-ack 플립 누적:
-#    · package-manager-major-coherence: 4 marker (I1+I5+FR-01+FR-04) 박제, 잔여 5 marker (I2+I3+I4+FR-02+FR-03) 후속 chain 대기
-#    · console-error-runtime-zero: 8 marker (I1+I2+I3+I4+FR-01+FR-02+FR-03+FR-04) 박제, 잔여 0 marker — 전수 [x] 수렴 promote 후보
-#  - 15 other green spec marker 회수 트리거 0 — 전수 marker 무변동 + hook-ack 발화 후보 0 (src 추가 변경 0 + 외부 commit ack 2 commits 한정).
-#  - 15 spec stale_cycles 일률 +1 누적:
-#    · 13 cycle → 14 (sanitizeHtml, markdownParser, accessibility, css-modules)
-#    · 12 cycle → 13 (tooling)
-#    · 9 cycle → 10 (node-modules-extraneous-coherence)
-#    · 8 cycle → 9 (lint-warning-zero-gate)
-#    · 6 cycle → 7 (diagnostic-script-auto-channel-coverage, npm-script-prefix-coherence, spec-carve-precondition, test-helpers)
-#    · 4 cycle → 5 (eslint-react-hooks-lint-gate)
-#    · 3 cycle → 4 (island-proptypes-zero — 잔여 (I2)(I3) marker [ ] 6건 "신규 island 수렴 시점" 검증 의존 stale 계속)
-#  - hook-ack 영향 spec stale 리셋:
-#    · package-manager-major-coherence — stale_cycles 1 → 0 reset (4 marker hook-ack 플립, 잔여 5 marker chain 대기)
-#    · console-error-runtime-zero — stale_cycles 1 → 0 reset (8 marker hook-ack 전수 플립, promote 후보)
-#  - promote 환원: husky-pre-push-typecheck (16 → 15) — `27873b1` planner 56차 green→blue 승격 (직전 tick 박제 marker 전수 [x] 수렴 후 promote 발행)
-#  - 신규 spec 진입 (15 + 2 신규 = 17):
-#    · components/file.md (blue→green 복사 + REQ-092 흡수) — stale_cycles 0, marker_hash `new-req-092-absorb-cac6fa2`
-#    · testing/runtime-fetch-unmount-safety.md (REQ-093 신규 carve) — stale_cycles 0, marker_hash `new-req-093-absorb-cac6fa2`
-#  - reconcile ack 토큰: **`reconcile: 12/17 ack`** (분모 17 = 15 기존 + 2 신규, ack 12 = package-manager 4 + console-error 8).
-#  - 8 stale ≥3cycle: sanitizeHtml(14) + markdownParser(14) + accessibility(14) + css-modules(14) + tooling(13) + node-modules-extraneous-coherence(10) + lint-warning-zero-gate(9) + diagnostic-script-auto-channel-coverage(7) — 8건 (≥3 cycle 임계 충족 — 기존 13 → 8 감소 by promote 1 + 2 hook-ack 리셋 + 7 신규 박제 직후 0).
+# Phase 1 reconcile 처리 (외부 ack 트리거 0):
+#  - hook-ack 발화 후보 0 — src/ 변경 commit 0 + 외부 평서 ack 0.
+#  - 16 spec stale_cycles 일률 +1 누적:
+#    · 14 cycle → 15 (sanitizeHtml, markdownParser, accessibility, css-modules)
+#    · 13 cycle → 14 (tooling)
+#    · 10 cycle → 11 (node-modules-extraneous-coherence)
+#    · 9 cycle → 10 (lint-warning-zero-gate)
+#    · 7 cycle → 8 (diagnostic-script-auto-channel-coverage, npm-script-prefix-coherence, spec-carve-precondition, test-helpers)
+#    · 5 cycle → 6 (eslint-react-hooks-lint-gate)
+#    · 4 cycle → 5 (island-proptypes-zero — 잔여 (I2)(I3) marker [ ] 6건 "신규 island 수렴 시점" 검증 의존 stale 계속)
+#    · 0 cycle → 1 (package-manager-major-coherence — 직전 4 marker hook-ack 후 잔여 5 marker chain 대기, 본 tick trigger 0)
+#    · 0 cycle → 1 (components/file.md — 직전 신규 흡수, TSK-25 회수 commit 진입 대기)
+#    · 0 cycle → 1 (testing/runtime-fetch-unmount-safety.md — 직전 신규 흡수, 회복 task 발행 대기)
+#  - promote 환원: console-error-runtime-zero (17 → 16) — `a7acfe2` planner 58차 green→blue 승격 (직전 inspector tick `f380dea` 에서 박제한 8 marker 전수 [x] 수렴 후 promote 발행)
+#  - reconcile ack 토큰: **`reconcile: 0/16 ack`** (분모 16 = 17 직전 - 1 promote, ack 0 = 외부 trigger 0).
+#  - 9 stale ≥3cycle: sanitizeHtml(15) + markdownParser(15) + accessibility(15) + css-modules(15) + tooling(14) + node-modules-extraneous-coherence(11) + lint-warning-zero-gate(10) + diagnostic-script-auto-channel-coverage(8) + npm-script-prefix-coherence(8) + spec-carve-precondition(8) + test-helpers(8) + eslint-react-hooks-lint-gate(6) + island-proptypes-zero(5) — 13건 ≥3cycle (직전 8 → 13 증가: 4 promote/ack 리셋 효과 소진 + 6 spec 7→8 임계 신규 진입 + 1 spec 5→6 진입).
 #
 # Phase 2 처리:
-#  - 입력 큐 2건 흡수:
-#    · REQ-092 `20260517-fileupload-settimeout-cleanup.md` (FileUpload setTimeout cleanup 불변식) — `30.spec/blue/components/file.md` → `30.spec/green/components/file.md` 복사 + §동작 7 + §회귀 중점 4번째 bullet + §의존성 §직교 + §carve-precondition + §테스트 현황 (I1)(I2) + §수용 기준 5 marker + §스코프 규칙 5 gate (G1~G5) 실측 박제. RULE-07 양성 검증 PASS (시스템 불변식 + 반복 검증 가능 + 시점 비의존). G1 (setTimeout 2 hit @line 115, 129) + G2 (clearTimeout 0 hit zero-point) + G3 (test 시나리오 0 hit zero-point) + G4 시점 비의존 0 hit + G5 수단 라벨 1 hit (default export 면제 grep -vE 박제 + 정정 박제). req mv 완료.
-#    · REQ-093 `20260517-domain-fetch-unmount-race-coherence.md` (도메인 fetch unmount-safety 일관성) — `30.spec/green/testing/runtime-fetch-unmount-safety.md` 신규 spec carve. testing/ 영역 자매 spec (`search-abort-runtime-smoke.md` blue) 동일 영역 정합 + 자매 spec §역할 `runtime-fetch-abort` 후보 명시 박제 근거. §역할 + §동작 10 (I1~I10) + §회귀 중점 + §의존성 §직교 5건 cross-ref + §carve-precondition + §테스트 현황 10 marker + §수용 기준 13 marker + §스코프 규칙 5 gate (G1~G5) 실측 박제. RULE-07 양성 검증 PASS. G1 (Image 4 + File 2 + Monitor 2 hit) + G2 (도메인별 0 hit zero-point + Search/Log 박제 측 15 hit reference) + G3 (React Query 박제 측 reference) + G4 (Monitor 자매 audit 채널) + G5 시점 비의존 + 수단 라벨 0 hit (자기 참조 false-positive 면제 grep 패턴 박제 + (I8) 평서 정정). req mv 완료.
+#  - 입력 큐 0건 → no-op.
+#  - GREEN_PENDING_MAX=20 임계치 미달 (16 green spec) — 가용 분기 유지.
 #
-# 백프레셔 분기:
-#  - GREEN_PENDING_MAX=20 임계치 미달 (17 green spec = 15 기존 + 2 신규) — 가용 분기 유지.
-#  - 입력 큐 잔여: 0건.
-#
-# req mv: 2건 (`60.done/2026/05/17/req/`). 격리: 0건.
+# req mv: 0건. 격리: 0건.
 #
 # 본 세션 commit diff:
-#  - specs/30.spec/green/foundation/package-manager-major-coherence.md (Phase 1 hook-ack — 4 marker 플립 + §변경 이력 row 추가)
-#  - specs/30.spec/green/testing/console-error-runtime-zero.md (Phase 1 hook-ack — 8 marker 플립 + §변경 이력 row 추가)
-#  - specs/30.spec/green/components/file.md (Phase 2 REQ-092 흡수 — blue→green 복사 + 박제 추가, 신규 file)
-#  - specs/30.spec/green/testing/runtime-fetch-unmount-safety.md (Phase 2 REQ-093 흡수 — 신규 spec carve, 신규 file)
-#  - specs/30.spec/green/.inspector-seen (갱신)
+#  - specs/30.spec/green/.inspector-seen (갱신만)
 # RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 0 변경 — RULE-05 /revisit 경로 의존).
-# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경 (외부 developer commit 2건 hook-ack 박제만).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경 (working tree 의 2 파일 변경은 외부 developer 영역 — inspector 미터치, 자기 영역 staging 만).
 # RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
-# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만 + 20.req/ → 60.done/req/ mv).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/16 ack` 박제. 큐 0건 → Phase 2 no-op.
 #
 # 입력 큐 잔여: 0건.
 # 차기 inspector tick 우선순위 (직전 tick 누적 + 본 tick 갱신):
-#  (1) testing/console-error-runtime-zero.md — **promote 후보** (전수 marker [x] 수렴) — 차기 planner tick green→blue 승격 후보 1순위.
+#  (1) components/file.md — TSK-25 회수 commit `7b15126` 진입 완료 (세션 race) → 차기 tick (I1)(I2)(FR-01)(FR-02)(FR-03) 5 marker hook-ack 후보 1순위. grep 게이트 G1~G5 재실측 + clearTimeout 1+ hit + unmount race 1+ hit 검증.
 #  (2) foundation/package-manager-major-coherence.md — 잔여 5 marker (I2+I3+I4+FR-02+FR-03) 후속 task chain 대기 — planner carve 후 developer 회수 시점 hook-ack.
-#  (3) components/file.md — REQ-092 회복 task 발행 + 회수 후 (I1)(I2)(FR-01)(FR-02)(FR-03) 5 marker hook-ack 후보.
-#  (4) testing/runtime-fetch-unmount-safety.md — REQ-093 회복 task 발행 (도메인별 또는 통합) + 회수 후 (I1)~(I4)(I6)(I7)(FR-01)~(FR-05) 11 marker hook-ack 후보.
-#  (5) foundation/island-proptypes-zero.md — 잔여 (I2)(I3) marker [ ] + 회귀 detection marker [ ] 6건. "신규 island 수렴 시점" 검증 의존.
-#  (6) foundation/eslint-react-hooks-lint-gate.md — 6 §테스트 현황 marker + 8 §수용 기준 marker + 6 §비기능 기준 marker.
-#  (7) foundation/spec-carve-precondition.md FR-02·FR-03·FR-04·FR-05 marker — 외부 carve-active spec §carve-precondition 절 박제 회수 후 marker 플립. 본 tick 자기 적용 spec 7 누적 (직전 5 + 신규 components/file.md + testing/runtime-fetch-unmount-safety.md). G1 baseline 의 외부 5건 미박제 유지.
-#  (8) foundation/diagnostic-script-auto-channel-coverage.md (I10)/FR-10 marker — `check:spec-coherence` CI step 부착 task 발행/회수 후 hook-ack.
-#  (9) foundation/lint-warning-zero-gate.md (I9) + Could FR-06 marker — 미래 lint warning 정책 전환 이벤트 대기.
-#  (10) common/test-helpers.md (I4) + Should FR-05 marker — 차기 island 확장 회복 task 발행/회수 후 hook-ack.
-#  (11) common/sanitizeHtml.md I2/I5 marker (stale ≥ 14 cycle).
-#  (12) common/accessibility.md I5 marker (stale ≥ 14 cycle).
-#  (13) styles/css-modules.md I3/I4 marker (stale ≥ 14 cycle).
-#  (14) common/markdownParser.md I6 marker (stale ≥ 14 cycle).
-#  (15) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 회수 후 marker 플립 (stale ≥ 13 cycle).
-#  (16) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker (stale ≥ 10 cycle).
-#  (17) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
-#  (18) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신.
+#  (3) testing/runtime-fetch-unmount-safety.md — REQ-093 회복 task 발행 대기 (Image/File/Monitor 3 domain 단계적 carve) + 회수 후 11 marker hook-ack 후보.
+#  (4) foundation/island-proptypes-zero.md — 잔여 (I2)(I3) marker [ ] + 회귀 detection marker [ ] 6건. "신규 island 수렴 시점" 검증 의존.
+#  (5) foundation/eslint-react-hooks-lint-gate.md — 6 §테스트 현황 marker + 8 §수용 기준 marker + 6 §비기능 기준 marker.
+#  (6) foundation/spec-carve-precondition.md FR-02·FR-03·FR-04·FR-05 marker — 외부 carve-active spec §carve-precondition 절 박제 회수 후 marker 플립.
+#  (7) foundation/diagnostic-script-auto-channel-coverage.md (I10)/FR-10 marker — `check:spec-coherence` CI step 부착 task 발행/회수 후 hook-ack.
+#  (8) foundation/lint-warning-zero-gate.md (I9) + Could FR-06 marker — 미래 lint warning 정책 전환 이벤트 대기.
+#  (9) common/test-helpers.md (I4) + Should FR-05 marker — 차기 island 확장 회복 task 발행/회수 후 hook-ack.
+#  (10) common/sanitizeHtml.md I2/I5 marker (stale ≥ 15 cycle).
+#  (11) common/accessibility.md I5 marker (stale ≥ 15 cycle).
+#  (12) styles/css-modules.md I3/I4 marker (stale ≥ 15 cycle).
+#  (13) common/markdownParser.md I6 marker (stale ≥ 15 cycle).
+#  (14) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 회수 후 marker 플립 (stale ≥ 14 cycle).
+#  (15) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker (stale ≥ 11 cycle).
+#  (16) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
+#  (17) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신.
 #
 # == seen-state ==
-specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	10
-specs/30.spec/green/foundation/tooling.md	ack-94f362a	13
-specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	9
-specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	7
-specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	7
-specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	7
-specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	7
-specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	14
-specs/30.spec/green/common/markdownParser.md	baseline-893cdea	14
-specs/30.spec/green/common/accessibility.md	baseline-893cdea	14
-specs/30.spec/green/styles/css-modules.md	baseline-893cdea	14
-specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	5
-specs/30.spec/green/foundation/island-proptypes-zero.md	hook-ack-3-marker-flip-761730d	4
-specs/30.spec/green/foundation/package-manager-major-coherence.md	hook-ack-4-marker-flip-d12b6a0	0
-specs/30.spec/green/testing/console-error-runtime-zero.md	hook-ack-8-marker-flip-promote-cand-0ff5280	0
-specs/30.spec/green/components/file.md	new-req-092-absorb-cac6fa2	0
-specs/30.spec/green/testing/runtime-fetch-unmount-safety.md	new-req-093-absorb-cac6fa2	0
+specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	11
+specs/30.spec/green/foundation/tooling.md	ack-94f362a	14
+specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	10
+specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	8
+specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	8
+specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	8
+specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	8
+specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	15
+specs/30.spec/green/common/markdownParser.md	baseline-893cdea	15
+specs/30.spec/green/common/accessibility.md	baseline-893cdea	15
+specs/30.spec/green/styles/css-modules.md	baseline-893cdea	15
+specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	6
+specs/30.spec/green/foundation/island-proptypes-zero.md	hook-ack-3-marker-flip-761730d	5
+specs/30.spec/green/foundation/package-manager-major-coherence.md	hook-ack-4-marker-flip-d12b6a0	1
+specs/30.spec/green/components/file.md	new-req-092-absorb-cac6fa2	1
+specs/30.spec/green/testing/runtime-fetch-unmount-safety.md	new-req-093-absorb-cac6fa2	1
