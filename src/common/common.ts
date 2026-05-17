@@ -1,5 +1,4 @@
 import { isDev, isProd } from './env';
-// fixture-probe TSK-20260517-10 (REQ-075 FR-03) — no-op comment for untracked-preserve sample diff
 
 export const setHtmlTitle = (title: string): void => {
 	if(isProd()) {
