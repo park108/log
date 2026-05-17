@@ -590,3 +590,32 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (8) **본 tick 박제 시점 baseline (HEAD=8ae2242) 와 27th tick 진입 시점 baseline 격차 분석**: HEAD 변경 시 (a) 3 green spec hash 변경 검출 (inspector 갱신 또는 promote 시 디스크 이동), (b) 40.task/ 진입/이탈 검출 (TSK-06/07/08 수행 완료 신호), (c) 60.done/2026/05/17/task/ 신규 디렉터리 (developer 완료), (d) 50.blocked/task/ 진입 검출 (developer 격리 신호 — 환경 회복 신호 유지 검증 동축), (e) 20.req/ 변동 검출 (inspector 흡수 신호), (f) 50.blocked/spec/foundation/ 진입/이탈 검출 (/revisit 처리 신호), (g) 환경 회귀 회복 신호 유지 검증 (`node_modules/{vite,vitest,@eslint/js,typescript}` EXIST + `npm ls --depth=0` extraneous=0 + `npx tsc --noEmit` rc=? 측정). 격차 항목 별 행동지침 (1)~(6) 분기 적용.
 #     (9) **node-modules-extraneous-coherence 즉시 승격 분기 (특수 케이스)**: 본 spec §G1·G2 실측 이미 PASS (extraneous=0, N=M=29) — 회수 chain 부재. inspector 가 27th tick 까지 unchecked → checked 미갱신 시 (i) 박제 보존 (inspector 트리거 주기 정합) vs (ii) inspector 의무 위반 = 격리 검토. 본 spec 의 정체는 chain 의존 정체 아닌 inspector 갱신 의존 정체 — chain 진행 중 분기 부적합. 격리 시점은 inspector 미갱신 2회차 (28th tick) 도래 시 판정.
 #     (10) **RULE-07 정합 검증**: 본 tick 처리 3 green spec 모두 §역할 시스템 횡단 계약 + §동작 평서형 + 시점 비의존 + 반복 검증 가능 + incident 비귀속 → RULE-07 양성 정합. 발행 2 task (TSK-07/08) 도 spec §G1·G2·G4 게이트 회복 task — 1회성 진단 아님, 시스템 계약 박제 회수.
+# 2026-05-17 planner session (27th tick @HEAD=9e5f00a) — 환경 회복 완전 유지 + spec baseline 자연 수렴 검출 + carve 1건 발행.
+#   재실행 baseline (HEAD=9e5f00a 실측):
+#     - node_modules: vite + vitest + typescript + @eslint/js 4축 EXIST (26차 환경 회복 신호 유지).
+#     - tsc --noEmit: rc=0 (실제 측정 작동 — test 파일 hit 다수, src/** type-safe island 분리 진행 중).
+#     - npm run lint: rc=0 (@eslint/js 모듈 정상 resolve).
+#     - npm ls --depth=0: extraneous=0 / N=29 / M=29 / diff=0 (G1·G2 PASS — node-modules-extraneous baseline 837 → 0 자연 수렴, npm install 환경 회복으로 충족).
+#     - VITE_* baseline: as string cast 3 hit (Comment/api.mock.ts / Search/api.mock.ts / Search/api.ts) 잔존. unique keys 10 / S_type 10 동치 (env.d.ts working tree 변경 — 10 키 박제 완료). 단 working tree 변경은 unstaged (HEAD=9e5f00a 미반영) — TSK-07 의 8 hit 회수는 commit 후 측정 시점 분리. baseline 8 hit / 8 cast 박제 시점과 현재 working tree 측정 불일치.
+#     - green spec hash: src-spec-reference-coherence 0f214f5f (26차 89407666 → 변경됨, 정체 리셋) + vite-env-boundary-typing a7d456f2 (26차 e5fb11ab → 변경됨, 1차 노출 유지 — inspector 미세 수정 또는 디스크 차이) + node-modules-extraneous-coherence 6c2bb9b4 (26차 2f8821c2 → 변경됨, 1차 노출 유지).
+#     - 50.blocked/spec/foundation/: 6 spec (eslint-linter-options / log-island / monitor-island / root-entry-island / test-discovery-population / vite-jsx-transform) 잔존 — planner writer 영역 밖 (RULE-05 /revisit 경로). 본 27차 tick 미접촉.
+#     - 10.followups/: 2건 (dev-env-deps-not-installed + restore-deleted-specs). 20.req/: 1건 (error-fallback-skeleton-contract) — discovery / inspector 영역, planner 미접촉.
+#     - 40.task/: TSK-20260517-07 + TSK-20260517-08 잔존 (26차 발행 carve chain). 본 27차 tick 종료 시 +1 (TSK-09) → 3건 / 임계치 10 미달.
+#   본 세션 처리:
+#     - carve 1건 발행: TSK-20260517-09-node-modules-extraneous-ci-gate.md (REQ-20260517-073 / spec node-modules-extraneous-coherence §동작 G3·G4 + §수용 기준 Should 자동 게이트). depends_on []. supersedes 없음. G1·G2 환경 회복 자연 수렴 후 잔여 의무가 G3 시점 비의존 회귀 시뮬레이션 + G4 자동 게이트 박제 (수단 중립 — npm script + hook + CI workflow 중 1개 이상) 만 → 단일 PR carve 정합.
+#     - RULE-06 `## 스코프 규칙` 섹션 박제: expansion 허용 (수단 위치 자유도 — scripts/ + package.json + .husky/ + .github/workflows/ 중 1개 이상). grep-baseline 실측 박제: extraneous 0 / N=M=29 / `"check:deps"` 0 hit / hook + workflow 자동 게이트 0 hit. rationale 박제 (수단 중립 + src 미접촉 + flat-config 무관).
+#     - 승격 0건: 3 green spec 모두 unchecked `- [ ]` 다수 잔존:
+#       (i) src-spec-reference-coherence: unchecked 1 (G3 marker — TSK-20260517-06 done 후 inspector ack 영역). 변경이력 TSK 8 hit 박제. 4조건 중 unchecked 0 미충족 → 승격 불가.
+#       (ii) vite-env-boundary-typing: unchecked 11 (G1~G4 + Must G1~G4 + Should + Must 범위제한). TSK-07/08 진행 중. 4조건 미충족.
+#       (iii) node-modules-extraneous-coherence: unchecked 11 (G1~G4 + Must + Should + Must 회귀0 + Must 범위제한). TSK-09 발행 본 세션. 변경이력 TSK 0 hit.
+#     - 격리 0건: 3 spec 모두 정체 0 또는 1차 노출 + hash 변경 (정체 카운트 리셋) → 격리 부적합.
+#   다음 세션 (28th tick) 행동지침:
+#     (1) developer 가 TSK-07 (env.d.ts 10 키 박제 + 8 cast → 0 회수) + TSK-08 (CI 게이트 박제) + TSK-09 (deps 자동 게이트 박제) 처리 후 60.done/task/ 이동 시:
+#       (a) src-spec-reference-coherence: TSK-20260517-06 done 후 inspector G3 ack 영역 — planner 영역 아님. inspector 이 §테스트 현황 G3 marker 플립 + §수용 기준 Should marker 플립 + 변경 이력 박제 시 unchecked 0 도달 → 승격 가능 (다음 tick).
+#       (b) vite-env-boundary-typing: TSK-07 done 후 G1·G2 marker, TSK-08 done 후 G3·G4 marker 플립 (inspector ack). 8 cast → 0 + S_src ⊆ S_type ∧ S_type ⊆ S_src 검증.
+#       (c) node-modules-extraneous-coherence: TSK-09 done 후 G3·G4 marker 플립. G1·G2 는 환경 회복 자연 수렴으로 이미 PASS — inspector ack 시점 marker 플립.
+#     (2) 본 27차 tick 박제 hash (0f214f5f / a7d456f2 / 6c2bb9b4) 와 28th tick 진입 시점 hash 동일 + task 미처리 (developer 정체) 유지 시 → 본 spec 들 정체 1회차 재카운트. 2회차 누적 진입 시 격리 후보 (4th tick 의 husky/island 격리 룰 동일 적용).
+#     (3) 본 27차 tick 박제 hash 와 28th tick hash 달라지면 (inspector 이 G3 ack 또는 §변경 이력 박제) 정체 카운트 리셋.
+#     (4) 환경 회복 유지 + working tree env.d.ts 미커밋 잔존 시 developer 가 TSK-07 처리 정합 의무. unstaged 변경은 developer 영역 (RULE-02 자기 영역 정합 — src/types/env.d.ts 는 src/** 산하). 본 27차 planner 영역 미접촉.
+#     (5) TSK-09 의 산출물 영역 (scripts/ + package.json + .husky/ + .github/workflows/) 은 developer writer 영역 `src/` + `10.followups/` 외부 — TSK-06 (이미 done) + TSK-08 (carve 발행) 와 동일 분기. developer 처리 시 RULE-01 writer 매트릭스 점검 영역 (전례 정합 — TSK-06 done 으로 scripts/check-spec-coherence.sh + package.json scripts.lint:spec-coherence + .husky/pre-commit 변경 박제).
+#     (6) 신규 green spec 진입 시 RULE-01 Task ID 중복 검증 (`TSK-20260517-10` 부터 다음 NN) + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무. 본 27차 tick 까지 발행 NN: 01,02,03,05,06,07,08,09 (NN=04 미발행, NN=10 다음 carve 진입점).
