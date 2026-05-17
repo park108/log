@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-spec-coherence.sh
-# Spec: specs/30.spec/green/foundation/src-spec-reference-coherence.md §동작 G1·G2
+# Spec: specs/30.spec/blue/foundation/src-spec-reference-coherence.md §동작 G1·G2
 # Task: TSK-20260517-06
 #
 # G1 (RULE-01 suffix): grep -rnE 'specs/30\.spec/[^"` ]*-spec\.md' src -> 0 hit.
