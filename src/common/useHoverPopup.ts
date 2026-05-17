@@ -109,7 +109,7 @@ export function useHoverPopup({ closeOnEscape = true }: UseHoverPopupOptions = {
 		'aria-describedby': isVisible ? id : undefined,
 	};
 
-	const contentProps = {
+	const contentProps: ContentProps = {
 		id,
 		role: 'tooltip',
 		'aria-hidden': !isVisible,

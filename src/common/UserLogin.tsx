@@ -17,15 +17,20 @@ export const getLogoutUrl = (): string | undefined => {
 
 const UserLogin = () => {
 
-	const handleLoginClick = (e: SyntheticEvent) => {
+	// activateOnKey 는 `{ key, preventDefault }` 만 요구하는 구조적 부분 타입 (a11y.ts) —
+	// React.SyntheticEvent (KeyboardEvent 포함) 또한 적합. handler 시그니처는 호출처 양쪽
+	// (onClick: SyntheticEvent / onKeyDown: KeyboardEvent) 호환을 위해 부분 타입으로 좁힌다.
+	const handleLoginClick = (e: { preventDefault: () => void }): void => {
 		e.preventDefault();
 
 		if(common.isLoggedIn()) {
 			common.deleteCookie("access_token");
-			window.location.href = getLogoutUrl();
+			const url = getLogoutUrl();
+			if (url) window.location.href = url;
 		}
 		else {
-			window.location.href = getLoginUrl();
+			const url = getLoginUrl();
+			if (url) window.location.href = url;
 		}
 	};
 
@@ -35,7 +40,7 @@ const UserLogin = () => {
 			data-testid="login-button"
 			tabIndex={0}
 			className="span span--login-text"
-			onClick={handleLoginClick}
+			onClick={(e: SyntheticEvent) => handleLoginClick(e)}
 			onKeyDown={activateOnKey(handleLoginClick)}
 		>
 			{ common.isLoggedIn() ? "👨‍💻 Jongkil Park" : "Jongkil Park" }

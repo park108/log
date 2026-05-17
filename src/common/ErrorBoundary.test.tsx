@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
+import type { MockInstance } from 'vitest';
 import ErrorBoundary from './ErrorBoundary';
 
-function Bomb({ shouldThrow }) {
+function Bomb({ shouldThrow }: { shouldThrow: boolean }) {
 	if (shouldThrow) {
 		throw new Error('boom');
 	}
@@ -10,8 +11,8 @@ function Bomb({ shouldThrow }) {
 
 describe('ErrorBoundary', () => {
 
-	let consoleErrorSpy;
-	let stderrWriteSpy;
+	let consoleErrorSpy: MockInstance;
+	let stderrWriteSpy: MockInstance;
 
 	beforeAll(() => {
 		// File-scope suppression of intentional render-error noise from this test file.
@@ -57,7 +58,7 @@ describe('ErrorBoundary', () => {
 		);
 
 		expect(fallback).toHaveBeenCalled();
-		const args = fallback.mock.calls[0][0];
+		const args = fallback.mock.calls[0]![0];
 		expect(args.error).toBeInstanceOf(Error);
 		expect(args.error.message).toBe('boom');
 		expect(typeof args.reset).toBe('function');
@@ -74,15 +75,15 @@ describe('ErrorBoundary', () => {
 		);
 
 		expect(onError).toHaveBeenCalledTimes(1);
-		const [errorArg, infoArg] = onError.mock.calls[0];
+		const [errorArg, infoArg] = onError.mock.calls[0]!;
 		expect(errorArg).toBeInstanceOf(Error);
 		expect(errorArg.message).toBe('boom');
 		expect(infoArg).toBeDefined();
 	});
 
 	it('restores children after reset() is invoked', () => {
-		let capturedReset;
-		const fallback = ({ reset }) => {
+		let capturedReset: (() => void) | undefined;
+		const fallback = ({ reset }: { error: Error | null; reset: () => void }) => {
 			capturedReset = reset;
 			return <div>fallback ui</div>;
 		};
@@ -95,7 +96,7 @@ describe('ErrorBoundary', () => {
 
 		expect(screen.getByText('fallback ui')).toBeInTheDocument();
 
-		capturedReset();
+		capturedReset!();
 
 		rerender(
 			<ErrorBoundary fallback={fallback}>

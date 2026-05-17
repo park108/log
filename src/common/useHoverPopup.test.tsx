@@ -106,7 +106,7 @@ describe('useHoverPopup', () => {
 		render(<Probe />);
 
 		expect(probe).toHaveBeenCalled();
-		const [idA, idB] = probe.mock.calls[0];
+		const [idA, idB] = probe.mock.calls[0]!;
 		expect(typeof idA).toBe('string');
 		expect(typeof idB).toBe('string');
 		expect(idA).not.toBe(idB);

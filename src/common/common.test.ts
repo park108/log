@@ -4,7 +4,7 @@ import * as common from './common';
 // (= `import.meta.env.DEV/PROD`) 경유. 테스트에서는 `vi.stubEnv('MODE', ...)` 와
 // 보조로 `DEV/PROD` 를 짝맞춰 stub. 전역 `afterEach(vi.unstubAllEnvs)` 는
 // `src/setupTests.js` 에 박제돼 있으므로 개별 teardown 생략.
-const stubMode = (mode) => {
+const stubMode = (mode: string): void => {
 	vi.stubEnv('MODE', mode);
 	vi.stubEnv('DEV', mode === 'development');
 	vi.stubEnv('PROD', mode === 'production');
@@ -16,6 +16,31 @@ beforeEach(() => {
 	vi.spyOn(console, 'log').mockImplementation(() => {});
 	vi.spyOn(console, 'error').mockImplementation(() => {});
 });
+
+// TSK-20260517-15 / REQ-20260517-077: `window.location` 은 strict 환경에서
+// `string & Location` 의 read-only 속성 (jsdom 의 setter가 throw). 테스트에서는
+// `URL` 인스턴스를 `.replace`/`.assign` stub 과 함께 location 호환 객체로 주입한다.
+// 본 헬퍼는 `setLocation` / `restoreLocation` 으로 호출부의 타입 노이즈를 일관 흡수한다.
+type MockableLocation = URL & {
+	replace?: (url: string | URL) => void;
+	assign?: (url: string | URL) => void;
+	reload?: () => void;
+};
+const setLocation = (loc: MockableLocation | Location): void => {
+	delete (window as unknown as { location?: Location }).location;
+	(window as unknown as { location: Location }).location = loc as unknown as Location;
+};
+const restoreLocation = (loc: Location): void => {
+	delete (window as unknown as { location?: Location }).location;
+	(window as unknown as { location: Location }).location = loc;
+};
+const mockUrlLocation = (href: string): MockableLocation => {
+	const u = new URL(href) as MockableLocation;
+	u.replace = vi.fn();
+	u.assign = vi.fn();
+	u.reload = vi.fn();
+	return u;
+};
 
 describe('set HTML page title', () => {
   
@@ -53,7 +78,7 @@ describe('set HTML page meta description', () => {
 
 it('test parse Jwt token', () => {
 	const result = common.parseJwt("eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJldmVudF9pZCI6IjljMzVkZGVlLTliMWMtNGY1Ni1iZGI3LWE2NmI5NWE1NDZmOSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE2MzM4NDc3MzUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl93SzR3dDdaYVIiLCJleHAiOjE2MzM4NTEzMzUsImlhdCI6MTYzMzg0NzczNSwidmVyc2lvbiI6MiwianRpIjoiMDkzMTg2OTEtN2JhNC00ZTA4LWEyYWItMGY0Nzg2ZjkwYWM0IiwiY2xpZW50X2lkIjoiaDNtOTJhMjd0MzlzZmNhdDMwMnRpcXRrbyIsInVzZXJuYW1lIjoiMDUxZmQ1ZjktYTMzNi00MDU1LTk2ZTUtNmUxZTEyNWViZDE1In0.Dg_M1EyU1gOUbHwwAoDi6LycG37dZuGJY2y-uOHz9R69R30uLgiWXtIQEpi2Minlg_okDHXPyDLKt0NU4PnlsNNDavp65Yh-1xEFl0AL7Rg6lOkIrmlohLkcqS70L-I1w6ezuM8QWJmq1Or0ci65qYhQyfTeGy1-cU7n5ER3f7OYfcia4_ZuHOX5NCnj4WyLiQCbnystvI1ZSOfFsKcVY0sMNO7RIOBg0_i6CYOVE1bJjSvS9im2RdVksUSKJ-jkrAoYm7RXmO4xtPj--hJPT9v6g9WiiVCqRm0XNPolc5Q5mCOsr107UNRs_FRALjz2WVP0HodaQMJMSN-EvRNbOg");
-	expect(result['client_id']).toBe("h3m92a27t39sfcat302tiqtko");
+	expect(result!['client_id']).toBe("h3m92a27t39sfcat302tiqtko");
 });
 
 describe('parseJwt input guards (REQ-20260418-032 FR-01, FR-03)', () => {
@@ -139,13 +164,11 @@ describe('handling cookie correctly', () => {
 
 it('test auth', () => {
 
-	let currentLocation = window.location; // Backup current location
+	const currentLocation = window.location; // Backup current location
 
-	const mockLocation = new URL("http://localhost:3000");
-	mockLocation.replace = vi.fn();
+	const mockLocation = mockUrlLocation("http://localhost:3000");
 	mockLocation.href += "?access_token=12345#id_token=67890";
-	delete window.location;
-	window.location = mockLocation;
+	setLocation(mockLocation);
 
 	stubMode('development');
 	common.auth();
@@ -156,11 +179,11 @@ it('test auth', () => {
 	stubMode('');
 	common.auth();
 
-	window.location = currentLocation; // Rollback location
+	restoreLocation(currentLocation); // Rollback location
 });
 
 describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => {
-	let savedLocation;
+	let savedLocation: Location;
 	const clearAuthCookies = () => {
 		common.deleteCookie('access_token');
 		common.deleteCookie('id_token');
@@ -174,15 +197,11 @@ describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => 
 
 	afterEach(() => {
 		clearAuthCookies();
-		delete window.location;
-		window.location = savedLocation;
+		restoreLocation(savedLocation);
 	});
 
 	it('extracts access_token when it is the first query parameter', () => {
-		const mockLocation = new URL('http://localhost:3000/?access_token=AAA#id_token=BBB');
-		mockLocation.replace = vi.fn();
-		delete window.location;
-		window.location = mockLocation;
+		setLocation(mockUrlLocation('http://localhost:3000/?access_token=AAA#id_token=BBB'));
 
 		common.auth();
 
@@ -191,10 +210,7 @@ describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => 
 	});
 
 	it('extracts id_token when fragment has trailing parameter', () => {
-		const mockLocation = new URL('http://localhost:3000/?access_token=AAA#id_token=BBB&token_type=Bearer');
-		mockLocation.replace = vi.fn();
-		delete window.location;
-		window.location = mockLocation;
+		setLocation(mockUrlLocation('http://localhost:3000/?access_token=AAA#id_token=BBB&token_type=Bearer'));
 
 		common.auth();
 
@@ -208,7 +224,7 @@ describe('auth() Cognito-실형 토큰 추출 (REQ-20260421-032 FR-06)', () => {
 	// 단일 구역에 `&` 로 연결해 반환한다. query string 은 비어 있으므로, `searchParams.get('access_token')`
 	// 단독 의존은 `null` 을 반환하여 쿠키가 세팅되지 않고 로그인이 실효된다.
 	// 본 describe 는 FR-01 (hash fragment 우선 파싱) + FR-06 (Cognito-실형 회귀 방어) 계약을 박제한다.
-	let savedLocation;
+	let savedLocation: Location;
 	const clearAuthCookies = () => {
 		common.deleteCookie('access_token');
 		common.deleteCookie('id_token');
@@ -222,15 +238,11 @@ describe('auth() Cognito-실형 토큰 추출 (REQ-20260421-032 FR-06)', () => {
 
 	afterEach(() => {
 		clearAuthCookies();
-		delete window.location;
-		window.location = savedLocation;
+		restoreLocation(savedLocation);
 	});
 
 	it('extracts access_token and id_token from hash fragment with trailing parameters (Cognito canonical form)', () => {
-		const mockLocation = new URL('http://localhost:3000/#access_token=AAA&id_token=BBB&expires_in=3600&token_type=Bearer');
-		mockLocation.replace = vi.fn();
-		delete window.location;
-		window.location = mockLocation;
+		setLocation(mockUrlLocation('http://localhost:3000/#access_token=AAA&id_token=BBB&expires_in=3600&token_type=Bearer'));
 
 		common.auth();
 
@@ -239,10 +251,7 @@ describe('auth() Cognito-실형 토큰 추출 (REQ-20260421-032 FR-06)', () => {
 	});
 
 	it('extracts access_token and id_token from hash fragment without trailing parameters', () => {
-		const mockLocation = new URL('http://localhost:3000/#access_token=AAA&id_token=BBB');
-		mockLocation.replace = vi.fn();
-		delete window.location;
-		window.location = mockLocation;
+		setLocation(mockUrlLocation('http://localhost:3000/#access_token=AAA&id_token=BBB'));
 
 		common.auth();
 
@@ -256,9 +265,9 @@ describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 	// jsdom document.cookie getter 는 name=value 만 반환하고 속성(SameSite, secure, path 등)은
 	// 노출하지 않는다. 따라서 실제 할당되는 cookie 문자열을 document.cookie setter 를 spy 로
 	// 가로채 캡처한다 (REQ-20260421-025 FR-02 positive/negative 어설션).
-	let savedLocation;
-	let cookieSetSpy;
-	let writtenCookies;
+	let savedLocation: Location;
+	let cookieSetSpy: ReturnType<typeof vi.spyOn>;
+	let writtenCookies: string[];
 
 	const clearAuthCookies = () => {
 		common.deleteCookie('access_token');
@@ -268,11 +277,9 @@ describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 	beforeEach(() => {
 		stubMode('development');
 		savedLocation = window.location;
-		const mock = new URL('http://localhost:3000');
-		mock.replace = vi.fn();
+		const mock = mockUrlLocation('http://localhost:3000');
 		mock.href += '?access_token=AAA#id_token=BBB';
-		delete window.location;
-		window.location = mock;
+		setLocation(mock);
 		clearAuthCookies();
 
 		// document.cookie setter 를 spy 하여 실제 직렬화된 cookie 문자열 수집.
@@ -281,8 +288,8 @@ describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 			Object.getPrototypeOf(document),
 			'cookie',
 		) || Object.getOwnPropertyDescriptor(document, 'cookie');
-		const originalSet = descriptor.set.bind(document);
-		cookieSetSpy = vi.spyOn(document, 'cookie', 'set').mockImplementation((v) => {
+		const originalSet = descriptor!.set!.bind(document);
+		cookieSetSpy = vi.spyOn(document, 'cookie', 'set').mockImplementation((v: string) => {
 			writtenCookies.push(v);
 			originalSet(v);
 		});
@@ -291,8 +298,7 @@ describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 	afterEach(() => {
 		cookieSetSpy.mockRestore();
 		clearAuthCookies();
-		delete window.location;
-		window.location = savedLocation;
+		restoreLocation(savedLocation);
 	});
 
 	it('emits SameSite=(Strict|Lax|None) on access_token and id_token cookies (positive)', () => {
@@ -300,7 +306,7 @@ describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 
 		// auth() 가 세팅하는 두 쿠키 (access_token, id_token) 직렬화 문자열 수집.
 		const authWrites = writtenCookies.filter(
-			(c) => /^access_token=|^id_token=/.test(c),
+			(c: string) => /^access_token=|^id_token=/.test(c),
 		);
 		expect(authWrites.length).toBeGreaterThanOrEqual(2);
 
@@ -313,7 +319,7 @@ describe('auth() SameSite RFC 6265bis (REQ-20260421-025 FR-02)', () => {
 		common.auth();
 
 		const authWrites = writtenCookies.filter(
-			(c) => /^access_token=|^id_token=/.test(c),
+			(c: string) => /^access_token=|^id_token=/.test(c),
 		);
 		const joined = authWrites.join('\n');
 
@@ -335,9 +341,9 @@ describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)', () => {
 	// `maxAge` 는 브라우저가 인식하지 못해 세션 쿠키로 강등되는 회귀가 있었다.
 	// 본 describe 는 auth() 가 access_token/id_token 직렬화 결과에 표준 속성명을
 	// 포함하고, camelCase 오타를 재도입하지 않음을 박제한다 (FR-07 positive/negative).
-	let savedLocation;
-	let cookieSetSpy;
-	let writtenCookies;
+	let savedLocation: Location;
+	let cookieSetSpy: ReturnType<typeof vi.spyOn>;
+	let writtenCookies: string[];
 
 	const clearAuthCookies = () => {
 		common.deleteCookie('access_token');
@@ -347,11 +353,9 @@ describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)', () => {
 	beforeEach(() => {
 		stubMode('development');
 		savedLocation = window.location;
-		const mock = new URL('http://localhost:3000');
-		mock.replace = vi.fn();
+		const mock = mockUrlLocation('http://localhost:3000');
 		mock.href += '?access_token=AAA#id_token=BBB';
-		delete window.location;
-		window.location = mock;
+		setLocation(mock);
 		clearAuthCookies();
 
 		writtenCookies = [];
@@ -359,8 +363,8 @@ describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)', () => {
 			Object.getPrototypeOf(document),
 			'cookie',
 		) || Object.getOwnPropertyDescriptor(document, 'cookie');
-		const originalSet = descriptor.set.bind(document);
-		cookieSetSpy = vi.spyOn(document, 'cookie', 'set').mockImplementation((v) => {
+		const originalSet = descriptor!.set!.bind(document);
+		cookieSetSpy = vi.spyOn(document, 'cookie', 'set').mockImplementation((v: string) => {
 			writtenCookies.push(v);
 			originalSet(v);
 		});
@@ -369,15 +373,14 @@ describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)', () => {
 	afterEach(() => {
 		cookieSetSpy.mockRestore();
 		clearAuthCookies();
-		delete window.location;
-		window.location = savedLocation;
+		restoreLocation(savedLocation);
 	});
 
 	it('emits standard Max-Age attribute (positive) and avoids camelCase maxAge (negative) on auth cookies', () => {
 		common.auth();
 
 		const authWrites = writtenCookies.filter(
-			(c) => /^access_token=|^id_token=/.test(c),
+			(c: string) => /^access_token=|^id_token=/.test(c),
 		);
 		expect(authWrites.length).toBeGreaterThanOrEqual(2);
 
@@ -386,7 +389,7 @@ describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)', () => {
 		// positive: 표준 속성명 `max-age=3600` 이 라인 시작 또는 `; ` 다음에 2회 매치.
 		const positiveMatches = joined.match(/(?:^|;\s*)max-age=3600\b/gi);
 		expect(positiveMatches).not.toBeNull();
-		expect(positiveMatches.length).toBeGreaterThanOrEqual(2);
+		expect(positiveMatches!.length).toBeGreaterThanOrEqual(2);
 
 		// negative: camelCase 속성 (예: `maxAge=3600`) 0 매치 — 오타 재도입 차단.
 		expect(joined).not.toMatch(/(?:^|;\s*)maxAge=/);
@@ -394,32 +397,30 @@ describe('auth() cookie persistence attr name (REQ-20260421-032 FR-07)', () => {
 });
 
 describe('auth() idempotent cookie result (REQ-20260418-025 FR-01)', () => {
-	let savedLocation;
+	let savedLocation: Location;
 	const clearAuthCookies = () => {
 		common.deleteCookie('access_token');
 		common.deleteCookie('id_token');
 	};
-	const normalizeCookie = (raw) =>
+	const normalizeCookie = (raw: string): string =>
 		raw
 			.split(';')
-			.map((c) => c.trim())
+			.map((c: string) => c.trim())
 			.filter(Boolean)
 			.sort()
 			.join('; ');
 
 	beforeEach(() => {
 		savedLocation = window.location;
-		const mock = new URL('http://localhost:3000');
-		mock.replace = vi.fn();
+		const mock = mockUrlLocation('http://localhost:3000');
 		mock.href += '?access_token=AAA#id_token=BBB';
-		delete window.location;
-		window.location = mock;
+		setLocation(mock);
 		clearAuthCookies();
 	});
 
 	afterEach(() => {
 		clearAuthCookies();
-		window.location = savedLocation;
+		restoreLocation(savedLocation);
 	});
 
 	it('produces equivalent document.cookie body after 1 vs 2 calls (development)', () => {
@@ -832,8 +833,8 @@ describe('User Agent parsing test', () => {
 
 describe("copyToClipboard (async Clipboard API)", () => {
 	afterEach(() => {
-		// navigator 를 재할당해 테스트간 간섭 제거
-		delete navigator.clipboard;
+		// navigator 를 재할당해 테스트간 간섭 제거 (Navigator.clipboard 는 readonly — 테스트 한정 cast).
+		delete (navigator as unknown as { clipboard?: Clipboard }).clipboard;
 	});
 
 	it("returns true and calls writeText on success", async () => {

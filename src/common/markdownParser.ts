@@ -400,7 +400,8 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 	const openTag = "<" + tagName + ">";
 	const closeTag = "</" + tagName + ">";
 
-	const top = () => depthStack[depthStack.length - 1];
+	// `noUncheckedIndexedAccess` 정합: 호출부는 `depthStack.length > 0` 분기 후 사용 — non-null 보장.
+	const top = (): number => depthStack[depthStack.length - 1]!;
 
 	const flushPendingCloseLi = () => {
 		if(pendingCloseLi) {

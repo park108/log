@@ -12,9 +12,11 @@ export const setHtmlTitle = (title: string): void => {
 const DEFAULT_META_DESCRIPTION = "park108.net is a personal journal of Jongkil Park the developer";
 
 export const setMetaDescription = (desc: string = DEFAULT_META_DESCRIPTION): void => {
-	const meta = document.getElementsByTagName('meta');
-	if(meta.description !== undefined) {
-		meta.description.content = desc;
+	// `document.getElementsByTagName('meta')` 는 HTMLCollection 이지만, jsdom/legacy 코드 호환을 위해
+	// `name="description"` 첫 매치를 직접 조회. 과거 `meta.description` 표기는 비표준 named-item 접근.
+	const metaEl = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+	if (metaEl) {
+		metaEl.content = desc;
 	}
 }
 
@@ -75,11 +77,11 @@ export const getUrl = (): string | undefined => {
 }
 
 export function getCookie(name: string): string | undefined {
-	let matches = document.cookie.match(new RegExp(
+	const matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([$?*|{}^])/g, '\\$1') + "=([^;]*)"
 	));
 
-	return matches ? decodeURIComponent(matches[1]) : undefined;
+	return matches && matches[1] !== undefined ? decodeURIComponent(matches[1]) : undefined;
 }
 
 type CookieOptionValue = string | number | boolean | Date;
@@ -232,7 +234,7 @@ export function getFormattedTime(timestamp: number): string {
 export function getFormattedSize(size: number): string {
 
 	let unit = "";
-	let scaled: number | string = size;
+	let scaled: number = size;
 
 	if(0 === scaled) {
 		unit = "";
@@ -240,33 +242,33 @@ export function getFormattedSize(size: number): string {
 	else if(1000 > scaled) {
 		unit = "bytes";
 	}
-	
+
 	if(1000 <= scaled) {
-		scaled = (scaled / 1000).toFixed(2);
+		scaled = Number((scaled / 1000).toFixed(2));
 		unit = "KB";
 	}
 
 	if(1000 <= scaled) {
-		scaled = (scaled / 1000).toFixed(2);
+		scaled = Number((scaled / 1000).toFixed(2));
 		unit = "MB";
 	}
 
 	if(1000 <= scaled) {
-		scaled = (scaled / 1000).toFixed(2);
+		scaled = Number((scaled / 1000).toFixed(2));
 		unit = "GB";
 	}
 
 	if(1000 <= scaled) {
-		scaled = (scaled / 1000).toFixed(2);
+		scaled = Number((scaled / 1000).toFixed(2));
 		unit = "TB";
 	}
 
 	if(1000 <= scaled) {
-		scaled = (scaled / 1000).toFixed(1);
+		scaled = Number((scaled / 1000).toFixed(1));
 		unit = "PB";
 	}
 
-	return Number(scaled).toLocaleString() + " " + unit;
+	return scaled.toLocaleString() + " " + unit;
 }
 
 export function getWeekday(timestamp: number): string {

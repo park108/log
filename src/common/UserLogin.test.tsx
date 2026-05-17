@@ -6,7 +6,7 @@ import * as common from './common';
 // reads `import.meta.env.DEV` / `.PROD` lazily on each call, so `vi.stubEnv`
 // is reflected without a module-graph reset + dynamic re-import. Static ESM
 // imports are sufficient — see env-spec.md §5.2 / §9.
-const setEnv = (dev, prod) => {
+const setEnv = (dev: boolean, prod: boolean): void => {
   vi.stubEnv('DEV', dev);
   vi.stubEnv('PROD', prod);
 };
@@ -94,16 +94,19 @@ describe("get login/logout url correctly", () => {
 
 describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 
-  let originalLocation;
+  let originalLocation: Location;
 
   beforeEach(() => {
     originalLocation = window.location;
-    delete window.location;
-    window.location = { ...originalLocation, href: '' };
+    // jsdom 의 `window.location` 은 read-only setter — 테스트 한정 cast 로 흡수.
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Location }).location =
+      { ...originalLocation, href: '' } as unknown as Location;
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Location }).location = originalLocation;
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });

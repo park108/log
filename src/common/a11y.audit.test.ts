@@ -44,7 +44,7 @@ const CONTEXT_WINDOW_LINES = 24; // opening tag 경계 탐색 안전망 (JSX 속
  * src/ 하위 *.jsx 재귀 수집. `.test.`, `.audit.` 접두 파일 제외.
  * @returns {string[]} 파일 절대경로 목록.
  */
-function collectProductionJsx(dir = SRC_ROOT, acc = []) {
+function collectProductionJsx(dir: string = SRC_ROOT, acc: string[] = []): string[] {
 	for (const entry of readdirSync(dir)) {
 		const full = path.join(dir, entry);
 		const s = statSync(full);
@@ -69,20 +69,23 @@ function collectProductionJsx(dir = SRC_ROOT, acc = []) {
  * @param {number} i role="button" 라인 index (0-based)
  * @returns {{ startLine: number, endLine: number, tagName: string } | null}
  */
-function findOpeningTagRange(lines, i) {
+function findOpeningTagRange(
+	lines: string[],
+	i: number,
+): { startLine: number; endLine: number; tagName: string } | null {
 	let startLine = -1;
-	let tagName = null;
+	let tagName: string | null = null;
 	// 상방 탐색: `<[A-Za-z]` (단, `</` 제외) 포함 라인.
 	const upMin = Math.max(0, i - CONTEXT_WINDOW_LINES);
 	for (let k = i; k >= upMin; k--) {
-		const m = lines[k].match(/<([A-Za-z][A-Za-z0-9]*)\b(?![^<]*?\/>\s*$)/);
-		if (m && !/<\//.test(lines[k].split('<' + m[1])[0] || '')) {
+		const m = lines[k]!.match(/<([A-Za-z][A-Za-z0-9]*)\b(?![^<]*?\/>\s*$)/);
+		if (m && !/<\//.test(lines[k]!.split('<' + m[1])[0] || '')) {
 			startLine = k;
-			tagName = m[1].toLowerCase();
+			tagName = m[1]!.toLowerCase();
 			break;
 		}
 	}
-	if (startLine < 0) return null;
+	if (startLine < 0 || tagName === null) return null;
 	// 하방 탐색: opening tag 닫힘 (`>` 또는 `/>`) 첫 라인.
 	// 주의: 속성값 내 '>' (예: `data-foo=">"`) 는 통상 JSX 에서 등장 빈도 낮음.
 	const downMax = Math.min(lines.length - 1, startLine + CONTEXT_WINDOW_LINES);
@@ -90,7 +93,7 @@ function findOpeningTagRange(lines, i) {
 	for (let k = startLine; k <= downMax; k++) {
 		// 라인 끝에 `>` 또는 `/>` 가 나타나는 첫 라인 (단, `{...}` 표현 내 `=>` 는 무시).
 		// 보수적 매칭: trim 끝이 `>` 또는 `/>` 이거나, 라인 내 `>` 가 tagname 완료 의미.
-		const trimmed = lines[k].replace(/\s+$/, '');
+		const trimmed = lines[k]!.replace(/\s+$/, '');
 		if (trimmed.endsWith('/>') || trimmed.endsWith('>')) {
 			// `=>` (arrow) 는 tag 종결 아님 → trimmed 가 `=>` 로 끝나면 skip.
 			if (trimmed.endsWith('=>')) continue;
@@ -105,14 +108,25 @@ function findOpeningTagRange(lines, i) {
 /**
  * repo 기준 상대경로 (POSIX).
  */
-function toRepoRel(abs) {
+function toRepoRel(abs: string): string {
 	return path.relative(REPO_ROOT, abs).split(path.sep).join('/');
 }
+
+type Violation = {
+	file: string;
+	line: number;
+	tagName: string;
+	hasOnClick: boolean;
+	hasTabIndex0: boolean;
+	hasActivateKeyDown: boolean;
+	testIds: string[];
+	snippet: string;
+};
 
 /**
  * 위반 1건이 PATTERN_B_EXEMPTIONS 중 하나에 매칭되는지.
  */
-function isExempt(violation) {
+function isExempt(violation: Violation): boolean {
 	return PATTERN_B_EXEMPTIONS.some((ex) => {
 		if (ex.file !== violation.file) return false;
 		if (ex.testId && violation.testIds.includes(ex.testId)) return true;
@@ -138,8 +152,7 @@ const PROD_JSX_FILES = collectProductionJsx();
  * @property {string} snippet opening tag 원문
  */
 
-/** @type {Violation[]} */
-const violations = [];
+const violations: Violation[] = [];
 
 for (const abs of PROD_JSX_FILES) {
 	const src = readFileSync(abs, 'utf-8');
@@ -147,7 +160,8 @@ for (const abs of PROD_JSX_FILES) {
 	const repoRel = toRepoRel(abs);
 
 	for (let i = 0; i < lines.length; i++) {
-		if (!/role="button"/.test(lines[i])) continue;
+		const line = lines[i] ?? '';
+		if (!/role="button"/.test(line)) continue;
 		const range = findOpeningTagRange(lines, i);
 		if (!range) {
 			// 경계 식별 실패 — 안전하게 위반 후보로 박제 (수동 검토 필요).
@@ -159,7 +173,7 @@ for (const abs of PROD_JSX_FILES) {
 				hasTabIndex0: false,
 				hasActivateKeyDown: false,
 				testIds: [],
-				snippet: lines[i],
+				snippet: line,
 			});
 			continue;
 		}
@@ -175,7 +189,7 @@ for (const abs of PROD_JSX_FILES) {
 		if (!hasOnClick) continue;
 
 		if (!(hasTabIndex0 && hasActivateKeyDown)) {
-			const testIdMatches = [...rangeText.matchAll(/data-testid="([^"]+)"/g)].map((m) => m[1]);
+			const testIdMatches = [...rangeText.matchAll(/data-testid="([^"]+)"/g)].map((m) => m[1]!);
 			violations.push({
 				file: repoRel,
 				line: i + 1,
@@ -217,7 +231,7 @@ describe('a11y 패턴 B audit — role="button" 전수 검증 (REQ-20260421-033 
 	});
 
 	it('activateOnKey 를 import 한 *.jsx 는 실제로 onKeyDown={activateOnKey(...)} 를 1회 이상 사용한다 (dead import 방지)', () => {
-		const deadImports = [];
+		const deadImports: string[] = [];
 		for (const abs of PROD_JSX_FILES) {
 			const src = readFileSync(abs, 'utf-8');
 			const importsActivate = /import\s*\{[^}]*\bactivateOnKey\b[^}]*\}\s*from\s*['"][^'"]+['"]/.test(
@@ -231,10 +245,10 @@ describe('a11y 패턴 B audit — role="button" 전수 검증 (REQ-20260421-033 
 	});
 
 	it('PATTERN_B_EXEMPTIONS 의 각 항목은 실제 file 이 존재하고 (testId 가 주어졌다면) 해당 파일 내에 등장한다', () => {
-		const stale = [];
+		const stale: string[] = [];
 		for (const ex of PATTERN_B_EXEMPTIONS) {
 			const abs = path.resolve(REPO_ROOT, ex.file);
-			let src;
+			let src: string;
 			try {
 				src = readFileSync(abs, 'utf-8');
 			} catch {

@@ -45,7 +45,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 	}
 }
 
-ErrorBoundary.propTypes = {
+(ErrorBoundary as unknown as { propTypes: object }).propTypes = {
 	fallback: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 	onError: PropTypes.func,
 	children: PropTypes.node.isRequired,

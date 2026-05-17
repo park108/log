@@ -21,7 +21,7 @@ describe('render navigation menu correctly', () => {
 	// 회귀한다. 본 describe 내부는 명시적으로 `stubMode('test')` 로 DEV/PROD 모두 false
 	// 로 고정해 baseline 의 href-미설정 동작을 보존한다.
 	// REQ-20260420-009 — render title 어설션을 intent-based 로 재설계해 env 분기와 assertion 을 분리.
-	const stubMode = (mode) => {
+	const stubMode = (mode: string): void => {
 		vi.stubEnv('MODE', mode);
 		vi.stubEnv('DEV', mode === 'development');
 		vi.stubEnv('PROD', mode === 'production');
@@ -52,7 +52,7 @@ describe('render navigation menu correctly', () => {
 		const link = screen.getByText("park108.net").closest('a');
 
 		expect(link).not.toBeNull();
-		const href = link.getAttribute('href');
+		const href = link!.getAttribute('href');
 		expect(href === null || /^https?:\/\//.test(href)).toBe(true);
 	});
 
@@ -85,10 +85,10 @@ describe('render navigation menu correctly', () => {
 		expected.innerHTML = "file";
 
 		expect(expected).toStrictEqual(anchor);
-		
+
 		// Is this menu's class active now?
-		const li = anchor.parentNode;
-		const liClass = li.getAttribute("class");
+		const li = anchor!.parentNode as HTMLElement | null;
+		const liClass = li!.getAttribute("class");
 
 		expect(liClass).toStrictEqual(activatedListItemClass);
 	});
@@ -122,10 +122,10 @@ describe('render navigation menu correctly', () => {
 		expected.innerHTML = "mon";
 
 		expect(expected).toStrictEqual(anchor);
-		
+
 		// Is this menu's class active now?
-		const li = anchor.parentNode;
-		const liClass = li.getAttribute("class");
+		const li = anchor!.parentNode as HTMLElement | null;
+		const liClass = li!.getAttribute("class");
 
 		expect(liClass).toStrictEqual(activatedListItemClass);
 	});
