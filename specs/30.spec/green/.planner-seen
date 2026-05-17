@@ -1225,3 +1225,70 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #       (9) **inspector hook-ack 무진입 누적 분기**: TSK-07/13/15/16 done 후 inspector hook-ack 미진입 누적. 38th tick 진입 시점 typecheck-island-extension.md / vite-env-boundary-typing.md / markdownParser.md hash 변동 검출 시 (a)(b)(d) 즉시 승격 후보. 변동 없으면 본 tick 박제 정체 카운트 +1.
 #       (10) **grep dry-run 보류**: 본 37th tick carve 0건이므로 grep dry-run 0/0 match (수행 없음). RULE-04 notes 토큰 `grep dry-run: 0/0 match (carve none)` 박제.
 
+# 38th tick (2026-05-17T15:25:00Z) — planner
+#   ## planner @ 2026-05-17T15:25:00Z
+#   - input-queue: 9 (green/foundation/{diagnostic-script-auto-channel-coverage,lint-warning-zero-gate,node-modules-extraneous-coherence,src-spec-reference-coherence,tooling}.md + green/common/{accessibility,markdownParser,sanitizeHtml}.md + green/styles/css-modules.md). 본 tick 시작 시점 10 green spec — typecheck-island-extension + vite-env-boundary-typing 2건 승격 후 8건 잔존 + diagnostic-script-auto-channel-coverage 신규 진입 (76b1bff) = 9건.
+#   - processed: 3 (2 promote + 1 carve)
+#   - produced: [specs/40.task/TSK-20260517-18-check-node-coherence-auto-channel-attach.md]
+#   - moved: [specs/30.spec/green/foundation/typecheck-island-extension.md -> specs/30.spec/blue/foundation/typecheck-island-extension.md, specs/30.spec/green/foundation/vite-env-boundary-typing.md -> specs/30.spec/blue/foundation/vite-env-boundary-typing.md]
+#   - blocked: []
+#   - backpressure: none (40.task 0건 → 1건, < TASK_READY_MAX=10)
+#   - no-op: false
+#   - notes:
+#     (i) **승격 4조건 점검 — 2 spec 승격**:
+#       (a) foundation/typecheck-island-extension.md: [WIP]=0 / unchecked=0 / ^#+ .*To-Be=0 / §변경 이력 TSK-20260517-15 (commit `964f294`, src/common/ 109→0) + TSK-20260517-16 (commit `689b87b`, src/Toaster/ 19→0) hook-ack 박제 — 4조건 PASS → mv green→blue. RULE-07 양성 재검증 PASS (시스템 불변식 평서 — typecheck island 자격 6 축 효능, 반복 검증 `tsc --noEmit` + `find` + `grep` 단일 절차, 시점 비의존 §본문, incident 귀속 부재 G8 0 hit 박제, 수단 중립).
+#       (b) foundation/vite-env-boundary-typing.md: [WIP]=0 / unchecked=0 / ^#+ .*To-Be=0 / §변경 이력 TSK-20260517-07 (commit `cb47bd2`, G1·G2·G4 marker flip) + TSK-20260517-15·16 (commit `964f294`+`689b87b`, G3 marker flip — 전반 tsc exit=0 도래) hook-ack 박제 — 4조건 PASS → mv green→blue. RULE-07 양성 재검증 PASS (시스템 불변식 평서 — VITE_* 진입점 4 축 게이트, 반복 검증 `grep` + `tsc --noEmit` + 키 enumerate, 시점 비의존, incident 귀속 부재, 수단 중립 — Should FR-04 수단 택1 (α) 명시).
+#     (ii) **carve 1건 — TSK-20260517-18** (check-node-coherence-auto-channel-attach):
+#       - 출처 spec: foundation/diagnostic-script-auto-channel-coverage.md (REQ-081 흡수 76b1bff 신규 박제) §동작 (I1)(I2) + §수용 기준 Must FR-01·FR-02 + §스코프 규칙 (G2)(G3) zero-point cell.
+#       - 회수 marker: FR-01·FR-02 (zero-point cell 채움 후 marker flip — inspector hook-ack 영역).
+#       - 변경 표면: .github/workflows/ci.yml step 1건 추가 (`run: npm run check:node-coherence`). 수단 중립 중 CI 채택 (자매 사례 check-deps-coherence / check-vite-env-coherence 동질 패턴).
+#       - depends_on: [] (독립).
+#       - 38차 carve 정당화: 신규 green spec 진입 (diagnostic-script-auto-channel-coverage 76b1bff) — 멱등 회피 (TSK-09 / TSK-14 와 영역 직교, 본 task 는 메타 매트릭스 N×3 cell 의 zero-point 채움 1건 한정).
+#     (iii) **carve 영역 밖 (38차 unchecked > 0 잔존 spec — 멱등 회피 carve 재발행 0건)**:
+#       - foundation/lint-warning-zero-gate.md (unchecked=9): TSK-17 done @78f87a0 후 inspector hook-ack 미진입 — 차기 inspector tick 의존. carve 영역 밖 (TSK-17 동일 marker 재발행 = RULE-02 멱등 위반).
+#       - foundation/node-modules-extraneous-coherence.md (unchecked=3): 76b1bff G4 + Should 2 marker flip 후 잔여 marker 차기 이벤트 / 외부 영역 회수 대기. carve 영역 밖.
+#       - foundation/src-spec-reference-coherence.md (unchecked=1): inspector 잔여 marker 1건 차기 hook-ack 대기. carve 영역 밖.
+#       - foundation/tooling.md (unchecked=3): inspector 잔여 marker 누적 — 차기 이벤트 / 운영자 회수 대기. carve 영역 밖.
+#       - common/{accessibility,markdownParser,sanitizeHtml} (unchecked > 0): 차기 이벤트 의존. carve 영역 밖.
+#       - styles/css-modules.md (unchecked=3): 차기 이벤트 의존. carve 영역 밖.
+#       - foundation/diagnostic-script-auto-channel-coverage.md (unchecked=6 — 본 carve 박제 후 5 잔여 marker (I5)·FR-05·FR-06·NFR-05): TSK-18 done 후 inspector hook-ack 분기 — (I5) 회귀 fixture 별 task 후보 (차기 carve 영역 — 본 tick 멱등 보존).
+#     (iv) **Task ID 채번** (RULE-01 grep `specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 38th 재실행): TSK-20260418-10 + TSK-20260420-{13,16,26,33} + TSK-20260422-{13,14,15} + TSK-20260517-{01,02,03,05,06,07,08,09,10,11,12,13,14,15,16,17,18}. -04 미발행 유지 (50.blocked log-island-convergence_reason.md "재사용 가능" 언급은 실제 발행 ID 아님 — RULE-01 평서 정합). 발행 footprint -01~-03,-05~-18 (총 17건). -19+ 미점유 유지.
+#     (v) **grep dry-run** (TSK-18 발행 시점 5/5 match 검증):
+#       - (G-task-1) `grep -rnE "check-node-version-coherence|check:node-coherence" .github/workflows/ .husky/` → **0 hits** (PASS — zero-point baseline 정합).
+#       - (G-task-2) `grep -rnE "check-deps-coherence|check:deps" .github/workflows/ .husky/` → **2 hits** (`.github/workflows/ci.yml:28` + `.husky/pre-push:1` — PASS).
+#       - (G-task-3) `grep -rnE "check-vite-env-coherence|check:vite-env" .github/workflows/ .husky/` → **2 hits** (`.github/workflows/ci.yml:34` + `.husky/pre-commit:12` — PASS).
+#       - (G-task-4) `grep -nE "check:node-coherence" package.json` → **1 hit** (`package.json:27` — PASS).
+#       - (G-task-5) `ls scripts/check-*.sh` → **4 file** (PASS).
+#       - 박제 baseline 5/5 match 정합.
+#     (vi) **38차 진입 시점 green spec hash 측정** (정체 카운트 — 37차 박제 기준 새 카운터 본 tick 1회차):
+#         - foundation/diagnostic-script-auto-channel-coverage.md=4e140a74cdd4 (신규 진입 76b1bff — 0회차)
+#         - foundation/lint-warning-zero-gate.md=6124886896b3 (37차 동일 — 정체 2회차, TSK-17 done 후 inspector hook-ack 미진입)
+#         - foundation/node-modules-extraneous-coherence.md=77af8bab194f (37차 d940aa94 → 76b1bff 변경 — 정체 카운트 리셋 0회차)
+#         - foundation/src-spec-reference-coherence.md=c23cf800e110 (37차 동일 — 정체 2회차)
+#         - foundation/tooling.md=b2c1299be2d6 (37차 동일 — 정체 2회차)
+#         - common/accessibility.md=fa58c6168f35 (37차 동일 — 정체 2회차)
+#         - common/markdownParser.md=80e20a34a34c (37차 동일 — 정체 2회차, TSK-13 done 후 inspector hook-ack 미진입)
+#         - common/sanitizeHtml.md=f33c38cc9e31 (37차 동일 — 정체 2회차)
+#         - styles/css-modules.md=a0b75e71a129 (37차 동일 — 정체 2회차)
+#     (vii) **격리 0건**: 본 38차 카운트는 37차 박제 기준 1회차 (37차 "본 tick 부터 재카운트" 명시). 격리 임계치 "2회 이상 정체" 미충족. 또한 76b1bff inspector commit 의 stale ≥3cycle 6건 박제 (src-spec-reference-coherence 5 + tooling 3 + sanitizeHtml/markdownParser/accessibility/css-modules 4) 는 inspector audit 영역 — planner 격리 분기 아님 (RULE-01 writer 매트릭스 보전). 39차 tick 진입 시점 동일 hash 유지 + 무진입 시 정체 2회차 누적 → 격리 후보 분기.
+#     (viii) **환경 회복 신호 재검증** (38th tick 진입 측정): `node_modules/{vite,vitest,typescript,@eslint/js}` 모두 EXIST + `npx --no-install eslint ./src --max-warnings=0` rc=0 (G0 PASS) + extraneous=0 + `npm run check:node-coherence` rc=0 (HEAD=`76b1bff` 실측 정합 — Node 메이저 3축 정합 회복 유지). 회복 유지.
+#     (ix) **TSK-17 done 검출 후 inspector 미진입 누적**: 40.task/ TSK-17 (eslint-warn-zero-master-gate) 완료 (commit 78f87a0) → 60.done/2026/05/17/task/ 이동 검출. inspector hook-ack 미진입 (lint-warning-zero-gate.md hash 6124886896b3 무변동). 직전 tick (37차) 박제 행동지침 (xii)(9) 정합 — 차기 inspector tick 의존. 마찬가지로 TSK-13 done 후 inspector hook-ack 미진입 (markdownParser.md hash 80e20a34 무변동).
+#     (x) **HEAD baseline**: working tree `76b1bff` (37차 commit 9a07a6e → 7ab2606 discovery → 76b1bff inspector). 본 tick mv 2 + create 1 + .planner-seen append = self-area 변경 4건 (specs/30.spec/blue/foundation/{typecheck-island-extension,vite-env-boundary-typing}.md create + specs/30.spec/green/foundation/{typecheck-island-extension,vite-env-boundary-typing}.md delete + specs/40.task/TSK-20260517-18-*.md create + specs/30.spec/green/.planner-seen append).
+#     (xi) **50.blocked/spec/foundation/ 11 spec**: 사람 운영자 /revisit 의존 (RULE-05). planner 자동 재시도 금지.
+#     (xii) **RULE-07 양성 재판단 보류**: 9 잔존 green spec + 신규 박제 diagnostic-script-auto-channel-coverage 모두 §양성 평서 (시스템 불변식·계약 한정) inspector 박제 정합. 본 tick 양성 위반 시그널 0건 검출.
+#     (xiii) 다음 세션 (39th tick) 행동지침:
+#       (1) **승격 판정 멱등 게이트**: 39th tick 진입 시 어느 green spec 이 hash 변경 + unchecked=0 도달 시 mv green→blue 즉시 분기. 잠재 후보:
+#         (a) foundation/lint-warning-zero-gate.md: TSK-17 done 후 inspector hook-ack 진입 → I1·I3·I5 + FR-01·FR-02 marker 5건 flip + 잔여 (I9·FR-05·FR-06·NFR-05) flip → unchecked=0 (현 9) → 승격.
+#         (b) common/markdownParser.md: TSK-13 done 후 잔여 marker 1건 inspector flip → unchecked=0 (현 1) → 승격.
+#         (c) foundation/src-spec-reference-coherence.md: 잔여 marker 1건 inspector flip → unchecked=0 (현 1) → 승격.
+#         (d) common/accessibility.md: 잔여 marker 1건 inspector flip → unchecked=0 (현 1) → 승격.
+#         (e) foundation/{tooling,node-modules-extraneous-coherence,diagnostic-script-auto-channel-coverage} + styles/css-modules + common/sanitizeHtml: marker 누적 — inspector hook-ack 누적 대기.
+#       (2) **carve 재발행 금지 (멱등)**: TSK-18 동일 marker (FR-01·FR-02 zero-point cell) 회수 carve 재발행 = RULE-02 멱등 위반. 차기 신규 marker (spec 박제 추가 / 신규 green spec 진입 / 신규 REQ 흡수) 시에만 carve. (I5) 회귀 fixture 별 carve 후보는 TSK-18 done + inspector hook-ack 후 분기.
+#       (3) **40.task/ 백프레셔**: 본 38th 종료 시 1건 (TSK-18). 임계치 9건 여유. developer 미수행 누적 시 39th tick 진입 시 측정 후 임계치 분기.
+#       (4) **정체 카운트** (본 38차 박제 hash 기준): 9 green spec 중 (a) 본 tick hash 변경 2건 (node-modules-extraneous-coherence + 신규 diagnostic-script-auto-channel-coverage) — 0회차 시작, (b) 본 tick hash 동일 7건 (lint-warning-zero-gate + src-spec-reference-coherence + tooling + accessibility + markdownParser + sanitizeHtml + css-modules) — 37차 박제 기준 1회차. 39th tick 진입 시점 7건 동일 hash 유지 + developer/inspector 무진입 유지 시 2회차 누적 → 격리 후보 분기 (RULE-01 ".planner-seen 기준 동일 diff-hash 2회 이상 정체").
+#       (5) **환경 회귀 분기**: 회복 신호 유지 검증 (39th tick 진입 시 동일 측정 — node_modules / lint / extraneous / node 메이저 3축). 회귀 시 신규 task 발행 시 RULE-06 grep-baseline 실측 박제 불가 → carve 보류.
+#       (6) **50.blocked/spec/foundation/ revive 분기**: 사람 운영자 /revisit 의존 (RULE-05). planner 자동 재시도 금지.
+#       (7) **Task ID footprint**: 본 tick 채번 -18 (check-node-coherence-auto-channel-attach). 39th tick 신규 carve 시 -19+ 채번. 영구 박제 -01~-03,-05~-18 재사용 금지 (-04 미발행 유지).
+#       (8) **HEAD 격차 분석**: 39th tick 진입 시점 baseline 격차 항목 별 행동지침 (1)~(7) 분기 — (a) green spec hash 변경 (inspector marker flip 또는 promote), (b) 40.task/ 진입/이탈 (TSK-18 수행), (c) 60.done/2026/05/17/task/ 신규, (d) 50.blocked/task/ 진입 (developer 격리 신호), (e) 20.req/ 변동 (REQ-082·083 흡수 신호), (f) 50.blocked/spec/foundation/ 변동, (g) 환경 회복 신호 유지.
+#       (9) **inspector hook-ack 무진입 누적 분기**: TSK-13/17 done 후 inspector 미진입 누적. 39th tick 진입 시점 markdownParser.md / lint-warning-zero-gate.md hash 변동 검출 시 (a)(b) 즉시 승격 후보. 변동 없으면 본 tick 박제 정체 카운트 +1.
+#       (10) **grep dry-run 검증**: 본 38th tick carve 1건 (TSK-18) — 5/5 match 박제 정합. 39th tick 시 동일 baseline 변경 검출 시 carve 정합 재검토 (TSK-18 미회수 잔존 + 변경 시).
