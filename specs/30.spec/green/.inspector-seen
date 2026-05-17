@@ -131,3 +131,85 @@
 # RULE-07 자기 검증 — Phase 1 2 marker spec 6 ack (TSK-06 / `0ed832c` 회수 + `f0cb7b4` test fixture 회수 hook-ack — 양 spec marker 플립 정합). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-002~007 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 6건 (REQ-002/003/004/005/006/007 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+#
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`a932c8a` → THIS (69차 tick) — reconcile 0/18 ack (Phase 1 hook-ack 0, 18 stale cycles += 1; Phase 2 흡수 2건 REQ-002+REQ-003 → green 18→20 정확히 == GREEN_PENDING_MAX 임계 도달 / 잔여 큐 5건 보류; 8 stale ≥30cycle 외부 의존 누적)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `ab8bc78` (68차 tick — Phase 1 6/20 ack 2 spec / 6 marker + Phase 2 backpressure no-op REQ-002~007 6건 보류).
+#  - tick 진입 시 HEAD == `a932c8a` (spec(planner): 88차 tick promote 2건 발화 — accessibility + package-manager-major-coherence green→blue 승격).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `a932c8a` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `ab8bc78` 후): 2건 —
+#     · `7b3a6f7` (spec(planner): 87차 tick no-op 7회차 누적 — TSK-20260518-06 회수 완료 60.done/ 진입 + deps coherence drift 동반 회복 신호 박제, 20 spec hash 86차 baseline 동일 회귀 10 tick 연속. `.planner-seen` self-only 78 line 추가).
+#     · `a932c8a` (spec(planner): 88차 tick promote 2건 발화. mv green/common/accessibility.md → blue/common/accessibility.md + mv green/foundation/package-manager-major-coherence.md → blue/foundation/package-manager-major-coherence.md + `.planner-seen` self-only 62 line 추가. 외부 promote chain — inspector 68차 6 marker ack 의 직접 발화 효능).
+#  - src/ 영역 commit = 0 (직전 inspector tick 후 외부 commit 2건 모두 planner 영역 — `.planner-seen` + green→blue mv 한정).
+#  - test/spec 본문 commit = 0 (직접 marker ack 트리거 없음).
+#  - 추가 신규 req 디스크 발견 = 1 (REQ-20260518-008 신규 coverage-gate-exit-code-determinism-margin-axis.md — `.gitignore` `specs/20.req` rule 적용 untracked, mtime 03:42, 본 tick 진입 직전 발행).
+#  - spec marker 영향 후보 = 0 (직접 src 영역 commit 0 + spec 본문 변경 0).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 7건 (REQ-002/003/004/005/006/007 6건 누적 잔존 + REQ-008 신규).
+#  - 20 green spec → 88차 promote 2 후 18 green spec 잔존 (HEAD `a932c8a` baseline 실측):
+#     · `common/markdownParser.md` / `common/sanitizeHtml.md` / `common/test-helpers.md` (common 3 — accessibility 1 promote 후 잔여).
+#     · `foundation/` 14 spec (csp-meta-dev-strip-prod-preserve + diagnostic-script-auto-channel-coverage + eslint-react-hooks-lint-gate + index-html-public-asset-reference-coherence + island-proptypes-zero + lint-warning-zero-gate + manifest-icons-sizes-token-disk-coherence + meta-robots-robotstxt-policy-semantic-coherence + node-modules-extraneous-coherence + npm-script-prefix-coherence + root-config-spec-reference-coherence + spec-carve-precondition + tooling — package-manager-major-coherence 1 promote 후 잔여).
+#     · `styles/css-modules.md` (1).
+#     · `testing/runtime-fetch-unmount-safety.md` (1).
+#     → 합계 3 + 14 + 1 + 1 = **18 green spec** (HEAD `a932c8a` 실측 정합, 88차 promote -2 ↔ 68차 baseline 20).
+#     · 직전 68차 ack 2 spec (package-manager-major-coherence + accessibility) 모두 88차 promote 로 green→blue 이동 — seen-state entry 자동 해소.
+#     · 잔여 18 spec 전수 stale_cycles += 1 (직전 tick 이후 외부 src/ commit 0 = 전수 hook-ack 후보 없음).
+#     · 8 stale ≥30cycle 외부 의존 누적 유지 (eslint-react-hooks 게이트 활성화 task 외부 의존 + island-proptypes-zero hook + lint-warning-zero-gate 외부 의존 + node-modules-extraneous-coherence 신규 dep 이벤트 의존 + npm-script-prefix-coherence 신규 진단 script 의존 + spec-carve-precondition + tooling + diagnostic-script-auto-channel-coverage).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `a932c8a` 비교):
+#    · 20.req/ untracked 7건 (REQ-002~008, `.gitignore` rule 적용).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건):
+#  - 직전 `ab8bc78` 이후 외부 src 영역 commit 0 + spec marker 직접 영향 commit 0 — ack 후보 0 spec.
+#  - 88차 promote 2 spec (accessibility + package-manager-major-coherence) 은 green 잔존 0 (blue 이동) → seen-state 자동 해소.
+#  - 잔여 18 green spec 전수 hook-ack 후보 없음 (외부 src/ 영역 commit 0). 18 spec 전수 stale_cycles += 1.
+#  - 18 spec 중 ≥3cycle stale spec 8건 누적 (eslint-react-hooks-lint-gate 외부 task 의존 + island-proptypes-zero hook + lint-warning-zero-gate 외부 의존 + node-modules-extraneous-coherence 신규 dep 이벤트 의존 + npm-script-prefix-coherence 신규 진단 script 의존 + spec-carve-precondition + tooling + diagnostic-script-auto-channel-coverage). 8 stale ≥30cycle 외부 의존 누적.
+#  - **0 marker spec 0 ack / 18 total spec → Phase 1 0/18 ack.** seen-state 갱신 (18 spec 전수 stale_cycles += 1, 8 spec ≥30cycle 외부 의존 누적).
+#
+# Phase 2 처리 (RULE-03 (d) 임계 회복 + 흡수 2건):
+#  - 입력 큐 7건 (직전 68차 6건 누적 + 신규 1건):
+#     (a) REQ-20260518-002 mount-id-token-coherence — 보류 7 tick째 (직전 63차 RULE-07 PASS).
+#     (b) REQ-20260518-003 meta-description-default-fallback-token-coherence — 보류 6 tick째 (직전 64차 RULE-07 PASS).
+#     (c) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 5 tick째.
+#     (d) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 4 tick째.
+#     (e) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 3 tick째.
+#     (f) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 3 tick째.
+#     (g) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 신규 발행 1 tick째 (본 tick 진입 직전 mtime 03:42).
+#  - 본 tick 진입 시 green 디스크 == 18 < GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 흡수 여력 = 2 (18 → 20 == 임계 정확히 도달, RULE-03 (d) 의 "초과" 정의는 21+ 으로 해석 — 20 == 20 은 임계 도달이나 초과 아님 → 본 tick 흡수 2건 안전).
+#  - 흡수 우선순위 = FIFO (대기 cycle 순) = REQ-002 (7 tick) + REQ-003 (6 tick) 2건 채택.
+#  - **REQ-20260518-002 흡수** (mount-id-token-coherence):
+#     · RULE-07 자기 검증 PASS: (1) 평서 ("mount 노드 ID 토큰 3 극 동치 시스템 효능 불변식"), (2) 반복 검증 가능 (`grep -cE 'id="root"' index.html` + 양 src 파일 grep + 토큰 추출 비교 fixture), (3) 시점 비의존 (본문 React 메이저 / src 리팩토링 / 마크업 정렬 변경 모두 비의존 — NFR-07), (4) incident 비귀속 (3 극 토큰 동치는 현 baseline PASS 상태 — 회귀 보호 시스템 계약, 특정 incident patch 비귀속).
+#     · baseline 실측 (HEAD `a932c8a`): G-A `grep -cE 'id="root"' index.html` → 1 (line 16) + G-B `grep -cE 'getElementById\("root"\)' src/index.jsx` → 1 (line 8) + G-C `grep -cE 'getElementById\("root"\)' src/common/common.ts` → 1 (line 320) + G-D 3 극 토큰 동치 PASS (모두 4 byte ASCII `"root"`).
+#     · 대응 spec 식별: 신규 spec 생성 (대응 blue 부재). 경로 = `specs/30.spec/green/foundation/index-html-root-mount-id-token-coherence.md` (foundation 카테고리 — 부트 진입점 토큰 정합 횡단 게이트).
+#     · 본 spec 작성: `.claude/templates/spec.md` 기반 + 자매 `index-html-public-asset-reference-coherence.md` 형식 차용 (9 G-* 동작 + 19 수용 기준 + grep-baseline). Must FR 4 + Should FR 3 + Must NFR 4 + Should NFR 1 + Must NFR 2 + Must 회귀 가설 5 박제.
+#  - **REQ-20260518-003 흡수** (meta-description-default-fallback-token-coherence):
+#     · RULE-07 자기 검증 PASS: (1) 평서 ("description meta 양면 토큰 동치 + default 인자 binding 존재 시스템 효능 불변식"), (2) 반복 검증 가능 (`grep -cE 'name="description"' index.html` + 상수 정의 + binding grep + content/literal 추출 동치 비교 fixture), (3) 시점 비의존 (src 리팩토링 / 마크업 정렬 / API 재설계 / TypeScript 메이저 bump 비의존 — NFR-07), (4) incident 비귀속 (현 baseline 양면 67 byte ASCII literal 동치 PASS — 회귀 보호 시스템 계약).
+#     · baseline 실측 (HEAD `a932c8a`): G-A `grep -cE 'name="description"' index.html` → 1 (line 7) + G-B `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → 1 (line 12) + G-C `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → 1 (line 14) + G-D 양면 67 byte ASCII literal 동치 PASS + G-E `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → 2 (정의 1 + 사용 1) + LogSingle 호출 분포 3 (line 39 무인자 + 57 summary + 63 PAGE_NOT_FOUND).
+#     · 대응 spec 식별: 신규 spec 생성 (대응 blue 부재). 경로 = `specs/30.spec/green/foundation/meta-description-default-fallback-token-coherence.md` (foundation 카테고리 — SEO/meta 정합 횡단 게이트).
+#     · 본 spec 작성: 동일 자매 형식 차용 (9 G-* 동작 + 18 수용 기준 + grep-baseline). Must FR 4 + Should FR 3 + Must NFR 4 + Should NFR 1 + Must NFR 2 + Must 회귀 가설 5 박제.
+#  - 잔여 입력 큐 보류 5건: REQ-004 (5 tick) + REQ-005 (4 tick) + REQ-006 (3 tick) + REQ-007 (3 tick) + REQ-008 (1 tick) — 차기 tick 부터 임계 회복 시 (green 20 → planner promote 또는 격리로 19 이하 진입) 흡수 재개.
+#  - 디스크 변동: green 18→20 (foundation +2) / 20.req/ 7→5 / 60.done/2026/05/18/req/ +2.
+#  - 격리 0건 (RULE-07 7 req 전수 평가 — 본 tick 흡수 2 + 보류 5 모두 PASS, 격리 0).
+#
+# req mv: 2건 — REQ-002 + REQ-003 → `60.done/2026/05/18/req/` (정상 흡수 후 done 처리).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/index-html-root-mount-id-token-coherence.md (신규 생성 — REQ-002 흡수 spec)
+#  - specs/30.spec/green/foundation/meta-description-default-fallback-token-coherence.md (신규 생성 — REQ-003 흡수 spec)
+#  - specs/60.done/2026/05/18/req/20260518-index-html-root-mount-id-token-coherence.md (20.req/ → 60.done mv)
+#  - specs/60.done/2026/05/18/req/20260518-meta-description-default-fallback-token-coherence.md (20.req/ → 60.done mv)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 69차 박제 + green 20 entry 갱신 [2 spec 신규 + 18 spec stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 신규 2 + 60.done/req/ mv 2 + `.inspector-seen` edit 1; `.planner-seen` 미접촉; 40.task/ + 50.blocked/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/18 ack` 박제.
+# RULE-03 (d) 정합 — Phase 2 흡수 2 (green 18 + 2 = 20 == GREEN_PENDING_MAX, 초과 아님 → 흡수 안전).
+# RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src 영역 commit 0 → hook-ack 후보 0). Phase 2 2 흡수 + 0 격리 (REQ-002+003 모두 RULE-07 PASS — 시스템 불변식 + 반복 검증 + 시점 비의존 + incident 비귀속 4 조건 충족).
+#
+# 입력 큐 잔여: 5건 (REQ-004/005/006/007/008 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
