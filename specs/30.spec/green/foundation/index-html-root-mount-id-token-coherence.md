@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 부트 진입점 토큰 정합 — `index.html:16` `<div class="div" id="root">` (HTML DOM 마운트 노드 선언) + `src/index.jsx:8` `ReactDOM.createRoot(document.getElementById("root"))` (React 트리 마운트 진입) + `src/common/common.ts:320` `let root = document.getElementById("root")` (`setFullscreen` 함수의 fullscreen class 토글 대상 노드 조회). 3 곳의 ID 토큰 `"root"` byte-for-byte 동치.
 > **관련 요구사항**: REQ-20260518-002
-> **최종 업데이트**: 2026-05-18 (by inspector — 최초 박제; Phase 2 REQ-20260518-002 흡수)
+> **최종 업데이트**: 2026-05-18 (by inspector — Phase 1 reconcile TSK-20260518-07 / `36d3316` 회수 hook-ack — FR-01~FR-06 6 marker 플립)
 
 > 본 spec 은 자매 `components/app.md` (blue, REQ-094) 의 `src/index.jsx` 부트 비콘 4 불변식 axis 와 직교한다 (REQ-094 = `sendToAnalytics`/`sendCounter` URL/body 비콘 / 본 spec = mount selector 토큰 동치). 자매 `foundation/index-html-public-asset-reference-coherence.md` (green, REQ-099) 의 정적 자원 참조 4-axis 와도 직교한다 (REQ-099 = `<link>`/`<meta>` href 정합 / 본 spec = `<div id="root">` DOM 노드 ID).
 
@@ -45,23 +45,23 @@ React 트리의 마운트 진입점을 가리키는 ID 토큰 `"root"` 는 **3 �
 - 자매 spec: `components/app.md` (blue, REQ-094) — `src/index.jsx` 부트 비콘 4 불변식 (`sendToAnalytics` / `sendCounter` URL/body/가드/카운트). 동일 파일 (`src/index.jsx`) 별 axis (mount selector 토큰 동치). REQ-094 NFR-03 ("부트 부수효과 봉인 — `document.getElementById('root')` 스텁") 은 테스트 격리 수단 평서로 mount 토큰 자체 동치는 미박제. `foundation/index-html-public-asset-reference-coherence.md` (green, REQ-099) — `index.html` 정적 자원 참조 4-axis. `<div id="root">` 는 정적 자원 참조 (URL) 가 아닌 DOM 노드 선언 → 별 axis 직교. `foundation/csp-meta-dev-strip-prod-preserve.md` (green, REQ-098) — `index.html:8` CSP meta dev/prod 비대칭 axis. `<meta>` element 영역으로 본 spec 과 직교.
 
 ## 테스트 현황
-- [ ] (G-A) `grep -cE 'id="root"' index.html` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `index.html:16` `<div class="div" id="root">`).
-- [ ] (G-B) `grep -cE 'getElementById\("root"\)' src/index.jsx` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/index.jsx:8`).
-- [ ] (G-C) `grep -cE 'getElementById\("root"\)' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:320`).
-- [ ] (G-D) 3 토큰 추출 + quote 제거 + byte-for-byte 비교 → 3 토큰 모두 `"root"` (4 byte ASCII literal) 동치 PASS.
-- [ ] (G-E) `grep -rEc 'getElementById\("root"\)' src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"` 의 production scope 총합 → **2** (`src/index.jsx:1` + `src/common/common.ts:1`, test 파일 제외).
-- [ ] (G-F) `npm run build` 후 `grep -cE 'id="root"' build/index.html` → **1** (baseline build artifact 보존 박제).
+- [x] (G-A) `grep -cE 'id="root"' index.html` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `index.html:16` `<div class="div" id="root">`). TSK-20260518-07 / `36d3316` fixture 박제.
+- [x] (G-B) `grep -cE 'getElementById\("root"\)' src/index.jsx` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/index.jsx:8`). TSK-20260518-07 / `36d3316` fixture 박제.
+- [x] (G-C) `grep -cE 'getElementById\("root"\)' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:320`). TSK-20260518-07 / `36d3316` fixture 박제.
+- [x] (G-D) 3 토큰 추출 + quote 제거 + byte-for-byte 비교 → 3 토큰 모두 `"root"` (4 byte ASCII literal) 동치 PASS. TSK-20260518-07 / `36d3316` fixture 박제.
+- [x] (G-E) `grep -rEc 'getElementById\("root"\)' src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"` 의 production scope 총합 → **2** (`src/index.jsx:1` + `src/common/common.ts:1`, test 파일 제외). TSK-20260518-07 / `36d3316` fixture 박제 (정규식 `*.test.*` 제외 명시).
+- [x] (G-F) `npm run build` 후 `grep -cE 'id="root"' build/index.html` → **1** (baseline build artifact 보존 박제). TSK-20260518-07 / `36d3316` fixture 박제 (build 부재 시 skip, 존재 시 측정).
 - [ ] (G-G) 발화 채널 존재 — grep + selector 토큰 추출 + byte-for-byte 비교 fixture (또는 동등) 채널 rc=0/1 결정론. 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:mount-id-token-coherence` script) 부착 미박제 (수단 위임).
 - [ ] (G-H) 시점 비의존 — React 메이저 bump · `src/index.jsx` 리팩토링 · `src/common/common.ts` 리팩토링 · `index.html` 마크업 정렬 변경 후 1 PR 안에 G-A·G-B·G-C·G-D·G-E·G-F 동시 만족 회복 사례 누적.
 - [ ] (G-I) 자체 진단 제외 — 본 spec / req / test 파일의 `id="root"` / `getElementById("root")` occurrence 가 G-A·G-B·G-C grep count 영향 0 (단일 파일 scope 한정).
 
 ## 수용 기준
-- [ ] (Must FR-01) `grep -cE 'id="root"' index.html` → **출력 = 1 + rc=0**. hit ≥ 2 는 W3C HTML Living Standard §3.2.6.1 unique identifier 위반 (DOM 표준 위반 동시 발생).
-- [ ] (Must FR-02) `grep -cE 'getElementById\("root"\)' src/index.jsx` → **출력 = 1 + rc=0**. hit 0 시 `createRoot(undefined)` throw (React 19 argument validation) → 부트 자체 실패.
-- [ ] (Must FR-03) `grep -cE 'getElementById\("root"\)' src/common/common.ts` → **출력 = 1 + rc=0**. hit 0 시 `setFullscreen` toggle silent no-op 회귀 (null guard 진입, 정적 검출 불가).
-- [ ] (Must FR-04) **3 극 토큰 동치 게이트** — FR-01 (`index.html` `id` attribute value) ∧ FR-02 (`src/index.jsx` selector 인자) ∧ FR-03 (`src/common/common.ts` selector 인자) 의 토큰이 **byte-for-byte 동치** (`"root"` ≡ `"root"` ≡ `"root"`). 추출 + quote 제거 + 토큰 비교 PASS.
-- [ ] (Should FR-05) 전체 src 영역 (`src/**` production 코드, `*.test.*` 제외) 에서 `getElementById("root")` 호출 분포 = **2** (`src/index.jsx:1` + `src/common/common.ts:1`). 4 번째 production 호출 도입 시 본 spec 갱신 신호.
-- [ ] (Should FR-06) `npm run build` 후 `grep -cE 'id="root"' build/index.html` → **1** (Vite build 가 mount 노드 ID 토큰을 변형하지 않음).
+- [x] (Must FR-01) `grep -cE 'id="root"' index.html` → **출력 = 1 + rc=0**. hit ≥ 2 는 W3C HTML Living Standard §3.2.6.1 unique identifier 위반 (DOM 표준 위반 동시 발생). TSK-20260518-07 / `36d3316` hook-ack — fixture G-A 6/6 PASS + HEAD `36d3316` 재실측 grep 1 hit.
+- [x] (Must FR-02) `grep -cE 'getElementById\("root"\)' src/index.jsx` → **출력 = 1 + rc=0**. hit 0 시 `createRoot(undefined)` throw (React 19 argument validation) → 부트 자체 실패. TSK-20260518-07 / `36d3316` hook-ack — fixture G-B PASS + HEAD `36d3316` 재실측 grep 1 hit.
+- [x] (Must FR-03) `grep -cE 'getElementById\("root"\)' src/common/common.ts` → **출력 = 1 + rc=0**. hit 0 시 `setFullscreen` toggle silent no-op 회귀 (null guard 진입, 정적 검출 불가). TSK-20260518-07 / `36d3316` hook-ack — fixture G-C PASS + HEAD `36d3316` 재실측 grep 1 hit.
+- [x] (Must FR-04) **3 극 토큰 동치 게이트** — FR-01 (`index.html` `id` attribute value) ∧ FR-02 (`src/index.jsx` selector 인자) ∧ FR-03 (`src/common/common.ts` selector 인자) 의 토큰이 **byte-for-byte 동치** (`"root"` ≡ `"root"` ≡ `"root"`). 추출 + quote 제거 + 토큰 비교 PASS. TSK-20260518-07 / `36d3316` hook-ack — fixture G-D PASS.
+- [x] (Should FR-05) 전체 src 영역 (`src/**` production 코드, `*.test.*` 제외) 에서 `getElementById("root")` 호출 분포 = **2** (`src/index.jsx:1` + `src/common/common.ts:1`). 4 번째 production 호출 도입 시 본 spec 갱신 신호. TSK-20260518-07 / `36d3316` hook-ack — fixture G-E (정규식 `*.test.*` 제외 명시) PASS + HEAD `36d3316` 재실측 production 총합 2 hit.
+- [x] (Should FR-06) `npm run build` 후 `grep -cE 'id="root"' build/index.html` → **1** (Vite build 가 mount 노드 ID 토큰을 변형하지 않음). TSK-20260518-07 / `36d3316` hook-ack — fixture G-F (build 부재 시 skip, 존재 시 측정) + result.md `build/index.html:21 id="root"` 1 hit 박제.
 - [ ] (Should FR-07) FR-01·FR-02·FR-03·FR-04·FR-05·FR-06 6 조건의 회귀는 자동 검출 채널 (grep + selector 토큰 추출 + byte-for-byte 비교 fixture 또는 동등) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 선정은 수단 영역, "발화 채널 존재" 계약 박제.
 - [ ] (Must NFR-01 결정론) 동일 HEAD 상에서 FR-01·FR-02·FR-03·FR-04·FR-05 의 grep + 토큰 추출 + 동치 비교 결과가 N 회 반복 시 N 회 동일 rc + 동일 출력. build artifact 측정 (FR-06) 은 `npm run build` 1 회 후 N 회 read-only 측정.
 - [ ] (Must NFR-02 멱등성) 본 게이트는 read-only — `index.html` / `src/index.jsx` / `src/common/common.ts` / `build/**` 파일을 수정하지 않는다. `build/**` 재생성은 게이트 실행의 부수효과로 허용되나 본 spec 자체는 build 명령 강제하지 않음 (수단 영역).
@@ -95,4 +95,5 @@ React 트리의 마운트 진입점을 가리키는 ID 토큰 `"root"` 는 **3 �
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
-| 2026-05-18 | inspector 69차 / (this commit) | 최초 박제 — REQ-20260518-002 흡수 (mount 노드 ID 토큰 3 극 정합 시스템 불변식, baseline HEAD `a932c8a` 3 극 동치 PASS) | all |
+| 2026-05-18 | inspector 69차 / `e75c9bb` | 최초 박제 — REQ-20260518-002 흡수 (mount 노드 ID 토큰 3 극 정합 시스템 불변식, baseline HEAD `a932c8a` 3 극 동치 PASS) | all |
+| 2026-05-18 | TSK-20260518-07 / `36d3316` | FR-01~FR-06 6 marker 플립 — `src/__tests__/mount-id-token-coherence.test.ts` 신규 fixture 6 케이스 (G-A~G-F) 박제. production 0 byte 변경. HEAD `36d3316` 재실측: G-A 1 hit / G-B 1 hit / G-C 1 hit / G-D 3 극 byte-for-byte 동치 PASS / G-E production 총합 2 / G-F `build/index.html:21` 1 hit 보존 (result.md). DoD `npm run lint/typecheck/test/build` rc=0 + 466/466 PASS + fixture 단독 6/6 PASS. FR-07 발화 채널 신설 (pre-push / CI / `check:*` script) 은 별 carve 위임 (수단 영역). | 테스트 현황 (G-A~G-F), 수용 기준 (FR-01~FR-06) |

@@ -327,3 +327,76 @@
 # RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src 영역 commit 0 → hook-ack 후보 0). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~010 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 7건 (REQ-004/005/006/007/008/009/010 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`36d3316` → THIS (72차 tick) — reconcile 6/20 ack (1 spec / 6 marker — index-html-root-mount-id-token-coherence FR-01~FR-06 hook-ack via TSK-20260518-07 / `36d3316`; 5차 연속 0 ack 종결 — 0 ack 누적 71차 종료, 본 72차 흡수 chain 재개; 8 stale ≥33cycle 외부 의존 누적 유지; Phase 2 흡수 0 RULE-03 (d) backpressure — green 20 == GREEN_PENDING_MAX=20 임계 9 tick 누적 재도달; 잔여 큐 8건 REQ-004~011, REQ-011 신규)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `8348a6f` (71차 tick — Phase 1 0/20 ack + Phase 2 backpressure no-op 7건 REQ-004~010).
+#  - tick 진입 시 HEAD == `36d3316` (test: TSK-20260518-07 mount-id 3 극 정합 fixture 박제 — `src/__tests__/mount-id-token-coherence.test.ts` 신규 137 line, production 0 byte 변경, 외부 developer commit).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `36d3316` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `8348a6f` 후): 4건 —
+#     · `af1f881` (spec(planner): 93차 tick carve TSK-20260518-07 mount-id-token-coherence-fixture 발화 — 환경 회귀 회복 1차 노출 (typecheck/lint rc=0) + 92차 행동지침 (3)(4) 충족. 20 spec hash 92차 baseline 전수 동일 회귀 14 tick 연속, REQ-002 hash 2ea16b89 4 tick 정체).
+#     · `d6ffc3e` (req(discovery): REQ-20260518-011 발행 — PWA splash → first paint background color 3극 의미 동치 시스템 불변식 박제 후보 신호. 채널 M = `public/manifest.json:21 "background_color":"#ffffff"` + 채널 T = `src/styles/tokens.css:8 --normal-background-color:white` + 채널 R = `src/styles/reset.css:15-20 body background-color:var(...)` 3 채널 #ffffff ≡ white sRGB(255,255,255) CSS Color L4 동치 baseline 박제. followups 0 + 직전 REQ-009 §OOS line 35 + REQ-099 §OOS line 10 + REQ-006 §OOS line 58 3 신호 결합).
+#     · `a6305c1` (spec(planner): 94차 tick carve TSK-20260518-08 meta-description-token-coherence-fixture 발화 — 환경 회복 2차 노출 지속 (93차 직후 typecheck/lint rc=0) + 93차 행동지침 (3) 충족. 20 spec hash 93차 baseline 전수 동일 회귀 15 tick 연속, REQ-003 hash 3397c3b6 5 tick 정체).
+#     · `36d3316` (test: mount 노드 ID 토큰 3 극 정합 fixture 박제 — TSK-20260518-07 회수. `src/__tests__/mount-id-token-coherence.test.ts` 신규 137 line 1 파일 + production 0 byte 변경. 검증: lint/typecheck/test/build rc=0 + 466/466 PASS + fixture 단독 6/6 PASS + `build/index.html:21 id="root"` 1 hit 보존. 60.done/2026/05/18/task/mount-id-token-coherence-fixture/ 정상 mv).
+#  - src/ 영역 commit = 1 (`36d3316` — `src/__tests__/mount-id-token-coherence.test.ts` 신규 1 파일 137 line).
+#  - test/spec 본문 commit = 1 (`36d3316` 의 신규 6 케이스 G-A~G-F).
+#  - spec marker 영향 후보 = 1 spec / 6 marker (TSK-07 / `36d3316` → index-html-root-mount-id-token-coherence.md FR-01~FR-06 6 marker ack 후보 — mount selector 토큰 3 극 동치 게이트 fixture 박제).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 8건 (REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps + REQ-008 coverage-gate + REQ-009 manifest-pwa + REQ-010 vite-sourcemap + REQ-011 pwa-splash 신규 → 신규 1건 추가).
+#  - 20 green spec hash 시작점 (직전 71차 박제 20 entry 유지 — 외부 4 commit 중 green 본문 직접 변동 0):
+#    · 20 기존 spec 중 19 spec stale_cycles += 1 (1 spec hook-ack 후보 — index-html-root-mount-id-token-coherence 는 marker flip 후 stale_cycles 0 초기화).
+#    · 8 stale ≥32cycle 외부 의존 누적은 본 tick stale +1 로 ≥33cycle 진입.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `36d3316` 비교):
+#    · 20.req/ untracked 8건 (REQ-004~011, `.gitignore` rule 적용).
+#    · src/__tests__/meta-description-token-coherence.test.ts untracked (TSK-20260518-08 진행 중 — 외부 developer 영역, inspector 미접촉).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 1건 — TSK-07 / `36d3316`):
+#  - index-html-root-mount-id-token-coherence.md (TSK-20260518-07 / `36d3316` 회수, `60.done/2026/05/18/task/mount-id-token-coherence-fixture/` 정상 mv):
+#     · FR-01: baseline `grep -cE 'id="root"' index.html` → 1 → HEAD `36d3316` 재실측 → 1 PASS. fixture G-A 본문 직접 측정. `[ ]→[x]` 플립.
+#     · FR-02: baseline `grep -cE 'getElementById\("root"\)' src/index.jsx` → 1 → HEAD 재실측 → 1 PASS. fixture G-B 본문 직접 측정. `[ ]→[x]` 플립.
+#     · FR-03: baseline `grep -cE 'getElementById\("root"\)' src/common/common.ts` → 1 → HEAD 재실측 → 1 PASS. fixture G-C 본문 직접 측정. `[ ]→[x]` 플립.
+#     · FR-04 (3 극 토큰 동치): baseline `"root"` ≡ `"root"` ≡ `"root"` 4 byte ASCII literal 동치 PASS → fixture G-D byte-for-byte 비교 PASS. `[ ]→[x]` 플립.
+#     · FR-05: baseline production 총합 2 (`src/index.jsx:1` + `src/common/common.ts:1`, `*.test.*` 제외) → HEAD 재실측 → 2 PASS. fixture G-E 정규식 `*.test.*` 제외 walk PASS. `[ ]→[x]` 플립.
+#     · FR-06: baseline `build/index.html:16` `id="root"` 1 hit 보존 → result.md `build/index.html:21` 1 hit 박제 (line 위치 다르나 hit count = 1 보존 PASS). fixture G-F build 부재 시 skip / 존재 시 측정 (NFR-02 멱등성). `[ ]→[x]` 플립.
+#     · §테스트 현황 G-A~G-F 6 marker 동시 flip (수용 기준 FR-01~FR-06 과 1:1 매핑).
+#     · hook-ack: 60.done/2026/05/18/task/mount-id-token-coherence-fixture/result.md DoD — `npm run lint` rc=0 (warning 0) + `npm run typecheck` rc=0 + `npm test` rc=0 (51 files / 466 tests / 신규 6 케이스 포함) + `npm run build` rc=0 + 신규 fixture 단독 `npx vitest run src/__tests__/mount-id-token-coherence.test.ts` 6/6 PASS (본 inspector tick 진입 시 재실행 검증 — HEAD `36d3316` 6/6 PASS). HEAD 조상 정합. 회귀 0.
+#     · 보류 marker (FR-07 발화 시점 채널 — pre-commit / pre-push / CI / `check:mount-id-token-coherence` script — 수단 위임) — `[ ]` 유보 (별 carve 영역, RULE-06 expansion 불허 준수). §테스트 현황 G-G 도 동시 보류 (FR-07 와 1:1).
+#     · 변경 이력 1행 박제 (TSK-20260518-07 / `36d3316`). stale_cycles 0 초기화.
+#  - 나머지 19 green spec 전수 hook-ack 후보 없음 (직전 `8348a6f` 이후 src 영역 commit 1건 = `36d3316` mount-id fixture 한정 — 다른 spec 본문 영향 0). 19 spec 전수 stale_cycles += 1.
+#  - **1 marker spec 6 ack / 20 total spec → Phase 1 6/20 ack.** seen-state 갱신 (1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1).
+#  - 5차 연속 0 ack 종결 (67차 4 ack → 68차 6 ack → 69차 0 ack → 70차 0 ack → 71차 0 ack → 72차 6 ack 재개). carve 4 chain (TSK-07 회수 + TSK-08 발행) 활성 — 정체 해소 진입.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 8건:
+#     (a) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 8 tick째.
+#     (b) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 7 tick째.
+#     (c) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 6 tick째.
+#     (d) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 5 tick째.
+#     (e) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 보류 3 tick째.
+#     (f) REQ-20260518-009 manifest-pwa-install-contract-token-typology — 보류 3 tick째.
+#     (g) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero — 보류 2 tick째.
+#     (h) REQ-20260518-011 pwa-splash-first-paint-background-color-tri-coherence — 본 tick 신규 디스크 발견 (`d6ffc3e` discovery 발행). RULE-07 자기 검증 예비 평가 PASS: (1) 평서 ("PWA splash background color → first paint background color 3 채널 의미 동치 시스템 불변식 — manifest.json `background_color` ↔ tokens.css `--normal-background-color` ↔ reset.css body background-color"), (2) 반복 검증 가능 (3 채널 grep + sRGB literal 정규화 + CSS Color Level 4 동치 비교 자동 게이트), (3) 시점 비의존 (3 채널 본문 박제 + W3C Manifest background_color 의미 박제 한정), (4) incident 비의존 (현 3 채널 #ffffff ≡ white 동치 PASS zero-point baseline 박제 HEAD af1f881 실측, 특정 splash flash incident patch 비귀속). 본 req signal type = PWA install 시각 효능 axis 보완 (직전 REQ-009 manifest-pwa-install-contract-token-typology 의 3 키 token-typology axis 와 직교 — 측정 대상 분리).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~28 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-004~011 8건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 6 marker ack 로 index-html-root-mount-id-token-coherence promote 4조건 충족 진입 가능 — 그러나 FR-07 1 marker + G-G 1 §테스트 현황 marker 잔존 (수단 위임) → planner 자동 자기 차단 판단 영역. 카브 chain 활성 (TSK-07 회수 + TSK-08 발행 ongoing) — 후속 promote chain 가능성 증가.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-004~011 전수 보류, 20.req/ 디스크 큐 8건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/index-html-root-mount-id-token-coherence.md (FR-01~FR-06 6 marker flip + §테스트 현황 G-A~G-F 6 marker flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 72차 박제 + green 20 entry 갱신 [1 spec stale 초기화 + 19 spec stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. 외부 untracked (`src/__tests__/meta-description-token-coherence.test.ts`) 은 inspector 영역 밖 (TSK-20260518-08 진행 중 developer 영역) — 미접촉.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `6/20 ack` 박제.
+# RULE-03 (d) 정합 — Phase 2 흡수 0 (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 8건).
+# RULE-07 자기 검증 — Phase 1 1 marker spec 6 ack (TSK-07 / `36d3316` 회수 hook-ack — task 정상 done mv 후 spec marker 플립 정합). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~011 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 8건 (REQ-004/005/006/007/008/009/010/011 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
