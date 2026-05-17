@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node'
 import { ERROR_500, OK_200 } from '../__fixtures__/common'
 import { PRESIGNED_URL, filesListFirst7, filesListNext3, filesListNext3NoKey } from './__fixtures__/files'
 
-const API_URL = import.meta.env.VITE_FILE_API_BASE as string;
+const API_URL = import.meta.env.VITE_FILE_API_BASE;
 
 const lastTimestampParam = (request: Request): string => {
 	const qs = request.url.split("?")[1];

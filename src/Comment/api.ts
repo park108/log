@@ -9,7 +9,7 @@ interface CommentPayload {
 	isHidden: boolean;
 }
 
-const BASE = import.meta.env.VITE_COMMENT_API_BASE as string;
+const BASE = import.meta.env.VITE_COMMENT_API_BASE;
 const getApiUrl = (): string => {
 	if (isProd()) return BASE + "/prod";
 	return BASE + "/test";

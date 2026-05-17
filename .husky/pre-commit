@@ -5,3 +5,9 @@ npx lint-staged
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|specs/30\.spec/)'; then
   bash scripts/check-spec-coherence.sh || exit 1
 fi
+
+# vite env boundary typing gate — TSK-20260517-08 / spec: foundation/vite-env-boundary-typing.md §G1·G2·G4
+# staged 변경에 src/** 또는 src/types/env.d.ts 포함 시 검사.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^src/'; then
+  bash scripts/check-vite-env-coherence.sh || exit 1
+fi

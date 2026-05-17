@@ -27,6 +27,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check vite env boundary typing
+        run: npm run check:vite-env
+
       - name: Typecheck
         run: npm run typecheck
 

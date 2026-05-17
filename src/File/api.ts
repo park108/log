@@ -1,6 +1,6 @@
 import { isProd } from '../common/env';
 
-const BASE = import.meta.env.VITE_FILE_API_BASE as string;
+const BASE = import.meta.env.VITE_FILE_API_BASE;
 const getApiUrl = (): string => {
 	if (isProd()) return BASE + "/prod";
 	return BASE + "/test";

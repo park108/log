@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node'
 import { ERROR_500, OK_200 } from '../__fixtures__/common'
 import { commentsProdOne, commentsDevTen } from './__fixtures__/comments'
 
-const API_URL = import.meta.env.VITE_COMMENT_API_BASE as string;
+const API_URL = import.meta.env.VITE_COMMENT_API_BASE;
 
 interface CommentScenarioServer {
 	listen: (opts?: Partial<SharedOptions>) => void;
