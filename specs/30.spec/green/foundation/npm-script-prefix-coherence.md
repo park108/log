@@ -2,7 +2,7 @@
 
 > **위치**: `package.json` (`scripts` 블록), 호출부 — `.husky/**`, `.github/workflows/**`, `specs/30.spec/**`, `specs/40.task/**`.
 > **관련 요구사항**: REQ-20260517-083
-> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제, REQ-083 흡수)
+> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제, REQ-083 흡수; Phase 1 reconcile (I2) + FR-01·FR-02 + NFR-05 marker 4건 hook-ack 플립 by TSK-20260517-20 / `985c76e`)
 
 > 본 spec 은 시스템 횡단 명명 계약. 라인 번호는 §스코프 규칙 grep-baseline 박제 (작성 시 inspector 책임).
 
@@ -39,7 +39,7 @@
 
 ## 테스트 현황
 - [x] (I1) prefix ↔ 효능 카테고리 1:1 매핑 평서 박제 — 본 spec §동작 1·5 박제로 정합.
-- [ ] (I2) anomaly 검출 단일 게이트 PASS — 현 baseline: 1 anomaly hit (`lint:` prefix + `scripts/check-*` 호출 1건). task 수행 후 marker 플립 (anomaly 해소 — 수단 선정 별 task).
+- [x] (I2) anomaly 검출 단일 게이트 PASS — TSK-20260517-20 (`985c76e`) 회수: `lint:spec-coherence` → `check:spec-coherence` rename. HEAD=`985c76e` 재실측: `grep -nE "\"lint:[^\"]+\":\s*\"bash\s+scripts/check-" package.json` → **0 hit** (baseline 1 hit @`:24` → 회수 PASS).
 - [x] (I3) 호출부 정합 baseline PASS — 호출부 4 hit 전원 `package.json:scripts` 키에 실재 (`grep -rnE "npm run (lint\|check):" .husky .github/workflows` → 4 hit / 모두 키 set 포함).
 - [ ] (I4) 신규 `scripts/check-*.sh` 도입 시 자동 정합 — 차기 신규 진단 script 도입 PR 후 marker 플립 (재현 사례 누적).
 - [x] (I5) 카테고리 경계 평서 박제 — 본 spec §동작 5 박제로 정합.
@@ -50,8 +50,8 @@
 
 ## 수용 기준
 - [x] (Must, FR-03) zero-point baseline — HEAD=`49f3f93` 실측 매트릭스 박제 (§스코프 규칙 G1·G2·G3·G4).
-- [ ] (Must, FR-01) `package.json:scripts` prefix 카테고리 단일성 — `check:<name>` ↔ 진단 게이트 / `lint:<name>` ↔ 코드 스타일 1:1 정합. 현 baseline 1 anomaly (G1 1 hit). task 수행 후 marker 플립.
-- [ ] (Must, FR-02) anomaly 검출 게이트 — `grep -nE "\"lint:[^\"]+\":\s*\"bash\s+scripts/check-" package.json` → 0 hit. 현 baseline 1 hit (anomaly 1건). task 수행 후 marker 플립.
+- [x] (Must, FR-01) `package.json:scripts` prefix 카테고리 단일성 — `check:<name>` ↔ 진단 게이트 / `lint:<name>` ↔ 코드 스타일 1:1 정합. TSK-20260517-20 (`985c76e`) 회수: `lint:spec-coherence` → `check:spec-coherence` rename → 4 진단 게이트 모두 `check:` prefix 정합 (`check:spec-coherence` + `check:vite-env` + `check:deps` + `check:node-coherence`) / `lint:*` script 키 0건 (top-level `lint` + lint-staged 블록은 본 spec 외부 — FR-10 스코프 경계 정합).
+- [x] (Must, FR-02) anomaly 검출 게이트 — HEAD=`985c76e` 재실측: `grep -nE "\"lint:[^\"]+\":\s*\"bash\s+scripts/check-" package.json` → **0 hit** (baseline 1 hit @`:24` → 회수 PASS). TSK-20260517-20 (`985c76e`).
 - [x] (Should, FR-03) 호출부 정합 — `npm run lint:<name>` 또는 `npm run check:<name>` 호출이 `package.json:scripts` 키에 실재. HEAD=`49f3f93` 실측 PASS (§스코프 규칙 G4 4 hit / 모두 키 실재).
 - [ ] (Could, FR-04) 신규 `scripts/check-*.sh` 추가 시 자동 정합 — 차기 진단 script 도입 PR 의 진입점 prefix 자동 `check:<short>` 박제. 회귀 시 (I2) 게이트 자동 surface. 차기 이벤트 후 marker 플립.
 - [x] (Must, FR-05) baseline 박제 — §스코프 규칙 grep-baseline G1·G2·G3·G4 4 gate 실측 매트릭스 (HEAD=`49f3f93`).
@@ -64,7 +64,7 @@
 - [x] (NFR-02) 게이트 단일성 — §동작 2 단일 grep 또는 node 1-liner 측정 박제.
 - [x] (NFR-03) RULE-07 정합 — 결과 효능 (카테고리 ↔ prefix 1:1 매핑) 만 박제. 1회성 진단 (현 anomaly 1건) 은 §스코프 규칙 한정.
 - [x] (NFR-04) RULE-06 정합 — §스코프 규칙 grep-baseline 6 gate (G1~G6) 실측 박제 (HEAD=`49f3f93`).
-- [ ] (NFR-05) RULE-02 정합 — task 회수 시 변경 표면 = `package.json` 1+ 키 rename 또는 alias 추가 + 호출부 grep 정합. `src/**` 변경 0 + `scripts/check-*.sh` 자체 변경 0. task 회수 후 marker 플립.
+- [x] (NFR-05) RULE-02 정합 — TSK-20260517-20 (`985c76e`) 회수: 변경 표면 = `package.json:24` 1줄 key rename (`lint:spec-coherence` → `check:spec-coherence`, 값 변경 0). `src/**` 변경 0 + `scripts/check-spec-coherence.sh` 자체 변경 0 + `.husky/**` 변경 0 + workflows 변경 0. TSK-20 result.md DoD 박제 (`npm run lint` rc=0 + `npm test` 48 file / 440 test PASS / 회귀 0 + `npm run build` rc=0 + `npm run check:spec-coherence` rc=0).
 - [x] (NFR-06) 도구 영역 제외 — §동작 9 박제 (`make` / `just` / `Taskfile.yml` 영역 명시).
 
 ## 스코프 규칙
@@ -81,6 +81,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-05-17 | inspector (Phase 1 reconcile) / `985c76e` (TSK-20260517-20) | (I2) + FR-01·FR-02 + NFR-05 marker 4건 hook-ack 플립. HEAD=`985c76e` 재실측 전수 PASS — G1 0 hit (was 1) / G3 4 hit (was 3, `check:spec-coherence` 신규) / G4 4 hit (모두 키 실재). `package.json:24` 1줄 키 rename (`lint:spec-coherence` → `check:spec-coherence`). runtime 변경 0 + script 자체 변경 0. | 테스트 현황 + 수용 기준 |
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-083 흡수) / pending (HEAD=`49f3f93`) | 최초 박제 — `package.json:scripts` prefix 카테고리 단일성 9 축 (I1~I9) 게이트. baseline 매트릭스: 4 진단 게이트 (`scripts/check-*-coherence.sh` 호출) 중 1 anomaly (`lint:` prefix 1 hit `:24`) + 3 정합 (`check:` prefix 3 hit `:25/:26/:27`). 호출부 baseline PASS (4 hit / 모두 키 실재). 본 spec 분리 결정 근거: 자매 spec (`src-spec-reference-coherence.md` G3, `node-modules-extraneous-coherence.md`, `vite-env-boundary-typing.md`, `node-version-3axis-coherence.md` — 단일 진입점 박제) 와 본 효능 (횡단 명명 카테고리 단일성) 이 별 축 (단일 게이트 박제 vs 명명 단일성) — 별 spec 분리가 게이트 단일성 + 변경 영향 분리 효능. `lint-warning-zero-gate.md` 와 패턴 동질 (자동 게이트 횡단 메타) + 영역 직교 (warning rule level vs script naming). `diagnostic-script-auto-channel-coverage.md` 와 패턴 동질 + 영역 직교 (자동 채널 부착 vs 명명 카테고리). consumed req: `specs/20.req/20260517-npm-script-prefix-category-coherence.md` (REQ-083) → `60.done/2026/05/17/req/` mv. consumed followup (감사 pointer): `specs/60.done/2026/05/17/followups/20260517-0608-lint-script-naming-convention.md` (source_task: TSK-20260517-17, category: naming-convention, severity: low). RULE-07 자기검증 — (I1)~(I9) 모두 평서형·반복 검증 가능 (`grep` 또는 node 1-liner 단일 명령)·시점 비의존 (G6 0 hit — 구체 npm script 이름 본문 박제 0)·incident 귀속 부재 (REQ-083 §배경 의 회귀 가설은 시점 비의존 시나리오)·수단 중립 (G5 0 hit — anomaly 해소 수단 후보 라벨 0). RULE-06 §스코프 규칙 6 gate (G1~G6) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/npm-script-prefix-coherence.md` create). | all |
 
 ## 참고
