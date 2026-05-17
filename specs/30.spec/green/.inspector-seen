@@ -1,71 +1,62 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-18 @ baseline HEAD=`e634ef7` → THIS (66차 tick) — reconcile 2/20 ack (8 stale ≥27cycle 외부 의존 누적; 직전 65차 0/20 ack 이후 TSK-01 + TSK-02 회수 chain 활성으로 ack 재개)
+# 2026-05-18 @ baseline HEAD=`760a491` → THIS (67차 tick) — reconcile 4/20 ack (8 stale ≥28cycle 외부 의존 누적; 직전 66차 2/20 ack 이후 TSK-04 (VisitorMon) 회수 chain 활성으로 ack 재개)
 #
 # 본 세션 디스크 실측 (tick 시작 시점, baseline):
-#  - 직전 inspector self-commit: `a249852` (65차 tick — Phase 1 0/20 ack + Phase 2 REQ-002/003/004 보류 backpressure no-op).
-#  - tick 진입 시 HEAD == `e634ef7` (feat: check-spec-coherence CI 채널 대칭 cell 부착 — TSK-20260518-02 회수, 외부 commit).
+#  - 직전 inspector self-commit: `1d0fb70` (66차 tick — Phase 1 2/20 ack TSK-01+TSK-02 hook-ack + Phase 2 backpressure no-op).
+#  - tick 진입 시 HEAD == `760a491` (feat: VisitorMon fetchData unmount-safety 박제 — REQ-093 (I3)(FR-03) 회복, 외부 commit).
 #  - tick 작업 중 HEAD 변동 없음.
-#  - tick 종료 시 HEAD == `e634ef7` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
-#  - 외부 commit 분포 (직전 inspector self-commit `a249852` 후): 5건 —
-#     · `db22348` (fix: root 설정 파일 자체 spec 참조 0 hit 회복 — TSK-20260518-01 회수, `vite.config.js:9` + `eslint.config.js:3` 2-file 1-line each `-spec` 접미사 치환).
-#     · `c2ca64c` (planner 81차 self-only no-op — `.planner-seen` 갱신).
-#     · `3ef874b` (discovery self-only — `20.req/20260518-package-json-lockfile-name-version-3axis-coherence.md` 1건 신규 발행 = REQ-20260518-005).
-#     · `0ed252b` (planner 82차 self-only no-op — `.planner-seen` 갱신, TSK-20260518-01 회수 완료 surface 박제).
-#     · `e634ef7` (feat: check-spec-coherence CI 채널 대칭 cell 부착 — TSK-20260518-02 회수, `.github/workflows/ci.yml` 1 step block 2 line 추가).
-#  - src/ 영역 commit = 0 (TSK-01 / TSK-02 회수는 root config + workflow 영역, src 무접촉).
-#  - test/spec 본문 commit = 0 (TSK 회수는 root config + CI workflow 한정).
-#  - spec marker 영향 후보 = 2 (TSK-01 → root-config-spec-reference-coherence G-A + FR-01 ack 후보; TSK-02 → diagnostic-script-auto-channel-coverage I10 + FR-10 ack 후보).
-#  - 입력 큐 (20.req/): 본 tick 진입 시 4건 (REQ-20260518-002 mount-id 보류 + REQ-20260518-003 meta-description 보류 + REQ-20260518-004 html-title 보류 + REQ-20260518-005 package-lockfile 신규), 종료 시 4건 유지 (Phase 2 backpressure 보류 — green 20 == GREEN_PENDING_MAX=20).
-#  - 20 green spec hash 시작점 (직전 65차 박제 20 entry 유지 — db22348 + e634ef7 외부 commit 둘 다 green 본문 직접 변동 0):
-#    · 20 기존 spec 중 18 spec 전수 stale_cycles += 1.
-#    · 2 ack spec (root-config-spec-reference-coherence + diagnostic-script-auto-channel-coverage) — Phase 1 marker flip 후 stale_cycles 초기화 → 0.
-#  - 본 tick 진입 시 working tree 상태 (HEAD `e634ef7` 비교):
-#    · `eslint.config.js` modified (외부 영역 — inspector 미접촉).
-#    · `package.json` modified (외부 영역 — inspector 미접촉).
-#    · `package-lock.json` modified (외부 영역 — inspector 미접촉).
+#  - tick 종료 시 HEAD == `760a491` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `1d0fb70` 후): 2건 —
+#     · `1ec9f48` (spec(planner): 84차 tick no-op 4회차 누적 — inspector 66차 hook-ack 부분 진입 surface + TSK-03 blocked 격리 박제. `.planner-seen` self-only 74 line 추가).
+#     · `760a491` (feat: VisitorMon fetchData unmount-safety 박제 — REQ-093 (I3)(FR-03) 회복, TSK-20260518-04 회수, `src/Monitor/VisitorMon.jsx` 25 line + `src/Monitor/VisitorMon.test.jsx` 84 line 추가. 그러나 push 차단 — `scripts/check-deps-coherence.sh` G1 extraneous + G2 mismatch — TSK-20260518-04 는 `50.blocked/task/visitormon-fetch-unmount-safety/` 격리 진입).
+#  - src/ 영역 commit = 1 (`760a491` — Monitor/VisitorMon 2 파일 박제).
+#  - test/spec 본문 commit = 1 (`760a491` 의 VisitorMon.test.jsx 신규 describe block 2 it).
+#  - spec marker 영향 후보 = 4 (TSK-04 / `760a491` → runtime-fetch-unmount-safety (I3) + (I6) + Must FR-03 + Should FR-04 4 marker ack 후보 — Monitor 도메인 zero-point 회복 + 3 도메인 cross-domain 통합 수단 정합 surface).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 5건 (REQ-20260518-002 mount-id 보류 + REQ-20260518-003 meta-description 보류 + REQ-20260518-004 html-title 보류 + REQ-20260518-005 package-lockfile 보류 + REQ-20260518-006 prod-bundle 신규 untracked 디스크 발견 — `.gitignore` `specs/20.req` rule 적용으로 git tracked 0 이지만 디스크 실재), 종료 시 5건 유지 (Phase 2 backpressure 보류 — green 20 == GREEN_PENDING_MAX=20).
+#  - 20 green spec hash 시작점 (직전 66차 박제 20 entry 유지 — 1ec9f48 + 760a491 외부 commit 모두 green 본문 직접 변동 0):
+#    · 20 기존 spec 중 19 spec stale_cycles += 1 (1 spec runtime-fetch-unmount-safety 는 hook-ack 4 marker flip — stale_cycles 0 초기화).
+#    · root-config-spec-reference-coherence + diagnostic-script-auto-channel-coverage (직전 66차 ack 2 spec) 도 본 tick hook-ack 없음 → stale_cycles 0 → 1 진입.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `760a491` 비교):
+#    · `src/common/a11y.focus-visible.test.ts` untracked (외부 영역 — inspector 미접촉).
 #    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
 #
-# Phase 1 reconcile 처리 (ack 트리거 commit 2건 — TSK-01 / `db22348` + TSK-02 / `e634ef7`):
-#  - root-config-spec-reference-coherence.md (TSK-20260518-01 / `db22348` 회수):
-#     · G-A: baseline 2 hit / 2 file → HEAD `e634ef7` 재실측 `grep -rnE "[a-z0-9-]+-spec(\.md)?" vite.config.js eslint.config.js` → 0 hit / rc=1 PASS. `[ ]→[x]` 플립.
-#     · Must FR-01: 동일 영역 (vite + eslint 부분) 0 hit PASS. 전체 7-file 영역 잔존 6 hit / 2 file 은 자체 진단 제외 (.husky/pre-commit 2 hit `src-spec-reference-coherence` + scripts/check-spec-coherence.sh 4 hit 자기 명칭) — NFR-04 정합. `[ ]→[x]` 플립.
-#     · hook-ack: 60.done/2026/05/18/task/root-config-spec-reference-cleanup/result.md DoD — npm run lint rc=0 / warning 0 + npm run typecheck rc=0 / error 0 + npm test 49 files / 454 tests PASS + npm run build rc=0 (355ms) + grep 자기 검증 0 hit. 회귀 0.
-#     · 보류 marker (G-B 1 MISSING + G-C 1 STALE + FR-02 + FR-03 + G-D + G-E + FR-04 + FR-05 + NFR-01~04 + 시점 비의존 누적 + 범위 제한) — `[ ]` 유보 (task result.md §관찰 이슈 명시: 별 task 영역 — scripts/check-spec-coherence.sh:3 MISSING 회복 + root 파일군 STALE 동시 실재 검증).
-#     · 변경 이력 1행 박제 (TSK-20260518-01 / db22348). stale_cycles 0 초기화.
-#  - diagnostic-script-auto-channel-coverage.md (TSK-20260518-02 / `e634ef7` 회수):
-#     · (I10): baseline 자매 4 중 1 비대칭 cell (check-spec-coherence CI=0) → HEAD `e634ef7` 재실측 `grep -nE "check[-:]spec-coherence|check-spec-coherence" .github/workflows/ci.yml` → 1 hit @`:34` PASS. 자매 4 모두 CI=1+ 대칭. `[ ]→[x]` 플립.
-#     · Must FR-10: 동일 회복 — zero-point cell 채움. `[ ]→[x]` 플립.
-#     · hook-ack: 60.done/2026/05/18/task/check-spec-coherence-ci-cell/result.md DoD — npm run check:spec-coherence rc=0 + stdout `G1 0 hit / G2 0 MISSING` + npm run lint rc=0 / warning 0 + npm test 49 files / 454 tests PASS + npm run build rc=0 (302ms). 회귀 0.
-#     · 보류 marker ((I5) + Could FR-06) — `[ ]` 유보 (차기 신규 진단 script 이벤트 또는 fixture 자동화 별 task 대기).
-#     · 변경 이력 1행 박제 (TSK-20260518-02 / e634ef7). stale_cycles 0 초기화.
-#  - 나머지 18 green spec 전수 hook-ack 후보 없음 (직전 `a249852` 이후 src/test/spec 본문 commit 0 — root config + CI workflow 영역 한정). 18 spec 전수 stale_cycles += 1.
-#  - **2 marker spec ack / 20 total spec → Phase 1 2/20 ack.** seen-state 갱신 (2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1).
+# Phase 1 reconcile 처리 (ack 트리거 commit 1건 — TSK-04 / `760a491`):
+#  - runtime-fetch-unmount-safety.md (TSK-20260518-04 / `760a491` 회수, `50.blocked/task/visitormon-fetch-unmount-safety/` 격리 잔존):
+#     · (I3): baseline `grep -rnE "AbortController|signal\s*[:,]|useQuery|cancelled|isMounted" src/Monitor` → 0 hit zero-point → HEAD `760a491` 재실측 → 1 hit @VisitorMon.jsx:37 (`const cancelled = cancelledFetchRef`) PASS. `[ ]→[x]` 플립.
+#     · (I6): baseline 통합 grep `src/{Image,File,Monitor}` → Image 2 + File 1 → 3 hit → HEAD 재실측 → 4 hit (Image 2 + File 1 + Monitor 1). 도메인별 1+ hit 충족 — G2 zero-point 3 도메인 전수 회복 PASS. `[ ]→[x]` 플립.
+#     · Must FR-03: VisitorMon.jsx cancelled-flag ref + cleanup return + 3 가드 동시 박제 (try await fence + catch 분기 + 종료 setIsLoading 직전) + VisitorMon.test.jsx 2 it (resolve + reject 분기) — 8 setter 발화 0 hit + console.error 0 hit. result.md DoD PASS. `[ ]→[x]` 플립.
+#     · Should FR-04: 3 도메인 모두 (b) cancelled-flag ref 수단 채택 완료 — grep G2 4 hit + 도메인별 vitest fixture (Image 3 it + File 3 it + Monitor 2 it). 수단 의무화 0 (RULE-07 G5 수단 라벨 0 정합 유지) — cross-domain 통합 정합 surface. `[ ]→[x]` 플립.
+#     · hook-ack: 50.blocked/task/visitormon-fetch-unmount-safety/result.md DoD — npm test 49 files / 456 tests PASS (회귀 0, 신규 unmount fixture 2 it 포함) + npm run lint rc=0 / warning 0 + npm run typecheck rc=0 + npm run build rc=0 + grep G2 src/Monitor/VisitorMon.jsx 8 hit (zero-point 회복). 격리 사유 = `scripts/check-deps-coherence.sh` 환경 drift 압축 push 차단 (본 task scope 외) — hook-ack 본질 = HEAD 조상 + DoD grep PASS + lint/test/build 회귀 0, task mv 격리 상태 무관 spec marker 플립 정합.
+#     · 보류 marker ((I4) 자매 audit + (I7) vitest fixture 메타 게이트 + Should FR-05 자매 audit) — `[ ]` 유보 (별 inspector tick / 별 task 영역 — ContentMon/ApiCallMon/WebVitalsMon G4 audit 채널 별 task 발행 대기).
+#     · 변경 이력 1행 박제 (TSK-20260518-04 / 760a491). stale_cycles 0 초기화.
+#  - 나머지 19 green spec 전수 hook-ack 후보 없음 (직전 `1d0fb70` 이후 Monitor 영역 한정 commit — 다른 spec 본문 영향 0). 19 spec 전수 stale_cycles += 1.
+#  - **1 marker spec 4 ack / 20 total spec → Phase 1 4/20 ack.** seen-state 갱신 (1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1).
 #
 # Phase 2 처리 (RULE-03 (d) 엄정 적용):
-#  - 입력 큐 4건:
-#     (a) REQ-20260518-002 mount-id-token-coherence — 직전 63차 tick RULE-07 예비 평가 PASS (3 극 ID 토큰 동치 시스템 계약). 보류 잔존 (3 tick째).
-#     (b) REQ-20260518-003 meta-description-default-fallback-token-coherence — 직전 64차 tick RULE-07 예비 평가 PASS (3 극 67 byte ASCII literal 동치 시스템 계약). 보류 잔존 (2 tick째).
-#     (c) REQ-20260518-004 html-title-manifest-name-token-coherence — 직전 65차 tick RULE-07 예비 평가 PASS (3 극 11 byte ASCII literal 동치 시스템 계약). 보류 잔존 (1 tick째).
-#     (d) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 본 tick 신규. RULE-07 자기 검증 예비 평가 PASS: (1) 평서 (`package.json:2,3` 채널 P ↔ `package-lock.json:2,3` top-level 채널 LT ↔ `package-lock.json:8,9` `packages[""]` 채널 LR 3 극 name=log / version=0.1.0 6 위치 토큰 byte-for-byte 동치 시스템 계약), (2) 반복 검증 가능 (JSON parse + 키 값 추출 + byte-for-byte 비교), (3) 시점 비의존 (npm 메이저 갱신 / `package.json` 키 갱신 / `package-lock.json` 재생성 후 동일 측정), (4) incident 비의존 (baseline 3 극 동치 PASS 박제 + 회귀 가설 fixture 박제).
-#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21 또는 20→24 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-002/003/004/005 큐 보류.**
-#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick TSK-01 + TSK-02 회수 chain 활성 — 잔여 4 task (TSK-03/04/05/06) 회수 진행 시 후속 promote chain 활성 가능성. 직전 인접 12 tick (planner 70~82차) 중 80차 carve 6 + 81~82차 no-op — carve 6 회수 chain 시작 (TSK-01 + TSK-02 완료) 으로 promote 임박 신호 가능.
+#  - 입력 큐 5건:
+#     (a) REQ-20260518-002 mount-id-token-coherence — 직전 63차 tick RULE-07 예비 평가 PASS (3 극 ID 토큰 동치 시스템 계약). 보류 잔존 (5 tick째).
+#     (b) REQ-20260518-003 meta-description-default-fallback-token-coherence — 직전 64차 tick RULE-07 예비 평가 PASS (3 극 67 byte ASCII literal 동치 시스템 계약). 보류 잔존 (4 tick째).
+#     (c) REQ-20260518-004 html-title-manifest-name-token-coherence — 직전 65차 tick RULE-07 예비 평가 PASS (3 극 11 byte ASCII literal 동치 시스템 계약). 보류 잔존 (3 tick째).
+#     (d) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 직전 66차 tick RULE-07 예비 평가 PASS (3 극 6 위치 토큰 byte-for-byte 동치 시스템 계약). 보류 잔존 (2 tick째).
+#     (e) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 본 tick 신규 디스크 발견 (untracked, .gitignore `specs/20.req` rule 적용). RULE-07 자기 검증 예비 평가 PASS: (1) 평서 ("dev-only 진입점 식별자가 production bundle 산출물 `build/assets/*.js` 에 잔존하지 않는다" 시스템 효능 불변식), (2) 반복 검증 가능 (`npm run build && grep -rln <식별자> build/assets/` → 0 hit), (3) 시점 비의존 (catalog 식별자 본문 박제 §스코프 규칙 baseline + §변경 이력 한정 — 본문 시점 비의존), (4) incident 비의존 (현 build 산출물 0 hit 은 zero-point baseline 박제, 특정 DCE 회귀 incident patch 비귀속). 본 req signal type = 메타 axis (build artifact 측정 axis 직교 — `components/app.md` runtime 분기 + `common/env.md` 단일 진입점 + 본 req 산출물 잔존 0 3축 보완).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21 또는 20→25 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-002/003/004/005/006 5건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick TSK-04 회수 chain 활성 — 잔여 2 task (TSK-05/06 in 40.task/ + TSK-03/04 in 50.blocked/) 회수 진행 시 후속 promote chain 활성 가능성. 본 tick 4 marker ack 로 runtime-fetch-unmount-safety promote 4조건 충족 진입 가능 — 그러나 (I4)(I7)(FR-05) 3 marker 잔존 → 자동 자기 차단 가능성 planner 영역 판단.
 #  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
 #
-# req mv: 0건 (REQ-002/003/004/005 보류, 20.req/ 디스크 큐 4건 유지).
+# req mv: 0건 (REQ-002/003/004/005/006 보류, 20.req/ 디스크 큐 5건 유지).
 #
 # 본 세션 commit diff:
-#  - specs/30.spec/green/foundation/root-config-spec-reference-coherence.md (G-A + FR-01 marker 2건 flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
-#  - specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md ((I10) + FR-10 marker 2건 flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
-#  - specs/30.spec/green/.inspector-seen (본 갱신 — 2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1 + 66차 박제)
+#  - specs/30.spec/green/testing/runtime-fetch-unmount-safety.md ((I3) + (I6) + Must FR-03 + Should FR-04 marker 4건 flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1 + 67차 박제)
 #
 # RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
-# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. 외부 modified (`eslint.config.js`, `package.json`, `package-lock.json`) 는 inspector 영역 밖 — 미접촉.
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. 외부 untracked (`src/common/a11y.focus-visible.test.ts`) 는 inspector 영역 밖 — 미접촉.
 # RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
-# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ 미접촉).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉).
 # RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
-# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `2/20 ack` 박제.
-# RULE-03 (d) 정합 — Phase 2 backpressure no-op (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류).
-# RULE-07 자기 검증 — Phase 1 2 marker spec ack (TSK-01 + TSK-02 회수 hook-ack). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-002/003/004/005 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `4/20 ack` 박제.
+# RULE-03 (d) 정합 — Phase 2 backpressure no-op (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 5건).
+# RULE-07 자기 검증 — Phase 1 1 marker spec 4 ack (TSK-04 / `760a491` 회수 hook-ack — task 격리 상태 무관 spec marker 플립 정합). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-002/003/004/005/006 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
-# 입력 큐 잔여: 4건 (REQ-002/003/004/005 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+# 입력 큐 잔여: 5건 (REQ-002/003/004/005/006 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
