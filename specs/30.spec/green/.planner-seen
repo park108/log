@@ -1119,3 +1119,59 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (8) **HEAD 격차 분석**: 36th tick 진입 시점 baseline 격차 항목 별 행동지침 (1)~(7) 분기 적용 — (a) green spec hash 변경 검출 (inspector marker flip 또는 promote 이동 신호), (b) 40.task/ 진입/이탈 검출 (TSK-15/16 수행 완료 신호), (c) 60.done/2026/05/17/task/ 신규 디렉터리, (d) 50.blocked/task/ 진입 (developer 격리 신호), (e) 20.req/ 변동, (f) 50.blocked/spec/foundation/ 진입/이탈, (g) 환경 회복 신호 유지 검증.
 #     (9) **TSK-13/14 done 박제 후속 분기**: inspector 가 (a) common/markdownParser.md I6 marker flip + §변경 이력 hook-ack 갱신 (TSK-13 result.md 참조), (b) foundation/node-version-3axis-coherence.md I1·I3·I4·I5 + FR-01~05·NFR-05 marker flip + §변경 이력 hook-ack 갱신 (TSK-14 result.md / commit 3910ba8 참조) → 36th 진입 시 unchecked=0 도달 시 즉시 승격 분기.
 #     (10) **markdownParser unchecked=1 잔존**: TSK-13 done 검출에도 unchecked=1 잔존 — inspector I6 marker flip 미진입 신호. 36th tick inspector hook-ack 대기 (TSK-13 result.md 참조 박제 필요).
+
+# 36th tick (2026-05-17T05:50:25Z) — planner
+#   ## planner @ 2026-05-17T05:50:25Z
+#   - input-queue: 11 (green/foundation/{lint-warning-zero-gate,node-modules-extraneous-coherence,node-version-3axis-coherence,src-spec-reference-coherence,tooling,typecheck-island-extension,vite-env-boundary-typing}.md + green/common/{accessibility,markdownParser,sanitizeHtml}.md + green/styles/css-modules.md)
+#   - processed: 1 (foundation/node-version-3axis-coherence.md 승격) + 1 (foundation/lint-warning-zero-gate.md carve)
+#   - produced: [specs/40.task/TSK-20260517-17-eslint-warn-zero-master-gate.md]
+#   - moved: [specs/30.spec/green/foundation/node-version-3axis-coherence.md -> specs/30.spec/blue/foundation/node-version-3axis-coherence.md]
+#   - blocked: []
+#   - backpressure: none (40.task 1건 → 2건, < TASK_READY_MAX=10)
+#   - no-op: false
+#   - notes:
+#     (i) 승격 4조건 점검 (foundation/node-version-3axis-coherence.md): [WIP]=0 / unchecked=0 / ^#+ .*To-Be=0 / §변경 이력 TSK-20260517-14 + commit `3910ba8` 박제 — 4조건 PASS → mv green→blue. RULE-07 양성 재검증 PASS (시스템 불변식 평서 — Node 메이저 3축 정합, 반복 검증 `node -e` + `grep` + `ls`, 시점 비의존 — 본문 구체 Node 메이저 0 hit G7 박제, incident 귀속 부재, 수단 중립 — G8 0 hit 박제).
+#     (ii) carve 1건 (foundation/lint-warning-zero-gate.md REQ-080 신규 진입 — 35th tick 박제 후 inspector hook-ack 진입). 5 marker (I1·I3·I5 + FR-01·FR-02) 회수 task: TSK-20260517-17 (eslint-warn-zero-master-gate).
+#     (iii) Task ID footprint 전수 (RULE-01 grep `specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 36th 재실행): TSK-20260418-10 + TSK-20260420-{13,16,26,33} + TSK-20260422-{13,14,15} + TSK-20260517-{01,02,03,05,06,07,08,09,10,11,12,13,14,15,16,17}. -04 는 `50.blocked/spec/foundation/log-island-convergence_reason.md` 본문의 "재사용 가능 footprint" 언급 (실제 발행 ID 아님 — RULE-01 평서 정합). 발행 footprint -01~-03,-05~-17 (총 16건). -18+ 미점유 유지.
+#     (iv) 환경 회복 신호 재검증 (36th tick 진입 시 측정): `node_modules/{vite,vitest,typescript,@eslint/js}` EXIST (확인 OK) + zero-point lint `npx eslint ./src --max-warnings=0` rc=0 (G0 PASS) — 정상 carve 분기.
+#     (v) 36차 진입 시점 green spec hash 측정 (정체 카운트):
+#         - foundation/lint-warning-zero-gate.md=90bfc0d68280 (신규 진입 — REQ-080 흡수, 0회차)
+#         - foundation/node-modules-extraneous-coherence.md=6ff5a4eff3a1 (35차 d940aa94 → 변경 / inspector hook-ack flip — 본문 변경 검출, 0회차 리셋)
+#         - foundation/node-version-3axis-coherence.md=8f0e5e2e143a (35차 3aaded51 → 변경 / inspector hook-ack flip → unchecked=0 도달 → 승격 분기)
+#         - foundation/src-spec-reference-coherence.md=e3e02a53ac01 (35차 c23cf800 → 변경 / inspector hook-ack flip, 0회차 리셋)
+#         - foundation/tooling.md=4b86e65b3c0f (35차 b2c1299b → 변경 / inspector hook-ack flip, 0회차 리셋)
+#         - foundation/typecheck-island-extension.md=a8468625bd70 (35차 9cc0e27e → 변경 / TSK-15 done + inspector partial flip — unchecked=4 잔존 / TSK-16 진행 중 / 승격 보류)
+#         - foundation/vite-env-boundary-typing.md=5a62d10b5761 (35차 f350fc1e → 변경 / TSK-07 done 후 inspector hook-ack flip — unchecked=2 잔존 / 승격 보류)
+#         - common/accessibility.md=44ee00fa79fe (35차 fa58c616 → 변경 / inspector hook-ack flip, 0회차 리셋)
+#         - common/markdownParser.md=57191df16513 (35차 80e20a34 → 변경 / TSK-13 done 후 inspector hook-ack flip — unchecked=1 잔존 / 승격 보류)
+#         - common/sanitizeHtml.md=a40f9121a08c (35차 f33c38cc → 변경 / inspector hook-ack flip, 0회차 리셋)
+#         - styles/css-modules.md=3c117b59a795 (35차 a0b75e71 → 변경 / inspector hook-ack flip, 0회차 리셋)
+#     (vi) ≥5cycle zone 모두 hash 변경 → 정체 카운트 전수 리셋 (0회차) — inspector hook-ack 활발 진입 검출. 50.blocked/spec/ 격리 후보 0건. RULE-07 §양성 재판단 보류 (hash 변경으로 정체 종료).
+#     (vii) 신규 50.blocked/spec/foundation/ 6 spec 진입 검출 (eslint-linter-options-default-override / log-island-convergence / monitor-island-convergence / root-entry-island-convergence / test-discovery-population-coherence / vite-jsx-transform-channel-coherence) — 사람 운영자 /revisit 의존 (RULE-05). planner 자동 재시도 금지.
+#     (viii) carve 영역 밖 (36차 unchecked > 0 잔존 spec — 멱등 회피 carve 재발행 0건):
+#         - foundation/typecheck-island-extension.md (unchecked=4): TSK-15·16 회수 중. carve 영역 밖.
+#         - foundation/vite-env-boundary-typing.md (unchecked=2): inspector partial hook-ack 진입 — 잔여 marker 차기 inspector 회수 대기. carve 영역 밖.
+#         - foundation/tooling.md (unchecked=3): inspector hook-ack 후 잔여 marker 차기 이벤트 / 운영자 회수 대기. carve 영역 밖.
+#         - foundation/src-spec-reference-coherence.md (unchecked=1): inspector hook-ack 후 잔여 marker CI 회귀 / 외부 영역 회수 대기. carve 영역 밖.
+#         - foundation/node-modules-extraneous-coherence.md (unchecked=5): inspector hook-ack 후 잔여 marker CI 회귀 + RULE-07 양성 평서. carve 영역 밖.
+#         - common/{accessibility,markdownParser,sanitizeHtml} (unchecked > 0): inspector hook-ack 후 잔여 marker 차기 이벤트 의존. carve 영역 밖.
+#         - styles/css-modules.md (unchecked=3): inspector hook-ack 후 잔여 marker 차기 이벤트 의존. carve 영역 밖.
+#     (ix) HEAD baseline: working tree `7477189` (master 최신). 본 tick mv 1 + create 1 = self-area 변경 2건 (specs/40.task/TSK-20260517-17-*.md create + specs/30.spec/blue/foundation/node-version-3axis-coherence.md create + specs/30.spec/green/foundation/node-version-3axis-coherence.md delete).
+#     (x) 환경 회귀 0 (36th tick 진입 시 npx eslint zero-point PASS / vite·vitest·typescript·@eslint/js 모두 EXIST / extraneous=0 — 35th tick 박제 유지).
+#     (xi) 다음 세션 (37th tick) 행동지침:
+#       (1) **승격 판정 멱등 게이트**: 37th tick 진입 시 어느 green spec 이 hash 변경 + unchecked=0 도달 시 mv green→blue 즉시 분기. 잠재 후보:
+#         (a) foundation/typecheck-island-extension.md: TSK-16 done 후 inspector I1·I2·I3 + FR-06 marker flip → unchecked=0 → 승격.
+#         (b) foundation/vite-env-boundary-typing.md: inspector 잔여 marker 2건 flip → unchecked=0 → 승격.
+#         (c) foundation/lint-warning-zero-gate.md: TSK-17 done 후 inspector I1·I3·I5 + FR-01·FR-02 marker flip + 잔여 marker (I9·FR-05·FR-06) hook-ack → unchecked=0 → 승격.
+#         (d) common/markdownParser.md: inspector 잔여 marker 1건 flip → unchecked=0 → 승격.
+#         (e) foundation/{tooling,src-spec-reference-coherence,node-modules-extraneous-coherence,node-version-3axis-coherence (이미 승격됨)}: 차기 이벤트 / inspector marker flip 누적 대기.
+#       (2) **carve 재발행 금지 (멱등)**: TSK-17 동일 marker 회수 carve 재발행 = RULE-02 멱등 위반. 차기 신규 marker (spec 박제 추가 / 신규 green spec 진입) 시에만 carve.
+#       (3) **40.task/ 백프레셔**: 본 36th 종료 시 2건 (TSK-16/17). 임계치 8건 여유. developer 미수행 누적 시 37th tick 진입 시 측정 후 임계치 분기.
+#       (4) **정체 카운트**: 본 36차 박제 hash (10 잔존 green spec) 와 37th tick 진입 hash 동일 + developer/inspector 미수행 유지 시 각 spec 정체 +1회차 카운트. 모든 spec 0회차 → 신규 변경 검출 분기.
+#       (5) **환경 회귀 분기**: 회복 신호 유지 검증 (37th tick 진입 시 `node_modules/{vite,vitest,typescript,@eslint/js}` EXIST + zero-point ESLint rc=0 + extraneous=0 측정). 회귀 시 신규 task 발행 시 RULE-06 grep-baseline 실측 박제 불가 → carve 보류.
+#       (6) **50.blocked/spec/foundation/ 11 spec revive 분기**: 사람 운영자 /revisit 의존 (RULE-05). planner 자동 재시도 금지.
+#       (7) **Task ID footprint**: 본 tick 채번 -17 (eslint-warn-zero-master-gate). 37th tick 신규 carve 시 -18+ 채번. 영구 박제 -01~-03,-05~-17 재사용 금지 (-04 미발행 유지).
+#       (8) **HEAD 격차 분석**: 37th tick 진입 시점 baseline 격차 항목 별 행동지침 (1)~(7) 분기 적용 — (a) green spec hash 변경 검출 (inspector marker flip 또는 promote 이동 신호), (b) 40.task/ 진입/이탈 검출 (TSK-16/17 수행 완료 신호), (c) 60.done/2026/05/17/task/ 신규 디렉터리, (d) 50.blocked/task/ 진입 (developer 격리 신호), (e) 20.req/ 변동, (f) 50.blocked/spec/foundation/ 진입/이탈, (g) 환경 회복 신호 유지 검증.
+#       (9) **TSK-16 done 검출 후속 분기**: developer 가 src/Toaster/ 19 error → 0 hit 회수 시 inspector 가 typecheck-island-extension.md I1·I2·I3 + Must FR-06 marker flip + §변경 이력 hook-ack 갱신 → 37th 진입 시 unchecked=0 도달 시 즉시 승격 분기.
+#       (10) **TSK-17 done 검출 후속 분기**: developer 가 `package.json:scripts.lint` 에 `--max-warnings=0` 옵션 주입 + 회귀 fixture 사이클 실증 시 inspector 가 lint-warning-zero-gate.md I1·I3·I5 + FR-01·FR-02 marker 5건 flip + §변경 이력 hook-ack 갱신 → 37th 진입 시 unchecked=0 도달 후 잔여 marker (I9·FR-05·FR-06) inspector 회수 시 승격 분기.
+#       (11) **grep dry-run**: TSK-17 발행 시점 grep dry-run 7/7 match (G0 zero-point rc=0 / G1 max-warnings 0 hit / lint script @23 / lint-staged glob @47 / CI Lint step @31 / pre-commit @1 / fixture residue 0). 박제 baseline 정합.
