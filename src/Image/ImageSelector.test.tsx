@@ -1,6 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import ImageSelector from '../Image/ImageSelector';
+import * as api from '../Image/api';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
@@ -249,5 +250,139 @@ describe('ImageSelector reportError 채널 (REQ-20260421-039 FR-03)', () => {
 			// catch 분기: Error 인스턴스 전달.
 			expect(calls[0]![0]).toBeInstanceOf(Error);
 		});
+	});
+});
+
+// REQ-093 (I1)(FR-01) — unmount race 박제 (TSK-20260517-26).
+// pending fetch + unmount() + 응답 resolve 시 4 setter (`setImages` · `setLastTimestamp` ·
+// `setIsLoading` · `setIsError`) 발화 0 hit + REQ-091 cross-validate (`console.error` 0 hit) 박제.
+// `getImages` / `getNextImages` 를 vi.spyOn 으로 stub — pending Promise / resolve / reject 제어 박제.
+describe('ImageSelector unmount-safety (REQ-20260517-093 FR-01)', () => {
+
+	it('첫 페치 pending 중 unmount → 이후 응답 resolve 가 어떤 setter 도 발화시키지 않는다 (Warning 0 + console.error 0)', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		// pending fetch 제어 — 외부에서 resolve 호출 가능한 deferred Response.
+		let resolveResp!: (r: Response) => void;
+		const pending = new Promise<Response>((resolve) => { resolveResp = resolve; });
+
+		const getImagesSpy = vi.spyOn(api, 'getImages').mockReturnValue(pending);
+
+		// console.error spy — beforeEach 등록분과 동일 채널. mock 호출 0 hit 박제 대상.
+		const consoleErrorSpy = vi.spyOn(console, 'error');
+
+		const { unmount } = render(<ImageSelector show={true} />);
+
+		// fetch 트리거 1회 surface — Loading... 렌더 = 1차 setter 도착 전 pending 상태 확정.
+		expect(getImagesSpy).toHaveBeenCalledTimes(1);
+		await screen.findByText('Loading...');
+
+		// unmount 후 응답 도착 — cancelled.current = true 박제로 setter 0 hit 유지 기대.
+		unmount();
+
+		await act(async () => {
+			resolveResp(new Response(JSON.stringify({
+				body: {
+					Items: [{ key: 'k1', url: 'http://x/1' }],
+					LastEvaluatedKey: { timestamp: 12345 },
+				},
+			}), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+			// microtask flush
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		// REQ-091 cross-validate — unmounted setState Warning 또는 임의 console.error 0 hit.
+		const errorCalls = consoleErrorSpy.mock.calls;
+		const unmountedSetStateCalls = errorCalls.filter((c) => {
+			const msg = typeof c[0] === 'string' ? c[0] : '';
+			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
+		});
+		expect(unmountedSetStateCalls.length).toBe(0);
+	});
+
+	it('추가 페치 pending 중 unmount → 이후 응답 resolve 가 어떤 setter 도 발화시키지 않는다', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		// 1차 페치는 정상 OK 응답 — See More 버튼 surface 확보.
+		const firstResp = new Response(JSON.stringify({
+			body: {
+				Items: [{ key: 'k1', url: 'http://x/1' }],
+				LastEvaluatedKey: { timestamp: 99999 },
+			},
+		}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+		vi.spyOn(api, 'getImages').mockResolvedValue(firstResp);
+
+		// 2차 페치는 pending — unmount 직전 트리거.
+		let resolveNext!: (r: Response) => void;
+		const pendingNext = new Promise<Response>((resolve) => { resolveNext = resolve; });
+		const getNextSpy = vi.spyOn(api, 'getNextImages').mockReturnValue(pendingNext);
+
+		const consoleErrorSpy = vi.spyOn(console, 'error');
+
+		const { unmount } = render(<ImageSelector show={true} />);
+
+		// 1차 페치 완료 + See More 버튼 surface 대기.
+		const seeMore = await screen.findByRole('button', { name: /see\s*more/i });
+		expect(seeMore).toBeDefined();
+
+		// 2차 페치 트리거.
+		fireEvent.click(seeMore);
+		await waitFor(() => expect(getNextSpy).toHaveBeenCalledTimes(1));
+
+		// unmount 후 2차 응답 도착.
+		unmount();
+
+		await act(async () => {
+			resolveNext(new Response(JSON.stringify({
+				body: {
+					Items: [{ key: 'k2', url: 'http://x/2' }],
+					LastEvaluatedKey: { timestamp: 88888 },
+				},
+			}), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		const errorCalls = consoleErrorSpy.mock.calls;
+		const unmountedSetStateCalls = errorCalls.filter((c) => {
+			const msg = typeof c[0] === 'string' ? c[0] : '';
+			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
+		});
+		expect(unmountedSetStateCalls.length).toBe(0);
+	});
+
+	it('첫 페치 pending 중 unmount 후 reject → catch 분기도 setter / console.error 0 hit', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		let rejectResp!: (e: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
+		vi.spyOn(api, 'getImages').mockReturnValue(pending);
+
+		const consoleErrorSpy = vi.spyOn(console, 'error');
+
+		const { unmount } = render(<ImageSelector show={true} />);
+		await screen.findByText('Loading...');
+
+		unmount();
+
+		await act(async () => {
+			rejectResp(new Error('network down'));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		const errorCalls = consoleErrorSpy.mock.calls;
+		const unmountedSetStateCalls = errorCalls.filter((c) => {
+			const msg = typeof c[0] === 'string' ? c[0] : '';
+			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
+		});
+		expect(unmountedSetStateCalls.length).toBe(0);
 	});
 });

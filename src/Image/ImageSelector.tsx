@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { log, hasValue, copyToClipboard } from '../common/common';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
@@ -53,15 +53,28 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 	const [toasterMessage, setToasterMessage] = useState<string>("");
 	const [toasterType, setToasterType] = useState<ToasterKind>("warning");
 
+	// REQ-093 (I1)(FR-01) — unmount-safety 채널 박제 (TSK-26).
+	// React 19 의 unmounted setState silent-ignore 와 REQ-091 console.error fail-fast 정합 위해
+	// pending fetch 가 unmount 후 응답을 받더라도 4 setter (`setImages` · `setLastTimestamp` ·
+	// `setIsLoading` · `setIsError`) 발화를 0 hit 로 박제한다. 수단 = `cancelled` ref (수단 중립 (b) 채택).
+	const cancelledFirstRef = useRef<boolean>(false);
+	const cancelledMoreRef = useRef<boolean>(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledFirstRef;
+		cancelled.current = false;
 
 		const fetchFirst = async (): Promise<void> => {
 
+			if(cancelled.current) return;
 			setIsLoading(true);
 
 			try {
 				const res = await getImages();
 				const retrieved = await res.json() as ImagesResponse;
+
+				if(cancelled.current) return;
 
 				if(!hasValue(retrieved.errorType)) {
 					log("[API GET] OK - Images", "SUCCESS");
@@ -79,11 +92,13 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Images", "ERROR");
 				reportError(err);
 				setIsError(true);
 			}
 
+			if(cancelled.current) return;
 			setIsLoading(false);
 		}
 
@@ -94,17 +109,27 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 		else {
 			setImageSelectorClass(`div ${styles.divImageSelectorhide}`);
 		}
+
+		return (): void => {
+			cancelled.current = true;
+		};
 	}, [props.show]);
 
 	useEffect(() => {
 
+		const cancelled = cancelledMoreRef;
+		cancelled.current = false;
+
 		const fetchMore = async (timestamp: number | undefined): Promise<void> => {
 
+			if(cancelled.current) return;
 			setIsLoading(true);
 
 			try {
 				const res = await getNextImages(timestamp as number);
 				const nextData = await res.json() as ImagesResponse;
+
+				if(cancelled.current) return;
 
 				if(!hasValue(nextData.errorType)) {
 					log("[API GET] OK - Next Images", "SUCCESS");
@@ -122,11 +147,13 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Next Images", "ERROR");
 				reportError(err);
 				setIsError(true);
 			}
 
+			if(cancelled.current) return;
 			setIsLoading(false);
 		}
 
@@ -135,6 +162,9 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 			setIsGetNextData(false);
 		}
 
+		return (): void => {
+			cancelled.current = true;
+		};
 	}, [isGetNextData]);
 
 	useEffect(() => {
