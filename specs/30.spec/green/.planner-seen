@@ -1496,3 +1496,72 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #       (10) **grep dry-run 본 41th 종료**: carve 2건 baseline 9 게이트 실측 일치. `grep dry-run: 9/9 match` 박제.
 #       (11) **격리 분기 명시화**: 본 41차 박제 정체 카운트 ≥2 누적 0 spec → 자동 격리 분기 부재. 운영자 /revisit / inspector audit 영역 회수 의존.
 #       (12) **REQ-084 흡수 분기 (Phase 2)**: 20.req/ console-log-single-channel-coherence 잔존 → 42th tick 진입 시점 inspector 흡수 분기 시 신규 green spec 박제 → planner carve 후보. 본 tick 미수행 (inspector 영역).
+
+# 42th tick (2026-05-17T08:00:00Z) — planner
+#   ## planner @ 2026-05-17T08:00:00Z
+#   - input-queue: 11 (42차 진입 측정 — 41차 박제 10 spec + REQ-084 흡수 신규 1 spec log-channel-coherence)
+#   - processed: 1 (promote 1 + carve 0 + 격리 0)
+#   - produced: []
+#   - moved: [specs/30.spec/green/common/log-channel-coherence.md -> specs/30.spec/blue/common/log-channel-coherence.md]
+#   - blocked: []
+#   - backpressure: none (40.task 잔존 2건 (TSK-19/-20 developer 미회수), 임계치 TASK_READY_MAX=10 8건 여유)
+#   - no-op: false
+#   - notes:
+#     (i) **승격 4조건 점검 — 11 green spec → 10 잔존 + 1 promote**:
+#       - common/log-channel-coherence.md (신규 진입, REQ-084 흡수 @8ade54a inspector Phase 2): unchecked=0 + wip=0 + tobe=0 + 변경 이력 박제 (inspector Phase 2 REQ-084 흡수, HEAD=`72f5492` 박제 시점) 모두 충족 → **본 tick promote** (green→blue mv). zero-point baseline 도달 — `console.log` 단일 채널 9 효능 (I1~I9) 전수 PASS, 7 gate (G1~G7) 실측 박제 완료, RULE-07 정합 (시점 비의존 G6 0 hit + 수단 라벨 G7 0 hit), RULE-06 §스코프 규칙 grep-baseline 7 gate 박제, RULE-01 inspector writer 영역.
+#       - foundation/diagnostic-script-auto-channel-coverage.md unchecked=6 → 2 (TSK-18 회수 hook-ack @8ade54a inspector Phase 1 reconcile 1/10 ack — FR-01·FR-02·FR-05·NFR-05 4 marker flip): I5 회귀 fixture + FR-06 2 marker 잔존. 부분 회수 — 승격 미충족 (I5 회귀 fixture 별 task 위임 누적 + FR-06 외부 이벤트 의존). carve 영역 밖 (TSK-18 동일 marker 회수 영역 멱등 위반 회피 + I5 회귀 fixture 차기 분기).
+#       - foundation/lint-warning-zero-gate.md unchecked=2 (I9 + FR-06): `'off' → 'warn'` 전환 미래 이벤트 의존, carve 영역 밖.
+#       - foundation/node-modules-extraneous-coherence.md unchecked=3: 차기 dep 이벤트 의존, carve 영역 밖.
+#       - foundation/tooling.md unchecked=3: 운영자 회수 / 차기 업그레이드 이벤트 의존, carve 영역 밖.
+#       - foundation/npm-script-prefix-coherence.md unchecked=6: TSK-20 동일 marker 회수 영역 (멱등 위반 회피).
+#       - common/accessibility.md unchecked=1 (I5 WCAG SC 2.4.7): 별 task / 별 spec 위임, carve 영역 밖.
+#       - common/markdownParser.md unchecked=1 (I6): 별 task 위임, carve 영역 밖.
+#       - common/sanitizeHtml.md unchecked=4 (I2 + I5 + FR-02-b + FR-02-c): 별 task / 별 spec 위임, carve 영역 밖.
+#       - common/test-helpers.md unchecked=12: TSK-19 동일 marker 회수 영역 (멱등 위반 회피).
+#       - styles/css-modules.md unchecked=3: 차기 enum / Skeleton 전환 이벤트 의존, carve 영역 밖.
+#     (ii) **promote 1건 — log-channel-coherence (신규 진입 + zero-point baseline PASS)**:
+#       - 본 spec 박제 자체로 효능 충족 (9 효능 모두 본 spec 박제 시점에 자기 검증 PASS — `## 변경 이력` baseline + `## 테스트 현황` + `## 수용 기준` + `## 스코프 규칙` 7 gate 실측 PASS). 회복 task 발행 부재 — zero-point baseline 자체로 PASS 라서 task 회수 영역 부재. RULE-01 ".planner-seen 기준 4조건 전수 충족" 즉시 mv 분기 정합.
+#       - blue 진입 후 효능 회귀 분기 (호출측 `console.log` 직접 호출 1+ hit 재진입 / 단일 진입점 2+ 정의 발생 / 진입점 광범위 0 hit 회귀) 시 차기 inspector tick 의 audit 영역에서 회수 분기 (planner writer 영역 밖).
+#     (iii) **carve 0건 — RULE-02 멱등 보존**:
+#       - TSK-19/-20 (41차 채번) developer 미회수 잔존 — 동일 marker carve 재발행 = RULE-02 멱등 위반.
+#       - TSK-18 회수 hook-ack 후 diagnostic 부분 회수 (4 marker flip) 잔존 2 marker (I5 회귀 fixture + FR-06) — I5 별 task 위임 누적 (회귀 fixture 박제 영역) + FR-06 외부 이벤트 의존. carve 분기 부재.
+#       - 8 잔존 spec 무변동 + test-helpers + npm-script-prefix-coherence 무변동 → 신규 marker 진입 0 → carve 분기 부재.
+#     (iv) **42차 진입 시점 green spec hash 측정** (정체 카운트):
+#         - foundation/diagnostic-script-auto-channel-coverage.md=4dd214b95ef3 (41차 4e140a74cdd4 → 42차 변경 — 0회차 시작, TSK-18 회수 hook-ack @8ade54a 영향)
+#         - foundation/lint-warning-zero-gate.md=7c0db0826a13 (41차 7c0db0826a13 → 42차 무변동, +1회차)
+#         - foundation/node-modules-extraneous-coherence.md=77af8bab194f (41차 77af8bab194f → 42차 무변동, +1회차)
+#         - foundation/tooling.md=b2c1299be2d6 (41차 b2c1299be2d6 → 42차 무변동, +1회차)
+#         - foundation/npm-script-prefix-coherence.md=8e9022f61b3e (41차 8e9022f61b3e → 42차 무변동, +1회차 — TSK-20 잔존 영향, developer 회수 대기)
+#         - common/accessibility.md=fa58c6168f35 (41차 fa58c6168f35 → 42차 무변동, +1회차)
+#         - common/markdownParser.md=80e20a34a34c (41차 80e20a34a34c → 42차 무변동, +1회차)
+#         - common/sanitizeHtml.md=f33c38cc9e31 (41차 f33c38cc9e31 → 42차 무변동, +1회차)
+#         - styles/css-modules.md=a0b75e71a129 (41차 a0b75e71a129 → 42차 무변동, +1회차)
+#         - common/test-helpers.md=2f64afbc362c (41차 2f64afbc362c → 42차 무변동, +1회차 — TSK-19 잔존 영향, developer 회수 대기)
+#         - common/log-channel-coherence.md=f03cddbead24 (42차 신규 진입 → 본 tick promote → 카운트 종결)
+#     (v) **격리 0건** — 정체 카운트 ≥2 누적 0 spec. 1회차 누적 9 spec (diagnostic + 본 tick promote 1 spec 제외 + test-helpers + npm-script-prefix-coherence 추가). 격리 임계치 (2회 이상 정체) 미충족. RULE-07 §양성 위반 시그널 0건. RULE-01 writer 매트릭스 보전.
+#     (vi) **grep dry-run 보류** — 본 42th tick carve 0건이므로 grep dry-run 0/0 match (수행 없음). RULE-04 notes 토큰 `grep dry-run: 0/0 match (carve none)` 박제.
+#     (vii) **Task ID footprint 전수** (RULE-01 grep 42th 재실행): TSK-20260418-10 + TSK-20260420-{13,16,26,33} + TSK-20260422-{13,14,15} + TSK-20260517-{01,02,03,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20}. -04 미발행 유지. 발행 footprint -01~-03,-05~-20 (총 19건). -21+ 미점유 유지. 본 tick 채번 0건.
+#     (viii) **환경 회복 신호 재검증** (42th tick 진입 측정): HEAD=`aab1a4a` working tree (developer TSK-19 진행중 — `src/test-utils/{location,mockCalls}.ts` 신규 + 6 test 파일 modified, planner writer 영역 밖). 38차 박제 환경 회복 신호 유지. 본 tick promote 분기 영향 0.
+#     (ix) **40.task/ 백프레셔**: 본 42th 진입 2건 (TSK-19/-20 41차 잔존) → 종료 2건 (carve 0건). 임계치 8건 여유.
+#     (x) **HEAD baseline**: working tree `aab1a4a` (41차 commit 542aa1e → discovery a2ab100 → inspector 8ade54a → 운영자 /revisit aab1a4a). 본 tick mv 1 + create 0 = self-area 변경 2건 (specs/30.spec/blue/common/log-channel-coherence.md create + specs/30.spec/green/common/log-channel-coherence.md delete + specs/30.spec/green/.planner-seen append).
+#     (xi) **운영자 /revisit @aab1a4a (scanned=6 + followup=4 + deleted=6) 회수 결과**: 41차 박제 50.blocked/spec/foundation/ 4 spec deletion 잔존 + 2 spec 잔존 (eslint-linter-options-default-override + test-discovery-population-coherence) → 본 tick 측정 시 50.blocked/spec/foundation/ 비어있음 (실측 `find specs/50.blocked -type f` 0 hit). 운영자 /revisit close 완료 + 2 spec 추가 회수 (followup 승격 4건 + close 2건 추정). discovery a2ab100 에서 REQ-085 (spec-carve-precondition-self-declaration) 흡수 발행 — 차기 inspector tick 의 흡수 분기.
+#     (xii) **RULE-07 양성 재판단 보류**: 10 잔존 green spec + 본 tick promote 1 spec 모두 §양성 평서 (시스템 불변식·계약 한정) 정합. 본 tick 양성 위반 시그널 0건.
+#     (xiii) **inspector Phase 1 reconcile 진행 분기**: TSK-18 회수 후 inspector Phase 1 ack 1/10 진입 (@8ade54a) — diagnostic FR-01·FR-02·FR-05·NFR-05 4 marker flip 검출 (41차 박제 (xiii)(9) 분기 정합). 잔존 9/10 reconcile 차기 inspector tick 의존. REQ-084 흡수 → log-channel-coherence 신규 spec 박제 (41차 박제 (xiii)(12) 분기 정합) → 본 tick zero-point baseline PASS → 즉시 promote.
+#     (xiv) 다음 세션 (43th tick) 행동지침:
+#       (1) **승격 판정 멱등 게이트**: 43th tick 진입 시 어느 green spec 이 hash 변경 + unchecked=0 도달 시 mv green→blue 즉시 분기. 잠재 후보:
+#         (a) common/test-helpers.md unchecked=12: TSK-19 회수 후 inspector hook-ack 진입 → 8 marker flip (I1/I2/I3/I4 + FR-01·FR-02·FR-03·FR-04·FR-06 + NFR-05) → unchecked=4 (I6/FR-07 외부 이벤트 의존 잔존). 부분 회수.
+#         (b) foundation/npm-script-prefix-coherence.md unchecked=6: TSK-20 회수 후 inspector hook-ack 진입 → 4 marker flip → unchecked=2 (I4/FR-04 차기 진단 script 이벤트 의존). 부분 회수.
+#         (c) foundation/diagnostic-script-auto-channel-coverage.md unchecked=2: I5 회귀 fixture 별 task 발행 + FR-06 외부 이벤트 시 분기.
+#         (d) 7 잔존 spec (lint-warning-zero-gate / node-modules-extraneous-coherence / tooling / accessibility / markdownParser / sanitizeHtml / css-modules): 외부 이벤트 / 운영자 회수 / 별 task 위임 누적.
+#       (2) **carve 재발행 금지 (멱등)**: TSK-19/-20/-18 동일 marker 회수 carve 재발행 = RULE-02 멱등 위반. 차기 신규 marker (spec 박제 추가 / 신규 green spec 진입 / 신규 REQ 흡수 — REQ-085 흡수 분기) 시에만 carve.
+#       (3) **40.task/ 백프레셔**: 본 42th 종료 시 2건 (TSK-19/-20 잔존). 임계치 8건 여유. developer 처리 누적 시 43th tick 진입 시 measure.
+#       (4) **정체 카운트**: 9 spec 1회차 누적 (diagnostic + log-channel promote 제외). 43th tick 진입 시 hash 무변동 시 +1회차 → 2회차 진입 시 격리 후보. 단 외부 이벤트 / 운영자 회수 / 별 task 위임 의존 spec 은 planner writer 영역의 단순 정체 격리 비대상 (RULE-07 §양성 정합 + 외부 의존 평서) — 격리 분기 시 reason.md 박제 분기 (planner writer 영역 내).
+#       (5) **환경 회귀 분기**: 회복 신호 유지 검증 (43th tick 진입 시 측정).
+#       (6) **50.blocked/spec/ revive 분기**: 본 42차 운영자 /revisit @aab1a4a 회수 완료 (working copy 비어있음). 본 분기 종결.
+#       (7) **Task ID footprint**: 본 tick 채번 0건. 43th tick 신규 carve 시 -21+ 채번. 영구 박제 -01~-03,-05~-20 재사용 금지 (-04 미발행 유지).
+#       (8) **HEAD 격차 분석**: 43th tick 진입 시점 baseline 격차 항목 별 행동지침 — (a) green spec hash 변경 (inspector marker flip 또는 promote), (b) 40.task/ 진입/이탈 (TSK-19/-20 수행), (c) 60.done/2026/05/17/task/ 신규, (d) 50.blocked/task/ 진입, (e) 20.req/ 변동 (REQ-085 흡수 신호), (f) 50.blocked/spec/ 변동, (g) 환경 회복 신호 유지.
+#       (9) **inspector hook-ack 누적 분기**: Phase 1 reconcile 진행률 1/10 ack (@8ade54a). 잔존 9/10 차기 inspector tick 의존. 43th tick 진입 시 hash 변동 검출 시 (xiv)(1)(a)(b)(c) 부분 승격 후보 분기.
+#       (10) **grep dry-run 본 42th 종료**: carve 0건 — `grep dry-run: 0/0 match (carve none)` 박제.
+#       (11) **격리 분기 명시화**: 본 42차 박제 정체 카운트 ≥2 누적 0 spec → 자동 격리 분기 부재. 43th tick 진입 시 9 spec +1회차 누적 시 일부 격리 후보 (외부 이벤트 의존 spec 제외 — RULE-07 §양성 평서 정합 시 격리 비대상).
+#       (12) **REQ-085 흡수 분기 (Phase 2)**: 20.req/ spec-carve-precondition-self-declaration 잔존 → 43th tick 진입 시점 inspector 흡수 분기 시 신규 green spec 박제 → planner carve 후보. 본 tick 미수행 (inspector 영역).
+#       (13) **본 tick promote 분기 명시화**: log-channel-coherence zero-point baseline PASS — neuralink 분리 (`30.spec/blue/common/`). 자매 spec `components/common.md` (d-1/d-2) error 채널 게이트와 메타 패턴 동치 + 영역 직교 박제 유지 (효능 회귀 시 차기 inspector tick audit).
