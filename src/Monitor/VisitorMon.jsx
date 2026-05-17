@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday } from "../common/common";
 import { useHoverPopup } from "../common/useHoverPopup";
@@ -24,7 +24,18 @@ const VisitorMon = (props) => {
 
 	const handleRetry = () => { setIsMount(false); };
 
+	// REQ-20260517-093 (I3)(FR-03) — unmount-safety 채널 박제 (TSK-20260518-04).
+	// React 19 unmounted setState silent-ignore + REQ-091 console.error fail-fast 정합 위해
+	// pending `getVisitors` fetch 가 unmount 후 응답을 받더라도 effect 본문의 setter
+	// (`setIsLoading` · `setIsError` · `setTotalCount` · `setDailyCount` · `setEnvTotalCount` ·
+	// `setBrowsers` · `setOs` · `setEngines`) 발화를 0 hit 로 박제한다.
+	// 수단 = `cancelled` ref (수단 중립 (b) 채택 — Image / File 도메인과 동일 패턴).
+	const cancelledFetchRef = useRef(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledFetchRef;
+		cancelled.current = false;
 
 		const fetchData = async() => {
 
@@ -39,9 +50,11 @@ const VisitorMon = (props) => {
 				const res = await getVisitors(fromTimestamp, toTimestamp);
 				const data = await res.json();
 
+				if(cancelled.current) return;
+
 				if(!hasValue(data.errorType)) {
 					log("[API GET] OK - Visitor information", "SUCCESS");
-				
+
 					setTotalCount(data.body.totalCount);
 
 					let periodData = data.body.periodData.Items;
@@ -153,11 +166,13 @@ const VisitorMon = (props) => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Visitor information", "ERROR");
 				setIsError(true);
 				reportError(err);
 			}
-		
+
+			if(cancelled.current) return;
 			setIsLoading(false);
 		}
 
@@ -165,6 +180,10 @@ const VisitorMon = (props) => {
 			fetchData();
 			setIsMount(true);
 		}
+
+		return () => {
+			cancelled.current = true;
+		};
 	}, [isMount]);
 
 	const CountPillar = (attr) => {
