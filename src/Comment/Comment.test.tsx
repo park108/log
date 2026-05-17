@@ -5,6 +5,9 @@ import * as errorReporter from '../common/errorReporter';
 import Comment from './Comment';
 import CommentItem from './CommentItem';
 import { useMockServer } from '../test-utils/msw';
+// TSK-20260517-19 / REQ-20260517-082 — `mock.calls[N]` strict narrow 단일 출처
+// (`src/test-utils/mockCalls`). non-null assertion 흡수는 본 import 로 회수.
+import { firstCall } from '../test-utils/mockCalls';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
@@ -357,7 +360,7 @@ describe('Comment reportError 채널 (REQ-20260421-039 FR-03)', () => {
 			await screen.findByText('Add a comment');
 
 			expect(reportErrorSpy).toHaveBeenCalledTimes(1);
-			const firstArg = reportErrorSpy.mock.calls[0]![0];
+			const [firstArg] = firstCall(reportErrorSpy);
 			expect(firstArg).toHaveProperty('errorType');
 
 			reportErrorSpy.mockRestore();

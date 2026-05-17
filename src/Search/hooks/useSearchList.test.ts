@@ -1,5 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { createQueryTestWrapper } from '../../test-utils/queryWrapper';
+// TSK-20260517-19 / REQ-20260517-082 — `mock.calls[N]` strict narrow 단일 출처.
+import { firstCall } from '../../test-utils/mockCalls';
 import { useSearchList } from './useSearchList';
 import * as api from '../api';
 
@@ -29,8 +31,7 @@ describe('useSearchList', () => {
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 		expect(result.current.data).toEqual(payload);
 		expect(mockedGetSearchList).toHaveBeenCalledTimes(1);
-		const firstCall = mockedGetSearchList.mock.calls[0]!;
-		const [calledQ, calledOpts] = firstCall;
+		const [calledQ, calledOpts] = firstCall(mockedGetSearchList);
 		expect(calledQ).toBe('foo');
 		expect(calledOpts?.signal).toBeInstanceOf(AbortSignal);
 	});

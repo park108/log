@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import type { MockInstance } from 'vitest';
 import ErrorBoundary from './ErrorBoundary';
+// TSK-20260517-19 / REQ-20260517-082 — `mock.calls[N]` strict narrow 단일 출처.
+import { firstCall } from '../test-utils/mockCalls';
 
 function Bomb({ shouldThrow }: { shouldThrow: boolean }) {
 	if (shouldThrow) {
@@ -58,7 +60,7 @@ describe('ErrorBoundary', () => {
 		);
 
 		expect(fallback).toHaveBeenCalled();
-		const args = fallback.mock.calls[0]![0];
+		const [args] = firstCall(fallback);
 		expect(args.error).toBeInstanceOf(Error);
 		expect(args.error.message).toBe('boom');
 		expect(typeof args.reset).toBe('function');
@@ -75,7 +77,7 @@ describe('ErrorBoundary', () => {
 		);
 
 		expect(onError).toHaveBeenCalledTimes(1);
-		const [errorArg, infoArg] = onError.mock.calls[0]!;
+		const [errorArg, infoArg] = firstCall(onError);
 		expect(errorArg).toBeInstanceOf(Error);
 		expect(errorArg.message).toBe('boom');
 		expect(infoArg).toBeDefined();

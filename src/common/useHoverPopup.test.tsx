@@ -1,5 +1,7 @@
 import { act, render, renderHook } from '@testing-library/react';
 import { useHoverPopup } from './useHoverPopup';
+// TSK-20260517-19 / REQ-20260517-082 — `mock.calls[N]` strict narrow 단일 출처.
+import { firstCall } from '../test-utils/mockCalls';
 
 describe('useHoverPopup', () => {
 
@@ -106,7 +108,7 @@ describe('useHoverPopup', () => {
 		render(<Probe />);
 
 		expect(probe).toHaveBeenCalled();
-		const [idA, idB] = probe.mock.calls[0]!;
+		const [idA, idB] = firstCall(probe);
 		expect(typeof idA).toBe('string');
 		expect(typeof idB).toBe('string');
 		expect(idA).not.toBe(idB);

@@ -5,6 +5,10 @@ import * as common from './common/common';
 import ErrorBoundary from './common/ErrorBoundary';
 import ErrorFallback from './common/ErrorFallback';
 import { reportError } from './common/errorReporter';
+// TSK-20260517-19 / REQ-20260517-082 — location-mock 헬퍼 단일 출처
+// (`src/test-utils/location`). jsdom read-only location setter 우회 패턴은
+// 본 import 로 흡수.
+import { setLocation, restoreLocation, mockUrlLocation } from './test-utils/location';
 
 // REQ-20260421-003 / TSK-20260421-44 — getUrl() 렌더 경로 (App.jsx:77) stubMode 가드.
 // getUrl() 런타임이 isDev()/isProd() (= `import.meta.env.DEV/PROD`) 경유로 전환돼
@@ -245,11 +249,9 @@ describe('render body has no direct side effects', () => {
 			'eyJraWQiOiJrbFwvaFlubzFQZ040MkxnMmU0SkVQMzJnYzRTWUpDWWVVRll3UkhcL20yZjA9IiwiYWxnIjoiUlMyNTYifQ' +
 			'.eyJzdWIiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUiLCJjbGllbnRfaWQiOiJoM205MmEyN3QzOXNmY2F0MzAydGlxdGtvIiwidXNlcm5hbWUiOiIwNTFmZDVmOS1hMzM2LTQwNTUtOTZlNS02ZTFlMTI1ZWJkMTUifQ' +
 			'.sig';
-		const mock = new URL('http://localhost:3000');
-		mock.replace = vi.fn();
+		const mock = mockUrlLocation('http://localhost:3000');
 		mock.href += `?access_token=${jwtFixture}#id_token=YYY`;
-		delete window.location;
-		window.location = mock;
+		setLocation(mock);
 		common.deleteCookie('access_token');
 		common.deleteCookie('id_token');
 
@@ -281,7 +283,7 @@ describe('render body has no direct side effects', () => {
 		// 정리 — 후속 케이스 오염 방지
 		common.deleteCookie('access_token');
 		common.deleteCookie('id_token');
-		window.location = originalLocation;
+		restoreLocation(originalLocation);
 	});
 });
 

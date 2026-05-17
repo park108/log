@@ -1,4 +1,8 @@
 import * as common from './common';
+// TSK-20260517-19 / REQ-20260517-082 — location-mock 헬퍼는 `src/test-utils/`
+// 단일 출처. file-local 정의 (`setLocation`/`restoreLocation`/`mockUrlLocation`
+// + `MockableLocation` 타입) 는 본 import 치환으로 회수됨.
+import { setLocation, restoreLocation, mockUrlLocation } from '../test-utils/location';
 
 // env-spec §5.2 / REQ-20260420-002 FR-01 — 런타임 env 분기는 `isDev()/isProd()`
 // (= `import.meta.env.DEV/PROD`) 경유. 테스트에서는 `vi.stubEnv('MODE', ...)` 와
@@ -16,31 +20,6 @@ beforeEach(() => {
 	vi.spyOn(console, 'log').mockImplementation(() => {});
 	vi.spyOn(console, 'error').mockImplementation(() => {});
 });
-
-// TSK-20260517-15 / REQ-20260517-077: `window.location` 은 strict 환경에서
-// `string & Location` 의 read-only 속성 (jsdom 의 setter가 throw). 테스트에서는
-// `URL` 인스턴스를 `.replace`/`.assign` stub 과 함께 location 호환 객체로 주입한다.
-// 본 헬퍼는 `setLocation` / `restoreLocation` 으로 호출부의 타입 노이즈를 일관 흡수한다.
-type MockableLocation = URL & {
-	replace?: (url: string | URL) => void;
-	assign?: (url: string | URL) => void;
-	reload?: () => void;
-};
-const setLocation = (loc: MockableLocation | Location): void => {
-	delete (window as unknown as { location?: Location }).location;
-	(window as unknown as { location: Location }).location = loc as unknown as Location;
-};
-const restoreLocation = (loc: Location): void => {
-	delete (window as unknown as { location?: Location }).location;
-	(window as unknown as { location: Location }).location = loc;
-};
-const mockUrlLocation = (href: string): MockableLocation => {
-	const u = new URL(href) as MockableLocation;
-	u.replace = vi.fn();
-	u.assign = vi.fn();
-	u.reload = vi.fn();
-	return u;
-};
 
 describe('set HTML page title', () => {
   
