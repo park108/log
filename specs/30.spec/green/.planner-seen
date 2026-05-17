@@ -3037,3 +3037,14 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #       (13) no-op 연속 누적 리셋: 본 59차 carve 1 발행으로 누적 리셋 (58차 0회차 → 59차 발행으로 0 유지) → 60th 진입 시 0회차 (carve 발행 시 또는 hash 무변동 no-op 시 +1).
 #       (14) File 도메인 (REQ-093 FR-02) carve 분기 명시: TSK-25 회수 + hook-ack 안정 surface 확정 후 별 task 단계적 carve. TSK-25 (REQ-092 timer cleanup) 와 직교 채널 (timer cleanup vs unmount setter 0) — 동일 파일 (FileUpload.tsx) 동시 변경 충돌 회피 위해 TSK-25 회수 이후 진입.
 #       (15) Monitor 도메인 (REQ-093 FR-03) carve 분기 명시: VisitorMon.jsx + ContentMon.jsx + ApiCallMon.jsx + WebVitalsMon.jsx 4 JSX 컴포넌트 — REQ-077 typecheck-island-extension §carve-precondition (P1) Monitor island typecheck 0 hit baseline 확정 후 분기. 별 도구 채널 동반 (jsdoc 또는 TS 마이그레이션) 필요 — 외부 surface 의존, 자가 차단 유지.
+# 2026-05-17 planner session (59th tick 정정 박제 @HEAD=`7b15126`) — 직전 박제 본문 (`f380dea` 시점 측정) 의 HEAD 격차 분석 + carve 행동지침 정정. 정정 사유: 본 59차 tick 진행 중 직전 박제 commit 직후 developer TSK-25 회수 commit `7b15126` 가 lint-staged pre-commit hook chain 의 add side 로 `.planner-seen` 까지 흡수하여 본 tick 박제가 HEAD 에 영구 박제됨. 박제 내용 자체는 본 tick 작업 시점 (f380dea) 의 진실로 유효하나, 본 tick 종료 시점 (60th 진입 baseline) 박제 정정 필요. 정정 차원: (a) 40.task/ 잔존 1건 (TSK-26 만 — TSK-25 회수 60.done/task/fileupload-settimeout-cleanup/ 이탈 완료) — TASK_READY_MAX 10 → 9 여유. (b) 60.done/2026/05/17/task/: 21개 (20개 + TSK-25 신규 1건 진입). (c) inspector hook-ack chain 누적 추가: TSK-25 회수 commit hook-ack — 다음 inspector tick 진입 시 components/file.md (REQ-092) FR-01/FR-02/FR-03 marker 플립 + I1/I2 marker 플립 surface 가시화 (개별 hook-ack 검증은 inspector 영역). (d) File 도메인 (REQ-093 FR-02) carve 분기 surface 가시화: TSK-25 회수 완료로 자가 차단 해제 — 다음 planner tick (60th) 진입 시 hook-ack 안정 surface 확정 후 carve 후보 surface 활성. 단 본 정정 박제 시점 추가 carve 발행 0 (60th tick 진입 시 surface 측정 후 분기). (e) 정체 카운트: components/file.md 2회차 → marker 플립 surface 가시화로 hash 변경 분기 진입 (다음 tick 정상화). (f) 환경 회복 신호: tsc rc=0 + lint rc=0 PASS 유지 (TSK-25 회수 commit 통과 — `7b15126` 박제 안정).
+#   정정 박제 본 tick (59th) 종료 시점 baseline:
+#     - 40.task/: 1건 (TSK-20260517-26 잔존).
+#     - 60.done/2026/05/17/task/: 21개 (TSK-25 신규 진입).
+#     - 50.blocked/task/: 0건.
+#     - 50.blocked/spec/foundation/: 2 spec 격리 잔존 (husky-pre-push-typecheck + island-regression-guard).
+#     - 20.req/: 0건.
+#     - 10.followups/: 0건.
+#     - inspector hook-ack chain 다음 tick 진입 surface: TSK-25 회수 commit hook-ack + Phase 1 reconcile 잔여 marker (다음 inspector tick 영역).
+#     - 환경 회복 신호: tsc rc=0 + lint rc=0 PASS (21세션 누적 — 20세션 + TSK-25 회수 commit 통과 1세션).
+#   60th tick 진입 baseline 갱신: HEAD=`7b15126` 시작. carve 후보 surface 가시화 — (a) File 도메인 (REQ-093 FR-02) — TSK-25 회수 hook-ack 안정 surface 확정 후 별 task 단계적 carve 진입 가능. (b) TSK-26 회수 후 Image 도메인 hook-ack 안정 surface 확정. (c) package-manager-major-coherence FR-02/FR-03 외부 의존 surface 자가 차단 유지. (d) Monitor 도메인 (REQ-093 FR-03) REQ-077 Monitor island typecheck 확정 자가 차단 유지.
