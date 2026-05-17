@@ -196,6 +196,99 @@ describe('FileUpload presigned url ok but upload network error', () => {
 	});
 });
 
+describe('FileUpload unmount race — setTimeout cleanup (REQ-20260517-092 FR-01/FR-02)', () => {
+
+	describe('COMPLETE 분기 unmount 후 refreshFiles 0회', () => {
+		useMockServer(() => mock.devServerOk);
+
+		test('unmount before REFRESH_TIMEOUT — refreshFiles not called, no stale setState', async () => {
+
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+
+			vi.stubEnv('DEV', true);
+			vi.stubEnv('PROD', false);
+
+			vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+			vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+			const refreshSpy = vi.fn();
+
+			const { unmount } = render(<FileUpload callbackAfterUpload = {refreshSpy} />);
+
+			const input = screen.getByLabelText('file-upload');
+			expect(input).toBeInTheDocument();
+
+			const event = {
+				target: {
+					files: [
+						{ name: "testfile1.txt", type: "text" }
+					]
+				}
+			};
+
+			fireEvent.change(input, event);
+
+			const toaster = await screen.findByText("Upload complete.");
+			expect(toaster).toBeInTheDocument();
+
+			// COMPLETE 전이 직후 — REFRESH_TIMEOUT 경과 전 unmount.
+			unmount();
+
+			// pending timer 가 cleanup 으로 취소되었는지: timer 진행해도 refreshSpy 미호출.
+			await act(async () => {
+				await vi.runAllTimersAsync();
+			});
+
+			expect(refreshSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('FAILED 분기 unmount 후 refreshFiles 0회', () => {
+		useMockServer(() => mock.devServerPresignedUrlOkButUploadNetworkError);
+
+		test('unmount before REFRESH_TIMEOUT after FAILED — refreshFiles not called', async () => {
+
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+
+			vi.stubEnv('DEV', true);
+			vi.stubEnv('PROD', false);
+
+			vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+			vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+			const refreshSpy = vi.fn();
+
+			const { unmount } = render(<FileUpload callbackAfterUpload = {refreshSpy} />);
+
+			const input = screen.getByLabelText('file-upload');
+			expect(input).toBeInTheDocument();
+
+			const event = {
+				target: {
+					files: [
+						{ name: "testfile1.txt", type: "text" }
+					]
+				}
+			};
+
+			fireEvent.change(input, event);
+
+			const failText = await screen.findByText("Upload failed.");
+			expect(failText).toBeInTheDocument();
+
+			// FAILED 전이 직후 — REFRESH_TIMEOUT 경과 전 unmount.
+			unmount();
+
+			// pending timer 가 cleanup 으로 취소되었는지: timer 진행해도 refreshSpy 미호출.
+			await act(async () => {
+				await vi.runAllTimersAsync();
+			});
+
+			expect(refreshSpy).not.toHaveBeenCalled();
+		});
+	});
+});
+
 describe('FileUpload reportError 채널 (REQ-20260421-039 FR-03)', () => {
 
 	describe('Pre-signed URL fetch failed', () => {

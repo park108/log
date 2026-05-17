@@ -97,6 +97,8 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 
 	useEffect(() => {
 
+		let refreshHandle: ReturnType<typeof setTimeout> | undefined;
+
 		if("READY" === isUploading) {
 			(document.getElementById('file-upload-for-mobile') as HTMLInputElement).disabled = false;
 		}
@@ -112,12 +114,12 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 			setIsShowToaster(1);
 			setFiles([]);
 
-			setTimeout(function() {
+			refreshHandle = setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
 			}, REFRESH_TIMEOUT);
 		}
-		else {
+		else if("FAILED" === isUploading) {
 
 			(document.getElementById('file-upload-for-mobile') as HTMLInputElement).value = "";
 
@@ -126,11 +128,17 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 			setIsShowToaster(1);
 			setFiles([]);
 
-			setTimeout(function() {
+			refreshHandle = setTimeout(function() {
 				setIsUploading("READY");
 				refreshFiles();
 			}, REFRESH_TIMEOUT);
 		}
+
+		return () => {
+			if(refreshHandle !== undefined) {
+				clearTimeout(refreshHandle);
+			}
+		};
 
 	}, [isUploading, refreshFiles]);
 
