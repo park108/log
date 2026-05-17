@@ -89,8 +89,11 @@ describe("meta-description-token-coherence (TSK-20260518-08)", () => {
 		expect(hMatch, "index.html `<meta name=\"description\" content=\"…\">` 캡처 실패").not.toBeNull();
 		expect(dMatch, "src/common/common.ts `const DEFAULT_META_DESCRIPTION = \"…\"` 캡처 실패").not.toBeNull();
 
-		const H = (hMatch as RegExpMatchArray)[1];
-		const D = (dMatch as RegExpMatchArray)[1];
+		// noUncheckedIndexedAccess: true — capture group 인덱스 접근 결과는
+		// `string | undefined`. capture 정규식 자체가 group 1 을 강제하므로 실측은
+		// 항상 string 이지만, .length 접근을 위해 명시 narrowing.
+		const H = (hMatch as RegExpMatchArray)[1] as string;
+		const D = (dMatch as RegExpMatchArray)[1] as string;
 
 		// 실측 63 byte ASCII literal — H ≡ D.
 		expect(H).toBe(EXPECTED_TOKEN);
