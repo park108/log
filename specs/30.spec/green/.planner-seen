@@ -1632,3 +1632,98 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #       (11) **격리 분기 누적 박제 (3회차 진입 시)**: 본 43차 박제 정체 카운트 2회차 도달 10 spec → 외부 의존 면제 분기 유지. 44th tick 진입 시 3회차 도달 시 동일 면제 분기 적용 — 외부 이벤트 미발생 + RULE-07 §양성 평서 정합 시 격리 비대상 유지. 만일 RULE-07 §양성 평서 위반 시그널 검출 시 즉시 격리 (별 분기) — 본 43차 위반 시그널 0건.
 #       (12) **REQ-085 흡수 분기 (Phase 2)**: 20.req/ spec-carve-precondition-self-declaration 잔존 → 44th tick 진입 시점 inspector 흡수 분기 시 신규 green spec 박제 → planner carve 후보. 본 tick 미수행 (inspector 영역).
 #       (13) **본 tick promote/carve/격리 분기 명시화**: 43차 = no-op (carve 0 + promote 0 + 격리 0). 단 6 baseline flip surface 검출 + 환경 회복 5세션 누적 + 50.blocked/spec/ 비어있음 유지 → 차기 inspector marker flip 박제 가속 분기 (44th tick promote 후보 누적).
+
+# 2026-05-17 planner session (44th tick @HEAD=69615bb) — carve 0 + promote 0 + 격리 0 (inspector 미커밋 변경 working tree dirty + spec hash HEAD 무변동 + 외부 의존 면제 분기 유지).
+#     (i) **선결 점검 (RULE-03)**: pause lock 0 (`.claude/locks/pipeline.pause` + `.claude/locks/planner.pause` 부재) / 입력 큐 11 (`30.spec/green/**` foundation 6 + common 4 + styles 1 — 신규 spec-carve-precondition.md 진입) / 하류 임계치 `40.task/` 0 < 10 (TASK_READY_MAX 여유 10) → 통과.
+#     (ii) **환경 회복 신호 재검증** (44th tick 진입 측정): HEAD=`69615bb` working tree dirty (inspector 미커밋 변경 5건 + 신규 1 untracked). `npm run lint` rc=0 + `npx tsc --noEmit` rc=0 — 38차 박제 환경 회복 신호 유지 (6세션 누적).
+#     (iii) **working tree 변경 분석 (inspector writer 영역 — planner 영역 밖)**:
+#         - ` D specs/20.req/20260517-spec-carve-precondition-self-declaration.md` (REQ-085 흡수 후 mv — inspector 영역)
+#         - ` M specs/30.spec/green/.inspector-seen` (inspector reconcile 진행)
+#         - ` M specs/30.spec/green/common/test-helpers.md` (Phase 1 reconcile (I1)(I2)(I3) + FR-01·FR-02·FR-03·FR-04·FR-06 + NFR-05 marker 9건 hook-ack 플립 by TSK-20260517-19 / `82bb7a4`)
+#         - ` M specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (Phase 1 reconcile marker flip — 본 tick 내용 비검토, 작업 진행 추정)
+#         - ` M specs/30.spec/green/foundation/npm-script-prefix-coherence.md` (Phase 1 reconcile (I2) + FR-01·FR-02 + NFR-05 marker 4건 hook-ack 플립 by TSK-20260517-20 / `985c76e`)
+#         - `?? specs/30.spec/green/foundation/spec-carve-precondition.md` (REQ-085 흡수 신규 green spec 박제 — 메타 효능 spec carve-precondition 자기 선언 9 축 I1~I9)
+#         - 본 변경들은 모두 staged 상태였음 (`git status` index — inspector 가 add 후 미커밋). RULE-02 세션 시작 unstage 절차: `git reset HEAD --` 로 5건 + REQ-085 deletion unstage 완료 (자기 writer 영역 밖 staged → 언스테이지 강제).
+#     (iv) **green hash HEAD 실측 (11 spec — 43차 박제 10 + 신규 spec-carve-precondition.md 1)**:
+#         - foundation/diagnostic-script-auto-channel-coverage.md HEAD=566a71c5 (43차 동일)  -- WT=566a71c5 (43차 동일, 미커밋 변경은 staged 이력만 — index reset 후 WT 기준 hash 변동 0 확인 필요)
+#         - foundation/lint-warning-zero-gate.md HEAD=7c0db082 (43차 동일)
+#         - foundation/node-modules-extraneous-coherence.md HEAD=77af8bab (43차 동일)
+#         - foundation/tooling.md HEAD=b2c1299b (43차 동일)
+#         - foundation/npm-script-prefix-coherence.md HEAD=2f83fff0 (43차 동일 — 단 inspector marker flip 후 hash 변동 추정, WT 기준 변동 확인 필요)
+#         - foundation/spec-carve-precondition.md HEAD=N/A (untracked, 신규 박제, WT=866b3808)
+#         - common/accessibility.md HEAD=fa58c616 (43차 동일)
+#         - common/markdownParser.md HEAD=80e20a34 (43차 동일)
+#         - common/sanitizeHtml.md HEAD=f33c38cc (43차 동일)
+#         - common/test-helpers.md HEAD=20f79e22 (43차 동일 — 단 inspector marker flip 후 hash 변동 추정)
+#         - styles/css-modules.md HEAD=a0b75e71 (43차 동일)
+#         - **주의**: working tree 의 hash 측정은 inspector 미커밋 변경 반영 — 본 tick 박제는 HEAD baseline 기준 (commit 회수 시점만 정합 신호). 다음 inspector tick 의 commit 후 HEAD hash 변동 → 정체 카운트 리셋 분기.
+#     (v) **승격 판정 전수 (working tree 기준 — RULE-01 spec 본문 baseline 은 WT 가 우선)**: 11 spec 어느 것도 unchecked=0 미도달 → promote 0건.
+#         - accessibility unchecked=1 (I5 별 task / 별 spec 위임)
+#         - markdownParser unchecked=1 (I6 별 task 위임)
+#         - sanitizeHtml unchecked=4 (I2/I5/FR-02-b/FR-02-c 별 task / 별 spec 위임)
+#         - test-helpers unchecked=3 (I4/I6/FR-05/FR-09 typecheck island 확장 차기 이벤트 + 확장성 평서 차기 이벤트 의존 — Phase 1 marker 9건 hook-ack 플립 후 잔존 외부 이벤트 의존)
+#         - diagnostic-script-auto-channel-coverage unchecked=4 (직전 43차 박제 2 → 본 tick WT 4 — inspector marker 본 tick 추가 박제 여부 확인 필요, 본 tick 미상세 확인)
+#         - lint-warning-zero-gate unchecked=2 (I9 + FR-06 차기 전환 이벤트 의존)
+#         - node-modules-extraneous-coherence unchecked=3 (G3 + Must + Should 차기 dep 이벤트 의존)
+#         - npm-script-prefix-coherence unchecked=2 (I4/FR-04 차기 진단 script 이벤트 의존 — Phase 1 marker 4건 hook-ack 플립 후 잔존 외부 이벤트 의존)
+#         - spec-carve-precondition unchecked=4 (FR-02/FR-03/FR-04/FR-05 — 5 외부 carve-active spec 본문 §carve-precondition 절 박제 회수 의존 — inspector writer 영역, planner carve 영역 밖)
+#         - tooling unchecked=3 (FR-05/NFR-02/REQ-078 FR-03 운영자 회수 대기)
+#         - css-modules unchecked=3 (I3/I4/Should 차기 enum / Skeleton 전환 이벤트 의존)
+#     (vi) **신규 carve 분기 부재 (멱등 + 외부 이벤트 의존 + inspector 영역 의존)**: 43차 박제 (xiv)(2) 분기 + 본 tick 신규 surface 분석:
+#         - **TSK-19/-20/-18 재발행 금지**: 동일 marker carve 재발행 = RULE-02 멱등 위반.
+#         - **spec-carve-precondition FR-02~FR-05**: 5 외부 carve-active spec 본문 §carve-precondition 절 박제 회수 — 작업 표면이 spec 본문 갱신이라 **inspector writer 영역** (`30.spec/green/foundation/**` 본문 갱신). planner `40.task/` 발행 = developer 향 src/** 변경 task — 본 task 는 spec 본문 작업이라 planner carve 영역 밖. 차기 inspector tick 의 본문 갱신 분기.
+#         - **carve-active spec 자기 §carve-precondition 절 박제 시 5 외부 spec 의 unchecked 미감소** — spec-carve-precondition FR-02~FR-05 marker 도 inspector 본문 갱신 후 marker 플립 (자기 spec 의 marker — Should marker — 다른 spec 본문 갱신 의존). 즉 차기 inspector tick chain 분기.
+#         - 신규 marker (spec 박제 추가 / 신규 green spec 진입 / REQ 흡수 분기) 본 tick 부재 (REQ-085 흡수 완료 → 신규 green spec 1건 + 본 tick 신규 incoming REQ 부재). 본 tick carve 0건.
+#     (vii) **TSK-19 / TSK-20 baseline 효능 surface (43차 박제 — 본 tick 부분 회수 박제)**:
+#         - test-helpers (working tree) — FR-01·FR-02·FR-03·FR-04·FR-06 + I1/I2/I3 + NFR-05 marker 9건 hook-ack 플립 박제 완료 (inspector). HEAD 미커밋.
+#         - npm-script-prefix (working tree) — FR-01·FR-02 + I2 + NFR-05 marker 4건 hook-ack 플립 박제 완료 (inspector). HEAD 미커밋.
+#         - diagnostic-script (working tree) — 본 tick 내용 미상세 확인, marker flip 진행 추정 (이전 ack 1/10 + 본 tick 추가 ack 추정).
+#         - 모두 차기 inspector tick commit 시 HEAD hash 변동 → 정체 카운트 리셋 분기.
+#     (viii) **정체 카운트 (43차 박제 2회차 → 44차 +1)**: 11 spec HEAD hash 무변동 (10 spec 43차 동일 + 신규 spec-carve-precondition 1건은 새 spec — 정체 분기 비대상). 10 spec 전부 HEAD hash 무변동 → +1회차 누적 → 3회차 진입 (격리 임계치 +1 도달).
+#         - 격리 분기 판정 (43차 박제 (xiv)(11) 재적용): **외부 이벤트 의존 + RULE-07 §양성 평서 정합 시 격리 비대상**. 본 tick 추가 검증 — 10 spec 전수 unchecked 본문 평서 분석:
+#           - test-helpers (3 unchecked): I4 typecheck island 확장 차기 이벤트 + I6/FR-05 확장성 차기 이벤트 + FR-09 동치 → 외부 이벤트 의존 평서.
+#           - npm-script-prefix (2 unchecked): I4/FR-04 신규 `scripts/check-*.sh` 도입 PR 차기 이벤트 → 외부 이벤트 의존 평서.
+#           - diagnostic-script (4 unchecked): I5 회귀 fixture 별 task + FR-06 차기 진단 script 이벤트 → 외부 이벤트 / 별 task 위임 평서.
+#           - lint-warning-zero (2 unchecked): I9/FR-06 reportUnusedDisableDirectives 차기 전환 → 외부 이벤트 의존.
+#           - node-modules-extraneous (3 unchecked): 차기 dep 이벤트 → 외부 이벤트 의존.
+#           - tooling (3 unchecked): 운영자 회수 대기 → 운영자 면제 평서.
+#           - accessibility (1 unchecked): 별 task 위임 → 별 task 위임 평서.
+#           - markdownParser (1 unchecked): 별 task 위임 → 별 task 위임 평서.
+#           - sanitizeHtml (4 unchecked): 별 task / 별 spec 위임 → 별 task / 별 spec 위임 평서.
+#           - css-modules (3 unchecked): 차기 enum / Skeleton 전환 이벤트 → 외부 이벤트 의존.
+#           → 10 spec 전수 RULE-07 §양성 정합 (시점 비의존 + 시스템 불변식·계약 평서). 자동 격리 0건. **외부 의존 면제 분기 유지** (43차 박제 (xiv)(11) 분기 정합 — 누적 cycle 무관 면제).
+#     (ix) **grep dry-run 보류** — 본 44th tick carve 0건이므로 grep dry-run 0/0 match (수행 없음). RULE-04 notes 토큰 `grep dry-run: 0/0 match (carve none)` 박제.
+#     (x) **Task ID footprint 전수** (RULE-01 grep 44th 재실행 `specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/`):
+#         - 발견된 unique TSK ID 28건: TSK-20260418-10 + TSK-20260420-{13,16,26,33} + TSK-20260422-{13,14,15} + TSK-20260517-{01,02,03,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20}.
+#         - 추가 발견: `TSK-20260517-04` 1건 grep 매치 — `60.done/2026/05/17/followups/20260517-0649-log-island-convergence-from-blocked.md:22` 본문 "TSK-20260517-{01,02,03} 영구 박제 — TSK-20260517-04~99 신규 채번 가능" 컨텍스트 (range 표기, 실제 -04 점유 0). RULE-01 ID 영구 박제 정합 (-04 미발행 유지).
+#         - 본 tick 채번 0건. -21+ 미점유 유지 (carve 0건).
+#     (xi) **40.task/ 백프레셔**: 본 44th 진입 0건 (43차 박제 종료 0건 유지). 임계치 10건 여유. carve 0 → 종료 0건.
+#     (xii) **HEAD baseline 격차 분석** (43차 박제 (xiv)(8) 적용):
+#         - (a) green spec hash HEAD 변경: 0건 (전체 무변동) — 단 working tree 의 inspector 미커밋 변경 6건 (5 modified + 1 new) 잔존.
+#         - (b) 40.task/ 진입/이탈: TSK-19/-20 회수 후 신규 진입 0 (직전 tick 유지).
+#         - (c) 60.done/2026/05/17/task/: 16 디렉터리 (43차 박제 (xi)(c) 와 동일 set 추정 — TSK-19/-20 회수 박제 포함, 본 tick 진입 0).
+#         - (d) 50.blocked/task/: 비어있음 유지.
+#         - (e) 20.req/: REQ-085 spec-carve-precondition-self-declaration 흡수 완료 (working tree D — inspector mv 진행 중) → 0건 잔존.
+#         - (f) 50.blocked/spec/: foundation 하위 잔존 (직전 tick 박제와 동일 set 추정 — 본 tick 미상세 확인). 본 tick 변동 0.
+#         - (g) 환경 회복 신호: 유지 (lint/typecheck 둘 다 rc=0). 6세션 누적.
+#     (xiii) **HEAD baseline**: working tree `69615bb` (43차 commit 69615bb 후 inspector phase 1 reconcile 진행 — 미커밋 staged 5건 + untracked 1건). 본 tick mv 0 + create 0 = self-area 변경 1건 (`specs/30.spec/green/.planner-seen` append). 자기 영역 밖 staged 6건 모두 RULE-02 절차에 따라 unstage 완료 (planner 가 commit 하지 않음 — 차기 inspector tick 가 자기 영역 commit 분기).
+#     (xiv) **RULE-07 양성 재판단 보류**: 11 잔존 green spec 모두 §양성 평서 (시스템 불변식·계약 한정 + 외부 이벤트/회수 의존 평서) 정합. 본 tick 양성 위반 시그널 0건.
+#         - 신규 spec-carve-precondition.md (메타 효능 — 다른 green foundation spec 본문 §carve-precondition 절 박제 게이트) — RULE-07 §양성 정합 (반복 가능 + 시점 비의존 + 시스템 메타 불변식 평서). 본 spec 자기-적용 정합 (G1 자기 포함 + G2 자기 시범 박제 1 hit).
+#     (xv) 다음 세션 (45th tick) 행동지침:
+#       (1) **승격 판정 멱등 게이트**: 45th tick 진입 시 어느 green spec 이 hash 변경 + unchecked=0 도달 시 mv green→blue 즉시 분기. 잠재 후보:
+#         (a) **차기 inspector tick commit 후 HEAD hash 변동 분기** — 본 tick working tree 의 inspector 미커밋 변경 (test-helpers / npm-script-prefix / diagnostic / spec-carve-precondition 신규 + .inspector-seen + REQ-085 mv) 가 commit 되면 HEAD hash 변동 + 5 외부 carve-active spec 본문 §carve-precondition 절 박제 진행 시 spec-carve-precondition FR-02~FR-05 marker 플립 → unchecked=0 도달 가능 → fast-promote 후보.
+#         (b) test-helpers / npm-script-prefix — inspector hook-ack 후에도 외부 이벤트 의존 marker 잔존 (test-helpers I4/I6/FR-05/FR-09 + npm-script-prefix I4/FR-04) → fast-promote 불가.
+#         (c) 8 잔존 spec (diagnostic-script / lint-warning-zero / node-modules-extraneous / tooling / accessibility / markdownParser / sanitizeHtml / css-modules + spec-carve-precondition 일부) — 외부 이벤트 / 운영자 회수 / 별 task 위임 누적.
+#       (2) **carve 재발행 금지 (멱등)**: TSK-19/-20/-18 + spec-carve-precondition §carve-precondition 절 박제 inspector writer 영역 (`30.spec/green/foundation/**` 본문 갱신) — planner carve 영역 밖. 차기 신규 marker (spec 박제 추가 / 신규 green spec 진입 / 신규 REQ 흡수) 시에만 carve.
+#       (3) **40.task/ 백프레셔**: 본 44th 종료 시 0건. 임계치 10건 여유.
+#       (4) **정체 카운트 (격리 분기 명시화)**: 10 spec 3회차 누적 (격리 임계치 +1 도달). 45th tick 진입 시 HEAD hash 무변동 시 +1회차 → 4회차 진입. 외부 이벤트 / 운영자 회수 / 별 task 위임 / inspector 본문 갱신 의존 spec 은 planner writer 영역의 단순 정체 격리 비대상 (RULE-07 §양성 정합 + 외부 의존 평서 + 자기 writer 영역 권한 분리). 누적 cycle 무관 외부 의존 면제 분기 유지.
+#       (5) **환경 회복 분기**: 회복 신호 유지 검증 (45th tick 진입 시 측정). 6세션 누적.
+#       (6) **50.blocked/spec/ revive 분기**: foundation 하위 잔존 (본 tick 변동 0). 운영자 /revisit 분기.
+#       (7) **Task ID footprint**: 본 tick 채번 0건. 45th tick 신규 carve 시 -21+ 채번. 영구 박제 -01~-03,-05~-20 재사용 금지 (-04 미발행 유지).
+#       (8) **HEAD 격차 분석**: 45th tick 진입 시점 baseline 격차 항목 별 행동지침 — (a) green spec hash 변경 (inspector marker flip commit 또는 promote), (b) 40.task/ 진입/이탈, (c) 60.done/2026/05/17/task/ 신규, (d) 50.blocked/task/ 진입, (e) 20.req/ 변동 (신규 REQ 흡수 신호), (f) 50.blocked/spec/ 변동, (g) 환경 회복 신호 유지.
+#       (9) **inspector hook-ack 누적 분기**: 44th tick working tree 박제 진행 — test-helpers 9 marker (TSK-19) + npm-script-prefix 4 marker (TSK-20) + diagnostic 추가 ack (미상세) + 신규 spec-carve-precondition 박제. 차기 inspector commit 후 HEAD hash 변동 + ack 누적 박제 의존 분기.
+#       (10) **grep dry-run 본 44th 종료**: carve 0건 — `grep dry-run: 0/0 match (carve none)` 박제.
+#       (11) **격리 분기 누적 박제 (3회차 진입 + 4회차 진입 시)**: 본 44차 박제 정체 카운트 3회차 도달 10 spec → 외부 의존 면제 분기 유지. 45th tick 진입 시 4회차 도달 시 동일 면제 분기 적용 — 외부 이벤트 미발생 + RULE-07 §양성 평서 정합 시 격리 비대상 유지. 단 누적 cycle 4회차+ 진입 시 자기 writer 영역 분리 (inspector 본문 갱신 의존 spec — spec-carve-precondition / test-helpers / npm-script-prefix / diagnostic) 명시화 — planner 단순 정체 격리는 자기 영역 의존 spec 한정 분기.
+#       (12) **신규 REQ 흡수 분기 (Phase 2)**: 본 tick 20.req/ 잔존 0 (REQ-085 흡수 완료). 45th tick 진입 시 신규 followup → req → spec 흡수 chain 분기 (discovery / inspector 영역).
+#       (13) **본 tick promote/carve/격리 분기 명시화**: 44차 = no-op (carve 0 + promote 0 + 격리 0). 단 inspector 미커밋 변경 6건 (5 marker flip + 1 신규 spec 박제) + 환경 회복 6세션 누적 + 50.blocked/spec/ 변동 0 → 차기 inspector commit + planner 45th tick promote 후보 누적 (spec-carve-precondition 5 외부 carve-active spec 본문 §carve-precondition 절 박제 chain 의존).
+#       (14) **신규 spec-carve-precondition.md 메타 효능 식별** — 본 spec 자체는 메타 효능 (다른 green foundation spec 본문 §carve-precondition 절 박제 게이트). 자기-적용 정합 (G1 자기 포함 + G2 자기 시범 박제 1 hit). 5 외부 carve-active spec 본문 §carve-precondition 절 박제는 inspector writer 영역 — 차기 inspector tick 본문 갱신 분기 (TSK 발행 0건).
