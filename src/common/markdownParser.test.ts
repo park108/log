@@ -176,4 +176,18 @@ describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
 			"<ul><li>a<ul><li>b<ul><li>c</li></ul></li></ul></li><li>d</li></ul>"
 		);
 	});
+
+	// markdownParser.md §동작 (I6) "same-type 한정 계약" 박제:
+	// ul ↔ ol 혼합 중첩 (`- a\n  1. b`) 은 bindListItem 알고리즘 범위 밖.
+	// 본 fixture 는 의도적 out-of-scope 박제 — same-type 케이스가 아니므로 nested <ol> in <li>
+	// 구조로 결합되지 않고, 평탄한 sibling <ul> + <ol> (또는 동등 fail-safe 출력) 으로 분기.
+	it("does NOT nest ol child inside ul parent (mixed-type out-of-scope, REQ-076 FR-03 I6)", () => {
+		const input = "- a\n\t1. b";
+		const result = parser.markdownToHtml(input);
+		// 핵심 평서문: <ul><li> a<ol> ... 형태 (same-type nested 결과) 가 나타나지 않는다.
+		expect(result).not.toMatch(/<li>[^<]*<ol>/);
+		// <ul> 과 <ol> 가 둘 다 출력에 등장 (mixed 입력의 평탄 출력 박제).
+		expect(result).toContain("<ul>");
+		expect(result).toContain("<ol>");
+	});
 });
