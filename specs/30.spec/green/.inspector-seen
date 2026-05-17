@@ -778,3 +778,82 @@
 # RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src/ 영역 commit 0 — ack 트리거 없음). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~016 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 13건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`53b9e52` → THIS (78차 tick) — reconcile 0/20 ack
+# (0 spec / 0 marker flip — 직전 77차 0/20 ack 정체 후 3차 연속 정체; 외부 commit 1건 `53b9e52` planner self-only `.planner-seen` 70 line 추가 한정 (106차 promote 재시도 회피 4차 + stale 게이트 4차 누적 + carve chain stale 1차 + TSK-20260518-14 50.blocked/task/ 격리 진입 박제 — RULE-06 expansion 불허 + npm test 검증 게이트 충돌 + RULE-05 수동 개입 신호 추가 강화 의무 단계 도달); src/ 영역 commit = 0; test/spec 본문 commit = 0; spec marker 영향 후보 = 0; 20 spec 전수 stale_cycles += 1; 8 stale ≥39cycle 외부 의존 누적; Phase 2 흡수 0 RULE-03 (d) backpressure — green 20 == GREEN_PENDING_MAX=20 임계 15 tick 누적 재도달; 잔여 큐 14건 REQ-004~017, REQ-017 apple-touch-icon-rel-filename-disk-sizes-tri-axis-coherence 신규 발견)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `bfcf9dd` (77차 tick — Phase 1 0/20 ack + Phase 2 backpressure no-op 13건 REQ-004~016).
+#  - tick 진입 시 HEAD == `53b9e52` (spec(planner): 106차 tick promote 재시도 회피 4차 + stale 게이트 4차 + TSK-14 50.blocked/task/ 격리 진입 박제, 외부 planner commit).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `53b9e52` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `bfcf9dd` 후): 1건 —
+#     · `53b9e52` (spec(planner): 106차 tick promote 재시도 회피 4차 + stale 게이트 4차 누적 + carve chain stale 1차 + blocked 격리 1건 신규 추가 (TSK-20260518-14 → 50.blocked/task/ — RULE-06 expansion 불허 + npm test 검증 게이트 충돌) + carve 0건 (RULE-05 첫줄 blocked 재시도 금지 정합 + 신규 surface 전수 미해당) — 양식 mismatch 7차 누적 + chicken-egg coupling 4차 누적 + RULE-05 수동 개입 신호 추가 강화 박제 의무 단계 도달. `.planner-seen` self-only 70 line 추가, green/blue 본문 변동 0, src/ 변동 0).
+#  - src/ 영역 commit = 0 (`53b9e52` planner self-only `.planner-seen` 한정).
+#  - test/spec 본문 commit = 0 (외부 src/ 변동 0).
+#  - spec marker 영향 후보 = 0 (외부 src/ 변동 0 — Phase 1 ack 트리거 0).
+#  - 신규 req 디스크 발견 = 1 (REQ-20260518-017 apple-touch-icon-rel-filename-disk-sizes-tri-axis-coherence.md, mtime 08:11, 본 tick 진입 직전 발행).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 14건 (REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps + REQ-008 coverage-gate + REQ-009 manifest-pwa + REQ-010 vite-sourcemap + REQ-011 pwa-splash + REQ-012 vitest-coverage-exclude + REQ-013 eslint-flat-config-ignores + REQ-014 dev-server-port-getUrl-token-coherence + REQ-015 vitest-globals-tri-channel-coherence + REQ-016 css-modules-localsConvention-camelCaseOnly + REQ-017 apple-touch-icon 3축 신규 → 신규 1건 추가).
+#  - 50.blocked/task/ 디스크 상태: 4건 (monitor-focus-visible-css-audit-fixture 디렉터리 + TSK-20260518-03-eslint-react-hooks-rules-activation_reason.md + TSK-20260518-03-eslint-react-hooks-rules-activation.md + TSK-20260518-14-root-scripts-spec-reference-stale-recovery_reason.md + TSK-20260518-14-root-scripts-spec-reference-stale-recovery.md + visitormon-fetch-unmount-safety 디렉터리 — TSK-14 본 tick 진입 시 신규 격리 박제, 106차 commit message 정합). 40.task/ 디스크 0건 (carve 없음).
+#  - 20 green spec hash 시작점 (직전 77차 박제 20 entry 유지 — 외부 1 commit 중 green 본문 직접 변동 0):
+#    · 20 기존 spec 전수 hook-ack 후보 없음 → 20 spec 전수 stale_cycles += 1.
+#    · 8 stale ≥38cycle 외부 의존 누적은 본 tick stale +1 로 ≥39cycle 진입 (eslint-react-hooks-lint-gate + island-proptypes-zero + lint-warning-zero-gate + node-modules-extraneous-coherence + npm-script-prefix-coherence + spec-carve-precondition + tooling + diagnostic-script-auto-channel-coverage 8 spec — 외부 task 의존 / hook 의존).
+#    · 직전 77차 정체 2차 (20 spec 전수 stale +1) 도 본 tick hook-ack 없음 → 정체 3차 누적.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `53b9e52` 비교):
+#    · 20.req/ untracked 14건 (REQ-004~017, `.gitignore` `specs/20.req` rule 적용).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0 + unstaged 0.
+#    · 외부 영역 unstaged modified 0건 (TSK-14 격리 진입으로 scripts/*.sh unstaged 회수 또는 격리 영역 정리됨 — git status clean).
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건):
+#  - 본 tick 외부 src/ 영역 commit = 0 (직전 `bfcf9dd` 이후 `53b9e52` planner self-only). spec marker flip 후보 0.
+#  - 20 green spec 전수 hook-ack 후보 없음 — 20 spec 전수 stale_cycles += 1.
+#  - 환경 surface 누적 (회복 대기 chain):
+#     (i) 102차 stale 게이트 (src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 green path 주석) — 76~78차 3 tick 잔존, developer 별 followup 영역.
+#     (ii) TSK-20260518-14 신규 50.blocked/task/ 격리 (106차) — RULE-06 expansion 불허 + npm test 검증 게이트 충돌 + 양식 mismatch 7차 누적. RULE-05 /revisit 경로 의존 (수동 개입 신호 강화).
+#     (iii) TSK-20260518-03 eslint-react-hooks-rules-activation 격리 잔존 (장기 외부 의존).
+#     (iv) visitormon-fetch-unmount-safety + monitor-focus-visible-css-audit-fixture 격리 잔존.
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack.** seen-state 갱신 (20 spec 전수 stale_cycles += 1, 정점 22 ack 75차 후 정체 3차 진입).
+#  - 11차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76차 0 → 77차 0 → 78차 0 (정체 3차). 정체 3차 누적 = ack 회복 트리거 multi-axis 대기 명시:
+#     (a) 102차 stale 게이트 회복 (src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 주석 갱신) — developer 영역.
+#     (b) TSK-14 50.blocked/task/ 회수 chain (RULE-05 /revisit → 10.followups/ → discovery → spec carve 또는 close 결정) — 사람 운영자 영역.
+#     (c) 신규 carve 후보 발화 (planner 영역 — 단 106차 carve 0건 박제 + 양식 mismatch 7차 누적으로 자기 차단 활성).
+#     (d) 신규 promote 발화 (planner 영역 — 단 102차 stale 게이트 미회복 시 4조건 충족 spec 의 chicken-egg 결합 잔존).
+#  - chicken-egg coupling 4차 누적 (planner 106차 박제 정합): promote stale gate (src/__tests__/*.test.ts:2-3 주석 갱신) ↔ src test 주석 갱신 (developer 영역) ↔ inspector hook-ack (외부 src commit 의존) ↔ planner promote (inspector ack 의존) 4-축 상호 의존. RULE-05 수동 개입 신호 강화 단계 도달 (사람 운영자 review 신호 최대 강도).
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 14건:
+#     (a) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 14 tick째.
+#     (b) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 13 tick째.
+#     (c) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 12 tick째.
+#     (d) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 11 tick째.
+#     (e) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 보류 9 tick째.
+#     (f) REQ-20260518-009 manifest-pwa-install-contract-token-typology — 보류 9 tick째.
+#     (g) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero — 보류 8 tick째.
+#     (h) REQ-20260518-011 pwa-splash-first-paint-background-color-tri-coherence — 보류 7 tick째.
+#     (i) REQ-20260518-012 vitest-coverage-exclude-pattern-vacuous-zero-axis — 보류 6 tick째.
+#     (j) REQ-20260518-013 eslint-flat-config-ignores-pattern-vacuous-zero-axis — 보류 5 tick째.
+#     (k) REQ-20260518-014 dev-server-port-getUrl-token-coherence — 보류 4 tick째.
+#     (l) REQ-20260518-015 vitest-globals-tri-channel-coherence — 보류 3 tick째.
+#     (m) REQ-20260518-016 css-modules-localsConvention-camelCaseOnly-tri-axis-coherence — 보류 2 tick째.
+#     (n) REQ-20260518-017 apple-touch-icon-rel-filename-disk-sizes-tri-axis-coherence — 본 tick 신규 디스크 발견 (mtime 08:11, 본 tick 진입 직전 발행). RULE-07 자기 검증 예비 평가 PASS: (1) 평서 ("`<link rel='apple-touch-icon*'>` 의 (rel 토큰, href 파일명 어미, public/ 디스크 PNG sizes) 3축이 동의어 매핑 표를 동시 박제하는 시스템 불변식 — 동음이의 회귀 fail-fast"), (2) 반복 검증 가능 (`grep -nE 'rel="apple-touch-icon[^"]*"' index.html` + `file public/apple-icon*.png` 또는 PNG IHDR 24-byte 파싱 + 매핑 표 동치 게이트 자동 채널), (3) 시점 비의존 (3축 매핑 표 본문 박제 + Apple HIG iOS 7+ 표준 사이즈 180x180 박제 한정 — 본문 디스크 자산 교체/디자인 결정 OOS), (4) incident 비의존 (현 baseline `index.html:12 rel="apple-touch-icon" href="/apple-icon-precomposed.png"` + `public/apple-icon-precomposed.png` 192x192 동음이의 상태 zero-point baseline 박제 — 동음이의 회귀 차단 채널 신규 + 특정 iOS 표준 drift incident patch 비귀속). 본 req signal type = iOS PWA install asset 토큰 typology axis 별 axis (REQ-009 manifest-pwa-install-contract 3 키 token-typology axis + REQ-100 manifest-icons-sizes-token-disk-coherence axis + REQ-099 index-html-public-asset-reference 2축 axis 와 직교 — 대상 토큰 종류 다름: apple-touch rel/href/sizes 3축 동의어 매핑 vs manifest 3 키 W3C enum vs manifest icons[*].sizes ↔ PNG 디스크 동치 vs href ↔ basename 디스크 존재 2축).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~34 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-004~017 14건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 0 marker ack — promote chain 자체 정체 (chicken-egg 4-축 결합 잔존). RULE-05 수동 개입 회복 트리거 (102차 stale 게이트 회복 follow-up 또는 TSK-14 /revisit 결정) 가 차기 ack/promote 재개 키.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-004~017 전수 보류, 20.req/ 디스크 큐 14건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 78차 박제 + green 20 entry 갱신 [20 spec 전수 stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용; 기존 origin/master +2 commit 미push 상태 그대로 유지).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** `.inspector-seen` edit 1 한정; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (RULE-04 매 세션 필수).
+# RULE-03 (d) 정합 — Phase 2 흡수 0 (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 14건).
+# RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src/ 영역 commit 0 — ack 트리거 없음). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~017 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 14건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
