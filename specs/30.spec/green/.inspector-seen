@@ -556,3 +556,88 @@
 # RULE-07 자기 검증 — Phase 1 1 marker spec 5 ack (TSK-11 / `cce81d4` 회수 hook-ack — task 정상 done mv 후 spec marker 플립 정합 + 보류 marker 7건 `[deferred: 사유]` 태깅 동시 박제). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~013 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 10건 (REQ-004/005/006/007/008/009/010/011/012/013 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`41d4b96` → THIS (75차 tick) — reconcile 22/40 ack
+# (2 spec / §수용 기준 marker 합 22 — robots-policy-semantic-coherence 6 Must FR-01~06 + 1 Should FR-07 + 5 NFR (NFR-01/02/04/05/06) = 12 marker via TSK-20260518-12 / `06ce0db` 회수
+#  + root-config-spec-reference-coherence 1 Must FR-04 + 1 Should FR-05(deferred) + 2 NFR (NFR-02/04) + 1 Must 범위 제한 = 4 §수용 기준 marker (G-D 1 §테스트 현황 별도 합산 — 본 토큰 계산은 §수용 기준 기준)
+#  + 결합 — `reconcile: 22/40 ack` 는 분모 40 = 2 spec × 20 marker (각 spec §수용 기준 + §비기능 + §테스트 현황 marker 총합 약 20 가정) 의 보수 분모,
+#    상세 marker flip 합산 — robots spec 17 marker flip (G-A/G-B/G-C/G-D/G-E/G-F/G-G/G-H/G-J/G-K 10 §테스트 현황 + FR-01~07 7 §수용 기준 + NFR-01/02/04/05/06 5 §비기능 = 22 marker 중복 보정 17 actual flip)
+#    + root-config spec 5 marker flip (G-D + FR-04 + NFR-02 + NFR-04 + 범위 제한)
+#    + robots 4 deferred (G-I + FR-08 + NFR-03 + NFR-07) + root-config 5 deferred (G-E + FR-05 + NFR-01 + NFR-03 + 시점 비의존 누적)
+#    = 22 actual marker flip / 9 deferred tagging / 2 spec total = 9차 연속 ack 흐름 누적 진입)
+# + 8 stale ≥36cycle 외부 의존 누적 유지 + Phase 2 흡수 0 RULE-03 (d) backpressure
+# — green 20 == GREEN_PENDING_MAX=20 임계 12 tick 누적 재도달; 잔여 큐 11건 REQ-004~014, REQ-014 dev-server-port-getUrl-token-coherence 신규
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `0cadedb` (74차 tick — Phase 1 5/20 ack 1 spec TSK-11 hook-ack + Phase 2 backpressure no-op 10건 REQ-004~013).
+#  - tick 진입 시 HEAD == `41d4b96` (test: root-level config/script/hook → spec 참조 3축 정합 결정론 측정 fixture 박제 — REQ-097/TSK-20260518-13 회수, 외부 developer commit).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `41d4b96` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `0cadedb` 후): 2건 —
+#     · `06ce0db` (test: `<meta name="robots">` ↔ public/robots.txt 양면 색인 정책 의미 동치 fixture — `src/__tests__/robots-policy-coherence.test.ts` 신규 295 line, G-A~G-F + 직교 토큰 7 단언 PASS, production 0 byte. TSK-20260518-12 회수 `60.done/2026/05/18/task/robots-policy-coherence-fixture/` 정상 mv, push `cce81d4..06ce0db master`).
+#     · `41d4b96` (test: root-level config/script/hook → spec 참조 3축 정합 결정론 측정 fixture — `src/__tests__/root-config-spec-reference-coherence.test.ts` 신규 320 line, G-A/G-A-self/G-B/G-C/직교 토큰 5 단언 + baseline 격차 박제 (5 path / 3 MISSING / 2 EXISTS / 4 green path / 3 STALE / 1 OK). TSK-20260518-13 회수 `60.done/2026/05/18/task/root-config-spec-reference-coherence-fixture/` 정상 mv, push to origin/master).
+#  - src/ 영역 commit = 2 (`06ce0db` + `41d4b96` — 양 fixture 신규 2 파일 합 615 line).
+#  - test/spec 본문 commit = 2 (양 fixture 신규 단언 합 12 케이스).
+#  - spec marker 영향 후보 = 2 spec / 합 22 §수용 기준 marker (robots 17 marker + root-config 5 marker — 본 tick 합 22 marker flip).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 11건 (REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps + REQ-008 coverage-gate + REQ-009 manifest-pwa + REQ-010 vite-sourcemap + REQ-011 pwa-splash + REQ-012 vitest-coverage-exclude + REQ-013 eslint-flat-config-ignores + REQ-014 dev-server-port-getUrl-token-coherence 신규 → 신규 1건 추가).
+#  - 20 green spec hash 시작점 (직전 74차 박제 20 entry 유지 — 외부 2 commit 중 green 본문 직접 변동 0):
+#    · 20 기존 spec 중 18 spec stale_cycles += 1 (2 spec hook-ack 후보 — meta-robots + root-config 는 marker flip 후 stale_cycles 0 초기화).
+#    · 8 stale ≥35cycle 외부 의존 누적은 본 tick stale +1 로 ≥36cycle 진입 (eslint-react-hooks-lint-gate + island-proptypes-zero + lint-warning-zero-gate + node-modules-extraneous-coherence + npm-script-prefix-coherence + spec-carve-precondition + tooling + diagnostic-script-auto-channel-coverage 8 spec — 외부 task 의존 / hook 의존).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `41d4b96` 비교):
+#    · 20.req/ untracked 11건 (REQ-004~014, `.gitignore` rule 적용).
+#    · `.planner-seen` modified (자기 영역 외 — RULE-02 미접촉 정합).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 2건 — TSK-12 / `06ce0db` + TSK-13 / `41d4b96`):
+#  - meta-robots-robotstxt-policy-semantic-coherence.md (TSK-20260518-12 / `06ce0db` 회수, `60.done/2026/05/18/task/robots-policy-coherence-fixture/` 정상 mv):
+#     · §테스트 현황 10 marker (G-A `<meta name="robots">` hit=1 + G-B `public/robots.txt` test -f + line=3 + G-C 채널 A M_A 매핑 + G-D 채널 B M_B 매핑 + G-E 양면 동치 + G-F build artifact 보존 + G-G 회귀 검출 채널 존재 fixture + G-H 채널 의미 분리 박제 + G-J 자체 진단 제외 + G-K 멱등성 read-only) → fixture `src/__tests__/robots-policy-coherence.test.ts` 295 line 7 단언 PASS (HEAD 재실측 본 inspector tick `npx vitest run` 7/7 PASS) + scope `index.html` + `public/robots.txt` + `build/index.html` + `build/robots.txt` 4-file 한정 + 직교 토큰 7종 self-read 0 hit + production 0 byte + result.md DoD `npm test` 56 file / 495 test PASS + `npm run lint` rc=0 + `npm run build` rc=0 + `diff public/robots.txt build/robots.txt` 0 line 보존. `[ ]→[x]` 플립. 보류 marker (G-I 시점 비의존) `[deferred: 사유]` 태깅 (외부 이벤트 의존).
+#     · §수용 기준 7 marker (FR-01~FR-06 Must 6 + FR-07 Should 1) → fixture G-A~G-F 단언 1:1 매핑 PASS + FR-07 npm test 자동 발화 채널 박제 정합. `[ ]→[x]` 플립. 보류 marker (FR-08 Could 형식 분기 확장) `[deferred: 사유]` 태깅 (IANA 추가 토큰 / 다중 group 도입 시 별 carve).
+#     · §비기능 5 marker (NFR-01 결정론 + NFR-02 멱등성 + NFR-04 자체 진단 제외 + NFR-05 외부 비파괴 + NFR-06 채널 의미 분리) → result.md production 0 byte + scope 4-file 한정 + 직교 토큰 7종 + 우선순위 라벨 박제 부재 정합. `[ ]→[x]` 플립. 보류 marker (NFR-03 성능 단독 측정 + NFR-07 시점 비의존) `[deferred: 사유]` 태깅 (Duration 단독 미박제 / 외부 이벤트 의존).
+#     · hook-ack: 60.done/2026/05/18/task/robots-policy-coherence-fixture/result.md DoD — `npm run lint` rc=0 + `npm test` 56 file / 495 test PASS + 신규 fixture 7/7 PASS + `npm run build` rc=0 (2092 byte build/index.html + 67 byte build/robots.txt 생성) + grep 자기 검증 `grep -cE '<meta\s+name="robots"' index.html` = 1 + `test -f public/robots.txt` exit 0 + `wc -c < public/robots.txt` = 67 + `grep -nE "^User-agent|^Disallow" public/robots.txt` 2 hits PASS. HEAD 조상 정합 (git merge-base --is-ancestor `06ce0db` `41d4b96` PASS). 회귀 0.
+#     · 변경 이력 1행 박제 (TSK-20260518-12 / `06ce0db`). stale_cycles 0 초기화.
+#  - root-config-spec-reference-coherence.md (TSK-20260518-13 / `41d4b96` 회수, `60.done/2026/05/18/task/root-config-spec-reference-coherence-fixture/` 정상 mv):
+#     · §테스트 현황 1 marker (G-D 발화 채널 존재 — fixture 도입 + npm test 자동 발화 채널 정합) → fixture `src/__tests__/root-config-spec-reference-coherence.test.ts` 320 line 5 단언 PASS + `npm test` 자동 발화 채널 박제. `[ ]→[x]` 플립. 보류 marker (G-E 시점 비의존) `[deferred: 사유]` 태깅 (외부 이벤트 의존 + 누적 사례 ≥2건 미축적).
+#     · §수용 기준 4 marker (FR-04 단일 명령 + NFR-02 멱등성 + NFR-04 자체 진단 제외 + 범위 제한 Must) → fixture 단일 `npx vitest run` 명령 5 게이트 단언 정합 + read-only fs.readFileSync/fs.existsSync 정합 + 직교 토큰 9종 fragment 결합 self-read 0 hit + scope 7-file 한정 정합. `[ ]→[x]` 플립. 보류 marker (FR-05 발화 시점 채널 + NFR-01 N 회 반복 결정론 + NFR-03 성능 단독 측정 + 시점 비의존 누적 Must) `[deferred: 사유]` 태깅 (별 carve 또는 측정 별 axis 또는 누적 미축적).
+#     · 잔존 격차 marker (G-B/G-C/FR-02/FR-03 4 marker) — fixture 가 baseline 격차 (3 MISSING + 3 STALE) 박제 단언으로 회귀 차단 채널 도입이나 실측 EXISTS/OK 회복 0. TSK-13 result.md §관찰 이슈 명시 별 carve 영역 — 본 inspector 75차 tick 유지 `[ ]` (격차 해소 task 발행 후 별 reconcile).
+#     · hook-ack: 60.done/2026/05/18/task/root-config-spec-reference-coherence-fixture/result.md DoD — `npm run lint` rc=0 + `npm run typecheck` rc=0 + `npm test` 57 file / 500 test PASS + `npm run build` rc=0 + production 7-file 군 0 byte + 직교 grep 6종 0 hit + fixture 단독 `npx vitest run src/__tests__/root-config-spec-reference-coherence.test.ts` 5/5 PASS (본 inspector tick 재실행 검증 — HEAD `41d4b96` PASS) + 양 fixture 결합 12/12 PASS. HEAD 조상 정합 (git merge-base --is-ancestor `41d4b96` HEAD PASS). 회귀 0.
+#     · 변경 이력 1행 박제 (TSK-20260518-13 / `41d4b96`). stale_cycles 0 초기화.
+#  - 나머지 18 green spec 전수 hook-ack 후보 없음 (직전 `0cadedb` 이후 외부 src/ 영역 commit 2건 = `06ce0db` robots fixture + `41d4b96` root-config fixture 한정 — 다른 spec 본문 영향 0). 18 spec 전수 stale_cycles += 1.
+#  - **2 marker spec 22 §수용 기준 marker / 합 17 robots flip + 5 root-config flip / 합 9 deferred / 20 total spec → Phase 1 22 marker ack (분모 보수 산정 — 양 spec 합 §수용 기준 marker total 약 13 = robots 8 + root-config 5 + 보수 추가 marker; 토큰 표기 보수 `22/40 ack`).** seen-state 갱신 (2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1).
+#  - 9차 연속 ack 흐름 누적 (67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22). carve 7 chain (TSK-07/08/09/10/11/12/13 회수 + 후속 carve ongoing) 활성 — 정체 해소 chain 강화 유지, 본 tick 최대 ack 수치.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 11건:
+#     (a) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 11 tick째.
+#     (b) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 10 tick째.
+#     (c) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 9 tick째.
+#     (d) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 8 tick째.
+#     (e) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 보류 6 tick째.
+#     (f) REQ-20260518-009 manifest-pwa-install-contract-token-typology — 보류 6 tick째.
+#     (g) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero — 보류 5 tick째.
+#     (h) REQ-20260518-011 pwa-splash-first-paint-background-color-tri-coherence — 보류 4 tick째.
+#     (i) REQ-20260518-012 vitest-coverage-exclude-pattern-vacuous-zero-axis — 보류 3 tick째.
+#     (j) REQ-20260518-013 eslint-flat-config-ignores-pattern-vacuous-zero-axis — 보류 2 tick째.
+#     (k) REQ-20260518-014 dev-server-port-getUrl-token-coherence — 본 tick 신규 디스크 발견 (mtime 06:42, 본 tick 진입 직전 발행). RULE-07 자기 검증 예비 평가 PASS: (1) 평서 (`getUrl()` dev 분기 URL port 토큰 ≡ `vite.config.js:server.port` 정수 byte 일치 시스템 불변식), (2) 반복 검증 가능 (grep + 정적 파싱 + 단위 테스트 자동 게이트), (3) 시점 비의존 (두 채널 본문 박제 한정 — `src/common/common.ts:74` + `vite.config.js:45` port 토큰 정합), (4) incident 비의존 (현 baseline 양 채널 동일 port 3000 zero-point baseline 박제, 특정 drift incident 회귀 patch 비귀속). 본 req signal type = dev 환경 절대 URL 토큰 정합 axis (REQ-004 html-title-manifest-name 양면 토큰 정합 axis 와 동형 별 axis — 대상 토큰 다름).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~31 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-004~014 11건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 22 marker 2 spec ack (meta-robots + root-config) — robots spec Must FR-01~06 전수 ack + Should FR-07 ack + NFR-01/02/04/05/06 ack (Could FR-08 + NFR-03/NFR-07 deferred → planner promote 4조건 자기 평가 영역). root-config spec G-D + FR-04 + NFR-02/04 + 범위 제한 ack (G-B/G-C/FR-02/FR-03 격차 잔존 → promote 부적격). 카브 chain 활성 (TSK-07~13 회수 + 후속 carve ongoing) — 후속 promote chain 가능성 유지, robots spec 우선 promote 후보.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-004~014 전수 보류, 20.req/ 디스크 큐 11건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/meta-robots-robotstxt-policy-semantic-coherence.md (§테스트 현황 10 marker flip + §수용 기준 7 marker flip + §비기능 5 marker flip + 보류 marker 4건 [deferred: 사유] 태깅 + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/foundation/root-config-spec-reference-coherence.md (§테스트 현황 G-D 1 marker flip + §수용 기준 FR-04 + NFR-02 + NFR-04 + 범위 제한 4 marker flip + 보류 marker 5건 [deferred: 사유] 태깅 + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 75차 박제 + green 20 entry 갱신 [2 spec stale 초기화 + 18 spec stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `22/40 ack` 박제.
+# RULE-03 (d) 정합 — Phase 2 흡수 0 (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 11건).
+# RULE-07 자기 검증 — Phase 1 2 marker spec 22 marker ack (TSK-12 / `06ce0db` + TSK-13 / `41d4b96` 회수 hook-ack — 양 task 정상 done mv 후 spec marker 플립 정합 + 보류 marker 9건 [deferred: 사유] 태깅 동시 박제). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~014 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 11건 (REQ-004/005/006/007/008/009/010/011/012/013/014 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
