@@ -3107,3 +3107,65 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (13) no-op 연속 누적 리셋: 본 60차 carve 1 발행으로 누적 리셋 (59차 0회차 → 60차 발행으로 0 유지) → 61st 진입 시 0회차 (carve 발행 시 또는 hash 무변동 no-op 시 +1).
 #     (14) Monitor 도메인 (REQ-093 FR-03) carve 분기 명시: VisitorMon.jsx + ContentMon.jsx + ApiCallMon.jsx + WebVitalsMon.jsx 4 JSX 컴포넌트 — REQ-077 typecheck-island-extension §carve-precondition (P1) Monitor island typecheck 0 hit baseline 확정 후 분기. 별 도구 채널 동반 (jsdoc 또는 TS 마이그레이션) 필요 — 외부 surface 의존, 자가 차단 유지.
 #     (15) 환경 drift 정정 명시: TSK-26 developer 미커밋 working tree drift 2 M (src/Image/*.tsx + src/Image/*.test.tsx) 가 본 tick 측정 시점 `npm run lint` rc≠0 (warning 2건 — act + api unused) 노출. 단 HEAD baseline 자체는 stash 후 측정 rc=0 PASS — drift 는 developer writer 영역 영구 회수 commit 시 정상화 예상. planner 미접촉 (writer 경계).
+# 2026-05-17 planner session (61st tick @HEAD=`8a67845`) — no-op (carve 0 + promote 0 + 격리 0).
+#   재실행 baseline (HEAD=`8a67845` 실측):
+#     - HEAD chain: `8a67845` (planner 60차 self-commit — carve TSK-27 박제) ← `e19d870` (developer TSK-26 회수 — ImageSelector 도메인 fetch unmount-safety 박제) ← `40a89a6` (planner 59차 보완 박제). 60차 self-commit 후 inspector / developer 미진입 → 진입 차분 = 0 commit (self-only).
+#     - 16 green spec hash 매트릭스 (61st 진입 기준 — 60차 박제 hash 와 전수 비트동치 무변동, inspector 미진입):
+#       (1) common/accessibility.md `fa58c616` (W=0 U=1 T=0 H=9)
+#       (2) common/markdownParser.md `80e20a34` (W=0 U=1 T=0 H=7)
+#       (3) common/sanitizeHtml.md `f33c38cc` (W=0 U=4 T=0 H=9)
+#       (4) common/test-helpers.md `20f79e22` (W=0 U=3 T=0 H=24)
+#       (5) components/file.md `230f75b6` (W=0 U=5 T=0 H=14 — TSK-25 회수 chain hook-ack 미진입 유지, REQ-092 (I1)(I2)(FR-01)(FR-02)(FR-03) 5 marker 플립 surface 대기)
+#       (6) foundation/diagnostic-script-auto-channel-coverage.md `566a71c5` (W=0 U=4 T=0 H=29)
+#       (7) foundation/eslint-react-hooks-lint-gate.md `ca40a43e` (W=0 U=20 T=0 H=3)
+#       (8) foundation/island-proptypes-zero.md `e1502b5f` (W=0 U=2 T=0 H=26)
+#       (9) foundation/lint-warning-zero-gate.md `7c0db082` (W=0 U=2 T=0 H=31)
+#      (10) foundation/node-modules-extraneous-coherence.md `77af8bab` (W=0 U=3 T=0 H=16)
+#      (11) foundation/npm-script-prefix-coherence.md `2f83fff0` (W=0 U=2 T=0 H=24)
+#      (12) foundation/package-manager-major-coherence.md `53b0d39f` (W=0 U=5 T=0 H=25)
+#      (13) foundation/spec-carve-precondition.md `866b3808` (W=0 U=4 T=0 H=16)
+#      (14) foundation/tooling.md `b2c1299b` (W=0 U=3 T=0 H=51)
+#      (15) styles/css-modules.md `a0b75e71` (W=0 U=3 T=0 H=7)
+#      (16) testing/runtime-fetch-unmount-safety.md `36602a2a` (W=0 U=11 T=0 H=10 — TSK-26 회수 hook-ack 대기 + TSK-27 잔존, I1/FR-01 marker 플립 surface 가시화 대기)
+#     - 40.task/: 본 tick 진입 시 1건 (TSK-20260517-27 fileupload-fetch-unmount-safety 잔존). 본 tick 종료 시 1건 (변동 0). TASK_READY_MAX 10 → 9 여유.
+#     - 60.done/2026/05/17/task/: 22개 (60차 박제와 동일 — TSK-26 image-fetch-unmount-safety 진입 직후 60차 박제 측정값 정합). pipeline.json 미존재 → 임계치 default 적용.
+#     - 50.blocked/task/: 0건. 50.blocked/spec/foundation/: 0건. 50.blocked/req/: 0건.
+#     - 20.req/: 1건 (`20260517-root-entry-beacon-boot-contract.md` — 60차 박제와 동일 잔존, inspector chain 의존, planner 영역 밖 모니터만).
+#     - 10.followups/: 1건 (`20260517-2041-lint-staged-hook-cross-writer-stage.md` — 60차 박제와 동일 잔존, discovery chain 의존, planner 영역 밖 모니터만).
+#     - .inspector-seen / .planner-seen 외 writer 경계 위반 0. working tree clean (60차 self-commit 후 미진입).
+#     - 환경 회복 신호: HEAD `8a67845` baseline `npm run typecheck` rc=0 + `npm run lint` rc=0 PASS (23세션 누적 — 60차 22 → 61차 23). TSK-26 미커밋 drift 회수 완료 (developer commit `e19d870` 흡수) → 60차 박제 (15) 환경 drift 정상화 검증.
+#   본 세션 처리:
+#     - carve 0건: 16 green spec 전수 hash 무변동 + marker 플립 surface 가시화 0 + 신규 spec 진입 0 (inspector tick 미진입).
+#       (i) TSK-27 잔존 — 60차 박제 (2) 멱등 차단 (File 도메인 REQ-093 FR-02 재carve 금지) 유지.
+#       (ii) Image 도메인 (REQ-093 FR-01) — TSK-26 done 진입 (60.done/2026/05/17/task/image-fetch-unmount-safety/) → 멱등 차단 (재carve 금지).
+#       (iii) Monitor 도메인 (REQ-093 FR-03) — 60차 박제 (14) 자가 차단 유지 (REQ-077 typecheck-island-extension blue spec §역할 박제 "의도적으로 하지 않는 것: `src/Log/` · `src/Monitor/` 잔존 비-island typecheck error" — Monitor island typecheck 0 hit baseline 부재 + 별 `src-typescript-migration` 영역 + 외부 surface 의존).
+#       (iv) package-manager-major-coherence FR-02 / FR-03 — 60차 박제 (1)(c) 자가 차단 유지 (외부 의존 surface CI workflow + lockfile rewrite 확정 후 별 후속 task carve 의존).
+#       (v) tooling.md + lint-warning-zero-gate.md blue 승격 분기 — hash 무변동 (b2c1299b / 7c0db082) → eslint-react-hooks-lint-gate.md §carve-precondition (P2) 자가 차단 해제 chain 미진입 유지.
+#       (vi) island-proptypes-zero.md (I2)(I3) marker 외부 island 진입 의존 — RULE-07 §양성 정합 self-defer 유지 (hash e1502b5f 무변동).
+#       (vii) spec-carve-precondition marker 플립 — hash 무변동 (866b3808) → surface 0.
+#       (viii) 14 외 spec (accessibility, markdownParser, sanitizeHtml, test-helpers, diagnostic-script-auto-channel-coverage, node-modules-extraneous-coherence, npm-script-prefix-coherence, css-modules) — hash 무변동 + marker 플립 부재 surface 0.
+#     - 격리 0건: 16 green spec 전수 RULE-07 §양성 평서 정합 + hash 무변동 + 외부 의존 면제 분기 유지. 정체 카운트 누적 박제: common/accessibility.md 18회차 + common/markdownParser.md 18회차 + common/sanitizeHtml.md 18회차 + common/test-helpers.md 18회차 + foundation/diagnostic-script-auto-channel-coverage.md 18회차 + foundation/lint-warning-zero-gate.md 18회차 + foundation/node-modules-extraneous-coherence.md 18회차 + foundation/npm-script-prefix-coherence.md 18회차 + foundation/tooling.md 18회차 + styles/css-modules.md 18회차 (10 spec × 18회차) + spec-carve-precondition 15회차 + eslint-react-hooks-lint-gate 12회차 + island-proptypes-zero 10회차 + package-manager-major-coherence 6회차 + components/file.md 4회차 + runtime-fetch-unmount-safety.md 4회차. 외부 의존 면제 분기 유지 (60차 박제 (11) 명시 — 18회차 도달 시 동일 면제 분기 적용 — 외부 이벤트 미발생 + RULE-07 §양성 평서 정합 + 자기 writer 영역 분리 + 자가 차단 신호 충족 위반 회피 시 격리 비대상 유지).
+#     - 승격 0건: 16 green spec 전수 unchecked > 0 (60차 박제와 동일 분포 — file.md 5 / runtime-fetch-unmount-safety.md 11 / tooling.md 3 / lint-warning-zero-gate.md 2 / eslint-react-hooks-lint-gate.md 20 / island-proptypes-zero.md 2 / package-manager-major-coherence.md 5 / spec-carve-precondition.md 4 / npm-script-prefix-coherence.md 2 / node-modules-extraneous-coherence.md 3 / accessibility.md 1 / markdownParser.md 1 / sanitizeHtml.md 4 / test-helpers.md 3 / diagnostic-script-auto-channel-coverage.md 4 / css-modules.md 3) → RULE-01 승격 4조건 (`W=0 + U=0 + T=0 + H≥1`) 미충족 (U=0 위반 16건 전수).
+#     - no-op 누적: 60차 carve 1 → 61차 hash 무변동 no-op → 1회차 누적.
+#   다음 세션 (62nd tick) 행동지침:
+#     (1) 승격 판정 멱등 게이트: 62nd tick 진입 시 어느 green spec 이 hash 변경 + unchecked=0 도달 시 mv green→blue 즉시 분기. 잠재 후보 (60차 박제 (1)과 동일):
+#       (a) components/file.md (I1)(I2)(FR-01)(FR-02)(FR-03) 5 marker 플립 — TSK-25 회수 + TSK-27 회수 후 inspector hook-ack chain 의존.
+#       (b) runtime-fetch-unmount-safety.md (I1)(FR-01) 2 marker 플립 — TSK-26 회수 commit `e19d870` HEAD 박제 안정 surface 진입 → inspector 다음 tick hook-ack 후보 (마커 surface 활성). (I2)(FR-02) 2 marker 플립 — TSK-27 회수 후 hook-ack chain 의존. (I3)(I4)(FR-03)(FR-05) marker 는 Monitor 도메인 후속 task carve 의존 (자가 차단 유지). (I6)(I7) marker 는 도메인 전수 회복 + audit 충족 후.
+#       (c) package-manager-major-coherence FR-02 / FR-03 marker 플립 — 외부 의존 surface 확정 후 별 후속 task carve 의존 (자가 차단 유지).
+#       (d) tooling.md + lint-warning-zero-gate.md blue 승격 → eslint-react-hooks-lint-gate.md §carve-precondition (P2) 자가 차단 해제 chain (hash 변동 surface 의존).
+#       (e) island-proptypes-zero.md (I2)(I3) marker 외부 island 진입 의존 — RULE-07 §양성 정합 self-defer 유지.
+#     (2) carve 재발행 금지 (멱등): TSK-26 회수 완료 (e19d870 HEAD 박제 — 60.done/2026/05/17/task/image-fetch-unmount-safety/ 이탈 완료) → Image 도메인 (REQ-093 FR-01) 재carve 영구 금지. TSK-27 회수 완료까지 File 도메인 (REQ-093 FR-02) 재carve 금지. Monitor 도메인 (FR-03) carve 는 REQ-077 typecheck-island-extension Monitor island typecheck 0 hit baseline 확정 후 분기. package-manager-major-coherence FR-02/FR-03 별 후속 task carve 는 외부 의존 surface 확정 후 분기.
+#     (3) 40.task/ 백프레셔: 본 61st 종료 시 1건 (TSK-27 잔존). 임계치 10건 → 9건 여유. TSK-27 회수 시 0건 도달 → 다음 carve 분기 자유도 확장.
+#     (4) 정체 카운트 (격리 분기 명시화): 본 61st 진입 시 16 green spec 누적 — 10 spec × 18회차 + 6 spec × (15/12/10/6/4/4)회차. 외부 의존 면제 분기 유지 (60차 박제 (11) 와 동일 룰 적용). 62nd tick 진입 시 hash 무변동 유지 시 (10 spec × 19회차 + 6 spec × +1) 누적 — 외부 의존 면제 분기 유지.
+#     (5) 환경 회복 분기: 23세션 누적 → 24세션 진입 분기 (62nd tick 진입 시 측정). 본 61st 측정 baseline 무변동 PASS.
+#     (6) 신규 REQ 흡수 분기 (Phase 2): 20.req/ 1건 잔존 (`20260517-root-entry-beacon-boot-contract.md` — discovery 영역 inspector 미흡수, planner 영역 밖 모니터만) + 10.followups/ 1건 잔존 (`20260517-2041-lint-staged-hook-cross-writer-stage.md` — developer 영역 discovery chain 의존, planner 영역 밖 모니터만). 신규 followup / req 진입 surface 의존.
+#     (7) Task ID footprint: 본 tick 채번 0건. 62nd tick 신규 carve 시 -28+ 채번 (영구 박제 -01~-03, -05~-27 재사용 금지 + -04 미발행 유지).
+#     (8) HEAD 격차 분석: 62nd tick 진입 시점 baseline 격차 — (a) green spec hash 변경 (inspector marker flip commit 또는 신규 REQ 흡수 신규 spec), (b) 40.task/ 진입/이탈 (TSK-27 developer 회수 시 60.done/task/ 진입), (c) 60.done/2026/05/17/task/ 신규 (22 → 23), (d) 50.blocked/task/ 진입, (e) 20.req/ 변동, (f) 10.followups/ 변동, (g) 50.blocked/spec/ 변동, (h) 환경 회복 신호.
+#     (9) inspector hook-ack 누적 분기: 본 61st 진입 시 inspector commit `f380dea` 안정 surface 확정 유지 (60차 박제와 동일). 추가 hook-ack 후보: (a) TSK-25 회수 commit `7b15126` hook-ack — components/file.md FR-01/FR-02/FR-03 marker 플립 + I1/I2 marker 플립, (b) TSK-26 회수 commit `e19d870` hook-ack — runtime-fetch-unmount-safety.md I1/FR-01 marker 플립 + §스코프 규칙 G2 baseline hit 갱신, (c) TSK-27 회수 commit hook-ack (예정) — runtime-fetch-unmount-safety.md I2/FR-02 marker 플립 + §스코프 규칙 G2 baseline hit 갱신, (d) island-proptypes-zero I2 + I3 marker 외부 island 진입 hook-ack, (e) spec-carve-precondition marker 플립, (f) tooling+lint-warning-zero-gate marker 플립. 60차 박제 (a)(b) 둘 다 inspector 미진입 → 누적 hook-ack 대기 surface = (a) + (b) 두 commit 분 = file.md + runtime-fetch-unmount-safety.md 두 spec.
+#     (10) grep dry-run 본 61st 종료: carve 0건 → `grep dry-run: N/A (no-op)`.
+#     (11) 격리 분기 누적 박제 (18회차 → 19회차 진입 시): 본 61차 박제 정체 카운트 18회차 도달 10 spec → 외부 의존 면제 분기 유지. 62nd tick 진입 시 19회차 도달 시 동일 면제 분기 적용 — 외부 이벤트 미발생 + RULE-07 §양성 평서 정합 + 자기 writer 영역 분리 + 자가 차단 신호 충족 위반 회피 시 격리 비대상 유지.
+#     (12) 본 tick promote/carve/격리 분기 명시화: 61차 = promote 0 (16 green spec 전수 unchecked > 0) + carve 0 (16 green spec hash 전수 무변동 + marker 플립 surface 가시화 0 + 신규 spec 진입 0 + 멱등 차단 / 자가 차단 분기 유지) + 격리 0 (RULE-07 §양성 평서 정합 16 spec 전수 유지).
+#     (13) no-op 연속 누적: 60차 carve 1 → 61차 hash 무변동 no-op → 1회차 누적. 62nd 진입 시 hash 무변동 + carve 0 + promote 0 + 격리 0 유지 시 → 2회차 누적. no-op 누적 자체는 격리 분기 사유 미해당 (RULE-07 §양성 평서 정합 유지 시 정체 면제 분기 적용).
+#     (14) Monitor 도메인 (REQ-093 FR-03) carve 분기 명시: VisitorMon.jsx + ContentMon.jsx + ApiCallMon.jsx + WebVitalsMon.jsx 4 JSX 컴포넌트 — REQ-077 typecheck-island-extension blue spec §역할 박제 ("의도적으로 하지 않는 것: `src/Log/` · `src/Monitor/` 잔존 비-island typecheck error — 별 `src-typescript-migration` 영역") 자가 차단 유지. Monitor island typecheck 0 hit baseline 확정 spec 부재 + 별 도구 채널 동반 (jsdoc 또는 TS 마이그레이션) 필요 — 외부 surface 의존, 자가 차단 영구 유지 (해소 경로 = 별 REQ 흡수 → 별 spec 박제 → 별 task carve).
+#     (15) 환경 drift 회수 검증: TSK-26 developer 미커밋 drift (60차 박제 (15) — `src/Image/*.tsx` + `src/Image/*.test.tsx` 2 M unstaged) 가 60차 종료 commit `e19d870` (developer TSK-26 회수) 로 회수 완료 → 본 61st tick 측정 시점 `npm run lint` rc=0 PASS (warning 0 hit) 검증. 60차 박제 (15) 의 "drift 는 developer writer 영역 영구 회수 commit 시 정상화 예상" 분기 충족.
+#     (16) TSK-27 잔존 분기: TSK-27 (fileupload-fetch-unmount-safety) 가 본 61st 진입 시 40.task/ 잔존 — developer 영역 회수 의존. TSK-27 회수 commit 진입 시 다음 inspector tick 에 file.md FR-02 marker + runtime-fetch-unmount-safety.md I2/FR-02 marker hook-ack 후보 surface 활성. planner 미접촉 (writer 경계).
