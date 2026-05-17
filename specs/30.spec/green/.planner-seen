@@ -5278,3 +5278,58 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (4) inspector 71차+ ack marker flip 시 hash 변경 spec 우선 (typically REQ-002 / REQ-003 / REQ-099 / REQ-098/100 / REQ-20260518-001 영역) — promote 4조건 회귀 검출. mount-id (TSK-07) + meta-description (TSK-08) + public-asset-reference (TSK-09) developer 회수 + inspector hook-ack 후 promote 3건 동시 발화 분기 가능.
 #     (5) spec 본문 "67 byte" ↔ 실측 "63 byte" 불일치 (meta-description spec) 정정 신호 잔존 (94차 (5) 박제) — inspector writer 영역, planner 미접촉 유지.
 #     (6) TSK-09 fixture 본문 grep 게이트 (TSK-07 mount-id / TSK-08 meta-description 토큰 0 hit 단언) 의 RULE-06 expansion 불허 패턴 — developer 회수 시 fixture 본문 token leak 자가 차단 동작 검증.
+# 2026-05-18 planner session (96th tick @HEAD=41e26e0) — 환경 회복 4차 노출 지속 (93차/94차/95차 직후) + carve 1건 발화 (TSK-20260518-10 csp-meta-build-artifact-preservation-fixture, REQ-098).
+#   환경 baseline 재측정 (96차):
+#     - tsc --noEmit (npm run typecheck): rc=**0** (93/94/95차 회복 유지 — 4차 연속).
+#     - npm run lint: rc=**0** (93/94/95차 회복 유지 — 4차 연속).
+#   95차 행동지침 (2)(3) 충족 — "REQ-098 csp / REQ-100 manifest / REQ-20260518-001 meta-robots 동형 fixture carve 가능 surface 잔존 + 환경 회복 지속 시 추가 carve + 1세션 1carve 멱등". 본 tick = 환경 회복 4차 관측 + carve 1건 발화 (REQ-098 동형 fixture surface, csp G-A build artifact 측정 한정).
+#   20 green spec hash 측정 (95차 baseline 대비 변동 1건):
+#     common/markdownParser.md = 80e20a34 (동일)
+#     common/sanitizeHtml.md = f33c38cc (동일)
+#     common/test-helpers.md = 20f79e22 (동일)
+#     foundation/csp-meta-dev-strip-prod-preserve.md = 9ed14793 (REQ-098 22회차 진입, hash 17 tick 연속 회귀) ← **본 96차 carve 대상**
+#     foundation/diagnostic-script-auto-channel-coverage.md = da4a54ef (동일)
+#     foundation/eslint-react-hooks-lint-gate.md = ca40a43e (동일)
+#     foundation/index-html-public-asset-reference-coherence.md = d322b5a3 (REQ-099 20회차 진입, TSK-09 carve 완료 developer 회수 대기)
+#     foundation/index-html-root-mount-id-token-coherence.md = 085e9f67 ← **95차 → 96차 변동** (inspector 72차 reconcile hook-ack via b339bd1, TSK-07 회수 + FR-01~06 marker flip), REQ-002 7회차 진입, unchecked=16 잔존 (markers 갱신 후에도 미해소 — §테스트 현황 / §수용 기준 잔여 marker 영역)
+#     foundation/island-proptypes-zero.md = e1502b5f (동일)
+#     foundation/lint-warning-zero-gate.md = 7c0db082 (동일)
+#     foundation/manifest-icons-sizes-token-disk-coherence.md = 3e92ef7a (REQ-100 19회차 진입, 정체 18회차)
+#     foundation/meta-description-default-fallback-token-coherence.md = 3397c3b6 (REQ-003 7회차 진입, TSK-08 carve 완료 developer 회수 대기)
+#     foundation/meta-robots-robotstxt-policy-semantic-coherence.md = 332b7b9d (REQ-20260518-001 17회차 진입, 정체 16회차)
+#     foundation/node-modules-extraneous-coherence.md = 77af8bab (동일)
+#     foundation/npm-script-prefix-coherence.md = 2f83fff0 (동일)
+#     foundation/root-config-spec-reference-coherence.md = 68a1c22c (동일)
+#     foundation/spec-carve-precondition.md = 866b3808 (동일)
+#     foundation/tooling.md = 0ae9247d (동일)
+#     styles/css-modules.md = a0b75e71 (동일)
+#     testing/runtime-fetch-unmount-safety.md = d0e938d0 (동일)
+#   4조건 promote 측정 (96차): [WIP]=0 전수 PASS / unchecked ≥1 전수 FAIL / To-Be=0 전수 PASS / 변경 이력 신호 부재 → **promote 0건** (95차 동일). REQ-002 mount-id (085e9f67) 의 inspector 72차 hook-ack 후 unchecked=16 잔존 — 95차 28 → 96차 16 = 12 marker flip 진행, 추가 hook-ack 필요. TSK-07/08/09 모두 developer 회수 대기 — §변경 이력 박제 신호 미발화.
+#   carve 발화:
+#     - TSK-20260518-10-csp-meta-build-artifact-preservation-fixture (REQ-20260517-098, source spec=foundation/csp-meta-dev-strip-prod-preserve.md)
+#       - depends_on: [] / supersedes: (없음 — 신규 carve)
+#       - grep dry-run: 20/20 match
+#         - G-A build/index.html `Content-Security-Policy` count = 1 (예측 1) ✓
+#         - G-A 보조 index.html `Content-Security-Policy` count = 1 (예측 1) ✓
+#         - vite.config.test.js `Content-Security-Policy` count = 7 (예측 7, scope 외) ✓
+#         - spec md `Content-Security-Policy` count = 18 (예측 18, scope 외) ✓
+#         - fixture file find 0 hit ✓
+#         - directive substring 9종 (default-src/script-src/connect-src(execute-api)/img-src(d0.awsstatic)/style-src 'self' 'unsafe-inline'/object-src/base-uri/frame-ancestors/form-action) 각 1 hit ✓ (9/9)
+#         - 직교 토큰 (TSK-07 mount-id / TSK-08 meta-description / TSK-09 public-asset-reference) 본 신규 fixture 내 각 0 hit (파일 부재) ✓ (3/3)
+#       - RULE-06 §스코프 규칙 expansion=불허 + grep-baseline HEAD `41e26e0` 실측 박제
+#       - 단일 G-A 게이트 fixture 신규 + production 0 byte 변경 한정 — 1 PR 안전 (TSK-07/08/09 동형 패턴 4차 적용)
+#       - §spec G-B/G-C/G-D 의 unit fixture 6 it 은 vite.config.test.js:7-95 에 기존 박제 — 본 task 범위 밖
+#       - §spec 발화 채널 신설 (pre-push / CI / `package.json` `check:csp-artifact` script) 은 별 axis carve 후보 (수단 위임)
+#       - 직교 토큰 검증 (TSK-07/08/09) — 본 task 신규 fixture 내부 각 0 hit 단언 박제 (RULE-06 expansion 불허 강제)
+#   본 세션 carve 1건 / promote 0건 / blocked 0건 / no-op false.
+#   diff-hash 회귀 측정: 본 carve 대상 csp-meta-dev-strip-prod-preserve.md hash 9ed14793 는 80차 이래 17 tick 연속 동일 (REQ-098 22회차 진입). 4조건 unchecked=11 미해소는 spec 본문 §테스트 현황 7 / §수용 기준 4 영역 한정 — fixture 박제 후 §변경 이력 박제 + unchecked 0 으로 promote 신호 발생 가능 (developer 회수 + inspector hook-ack 후).
+#   **Task ID footprint** (96차 진입 시점 grep 검증 경로 전수 측정): `specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/` `TSK-20260518-10` 0 hit (미발화 → 본 tick 채번 안전). 채번 후 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~10` 박제 (재사용 영구 금지). 97차+ 신규 carve 시 `TSK-20260518-11` 부터.
+#   **96차 진입 시점 큐 측정**: 60.done/2026/05/17/task/ = 27 디렉터리 (변동 0). 60.done/2026/05/18/task/ = 4 디렉터리 (변동 0 — TSK-08/09 developer 회수 미진입). 40.task/ = 1건 (TSK-09 잔존, 본 tick 채번 후 = 2건). 50.blocked/task/ = 3건 잔존 (monitor-focus-visible-css-audit-fixture + visitormon-fetch-unmount-safety + TSK-20260518-03 reason — 변동 0). 50.blocked/spec/foundation/ = 0건 (영구 비움 유지). 20.req/ = 8건 (인지 측정, planner 영역 외 — 95차 동일). 10.followups/ = 0건 (planner 영역 외).
+#   **TASK_READY_MAX 정합**: 96차 종료 시 40.task/ = 2건. 임계치 10건 → 8건 여유 (95차 동일). 97차+ tick 추가 carve 안전 영역 잔존.
+#   다음 세션 행동지침:
+#     (1) developer 가 TSK-20260518-08 (meta-description) + TSK-20260518-09 (public-asset-reference) + TSK-20260518-10 (csp-meta-build-artifact-preservation) 회수 시 fixture 단일 파일 신규 + `npm run lint` + `npm test` + `npm run build` + `npm run typecheck` rc=0 검증 후 60.done/ 진입. inspector 73차+ reconcile 시 §spec 4조건 unchecked 갱신 후 다음 planner tick promote 후보 (mount-id + meta-description + public-asset-reference + csp 동시 또는 순차).
+#     (2) 나머지 16 green spec (hash 17 tick 연속 회귀) 은 unchecked 잔존 한정 영역 분석 — REQ-100 (manifest-icons-sizes-token-disk-coherence U=24) · REQ-20260518-001 (meta-robots-robotstxt U=26) 등 외부 의존 axis 별도 carve 후보. 동형 fixture carve 패턴 (mount-id/meta-description/public-asset-reference/csp 의 G-A 결정론 측정 fixture) 적용 가능 surface 잔존.
+#     (3) 본 tick 의 환경 회복 4차 관측 — 다음 tick (97차) 진입 시 환경 baseline 재측정 + 회복 5차 지속 시 추가 carve 진행 가능 (1세션 1carve 멱등 안전성 유지 + TASK_READY_MAX 잔여 8건).
+#     (4) inspector 73차+ ack marker flip 시 hash 변경 spec 우선 (typically REQ-002 / REQ-003 / REQ-098 / REQ-099 / REQ-100 / REQ-20260518-001 영역) — promote 4조건 회귀 검출. mount-id (TSK-07) + meta-description (TSK-08) + public-asset-reference (TSK-09) + csp (TSK-10) developer 회수 + inspector hook-ack 후 promote 4건 동시 발화 분기 가능.
+#     (5) spec 본문 §carve-precondition 절 부재 (csp / 기타 carve-active spec 다수) — `spec-carve-precondition.md` (REQ-085) §테스트 현황 (I2) 의 "carve-active spec 5 파일 §carve-precondition 절 박제는 차기 inspector tick / 별 followup 후 marker 플립" 명시 — inspector writer 영역, planner 미접촉 유지.
+#     (6) §spec 본문 line 19 "directive 8 항목" ↔ 실제 9 directive (default-src / script-src / connect-src / img-src / style-src / object-src / base-uri / frame-ancestors / form-action) 불일치 신호 잔존 — inspector writer 영역, planner 미접촉 유지.
