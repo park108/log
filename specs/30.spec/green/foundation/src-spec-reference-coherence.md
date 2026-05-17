@@ -30,16 +30,16 @@
 - 역의존 (사용처): RULE-01 PIPELINE 파일명 규약, RULE-07 SPEC CONTENT 양성 기준. CI lint step 또는 pre-commit 훅 또는 `npm run lint` 부속 스텝 (수단은 task 위임).
 
 ## 테스트 현황
-- [ ] (G1) `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit 게이트 — 현재 11 hit (위반).
-- [ ] (G2) src 추출 spec 참조 경로 전원 `test -e` 통과 — 현재 7 경로 / 7 MISSING (위반).
-- [ ] (G3) CI / pre-commit 훅 / `npm run lint` 부속 스텝 박제 — 회귀 방지 자동 게이트.
+- [x] (G1) `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit 게이트 — TSK-20260517-05 회수 (11 hit → 0 hit, HEAD=`7154b8e` 실측 0 hit).
+- [x] (G2) src 추출 spec 참조 경로 전원 `test -e` 통과 — TSK-20260517-05 회수 (7 MISSING → 0, 참조 자체 삭제로 추출 paths 비어짐, HEAD=`7154b8e` 실측 0 path).
+- [ ] (G3) CI / pre-commit 훅 / `npm run lint` 부속 스텝 박제 — 회귀 방지 자동 게이트 (TSK-20260517-06 발행, 미시행 — 40.task 큐 잔존).
 
 ## 수용 기준
-- [ ] (Must) `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit. baseline 11 hit / 8 file.
-- [ ] (Must) src 내 `specs/30\.spec/(blue|green)/.*\.md` 패턴 매칭 경로 N 개 추출 후 각 경로에 `test -e` → 전원 통과. baseline 7 경로 / 7 MISSING.
-- [ ] (Must) 본 두 게이트는 spec 박제·삭제·이동·rename·green→blue promote 등 이벤트 후 1 PR 안에 0 hit / 0 MISSING 유지.
-- [ ] (Should) 본 게이트는 CI lint step 또는 pre-commit 훅 또는 `npm run lint` 부속 스텝으로 자동 실행 — PR 단계 회귀 검출. 수단 (custom ESLint rule / npm script / husky hook) 선정은 task 위임.
-- [ ] (Must, 범위 제한) `docs/**`, `README.md`, `eslint.config.js`, `vite.config.ts`, `vitest.config.ts`, `package.json` 등 src 외부 spec 참조는 본 게이트 위반으로 카운트되지 않음 (필요 시 별도 spec).
+- [x] (Must) `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit. baseline 11 hit / 8 file → TSK-20260517-05 회수 후 0 hit (HEAD=`7154b8e` 실측, inspector Phase 1 ack).
+- [x] (Must) src 내 `specs/30\.spec/(blue|green)/.*\.md` 패턴 매칭 경로 N 개 추출 후 각 경로에 `test -e` → 전원 통과. baseline 7 경로 / 7 MISSING → TSK-20260517-05 회수 후 0 path / 0 MISSING (HEAD=`7154b8e` 실측, inspector Phase 1 ack).
+- [ ] (Must) 본 두 게이트는 spec 박제·삭제·이동·rename·green→blue promote 등 이벤트 후 1 PR 안에 0 hit / 0 MISSING 유지 — 단일 사례 (TSK-20260517-05) 박제, 차기 이벤트 후 재검증으로 marker 플립 누적.
+- [ ] (Should) 본 게이트는 CI lint step 또는 pre-commit 훅 또는 `npm run lint` 부속 스텝으로 자동 실행 — PR 단계 회귀 검출. 수단 (custom ESLint rule / npm script / husky hook) 선정은 task 위임 (TSK-20260517-06 발행, 미시행).
+- [x] (Must, 범위 제한) `docs/**`, `README.md`, `eslint.config.js`, `vite.config.ts`, `vitest.config.ts`, `package.json` 등 src 외부 spec 참조는 본 게이트 위반으로 카운트되지 않음 (필요 시 별도 spec) — 정의상 항상 참, marker 플립.
 
 ## 스코프 규칙
 - **expansion**: N/A (본 spec 은 시스템 횡단 게이트 박제 — task 발행 시점에 planner 가 스코프 규칙 재계산).
@@ -65,3 +65,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-071 흡수) / `a4037ec` | 최초 박제 — `src/**` ↔ `specs/30.spec/**` 참조 경로 정합 두 축 게이트 (RULE-01 suffix 금지 + 디스크 실재). baseline 11 hit / 7 path / 7 MISSING. | all |
+| 2026-05-17 | inspector (Phase 1 ack, TSK-20260517-05 회수) / `7154b8e` | G1 11 hit → 0 hit / G2 7 MISSING → 0 MISSING 실측 PASS. 테스트현황 G1·G2 + 수용기준 Must G1·Must G2·Must 범위제한 marker 플립. Should CI 게이트 (G3) 는 TSK-20260517-06 미시행으로 `[ ]` 유지. | 테스트 현황, 수용 기준 |

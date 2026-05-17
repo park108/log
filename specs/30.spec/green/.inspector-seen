@@ -1,46 +1,57 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ a4037ec → THIS — reconcile 0/0 ack (분모 0 — 직전 누적 격리 6 spec 외부 이탈 + 본 tick 신규 박제 1 spec 은 baseline cycle 0).
+# 2026-05-17 @ 7154b8e → THIS — reconcile 1/1 ack (1 spec PASS, marker flip 적용).
 #
 # 본 세션 디스크 실측 (tick 시작 시점):
-#  - specs/30.spec/green/foundation/ : 빈 디렉터리 (파일 0).
-#  - specs/30.spec/green/components/ : 디렉터리 부재.
+#  - specs/30.spec/green/foundation/src-spec-reference-coherence.md (직전 tick 박제, baseline cycle 0 → 본 tick 1).
 #  - specs/30.spec/green/ 직계: marker 파일 2개 (.planner-seen, .inspector-seen) 만 잔존.
-#  - working tree clean (HEAD = a4037ec).
-#  - specs/20.req/ : 1건 (20260517-src-spec-reference-path-coherence.md → REQ-20260517-071).
-#  - specs/40.task/ : 0건.
-#  - specs/50.blocked/spec/foundation/ : 6 spec + 6 reason (vite-jsx + test-discovery + eslint-linter + log + monitor + root-entry — 직전 누적 동일).
-#  - specs/50.blocked/req/ : 디렉터리 부재.
+#  - working tree: src/Monitor/Monitor.css + src/Search/Search.test.tsx 미커밋 변경 (developer 영역 — RULE-02 자기영역 밖, unstage 의무만 적용. staged 없음으로 unstage 불요, modified 잔존은 destructive 회피).
+#  - HEAD = 7154b8e.
+#  - specs/20.req/ : 2건 (REQ-20260517-072 vite-env-boundary-typing + REQ-20260517-073 node-modules-extraneous-coherence).
+#  - specs/40.task/ : 1건 (TSK-20260517-06-src-spec-reference-coherence-ci-gate.md — planner 발행, developer 미시행).
+#  - specs/50.blocked/spec/foundation/ : 6 spec + 6 reason (직전 누적 동일 — vite-jsx + test-discovery + eslint-linter + log + monitor + root-entry).
+#  - specs/50.blocked/req/ : 디스크 부재.
 #  - .claude/locks/ : 부재 (pause 0).
 #
-# Phase 1 추적 분모 재계산:
-#  - 직전 tick (949c03c) 박제 3 spec 외부 이탈 후 본 tick 시작 시점 green spec disk 실측 0건 — 분모 0 유지.
-#  - 본 tick 신규 박제 1 spec (foundation/src-spec-reference-coherence.md) 은 baseline cycle 0 — Phase 1 ack 대상 아님 (차기 tick 부터 추적).
+# Phase 1 추적 (분모 1):
+#  - foundation/src-spec-reference-coherence.md (cycle 1):
+#    * G1 grep gate: 실측 0 hit (HEAD=7154b8e, `grep -rnE 'specs/30\.spec/[^"`\ ]*-spec\.md' src` → exit 1 / 0 lines). baseline 11 hit (a4037ec) 대비 11/11 회수.
+#    * G2 disk exist gate: 실측 0 path 추출 (참조 자체 삭제로 추출 unique paths 비어짐) / 0 MISSING. baseline 7 MISSING (a4037ec) 대비 7/7 회수.
+#    * hook-ack 보조 검증: TSK-20260517-05 result.md 명시 — task 가 메타 주석 11 행 단위 삭제 (런타임/렌더/타입/번들 영향 0). lint/test/build 환경 회귀 (사전 존재) 로 hook-ack 미수행. 객관 grep 게이트 2축 PASS + 변경 성격 명확 → marker 플립 정당.
+#    * 플립 대상: 테스트 현황 G1·G2 + 수용 기준 Must G1·Must G2·Must 범위제한 (5 항목).
+#    * 유보: G3 (CI 게이트 박제) — TSK-20260517-06 미시행으로 `[ ]` 유지. Must (1 PR 동시 충족) — 단일 사례 박제로 marker 유보, 차기 이벤트 시 재검증.
+#  - ack 발생 → stale_cycles 0 으로 리셋 (marker 플립 완료).
 #
-# 분모 0 / ack 0. RULE-04 토큰: `reconcile: 0/0 ack`.
+# Phase 2: 입력 큐 2건 흡수.
+#  - REQ-20260517-072 vite-env-boundary-typing → foundation/vite-env-boundary-typing.md 신규 박제.
+#    * RULE-07 양성: 시점 비의존, `as string` 8 hit / 키 enumerate / tsc 정적안전성 4축 grep + tsc 측정 게이트, 시스템 진입점 계약. PASS.
+#    * baseline: 16 hit / 8 cast / 10 unique key / S_type=∅ (HEAD=7154b8e 실측).
+#    * 배치: foundation/ (env 진입점 횡단 게이트, components/common.md 와 동축 확장).
+#  - REQ-20260517-073 node-modules-extraneous-coherence → foundation/node-modules-extraneous-coherence.md 신규 박제.
+#    * RULE-07 양성: 시점 비의존, `npm ls --depth=0` 측정 게이트, "선언 = 설치" 등식 횡단 정합. PASS.
+#    * baseline: 837 extraneous / N=29 / M=866 (req §배경 인용 — 본 세션 환경 회귀로 `npm ls` 재실행 불가, 동일 HEAD 영역 측정 정합).
+#    * 배치: foundation/ (regression-gate / dependency-bump-gate 와 직교, "선언 = 설치 등식" 보완 영역).
+#  - req mv: specs/20.req/20260517-{vite-env,node-modules}-*.md → specs/60.done/2026/05/17/req/.
 #
-# Phase 2: 입력 큐 1건 (REQ-20260517-071) 흡수.
-#  - RULE-07 자기검증 양성: "시점 비의존", "src 가 spec 을 가리킬 때 항상 정합" 상시 시스템 계약, 측정 가능한 grep / `test -e` 게이트 2개 (FR-01/FR-02), §FR/§수용 기준 본문 hit 수 비의존 (NFR-03 명시).
-#  - 박제 위치: foundation/ (tooling/regression-gate 와 동축의 시스템 횡단 게이트).
-#  - 신규 spec: specs/30.spec/green/foundation/src-spec-reference-coherence.md (RULE-01 `-spec` suffix 금지 정합 — `-spec` suffix 없는 slug).
-#  - baseline 박제: HEAD=a4037ec 실측 (req §배경과 동일) — 11 hit / 8 file / 7 path / 7 MISSING.
-#  - req mv: specs/20.req/20260517-src-spec-reference-path-coherence.md → specs/60.done/2026/05/17/req/.
-#
-# 40.task/ 디스크 실측: 0건. 격리된 6 spec 모두 task 발행 precondition 미해소 (RULE-05 /revisit 정식 경로 의존).
-# 본 신규 spec 1건은 task 발행 precondition 충족 — planner 차기 tick 흡수 후보. baseline 측정값 (11 hit / 7 MISSING) 박제 정합 → task 발행 시 grep-baseline 재계산 정합.
-#
-# GREEN_PENDING_MAX=20 — 본 tick 후 green spec disk 실측 1건 << 20 임계치 미달.
+# GREEN_PENDING_MAX=20 (override 부재) — 본 tick 후 green spec disk 실측 3건 << 20 임계치 미달.
 #
 # 본 세션 commit diff:
-#  - specs/30.spec/green/foundation/src-spec-reference-coherence.md (신규)
+#  - specs/30.spec/green/foundation/src-spec-reference-coherence.md (marker 플립 + 변경 이력 1행 박제)
+#  - specs/30.spec/green/foundation/vite-env-boundary-typing.md (신규)
+#  - specs/30.spec/green/foundation/node-modules-extraneous-coherence.md (신규)
 #  - specs/30.spec/green/.inspector-seen (갱신)
-#  - specs/20.req/20260517-src-spec-reference-path-coherence.md → specs/60.done/2026/05/17/req/ (mv)
+#  - specs/20.req/20260517-vite-env-boundary-typing.md → specs/60.done/2026/05/17/req/ (mv)
+#  - specs/20.req/20260517-node-modules-extraneous-coherence.md → specs/60.done/2026/05/17/req/ (mv)
 # RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 복원 시도 0 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 회피 정합 — modified 잔존, unstage·git checkout -- 둘다 미수행 (staged 없음으로 unstage 불요).
 #
 # 입력 큐 잔여: 0건. 차기 inspector tick 우선순위:
-#  (1) 신규 박제 src-spec-reference-coherence.md baseline cycle 1 ack 추적 시작 (planner 가 본 spec 흡수 후 task 발행 → developer 가 11 hit 회수 시 reconcile 대상).
-#  (2) 격리 6 spec _reason.md 의 RULE-05 /revisit → followups 승격 시 신규 req 흡수.
-#  (3) ID 충돌 REQ-068 dup 모니터링 (discovery 책임 잔존).
+#  (1) foundation/vite-env-boundary-typing.md (cycle 0 → 차기 1) — TSK 발행 후 developer 회수 시 G1·G2·G3 ack 추적.
+#  (2) foundation/node-modules-extraneous-coherence.md (cycle 0 → 차기 1) — TSK 발행 후 회수 시 G1·G2 ack 추적.
+#  (3) foundation/src-spec-reference-coherence.md G3 (CI 게이트) — TSK-20260517-06 시행 후 Should marker 플립.
+#  (4) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
 #
 # == seen-state ==
-specs/30.spec/green/foundation/src-spec-reference-coherence.md	baseline-a4037ec	0
+specs/30.spec/green/foundation/src-spec-reference-coherence.md	ack-7154b8e	0
+specs/30.spec/green/foundation/vite-env-boundary-typing.md	baseline-7154b8e	0
+specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	baseline-7154b8e	0
