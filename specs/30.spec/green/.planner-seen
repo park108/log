@@ -4139,3 +4139,68 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #    (19) **REQ-20260518-001 정체 1회차 누적 분기 박제**: 76차 1차 노출 → 77차 2회차 진입 hash 변동 (`332b7b9d` → `ae2929c2`) but 4조건 측정 동일 (W=0 U=26 T=0 H=1). hash 변동은 inspector hook-ack 본문 보강 drift (예: §역할 명료화 / 마커 라벨 보강 / 결정성 noise 토큰 갱신 / 변경 이력 hash 박제 갱신 등) — unchecked 마커 플립 0건. §역할 line 10 OOS 평서 (carve scope 외 양 axis 명시) + G-E 양면 의미 동치 baseline PASS 박제 + 결과 효능 11 마커 전수 baseline 만족 surface 유지 → 외부 의존 면제 분기 적용. 78th tick hash 동일 유지 + 정체 카운트 2회차 누적 시 동일 면제 분기 유지 (REQ-097/098/099/100 동일 패턴 적용).
 #    (20) **REQ-100 정체 3회차 누적 분기 박제**: 75차 2회차 → 76차 3회차 → 77차 4회차 진입 hash 무변동 (`3e92ef7a` → 77차 `340eb684` 변동 surface — inspector hook-ack 본문 보강 drift but 4조건 동일 W=0 U=24 T=0 H=1 → unchecked 마커 플립 0). §역할 OOS 평서 (carve scope 외 양 axis 명시) + baseline 자체 양방향 위반 상태 fixture 자가모순 surface 유지 → 외부 의존 면제 분기 적용 (RULE-07 §양성 평서 정합 박제 + 외부 surface 의존 자가 차단 신호). 78th tick hash 동일 유지 시 정체 4회차 누적 → 외부 의존 면제 분기 유지 (REQ-097/098/099/20260518-001 동일 패턴 적용 — 9 spec 30회차+ 면제 누적 박제와 정합).
 #    (21) **hash 변동 vs 4조건 surface 분리 박제**: 76차 박제 hash 와 77차 측정 hash 가 20 spec 전수 변동했지만 4조건 측정 (W / U / T / H) 동일 surface 유지. 이는 inspector hook-ack 본문 보강 drift (§역할 명료화 / 마커 라벨 보강 / 결정성 noise 토큰 갱신 / 변경 이력 hash 박제 갱신 / 인스펙터 hash-ack tick footprint 박제) 가 unchecked 마커 플립을 동반하지 않은 surface 박제. 따라서 정체 카운트는 4조건 surface 기준 누적 (hash 변동 무관) — 75차 박제 (13) + 76차 박제 (13)(20) 와 정합 룰 적용. 78th tick 진입 시 동일 룰 유지.
+# planner @ 2026-05-18T00:00:00Z tick=78
+#     - 20 green spec 전수 진입 — 19 기존 + 1 신규 누적 (REQ-20260518-001 meta-robots-robotstxt-policy-semantic-coherence 3회차 진입). 77차 hash baseline 박제 (`c3d76c57` 외 19) 대비 측정 결과 hash 전수 **76차 baseline 으로 회귀** (예: accessibility 77차 `c3d76c57` → 78차 `fa58c616` = 76차 baseline 동일). git log 측정 결과 77차 commit `2cf3993` ~ 78차 진입 HEAD `621122c` 사이 inspector commit `1fc3873` (63차 Phase 2 backpressure no-op, reconcile 0/20 ack — **spec 본문 미수정**) + discovery commit `621122c` (REQ-20260518-003 발행, 20.req/ 영역) 두 건 발생. inspector commit 은 .inspector-seen 박제 only — green spec 본문 변경 부재. 결론: **77차 박제 hash 측정값이 잘못된 박제** (planner 측정 시점 working-state 또는 transcription drift). 4조건 측정 surface 동일 (unchecked 마커 플립 0건) — 76차/77차/78차 3 tick 연속 동일 surface 박제.
+#     - hash 측정 박제 (78차 측정 — 76차 baseline 회귀):
+#         common/accessibility.md = fa58c616 (W=0 U=1 T=0 H=1)
+#         common/markdownParser.md = 80e20a34 (W=0 U=1 T=0 H=1)
+#         common/sanitizeHtml.md = f33c38cc (W=0 U=4 T=0 H=1)
+#         common/test-helpers.md = 20f79e22 (W=0 U=3 T=0 H=1)
+#         foundation/csp-meta-dev-strip-prod-preserve.md = 9ed14793 (W=0 U=21 T=0 H=1. REQ-098 신규 spec 9회차 진입)
+#         foundation/diagnostic-script-auto-channel-coverage.md = 566a71c5 (W=0 U=4 T=0 H=1)
+#         foundation/eslint-react-hooks-lint-gate.md = ca40a43e (W=0 U=20 T=0 H=1)
+#         foundation/index-html-public-asset-reference-coherence.md = d322b5a3 (W=0 U=29 T=0 H=1. REQ-099 신규 spec 7회차 진입)
+#         foundation/island-proptypes-zero.md = e1502b5f (W=0 U=2 T=0 H=1)
+#         foundation/lint-warning-zero-gate.md = 7c0db082 (W=0 U=2 T=0 H=1)
+#         foundation/manifest-icons-sizes-token-disk-coherence.md = 3e92ef7a (W=0 U=24 T=0 H=1. REQ-100 신규 spec 5회차 진입 — 정체 카운트 4회차 누적)
+#         foundation/meta-robots-robotstxt-policy-semantic-coherence.md = 332b7b9d (W=0 U=26 T=0 H=1. REQ-20260518-001 신규 spec 3회차 진입 — 정체 카운트 2회차 누적. 76차 박제 hash `332b7b9d` 와 78차 측정 동일 회귀 — 77차 hash 박제 `ae2929c2` 는 planner 측정 오류 정정)
+#         foundation/node-modules-extraneous-coherence.md = 77af8bab (W=0 U=3 T=0 H=1)
+#         foundation/npm-script-prefix-coherence.md = 2f83fff0 (W=0 U=2 T=0 H=1)
+#         foundation/package-manager-major-coherence.md = 53b0d39f (W=0 U=5 T=0 H=1)
+#         foundation/root-config-spec-reference-coherence.md = 08a2beac (W=0 U=16 T=0 H=1. REQ-097 신규 spec 10회차 진입. TSK-30 회수 chain 종결 후 inspector hook-ack 미진입 surface 유지)
+#         foundation/spec-carve-precondition.md = 866b3808 (W=0 U=4 T=0 H=1)
+#         foundation/tooling.md = 0ae9247d (W=0 U=6 T=0 H=1)
+#         styles/css-modules.md = a0b75e71 (W=0 U=3 T=0 H=1)
+#         testing/runtime-fetch-unmount-safety.md = 4c2214a3 (W=0 U=7 T=0 H=1)
+#     - promote 4조건 측정: 20 green spec 전수 `[WIP]` == 0 + `^#+ .*To-Be` == 0 + `## 변경 이력` H=1 PASS. 그러나 unchecked `- [ ]` > 0 (전수 76차/77차 동일 surface) → 4조건 중 unchecked 조건 미충족 → promote 0.
+#     - HEAD chain (77차 종료 2cf3993 → 78차 진입 621122c): 사이 inspector self-commit `1fc3873` (63차 Phase 2 backpressure no-op, REQ-20260518-002 inspector 보류 + reconcile 0/20 ack — green spec 본문 미수정, .inspector-seen 갱신 only) + discovery self-commit `621122c` (REQ-20260518-003 발행 — `<meta name="description">` 양면 토큰 byte-for-byte 동치 시스템 불변식 박제 후보 신호) 2건. green/ writer 경계 미접촉 (working tree clean 정합).
+#     - working tree clean. 20 green spec (전수 76차 baseline 회귀). 60.done/2026/05/17/task/ = 27 디렉터리 (76차/77차 동일). 40.task/ = 0건 (TSK-31 회수 chain 종결 유지). 20.req/ = 2건 (REQ-20260518-002 `index-html-root-mount-id-token-coherence` inspector 미흡수 3tick 누적 + REQ-20260518-003 `meta-description-default-fallback-token-coherence` 신규 — inspector 0tick). 10.followups/ = 0건. 50.blocked/spec/foundation/ = 0건. 50.blocked/task/ = 0건.
+#   본 78차 NET 효과:
+#     - **carve 0건**: 77차 박제 (3) carve 후보 surface 전수 재평가 — 변동 0건. 75차 (10)(a)~(j) 룰 + 76차 (3)(k)(l) 룰 + 77차 carve 분기 (a)~(l) 룰 동일 적용. 신규 carve 후보 surface 미발생 (REQ-20260518-002 / REQ-20260518-003 둘 다 inspector 미흡수 → 30.spec/green/ 진입 부재 → planner 영역 밖). 78차 grep dry-run 측정 0 — carve 미발화.
+#     - **promote 0건**: 20 green spec 전수 unchecked > 0 → 4조건 중 unchecked 조건 미충족.
+#     - **격리 0건**: 20 green spec 전수 RULE-07 §양성 평서 + 시점 비의존 + 시스템 불변식 정합 유지. 외부 의존 면제 분기 (61차 박제 (11) 룰) 34회차 누적 — 기존 9 spec 34회차 도달 + REQ-097 신규 spec 10회차 도달 + REQ-098 신규 spec 9회차 진입 + REQ-099 신규 spec 7회차 진입 + REQ-100 신규 spec 5회차 진입 (정체 4회차 누적) + REQ-20260518-001 신규 spec 3회차 진입 (정체 2회차 누적).
+#     - **hash 변동 0건 (76차 baseline 정확히 회귀)**: 77차 박제 hash 와 78차 측정 hash 가 20 spec 전수 변동 surface 이지만 inspector commit `1fc3873` 은 reconcile ack only (.inspector-seen 박제) — green spec 본문 미수정. 따라서 77차 박제 hash 측정값이 잘못된 박제 (planner 측정 오류 정정). 76차 baseline = 78차 측정 = 정합. 4조건 측정 surface 동일 (unchecked 마커 플립 0).
+#   다음 세션 (79th tick) 행동지침:
+#     (1) **inspector hook-ack chain**: 77차 박제 (1) 와 동일 누적 — TSK-31 회수 commit `e8f47bf` 후 REQ-098 G-D (b) marker 플립 surface 측정 대기. TSK-30 회수 commit `1652343` 후 REQ-097 G-B/G-C marker 플립 surface 측정 대기. planner 영역 밖 (inspector 영역) — 모니터링만.
+#     (2) **REQ-20260518-002 / REQ-20260518-003 inspector 흡수 분기**: 20.req/ 2건 잔존 (REQ-20260518-002 inspector 미흡수 3tick 누적 + REQ-20260518-003 신규 1차 노출 inspector 0tick) → inspector 흡수 시점 신규 spec 박제 chain 진입 가능성. REQ-20260518-003 은 REQ-099 §75 OOS axis 보완 신호 (description 텍스트 자체 정합 — `<meta name="description">` 채널 H + `DEFAULT_META_DESCRIPTION` 채널 D + setMetaDescription default 인자 채널 U 3-axis 양면 67 byte ASCII literal 동치 시스템 불변식 박제 후보). planner 영역 밖 (inspector 영역) — 모니터링만.
+#     (3) **carve 후보 surface 잔존** (77차 (3) 와 정합 + REQ-20260518-002/003 inspector 미흡수로 미진입):
+#       (a) REQ-097 축 A — 외부/결정 영역 의존 carve 보류 (10회차 도달).
+#       (b) REQ-097 축 D — TSK-30 회수 chain 종결 후 inspector G-B/G-C marker 플립 PASS 후 carve 진입.
+#       (c) REQ-098 G-D (b) — 재carve 영구 금지. inspector hook-ack 미진입 surface (9회차 진입).
+#       (d) REQ-098 잔여 16 marker — 외부/수단/결정 영역 의존 자가 차단 유지.
+#       (e) REQ-099 G-A~G-G — 7 결과 효능 baseline 만족 → carve scope 외 (7회차 진입).
+#       (f) REQ-100 G-A~G-J — §역할 OOS 박제 (발화 채널 + 격차 해소 둘 다 수단 영역) + baseline 자체 양방향 위반 상태 박제 → fixture 자가모순 surface. carve scope 외 (5회차 진입, 정체 4회차 누적).
+#       (g) runtime-fetch-unmount-safety 잔여 7 marker — Monitor 도메인 자가 차단 + 외부 surface 의존.
+#       (h) tooling.md hook-ack 6 marker — 다음 inspector tick 측정 후 승격 분기.
+#       (i) package-manager-major-coherence FR-02 / FR-03 — 외부 의존 자가 차단 유지.
+#       (j) lint-warning-zero-gate blue 승격 → eslint-react-hooks-lint-gate (P2) 자가 차단 해제 chain — hash 무변동 surface 의존.
+#       (k) island-proptypes-zero (I2)(I3) marker 외부 island 진입 의존 — self-defer 유지.
+#       (l) REQ-20260518-001 G-A~G-K 11 효능 baseline 만족 + §역할 line 10 OOS 박제 (발화 채널 + 격차 해소 둘 다 수단 영역) → carve scope 외 (3회차 진입, 정체 2회차 누적).
+#     (4) **carve 재발행 금지 (멱등)**: TSK-20260517-01~31 모두 재carve 영구 금지. REQ-094 + REQ-096 chain 종결 (68차 mv). REQ-097/098/099/100/20260518-001 chain 동일 룰 적용 (77차 (4) 박제와 정합).
+#     (5) **40.task/ 백프레셔**: 본 78차 종료 시 0건 (TSK-31 회수 chain 종결 유지). 임계치 10건 → 10건 여유.
+#     (6) **신규 REQ 흡수 분기**: 20.req/ 2건 잔존 (REQ-20260518-002 inspector 미흡수 3tick 누적 + REQ-20260518-003 신규 1차 노출 inspector 0tick) → planner 영역 밖. 흡수 시점 carve 분기 surface 진입.
+#     (7) **HEAD 격차 분석 (79th tick 진입 시점)**: baseline 격차 — (a) inspector REQ-20260518-002 / REQ-20260518-003 흡수 commit (신규 spec 박제 가능성), (b) inspector hook-ack chain commit (REQ-098 G-D / REQ-097 G-B/G-C marker 플립 후보 + REQ-099 / REQ-100 / REQ-20260518-001 점진 hook-ack), (c) 본 78차 .planner-seen 갱신 단일 commit (no-op 8회차).
+#     (8) **Task ID footprint**: 본 tick 채번 0건 (no-op). 78차 시점 footprint 측정 — 채번 grep 검증 경로 전수 (`specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/`) `TSK-20260518-` prefix 0 hit 박제 (`TSK-20260518-01` 미발화 유지). 79차 신규 carve 시 `TSK-20260518-01` 부터 채번. 기존 `TSK-20260517-01~31` 영구 박제 (재사용 금지) + `TSK-20260517-04` 미발행 유지.
+#     (9) **정체 카운트 (격리 분기 명시화)**: 본 78차 진입 시 20 green spec 전수 hash 76차 baseline 회귀 (77차 박제 측정 오류 정정) + 4조건 측정 surface 동일 → 정체 카운트 surface 기준 누적 — 기존 9 spec 34회차 도달 + REQ-097 신규 spec 10회차 도달 + REQ-098 신규 spec 9회차 진입 + REQ-099 신규 spec 7회차 진입 + REQ-100 신규 spec 5회차 진입 (정체 4회차 누적) + REQ-20260518-001 신규 spec 3회차 진입 (정체 2회차 누적). 외부 의존 면제 분기 유지 (61차 박제 (11) 룰).
+#    (10) **환경 회복 분기**: 40세션 누적 PASS → 41세션 진입 분기 (79th tick 측정). 본 78차 측정 working-tree clean + green/blue mv 미발화 → typecheck 외부 멱등 surface 유지 (별도 npm run typecheck 미실행, 76차/77차 박제와 정합).
+#    (11) **inspector hook-ack 누적 분기**: 77차 (11) 와 동일 누적 + REQ-20260518-003 추가 — (a)~(j) 기존 후보 + (k) REQ-20260518-003 흡수 분기 (신규 spec 박제 가능성 — 양면 67 byte ASCII literal 동치 fixture 부재 박제 → 단위 테스트 + filesystem assertion + 본문 토큰 파싱 + 양면 byte-for-byte 비교 fixture 도입 후 marker 플립).
+#    (12) **grep dry-run 본 78차 종료**: carve 0건 → grep dry-run 측정 0 (no-op token 박제 — RULE-04 notes 의 grep dry-run token 은 carve 발생 시 발화. 본 tick 미발화 정합).
+#    (13) **격리 분기 누적 박제 (34회차 진입)**: 본 78차 박제 정체 카운트 34회차 도달 9 spec + REQ-097 신규 spec 10회차 도달 + REQ-098 신규 spec 9회차 진입 + REQ-099 신규 spec 7회차 진입 + REQ-100 신규 spec 5회차 진입 (정체 4회차 누적) + REQ-20260518-001 신규 spec 3회차 진입 (정체 2회차 누적) → 외부 의존 면제 분기 유지. 79th tick 진입 시 35회차 / 11회차 / 10회차 / 8회차 / 6회차 / 4회차 도달 시 동일 면제 분기 적용.
+#    (14) **본 tick promote/carve/격리 분기 명시화**: 78차 = carve 0 + promote 0 + 격리 0 (3-zero no-op 8회차 누적). 20 spec hash 76차 baseline 회귀 (77차 박제 측정 오류 정정) + 4조건 측정 surface 동일 (76차/77차/78차 3 tick 연속 동일 unchecked 마커 surface) + TSK-31 회수 chain 종결 inspector hook-ack 미진입 유지 + REQ-20260518-001 inspector 흡수 완료 surface 유지 + REQ-20260518-002 inspector 미흡수 3tick 누적 + REQ-20260518-003 신규 발행 inspector 0tick (1차 노출).
+#    (15) **no-op 누적 (리셋 분기)**: 60차 carve 1 → 61~62차 no-op → 63차 promote+carve → 64~65차 no-op → 66차 carve 1 → 67차 net 0 (revert) → 68차 promote 2 + carve 1 → 69차 no-op → 70차 carve 1 (리셋) → 71차 no-op 1 → 72차 no-op 2 → 73차 no-op 3 → 74차 no-op 4 → 75차 no-op 5 → 76차 no-op 6 → 77차 no-op 7 → **78차 no-op 8회차 누적 (20 spec hash 76차 baseline 회귀 + 4조건 surface 동일 carve scope 외 + 외부 의존 면제 34회차 유지 + TSK-31 회수 chain 종결 inspector hook-ack 미진입 + REQ-20260518-002 inspector 미흡수 3tick 누적 + REQ-20260518-003 신규 발행 inspector 0tick)**.
+#    (16) **Monitor 도메인 (REQ-093 FR-03) carve 분기**: 61차 박제 (14) 와 동일 자가 차단 영구 유지.
+#    (17) **RULE-04 보고 token 박제**: promote 0 + carve 0 + 격리 0 + no-op true + 자기 영역 commit 1 (.planner-seen 78차 노트 갱신 단일 commit). grep dry-run token 미발화 (carve 0).
+#    (18) **hook chain forensics 재측정 분기**: 본 78차 commit 시점 단일 commit 정합 박제 누적 — 68차 ~ 77차 9-tick PASS 누적 + 78차 commit 후 10-tick PASS milestone 박제 분기 진입. 본 78차 commit 후 git log + git status 측정 확정.
+#    (19) **77차 hash 박제 측정 오류 정정 박제**: 77차 박제 hash 20 spec 전수 (`c3d76c57` 외 19 = 76차 baseline 과 다른 값) 와 78차 측정 hash 20 spec 전수 (`fa58c616` 외 19 = 76차 baseline 동일) 사이 commit 측정 결과 inspector commit `1fc3873` 은 reconcile 0/20 ack only (.inspector-seen 박제 — green spec 본문 미수정) + discovery commit `621122c` 은 20.req/ 영역 (REQ-20260518-003 신규 발행 — green/ writer 경계 미접촉). 따라서 77차 박제 hash 측정값은 잘못된 박제 (planner 측정 시점 working-state 또는 transcription drift). 76차 baseline = 78차 측정 = 정합 surface 박제. 77차 박제 (19)(20)(21) 의 "hash 변동 vs 4조건 surface 분리" 해석은 77차 측정값 자체가 오류였으므로 본 78차에서 정정 — 실제로는 4조건 surface + hash 둘 다 76차 baseline 과 78차 측정 동일 (3 tick 연속 spec 본문 변경 부재). 79th tick 측정 시 hash 박제 검증 강화 분기 (working-tree clean 확인 후 git hash-object 측정).
+#    (20) **REQ-20260518-003 신규 발행 박제**: discovery commit `621122c` (HEAD) REQ-20260518-003 `meta-description-default-fallback-token-coherence` 발행 — `index.html:7` `<meta name="description">` content 채널 H + `src/common/common.ts:12` `DEFAULT_META_DESCRIPTION` 채널 D + `src/common/common.ts:14` setMetaDescription default 인자 채널 U 3-axis 양면 67 byte ASCII literal 동치 시스템 불변식 박제 후보. 본 신호는 REQ-099 §75 OOS axis 보완 (description 텍스트 자체 정합 — SEO 정책 axis 보완). 78차 시점 inspector 미흡수 (0tick) → 30.spec/green/ 진입 부재 → planner 영역 밖. 79th tick 이후 inspector 흡수 시점 신규 spec 박제 chain 진입 가능성.
+#    (21) **3-zero no-op 8회차 누적 박제**: 77차 (15) 와 동일 자가 차단 surface 유지 + REQ-20260518-003 신규 발행 (inspector 영역) + 20 spec hash 76차 baseline 회귀 (77차 박제 측정 오류 정정). 79th tick 이후 inspector 흡수 chain 진입 시 carve 분기 surface 발화 가능성 (REQ-20260518-001 패턴 + REQ-100 패턴 동일 — §역할 OOS 평서 박제 강도에 따라 carve scope 결정).
