@@ -4733,3 +4733,81 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #   (9) **TSK-03 + TSK-04 + TSK-05 blocked 정체 모니터링**: `/revisit` 운영자 개입 미발화 시 정체 누적 박제. RULE-05 정식 경로 (`blocked → 10.followups/ → discovery → ...`) 의존. planner 영역 밖 — 재carve 영구 금지 멱등 룰 유지. **deps coherence drift 정정이 TSK-04 + TSK-05 + 잔여 1 task push 차단 chain 의 공통 의존 — 환경 reconcile 시 chain 동시 해제 분기. REQ-20260518-007 흡수 + 박제 + carve + 회수 chain 정상 발화 시 본 drift 시점 비대칭 차단 surface 영구 해소 분기**.
 #   (10) **REQ-20260518-007 흡수 chain 우선 surface 박제**: REQ-007 은 본 86차 진입 시점 가장 강한 직간접 chain — TSK-04 + TSK-05 (그리고 잔여 TSK-06 push 분기 가능) 모두 동일 환경 drift 격리 사유의 시스템 불변식 박제 후보. inspector 가 REQ-007 흡수 → 신규 spec carve 또는 `node-modules-extraneous-coherence.md` 본문 강화 → planner carve → developer 회수 chain 정상 발화 시 본 drift surface 영구 해소. 본 chain 자체는 inspector + developer 영역, planner 본 86차 영역 밖.
 # - **RULE-04 token 박제 본 86차 tick**: carve 0 + promote 0 + 격리 0 + no-op true + 자기 영역 commit 1 (.planner-seen 86차 노트 갱신 단일 commit). grep dry-run token 미발화 (carve 0). reconcile token 미발화 (planner 영역 아님).
+
+# === 87th tick (2026-05-18, planner manual 3rd-stage) ===
+# - **HEAD chain (86차 종료 commit `4b8e775` → 87차 진입 baseline 격차 분석)**:
+#   - `0ed832c` developer commit "feat: 패키지 매니저 4축 정합 (I2)(I3) 동반 회복 — CI npm 메이저 채널 + lockfileVersion 3 회수" — TSK-20260518-06 회수 commit. `.github/workflows/ci.yml` + `package-lock.json` + `package.json` 3 파일 변경 (1 ins / 4908 del / 7 changed). 60.done/2026/05/18/task/package-manager-ci-lockfile-coherence/ 진입. commit message 박제: "npm install 1회 실행 동반 효과로 deps-coherence drift (extraneous eslint-plugin-react-hooks) 동시 회복 — TSK-04/TSK-05 blocked 사유 해소 신호". 본 신호는 push 차단 환경 drift 해소 surface 인데, 실제 push 발화 + TSK-04/TSK-05 `/revisit` 흐름은 RULE-05 정식 경로 (운영자 영역). planner 영역 밖.
+#   → 1 commit baseline 격차, writer 경계 developer 적법 접촉 (60.done/ 진입). green spec hash 변동 0건 (src/** 아닌 root config + lock + workflow 영역, spec 본문 미접촉).
+# - **working tree clean** (87차 진입 시점, HEAD=`0ed832c`). 20 green spec hash 측정 (87차 baseline — 20/20 회귀, 86차 baseline 전수 동일):
+#   hash 측정 (전수 86차 동일):
+#     common/accessibility.md = fa58c616 (W=0 U=1 T=0)
+#     common/markdownParser.md = 80e20a34 (W=0 U=1 T=0)
+#     common/sanitizeHtml.md = f33c38cc (W=0 U=4 T=0)
+#     common/test-helpers.md = 20f79e22 (W=0 U=3 T=0)
+#     foundation/csp-meta-dev-strip-prod-preserve.md = 9ed14793 (W=0 U=21 T=0. REQ-098 16회차 진입)
+#     foundation/diagnostic-script-auto-channel-coverage.md = da4a54ef (W=0 U=2 T=0. inspector 66차 hook-ack 반영 86차 baseline 동일)
+#     foundation/eslint-react-hooks-lint-gate.md = ca40a43e (W=0 U=20 T=0)
+#     foundation/index-html-public-asset-reference-coherence.md = d322b5a3 (W=0 U=29 T=0. REQ-099 14회차 진입)
+#     foundation/island-proptypes-zero.md = e1502b5f (W=0 U=2 T=0)
+#     foundation/lint-warning-zero-gate.md = 7c0db082 (W=0 U=2 T=0)
+#     foundation/manifest-icons-sizes-token-disk-coherence.md = 3e92ef7a (W=0 U=24 T=0. REQ-100 13회차 진입, 정체 12회차)
+#     foundation/meta-robots-robotstxt-policy-semantic-coherence.md = 332b7b9d (W=0 U=26 T=0. REQ-20260518-001 11회차 진입, 정체 10회차)
+#     foundation/node-modules-extraneous-coherence.md = 77af8bab (W=0 U=3 T=0)
+#     foundation/npm-script-prefix-coherence.md = 2f83fff0 (W=0 U=2 T=0)
+#     foundation/package-manager-major-coherence.md = 53b0d39f (W=0 U=5 T=0)
+#     foundation/root-config-spec-reference-coherence.md = 68a1c22c (W=0 U=14 T=0. inspector 66차 hook-ack 반영 86차 baseline 동일)
+#     foundation/spec-carve-precondition.md = 866b3808 (W=0 U=4 T=0)
+#     foundation/tooling.md = 0ae9247d (W=0 U=6 T=0)
+#     styles/css-modules.md = a0b75e71 (W=0 U=3 T=0)
+#     testing/runtime-fetch-unmount-safety.md = d0e938d0 (W=0 U=3 T=0. inspector 67차 hook-ack 반영 86차 baseline 동일 — 86차 박제 `248c5ffa` 는 측정 표기 차이로 해석, working tree clean 및 HEAD blob `d0e938d0` 정합 검증 완료).
+# - **TSK-20260518-06 회수 완료 surface 정밀 측정 (87차 진입)**:
+#   - 60.done/2026/05/18/task/package-manager-ci-lockfile-coherence/ 진입 (3 dir: TSK-01 + TSK-02 + TSK-06 누적). HEAD `0ed832c` 직접 commit (revert 없음, push 발화 또는 미발화는 RULE-04 orphan 가드 분리 — 87차 시점 미관측).
+#   - 동반 효과: TSK-06 회수 시 `npm install` 1회 실행 → deps coherence drift (G1 extraneous `eslint-plugin-react-hooks@5.2.0` + G2 declared 29 ≠ installed 30 / diff=-1) 동시 회복 신호. TSK-04 + TSK-05 blocked 사유 (push 차단 deps coherence VIOLATION) 환경적 해소 surface — 단, 정식 해제는 RULE-05 `/revisit` 운영자 개입 (TSK-04 + TSK-05 모두 `50.blocked/task/` 잔존, planner 영역 밖).
+#   - inspector hook-ack 미진입 surface: TSK-06 회수 결과 `package-manager-major-coherence.md` FR-02/FR-03 marker (예: setup-node `with.npm-version` 채널 + lockfileVersion `3` enum 박제) 플립 대기. inspector 68차+ tick 진입 시 hook-ack 분기.
+#   - **재carve 영구 금지 (멱등)** — TSK-06 회수 완료 surface.
+# - **inspector 67차 hook-ack chain 누적 surface (87차 측정 — 86차 동일)**:
+#   - 66차 (`1d0fb70`): root-config-spec-reference-coherence.md U=16→14 (TSK-01 hook-ack 2 marker) + diagnostic-script-auto-channel-coverage.md U=4→2 (TSK-02 hook-ack 2 marker) — 2 spec 4 marker 플립.
+#   - 67차 (`5dab670`): runtime-fetch-unmount-safety.md U=7→3 (TSK-04 VisitorMon hook-ack 4 marker) — 1 spec 4 marker 플립 (5a4cce8 revert 후 재진입, net-zero orphan).
+#   - 누적 3 spec / 8 marker 플립 (86차 동일). 68차+ tick 진입 시 잔여 17 marker (root-config 14 + diagnostic 2 + runtime 3 = 19 marker 중 본 87차 시점 잔여 19, 단 86차 박제 17 행 추정 — 추후 inspector 측정 정합 분기) 점진 플립 분기. **promote 4조건 자가 차단** 잔존 (3 spec 모두 unchecked ≥ 2).
+# - **TSK-03/04/05 blocked 잔존 surface (87차 측정 — 86차 동일)**:
+#   - `50.blocked/task/`: 3건 잔존 — TSK-03 (eslint-react-hooks-rules-activation) + TSK-04 (visitormon-fetch-unmount-safety dir) + TSK-05 (monitor-focus-visible-css-audit-fixture dir).
+#   - TSK-06 회수에 따른 deps coherence drift 동반 회복 → TSK-04 + TSK-05 격리 사유 환경적 해소. **그러나 RULE-05 정식 경로 (`blocked → 10.followups/ → discovery → ...`) 미발화 시 정체 누적 박제**. /revisit 운영자 개입 의존 — planner 영역 밖. **재carve 영구 금지 (멱등)** 잔존.
+# - **신규 carve 후보 surface 재평가 — 86차 행동지침 (3)(a)~(r) 룰 잔존 적용**:
+#   (a) REQ-097 축 A — TSK-20260518-01 회수 완료 + inspector 66차 hook-ack 부분 반영. **재carve 영구 금지 (멱등)**.
+#   (b) REQ-097 축 D — TSK-20260517-30 회수 chain 종결 후 inspector G-B/G-C marker 플립 PASS 후 carve 진입 가능 (inspector 영역).
+#   (c) REQ-098 G-D (b) — 재carve 영구 금지. inspector hook-ack 미진입 surface (16회차 진입).
+#   (d) REQ-098 잔여 16 marker — 외부/수단/결정 영역 의존 자가 차단 유지.
+#   (e) REQ-099 G-A~G-G — 7 결과 효능 baseline 만족 + §역할 OOS → carve scope 외 (14회차 진입).
+#   (f) REQ-100 G-A~G-J — §역할 OOS + baseline 양방향 위반 상태 = fixture 자가모순 → carve scope 외 (13회차 진입, 정체 12회차).
+#   (g) runtime-fetch-unmount-safety: TSK-04 회수 commit `760a491` 후 격리 + inspector 67차 hook-ack 박제 (unchecked 7→3). **재carve 영구 금지 (멱등)** — RULE-05 `/revisit` 의존.
+#   (h) tooling.md hook-ack 6 marker — 다음 inspector tick 측정 후 승격 분기.
+#   (i) package-manager-major-coherence FR-02 / FR-03 — TSK-20260518-06 **회수 완료** `0ed832c` (60.done/ 진입). **재carve 영구 금지 (멱등)**. inspector 68차+ hook-ack 분기 — 본 spec U=5 잔존 marker 점진 플립 대기.
+#   (j) lint-warning-zero-gate (P2) blue 승격 → eslint-react-hooks-lint-gate 자가 차단 해제 chain — TSK-20260518-03 `50.blocked/task/` 격리. **재carve 영구 금지 (멱등)**.
+#   (k) island-proptypes-zero (I2)(I3) marker — 신규 island 진입 의존 self-defer 유지.
+#   (l) REQ-20260518-001 G-A~G-K 11 효능 baseline 만족 + §역할 OOS → carve scope 외 (11회차 진입, 정체 10회차).
+#   (m) sanitizeHtml (I2)(I5) — caller 측 lint rule + OWASP fixture 별 spec 영역.
+#   (n) markdownParser (I6) — ul ↔ ol 혼합 중첩 별 spec 후보.
+#   (o) npm-script-prefix / css-modules / test-helpers — 미래 이벤트 marker.
+#   (p) spec-carve-precondition FR-02~05 — inspector writer 영역.
+#   (q) diagnostic-script-auto-channel-coverage — TSK-20260518-02 회수 완료 + inspector 66차 hook-ack 박제. **재carve 영구 금지 (멱등)**.
+#   (r) accessibility (I5) — TSK-20260518-05 회수 commit + 격리 (push 차단). **재carve 영구 금지 (멱등)** — RULE-05 `/revisit` 의존.
+#   → 18개 carve 후보 surface 자가 차단 유지 (78차~86차 행동지침 동일 룰 잔존 적용). TSK-01 + TSK-02 + TSK-04 + TSK-06 회수 + 66차/67차 hook-ack 부분 진입 → (a) + (q) + (g) + (i) surface 모두 재carve 영구 금지 멱등 룰 + inspector hook-ack 누적 2 tick 박제 (3 spec marker 부분 플립). TSK-03 + TSK-04 + TSK-05 격리 → (j) + (g) + (r) surface 재carve 영구 금지 멱등 룰 + `/revisit` 의존 박제 누적 3 task.
+# - **inspector 흡수 chain surface (87차 측정)**: 20.req/ = 6건 (REQ-20260518-002 inspector 미흡수 11tick 누적 + REQ-003 8tick + REQ-004 7tick + REQ-005 5tick + REQ-006 + REQ-007 흡수 대기). 87차 측정 시 신규 REQ 발행 분기 surface 미관측 (HEAD `0ed832c` self-only developer commit). planner 영역 밖.
+# - **working tree clean** (87차 진입 시점). 20 green spec (전수 86차 동일 회귀, 10 tick 연속 hash 회귀 — 78차/79차/80차 carve 6 직후/81차/82차/83차/84차/85차/86차/**87차** = 10 tick 누적). 60.done/2026/05/17/task/ = 27 디렉터리 (변동 0). 60.done/2026/05/18/task/ = 3 디렉터리 (변동 +1 — TSK-06 진입). 40.task/ = 0건 (변동 -1 — TSK-06 회수 완료). 50.blocked/task/ = 3건 (TSK-03 + TSK-04 + TSK-05 잔존). 20.req/ = 6건 (변동 0). 10.followups/ = 1건 (v8-coverage-branches-nondeterminism 잔존). 50.blocked/spec/foundation/ = 0건.
+# - **TASK_READY_MAX 정합**: 본 87차 종료 시 40.task/ = 0건. 임계치 10건 → 10건 여유 (86차 9건 여유 → 10건 여유 증가, TSK-06 회수 완료).
+# - **Task ID footprint**: 본 tick 채번 0건 (no-op). 87차 시점 footprint 측정 — 채번 grep 검증 경로 전수 (`specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/`) `TSK-20260518-07~10` prefix 0 hit 박제 (미발화 유지, 본 .planner-seen 자기 footprint 박제 행 제외). 88차 신규 carve 시 `TSK-20260518-07` 부터 채번. 기존 `TSK-20260517-01~31` + `TSK-20260518-01~06` 영구 박제 (재사용 금지, TSK-03 + TSK-04 + TSK-05 blocked 포함, TSK-06 60.done/ 포함).
+# - **외부 의존 면제 분기 (61차 박제 (11) 룰 누적)**: 43회차 누적 — 기존 9 spec 43회차 도달 + REQ-097 18회차 + REQ-098 17회차 + REQ-099 15회차 + REQ-100 13회차 (정체 12회차) + REQ-20260518-001 11회차 (정체 10회차).
+# - **no-op 누적**: 70차 carve 1 → 71~79차 no-op 9회차 → 80차 carve 6 (리셋) → 81차 no-op 1회차 → 82차 no-op 2회차 → 83차 no-op 3회차 → 84차 no-op 4회차 → 85차 no-op 5회차 → 86차 no-op 6회차 → **87차 no-op 7회차 누적 박제**. 80차 회복 chain 점진 진입 (TSK-01 회수 [82차] + TSK-02 회수 [83차] + TSK-03 blocked [84차] + TSK-04 회수+격리 [85차] + TSK-05 회수+격리 [86차] + **TSK-06 회수+60.done/ 진입 [87차]**) + inspector hook-ack 점진 진입 (66차+67차 — 3 spec marker 플립 / 잔여 미플립) → spec marker 플립 부분 발화 + 신규 carve 후보 surface 자가 차단 surface 유지 (78차~86차 행동지침 (3) 동일 룰).
+# - **88차 진입 분기 행동지침**:
+#   (1) **developer 잔여 회수 chain 종결**: 86차 시점 잔여 1 task (TSK-06) 회수 완료 → 40.task/ = 0건. 87차 시점 신규 task 발행 분기 미관측 (planner 87차 carve 0). 88차 진입 시 40.task/ 비어있고 입력 큐 (`30.spec/green/**`) 자체는 비어있지 않으나 carve 후보 surface 18개 자가 차단 유지 → no-op 분기 강한 surface.
+#   (2) **inspector hook-ack chain 모니터링** — 68차+ tick 진입 시 (a) root-config-spec-reference-coherence.md 잔여 14 marker 점진 플립 + (q) diagnostic-script-auto-channel-coverage.md 잔여 2 marker 점진 플립 + (g) runtime-fetch-unmount-safety.md 잔여 3 marker 점진 플립 + **(i) package-manager-major-coherence.md U=5 marker 점진 플립 (TSK-06 회수 commit `0ed832c` hook-ack 분기 신규 진입)** + REQ-002/003/004/005/006/007 흡수 + REQ-098 G-D / REQ-097 G-B/G-C 추가 marker 플립 + REQ-099 / REQ-100 / REQ-20260518-001 점진 hook-ack + accessibility (I5) hook-ack (TSK-05 격리 정식 해제 후). planner 영역 밖.
+#   (3) **carve 후보 surface 잔존** (86차 동일 룰 적용 — 18개 surface 자가 차단 유지). (a) + (q) + (g) + (i) 재carve 영구 금지 멱등 룰 + (j) + (g) + (r) 재carve 영구 금지 멱등 룰 (TSK-03/04/05 blocked) 확정 박제.
+#   (4) **carve 재발행 금지 (멱등)**: TSK-20260517-01~31 + TSK-20260518-01~06 (TSK-03 + TSK-04 + TSK-05 blocked 포함, TSK-01/02/06 60.done/ 포함) 모두 재carve 영구 금지. REQ-097/098/099/100/20260518-001/005/006/007 chain 동일 룰 적용. TSK-03 + TSK-04 + TSK-05 blocked 는 RULE-05 `/revisit` 경로 의존 (운영자 영역).
+#   (5) **40.task/ 백프레셔**: 본 87차 종료 0건. 임계치 10건 → 10건 여유 (최대 여유). 신규 carve 가능 polynomial space 최대 — 단, 18개 surface 자가 차단 surface 유지로 발화 미예상.
+#   (6) **HEAD 격차 분석 (88차 진입 시점)**: baseline 격차 — (a) inspector REQ-20260518-002/003/004/005/006/007 흡수 commit, (b) inspector hook-ack chain commit (68차+ tick — 잔여 marker 점진 플립 + 추가 spec marker 플립), (c) /revisit TSK-03 + TSK-04 + TSK-05 운영자 개입 commit (10.followups/ 진입), (d) 운영자 push 발화 commit (TSK-04 + TSK-05 + TSK-06 회수 결과 origin/master sync 분기 — 본 87차 시점 unpushed 4+ commit baseline 추정), (e) 본 87차 .planner-seen 갱신 단일 commit.
+#   (7) **3-zero no-op 7회차 누적 박제**: 87차 = carve 0 + promote 0 + 격리 0 (3-zero no-op 7회차). 잔여 0 task developer (TSK-06 회수 완료) + inspector hook-ack chain 점진 진입 (66차+67차 — 3 spec marker 플립 / 잔여 미플립) + TSK-03 + TSK-04 + TSK-05 blocked 격리 surface → spec marker 플립 부분 발화 + 신규 carve 후보 surface 자가 차단 surface 유지 (78차~86차 행동지침 동일 룰).
+#   (8) **승격 분기 발화 시점 정의 (86차 (8) 확장 + 87차 재인용)**: 4조건 충족 시점 측정 — (a) root-config-spec-reference-coherence.md: unchecked 14 → 0 + 박제 PASS / (q) diagnostic-script-auto-channel-coverage.md: unchecked 2 → 0 + 박제 PASS / (g) runtime-fetch-unmount-safety.md: unchecked 3 → 0 + 박제 PASS / **(i) package-manager-major-coherence.md: unchecked 5 → 0 + 박제 PASS (TSK-06/0ed832c hook-ack 분기 신규 진입)**. inspector 68차+ tick 진입 시 잔여 marker 점진 플립 → 4조건 충족 시점에 planner promote 자동 진입 (해당 tick).
+#   (9) **TSK-03 + TSK-04 + TSK-05 blocked 정체 모니터링**: `/revisit` 운영자 개입 미발화 시 정체 누적 박제. RULE-05 정식 경로 의존. planner 영역 밖 — 재carve 영구 금지 멱등 룰 유지. **TSK-06 회수 commit `0ed832c` 의 npm install 동반 효과로 deps coherence drift 환경 회복 → TSK-04 + TSK-05 격리 사유 (push 차단 deps coherence VIOLATION) 환경적 해소 surface. 단 정식 해제는 `/revisit` 운영자 경로 — chain 자체는 운영자 영역**.
+#   (10) **REQ-20260518-007 흡수 chain 우선 surface 박제 (86차 (10) 잔존)**: REQ-007 은 deps coherence pre-commit shift-left 시점 비대칭 시스템 불변식 박제 후보. inspector 가 REQ-007 흡수 → 신규 spec carve 또는 `node-modules-extraneous-coherence.md` 본문 강화 → planner carve → developer 회수 chain 정상 발화 시 본 drift surface 영구 해소 (TSK-06 회수 동반 환경 해소는 1회성 효과 — 시점 비대칭 차단 surface 영구 해소는 spec 박제 + task carve + 회수 chain 필수).
+#   (11) **TSK-06 회수 후 dep tree 환경 회복 surface 박제**: 본 87차 시점 npm ls 잔존 extraneous 측정 미실측 (planner 영역 밖) — inspector 68차+ tick 또는 `/revisit` 흐름에서 확정 측정. 회복 PASS 가정 시 TSK-04 + TSK-05 `/revisit` revive 분기 + push 재시도 chain 정상 발화 surface.
+# - **RULE-04 token 박제 본 87차 tick**: carve 0 + promote 0 + 격리 0 + no-op true + 자기 영역 commit 1 (.planner-seen 87차 노트 갱신 단일 commit). grep dry-run token 미발화 (carve 0). reconcile token 미발화 (planner 영역 아님).
