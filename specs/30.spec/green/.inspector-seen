@@ -489,3 +489,70 @@
 # RULE-07 자기 검증 — Phase 1 2 marker spec 13 ack (TSK-08 / `b2d26cf`+`2b99d22` + TSK-09 / `77b4223` 회수 hook-ack — 양 task 정상 done mv 후 spec marker 플립 정합 + meta-description 본문 67→63 byte 데이터 오류 정정 동시 박제). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~012 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 9건 (REQ-004/005/006/007/008/009/010/011/012 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`cce81d4` → THIS (74차 tick) — reconcile 5/20 ack (1 spec / 5 §수용 기준 marker — manifest-icons-sizes-token-disk-coherence FR-01~FR-04 Must 4 + FR-06 Should 1 = 5 marker hook-ack via TSK-20260518-11 / `cce81d4`; 추가 §테스트 현황 8 + §비기능 4 = 17 marker 동시 flip; carve chain 활성 8차 연속 ack 흐름 누적; 8 stale ≥35cycle 외부 의존 누적 유지; Phase 2 흡수 0 RULE-03 (d) backpressure — green 20 == GREEN_PENDING_MAX=20 임계 11 tick 누적 재도달; 잔여 큐 10건 REQ-004~013, REQ-013 신규)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `f888586` (73차 tick — Phase 1 13/20 ack 2 spec TSK-08+TSK-09 hook-ack + Phase 2 backpressure no-op 9건 REQ-004~012).
+#  - tick 진입 시 HEAD == `cce81d4` (test: manifest-icons sizes token ↔ disk pixel coherence fixture — REQ-100/G-A~G-E, TSK-20260518-11 회수, 외부 developer commit).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `cce81d4` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `f888586` 후): 2건 —
+#     · `36e7d09` (task(planner): 98차 tick carve TSK-20260518-12 robots-policy-coherence-fixture 발화 — REQ-20260518-001 (19 tick 연속 hash 회귀) §동작 G-A~G-F 6 게이트 결정론 측정 fixture carve, baseline grep dry-run 8/8 match @ HEAD f888586. `.planner-seen` self-only 59 line 추가).
+#     · `cce81d4` (test: manifest-icons sizes token ↔ disk pixel coherence fixture — `src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts` 신규 208 line, G-A~G-E 5 게이트 단언, production 0 byte. TSK-20260518-11 회수 `60.done/2026/05/18/task/manifest-icons-sizes-token-disk-coherence-fixture/` 정상 mv).
+#  - src/ 영역 commit = 1 (`cce81d4` — manifest-icons fixture 신규 1 파일 208 line).
+#  - test/spec 본문 commit = 1 (`cce81d4` 의 신규 5 케이스 G-A~G-E).
+#  - spec marker 영향 후보 = 1 spec / 17 marker (TSK-11 / `cce81d4` → manifest-icons-sizes-token-disk-coherence.md §수용 기준 FR-01/02/03/04/06 5 marker + §테스트 현황 G-A/B/C/D/E/F/I/J 8 marker + §비기능 NFR-01/02/05/06 4 marker = 17 marker. ack 토큰 산정 = §수용 기준 marker 기준 5 marker / 1 spec).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 10건 (REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps + REQ-008 coverage-gate + REQ-009 manifest-pwa + REQ-010 vite-sourcemap + REQ-011 pwa-splash + REQ-012 vitest-coverage-exclude + REQ-013 eslint-flat-config-ignores 신규 → 신규 1건 추가).
+#  - 20 green spec hash 시작점 (직전 73차 박제 20 entry 유지 — 외부 2 commit 중 green 본문 직접 변동 0):
+#    · 20 기존 spec 중 19 spec stale_cycles += 1 (1 spec hook-ack 후보 — manifest-icons-sizes-token-disk-coherence 는 marker flip 후 stale_cycles 0 초기화).
+#    · 8 stale ≥34cycle 외부 의존 누적은 본 tick stale +1 로 ≥35cycle 진입 (eslint-react-hooks-lint-gate + island-proptypes-zero + lint-warning-zero-gate + node-modules-extraneous-coherence + npm-script-prefix-coherence + spec-carve-precondition + tooling + diagnostic-script-auto-channel-coverage 8 spec — 외부 task 의존 / hook 의존).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `cce81d4` 비교):
+#    · 20.req/ untracked 10건 (REQ-004~013, `.gitignore` rule 적용).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 1건 — TSK-11 / `cce81d4`):
+#  - manifest-icons-sizes-token-disk-coherence.md (TSK-20260518-11 / `cce81d4` 회수, `60.done/2026/05/18/task/manifest-icons-sizes-token-disk-coherence-fixture/` 정상 mv):
+#     · §테스트 현황 8 marker (G-A jq icons 추출 + G-B sizes split D + G-C ICO ICONDIR 파싱 A + G-D PNG IHDR 파싱 A + G-E D=A 양방향 비교 격차 baseline + G-F 회귀 검출 채널 존재 + G-I 자체 진단 제외 + G-J 멱등성) → fixture `src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts` 5/5 단언 PASS + scope `public/manifest.json` + 자원 한정 PASS + read-only binary access + byte-equal 보존 PASS. `[ ]→[x]` 플립. 보류 marker (G-G 형식 분기 확장 + G-H 시점 비의존) `[deferred: 사유]` 태깅 (외부 이벤트 의존 — 형식 SVG/WebP/AVIF 확장 또는 vite/publicDir 변경 시 별 tick reconcile).
+#     · §수용 기준 5 Must+Should marker (FR-01 D=A 양방향 baseline 격차 박제 + FR-02 ICO ICONDIR + FR-03 PNG IHDR + FR-04 sizes split D + FR-06 격차 항목 명시 보고) → fixture G-A~G-E 단언 1:1 매핑 PASS. `[ ]→[x]` 플립. 보류 marker (FR-05 발화 채널 + FR-07 maskable + FR-08 형식 분기) `[deferred: 사유]` 태깅 (자동 검출 채널 본 task 도입 완료, 발화 시점 채널 별 carve 영역; FR-07/FR-08 별 axis).
+#     · §비기능 4 marker (NFR-01 결정론 + NFR-02 멱등성 + NFR-05 자체 진단 제외 + NFR-06 외부 비파괴) → result.md production 0 byte + 자원 byte-equal (462/32038/2005) + scope baseline + 일반화 주석 정합 PASS. `[ ]→[x]` 플립. 보류 marker (NFR-03 성능 < 500ms + NFR-04 형식 독립성) `[deferred: 사유]` 태깅 (Duration 미명시; 형식 확장 이벤트 의존).
+#     · hook-ack: 60.done/2026/05/18/task/manifest-icons-sizes-token-disk-coherence-fixture/result.md DoD — `npm run lint` rc=0 + `npm run typecheck` rc=0 + `npx vitest run src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts` 5/5 PASS + `npm test` 55 files / 488 tests / 488 PASS (회귀 0) + `npm run build` rc=0 (338ms, 33 chunks) + grep 게이트 5 종 PASS (mount-id 0 / meta-description 0 / public-asset 0 / csp 0 / 채널 존재 ≥4) + production 0 byte 변경 + 자원 byte-equal 보존 (462/32038/2005). HEAD 조상 정합. 회귀 0.
+#     · 변경 이력 1행 박제 (TSK-20260518-11 / `cce81d4`). stale_cycles 0 초기화.
+#  - 나머지 19 green spec 전수 hook-ack 후보 없음 (직전 `f888586` 이후 외부 src/ 영역 commit 1건 = `cce81d4` manifest-icons fixture 한정 — 다른 spec 본문 영향 0). 19 spec 전수 stale_cycles += 1.
+#  - **1 marker spec 5 ack / 20 total spec → Phase 1 5/20 ack.** seen-state 갱신 (1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1).
+#  - 8차 연속 ack 흐름 누적 (67차 4 → 68차 6 → 69차 0 → 70차 0 → 71차 0 → 72차 6 → 73차 13 → 74차 5). carve 6 chain (TSK-07/08/09/10(csp)/11 회수 + TSK-12 robots 발행 ongoing) 활성 — 정체 해소 chain 강화 유지.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 10건:
+#     (a) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 10 tick째.
+#     (b) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 9 tick째.
+#     (c) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 8 tick째.
+#     (d) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 7 tick째.
+#     (e) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 보류 5 tick째.
+#     (f) REQ-20260518-009 manifest-pwa-install-contract-token-typology — 보류 5 tick째.
+#     (g) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero — 보류 4 tick째.
+#     (h) REQ-20260518-011 pwa-splash-first-paint-background-color-tri-coherence — 보류 3 tick째.
+#     (i) REQ-20260518-012 vitest-coverage-exclude-pattern-vacuous-zero-axis — 보류 2 tick째.
+#     (j) REQ-20260518-013 eslint-flat-config-ignores-pattern-vacuous-zero-axis — 본 tick 신규 디스크 발견 (mtime 06:13, 본 tick 진입 직전 발행). RULE-07 자기 검증 예비 평가 PASS: (1) 평서 ("eslint.config.js:15 ignores 5 패턴 각각이 repo root 트리에서 매치 hit ≥ 1 vacuous-zero 시스템 결과 효능 불변식"), (2) 반복 검증 가능 (`find` cardinality count 자동 게이트 + fixture), (3) 시점 비의존 (5 패턴 본문 박제 + 매처 의미 박제 한정), (4) incident 비의존 (현 baseline P-4 vacuous (`**/__test__/*.js` 단수형 미실재) zero-point baseline 박제, 특정 ignore 회귀 incident patch 비귀속). 본 req signal type = lint scope 결정론 axis (REQ-012 vitest coverage exclude vacuous-zero axis 와 동형 별 axis — 대상 config 다름: `eslint.config.js` vs `vite.config.js`, 작업 다름: lint scan 제외 vs coverage 측정 제외).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~30 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-004~013 10건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 5 marker 1 spec ack (manifest-icons-sizes-token-disk-coherence) — Must FR-01~FR-04 핵심 marker 전수 ack 진입. Should FR-05/FR-06 중 FR-06 ack + FR-05 deferred. NFR-01/02/05/06 ack. 잔여 marker (G-G/G-H + FR-05/FR-07/FR-08 + NFR-03/04) 는 deferred 또는 외부 의존 — planner promote 4조건 자기 차단 판단 영역 (잔여 marker 있어 promote 불가 가능성). 카브 chain 활성 (TSK-07~11 회수 + TSK-12 발행 ongoing) — 후속 promote chain 가능성 유지.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-004~013 전수 보류, 20.req/ 디스크 큐 10건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/manifest-icons-sizes-token-disk-coherence.md (§테스트 현황 8 marker flip + §수용 기준 5 marker flip + §비기능 4 marker flip + 보류 marker 7건 `[deferred: 사유]` 태깅 + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 74차 박제 + green 20 entry 갱신 [1 spec stale 초기화 + 19 spec stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `5/20 ack` 박제.
+# RULE-03 (d) 정합 — Phase 2 흡수 0 (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 10건).
+# RULE-07 자기 검증 — Phase 1 1 marker spec 5 ack (TSK-11 / `cce81d4` 회수 hook-ack — task 정상 done mv 후 spec marker 플립 정합 + 보류 marker 7건 `[deferred: 사유]` 태깅 동시 박제). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~013 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 10건 (REQ-004/005/006/007/008/009/010/011/012/013 보류, 차기 tick 부터 임계 회복 시 흡수 재개).

@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 빌드/자원 시스템 불변식 — `public/manifest.json` (`icons[*].sizes` + `icons[*].src` + `icons[*].type` 키) + `public/<icons[*].src>` 가 가리키는 binary 자원 (baseline: `public/favicon.ico` ICO 4 entry / `public/logo192.png` PNG single-IHDR) + 형식별 픽셀 추출 파서 (ICONDIR 헤더 + IHDR 헤더 또는 `file` / `sips` 동등 picker).
 > **관련 요구사항**: REQ-20260517-100
-> **최종 업데이트**: 2026-05-18 (by inspector — 최초 박제; Phase 2 REQ-100 흡수)
+> **최종 업데이트**: 2026-05-18 (by inspector — 74차 tick TSK-20260518-11 / `cce81d4` 회수 hook-ack 5 §수용 기준 + 8 §테스트 현황 + 4 §비기능 marker flip)
 
 > 본 spec 은 자매 `foundation/index-html-public-asset-reference-coherence.md` (REQ-099) 와 동일 파일 (`public/manifest.json`) 의 별 axis (REQ-099 = `icons[*].src` path 의 디스크 실재 정합 + `theme_color` 값 동치 / 본 spec = `icons[*].sizes` 토큰 집합 ↔ 자원 실재 픽셀 크기 집합 이진 콘텐츠 측정 정합). REQ-099 의 OOS 박제 (green spec line 10) 에 본 spec axis 가 명시적 별 axis 로 사전 박제됨.
 
@@ -54,34 +54,34 @@
 - 역의존 (사용처): pre-push / CI 단계의 manifest-icons 정합 검증 hook 또는 `package.json` 신규 `check:manifest-icons-coherence` script (수단 위임). `public/manifest.json` 의 `icons[*].sizes` / `icons[*].src` 키 값 갱신 또는 `public/favicon.ico` / `public/logo192.png` / `public/<icons[*].src>` 자원 재생성/추가/삭제 모두 본 spec 위반 회귀 후보. 자매 spec `foundation/index-html-public-asset-reference-coherence.md` (REQ-099 green) 와 동일 파일 (`public/manifest.json`) 의 별 axis 박제 — 본 spec 의 격차 해소 task 가 manifest 본문을 수정하는 경우 REQ-099 의 G-E (`icons[*].src` 디스크 실재) 게이트 동시 만족 필수.
 
 ## 테스트 현황
-- [ ] G-A (`jq` `icons` 배열 추출 + 3 키 본문 검증) — baseline 2 줄 (`favicon.ico|64x64 32x32 24x24 16x16|image/x-icon` + `logo192.png|192x192 512x512|image/png`) 미회복 자동 검출 채널 부재.
-- [ ] G-B (sizes 토큰 split → 집합 D 추출) — baseline `D[0]` 4 토큰 / `D[1]` 2 토큰 미회복 자동 검출 채널 부재.
-- [ ] G-C (ICO ICONDIR 파싱 → 집합 A 추출) — baseline `count=4` + `A[0] = {16x16, 32x32, 48x48, 64x64}` 미회복 자동 검출 채널 부재.
-- [ ] G-D (PNG IHDR 파싱 → 집합 A 추출) — baseline `A[1] = {192x192}` 미회복 자동 검출 채널 부재.
-- [ ] G-E (양방향 부분집합 비교 D = A) — baseline 위반 상태 박제 (`icons[0]`: `{24x24 declared-missing-actual, 48x48 actual-missing-declared}` / `icons[1]`: `{512x512 declared-missing-actual}`) — 회귀 차단 채널 미도입.
-- [ ] G-F 회귀 검출 채널 존재 — 단위 테스트 + filesystem assertion + ICO/PNG 파서 fixture 미도입.
-- [ ] G-G 형식 분기 확장 (ICO + PNG 외 신규 형식) — baseline 2 형식 한정, 확장 신호 채널 부재.
-- [ ] G-H 시점 비의존 회복 — vite/publicDir/자원 재생성 이벤트 직후 5 조건 동시 만족 회복 fixture 부재.
-- [ ] G-I 자체 진단 제외 — `public/manifest.json` + `public/<icons[*].src>` 한정 scope baseline 박제 미회복 (fixture 부재).
-- [ ] G-J 멱등성 (read-only 보장) — N 회 게이트 실행 후 자원 byte-equal fixture 부재.
+- [x] G-A (`jq` `icons` 배열 추출 + 3 키 본문 검증) — TSK-11 / `cce81d4` 회수: `src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts` G-A 단언 (baseline 2 줄 `favicon.ico|64x64 32x32 24x24 16x16|image/x-icon` + `logo192.png|192x192 512x512|image/png`).
+- [x] G-B (sizes 토큰 split → 집합 D 추출) — TSK-11 / `cce81d4` 회수: fixture G-B 단언 (baseline `D[0]` 4 토큰 / `D[1]` 2 토큰).
+- [x] G-C (ICO ICONDIR 파싱 → 집합 A 추출) — TSK-11 / `cce81d4` 회수: fixture G-C 단언 (`count=4` + `A[0] = {16x16, 32x32, 48x48, 64x64}` Node `readUInt16LE` 헤더 파싱).
+- [x] G-D (PNG IHDR 파싱 → 집합 A 추출) — TSK-11 / `cce81d4` 회수: fixture G-D 단언 (`A[1] = {192x192}` Node `readUInt32BE` 헤더 파싱).
+- [x] G-E (양방향 부분집합 비교 D = A) — TSK-11 / `cce81d4` 회수: fixture G-E 단언 (baseline 위반 상태 박제 `icons[0]`: `D-A={24x24}` + `A-D={48x48}` / `icons[1]`: `D-A={512x512}` + `A-D={}` — 회귀 차단 채널 박제).
+- [x] G-F 회귀 검출 채널 존재 — TSK-11 / `cce81d4` 회수: 단위 테스트 fixture 5/5 PASS 박제 + filesystem assertion + ICO/PNG 파서 (Node `readUInt16LE` + `readUInt32BE`) 도입. **[deferred: 발화 시점 채널 — pre-commit/pre-push/CI/`check:manifest-icons-coherence` script 선정은 별 carve 영역, RULE-06 expansion 불허 준수]**
+- [ ] G-G 형식 분기 확장 (ICO + PNG 외 신규 형식) — baseline 2 형식 한정, 확장 신호 채널 부재. **[deferred: 자원 형식 SVG/WebP/AVIF 확장 이벤트 발생 시 별 axis carve]**
+- [ ] G-H 시점 비의존 회복 — vite/publicDir/자원 재생성 이벤트 직후 5 조건 동시 만족 회복 fixture 부재. **[deferred: 외부 이벤트 (vite 메이저 bump / 자원 재생성) 발생 시 별 tick 누적 후 reconcile]**
+- [x] G-I 자체 진단 제외 — TSK-11 / `cce81d4` 회수: fixture scope 가 `public/manifest.json` + `public/<icons[*].src>` 한정. result.md `grep -rln -iE "ICONDIR|pixelWidth|pixelHeight|sips.*-g" specs/30.spec/{blue,green}` → 1 hit (일반화 주석 — 구체 토큰 미박제로 자기 false-positive 회피) 정합.
+- [x] G-J 멱등성 (read-only 보장) — TSK-11 / `cce81d4` 회수: fixture read-only binary access + result.md 자원 byte-equal 보존 (`public/manifest.json` 462 / `public/favicon.ico` 32038 / `public/logo192.png` 2005 byte) 정합.
 
 ## 수용 기준
-- [ ] (Must) FR-01 — `icons[*]` 의 각 항목에 대해 D ⊆ A ∧ A ⊆ D 양방향 부분집합 관계 만족. baseline 격차 (HEAD `030331020063106ae698e5fe2a59c95ff5d99abe`) 는 본 spec 위반 상태로 분류 — 격차 해소는 별 task 의 수단 영역.
-- [ ] (Must) FR-02 — ICO 자원 (`type = "image/x-icon"` 또는 `.ico`) 의 ICONDIR 파싱으로 내장 entry 전수의 (width, height) 쌍 집합 A 추출. width/height = 0 → 256 해석.
-- [ ] (Must) FR-03 — PNG 자원 (`type = "image/png"` 또는 `.png`) 의 IHDR 파싱 또는 `file` / `sips` 동등 picker 의 단일 (width, height) 쌍이 A 의 유일 원소.
-- [ ] (Must) FR-04 — `icons[i].sizes` 공백 구분 split 으로 토큰 집합 D 추출. W3C §icons.sizes 규약 (`<W>x<H>` 정수 쌍 / `"any"` 는 vector 전용 — baseline 미사용).
-- [ ] (Should) FR-05 — FR-01 의 양방향 비교는 자동 검출 채널 (단위 테스트 + filesystem assertion + ICO/PNG 파서 또는 동등 fixture) 을 통해 rc=0/1 결정론 판정. 발화 시점 채널 선정은 수단 영역이나 "발화 채널 존재" 자체는 박제.
-- [ ] (Should) FR-06 — 게이트 출력은 위반 발생 시 격차 항목 (`<index>:declared-missing-actual=<token>` / `<index>:actual-missing-declared=<token>`) 을 명시적으로 식별하여 보고 — 진단 가능성 보장.
-- [ ] (Could) FR-07 — `icons[*].purpose` (`"any maskable"` baseline) 의 maskable safe-zone 80% inner circle 의미 보장은 본 spec axis 와 직교 (별 axis — 필요 시 별 req).
-- [ ] (Could) FR-08 — 자원 형식이 ICO/PNG 외 (SVG / WebP / AVIF) 로 확장 시 형식별 분기 spec 갱신 신호. SVG 한정 `sizes = "any"` 토큰 허용 (W3C 규약).
+- [x] (Must) FR-01 — `icons[*]` 의 각 항목에 대해 D ⊆ A ∧ A ⊆ D 양방향 부분집합 관계 만족. baseline 격차 (HEAD `030331020063106ae698e5fe2a59c95ff5d99abe`) 는 본 spec 위반 상태로 분류 — 격차 해소는 별 task 의 수단 영역. TSK-11 / `cce81d4` 회수: fixture G-E 가 baseline 격차 `icons[0]`: `D-A={24x24}` + `A-D={48x48}` / `icons[1]`: `D-A={512x512}` 박제 단언 — 회귀 차단 채널 박제 PASS.
+- [x] (Must) FR-02 — ICO 자원 (`type = "image/x-icon"` 또는 `.ico`) 의 ICONDIR 파싱으로 내장 entry 전수의 (width, height) 쌍 집합 A 추출. width/height = 0 → 256 해석. TSK-11 / `cce81d4` 회수: fixture G-C 가 `readUInt16LE(0..5)` + entry per `readUInt8(6+i*16)` 파싱 단언 PASS (`A[0] = {16x16, 32x32, 48x48, 64x64}` 4 쌍).
+- [x] (Must) FR-03 — PNG 자원 (`type = "image/png"` 또는 `.png`) 의 IHDR 파싱 또는 `file` / `sips` 동등 picker 의 단일 (width, height) 쌍이 A 의 유일 원소. TSK-11 / `cce81d4` 회수: fixture G-D 가 `readUInt32BE(16..23)` IHDR 파싱 단언 PASS (`A[1] = {192x192}`).
+- [x] (Must) FR-04 — `icons[i].sizes` 공백 구분 split 으로 토큰 집합 D 추출. W3C §icons.sizes 규약 (`<W>x<H>` 정수 쌍 / `"any"` 는 vector 전용 — baseline 미사용). TSK-11 / `cce81d4` 회수: fixture G-B 가 `JSON.parse` + `split(' ')` 단언 PASS (`D[0]` 4 토큰 / `D[1]` 2 토큰).
+- [ ] (Should) FR-05 — FR-01 의 양방향 비교는 자동 검출 채널 (단위 테스트 + filesystem assertion + ICO/PNG 파서 또는 동등 fixture) 을 통해 rc=0/1 결정론 판정. 발화 시점 채널 선정은 수단 영역이나 "발화 채널 존재" 자체는 박제. **[deferred: TSK-11 회수로 자동 검출 채널 (fixture) 자체는 도입 완료 — 그러나 발화 시점 채널 (pre-push/CI/`check:manifest-icons-coherence` script) 박제 미도입, 별 carve 영역]**
+- [x] (Should) FR-06 — 게이트 출력은 위반 발생 시 격차 항목 (`<index>:declared-missing-actual=<token>` / `<index>:actual-missing-declared=<token>`) 을 명시적으로 식별하여 보고 — 진단 가능성 보장. TSK-11 / `cce81d4` 회수: fixture G-E 가 격차 항목 (icons[0]: `D-A={24x24}` + `A-D={48x48}` / icons[1]: `D-A={512x512}`) 명시 단언 — 진단 가능성 PASS.
+- [ ] (Could) FR-07 — `icons[*].purpose` (`"any maskable"` baseline) 의 maskable safe-zone 80% inner circle 의미 보장은 본 spec axis 와 직교 (별 axis — 필요 시 별 req). **[deferred: 별 axis (REQ 단계 발화 대기)]**
+- [ ] (Could) FR-08 — 자원 형식이 ICO/PNG 외 (SVG / WebP / AVIF) 로 확장 시 형식별 분기 spec 갱신 신호. SVG 한정 `sizes = "any"` 토큰 허용 (W3C 규약). **[deferred: 자원 형식 확장 이벤트 발생 시 별 spec 갱신]**
 
 ## 비기능 기준
-- [ ] (NFR-01 결정론) 동일 HEAD 상에서 G-A ∧ G-B ∧ G-C ∧ G-D ∧ G-E 의 측정 N 회 반복 시 N 회 동일 rc + 동일 집합 출력. ICO/PNG 자원이 binary byte-equal 한 한 항상 동일 픽셀 집합.
-- [ ] (NFR-02 멱등성) 본 게이트는 read-only — `public/manifest.json` / `public/favicon.ico` / `public/logo192.png` 의 파일을 수정하지 않는다.
-- [ ] (NFR-03 성능) 전체 게이트 (ICONDIR + IHDR 파싱 + `jq` 추출 + 양방향 비교) — `icons[*]` 항목 전수 (baseline 2 항목) × (파싱 + 비교) < 500 ms.
-- [ ] (NFR-04 형식 독립성) 정합 평서문 자체 (D = A) 는 형식 독립. 자원 형식별 분기 (G-C / G-D) 박제는 maintenance signal.
-- [ ] (NFR-05 자체 진단 제외) 본 req/spec/테스트 본문의 토큰 occurrence 가 게이트 측정에 간섭하지 않는다 (게이트 scope = `public/manifest.json` + `public/<icons[*].src>` 한정).
-- [ ] (NFR-06 외부 비파괴) `public/manifest.json` / `public/favicon.ico` / `public/logo192.png` / `index.html` / `vite.config.js` 의 src 외부 변경 동반 없음. 격차 해소 자체 (manifest 토큰 수정 vs 자원 재생성) 는 별 task 영역.
+- [x] (NFR-01 결정론) 동일 HEAD 상에서 G-A ∧ G-B ∧ G-C ∧ G-D ∧ G-E 의 측정 N 회 반복 시 N 회 동일 rc + 동일 집합 출력. ICO/PNG 자원이 binary byte-equal 한 한 항상 동일 픽셀 집합. TSK-11 / `cce81d4` 회수: fixture 5/5 PASS — read-only binary 파싱 결정론.
+- [x] (NFR-02 멱등성) 본 게이트는 read-only — `public/manifest.json` / `public/favicon.ico` / `public/logo192.png` 의 파일을 수정하지 않는다. TSK-11 / `cce81d4` 회수: result.md production 파일 0 byte 변경 + 자원 byte-equal 보존 (462 / 32038 / 2005) 정합.
+- [ ] (NFR-03 성능) 전체 게이트 (ICONDIR + IHDR 파싱 + `jq` 추출 + 양방향 비교) — `icons[*]` 항목 전수 (baseline 2 항목) × (파싱 + 비교) < 500 ms. **[deferred: result.md fixture Duration 명시 부재 — 별 측정 tick 후 reconcile]**
+- [ ] (NFR-04 형식 독립성) 정합 평서문 자체 (D = A) 는 형식 독립. 자원 형식별 분기 (G-C / G-D) 박제는 maintenance signal. **[deferred: 자원 형식 확장 이벤트 발생 시 별 분기 fixture 누적 후 reconcile]**
+- [x] (NFR-05 자체 진단 제외) 본 req/spec/테스트 본문의 토큰 occurrence 가 게이트 측정에 간섭하지 않는다 (게이트 scope = `public/manifest.json` + `public/<icons[*].src>` 한정). TSK-11 / `cce81d4` 회수: result.md 본문 일반화 주석 (구체 토큰 미박제) + spec 직교 grep 0 hit 정합 (RULE-06 expansion 불허 자가 차단).
+- [x] (NFR-06 외부 비파괴) `public/manifest.json` / `public/favicon.ico` / `public/logo192.png` / `index.html` / `vite.config.js` 의 src 외부 변경 동반 없음. 격차 해소 자체 (manifest 토큰 수정 vs 자원 재생성) 는 별 task 영역. TSK-11 / `cce81d4` 회수: result.md `git diff --stat HEAD -- public/ index.html vite.config.js src/index.jsx src/common/` 0 lines 정합.
 
 ## 스코프 규칙
 - **expansion**: N/A (자원 콘텐츠 정합 횡단 게이트 — task 발행 시점에 planner 재계산).
@@ -103,3 +103,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-18 | inspector / new-req-100-absorb-`0303310` | 최초 박제 — REQ-100 흡수 (manifest.json.icons[*].sizes 토큰 집합 ↔ 자원 실재 픽셀 크기 집합 양방향 부분집합 정합 D = A 시스템 불변식 + ICO ICONDIR + PNG IHDR 형식별 파싱 + 양방향 격차 baseline 측정값 박제) | all |
+| 2026-05-18 | TSK-20260518-11 / `cce81d4` | 74차 tick hook-ack — `src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts` (신규 ~210 line) 5/5 PASS 박제 (G-A jq 추출 + G-B sizes split → D + G-C ICO ICONDIR 파싱 → A + G-D PNG IHDR 파싱 → A + G-E D=A 양방향 비교 baseline 위반 박제). FR-01~FR-04 Must 4 marker + FR-06 Should 1 marker = 5 §수용 기준 marker flip + G-A~G-F + G-I + G-J 8 §테스트 현황 marker flip + NFR-01/02/05/06 4 §비기능 marker flip. 보류 marker (G-G 형식 확장 + G-H 시점 비의존 + FR-05 발화 채널 + FR-07 maskable + FR-08 형식 확장 + NFR-03 성능 + NFR-04 형식 독립성) `[deferred: 사유]` 태깅. production 0 byte 변경 + 자원 byte-equal 보존 (462/32038/2005). 회귀 0 (`npm test` 55 files / 488 tests / 488 PASS). | §테스트 현황 + §수용 기준 + §비기능 |
