@@ -2,7 +2,7 @@
 
 > **위치**: `src/App.jsx`, `src/index.jsx`, `src/App.test.jsx`
 > **관련 요구사항**: REQ-20260517-094 (루트 엔트리 부트 비콘 `sendToAnalytics` / `sendCounter` 불변식 흡수 — blue→green 복사 + 본 효능 박제).
-> **최종 업데이트**: 2026-05-17 (by inspector — REQ-094 흡수 / blue→green 복사 후 부트 비콘 4 불변식 추가 + `:45` 거짓 박제 제거).
+> **최종 업데이트**: 2026-05-17 (by inspector — REQ-094 hook-ack 8 marker 플립 (B1~B4 테스트 현황 + FR-01~FR-04 수용 기준) HEAD=`776846e` (TSK-28 회수)).
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 박제 시점 스냅샷 (HEAD=`e19d870`).
 
@@ -59,10 +59,10 @@
 ## 테스트 현황
 - [x] `src/App.test.jsx` — 오프라인/온라인 토글, 라우트 매칭, ErrorBoundary 주입, `auth` 호출 검증, `resize` 1회 동기 호출 검증.
 - [x] `src/reportWebVitals.test.js` — `web-vitals` 5 콜백 (`onCLS`/`onINP`/`onFCP`/`onLCP`/`onTTFB`) 등록 + dynamic import 검증 (`reportWebVitals` 자체 동작 채널, `src/index.jsx` 의 `sendBeacon` 부트 분기는 미포함 — REQ-094 회복 task 발행 후 별 fixture 박제).
-- [ ] (REQ-094, B1) `sendToAnalytics(metric)` URL/body 계약 fixture 1+ 박제 — `grep -rnE "sendBeacon" src --include="*.test.*"` → 1+ hit (현 baseline 0 hit — `src/index.jsx` 외 sendBeacon spy/assert 0). 회복 task 발행 + `vi.fn()` stub 으로 `commonMonitor.getAPI` mock + URL/body 인자 단언 박제 후 marker 플립.
-- [ ] (REQ-094, B2) `sendCounter()` URL/body 계약 fixture 1+ 박제 — 동일 grep 게이트 + `userAgentParser` mock + `"/useragent"` 접미 URL 단언 박제 후 marker 플립.
-- [ ] (REQ-094, B3) `navigator.sendBeacon` 가드 (falsy/미정의) 시 silent no-op 검증 fixture 1+ 박제 — `sendBeacon` undefined 환경에서 `import("./index.jsx")` 가 throw 없이 resolve + `sendBeacon` 호출 0 단언 박제 후 marker 플립.
-- [ ] (REQ-094, B4) 모듈 로드 1회 발화 카운트 검증 fixture 1+ 박제 — `src/index.jsx` 단일 import 후 `sendBeacon` mock 호출 정확히 1회 (counter URL) + `reportWebVitals` 콜백 직접 발화 시 추가 호출 검증 박제 후 marker 플립.
+- [x] (REQ-094, B1) `sendToAnalytics(metric)` URL/body 계약 fixture 1+ 박제 — `src/index.test.jsx:102` (`it('B1/FR-01: sendToAnalytics 콜백이 getAPI() URL + JSON.stringify(metric) 로 sendBeacon 을 호출한다', ...)`) `vi.fn()` stub + `commonMonitor.getAPI` mock + URL/body 단언. hook-ack HEAD=`776846e` (TSK-28 회수). G2 `grep -rnE "sendBeacon" src --include="*.test.*"` → 34 hit (zero-point 0 → 34 회복).
+- [x] (REQ-094, B2) `sendCounter()` URL/body 계약 fixture 1+ 박제 — `src/index.test.jsx:131` (`it('B2/FR-02: sendCounter 가 getAPI()+"/useragent" URL + JSON.stringify(userAgentParser()) 로 1회 호출한다', ...)`) `userAgentParser` mock + `"/useragent"` 접미 URL 단언. hook-ack HEAD=`776846e`.
+- [x] (REQ-094, B3) `navigator.sendBeacon` 가드 (falsy/미정의) 시 silent no-op 검증 fixture 1+ 박제 — `src/index.test.jsx:150` (`it('B3/FR-03: navigator.sendBeacon 이 undefined 면 silent no-op — 모듈 import + reportWebVitals 콜백 발화 모두 throw 없음', ...)`) `Object.defineProperty(navigator, 'sendBeacon', { value: undefined })` stub + `await import('./index.jsx')` throw 없음 + 콜백 발화 `not.toThrow()` 단언. hook-ack HEAD=`776846e`.
+- [x] (REQ-094, B4) 모듈 로드 1회 발화 카운트 검증 fixture 1+ 박제 — `src/index.test.jsx:169` (`it('B4/FR-04: 모듈 로드 1회 발화 카운트 — 두 번째 import 는 캐시 사용으로 추가 호출 0 + reportWebVitals 1회 등록', ...)`) 단일 import 후 `sendBeaconSpy.mock.calls.length` 카운트 + 두 번째 import 캐시 사용 0 추가 호출 + `reportWebVitalsMock` 1회 호출 단언. hook-ack HEAD=`776846e`.
 - [x] (REQ-094, FR-05) `src/index.jsx` 부트 분기는 `src/reportWebVitals.test.js` 가 커버하지 않음을 박제 — 본 § 테스트 현황 `src/reportWebVitals.test.js` 항목에 "`src/index.jsx` 의 `sendBeacon` 부트 분기는 미포함 — REQ-094 회복 task 발행 후 별 fixture 박제" 명시 (직전 blue line :45 "reportWebVitals.test.js 에서 커버" 거짓 박제 교정).
 
 ## 수용 기준 (현재 상태)
@@ -74,10 +74,10 @@
 - [x] (Should) `import.meta.env.DEV` 조건에서만 `ReactQueryDevtools` 를 렌더링한다.
 - [x] (Should) `Navigation` / `Footer` / 페이지들은 lazy 로드되며 `Suspense fallback` 이 `Skeleton variant="page"` 이다.
 - [x] (NFR) 번들: 최상위 shell 유지, 하위 페이지는 code-split.
-- [ ] (REQ-094, Must, FR-01) `sendToAnalytics(metric)` 은 `commonMonitor.getAPI()` 가 반환한 URL 과 `JSON.stringify(metric)` 으로 `navigator.sendBeacon` 을 호출한다. 회복 task 발행 + vitest spy fixture 박제 후 marker 플립.
-- [ ] (REQ-094, Must, FR-02) `sendCounter()` 는 `commonMonitor.getAPI() + "/useragent"` URL 과 `JSON.stringify(userAgentParser())` 로 `navigator.sendBeacon` 을 호출한다. 회복 task 발행 + vitest spy fixture 박제 후 marker 플립.
-- [ ] (REQ-094, Must, FR-03) `navigator.sendBeacon` 이 falsy / 미정의일 때 `sendToAnalytics` / `sendCounter` 모두 throw 없이 no-op 으로 종료한다. 회복 task 발행 + `delete navigator.sendBeacon` (또는 `Object.defineProperty` undefined stub) 환경 fixture 박제 후 marker 플립.
-- [ ] (REQ-094, Must, FR-04) 모듈 로드 1회당 `sendCounter()` 가 정확히 1회 즉시 호출되며, `reportWebVitals` 콜백으로 등록된 `sendToAnalytics` 는 web-vitals 콜백 발화 시에만 호출된다. 회복 task 발행 + `vi.mock` 으로 `reportWebVitals` 격리 + `sendBeacon` 호출 카운트 단언 박제 후 marker 플립.
+- [x] (REQ-094, Must, FR-01) `sendToAnalytics(metric)` 은 `commonMonitor.getAPI()` 가 반환한 URL 과 `JSON.stringify(metric)` 으로 `navigator.sendBeacon` 을 호출한다. `src/index.test.jsx:102-127` (B1 it 본문 — `expect(sendBeaconSpy).toHaveBeenNthCalledWith(2, getAPIMock(), JSON.stringify(metric))`). hook-ack HEAD=`776846e` (TSK-28 회수).
+- [x] (REQ-094, Must, FR-02) `sendCounter()` 는 `commonMonitor.getAPI() + "/useragent"` URL 과 `JSON.stringify(userAgentParser())` 로 `navigator.sendBeacon` 을 호출한다. `src/index.test.jsx:131-146` (B2 it 본문 — `expect(sendBeaconSpy).toHaveBeenNthCalledWith(1, getAPIMock()+"/useragent", JSON.stringify(userAgentParserMock()))`). hook-ack HEAD=`776846e`.
+- [x] (REQ-094, Must, FR-03) `navigator.sendBeacon` 이 falsy / 미정의일 때 `sendToAnalytics` / `sendCounter` 모두 throw 없이 no-op 으로 종료한다. `src/index.test.jsx:150-167` (B3 it 본문 — `Object.defineProperty(navigator, 'sendBeacon', { value: undefined })` + `await import('./index.jsx')` throw 없음 + `expect(() => sendToAnalyticsCb({ id: 'metric-x', value: 1 })).not.toThrow()`). hook-ack HEAD=`776846e`.
+- [x] (REQ-094, Must, FR-04) 모듈 로드 1회당 `sendCounter()` 가 정확히 1회 즉시 호출되며, `reportWebVitals` 콜백으로 등록된 `sendToAnalytics` 는 web-vitals 콜백 발화 시에만 호출된다. `src/index.test.jsx:169-188` (B4 it 본문 — `expect(sendBeaconSpy).toHaveBeenCalledTimes(1)` + 두 번째 `import('./index.jsx')` 캐시 사용 `expect(sendBeaconSpy.mock.calls.length).toBe(firstCallCount)` + `expect(reportWebVitalsMock).toHaveBeenCalledTimes(1)`). hook-ack HEAD=`776846e`.
 - [x] (REQ-094, Must, FR-05) spec `components/app.md` 는 위 4 불변식과 실제 테스트 위치를 박제하고, 직전 blue line :45 의 "reportWebVitals.test.js 에서 커버" 거짓 박제를 제거/교정한다. 본 § 테스트 현황 `src/reportWebVitals.test.js` 항목 미포함 명시 + 부트 분기 회복 task 발행 후 신설 fixture 경로 박제 surface (회복 task 회수 시 fixture 파일 식별자 박제 갱신).
 - [x] (REQ-094, NFR-01) 테스트 격리 — 신설 fixture 는 `navigator.sendBeacon` 을 `vi.fn()` stub + afterEach 원복 + `commonMonitor.getAPI` / `userAgentParser` `vi.mock` 격리 (회복 task DoD 게이트 박제).
 - [x] (REQ-094, NFR-02) 회귀 안정성 — jsdom 환경에서 `navigator.sendBeacon` 미정의/정의 케이스 모두 단일 fixture 결정적 통과 (회복 task DoD 게이트 박제).
@@ -96,6 +96,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-05-17 | inspector (Phase 1 hook-ack, TSK-20260517-28 회수 회수) / HEAD=`776846e` | REQ-094 회복 fixture `src/index.test.jsx` (4 it B1~B4) 박제 hook-ack — §테스트 현황 (B1)(B2)(B3)(B4) 4 marker [x] 플립 + §수용 기준 (Must FR-01)(Must FR-02)(Must FR-03)(Must FR-04) 4 marker [x] 플립. G2 grep `sendBeacon` test fixture zero-point (0 hit) → 34 hit 회복. G1 src/index.jsx 6→8 hit (commit chain 자체 무변동, baseline 박제 시점 정정). G3 `reportWebVitals.test.js` token 0 hit 무변동 — 거짓 박제 surface 차단 유지. RULE-07 자기검증 유지 (G4 0 hit + G5 0 hit). 잔여 marker — `src/reportWebVitals.test.js` 5 callback 등록 검증 (FR-05 §테스트 현황 한정) + 8 [x] NFR. | §테스트 현황 + §수용 기준 + §최종 업데이트 |
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-094 흡수) / pending (HEAD=`e19d870`) | blue→green 복사 + 루트 엔트리 부트 비콘 `sendToAnalytics` / `sendCounter` 4 불변식 (B1~B4) + 거짓 박제 교정 (직전 blue line :45 "reportWebVitals.test.js 에서 커버" → 실측 미커버 명시) 흡수. 박제 추가: §역할 (부트 비콘 4 불변식 평서) + §공개 인터페이스 (부트 비콘 2 함수 시그니처) + §동작 8 (B1~B4 불변식) + §회귀 중점 (REQ-094 회귀 채널) + §의존성 (`Monitor/api`+`web-vitals`+`reportWebVitals`+`userAgentParser` 추가) + §의존성 §직교 (REQ-091 + REQ-093 cross-ref) + §carve-precondition (P1)(P2)(P3) + §테스트 현황 (B1)(B2)(B3)(B4)(FR-05) 5 marker (FR-05 만 [x]) + §수용 기준 (Must FR-01~04)(Must FR-05)(NFR-01~03) 8 marker + §스코프 규칙 5 gate (G1~G5) 실측 baseline. 본 spec 분리 결정 근거: (a) blue 직접 편집 inspector writer 영역 외 (RULE-01) — blue→green 복사 후 흡수 경로 (req §수용 기준 마지막 항목 "거짓 박제 제거/교정" 명시). (b) 신규 spec carve 부적합 — `src/index.jsx` 부트 비콘은 `App` 컴포넌트 엔트리 셸 — `components/app.md` 단일 spec 단위 흡수 정합 (자매 `components/file.md` REQ-092 흡수 패턴 정합). (c) `30.spec/green/testing/runtime-fetch-unmount-safety.md` (REQ-093) 흡수 부적합 — REQ-093 §역할 명시 "`src/index.{jsx,tsx}` `sendBeacon` 분기 측정 (별 후보)" — 직교 axis (도메인 fetch unmount-safety vs 루트 엔트리 부트). consumed req: `specs/20.req/20260517-root-entry-beacon-boot-contract.md` (REQ-094) → `60.done/2026/05/17/req/` mv. RULE-07 자기검증 — (B1)~(B4)(FR-01)~(FR-05)(NFR-01)~(NFR-03) 모두 평서형·반복 검증 가능 (`grep -rnE "sendBeacon" src --include="*.test.*"` G2 단일 명령 + `vi.fn()` spy + `vi.mock` 모듈 격리 결정적 검증)·시점 비의존 (G4 0 hit — 본문에 절대 라인 좌표 박제 0)·incident 귀속 부재 (REQ-094 §배경 의 baseline audit 는 §변경 이력 / §스코프 규칙 한정 박제)·수단 중립 (G5 0 hit — fixture 수단 후보 라벨 0). RULE-06 §스코프 규칙 5 gate (G1~G5) 실측 박제 + `expansion` `허용` (신설 fixture 파일 + 본 spec 업데이트 + 선택 helper 추가 — scope 확장 허용). RULE-01 inspector writer 영역만 (`30.spec/green/components/app.md` create — blue→green 복사 후 흡수, blue 영역 0 touch). spec-carve-precondition 자기 적용 — §carve-precondition 절 (P1)(P2)(P3) 3 차원 평서 박제. | all |
 | 2026-04-20 | operator / — | 최초 등록 (as-is 서술 spec) | all |
 
