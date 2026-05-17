@@ -25,11 +25,13 @@
     "check:vite-env": "bash scripts/check-vite-env-coherence.sh",
     "check:deps": "bash scripts/check-deps-coherence.sh",
     "check:node-coherence": "bash scripts/check-node-version-coherence.sh",
+    "check:npm-coherence": "bash scripts/check-package-manager-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky"
   },
   "engines": {
-    "node": ">=24"
+    "node": ">=24",
+    "npm": ">=10"
   },
   "browserslist": {
     "production": [
