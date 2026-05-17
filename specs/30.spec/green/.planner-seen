@@ -2201,3 +2201,82 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #       (11) 격리 분기 누적 박제 (9회차 + 10회차 진입 시): 본 50차 박제 정체 카운트 9회차 도달 10 spec → 외부 의존 면제 분기 유지. 51th tick 진입 시 10회차 도달 시 동일 면제 분기 적용.
 #       (12) 본 tick promote/carve/격리 분기 명시화: 50차 = carve 1 + promote 0 + 격리 0. inspector 50차 commit 진입 + 신규 spec 1건 진입 → 즉시 carve surface 도출 (P1 N/A + P2/P3 충족 + 채널 직교 + 멱등 검증). 차기 inspector tick chain (REQ-089 husky-pre-push 흡수 + spec-carve-precondition marker 플립 + tooling/lint-warning-zero-gate marker 플립) + developer TSK-21 회수 chain (FR-01 marker 플립 surface) 의존 51th tick 분기.
 #       (13) no-op 연속 누적 리셋: 7회차 (43~49차 = 7회 연속 no-op) → 본 50차 carve 1건 발행으로 누적 리셋 → 51th 진입 시 0회차 (carve 회수 발행 시 또는 hash 무변동 no-op 시 +1).
+
+# 2026-05-17 planner session (51st tick @HEAD=e7d6e92) — carve 0 + promote 0 + 격리 0. 50차 박제 → 51차 진입 차분 = 1 commit (e7d6e92 planner 50차 self only). 입력 면 (green/blue/req/40.task/) 변동 0.
+#     (i) 선결 점검 (RULE-03): pause lock 0 (`.claude/locks/` 디렉터리 자체 부재) / 입력 큐 13 (foundation 8 + common 4 + styles 1 — 50차 박제 정합) / 40.task/ 1 (TSK-21) < 10 → 통과.
+#     (ii) HEAD baseline: working tree `e7d6e92` clean. 50차 → 51차 도입 차분 = 1 commit (planner 50차 self only). 본 tick 입력 변경 = 0건 (green spec 13 전수 hash 무변동 + 20.req/ 잔존 REQ-089 무변동 + 40.task/ TSK-21 미회수 + 50.blocked/ 전수 0).
+#     (iii) 환경 회복 신호 재검증 (51th tick — 12세션 → 13세션 진입): 본 tick 환경 신호 측정 보류 (carve 0 — RULE-06 정합).
+#     (iv) 입력 큐 `specs/30.spec/green/**` 전수 HEAD blob hash 측정 (51th):
+#         - common/accessibility.md fa58c616 (50차 무변동)
+#         - common/markdownParser.md 80e20a34 (50차 무변동)
+#         - common/sanitizeHtml.md f33c38cc (50차 무변동)
+#         - common/test-helpers.md 20f79e22 (50차 무변동)
+#         - foundation/diagnostic-script-auto-channel-coverage.md 566a71c5 (50차 무변동)
+#         - foundation/eslint-react-hooks-lint-gate.md ca40a43e (50차 무변동)
+#         - foundation/island-proptypes-zero.md 83e0bf2b (50차 무변동)
+#         - foundation/lint-warning-zero-gate.md 7c0db082 (50차 무변동)
+#         - foundation/node-modules-extraneous-coherence.md 77af8bab (50차 무변동)
+#         - foundation/npm-script-prefix-coherence.md 2f83fff0 (50차 무변동)
+#         - foundation/spec-carve-precondition.md 866b3808 (50차 무변동)
+#         - foundation/tooling.md b2c1299b (50차 무변동)
+#         - styles/css-modules.md a0b75e71 (50차 무변동)
+#         - 13 spec 전수 무변동 (50차 박제와 비트동치).
+#     (v) 승격 판정 (RULE-01 4조건) 13 spec 전수 측정:
+#         - common/accessibility.md unchecked=1 / WIP=0 / To-Be=0 → 미충족.
+#         - common/markdownParser.md unchecked=1 / WIP=0 / To-Be=0 → 미충족.
+#         - common/sanitizeHtml.md unchecked=4 / WIP=0 / To-Be=0 → 미충족.
+#         - common/test-helpers.md unchecked=3 / WIP=0 / To-Be=0 → 미충족.
+#         - foundation/diagnostic-script-auto-channel-coverage.md unchecked=4 / WIP=0 / To-Be=0 → 미충족.
+#         - foundation/eslint-react-hooks-lint-gate.md unchecked=20 / WIP=0 / To-Be=0 → 미충족.
+#         - foundation/island-proptypes-zero.md unchecked=5 / WIP=0 / To-Be=0 → 미충족 (TSK-21 회수 + hook-ack chain 대기).
+#         - foundation/lint-warning-zero-gate.md unchecked=2 / WIP=0 / To-Be=0 → 미충족.
+#         - foundation/node-modules-extraneous-coherence.md unchecked=3 / WIP=0 / To-Be=0 → 미충족.
+#         - foundation/npm-script-prefix-coherence.md unchecked=2 / WIP=0 / To-Be=0 → 미충족.
+#         - foundation/spec-carve-precondition.md unchecked=4 / WIP=0 / To-Be=0 → 미충족.
+#         - foundation/tooling.md unchecked=3 / WIP=0 / To-Be=0 → 미충족.
+#         - styles/css-modules.md unchecked=3 / WIP=0 / To-Be=0 → 미충족.
+#         → 13 spec 전수 unchecked > 0. promote 0건.
+#     (vi) carve 분기: 신규 surface 0건.
+#         - island-proptypes-zero.md FR-01 (I1) — 50차 TSK-21 발행 점유 + 40.task/ 잔존 → 재발행 = RULE-02 멱등 위반. 회피.
+#         - 다른 12 spec — hash 무변동 + marker 플립 부재 → 신규 surface 가시화 0.
+#         - 5 외부 carve-active spec §carve-precondition 절 박제 / tooling+lint-warning-zero-gate marker 플립 / eslint-react-hooks-lint-gate (P2) 자가 차단 해제 — 차기 inspector tick chain 의존 (planner 영역 밖).
+#         - 본 51차 carve 결정: 0건 발행.
+#     (vii) grep dry-run (HEAD=`e7d6e92` 본 51th): carve 0건 → dry-run 측정 N/A.
+#         - RULE-04 notes 토큰: `grep dry-run: 0/0 match (carve none)`.
+#     (viii) Task ID footprint 전수 (RULE-01 grep `specs/{40.task,60.done,50.blocked,10.followups,20.req}/`):
+#         - 점유: TSK-20260517-01~-03,-05~-21 (영구 박제 + TSK-21 40.task/ 잔존). -04 미발행 유지.
+#         - 본 tick 채번 0건.
+#     (ix) 40.task/ 백프레셔: 본 51th 진입 1건 (-21) → 발행 0건 (TASK_READY_MAX 10 → 9 여유).
+#     (x) RULE-07 §양성 평서 정합: 13 spec 전수 §양성 평서 정합 유지 (hash 무변동 + 50차 박제 정합). 자동 격리 0건.
+#     (xi) 정체 카운트 (51차 진입):
+#         - 10 baseline spec 10회차 진입 (42차~51차 = 10회). 외부 의존 면제 분기 유지.
+#         - spec-carve-precondition 7회차 (44차~51차).
+#         - eslint-react-hooks-lint-gate 4회차 (48차~51차).
+#         - island-proptypes-zero 2회차 (50차~51차 — TSK-21 미회수 chain 대기).
+#         - 격리 비대상 유지 (외부 이벤트 미발생 + RULE-07 §양성 정합 + 자기 writer 영역 분리 + 자가 차단 신호 충족 위반 회피).
+#     (xii) HEAD 격차 분석:
+#         - (a) green spec hash 변경: 0건.
+#         - (b) 40.task/ 진입: 0건 (TSK-21 잔존).
+#         - (c) 60.done/2026/05/17/task/: 33건 유지 (49차 baseline).
+#         - (d) 50.blocked/task/: 0건 유지.
+#         - (e) 20.req/: REQ-089 잔존 (inspector chain 의존).
+#         - (f) 50.blocked/spec/: 0건 유지.
+#         - (g) 환경 회복 신호: 본 tick 측정 보류 (carve 0).
+#     (xiii) 본 51차 carve/promote/격리 분기 명시화: 51차 = no-op (carve 0 + promote 0 + 격리 0). 입력 면 무변동 + TSK-21 회수 chain 대기 + inspector hook-ack tick chain 대기.
+#     (xiv) 다음 세션 (52th tick) 행동지침:
+#       (1) 승격 판정 멱등 게이트: 52th tick 진입 시 어느 green spec 이 hash 변경 + unchecked=0 도달 시 mv green→blue 즉시 분기. 잠재 후보:
+#         (a) island-proptypes-zero.md FR-01 (I1) marker 플립 — developer TSK-21 회수 + inspector hook-ack tick chain 의존. 5 marker [ ] (FR-01 + I1~I4) 동시 플립 시 unchecked=0 도달.
+#         (b) spec-carve-precondition FR-02~FR-05 4 marker 플립 (5 외부 carve-active spec §carve-precondition 절 박제 회수 완료 시 동시 플립).
+#         (c) tooling.md + lint-warning-zero-gate.md blue 승격 → eslint-react-hooks-lint-gate.md §carve-precondition (P2) 자가 차단 해제.
+#       (2) carve 재발행 금지 (멱등): TSK-21 회수 완료 (40.task/ 이탈 → 60.done/task/) 까지 island-proptypes-zero FR-01 channel 재carve 금지. 다른 12 spec hash 무변동 시 carve surface 0 유지.
+#       (3) 40.task/ 백프레셔: 본 51th 종료 시 1건 (-21). 임계치 9건 여유.
+#       (4) 정체 카운트 (격리 분기 명시화): 10 spec 10회차 + spec-carve-precondition 7회차 + eslint-react-hooks-lint-gate 4회차 + island-proptypes-zero 2회차 누적. 52th tick 진입 시 HEAD hash 무변동 시 +1회차. 외부 의존 면제 분기 유지.
+#       (5) 환경 회복 분기: 13세션 진입 가정 (본 tick 측정 보류).
+#       (6) 신규 REQ 흡수 분기 (Phase 2): 20.req/ 잔존 1건 (REQ-089 husky-pre-push-typecheck-spec-absorption). 차기 inspector tick chain 의존.
+#       (7) Task ID footprint: 본 tick 채번 0건. 52th tick 신규 carve 시 -22+ 채번 (영구 박제 -01~-03,-05~-21 재사용 금지 + -04 미발행 유지).
+#       (8) HEAD 격차 분석: 52th tick 진입 시점 baseline 격차 — (a) green spec hash 변경 (inspector marker flip / REQ-089 흡수), (b) 40.task/ 진입/이탈 (TSK-21 developer 회수 시 60.done/task/ 진입), (c) 60.done/2026/05/17/task/ 신규, (d) 50.blocked/task/ 진입, (e) 20.req/ 변동, (f) 50.blocked/spec/ 변동, (g) 환경 회복 신호.
+#       (9) inspector hook-ack 누적 분기: 50차 inspector commit (REQ-088 흡수 + 신규 spec) 이후 51차 inspector commit 부재 — Phase 1 reconcile 누적 stale ≥3cycle 분기 (외부 ack 트리거 — TSK-21 done commit / 5 외부 carve-active spec §carve-precondition 절 박제 / tooling+lint-warning-zero-gate marker 플립 의존).
+#       (10) grep dry-run 본 51th 종료: carve 0건 — `grep dry-run: 0/0 match (carve none)` 박제.
+#       (11) 격리 분기 누적 박제 (10회차 + 11회차 진입 시): 본 51차 박제 정체 카운트 10회차 도달 10 spec → 외부 의존 면제 분기 유지. 52th tick 진입 시 11회차 도달 시 동일 면제 분기 적용 — 외부 이벤트 미발생 + RULE-07 §양성 평서 정합 + 자기 writer 영역 분리 + 자가 차단 신호 충족 위반 회피 시 격리 비대상 유지.
+#       (12) 본 tick promote/carve/격리 분기 명시화: 51차 = no-op (carve 0 + promote 0 + 격리 0). HEAD == 50차 self-commit (도입 차분 0 외부 commit) → 입력 면 변경 0 + green hash 전수 무변동 + 환경 회복 12세션 누적. 차기 inspector tick chain (REQ-089 흡수 + 5 외부 spec §carve-precondition 절 박제 + tooling/lint-warning-zero-gate marker 플립 + island-proptypes-zero FR-01 hook-ack) + developer tick chain (TSK-21 회수 → 60.done/task/) 의존 fast-promote 또는 신규 carve surface 누적 (52th tick 분기).
+#       (13) no-op 연속 누적: 1회차 (51차 = 단일 no-op). 50차 carve 1건 발행으로 누적 리셋 → 본 51차 +1 누적 → 52th tick HEAD hash 무변동 시 +1회차 (외부 이벤트 의존 면제 분기 유지).
