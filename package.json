@@ -21,7 +21,7 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "lint": "eslint ./src --max-warnings=0",
-    "lint:spec-coherence": "bash scripts/check-spec-coherence.sh",
+    "check:spec-coherence": "bash scripts/check-spec-coherence.sh",
     "check:vite-env": "bash scripts/check-vite-env-coherence.sh",
     "check:deps": "bash scripts/check-deps-coherence.sh",
     "check:node-coherence": "bash scripts/check-node-version-coherence.sh",
