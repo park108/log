@@ -382,8 +382,7 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string)
 }
 
 // Stack-based grouping for same-type nested lists.
-// See specs/30.spec/green/common/markdownParser-spec.md §5.3.3 and
-// TSK-20260418-10 for the algorithm.
+// See TSK-20260418-10 for the algorithm.
 //
 // The detection passes emit each list line as a triple:
 //   { <li> open, value, </li> }   (all tagged with itemOf + depth)

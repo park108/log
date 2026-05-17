@@ -1,8 +1,7 @@
 /*
  * Skeleton loading placeholder styles.
- * Intentionally not a CSS Module — not part of the stage-1 modules targets
- * (see `specs/30.spec/green/styles/css-modules-spec.md` §3.1). Uses global
- * classnames `.skeleton` / `.skeleton--<variant>` / `.skeleton__block`.
+ * Intentionally not a CSS Module — not part of the stage-1 modules targets.
+ * Uses global classnames `.skeleton` / `.skeleton--<variant>` / `.skeleton__block`.
  */
 
 .skeleton {

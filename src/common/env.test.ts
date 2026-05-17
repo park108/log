@@ -1,7 +1,6 @@
 import { isDev, isProd, mode } from './env';
 
 // Smoke: 헬퍼가 올바른 타입을 export 하고 vitest 환경의 MODE 를 노출하는지만 검증.
-// 관련 명세: specs/30.spec/green/common/env-spec.md §7, §5.3
 // 관련 요구사항: REQ-20260418-002 §10 수용 기준
 
 describe('env helper', () => {
