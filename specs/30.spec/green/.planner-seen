@@ -5333,3 +5333,63 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (4) inspector 73차+ ack marker flip 시 hash 변경 spec 우선 (typically REQ-002 / REQ-003 / REQ-098 / REQ-099 / REQ-100 / REQ-20260518-001 영역) — promote 4조건 회귀 검출. mount-id (TSK-07) + meta-description (TSK-08) + public-asset-reference (TSK-09) + csp (TSK-10) developer 회수 + inspector hook-ack 후 promote 4건 동시 발화 분기 가능.
 #     (5) spec 본문 §carve-precondition 절 부재 (csp / 기타 carve-active spec 다수) — `spec-carve-precondition.md` (REQ-085) §테스트 현황 (I2) 의 "carve-active spec 5 파일 §carve-precondition 절 박제는 차기 inspector tick / 별 followup 후 marker 플립" 명시 — inspector writer 영역, planner 미접촉 유지.
 #     (6) §spec 본문 line 19 "directive 8 항목" ↔ 실제 9 directive (default-src / script-src / connect-src / img-src / style-src / object-src / base-uri / frame-ancestors / form-action) 불일치 신호 잔존 — inspector writer 영역, planner 미접촉 유지.
+# 2026-05-18 planner session (97th tick @HEAD=704481b) — 환경 회복 5차 노출 지속 (93차/94차/95차/96차 직후) + carve 1건 발화 (TSK-20260518-11 manifest-icons-sizes-token-disk-coherence-fixture, REQ-100).
+#   환경 baseline 재측정 (97차):
+#     - tsc --noEmit (npm run typecheck): rc=**0** (93/94/95/96차 회복 유지 — 5차 연속).
+#     - npm run lint: rc=**0** (93/94/95/96차 회복 유지 — 5차 연속).
+#   96차 행동지침 (2)(3) 충족 — "REQ-100 manifest-icons / REQ-20260518-001 meta-robots 동형 fixture carve 가능 surface 잔존 + 환경 회복 지속 시 추가 carve + 1세션 1carve 멱등". 본 tick = 환경 회복 5차 관측 + carve 1건 발화 (REQ-100 동형 fixture surface, manifest icons sizes 양방향 부분집합 비교 5 게이트).
+#   20 green spec hash 측정 (96차 baseline 전수 동일, **18 tick 연속 hash 회귀**):
+#     common/markdownParser.md = 80e20a34
+#     common/sanitizeHtml.md = f33c38cc
+#     common/test-helpers.md = 20f79e22
+#     foundation/csp-meta-dev-strip-prod-preserve.md = 9ed14793 (REQ-098 23회차 진입, TSK-10 carve 완료 developer 회수 대기)
+#     foundation/diagnostic-script-auto-channel-coverage.md = da4a54ef
+#     foundation/eslint-react-hooks-lint-gate.md = ca40a43e
+#     foundation/index-html-public-asset-reference-coherence.md = d322b5a3 (REQ-099 21회차 진입, TSK-09 회수 완료 / 60.done 진입 - 77b4223 commit, inspector hook-ack 대기)
+#     foundation/index-html-root-mount-id-token-coherence.md = 085e9f67 (REQ-002 8회차 진입, 96차 변동 후 hash 유지)
+#     foundation/island-proptypes-zero.md = e1502b5f
+#     foundation/lint-warning-zero-gate.md = 7c0db082
+#     foundation/manifest-icons-sizes-token-disk-coherence.md = 3e92ef7a (REQ-100 20회차 진입, 정체 19회차) ← **본 97차 carve 대상**
+#     foundation/meta-description-default-fallback-token-coherence.md = 3397c3b6 (REQ-003 8회차 진입, TSK-08 회수 완료 / 60.done 진입 - 2b99d22 commit, inspector hook-ack 대기)
+#     foundation/meta-robots-robotstxt-policy-semantic-coherence.md = 332b7b9d (REQ-20260518-001 18회차 진입, 정체 17회차)
+#     foundation/node-modules-extraneous-coherence.md = 77af8bab
+#     foundation/npm-script-prefix-coherence.md = 2f83fff0
+#     foundation/root-config-spec-reference-coherence.md = 68a1c22c
+#     foundation/spec-carve-precondition.md = 866b3808
+#     foundation/tooling.md = 0ae9247d
+#     styles/css-modules.md = a0b75e71
+#     testing/runtime-fetch-unmount-safety.md = d0e938d0
+#   4조건 promote 측정 (97차): [WIP]=0 전수 PASS / unchecked ≥1 전수 FAIL (최소 1, 최대 29) / To-Be=0 전수 PASS / 변경 이력 박제 신호 부재 → **promote 0건** (96차 동일). TSK-08/09 developer 회수 완료 (60.done 진입) — inspector 73차+ hook-ack 영역 (§spec marker flip + §변경 이력 박제). TSK-10 (csp) + TSK-11 (본 tick 발화 manifest-icons) developer 회수 대기.
+#   carve 발화:
+#     - TSK-20260518-11-manifest-icons-sizes-token-disk-coherence-fixture (REQ-20260517-100, source spec=foundation/manifest-icons-sizes-token-disk-coherence.md)
+#       - depends_on: [] / supersedes: (없음 — 신규 carve)
+#       - grep dry-run: 11/11 match
+#         - G-A jq icons 추출: 2 줄 (favicon.ico + logo192.png, baseline 정합) ✓
+#         - G-B D[0] sizes split = {16x16, 24x24, 32x32, 64x64} 4 토큰 (baseline 정합) ✓
+#         - G-B D[1] sizes split = {192x192, 512x512} 2 토큰 (baseline 정합) ✓
+#         - G-C ICONDIR header: reserved=0 + type=1 + count=4 (baseline 정합) ✓
+#         - G-C ICONDIR entries: [(64,64),(48,48),(32,32),(16,16)] → A[0]={16,32,48,64} (baseline 정합) ✓
+#         - G-D PNG file 헤더 검증: "PNG image data, 192 x 192" (baseline 정합) ✓
+#         - G-D IHDR width=192 height=192 → A[1]={192x192} (baseline 정합) ✓
+#         - G-E icons[0] D-A={24x24} + A-D={48x48} 양방향 위반 (baseline 정합 §spec FR-01 위반 분류) ✓
+#         - G-E icons[1] D-A={512x512} + A-D={} 단방향 위반 (baseline 정합 §spec FR-01 위반 분류) ✓
+#         - 자원 byte size: manifest.json 462 / favicon.ico 32038 / logo192.png 2005 (NFR-02 baseline) ✓
+#         - 직교 토큰 (ICONDIR/pixelWidth/pixelHeight/sips.*-g) 본 신규 fixture 내 외 1 hit in 1 file = spec 자체 박제 자가 hit (carve scope 자가 차단 baseline) ✓
+#       - RULE-06 §스코프 규칙 expansion=불허 + grep-baseline HEAD `704481b` 실측 박제
+#       - 5 게이트 결정론 fixture 단일 파일 신규 + production 0 byte 변경 한정 — 1 PR 안전 (TSK-07/08/09/10 동형 패턴 5차 적용)
+#       - §spec 발화 채널 신설 (pre-push / CI / `package.json` `check:manifest-icons-coherence` script) 은 별 axis carve 후보 (수단 위임)
+#       - 격차 해소 자체 (manifest 토큰 수정 vs 자원 재생성 vs `logo512.png` 추가) 는 §spec §역할 line 10 명시 "OOS" — 별 axis carve
+#       - 직교 토큰 검증 (TSK-07 mount-id / TSK-08 meta-description / TSK-09 public-asset-reference / TSK-10 csp) — 본 task 신규 fixture 내부 각 0 hit 단언 박제 (RULE-06 expansion 불허 강제)
+#       - baseline 격차 자체가 §spec FR-01 위반 분류 — 본 fixture 는 baseline 위반 상태의 회귀 차단 channel (격차가 baseline 박제와 byte-for-byte 동치할 때만 PASS, 격차 변동 시 FAIL 발화)
+#   본 세션 carve 1건 / promote 0건 / blocked 0건 / no-op false.
+#   diff-hash 회귀 측정: 본 carve 대상 manifest-icons-sizes-token-disk-coherence.md hash 3e92ef7a 는 78차 이래 19 tick 연속 동일 (REQ-100 20회차 진입). 4조건 unchecked=24 미해소는 spec 본문 §테스트 현황 / §수용 기준 §비기능 기준 영역 한정 — fixture 박제 후 §변경 이력 박제 + unchecked 0 으로 promote 신호 발생 가능 (developer 회수 + inspector hook-ack 후).
+#   **Task ID footprint** (97차 진입 시점 grep 검증 경로 전수 측정): `specs/{40.task,60.done,50.blocked,50.blocked/task,10.followups,20.req}/` `TSK-20260518-11` 0 hit (미발화 → 본 tick 채번 안전). 채번 후 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~11` 박제 (재사용 영구 금지). 98차+ 신규 carve 시 `TSK-20260518-12` 부터.
+#   **97차 진입 시점 큐 측정**: 60.done/2026/05/17/task/ = 27 디렉터리 (변동 0). 60.done/2026/05/18/task/ = 6 디렉터리 (TSK-08 meta-description + TSK-09 public-asset-reference 회수 완료 진입 - 2b99d22 + 77b4223 commit). 40.task/ = 1건 (TSK-10 잔존, 본 tick 채번 후 = 2건). 50.blocked/task/ = 3건 잔존 (monitor-focus-visible-css-audit-fixture + visitormon-fetch-unmount-safety + TSK-20260518-03 reason — 변동 0). 50.blocked/spec/foundation/ = 0건 (영구 비움 유지). 20.req/ = 9건 (인지 측정, planner 영역 외 — 96차 8 → 97차 9 = REQ-012 discovery 인지). 10.followups/ = 0건 (planner 영역 외).
+#   **TASK_READY_MAX 정합**: 97차 종료 시 40.task/ = 2건. 임계치 10건 → 8건 여유 (96차 동일). 98차+ tick 추가 carve 안전 영역 잔존.
+#   다음 세션 행동지침:
+#     (1) developer 가 TSK-20260518-10 (csp build artifact) + TSK-20260518-11 (manifest-icons-sizes baseline 위반 박제) 회수 시 fixture 단일 파일 신규 + `npm run lint` + `npm test` + `npm run build` + `npm run typecheck` rc=0 검증 후 60.done/ 진입. inspector 73차+ reconcile 시 §spec 4조건 unchecked 갱신 후 다음 planner tick promote 후보 (mount-id + meta-description + public-asset-reference + csp + manifest-icons 동시 또는 순차).
+#     (2) 나머지 15 green spec (hash 18 tick 연속 회귀) 은 unchecked 잔존 한정 영역 분석 — REQ-20260518-001 (meta-robots-robotstxt U=26 정체 17회차) · root-config-spec-reference-coherence (U=14) · tooling (U=6) 등 외부 의존 axis 별도 carve 후보. 동형 fixture carve 패턴 (mount-id/meta-description/public-asset-reference/csp/manifest-icons 의 G-A 결정론 측정 fixture) 적용 가능 surface 잔존.
+#     (3) 본 tick 의 환경 회복 5차 관측 — 다음 tick (98차) 진입 시 환경 baseline 재측정 + 회복 6차 지속 시 추가 carve 진행 가능 (1세션 1carve 멱등 안전성 유지 + TASK_READY_MAX 잔여 8건). 동형 fixture 패턴 5차 정착 완료 — 자가 박제 룰 5연속 발화로 carve 일관성 안정 구간 진입.
+#     (4) inspector 73차+ ack marker flip 시 hash 변경 spec 우선 (typically REQ-002 / REQ-003 / REQ-098 / REQ-099 / REQ-100 / REQ-20260518-001 영역) — promote 4조건 회귀 검출. mount-id (TSK-07) + meta-description (TSK-08) + public-asset-reference (TSK-09) + csp (TSK-10) + manifest-icons (TSK-11) developer 회수 + inspector hook-ack 후 promote 5건 동시 발화 분기 가능.
+#     (5) 본 task TSK-11 의 baseline 격차 박제 (icons[0] D-A={24x24}+A-D={48x48} / icons[1] D-A={512x512}) 는 §spec FR-01 위반 분류 — 격차 해소 task (manifest 토큰 수정 vs 자원 재생성) 는 §spec §역할 line 10 명시 "OOS" 별 axis carve. 본 fixture 회수 후 §spec §변경 이력 박제 + unchecked 0 으로 promote 신호 발생 가능하나, FR-01 (D=A) 자체 만족은 격차 해소 task 회수 후 시점.
+#     (6) REQ-20260518-001 (meta-robots-robotstxt U=26 정체 17회차) 은 18 tick 연속 hash 332b7b9d 회귀 — 다음 tick 후보 1순위. spec §역할 영역 검토 후 carve 진행 결정.
