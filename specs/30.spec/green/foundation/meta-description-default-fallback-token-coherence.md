@@ -1,8 +1,8 @@
 # `index.html` `<meta name="description">` ↔ `src/common/common.ts` `DEFAULT_META_DESCRIPTION` ↔ `setMetaDescription()` default 인자 fallback 양면 토큰 동치 시스템 불변식
 
-> **위치**: 횡단 SEO/meta 정합 — `index.html:7` `<meta name="description" content="park108.net is a personal journal of Jongkil Park the developer" />` (HTML 정적 baseline) + `src/common/common.ts:12` `const DEFAULT_META_DESCRIPTION = "park108.net is a personal journal of Jongkil Park the developer"` (runtime default 상수 정의) + `src/common/common.ts:14` `export const setMetaDescription = (desc: string = DEFAULT_META_DESCRIPTION): void => {...}` (default parameter binding). 양면 67 byte ASCII literal byte-for-byte 동치.
+> **위치**: 횡단 SEO/meta 정합 — `index.html:7` `<meta name="description" content="park108.net is a personal journal of Jongkil Park the developer" />` (HTML 정적 baseline) + `src/common/common.ts:12` `const DEFAULT_META_DESCRIPTION = "park108.net is a personal journal of Jongkil Park the developer"` (runtime default 상수 정의) + `src/common/common.ts:14` `export const setMetaDescription = (desc: string = DEFAULT_META_DESCRIPTION): void => {...}` (default parameter binding). 양면 63 byte ASCII literal byte-for-byte 동치.
 > **관련 요구사항**: REQ-20260518-003
-> **최종 업데이트**: 2026-05-18 (by inspector — 최초 박제; Phase 2 REQ-20260518-003 흡수)
+> **최종 업데이트**: 2026-05-18 (by inspector — 73차 tick TSK-20260518-08 hook-ack: G-A~G-F 6 marker flip + FR-01~FR-06 6 marker flip + 본문 67→63 byte 정정 박제)
 
 > 본 spec 은 자매 `foundation/index-html-public-asset-reference-coherence.md` (green, REQ-099) 의 정적 자원 참조 4-axis OOS 선언 "`<meta name="description">` 의 description 텍스트 자체 정합 — 별 axis" 를 보완한다. `components/common.md` (blue) 의 `setMetaDescription(desc)` API signature 박제와 직교한다 (common.md = API 부작용 / 본 spec = default fallback 값 양면 동치).
 
@@ -23,7 +23,7 @@ SPA 초기 진입 시 `<meta name="description">` 의 정적 HTML baseline 과 r
    - 명령: `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **출력 = 1 + rc=0**.
    - 의미: default 인자 binding 이 1 hit 박제. binding 제거 시 `LogSingle:39` `setMetaDescription()` 무인자 호출 → `desc === undefined` → `metaEl.content = "undefined"` 손상 회귀.
 4. (G-D) **양면 description 토큰 동치 게이트** — FR-04
-   - 절차: (H) `index.html:7` `<meta name="description" content="...">` content 속성 값 추출 + (D) `src/common/common.ts` `DEFAULT_META_DESCRIPTION = "..."` literal 값 추출 → quote 제거 → **byte-for-byte 동치 비교**. baseline 측정: 양면 모두 67 byte ASCII literal `"park108.net is a personal journal of Jongkil Park the developer"` → **양면 토큰 동치 PASS**.
+   - 절차: (H) `index.html:7` `<meta name="description" content="...">` content 속성 값 추출 + (D) `src/common/common.ts` `DEFAULT_META_DESCRIPTION = "..."` literal 값 추출 → quote 제거 → **byte-for-byte 동치 비교**. baseline 측정: 양면 모두 63 byte ASCII literal `"park108.net is a personal journal of Jongkil Park the developer"` → **양면 토큰 동치 PASS** (`node -e 'console.log("park108.net is a personal journal of Jongkil Park the developer".length)' → 63`).
    - 의미: H ≠ D 분기 → LogSingle navigate-away 시 description silently 새 default 로 set → 초기 HTML 과 어긋남 → SEO 크롤러 / 소셜 카드 fetch 시점에 따라 다른 description 노출.
 5. (G-E) src/ production 토큰 분포 보존 — FR-05
    - 절차: `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **출력 = 2** (정의 1 + default 인자 사용 1).
@@ -45,23 +45,23 @@ SPA 초기 진입 시 `<meta name="description">` 의 정적 HTML baseline 과 r
 - 자매 spec: `foundation/index-html-public-asset-reference-coherence.md` (green, REQ-099) — `index.html` 정적 자원 참조 4-axis. OOS 박제 line 75 "`<meta name="description">` 의 description 텍스트 자체 정합 (SEO 정책 — 별 axis)" 명시 — 본 spec 이 그 별 axis 박제. `foundation/csp-meta-dev-strip-prod-preserve.md` (green, REQ-098) — `index.html:8` CSP meta dev/prod 비대칭 axis. 부수 조건 평서 (description meta 보존) 만 박제, content 토큰 자체 동치는 미박제 → 본 spec 과 직교. `components/common.md` (blue) — `setHtmlTitle(title)` / `setMetaDescription(desc)` API 부작용 박제. API signature 한정, default fallback 값 자체의 양면 동치는 미박제 → 본 spec 이 그 default 값 axis 박제. `foundation/meta-robots-robotstxt-policy-semantic-coherence.md` (green, REQ-20260518-001) — `<meta name="robots">` ↔ `public/robots.txt` 양면 의미 동치. `<meta name="robots">` element 영역 → 본 spec (description) 과 직교.
 
 ## 테스트 현황
-- [ ] (G-A) `grep -cE 'name="description"' index.html` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `index.html:7` `<meta name="description" content="...">`).
-- [ ] (G-B) `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:12`).
-- [ ] (G-C) `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:14`).
-- [ ] (G-D) (H) content 속성 값 ↔ (D) 상수 literal 값 byte-for-byte 동치 비교 → 양면 모두 67 byte ASCII literal `"park108.net is a personal journal of Jongkil Park the developer"` 동치 PASS.
-- [ ] (G-E) `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **2** (정의 1 + default 인자 사용 1) (baseline 분포 박제).
-- [ ] (G-F) content 속성 형태 (`name="description"\s+content="([^"]*)"` regex) baseline 1 match — double quote ASCII literal 형태 박제.
+- [x] (G-A) `grep -cE 'name="description"' index.html` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `index.html:7` `<meta name="description" content="...">`).
+- [x] (G-B) `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:12`).
+- [x] (G-C) `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:14`).
+- [x] (G-D) (H) content 속성 값 ↔ (D) 상수 literal 값 byte-for-byte 동치 비교 → 양면 모두 63 byte ASCII literal `"park108.net is a personal journal of Jongkil Park the developer"` 동치 PASS.
+- [x] (G-E) `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **2** (정의 1 + default 인자 사용 1) (baseline 분포 박제).
+- [x] (G-F) content 속성 형태 (`name="description"\s+content="([^"]*)"` regex) baseline 1 match — double quote ASCII literal 형태 박제.
 - [ ] (G-G) 발화 채널 존재 — grep + content 속성 추출 + 상수 literal 추출 + byte-for-byte 동치 비교 fixture (또는 동등) 채널 rc=0/1 결정론. 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:meta-description-coherence` script) 부착 미박제 (수단 위임).
 - [ ] (G-H) 시점 비의존 — `src/common/common.ts` 리팩토링 · `index.html` 마크업 정렬 변경 · `setMetaDescription` API 재설계 · TypeScript 메이저 bump 후 1 PR 안에 G-A·G-B·G-C·G-D·G-E·G-F 동시 만족 회복 사례 누적.
 - [ ] (G-I) 자체 진단 제외 — 본 spec / req / test 파일의 `name="description"` / `DEFAULT_META_DESCRIPTION` / `park108.net is a personal journal of Jongkil Park the developer` occurrence 가 G-A·G-B·G-E grep count 영향 0 (단일 파일 scope 한정).
 
 ## 수용 기준
-- [ ] (Must FR-01) `grep -cE 'name="description"' index.html` → **출력 = 1 + rc=0**. WHATWG HTML Living Standard §4.2.5.1 의 `name="description"` 은 per-page 단일 semantic.
-- [ ] (Must FR-02) `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → **출력 = 1 + rc=0**. 정의 hit 0 시 채널 U default 인자 binding TypeScript compile 오류 (R-4 회귀) → 즉시 lint/typecheck 검출.
-- [ ] (Must FR-03) `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **출력 = 1 + rc=0**. binding 제거 시 무인자 호출 → `desc === undefined` → `<meta>` content 손상 회귀 (R-3).
-- [ ] (Must FR-04) **양면 description 토큰 동치 게이트** — FR-01 (`index.html` content 속성 값) ∧ FR-02 (`src/common/common.ts` 상수 literal 값) 의 토큰이 **byte-for-byte 동치** (`"park108.net is a personal journal of Jongkil Park the developer"` ≡ 동일 literal, 67 byte ASCII). 추출 + quote 제거 + 비교 PASS.
-- [ ] (Should FR-05) `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **2** (정의 1 + 사용 1). 3 번째 사용처 (`src/**` production 코드) 도입 시 본 spec 갱신 신호 (정의 1 + 사용 1 한정 분포 박제).
-- [ ] (Should FR-06) `index.html:7` content 속성 형태 (`name="description"\s+content="([^"]*)"` regex) baseline 1 match — double quote ASCII literal 형태. 형태 변경 (single quote / 다중 라인 / HTML entity / Unicode escape) 시 본 spec 갱신 신호.
+- [x] (Must FR-01) `grep -cE 'name="description"' index.html` → **출력 = 1 + rc=0**. WHATWG HTML Living Standard §4.2.5.1 의 `name="description"` 은 per-page 단일 semantic.
+- [x] (Must FR-02) `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → **출력 = 1 + rc=0**. 정의 hit 0 시 채널 U default 인자 binding TypeScript compile 오류 (R-4 회귀) → 즉시 lint/typecheck 검출.
+- [x] (Must FR-03) `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **출력 = 1 + rc=0**. binding 제거 시 무인자 호출 → `desc === undefined` → `<meta>` content 손상 회귀 (R-3).
+- [x] (Must FR-04) **양면 description 토큰 동치 게이트** — FR-01 (`index.html` content 속성 값) ∧ FR-02 (`src/common/common.ts` 상수 literal 값) 의 토큰이 **byte-for-byte 동치** (`"park108.net is a personal journal of Jongkil Park the developer"` ≡ 동일 literal, 63 byte ASCII). 추출 + quote 제거 + 비교 PASS.
+- [x] (Should FR-05) `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **2** (정의 1 + 사용 1). 3 번째 사용처 (`src/**` production 코드) 도입 시 본 spec 갱신 신호 (정의 1 + 사용 1 한정 분포 박제).
+- [x] (Should FR-06) `index.html:7` content 속성 형태 (`name="description"\s+content="([^"]*)"` regex) baseline 1 match — double quote ASCII literal 형태. 형태 변경 (single quote / 다중 라인 / HTML entity / Unicode escape) 시 본 spec 갱신 신호.
 - [ ] (Should FR-07) FR-01·FR-02·FR-03·FR-04·FR-05·FR-06 6 조건의 회귀는 자동 검출 채널 (grep + content 속성 추출 + 상수 literal 추출 + 동치 비교 fixture 또는 동등) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 선정은 수단 영역, "발화 채널 존재" 계약 박제.
 - [ ] (Must NFR-01 결정론) 동일 HEAD 상에서 FR-01·FR-02·FR-03·FR-04·FR-05·FR-06 의 grep + 토큰 추출 + 동치 비교 결과가 N 회 반복 시 N 회 동일 rc + 동일 출력.
 - [ ] (Must NFR-02 멱등성) 본 게이트는 read-only — `index.html` / `src/common/common.ts` 파일을 수정하지 않는다.
@@ -85,7 +85,7 @@ SPA 초기 진입 시 `<meta name="description">` 의 정적 HTML baseline 과 r
     - `src/common/common.ts:12` `const DEFAULT_META_DESCRIPTION = "park108.net is a personal journal of Jongkil Park the developer";`
   - (G-C) `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **1** (HEAD `a932c8a` 시점 실측):
     - `src/common/common.ts:14` `export const setMetaDescription = (desc: string = DEFAULT_META_DESCRIPTION): void => {...}`
-  - (G-D) 양면 토큰 baseline: H = `"park108.net is a personal journal of Jongkil Park the developer"` (67 byte ASCII) / D = 동일 67 byte ASCII literal. **양면 byte-for-byte 동치 PASS**.
+  - (G-D) 양면 토큰 baseline: H = `"park108.net is a personal journal of Jongkil Park the developer"` (63 byte ASCII) / D = 동일 63 byte ASCII literal. **양면 byte-for-byte 동치 PASS**.
   - (G-E) `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **2** (`:12` 정의 1 hit + `:14` default 인자 사용 1 hit, HEAD `a932c8a` 시점 실측).
   - (G-F baseline) content 속성 형태 = double quote ASCII literal (`<meta name="description" content="..." />`). 1 match.
   - (G-G baseline) 발화 채널 = `grep -rn 'meta-description\|DEFAULT_META_DESCRIPTION' .husky/pre-commit .husky/pre-push scripts/*.sh package.json 2>/dev/null | grep -v "Binary"` → **0 hit** (현 pre-push / CI / package.json `check:*` script 부재 — 수단 위임).
@@ -96,3 +96,4 @@ SPA 초기 진입 시 `<meta name="description">` 의 정적 HTML baseline 과 r
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-18 | inspector 69차 / (this commit) | 최초 박제 — REQ-20260518-003 흡수 (`<meta name="description">` ↔ `DEFAULT_META_DESCRIPTION` 양면 토큰 동치 시스템 불변식, baseline HEAD `a932c8a` 67 byte ASCII literal 양면 동치 PASS) | all |
+| 2026-05-18 | TSK-20260518-08 / `b2d26cf`+`2b99d22` | hook-ack — 결정론 측정 fixture 박제 (`src/__tests__/meta-description-token-coherence.test.ts` 109 line, G-A~G-F 6 게이트 단언, fixture 6/6 PASS, `npm test` 472 PASS / lint+typecheck+build rc=0 회귀 0). §테스트 현황 G-A~G-F + §수용 기준 FR-01~FR-06 6+6 marker flip. 본문 67→63 byte 정정 (실측 `node -e 'console.log("…".length)' → 63`, 본 spec 박제 시점 데이터 오류 회귀 보호). FR-07 (발화 채널 부착) + G-G + NFR-06 채널 의미 우선순위 라벨 후속 신호는 별 axis carve 위임. | §역할 헤더 / §동작 G-D / §테스트 현황 G-A~G-F / §수용 기준 FR-01~FR-06 / §스코프 규칙 grep-baseline G-D |

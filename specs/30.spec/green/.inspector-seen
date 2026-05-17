@@ -400,3 +400,92 @@
 # RULE-07 자기 검증 — Phase 1 1 marker spec 6 ack (TSK-07 / `36d3316` 회수 hook-ack — task 정상 done mv 후 spec marker 플립 정합). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~011 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 8건 (REQ-004/005/006/007/008/009/010/011 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`704481b` → THIS (73차 tick) — reconcile 13/20 ack (2 spec / 13 marker — meta-description-default-fallback FR-01~FR-06 + G-A~G-F 12 marker hook-ack via TSK-20260518-08 / `b2d26cf`+`2b99d22` + index-html-public-asset-reference FR-01~FR-07 + G-A~G-G 14 marker hook-ack via TSK-20260518-09 / `77b4223`; carve chain 활성 7차 연속 ack 흐름 누적; 8 stale ≥34cycle 외부 의존 누적 유지; Phase 2 흡수 0 RULE-03 (d) backpressure — green 20 == GREEN_PENDING_MAX=20 임계 10 tick 누적 재도달; 잔여 큐 9건 REQ-004~012, REQ-012 신규)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `b339bd1` (72차 tick — Phase 1 6/20 ack 1 spec TSK-07 hook-ack + Phase 2 backpressure no-op 8건 REQ-004~011).
+#  - tick 진입 시 HEAD == `704481b` (spec(planner): 96차 tick carve TSK-20260518-10 csp-meta-build-artifact-preservation-fixture 발화).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `704481b` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `b339bd1` 후): 5건 —
+#     · `b2d26cf` (test: meta description 토큰 양면 정합 fixture 박제 — TSK-20260518-08 회수, `src/__tests__/meta-description-token-coherence.test.ts` 신규 109 line, G-A~G-F 6 게이트 단언, production 0 byte).
+#     · `2b99d22` (fix: meta description fixture typecheck — `noUncheckedIndexedAccess` narrowing 5+/2- 1 파일, pre-push 후속 수정. fixture 동작 영향 0).
+#     · `41e26e0` (spec(planner): 95차 tick carve TSK-20260518-09 public-asset-reference-coherence-fixture 발화, 환경 회복 3차 노출, grep dry-run 7/7 match).
+#     · `77b4223` (test: index.html ↔ public/** ↔ build/** 3 축 정합 + manifest 양면 동치 fixture — TSK-20260518-09 회수, `src/__tests__/public-asset-reference-coherence.test.ts` 신규 168 line, 7 it / 7 게이트 단언, production 0 byte).
+#     · `704481b` (spec(planner): 96차 tick carve TSK-20260518-10 csp-meta-build-artifact-preservation-fixture 발화, REQ-098 영역 ongoing).
+#  - src/ 영역 commit = 3 (`b2d26cf` + `2b99d22` meta-description fixture 1 파일 + `77b4223` public-asset fixture 1 파일 — 전수 신규 fixture, production 0 byte).
+#  - test/spec 본문 commit = 3 (`b2d26cf` G-A~G-F 6 it + `2b99d22` typecheck narrowing + `77b4223` G-A~G-G 7 it).
+#  - 추가 신규 req 디스크 발견 = 1 (REQ-20260518-012 신규 vitest-coverage-exclude-pattern-vacuous-zero-axis.md — `.gitignore` `specs/20.req` rule 적용 untracked).
+#  - spec marker 영향 후보 = 2 spec / 13 marker (TSK-08 / `b2d26cf`+`2b99d22` → meta-description-default-fallback-token-coherence.md G-A~G-F 6 marker + FR-01~FR-06 6 marker = 12 marker; TSK-09 / `77b4223` → index-html-public-asset-reference-coherence.md G-A~G-G 7 marker + FR-01~FR-07 7 marker = 14 marker — 단 §테스트 현황 6 + §수용 기준 6 = TSK-08 12 marker, §테스트 현황 7 + §수용 기준 7 = TSK-09 14 marker. ack 토큰 산정 = §수용 기준 marker 기준 6 + 7 = 13 marker / 2 spec).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 9건 (REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps + REQ-008 coverage-gate + REQ-009 manifest-pwa + REQ-010 vite-sourcemap + REQ-011 pwa-splash + REQ-012 vitest-coverage-exclude 신규 → 신규 1건 추가).
+#  - 20 green spec hash 시작점 (직전 72차 박제 20 entry 유지 — 외부 5 commit 중 green 본문 직접 변동 0):
+#    · 20 기존 spec 중 18 spec stale_cycles += 1 (2 spec hook-ack 후보 — meta-description-default-fallback + index-html-public-asset-reference 는 marker flip 후 stale_cycles 0 초기화).
+#    · 8 stale ≥33cycle 외부 의존 누적은 본 tick stale +1 로 ≥34cycle 진입.
+#    · 신규 2 spec (mount-id + meta-description) 72차에서 mount-id ack 후 73차 meta-description 흡수 spec 도 ack 진입 → 안정화 진입 진단.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `704481b` 비교):
+#    · 20.req/ untracked 9건 (REQ-004~012, `.gitignore` rule 적용).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 2건 — TSK-08 / `b2d26cf`+`2b99d22` + TSK-09 / `77b4223`):
+#  - meta-description-default-fallback-token-coherence.md (TSK-20260518-08 / `b2d26cf`+`2b99d22` 회수, `60.done/2026/05/18/task/meta-description-token-coherence-fixture/` 정상 mv):
+#     · G-A: baseline `grep -cE 'name="description"' index.html` → 1 → HEAD 재실측 → 1 PASS. fixture G-A 본문 직접 측정. `[ ]→[x]` 플립.
+#     · G-B: baseline `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → 1 → HEAD 재실측 → 1 PASS. fixture G-B 본문 직접 측정. `[ ]→[x]` 플립.
+#     · G-C: baseline `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → 1 → HEAD 재실측 → 1 PASS. fixture G-C 본문 직접 측정. `[ ]→[x]` 플립.
+#     · G-D (양면 토큰 동치): baseline 양면 ASCII literal 동치 PASS → fixture G-D byte-for-byte 비교 PASS. **본문 67 byte → 63 byte 정정** 동시 박제 (실측 `node -e 'console.log("park108.net is a personal journal of Jongkil Park the developer".length)' → 63` — spec 박제 시점 inspector 데이터 오류 4 byte over-count, RULE-07 시점 비의존 불변식 영역 외 데이터 오류 → result.md followups §관찰 1 의 후속 정정 신호 충족). `[ ]→[x]` 플립.
+#     · G-E: baseline `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → 2 → HEAD 재실측 → 2 PASS. fixture G-E 본문 직접 측정. `[ ]→[x]` 플립.
+#     · G-F: baseline content 속성 형태 double quote ASCII literal → HEAD 재실측 → 1 match PASS. fixture G-F 본문 직접 측정. `[ ]→[x]` 플립.
+#     · §테스트 현황 G-A~G-F 6 marker 동시 flip + §수용 기준 FR-01~FR-06 6 marker 동시 flip (1:1 매핑).
+#     · hook-ack: 60.done/2026/05/18/task/meta-description-token-coherence-fixture/result.md DoD — `npm run lint` rc=0 (max-warnings=0) + `npm run typecheck` rc=0 (`noUncheckedIndexedAccess` narrowing fix 후) + `npm test` 52 files / 472 tests 전수 PASS (coverage statements 97.54% / branches 94.07% / functions 94.37% / lines 98.31% — threshold 충족) + `npm run build` rc=0 (vite 342ms) + 신규 fixture 단독 6/6 PASS (본 inspector tick 진입 시 재실행 검증 — HEAD `704481b` 6/6 PASS, Duration 506ms). HEAD 조상 정합. 회귀 0.
+#     · 보류 marker (FR-07 발화 채널 부착 + NFR-06 채널 의미 우선순위 라벨 부착 — 수단 위임) — `[ ]` 유보 (별 carve 영역, RULE-06 expansion 불허 준수). NFR-01~NFR-05 + NFR-07 + 회귀 가설 5 marker 도 동시 보류 (NFR / 가설 영역 — fixture 단언 1:1 매핑 미정의, 별 tick 누적 후 reconcile).
+#     · 변경 이력 1행 박제 (TSK-20260518-08 / `b2d26cf`+`2b99d22`). stale_cycles 0 초기화.
+#  - index-html-public-asset-reference-coherence.md (TSK-20260518-09 / `77b4223` 회수, `60.done/2026/05/18/task/public-asset-reference-coherence-fixture/` 정상 mv):
+#     · G-A: baseline `grep -cE "manifest|favicon|apple.touch.icon|theme.color" index.html` → 4 → HEAD 재실측 → 4 PASS. fixture G-A `countMatchingLines` 헬퍼 도입으로 grep `-c` 라인 단위 의미 정합 단언. `[ ]→[x]` 플립.
+#     · G-B: baseline `public/{manifest.json,favicon.ico,apple-icon-precomposed.png,logo192.png}` 4 파일 실재 → HEAD 재실측 → 4 PASS. fixture G-B `existsSync` 단언. `[ ]→[x]` 플립.
+#     · G-C: baseline build artifact `build/{*,index.html}` 보존 + grep 4 hit → HEAD 재실측 → PASS (`npm run build` 후 fixture 7/7 PASS 확인). fixture G-C 조건부 `existsSync` 분기 단언. `[ ]→[x]` 플립.
+#     · G-D (theme-color 양면 동치): baseline `index.html:6` content `"#000000"` ↔ `public/manifest.json.theme_color` `"#000000"` → HEAD 재실측 → 양면 `"#000000"` 동치 PASS. fixture G-D 추출 + 동치 단언. `[ ]→[x]` 플립.
+#     · G-E (icons[*].src 디스크 실재): baseline icons 2 항목 (`favicon.ico` + `logo192.png`) 모두 `public/` 실재 → HEAD 재실측 → PASS. fixture G-E forEach 단언. `[ ]→[x]` 플립.
+#     · G-F (JSON valid + byte-equal): baseline `public/manifest.json` JSON parse PASS + `build/manifest.json` byte-equal → HEAD 재실측 → `diff -q` 0 lines PASS. fixture G-F JSON.parse + byte-equal 단언. `[ ]→[x]` 플립.
+#     · G-G (3 채널 양면 분리): baseline `apple-icon-precomposed.png` ∉ icons + `favicon.ico` ∈ icons → HEAD 재실측 → PASS. fixture G-G includes/!includes 단언. `[ ]→[x]` 플립.
+#     · §테스트 현황 G-A~G-G 7 marker 동시 flip + §수용 기준 FR-01~FR-07 7 marker 동시 flip (1:1 매핑).
+#     · hook-ack: 60.done/2026/05/18/task/public-asset-reference-coherence-fixture/result.md DoD — `npm run lint` rc=0 + `npm test -- src/__tests__/public-asset-reference-coherence.test.ts` rc=0 (7/7 PASS) + `npm test` 전체 53 files / 479 tests 전수 PASS (coverage Lines 98.31% / Statements 97.54% / Branches 94.07% / Functions 94.37% — threshold 충족) + `npm run build` rc=0 + 신규 fixture 단독 7/7 PASS (본 inspector tick 진입 시 재실행 검증 — HEAD `704481b` 7/7 PASS, Duration 509ms). HEAD 조상 정합. 회귀 0. production 파일 0 byte 변경 (`git diff --stat HEAD~1 -- index.html public/ vite.config.js src/index.jsx src/common/` 0 lines 확인).
+#     · 보류 marker (FR-08 발화 채널 부착 — pre-push / CI / `check:public-asset-coherence` script — 수단 위임) — `[ ]` 유보 (별 carve 영역, RULE-06 expansion 불허 준수). G-H + G-I + G-J §테스트 현황 + NFR-01~NFR-06 + 회귀 가설 4 marker + 시점 비의존 1 marker 동시 보류 (NFR / 가설 영역 — fixture 단언 1:1 매핑 미정의, 별 tick 누적 후 reconcile).
+#     · 변경 이력 1행 박제 (TSK-20260518-09 / `77b4223`). stale_cycles 0 초기화.
+#  - 나머지 18 green spec 전수 hook-ack 후보 없음 (직전 `b339bd1` 이후 외부 src/ 영역 commit 3건 = `b2d26cf`+`2b99d22`+`77b4223` 모두 신규 fixture 한정 — 다른 spec 본문 영향 0). 18 spec 전수 stale_cycles += 1.
+#  - **2 marker spec 13 ack / 20 total spec → Phase 1 13/20 ack.** seen-state 갱신 (2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1).
+#  - 7차 연속 ack 흐름 누적 (67차 4 → 68차 6 → 69차 0 → 70차 0 → 71차 0 → 72차 6 → 73차 13). carve 5 chain (TSK-07/08/09 회수 + TSK-10 발행 ongoing) 활성 — 정체 해소 chain 강화 진단.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 9건:
+#     (a) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 9 tick째.
+#     (b) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 8 tick째.
+#     (c) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 7 tick째.
+#     (d) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 6 tick째.
+#     (e) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 보류 4 tick째.
+#     (f) REQ-20260518-009 manifest-pwa-install-contract-token-typology — 보류 4 tick째.
+#     (g) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero — 보류 3 tick째.
+#     (h) REQ-20260518-011 pwa-splash-first-paint-background-color-tri-coherence — 보류 2 tick째.
+#     (i) REQ-20260518-012 vitest-coverage-exclude-pattern-vacuous-zero-axis — 본 tick 신규 디스크 발견. RULE-07 자기 검증 예비 평가 PASS: (1) 평서 ("vitest coverage exclude 패턴이 measure scope 와 직교 + vacuous 0 차단 + threshold-relevance 매핑 정합 시스템 불변식"), (2) 반복 검증 가능 (exclude 패턴 ↔ src/** 실측 파일 분포 정합 측정 자동 게이트), (3) 시점 비의존 (exclude 패턴 본문 박제 + measure scope 정합 함수 박제 한정), (4) incident 비의존 (현 baseline coverage 측정값 zero-point baseline 박제, 특정 exclude 회귀 incident patch 비귀속). 본 req signal type = 회귀 게이트 measure scope axis (REQ-008 coverage-gate-exit-code-determinism axis 와 직교 — exit code 결정론 vs measure scope 정합).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~29 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-004~012 9건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 13 marker 2 spec ack 로 meta-description-default-fallback + index-html-public-asset-reference 양 spec 의 §수용 기준 Must FR 영역 핵심 marker 전수 ack (양 spec 의 Should FR-07/FR-08 발화 채널 + NFR 영역 + 회귀 가설 marker 잔존) → planner promote 4조건 충족 자기 차단 판단 영역 (잔여 marker 있어 promote 불가 가능성 동시 존재).
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-004~012 전수 보류, 20.req/ 디스크 큐 9건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/meta-description-default-fallback-token-coherence.md (G-A~G-F 6 marker flip + FR-01~FR-06 6 marker flip + 본문 67→63 byte 정정 3 hit + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/foundation/index-html-public-asset-reference-coherence.md (G-A~G-G 7 marker flip + FR-01~FR-07 7 marker flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 73차 박제 + green 20 entry 갱신 [2 spec stale 초기화 + 18 spec stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `13/20 ack` 박제.
+# RULE-03 (d) 정합 — Phase 2 흡수 0 (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 9건).
+# RULE-07 자기 검증 — Phase 1 2 marker spec 13 ack (TSK-08 / `b2d26cf`+`2b99d22` + TSK-09 / `77b4223` 회수 hook-ack — 양 task 정상 done mv 후 spec marker 플립 정합 + meta-description 본문 67→63 byte 데이터 오류 정정 동시 박제). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~012 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 9건 (REQ-004/005/006/007/008/009/010/011/012 보류, 차기 tick 부터 임계 회복 시 흡수 재개).

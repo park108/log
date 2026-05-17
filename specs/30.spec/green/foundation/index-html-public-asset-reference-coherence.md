@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 빌드/도구 시스템 불변식 — 저장소 root `index.html` 의 4종 정적 자원 참조 (`index.html:6` `<meta name="theme-color">` + `index.html:10` `<link rel="manifest">` + `index.html:11` `<link rel="icon">` + `index.html:12` `<link rel="apple-touch-icon">`) + `public/**` 디스크 자원 4종 (`manifest.json` / `favicon.ico` / `apple-icon-precomposed.png` / `logo192.png`) + `build/**` 산출 자원 (Vite `publicDir` 자동 복사 결과) + `public/manifest.json` 본문 키 (`icons[*].src` / `theme_color`).
 > **관련 요구사항**: REQ-20260517-099
-> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제; Phase 2 REQ-099 흡수)
+> **최종 업데이트**: 2026-05-18 (by inspector — 73차 tick TSK-20260518-09 hook-ack: G-A~G-G 7 marker + FR-01~FR-07 7 marker flip; FR-08 발화 채널 부착 별 axis 위임)
 
 > 본 spec 은 자매 `foundation/csp-meta-dev-strip-prod-preserve.md` (REQ-098) 와 동일 파일 (`index.html`) 의 별 axis (REQ-098 = CSP meta 1 element 의 출력 비대칭 / 본 spec = 정적 자원 link/meta 4 element 의 3-축 참조 정합). 자매 `foundation/root-config-spec-reference-coherence.md` (REQ-097) 의 참조 정합 axis 와도 직교 (REQ-097 = spec `.md` 참조 path 정합 / 본 spec = `public/**` 정적 asset 참조 path 정합).
 
@@ -48,25 +48,25 @@
 - 자매 spec: `foundation/csp-meta-dev-strip-prod-preserve.md` (green, REQ-098) — `index.html:8` CSP meta 의 출력 비대칭. 동일 파일 (`index.html`) 의 별 axis (CSP meta 1 element vs 정적 자원 link/meta 4 element 정합). `foundation/root-config-spec-reference-coherence.md` (green, REQ-097) — root-level 파일군의 spec 참조 path 정합 (`-spec` suffix + 디스크 실재 + promote 동기화). 본 spec 과 별 axis (spec 참조 정합 vs 정적 자원 참조 정합 — 두 정합은 "참조의 디스크 실재" 효능을 공유하나 참조 대상이 `specs/30.spec/**/*.md` vs `public/**` 정적 asset 인 점에서 별 축).
 
 ## 테스트 현황
-- [ ] (G-A) `grep -cE "manifest|favicon|apple.touch.icon|theme.color" index.html` → **4 + rc=0** (baseline 4 hit 박제, HEAD `60e8def` 실측 — REQ-099 §배경 HEAD `7477189` 이후 index.html 정적 자원 참조 영역 도입 차분 0).
-- [ ] (G-B) `test -f public/manifest.json && test -f public/favicon.ico && test -f public/apple-icon-precomposed.png && test -f public/logo192.png` → **exit 0** (baseline 4 파일 실재 박제).
-- [ ] (G-C) `npm run build` 후 `test -f build/{manifest.json,favicon.ico,apple-icon-precomposed.png,logo192.png,index.html}` + `grep -cE "manifest|favicon|apple.touch.icon|theme.color" build/index.html` → **exit 0 + 4** (baseline build artifact 보존 박제).
-- [ ] (G-D) `index.html:6` theme-color content 값 ↔ `public/manifest.json.theme_color` 값 추출 후 문자열 동치 → 동일 (`"#000000"` baseline).
-- [ ] (G-E) `public/manifest.json.icons[*].src` 전수 (`favicon.ico` + `logo192.png` 2 항목) 에 대해 `test -f public/<src>` → **모두 exit 0** (baseline 2 항목 실재 박제).
-- [ ] (G-F) `node -e "JSON.parse(require('fs').readFileSync('public/manifest.json'))"` exit 0 + `diff public/manifest.json build/manifest.json` 0 lines diff (baseline byte-equal 박제 — `public/manifest.json` 462 byte).
-- [ ] (G-G) `<link rel="apple-touch-icon" href="/apple-icon-precomposed.png">` 의 `apple-icon-precomposed.png` ∉ `manifest.json.icons[*].src` + `<link rel="icon" href="/favicon.ico">` 의 `favicon.ico` ∈ `manifest.json.icons[*].src` (baseline 양면 의도 분리 박제).
+- [x] (G-A) `grep -cE "manifest|favicon|apple.touch.icon|theme.color" index.html` → **4 + rc=0** (baseline 4 hit 박제, HEAD `60e8def` 실측 — REQ-099 §배경 HEAD `7477189` 이후 index.html 정적 자원 참조 영역 도입 차분 0).
+- [x] (G-B) `test -f public/manifest.json && test -f public/favicon.ico && test -f public/apple-icon-precomposed.png && test -f public/logo192.png` → **exit 0** (baseline 4 파일 실재 박제).
+- [x] (G-C) `npm run build` 후 `test -f build/{manifest.json,favicon.ico,apple-icon-precomposed.png,logo192.png,index.html}` + `grep -cE "manifest|favicon|apple.touch.icon|theme.color" build/index.html` → **exit 0 + 4** (baseline build artifact 보존 박제).
+- [x] (G-D) `index.html:6` theme-color content 값 ↔ `public/manifest.json.theme_color` 값 추출 후 문자열 동치 → 동일 (`"#000000"` baseline).
+- [x] (G-E) `public/manifest.json.icons[*].src` 전수 (`favicon.ico` + `logo192.png` 2 항목) 에 대해 `test -f public/<src>` → **모두 exit 0** (baseline 2 항목 실재 박제).
+- [x] (G-F) `node -e "JSON.parse(require('fs').readFileSync('public/manifest.json'))"` exit 0 + `diff public/manifest.json build/manifest.json` 0 lines diff (baseline byte-equal 박제 — `public/manifest.json` 462 byte).
+- [x] (G-G) `<link rel="apple-touch-icon" href="/apple-icon-precomposed.png">` 의 `apple-icon-precomposed.png` ∉ `manifest.json.icons[*].src` + `<link rel="icon" href="/favicon.ico">` 의 `favicon.ico` ∈ `manifest.json.icons[*].src` (baseline 양면 의도 분리 박제).
 - [ ] (G-H) 발화 채널 존재 — 단위 테스트 + filesystem assertion + JSON parse + 값 추출 동치 비교 (또는 동등 fixture) 채널을 통해 rc=0/1 결정론. 발화 시점 채널 (pre-push / CI / 신규 `check:public-asset-coherence` script) 부착 미박제 (수단 위임).
 - [ ] (G-I) 시점 비의존 — `vite` 메이저 bump · `index.html` 정적 자원 참조 갱신 · `public/manifest.json` 본문 키 갱신 후 1 PR 안에 G-A·G-B·G-C·G-D·G-E·G-F·G-G 동시 만족 회복 사례 누적.
 - [ ] (G-J) 자체 진단 제외 — 본 spec / req / test 파일의 `manifest.json` / `favicon.ico` / `apple-icon-precomposed.png` / `theme-color` occurrence 가 G-A grep count 영향 0 (단일 파일 scope `index.html`).
 
 ## 수용 기준
-- [ ] (Must FR-01) `grep -cE "manifest|favicon|apple.touch.icon|theme.color" index.html` → **출력 = 4 + rc=0**. 등록 수의 추가/감소는 본 spec 갱신 신호 (배열 크기 자체는 변동 허용).
-- [ ] (Must FR-02) `test -f public/manifest.json && test -f public/favicon.ico && test -f public/apple-icon-precomposed.png` → **exit 0**. `<meta name="theme-color">` 는 path 참조 없음 (값 자체가 hex color — FR-04 영역).
-- [ ] (Must FR-03) `npm run build` 후 `test -f build/manifest.json && test -f build/favicon.ico && test -f build/apple-icon-precomposed.png && test -f build/index.html` → **exit 0** + `grep -cE "manifest|favicon|apple.touch.icon|theme.color" build/index.html` → **4** (G-A 와 동치 보존).
-- [ ] (Must FR-04) `index.html:6` `<meta name="theme-color" content="...">` 의 content 값 ↔ `public/manifest.json.theme_color` 의 JSON 문자열 값 → **정확히 일치** (baseline `"#000000"`).
-- [ ] (Must FR-05) `public/manifest.json.icons[*].src` 의 모든 항목이 `public/` 디스크에 실재 — baseline `icons[0].src="favicon.ico"` + `icons[1].src="logo192.png"` 2 항목 모두 `test -f public/favicon.ico && test -f public/logo192.png` 통과.
-- [ ] (Should FR-06) `public/manifest.json` 자체가 valid JSON (parse 가능) + build artifact `build/manifest.json` 도 valid + byte-equal (Vite `publicDir` 복사가 byte-for-byte).
-- [ ] (Should FR-07) 3 채널 양면 의도 분리 박제 — 현 baseline 상태 (apple-icon-precomposed.png ∉ manifest.json.icons / favicon.ico ∈ manifest.json.icons) 가 본 spec 의 한 element. 분리 상태 변경 (apple icon 의 manifest 포함 / favicon 의 manifest 배제 등) 은 본 spec 갱신 신호.
+- [x] (Must FR-01) `grep -cE "manifest|favicon|apple.touch.icon|theme.color" index.html` → **출력 = 4 + rc=0**. 등록 수의 추가/감소는 본 spec 갱신 신호 (배열 크기 자체는 변동 허용).
+- [x] (Must FR-02) `test -f public/manifest.json && test -f public/favicon.ico && test -f public/apple-icon-precomposed.png` → **exit 0**. `<meta name="theme-color">` 는 path 참조 없음 (값 자체가 hex color — FR-04 영역).
+- [x] (Must FR-03) `npm run build` 후 `test -f build/manifest.json && test -f build/favicon.ico && test -f build/apple-icon-precomposed.png && test -f build/index.html` → **exit 0** + `grep -cE "manifest|favicon|apple.touch.icon|theme.color" build/index.html` → **4** (G-A 와 동치 보존).
+- [x] (Must FR-04) `index.html:6` `<meta name="theme-color" content="...">` 의 content 값 ↔ `public/manifest.json.theme_color` 의 JSON 문자열 값 → **정확히 일치** (baseline `"#000000"`).
+- [x] (Must FR-05) `public/manifest.json.icons[*].src` 의 모든 항목이 `public/` 디스크에 실재 — baseline `icons[0].src="favicon.ico"` + `icons[1].src="logo192.png"` 2 항목 모두 `test -f public/favicon.ico && test -f public/logo192.png` 통과.
+- [x] (Should FR-06) `public/manifest.json` 자체가 valid JSON (parse 가능) + build artifact `build/manifest.json` 도 valid + byte-equal (Vite `publicDir` 복사가 byte-for-byte).
+- [x] (Should FR-07) 3 채널 양면 의도 분리 박제 — 현 baseline 상태 (apple-icon-precomposed.png ∉ manifest.json.icons / favicon.ico ∈ manifest.json.icons) 가 본 spec 의 한 element. 분리 상태 변경 (apple icon 의 manifest 포함 / favicon 의 manifest 배제 등) 은 본 spec 갱신 신호.
 - [ ] (Should FR-08) FR-01·FR-02·FR-03·FR-04·FR-05·FR-06·FR-07 7 조건의 회귀는 자동 검출 채널 (단위 테스트 + filesystem assertion + JSON parse + 값 추출 동치 비교 또는 동등 fixture) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:public-asset-coherence` script) 선정은 수단 영역, "발화 채널 존재" 계약 박제.
 - [ ] (Must NFR-01 결정론) 동일 HEAD 상에서 FR-01~FR-05 의 grep + `test -f` + JSON parse 의 결과가 N 회 반복 시 N 회 동일 rc + 동일 출력. build artifact 측정은 `npm run build` 1회 후 N 회 read-only 측정.
 - [ ] (Must NFR-02 멱등성) 본 게이트는 read-only — `index.html` / `public/**` / `build/**` 의 파일을 수정하지 않는다. `build/**` 재생성은 게이트 실행의 부수효과로 허용되나 본 spec 자체는 build 명령 강제하지 않음 (수단 영역).
@@ -102,3 +102,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-17 | inspector / `60e8def` 직후 | REQ-099 흡수 — `index.html` 정적 자원 참조 ↔ `public/**` ↔ `build/**` 3-축 정합 + `manifest.json` icons / theme-color 양면 동치 4 계약 신규 박제. G-A 4 hit (`index.html` grep count) / G-B 4 파일 (`public/`) / G-C build artifact 4 자원 + grep 4 hit / G-D `theme-color` 양면 값 `"#000000"` / G-E icons 2 항목 / G-F JSON valid + 462 byte-equal / G-G 양면 분리 박제 / G-H 발화 채널 0 hit baseline. | all |
+| 2026-05-18 | TSK-20260518-09 / `77b4223` | hook-ack — 결정론 측정 fixture 박제 (`src/__tests__/public-asset-reference-coherence.test.ts` 168 line, G-A~G-G 7 게이트 + 7 `it` 단언, fixture 7/7 PASS, `npm test` 479 PASS / lint+build rc=0 회귀 0, `countMatchingLines` 헬퍼 도입으로 grep `-c` 라인 단위 의미 정합). HEAD 재실측 (`77b4223`): G-A 4 hit / G-B 4 파일 PASS / G-D theme_color 양면 `#000000` 동치 PASS / G-F `public/manifest.json` ↔ `build/manifest.json` byte-equal PASS / fixture 7/7 PASS. §테스트 현황 G-A~G-G + §수용 기준 FR-01~FR-07 7+7 marker flip. FR-08 발화 채널 부착 (pre-push / CI / `check:public-asset-coherence` script) 후속 신호는 별 axis carve 위임. | §역할 헤더 / §테스트 현황 G-A~G-G / §수용 기준 FR-01~FR-07 |
