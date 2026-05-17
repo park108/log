@@ -5088,3 +5088,58 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #   (11) **REQ-20260518-009 흡수 분기 surface (90차 (11) 재인용)**: REQ-009 inspector 70차+ tick 흡수 시 §역할 OOS 평서 박제 가정 → surface (u) 추가 + carve scope 외 누적 분기 가능. 본 chain 자체는 inspector 영역.
 #   (12) **HEAD 0 commit 격차 회귀 패턴 박제**: 91차 = HEAD `8030544` 동일 회귀 (90차 종료 단일 commit). 91차+ tick 도 90차 .planner-seen 단일 commit 만 baseline 격차 surface — 환경 정체 12 tick + inspector tick 미발화 동시 시그널 박제. 외부 의존 면제 분기 47회차 + 3-zero no-op 3회차 = 영구 정체 진입 신호 누적 (88차 promote 이후 23 tick 누적 측정값 — 89~91차 = 3-zero / hook-ack 잔여 marker 플립 미진입). planner 자가 영역 정합 — 행동지침 부재 (멱등 보존).
 # - **RULE-04 token 박제 본 91차 tick**: carve 0 + promote 0 + 격리 0 + no-op true + 자기 영역 commit 1 (.planner-seen 91차 노트 갱신 단일 commit). grep dry-run token 미발화 (carve 0). reconcile token 미발화 (planner 영역 아님).
+# 2026-05-18 planner session (92nd tick @HEAD=a0f02c1) — no-op 4회차 누적 (88차 promote 리셋 후 4 tick 연속 3-zero — 89/90/91/92차).
+#   재실행 baseline (HEAD=a0f02c1 실측):
+#     - working tree: clean (commit 9 / 격차 0).
+#     - 40.task/: 0건 (TASK_READY_MAX=10 → 10건 여유).
+#     - 30.spec/green/: 18 spec 잔존 (foundation 15 + testing 1 + styles 1 + common 3). 91차 hash baseline 대비:
+#         common/markdownParser.md = 57191df1 (W=0 U=1 T=0, 91차 동일)
+#         common/sanitizeHtml.md = a40f9121 (W=0 U=4 T=0, 91차 동일)
+#         common/test-helpers.md = e9c29f49 (W=0 U=3 T=0, 91차 동일)
+#         foundation/csp-meta-dev-strip-prod-preserve.md = 477c2e7a (W=0 U=21 T=0, 91차 동일)
+#         foundation/diagnostic-script-auto-channel-coverage.md = bf711ada (W=0 U=2 T=0, 91차 동일)
+#         foundation/eslint-react-hooks-lint-gate.md = f2331732 (W=0 U=20 T=0, 91차 동일)
+#         foundation/index-html-public-asset-reference-coherence.md = 2db914b3 (W=0 U=29 T=0, 91차 동일)
+#         foundation/index-html-root-mount-id-token-coherence.md = b0f1d2a3 (W=0 U=28 T=0, 91차 동일)
+#         foundation/island-proptypes-zero.md = 20803edf (W=0 U=2 T=0, 91차 동일)
+#         foundation/lint-warning-zero-gate.md = 08fae91c (W=0 U=2 T=0, 91차 동일)
+#         foundation/manifest-icons-sizes-token-disk-coherence.md = e32a91da (W=0 U=24 T=0, 91차 동일. REQ-100 15회차 진입, 정체 14회차)
+#         foundation/meta-description-default-fallback-token-coherence.md = e5668334 (W=0 U=28 T=0, 91차 동일)
+#         foundation/meta-robots-robotstxt-policy-semantic-coherence.md = 29fb067f (W=0 U=26 T=0, 91차 동일. REQ-20260518-001 13회차 진입, 정체 12회차)
+#         foundation/node-modules-extraneous-coherence.md = 4ec130f6 (W=0 U=3 T=0, 91차 동일)
+#         foundation/npm-script-prefix-coherence.md = 7b207550 (W=0 U=2 T=0, 91차 동일)
+#         foundation/root-config-spec-reference-coherence.md = d6a79792 (W=0 U=14 T=0, 91차 동일)
+#         foundation/spec-carve-precondition.md = 9116ef49 (W=0 U=4 T=0, 91차 동일)
+#         foundation/tooling.md = 308ec7cc (W=0 U=6 T=0, 91차 동일)
+#         styles/css-modules.md = 3c117b59 (W=0 U=3 T=0, 91차 동일)
+#         testing/runtime-fetch-unmount-safety.md = 4f81b55a (W=0 U=3 T=0, 91차 동일)
+#     - 60.done/2026/05/17/task/: 25 디렉터리 (변동 없음).
+#     - 60.done/2026/05/18/task/: 3 디렉터리 (check-spec-coherence-ci-cell + package-manager-ci-lockfile-coherence + root-config-spec-reference-cleanup — 91차 동일).
+#     - 50.blocked/spec/: foundation/ 빈 디렉터리 잔존 (RULE-05 /revisit 사이클 완료 후 정합 — 91차 동일).
+#     - 50.blocked/task/: 3건 잔존 (monitor-focus-visible-css-audit-fixture + visitormon-fetch-unmount-safety + TSK-20260518-03 reason 박제 — 91차 동일, 외부 의존).
+#     - 10.followups/: 본 tick 진입 시 비어있음 (discovery 영역).
+#     - 20.req/: 7건 (REQ-20260518-001/004/005/006/007/008/009 — inspector 70차+ tick 흡수 대기, planner 영역 밖. 91차 6건 → 92차 7건 = REQ-001 인지 보정).
+# - **4조건 promote 측정 (92차)**:
+#   - 18 spec 전수 unchecked ≥ 1 → U=0 조건 자가 차단 → **4조건 미충족** → promote 0건.
+#   - 88차 promote source (accessibility + package-manager-major-coherence) 는 inspector 68차 hook-ack burst (6 marker 100% 플립) 직후 발화. 92차 진입 시점 inspector 69~70차 tick 사이 신규 흡수 2건 (REQ-002 mount-id + REQ-003 meta-description — 89차 신규 surface) + 70차 Phase 2 backpressure no-op 박제 — 잔여 marker 플립 분기 미진입 → 92차 promote 부재.
+# - **carve 후보 surface 재평가 (92차 — 91차 행동지침 (2) 18 surface 자가 차단 룰 잔존 적용)**:
+#   (a) REQ-097 축 A — TSK-20260518-01 회수 완료. **재carve 영구 금지 (멱등)**.
+#   (b) REQ-097 축 D — TSK-31 회수 chain 종결 + inspector G-B/G-C marker 플립 후 진입 가능 (inspector 영역, 92차 미진입).
+#   (c) REQ-098 G-D (b) — TSK-31. **재carve 영구 금지 (멱등)**.
+#   (d) REQ-098 잔여 16 marker — 외부/수단/결정 영역 의존 자가 차단 유지.
+#   (e) REQ-099 G-A~G-G — §역할 OOS → carve scope 외 (16회차 진입).
+#   (f) REQ-100 G-A~G-J — §역할 OOS + baseline 양방향 위반 fixture 자가모순 → carve scope 외 (15회차 진입, 정체 14회차).
+#   (g) runtime-fetch-unmount-safety: TSK-20260518-04 격리. **재carve 영구 금지 (멱등)**. 잔여 (I4)(I6)(I7)(FR-04)(FR-05) — TSK-04 정식 해제 + inspector hook-ack 후 진입 분기.
+#   (h) tooling.md hook-ack 6 marker — 다음 inspector tick 측정 후 승격 분기.
+#   (i) REQ-20260518-001 meta-robots-robotstxt-policy-semantic-coherence — §역할 OOS surface 누적 13회차 진입.
+#   (j) REQ-20260518-002 mount-id-token-coherence (inspector 69차 흡수) — §역할 OOS 자가 차단 4회차 진입.
+#   (k) REQ-20260518-003 meta-description-default-fallback-token-coherence (inspector 69차 흡수) — §역할 OOS 자가 차단 4회차 진입.
+#   (l)(m)(n)(o)(p) REQ-004~008 — inspector 70차 backpressure 보류 (Phase 2 no-op). carve scope 외.
+#   (q) REQ-20260518-009 PWA install contract — inspector 70차 backpressure 보류. carve scope 외.
+#   (r) 50.blocked/task/ 3건 — 외부 의존 회수 영역 (operator /revisit). carve scope 외.
+# - **행동지침 본 92차 tick**:
+#   (1) **no-op 4회차 누적 박제** (3-zero — promote 0 + carve 0 + 격리 0). HEAD=a0f02c1 격차 0 회귀.
+#   (2) **18 surface 자가 차단 룰 잔존 유지** (carve / promote / 격리 모든 가지 외부 의존). 멱등 보존.
+#   (3) **외부 의존 면제 분기 48회차 진입 (영구 정체 누적 신호)**: 88차 promote 이후 24 tick 누적 (89~92차 4-zero). 운영자 개입 정공법 (RULE-05 /revisit + inspector hook-ack burst) 외 진척 불가.
+#   (4) **HEAD 환경 격차 baseline 갱신**: 91차 `3c44650` → 92차 `a0f02c1` (inspector 70차 commit 1건 진척 — Phase 1 reconcile 0/20 ack + Phase 2 backpressure no-op). planner 영역은 본 92차 commit 1건 격차만 surface.
+# - **RULE-04 token 박제 본 92차 tick**: carve 0 + promote 0 + 격리 0 + no-op true + 자기 영역 commit 1 (.planner-seen 92차 노트 갱신 단일 commit). grep dry-run token 미발화 (carve 0). reconcile token 미발화 (planner 영역 아님).
