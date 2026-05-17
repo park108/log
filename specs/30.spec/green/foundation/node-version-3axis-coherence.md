@@ -2,7 +2,7 @@
 
 > **위치**: `package.json` (`engines.node`), `.github/workflows/ci.yml` (`actions/setup-node with.node-version`), repo root pin 파일 (`.nvmrc` / `.node-version` / `.tool-versions`).
 > **관련 요구사항**: REQ-20260517-079
-> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 reconcile I2 marker 1건 self-ack 플립 — CI `with.node-version` 박제 본 spec 발행 시점 PASS marker 회수)
+> **최종 업데이트**: 2026-05-17 (by inspector — Phase 1 reconcile (I1)(I3)(I4)(I5) + Must FR-01~FR-05 + NFR-05 총 10 marker hook-ack 플립 by TSK-20260517-14 / `3910ba8` — `package.json:engines.node = ">=24"` + `.nvmrc=24` + `scripts/check-node-version-coherence.sh` 박제, 3축 메이저 24 정합)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`79d28cc` 박제 시점).
 
@@ -42,21 +42,21 @@
 - 역의존: `foundation/ci.md` §3 호환성 원칙 (본 spec 이 "존재 시" 조건을 존재 박제로 강화), `dependency-bump-gate.md` (REQ-035 — Node 메이저 bump 직후 게이트, 본 spec 과 직교).
 
 ## 테스트 현황
-- [ ] (I1) `engines.node` 존재 게이트: `node -e "const p=require('./package.json'); process.exit(p.engines && p.engines.node ? 0 : 1)"` → exit 0. 현재 baseline: exit 1 (HEAD=`79d28cc` 실측, **FR-01 위반**). task 수행 후 marker 플립.
+- [x] (I1) `engines.node` 존재 게이트: `node -e "const p=require('./package.json'); process.exit(p.engines && p.engines.node ? 0 : 1)"` → exit 0. 직전 baseline: exit 1 (HEAD=`79d28cc`). **TSK-20260517-14 / `3910ba8` 회수 후 HEAD=`3910ba8` 실측 exit 0** (`package.json:engines.node = ">=24"` 박제). 본 HEAD=`3910ba8` 재실측 PASS.
 - [x] (I2) CI `with.node-version` 메이저 박제: `grep -nE "node-version:" .github/workflows/ci.yml` → 1 hit @`.github/workflows/ci.yml:21` (HEAD=`472611f` 실측 PASS, `79d28cc` baseline 무변동 — `foundation/ci.md` §2 정합). self-ack — 본 spec 박제 시점 PASS marker 회수.
-- [ ] (I3) 로컬 dev pin 존재: `ls .nvmrc .node-version .tool-versions 2>/dev/null | wc -l` ≥ 1. 현재 baseline: 0 (HEAD=`79d28cc` 실측, **FR-03 위반**). task 수행 후 marker 플립.
-- [ ] (I4) 3축 메이저 격차 0: 진단 명령 stdout 에 격차 카테고리 0 hit. 현재 baseline: `engines.node 부재` + `local-pin 부재` 2 hit (HEAD=`79d28cc` 실측, **FR-02 + FR-04 위반 — FR-01·FR-03 위반에 종속**). task 수행 후 marker 플립.
-- [ ] (I5) 위반 검출 단일성: 진단 명령 1 명령 박제 + grep 가능한 라벨 박제. 본 spec 박제 자체로 정합 박제 가능 (§동작 5 명령 정의) — task 단 진단 명령 실현 후 marker 플립.
+- [x] (I3) 로컬 dev pin 존재: `ls .nvmrc .node-version .tool-versions 2>/dev/null | wc -l` ≥ 1. 직전 baseline: 0 (HEAD=`79d28cc`). **TSK-20260517-14 / `3910ba8` 회수 후 HEAD=`3910ba8` 실측 1** (`.nvmrc=24` 신규 박제). 본 HEAD=`3910ba8` 재실측 PASS.
+- [x] (I4) 3축 메이저 격차 0: 진단 명령 stdout 에 격차 카테고리 0 hit. 직전 baseline: `engines.node 부재` + `local-pin 부재` 2 hit (HEAD=`79d28cc`). **TSK-20260517-14 / `3910ba8` 회수 후 HEAD=`3910ba8` 실측** `bash scripts/check-node-version-coherence.sh` → exit 0 + stdout `node-version coherence: 3-axis aligned at major 24` (격차 카테고리 0 hit). 본 HEAD=`3910ba8` 재실측 PASS.
+- [x] (I5) 위반 검출 단일성: 진단 명령 1 명령 박제 + grep 가능한 라벨 박제. **TSK-20260517-14 / `3910ba8` 회수 후** `scripts/check-node-version-coherence.sh` 단일 명령 박제 — stdout 격차 카테고리 라벨 (`engines.node 부재` / `local-pin 부재` / `major 격차 N`) grep 가능 (task result.md R5/R6/R7 회귀 fixture 실증). `npm run check:node-coherence` npm script 박제 (`package.json:scripts.check:node-coherence`).
 - [x] (I6) 시점 비의존성: 본 spec 본문 (§역할 + §동작 + §회귀 중점) 어디서도 구체 Node 메이저 숫자 박제 0 — `grep -nE "Node\s+(2[0-9]|18|19)" specs/30.spec/green/foundation/node-version-3axis-coherence.md` → 0 hit in 본문 (감사성 §변경 이력 메타는 별도). HEAD=`79d28cc` 박제 시점 PASS.
 - [x] (I7) 수단 중립: §역할 + §동작 7 에 수단 후보 3 카테고리 박제, 라벨 0. RULE-07 정합.
 - [x] (I8) 직교 정합: §역할 + §동작 8 에 `foundation/ci.md` §1·§2 + `dependency-bump-gate.md` 와의 직교 평서 박제. 본 spec 박제 자체로 정합 박제.
 
 ## 수용 기준
-- [ ] (Must, FR-01) `engines.node` 존재 박제 효능 — task 수행 후 `node -e "const p=require('./package.json'); process.exit(p.engines?.node ? 0 : 1)"` → exit 0. 현재 baseline: exit 1.
-- [ ] (Must, FR-02) `engines.node` 메이저 == CI `with.node-version` 메이저. FR-01 도입에 종속.
-- [ ] (Must, FR-03) 로컬 dev pin 채널 1+ 존재 — `ls .nvmrc .node-version .tool-versions 2>/dev/null | wc -l` ≥ 1.
-- [ ] (Must, FR-04) 로컬 dev pin 메이저 == FR-02 의 2채널 메이저 (3축 격차 0). FR-01·FR-03 도입에 종속.
-- [ ] (Should, FR-05) 위반 검출 단일성 — 1 명령 stdout 에서 격차 카테고리 라벨 grep 가능. task 단 진단 명령 실현 후 marker 플립.
+- [x] (Must, FR-01) `engines.node` 존재 박제 효능 — TSK-20260517-14 / `3910ba8` 회수 후 `node -e "const p=require('./package.json'); process.exit(p.engines?.node ? 0 : 1)"` → exit 0. 직전 baseline: exit 1 → 회복 박제. hook-ack: `60.done/2026/05/17/task/node-version-3axis-coherence-recover/result.md` DoD §G1.
+- [x] (Must, FR-02) `engines.node` 메이저 == CI `with.node-version` 메이저 — TSK-20260517-14 / `3910ba8` 회수 후 `engines.node = ">=24"` ↔ ci.yml:21 `node-version: '24'` 메이저 24 동치. hook-ack: 진단 script stdout `3-axis aligned at major 24`.
+- [x] (Must, FR-03) 로컬 dev pin 채널 1+ 존재 — TSK-20260517-14 / `3910ba8` 회수 후 `ls .nvmrc .node-version .tool-versions 2>/dev/null | wc -l` → 1 (`.nvmrc` 박제). hook-ack: `60.done/2026/05/17/task/node-version-3axis-coherence-recover/result.md` DoD §G4.
+- [x] (Must, FR-04) 로컬 dev pin 메이저 == FR-02 의 2채널 메이저 (3축 격차 0) — TSK-20260517-14 / `3910ba8` 회수 후 `.nvmrc=24` ↔ `engines.node>=24` ↔ ci.yml `node-version:'24'` 3축 동치. hook-ack: 진단 script `node-version coherence: 3-axis aligned at major 24` + R5/R6/R7 회귀 fixture (`engines.node` 제거 → exit 2 / `.nvmrc` 삭제 → exit 4 / `.nvmrc=22` → exit 5) 실증.
+- [x] (Should, FR-05) 위반 검출 단일성 — TSK-20260517-14 / `3910ba8` 회수 후 `scripts/check-node-version-coherence.sh` 단일 명령 박제 + `npm run check:node-coherence` npm script + stdout 격차 카테고리 라벨 (`engines.node 부재` / `local-pin 부재` / `major 격차 N`) grep 가능. hook-ack: task result.md R5/R6/R7 회귀 시뮬레이션 박제.
 - [x] (Should, FR-06) 본 효능 박제 위치 — inspector 결정으로 별도 spec (`foundation/node-version-3axis-coherence.md`) 분리. `foundation/ci.md` 흡수 대비 (a) 3축 동시 박제로 본 spec 단독 게이트 단일성 + (b) `foundation/ci.md` §3 "존재 시" 조건부 보존 (정합 강화는 본 spec 책임) + (c) 변경 영향 분리 (Node 메이저 정합 vs CI workflow 일반) 효능.
 - [x] (Must, FR-07) 시점 비의존 — 본 spec 본문 (§역할 + §동작 + §회귀 중점) 에 구체 Node 메이저 숫자 박제 0. §변경 이력 메타 / §스코프 규칙 baseline 한정. `grep -nE "Node\s+(2[0-9]|18|19)" specs/30.spec/green/foundation/node-version-3axis-coherence.md` 본문 한정 0 hit (§스코프 규칙 gate (G7) 박제).
 - [x] (Must, FR-08) 수단 라벨 0 — 본 spec 본문에 "기본값" / "권장" / "우선" / "default" / "best practice" 부여 0. `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/green/foundation/node-version-3axis-coherence.md` 본문 한정 0 hit (§스코프 규칙 gate (G8) 박제).
@@ -64,7 +64,7 @@
 - [x] (NFR-02) 게이트 단일성 — §동작 5 위반 검출 단일성 평서. 진단 명령 1건 박제 (실현은 task 위임).
 - [x] (NFR-03) RULE-07 정합 — 결과 효능 (3축 메이저 격차 0 + `engines.node` 존재 + local-pin 존재) 만 박제. 1회성 진단 / 릴리스 귀속 patch 0.
 - [x] (NFR-04) 직교 정합 — §동작 8 + §회귀 중점 에 `foundation/ci.md` §1·§2 + `dependency-bump-gate.md` 와의 직교 평서.
-- [ ] (NFR-05) 환경 재현성 — 본 효능 도입 후 신규 contributor 의 `nvm use` / `asdf install` → `npm ci` 가 `engines.node` 호환 경고 0 + CI 동일 Node 메이저 사용. task 수행 후 hook-ack.
+- [x] (NFR-05) 환경 재현성 — TSK-20260517-14 / `3910ba8` 회수 후 `.nvmrc` 단일 진실원 박제 (신규 contributor `nvm use` 시 24 진입). CI `node-version: '24'` 에서 `npm ci` PASS — task result.md `npm run lint` PASS / `npm test` 48 files 440 tests PASS / `npm run build` PASS 박제 (CI v24 정합). hook-ack 박제 (운영자 `node -v` v22 ↔ `>=24` semver MISS 는 `.nvmrc` 박제 후 `nvm use` 24 진입으로 격차 0 수렴 — `60.done/2026/05/17/task/node-version-3axis-coherence-recover/result.md` §관찰 이슈 박제).
 
 ## 스코프 규칙
 - **expansion**: N/A (3축 동시 박제 게이트 — task 발행 시점에 planner 가 scope 규칙 재계산).
@@ -84,6 +84,7 @@
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-079 흡수) / pending (HEAD=`79d28cc`) | 최초 박제 — Node 런타임 메이저 3축 동시 정합 (engines.node 존재 + CI with.node-version + 로컬 dev pin) 8 축 (I1~I8) 게이트. baseline: engines.node 부재 (G1 exit 1 / G2 0 hit) + 로컬 pin 부재 (G4 0 file) + CI Node 24 (G3 `.github/workflows/ci.yml:21`) + 운영자 로컬 Node 22 (메이저 격차 1). FR-06 inspector 결정: 별도 spec 분리 (foundation/ci.md 흡수 대비 효능 — 게이트 단일성 + ci.md §3 보존 + 변경 영향 분리). consumed req: `specs/20.req/20260517-node-runtime-version-3axis-coherence.md` (REQ-079) → `60.done/2026/05/17/req/` mv. 선행 done req (메타 패턴): REQ-20260421-023 (ci.md 출처) + REQ-20260421-034 (재발행 — §3 조건부 보존) + REQ-20260517-061 (toolchain) + REQ-20260517-063 (runtime dep) + REQ-20260517-073 (node_modules). RULE-07 자기검증 — (I1)~(I8) 모두 평서형·반복 검증 가능 (`node -e` + `grep` + `ls` 단일 명령)·시점 비의존 (구체 Node 메이저 본문 박제 0 — G7 0 hit)·incident 귀속 부재·수단 중립 (격차 해소 수단 3 카테고리 라벨 0 — G8 0 hit). RULE-06 §스코프 규칙 8 gate (G1~G8) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/node-version-3axis-coherence.md` create). | all |
 | 2026-05-17 | inspector (Phase 1 reconcile, self-ack) / HEAD=`472611f` | (I2) marker 1건 `[ ]→[x]` 플립. self-ack 근거: §테스트 현황 본문 "HEAD=`79d28cc` 실측 PASS — 본 spec 박제 시점 PASS — 마커 즉시 `[x]`" 평서 + §스코프 규칙 (G3) "실측 PASS" + `foundation/ci.md` §2 정합 — 본 spec 발행 시점 PASS marker 회수 (직전 세션 누락분). HEAD=`472611f` 재실측 `grep -nE "node-version:" .github/workflows/ci.yml` → 1 hit @`:21` 무변동. 본 spec 본문 / 게이트 / baseline 수치 변경 0 — marker 정합 회수만 박제. 잔여 (I1)(I3)(I4)(I5) marker 는 TSK-20260517-14 (`node-version-3axis-coherence-recover`) 회수 대기 유지. | §테스트 현황 (I2) |
+| 2026-05-17 | inspector (Phase 1 reconcile, hook-ack) / HEAD=`3910ba8` | (I1)(I3)(I4)(I5) marker 4건 + Must FR-01·FR-02·FR-03·FR-04 marker 4건 + Should FR-05 marker 1건 + NFR-05 marker 1건 총 **10 marker** `[ ]→[x]` 플립. hook-ack 근거: TSK-20260517-14 / `3910ba8` (`60.done/2026/05/17/task/node-version-3axis-coherence-recover/result.md`) — `package.json:engines.node = ">=24"` 추가 + `.nvmrc=24` 신규 + `scripts/check-node-version-coherence.sh` 신규 (exec) + `scripts.check:node-coherence` npm script 박제. HEAD=`3910ba8` 재실측: (G1) `node -e "...p.engines?.node..."` → exit 0 (baseline 1 → 0 수렴), (G2) `grep -c "\"engines\"" package.json` → 1 hit (baseline 0 → 1), (G3) `grep -nE "node-version:" .github/workflows/ci.yml` → 1 hit @`:21` 유지, (G4) `ls .nvmrc .node-version .tool-versions 2>/dev/null \| wc -l` → 1 (baseline 0 → 1), (G6) `bash scripts/check-node-version-coherence.sh` → exit 0 + stdout `node-version coherence: 3-axis aligned at major 24`. R5/R6/R7 회귀 fixture: `engines.node` 제거 시뮬 → exit 2 + `engines.node 부재` grep / `.nvmrc` 삭제 시뮬 → exit 4 + `local-pin 부재` grep / `.nvmrc=22` 시뮬 → exit 5 + `major 격차 2` grep — 위반 검출 단일성 (FR-05) 실증. 자매 게이트 회귀 0: `npm run lint` PASS / `npm test` 48 files 440 tests PASS (coverage statements 97.78%) / `npm run build` PASS (337ms) / `npm run check:deps` PASS / `npm run check:vite-env` PASS / `npm run lint:spec-coherence` PASS — task result.md §테스트 결과 박제. 본 spec 본문 (§역할 + §동작 + §회귀 중점 + §스코프 규칙) 변경 0 — marker 박제만. (G7)(G8) 본 세션 재검증 0 hit 유지. 잔여 marker 0건 — 본 spec 전 marker `[x]` 수렴 (green→blue 승격 후보, planner 영역). | §테스트 현황 (I1)(I3)(I4)(I5), §수용 기준 FR-01~05·NFR-05, §변경 이력 |
 
 ## 참고
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-node-runtime-version-3axis-coherence.md` (REQ-079 — 본 세션 mv).
