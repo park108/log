@@ -900,3 +900,81 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (8) **HEAD 격차 분석**: 33rd tick 진입 시점 baseline 격차 항목 별 행동지침 (1)~(7) 분기 적용 — (a) green spec hash 변경 검출 (inspector marker flip 또는 promote 이동 신호), (b) 40.task/ 진입/이탈 검출 (TSK-12/13/14/15/16 수행 완료 신호), (c) 60.done/2026/05/17/task/ 신규 디렉터리, (d) 50.blocked/task/ 진입 (developer 격리 신호), (e) 20.req/ 변동, (f) 50.blocked/spec/foundation/ 진입/이탈, (g) 환경 회복 신호 유지 검증.
 #     (9) **REQ-077 (typecheck-island-extension) 후속 분기**: TSK-15 + TSK-16 동반 머지 후 `npm run typecheck` exit=0 도달 시 inspector 가 §변경 이력 hook-ack 박제 — island 자격 시계열 신규 entry (Toaster + common 추가). REQ-061 src-typescript-migration 전반 수렴 chain 진입 신호 — vite-env-boundary-typing G3 marker flip 후보 도래.
 #     (10) **REQ-079 (node-version-3axis-coherence) 후속 분기**: TSK-14 done 후 inspector §스코프 규칙 G1·G2·G4·G6 marker flip + foundation/ci.md §3 "존재 시" 조건부 박제 의 강화 hook-ack 도래 (직교 spec 영향 추적). renovate / dependabot 자동화 도입 시 별 req 후보.
+
+# 2026-05-17 planner session (33rd tick @HEAD=472611f) — no-op (carve/promote/격리 0건). 12 green spec 전수 hash 무변동 + inspector 미수행 + TSK-12 done 1건 검출.
+#   본 tick 입력 상태:
+#     - 30.spec/green/: 12 spec 잔존 (32차 동일 — inspector 미수행).
+#       hash 전수 (SHA-1 git hash-object 33rd 재실측, 32차 박제 대비 무변동):
+#         - foundation/tooling.md=b2c1299b (32차 동일, 정체 1 → 2회차)
+#         - foundation/src-spec-reference-coherence.md=c23cf800 (32차 동일, 4 → 5회차, ≥3cycle 초과)
+#         - foundation/node-modules-extraneous-coherence.md=d940aa94 (32차 동일, 4 → 5회차)
+#         - foundation/vite-env-boundary-typing.md=f350fc1e (32차 동일, 3 → 4회차)
+#         - foundation/typecheck-island-extension.md=b3e9c258 (32차 동일, 0 → 1회차)
+#         - foundation/node-version-3axis-coherence.md=908f853f (32차 동일, 0 → 1회차)
+#         - testing/search-abort-runtime-smoke.md=4aec8f76 (32차 동일, 2 → 3회차, ≥3cycle 임계치 도달)
+#         - styles/css-modules.md=a0b75e71 (32차 동일, 2 → 3회차)
+#         - common/sanitizeHtml.md=f33c38cc (32차 동일, 2 → 3회차)
+#         - common/markdownParser.md=80e20a34 (32차 동일, 2 → 3회차)
+#         - common/accessibility.md=fa58c616 (32차 동일, 2 → 3회차)
+#         - common/env.md=a8ad11c3 (32차 동일, 0 → 1회차)
+#     - 30.spec/blue/: 15 spec 잔존 (32차 동일). foundation 5 + components 9 + common 1.
+#     - 50.blocked/spec/foundation/: 12 파일 (6 spec + _reason.md) 잔존 — RULE-05 /revisit 영역, planner 비접촉.
+#     - 40.task/ 진입 시 4건 (TSK-13/14/15/16). 32차 종료 시점 5건 (TSK-12/13/14/15/16) → -1 (TSK-12 done 검출: 3395318 commit "test: src/Search/Search.test.tsx loading dots timer cleanup afterEach real timer cleanup 박제" → 60.done/2026/05/17/task/search-loading-dots-real-timer-cleanup/ 진입 박제). 본 tick 종료 시 +0 → 4건 / 임계치 10 미달 (6 여유).
+#     - 50.blocked/task/: 비어있음.
+#     - 60.done/2026/05/17/task/: 8 디렉터리 (32차 7 + search-loading-dots-real-timer-cleanup 신규 — TSK-12 done).
+#     - 60.done/2026/05/17/req/: 21 file 잔존 (32차 동일 — 본 tick 미접촉, inspector 영역).
+#     - 10.followups/: 비어있음.
+#     - 20.req/: 비어있음.
+#     - 환경 회복 신호: `node_modules/{vite,vitest,typescript,@eslint/js}` EXIST 유지 (32차 동일).
+#     - Task ID footprint 전수 (RULE-01 grep `specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 33rd 재실행): TSK-20260418-10 + TSK-20260420-{13,16,26,33} + TSK-20260422-{13,14,15} + TSK-20260517-{01,02,03,05,06,07,08,09,10,11,12,13,14,15,16}. -04 미발행 유지 (50.blocked/spec/foundation/log-island-convergence_reason.md 평서문 박제 1 hit — 실제 점유 아님, 32차 박제 footprint 정합). -17+ 미점유.
+#   본 세션 처리:
+#     (i) 12 green spec unchecked 측정 + carve 결정: 12 spec 전수 hash 무변동 + 신규 marker 진입 부재 (inspector 미수행) → TSK-13/14/15/16 동일 marker 회수 carve 재발행 = RULE-02 멱등 위반. 신규 carve 후보 0건.
+#         - foundation/tooling.md (unchecked=3, hash 무변동): L162 (Could REQ-075 FR-05 차기 이벤트) + L164 (NFR-02 lint-staged 메이저 업그레이드) + L168 (Should REQ-078 FR-03 fixture probe 가이드) — 모두 차기 이벤트 의존 / 운영자 회수 대기. carve 영역 밖.
+#         - foundation/src-spec-reference-coherence.md (unchecked=1, L40): 차기 spec 박제·삭제·rename 이벤트 누적 marker. inspector ack 영역.
+#         - foundation/node-modules-extraneous-coherence.md (unchecked=5, L39·L40·L45·L46·L47): TSK-09 (deps 자동 게이트) done 박제 후 inspector marker flip 대기 (각 항목 단일 사례 박제 → marker 플립 누적 대기).
+#         - foundation/vite-env-boundary-typing.md (unchecked=2, G3 + Must G3): REQ-061 / src-typescript-migration / Toaster 영역 회수 의존. TSK-15+TSK-16 머지 후 src/Toaster + src/common 영역 typecheck 0 hit 도달 → chain 진입 신호 후보.
+#         - foundation/typecheck-island-extension.md (unchecked=5): TSK-15+TSK-16 발행 박제 (40.task/ 잔존). 멱등 위반 방지 — carve 부적합.
+#         - foundation/node-version-3axis-coherence.md (unchecked=11): TSK-14 발행 박제 (40.task/ 잔존). 멱등 위반 — carve 부적합.
+#         - testing/search-abort-runtime-smoke.md (unchecked=2, I4·FR-06-b): TSK-12 done 검출 (3395318) — afterEach real timer cleanup 박제 commit. inspector L40 + L46 marker flip 대기 (33rd tick 진입 시점 hash 무변동 = inspector 미수행).
+#         - styles/css-modules.md (unchecked=3): 차기 이벤트 의존 (I3 enum 변경 / I4 Skeleton 전환).
+#         - common/sanitizeHtml.md (unchecked=4): (I2) caller 게이트 별 req 권장 + (I5) OWASP fixture inspector marker flip 영역 + (Must FR-02-b·c) 별 task / 별 spec.
+#         - common/markdownParser.md (unchecked=1, I6 mixed-type fixture): TSK-13 발행 박제 (멱등 위반). carve 부적합.
+#         - common/accessibility.md (unchecked=1, I5 WCAG audit): 별 req 권장 영역.
+#         - common/env.md (unchecked=1, I5 자기참조 메타): TSK-11 done 박제 후 inspector L42 marker flip 후보. inspector ack 영역.
+#         → 신규 carve 후보 0건. 본 tick 채번 0건. 33rd no-op.
+#     (ii) 승격 판정 게이트 측정: WIP=0 모두 충족, unchecked 0 도달 spec 0건 (전수 unchecked > 0) → mv green→blue 0건.
+#     (iii) 격리 판정 분기 (RULE-07 §양성 재검증):
+#         - src-spec-reference-coherence.md (정체 5회차) — RULE-07 §양성 (시스템 횡단 dead-link 게이트 + CI gate 박제) 유지. inspector ack 대기 (L40 차기 이벤트 누적 marker — 시점 비의존, 평서문 박제 자체 작동 중). 격리 보류.
+#         - node-modules-extraneous-coherence.md (정체 5회차) — RULE-07 §양성 (extraneous=0 / N==M 불변식) 유지. inspector marker flip 대기 (TSK-09 done @7d085a3 박제 후 5 marker — 시점 비의존). 격리 보류.
+#         - vite-env-boundary-typing.md (정체 4회차, ≥3cycle 초과) — RULE-07 §양성 (G3 src-typescript-migration 외부 영역 의존). TSK-15+TSK-16 발행 (32차) 으로 REQ-061 chain 진입 신호 도래 — Toaster + common 영역 typecheck 0 hit 도달 시 G3 marker flip 후보. 외부 회수 chain 진행 중 — 격리 보류.
+#         - search-abort / css-modules / sanitizeHtml / markdownParser / accessibility (정체 3회차, ≥3cycle 임계치 도달):
+#           * search-abort: TSK-12 done 검출 (60.done/search-loading-dots-real-timer-cleanup/) — inspector L40·L46 marker flip 후보 도래. 격리 보류.
+#           * markdownParser: TSK-13 발행 박제 (40.task/ 잔존, developer 미수행). carve 진행 중 — 격리 부적합.
+#           * css-modules / sanitizeHtml / accessibility: 차기 이벤트 의존 / 별 req 영역 — RULE-07 §양성 (시점 비의존, 시스템 횡단). 격리 보류.
+#         - 나머지 4 spec (typecheck-island / node-version-3axis / tooling / env, 정체 1~2회차) — 격리 후보 미진입.
+#         → 격리 0건.
+#     (iv) grep dry-run: 본 tick carve 0건 → grep dry-run 0/0 match (trigger 부재).
+#     (v) Task ID 채번: 본 tick 0건. -17+ 미점유 유지.
+#   다음 세션 (34th tick) 행동지침:
+#     (1) **승격 판정 멱등 게이트**: 34th tick 진입 시 어느 green spec 이 동일/변경 hash + unchecked=0 도달이면 mv green→blue 즉시 분기 — 32차 (1)(a)~(h) 동일 적용 + 본 tick 추가 신호:
+#       (a) testing/search-abort-runtime-smoke.md: TSK-12 done 박제 후 inspector L40·L46 marker flip → unchecked=0 → 승격.
+#       (b) common/env.md: TSK-11 done 박제 후 inspector L42 marker flip → unchecked=0 → 승격.
+#       (c) common/markdownParser.md: TSK-13 done 후 inspector L74 marker flip → unchecked=0 → 승격.
+#       (d) foundation/typecheck-island-extension.md: TSK-15+TSK-16 done 후 inspector I1·I2·I3·I6·FR-06 marker flip → unchecked=0 → 승격.
+#       (e) foundation/node-version-3axis-coherence.md: TSK-14 done 후 inspector I1·I3·I4·I5·FR-01~04·FR-05·NFR-05 marker flip → unchecked=0 → 승격.
+#       (f) foundation/vite-env-boundary-typing.md: TSK-15+TSK-16 머지 후 src/{Toaster,common} typecheck 0 hit 수렴 + REQ-061 chain 진입 → G3 marker flip → unchecked=0 → 승격.
+#       (g) foundation/{tooling,src-spec-reference-coherence,node-modules-extraneous-coherence}: 차기 이벤트 / inspector marker flip 누적 대기.
+#       (h) styles/css-modules.md / common/{sanitizeHtml,accessibility}: 차기 이벤트 의존 / 별 req inspector 흡수 대기.
+#     (2) **carve 재발행 금지 (멱등)**: TSK-11~16 동일 marker 회수 carve 재발행 = RULE-02 멱등 위반. 차기 신규 marker (spec 박제 추가 / 신규 green spec 진입) 시에만 carve.
+#     (3) **40.task/ 백프레셔**: 본 33rd 종료 시 4건 (TSK-13/14/15/16). 임계치 6건 여유. developer 미수행 누적 시 34th tick 진입 시 측정 후 임계치 분기.
+#     (4) **정체 카운트**: 본 33차 박제 hash (12 spec 전수) 와 34th tick 진입 hash 동일 + developer/inspector 미수행 유지 시 각 spec 정체 +1회차 카운트.
+#         - src-spec-reference / node-modules 6회차 누적 (≥5cycle 진입 — 운영자 분석 권고 zone) — RULE-07 §양성 재검증 + inspector ack 대기 검증 후 격리 보류 유지 (34th 시점 재판단).
+#         - vite-env-boundary-typing 5회차 (≥3cycle 초과) — REQ-061 chain 진행 중. 외부 회수 시점 대기.
+#         - search-abort / css-modules / sanitizeHtml / markdownParser / accessibility 4회차 누적 (≥3cycle 초과) — 본 tick 동일 판단 유지. TSK-12/13 done 후 inspector marker flip 대기.
+#         - typecheck-island / node-version-3axis 2회차.
+#         - tooling / env 2회차 누적 — inspector 미세 갱신 대기.
+#     (5) **환경 회귀 분기**: 회복 신호 유지 검증 (34th tick 진입 시 `node_modules/{vite,vitest,typescript,@eslint/js}` EXIST + `npm ls --depth=0` extraneous=0 측정). 회귀 시 신규 task 발행 시 RULE-06 grep-baseline 실측 박제 불가 → carve 보류.
+#     (6) **50.blocked/spec/foundation/ 6 spec revive 분기**: 사람 운영자 /revisit 의존 (RULE-05). planner 자동 재시도 금지.
+#     (7) **Task ID footprint**: 본 tick 채번 0건. 34th tick 신규 carve 시 -17+ 채번. 영구 박제 -01~-03,-05~-16 재사용 금지 (-04 미발행 유지).
+#     (8) **HEAD 격차 분석**: 34th tick 진입 시점 baseline 격차 항목 별 행동지침 (1)~(7) 분기 적용 — (a) green spec hash 변경 검출 (inspector marker flip 또는 promote 이동 신호), (b) 40.task/ 진입/이탈 검출 (TSK-13/14/15/16 수행 완료 신호), (c) 60.done/2026/05/17/task/ 신규 디렉터리, (d) 50.blocked/task/ 진입 (developer 격리 신호), (e) 20.req/ 변동 (inspector 흡수 신호), (f) 50.blocked/spec/foundation/ 진입/이탈, (g) 환경 회복 신호 유지 검증.
+#     (9) **TSK-12 done 박제 후속 분기**: inspector 가 testing/search-abort-runtime-smoke.md §테스트 현황 (I4) + §수용 기준 (FR-06-b) marker flip 박제 + §변경 이력 hook-ack 갱신 (3395318 commit 참조) → 34th 진입 시 unchecked=0 도달 시 즉시 승격 분기.
