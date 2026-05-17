@@ -1,1 +1,7 @@
 npx lint-staged
+
+# spec coherence gate — TSK-20260517-06 / spec: foundation/src-spec-reference-coherence.md §G3
+# staged 변경에 src/** 또는 specs/30.spec/** 포함 시 검사.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|specs/30\.spec/)'; then
+  bash scripts/check-spec-coherence.sh || exit 1
+fi
