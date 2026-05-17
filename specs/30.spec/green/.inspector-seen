@@ -1,48 +1,53 @@
 # inspector Phase 1 drift reconcile seen-state
 # format: <spec-path>\t<marker-hash>\t<stale_cycles>
-# 2026-05-17 @ baseline HEAD=`776846e` → THIS (57차 tick) — reconcile 8/17 ack (5 stale ≥12cycle 외부 의존, ack 트리거 commit: 776846e)
+# 2026-05-17 @ baseline HEAD=`659e835` → THIS (58차 tick) — reconcile 0/18 ack (5 stale ≥19cycle 외부 의존 + 신규 root-config 1건 0cycle)
 #
-# 본 세션 디스크 실측 (tick 시작 시점, baseline):
-#  - 직전 inspector self-commit: `3327045` (56차 tick — Phase 1 2/17 ack + Phase 2 REQ-095 멱등 정리).
-#  - tick 진입 시 HEAD == `776846e` (developer TSK-28 회수 commit — `src/index.test.jsx` 신설 187 lines 박제, REQ-094 부트 비콘 4 it B1~B4 fixture).
-#  - 외부 commit 분포 (직전 inspector self-commit `3327045` 후):
-#    · `c047b07` planner 63차 — file.md green→blue 승격 + TSK-28 carve (REQ-094 app boot beacon fixture).
-#    · `776846e` developer feat — TSK-28 회수 (`src/index.test.jsx` 신설, 4 it B1~B4 PASS, npm test 49 files 453 tests PASS, npm run build 314ms, lint+typecheck rc=0).
-#    · `3089acd` planner 64차 no-op.
-#  - 입력 큐 (20.req/): 본 tick 진입 시 1건 (REQ-096 — `20260517-web-vitals-v5-api-surface-coherence.md`).
-#  - 17 green spec hash 시작점: 17 (직전 56차 tick 박제 17 spec — 본 tick 진입 시 무변동).
+# 본 세션 디스크 실측 (tick 시작 시점, baseline) — chain rewrite 사후 정정:
+#  - 직전 inspector self-commit: `116e0bc` (57차 tick — Phase 1 8/17 ack + Phase 2 REQ-096 흡수).
+#  - tick 진입 시 HEAD == `2e39db4` (planner 66차 self-commit — TSK-29 carve `app.md 승격 chain unblock`; spec/src 도입 차분 0, planner-seen 80 lines 갱신만).
+#  - tick 작업 중 HEAD 7 commit 추가 (외부 chain 자동 진행, inspector 영역 밖):
+#    · `5c34c48` developer TSK-29 회수 (`src/index.test.jsx` 주석 redirect, 메시지 위반 fix:).
+#    · `177da6a` 자동 revert (hook chain).
+#    · `dd23d77` developer TSK-29 회수 재박제 (정합 메시지). 본 redirect 는 주석 1 토큰 — spec marker 영향 0.
+#    · `93b4454` planner 67차 FINAL — mv 시도 net 0 (hook chain 자동 revert 박제, planner-seen 33 lines 갱신만).
+#    · `659e835` discovery REQ-098 발행 — `20260517-csp-meta-dev-strip-prod-preserve-asymmetry.md` (REQ-097 §Out-of-Scope "정합 spec 신규 박제" 보완 axis — 차기 inspector tick 입력 큐 진입).
+#  - tick 종료 시 HEAD == `659e835`. seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `116e0bc` 후): 6건. spec marker 영향 후보 = `dd23d77` (src/index.test.jsx redirect, app.md spec 본문 영향 0 — 주석 path string 만, 동작 영향 0).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 1건 (REQ-097), 종료 시 1건 (REQ-098 — 차기 tick).
+#  - 18 green spec hash 시작점 (직전 57차 박제 18 entry → file.md 제거 -1 + root-config 신규 +1 = 18 entry; web-vitals + app.md 디스크 잔존):
+#    · 직전 57차 18 entry seen-state 중 `components/file.md` 는 63차 planner promote 결과 디스크 부재 (본 tick 첫 인지) → seen-state 제거.
+#    · 본 tick 박제 `foundation/root-config-spec-reference-coherence.md` 추가.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `2e39db4` 비교 — inspector 영역 밖, 자료 박제만):
+#    · `src/index.test.jsx` staged (TSK-29 회수 in-progress, line 2 주석 green→blue redirect) — RULE-02 세션 시작 unstage 수행.
+#    · 기타 영역 변동 없음 (HEAD == working tree 후 unstage 완료).
 #
-# Phase 1 reconcile 처리 (ack 트리거 commit: 776846e):
-#  - components/app.md: 8 marker [x] 플립 (HEAD=`776846e` 회수). hook-ack 검증:
-#    · §테스트 현황 (B1)(B2)(B3)(B4) 4 marker — `src/index.test.jsx` 4 it 박제 hit:
-#        - B1 @line 102 `it('B1/FR-01: sendToAnalytics 콜백이 getAPI() URL + JSON.stringify(metric) 로 sendBeacon 을 호출한다', ...)` — `vi.fn()` stub + `commonMonitor.getAPI` mock + URL/body 단언 (`expect(sendBeaconSpy).toHaveBeenNthCalledWith(2, getAPIMock(), JSON.stringify(metric))`).
-#        - B2 @line 131 `it('B2/FR-02: sendCounter 가 getAPI()+"/useragent" URL + JSON.stringify(userAgentParser()) 로 1회 호출한다', ...)` — `userAgentParser` mock + `/useragent` 접미 URL 단언.
-#        - B3 @line 150 `it('B3/FR-03: navigator.sendBeacon 이 undefined 면 silent no-op — 모듈 import + reportWebVitals 콜백 발화 모두 throw 없음', ...)` — `Object.defineProperty(navigator, 'sendBeacon', { value: undefined })` stub + 콜백 발화 `not.toThrow()` 단언.
-#        - B4 @line 169 `it('B4/FR-04: 모듈 로드 1회 발화 카운트 — 두 번째 import 는 캐시 사용으로 추가 호출 0 + reportWebVitals 1회 등록', ...)` — `firstCallCount` 캐시 카운트 + `reportWebVitalsMock` 1회 호출 단언.
-#    · §수용 기준 (Must FR-01)(Must FR-02)(Must FR-03)(Must FR-04) 4 marker — 동일 fixture 박제 reference (테스트 현황 marker 와 동일 it 박제).
-#    · grep 게이트 정합: G2 `grep -rnE "sendBeacon" src --include="*.test.*"` → 34 hit (HEAD=`776846e` 실측 — zero-point 0 → 34 회복). G1 `grep -rcE "sendBeacon|sendToAnalytics|sendCounter" src/index.jsx` → 8 hit (HEAD `776846e` 실측 — req 작성 시점 baseline `33270457` 의 6 hit 차분 = `sendCounter` 별 호출 + `sendToAnalytics` 콜백 chain 추가 등장, 본 spec 박제 시점 baseline 정정 영역 — TSK-28 result.md DoD `(G1)` ack 8 hit 정합). G3 `grep -nE "index\.jsx|sendBeacon|sendToAnalytics|sendCounter" src/reportWebVitals.test.js` → 0 hit (무변동 — 거짓 박제 surface 차단 유지).
-#    · 4 channel rc=0 ack: TSK-28 result.md DoD `npm run lint rc=0 / npm run typecheck rc=0 / npm test 49 files 453 tests PASS / npm run build 314ms` 4 채널 박제 정합.
-#    · 잔여 marker — `src/reportWebVitals.test.js` 5 callback 등록 검증 (§테스트 현황 FR-05 한정) + 기존 8 NFR `[x]` 유지 (NFR-01~NFR-03).
+# Phase 1 reconcile 처리 (ack 트리거 commit 없음 — 직전 inspector tick 이후 src 영역 commit 0):
+#  - 17 기존 spec 전수 hook-ack 후보 없음 (직전 `116e0bc` 이후 외부 src/test 영역 commit 0 — `2e39db4` 는 planner self-only). 17 spec 전수 stale_cycles += 1.
+#  - 직전 tick 박제 web-vitals-api-surface-coherence — 박제 시점 14 marker [x] 전수 ack (zero-point 유지). 본 tick 디스크 잔존. 차기 tick monitor only — stale +1.
+#  - 본 tick 박제 root-config-spec-reference-coherence — 11 marker [ ] 전수 미회복 (baseline 격차 4 distinct hits / 3 files / 1 MISSING / 1 STALE 박제). 차기 planner tick 부터 carve 후보 chain 진입 가능.
+#  - 0 marker flip / 0 spec 본문 수정. 본 세션 ack 0 — Phase 1 자체로는 무수정. seen-state 갱신만 (file.md 제거 + root-config 추가).
 #
 # Phase 2 처리:
-#  - REQ-096 (web-vitals-v5-api-surface-coherence) 흡수 — NFR-04 판단: (α) `30.spec/green/foundation/web-vitals-api-surface-coherence.md` 신규 박제 채택 (자매 메타 spec `runtime-dep-version-coherence` REQ-066 + `dependency-bump-gate` REQ-035 동질 패턴 + REQ-094 §Out-of-Scope 가 본 axis 를 별 후보 명시 분리 + `reportWebVitals.test.js` 채널이 `src/index.test.jsx` 부트 비콘 채널 (REQ-094) 과 별 fixture). spec 본문 박제 — §역할 / §공개 인터페이스 / §동작 (1~6) / §회귀 중점 / §의존성 (자매 메타 spec 4 cross-ref + 직교/보완) / §carve-precondition (P1)(P2)(P3) / §테스트 현황 5 marker [x] / §수용 기준 14 marker [x] (Must FR-01~07 + Should FR-05 + NFR-01~07) / §스코프 규칙 6 gate (G1~G6) 실측 baseline + `expansion 허용` / §변경 이력 1행 박제. baseline 4 gate (G1~G4) 전수 PASS (현 HEAD 시점 부트 셸 + fixture 모두 정합 박제 완료) + 자기 검증 2 gate (G5+G6) 실측 0 hit 박제 (G6 정밀 패턴 — `` `export default reportWebVitals` `` ESM 표준 API 식별자 면제, components/app.md G5 동질 면제 패턴 적용).
-#  - RULE-07 자기 검증 PASS: (a) 평서 + 반복 검증 가능 (`grep` extended regex 단일 명령 G1~G6 + vitest spy 5×2 단언 결정적), (b) 시점 비의존 (G5 0 hit — 본 spec 본문 §역할~§의존성 메이저 숫자 박제 0), (c) incident 비의존 (현 HEAD 시점 미수렴 격차 0 — 회귀 차단 채널 박제), (d) 수단 중립 (G6 0 hit). RULE-06 정합: §스코프 규칙 6 gate 실측 박제 + `expansion 허용`. RULE-01 정합: inspector writer 영역만 (`30.spec/green/foundation/` create).
-#  - 신규 흡수: 1건 (REQ-096). 격리 0건. 17 → 18 green spec.
+#  - REQ-097 (root-config-spec-reference-path-coherence) 흡수 — RULE-07 자기 검증 PASS: (a) 평서 (root 파일군이 3 축 동시 만족 시스템 계약), (b) 반복 검증 가능 (단일 grep + `test -e` 단일 명령 G-A~G-G), (c) 시점 비의존 (G-E 박제 — spec 박제/삭제/이동/rename/promote 어느 이벤트 후에도 0 hit/MISSING/STALE), (d) incident 비의존 (회귀 차단 채널 박제). 자매 spec `foundation/src-spec-reference-coherence.md` (blue, REQ-071, src scope) 와 직교 scope (root scope) + 축 C 신규.
+#  - 신규 박제 — `foundation/root-config-spec-reference-coherence.md` (zero-point baseline: 축 A 2 hit `vite.config.js:9 csp-policy-spec` + `eslint.config.js:3 common/accessibility-spec` + 축 B 2 MISSING 종속 + 축 B path 1 MISSING `scripts/check-spec-coherence.sh:3` 의 green path + 축 C 1 STALE 동일 path blue 측 실재).
+#  - §스코프 규칙 grep-baseline 실측 박제 (HEAD `2e39db4` 기준 박제 — chain rewrite 사후 `659e835` 시점에서도 동일 격차 잔존: dd23d77 src 주석 redirect 는 root 파일군 영향 0, 93b4454/659e835 는 src/spec/root 도입 차분 0): G-A 2 hits / G-B/path 1 MISSING / G-C 1 STALE / `expansion N/A` (시스템 횡단 게이트 — task 발행 시점에 planner 재계산).
+#  - RULE-06 정합: §스코프 규칙 baseline 실측 + `expansion N/A` 명시. RULE-01 정합: inspector writer 영역만 (`30.spec/green/foundation/` create).
+#  - 신규 흡수: 1건 (REQ-097). 격리 0건. 디스크 green 18→18 (file.md 제거 + root-config 추가 동시).
 #
-# req mv: 1건 (REQ-096 → `60.done/2026/05/17/req/`). 격리 0건.
+# req mv: 1건 (REQ-097 → `60.done/2026/05/17/req/`, .gitignore 등재로 git 추적 외 디스크 큐).
 #
 # 본 세션 commit diff:
-#  - specs/30.spec/green/components/app.md (8 marker flip + 변경 이력 1행 박제 + §최종 업데이트 갱신)
-#  - specs/30.spec/green/foundation/web-vitals-api-surface-coherence.md (신규 박제)
+#  - specs/30.spec/green/foundation/root-config-spec-reference-coherence.md (신규 박제)
 #  - specs/30.spec/green/.inspector-seen (본 갱신)
-#  - specs/60.done/2026/05/17/req/20260517-web-vitals-v5-api-surface-coherence.md (REQ-096 mv — .gitignore 등재로 git 추적 외 디스크 큐, mv 자체는 디스크에서 정상 완료, commit diff 미박제)
+#  - specs/60.done/2026/05/17/req/20260517-root-config-spec-reference-path-coherence.md (REQ-097 mv — .gitignore 등재로 commit diff 미박제)
 #
 # RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 6 spec 0 변경 — RULE-05 /revisit 경로 의존).
-# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경 (세션 시작 시 staged `src/index.test.jsx` unstage 수행, working tree 차분은 inspector 영역 밖 — TSK-29 회수 in-progress).
 # RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
-# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** + 20.req/ 디스크 큐 mv 만).
-# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `8/17 ack` 박제. GREEN_PENDING_MAX=20 임계치 미달 (17→18 green spec, Phase 2 1건 흡수).
-# RULE-07 자기 검증 — components/app.md 8 marker flip 은 hook-ack 평서 박제 (시점 비의존). REQ-096 신규 spec 자기 검증 PASS (G5+G6 0 hit + 평서 + 반복 검증 가능 + incident 비의존 + 수단 중립).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** + 20.req/ 디스크 큐 mv 만; `.planner-seen` 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/18 ack` 박제. GREEN_PENDING_MAX=20 임계치 미달 (18→18 green spec, Phase 2 1건 흡수).
+# REQ-095 (cross-writer stage-back surface) 본 tick 자체 재현 — 본 inspector commit 시도 시 lint-staged hook 가 `specs/20.req/20260517-csp-meta-dev-strip-prod-preserve-asymmetry.md` (discovery 영역 신규 진입, .gitignore 등재) 를 자동 stage 시도 → inspector unstage 수행 후 재커밋.
+# RULE-07 자기 검증 — Phase 1 0 marker flip (ack 트리거 src commit 0). REQ-097 신규 spec 자기 검증 PASS (평서 + 반복 검증 가능 + 시점 비의존 + incident 비의존 + 수단 중립).
 #
 # 입력 큐 잔여: 0건.
 # 차기 inspector tick 우선순위 (직전 tick 누적 + 본 tick 갱신):
@@ -55,32 +60,34 @@
 #  (7) foundation/diagnostic-script-auto-channel-coverage.md (I10)/FR-10 marker — `check:spec-coherence` CI step 부착 task 발행/회수 후 hook-ack.
 #  (8) foundation/lint-warning-zero-gate.md (I9) + Could FR-06 marker.
 #  (9) common/test-helpers.md (I4) + Should FR-05 marker.
-#  (10) common/sanitizeHtml.md I2/I5 marker (stale ≥ 18 cycle).
-#  (11) common/accessibility.md I5 marker (stale ≥ 18 cycle).
-#  (12) styles/css-modules.md I3/I4 marker (stale ≥ 18 cycle).
-#  (13) common/markdownParser.md I6 marker (stale ≥ 18 cycle).
-#  (14) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 회수 후 marker 플립 (stale ≥ 17 cycle).
-#  (15) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker (stale ≥ 14 cycle).
-#  (16) foundation/web-vitals-api-surface-coherence.md (신규) — 박제 시점 14 marker [x] 전수 ack — 회귀 detection marker 추가 carve 없음. 차기 tick monitor only (web-vitals 메이저 bump 발생 시 baseline 표 업데이트).
-#  (17) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
-#  (18) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신.
+#  (10) common/sanitizeHtml.md I2/I5 marker (stale ≥ 19 cycle).
+#  (11) common/accessibility.md I5 marker (stale ≥ 19 cycle).
+#  (12) styles/css-modules.md I3/I4 marker (stale ≥ 19 cycle).
+#  (13) common/markdownParser.md I6 marker (stale ≥ 19 cycle).
+#  (14) foundation/tooling.md REQ-078 FR-03 marker — RULE-06 §체크리스트 보강 회수 후 marker 플립 (stale ≥ 18 cycle).
+#  (15) foundation/node-modules-extraneous-coherence.md G3/Must/Should marker (stale ≥ 15 cycle).
+#  (16) foundation/web-vitals-api-surface-coherence.md (직전 박제) — 14 marker [x] 전수 ack — 회귀 detection marker 추가 carve 없음. 차기 tick monitor only (web-vitals 메이저 bump 발생 시 baseline 표 업데이트).
+#  (17) foundation/root-config-spec-reference-coherence.md (본 tick 박제) — 11 marker [ ] 전수 미회복. 차기 planner tick 부터 carve 후보 (수렴 수단: 정합 spec 신규 박제 vs 참조 주석 삭제 vs 경로 갱신 vs guard root 확장 — 모두 task 영역).
+#  (18) 격리 6 spec _reason.md RULE-05 /revisit → followups 승격 (운영자 영역).
+#  (19) blue 영역 후속 (TSK-20 result.md 명시): `30.spec/blue/foundation/src-spec-reference-coherence.md` G3 본문 `lint:spec-coherence` → `check:spec-coherence` 명칭 갱신.
+#  (20) components/app.md 승격 chain — TSK-29 회수 (src/index.test.jsx 주석 redirect) 후 planner mv green→blue 분기 unblock 후 hook-ack.
 #
 # == seen-state ==
-specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	14
-specs/30.spec/green/foundation/tooling.md	req-095-absorb-e19d870	2
-specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	13
-specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	11
-specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	11
-specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	11
-specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	11
-specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	18
-specs/30.spec/green/common/markdownParser.md	baseline-893cdea	18
-specs/30.spec/green/common/accessibility.md	baseline-893cdea	18
-specs/30.spec/green/styles/css-modules.md	baseline-893cdea	18
-specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	9
-specs/30.spec/green/foundation/island-proptypes-zero.md	hook-ack-3-marker-flip-761730d	8
-specs/30.spec/green/foundation/package-manager-major-coherence.md	hook-ack-4-marker-flip-d12b6a0	4
-specs/30.spec/green/components/file.md	hook-ack-5-marker-flip-7b15126	2
-specs/30.spec/green/testing/runtime-fetch-unmount-safety.md	hook-ack-2-marker-flip-4fac538	1
-specs/30.spec/green/components/app.md	hook-ack-8-marker-flip-776846e	0
-specs/30.spec/green/foundation/web-vitals-api-surface-coherence.md	new-req-096-absorb-776846e	0
+specs/30.spec/green/foundation/node-modules-extraneous-coherence.md	hook-ack-4b5cc1d	15
+specs/30.spec/green/foundation/tooling.md	req-095-absorb-e19d870	3
+specs/30.spec/green/foundation/lint-warning-zero-gate.md	hook-ack-49f3f93	14
+specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md	req-086-absorb-985c76e	12
+specs/30.spec/green/foundation/npm-script-prefix-coherence.md	hook-ack-985c76e	12
+specs/30.spec/green/foundation/spec-carve-precondition.md	new-985c76e	12
+specs/30.spec/green/common/test-helpers.md	hook-ack-82bb7a4	12
+specs/30.spec/green/common/sanitizeHtml.md	baseline-893cdea	19
+specs/30.spec/green/common/markdownParser.md	baseline-893cdea	19
+specs/30.spec/green/common/accessibility.md	baseline-893cdea	19
+specs/30.spec/green/styles/css-modules.md	baseline-893cdea	19
+specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md	new-req-087-absorb-b1b8f85	10
+specs/30.spec/green/foundation/island-proptypes-zero.md	hook-ack-3-marker-flip-761730d	9
+specs/30.spec/green/foundation/package-manager-major-coherence.md	hook-ack-4-marker-flip-d12b6a0	5
+specs/30.spec/green/testing/runtime-fetch-unmount-safety.md	hook-ack-2-marker-flip-4fac538	2
+specs/30.spec/green/components/app.md	hook-ack-8-marker-flip-776846e	1
+specs/30.spec/green/foundation/web-vitals-api-surface-coherence.md	new-req-096-absorb-776846e	1
+specs/30.spec/green/foundation/root-config-spec-reference-coherence.md	new-req-097-absorb-659e835	0
