@@ -56,7 +56,34 @@
 //   • 공통 헬퍼: `src/test-utils/msw.js` 의 `useMockServer(serverFactory)` 를 사용한다.
 //     각 `describe` 가 고유 server 를 사용할 때는 `describe` 내부에서 호출한다.
 import '@testing-library/jest-dom/vitest'
-import { afterEach, beforeEach, vi } from 'vitest'
+import { afterEach, beforeEach, expect, vi } from 'vitest'
+
+// console-error-runtime-zero-spec (REQ-20260517-091) §동작 (I1)(I2)(I3)(I4) / TSK-20260517-24
+// ------------------------------------------------------------------------------------
+// React runtime warning fail-fast 채널 — 전역 console.error spy 가 다음 카테고리
+// 패턴 호출을 감지하면 afterEach 가 assertion 발화하여 test 가 fail 한다:
+//   1. prop-types violation:   "Failed prop type"
+//   2. missing list key:        "Each child in a list should have a unique \"key\" prop"
+//   3. cross-component render:  "Cannot update a component .* while rendering a different component"
+//   4. hook order change:       "React has detected a change in the order of Hooks"
+//
+// 본 spy 는 `console.error` 의 wrapper chain 최외곽에 등록되어, 파일별
+// `vi.spyOn(console, 'error').mockImplementation(() => {})` 와 호환된다 — vitest 의
+// `vi.spyOn` 다중 호출은 wrapper 를 쌓되 각 spy 객체가 독립 mock instance / 호출
+// 이력을 보유한다. 따라서 파일 단위 silence (REQ-091 §스코프 규칙 G2 — legacy 보존)
+// 는 출력 차단에만 작용하고, 본 글로벌 spy 의 호출 이력은 그대로 capture 된다.
+// `restoreAllMocks` 가 매 테스트 종료 시 wrapper 를 해체하지만, 본 setup 의
+// `beforeEach` 가 매 테스트 시작 시점에 spy 를 재등록하므로 wrapper chain 안정.
+const RUNTIME_WARNING_PATTERN = /Failed prop type|Each child in a list should have a unique "key" prop|Cannot update a component .* while rendering a different component|React has detected a change in the order of Hooks/;
+let __consoleErrorSpy;
+beforeEach(() => {
+	__consoleErrorSpy = vi.spyOn(console, 'error');
+});
+afterEach(() => {
+	if (__consoleErrorSpy) {
+		expect(__consoleErrorSpy).not.toHaveBeenCalledWith(expect.stringMatching(RUNTIME_WARNING_PATTERN));
+	}
+});
 
 // env-spec §5.2 — 도메인 테스트는 vi.stubEnv 로 NODE_ENV 를 조작한다.
 // 테스트 간 상태 누수 방지를 위해 전역 afterEach 로 모든 env stub 을 해제하고,
