@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 시스템 불변식 — `src/**` 내 spec 참조 주석 전체. 단일 식별자 없음 (게이트는 grep / `test -e` 측정).
 > **관련 요구사항**: REQ-20260517-071
-> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제)
+> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제; Phase 1 reconcile Must G3 marker hook-ack 누적 by planner 38차 promote `49f3f93`)
 
 > 본 spec 은 시스템 횡단 게이트. 라인 번호 박제 없음 — 11 hit baseline 은 §스코프 규칙 grep-baseline 에 박제 (작성 시 inspector 책임).
 
@@ -37,7 +37,7 @@
 ## 수용 기준
 - [x] (Must) `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit. baseline 11 hit / 8 file → TSK-20260517-05 회수 후 0 hit (HEAD=`7154b8e` 실측, inspector Phase 1 ack).
 - [x] (Must) src 내 `specs/30\.spec/(blue|green)/.*\.md` 패턴 매칭 경로 N 개 추출 후 각 경로에 `test -e` → 전원 통과. baseline 7 경로 / 7 MISSING → TSK-20260517-05 회수 후 0 path / 0 MISSING (HEAD=`7154b8e` 실측, inspector Phase 1 ack).
-- [ ] (Must) 본 두 게이트는 spec 박제·삭제·이동·rename·green→blue promote 등 이벤트 후 1 PR 안에 0 hit / 0 MISSING 유지 — 단일 사례 (TSK-20260517-05) 박제, 차기 이벤트 후 재검증으로 marker 플립 누적.
+- [x] (Must) 본 두 게이트는 spec 박제·삭제·이동·rename·green→blue promote 등 이벤트 후 1 PR 안에 0 hit / 0 MISSING 유지 — 사례 누적: (a) TSK-20260517-05 / `7154b8e` (창설 회복), (b) TSK-20260517-06 / `1cfa78e` (CI 게이트 박제), (c) planner 36차 `4b5cc1d` (foundation/node-version-3axis-coherence green→blue promote — 1 PR 안에 `lint:spec-coherence` rc=0 박제), (d) planner 38차 `49f3f93` (foundation/typecheck-island-extension + vite-env-boundary-typing 2 spec green→blue promote — HEAD 재실측: G1 0 hit + G2 0 MISSING + `lint:spec-coherence` rc=0 PASS). 누적 4 사례 충족 — 시점 비의존 게이트 박제.
 - [x] (Should) 본 게이트는 CI lint step 또는 pre-commit 훅 또는 `npm run lint` 부속 스텝으로 자동 실행 — PR 단계 회귀 검출. 수단 (custom ESLint rule / npm script / husky hook) 선정은 task 위임 (TSK-20260517-06 회수 — `scripts/check-spec-coherence.sh` 단일 POSIX shell + `.husky/pre-commit` conditional 호출 + `package.json scripts.lint:spec-coherence` 노출, HEAD=`1cfa78e` 실측).
 - [x] (Must, 범위 제한) `docs/**`, `README.md`, `eslint.config.js`, `vite.config.ts`, `vitest.config.ts`, `package.json` 등 src 외부 spec 참조는 본 게이트 위반으로 카운트되지 않음 (필요 시 별도 spec) — 정의상 항상 참, marker 플립.
 
@@ -67,3 +67,4 @@
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-071 흡수) / `a4037ec` | 최초 박제 — `src/**` ↔ `specs/30.spec/**` 참조 경로 정합 두 축 게이트 (RULE-01 suffix 금지 + 디스크 실재). baseline 11 hit / 7 path / 7 MISSING. | all |
 | 2026-05-17 | inspector (Phase 1 ack, TSK-20260517-05 회수) / `7154b8e` | G1 11 hit → 0 hit / G2 7 MISSING → 0 MISSING 실측 PASS. 테스트현황 G1·G2 + 수용기준 Must G1·Must G2·Must 범위제한 marker 플립. Should CI 게이트 (G3) 는 TSK-20260517-06 미시행으로 `[ ]` 유지. | 테스트 현황, 수용 기준 |
 | 2026-05-17 | inspector (Phase 1 ack, TSK-20260517-06 회수) / `1cfa78e` | G3 CI/pre-commit 게이트 박제 — `scripts/check-spec-coherence.sh` POSIX shell + `.husky/pre-commit` conditional staged 매칭 호출 + `package.json scripts.lint:spec-coherence` 노출. 테스트현황 G3 + 수용기준 Should marker 플립. | 테스트 현황, 수용 기준 |
+| 2026-05-17 | inspector (Phase 1 ack, planner 36차 + 38차 promote 누적) / `49f3f93` | Must G3 marker (시점 비의존 — 1 PR 안에 G1·G2 동시 충족 누적) `[ ]→[x]` 플립. 사례 누적: (a) TSK-20260517-05 창설 회복, (b) TSK-20260517-06 CI 게이트, (c) planner 36차 `4b5cc1d` node-version-3axis promote, (d) planner 38차 `49f3f93` typecheck-island-extension + vite-env-boundary-typing 2 spec 동시 promote. HEAD=`49f3f93` 재실측: `grep -rnE "specs/30\.spec/[^\"\` ]*-spec\.md" src` → 0 hit + src 추출 spec 참조 경로 전원 EXISTS + `bash scripts/check-spec-coherence.sh` rc=0 PASS. 누적 4 사례 시점 비의존 게이트 박제 — 차기 이벤트 (spec 박제/삭제/이동/rename/promote) 후 동일 측정으로 0 hit / 0 MISSING 유지 효능 박제 확정. | 헤더 · 수용 기준 · 본 이력 |
