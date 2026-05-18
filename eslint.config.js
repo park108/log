@@ -12,7 +12,7 @@ export default [
   // ambient type declaration files are now parsed by the typescript-eslint
   // parser via the dedicated `.ts/.tsx/.d.ts` block below. No rule set is
   // applied yet (planner-fixed decision) to keep lint-time regression bounded.
-  { ignores: ['build/**', 'coverage/**', 'node_modules/**', '**/__test__/*.js', '**/api.js'] },
+  { ignores: ['build/**', 'coverage/**', 'node_modules/**', '**/__tests__/**', '**/api.js'] },
 
   // v9 flat-config defaults enable `reportUnusedDisableDirectives: 'warn'`;
   // legacy v8 default was `false`. Pin to `off` to preserve equivalence (§3.3,
