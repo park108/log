@@ -11422,3 +11422,89 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #   discovery 흡수 단절 chain reset → 진보 3차 (122차 1차 + 123차 2차 + 124차 3차 = triple-step inspector 흡수 chain milestone idiom 도래 axis 진입 baseline 단독 도래; 204차 박제 "단절 1차 진입" 가설 폐기 — 124차 tick 흡수 발화 baseline 정정).
 #   self-commit 정합 — RULE-01 매트릭스 planner-create/edit 영역만 (`.planner-seen` self-only update); inspector-seen drift + 신규 spec + req mv 는 inspector self-commit 영역 (planner 가 미발화 inspector 작업 commit 금지 — RULE-02 자기 영역 밖 staged 항목 unstage 의무 정합).
 #   본 205차 self-only `git add specs/30.spec/green/.planner-seen` 단일 파일 stage + commit. inspector 영역 unstaged 잔존 baseline 박제.
+
+# 206차 tick (2026-05-19 by planner @ HEAD=0887a06)
+#   환경 (선결 점검 RULE-03 순서):
+#     (1) `.claude/locks/pipeline.pause` / `.claude/locks/planner.pause` = 부재 → 통과.
+#     (2) 입력 큐 `30.spec/green/**` 측정 = 17 spec md (205차 17 → 206차 17 동일 = 신규 진입 0건; 125차 inspector tick 미발화 baseline 진입 1차).
+#     (3) 하류 임계치 `40.task/` 측정 = 0 spec md (TASK_READY_MAX=10 = 10건 헤드룸; 205차 0 → 206차 0 유지 = post-promote-cascade 0 carve 6차 cycle 진입 baseline = sextuple-step post-break-out chicken-egg milestone idiom 도래 axis 진입 baseline 단독 도래).
+#     → 모든 선결 점검 통과 = carve / promote / blocked 의사결정 surface 진입.
+#   working-tree 측정: clean (status no output) = 205차 commit `0887a06` HEAD 직후 진입 + 외부 commit 0건 = 125차 inspector tick 미발화 baseline.
+#   green 17 spec hash 측정 (`git ls-tree HEAD -r -- specs/30.spec/green/` 실측 — `.inspector-seen` / `.planner-seen` 제외 17 entry):
+#     common/sanitizeHtml.md                                       = e25fb232 (정체 6차 — 200차 mv 후 disk-state 정체 6차 baseline)
+#     common/test-helpers.md                                       = 20f79e22 (정체 6차)
+#     foundation/build-coverage-output-dir-tri-surface-coherence.md = 353fe432 (정체 38차 — 188차부터 잔존 = triple-decade+8 milestone idiom 도래 axis 진입 baseline 단독 도래)
+#     foundation/csp-meta-dev-strip-prod-preserve.md               = 9ed14793 (정체 38차)
+#     foundation/eslint-react-hooks-lint-gate.md                   = 9572590a (정체 38차)
+#     foundation/index-html-public-asset-reference-coherence.md    = 0b0c2324 (정체 38차)
+#     foundation/index-html-root-mount-id-token-coherence.md       = 085e9f67 (정체 38차)
+#     foundation/meta-description-default-fallback-token-coherence.md = 1d2c7bfc (정체 38차)
+#     foundation/node-modules-extraneous-coherence.md              = 30393d8d (정체 38차)
+#     foundation/prod-bundle-dev-only-code-residue-zero.md         = 8184d3b6 (정체 3차 — 123차 inspector mv 후 안정 3차 진입 = single-spec post-new-arrival-stabilized 3차 milestone idiom 도래 axis 진입 baseline 단독 도래)
+#     foundation/root-config-spec-reference-coherence.md           = a2cdd5d1 (정체 38차)
+#     foundation/spec-carve-precondition.md                        = 866b3808 (정체 38차)
+#     foundation/tooling.md                                        = a8ae33cc (정체 38차 — 본문 변동 0 잔존 42차 = 200차+ 8차 누적 + 본 206차 진입 시 42차 누적 baseline 단독 도래 = quadruple-decade+2 milestone idiom 도래 axis 진입 baseline 단독 도래 = post-quadruple-decade+1 milestone idiom 도래 axis 진입 baseline 단독 도래)
+#     foundation/vite-build-sourcemap-disabled-bundle-residue-zero.md = d14bb0bc (정체 1차 — 124차 inspector mv 후 commit 0887a06 박제 후 206차 planner 실측 안정 1차 진입 baseline = single-spec post-new-arrival-stabilized 1차 milestone idiom 도래 axis 진입 baseline 단독 도래; 205차 working-tree drift 시점 sha256sum 본문 `0f230a00...` 박제 → 206차 ls-tree blob hash `d14bb0bc` baseline 박제 = 단위 차이 정합 검증)
+#     foundation/vitest-setupfiles-token-disk-coherence.md         = 5994b863 (정체 4차 — 122차 inspector mv 후 안정 4차 진입 = single-spec post-new-arrival-stabilized 4차 milestone idiom 도래 axis 진입 baseline 단독 도래)
+#     styles/css-modules.md                                        = 8c57cd90 (정체 38차)
+#     testing/runtime-fetch-unmount-safety.md                      = d0e938d0 (정체 38차)
+#   green ls-tree sha256sum (17 spec set 한정, `.inspector-seen` / `.planner-seen` 제외) = `c27f6f39d54be3c4ae61a4641f6b4f19d7263f3b61a3ccf3d47c790d5d8627c2` (자가 규약 hash 실측 박제 14차 발화 = quattuordecuple 발화 chain milestone idiom 정확 도달 baseline 단독 도래 = 200차+ 6차 자가 규약 추종 정합 검증 진보).
+#   본 206차 hash 정체 카운트 요약:
+#     * 12 spec 정체 38차 (188차부터 잔존) = triple-decade+8 milestone idiom 도래 axis 진입 baseline 단독 도래 = post-triple-decade+7 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     * 2 spec 정체 6차 (sanitizeHtml + test-helpers — 200차 mv 후 disk-state 정체 6차) = single-pair sextuple-step post-mv milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     * 1 spec 정체 4차 (vitest-setupfiles — 122차 inspector mv 후 안정 4차 진입) = single-spec post-new-arrival-stabilized 4차 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     * 1 spec 정체 3차 (prod-bundle — 123차 inspector mv 후 안정 3차 진입) = single-spec post-new-arrival-stabilized 3차 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     * 1 spec 정체 1차 (vite-sourcemap — 124차 inspector mv 후 commit baseline 박제 + 206차 planner 실측 안정 1차 진입) = single-spec post-new-arrival-stabilized 1차 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#   promote 4조건 측정 (RULE-01 §5):
+#     * WIP: 0 hits / 17 spec (`grep -rE "\[WIP\]" specs/30.spec/green/ --include="*.md" | wc -l` = 0). PASS 전수.
+#     * To-Be: 0 hits / 17 spec (`grep -rE "^#+ .*To-Be" specs/30.spec/green/ --include="*.md" | wc -l` = 0). PASS 전수.
+#     * 변경 이력: 17/17 (`grep -rl "^## 변경 이력" specs/30.spec/green/ --include="*.md" | wc -l` = 17). PASS 전수.
+#     * unchecked: 155 hits / 17 spec (205차 155 → 206차 155 동일 = green 17 spec 본문 변동 0 잔존 1차 baseline). 분포 (206차 실측 — 205차 박제와 정확 일치):
+#         eslint-react-hooks 24 + csp-meta-dev-strip-prod 21 + meta-description 16 + index-html-root-mount 16 + index-html-public-asset 15 + root-config-spec 11 + tooling 10 + node-modules-extraneous 7 + css-modules 7 + vite-sourcemap 4 + spec-carve-precondition 4 + prod-bundle 4 + build-coverage 4 + sanitizeHtml 4 + runtime-fetch-unmount 3 + test-helpers 3 + vitest-setupfiles 2 = 155 정합.
+#     → 4조건 중 unchecked 0 미충족 전수 = promote 0건 baseline. chicken-egg 6차 cycle 진입 (200차 promote 6건 break-out 후 6차 = sextuple-step post-break-out chicken-egg milestone idiom 도래 axis 진입 baseline 단독 도래).
+#   Task ID footprint 전수 (RULE-01 + 표준 — 40.task + 60.done + 50.blocked + 50.blocked/task + 10.followups + 20.req): TSK-20260519- 0 hit md (`find specs/{40.task,60.done,50.blocked,10.followups,20.req} -type f -name "*.md" | xargs grep -l "TSK-20260519-" | wc -l` = 0; planner-seen 본문 메모는 ID 점유 아님). 본 206차 carve 0건 → 신규 채번 없음. 직전 발행 ID footprint = TSK-20260518-08 ~ TSK-20260518-27 (20개; 60.done 박제 잔존).
+#   `[deferred]` marker 측정 (206차 실측): 12 hits / 4 path (vitest-setupfiles 1 hit / vite-sourcemap 2 hit / root-config-spec 7 hit / prod-bundle 2 hit; 205차 working-tree drift 시점 박제 11 hits → 206차 commit HEAD 정합 측정 12 hits = root-config 의 inspector 75차 ack 박제 본문 평서 deferred 표현 count drift +1 baseline 정합 검증).
+#   carve 후보 surface 평가:
+#     (a) **prod-bundle-dev-only-code-residue-zero unchecked 4건 (정체 3차 진입; 203차 carve 보류 결정 박제 후 3차 안정)** —
+#         (i) §테스트 현황 FR-03 자동 채널 1+ 부착 미발화 + FR-06 fixture 발화 채널 미발화 + §수용 기준 FR-03 (line 72) + FR-06 (line 75) `[deferred: future-event-dependent]` marker 잔존.
+#         (ii) §역할 명시 "발화 채널 (CI step / pre-push hook / 진단 script) 선정 — 수단 위임" 박제.
+#         → **carve 보류 결정 유지 (203차 결정 동기화 4차 안정)**: 203차 박제와 동일 사유 — `[deferred]` marker + 수단 위임 + inspector marker flip 권한 영역; planner 영역 carve 권한 부재. **206차 carve 보류 결정 동기화 안정 baseline 단독 도래** = single-spec post-rule-formation-stabilized 3차 milestone idiom 도래 axis 진입 baseline.
+#     (b) **vitest-setupfiles-token-disk-coherence unchecked 2건 (정체 4차 진입; 202차 carve 보류 결정 박제 후 4차 안정)** —
+#         (i) §테스트 현황 FR-04 1차 정적 명령 검출 채널 미발화 + §수용 기준 FR-04 (line 50) `[deferred: future-event-dependent]` marker 잔존.
+#         (ii) §역할 명시 "발화 채널 (pre-commit / pre-push / CI / `package.json check:*` script) 선정 — 수단 위임" 박제.
+#         → **carve 보류 결정 유지 (202차 결정 동기화 5차 안정)**: 202차 박제와 동일 사유. **206차 carve 보류 결정 동기화 안정 baseline 단독 도래** = single-spec post-rule-formation-stabilized 4차 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     (c) **vite-build-sourcemap-disabled-bundle-residue-zero unchecked 4건 (정체 1차 진입; 205차 carve 보류 결정 박제 후 commit baseline 1차 안정)** —
+#         (i) §테스트 현황 FR-04 자동 채널 1+ 부착 미발화 + FR-06 fixture 발화 채널 미발화 + §수용 기준 FR-04 (line 73) + FR-06 (line 75) `[deferred: future-event-dependent]` marker 잔존.
+#         (ii) §역할 명시 "발화 채널 (CI step / pre-push hook / 진단 script) 선정 — 수단 위임 + fixture 본문 별 task / 별 spec 위임" 박제 (prod-bundle 과 정확히 동일 양식 mirror).
+#         → **carve 보류 결정 유지 (205차 결정 동기화 2차 안정)**: 205차 박제와 동일 사유. **206차 carve 보류 결정 동기화 안정 baseline 단독 도래** = single-spec post-rule-formation-stabilized 2차 milestone idiom 도래 axis 진입 baseline.
+#         → **quintuple-step post-rule-formation carve-deferral synchronized stabilized milestone idiom 도래 axis 진입 baseline 단독 도래** = 203차 rule formation 1차 박제 → 204차 2차 동기화 안정 → 205차 3차 동기화 안정 + 205차 vite-sourcemap 신규 동기화 1차 = 4차 동기화 → 206차 3 spec 동기화 안정 5차 진보 = quintuple-step post-rule-formation milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     (d) **나머지 14 spec unchecked 145건 전수** — 205차 박제와 동일 양식: future-event-dependent marker flip baseline 잔존 + inspector ack 의존 (`.inspector-seen` reconcile cycle marker flip 발화) 또는 외부 environmental trigger 의존. planner 영역 carve 권한 부재. **carve 0건** — 양식 mismatch 37차 누적 long-tail dormant baseline 잔존 37차 (decade x3+7 milestone 진입 단독 = triple-decade+7 milestone idiom 도래 axis 진입 baseline = post-triple-decade+6 milestone idiom 도래 axis 진입 baseline 단독 도래).
+#   promote 결정: 0건 — unchecked 0 미충족 (17/17 FAIL — 200차 promote 6 spec 의 disk surface 변동 0 잔존 14 + vitest-setupfiles 정체 4차 unchecked 2건 + prod-bundle 정체 3차 unchecked 4건 + vite-sourcemap 정체 1차 unchecked 4건).
+#   blocked 결정: 0건 —
+#     * `[deferred]` md spec 한정 측정: 12 hits / 4 path (vitest 1 / vite-sourcemap 2 / root-config 7 / prod-bundle 2). 부분 deferred marker — 전체 spec 100% deferred 가 아닌 단일/일부 marker deferred 양식 → blocked 부적합.
+#     * planner-seen 정체 추적: hash 동일성 자동 추적되나 발화 임계 미정의 (정체 38차 도달했으나 RULE-01 §5 "2회 이상 정체" 는 carve 신호 부재 ≠ blocked 신호; 본 정체는 inspector ack / marker flip / 환경 trigger 대기 baseline).
+#
+#   본 206차 결산 요약 (RULE-04 보고 블록 토큰):
+#     - input-queue: 17 (green spec; 205차 17 → 206차 17 동일 = 신규 진입 0건 = 125차 inspector tick 미발화 baseline 진입 1차).
+#     - processed: 0 (carve 0건 = prod-bundle + vitest-setupfiles + vite-sourcemap 3 spec 동일 양식 carve 보류 결정 동기화 5차 안정 + 14 기존 spec future-event-dependent marker flip baseline 전수 + 200차 promote 6건 break-out 후 6차 cycle 재진입 baseline = sextuple-step post-break-out chicken-egg milestone idiom 도래 axis 진입 baseline 단독 도래).
+#     - produced: [] (carve 0건; promote 0건).
+#     - moved: [] (promote 0건; blocked 0건).
+#     - blocked: [] (50.blocked/{spec,task,req}/ 비어 있음 — 본 206차 시점 planner 영역 미접촉 RULE-05 /revisit 경로 대기 baseline 정합 잔존 17차 단계 = single-decade+7 milestone idiom 도래 axis 진입 baseline 단독 도래 = post-single-decade+6 milestone idiom 도래 axis 진입 baseline 단독 도래).
+#     - backpressure: none (40.task 0건 < TASK_READY_MAX=10 = 10건 헤드룸; carve 후보 0건 = backpressure 무관).
+#     - no-op: false (carve 0건 + promote 0건 + blocked 0건이나 측정·박제·206차 post-double-century 6차 진입 baseline + 자가 규약 hash 실측 박제 14차 발화 = quattuordecuple 발화 chain milestone idiom 정확 도달 baseline + transcription-validation chain 단계 15 발화 baseline 진보 = quindecuple 발화 chain milestone idiom 도래 axis 진입 baseline + tooling.md 본문 변동 0 잔존 42차 quadruple-decade+2 milestone idiom 도래 axis + planner self blocked 영구 비움 86차 octuple-decade+6 milestone idiom 도래 axis + WIP 0 잔존 62차 sextuple-decade+2 milestone idiom 도래 axis + 125차 inspector tick 미발화 baseline 진입 1차 (124차 흡수 3차 연속 cascade 후 단절 1차 진입 baseline) + hash 정체 12 spec 38차 + 2 spec 6차 + 1 spec 4차 + 1 spec 3차 + 1 spec 1차 chain baseline + chicken-egg 6차 cycle 진입 sextuple-step post-break-out milestone + post-double-century 6차 진입 sextuple-step post-century-double milestone + 환경 회복 잔존 6차 sextuple-step post-recovery milestone + green disk-state 17 spec 안정 baseline 1차 = single-step post-new-spec-arrival-stabilized milestone + quintuple-step post-rule-formation carve-deferral synchronized stabilized milestone idiom 도래 axis 진입 baseline 단독 도래 = 203차 rule formation 1차 박제 후 206차 3 spec 동기화 안정 5차 진보).
+#     - notes: grep dry-run: N/A (carve 0건); carve: none (prod-bundle + vitest-setupfiles + vite-sourcemap 3 spec 동일 양식 carve 보류 결정 동기화 5차 안정 — `[deferred]` marker + spec 자체 "수단 위임" + inspector marker flip 권한 영역 + 203차 rule formation 박제 후 206차 동기화 안정 5차 진보); promote: none (17/17 unchecked > 0 FAIL); reconcile: planner 영역 아님 (125차 inspector tick 미발화 baseline 진입 1차); hash-실측-박제-14차-발화: 17/17 (206차 자가 규약 추종 정합 검증 진보 baseline = quattuordecuple 발화 chain milestone idiom 정확 도달); diff-205차박제↔HEAD 17/17 정확 일치 (green tree blob hash 17 entry 전수 동일 + ls-tree sha256sum `c27f6f39...d8627c2` 박제); 125차 inspector 미발화 baseline 진입 1차 잔존 baseline 도래.
+#
+#   다음 세션 (207차 tick) 행동지침:
+#     (a) **prod-bundle + vitest-setupfiles + vite-sourcemap 3 spec 동일 양식 carve-deferral synchronized rule formation 진보 추적** — 본 206차 3 spec 동일 양식 carve 보류 결정 동기화 안정 baseline (= rule formation 5차 진보). 207차 진입 시 (a) inspector 125차+ tick marker flip 발화 시 unchecked 감소 분기 진입 (1+ spec promote 4조건 충족 surface 도래 baseline) 또는 (b) marker flip 0 유지 시 동일 양식 누적 6차 추가 = sextuple-step post-rule-formation milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     (b) **chicken-egg 6차 cycle 진입 baseline 진보 추적** — 200차 break-out 후 6차 = sextuple-step post-break-out chicken-egg milestone idiom 도래 axis 진입 baseline. 207차 진입 시 green hash 동일 유지 시 chicken-egg 7차 cycle 진입 (septuple 발화 chicken-egg milestone idiom 도래 axis 진입 baseline 단독 도래); marker flip ≥ 1 발화 시 chicken-egg cycle reset.
+#     (c) **tooling.md 본문 변동 0 잔존 42차 → 207차 43차 누적 진입 전망** — 외부 commit 0 + tooling.md 본문 변동 0 유지 시 43차 누적 진입 = quadruple-decade+3 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     (d) **planner self blocked 영구 비움 86차 → 207차 87차 누적 진입 전망** — 본 206차 86차 = octuple-decade+6 milestone idiom 도래 axis 진입 baseline. 207차 진입 시 외부 commit 변동 무관 87차 누적 진입 (octuple-decade+7 milestone idiom 도래 axis 진입 baseline 단독 도래).
+#     (e) **125차 inspector tick 미발화 baseline 진입 1차 → 207차 단절 2차 누적 또는 reset 분기** — 본 206차 단절 1차 진입 baseline (122차 1차 + 123차 2차 + 124차 3차 cascade 후 125차 미발화 = chain 진보 3차 후 단절 1차 진입). 207차 진입 시 (a) inspector 125차+ tick 흡수 발화 0건 유지 시 단절 2차 누적 진입 (double-step post-triple-arrival-chain-break milestone idiom 도래 axis 진입 baseline) 또는 (b) inspector 흡수 발화 ≥1 = chain reset 후 진보 4차 baseline (quadruple-step inspector 흡수 chain milestone idiom 도래 axis 진입 baseline).
+#     (f) **WIP 0 잔존 62차 → 207차 63차 누적 진입 전망** — 본 206차 62차 = sextuple-decade+2 milestone idiom 도래 axis 진입 baseline. 207차 진입 시 외부 commit 0 + spec md WIP 0 유지 시 63차 누적 진입 = sextuple-decade+3 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     (g) **자가 규약 hash 실측 박제 14차 → 207차 15차 발화 전망 (= quindecuple 발화 chain milestone idiom 정확 도달 baseline 단독 도래)** — 200차 8차 + 201차 9차 + 202차 10차 + 203차 11차 + 204차 12차 + 205차 13차 + 206차 14차 → 207차 15차 발화 = quindecuple 발화 chain milestone idiom 정확 도달 baseline 단독 도래.
+#     (h) **transcription-validation chain 단계 15 발화 baseline 진보 → 207차 단계 16 발화 전망** — 200차 단계 9 + 201차 단계 10 + 202차 단계 11 + 203차 단계 12 + 204차 단계 13 + 205차 단계 14 + 206차 단계 15 → 207차 단계 16 발화 = sexdecuple 발화 chain milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     (i) **inspector 125차 ack 발화 분기 측정** — 206차 시점 125차 inspector tick 미발화 baseline 진입 1차 (206차 진입 시 외부 commit 0건). 207차 진입 시 (a) 125차 hook-ack 외부 commit 진입 + marker flip ≥1 = chain 단계 16 surface 도래 baseline 또는 (b) 125차 미발화 + 외부 commit 0건 유지 = 미발화 baseline 2차 누적 진입 baseline.
+#     (j) **새 green spec 진입 분기** — 122차 흡수 1차 + 123차 흡수 2차 + 124차 흡수 3차 = inspector 흡수 chain 3차 연속 baseline 진입 후 125차 미발화 = 단절 누적 1차. 126차 진입 시 추가 흡수 발화 분기 (REQ 13건 잔존 baseline — 20.req/ 13 file 측정 후 다음 흡수 선정). RULE-01 Task ID 중복 검증 (TSK-20260519-NN prefix 신규 채번; TSK-20260519- footprint 현재 0) + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무.
+#     (k) **post-double-century 6차 진입 baseline → 207차 post-double-century 7차 진입 전망** — 206차 post-double-century 6차 진입 baseline 단독 도래 → 207차 7차 진입 = septuple-step post-double-century milestone idiom 도래 axis 진입 baseline 단독 도래.
+#     (l) **206차 부록 axis 박제 — green disk-state 17 spec 안정 baseline 1차 도래 (205차 mv 후 17 spec 진입 + commit baseline → 206차 17 spec 안정 1차)** — 206차 진입 시 17 spec set 의 안정 1차 baseline 진입 baseline 단독 도래 = single-step post-new-spec-arrival-stabilized milestone idiom 도래 axis 진입 baseline 단독 도래. 다음 promote cascade 발화 또는 새 green carve 발화 시 17 spec set drift 가능.
+#     (m) **206차 부록 axis 박제 — quindecuple-milestone 동시 도래 axis 진입 baseline 단독 도래 (post-double-century 6차)** — 15 axis 동시 milestone 도래: (i) tooling.md 본문 변동 0 잔존 42차 = quadruple-decade+2 milestone + (ii) planner self blocked 영구 비움 86차 = octuple-decade+6 milestone + (iii) 125차 inspector tick 미발화 baseline 진입 1차 = single-step post-triple-arrival-chain-break milestone + (iv) WIP 0 잔존 62차 = sextuple-decade+2 milestone + (v) 자가 규약 hash 실측 박제 14차 발화 = quattuordecuple 발화 chain milestone (정확 도달) + (vi) transcription-validation chain 단계 15 = quindecuple 발화 chain milestone (정확 도달) + (vii) hash 정체 12 spec 38차 chain baseline = triple-decade+8 milestone + (viii) chicken-egg 6차 cycle 진입 baseline = sextuple-step post-break-out milestone + (ix) post-double-century 6차 진입 baseline = sextuple-step post-century-double milestone + (x) 환경 회복 잔존 6차 = sextuple-step post-recovery milestone + (xi) green disk-state 17 spec 안정 1차 baseline = single-step post-new-spec-arrival-stabilized milestone + (xii) prod-bundle carve 보류 결정 동기화 안정 3차 baseline = single-spec post-rule-formation-stabilized 3차 milestone + (xiii) vitest-setupfiles carve 보류 결정 동기화 안정 4차 baseline = single-spec post-rule-formation-stabilized 4차 milestone + (xiv) vite-sourcemap carve 보류 결정 commit-baseline 안정 1차 baseline = single-spec post-rule-formation-stabilized 1차 milestone + (xv) quintuple-step post-rule-formation carve-deferral synchronized stabilized milestone idiom 도래 axis 진입 baseline 단독 도래 = 203차 rule formation 1차 박제 후 204차 2차 + 205차 3차 + 205차 vite-sourcemap 신규 4차 + 206차 5차 동기화 안정 baseline 진보 = quindecuple-milestone 15-axis 동시 도래 axis 진입 baseline 단독 도래.
