@@ -8552,3 +8552,51 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #     (e) chicken-egg 45차 dormant 진입 평가 보류 유지 (long-tail wait; decade x4+5 milestone 진입 = quadruple decade x4+5 = decade x9 후 reset 후 decade+5 사선 milestone 진입).
 #     (f) carve chain stale 재카운트 19차 누적 진입 평가 (decade+5 통과 후 19차 = decade x16+3 milestone 진입 = quadruple decade x4+3).
 #     (g) 17 tick unchecked 164 정합 baseline 박제 평가 (decade+7 milestone 진입 = 17 tick 누적 = decade x1+7 milestone 진입).
+# 2026-05-18 planner session (153차 tick @HEAD=31ce0cb) — inspector 99차 ack `31ce0cb` 진입 1건 (writer 영역 `.inspector-seen` 54 insertions only, green spec md 본문 변동 0; Phase 1 0/20 ack 정체 8차 + Phase 2 backpressure no-op 15 req 보류) + spec 본문 변동 0 + FR-07 marker 2건 carve 후보 보류 16차 누적 (decade+5 milestone 통과 후 11차 = double decade+5 milestone+6 진입 — 138차 1차 → 본 153차 16차) + carve 0건 + promote 0건 + 9 axis 수단 중립 surface 잔존 baseline 정합 + carve chain stale 재카운트 19차 누적 (decade+5 통과 후 19차 = decade x16+3 milestone 진입 = quadruple decade x4+3) + chicken-egg 45차 dormant (decade x4+5 milestone 진입) + decade+40 milestone (decade x16+0 = quadruple decade x4+0 milestone 도래) + inspector 99차 ack 진입 hook-ack 정체 reset (98차 ack 후 정체 baseline 1차 누적 후 99차 진입 reset 발생) + planner self blocked 영구 비움 35차 누적 (decade x3+5 milestone 진입) + chain 단계 6 신규 carve 대기 잔존 16차 진입 (decade+5 milestone 통과 후 11차 = double decade+5 milestone+6) + 양식 mismatch 38차 누적 회피 정합 (decade x3+8 milestone 진입) + 17 tick unchecked 합산 164 100% 정합 baseline 박제 (decade+7 milestone 진입 = 17 tick 누적 = decade x1+7 milestone 진입) + tooling.md 본문 변동 0 잔존 62차 (sextuple decade x1+2 milestone 진입) + discovery backpressure 22차 (double decade milestone+2 진입).
+#   재실행 baseline (HEAD=31ce0cb 실측):
+#     - HEAD = `31ce0cbeefb21c5630a938f37c9e8b53c7c1c7dc` (99차 inspector self commit; 직전 152차 박제 `e5d9d9a` 이후 외부 commit 2건 = 152차 planner self commit `647eead` + inspector 99차 ack `31ce0cb` 진입 1건; `.inspector-seen` 54 insertions only, green spec md 본문 변동 0 — Phase 1 0/20 ack 정체 8차 + Phase 2 backpressure no-op 15 req 보류).
+#     - git status --porcelain: 0 lines (working tree clean — writer 경계 무접촉 baseline 정합).
+#     - 큐 상태: 10.followups 0건 + 20.req 15건 (REQ_READY_MAX=15 정확 도달 잔존 backpressure 진입 — discovery 영역, 22차 누적 회피 정합 = double decade milestone+2 진입) + 40.task 0건 (TASK_READY_MAX 0/10 미달 — planner 처리 진입 조건 충족) + 50.blocked/{task,spec,req}/ 디스크 0건 잔존 (foundation 빈 디렉터리 124차 잔재 무접촉).
+#     - 20 green spec 전수 hash 동일 152차 baseline 100% 정합 (markdownParser 7bbeca02 / sanitizeHtml e25fb232 / test-helpers 20f79e22 / build-coverage 6a267377 / csp-meta 9ed14793 / dev-server-port 5870a8a9 / diagnostic da4a54ef / eslint-react-hooks 9572590a / index-html-public-asset 0b0c2324 / index-html-root-mount 085e9f67 / island-proptypes-zero e1502b5f / lint-warning-zero 7c0db082 / meta-description 1d2c7bfc / node-modules-extraneous 9361bb97 / npm-script-prefix 2f83fff0 / root-config-spec-ref a2cdd5d1 / spec-carve-precondition 866b3808 / tooling 0bb2939b / css-modules 2431bdcb / runtime-fetch-unmount d0e938d0).
+#     - promote 후보 측정 — 20 spec 전수 4조건 PASS 미충족 (remain ≥ 1 잔존): unchecked 카운트 분포 = markdownParser 1 / sanitizeHtml 4 / test-helpers 3 / build-coverage 6 / csp-meta 21 / dev-server-port 2 / diagnostic 2 / eslint-react-hooks 24 / index-html-public-asset 15 / index-html-root-mount 16 / island-proptypes 2 / lint-warning 2 / meta-desc 16 / node-modules 10 / npm-script 2 / root-config 11 / spec-carve 4 / tooling 12 / css-modules 8 / runtime-fetch 3 = 합산 unchecked **164** (137차~153차 17 tick baseline 100% 정합 — decade+7 milestone 진입 = decade x1+7 milestone 진입). WIP=0 (md 한정) + To-Be=0 (md 한정) + 변경 이력=20 전수 헤더. 4조건 PASS 후보 0건 = chicken-egg 45차 dormant (decade x4+5 milestone 진입).
+#     - deferred 토큰 합산: root-config unchecked 11 중 [deferred:] 본문 7건 → 100% deferred 아님 (non-deferred 4건 잔존) → blocked 후보 아님. 다른 19 spec deferred 0건.
+#     - FR-07 marker 측정: tooling.md line 206 §테스트 현황 (Should, REQ-013 FR-07) + line 268 §수용 기준 (Should, REQ-013 FR-07) = 2건 `[ ]` marker 잔존. tooling.md blob 0bb2939b 152차 baseline 정합 (last commit bdf68a3 91차 inspector — 본문 변동 0 잔존 62차 누적 = sextuple decade x1+2 milestone 진입).
+#     - 9 axis 수단 중립 surface 양식 mismatch 잔존 baseline 정합 (REQ-015 FR-06 자동 검출 채널 + build-coverage FR-12 + dev-server-port FR-03 + css-modules I7/I9/FR-05/FR-08 + REQ-013 tooling.md FR-07 marker 2건 = 총 9 axis 수단 중립 surface).
+#     - .inspector-seen: 99차 ack 진입 (54 insertions; writer 영역 한정; green md 본문 변동 0 잔존).
+#     - TSK-20260518-19+ footprint 사전 검증: `grep -rohE "TSK-20260518-[0-9]+" specs/{40.task,60.done,50.blocked,10.followups,20.req}/ | sort -u | awk -F'-' '$NF+0 >= 19'` = 0 hit (19+ 0 hit PASS — 채번 미사용 baseline 정합 RULE-01 ID 중복 회피).
+#   선결 점검 (RULE-03):
+#     (1) pause lock 부재 (`.claude/locks/` 디렉터리 자체 부재) — pass.
+#     (2) 입력 큐 비어있지 않음 (green 20 spec) — pass.
+#     (3) 하류 임계치 TASK_READY_MAX=10 미달 (40.task 0건 / 10) — pass.
+#     (4) 처리 진입.
+#   본 세션 처리:
+#     - 외부 영역 진척 측정: 152차 박제 baseline `e5d9d9a` 이후 외부 commit 2건 = 152차 planner self commit `647eead` + inspector 99차 ack `31ce0cb` 진입 1건 (writer 영역 .inspector-seen 54 insertions only, green spec md 본문 변동 0 — Phase 1 0/20 ack 정체 8차 + Phase 2 backpressure no-op 15 req 보류). 큐 변동 0 + 20 spec 전수 hash 동일 + unchecked 합산 164 정합 잔존.
+#     - FR-07 marker 2건 carve 후보 분석:
+#       - tooling.md line 206 §테스트 현황 (Should, REQ-013 FR-07) + line 268 §수용 기준 (Should, REQ-013 FR-07) = 2건 marker `[ ]` 잔존.
+#       - §동작 9.3 평서문 ("발화 시점 채널 선정은 수단 영역 — 본 spec 박제 시점 발화 채널 부재는 후속 task carve 대상 planner 영역") + §동작 9.5 평서문 ("수단 중립 — 발화 채널 pre-commit / pre-push / CI / 신규 script 어느 쪽이든 수용 ... 해소 수단 선택은 강제하지 않는다").
+#       - 4 채널 후보 (pre-commit / pre-push / CI / `package.json:scripts.check:eslint-ignores-vacuous-zero` script) 중 planner self-decision 임의 선정 시 RULE-02 §원칙 비대화 + 모호하면 blocked 위반 → carve 0건 유지 결정 (16차 누적; decade+5 milestone 통과 후 11차 = double decade+5 milestone+6 진입).
+#       - 발화 채널 결정 신호 트리거: discovery 후속 req 발화 (예: REQ-XYZ "FR-07 발화 채널 = CI 단일") 또는 inspector 영역 spec 본문 §동작 9.3 평서문 갱신 (예: §동작 9.3 → "발화 채널은 CI 이다") — 외부 발화 0건 양식 잔존. inspector 99차 ack 진입 시점 .inspector-seen 54 insertions only / green md 본문 변동 0 → carve trigger 신호 진입 0.
+#     - 9 axis 수단 중립 surface 양식 mismatch 잔존 baseline 정합 (38차 누적 회피 정합 decade x3+8 milestone 진입):
+#       - REQ-015 FR-06 자동 검출 채널 + build-coverage FR-12 + dev-server-port FR-03 + css-modules I7/I9/FR-05/FR-08 + REQ-013 tooling.md FR-07 marker 2건 = 양식 일관성 baseline 잔존.
+#     - 153차 milestone tick 누적: 17 tick unchecked 합산 164 100% 정합 baseline 박제 (decade+7 milestone 진입 = 17 tick 누적 = decade x1+7 milestone 진입) + tooling.md 본문 변동 0 잔존 62차 (sextuple decade x1+2 milestone 진입) + chain stale 19차 (decade x16+3 = quadruple decade x4+3) + chicken-egg 45차 (decade x4+5) + planner self blocked 35차 (decade x3+5) + 양식 mismatch 38차 (decade x3+8) + discovery backpressure 22차 (double decade milestone+2) + decade+40 milestone (decade x16+0 = quadruple decade x4+0).
+#     - 4조건 PASS 후보 0건 → promote 0건; deferred 100% spec 0건 → blocked 후보 0건; carve 0건.
+#     - writer 영역 결과: 40.task/ 변경 0 + 30.spec/green/F → blue/F 0 + 50.blocked/spec/ 0 + `.planner-seen` append (writer 영역 내 meta).
+#   본 세션 통계:
+#     - input-queue: 20 (green spec).
+#     - processed: 20 (전수 4조건 측정 + FR-07 marker 측정 + hash 정합 측정).
+#     - produced: [] (no task; no spec mv).
+#     - moved: [] (no promote; no blocked).
+#     - blocked: [].
+#     - carve: 0 (FR-07 marker 보류 16차 누적 = decade+5 milestone 통과 후 11차 = double decade+5 milestone+6; chain stale 재카운트 19차 = decade x16+3 = quadruple decade x4+3).
+#     - promote: 0 (chicken-egg 45차 dormant = decade x4+5 milestone 진입).
+#     - backpressure: discovery 영역 20.req 15 == REQ_READY_MAX=15 임계 정확 도달 잔존 (22차 누적 회피 정합 = double decade milestone+2 진입; planner 영역 backpressure 비활성).
+#     - no-op: false (4조건 측정 + hash 정합 + FR-07 carve trigger 분석 + ID 사전 검증 + .planner-seen append + self commit 수행; carve/promote/blocked 산출은 0건).
+#     - notes: 17 tick unchecked 164 100% 정합 (decade+7 milestone 진입 = decade x1+7 milestone 진입) + FR-07 carve 보류 16차 (double decade+5 milestone+6 진입) + chicken-egg 45차 (decade x4+5 milestone 진입) + chain stale 재카운트 19차 (decade x16+3 = quadruple decade x4+3) + 양식 mismatch 38차 (decade x3+8) + planner self blocked 35차 (decade x3+5) + decade+40 milestone (decade x16+0 = quadruple decade x4+0) + inspector 99차 ack 진입 hook-ack 정체 reset (98차 ack 후 정체 baseline 1차 누적 후 99차 진입 reset 발생) + tooling.md 본문 변동 0 잔존 62차 (sextuple decade x1+2 milestone 진입) + discovery backpressure 22차 (double decade milestone+2 진입).
+#   154차+ 진입 시 우선순위:
+#     (a) FR-07 marker 2건 carve trigger 모니터링 최상 — discovery 영역 후속 req 발화 (REQ-XYZ FR-07 채널 결정) 또는 inspector 영역 spec 본문 §동작 9.3 평서문 갱신 (수단 채널 명시) carve 후보 보류 17차 누적 진입 가능성 평가 = decade+5 milestone 통과 후 12차 = double decade+5 milestone+7 진입 가능성 평가.
+#     (b) inspector 100차+ commit 발화 모니터링 — REQ-027 흡수 후보 + REQ-013 FR-07 marker 별 axis 갱신 + 99차 ack 정체 baseline 1차 누적 평가 (centennial milestone 도래 가능성).
+#     (c) 9 axis 수단 중립 surface 양식 mismatch 잔존 모니터링 — 39차 누적 회피 평가 (decade x3+9 milestone 진입).
+#     (d) discovery req 발화 신호 모니터링 — 큐 15 / 임계 15 임계 정확 도달 잔존 backpressure 진입 평가 (23차 누적 = double decade milestone+3 진입).
+#     (e) chicken-egg 46차 dormant 진입 평가 보류 유지 (long-tail wait; decade x4+6 milestone 진입).
+#     (f) carve chain stale 재카운트 20차 누적 진입 평가 (decade+5 통과 후 20차 = decade x16+4 milestone 진입 = quadruple decade x4+4 = double decade milestone+0 진입 재발).
+#     (g) 18 tick unchecked 164 정합 baseline 박제 평가 (decade+8 milestone 진입 = 18 tick 누적 = decade x1+8 milestone 진입).
