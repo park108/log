@@ -8761,3 +8761,18 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #     (f) carve chain stale 재카운트 24차 누적 진입 평가 (decade+5 통과 후 24차 = decade x16+8 milestone 진입 = quadruple decade x4+8).
 #     (g) 23 tick unchecked 164 정합 baseline 박제 평가 (decade+13 milestone 진입 = 23 tick 누적 = decade x2+3 milestone 진입 = double decade milestone+3 진입).
 #     (h) 본 tick 진입 시점 hash 987b503 와 다음 tick 진입 시점 hash 달라지면 (inspector 102차+ 발화 또는 신규 carve) RULE-01 ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무.
+# 2026-05-18 planner session (159차 tick @HEAD=987da8f) — 재평가 모드 trigger (158차 chicken-egg 자가 박제 보류 사유 대 156차 자가 시정 결과 모순 재검). carve 4건 발행:
+#   (1) TSK-20260518-20 build-coverage-tri-surface-coherence-check-script (build-coverage-output-dir-tri-surface-coherence.md FR-12 / §동작 G-I)
+#   (2) TSK-20260518-21 eslint-ignores-vacuous-zero-check-script (tooling.md REQ-013 FR-07 / §동작 9.3 / line 206+268 marker)
+#   (3) TSK-20260518-22 vitest-globals-coherence-check-script (tooling.md REQ-015 FR-06 / §동작 10 / line 212+281 marker)
+#   (4) TSK-20260518-23 css-modules-drift-diag-check-script (css-modules.md REQ-016 FR-05 / §수용 line 67 marker; I7/I9 graph 비교는 별 task 분리)
+# 156차 carve 양식 (TSK-20260518-19 dev-port-coherence) 정합 재검 결과: 양식 = (a) spec §동작 평서문에 "발화 채널 존재" 계약 박제 + (b) 본문 또는 §역할 에 sh script 후보 명시 (수단 중립이지만 후보 1+ 인용) + (c) grep-baseline 실측 가능 단일 명령 게이트 + (d) 5종 (현 6종) idiom 선례. 4 axis 모두 (a)~(d) 충족 — 본 159차 carve 4 axis 동시 정합 baseline 진입.
+# 158차 자가 박제 "inspector marker flip 발화 부재 단계 진입 = carve 보류" 모순: 156차 TSK-19 발화 시점 dev-port FR-03 marker 도 `[ ]` 잔존 상태 였음 (e1a4e06 developer 소비 후에도 inspector hook-ack 미발화). marker flip 은 inspector Phase 1 reconcile 영역 (RULE-01 writer 매트릭스), planner carve trigger 와 직교. 158차 chicken-egg 가설 자가 시정 — 159차에 4 axis 동시 carve 발화로 baseline 갱신.
+# grep dry-run: 28/28 match (build-coverage 8 + tooling-013 6 + tooling-015 3 + css-modules 4 + 7 script 미부착 baseline + idiom 선례 6 hit + npm script 7 hit baseline 일부 누적 검산 — 모두 spec 본문 박제 수치와 byte-equal 정합).
+# promote 판정 (4 spec):
+#   - build-coverage-output-dir-tri-surface-coherence.md: §테스트 현황 FR-12 `[ ]` + §수용 기준 Should FR-12 `[ ]` + FR-05/FR-10 디스크 산출물 `[ ]` 잔존 → unchecked > 0 → promote 불가.
+#   - tooling.md: REQ-013 FR-07 `[ ]` + REQ-015 FR-06 `[ ]` + REQ-015 FR-07 `[ ]` (vitest bump) + REQ-095 FR-03/FR-05 `[ ]` + REQ-075 FR-05 `[ ]` + REQ-078 FR-03 `[ ]` 등 다수 `[ ]` → promote 불가.
+#   - css-modules.md: (I3)(I4)(I7)(I9) 4 marker + FR-02/FR-05/FR-08 + Should enum 변경 = 7+ `[ ]` 잔존 → promote 불가.
+#   - dev-server-port-getUrl-token-coherence.md: §테스트 현황 FR-03 `[ ]` + §수용 기준 Must FR-03 `[ ]` 잔존 (e1a4e06 developer 소비 후에도 inspector marker flip 미발화) → promote 불가.
+# blocked 판정: 4 spec hash 정체 ≥2회차 카운트 미충족 (각 spec 본 carve 첫 박제 또는 직전 tick 박제 사유 변경) — blocked 0건.
+# 5종 → 6종 idiom 진화 (dev-port-coherence 추가) baseline 박제. 7종으로 진화 시 다음 tick 부터 carve 후보 surface 1+ 추가 가능 (현 spec 큐 내 9 axis 수단 중립 중 4 axis 본 159차 carve = 5 axis 잔존).
