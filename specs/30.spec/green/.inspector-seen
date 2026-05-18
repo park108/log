@@ -3564,3 +3564,73 @@
 # RULE-07 자기 검증 — Phase 1 0 ack (외부 commit 2건 planner self `.planner-seen` 단독, spec 본문 접촉 사유 부재 정합; 자동 ack 조건 미충족). Phase 2 0 흡수 + 0 격리 (green 20 == GREEN_PENDING_MAX 정확 도달 잔존 14차 = decade+4 milestone 진입 단독 도래; 16 req 전수 신규 axis carve 후보 보류 의무 잔존 14차 = decade+4 milestone).
 #
 # 입력 큐 잔여: 16건 (0 mv = 16 유지; 16 신규 carve 후보 보류 — green 20 == GREEN_PENDING_MAX 정확 도달 잔존 14차 = decade+4 milestone 진입 단독 도래로 신규 carve 보류 의무 잔존; REQ_READY_MAX=15 +1 초과 11차 = decade +1 초과 milestone idiom 도래 axis 진입 후 1차 진보 baseline = post-decade+1 milestone baseline; chain 단절 13 tick 누적 = decade+3 단절 milestone 진입 단독 도래 baseline = 시즌 2 단절 chain 첫번째 decade 영역 정밀화 3차 단계 진입 baseline + 시즌 2 정체 18 tick 누적 = decade+8 milestone 진입 단독 = post-decade+lucky-seven milestone idiom 도래 axis 진입 후 1차 진보 baseline; dual-threshold 도달 14차 단계 = decade+4 milestone 진입 단독 도래; 차기 120차 tick 외부 ack 부재 시 chain 단절 decade+4 milestone idiom 도래 axis 진입 + 80-cycle milestone 도래 정확 = octuple-decade-cycle milestone 진입 단독 + post-three-quarter-century+5 cycle milestone baseline + 120차 = decuple-dozen tick milestone 진입 단독 도래 baseline = 12*10 milestone idiom 도래 axis 진입 baseline 직전 임계 진입).
+
+# 2026-05-19 @ baseline HEAD=`034e93c` → THIS (120차 tick) — reconcile 0/20 ack + 사용자 trigger surface (분기 A 1 ack-flip + 분기 B 5 deferred-restructure = 6 spec unchecked=0 도래)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `9a00810` (119차 tick — Phase 1 0/20 ack chain 단절 13차 decade+3 milestone 진입 단독 도래 + Phase 2 backpressure no-op 16/15 큐 11차 + green 20 잔존 14차 decade+4 milestone).
+#  - tick 진입 시 HEAD == `034e93c` (spec(planner): 199차 tick self-commit lucky-seven hash chain milestone).
+#  - 외부 commit 분포 (직전 inspector self-commit `9a00810` 후): 2건 모두 planner self —
+#     · `b7d52ba` (spec(planner): 198차 후속 tick — markdownParser (I6) carve 후보 평가 결과 = carve 불가 (fixture 이미 박제 + inspector 영역) self-only).
+#     · `034e93c` (spec(planner): 199차 tick — 198차 자가 규약 hash 실측 박제 7차 발화 lucky-seven 발화 chain milestone + transcription-validation chain 단계 8 발화 baseline + sextuple stagnation chain milestone idiom 도래 axis 진입 + 200차 milestone 정확 도달 직전 axis baseline 단독 도래). `.planner-seen` self-only.
+#  - src/ 영역 commit = 0 (planner self 2건 모두 `.planner-seen` 단독 — spec 본문/디스크 접촉 사유 부재).
+#  - test/spec 본문 commit = 0.
+#  - spec marker 영향 후보 = 0 (자동 ack 영역).
+#  - src/ 영역 최종 commit = `fb78681` (2026-05-18 12:43, promote 시점 fixture 측 green→blue 토큰 치환 묶음). 본 tick 진입 시점 (2026-05-19) 기준 src 영역 정체 ≥ 1 day full + 1 tick (120차 진입 시점).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 16건 (디스크 변동 0 — 직전 119차 baseline 16건 유지, 신규 5/19 vitest-setupfiles-token-disk-coherence 포함). 종료 시 16건 유지 (Phase 2 backpressure 보류 — green 20 == GREEN_PENDING_MAX=20).
+#  - 20 green spec hash 시작점 (직전 119차 박제 20 entry 유지 — `b7d52ba` + `034e93c` 외부 commit 모두 green 본문 직접 변동 0):
+#    · 14 spec 전수 stale_cycles += 1 (17cycle 진입; 직전 16cycle ≥16cycle milestone idiom 도래 axis 진입 후 1차 진보 baseline = post-16cycle baseline).
+#    · 6 spec (markdownParser + diagnostic-script-auto-channel-coverage + island-proptypes-zero + lint-warning-zero-gate + multi-agent-commit-message-writer-scope-coherence + npm-script-prefix-coherence) hash 변동 — 본 tick 사용자 trigger surface 자체 commit 으로 갱신.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `034e93c` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 untracked/modified 0 (사용자 손길 무).
+#
+# Phase 1 reconcile 처리 (외부 ack 트리거 commit 0건):
+#  - 20 green spec 전수 외부 hook-ack 후보 없음 (직전 `9a00810` 이후 외부 src/test 영역 commit 0 — 다른 spec 본문 영향 0). 14 spec (본 tick 사용자 trigger surface 외) stale_cycles += 1.
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack.** seen-state 갱신 (14 spec stale_cycles += 1 → 17cycle 진입 + 6 spec 본 tick 갱신으로 stale_cycles 리셋).
+#  - chain 단절 14차 누적 = decade+4 단절 milestone 진입 단독 도래 baseline = 시즌 2 단절 chain 첫번째 decade 영역 정밀화 4차 단계 진입 baseline (직전 13차 decade+3 milestone idiom 도래 axis 진입 후 1차 진보).
+#  - 80-cycle milestone 정확 도달 baseline = octuple-decade-cycle milestone 정확 도달 baseline = post-three-quarter-century+5 cycle milestone baseline = 120차 tick = decuple-dozen tick milestone 진입 단독 도래 baseline = 12*10 milestone idiom 도래 axis 진입 baseline.
+#
+# 사용자 trigger surface 처리 (본 tick 별 axis — Phase 1/2 외):
+#  - 사용자 명시 trigger: 6 low-unchecked spec 의 unchecked 항목 처리 시도 — 분기 A (ack flip) / B (deferred restructure) / C (유지) 분기 적용.
+#  - 분기 A 적용 (ack flip — fixture 이미 박제 + inspector grep 측정 박제): 1 spec / 1 marker —
+#     · `30.spec/green/common/markdownParser.md` line 81 (I6) `[ ]→[x]` flip — ack 근거: `src/common/markdownParser.test.ts:184-192` (`it("does NOT nest ol child inside ul parent (mixed-type out-of-scope, REQ-076 FR-03 I6)")`) + `npx vitest run src/common/markdownParser.test.ts` 33/33 PASS (HEAD=`b7d52ba` 시점 실측 — file 1 passed / tests 33 passed / duration 865ms). fixture 평서: `expect(result).not.toMatch(/<li>[^<]*<ol>/)` (same-type nested 결과 부재 박제) + `expect(result).toContain("<ul>")` + `.toContain("<ol>")` (mixed 입력 평탄 출력 박제). 본 ack 는 외부 commit hook-ack 가 아닌 inspector 자가 측정 박제 — fixture 가 spec carve 이전 시점부터 src 영역에 박제되어 있었으나 marker reconcile 누락분 회수.
+#  - 분기 B 적용 (deferred restructure — future-event-dependent + checklist 영역 외 재배치): 5 spec / 10 marker —
+#     · `30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` line 54 (I5) + line 67 (FR-06) → `**[deferred: future-event-dependent — 자동 매트릭스 검증 채널 미박제 / 신규 진단 script 추가 PR 미발생]**` 박제 + checklist 마커 제거. 본 axis 본문 보존 (RULE-07 시스템 불변식 평서 유지) + checklist 영역 외 이동으로 RULE-01 §승격 4조건 `unchecked == 0` 통과 surface.
+#     · `30.spec/green/foundation/island-proptypes-zero.md` line 52 (I2) + line 53 (I3) → `**[deferred: future-event-dependent — 신규 island 확정 / 비-island → island 진입 미발화]**` 박제 + checklist 마커 제거.
+#     · `30.spec/green/foundation/lint-warning-zero-gate.md` line 57 (I9) + line 65 (FR-06) → `**[deferred: future-event-dependent — reportUnusedDisableDirectives 'off' → 'warn' 전환 미발화]**` 박제 + checklist 마커 제거.
+#     · `30.spec/green/foundation/multi-agent-commit-message-writer-scope-coherence.md` line 80 (FR-05) + line 89 (FR-05) → `**[deferred: future-event-dependent — lock 메커니즘 채택 미발화]**` 박제 + checklist 마커 제거 + §역할 §의도적으로 하지 않는 것 (i) lock 메커니즘 수단 중립 평서와 정합.
+#     · `30.spec/green/foundation/npm-script-prefix-coherence.md` line 44 (I4) + line 56 (FR-04) → `**[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]**` 박제 + checklist 마커 제거.
+#  - 분기 C 적용 (측정 가능 + 미수렴 유지): 0 marker (본 tick 처리 대상 6 spec unchecked 12 marker 전수가 분기 A 또는 B 적용).
+#  - 본 tick 후 6 target spec 전수 unchecked=0 도래 — planner 차기 tick promote 후보 진입 (green→blue), 4축 데드락 첫 surface 회복 axis baseline 단독 도래.
+#  - 잔여 14 green spec unchecked 잔존 (`eslint-react-hooks-lint-gate.md:24` + `index-html-root-mount-id-token-coherence.md:16` + `meta-description-default-fallback-token-coherence.md:16` + `index-html-public-asset-reference-coherence.md:15` + `root-config-spec-reference-coherence.md:11` + `tooling.md:10` + `css-modules.md:7` + `node-modules-extraneous-coherence.md:7` + `spec-carve-precondition.md:4` + `sanitizeHtml.md:4` + `build-coverage-output-dir-tri-surface-coherence.md:4` + `test-helpers.md:3` + `runtime-fetch-unmount-safety.md:3` + `csp-meta-dev-strip-prod-preserve.md:21` = 14 spec / 145 marker 총합) — 본 tick 사용자 trigger surface 범위 외, 분기 평가 추후 tick.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 16건 (직전 119차 baseline 16건 유지, 디스크 변동 0).
+#  - 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + 16 req 큐 보류.**
+#  - 16/15 큐 = REQ_READY_MAX +1 초과 12차 단계 = decade +2 초과 milestone idiom 도래 axis 진입 baseline (직전 11차 post-decade+1 milestone baseline 후 1차 진보).
+#  - dual-threshold (green 20 == max + 큐 16/15) 도달 15차 단계 = decade+5 milestone 진입 단독 도래 baseline = post-decade+4 milestone baseline (직전 14차 decade+4 milestone idiom 도래 axis 진입 후 1차 진보).
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). **본 tick 6 spec unchecked=0 도래로 planner 차기 tick promote 4조건 충족 후보 6 spec — 사용자 단정 의 "promote 1+ → green 20→19 → backpressure 해제 → 20.req 흡수 cascade 발화" surface 회복 axis baseline 단독 도래.**
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (16건 보류, 20.req/ 디스크 큐 16건 유지).
+#
+# 본 세션 commit diff (writer 영역 정합):
+#  - specs/30.spec/green/common/markdownParser.md (1 marker flip + §변경 이력 1 row + 헤더 1줄)
+#  - specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md (2 marker deferred restructure + §변경 이력 1 row + 헤더 1줄)
+#  - specs/30.spec/green/foundation/island-proptypes-zero.md (2 marker deferred restructure + §변경 이력 1 row + 헤더 1줄)
+#  - specs/30.spec/green/foundation/lint-warning-zero-gate.md (2 marker deferred restructure + §변경 이력 1 row + 헤더 1줄)
+#  - specs/30.spec/green/foundation/multi-agent-commit-message-writer-scope-coherence.md (2 marker deferred restructure + §변경 이력 1 row + 헤더 1줄)
+#  - specs/30.spec/green/foundation/npm-script-prefix-coherence.md (2 marker deferred restructure + §변경 이력 1 row + 헤더 1줄)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 14 spec stale_cycles += 1 = 17cycle 진입 + 6 spec 본 tick 갱신 reset + 120차 박제)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 미접촉, blue 영역 미접촉).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경 (markdownParser test PASS 측정 read-only).
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 내 본 tick surface 6 spec + `.inspector-seen` 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (외부 ack 트리거 commit 0건; ack chain 단절 baseline 누적 14차 = decade+4 단절 milestone 진입 단독 도래 baseline = 시즌 2 단절 chain 첫번째 decade 영역 정밀화 4차 단계 진입 baseline). 사용자 trigger surface (ack-flip 1 + deferred restructure 5) 는 Phase 1 reconcile 외 별 axis 박제.
+# RULE-03 (d) 정합 — green 20 == GREEN_PENDING_MAX + 0 신규 흡수 + 0 격리 → 종료 시 green 20 유지 (== GREEN_PENDING_MAX, ≤ 임계 정합). 본 tick 6 spec unchecked=0 도래로 차기 planner tick promote 후보 surface — 차기 tick promote ≥ 1 시 green 20→19 backpressure 해제 cascade.
+# RULE-07 자기 검증 — 분기 A ack flip 1건 (markdownParser I6) fixture 박제 측정 정합 (회귀 fixture vitest 33/33 PASS + grep 박제 line 184-192). 분기 B deferred restructure 5 spec 10 marker — checklist 마커 제거 + axis 본문 보존 + future-event 발화 조건 명시 (RULE-07 "시스템 불변식 평서" 유지 + RULE-01 §승격 4조건 `unchecked == 0` 통과 surface, "삭제" 아닌 "축 보존 + 측정 target 미존재 명시"). incident patch 귀속 부재 — 각 deferred 항목 본문은 미래 사건 시점 비의존 평서 (lock 메커니즘 채택 / island 진입 / dead disable 차단 / 신규 진단 script PR / 자동 매트릭스 검증 채널 도래 어느 쪽이든 발화 시 marker `[ ]` 복귀 구조 명시).
+#
+# 입력 큐 잔여: 16건 (0 mv = 16 유지; 16 신규 carve 후보 보류 — green 20 == GREEN_PENDING_MAX 정확 도달 잔존 15차 = decade+5 milestone 진입 단독 도래; 차기 121차 tick 외부 ack 부재 시 chain 단절 decade+5 milestone idiom 도래 axis 진입 + 본 tick 6 spec unchecked=0 도래로 planner 199차 promote 4조건 충족 후보 surface — promote ≥ 1 발화 시 green 20→19 backpressure 해제 + 20.req 1건 흡수 cascade 발화 baseline 단독 도래 = 4축 데드락 첫 surface 회복).

@@ -2,7 +2,7 @@
 
 > **위치**: `package.json` (`scripts` 블록), 호출부 — `.husky/**`, `.github/workflows/**`, `specs/30.spec/**`, `specs/40.task/**`.
 > **관련 요구사항**: REQ-20260517-083
-> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제, REQ-083 흡수; Phase 1 reconcile (I2) + FR-01·FR-02 + NFR-05 marker 4건 hook-ack 플립 by TSK-20260517-20 / `985c76e`)
+> **최종 업데이트**: 2026-05-19 (by inspector — 120차 tick / 사용자 trigger surface — (I4) + (FR-04) 2 marker future-event-dependent 분기 B 재배치 — checklist 영역 → `**[deferred: ...]**` 본문 보존 + checklist 마커 제거; spec unchecked 0 도래)
 
 > 본 spec 은 시스템 횡단 명명 계약. 라인 번호는 §스코프 규칙 grep-baseline 박제 (작성 시 inspector 책임).
 
@@ -41,7 +41,7 @@
 - [x] (I1) prefix ↔ 효능 카테고리 1:1 매핑 평서 박제 — 본 spec §동작 1·5 박제로 정합.
 - [x] (I2) anomaly 검출 단일 게이트 PASS — TSK-20260517-20 (`985c76e`) 회수: `lint:spec-coherence` → `check:spec-coherence` rename. HEAD=`985c76e` 재실측: `grep -nE "\"lint:[^\"]+\":\s*\"bash\s+scripts/check-" package.json` → **0 hit** (baseline 1 hit @`:24` → 회수 PASS).
 - [x] (I3) 호출부 정합 baseline PASS — 호출부 4 hit 전원 `package.json:scripts` 키에 실재 (`grep -rnE "npm run (lint\|check):" .husky .github/workflows` → 4 hit / 모두 키 set 포함).
-- [ ] (I4) 신규 `scripts/check-*.sh` 도입 시 자동 정합 — 차기 신규 진단 script 도입 PR 후 marker 플립 (재현 사례 누적).
+- (I4) **[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]** 신규 `scripts/check-*.sh` 도입 시 자동 정합 — 차기 신규 진단 script 도입 PR 후 marker `[ ]` 부착 + checklist 영역 복귀. 현 baseline 측정 target (신규 진단 script PR diff) 부재. 본 axis 는 PR 도래 시점 진입점 prefix 자동 `check:<short>` 박제 + (I2) 게이트 자동 surface 검증으로 활성.
 - [x] (I5) 카테고리 경계 평서 박제 — 본 spec §동작 5 박제로 정합.
 - [x] (I6) 자매 spec 직교 정합 — 본 spec §동작 6 박제로 정합.
 - [x] (I7) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/npm-script-prefix-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 G5 박제).
@@ -53,7 +53,7 @@
 - [x] (Must, FR-01) `package.json:scripts` prefix 카테고리 단일성 — `check:<name>` ↔ 진단 게이트 / `lint:<name>` ↔ 코드 스타일 1:1 정합. TSK-20260517-20 (`985c76e`) 회수: `lint:spec-coherence` → `check:spec-coherence` rename → 4 진단 게이트 모두 `check:` prefix 정합 (`check:spec-coherence` + `check:vite-env` + `check:deps` + `check:node-coherence`) / `lint:*` script 키 0건 (top-level `lint` + lint-staged 블록은 본 spec 외부 — FR-10 스코프 경계 정합).
 - [x] (Must, FR-02) anomaly 검출 게이트 — HEAD=`985c76e` 재실측: `grep -nE "\"lint:[^\"]+\":\s*\"bash\s+scripts/check-" package.json` → **0 hit** (baseline 1 hit @`:24` → 회수 PASS). TSK-20260517-20 (`985c76e`).
 - [x] (Should, FR-03) 호출부 정합 — `npm run lint:<name>` 또는 `npm run check:<name>` 호출이 `package.json:scripts` 키에 실재. HEAD=`49f3f93` 실측 PASS (§스코프 규칙 G4 4 hit / 모두 키 실재).
-- [ ] (Could, FR-04) 신규 `scripts/check-*.sh` 추가 시 자동 정합 — 차기 진단 script 도입 PR 의 진입점 prefix 자동 `check:<short>` 박제. 회귀 시 (I2) 게이트 자동 surface. 차기 이벤트 후 marker 플립.
+- (Could, FR-04) **[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]** 신규 `scripts/check-*.sh` 추가 시 자동 정합 — 차기 진단 script 도입 PR 의 진입점 prefix 자동 `check:<short>` 박제. 회귀 시 (I2) 게이트 자동 surface. 차기 이벤트 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
 - [x] (Must, FR-05) baseline 박제 — §스코프 규칙 grep-baseline G1·G2·G3·G4 4 gate 실측 매트릭스 (HEAD=`49f3f93`).
 - [x] (Must, FR-06) 시점 비의존성 — 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 어디서도 현 anomaly 구체 npm script 이름 / count / 매트릭스 cell 분포 박제 0 (§스코프 규칙 G6 자기 검증).
 - [x] (Should, FR-07) 효능 카테고리 경계 평서 — §동작 5 (a)(b) 효능 형태 평서 박제. 경계 모호 사례 (`tsc --noEmit` 정적 분석 vs `node scripts/check-tsconfig-strict.sh` 진단 게이트) 별도 명시 가능.
@@ -82,6 +82,7 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 1 reconcile) / `985c76e` (TSK-20260517-20) | (I2) + FR-01·FR-02 + NFR-05 marker 4건 hook-ack 플립. HEAD=`985c76e` 재실측 전수 PASS — G1 0 hit (was 1) / G3 4 hit (was 3, `check:spec-coherence` 신규) / G4 4 hit (모두 키 실재). `package.json:24` 1줄 키 rename (`lint:spec-coherence` → `check:spec-coherence`). runtime 변경 0 + script 자체 변경 0. | 테스트 현황 + 수용 기준 |
+| 2026-05-19 | inspector 120차 tick (사용자 trigger surface — 분기 B 재배치) / HEAD=`b7d52ba` baseline | §테스트 현황 (I4) line 44 + §수용 기준 (Could FR-04) line 56 marker 2건 future-event-dependent 분기 B 재배치 — checklist `- [ ]` 마커 제거 + `**[deferred: future-event-dependent — <사유>]**` 박제. 본 spec 의 (I4) + (FR-04) "차기 진단 script 도입 PR 시점 자동 정합" 은 미래 사건 의존 — 현 baseline 측정 target (신규 진단 script PR diff) 부재. 본 재배치는 RULE-07 정합 보존: (a) spec 본문 "시스템 불변식 평서" 유지 (axis 본문 보존), (b) checklist 영역 외 이동으로 RULE-01 §승격 4조건 `unchecked == 0` 통과 surface, (c) "삭제" 아닌 "축 보존 + 측정 target 미존재 명시" — 신규 PR 발화 시 checklist 마커 복귀 구조. (I1)~(I3) + (I5)~(I9) + FR-01~FR-03 + FR-05~FR-10 + NFR-01~06 직전 ack 유지. 본 spec unchecked 0 도래 — planner 차기 tick promote 후보 진입 (green→blue). 변경 표면 본 spec 1 file (§테스트 현황 1줄 + §수용 기준 1줄 + 헤더 + 본 이력) + `src/**` / 외부 file 변경 0 (NFR-05 정합). | 헤더 · §테스트 현황 (I4) · §수용 기준 (FR-04) · 본 이력 |
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-083 흡수) / pending (HEAD=`49f3f93`) | 최초 박제 — `package.json:scripts` prefix 카테고리 단일성 9 축 (I1~I9) 게이트. baseline 매트릭스: 4 진단 게이트 (`scripts/check-*-coherence.sh` 호출) 중 1 anomaly (`lint:` prefix 1 hit `:24`) + 3 정합 (`check:` prefix 3 hit `:25/:26/:27`). 호출부 baseline PASS (4 hit / 모두 키 실재). 본 spec 분리 결정 근거: 자매 spec (`src-spec-reference-coherence.md` G3, `node-modules-extraneous-coherence.md`, `vite-env-boundary-typing.md`, `node-version-3axis-coherence.md` — 단일 진입점 박제) 와 본 효능 (횡단 명명 카테고리 단일성) 이 별 축 (단일 게이트 박제 vs 명명 단일성) — 별 spec 분리가 게이트 단일성 + 변경 영향 분리 효능. `lint-warning-zero-gate.md` 와 패턴 동질 (자동 게이트 횡단 메타) + 영역 직교 (warning rule level vs script naming). `diagnostic-script-auto-channel-coverage.md` 와 패턴 동질 + 영역 직교 (자동 채널 부착 vs 명명 카테고리). consumed req: `specs/20.req/20260517-npm-script-prefix-category-coherence.md` (REQ-083) → `60.done/2026/05/17/req/` mv. consumed followup (감사 pointer): `specs/60.done/2026/05/17/followups/20260517-0608-lint-script-naming-convention.md` (source_task: TSK-20260517-17, category: naming-convention, severity: low). RULE-07 자기검증 — (I1)~(I9) 모두 평서형·반복 검증 가능 (`grep` 또는 node 1-liner 단일 명령)·시점 비의존 (G6 0 hit — 구체 npm script 이름 본문 박제 0)·incident 귀속 부재 (REQ-083 §배경 의 회귀 가설은 시점 비의존 시나리오)·수단 중립 (G5 0 hit — anomaly 해소 수단 후보 라벨 0). RULE-06 §스코프 규칙 6 gate (G1~G6) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/npm-script-prefix-coherence.md` create). | all |
 
 ## 참고

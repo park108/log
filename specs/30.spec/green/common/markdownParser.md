@@ -2,7 +2,7 @@
 
 > **위치**: `src/common/markdownParser.ts` 의 `bindListItem(parsed: ParsedNode[], tagName: string)` 진입점 (`@:394`) + `escapeHtmlAttr` 진입점 (`@:7`) + `<img>`/`<a>` emit 본문 (`@:275-277`,`@:313-315`).
 > **관련 요구사항**: TSK-20260418-10, REQ-20260517-076 FR-03, REQ-20260518-018 (S1 단 escape + cross-surface defense-in-depth)
-> **최종 업데이트**: 2026-05-18 (by inspector — 84차 tick / REQ-018 흡수: S1 단 escape 단일 모듈 + 호출 ≥ 5 + `<a>` emit `rel='noreferrer'` fall-back 박제)
+> **최종 업데이트**: 2026-05-19 (by inspector — 120차 tick / Phase 1 ack 단독: (I6) ul↔ol mixed-type out-of-scope fixture ack flip — `src/common/markdownParser.test.ts:184-192` 33/33 PASS; spec unchecked 0 도래)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`893cdea`).
 
@@ -78,7 +78,7 @@ bindListItem(_, 'ul') 결과:
 
 ## 테스트 현황
 - [x] (I1)~(I7) 알고리즘 속성 7건 박제 — `src/common/markdownParser.test.ts` (또는 동급) 의 nested list 회귀 fixture 가 same-type 중첩 시나리오를 커버. HEAD=`893cdea` 실측 — `grep -nE "bindListItem" src/common/markdownParser.ts` → 3 hits (@:173 ul 호출, @:219 ol 호출, @:394 정의) PASS.
-- [ ] (I6) ul ↔ ol 혼합 중첩 미정의 영역 — 회귀 fixture 가 mixed-type 케이스를 의도적으로 제외 (또는 fail-safe 동작 박제). 별 task 위임.
+- [x] (I6) ul ↔ ol 혼합 중첩 미정의 영역 — 회귀 fixture mixed-type 케이스 박제 PASS. HEAD=`b7d52ba` 재실측: `src/common/markdownParser.test.ts:184-192` (`it("does NOT nest ol child inside ul parent (mixed-type out-of-scope, REQ-076 FR-03 I6)")`) → `npx vitest run src/common/markdownParser.test.ts` 33/33 PASS (Tests 33 passed). fixture 평서 박제: (a) `expect(result).not.toMatch(/<li>[^<]*<ol>/)` — same-type nested 결과 부재 박제, (b) `expect(result).toContain("<ul>")` + `expect(result).toContain("<ol>")` — mixed 입력의 평탄 출력 박제. (I6) "same-type 한정 계약" 의 out-of-scope 사례 fail-safe 동작 자동 박제 — bindListItem 알고리즘 범위 밖 사례를 평탄 출력으로 wrap.
 - [x] (I8) S1 escape 단일 모듈 박제 — `grep -rnE "const escapeHtmlAttr\s*=\|function escapeHtmlAttr" src` = 1 hit (`src/common/markdownParser.ts:7`). HEAD=`64d7432` 실측 PASS (정의 분산 0). REQ-018 흡수 시점.
 - [x] (I9) S1 escape 호출 카운트 ≥ 5 박제 — `grep -cE "escapeHtmlAttr\(" src/common/markdownParser.ts` = 5 (`<img>` 3 + `<a>` 2). HEAD=`64d7432` 실측 PASS. REQ-018 흡수 시점.
 - [x] (I10) `<a target='_blank' rel='noreferrer'>` fall-back literal 박제 — `grep -nE "target='_blank' rel='noreferrer'" src/common/markdownParser.ts` ≥ 1 hit (`:315`). HEAD=`64d7432` 실측 PASS. REQ-018 흡수 시점.
@@ -113,6 +113,7 @@ bindListItem(_, 'ul') 결과:
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-076 흡수) / pending | 최초 박제 — `src/common/markdownParser.ts` `bindListItem` 진입점의 stack-based grouping 알고리즘 7 속성 (I1~I7) 박제. baseline: 진입점 @:394 / 호출 2 hit (@:173 ul, @:219 ol) / 의도 주석 @:384. 원전 TSK-20260418-10 done 의 알고리즘 본문 인용 (속성만 박제, 본문 복제 회피). | all |
 | 2026-05-18 | inspector 84차 tick (Phase 2, REQ-20260518-018 흡수) / pending | S1 단 escape cross-surface 효능 3 축 흡수 — (I8) `escapeHtmlAttr` 정의 단일 모듈 + (I9) `<img>`/`<a>` emit 호출 ≥ 5 + (I10) `<a target='_blank' rel='noreferrer'>` fall-back literal. 양 spec 분담: 본 spec = S1 + S1↔S2 baseline literal / `sanitizeHtml.md` = S2 + hook upgrade + 멱등. baseline (HEAD=`64d7432`): `grep -rnE "const escapeHtmlAttr" src` = 1 hit + `grep -cE "escapeHtmlAttr\("` = 5 + `grep -nE "target='_blank' rel='noreferrer'"` = 1 hit. §역할 / §공개 인터페이스 / §동작 (I8~I10) / §회귀 중점 3건 / §테스트 현황 3건 / §수용 기준 3건 / §스코프 규칙 grep-baseline 3 추가. | §역할 §공개 인터페이스 §동작 §회귀 중점 §테스트 현황 §수용 기준 §스코프 규칙 |
+| 2026-05-19 | inspector 120차 tick (Phase 1 ack 단독 도래) / HEAD=`b7d52ba` baseline | §테스트 현황 line 81 (I6) marker `[ ]→[x]` flip 단독 — ul↔ol 혼합 중첩 mixed-type out-of-scope fixture 이미 박제 ack. ack 근거: `src/common/markdownParser.test.ts:184-192` (`it("does NOT nest ol child inside ul parent (mixed-type out-of-scope, REQ-076 FR-03 I6)")`) + `npx vitest run src/common/markdownParser.test.ts` 33 tests PASS (HEAD=`b7d52ba` 시점 실측 — file 1 passed / tests 33 passed / duration 865ms). fixture 평서: (a) `expect(result).not.toMatch(/<li>[^<]*<ol>/)` (same-type nested 결과 부재), (b) `expect(result).toContain("<ul>")` + `.toContain("<ol>")` (mixed 입력의 평탄 출력). 본 ack 는 외부 commit hook-ack 가 아닌 inspector 자가 grep + vitest 측정 박제 — fixture 가 spec carve 이전 시점부터 src 영역에 박제되어 있었으나 marker reconcile 누락분 회수. 본 spec unchecked 0 도래 — planner 차기 tick promote 후보 (green→blue) 진입. | §테스트 현황 + 본 이력 |
 
 ## 참고
 - **REQ 원문 / TSK 원문**: TSK-20260418-10 (알고리즘 done), REQ-20260517-076 (본 세션 mv 후).
