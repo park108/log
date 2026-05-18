@@ -1568,3 +1568,92 @@
 # RULE-06 §스코프 규칙 G6 baseline gate (af)(ag)(ah)(ai)(aj) 5건 실측 박제 ((af) 0 hit baseline FAIL 평서화 + 3 채널 부착 + 4 채널 분포 비대칭).
 #
 # 입력 큐 잔여: 13건 (REQ-004/005/006/008/009/010/011/012/014/016/017/021/022 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토 — 후보: REQ-021 build-coverage-output-dir tooling.md §동작 11 추가 / REQ-014 dev-server-port-getUrl-token-coherence 신규 spec carve / REQ-008 manifest-pwa-install-contract 신규 spec carve).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`f74ab43` → THIS (88차 tick) — reconcile 0/18 ack (정체 13차 누적 = decade+3; 직전 87차 baseline `0413909` 이후 외부 commit 1건 = `f74ab43` planner 128차 self-only carve TSK-20260518-17 deps-coherence-pre-commit-shift-left 발화 + chain 단계 5c 정식 통과 + carve chain stale 3차 reset + blocked decade milestone 정확 도달 박제, src/ 영역 commit 0) + Phase 2 흡수 2건 신규 carve (REQ-20260518-021 build-coverage-output-dir-tri-surface-coherence + REQ-20260518-014 dev-server-port-getUrl-token-coherence; green 카운트 18 → 20 == GREEN_PENDING_MAX=20 임계 도달) + REQ-20260518-007 디스크 duplicate 50.blocked/req/ 격리 (87차 mv 후 외부 재발화 — 60.done 사본 동일 byte 잔존, 본 격리는 discovery 영역 /revisit 회수 신호) + Phase 2 흡수 7 tick 연속 본문 갱신/carve 패턴 (REQ-013/018/019/020/015/007 + 021/014 = 누적 8건; 본 88차는 carve 경로 진입 — 7 tick 본문 갱신 단조 → 8 tick carve 분기 진입)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `0413909` (87차 tick — Phase 1 0/18 ack 정체 12차 + Phase 2 REQ-007 흡수 1건 node-modules-extraneous-coherence.md §동작 G6 본문 갱신 경로 — green 카운트 변동 0).
+#  - tick 진입 시 HEAD == `f74ab43` (spec(planner): 128차 tick TSK-20260518-17 carve 1건 발화 + chain 단계 5c 정식 통과 + blocked decade milestone 박제, planner self-only).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `f74ab43` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `0413909` 후): 1건 — `f74ab43` (spec(planner): 128차 tick self-only `.planner-seen` 65 line 추가, TSK-20260518-17 발화 박제). green 본문 변동 0 + src/ 영역 변동 0.
+#  - src/ 영역 commit = 0. spec marker 영향 후보 = 0.
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 (직전 87차 종료 13건 + REQ-007 duplicate 디스크 재발화 +1 + 신규 발견 REQ-023 csp-meta-img-src-allowlist +1 = 15건), 종료 시 12건 (REQ-021 + REQ-014 mv -2 + REQ-007 duplicate 50.blocked/req/ 격리 -1 = 12).
+#  - 40.task/ 디스크: 1건 (TSK-20260518-17 deps-coherence-pre-commit-shift-left, developer 영역 대기 — planner 128차 carve). 50.blocked/{task}/ + 10.followups/ 디스크: 0건.
+#  - 30.spec/green 전체 디스크: 18 spec 시작 (foundation 13 + common 3 + styles 1 + testing 1 = 18). 본 tick 2 carve → 20 spec 종료 (foundation 15 + common 3 + styles 1 + testing 1 = 20).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `f74ab43` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · unstaged: `.husky/pre-commit` 1 파일 변경 (TSK-20260518-17 deps coherence gate 추가 line — developer 영역 미완 작업 산물, inspector 영역 밖 미접촉).
+#    · `specs/20.req/20260518-deps-coherence-pre-commit-gate-shift-left.md` 디스크 잔존 (87차 mv 완료 commit `0413909` 이후 외부 영역에서 동일 byte 재발화 — `.gitignore` `specs/20.req` rule 적용으로 git tracked 변동 0). `60.done/2026/05/18/req/` 에 동일 파일 잔존 (87차 mv).
+#
+# Phase 1 reconcile 처리 (외부 src/ commit 0 — ack 트리거 0):
+#  - 본 tick 외부 src/ 영역 commit = 0 (`f74ab43` 은 planner self-only). spec marker flip 후보 0.
+#  - 18 green spec 전수 hook-ack 후보 없음 — 18 spec 전수 stale_cycles += 1 진입.
+#  - **0 marker spec 0 ack / 18 total spec → Phase 1 0/18 ack (정체 13차 누적 = decade+3).** seen-state 갱신.
+#  - 18차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76~84차 0 (정체 9차) → 85차 0 (정체 10차 = decade milestone 정확 도달) → 86차 0 (정체 11차) → 87차 0 (정체 12차) → 88차 0 (정체 13차 = decade+3). Phase 2 흡수 surface 발화 누적 (REQ-013/018/019/020/015/007 + 021/014 = 8 흡수) 가 외부 src/ commit 후속 chain 활성 surface 진입 잔존. 본 tick TSK-20260518-17 carve 발화 (planner 128차) 가 차기 src/ commit chain 진입 신호.
+#
+# Phase 2 처리 (RULE-03 (d) 해석 + 신규 carve 경로 결정):
+#  - 입력 큐 15건 진입 (87차 종료 13건 + REQ-007 duplicate 재발화 +1 + REQ-023 신규 발견 +1 = 15건). RULE-03 (d) 해석:
+#     · green=18 < GREEN_PENDING_MAX=20 → 미초과 (`>` 임계 비활성, 2 spec 여유).
+#     · 신규 carve 경로 (sibling 신규 spec) 시 green 카운트 +1 / carve, 본 tick 2 carve → 18 → 20 == 임계 (도달이나 초과 아님).
+#     · 본 88차는 carve 경로 진입 — 직전 7 tick 본문 갱신 단조 (REQ-013/018/019/020/015/007 모두 기존 spec 본문 갱신) 후 신규 spec carve 분기 진입.
+#  - **흡수 결정**: 사용자 우선순위 (REQ-021 / REQ-014 / REQ-023) 중 상위 2건 carve. REQ-023 은 임계 도달로 보류 (green 21 초과 회피).
+#     (1) REQ-021 build-coverage-output-dir-tri-surface-coherence — `vite.build.outDir` literal + `vitest.coverage.reportsDirectory` default + `.gitignore` anchored + `eslint.config.js.ignores` glob 3 표면 cross-surface byte-equal 동치 결과 효능 불변식. tooling.md §동작 9 (REQ-013) 의 P-1/P-2 단일 표면 vacuous-zero axis 와 직교 (cross-surface 3극 동치 확장). 신규 spec carve 경로 (tooling.md 본문 흡수 회피 — tooling.md 이미 331 line 으로 RULE-07 300 line 한계 근접; 본 carve 로 별 spec 분리하여 향후 split 부담 회피).
+#     (2) REQ-014 dev-server-port-getUrl-token-coherence — `src/common/common.ts:74` `getUrl()` dev 분기 URL port 토큰 ↔ `vite.config.js:45` `server.port` 정수 byte-equal cross-channel 동치. 자매 직교 spec (`components/common.md`, `common/test-idioms.md`) 의 헬퍼 의미·테스트 idiom 차원과 직교 (port 토큰 정합 axis). 신규 spec carve 경로.
+#     (3) REQ-023 csp-meta-img-src-allowlist 보류 (green 임계 도달 직전 회피).
+#  - REQ-004~006/008~012/016/017/022 11건은 신규 spec carve 후보 — 본 tick 보류 유지 (RULE-03 (d) 보수 해석 정합).
+#  - REQ-007 duplicate 처리: 디스크 `20.req/20260518-deps-coherence-pre-commit-gate-shift-left.md` 가 87차 mv 후 외부 영역에서 재발화 (60.done 사본과 byte 동일 18217 byte). 본 spec 은 87차 흡수로 node-modules-extraneous-coherence.md §동작 G6 이미 박제 + planner 128차 TSK-20260518-17 carve 동반 — req 재흡수 의미 0. `50.blocked/req/20260518-deps-coherence-pre-commit-gate-shift-left.md` + `_reason.md` 격리 (RULE-05 /revisit 경로 의존 — discovery 영역 회수 신호).
+#
+# Phase 2 흡수 처리 (REQ-021 + REQ-014 신규 spec 2 건 carve):
+#  - 흡수 spec #1: `30.spec/green/foundation/build-coverage-output-dir-tri-surface-coherence.md` (REQ-021 신규, 본 88차 inspector tick 최초 등록).
+#     · 본문 구성: 헤더 (위치 + 관련 요구사항 REQ-021 + 최종 업데이트 2026-05-18 88차) / §역할 (3 표면 cross-surface byte-equal + 비대칭 baseline (build 명시 vs coverage default 의존) + OOS 7건) / §공개 인터페이스 (런타임 인터페이스 아님) / §동작 G-A~G-I 9 게이트 (build 3 표면 + 동치 + coverage default + coverage 3 표면 + 동치 + 발화 채널 존재) / §의존성 (4 파일 + 외부 출처 + tooling.md §동작 9 OOS line 53 역의존) / §회귀 중점 5 시나리오 (R-1~R-5) + Vite/Vitest/ESLint bump / §스코프 규칙 grep-baseline (A)~(K-self) 11 gate 실측 (build 3 hit + 동치 + coverage default 0 hit + coverage 3 hit + 동치 + 디스크 2 + 자기 검증 0) / §테스트 현황 12 marker (FR-01~FR-12; FR-05/10/12 `[ ]` 유보 — vite build/vitest run precondition + 발화 채널 planner 영역 대기) / §수용 기준 20 marker (FR-01~12 + NFR-01~08; FR-05/10/12 `[ ]` 유보) / §변경 이력 1행 박제 / §참고.
+#     · RULE-07 자기검증 6 축 PASS:
+#        - (1) 평서 — "vite build outDir literal + vitest coverage reportsDirectory default + gitignore anchored + eslint ignores glob 3 표면 byte-equal 동치" 시스템 효능 불변식.
+#        - (2) 반복 검증 가능 — grep/find 단일 명령 8 gate + 디스크 2 gate.
+#        - (3) 시점 비의존 — Vite/Vitest/ESLint 메이저 bump 이벤트 비귀속, baseline HEAD `f74ab43` 좌표는 measure anchor + §변경 이력 감사 pointer 한정.
+#        - (4) incident 비귀속 — 비대칭 default 의존 baseline (#2 a-2 vitest default) 박제는 사실 평서화, 특정 incident patch 비귀속.
+#        - (5) 수단 중립 — 디렉터리 명 결정 (`build` 유지 vs `dist`) / `reportsDirectory` 명시화 (default 의존 유지 vs `'./coverage'` 명시) / 발화 채널 (pre-commit / pre-push / CI / npm script) 어느 쪽이든 우선/권장 라벨 0.
+#        - (6) self-reference scope 분리 — NFR-04 + §스코프 (K-self) 0 hit 자기 검증. specs/** 본문 내 build/coverage 토큰 occurrence 는 measure scope 외.
+#     · 라인 수: ~94 line (300 line 한계 여유 200+).
+#  - 흡수 spec #2: `30.spec/green/foundation/dev-server-port-getUrl-token-coherence.md` (REQ-014 신규, 본 88차 inspector tick 최초 등록).
+#     · 본문 구성: 헤더 (위치 + 관련 요구사항 REQ-014 + 최종 업데이트 2026-05-18 88차) / §역할 (dev port 토큰 cross-channel byte-equal + 동음이의어 격리 (`REFRESH_TIMEOUT`) + OOS 5건) / §공개 인터페이스 (런타임 인터페이스 아님) / §동작 G-A~G-F 6 게이트 (dev URL helper + vite port + 동치 + 동음이의어 격리 + drift 채널 + 단일-PR 동시 갱신 의무) / §의존성 (`src/common/common.ts` + `vite.config.js` + 자매 직교 spec 역의존) / §회귀 중점 6 시나리오 (R-1~R-5 + Vite bump) / §스코프 규칙 grep-baseline (A)~(E-self) 5 gate 실측 (URL helper 1 hit + vite port 1 hit + 동치 PASS + REFRESH_TIMEOUT 3 hit 격리 + 자기 검증 0) / §테스트 현황 7 marker (FR-01~04 + NFR-01~03; FR-03 `[ ]` 유보 — drift 채널 planner 영역 대기) / §수용 기준 13 marker (FR-01~04 + NFR-01~06; FR-03 `[ ]` 유보) / §변경 이력 1행 박제 / §참고.
+#     · RULE-07 자기검증 6 축 PASS:
+#        - (1) 평서 — "getUrl() dev 분기 URL port 토큰 == vite server.port 정수 byte-equal" 시스템 효능 불변식.
+#        - (2) 반복 검증 가능 — grep 단일 명령 2 gate + token byte 비교 + 동음이의어 격리 grep.
+#        - (3) 시점 비의존 — Vite 메이저 bump · `getUrl()` 형식 변경 · port 마이그레이션 이벤트 비귀속, baseline HEAD `f74ab43` 좌표는 measure anchor.
+#        - (4) incident 비귀속 — 동음이의어 격리 baseline 박제는 의미 도메인 분리 (ms timeout vs URL port), 특정 incident patch 비귀속.
+#        - (5) 수단 중립 — port 절대값 (3000 vs 5173) 선정 라벨 0 / 검출 채널 (grep vs test vs script) 우선 라벨 0 / `package-manager-major-coherence.md` §동작 패턴 동등.
+#        - (6) self-reference scope 분리 — NFR-04 + §스코프 (E-self) 0 hit 자기 검증. specs/** 본문 내 port 토큰 occurrence 는 measure scope 외.
+#     · 라인 수: ~82 line (300 line 한계 여유 200+).
+#  - 본 inspector 변경 표면 = 2 신규 spec 파일 + REQ-021 mv + REQ-014 mv + REQ-007 duplicate 격리 + `.inspector-seen` 갱신 한정.
+#
+# REQ-007 duplicate 격리 처리:
+#  - 디스크 실측: `20.req/20260518-deps-coherence-pre-commit-gate-shift-left.md` 18217 byte (2026-05-18 13:36 mtime) ↔ `60.done/2026/05/18/req/20260518-deps-coherence-pre-commit-gate-shift-left.md` 18217 byte (2026-05-18 03:13 mtime) — byte 동일 (`diff` 0 output).
+#  - 격리 위치: `50.blocked/req/20260518-deps-coherence-pre-commit-gate-shift-left.md` + `_reason.md` 동일 디렉터리.
+#  - reason 본문: "87차 inspector mv 후 외부 영역 동일 byte 재발화. node-modules-extraneous-coherence.md §동작 G6 흡수 + TSK-20260518-17 carve 발화 (planner 128차) 이미 진입 — req 재흡수 의미 0. RULE-05 /revisit 경로 회수 (close 권장 — 본 req 효능 이미 spec + task 양면 박제)."
+#  - RULE-01 ↔ RULE-05 정합: blocked 격리 후 사람 운영자 /revisit 스킬 회수 — 본 req 의 spec 영역 흡수는 87차 이미 완료, blocked 격리는 큐 정리 한정 (의미 회수 아님).
+#
+# req mv: 2건 (REQ-021 + REQ-014 → `60.done/2026/05/18/req/`) + 1건 격리 (REQ-007 duplicate → `50.blocked/req/`).
+# 20.req/ 디스크 카운트: 15 → 12 (REQ-021 mv -1 + REQ-014 mv -1 + REQ-007 duplicate 격리 -1 = 12).
+# 30.spec/green 디스크 카운트: 18 → 20 (foundation 13 → 15, +2 신규 carve, GREEN_PENDING_MAX=20 임계 도달).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/build-coverage-output-dir-tri-surface-coherence.md (신규 1 파일, REQ-021 최초 등록 ~94 line)
+#  - specs/30.spec/green/foundation/dev-server-port-getUrl-token-coherence.md (신규 1 파일, REQ-014 최초 등록 ~82 line)
+#  - specs/20.req/20260518-build-coverage-output-dir-tri-surface-coherence.md → specs/60.done/2026/05/18/req/ 1건 mv (REQ-021; gitignore 적용으로 git tracked 변동 0)
+#  - specs/20.req/20260518-dev-server-port-getUrl-token-coherence.md → specs/60.done/2026/05/18/req/ 1건 mv (REQ-014; gitignore 적용으로 git tracked 변동 0)
+#  - specs/20.req/20260518-deps-coherence-pre-commit-gate-shift-left.md → specs/50.blocked/req/ 1건 격리 + `_reason.md` 동일 디렉터리 (REQ-007 duplicate; gitignore 적용으로 git tracked 변동 0)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 88차 tick 박제 + 18 spec stale_cycles += 1 + 신규 2 spec stale_cycles 0 진입)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존; 50.blocked/req/ 신규 1건 격리는 inspector writer 영역).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. 외부 unstaged `.husky/pre-commit` 1 파일 (TSK-20260518-17 developer 영역 미완 산물) inspector 영역 밖 미접촉 정합.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 신규 2 spec carve + `.inspector-seen` edit 한정; `.planner-seen` 미접촉; 20.req/ 2 req mv + 1 req 격리 only; 40.task/ + 10.followups/ 미접촉; 60.done/req/ 신규 2건 진입; 50.blocked/req/ 신규 1건 진입).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/18 ack (정체 13차 = decade+3)` 박제 (RULE-04 매 세션 필수).
+# RULE-03 (d) 정합 — green 시작 18 < GREEN_PENDING_MAX=20 + 2 carve 후 종료 20 == 임계 (도달이나 초과 아님, `>` 임계 비활성). 차기 89차 tick Phase 2 흡수는 본문 갱신 경로 한정 또는 backpressure 진입.
+# RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 2 carve (REQ-021 + REQ-014 각각 시스템 불변식 평서형 + 반복 검증 + 시점 비의존 + incident 비귀속 + 수단 중립 + self-reference scope 분리 6 축 PASS).
+# RULE-06 §스코프 규칙 baseline gate — REQ-021 (A)~(K-self) 11 건 + REQ-014 (A)~(E-self) 5 건 실측 박제.
+#
+# 입력 큐 잔여: 12건 (REQ-004/005/006/008/009/010/011/012/016/017/022/023 보류, 차기 tick 부터 본문 갱신 경로 흡수 검토 또는 1 carve + 1 mv chain 으로 임계 회복; 후보: REQ-023 csp-meta-img-src-allowlist 신규 spec carve (사용자 우선순위 3 위) / REQ-008 manifest-pwa-install-contract 신규 spec carve / REQ-022 viewport-meta-mobile-pwa-standalone 신규 spec carve).
