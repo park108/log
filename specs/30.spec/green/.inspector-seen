@@ -1731,3 +1731,71 @@
 # RULE-06 §스코프 규칙 baseline gate — (E)(F)(G)(H)(I)(J-self) 6 건 실측 박제 ((E) 1 hit + (G) 0 hit 합산 + (H) 0 hit static safety + (I) 변환 graph 부분집합 PASS).
 #
 # 입력 큐 잔여: 11건 (REQ-004/005/006/008/009/010/011/012/017/022/023 보류, 차기 tick 부터 본문 갱신 경로 흡수 검토 또는 1 carve + 1 mv chain 으로 임계 회복; 후보: REQ-012 vitest-coverage-exclude-pattern → build-coverage-output-dir-tri-surface-coherence.md body-update / REQ-010 vite-build-sourcemap-disabled → tooling.md split 후 별 spec / REQ-023 csp-meta-img-src-allowlist 신규 spec carve (1 carve + 1 mv chain 필요 — green 21 - 1 promote = 20 유지)).
+#
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`6174d0f` → THIS (90차 tick) — reconcile 0/20 ack (정체 15차 = decade+5; 외부 src/ commit 0건 — `b27e724` 89차 inspector self → `ff84de8` discovery REQ-024/025 발행 + `6174d0f` planner 132차 self only, src/+vite.config.js+eslint.config.js+tsconfig.json+package.json 영역 변경 0)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `b27e724` (89차 tick — Phase 2 REQ-016 흡수 styles/css-modules.md body-update + Phase 1 0/20 ack 정체 14차 = decade+4).
+#  - tick 진입 시 HEAD == `6174d0f` (spec(planner): 132차 tick self-only `.planner-seen` +66 line; 외부 발화 0건; src/ 0 변경).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `6174d0f` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `b27e724` 후): 2건 —
+#     · `ff84de8` (req(discovery): REQ-20260518-024 + REQ-20260518-025 2건 발행 — browserslist vacuous-declared-policy axis + html lang locale singleton axis. specs/20.req/ 2 file +167 line; src/ 0 변경).
+#     · `6174d0f` (spec(planner): 132차 tick self-only `.planner-seen` +66 line — body-update 진입 surface + 신규 양식 (j) css-modules carve surface mismatch 식별 + decade+19 milestone 박제; src/ 0 변경).
+#  - src/ 영역 commit = 0 (직전 89차 이후 0건). vite.config.js / eslint.config.js / tsconfig.json / package.json / package-lock.json / index.html / scripts/ / public/ 전수 변경 0.
+#  - test/spec 본문 commit = 0 (직전 89차 이후 0건; ff84de8 은 specs/20.req/ 입력 큐 영역 한정).
+#  - spec marker 영향 후보 = 0 (외부 src/test 변경 0 → 20 green spec marker flip 후보 0). Phase 1 hook-ack 후보 0.
+#  - 입력 큐 (20.req/): 본 tick 진입 시 13건 디스크 실측 — 직전 89차 종료 11건 (REQ-004/005/006/008/009/010/011/012/017/022/023) + 본 tick 진입 신규 2건 (REQ-024 browserslist-vacuous-declared-policy + REQ-025 html-lang-attribute-locale-token-singleton, `ff84de8` 발화). 종료 시 13건 유지 (Phase 2 backpressure 보류 — green 20 == GREEN_PENDING_MAX=20). planner 132차 commit 본문 "큐 14" 는 mismatch (planner 측 측정 분기 — disk truth=13).
+#  - 20 green spec hash 시작점 (직전 89차 박제 20 entry 유지 — 외부 commit 본문 직접 변동 0; 89차 흡수 styles/css-modules.md hash 2431bdcb 유지):
+#    · 20 기존 spec 전수 hook-ack 후보 없음 (외부 src/ commit 0) → 20 spec 전수 stale_cycles += 1.
+#    · 직전 89차 ack 1 spec (styles/css-modules.md, body-update 본문 갱신 — hook-ack 아님; stale_cycles 89차 reset 후 본 90차 1차 진입).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `6174d0f` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건):
+#  - 외부 src/ commit 0건 (b27e724..HEAD 영역 — discovery req 발행 + planner self-only 2건 한정, src/+config 영역 0 변경).
+#  - 20 green spec 전수 hook-ack 후보 0 → marker flip 0 → **0/20 ack**.
+#  - stale_cycles 분포: 20 spec 전수 += 1.
+#     · styles/css-modules.md: 89차 ack reset 0 → 본 90차 1차 진입 (stale_cycles=1).
+#     · 다른 19 spec: 88차+ stale 누적 (88차 ack 2 spec accessibility + package-manager-major-coherence 도 89차 reset 부재, 87차 ack 1 spec node-modules-extraneous-coherence 도 88차+ stale 누적).
+#     · 5cycle 이상 stale 누적 후보: foundation 영역 (eslint-react-hooks / index-html-root-mount-id / index-html-public-asset-reference / lint-warning-zero-gate / npm-script-prefix / dev-server-port / island-proptypes / spec-carve-precondition / build-coverage / csp-meta-dev-strip-prod-preserve / meta-description / diagnostic-script-auto-channel-coverage / tooling / root-config-spec-reference / runtime-fetch-unmount-safety + common 영역 markdownParser / sanitizeHtml / test-helpers — 8+cycle 누적 추정, ack 트리거 외부 src/ commit 의존 — decade+5 milestone 정확 도달).
+#  - **Phase 1 reconcile: 0/20 ack (정체 15차 누적 = decade+5).**
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 13건 (REQ-004/005/006/008/009/010/011/012/017/022/023/024/025):
+#     · 본 tick 진입 시 green=20 == GREEN_PENDING_MAX=20 (정확 도달 — `>` 임계 비활성). 신규 carve 시 21 > 20 임계 초과 → carve 보류.
+#     · **body-update 경로 (sibling 신규 spec carve 아닌 기존 spec 본문 흡수) 만 허용** (89차 css-modules 흡수 동일 패턴).
+#  - 13 req 전수 RULE-07 자기 검증 PASS (시스템 불변식 평서형 후보; incident 비귀속) 이나 모든 req 의 OOS / 별 axis 명시 검토 결과:
+#     (1) REQ-006 prod-bundle-dev-only-code-residue-zero — OOS 명시 "tooling.md 영역" 부재, components/app.md 영역 직교 axis. 별 spec carve 필수 (sibling 흡수 후보 부재). 보류.
+#     (2) REQ-008 vite-build-sourcemap-disabled-bundle-residue-zero — OOS 명시 "tooling.md split 후 별 spec" (89차 평가). tooling.md 이미 290+ line (RULE-07 300 line 한계 근접 — split 우선순위). 보류.
+#     (3) REQ-009 apple-touch-icon-rel-filename-disk-sizes-tri-axis-coherence — 자매 spec `foundation/index-html-public-asset-reference-coherence.md` 의 OOS 명시 "<link rel='apple-touch-icon'> 의 manifest.json.icons 외부 배치 자체의 변경 결정 (현 분리 상태 박제만)" — 본 req 는 rel/파일명 어미/sizes 3축 axis 직교, 흡수 spec 별 axis 필요. 별 spec carve 필수. 보류.
+#     (4) REQ-010 manifest-pwa-install-contract-token-typology — 자매 spec index-html-public-asset-reference OOS 명시 "manifest.json 본문의 short_name/name/start_url/display/background_color 키 값 정합 (별 axis)" — 별 spec carve 필수. 보류.
+#     (5) REQ-011 viewport-meta-mobile-pwa-standalone-axis-coherence — 자매 spec index-html-public-asset-reference OOS 명시 "<meta name='viewport'> 의 텍스트 자체 정합 (별 axis)" — 별 spec carve 필수. 보류.
+#     (6) REQ-012 vitest-coverage-exclude-pattern-vacuous-zero-axis — 자매 spec `foundation/tooling.md §동작 9` (REQ-013 흡수, eslint.config.js:15 ignores 5 패턴 vacuous-zero) 또는 `foundation/build-coverage-output-dir-tri-surface-coherence.md` (REQ-021 흡수). body-update 후보 평가: vitest.coverage.exclude 5 패턴은 eslint ignores 와 직교 axis (다른 표면, 같은 패턴 의미). build-coverage 의 OOS 명시 "신규 build/coverage 산출 디렉터리" 박제 한정 — vitest.coverage.exclude pattern vacuous-zero 는 별 axis. tooling.md §동작 9 OOS "vitest 의 dry-run 등 자동 검출 채널 — REQ-013 out-of-scope, 수단 영역" 명시 — 별 axis. 별 spec carve 필요. 보류.
+#     (7) REQ-017 html-title-manifest-name-token-coherence — 자매 spec index-html-public-asset-reference OOS 명시 "<title> 의 텍스트 자체 정합 (별 axis)" + "manifest.json 본문의 short_name/name 키 값 정합 (별 axis)" — 별 spec carve 필수 (REQ-010 와 직교 또는 통합 별 axis). 보류.
+#     (8) REQ-022 pwa-splash-first-paint-background-color-tri-coherence — manifest.json.background_color ↔ CSS --normal-background-color ↔ body 3 표면. 자매 spec 부재 (styles/css-modules.md 직교 — CSS module 만, root CSS 변수 미포함). 별 spec carve 필수. 보류.
+#     (9) REQ-023 csp-meta-img-src-allowlist-src-external-domain-token-coherence — 자매 spec `foundation/csp-meta-dev-strip-prod-preserve.md` OOS 명시 "CSP directive 자체 (default-src/script-src/connect-src/img-src/style-src 등) 값 정합" — 별 axis. 별 spec carve 필수. 보류.
+#     (10) REQ-024 package-json-browserslist-vacuous-declared-policy-axis — 자매 spec `foundation/tooling.md` §동작 9 동일 vacuous-declared-policy 패턴 (다른 표면 — browserslist vs eslint ignores). tooling.md split 후 별 spec carve 적합 (line count 한계). 별 spec carve 필요. 보류.
+#     (11) REQ-025 html-lang-attribute-locale-token-singleton-axis — 자매 spec index-html-public-asset-reference OOS 명시 "<html> lang 속성" 부재 (3종 link + theme-color 4 element 한정). 별 spec carve 필수. 보류.
+#     (12) REQ-004 / REQ-005 — 누적 보류 잔존 (이전 tick 평가 분석 동일 — 별 spec carve 필수).
+#  - **13 req 전수 별 spec carve 후보 (body-update 흡수 후보 0건)**. green 20 == GREEN_PENDING_MAX=20 임계 정확 도달 → carve 0건 의무 (21 > 20 임계 초과). 본 tick **Phase 2 흡수 0건 + 격리 0건**.
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+) 또는 body-update 후보 신규 식별 (89차 css-modules 패턴 동일). 현 상태 planner 132차 시점 4조건 PASS 후보 0건 (chicken-egg 24차 dormant 유지) → planner promote 단기 발화 가능성 0.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (13 req 전수 보류, 20.req/ 디스크 큐 13건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 90차 tick 박제 + 20 spec 전수 stale_cycles += 1; 본문 diff = append only)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/req/ 0 file 잔존 — 직전 87차 REQ-007 mv 후 88차 외부 발화 격리는 60.done 사본과 18217 byte 동일 RULE-05 /revisit close 권장 처리 완료 추정 — 본 tick 디스크 50.blocked/req/ 0 file 확인).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/.inspector-seen append 한정; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/{task,spec,req} + 10.followups/ + 60.done/ 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack (정체 15차 = decade+5)` 박제.
+# RULE-03 (d) 정합 — green 20 == GREEN_PENDING_MAX=20 (도달은 신규 carve 0건 의무) + body-update 후보 0건 → 흡수 0 + 격리 0 → backpressure no-op 정합.
+# RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 0 흡수 (13 req 전수 RULE-07 자기 검증 평서/반복/시점/incident PASS 이나 body-update 후보 0 + 신규 carve 임계 초과로 보류).
+#
+# 입력 큐 잔여: 13건 (REQ-004/005/006/008/009/010/011/012/017/022/023/024/025 보류, 차기 tick 부터 임계 회복 시 흡수 재개 또는 1 carve + 1 promote chain 으로 임계 유지 흡수).
