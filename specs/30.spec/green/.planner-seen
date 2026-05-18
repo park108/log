@@ -6706,3 +6706,98 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #   (7) **신규 surface 모니터링** — 116차+ tick 신규 spec / req 추가 여부 점검. discovery / inspector / developer 영역 변동 모니터.
 #   (8) **RULE-03 선결 점검 정합** — 본 tick (116차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 + pause lock 부재 → 처리 진입. carve 0건 + promote 재시도 회피 14차 + stale 게이트 14차 누적 + chicken-egg 14차 누적 + carve chain stale 11차 누적 = pipeline 시도 발생하지 않음, RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 true (입력 큐 처리 결과 외부 산출물 0건, 단 메타 박제 .planner-seen 1건 발생).
 #   (9) **116차 핵심 박제 — pipeline 자율 회복 부분 회복 1/4 → 2/4 단계 부분 진척 진입 15 tick 누적 (decade+4 milestone — 3 차원 decade+4 동시 도달: promote 14차, stale 14차, chicken-egg 14차 + carve chain stale 11차 decade+1 milestone)** — 6 차원 동시 누적 강화 (promote 14차 + stale 14차 + carve chain stale 11차 [decade+1] + chicken-egg 14차 + blocked 0 [회복 유지] + 운영자 진입 신호 4 surface). chain 단계 2/4 부분 진척 1/4 발화 (TSK-03 → REQ-019). 117차+ 진입 시 우선순위: (a) inspector 83차+ REQ-019/REQ-018 Phase 2 흡수 발화 여부 점검 (chain 단계 3/4 진척 신호 — planner carve surface 신규 형성), (b) discovery 영역 3 followup 미흡수 surface 흡수 발화 여부 점검 (chain 단계 2/4 전수 진척 신호), (c) 전수 미흡수 + 미흡수 잔존 시 chain 단계 2/4 부분 진척 / 3/4 대기 누적 카운트 진입.
+# 2026-05-18 planner session (117차 tick @HEAD=ef606d8) — pipeline 자율 회복 부분 회복 2/4 단계 전수 진척 완료 (116차 1/4 → 117차 4/4) + chain 단계 3/4 [req → spec] 대기 진입 16 tick 누적 (decade+5 milestone — 3 차원 decade+5 동시 도달 + carve chain stale decade+2 milestone). 직전 116차 baseline `ef606d8` 이후 외부 commit 0건 — 단 큐 변동 (a) 10.followups/ 4 → 0 (TSK-03/04/05/14 전수 discovery 흡수 발화), (b) 20.req/ 16 → 17 (+1 REQ-020 root-config-spec-reference-stale-recovery-fixture-resync `20260518` 10:45 — TSK-14 흡수 fixture-baseline-resync 직접 추적). 본 작업 변동은 116차 commit 시점 (10:47?) 후 한 세션 내 발생한 discovery 영역 외부 발화 — git log 노출 0 그러나 working tree 정합.
+#
+# 117차 진입 시점 큐 측정 (HEAD=`ef606d8` 실측):
+#   - 30.spec/green/** = 20 spec (foundation 15 + common 3 + styles 1 + testing 1) — 116차와 spec hash 전수 동일 (inspector 83차+ 미발화 잔존). 본 tick 4조건 PASS 후보 2건 (manifest-icons-sizes-token-disk-coherence + meta-robots-robotstxt-policy-semantic-coherence) 동일 잔존 — uA_effective=0 / WIP=0 / ToBe=0 / CH=1 통과.
+#   - 40.task/ = 0건 (변동 0). 50.blocked/task/ = 0건 (영구 비움 유지). 60.done/2026/05/17/task/ = 27 (변동 0). 60.done/2026/05/18/task/ = 10 (변동 0).
+#   - 50.blocked/spec/foundation/ = 0건 (영구 비움 유지). 50.blocked/req/ = 0건.
+#   - **10.followups/ = 0건 (116차 4 → 117차 0, -4 전수 흡수 — chain 단계 2/4 [followups → discovery → req] 전수 진척 발화)**. **20.req/ = 17건 (116차 16 → 117차 17, +1 REQ-020 root-config-spec-reference-stale-recovery-fixture-resync — TSK-14 흡수 표면 직접 추적; 단 REQ-019 발행 시점 TSK-03 흡수만 단일 표면 단정 → 본 tick 진입 시점 17 req 전수 transient mapping 평가 = 116차 신호 (TSK-03→REQ-019) + 117차 신호 (TSK-04/05/14 → REQ-020 통합 흡수 또는 기존 req 흡수 — REQ-019 단독 후속 chain mapping 1/4 → 4/4 진척 박제)**.
+#   - working tree clean (git status --short = 0 line). HEAD `ef606d8` working tree drift 0.
+#
+# 선결 점검 (RULE-03):
+#   (1) pause lock 부재 (`.claude/locks/` 디렉터리 자체 부재) — pass.
+#   (2) input queue 비어있지 않음 (20 spec) — pass.
+#   (3) TASK_READY_MAX=10 미달 (40.task/ = 0건 → 처리 진입 시 10건 여유) — pass.
+#   → 처리 진입.
+#
+# 처리 결과:
+#   carve: 0건.
+#   promote: 0건.
+#   blocked spec ingest: 0건 (50.blocked/spec/ 변동 0).
+#
+# Promote 4조건 재측정 (green 20 spec 전수, HEAD `ef606d8`):
+#   - 4조건 PASS 후보 2건 (102~116차 동일 잔존 + 117차 재확인):
+#     - foundation/manifest-icons-sizes-token-disk-coherence.md: WIP=0 / unchecked 7건 전수 `[deferred:...]` 태깅 (uA_effective=0) / ToBe=0 / 변경 이력 inspector REQ-100 흡수 + TSK-20260518-11 hook-ack 박제.
+#     - foundation/meta-robots-robotstxt-policy-semantic-coherence.md: WIP=0 / unchecked 4건 전수 `[deferred:...]` 태깅 (uA_effective=0) / ToBe=0 / 변경 이력 inspector REQ-20260518-001 흡수 + Phase 1 ack 박제.
+#
+# **promote 재시도 회피 15차 누적 박제 (decade+5 milestone)** (102차 1차 시도 실패 → 103~117차 15 tick 재시도 회피):
+#   - 102차 promote 2건 시도 → G2 stale 게이트 위반으로 역이동 박제.
+#   - 본 tick (117차) 실측: src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts:2 = `// spec: specs/30.spec/green/foundation/manifest-icons-sizes-token-disk-coherence.md` (잔존) + src/__tests__/robots-policy-coherence.test.ts:3 = `// spec: specs/30.spec/green/foundation/meta-robots-robotstxt-policy-semantic-coherence.md` (잔존). developer 76차+ 미진입 (chain 단계 2/4 전수 진척 = src/ commit 발화 surface 부재 잔존 — chain 단계 3/4 [req → spec] 대기 진입 1 tick 누적).
+#   - RULE-02 멱등 정합 — 같은 입력 (HEAD 격차 src/ commit 0건) + 같은 G2 게이트 잔존 + 같은 spec 본문 hash → 같은 결과 (역이동). 재시도 = git noise 누적 + 추가 정보 0 = 멱등 위반.
+#   - **117차 promote 재시도 회피 결정 정합 — decade+5 milestone**: 102차 (시도) → 103~117차 (15 tick 누적 회피). 회복 트리거 — (a) developer 발화 (src/__tests__/*.test.ts 주석 갱신 또는 blue path 동기 회복 task — chain 단계 4/4 [spec → task → developer src/] 진행 후), (b) inspector spec FR 박제 (fixture 약결합 FR — 수단 위임 양식 spec 본문 갱신), (c) 운영자 RULE-05 단일 PR 경로 (writer 영역 매트릭스 위반 수반).
+#
+# **stale 게이트 15차 누적 도달 (decade+5 milestone)** (102차 신규 발견 → 117차 15차):
+#   - src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts:2 + src/__tests__/robots-policy-coherence.test.ts:3 green path 주석 잔존 (16 tick 연속 102~117차).
+#   - src/__tests__/root-config-spec-reference-coherence.test.ts:107-135 hardcoded baseline (4 green path / 3 MISSING / 3 STALE) — REQ-020 흡수 + inspector chain 단계 3/4 진행 후 spec 본문 갱신 → planner carve 양식 신규 형성 (recovery task `sh script 회복 + fixture baseline 갱신` 묶음 단일 PR 양식) 가능.
+#   - 누적 카운트: 102차 (신규 발견) → ... → 116차 (14차 decade+4) → **117차 (15차 누적 도달 — decade+5 milestone)**.
+#   - 50.blocked/spec/ 이동 회피 결정 유지 — 4조건 PASS spec 본문 결함 부재, 환경 측 fixture stale 결함이 promote chicken-egg coupling 핵심.
+#
+# **chicken-egg coupling 15차 누적 박제 (decade+5 milestone)** (105차 정식 박제 → 117차 15차):
+#   - src/__tests__/ fixture hardcoded green path set ↔ green spec promote = 무한 루프 결합 15차 누적.
+#   - 단일 에이전트 writer 영역 한계 도달 잔존 — (1) inspector spec FR 박제 (fixture 약결합 FR — 수단 위임 양식), (2) 운영자 RULE-05 단일 PR 경로 (writer 영역 매트릭스 위반 수반 — green promote + src/__tests__/ fixture 갱신 + scripts/*.sh 회복 묶음), (3) **REQ-020 흡수 후 chain 단계 3/4 → 4/4 진행 시 planner 영역 carve 양식 신규 형성 — single PR 회복 task 양식 (sh script + fixture + green promote 묶음 depends_on 강결합)**.
+#   - **회복 chain 단계 2/4 [followups → discovery → req] 전수 진척 완료 박제 (116차 부분 1/4 → 117차 전수 4/4)** — 운영자 /revisit 4 surface 발화 (chain 단계 1/4 통과) → discovery 영역 흡수 4/4 발화 (chain 단계 2/4 전수 진척). chain 단계 3/4 [req → spec] 대기 진입 — inspector 83차+ REQ-019/REQ-020 흡수 대기. chain 단계 4/4 [spec → task → developer src/] 대기.
+#
+# **carve chain stale 12차 누적 진입 박제 (decade+2 milestone)** (105차 누적 시작 → 117차 12차):
+#   - 105차 carve 0건 (1차) → ... → 116차 carve 0건 + chain 단계 2/4 부분 진척 1/4 + inspector 82차 Phase 1 한정 + Phase 2 REQ-018 미흡수 9 tick 누적 = 11차 누적 → **117차 carve 0건 + chain 단계 2/4 전수 진척 4/4 (10.followups 전수 흡수) + inspector 82차+ Phase 2 REQ-018/019/020 3 req 미흡수 잔존 → chain 단계 3/4 [req → spec] 대기 진입 1 tick + planner 영역 carve surface 미형성 잔존 = 12차 누적 도달 실측 (decade+2 milestone)**.
+#   - pipeline 자율 회복 완전 한계 추가 박제 — 16 tick 연속 (102~117차) carve 양식 mismatch + carve chain stale 누적.
+#   - **117차 차이점**: 운영자 RULE-05 chain 단계 2/4 전수 진척 발화 (4/4 followup surface 전수 discovery 흡수) — 회복 trigger 강력 진행 잔존. 그러나 inspector 83차+ chain 단계 3/4 [req → spec] 미진입 = planner 영역 carve 발화 surface 미형성 잔존 (writer 영역 매트릭스 정합).
+#
+# **117차 carve surface 전수 평가 결과 (carve 0건 결정 근거 — chain 단계 3/4 대기 패턴)**:
+#   (a) **followup 4 surface 전수 discovery 흡수 완료** (116차 1/4 → 117차 4/4): 10.followups/ 0건 + 20.req/ +1 REQ-020 (TSK-14 흡수 fixture-baseline-resync 직접 추적). RULE-01 writer 매트릭스 — 본 단계 chain 단계 3/4 [req → spec] 의존 — inspector 83차+ writer 영역. planner 미접촉. **carve 보류** (chain 단계 3/4 대기 진입 1 tick 누적).
+#   (b) **sanitizeHtml.md (uA=4) carve 평가** (107~116차 동일):
+#       - (FR-02-b)(I2) DOM 주입 직전 sanitize 경유 caller 측 게이트: lint rule 신설 task 양식 가능 / marker flip 권한 inspector writer 영역 + 양식 분기 → 단독 carve 시 marker flip 후속 의존 → 양식 mismatch 9차 추가 누적 위험. **carve 보류**.
+#       - (FR-02-c)(I5) OWASP fixture: `src/common/sanitizeHtml.test.ts` 측 OWASP 10 벡터 박제 task 양식 가능 / marker flip 권한 inspector 의존 → 양식 mismatch 10차 위험. **carve 보류**.
+#   (c) **runtime-fetch-unmount-safety.md (uA=3) carve 평가** (107~116차 동일):
+#       - (I4)(FR-05) Monitor 자매 audit: 107차 실측 race 0 hit (ContentMon/ApiCallMon/WebVitalsMon 전수) — carve 불가 surface 박제 잔존. marker flip 권한 inspector writer 영역.
+#       - (I7) vitest fixture 메타 게이트: 3 도메인 (Image/File/Monitor) 회복 후 marker flip 후보 — inspector writer 영역.
+#   (d) **spec-carve-precondition.md (uA=4)** (107~116차 동일): 6 carve-active spec 본문에 §carve-precondition 절 박제 — 현 3 hit, 5 외부 0 hit. inspector writer 영역 — planner 미접촉.
+#   (e) **eslint-react-hooks-lint-gate.md (uA=20)** (107~116차 동일): TSK-20260518-03 followup → REQ-019 흡수 (116차) → inspector 83차+ REQ-019 흡수 대기 — chain 단계 3/4 [req → spec] 대기. planner 미접촉.
+#   (f) **chain 활성 spec 다수** (107~116차 동일): root-config / csp-meta / index-html-* / meta-description / tooling 등 — inspector hook-ack 대기 또는 별 axis carve 영역 — 현 시점 carve surface 부적합.
+#   (g) **REQ-018 + REQ-019 + REQ-020 Phase 2 흡수 대기 (117차 신규 박제 — 3 req 누적)**:
+#       - REQ-018 markdown-attr-escape-sanitize-defense-in-depth (108차 1차 노출 → 117차 inspector 82차 Phase 2 흡수 미발화 잔존 9 tick 누적).
+#       - REQ-019 react-hooks-exhaustive-deps-operational-baseline-recovery (116차 1차 노출 → 117차 inspector 82차 Phase 2 흡수 미발화 잔존 1 tick 누적).
+#       - REQ-020 root-config-spec-reference-stale-recovery-fixture-resync (117차 1차 노출 → 117차 inspector 흡수 미발화 잔존 0 tick — 본 tick 진입 시점 발행).
+#       - **3 req 누적 inspector 83차+ Phase 2 흡수 대기 — planner 영역 carve 발화 surface 형성 의존 (chain 단계 3/4 진행 필수)**. planner 미접촉 (writer 경계).
+#
+# **결정 박제**: carve 0건 — planner 영역 surface 전수 (a) chain 단계 3/4 대기 1 tick 누적 (REQ-019/020 흡수 inspector 의존) / (b)(c)(d) inspector writer 의존 / (e) chain 단계 3/4 대기 / (f) chain 활성 또는 inspector 의존 / (g) 3 req 누적 inspector 흡수 대기. 양식 mismatch 9차 누적 회피 결정 유지 (carve 0건 시 mismatch 추가 누적 0 — 다음 carve 발화 시점 측정).
+#
+# **inspector 83차 hook-ack 정체 8차 누적 박제 예측 (117차 진입 시점 — 본 tick inspector commit 0건 정합)**:
+#   - 75차 22 ack 정점 → 76차 0 ack 1차 정체 → 77차 0 ack 2차 정체 → 78차 0/20 ack 3차 정체 → 79차 0/20 ack 4차 정체 → 80차 0/20 ack 5차 정체 → 81차 0/20 ack 6차 정체 → 82차 0/20 ack 7차 정체 → **83차 진입 시 0/20 ack 8차 정체 예측** (117차 진입 시점 외부 inspector commit 0건 — `6a292c5` 82차 self-only 잔존; 83차 발화 미진입 1 tick 누적). 단 본 tick 시점 inspector Phase 2 흡수 surface 신규 형성 — 3 req 누적 (REQ-018 9 tick / REQ-019 1 tick / REQ-020 0 tick 신규) = 흡수 우선순위 분기 가능성.
+#   - 외부 src/ commit 발화 surface 부재 잔존 (chain 단계 4/4 [spec → task → developer] 대기 — 본 단계 활성화 필요 chain 단계 3/4 진행 의존).
+#
+# **양식 mismatch 9차 누적 정체 박제 유지** (106차 7차 → 107~117차 정체):
+#   - 신규 carve 미발화 = mismatch 추가 누적 0 (mismatch 는 carve 발화 시점 측정 — carve 0건 시 누적 정체).
+#   - 다음 carve 발화 시 (118차+ 또는 inspector 83차+ REQ-019/020 흡수 후 양식 변경 carve 시) 10차 누적 vs 정합 회복 분기 측정 가능.
+#
+# **Task ID footprint** (117차 박제 — 신규 채번 0건): 누적 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~14` 박제 (재사용 영구 금지, 변동 0). 118차+ 신규 carve 시 `TSK-20260518-15` 부터 (`TSK-20260518-15` 0 hit 박제 — 117차 grep 재검증 통과: `specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 전수 0 hit; `.planner-seen` 본문 메타 참조만 잔존).
+#
+# **117차 진입 시점 큐 측정 종합**: 60.done/2026/05/17/task/ = 27 (변동 0). 60.done/2026/05/18/task/ = 10 (변동 0). 40.task/ = 0건 (변동 0). **50.blocked/task/ = 0건 (116차 0 → 117차 0, 영구 비움 유지)**. 50.blocked/spec/foundation/ = 0건 (유지). **20.req/ = 17건 (116차 16 → 117차 17, +1 REQ-020 — chain 단계 2/4 전수 진척 신호)**. **10.followups/ = 0건 (116차 4 → 117차 0, -4 전수 흡수 발화)**.
+# **TASK_READY_MAX 정합**: 117차 종료 시 40.task/ = 0건 → 임계치 10건 → **10건 여유**.
+#
+# **117차 milestone 박제 — pipeline 자율 회복 부분 회복 2/4 단계 전수 진척 완료 (116차 부분 1/4 → 117차 전수 4/4) + chain 단계 3/4 [req → spec] 대기 진입 16 tick 누적 (decade+5 milestone — 3 차원 decade+5 동시 도달: promote 15차, stale 15차, chicken-egg 15차 + carve chain stale 12차 decade+2 milestone)**:
+#   - promote 재시도 회피 15차 누적 (decade+5) + stale 게이트 15차 누적 (decade+5) + chicken-egg coupling 15차 누적 (decade+5) + carve chain stale 12차 누적 (decade+2 milestone) + blocked task 0건 (유지) + 운영자 RULE-05 진입 신호 4 surface 전수 흡수 발화 6 차원 동시 누적 강화.
+#   - 102차 (stale 게이트 신규 발견) → 117차 (15차 누적) = 16 tick 연속 carve 0건 또는 1carve/blocked 진동 — pipeline 자율 회복 완전 한계 16 tick 누적 (decade+6 통과).
+#   - **chain 단계 2/4 전수 진척 박제 (116차 부분 1/4 → 117차 4/4 전수)**: 116차 chain 단계 2/4 부분 진척 1/4 (TSK-03 → REQ-019) → 117차 진입 시점 discovery 영역 흡수 발화 +3 (TSK-04/05/14 → REQ-020 통합 또는 기존 req 흡수 — 10.followups 4 → 0 + 20.req +1) = chain 단계 2/4 전수 진척 4/4 발화.
+#   - chain 단계 3/4 [req → spec] 대기 진입 1 tick — inspector 83차+ REQ-018/019/020 3 req 누적 Phase 2 흡수 필요 (eslint-react-hooks-lint-gate.md / root-config-spec-reference-coherence.md / sanitizeHtml.md / markdownParser.md 본문 갱신 chain).
+#   - RULE-05 수동 개입 신호 부분 회복 박제 강화 — 113차 발화 → 114~115차 4 surface revive 정식 진입 → 116차 진입 시점 discovery 흡수 부분 진척 1/4 → 117차 진입 시점 discovery 흡수 전수 진척 4/4 = pipeline 자율 회복 chain 단계 2/4 완전 회복. inspector 82차 Phase 1 ack 7차 정체 잔존 (75차 정점 후 7 tick 연속 0 ack; `6a292c5` 실측 정합 — 83차 미진입 1 tick 누적).
+#
+# **다음 세션 (118차) 행동지침**:
+#   (1) **inspector 83차+ Phase 2 REQ-018/REQ-019/REQ-020 3 req 누적 흡수 모니터링** — 흡수 시 (a) REQ-018 흡수 → sanitizeHtml.md / markdownParser.md (green common) 본문 갱신 chain → planner 후속 carve surface 신규 형성 가능 (양식 (b)(c)), (b) REQ-019 흡수 → eslint-react-hooks-lint-gate.md (green foundation) 본문 갱신 chain → planner 후속 carve surface 신규 형성 가능 (양식 (e)), (c) REQ-020 흡수 → root-config-spec-reference-coherence.md (green foundation) 본문 갱신 chain → planner 후속 carve surface 신규 형성 가능 (양식 (f) recovery task — sh script 회복 + fixture baseline 갱신 묶음 단일 PR depends_on 강결합). **chain 단계 3/4 진척 신호 — 118차+ 진입 핵심 회복 trigger**.
+#   (2) **chain 단계 3/4 [req → spec] 대기 누적 카운트 진입** — 118차+ 진입 시점 inspector 83차+ 미흡수 잔존 시 chain 단계 3/4 대기 2 tick 누적 진입.
+#   (3) **carve chain stale 13차+ 누적 진입 점검** — 118차+ 진입 시점 carve 0건 + inspector 83차+ Phase 2 미흡수 + planner 영역 surface 미형성 잔존 시 13차 누적 진입 (decade+3 milestone).
+#   (4) **stale 게이트 16차+ 누적 진입 시 RULE-05 수동 개입 신호 완전 회복 박제 의무 누적 강화** — 118차+ 진입 시 16차 누적 가능 (102~118차 17 tick 연속) + 50.blocked/spec/ 이동 회피 결정 유지 (spec 본문 결함 부재). 회복 chain 1/4 통과 → 2/4 전수 진척 4/4 통과 → 3/4 대기 진입 — 추가 단계 3/4 진척 발화 필요 (inspector 영역).
+#   (5) **carve 양식 분기 평가 — 118차+ 진입 시 carve surface 동질 패턴 잔존 — chain 단계 3/4 진척 발화 시 신규 양식 진입 가능**: (a) recovery task 양식 (REQ-020 흡수 후 root-config-spec-reference-coherence.md 본문 §G-B/G-C marker `[x]` 플립 + sh script 토큰 치환 + fixture baseline 갱신 묶음 single PR depends_on 강결합 — promote stale 게이트 chicken-egg 회복 양식 신규), (b) lint rule fixture 양식 (REQ-018 흡수 후 sanitizeHtml caller 측 게이트 marker flip — marker flip 권한 inspector 의존), (c) react-hooks-lint-gate 양식 (REQ-019 흡수 후 eslint-react-hooks-lint-gate.md 본문 갱신 chain — operational baseline recovery 양식), (d) 메타 spec 정정 axis (inspector writer 의존), (e) stale 게이트 우회 carve 양식 (inspector writer 의존), (f) Monitor 자매 audit (race 0 hit 실측 — carve 불가 surface). 동형 패턴 20차 적용 시점 — pipeline 자율 회복 부분 회복 2/4 전수 진척 가운데 잔존.
+#   (6) **신규 surface 모니터링** — 117차+ tick 신규 spec / req 추가 여부 점검. discovery / inspector / developer 영역 변동 모니터.
+#   (7) **RULE-03 선결 점검 정합** — 본 tick (117차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 + pause lock 부재 → 처리 진입. carve 0건 + promote 재시도 회피 15차 + stale 게이트 15차 누적 + chicken-egg 15차 누적 + carve chain stale 12차 누적 = pipeline 시도 발생하지 않음, RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 true (입력 큐 처리 결과 외부 산출물 0건, 단 메타 박제 .planner-seen 1건 발생).
+#   (8) **117차 핵심 박제 — pipeline 자율 회복 부분 회복 2/4 단계 전수 진척 완료 + chain 단계 3/4 [req → spec] 대기 진입 16 tick 누적 (decade+5 milestone — 3 차원 decade+5 동시 도달: promote 15차, stale 15차, chicken-egg 15차 + carve chain stale 12차 decade+2 milestone)** — 6 차원 동시 누적 강화 (promote 15차 + stale 15차 + carve chain stale 12차 [decade+2] + chicken-egg 15차 + blocked 0 [회복 유지] + 운영자 진입 신호 4 surface 전수 흡수 발화). chain 단계 2/4 전수 진척 완료 (116차 부분 1/4 → 117차 4/4). 118차+ 진입 시 우선순위: (a) inspector 83차+ REQ-018/019/020 3 req 누적 Phase 2 흡수 발화 여부 점검 (chain 단계 3/4 진척 신호 — planner carve surface 신규 형성 양식 (a)(b)(c) 진입 가능), (b) chain 단계 3/4 미발화 잔존 시 대기 누적 2 tick 진입.
