@@ -1186,3 +1186,78 @@
 # RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src/ 영역 commit 0 — ack 트리거 없음). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~018 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 15건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017/018 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+#
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`eee3d7b` → THIS (83차 tick) — reconcile 0/20 ack (정체 8차 누적, 외부 src/ commit 0건) + Phase 2 REQ-20260518-019 + REQ-20260518-020 흡수 2건 (chain 단계 3/4 [req → spec] 진척 발화 — planner 116~118차 박제 "inspector 83차+ Phase 2 흡수 발화 필요" 정합 통과)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `6a292c5` (82차 tick — Phase 1 0/20 ack 정체 7차 + Phase 2 backpressure no-op 15건).
+#  - tick 진입 시 HEAD == `eee3d7b` (spec(planner): 118차 tick chain 단계 3/4 대기 2 tick 누적, pipeline 자율 회복 완전 한계 17 tick 누적 decade+7 통과, 모든 큐 변동 0 박제).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `eee3d7b` (본 inspector self-commit 직전 baseline).
+#  - 외부 commit 분포 (직전 inspector self-commit `6a292c5` 후): 3건 — 모두 planner self-only `.planner-seen` 박제 한정 (src/ commit 0건):
+#     · `ef606d8` (spec(planner): 116차 — discovery REQ-019 발화 흡수 chain 단계 2/4 부분 진척 1/4 박제).
+#     · `58671cf` (spec(planner): 117차 — chain 단계 2/4 전수 진척 4/4 완료 + chain 단계 3/4 [req → spec] 대기 진입 박제).
+#     · `eee3d7b` (spec(planner): 118차 — chain 단계 3/4 대기 2 tick 누적 + pipeline 한계 17 tick decade+7 milestone 박제).
+#  - src/ 영역 commit = 0 (3 planner commit 모두 `.planner-seen` 한정 — ack 트리거 0).
+#  - spec marker 영향 후보 = 0 (외부 src/ commit 0 → 본 inspector Phase 1 ack 후보 0, 예측 검증 8차 연속 통과).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 17건 — REQ-004~018 15건 누적 + REQ-019 (react-hooks-exhaustive-deps-operational-baseline-recovery, 10:43 외부 발화) + REQ-020 (root-config-spec-reference-stale-recovery-fixture-resync, 10:45 외부 발화) 2건 신규 발화 누적.
+#  - 20 green spec hash 시작점 (직전 82차 박제 20 entry 유지 — 본 tick Phase 2 흡수 2건 본문 갱신 → 2 spec stale_cycles 0 초기화 + 18 spec stale_cycles += 1; 8 stale ≥44cycle 외부 의존 누적 44-cycle milestone 진입).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `eee3d7b` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (외부 src/ commit 0 — ack 트리거 0):
+#  - 20 green spec 전수 hook-ack 후보 없음 (planner self-only commit 만 — 다른 spec 본문 영향 0).
+#  - 20 spec 전수 stale_cycles += 1 진입 (단 본 tick Phase 2 흡수 2 spec 은 본문 갱신 직후 stale_cycles 0 초기화).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack (정체 8차 누적).** seen-state 갱신.
+#
+# Phase 2 처리 (RULE-03 (d) 해석 + chain 단계 3/4 진척 신호 결정):
+#  - 입력 큐 17건 진입 — RULE-03 (d) 텍스트 "하류 임계치 초과 시 Phase 2 no-op" 의 "초과" 해석:
+#     · 현재 green=20 == GREEN_PENDING_MAX=20 → **미초과** (`>` 임계 비활성).
+#     · 신규 spec carve 시 green 21 → 초과 진입 → 차기 tick backpressure 위험.
+#     · **기존 spec 본문 갱신** (sibling carve 아닌 흡수) 경로 시 green 카운트 동일 유지 (20 → 20) → 임계 비변동 → 본 tick + 차기 tick 모두 임계 정합 유지.
+#  - **흡수 결정**: REQ-019 §FR-06 + REQ-020 §흡수 후보 #1 모두 **기존 green spec 본문 갱신** 경로 명시 — 두 req 모두 기존 spec 흡수 경로 적용 시 green 카운트 동일 유지 가능. backpressure 미발생 → 본 tick Phase 2 흡수 2건 실행 (정체 17 tick 누적 깸 + chain 단계 3/4 진척 발화 신호 — planner 116~118차 박제 "inspector 83차+ REQ-019/REQ-018 Phase 2 흡수 발화 필요" 정합 통과).
+#  - REQ-018 (markdown-attr-escape-sanitize-defense-in-depth) 도 sanitizeHtml.md + markdownParser.md 본문 갱신 후보이나 cross-surface 2단 방어 axis 박제 범위 크므로 본 tick 보류 (차기 tick 처리 — 본 tick 은 2 req 흡수 진척 신호 우선).
+#  - REQ-004~017 14건은 신규 spec carve 후보 (또는 일부 본문 갱신 후보) — green 카운트 변동 가능성 — 본 tick 보류 유지 (RULE-03 (d) 보수 해석 정합).
+#
+# Phase 2 흡수 처리 (REQ-019):
+#  - 흡수 spec: `30.spec/green/foundation/eslint-react-hooks-lint-gate.md` (REQ-20260517-087 직접 선행 spec).
+#  - RULE-07 자기 검증 PASS: 평서형 "운영 코드 hook call site 의존성 배열은 `exhaustive-deps` rule 단언과 정합한다" + 반복 검증 가능 (`npm run lint --max-warnings=0` rc=0 + grep 0 hit) + incident 비귀속 (9 파일 / 15 hits 는 baseline drift marker, TSK-20260518-03 격리는 surface 경로 박제만).
+#  - 본문 갱신:
+#     · 헤더: `관련 요구사항` REQ-20260517-087 → +REQ-20260518-019. `최종 업데이트` 2026-05-18 83차 tick 갱신.
+#     · §동작: 8 (운영 코드 hook deps 정합 — (a) rule PASS 또는 (b) disable + 사유 주석) + 9 (회귀 차단 채널 runtime→lint-time) 신규.
+#     · §수용 기준: FR-05 측정 조건 강화 (plugin 활성화 후 측정 + 9 파일 baseline drift surface marker). FR-09 (hook deps 정합 grep gate) + FR-10 (의도 disable 사유 주석 박제) 신규.
+#     · §테스트 현황: 운영 baseline drift marker (REQ-019 박제) + hook deps grep marker + disable 사유 grep marker 3건 추가.
+#     · §회귀 중점: RC-06 (hook deps 재도입 회귀) + RC-07 (disable 무사유 사용 회귀) 추가.
+#     · §변경 이력: 83차 tick row 1행 박제.
+#  - 본 inspector 변경 표면 1 파일 한정 (`src/**` + `eslint.config.js` + `package.json` + 다른 spec 변경 0).
+#
+# Phase 2 흡수 처리 (REQ-020):
+#  - 흡수 spec: `30.spec/green/foundation/root-config-spec-reference-coherence.md` (REQ-20260517-097 직접 선행 spec).
+#  - RULE-07 자기 검증 PASS: 평서형 "production 측 회복과 fixture 측 baseline 갱신은 단일 PR / 단일 commit 묶음 단위로 처리된다" + 반복 검증 가능 (`git diff --name-only` 매칭 + `npm test` rc=0) + incident 비귀속 (TSK-20260518-14 격리는 surface 경로 marker, §FR/§동작 본문 incident pointer 0).
+#  - 본문 갱신:
+#     · 헤더: `관련 요구사항` REQ-20260517-097 → +REQ-20260518-020. `최종 업데이트` 83차 tick row 추가.
+#     · §동작: (G-H) production↔fixture 묶음 처리 박제 (계약 + 분할 금지 사유 + 수단 비박제 + 측정) 추가.
+#     · §수용 기준: (FR-06) 단일 PR / 단일 commit 묶음 처리 + (FR-07) 회복 후 마커 동시 플립 atomic 정합 추가.
+#     · §변경 이력: 83차 tick row 1행 박제.
+#  - 본 inspector 변경 표면 1 파일 한정 (production 영역 + fixture 영역 변경 0).
+#
+# req mv: 2건 (REQ-019 + REQ-020 → `60.done/2026/05/18/req/`, 20.req/ 디스크 큐 17 → 15).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/eslint-react-hooks-lint-gate.md (REQ-20260518-019 흡수 — §동작 2건 신규 + §FR 3건 신규/강화 + §테스트 현황 3건 신규 + §회귀 중점 2건 신규 + §변경 이력 1행 박제 + 헤더 갱신)
+#  - specs/30.spec/green/foundation/root-config-spec-reference-coherence.md (REQ-20260518-020 흡수 — §동작 1건 신규 + §FR 2건 신규 + §변경 이력 1행 박제 + 헤더 갱신)
+#  - specs/20.req/ → specs/60.done/2026/05/18/req/ 2건 mv (REQ-019 + REQ-020)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 83차 tick 박제 + 2 spec stale_cycles 0 초기화 + 18 spec stale_cycles += 1)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 본문 갱신 2 파일 + `.inspector-seen` edit 한정; `.planner-seen` 미접촉; 20.req/ 2 req mv only; 40.task/ + 50.blocked/ 미접촉; 60.done/req/ 신규 진입).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack (8 stale ≥44cycle)` 박제.
+# RULE-03 (d) 해석 적용 — green 20 == GREEN_PENDING_MAX=20 미초과 + 본문 갱신 경로 흡수 2건 (green 카운트 동일 유지 — sibling carve 아닌 흡수) → backpressure 미발생.
+# RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 2 흡수 (REQ-019 + REQ-020 모두 시스템 불변식 평서형 + 반복 검증 + incident 비귀속 PASS).
+#
+# 입력 큐 잔여: 15건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017/018 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토).
