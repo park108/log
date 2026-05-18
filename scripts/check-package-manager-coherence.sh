@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-package-manager-coherence.sh
-# Spec: specs/30.spec/green/foundation/package-manager-major-coherence.md §동작 (I1) + §수용 기준 FR-01 + FR-04
+# Spec: specs/30.spec/blue/foundation/package-manager-major-coherence.md §동작 (I1) + §수용 기준 FR-01 + FR-04
 # Task: TSK-20260517-23
 #
 # Channels (1+ 채널 박제 효능 — FR-01):

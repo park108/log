@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-node-version-coherence.sh
-# Spec: specs/30.spec/green/foundation/node-version-3axis-coherence.md §동작 1·3·4·5 + §수용 기준 FR-01~05 + §테스트 현황 I1·I3·I4·I5
+# Spec: specs/30.spec/blue/foundation/node-version-3axis-coherence.md §동작 1·3·4·5 + §수용 기준 FR-01~05 + §테스트 현황 I1·I3·I4·I5
 # Task: TSK-20260517-14
 #
 # 3-axis coherence:

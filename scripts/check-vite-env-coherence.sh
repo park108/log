@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-vite-env-coherence.sh
-# Spec: specs/30.spec/green/foundation/vite-env-boundary-typing.md §동작 G1·G2 + §수용 기준 Should (G4)
+# Spec: specs/30.spec/blue/foundation/vite-env-boundary-typing.md §동작 G1·G2 + §수용 기준 Should (G4)
 # Task: TSK-20260517-08
 #
 # G1 (cast 금지): grep -rnE 'import\.meta\.env\.VITE_[A-Z_]+\s+as\s+string' src -> 0 hit.

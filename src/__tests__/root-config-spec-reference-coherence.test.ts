@@ -104,32 +104,25 @@ function specPath(branch: "blue" | "green", relUnderBranch: string): string {
 	return SPEC_DIR_PREFIX + "/" + branch + "/" + relUnderBranch;
 }
 
-// G-B baseline (HEAD `0cadedb` 측정).
+// G-B baseline (TSK-20260518-15 회복 후 — 3 sh script `:3` 토큰 green→blue
+// 치환 + 본 fixture baseline 동시 갱신 단일 commit 묶음 시점 측정).
 const EXPECTED_GA_SELF_DIAG_COUNT = 6;
 const EXPECTED_GB_PATH_COUNT = 5;
-const EXPECTED_GB_MISSING = [
-	specPath("green", "foundation/node-version-3axis-coherence.md"),
-	specPath("green", "foundation/package-manager-major-coherence.md"),
-	specPath("green", "foundation/vite-env-boundary-typing.md"),
-] as const;
+const EXPECTED_GB_MISSING: readonly string[] = [];
 const EXPECTED_GB_EXISTS = [
+	specPath("blue", "foundation/node-version-3axis-coherence.md"),
+	specPath("blue", "foundation/package-manager-major-coherence.md"),
+	specPath("blue", "foundation/vite-env-boundary-typing.md"),
 	specPath("green", "foundation/node-modules-extraneous-coherence.md"),
 	specPath("blue", "foundation/src-spec-reference-coherence.md"),
 ] as const;
 
-// G-C baseline — G-B 추출 5 path 중 green 4 path 의 blue 동시 실재 측정.
-// 3 STALE (blue 측 실재) + 1 OK (blue 측 부재).
+// G-C baseline — G-B 추출 5 path 중 green 1 path 의 blue 동시 실재 측정.
+// 0 STALE + 1 OK (green node-modules-extraneous-coherence 만 잔존, blue 측 부재).
 const EXPECTED_GC_GREEN_PATHS = [
 	specPath("green", "foundation/node-modules-extraneous-coherence.md"),
-	specPath("green", "foundation/node-version-3axis-coherence.md"),
-	specPath("green", "foundation/package-manager-major-coherence.md"),
-	specPath("green", "foundation/vite-env-boundary-typing.md"),
 ] as const;
-const EXPECTED_GC_STALE = [
-	specPath("green", "foundation/node-version-3axis-coherence.md"),
-	specPath("green", "foundation/package-manager-major-coherence.md"),
-	specPath("green", "foundation/vite-env-boundary-typing.md"),
-] as const;
+const EXPECTED_GC_STALE: readonly string[] = [];
 const EXPECTED_GC_OK = [
 	specPath("green", "foundation/node-modules-extraneous-coherence.md"),
 ] as const;
