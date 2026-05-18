@@ -2480,3 +2480,80 @@
 # RULE-07 자기 검증 — Phase 1 0 ack (외부 변동 0 → 합법 빈 ack). Phase 2 0 흡수 (15 req 전수 RULE-07 자기 검증 평서/반복/시점/incident PASS 이나 body-update 후보 0 + 신규 carve 임계 초과로 보류).
 #
 # 입력 큐 잔여: 15건 (100차 박제 15건 유지 동일 = 10 tick 큐 정체 decade x1 milestone 도래, 차기 tick 부터 임계 회복 시 흡수 재개 또는 1 carve + 1 promote chain 으로 임계 유지 흡수).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`987da8f` → THIS (102차 tick) — reconcile 2/20 ack (1 spec / 2 marker; 19 stale ≥11cycle 시즌 2 누적; dev-server-port FR-03 marker 2건 flip — 직전 101차 0/20 정체 chain 회복 진입)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `987b503` (101차 tick — Phase 1 0/20 ack 정체 10차 시즌 2 decade x2 milestone 도래 + Phase 2 backpressure no-op 15 req 보류).
+#  - tick 진입 시 HEAD == `987da8f` (spec(planner): 158차 tick — `.planner-seen` self-only append; planner 메타 회고).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `987da8f` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `987b503` 후): 1건 —
+#     · `987da8f` (spec(planner): 158차 tick 박제 — `.planner-seen` self-only append; planner 자기 회고, green spec md 본문 변동 0). src 영역 변동 0.
+#  - 그러나 직전 101차 inspector tick (`987b503`) 진입 시점 working tree 에 `M package.json` + `?? scripts/check-dev-port-coherence.sh` developer unstaged 2건 잔존 — 101차 tick 종료 후 developer commit `e1a4e06` (직전 100차 inspector commit `53204c2` 와 101차 inspector commit `987b503` 사이 인입) 으로 ack-pending 잔존 — 본 102차 tick 회수 대상.
+#  - 회수 대상 commit (101차 미회수 hook-ack 후보):
+#     · `e1a4e06` (feat: dev-port-coherence 발화 채널 부착 — `scripts/check-dev-port-coherence.sh` 59 line 신규 + `package.json:29` `"check:dev-port-coherence"` 1줄 추가; TSK-20260518-19 회수 `60.done/2026/05/18/task/dev-port-coherence-check-script/`).
+#  - src/ 영역 commit = 0 (e1a4e06 은 scripts/ + package.json — src 미접촉).
+#  - test/spec 본문 commit = 0.
+#  - config/scripts 영역 commit = 1 (e1a4e06 — 본 hook-ack 대상).
+#  - spec marker 영향 후보 = 1 spec / 2 marker (TSK-20260518-19 / `e1a4e06` → dev-server-port-getUrl-token-coherence.md §테스트 현황 (FR-03) line 64 + §수용 기준 Must (FR-03) line 76 marker 2건 ack 후보).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 디스크 실측 잔존 동일 (101차 종료 15건 동일 유지 = 11 tick 큐 정체 = decade x1+1 milestone 진입).
+#  - 20 green spec hash 시작점 (직전 101차 박제 20 entry 유지 — 외부 src/config commit 1건이나 dev-server-port spec 1건만 본문 marker 영향):
+#    · 1 spec (dev-server-port-getUrl-token-coherence) marker 2건 flip → stale_cycles 0 초기화.
+#    · 19 spec 전수 hook-ack 후보 없음 → stale_cycles += 1. 시즌 2 정체 누적: 92차 정체 1차 → 101차 정체 10차 (decade x2 milestone) → 본 102차 정체 11차 (decade x2+1 진입).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `987da8f` 비교):
+#    · working tree clean (developer e1a4e06 commit 완료 후 package.json + scripts/ stage 진입 0 정합).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#  - 50.blocked/{req,task} 디스크 = 0 file 잔존. 50.blocked/spec/foundation/ 1 file 잔존 인계 baseline.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 1건 — TSK-20260518-19 / `e1a4e06`):
+#  - dev-server-port-getUrl-token-coherence.md (TSK-20260518-19 / `e1a4e06` 회수, `60.done/2026/05/18/task/dev-port-coherence-check-script/` 정상 mv):
+#     · §테스트 현황 (FR-03) line 64: baseline `[ ]` "정합 위반 시 dev port drift 라벨로 fail-fast — 수단 영역, planner task carve 대기" → HEAD `987da8f` 재실측 → `scripts/check-dev-port-coherence.sh` 59 line 실존 + `package.json:29` `"check:dev-port-coherence"` npm wrapper 실존 + `bash scripts/check-dev-port-coherence.sh` 직접 실행 rc=0 + stdout `check-dev-port-coherence: G-A+G-B+G-C PASS (port=3000)` 재실측 PASS. `[ ]→[x]` 플립.
+#     · §수용 기준 Must (FR-03) line 76: baseline `[ ]` "정합 위반 시 fail-fast 채널 발화 부착 — 수단 영역, planner task carve 대기" → HEAD 재실측 → dedicated script 수단 채택 박제 (TSK-20260518-19 / `e1a4e06`). `[ ]→[x]` 플립.
+#     · hook-ack: 60.done/2026/05/18/task/dev-port-coherence-check-script/result.md DoD — `bash scripts/check-dev-port-coherence.sh` rc=0 + stdout 1줄 ack + `npm run check:dev-port-coherence` rc=0 (npm wrapper 동일) + `grep -nE '"check:dev-port-coherence"' package.json` 1 hit @line 29 + `test -x scripts/check-dev-port-coherence.sh` (mode 100755) + `npm run lint` rc=0 + `npm run typecheck` rc=0 + R-1/R-2/R-3/R-4 4 회귀 케이스 수동 검증 PASS — 회귀 0. HEAD 조상 정합 (`git merge-base --is-ancestor e1a4e06 HEAD` PASS — `987da8f` 가 `e1a4e06` 의 직계 후손). RULE-07 정합 — 수단 중립 평서문 (FR-03 §동작 G-E `수단 중립 — grep / unit test / dedicated script 중 inspector/planner 단계 택일`) 보존, dedicated script 채택은 §테스트 현황 + §수용 기준 marker 박제 영역 한정. spec 본문·src/common/common.ts·vite.config.js·src/File/ 본문 변경 0 동반 정합.
+#     · 변경 이력 1행 박제 (TSK-20260518-19 / `e1a4e06`). 헤더 §최종 업데이트 일자 갱신 (102차 Phase 1 hook-ack flip 박제). stale_cycles 0 초기화.
+#  - 나머지 19 green spec 전수 hook-ack 후보 없음 (직전 `987b503` 이후 외부 commit 1건 = e1a4e06 만 src/config 영향, dev-server-port spec 1건만 본문 marker 직접 영향). 19 spec 전수 stale_cycles += 1 (시즌 2 정체 11차 진입).
+#  - **1 marker spec 2 ack / 20 total spec → Phase 1 2/20 ack.** seen-state 갱신 (1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1).
+#  - 시즌 2 정체 chain 회복 진입 — 직전 101차 decade x2 milestone 도래 후 본 102차 hook-ack 1건 발화 (정체 chain reset 진입). 92차~101차 10 tick 0-ack 정체 chain (시즌 2) 종료 + 본 102차 ack 1 진입.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 15건 (92~101차 잔존 동일 = 11 tick 큐 정체 = decade x1+1 milestone 진입):
+#     · 본 tick 진입 시 green=20 == GREEN_PENDING_MAX=20 (정확 도달 — `>` 임계 비활성). 신규 carve 시 21 > 20 임계 초과 → carve 보류.
+#     · **body-update 경로 (sibling 신규 spec carve 아닌 기존 spec 본문 흡수) 만 허용** (89차 css-modules / 91차 tooling.md 흡수 동일 패턴).
+#  - 15 req 전수 재평가 (93~101차 평가 잔존 동일):
+#     · 15 req 전부 신규 axis (별 spec carve 필요 — 자매 spec 부재 또는 자매 spec OOS 명시). 본 평가에서 body-update 흡수 가능 후보 0건 재확인.
+#     · 후보 평가 상세 — 101차 박제 동일.
+#  - **15 req 전수 별 spec carve 후보 (body-update 흡수 후보 0건)**. green 20 == GREEN_PENDING_MAX=20 임계 정확 도달 → carve 0건 의무 (21 > 20 임계 초과). 본 tick **Phase 2 흡수 0건 + 격리 0건**.
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+) 또는 body-update 후보 신규 식별. 본 102차 ack 2 (1 spec marker flip) 진입 → 차기 planner tick dev-server-port spec 4조건 (unchecked 0 + WIP 0 + ToBe 0 + 변경 이력 박제) PASS 시 promote chain 활성 가능성 (단 §테스트 현황 + §수용 기준 잔여 unchecked marker 본 102차 후 0건 도달 시).
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (15 req 전수 보류, 20.req/ 디스크 큐 15건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/dev-server-port-getUrl-token-coherence.md (§테스트 현황 (FR-03) + §수용 기준 Must (FR-03) marker 2건 flip + 변경 이력 1행 박제 + 헤더 §최종 업데이트 일자 갱신; 본문 line count delta 보존 — src/spec scope 외 변동 0)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 102차 tick 박제 + 1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1; append only)
+#
+# RULE-01 writer-boundary 후보 위반 박제 잔존 (운영자 followup 영역 — 본 102차 inspector 영역 ack 의무만 수행):
+#  - 94~101차 박제 동일 — 140차 planner self commit `38f636c` 디스크 stat 에 `specs/30.spec/green/.inspector-seen | 59 ++` 동반 (writer 권한 부재 위반 후보). 본 102차 tick 도 격리/롤백 권한 없음. RULE-05 §Blocked 해제 경로 권장 잔존.
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/{task,req}/ 디스크 0 file 잔존 + 50.blocked/spec/ baseline 인계).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경 (e1a4e06 회수는 spec 본문 marker flip 영역 한정, src/common/common.ts + vite.config.js + src/File/ 본문 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/foundation/ 1 spec marker flip + .inspector-seen append 한정; 20.req/ 미이동; 40.task/ + 50.blocked/{task,spec,req} + 10.followups/ + 60.done/ + .planner-seen + scripts/ + package.json 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `2/20 ack` 박제 (e1a4e06 회수 1 spec 2 marker hook-ack).
+# RULE-03 (d) 정합 — green 20 == GREEN_PENDING_MAX=20 (도달은 신규 carve 0건 의무) + body-update 후보 0건 → 흡수 0 + 격리 0 → backpressure no-op 정합.
+# RULE-07 자기 검증 — Phase 1 1 marker spec 2 ack (TSK-20260518-19 / `e1a4e06` 회수 hook-ack — task done mv 정상 + DoD grep + lint/typecheck 회귀 0 + R-1~R-4 회귀 PASS + 수단 중립 평서문 보존). Phase 2 0 흡수 (RULE-03 (d) backpressure — 15 req 전수 RULE-07 자기 검증 평서/반복/시점/incident PASS 이나 body-update 후보 0 + 신규 carve 임계 초과로 보류).
+#
+# 입력 큐 잔여: 15건 (101차 박제 15건 유지 동일 = 11 tick 큐 정체 decade x1+1 milestone 진입, 차기 tick 부터 임계 회복 시 흡수 재개 또는 1 carve + 1 promote chain 으로 임계 유지 흡수).
+
+# ============================================================================
+# 2026-05-18 @ 102차 tick 사후 정정 박제 (commit 직전):
+#  - 본 102차 tick commit 1차 시도 결과: `5567cfe` (commit 자체는 inspector 영역만 add 했으나, husky pre-commit / lint-staged 의 partial-stage stash 처리 부작용으로 `.planner-seen` 1 file 만 박제 + inspector 영역 변경 누락). 의도 commit message 와 박제 diff 불일치 → 검출 후 stash 보존 + working tree 재구성 진행.
+#  - 5567cfe commit 자체는 `.planner-seen` 1 file modify — planner writer 영역 (RULE-01 §writer 매트릭스) → inspector self-commit 으로 박제됨은 RULE-02 §writer 경계 + RULE-01 §writer 매트릭스 위반 후보. revert 도 동일 영역 재변동 발생 → 별 위반 — `git revert` 차단. 본 위반 commit 박제 잔존 + 운영자 RULE-05 §Blocked 해제 경로 (수동 revert + result.md append) 권장 — 본 102차 inspector 영역 권한 외.
+#  - 외부 commit 추가 인입 (5567cfe ↔ 본 commit 사이): `d32ced0` (feat: build-coverage tri-surface 발화 채널 부착 — scripts/check-build-coverage-coherence.sh + npm run check:build-coverage-coherence). TSK-20260518-20 회수 후보 — 그러나 본 102차 tick 의 baseline HEAD scope (`987da8f`) 외 → 본 commit 회수 대상 아님 (차기 103차 tick hook-ack 후보로 위임). build-coverage-output-dir-tri-surface-coherence.md FR-12 / §동작 G-I marker flip 후보 차기 tick.
+#  - tick 종료 시 HEAD == `d32ced0` (본 inspector self-commit 직전 갱신된 baseline). 본 commit baseline = `d32ced0` (`987da8f` → `5567cfe` → `d32ced0` 3 commit 경유 사후 baseline).
+#  - 본 102차 commit 박제 영역 (재구성 후): inspector self-only 2 file —
+#     · specs/30.spec/green/foundation/dev-server-port-getUrl-token-coherence.md (§테스트 현황 (FR-03) + §수용 기준 Must (FR-03) marker 2건 flip + 변경 이력 1행 + 헤더 §최종 업데이트 일자 갱신)
+#     · specs/30.spec/green/.inspector-seen (102차 박제 본 append + 사후 정정 박제 append)
+#  - 본 사후 정정 박제 자체 영역 = 30.spec/green/.inspector-seen append only (inspector writer 영역 정합).

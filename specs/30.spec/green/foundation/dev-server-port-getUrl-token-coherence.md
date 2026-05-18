@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 빌드/런타임 시스템 불변식 — `src/common/common.ts:69-77` `getUrl()` 의 dev 분기 (`isDev()` true) 반환 URL `"http://localhost:3000/"` 의 port 정수 토큰 + `vite.config.js:44-47` `server: { port: 3000, open: true }` 의 port 정수 값. 측정 scope = 두 파일 본문 한정.
 > **관련 요구사항**: REQ-20260518-014
-> **최종 업데이트**: 2026-05-18 (by inspector — 최초 박제; Phase 2 REQ-014 흡수)
+> **최종 업데이트**: 2026-05-18 (by inspector — Phase 1 FR-03 hook-ack flip; TSK-20260518-19 / `e1a4e06` 회수)
 
 > 본 spec 은 자매 `components/common.md` (`getUrl()` 헬퍼 박제, line 19 — production vs development URL 헬퍼) 와 `common/test-idioms.md` (`getUrl()` 소비 테스트 env stub idiom, line 28) 의 직교 보완 — 두 자매 spec 은 헬퍼 의미·테스트 idiom 차원, 본 spec 은 dev port 토큰 byte-equal cross-surface 동치 axis. 두 axis 직교.
 
@@ -61,7 +61,7 @@
 ## 테스트 현황
 - [x] (FR-01) `getUrl()` dev 분기 URL port == `vite.config.js:server.port` byte-equal — grep gate (A)+(B)+(C-token) 실측 baseline `3000` 동치 PASS.
 - [x] (FR-02) 정적 채널 (grep / config parse) 반복 검증 가능 — §스코프 규칙 (A)(B) 단일 명령 재현.
-- [ ] (FR-03) 정합 위반 시 **dev port drift** 라벨로 fail-fast — 수단 영역, planner task carve 대기 (grep / unit test / dedicated script 중 1 채널 채택).
+- [x] (FR-03) 정합 위반 시 **dev port drift** 라벨로 fail-fast — `scripts/check-dev-port-coherence.sh` + `npm run check:dev-port-coherence` dedicated script 채널 박제 (TSK-20260518-19 / `e1a4e06`). G-A·G-B·G-C 전수 PASS 시 stdout `check-dev-port-coherence: G-A+G-B+G-C PASS (port=3000)` rc=0, 위반 시 stderr `G-? VIOLATION: …` rc=1 (R-1 / R-2 / R-3 / R-4 4 케이스 수동 회귀 검증 PASS).
 - [x] (FR-04) §변경 절차 평서문 박제 (단일-PR 동시 갱신 의무) — §동작 G-F 평서문.
 - [x] (NFR-01) 검증 결정론 — 환경 변수·시간·네트워크 비의존, static parse + grep 만으로 closed-form 판정.
 - [x] (NFR-02) 수단 중립 — §동작 G-E 평서문에 검출 수단 (grep / test / script) 우선 라벨 0. 1+ 채널 박제 충족이면 정합 PASS.
@@ -73,7 +73,7 @@
 - [x] (Must, FR-01) Given `src/common/common.ts:74 localhost:5173` 단독 swap, `vite.config.js:45 port: 3000` 유지 — When 본 게이트 실행, Then FAIL (R-2 검출).
 - [x] (Must, FR-01) Given 양쪽 동시 `5173` 갱신, When 본 게이트 실행, Then PASS — port 절대값 무관, axis 일치만 검증 (R-3 검출).
 - [x] (Must, FR-02) 정합 검사 채널 = 정적 (grep + config import) — 런타임 우연 일치 채택 금지.
-- [ ] (Must, FR-03) 정합 위반 시 fail-fast 채널 (수단 중립 — grep / unit test / dedicated script 중 1 채택) 발화 부착 — 수단 영역, planner task carve 대기.
+- [x] (Must, FR-03) 정합 위반 시 fail-fast 채널 (수단 중립 — grep / unit test / dedicated script 중 1 채택) 발화 부착 — dedicated script 수단 채택 박제 (TSK-20260518-19 / `e1a4e06`): `scripts/check-dev-port-coherence.sh` + `package.json` line 29 `"check:dev-port-coherence"` npm wrapper. G-A·G-B·G-C grep 게이트 단일 명령 결정론 (NFR-01 결정론 5회 반복 동일 rc + 동일 stdout).
 - [x] (Should, FR-04) §변경 절차 평서문 박제 — dev port 변경 시 `src/common/common.ts:74` + `vite.config.js:45` 두 토큰 단일-PR 동시 갱신 의무 (§동작 G-F 평서문).
 - [x] (NFR-01) 검증 결정론 — 동일 HEAD 상 grep gate (A)+(B) N 회 반복 시 N 회 동일 rc + 동일 출력.
 - [x] (NFR-02) 수단 중립 — 본 spec §동작 평서문에 검출 수단 (grep / test / script) 우선 라벨 0. (`package-manager-major-coherence.md` §동작 패턴 동등.)
@@ -85,6 +85,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-05-18 | inspector Phase 1 / TSK-20260518-19 회수 (`e1a4e06`) | FR-03 hook-ack — §테스트 현황 (FR-03) + §수용 기준 Must (FR-03) marker 2건 `[ ]→[x]` 플립. dedicated script 수단 (`scripts/check-dev-port-coherence.sh` 59 lines + `package.json:29` `check:dev-port-coherence` 1줄) 박제 — G-A·G-B·G-C 게이트 단일 명령 결정론. HEAD 조상 정합 (`git merge-base --is-ancestor e1a4e06 HEAD` PASS), 직접 실행 `bash scripts/check-dev-port-coherence.sh` rc=0 + stdout `check-dev-port-coherence: G-A+G-B+G-C PASS (port=3000)` 재실측 PASS, result.md DoD 회귀 0 (npm lint/typecheck rc=0 + R-1/R-2/R-3/R-4 4 케이스 수동 회귀 PASS). spec 본문·src/common/common.ts·vite.config.js·src/File/ 본문 변경 0 (수단 영역 한정 박제). RULE-07 정합 — 수단 중립 평서문 유지 (FR-03 §동작 G-E 라벨 0 보존), dedicated script 채널은 §테스트 현황·§수용 기준 marker 박제로 한정. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/` 본문 1 spec marker flip + 변경 이력 1행). | §테스트 현황 (FR-03) + §수용 기준 Must (FR-03) + 변경 이력 |
 | 2026-05-18 | inspector (Phase 2, REQ-20260518-014 흡수) / (this commit, HEAD=`f74ab43`) | 최초 등록 (REQ-20260518-014). `src/common/common.ts:74` `getUrl()` dev 분기 URL port 토큰 ↔ `vite.config.js:45` `server.port` 정수 byte-equal cross-channel 동치 결과 효능 불변식 박제. §동작 G-A~G-F 6 게이트 + §회귀 중점 6 시나리오 (R-1~R-5 + Vite bump) + §스코프 규칙 grep-baseline (A)~(E-self) 5 gate 실측 (baseline `3000` 동치 + 동음이의어 격리 3 hit + 수단 라벨 0 자기 검증) + §테스트 현황 7 marker + §수용 기준 13 marker. consumed req: `specs/20.req/20260518-dev-server-port-getUrl-token-coherence.md` → `60.done/2026/05/18/req/` mv. 자매 직교 spec: `30.spec/blue/components/common.md:19` (`getUrl()` 헬퍼 의미 박제) + `30.spec/blue/common/test-idioms.md:28` (env stub idiom). 본 spec 의 port 토큰 cross-channel axis 와 두 자매 spec 의 헬퍼 의미·테스트 idiom 차원이 직교. RULE-07 자기검증 — §동작 G-A~G-F 평서형 + grep 단일 명령 반복 검증 가능 + Vite 메이저 bump / port 마이그레이션 이벤트 비귀속 + 동음이의어 격리 baseline 박제 (의미 도메인 분리, incident patch 비귀속) + 수단 중립 (검출 채널 라벨 0 / port 절대값 선정 라벨 0) + self-reference scope 분리 (NFR-04 + 스코프 E-self 0 hit). RULE-06 grep-baseline gate (A)~(E-self) 5 건 실측 박제 + line anchor + 동음이의어 격리 명문화. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/` 신규 1 spec + `20.req/* → 60.done/req/` mv). RULE-03 (d) — 본 carve 로 green 19 → 20 (== GREEN_PENDING_MAX=20, 임계 도달 — 차기 tick Phase 2 흡수 시 본문 갱신 경로 한정 또는 backpressure). | all (최초 등록) |
 
 ## 참고
