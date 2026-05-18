@@ -1,5 +1,5 @@
 // TSK-20260518-11 / REQ-20260517-100 — manifest.icons sizes ↔ 디스크 자원 픽셀 집합 정합 결정론 fixture.
-// spec: specs/30.spec/green/foundation/manifest-icons-sizes-token-disk-coherence.md
+// spec: specs/30.spec/blue/foundation/manifest-icons-sizes-token-disk-coherence.md
 //       §동작 G-A~G-J + §수용 기준 FR-01~FR-08 / NFR-01~NFR-06.
 //
 // 본 fixture 는 `public/manifest.json.icons[*]` 의 (sizes, src, type) 3 키 ↔ 디스크 자원의

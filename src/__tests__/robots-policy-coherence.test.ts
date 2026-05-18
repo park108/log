@@ -1,6 +1,6 @@
 // TSK-20260518-12 / REQ-20260518-001 — `<meta name="robots">` ↔ `public/robots.txt`
 // 양면 색인 정책 의미 동치 fixture.
-// spec: specs/30.spec/green/foundation/meta-robots-robotstxt-policy-semantic-coherence.md
+// spec: specs/30.spec/blue/foundation/meta-robots-robotstxt-policy-semantic-coherence.md
 //       §동작 G-A~G-F + §수용 기준 FR-01~FR-06.
 //
 // 본 fixture 는 채널 A (HTML 페이지-수준 `<meta name="robots">`) 와 채널 B
