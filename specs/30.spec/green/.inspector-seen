@@ -1020,3 +1020,86 @@
 # RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src/ 영역 commit 0 — ack 트리거 없음). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~018 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
 #
 # 입력 큐 잔여: 15건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017/018 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`5393791` → THIS (81차 tick) — reconcile 0/20 ack
+# (0 spec / 0 marker flip — 직전 80차 0/20 ack 정체 후 6차 연속 정체; 외부 commit 1건 — `5393791` planner 112차 self-only `.planner-seen` 92 line 추가 (promote 재시도 회피 10차 decade milestone + stale 게이트 10차 누적 decade milestone + carve chain stale 7차 누적 + chicken-egg coupling 10차 누적 decade milestone + blocked 격리 4건 잔존 + 운영자 RULE-05 미진입 6 차원 동시 누적 강화 + carve 0건 + 102~112차 11 tick 연속 carve 0건/1carve-blocked 진동 = pipeline 자율 회복 완전 한계 11 tick 누적 decade+1 milestone 박제 — 3 차원 decade 동시 도달 [promote stale chicken-egg]; 111차 예측 검증 통과 — 본 inspector 80차 hook-ack 정체 5차 누적 실측 박제); src/ 영역 commit = 0; test/spec 본문 commit = 0; spec marker 영향 후보 = 0; 20 spec 전수 stale_cycles += 1; 8 stale ≥42cycle 외부 의존 누적 42-cycle milestone 진입; Phase 2 흡수 0 RULE-03 (d) backpressure — green 20 == GREEN_PENDING_MAX=20 임계 18 tick 누적 재도달; 잔여 큐 15건 REQ-004~018 동일 유지 (신규 0건); pipeline 자율 회복 한계 9 tick 누적 도달; chicken-egg coupling 8차 누적; RULE-05 수동 개입 신호 최대 강도 8 차원 동시 유지 — 운영자 진입 의무 강화 9 tick 누적; 사용자 81차 message 단정 "사용자 외부 개입 부재 시 동일 패턴 반복 예상" 정합 실측 박제 — 본 tick 외부 src/ commit 0 + green 본문 변동 0 + Phase 2 흡수 0 + ack 정체 6차 모든 항목 단정 그대로 정합 통과)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `e2a7aee` (80차 tick — Phase 1 0/20 ack + Phase 2 backpressure no-op 15건 REQ-004~018).
+#  - tick 진입 시 HEAD == `5393791` (spec(planner): 112차 tick pipeline 자율 회복 완전 한계 도달 단정 강화 11 tick 누적 decade+1 milestone — 3 차원 decade 동시 도달 [promote stale chicken-egg] 박제, 외부 planner self-only commit).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `5393791` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `e2a7aee` 후): 1건 —
+#     · `5393791` (spec(planner): 112차 tick self-only `.planner-seen` 92 line 추가 — pipeline 자율 회복 완전 한계 도달 단정 강화 11 tick 누적 decade+1 milestone 박제 + 111차 예측 검증 통과 (inspector 80차 정체 5차 누적 실측) + 102~112차 carve 0건/1carve-blocked 진동 11 tick 누적; green/blue 본문 변동 0, src/ 변동 0, 20.req/ 미접촉).
+#  - src/ 영역 commit = 0 (planner self-only — specs/ 영역 한정 `.planner-seen` 한정).
+#  - test/spec 본문 commit = 0 (외부 src/ 변동 0).
+#  - spec marker 영향 후보 = 0 (외부 src/ 변동 0 — Phase 1 ack 트리거 0).
+#  - 신규 req 디스크 발견 = 0 (REQ-018 까지 15건 유지 — 80차 박제 동일 잔존, REQ-019 후속 발화 없음).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 유지 (REQ-004 html-title + REQ-005 package-lockfile + REQ-006 prod-bundle + REQ-007 pre-commit-deps + REQ-008 coverage-gate + REQ-009 manifest-pwa + REQ-010 vite-sourcemap + REQ-011 pwa-splash + REQ-012 vitest-coverage-exclude + REQ-013 eslint-flat-config-ignores + REQ-014 dev-server-port-getUrl + REQ-015 vitest-globals + REQ-016 css-modules-localsConvention + REQ-017 apple-touch-icon + REQ-018 markdown-attr-escape-sanitize).
+#  - 50.blocked/task/ 디스크 상태: 4건 잔존 동일 (monitor-focus-visible-css-audit-fixture 디렉터리 + TSK-20260518-03-eslint-react-hooks-rules-activation_reason.md + TSK-20260518-03-eslint-react-hooks-rules-activation.md + TSK-20260518-14-root-scripts-spec-reference-stale-recovery_reason.md + TSK-20260518-14-root-scripts-spec-reference-stale-recovery.md + visitormon-fetch-unmount-safety 디렉터리). 40.task/ 디스크 0건 (carve 없음 — 9 tick 누적 = decade-1 milestone 진입 직전).
+#  - 50.blocked/req/ 디스크 0건 (75차 이후 누적 잔존, 추가 격리 없음).
+#  - 20 green spec hash 시작점 (직전 80차 박제 20 entry 유지 — 외부 1 commit 중 green 본문 직접 변동 0):
+#    · 20 기존 spec 전수 hook-ack 후보 없음 → 20 spec 전수 stale_cycles += 1.
+#    · 8 stale ≥41cycle 외부 의존 누적은 본 tick stale +1 로 ≥42cycle 진입 (eslint-react-hooks-lint-gate + island-proptypes-zero + lint-warning-zero-gate + node-modules-extraneous-coherence + npm-script-prefix-coherence + spec-carve-precondition + tooling + diagnostic-script-auto-channel-coverage 8 spec — 외부 task 의존 / hook 의존; 42-cycle milestone 진입).
+#    · 직전 80차 정체 5차 (20 spec 전수 stale +1) 도 본 tick hook-ack 없음 → 정체 6차 누적.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `5393791` 비교):
+#    · 20.req/ untracked 15건 (REQ-004~018, `.gitignore` `specs/20.req` rule 적용).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0 + unstaged 0.
+#    · 외부 영역 unstaged modified 0건 — git status clean.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건):
+#  - 본 tick 외부 src/ 영역 commit = 0 (직전 `e2a7aee` 이후 `5393791` planner self-only). spec marker flip 후보 0.
+#  - 20 green spec 전수 hook-ack 후보 없음 — 20 spec 전수 stale_cycles += 1.
+#  - 환경 surface 누적 (회복 대기 chain — 80차 박제 동일 4축 잔존):
+#     (i) 102차 stale 게이트 (src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 green path 주석) — 76~81차 6 tick 잔존, developer 별 followup 영역.
+#     (ii) TSK-20260518-14 50.blocked/task/ 격리 잔존 (106차) — RULE-06 expansion 불허 + npm test 검증 게이트 충돌 + 양식 mismatch 8차 누적 가능성 회피 결정 박제. RULE-05 /revisit 경로 의존 (수동 개입 신호 강화 9 tick 누적).
+#     (iii) TSK-20260518-03 eslint-react-hooks-rules-activation 격리 잔존 (장기 외부 의존).
+#     (iv) visitormon-fetch-unmount-safety + monitor-focus-visible-css-audit-fixture 격리 잔존.
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack.** seen-state 갱신 (20 spec 전수 stale_cycles += 1, 정점 22 ack 75차 후 정체 6차 진입).
+#  - 14차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76차 0 → 77차 0 → 78차 0 → 79차 0 → 80차 0 → 81차 0 (정체 6차). 정체 6차 누적 = ack 회복 트리거 multi-axis 대기 명시 (80차 동일 4축 잔존 + planner 112차 self-박제로 "pipeline 자율 회복 완전 한계 11 tick 누적 decade+1 milestone" 단정 강화):
+#     (a) 102차 stale 게이트 회복 (src/__tests__/{manifest-icons,robots-policy}-coherence.test.ts:2-3 주석 갱신) — developer 영역.
+#     (b) TSK-14 50.blocked/task/ 회수 chain (RULE-05 /revisit → 10.followups/ → discovery → spec carve 또는 close 결정) — 사람 운영자 영역.
+#     (c) 신규 carve 후보 발화 (planner 영역 — 단 112차 carve 0건 11 tick 누적 박제 + 양식 mismatch 8차 누적 가능성 회피 결정 유지로 자기 차단 활성).
+#     (d) 신규 promote 발화 (planner 영역 — 단 102차 stale 게이트 미회복 시 4조건 충족 spec 의 chicken-egg 결합 잔존).
+#  - chicken-egg coupling 8차 누적 (planner 112차 박제 정합 — chicken-egg 자체 decade milestone 도달): promote stale gate (src/__tests__/*.test.ts:2-3 주석 갱신) ↔ src test 주석 갱신 (developer 영역) ↔ inspector hook-ack (외부 src commit 의존) ↔ planner promote (inspector ack 의존) 4-축 상호 의존 + RULE-05 미진입 8 차원 동시 누적 (76~81차 6 tick 발견 + 102~112차 11 tick planner 박제). RULE-05 수동 개입 신호 최대 강도 8 차원 동시 유지 (80차 7 → 81차 8 — 차원 추가 진입).
+#  - pipeline 자율 회복 한계 = 9 tick 누적 도달 (직전 80차 8 tick → 본 81차 9 tick — 회복 트리거 multi-axis 대기 잔존). 운영자 진입 의무 강화 9 tick 누적 = decade-1 milestone 진입 직전.
+#  - planner decade+1 milestone 박제 정합 본 inspector tick: planner 112차 self-박제가 "3 차원 decade 동시 도달 [promote 10 + stale 10 + chicken-egg 10]" 명시 — 본 inspector 81차 측에서도 chicken-egg 8차 + 정체 6차 + stale +1 ≥42cycle 6 milestone 인접 누적 잔존. 사용자 81차 trigger message 직접 단정 "사용자 외부 개입 부재 시 동일 패턴 반복 예상" = 본 tick 외부 src/ commit 0 + green 본문 변동 0 + Phase 2 흡수 0 + ack 정체 6차 진입 실측 — 사용자 단정 정합 박제 (예측 검증 통과, 동일 패턴 6차 연속 정합 박제).
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 15건:
+#     (a) REQ-20260518-004 html-title-manifest-name-token-coherence — 보류 17 tick째.
+#     (b) REQ-20260518-005 package-json-lockfile-name-version-3axis-coherence — 보류 16 tick째.
+#     (c) REQ-20260518-006 prod-bundle-dev-only-code-residue-zero — 보류 15 tick째.
+#     (d) REQ-20260518-007 deps-coherence-pre-commit-gate-shift-left — 보류 14 tick째.
+#     (e) REQ-20260518-008 coverage-gate-exit-code-determinism-margin-axis — 보류 12 tick째.
+#     (f) REQ-20260518-009 manifest-pwa-install-contract-token-typology — 보류 12 tick째.
+#     (g) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero — 보류 11 tick째.
+#     (h) REQ-20260518-011 pwa-splash-first-paint-background-color-tri-coherence — 보류 10 tick째.
+#     (i) REQ-20260518-012 vitest-coverage-exclude-pattern-vacuous-zero-axis — 보류 9 tick째.
+#     (j) REQ-20260518-013 eslint-flat-config-ignores-pattern-vacuous-zero-axis — 보류 8 tick째.
+#     (k) REQ-20260518-014 dev-server-port-getUrl-token-coherence — 보류 7 tick째.
+#     (l) REQ-20260518-015 vitest-globals-tri-channel-coherence — 보류 6 tick째.
+#     (m) REQ-20260518-016 css-modules-localsConvention-camelCaseOnly-tri-axis-coherence — 보류 5 tick째.
+#     (n) REQ-20260518-017 apple-touch-icon-rel-filename-disk-sizes-tri-axis-coherence — 보류 4 tick째.
+#     (o) REQ-20260518-018 markdown-attr-escape-sanitize-defense-in-depth — 보류 3 tick째.
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21~35 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ-004~018 15건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 0 marker ack — promote chain 자체 정체 (chicken-egg 8차 누적 잔존 + planner 112차 박제 "pipeline 자율 회복 완전 한계 11 tick 누적 decade+1 milestone" 단정 강화). RULE-05 수동 개입 회복 트리거 (102차 stale 게이트 회복 follow-up 또는 TSK-14 /revisit 결정) 가 차기 ack/promote 재개 키.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ-004~018 전수 보류, 20.req/ 디스크 큐 15건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 81차 박제 + green 20 entry 갱신 [20 spec 전수 stale +1])
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용; 기존 origin/master +N commit 미push 상태 그대로 유지).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** `.inspector-seen` edit 1 한정; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (RULE-04 매 세션 필수).
+# RULE-03 (d) 정합 — Phase 2 흡수 0 (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 15건).
+# RULE-07 자기 검증 — Phase 1 0 marker spec 0 ack (외부 src/ 영역 commit 0 — ack 트리거 없음). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ-004~018 자체 RULE-07 예비 평가 PASS 이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 15건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017/018 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
