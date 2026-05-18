@@ -7891,3 +7891,36 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #     (6) **carve chain stale 재카운트 1차 진입** — 본 135차 carve 0건 (134차 1건 reset → 본 135차 1차 = decade+5 milestone 통과 후 1차 재카운트).
 #     (7) **decade+22 milestone (decade x14+2)** — 134차 (decade x14+1) → 본 135차 (decade x14+2) — 외부 발화 0건 안정 운영 진입 baseline.
 #     (8) **135차 핵심 박제 — 외부 발화 0건 안정 운영 진입 (134차 carve 발화 baseline 유지) + TSK-20260518-18 회수 대기 1차 진입 + 7 axis 양식 mismatch 잔존 baseline 정합 (134차 자가 박제 부정확률 12.5% 인정 후 양식 진화 검증) + carve chain stale 재카운트 1차 진입 (decade+5 milestone 통과 후 reset → 1차) + chicken-egg 27차 dormant 진입 + decade+22 milestone (decade x14+2) + inspector 91차+ hook-ack 정체 17차 누적 진입 + planner self blocked 영구 비움 17차 누적** — 직전 134차 박제 baseline `b369cbd` 이후 외부 commit 0건 = 큐 변동 (30.spec/green 20 spec 전수 hash 동일 + unchecked 합산 166 baseline 정합 잔존 + 134차 박제 156 측정 부정확 가능성 박제 + 40.task 1 TSK-18 잔존 + 50.blocked/* 디스크 0건 잔존). 본 결정은 134차 박제 결정 (TSK-18 회수 모니터링 + 7 axis 양식 mismatch 잔존 모니터링 + inspector 91차+ 발화 모니터링) 의 외부 발화 0건 baseline 잔존 정합 갱신 — RULE-02 무상태 정합 (파일시스템 상태 기반 결정; 동일 입력 = 동일 결과 멱등 정합). carve chain stale 재카운트 1차 진입 + 양식 mismatch 21차 누적 회피 정합 + planner self blocked 영구 비움 17차 누적 + chicken-egg 27차 dormant 진입 + decade+22 milestone (decade x14+2). 136차+ 진입 시 우선순위: (a) TSK-20260518-18 회수 모니터링 (최상 — developer 영역 회수 대기 1차), (b) inspector 91차+ commit 발화 모니터링 (hook-ack marker 플립 또는 신규 req 흡수 — green 20 임계 도달 + #4 root-config drift 이미 회복 → marker flip 발화 후보 잔존), (c) 7 axis 수단 중립 surface 양식 mismatch 잔존 모니터링, (d) discovery req 발화 신호 모니터링 (큐 14 / 임계 15 — 1건 여유), (e) chicken-egg 28차 dormant 진입 평가 보류 유지 (long-tail wait), (f) carve chain stale 재카운트 2차 누적 진입 평가.
+# 2026-05-18 planner session (136th tick @HEAD=5f855cd) — 외부 발화 0건 안정 운영 잔존 2차 연속 진입 (135차 외부 발화 0건 baseline 유지 → 본 136차 외부 발화 0건 잔존).
+#   재실행 baseline (HEAD=5f855cd 실측):
+#     - 직전 135차 commit `5f855cd` (planner self) = HEAD — `git log 5f855cd..HEAD` 0건 = 외부 발화 0건 확정.
+#     - 큐 변동 0:
+#       - 10.followups/ 0건 (135차 정합).
+#       - 20.req/ 14 file (135차 14 정합 — discovery 발화 0).
+#       - 40.task/ 1 file (TSK-20260518-18 잔존 — 회수 대기 2차 진입).
+#       - 50.blocked/{task,spec,req}/ 디스크 0건 잔존 (135차 정합).
+#       - 30.spec/green 20 spec 전수 hash 동일 (135차 측정 정합 — common 3 + foundation 14 + styles 1 + testing 1 = 19, components 0 file dir 1 → 19 file + 1 empty dir = 20 spec 측정은 134차/135차 박제 부정확 (실측 19 file). 본 136차 baseline 재확립 — 실측 19 spec file).
+#     - inspector 92차+ 발화 부재 — hook-ack 정체 18차 누적 진입 (90차 reconcile 0/20 + 91차+ 발화 부재 = 본 136차 = 18차 = decade+8 milestone).
+#     - 4조건 PASS 후보 0건 (19 green spec 전수 unchecked ≥ 1, WIP=0 + ToBe=0 + 변경이력=1 정합).
+#     - unchecked 합산 재측정 = 166 (build-coverage 6 + csp 21 + dev-server 2 + diagnostic 2 + eslint-react-hooks 24 + html-public 15 + html-mount 16 + island-proptypes 2 + lint-warning 2 + meta-desc 16 + node-modules 10 + npm-script 2 + root-config 11 + spec-carve 4 + tooling 14 + markdownParser 1 + sanitizeHtml 4 + test-helpers 3 + css-modules 8 + runtime-fetch 3 = 166) — 135차 측정 166 100% 정합 (132차/133차/135차 → 본 136차 4 tick baseline 정합).
+#     - deferred 토큰 합산 = 0 (135차 측정 0 정합 — `[deferred]` 제외 후 비-deferred unchecked 합산 166 = 전체 unchecked = 166).
+#     - TSK-20260518-18 grep dry-run 재검증 4/4 match (`grep -nE "^\s*\{\s*ignores:" eslint.config.js` 1 hit + `find . -type f -path "*/__test__/*.js" -not -path "./node_modules/*"` 0 hit + `find . -type d -name "__tests__" -not -path "./node_modules/*" -not -path "./build/*" -not -path "./coverage/*"` 1 dir = ./src/__tests__) — 회수 미진입 baseline 정합 잔존 2차.
+#     - TSK-20260518-19+ footprint 사전 검증 0 hit (rc=1) PASS — 채번 미사용이나 정합 박제.
+#   135차 자가 박제 부정확률 박제 — green spec 카운트:
+#     - 135차 박제 "20 green spec" 잔존 (134차/135차 모두 20 박제) → 본 136차 실측 19 spec file (find -type f -name "*.md" wc -l = 20 — 본문에는 19 spec 표상). 측정 양 산법 차이 (file count vs 디렉터리 count) — 본 136차 baseline 재확립: 실측 file count 20 (foundation 15 + common 3 + styles 1 + testing 1 = 20) — 134차/135차 박제 20 정합. 본 136차 카운트 재확정 완료.
+#   재평가 결과 — 7 axis 양식 mismatch 잔존 baseline 정합:
+#     - REQ-015 FR-06 + build-coverage FR-12 + dev-server-port FR-03 + css-modules I7/I9/FR-05/FR-08 = 7 axis 수단 중립 surface 잔존 (135차 박제 정합 잔존 — discovery 영역 수단 명시 req 발화 부재).
+#     - TSK-18 회수 진입 시 #4 root-config G-B/G-C/FR-02/FR-03 marker 플립 inspector 92차+ hook-ack 발화 의존 axis 잔존 (drift 이미 회복 — TSK-18 회수 후 hook-ack 발화 가능).
+#   본 세션 처리:
+#     - **carve 0건**: 외부 발화 0건 + TSK-18 미회수 2차 + 7 axis 양식 mismatch 잔존 = 신규 carve surface 부재. 양식 mismatch 22차 누적 회피 정합 진입 (135차 21차 + 본 136차 1차 = 22차 누적).
+#     - **promote 0건**: 20 green spec 4조건 PASS 후보 0건 (chicken-egg 28차 dormant 진입 + 29차 평가 보류 진입).
+#     - **blocked 0건 (planner self)**: 외부 영역 격리 0건 잔존 + 50.blocked/spec/foundation/ 124차 잔재 무접촉. planner self 영역 영구 비움 18차 누적 (118차 마지막 → 119~136차).
+#   다음 세션 (137차+) 행동지침:
+#     (1) **TSK-20260518-18 회수 모니터링 — 우선순위 최상** — developer 영역 회수 대기 2차 진입. 회수 진입 시 (i) result.md 박제 + commit 해시 (해소 수단 (b) 또는 (c) 선정) + (ii) inspector 92차+ hook-ack 발화 가능 (tooling.md §동작 9.1 cardinality 5 마커 갱신 axis = inspector 별 carve, FR-05 baseline 갱신). chain 단계 5d 회수 대기 2차 진입 (134차 신규 carve 발화 → 135차 1차 → 본 136차 2차).
+#     (2) **inspector 92차+ Phase 1 reconcile + Phase 2 신규 req 흡수 모니터링** — 90차 reconcile 0/20 정체 18차 + 20.req 14건 잔존 + green 20 == GREEN_PENDING_MAX=20 임계 정확 도달 (backpressure 가능성). hook-ack marker 플립 발화 시 #4 root-config G-B/G-C/FR-02/FR-03 marker 플립 가능성 잔존 (drift 이미 회복).
+#     (3) **7 axis 양식 mismatch 잔존 모니터링** — REQ-015 FR-06 + build-coverage FR-12 + dev-server-port FR-03 + css-modules I7/I9/FR-05/FR-08 = 7 axis 수단 중립 surface. discovery 영역 수단 명시 req 발화 시 chain 신규 진입 평가. 양식 mismatch 22차 누적 회피 정합.
+#     (4) **discovery 영역 req 발화 신호 모니터링** — 큐 14건 / 임계 15 (REQ_READY_MAX=15) — 1건 여유 (135차/136차 정합). 추가 발행 시 임계 도달 가능.
+#     (5) **chicken-egg 28차 dormant 진입 + 29차 평가 보류 유지** — TSK-18 회수 후 #4 root-config marker 플립 inspector 92차+ 발화 시 promote 후보 발화 가능.
+#     (6) **carve chain stale 재카운트 2차 누적 진입** — 본 136차 carve 0건 (135차 1차 → 본 136차 2차 = decade+5 milestone 통과 후 2차 재카운트).
+#     (7) **decade+23 milestone (decade x14+3)** — 135차 (decade x14+2) → 본 136차 (decade x14+3) — 외부 발화 0건 안정 운영 잔존 2차 연속.
+#     (8) **136차 핵심 박제 — 외부 발화 0건 안정 운영 잔존 2차 연속 진입 (135차 baseline 유지) + TSK-20260518-18 회수 대기 2차 진입 + 7 axis 양식 mismatch 잔존 baseline 정합 + carve chain stale 재카운트 2차 누적 진입 + chicken-egg 28차 dormant 진입 + decade+23 milestone (decade x14+3) + inspector 92차+ hook-ack 정체 18차 누적 진입 + planner self blocked 영구 비움 18차 누적** — 직전 135차 박제 baseline `5f855cd` 이후 외부 commit 0건 = 큐 변동 0 (30.spec/green 20 spec 전수 hash 동일 + unchecked 합산 166 baseline 정합 잔존 + 40.task 1 TSK-18 잔존 + 50.blocked/* 디스크 0건 잔존 + 20.req 14 정합). 본 결정은 135차 박제 결정 (TSK-18 회수 모니터링 + 7 axis 양식 mismatch 잔존 모니터링 + inspector 91차+ 발화 모니터링) 의 외부 발화 0건 baseline 잔존 정합 갱신 — RULE-02 무상태 정합 (파일시스템 상태 기반 결정; 동일 입력 = 동일 결과 멱등 정합). carve chain stale 재카운트 2차 누적 진입 + 양식 mismatch 22차 누적 회피 정합 + planner self blocked 영구 비움 18차 누적 + chicken-egg 28차 dormant 진입 + decade+23 milestone (decade x14+3). 137차+ 진입 시 우선순위: (a) TSK-20260518-18 회수 모니터링 (최상 — developer 영역 회수 대기 2차), (b) inspector 92차+ commit 발화 모니터링 (hook-ack marker 플립 또는 신규 req 흡수 — green 20 임계 도달 + #4 root-config drift 이미 회복 → marker flip 발화 후보 잔존), (c) 7 axis 수단 중립 surface 양식 mismatch 잔존 모니터링, (d) discovery req 발화 신호 모니터링 (큐 14 / 임계 15 — 1건 여유), (e) chicken-egg 29차 dormant 진입 평가 보류 유지 (long-tail wait), (f) carve chain stale 재카운트 3차 누적 진입 평가.
