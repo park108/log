@@ -1657,3 +1657,77 @@
 # RULE-06 §스코프 규칙 baseline gate — REQ-021 (A)~(K-self) 11 건 + REQ-014 (A)~(E-self) 5 건 실측 박제.
 #
 # 입력 큐 잔여: 12건 (REQ-004/005/006/008/009/010/011/012/016/017/022/023 보류, 차기 tick 부터 본문 갱신 경로 흡수 검토 또는 1 carve + 1 mv chain 으로 임계 회복; 후보: REQ-023 csp-meta-img-src-allowlist 신규 spec carve (사용자 우선순위 3 위) / REQ-008 manifest-pwa-install-contract 신규 spec carve / REQ-022 viewport-meta-mobile-pwa-standalone 신규 spec carve).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`f695bb0` → THIS (89차 tick) — reconcile 0/20 ack (정체 14차 누적 = decade+4; 직전 88차 baseline `a058f15` 이후 외부 commit 1건 = `f695bb0` planner 130차 self-only chain 단계 5d 실패 박제 + TSK-17 50.blocked/task/ 격리 surface + carve chain stale 재카운트 2차 누적 + decade x13 milestone 박제, src/ 영역 commit 0) + Phase 2 흡수 1건 본문 갱신 경로 (REQ-20260518-016 css-modules-localsconvention-camelcase-only-tri-axis-coherence → `styles/css-modules.md` §동작 (I6)~(I10) + 5 marker §테스트 현황 + 13 marker §수용 기준 — green 카운트 20 유지 = GREEN_PENDING_MAX=20 유지) + 88차 carve 패턴 (REQ-021 + REQ-014) → 89차 body-update 패턴 분기 진입 (87차 body-update (REQ-007) → 88차 carve (REQ-021 + REQ-014) → 89차 body-update (REQ-016) 진동 패턴)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `a058f15` (88차 tick — Phase 1 0/18 ack 정체 13차 + Phase 2 REQ-021 + REQ-014 carve 2건 + REQ-007 duplicate 격리 — green 18 → 20 == GREEN_PENDING_MAX 임계 도달).
+#  - tick 진입 시 HEAD == `f695bb0` (spec(planner): 130차 tick self-only `.planner-seen` 갱신 — TSK-17 격리 발화 surface 박제 + carve chain stale 재카운트 + decade x13 milestone). 본 tick 작업 중 HEAD 변동 없음. tick 종료 시 HEAD == `f695bb0`.
+#  - 외부 commit 분포 (직전 inspector self-commit `a058f15` 후): 1건 — `f695bb0` (planner self-only 130차 tick — green 본문 변동 0 + src/ 영역 변동 0 + 큐 변동 0). src/ 영역 commit = 0. spec marker 영향 후보 = 0.
+#  - 입력 큐 (20.req/): 본 tick 진입 시 12건 (88차 종료 12건 동치), 종료 시 11건 (REQ-016 mv -1 = 11). 디스크 list = REQ-005 (package-lockfile name/version 3axis) + REQ-006 (prod-bundle dev-only residue) + REQ-008 (coverage gate exit-code determinism) + REQ-009 (manifest pwa install contract typology) + REQ-010 (vite build sourcemap disabled) + REQ-011 (pwa splash background) + REQ-012 (vitest coverage exclude pattern) + REQ-004 (html-title manifest-name) + REQ-017 (apple-touch-icon 3axis) + REQ-022 (viewport meta) + REQ-023 (csp meta img-src allowlist).
+#  - 40.task/ 디스크: 0건 (88차 종료 동치 — TSK-17 격리 잔존). 50.blocked/task/: 1건 (TSK-17). 50.blocked/req/: 1건 (REQ-007 duplicate 잔존).
+#  - 30.spec/green 전체 디스크: 20 spec 시작 + 20 spec 종료 (foundation 15 + common 3 + styles 1 + testing 1 = 20). 본 tick body-update 1 spec (`styles/css-modules.md` 75 → 119 line, +44 line).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `f695bb0` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0 + unstaged 0.
+#    · git status clean.
+#
+# Phase 1 reconcile 처리 (외부 src/ commit 0 — ack 트리거 0):
+#  - 본 tick 외부 src/ 영역 commit = 0 (`f695bb0` 은 planner self-only). spec marker flip 후보 0.
+#  - 20 green spec 전수 hook-ack 후보 없음 — 20 spec 전수 stale_cycles += 1 진입 (단 본 tick Phase 2 body-update 1 spec [styles/css-modules.md] 은 본문 갱신 직후 stale_cycles 0 초기화).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack (정체 14차 누적 = decade+4).** seen-state 갱신.
+#  - 19차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76~84차 0 (정체 9차) → 85차 0 (정체 10차 = decade milestone) → 86차 0 (정체 11차) → 87차 0 (정체 12차) → 88차 0 (정체 13차 = decade+3) → 89차 0 (정체 14차 = decade+4). Phase 2 흡수 surface 발화 누적 (REQ-013/018/019/020/015/007 + 021/014 + 016 = 9 흡수) 가 외부 src/ commit 후속 chain 활성 surface 진입 잔존. 본 89차 body-update 패턴 진입 (88차 carve → 89차 body-update 분기 — 87차 body-update → 88차 carve → 89차 body-update 진동 패턴 박제).
+#
+# Phase 2 처리 (RULE-03 (d) 해석 + body-update 흡수 경로 결정):
+#  - 입력 큐 12건 진입 (88차 종료 12건 동치). RULE-03 (d) 해석:
+#     · green=20 == GREEN_PENDING_MAX=20 → 미초과 (`>` 임계 비활성, 도달은 신규 carve 0건 의무 — 신규 carve 시 21 > 20 임계 초과).
+#     · **body-update 경로 (sibling 신규 spec carve 아닌 기존 spec 본문 흡수) 만 허용** → green 카운트 동일 유지 (20 → 20).
+#  - **흡수 결정**: 12 req 중 기존 green spec 과 직접 도메인 일치 후보 식별:
+#     (1) **REQ-20260518-016 css-modules-localsconvention-camelcase-only-tri-axis-coherence** ↔ `styles/css-modules.md` (REQ-076 흡수 spec) — 양 req/spec 모두 CSS Modules 시스템 contract 박제. req 본문 §배경 명시 — 직교 axis (enum 박제 vs 변환 표기 graph) 이나 동일 spec 의 §동작 새 마커로 흡수 시 green 카운트 변동 0. body-update 흡수 경로 적합도 최상 (도메인 강 결합 + line count 여유 — 본 spec 75 line, 300 line 한계 200+ 여유).
+#     (2) REQ-20260518-012 vitest-coverage-exclude-pattern-vacuous-zero-axis ↔ `foundation/build-coverage-output-dir-tri-surface-coherence.md` (REQ-021 흡수 spec, 88차) — 양 req/spec 모두 vitest coverage 영역. 흡수 가능하나 spec line count 131, 본 tick body-update 시 +50 line 이상 동반 (5 패턴 vacuous-zero gate + marker) — 후속 tick 평가 보류.
+#     (3) REQ-20260518-010 vite-build-sourcemap-disabled-bundle-residue-zero ↔ tooling.md §동작 신규 또는 신규 spec — tooling.md 이미 331 line (RULE-07 300 line 한계 초과, split 차기 tick 검토 후보 누적), 본 tick body-update 회피 (split 우선순위). 신규 spec carve 는 임계 초과.
+#     (4) 나머지 9 req (REQ-004/005/006/008/009/010/011/017/022/023) 는 신규 spec carve 후보 — 임계 도달로 본 tick 보류.
+#  - **본 89차 body-update 1건 흡수 결정**: REQ-016 → styles/css-modules.md (도메인 강 결합 + line count 여유 + req 본문 §배경 직교 axis 자기 진단 PASS).
+#
+# Phase 2 흡수 처리 (REQ-016 `styles/css-modules.md` §동작 (I6)~(I10) + 5 marker §테스트 현황 + 13 marker §수용 기준 신규 박제):
+#  - 흡수 spec: `30.spec/green/styles/css-modules.md` (REQ-076 흡수 spec, 2번째 axis 추가 — 89차 tick 본 inspector 영역).
+#  - 본문 갱신:
+#     · 헤더: 제목 확장 (`localsConvention: 'camelCaseOnly'` 단방향 변환 graph 무결성 axis 추가) / `위치` 확장 (vite.config.js + src/**/*.{ts,tsx,js,jsx} 표면 추가) / `관련 요구사항` REQ-20260518-016 추가 / `최종 업데이트` 2026-05-18 89차 갱신.
+#     · §역할: 단방향 contract 의도 분리 (`camelCaseOnly` vs `camelCase` vs `dashes` vs `dashesOnly` enum semantic) 1 hit 등장 (FR-07 충족) + 의도적으로 하지 않는 것 확장 (input 표기 enum 강제 / 발화 채널 선정 / ambient type declaration 정밀도 / 다른 css.modules 키 — 별 axis).
+#     · §동작 (I6)(I7)(I8)(I9)(I10) 신규 박제 — (I6) localsConvention 토큰 1 hit + (I7) class 정의 ↔ caller 접근 graph + (I8) caller bracket access 0 hit + (I9) caller dot-property 식별자 camelCase 규칙 + (I10) 변환 input 표기 자유도 + 갱신 신호 분리.
+#     · §회귀 중점 5 시나리오 추가.
+#     · §의존성: 내부 측정 대상 4 표면 + 외부 (Vite/css-loader/find/grep) + 역의존 + 직교 (build-coverage / typecheck-island-extension / REQ-066 / REQ-067).
+#     · §테스트 현황 5 marker (I6~I10) 증분 — (I6) `[x]` 즉시 (HEAD f695bb0 baseline), (I7) `[ ]` (자동 측정 fixture planner 영역), (I8) `[x]` 즉시 (bracket 0), (I9) `[x]` 즉시 (정적 안전망), (I10) `[x]` 즉시 (정의상 항상 참).
+#     · §수용 기준 13 marker (FR-01~08 + NFR-01~06) 증분 — FR-01/03/04/06/07 + NFR-01~06 즉시 `[x]`, FR-02/05/08 `[ ]` 유보.
+#     · §스코프 규칙: expansion 불허 + grep-baseline (E)(F)(G)(H)(I)(J-self) 6 gate 신규 박제 (HEAD `f695bb0` 실측) + rationale 갱신.
+#     · §변경 이력: 89차 tick row 1행 박제 (TSK-XX / `f695bb0` baseline — 본 inspector self-commit pending).
+#     · §참고 REQ 원문: REQ-016 mv pointer (89차 본 tick) 추가 + 외부 레퍼런스 3 출처 + RULE 준수 5 항목.
+#  - 본 inspector 변경 표면 1 파일 한정 (`styles/css-modules.md` 75 → 119 line, +44 line; 다른 green spec 변경 0).
+#  - RULE-07 자기 검증 PASS:
+#     · (1) 평서 — "vite.config.js localsConvention 토큰 = 'camelCaseOnly' 1 hit + class 정의 ↔ caller 접근 graph caller ⊆ 변환 결과 + bracket access 0 + dot-property 식별자 camelCase 규칙" 시스템 효능 불변식.
+#     · (2) 반복 검증 가능 — `grep -cE` / `grep -rnE` / `find` 단일 명령 5 채널 (A)(E)(G)(H)(I).
+#     · (3) 시점 비의존 — Vite/css-loader 메이저 bump · `localsConvention` enum 추가/제거 · `*.module.css` 추가/삭제 · caller 측 신규 컴포넌트 도입 이벤트 비귀속, baseline HEAD `f695bb0` 좌표는 measure anchor.
+#     · (4) incident 비귀속 — 본 baseline (단방향 + bracket 0 + dot 단일 채널) 박제는 사실 평서화, 특정 incident patch 비귀속.
+#     · (5) 수단 중립 — `localsConvention` enum 선택 우선/권장 라벨 0 (NFR-04) + 발화 채널 선정 우선 라벨 0 + 자동 검출 fixture 박제 수단 우선 라벨 0.
+#     · (6) self-reference scope 분리 명시 — NFR-05 + §스코프 (J-self) 자기 박제 hit 가 measure scope 외 평서화.
+#
+# req mv: 1건 (REQ-016 → `60.done/2026/05/18/req/`, 20.req/ 디스크 큐 12 → 11; gitignore 적용으로 git tracked 변동 0).
+# 30.spec/green 디스크 카운트: 20 → 20 (foundation 15 + common 3 + styles 1 + testing 1 = 20 동일 유지; body-update 경로 — carve 0건).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/styles/css-modules.md (REQ-016 흡수 — 헤더 확장 + §역할 단방향 contract 의도 분리 + §동작 (I6)~(I10) 5 게이트 + §회귀 중점 5 시나리오 + §의존성 4 표면 + §테스트 현황 5 marker + §수용 기준 13 marker + §스코프 규칙 6 gate + §변경 이력 1행 + §참고 외부 레퍼런스 3 출처. 최종 line count 119; +44 line)
+#  - specs/20.req/20260518-css-modules-localsconvention-camelcase-only-tri-axis-coherence.md → specs/60.done/2026/05/18/req/ 1건 mv (REQ-016; gitignore 적용으로 git tracked 변동 0)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 89차 tick 박제 + styles/css-modules.md stale_cycles 0 초기화 + 19 spec stale_cycles += 1)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/req/ 잔존 REQ-007 미접촉).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용; 기존 origin/master 격차 9 commit 그대로 유지).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** body-update 1 spec + `.inspector-seen` edit 한정; `.planner-seen` 미접촉; 20.req/ 1 req mv only; 40.task/ + 50.blocked/{task,spec} + 10.followups/ 미접촉; 60.done/req/ 신규 1건 진입).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack (정체 14차 = decade+4)` 박제.
+# RULE-03 (d) 정합 — green 시작 20 == GREEN_PENDING_MAX=20 (도달은 신규 carve 0건 의무) + 본문 갱신 경로 흡수 1 req / 1 spec (green 카운트 동일 유지 — body-update 흡수, carve 아님) → backpressure 미발생.
+# RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 1 흡수 (REQ-016 시스템 불변식 평서형 + 반복 검증 + 시점 비의존 + incident 비귀속 + 수단 중립 + self-reference scope 분리 6 축 PASS).
+# RULE-06 §스코프 규칙 baseline gate — (E)(F)(G)(H)(I)(J-self) 6 건 실측 박제 ((E) 1 hit + (G) 0 hit 합산 + (H) 0 hit static safety + (I) 변환 graph 부분집합 PASS).
+#
+# 입력 큐 잔여: 11건 (REQ-004/005/006/008/009/010/011/012/017/022/023 보류, 차기 tick 부터 본문 갱신 경로 흡수 검토 또는 1 carve + 1 mv chain 으로 임계 회복; 후보: REQ-012 vitest-coverage-exclude-pattern → build-coverage-output-dir-tri-surface-coherence.md body-update / REQ-010 vite-build-sourcemap-disabled → tooling.md split 후 별 spec / REQ-023 csp-meta-img-src-allowlist 신규 spec carve (1 carve + 1 mv chain 필요 — green 21 - 1 promote = 20 유지)).
