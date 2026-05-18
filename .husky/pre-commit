@@ -11,3 +11,9 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^src/'; then
   bash scripts/check-vite-env-coherence.sh || exit 1
 fi
+
+# deps coherence gate — TSK-20260518-26 / spec: foundation/node-modules-extraneous-coherence.md §G6
+# staged 변경에 package.json 또는 package-lock.json 포함 시 검사.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json|package-lock\.json)$'; then
+  bash scripts/check-deps-coherence.sh || exit 1
+fi
