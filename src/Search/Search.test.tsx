@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import Search from './Search';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
+import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
@@ -23,22 +23,17 @@ const testEntry = {
 	, key: "default"
 };
 
-// REQ-20260420-028 §3.3: Search 는 App 레벨 Provider 를 소비하지만 테스트는 per-call
-// QueryClient 로 캐시 누수를 차단한다 (createQueryTestWrapper 와 동일 정책: retry:false,
-// staleTime:0, gcTime:0).
+// REQ-20260420-028 §3.3 / REQ-20260519-001 — Search 는 App 레벨 Provider 를 소비하지만
+// 테스트는 `createQueryTestWrapper` 단일 출처 helper 를 경유해 per-call 격리 QueryClient 로
+// 캐시 누수를 차단한다 (정책 토큰: retry:false, staleTime:0, gcTime:0, mutations.retry:false).
 const renderWithQueryRouter = (ui: React.ReactNode, { entries = [testEntry] } = {}) => {
-	const queryClient = new QueryClient({
-		defaultOptions: {
-			queries: { retry: false, staleTime: 0, gcTime: 0 },
-			mutations: { retry: false },
-		},
-	});
+	const { Wrapper: QueryWrapper } = createQueryTestWrapper();
 	return render(
-		<QueryClientProvider client={queryClient}>
+		<QueryWrapper>
 			<MemoryRouter initialEntries={entries}>
 				{ui}
 			</MemoryRouter>
-		</QueryClientProvider>
+		</QueryWrapper>
 	);
 };
 

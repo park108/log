@@ -1,11 +1,11 @@
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import LogItem from './LogItem';
 import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
 import { beforeAll } from 'vitest';
+import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
 // REQ-20260421-007 / TSK-20260421-51 — React 19 concurrent initial commit 의 async flush 에 대응해 delete-button 선택을 findBy* 로 전환 (Layer 1 옵션 A).
 
@@ -26,20 +26,13 @@ beforeEach(() => {
 
 // LogItem depends on `useDeleteLog` (TanStack Query mutation hook) since
 // TSK-20260418-MUT-DELETE. A QueryClientProvider is mandatory for the
-// component to mount; each test gets an isolated client to avoid cache
-// leakage (per `src/test-utils/queryWrapper.jsx` guidance).
-const makeQueryClient = () => new QueryClient({
-	defaultOptions: {
-		queries: { retry: false, staleTime: 0, gcTime: 0 },
-		mutations: { retry: false },
-	},
-});
-
-const withQuery = (node) => (
-	<QueryClientProvider client={makeQueryClient()}>
-		{node}
-	</QueryClientProvider>
-);
+// component to mount; each call instantiates a fresh isolated client via the
+// single-source helper to avoid cache leakage (REQ-20260519-001 /
+// `createQueryTestWrapper`).
+const withQuery = (node) => {
+	const { Wrapper } = createQueryTestWrapper();
+	return <Wrapper>{node}</Wrapper>;
+};
 
 // REQ-20260421-027 / TSK-20260421-63 — shuffle seed=1 cold-start race 방어.
 // `LogItem` 은 `LogItemInfo` (delete-button) 와 `Toaster` 를 `lazy()` 로 로드한다.

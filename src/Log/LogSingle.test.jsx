@@ -1,12 +1,12 @@
 import { fireEvent, render, screen, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import * as useLogModule from './hooks/useLog';
 import LogSingle from '../Log/LogSingle';
 import { useMockServer } from '../test-utils/msw';
 import { ASYNC_ASSERTION_TIMEOUT_MS } from '../test-utils/timing';
+import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
@@ -26,20 +26,13 @@ beforeEach(() => {
 
 // LogSingle renders LogItem which depends on `useDeleteLog` (TanStack Query
 // mutation hook) since TSK-20260418-MUT-DELETE. A QueryClientProvider is
-// mandatory for the component tree to mount; each test gets an isolated
-// client to avoid cache leakage between tests.
-const makeQueryClient = () => new QueryClient({
-	defaultOptions: {
-		queries: { retry: false, staleTime: 0, gcTime: 0 },
-		mutations: { retry: false },
-	},
-});
-
-const withQuery = (node) => (
-	<QueryClientProvider client={makeQueryClient()}>
-		{node}
-	</QueryClientProvider>
-);
+// mandatory for the component tree to mount; each call instantiates a fresh
+// isolated client via the single-source helper to avoid cache leakage between
+// tests (REQ-20260519-001 / `createQueryTestWrapper`).
+const withQuery = (node) => {
+	const { Wrapper } = createQueryTestWrapper();
+	return <Wrapper>{node}</Wrapper>;
+};
 
 const testEntry = {
 	pathname: "/log"

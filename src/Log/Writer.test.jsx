@@ -2,10 +2,10 @@ import { fireEvent, render, screen, act, waitFor } from '@testing-library/react'
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
 import { Router, MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
+import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
@@ -17,20 +17,13 @@ const stubMode = (mode) => {
 
 // Writer depends on `useCreateLog` (TanStack Query mutation hook) since
 // TSK-20260418-MUT-CREATE. A QueryClientProvider is mandatory for the
-// component to mount; each test gets an isolated client to avoid cache
-// leakage between tests (per `src/test-utils/queryWrapper.jsx` guidance).
-const makeQueryClient = () => new QueryClient({
-	defaultOptions: {
-		queries: { retry: false, staleTime: 0, gcTime: 0 },
-		mutations: { retry: false },
-	},
-});
-
-const withQuery = (node) => (
-	<QueryClientProvider client={makeQueryClient()}>
-		{node}
-	</QueryClientProvider>
-);
+// component to mount; each call instantiates a fresh isolated client via the
+// single-source helper to avoid cache leakage between tests (REQ-20260519-001 /
+// `createQueryTestWrapper`).
+const withQuery = (node) => {
+	const { Wrapper } = createQueryTestWrapper();
+	return <Wrapper>{node}</Wrapper>;
+};
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
