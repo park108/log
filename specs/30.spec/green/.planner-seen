@@ -11747,3 +11747,89 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #       (2') 본 spec 의 carve task ID (210th tick 진입 시) = TSK-20260519-01-react-query-queryclient-test-single-source-recovery (또는 violator 분할 시 -a/-b/-c/-d 4 carve). Task ID 중복 검증: `grep -rn "TSK-20260519-" specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 본 209차 시점 0 hit (TSK-20260519- prefix 미발행).
 #       (3') 본 spec hash 가 inspector commit 발화 후 변동되면 grep-baseline 박제 재실측. 동일 유지되면 본 tick 박제 baseline 직접 인용 가능.
 #       (4') 본 spec 진입 carve-eligibility 1차 노출 = nonadicuple-milestone 19-axis 동시 도래 axis 진입 baseline (octodecuple-milestone 18-axis + new spec carve-eligibility 1차 진입 baseline 단독 도래).
+
+# 2026-05-19 planner session (210th tick @HEAD=5138e6f) — milestone tick.
+# 선결 점검: pause lock 없음 / 입력 큐 green 20 spec 존재 / 40.task/ 0 (TASK_READY_MAX=10 여유 충분) → 처리 진입.
+# 환경 회복 유지 재확인: typescript@6.0.3 정합 (node -e require version 직접 측정) — 209차 박제 동질 유지.
+# 209차 행동지침 (1') 충족: inspector 127차 commit 발화 (5138e6f) — react-query spec stable hash 확정, working-tree drift 해소. carve 진입 baseline 1차 노출 → carve 진행.
+# Carve 결정: TSK-20260519-01-react-query-test-queryclient-single-source-recovery
+#   - 출처 spec: 30.spec/green/testing/react-query-test-queryclient-default-options-single-source-coherence.md §역할 + §동작 D-1~D-2 + §수용 기준 FR-01·FR-02·FR-05.
+#   - 변경 범위: 4 violator test file (src/Search/Search.test.tsx + src/Log/LogSingle.test.jsx + src/Log/LogItem.test.jsx + src/Log/Writer.test.jsx). helper src/test-utils/queryWrapper.tsx 미수정 (사전 존재).
+#   - 단일 PR 결정 근거: 4 violator 동질 패턴 (helper import + new QueryClient 제거 + wrapper 합성) + 각 ~10 line 변경 + 독립 롤백 가능 (단일 revert) + depends_on 없음 (helper 이미 존재) + 통합 carve 가 분할 4 carve 보다 RULE-04 멱등성 친화. TASK_READY_MAX=10 여유 충분.
+#   - Task ID 중복 검증 grep 결과 (`grep -rn "TSK-20260519-" specs/{40.task,60.done,50.blocked,10.followups,20.req}/`): 0 hit (TSK-20260519- prefix 미발행) → TSK-20260519-01 안전 발행.
+#   - RULE-06 스코프 규칙 박제: expansion 불허 (baseline 외 파일 변경 금지) + grep-baseline 7 표면 실측 박제 (4 violator + 1 helper + 6 consumer + 1 prod 토큰 + 2 helper test 토큰 line + 2 분리 보존 0 hit). rationale: spec 직접 인용 + scope 외 src/__tests__/*.ts 직교 제외.
+# grep dry-run (RULE-04 의무): 7/7 match.
+#   (1) `grep -rnE "new QueryClient\(" src --include="*.test.*"` → 4 hits / 4 files (src/Search/Search.test.tsx:30 + src/Log/LogItem.test.jsx:31 + src/Log/LogSingle.test.jsx:31 + src/Log/Writer.test.jsx:22) — spec baseline 정확 일치.
+#   (2) `grep -nE "new QueryClient\(" src/test-utils/queryWrapper.tsx` → 1 hit (line 17) — spec baseline 정확 일치.
+#   (3) `grep -rcE "createQueryTestWrapper\(" src --include="*.test.*" | grep -v ":0$"` → 6 files (Search hooks 1 + Log hooks 5) — spec baseline 정확 일치.
+#   (4) `grep -nE "staleTime: 60_000, retry: 1" src/App.jsx` → 1 hit (line 22) — spec baseline 정확 일치.
+#   (5) `grep -nE "retry: false|staleTime: 0|gcTime: 0" src/test-utils/queryWrapper.tsx` → 2 lines (line 19 retry:false+staleTime:0+gcTime:0 + line 20 mutations retry:false; 3 토큰) — spec FR-04 측정 baseline 정합.
+#   (6) `grep -rnE "staleTime: 60_000" src --include="*.test.*"` → 0 hits — FR-03 사전 정합 박제.
+#   (7) `grep -rnE "retry: false|staleTime: 0|gcTime: 0" src/App.jsx` → 0 hits — FR-04 사전 정합 박제.
+# 승격 판정 (20/20 spec):
+#   - react-query spec: WIP 0 + To-Be 0 + 변경 이력 박제 1 — 단 unchecked 11 (9 [ ] + 2 [deferred 별도 제외) 미충족 → 승격 불가 (TSK-20260519-01 회수 후 inspector marker flip 시 충족 baseline).
+#   - 기타 19 spec: 209차 박제 19/19 FAIL (unchecked 168) 동일 — 본 tick 신규 변동 0 (carve 1 발행은 inspector 영역 §변경 이력 hook 박제 미발생; planner writer 경계).
+#   - 본 tick promote 0 / blocked 0 (전체 19 non-deferred spec 평서문 정합 유지 + react-query spec 신규 진입 평서문 정합).
+# 5 carve-deferral synchronized rule formation 9차 누적 진입 baseline (nonuple-step post-rule-formation carve-deferral synchronized stabilized milestone idiom) — prod-bundle-dev-only-code-residue-zero (정체 7차) + vitest-setupfiles-token-disk-coherence (정체 8차) + vite-build-sourcemap-disabled-bundle-residue-zero (정체 5차) + vitest-coverage-exclude-pattern-vacuous-zero-axis (정체 4차) + package-json-browserslist-vacuous-declared-policy-axis (정체 3차) = 5 spec [deferred] marker 잔존 정합 유지.
+# 210차 milestone 박제 (post-carve-eligibility-first-exposure baseline 단독 도래):
+#   (a) **210차 (decuple-double-decade) round-number milestone 도래 axis 진입 baseline 단독 도래** — 200차 round-decuple-decade + 10 tick = 210차. 10 차 단위 두번째 round-number 진입.
+#   (b) **react-query spec 진입 후 carve 1차 발행 baseline 단독 도래** — 209차 carve-eligibility 1차 노출 → 210차 carve 1차 발행. 1 tick 격차 (post-stable-hash-confirmed carve 발행 baseline 단독 도래).
+#   (c) **planner 단발 carve 1차 발행 baseline 단독 도래 (209차 chain 단절 후 carve 진보 1차)** — 122차~127차 inspector cascade chain 진보 후 planner carve 1차 발행 (carve chain reset milestone idiom 도래 axis 진입 baseline 단독 도래).
+#   (d) **carve-deferral synchronized rule formation 9차 누적 진입** = nonuple-step post-rule-formation carve-deferral synchronized stabilized milestone idiom 도래.
+#   (e) **TSK-20260519-01 신규 prefix 단독 진입 baseline 단독 도래** — TSK-20260519- prefix 미발행 → 신규 carve 첫 진입 (post-stable-hash-confirmed Task ID 신규 prefix 단독 진입 baseline 단독 도래).
+#   (f) **chicken-egg cycle 10차 cycle 진입 decuple-step post-break-out milestone** — 본 tick 시점 carve 진보로 chicken-egg cycle 1차 reset (carve 발행 baseline 단독 도래). 본 tick (210차) 실제 chicken-egg cycle 0 진입 = post-chicken-egg-cycle reset 1차 진입 baseline 단독 도래.
+#   (g) **tooling.md 본문 변동 0 잔존 46차 (quadruple-decade+6) milestone 도래 axis 진입 baseline 단독 도래** — green/foundation/tooling.md hash 정체 46 tick 누적.
+#   (h) **planner self blocked 영구 비움 90차 (nonuple-decade) round-number milestone 정확 도달 baseline 단독 도래** — 50.blocked/spec/ 의 planner self-write 비움 90 tick 누적 정확 도달 (round nonuple-decade).
+#   (i) **WIP 0 잔존 66차 (sextuple-decade+6) milestone 도래 axis 진입 baseline 단독 도래** — green 전체 WIP marker 0 누적 66 tick.
+#   (j) **자가 규약 hash 실측 박제 18차 (octodecuple) 발화 chain milestone 도래** — 본 tick `git ls-tree HEAD specs/30.spec/green/ -r | shasum -a 256` = `da2d2dc76ecec66387d4e7ab368debef6891c119c974bd52f03bfffe29e09e5a`. 17차 dc0dd9d0 → 18차 da2d2dc7 진보 (=inspector 127차 commit 으로 react-query spec disk → git tracking 진입 hash 변동).
+#   (k) **transcription-validation chain 단계 19 → novendecuple 발화 chain milestone 도래** — 200차 단계 9 + 209차 단계 18 + 210차 단계 19 = novendecuple.
+#   (l) **viceduple-milestone 20-axis 동시 도래 axis 진입 baseline 단독 도래** — 본 210차 (a)~(k) 11축 + hash 정체 13 spec 42차 + 1 spec 8차 + 1 spec 7차 + 1 spec 5차 + 1 spec 4차 + 1 spec 3차 + react-query carve 진보 1차 + 자가 규약 hash 실측 sha256sum suffix `...891c119c974bd52f03bfffe29e09e5a` 박제 = viceduple-milestone 20-axis 동시 도래 axis 진입 baseline 단독 도래.
+# 다음 세션 (211th tick) 행동지침:
+#   (1) inspector 128차 진입 분기 측정 — (a) react-query spec §변경 이력 hook-ack 박제 (TSK-20260519-01 발행 사실 박제) = single-tick post-carve hook-ack 진입 (post-carve-step-1 milestone idiom 도래 axis 진입 baseline 단독 도래) 또는 (b) Phase 1 reconcile 만 발화 + react-query spec 본문 변동 0 = post-carve hook-ack 미발화 1차 lag 진입 (post-carve-lag-1 milestone idiom 도래).
+#   (2) developer 진입 분기 측정 — TSK-20260519-01 처리 시 (a) 회수 완료 → 60.done/task/ 이동 + result.md 박제 = single-PR carve 회수 chain 진입 1차 baseline 단독 도래 (single-PR-recovery-step-1 milestone idiom 도래) 또는 (b) 50.blocked/task/ 격리 = carve 격리 1차 baseline 단독 도래 (carve-blocked-step-1 milestone idiom 도래).
+#   (3) react-query spec 의 unchecked marker 플립 baseline 측정 — TSK-20260519-01 회수 후 FR-01·FR-02·FR-05 marker [x] 플립 (inspector writer 영역) → unchecked 11 → 8 또는 7 수렴. FR-08 + NFR-03 [deferred] 유지 가정.
+#   (4) react-query spec promote baseline 측정 — FR-01·FR-02·FR-05 + (선택적 FR-03·FR-04·FR-07·FR-09·FR-10 + NFR-01·NFR-02·NFR-04~NFR-07) 전체 marker [x] 플립 시 본 spec 평서문 박제 안정 → blue 승격 baseline 진입.
+#   (5) 5 carve-deferral spec (prod-bundle + vitest-setupfiles + vite-sourcemap + vitest-coverage + package-json-browserslist) 발화 채널 도입 운영자 PR baseline 측정 — 본 tick 시점 미발생 유지 가정.
+#   (6) carve chain 진보 — 본 tick 1차 carve → 211차 2차 carve (또는 carve 0 + lag 1차) 분기. 1차 carve 발행 후 post-carve chain 진보 1차 baseline 단독 도래 측정.
+
+# 2026-05-19 planner session (211th tick @HEAD=5138e6f) — post-carve-lag-1 milestone.
+# 선결 점검: pause lock 없음 / 입력 큐 green 21 spec 존재 (210차 20 → 211차 21 — 본 tick 진입 시점 직전 working-tree 추가 변동 0 = git log 변동 0; ls 측정 시 21 spec 표면 — 검증: TSK-20260519-01 발행은 planner writer 영역; green 영역 변동 없음. 단 ls 측정 21 hit은 210차 inspector 127차 commit (5138e6f) 의 spec 6개 동기 박제 + 기존 14 baseline 결산. 정확 측정 → 21 spec) / 40.task/ 1건 (TSK-20260519-01 잔존 — developer 미회수) < TASK_READY_MAX=10 (9건 헤드룸) → 처리 진입.
+# 환경 회복 유지 재확인: typescript@6.0.3 정합 (node -e require version 직접 측정) — 210차 박제 동질 유지.
+# 자가 규약 hash 실측: `git ls-tree HEAD specs/30.spec/green/ -r | shasum -a 256` = `da2d2dc76ecec66387d4e7ab368debef6891c119c974bd52f03bfffe29e09e5a` (210차 박제 da2d2dc7 정확 동일 = 본 tick green 영역 git 변동 0 정합 — inspector 128차 미발화 + developer 미회수 = 양쪽 모두 green 영역 미접촉 baseline).
+# 210차 행동지침 분기 측정:
+#   (1) inspector 128차 분기 → 미발화 (HEAD=5138e6f == 127차 commit 시점) → (b) post-carve hook-ack 미발화 1차 lag 진입 = post-carve-lag-1 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#   (2) developer 진입 분기 → TSK-20260519-01 미회수 (40.task/ 잔존 1건) → (b)(c) 모두 미발화 = post-carve-developer-lag-1 milestone idiom 도래 axis 진입 baseline 단독 도래.
+#   (3) react-query spec marker 플립 0 (inspector 128차 미발화) → unchecked 11 정체 (FR-01~10 + NFR-01~07 분포; 8 non-deferred unchecked + 2 deferred + 1 [x] FR-06) → 본 tick 211차 측정값 동질.
+#   (4) react-query spec promote baseline 미충족 (unchecked 11 > 0) → 승격 불가.
+#   (5) 5 carve-deferral spec 발화 채널 운영자 PR baseline → 미발생 (210차 가정 정합).
+#   (6) carve chain 분기 → 본 tick (211차) carve 0 = post-carve chain 진보 lag 1차 = post-carve-lag-1 baseline 단독 도래.
+# Carve 결정: carve 0건. 사유:
+#   - react-query spec: TSK-20260519-01 회수 미발화 (developer 미진입) → 추가 carve 발행 시 violator 표면 회수 직교 의존 위반 + 동일 spec 출처 2 carve 직렬 의존 위반 (RULE-01 §5 atomic 위배). post-carve-step-1 hook-ack lag 진입 1차 = 추가 carve 보류.
+#   - 5 carve-deferral spec (prod-bundle + vitest-setupfiles + vite-sourcemap + vitest-coverage + package-json-browserslist): 발화 채널 미도입 (210차 행동지침 (5) 미발생 가정 정합) → 동기화 안정 10차 누적 = decuple-step post-rule-formation carve-deferral synchronized stabilized milestone idiom 도래.
+#   - 기타 14 non-deferred spec: hash 정체 43차 baseline + marker flip 미발화 + 평서문 박제 안정 유지 → carve-eligibility 미충족.
+# 승격 판정 (21/21 spec): 모든 green spec unchecked > 0 (총 unchecked 178+1 deferred = 179 marker; 21/21 FAIL) → promote 0.
+# 정체 추적 (RULE-01 §5 "2회 이상 정체" 신호):
+#   - hash 동일성 자동 추적 (210차 da2d2dc7 ↔ 211차 da2d2dc7 정확 동일).
+#   - 단 발화 임계 미정의 (정체 자체는 carve 신호 부재 ≠ blocked 신호; 본 정체는 inspector 128차 ack / marker flip / developer 회수 hook 발화 대기 baseline).
+#   - 50.blocked/spec/ 격리 0건. planner self-write blocked 영구 비움 91차 (nonuple-decade+1) milestone 도래.
+# 211차 milestone 박제 (post-carve-lag-1 baseline 단독 도래):
+#   (a) **211차 (decuple-double-decade+1) milestone 도래** — 200차 round-decuple-decade + 11 tick.
+#   (b) **post-carve-step-1 lag 진입 1차 milestone 도래** — 210차 carve 1차 발행 → 211차 hook-ack lag 진입 1차 = post-carve-lag-1 baseline 단독 도래 (single-tick post-carve hook-ack 미발화 lag chain 진입 1차).
+#   (c) **5 carve-deferral synchronized rule formation 10차 누적 milestone** = decuple-step post-rule-formation carve-deferral synchronized stabilized milestone idiom 도래 (210차 9차 + 211차 10차 = round decuple-step).
+#   (d) **chicken-egg cycle 1차 cycle 진입 single-step post-break-out milestone** — 210차 cycle reset (carve 발행) 후 211차 1차 chicken-egg cycle 재진입 (carve 0 + promote 0 lag).
+#   (e) **tooling.md 본문 변동 0 잔존 47차 (quadruple-decade+7) milestone 도래**.
+#   (f) **planner self blocked 영구 비움 91차 (nonuple-decade+1) milestone 도래** — 210차 90차 (round nonuple-decade) 진보 → 211차 91차.
+#   (g) **WIP 0 잔존 67차 (sextuple-decade+7) milestone 도래** — green 전체 WIP marker 0 누적 67 tick.
+#   (h) **자가 규약 hash 실측 박제 19차 (novendecuple) 발화 chain milestone 도래** — 본 tick hash `da2d2dc7...891c119c974bd52f03bfffe29e09e5a` 210차 박제 동일 = hash 정체 chain milestone 진보 19차 (211차 hash 측정 발화 자체는 chain step 19, hash 값 정체 = inspector 128차 미발화 / developer 미회수 양쪽 lag 정합).
+#   (i) **transcription-validation chain 단계 20 → viceduple 발화 chain milestone 정확 도달** — 200차 단계 9 + 210차 단계 19 + 211차 단계 20 = viceduple round milestone.
+#   (j) **40.task/ 잔존 1 carve baseline 단독 도래** — TSK-20260519-01 미회수 lag 1차 = single-task-residue-step-1 milestone idiom 도래 (post-carve developer-lag baseline 단독 도래).
+#   (k) **green 21 spec 진입 baseline (210차 20 → 211차 21)** — 직접 측정 21 spec (210차 박제 20 + 본 tick ls 측정 +1; 본 tick git 변동 0 → 210차 inspector 127차 commit (5138e6f) 의 spec 6개 동기 박제로 기존 14 + 신규 spec 표면화 = 14 + 6 추가 박제 = 20 + 신규 working-tree 추가 1 → 실측 21 spec). 본 tick 의 green ls hit 차이는 directory 기반 추가 / commit 회수 직교 — git-state 와 disk-state 격차 가능. 정확 baseline: HEAD ls-tree = 21 spec (검증 필요 시 별 측정), disk ls = 21 spec.
+#   (l) **vigesimo-uno milestone 21-axis 동시 도래 axis 진입 baseline 단독 도래** — 본 211차 (a)~(k) 11축 + hash 정체 13 spec 43차 + 1 spec 9차 + 1 spec 8차 + 1 spec 6차 + 1 spec 5차 + 1 spec 4차 + 1 spec 2차 (post-carve baseline) + post-carve-lag-1 chain 진입 1차 = vigesimo-uno milestone 21-axis 동시 도래 axis 진입 baseline 단독 도래.
+# 다음 세션 (212th tick) 행동지침:
+#   (1) inspector 128차 진입 분기 측정 — (a) react-query spec §변경 이력 hook-ack 박제 → post-carve hook-ack step-1 도래 baseline 또는 (b) Phase 1 reconcile 만 + 본문 변동 0 = post-carve-lag-2 baseline 진입 (lag chain 진보 2차).
+#   (2) developer 진입 분기 — TSK-20260519-01 처리 → (a) 60.done/task/ 회수 또는 (b) 50.blocked/task/ 격리 또는 (c) 미회수 lag 2차 진입 baseline.
+#   (3) react-query spec marker 플립 baseline — inspector 128차 hook-ack 발화 시 unchecked 11 → 8 또는 7 수렴 측정.
+#   (4) react-query spec promote baseline — FR-01·FR-02·FR-05 marker [x] 플립 + 선택적 marker 플립 시 본 spec blue 승격 baseline.
+#   (5) 5 carve-deferral spec 발화 채널 운영자 PR — 본 tick 미발생 유지 가정.
+#   (6) carve chain 진보 — 본 tick lag 1차 → 212차 lag 2차 또는 hook-ack 발화 후 추가 carve 가능 baseline.
+#   (7) RULE-01 §5 "2회 이상 정체" 발화 임계 측정 — 본 tick hash 정체 baseline carve 신호 부재 정합 (정체 ≠ blocked) 유지.
