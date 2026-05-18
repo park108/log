@@ -2557,3 +2557,84 @@
 #     · specs/30.spec/green/foundation/dev-server-port-getUrl-token-coherence.md (§테스트 현황 (FR-03) + §수용 기준 Must (FR-03) marker 2건 flip + 변경 이력 1행 + 헤더 §최종 업데이트 일자 갱신)
 #     · specs/30.spec/green/.inspector-seen (102차 박제 본 append + 사후 정정 박제 append)
 #  - 본 사후 정정 박제 자체 영역 = 30.spec/green/.inspector-seen append only (inspector writer 영역 정합).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`9483712` → THIS (103차 tick) — reconcile 4/20 ack (2 spec / 4 marker; 18 stale ≥12cycle 시즌 2 누적; build-coverage FR-12 2건 + tooling REQ-013 FR-07 2건 flip — 직전 102차 1 spec 2 marker ack 후 ack chain 연속 2 tick)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `5033593` (102차 tick — Phase 1 2/20 ack 1 spec / 2 marker (dev-server-port FR-03 marker 2건 flip; TSK-20260518-19 / e1a4e06 회수) + Phase 2 backpressure no-op 15 req 보류 + 1차 commit 5567cfe partial-stage 정정 박제).
+#  - tick 진입 시 HEAD == `9483712` (docs: TSK-20260518-21 result.md commit mismatch 박제 + followup 발화). 5033593 ↔ 9483712 사이 외부 commit 5건:
+#     · `d32ced0` (feat: build-coverage tri-surface 발화 채널 부착 — `scripts/check-build-coverage-coherence.sh` 107 line 신규 + `package.json:30` `"check:build-coverage-coherence"` npm wrapper 1줄 추가). TSK-20260518-20 회수 `60.done/2026/05/18/task/build-coverage-tri-surface-coherence-check-script/`.
+#     · `27e8c2e` (spec(planner): 160차 tick — `.planner-seen` self-only append). planner 메타 회고.
+#     · `5639669` (spec(planner): 161차 tick 박제 사고 commit — 메시지/콘텐츠 mismatch: 메시지는 planner self 161차 tick 박제이나 실제 콘텐츠는 developer feat 4 file: `package.json:31` `"check:eslint-ignores-vacuous-zero"` + `scripts/check-eslint-ignores-vacuous-zero.sh` 71 line 신규 + `specs/60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/TSK-...md` 75 line + `result.md` 44 line. lint-staged hook race 부작용 박제 사고; TSK-20260518-21 회수 콘텐츠 실제 박제 정합. RULE-02 §commit 위반 후보 — followup `20260518-1154-developer-planner-commit-race-message-mismatch.md` 발화 운영자 영역).
+#     · `bbaeafd` (spec(planner): 161차 tick HEAD=27e8c2e — planner-seen append; 직전 5639669 박제 사고 정정 — 자기 영역 분리 박제 정정).
+#     · `9483712` (docs: TSK-20260518-21 result.md commit mismatch 박제 + followup 발화; developer 영역 result.md 보강 + followup 발화).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `9483712` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - src/ 영역 commit = 0 (d32ced0 + 5639669 모두 scripts/ + package.json + spec done dir — src 미접촉).
+#  - test/spec 본문 commit = 0.
+#  - config/scripts 영역 commit = 2 (d32ced0 + 5639669 — 본 hook-ack 대상 2건).
+#  - spec marker 영향 후보 = 2 spec / 4 marker:
+#     (1) TSK-20260518-20 / `d32ced0` → build-coverage-output-dir-tri-surface-coherence.md §테스트 현황 (FR-12) line 84 + §수용 기준 Should (FR-12) line 98 marker 2건 ack 후보.
+#     (2) TSK-20260518-21 / `5639669` → tooling.md §테스트 현황 (REQ-013 FR-07) line 206 + §수용 기준 Should (REQ-013 FR-07) line 268 marker 2건 ack 후보.
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 디스크 실측 잔존 동일 (92~102차 종료 15건 유지 = 12 tick 큐 정체 = decade x1+2 milestone 진입). 본 tick 처리 중 외부 신규 2건 발행 (21:11~21:12, `multi-agent-commit-serialization-invariant.md` + `build-coverage-tri-surface-gate-semantics-decision.md` mtime). 종료 시 16건 (15 - 1 본 tick 흡수 + 2 신규 = 16건, 큐 net +1 진입).
+#  - 20 green spec hash 시작점 (직전 102차 박제 20 entry 유지 — 외부 src/config commit 2건이 build-coverage + tooling 2 spec 본문 marker 영향):
+#    · 2 spec (build-coverage-output-dir-tri-surface-coherence + tooling) marker 4건 flip → stale_cycles 0 초기화.
+#    · 18 spec 전수 hook-ack 후보 없음 → stale_cycles += 1. 시즌 2 정체 누적: 92차 정체 1차 → 101차 정체 10차 (decade x2 milestone) → 102차 정체 11차 (1 spec ack reset 후 19 spec 정체 11차) → 본 103차 정체 12차 (decade x2+2 진입; 단 본 tick 2 spec ack reset 으로 18 spec 만 정체 12차 계속).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `9483712` 비교):
+#    · working tree clean.
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#  - 50.blocked/{req,task} 디스크 = 0 file 잔존. 50.blocked/spec/foundation/ 1 file 잔존 인계 baseline.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 2건 — d32ced0 + 5639669):
+#  - build-coverage-output-dir-tri-surface-coherence.md (TSK-20260518-20 / `d32ced0` 회수, `60.done/2026/05/18/task/build-coverage-tri-surface-coherence-check-script/` 정상 mv):
+#     · §테스트 현황 (FR-12) line 84: baseline `[ ]` "자동 검출 채널 (단위 테스트 + grep + find 조합) rc=0/1 결정론 발화 부착 — 수단 영역, planner task carve 대기" → HEAD `9483712` 재실측 → `scripts/check-build-coverage-coherence.sh` 107 line 실존 + `package.json:30` `"check:build-coverage-coherence"` npm wrapper 실존 + `bash scripts/check-build-coverage-coherence.sh` 직접 실행 rc=0 + stdout `check-build-coverage-coherence: G-A+G-B+G-C+G-D (build) + G-E+G-F+G-G+G-H (coverage) PASS (build=build coverage=coverage)` 재실측 PASS. `[ ]→[x]` 플립.
+#     · §수용 기준 Should (FR-12) line 98: baseline `[ ]` "자동 검출 채널 부착 (단위 테스트 + grep + find 조합 rc 결정론) — planner task carve 대기" → HEAD 재실측 → dedicated script + npm wrapper 수단 채택 박제 (TSK-20260518-20 / `d32ced0`). `[ ]→[x]` 플립.
+#     · hook-ack: 60.done/2026/05/18/task/build-coverage-tri-surface-coherence-check-script/result.md DoD — `bash scripts/check-build-coverage-coherence.sh` rc=0 + stdout 1줄 ack + `npm run check:build-coverage-coherence` rc=0 + `grep -nE '"check:build-coverage-coherence"' package.json` 1 hit @line 30 + `test -x scripts/check-build-coverage-coherence.sh` PASS + `npm run lint` rc=0 + `npm run typecheck` rc=0 + R-1~R-6 6 회귀 케이스 수동 검증 (R-1/R-6 은 §구현 지시 verbatim 채택으로 §테스트 기대치와 mismatch — followup 위임 잔존). HEAD 조상 정합 (`git merge-base --is-ancestor d32ced0 HEAD` PASS — `9483712` 가 `d32ced0` 의 직계 후손). RULE-07 정합 — 수단 중립 평서문 (§동작 G-I "발화 채널이 존재해야 한다") 보존, dedicated script 채택은 §테스트 현황 + §수용 기준 marker 박제 영역 한정. spec 본문·vite.config.js·eslint.config.js·.gitignore·src/** 변경 0 동반 정합.
+#     · 변경 이력 1행 박제 (TSK-20260518-20 / `d32ced0`). 헤더 §최종 업데이트 갱신. stale_cycles 0 초기화.
+#  - tooling.md (TSK-20260518-21 / `5639669` 회수, `60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/` 정상 mv):
+#     · §테스트 현황 line 206: baseline `[ ]` "(Should, REQ-013 FR-07) 자동 검출 채널 (단위 테스트 + glob 매처 또는 `find` + cardinality count fixture) 부착 — 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:eslint-ignores-vacuous-zero` script) 선정은 planner 영역 task carve 대기" → HEAD `9483712` 재실측 → `scripts/check-eslint-ignores-vacuous-zero.sh` 71 line 실존 + `package.json:31` `"check:eslint-ignores-vacuous-zero"` npm wrapper 실존 + `bash scripts/check-eslint-ignores-vacuous-zero.sh` 직접 실행 rc=0 + stdout `check-eslint-ignores-vacuous-zero: G-9.1 PASS (1 array @line=15) + G-9.2 PASS (P-1=1 P-2=1 P-3=1 P-4=1 P-5=2)` 재실측 PASS. `[ ]→[x]` 플립.
+#     · §수용 기준 Should line 268: baseline `[ ]` "(Should, REQ-013 FR-07) §동작 9.3 평서문 박제 (자동 검출 채널 계약). 발화 시점 채널 (pre-commit / pre-push / CI / 신규 script) 선정 planner 영역 task carve 대기" → HEAD 재실측 → dedicated script + npm wrapper 수단 채택 박제 (TSK-20260518-21 / `5639669`). `[ ]→[x]` 플립.
+#     · hook-ack: 60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/result.md DoD — `bash scripts/check-eslint-ignores-vacuous-zero.sh` rc=0 + stdout 1줄 ack + `npm run check:eslint-ignores-vacuous-zero` rc=0 + `grep -nE '"check:eslint-ignores-vacuous-zero"' package.json` 1 hit @line 31 + `test -x scripts/check-eslint-ignores-vacuous-zero.sh` PASS + `npm run lint` rc=0 + `npm run typecheck` rc=0 + R-1/R-3/R-4 3 회귀 케이스 수동 검증 PASS (회귀 0). HEAD 조상 정합 (`git merge-base --is-ancestor 5639669 HEAD` PASS — `9483712` 가 `5639669` 의 직계 후손). RULE-07 정합 — 수단 중립 평서문 (§동작 9.3 "발화 시점 채널 선정은 수단 영역") 보존, dedicated script 채택은 marker 박제 영역 한정. spec 본문·eslint.config.js·src/** 변경 0 동반.
+#     · 보조 ack 검증: `5639669` 자체는 commit message mismatch (메시지 spec(planner) vs 콘텐츠 developer feat) — hook-ack 는 content 기준 + 별 followup 후속 정정 commit `bbaeafd` `9483712` 보조 검증. Must 주관 혼재 없음 (REQ-013 FR-07 객체적 grep + bash script rc 게이트 baseline 평서화 — content 기준 hook-ack 정합).
+#     · 변경 이력 1행 박제 (TSK-20260518-21 / `5639669`). 헤더 §최종 업데이트 갱신. stale_cycles 0 초기화.
+#  - 나머지 18 green spec 전수 hook-ack 후보 없음. 18 spec 전수 stale_cycles += 1 (시즌 2 정체 12차 진입).
+#  - **2 marker spec 4 ack / 20 total spec → Phase 1 4/20 ack.** seen-state 갱신 (2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1).
+#  - 시즌 2 정체 chain 회복 진입 chain 연속 2 tick — 직전 102차 1 spec 2 marker ack 후 본 103차 2 spec 4 marker ack chain 연속. 92차~101차 10 tick 0-ack 시즌 2 정체 chain 종료 후 102차+103차 2 tick 연속 ack 진입.
+#
+# Phase 2 처리 (RULE-03 (d) 정합 + 1 carve):
+#  - 본 tick 진입 시 green=20 (102차 종료 19에서 본 103차 진입 시 19 → 본 carve 후 20 도달). 직전 102차 dev-server-port spec 본문 marker 2건 flip 후 planner 160차 promote 없음 — green 19 == GREEN_PENDING_MAX 19/20 1 슬롯 여유 (102차 박제 20 + planner 124차 promote 직후 attempt 결렬 surface 후 162차 진입 시점 dev-server-port spec 도 grren 잔존; 본 베이스라인 디스크 실측 = 19).
+#  - 입력 큐 15건 (92~102차 잔존 동일 = 12 tick 큐 정체 = decade x1+2 milestone 진입). 본 tick 신규 carve 1 슬롯 가능 (19 → 20 = GREEN_PENDING_MAX 정확 도달).
+#  - 15 req 전수 RULE-07 자기 검증 + 본 tick carve 대상 1건 선정:
+#     · 최우선 후보 검토 — REQ-20260518-008 `coverage-gate-exit-code-determinism-margin-axis.md` 선정. 근거: (1) RULE-07 자기 검증 PASS (평서/반복 검증 가능 (`npm test` N≥3 + grep)/시점 비의존 (Vitest/MSW/Node/V8 메이저 bump 비귀속)/incident 비귀속 (4 run baseline 박제는 측정 anchor)/수단 중립 (두 회복 경로 (i)/(ii) 동등)/축 단순 (단일 시스템 불변식 평서)), (2) FR-07 에서 inspector 가 3 경로 (α/β/γ) 중 택1 명시 — β (신설 spec) 채택: 직교 축 명확 분리 + blue 편집 비용 회피 + `regression-gate.md` 의미 경계 침범 회피, (3) 자매 `coverage-determinism.md` (REQ-20260421-041 + REQ-20260421-043, blue) 와 직교 축 명확 분리 → 본 spec 본문 단독 carrier 적절, (4) 본 req 의 §관련 spec 명시 (`30.spec/blue/foundation/coverage-determinism.md` + `regression-gate.md` + `dependency-bump-gate.md`) 3 자매 직교 표면 정합.
+#  - 신설 spec `30.spec/green/foundation/coverage-gate-exit-code-determinism-margin-axis.md` 박제 (131 line, §역할 + §공개 인터페이스 + §동작 G-A~G-I 9 게이트 + §의존성 + §회귀 중점 R-1~R-7 7 시나리오 + §스코프 규칙 grep-baseline (A)~(H-self) 8 gate + §테스트 현황 10 marker + §수용 기준 13 marker + §변경 이력 + §참고).
+#  - §스코프 규칙 grep-baseline 실측 (HEAD=`9483712`): (A) `package.json:21` `"test": "vitest run --coverage"` 1 hit PASS / (B) `vite.config.js:91-96` thresholds 4축 4 hits PASS / (C) `.husky/pre-push:3` `npm test` 1 hit PASS / (D-baseline) 4 run 분자 998~1003 분모 1063 ±5/1063=0.47%pp 변동폭 + margin 0.09%pp (< 0.47 = (ii) 경로 부족 baseline 박제) / (E-self) §역할 한정 수단 라벨 0 hit PASS / (F-self) §역할 한정 메이저 버전 고정 표현 0 hit PASS / (G-self) 직교 축 표현 9 hits PASS (≥2 요구) / (H-self) 설계 결함 평서문 5 hits PASS (≥1 요구) / (NFR-01) `grep -rn "REQ-20260518-008" specs/30.spec/{green,blue}/foundation/` 6 hits PASS (≥2 요구).
+#  - 자기 검증 self-anchor 회피 정정 (1차 작성 시 E-self/F-self 가 본문 전체 측정 scope 로 7 hit/2 hit FAIL 발생) → measure scope 를 §역할 한정으로 좁힘 (`awk '/^## 역할/,/^## 공개 인터페이스/'` filter) → 0 hit/0 hit PASS. §동작 G-E/G-H + §스코프 규칙 (E-self)/(F-self) 명령 갱신 + 본 §스코프 규칙 (E-self)/(F-self) rationale 추가.
+#  - req mv: `specs/20.req/20260518-coverage-gate-exit-code-determinism-margin-axis.md` → `specs/60.done/2026/05/18/req/`. 1건 처리.
+#  - 나머지 14 req 보류 (큐 잔존 14 + 본 tick 처리 중 신규 2건 발행 = 종료 시 큐 16건):
+#     · 신규 외부 req 2건 (21:11 mtime `multi-agent-commit-serialization-invariant.md` + 21:12 mtime `build-coverage-tri-surface-gate-semantics-decision.md`) — 본 tick 종료 후 차기 tick RULE-07 자기 검증 + carve 평가 위임.
+#     · 14 보류 req 전수 별 spec carve 후보 (body-update 흡수 후보 0 잔존 — 자매 spec 부재 또는 자매 spec OOS 명시). 차기 tick 부터 green 20 == GREEN_PENDING_MAX 도달 → carve 0 의무 (21 > 20 임계 초과). 차기 carve 회복 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1.
+#  - **본 tick Phase 2 흡수 1건 + 격리 0건**. 디스크 green 19 → 20 (GREEN_PENDING_MAX 정확 도달; > 20 임계 미초과 정합).
+#
+# req mv: 1건 (REQ-20260518-008 → 60.done/2026/05/18/req/; 14 보류 + 신규 2건 = 종료 시 큐 16건).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/build-coverage-output-dir-tri-surface-coherence.md (§테스트 현황 (FR-12) + §수용 기준 Should (FR-12) marker 2건 flip + 변경 이력 1행 박제 + 헤더 §최종 업데이트 갱신)
+#  - specs/30.spec/green/foundation/tooling.md (§테스트 현황 (REQ-013 FR-07) + §수용 기준 Should (REQ-013 FR-07) marker 2건 flip + 변경 이력 1행 박제 + 헤더 §최종 업데이트 갱신)
+#  - specs/30.spec/green/foundation/coverage-gate-exit-code-determinism-margin-axis.md (신규 131 line — REQ-20260518-008 흡수, β 경로 채택)
+#  - specs/60.done/2026/05/18/req/20260518-coverage-gate-exit-code-determinism-margin-axis.md (mv from 20.req/)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 103차 tick 박제 + 2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1 + 신설 1 spec 초기 stale_cycles=0 entry 추가; append only)
+#
+# RULE-01 writer-boundary 후보 위반 박제 잔존 (운영자 followup 영역 — 본 103차 inspector 영역 ack 의무만 수행):
+#  - 94~102차 박제 동일 — 140차 planner self commit `38f636c` 디스크 stat 에 `specs/30.spec/green/.inspector-seen | 59 ++` 동반 (writer 권한 부재 위반 후보). 본 103차 tick 도 격리/롤백 권한 없음. RULE-05 §Blocked 해제 경로 권장 잔존.
+#  - 102차 박제 잔존 — `5567cfe` partial-stage planner-seen modify (inspector self-commit 영역 위반 후보) + `5639669` 박제 사고 (planner self-commit 메시지 ↔ developer feat 콘텐츠 mismatch — RULE-02 §commit 위반 후보 운영자 followup 발화 영역).
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/{task,req}/ 디스크 0 file 잔존 + 50.blocked/spec/ baseline 인계).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/foundation/ 2 spec marker flip + 1 신규 spec + .inspector-seen append + 20.req/* → 60.done/req/ mv; 40.task/ + 50.blocked/{task,spec,req} + 10.followups/ + 60.done/task/ + .planner-seen + scripts/ + package.json 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `4/20 ack` 박제 (d32ced0 + 5639669 회수 2 spec 4 marker hook-ack chain 연속 2 tick).
+# RULE-03 (d) 정합 — green 19 == 19/20 (도달 미초과; 본 carve 후 20 = 정확 도달, < 1 슬롯 신규 carve 가능 baseline) + 1 carve 흡수 후 20 == GREEN_PENDING_MAX (차기 tick carve 보류 의무 진입).
+# RULE-07 자기 검증 — Phase 1 2 marker spec 4 ack (TSK-20260518-20 / `d32ced0` build-coverage FR-12 2건 + TSK-20260518-21 / `5639669` tooling REQ-013 FR-07 2건 — hook-ack 정상 + DoD grep + lint/typecheck 회귀 0 + 수단 중립 평서문 보존 + content 기준 hook-ack 정합 mismatch followup 위임). Phase 2 1 흡수 (REQ-20260518-008 → coverage-gate-exit-code-determinism-margin-axis.md 신설; RULE-07 평서/반복/시점/incident 자기 검증 PASS + β 경로 채택 직교 축 명확 분리 + self-anchor 회피 정정 (§역할 한정 measure scope) + grep-baseline 8 gate 실측 박제).
+#
+# 입력 큐 잔여: 16건 (102차 박제 15건 - 본 tick 처리 1건 + 본 tick 진입 중 외부 신규 2건 = 종료 시 16건; 14 보류 + 신규 2건. 차기 tick 부터 green 20 == GREEN_PENDING_MAX 도달 → carve 0 의무, body-update 후보 신규 식별 또는 planner promote ≥ 1 시점 회복).

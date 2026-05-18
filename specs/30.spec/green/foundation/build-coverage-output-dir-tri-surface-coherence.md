@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 빌드/도구 시스템 불변식 — `vite.config.js:49` `build.outDir` (산출 디렉터리 #1 명시 토큰) + `vite.config.js:80-97` `test.coverage` 블록 (산출 디렉터리 #2 default 의존) + `.gitignore:9,12` (git 추적 제외 측 2 line) + `eslint.config.js:15` `ignores` 배열 (정적 분석 무시 측 2 패턴 P-1, P-2) + repo root 디스크 디렉터리 (`./build/`, `./coverage/`) 실재. 측정 scope = 네 파일 본문 + repo root maxdepth 1 디렉터리 카운트 한정.
 > **관련 요구사항**: REQ-20260518-021
-> **최종 업데이트**: 2026-05-18 (by inspector — 최초 박제; Phase 2 REQ-021 흡수)
+> **최종 업데이트**: 2026-05-18 (by inspector — 103차 Phase 1 hook-ack TSK-20260518-20 / `d32ced0` FR-12 marker 2건 flip)
 
 > 본 spec 은 자매 `foundation/tooling.md` §동작 9 (REQ-013, `eslint.config.js:15` `ignores` 5 패턴 단일 표면 vacuous-zero) 의 직교 축 — P-1 (`build/**`) / P-2 (`coverage/**`) 두 패턴을 **다른 두 표면** (`vite.config.js`, `.gitignore`) 과 cross-surface 의미 동치로 확장. tooling.md §동작 9 는 단일 표면 내부 vacuous-zero, 본 spec 은 3 표면 cross-surface set-equality. 두 axis 직교.
 
@@ -81,7 +81,7 @@
 - [x] (FR-09) 산출 디렉터리 #2 3 표면 byte-equal `coverage` 동치 — token (H) 실측 + 외부 출처 (vitest default).
 - [ ] (FR-10) `./coverage` 디스크 실재 — vitest run --coverage 산출 직후 precondition (`find ... coverage` ≥ 1 hit, baseline (J) PASS). 본 marker 는 task carve 후 자동 발화 채널 부착 후 플립 — planner 영역 대기.
 - [x] (FR-11) 5 회귀 가설 (R-1~R-5) 검출 효능 — §회귀 중점 1~5 평서문 박제.
-- [ ] (FR-12) 자동 검출 채널 (단위 테스트 + grep + find 조합) rc=0/1 결정론 발화 부착 — 수단 영역, planner task carve 대기.
+- [x] (FR-12) 자동 검출 채널 (단위 테스트 + grep + find 조합) rc=0/1 결정론 발화 부착 — TSK-20260518-20 / `d32ced0` `scripts/check-build-coverage-coherence.sh` + `npm run check:build-coverage-coherence` (8 게이트 G-A~G-H fail-fast).
 
 ## 수용 기준
 - [x] (Must, FR-01) `vite.config.js:49` `outDir: 'build'` literal 박제 — grep gate (A) 1 hit baseline PASS.
@@ -95,7 +95,7 @@
 - [x] (Must, FR-09) 산출 디렉터리 #2 3 표면 byte-equal `coverage` 동치 (vitest default 외부 출처 박제 형식) — token (H) PASS.
 - [ ] (Should, FR-10) `./coverage` 디스크 실재 (vitest run --coverage precondition) — 자동 발화 채널 부착 후 플립 대기.
 - [x] (Must, FR-11) 5 회귀 가설 (R-1~R-5) 본 게이트로 검출 효능 — §회귀 중점 평서문 박제.
-- [ ] (Should, FR-12) 자동 검출 채널 부착 (단위 테스트 + grep + find 조합 rc 결정론) — planner task carve 대기.
+- [x] (Should, FR-12) 자동 검출 채널 부착 (단위 테스트 + grep + find 조합 rc 결정론) — TSK-20260518-20 / `d32ced0` dedicated script 채택 (`scripts/check-build-coverage-coherence.sh` + `npm run check:build-coverage-coherence`).
 - [x] (NFR-01) 결정론 — 동일 HEAD 상 8 grep + 2 find 게이트 N 회 반복 시 N 회 동일 rc + 동일 출력 (line anchor 한정 단일 명령).
 - [x] (NFR-02) 멱등성 — 본 게이트는 read-only. 4 파일 + 2 디렉터리 mtime 변경 0.
 - [x] (NFR-03) 성능 — 각 grep < 100 ms + 각 find maxdepth=1 < 100 ms + 전체 < 2 s.
@@ -108,6 +108,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-05-18 | inspector 103차 Phase 1 hook-ack / TSK-20260518-20 / `d32ced0` | FR-12 marker 2건 flip ([x] §테스트 현황 line 84 + §수용 기준 Should line 98) — `scripts/check-build-coverage-coherence.sh` (8 게이트 G-A~G-H fail-fast) + `package.json:30` `"check:build-coverage-coherence"` npm wrapper 부착. HEAD 재실측 PASS (rc=0 + stdout `check-build-coverage-coherence: G-A+G-B+G-C+G-D (build) + G-E+G-F+G-G+G-H (coverage) PASS (build=build coverage=coverage)`). `git merge-base --is-ancestor d32ced0 HEAD` PASS. RULE-07 정합 — 수단 중립 평서문 (§동작 G-I "발화 채널이 존재해야 한다") 보존, dedicated script 채택은 marker 박제 영역 한정. spec 본문·vite.config.js·eslint.config.js·.gitignore·src/** 변경 0 동반 정합. | §테스트 현황 (FR-12) + §수용 기준 (FR-12) + §변경 이력 |
 | 2026-05-18 | inspector (Phase 2, REQ-20260518-021 흡수) / (this commit, HEAD=`f74ab43`) | 최초 등록 (REQ-20260518-021). `vite.build.outDir` literal + `vitest.coverage.reportsDirectory` default 의존 + `.gitignore` anchored + `eslint.config.js.ignores` glob 3 표면 cross-surface byte-equal 동치 결과 효능 불변식 박제. §동작 G-A~G-I 9 게이트 + §회귀 중점 5 시나리오 (R-1~R-5) + §스코프 규칙 grep-baseline (A)~(K-self) 11 gate 실측 (build/coverage 양측 3 표면 PASS + 비대칭 default 의존 사실 + 수단 라벨 0 자기 검증) + §테스트 현황 12 marker (FR-01~FR-12) + §수용 기준 20 marker (FR-01~12 + NFR-01~08). consumed req: `specs/20.req/20260518-build-coverage-output-dir-tri-surface-coherence.md` → `60.done/2026/05/18/req/` mv. 자매 직교 axis: `tooling.md` §동작 9 (REQ-013, `ignores` 5 패턴 단일 표면 vacuous-zero) 의 P-1/P-2 를 cross-surface 3극 동치로 확장. 본 spec 의 In-Scope = baseline 2 디렉터리 (build/coverage) 한정. RULE-07 자기검증 — §동작 G-A~G-I 평서형 + grep/find 단일 명령 반복 검증 가능 + Vite/Vitest/ESLint 메이저 bump 이벤트 비귀속 + P-4 vacuous baseline 박제 같은 incident patch 비귀속 (baseline 사실 평서화) + 수단 중립 (디렉터리 명 결정 / `reportsDirectory` 명시화 / 발화 채널 선정 어느 쪽이든 우선 라벨 0) + self-reference scope 분리 (NFR-04 + 스코프 (K-self) 0 hit). RULE-06 grep-baseline gate (A)~(K-self) 11 건 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/` 신규 1 spec + `20.req/* → 60.done/req/` mv). RULE-03 (d) — 본 carve 로 green 18 → 19 (< GREEN_PENDING_MAX=20, 1 spec 여유 유지). | all (최초 등록) |
 
 ## 참고
