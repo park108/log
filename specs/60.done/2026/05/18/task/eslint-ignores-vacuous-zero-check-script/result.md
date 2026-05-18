@@ -8,7 +8,9 @@ spec `tooling.md` §동작 9 (REQ-013 FR-07) 의 수단 중립 위임 (pre-commi
 - `package.json` (수정) — `scripts` 블록에 `"check:eslint-ignores-vacuous-zero": "bash scripts/check-eslint-ignores-vacuous-zero.sh"` 라인 1건 추가 (line 31).
 
 ## 커밋
-- (커밋 직후 본 result.md push 와 함께 박제 — 커밋 해시는 push 직후 추가 가능, 단일 커밋 메시지: `feat: eslint ignores 5 패턴 vacuous-zero 발화 채널 부착 (TSK-20260518-21)`)
+- **HEAD = `5639669ae7ff9866700e9c64540a981f3cc44a71`** — 본 task 의 4 file 변경물 (`package.json`, `scripts/check-eslint-ignores-vacuous-zero.sh`, `specs/60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/TSK-...md`, `result.md`) 이 박제된 실제 commit.
+- **이상 박제 (commit message ↔ content mismatch)**: 본 commit 의 author 는 `Jongkil Park` 정상이나, message 가 `spec(planner): 161차 tick ...` 로 박제됨 (developer `feat:` prefix 미충족). 추정 원인: developer `git commit` 실행 중 husky pre-commit hook (`lint-staged`) 가 `src/**` 매처 미일치로 exit 1 처리되는 동안 동일 working tree 의 planner self-commit 161차 트랜잭션이 동시 진행되어 developer staged index 가 흡수 박제됨. 콘텐츠 자체는 손실 없이 정상 박제 (4 file 신규/수정 분 모두 stat 일치). RULE-02 `--amend` 금지 + `git reset --hard` 금지 — 정정 불가, 사실 박제로 위임.
+- 후속 따라 `specs/10.followups/20260518-1154-developer-planner-commit-race-message-mismatch.md` 발화 (severity: high, category: pipeline-integrity).
 
 ## 테스트 결과
 - `bash scripts/check-eslint-ignores-vacuous-zero.sh` → rc=0, stdout: `check-eslint-ignores-vacuous-zero: G-9.1 PASS (1 array @line=15) + G-9.2 PASS (P-1=1 P-2=1 P-3=1 P-4=1 P-5=2)`.
@@ -32,7 +34,7 @@ spec `tooling.md` §동작 9 (REQ-013 FR-07) 의 수단 중립 위임 (pre-commi
 - [x] `npm run lint` rc=0.
 - [x] `npm run typecheck` rc=0.
 - [x] 회귀 fixture R-1 / R-3 / R-4 3 케이스 수동 검증 (위 §회귀 fixture 수동 검증).
-- [x] result.md `## 변경 이력` 에 본 Task ID + 커밋 해시 박제 — 본 파일 §커밋 항목 (해시 push 직후 박제).
+- [x] result.md `## 변경 이력` 에 본 Task ID + 커밋 해시 박제 — 본 파일 §커밋 (HEAD `5639669` 박제 + message mismatch 사실 박제).
 
 ## 스코프 규칙 준수
 - expansion: **불허**. scope 한정 = `scripts/check-eslint-ignores-vacuous-zero.sh` 신규 + `package.json` scripts 블록 1줄. 외부 파일 변경 0 (eslint.config.js / src/** / spec 본문 모두 미접촉).
@@ -42,3 +44,4 @@ spec `tooling.md` §동작 9 (REQ-013 FR-07) 의 수단 중립 위임 (pre-commi
 - spec `tooling.md` §테스트 현황 line 206 / §수용 기준 line 268 (Should, REQ-013 FR-07) `[ ] → [x]` flip 은 inspector writer 영역 — 본 task 무관.
 - 본 script 의 pre-commit / pre-push / CI 통합 별 task 후보 (수단 중립 — 본 task 는 dedicated script + npm script 채널 채택 한정).
 - REQ-013 FR-01 (ignores 배열 길이 == 5 측정) 은 별 axis — 본 G-9.2 는 cardinality 한정. spec §동작 9.1 baseline 자체에서 길이 hit=1 PASS.
+- **commit message ↔ content mismatch (severity: high)** → `specs/10.followups/20260518-1154-developer-planner-commit-race-message-mismatch.md` 발화. multi-agent commit race / lint-staged hook race 의 시스템 불변식 후보.
