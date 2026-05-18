@@ -4005,3 +4005,53 @@
 # RULE-07 자기 검증 — 신규 spec (react-query-test-queryclient-default-options-single-source-coherence.md) 본문 전수 시점 비의존 평서 (test 환경 QueryClient single-source axis + prod-test 토큰 분리 결과 효능 양면) + 반복 검증 가능 (4 표면 동시 grep 측정 — violator + helper + consumer + prod 토큰) + incident patch 귀속 부재 (현 baseline 4 violator 박제는 baseline 박제 자체 FR-05 — 회수는 task 영역 위임) + 자매 패턴 직교 (test 인프라 single-source axis 자매 spec foundation/vitest-setupfiles-token-disk-coherence 와 카테고리 동질, 측정 surface 직교 = QueryClient 인스턴스 정책 vs setupFiles 토큰 disk 정합) + measurement path 본문 박제 1회성 (스코프 규칙 baseline + 변경 이력 + 수용 기준 게이트 인용 영역 한정, RULE-07 §양성 기준 정합) + 수단 라벨 금지 FR-08 박제 (회수 수단에 "기본값" / "권장" / "우선" / "default" / "best practice" / "먼저" 라벨 부여 금지 — RULE-07 §양성 기준 정합).
 #
 # 입력 큐 잔여: 11건 (1 mv = 12 → 11; 11 carve 후보 보류 — 차기 inspector tick 추가 흡수 평가 시 backpressure 진입 가능; commit-state green 20 == GREEN_PENDING_MAX 정확 도달, 0 slot 여유). 차기 128차 tick 외부 ack 시점 분기 — (a) developer src 영역 commit 발화 시 spec 본문 영향 후보 hook-ack chain 재진입 가능, (b) 외부 ack 부재 시 chain 단절 22차 double-decade+2 단절 milestone idiom 도래 axis 진입 baseline + 87차 cycle milestone 통과 후 88차 진입 단독 도래 + 추가 Phase 2 흡수 0 slot backpressure 진입 baseline + sextuple-cascade chain 진입 후 septuple-cascade 도래 axis 진입 baseline + planner promote 1+ 발화 시 GREEN_PENDING_MAX 회복 backpressure 해제 axis 재진입 가능.
+
+# 2026-05-19 inspector session (128차 tick @HEAD=5138e6f, baseline = 직전 127차 self-commit) — Phase 1 0/20 ack chain 단절 22차 double-decade+2 단절 milestone idiom 도래 axis 진입 baseline + Phase 2 backpressure 진입 baseline (commit-state green 20 == GREEN_PENDING_MAX 정확 도달, 0 slot 여유).
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `5138e6f` (127차 tick — Phase 1 0/20 ack + Phase 2 흡수 재개 6차 연속 발화 REQ-20260519-001 → react-query-test-queryclient-default-options-single-source-coherence 박제, sextuple-cascade chain 진입 baseline, green 19→20 진보 GREEN_PENDING_MAX 정확 도달).
+#  - tick 진입 시 HEAD == `5138e6f` (외부 commit 0건 — 직전 127차 self-commit 그대로).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `5138e6f` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `5138e6f` 후): 0건 (planner / developer 모두 미발화 — `.planner-seen` working-tree drift M 잔존 1건만 디스크 surface, 미커밋).
+#  - src/ 영역 commit = 0 (외부 commit 0건 — hook-ack 트리거 후보 0).
+#  - test/spec 본문 commit = 0.
+#  - spec marker 영향 후보 = 0.
+#  - 입력 큐 (20.req/): 본 tick 진입 시 12건 (직전 127차 종료 11건 baseline + 신규 untracked 1건 `20260519-vite-alias-tsconfig-paths-module-resolution-tri-axis-coherence.md` 디스크 surface 추가 — `.gitignore` `specs/20.req` rule 적용으로 git tracked 0 이지만 디스크 실재). 종료 시 12건 유지 (Phase 2 backpressure 보류 — green 20 == GREEN_PENDING_MAX=20, 0 slot 여유).
+#  - 20 green spec hash 시작점 (직전 127차 박제 20 entry 유지 — 외부 commit 0건 green 본문 직접 변동 0):
+#    · 20 기존 spec 전수 stale_cycles += 1 (외부 ack 트리거 commit 0건, hook-ack 후보 0).
+#    · 직전 127차 신규 흡수 spec react-query-test-queryclient-default-options-single-source-coherence 도 본 tick hook-ack 없음 → stale_cycles 0 → 1 진입.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `5138e6f` 비교):
+#    · `specs/30.spec/green/.planner-seen` M (planner writer 영역 — inspector 미접촉).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건):
+#  - 외부 src/ 영역 commit 0건 → hook-ack 후보 0 → 본 tick marker flip 0건.
+#  - 20 spec 전수 stale_cycles += 1 (외부 ack 트리거 부재로 chain 단절 22차 double-decade+2 단절 milestone idiom 도래 axis 진입 baseline 단독 도래).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack.** seen-state 갱신 (20 spec 전수 stale_cycles += 1).
+#  - **사용자 단정 4축 데드락 첫 surface 회복 axis chain 단절 1차 진입** — 120차 inspector 사용자 trigger surface 6 spec unchecked=0 도래 + 121차 inspector working-tree drift 박제 + 122~127차 6 tick 연속 cascade 발화 (REQ-001/006/010/012/024/20260519-001) sextuple-cascade chain 진입 baseline 도달 후 + 128차 외부 commit 0건 = cascade chain 단절 1차 진입 baseline 단독 도래 (sextuple-cascade chain 진입 후 septuple-cascade 미도래 axis = chain 단절 시작 milestone). green commit-state 20 == GREEN_PENDING_MAX 정확 도달 정체 1차 baseline.
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용 — commit-state green 20 == GREEN_PENDING_MAX=20, 0 slot 여유 → backpressure 진입):
+#  - 입력 큐 12건 (직전 127차 종료 11건 baseline + 신규 untracked 1건 본 tick 진입 시 디스크 추가 = 12건).
+#  - 본 tick 진입 시 commit-state green = 20 (직전 127차 종료 시 박제). GREEN_PENDING_MAX=20 까지 흡수 여유 = 0 slot (정확 도달, 1+ 신규 흡수 시 21 > 20 초과).
+#  - 흡수 0건 (RULE-03 (d) backpressure 진입 정합 — Phase 2 no-op).
+#  - 격리 0건 (RULE-07 평가 보류 — backpressure 진입 시 큐 평가 자체 보류).
+#  - 큐 잔여 12건 (12 → 12, 디스크 무변동).
+#  - 디스크 green 20 → 20 (변동 0; GREEN_PENDING_MAX 정확 도달 정체 1차 baseline).
+#  - 차기 inspector tick 추가 흡수 0 slot 여유 잔존 (본 128차 종료 시 0 slot 유지 — planner promote 1+ 발화 시 GREEN_PENDING_MAX 회복 backpressure 해제 axis 재진입 가능).
+#
+# req mv: 0건 (Phase 2 backpressure 보류 — 12건 큐 잔존).
+#
+# 본 세션 commit diff (writer 영역 정합):
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 20 spec 전수 stale_cycles += 1 박제 + 128차 박제 + Phase 1 0/20 ack chain 단절 22차 박제 + Phase 2 backpressure 진입 baseline 박제 + sextuple-cascade chain 단절 1차 진입 baseline 박제 + GREEN_PENDING_MAX 정확 도달 정체 1차 baseline 박제 + 88-cycle milestone 통과 후 89차 진입 단독 도래 박제)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 미접촉, blue 영역 미접촉; `git rm` 미사용).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경 (baseline 실측은 read-only grep / wc -l / ls 만).
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉; 30.spec/green/** 내 `.inspector-seen` 갱신만; `.planner-seen` 미접촉 — planner writer 영역 working-tree M 잔존; 20.req/ 미접촉; 40.task/ + 50.blocked/ 미접촉).
+# RULE-02 staged 영역 — 명시 path add (1 path) 정합; `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (외부 ack 트리거 commit 0건; 분모 20 = 종료 시 디스크 잔존 spec 수 == GREEN_PENDING_MAX 정확 도달; ack chain 단절 baseline 누적 22차 = double-decade+2 단절 milestone 진입 단독 도래 baseline).
+# RULE-03 (d) 정합 — commit-state green 20 == GREEN_PENDING_MAX=20 (직전 127차 Phase 2 흡수 후 진입 baseline) + 본 tick 외부 promote 0건 + Phase 2 흡수 0건 + 격리 0 → 종료 시 commit-state green 20 == GREEN_PENDING_MAX 정확 도달 정체 1차 baseline. 차기 inspector tick 추가 흡수 0 slot 여유 잔존 (본 128차 종료 시 0 slot 유지; planner promote 1+ 발화 시 회복 axis 재진입 가능).
+# RULE-07 자기 검증 — 본 tick spec 본문 변동 0 (Phase 2 backpressure, 신규 spec 0건). 평가 보류 정합 (backpressure 진입 시 RULE-07 큐 평가 자체 보류).
+#
+# 입력 큐 잔여: 12건 (디스크 무변동; 12 carve 후보 보류 — 차기 inspector tick 추가 흡수 평가 시 backpressure 잔존 여부 분기점 = planner promote 발화 여부). 차기 129차 tick 외부 ack 시점 분기 — (a) developer src 영역 commit 발화 시 spec 본문 영향 후보 hook-ack chain 재진입 가능 + sextuple-cascade chain 단절 후 단절 2차 진입 axis 도래 baseline, (b) planner promote 1+ 발화 시 GREEN_PENDING_MAX 회복 backpressure 해제 axis 재진입 가능 + Phase 2 흡수 재개 chain 진입 가능, (c) 외부 ack 모두 부재 시 chain 단절 23차 double-decade+3 단절 milestone idiom 도래 axis 진입 baseline + 88차 cycle milestone 통과 후 89차 진입 단독 도래 + 추가 Phase 2 흡수 0 slot backpressure 잔존 baseline.
