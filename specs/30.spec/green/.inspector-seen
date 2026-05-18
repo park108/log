@@ -3056,3 +3056,53 @@
 # RULE-07 자기 검증 — Phase 1 0 ack (외부 commit 0건 trigger 부재 → spec 본문 접촉 사유 부재 정합; 자동 ack 조건 미충족). Phase 2 0 흡수 + 0 격리 (green 20 == GREEN_PENDING_MAX 정확 도달 잔존 4차; 16 req 전수 신규 axis carve 후보 보류 의무 잔존 4차).
 #
 # 입력 큐 잔여: 16건 (0 mv = 16 유지; 16 신규 carve 후보 보류 — green 20 == GREEN_PENDING_MAX 정확 도달 잔존 4차로 신규 carve 보류 의무 잔존; REQ_READY_MAX=15 +1 초과 1차 = discovery backpressure 활성 잔존 4차; chain 단절 3 tick 누적 + 시즌 2 정체 8 tick 누적 — 차기 tick 외부 developer src/test/config commit 진입 시 hook-ack 재개 가능; dual-threshold 도달 4차 단계).
+
+# ============================================================================
+# 2026-05-19 @ baseline HEAD=`dcc2c2a` → THIS (110차 tick) — reconcile 0/20 ack (외부 hook-ack 후보 commit 0건 진입 잔존 4차 — 109차 self commit `1c85797` 이후 planner self 2건만 진입 `3cd43f5` + `dcc2c2a` — ack chain 단절 baseline 누적 4차 = quad 단절 milestone 진입 단독)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `1c85797` (109차 tick — Phase 1 0/20 ack + Phase 2 0 흡수 0 격리; green 20 == GREEN_PENDING_MAX 정확 도달 잔존 4차 + 큐 16/15 backpressure 1차 = dual-threshold 도달 4차 단계).
+#  - tick 진입 시 HEAD == `dcc2c2a` (spec(planner): 178차 tick self-only commit — 110차+ ack 미발화 chain 단절 baseline 누적 5차 단계 진입; tooling.md 본문 변동 0 잔존 15차 + hash 정체 10차 누적 + 큐 16/15 1차).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `dcc2c2a` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `1c85797` 후): 2건 —
+#     · `3cd43f5` (spec(planner): 177차 tick self-only — `.planner-seen` 만 갱신, ack 발화 0).
+#     · `dcc2c2a` (spec(planner): 178차 tick self-only — `.planner-seen` 만 갱신, ack 발화 0).
+#  - src/ 영역 commit = 0건 (외부 developer 활동 부재 잔존 4차).
+#  - test/spec 본문 commit = 0건.
+#  - config/CI/scripts 영역 commit = 0건.
+#  - spec marker 영향 후보 = 0건 (hook-ack trigger 부재).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 16건 (직전 109차 16건 유지 + 신규 carve 0 / 신규 처리 0 — 큐 16 == REQ_READY_MAX+1 정확 초과 잔존 2차 단계; +1 초과 milestone 2차 단독 = dual-threshold ≥ 2 tick 진입).
+#  - 156 open marker 전수 동일 (직전 109차 동일).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `dcc2c2a` 비교): clean (외부 영역 + inspector 영역 모두 변동 0).
+#
+# Phase 1 reconcile 처리 (RULE-03 Phase 1 예외 — pause lock 0, 빈 큐·임계 무관 항상 수행):
+#  - 외부 commit 2건 모두 planner self (`.planner-seen` 갱신 단독, spec 본문 영향 0) — hook-ack trigger 후보 0건.
+#  - 20 green spec 전수 본문 변동 후보 grep 재실측 sample (drift 잠재 후보 zero-point 재확인):
+#     · runtime-fetch-unmount-safety.md (직전 67차 ack 후 marker 잔존 동일 — Monitor 도메인 grep `cancelled` ref @VisitorMon.jsx 1+ hit 유지).
+#     · tooling.md (109차+ 본문 변동 0 잔존 16차 — ESLint flat-config last-write-wins 불변식 박제 후 외부 commit 부재).
+#     · package-manager-major-coherence.md / npm-script-prefix-coherence.md / build-coverage-output-dir-tri-surface-coherence.md 등 19 spec 전수 — 본 tick 외부 commit 0건 → spec 본문 영향 후보 0 → grep 재실측 0.
+#  - **0 marker ack / 20 spec → Phase 1 0/20 ack.** stale_cycles 전수 += 1 (20 spec all stale).
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 16건 (REQ-001~058 누적 잔존). green 20 == GREEN_PENDING_MAX=20 정확 도달 잔존 5차 단계 (`.claude/pipeline.json` override 부재 → 기본 적용). 본 tick Phase 2 흡수 시 green 20→21 → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + 16건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 외부 developer src/test commit 0건 + planner self only 2건 — ack chain 단절 baseline 누적 4차 = quad 단절 milestone 진입 단독. planner promote chain 활성화 신호 부재.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합 잔존 5차).
+#
+# req mv: 0건 (16건 보류, 20.req/ 디스크 큐 16건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 110차 tick 박제 + 20 spec stale_cycles += 1; append only)
+#
+# RULE-01 writer-boundary 후보 위반 박제 잔존 (운영자 followup 영역 — 본 110차 inspector 영역 ack 의무만 수행):
+#  - 94~109차 박제 동일 — planner self commit 들이 `.inspector-seen` 동반 stat 한 사고 (writer 권한 부재 위반 후보). 본 110차 tick 도 격리/롤백 권한 없음. RULE-05 §Blocked 해제 경로 권장 잔존.
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/{task,req}/ 미접촉).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/.inspector-seen 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉; 60.done/ 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (외부 ack 트리거 commit 0건; ack chain 단절 baseline 잔존 4차 = quad 단절 milestone 진입 단독).
+# RULE-03 (d) 정합 — green 20 == GREEN_PENDING_MAX (신규 carve 보류 의무 잔존 5차) + 0 body-update + 0 marker flip → 종료 시 green 20 유지 (== GREEN_PENDING_MAX, ≤ 임계 정합).
+# RULE-07 자기 검증 — Phase 1 0 ack (외부 commit 0건 trigger 부재 → spec 본문 접촉 사유 부재 정합; 자동 ack 조건 미충족). Phase 2 0 흡수 + 0 격리 (green 20 == GREEN_PENDING_MAX 정확 도달 잔존 5차; 16 req 전수 신규 axis carve 후보 보류 의무 잔존 5차).
+#
+# 입력 큐 잔여: 16건 (0 mv = 16 유지; 16 신규 carve 후보 보류 — green 20 == GREEN_PENDING_MAX 정확 도달 잔존 5차로 신규 carve 보류 의무 잔존; REQ_READY_MAX=15 +1 초과 2차 = discovery backpressure 활성 잔존 5차; chain 단절 4 tick 누적 = quad 단절 milestone 진입 단독 + 시즌 2 정체 9 tick 누적 — 차기 tick 외부 developer src/test/config commit 진입 시 hook-ack 재개 가능; dual-threshold 도달 5차 단계).
