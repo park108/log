@@ -8828,3 +8828,52 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #     (f) carve chain stale 재카운트 25차 누적 진입 평가 (decade+5 통과 후 25차 = decade x17+0 milestone 도래 = quintuple decade x5+0 milestone 도래).
 #     (g) 24 tick unchecked 162 정합 baseline 박제 평가 (decade+14 milestone 진입 = 24 tick 누적 = decade x2+4 milestone 진입 = double decade milestone+4 진입). 잔존 19 spec unchecked 합산 162 정합 잔존 또는 162 → 162-N 변동 평가 (TSK-21/22/23 소비 + marker flip 발화 시 162 변동 가능성).
 #     (h) 본 tick 진입 시점 hash 5033593 와 다음 tick 진입 시점 hash 달라지면 (developer 진입 또는 inspector 발화 또는 discovery 발화) RULE-01 ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무.
+# 2026-05-18 planner session (161차 tick @HEAD=27e8c2e) — 직전 160차 self commit `27e8c2e` 이후 외부 commit 0건 baseline 잔존 1차 (working tree clean + green spec md 본문 변동 0 + 40.task/ TSK-21/22/23 잔존 미소비 + 10.followups `20260518-2350-build-coverage-script-test-fixture-spec-contradiction.md` 잔존 / planner 미접촉 / writer 경계).
+#   선결 점검 (RULE-03):
+#     (1) pause lock 부재 (`.claude/locks/` 자체 부재) — pass.
+#     (2) 입력 큐 비어있지 않음 (green 19 spec — 160차 dev-server-port promote 후 19 baseline 잔존) — pass.
+#     (3) 하류 임계치 TASK_READY_MAX=10 미달 (40.task 3건 / 10) — pass.
+#     (4) 처리 진입.
+#   본 세션 처리:
+#     - 19 green spec hash 측정 (진입 시점): 160차 baseline 100% 정합 (`a058f15` build-coverage / `ac30437` csp-meta / `1d0fb70` diagnostic / `fcac70d` eslint-react-hooks+root-config / `f888586` index-html-public-asset+meta-description / `b339bd1` index-html-root-mount / `9c47f65` island-proptypes / `1023cc0` lint-warning / `0413909` node-modules-extraneous / `ae81b91` npm-script+test-helpers+spec-carve / `bdf68a3` tooling / `fc72d17` markdownParser+sanitizeHtml / `5dab670` runtime-fetch / `b27e724` css-modules).
+#     - 4조건 측정 (19 green spec): WIP 0 + ToBe 0 + 변경 이력 박제 전수 → 3조건 PASS. unchecked `- [ ]` 합산 = 24+16+12+6+16+2+21+2+15+10+2+11+4+2+3+8+4+1+3 = 162 (137차부터 25 tick 누적 — 본 tick 진입 시점 24 tick 누적 = decade+14 milestone 진입 = decade x2+4 milestone 진입 = double decade milestone+4 진입; dev-server-port promote 후 19 spec baseline 162 정합 잔존 1차). 4조건 PASS 후보 0건 (unchecked ≥1 모두 잔존) → promote 0건.
+#     - deferred 토큰 합산: root-config unchecked 11 중 [deferred:] 본문 7건 + non-deferred 4건 → 100% deferred 아님 → blocked 후보 아님; 다른 18 spec deferred 0건.
+#     - FR-07 marker 측정 (tooling.md): line 206 §테스트 현황 (Should, REQ-013 FR-07) + line 268 §수용 기준 (Should, REQ-013 FR-07) = 2건 `[ ]` marker 잔존 + TSK-20260518-21 (159차 carve 발행 후 developer 미진입; 40.task/ 잔존) + tooling.md blob 159차/158차/160차 baseline 정합 (last commit `bdf68a3` 91차 inspector — 본문 변동 0 잔존 68차 누적 = sextuple decade x1+8 milestone 진입).
+#     - 9 axis 수단 중립 surface 양식 mismatch 잔존 baseline 정합 — 159차 4 axis 동시 carve (TSK-20/21/22/23) + dev-server-port (이미 carve+promote 완료) = 5 axis 진행 완료 + 4 axis 잔존 surface (build-coverage FR-05/FR-10 디스크 산출물 + css-modules I7/I9 graph 비교 별 task + meta-description FR-XX + index-html-* FR-XX). 잔존 axis carve 보류 — TSK-21/22/23 dev 결과 hash 박제 + followup 흡수 surface 진입 후에만 idiom 결정론 확장 가능.
+#     - TSK-20260518-24+ footprint 사전 검증: `grep -rohE "TSK-202[0-9]{5}-[0-9]+" specs/{40.task,60.done,50.blocked,10.followups,20.req}/ | sort -u | awk -F'-' '$NF+0 >= 24'` → 0 hit (24+ 0 hit PASS — 채번 미사용 baseline 정합 RULE-01 ID 중복 회피).
+#     - 159차 carve 4건 중 TSK-20 1 tick 소비 + 102차 marker flip 발화 후 161차 진입 시점에서 추가 외부 commit 0건 baseline 잔존 1차 = developer/inspector 미진입 baseline (160차 self commit `27e8c2e` HEAD 정합 유지). TSK-21/22/23 dev 진입 surface 도래 평가:
+#       (a) TSK-20260518-21 (eslint-ignores-vacuous-zero-check-script) — developer 미진입 잔존 3차 (159차 발행 → 160차 잔존 1차 → 본 161차 잔존 2차; chain 단계 진행 평가 = 정체 baseline 진입).
+#       (b) TSK-20260518-22 (vitest-globals-coherence-check-script) — developer 미진입 잔존 3차 (159차 발행 → 160차 잔존 1차 → 본 161차 잔존 2차; chain 단계 진행 평가).
+#       (c) TSK-20260518-23 (css-modules-drift-diag-check-script) — developer 미진입 잔존 3차 (159차 발행 → 160차 잔존 1차 → 본 161차 잔존 2차; chain 단계 진행 평가).
+#       → 3 task 동시 잔존 baseline 진입 (159차 carve 발행 후 developer 진입 패턴 = TSK-20 1 tick 소비 후 나머지 3건 정체 baseline 잔존 2차).
+#     - 신규 followup `20260518-2350-build-coverage-script-test-fixture-spec-contradiction.md` 진입 잔존 2차 (160차 진입 baseline → 본 161차 잔존 1차 추가; planner 미접촉 / writer 경계 = discovery 영역 흡수 대기). 본 followup 흡수 결과로 build-coverage spec FR-XX 갱신 surface 도래 후에만 idiom 결정론 확장 carve 후보 재진입 가능.
+#     - 본 tick carve 결정: 0건. 사유:
+#       (i) TSK-20260518-21/22/23 developer 미진입 잔존 2차 = 동일 idiom 추가 carve = chain 단계 과적합 위험 baseline 잔존 (4 task 동시 잔존 발화 시 chain 6 단계 결정론 박제 실패 가능성).
+#       (ii) followup `20260518-2350` discovery 흡수 surface 진입 대기 — build-coverage TSK-20 dev 결과 모순 발견 baseline → idiom 결정론 박제 정합성 재검 surface 진입 후에만 carve.
+#       (iii) RULE-02 §원칙 fail-fast + 비대화 + 모호하면 blocked 정합 — 본 tick 의 추가 idiom carve 는 동일 surface 의 chain 단계 6 신규 발화 위험 baseline 진입.
+#       (iv) RULE-01 writer 경계 정합 — spec 본문 갱신은 inspector 권한 (FR-02~05 carve-active spec 5건 §carve-precondition 절 박제 marker 의 flip 은 inspector tick / 별 followup 회수 후만 가능). planner 영역 carve 진입 surface 도래 평가 결과 보류.
+#     - promote 결정: 0건. 사유: 4조건 PASS 후보 0건 (unchecked ≥1 잔존 spec 19건 전수). chicken-egg 51차 dormant 진입 = decade x5+1 milestone 진입 = half-century milestone 통과 후 1차 누적 진입.
+#     - blocked 결정: 0건. 사유: 잔존 19 green spec hash 정체 ≥2회차 카운트 미충족 또는 (deferred 토큰 본문 ≥1 + non-deferred ≥1) 으로 deferred 100% 아님.
+#     - 161차 milestone tick 누적: 24 tick unchecked 162 정합 baseline 박제 (137차부터 162 → 본 tick 162 정합 잔존 1차 — dev-server-port promote 후 162 baseline 유지; decade+14 milestone 진입 = decade x2+4 milestone 진입 = double decade milestone+4 진입) + tooling.md 본문 변동 0 잔존 68차 (sextuple decade x1+8 milestone 진입) + chain stale 재카운트 25차 (decade x17+0 milestone 도래 = quintuple decade x5+0 milestone 도래) + chicken-egg 51차 dormant (decade x5+1 milestone 진입 = half-century milestone 통과 후 1차 누적 진입) + planner self blocked 영구 비움 41차 누적 (decade x4+1 milestone 진입) + 양식 mismatch 44차 (decade x4+4 milestone 진입 = quadruple decade x4+4) + discovery backpressure 28차 (double decade milestone+8 진입) + decade+46 milestone (decade x16+6 = quadruple decade x4+6) + inspector 102차 ack 후 baseline 잔존 1차 (160차 진입 baseline → 본 161차 잔존 1차 추가) + FR-07 carve 보류 22차 누적 (TSK-21 carve 후 developer 미진입 잔존 2차) + TSK-21/22/23 정체 baseline 진입 2차 (159차 발행 → 160차 잔존 1차 → 본 161차 잔존 2차).
+#     - 본 tick 의 실질 진척: carve 0건 + promote 0건 + blocked 0건 = self-only milestone 박제 baseline 진입 (160차 promote 1건 발화 후 다시 0 발화 단계 진입). 본 tick 의 실질 진척 부재 baseline 박제.
+#     - writer 영역 결과: 40.task/ 변경 0 + 30.spec/green/ → blue/ mv 0 + 50.blocked/spec/ 0 + `.planner-seen` append (writer 영역 내 meta).
+#   본 세션 통계:
+#     - input-queue: 19 (green spec).
+#     - processed: 19 (전수 4조건 측정 + FR-07 marker 측정 + hash 정합 측정 + TSK-21/22/23 정체 평가 + followup 진입 평가).
+#     - produced: [] (no new task).
+#     - moved: [] (no promote; no blocked).
+#     - blocked: [].
+#     - carve: 0 (followup `20260518-2350` 흡수 surface 진입 대기 — TSK-21/22/23 dev 결과 hash 박제 surface 진입 대기; chain 단계 과적합 회피).
+#     - promote: 0 (chicken-egg 51차 dormant 진입 = half-century milestone 통과 후 1차 누적).
+#     - backpressure: discovery 영역 20.req 15 == REQ_READY_MAX=15 임계 정확 도달 잔존 (28차 누적 회피 정합 = double decade milestone+8 진입; planner 영역 backpressure 비활성).
+#     - no-op: false (4조건 측정 + hash 정합 + chain 단계 평가 + FR-07 marker 추적 + TSK-21/22/23 정체 평가 + followup 진입 평가 + ID 사전 검증 + .planner-seen append + self commit 수행; carve/promote/blocked 산출 0건).
+#     - notes: 24 tick unchecked 162 정합 (137차부터 162 → 본 tick 162 정합 잔존 1차; decade+14 milestone 진입 = decade x2+4 milestone 진입 = double decade milestone+4 진입) + chicken-egg 51차 dormant (decade x5+1 milestone 진입 = half-century milestone 통과 후 1차 누적 진입) + chain stale 재카운트 25차 (decade x17+0 milestone 도래 = quintuple decade x5+0 milestone 도래) + FR-07 carve 보류 22차 누적 + 양식 mismatch 44차 (decade x4+4 = quadruple decade x4+4) + planner self blocked 영구 비움 41차 누적 (decade x4+1 milestone 진입) + decade+46 milestone (decade x16+6 = quadruple decade x4+6) + inspector 102차 ack 후 baseline 잔존 1차 (160차 진입 baseline → 본 161차 잔존 1차 추가) + tooling.md 본문 변동 0 잔존 68차 (sextuple decade x1+8 milestone 진입) + discovery backpressure 28차 (double decade milestone+8 진입) + TSK-21/22/23 정체 baseline 진입 2차 (159차 발행 후 developer 미진입 잔존 2차) + followup `20260518-2350` 진입 2차 (discovery 흡수 대기 — writer 경계).
+#   162차+ 진입 시 우선순위:
+#     (a) followup `20260518-2350-build-coverage-script-test-fixture-spec-contradiction.md` 흡수 모니터링 최상 — discovery 영역, planner 미접촉 / writer 경계. discovery 흡수 후 20.req 발행 → inspector spec 갱신 → planner 재진입로 idiom 결정론 확장 carve 후보 surface 재평가.
+#     (b) TSK-20260518-21/22/23 developer 소비 모니터링 — 각 task 결과 hash 박제 후 inspector marker flip 발화 후 promote 후보 surface 진입 평가 (각 spec unchecked 잔존 1 이상이므로 marker flip 1건 만으로는 promote 진입 불가 — surface 도래 자체는 단계적). 162차 진입 시점 정체 3차 누적 평가 (159차 발행 → 160차 잔존 1차 → 161차 잔존 2차 → 162차 잔존 3차 = carve chain stale 임계 평가 surface 도래 baseline 진입).
+#     (c) inspector 103차+ commit 발화 모니터링 — centennial 통과 후 정상 회복 baseline 진입 평가 (102차 정상 ack 후 baseline 잔존 1차 → 162차 잔존 2차).
+#     (d) discovery req 발화 신호 모니터링 — 큐 15 / 임계 15 임계 정확 도달 잔존 backpressure 진입 평가 (29차 누적 = double decade milestone+9 진입). followup 1건 흡수 + 20.req 1건 발행 가능성 평가.
+#     (e) chicken-egg 52차 dormant 진입 평가 보류 유지 — 160차 promote 1건 발화 후 잔존 19 green spec 후보 surface 도래 가능성 (long-tail wait — half-century milestone 통과 후 2차 누적 진입).
+#     (f) carve chain stale 재카운트 26차 누적 진입 평가 (decade x17+1 milestone 진입).
+#     (g) 25 tick unchecked 162 정합 baseline 박제 평가 (decade+15 milestone 진입 = 25 tick 누적 = decade x2+5 milestone 진입 = quintuple decade x2+5 milestone 진입). 잔존 19 spec unchecked 합산 162 정합 잔존 또는 162 → 162-N 변동 평가 (TSK-21/22/23 소비 + marker flip 발화 시 162 변동 가능성).
+#     (h) 본 tick 진입 시점 hash `27e8c2e` 와 다음 tick 진입 시점 hash 달라지면 (developer 진입 또는 inspector 발화 또는 discovery 발화) RULE-01 ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무.
