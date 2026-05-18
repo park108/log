@@ -7517,3 +7517,62 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #   (5) **carve chain stale reset 정합 + 다음 tick 외부 발화 부재 시 1차 진입 재카운트** — 본 128차 reset 후 129차+ 외부 발화 부재 시 1차 진입 재카운트 (양식 (i) chain 단계 5 axis 진척 의존).
 #   (6) **RULE-03 선결 점검 정합** — 본 tick (128차) input queue (`30.spec/green/**` 18 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (40.task 0건 → 1/10 본 tick 발화 후) + pause lock 부재 → 처리 진입. carve 1건 + promote 0건 + blocked 0건 = carve-1 양식 = pipeline 처리 정합 (fail-fast 비해당). RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 + 40.task 산출물 1건 + grep dry-run 7/7 match 박제 정합. no-op 토큰 false (carve 1건 발화).
 #   (7) **128차 핵심 박제 — inspector 87차 commit `0413909` REQ-007 흡수 진입 + TSK-20260518-17 carve 1건 발화 + chain 단계 5c 정식 통과 + carve chain stale 3차 누적 reset + blocked decade milestone 정확 도달 (decade+16 milestone)** — 직전 127차 박제 baseline `b4a8ba1` 이후 외부 commit 1건 (87차 inspector `0413909` REQ-007 흡수 — node-modules-extraneous-coherence.md §동작 G6 신규 박제) 발화 → planner 영역 carve 평가 진입 → TSK-20260518-17 발화 (G6.1 mechanically actionable 양식 정합 carve — 양식 mismatch 회피 + spec 결과 게이트 박제 정합) + .planner-seen 박제 갱신 + 40.task 산출물 1건. 본 결정은 127차 박제 결정 (외부 발화 모니터링 우선순위 (a)) 의 inspector 87차 발화 시점 정합 갱신 — RULE-02 무상태 정합 (파일시스템 상태 기반 결정; 동일 입력 = 동일 결과 멱등 정합). chain 단계 5 axis 재진입 (5c 정식 통과) + carve chain stale 3차 reset + 양식 mismatch 15차 누적 회피 정합 + chicken-egg 24차 dormant 유지 + 25차 평가 보류 + blocked decade milestone 정확 도달. 129차+ 진입 시 우선순위: (a) TSK-20260518-17 developer 회수 모니터링 (최상 — chain 단계 5d 정식 통과 평가), (b) inspector 88차+ commit 발화 모니터링 (G6.1~G6.4 hook-ack marker 플립 + 다음 req 흡수 + 20.req D mv chain 회복), (c) discovery req 발화 신호 모니터링 (REQ-013/REQ-015 수단 중립 surface 잔존), (d) chicken-egg 25차 신규 차원 surface 진입 평가 (TSK-17 회수 + 88차+ hook-ack 후 promote 후보 PASS 도달 시점 재발화), (e) carve chain stale reset 후 129차+ 외부 발화 부재 시 1차 진입 재카운트.
+
+# 2026-05-18 planner session (129차 tick @HEAD=`f74ab43`) — **128차 직후 외부 commit 0건 안정 운영 진입 + TSK-20260518-17 developer 회수 대기 잔존 + chain 단계 5d (developer fix) hook-ack 대기 1차 진입 + carve chain stale reset 후 1차 재카운트 진입 (decade+16 milestone 유지)** 박제.
+#   재실행 baseline (HEAD=`f74ab43` 실측):
+#     - **외부 commit 0건 (128차 planner self-commit `f74ab43` 이후 외부 영역 발화 부재)**: working tree status = ` D specs/20.req/20260518-deps-coherence-pre-commit-gate-shift-left.md` 잔존 (inspector 87차 흡수 후 mv 미완 — 60.done/2026/05/18/req/ 측 untracked add 잔존, gitignored. 인스펙터 영역 정합 미완은 planner 영역 미접촉 — RULE-01 writer 경계 정합).
+#     - pause lock 0건 (`.claude/locks/` 디렉터리 부재) + 입력 큐 비어있지 않음 (green 18 spec) + 40.task 1건 (TSK-20260518-17 잔존 — TASK_READY_MAX=10 미달, 9건 여유) + 50.blocked/{task,spec,req} 0건 (영구 비움 유지 — 11차 누적 진입, decade+1 milestone) + 10.followups 0건 + 20.req 14건 (변동 0 — 14건 잔존, 단 1건 working tree `D` = inspector 87차 흡수 후 mv 미완 잔존).
+#     - **green spec hash 측정 — 18 spec 전수 hash 동일 (128차 baseline 과 100% 일치)**: csp-meta 9ed14793 / diagnostic da4a54ef / eslint-react-hooks 9572590a / index-html-public-asset 0b0c2324 / index-html-root-mount 085e9f67 / island-proptypes-zero e1502b5f / lint-warning-zero 7c0db082 / meta-description 1d2c7bfc / node-modules-extraneous 9361bb97 / npm-script-prefix 2f83fff0 / root-config-spec-ref a2cdd5d1 / spec-carve-precondition 866b3808 / tooling 997c2bb1 / markdownParser 7bbeca02 / sanitizeHtml e25fb232 / test-helpers 20f79e22 / css-modules a0b75e71 / runtime-fetch-unmount d0e938d0. **18 spec hash 전수 동일 — 외부 발화 0건 baseline 정합**.
+#     - **promote 후보 측정 — 18 spec 전수 4조건 PASS 미충족 (remain ≥ 1 잔존)**: unchecked 카운트 분포 (`grep -c "^- \[ \]"` 실측): eslint-react-hooks 24 / index-html-root-mount 16 / tooling 14 / meta-description 16 / npm-script-prefix 2 / csp-meta 21 / diagnostic 2 / index-html-public-asset 15 / node-modules-extraneous 10 / island-proptypes-zero 2 / root-config-spec-ref 11 / spec-carve-precondition 4 / lint-warning-zero 2 / runtime-fetch-unmount 3 / css-modules 3 / sanitizeHtml 4 / markdownParser 1 / test-helpers 3. WIP=0 + To-Be=0 전수. 18 spec 합산 unchecked = 153 (128차 측정과 동일). **4조건 PASS 후보 0건 — 128차 측정과 100% 일치 (외부 발화 0건 baseline 정합)**.
+#   선결 점검 (RULE-03):
+#     (1) pause lock 부재 (`.claude/locks/` 디렉터리 자체 부재) — pass.
+#     (2) input queue 비어있지 않음 (18 green spec) — pass.
+#     (3) TASK_READY_MAX=10 미달 (40.task/ = 1건 → 1/10, 9건 여유) — pass.
+#     → 처리 진입.
+#   처리 결과:
+#     - **carve 0건 발화** — 양식 분석 (외부 발화 0건 baseline):
+#       - 양식 (a) TSK-17 axis 충돌 회피: TSK-17 developer 회수 대기 중 — node-modules-extraneous-coherence.md G6.1~G6.4 marker 회수 task 잔존 = 동일 spec 추가 carve 시점 정합 부재 (단일 task 단일 PR 정합).
+#       - 양식 (b) inspector 88차+ hook-ack 발화 부재: 87차 commit `0413909` 이후 88차+ inspector 발화 0건 — TSK-17 회수 + 88차+ hook-ack chain 후 신규 unchecked → checked 플립 발화 의존.
+#       - 양식 (c) tooling.md §동작 9.5/§동작 10.5 수단 중립 잔존: REQ-013 FR-05 vacuous 해소 + REQ-015 FR-06 자동 검출 채널 = 수단 중립 surface 양 axis 잔존 — discovery 영역 신호 발화 의존 (양식 mismatch 16차 누적 회피 결정 유지).
+#       - 양식 (d) markdownParser/sanitizeHtml unchecked 별 spec carve 영역: 각 1/4 markdownParser/sanitizeHtml unchecked 잔존하나 inspector 영역 (spec 본문 갱신) 미접촉 = planner 영역 carve 발화 부재.
+#       - 양식 (e) plugin baseline 측정 불가 잔존: tooling.md §동작 잔존 axis = inspector hook-ack 후 평가.
+#       - 양식 (f) 120차 발화 소진 + (g) REQ-018 후속 별 spec axis + (h) src test green path chicken-egg writer 영역 격차 = 정체 잔존.
+#       - 양식 (i) chain 단계 5 axis = 128차 5c 정식 통과 후 5d (developer fix) 대기 = TSK-17 회수 의존.
+#       - **carve 0건 정합** — 외부 발화 0건 baseline = 신규 carve surface 부재 (양식 (a)~(i) 전수 정체 잔존).
+#     - **promote 0건**: 18 green spec 측정 결과 4조건 PASS 미충족 (전수 remain ≥ 1). 128차 측정과 100% 일치 (외부 발화 0건 baseline 정합).
+#     - **blocked 0건**: 영구 비움 유지 (11차 누적 진입 — decade+1 milestone).
+#
+# **Task ID footprint** (129차 박제 — 신규 채번 0건): 누적 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~17` (재사용 영구 금지). 130차+ 신규 carve 시 `TSK-20260518-18` 부터. 본 tick grep 사전 검증: `grep -rln "TSK-20260518-18" specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 0 hit (rc=1) PASS — footprint 정합 (사전 검증만, 본 tick 채번 미사용).
+#
+# **chain 단계 진척 박제 — 129차 milestone**:
+#   - chain 단계 1/4 [blocked → followups] 통과 (114차 4 surface revive) — 유지.
+#   - chain 단계 2/4 [followups → discovery → req] 통과 (116~117차 4/4 흡수) — 유지.
+#   - chain 단계 3/4 [req → spec] 통과 (120차+122차+124차+86차+87차 inspector 흡수 통과) — 유지 (128차 87차 commit `0413909` REQ-007 흡수 박제).
+#   - chain 단계 4/4 [spec → task → developer src/] 통과 (TSK-15 done + TSK-16 done) — 유지.
+#   - chain 단계 5a [inspector hook-ack] — REQ-007 chain 진입 (87차 발화 = chain 단계 3 진입 발화) — 88차+ hook-ack 대기 잔존.
+#   - chain 단계 5b [planner promote mv] — 본 129차 영역 외 (4조건 PASS 후보 0건 = mv 발화 부재).
+#   - chain 단계 5c [task carve] 통과 (128차 TSK-20260518-17 발화) — 유지.
+#   - **chain 단계 5d [developer fix] — TSK-17 회수 대기 1차 진입 박제 갱신** (128차 carve 후 본 129차 외부 발화 0 = 1차 대기 진입).
+#   - chain 단계 5e [planner promote 재시도 + commit] — TSK-17 + 88차+ inspector hook-ack 후 평가 진입.
+#   - **chain 단계 5 axis 진척 부재** — 128차 (5c 정식 통과) → 129차 (5d 대기 1차 진입, 외부 발화 0건 baseline).
+#
+# **carve chain stale reset 후 1차 재카운트 진입** — 128차 carve 1건 발화로 reset (0차) → 본 129차 carve 0건 발화 = 1차 재카운트 진입. 양식 (i) chain 단계 5d (developer fix) 대기 의존 carve 부재 정합. 양식 mismatch 진입 없음 (carve 0건 + mismatch carve 0건 = 양식 mismatch 측정 N/A 16차 누적 유지).
+#
+# **양식 mismatch 16차 누적 회피 정합** — 본 tick carve 0건 발화로 양식 mismatch 측정 N/A (16차 누적 유지).
+#
+# **blocked 영구 비움 11차 누적 도달 박제 (decade+1 milestone)** — 119차+ 부터 50.blocked/{task,spec,req} 0건 11차 누적 도달 (118차 마지막 50.blocked 진입 후 119차+ 영구 비움 유지). 128차 = decade milestone 정확 도달 → **본 129차 = decade+1 진입**.
+#
+# **chicken-egg coupling 24차 axis dormant 유지 + 25차 신규 차원 surface 진입 평가 보류 유지** — TSK-17 회수 + 88차+ hook-ack 후 promote 후보 PASS 도달 시점 재발화. 본 129차 외부 발화 0건 baseline = 평가 보류 유지 (decade+14 milestone 유지).
+#
+# **129차 milestone 박제 — 외부 commit 0건 안정 운영 진입 + TSK-17 developer 회수 대기 1차 잔존 + chain 단계 5d (developer fix) hook-ack 대기 1차 진입 + carve chain stale reset 후 1차 재카운트 진입 + blocked decade+1 milestone (decade+16 milestone 유지)**:
+#   - **129차 milestone (decade x12 + 9)**: 127차 (외부 발화 0 안정 운영) → 128차 (REQ-007 chain 신규 진입 + TSK-17 carve 발화 + chain 단계 5c 정식 통과 + decade milestone 정확 도달) → 129차 (TSK-17 회수 대기 1차 + 외부 발화 0 안정 운영 진입 + chain 단계 5d 대기 1차 + decade+1 milestone).
+#   - **chain 단계 5d 대기 1차** + **TSK-17 carve 잔존** + **promote 0건** + **blocked 0건 (decade+1 milestone)** + **양식 mismatch 16차 누적 회피 정합** + **chicken-egg 24차 dormant 유지 + 25차 평가 보류** + **carve chain stale reset 후 1차 재카운트 진입**.
+#
+# **다음 세션 (130차) 행동지침**:
+#   (1) **TSK-20260518-17 developer 회수 모니터링 — 우선순위 최상** — `.husky/pre-commit` 1 줄 추가 + 7 게이트 PASS + 단일 commit (developer writer 영역 정합) + 60.done/2026/05/18/task/deps-coherence-pre-commit-shift-left/{result.md, TSK-20260518-17-deps-coherence-pre-commit-shift-left.md} 진입 발화 시 chain 단계 5d 정식 통과. planner 영역 미접촉.
+#   (2) **inspector 88차+ Phase 1 reconcile + Phase 2 신규 req 흡수 모니터링** — `.inspector-seen` 87차 reconcile 0/18 ack 정체 12차 + 20.req 14건 잔존 + working tree `D` 1건 잔존 (inspector mv 미완). REQ-007 흡수 commit 박제 후 inspector 측 mv chain 회복 발화 (`20.req/20260518-deps-coherence-pre-commit-gate-shift-left.md` → `60.done/2026/05/18/req/`) 평가. inspector 88차+ commit 발화 시 (i) node-modules-extraneous-coherence.md G6.1~G6.4 hook-ack marker 플립 (TSK-17 회수 후) 또는 (ii) 신규 req 흡수 발화 평가.
+#   (3) **discovery 영역 req 발화 신호 모니터링** — REQ-013 FR-05 vacuous 해소 + REQ-015 FR-06 자동 검출 채널 = 수단 중립 surface 양 axis 잔존 (양식 mismatch 16차 누적 회피 결정 유지).
+#   (4) **chicken-egg 25차 신규 차원 surface 진입 평가 보류 유지 → TSK-17 회수 + 88차+ hook-ack 후 promote 후보 PASS 도달 시점 재발화** — node-modules-extraneous-coherence.md 가 4조건 PASS 도달 시 fixture coupling 발화 여부 평가 (124~125차 manifest-icons-sizes + meta-robots 양식 동등 surface 발화 가능성 또는 단순 promote 양식 정합).
+#   (5) **carve chain stale 재카운트 1차 진입 후 130차+ 외부 발화 부재 시 2차 누적 진입 평가** — 본 129차 reset 후 1차 진입 → 130차+ 외부 발화 부재 시 2차 누적 (양식 (i) chain 단계 5d 대기 의존).
+#   (6) **RULE-03 선결 점검 정합** — 본 tick (129차) input queue (`30.spec/green/**` 18 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (40.task 1건 → 1/10 본 tick 변동 0) + pause lock 부재 → 처리 진입. carve 0건 + promote 0건 + blocked 0건 = no-carve no-promote 양식 = pipeline 안정 운영 정합 (fail-fast 비해당). RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 false (메타 박제 갱신 산출물 발화).
+#   (7) **129차 핵심 박제 — 외부 commit 0건 안정 운영 진입 + TSK-17 developer 회수 대기 1차 + chain 단계 5d (developer fix) hook-ack 대기 1차 진입 + carve chain stale reset 후 1차 재카운트 진입 + blocked decade+1 milestone (decade+16 milestone 유지)** — 직전 128차 박제 baseline `f74ab43` 이후 외부 commit 0건 = 모든 큐 변동 0 (10.followups 0 + 20.req 14 + 40.task 1 + 50.blocked/{task,spec,req} 0 + 30.spec/green 18 spec 전수 hash 동일) + working tree `D` 1건 잔존 (inspector 영역 미접촉). 본 결정은 128차 박제 결정 (TSK-17 developer 회수 모니터링 우선순위 (1) — chain 단계 5d 정식 통과 평가) 의 외부 발화 부재 시점 정합 갱신 — RULE-02 무상태 정합 (파일시스템 상태 기반 결정; 동일 입력 = 동일 결과 멱등 정합). carve chain stale reset 후 1차 재카운트 진입 박제 + 양식 mismatch 16차 누적 회피 정합 + blocked 영구 비움 11차 누적 (decade+1 milestone) + chicken-egg 24차 dormant 유지 + 25차 평가 보류 유지. 130차+ 진입 시 우선순위: (a) TSK-20260518-17 developer 회수 모니터링 (최상 — chain 단계 5d 정식 통과 평가), (b) inspector 88차+ commit 발화 모니터링 (REQ-007 G6.1~G6.4 hook-ack marker 플립 + 다음 req 흡수 + 20.req D mv chain 회복), (c) discovery req 발화 신호 모니터링 (REQ-013/REQ-015 수단 중립 surface 잔존), (d) chicken-egg 25차 신규 차원 surface 진입 평가 (TSK-17 회수 + 88차+ hook-ack 후 promote 후보 PASS 도달 시점 재발화), (e) carve chain stale 재카운트 2차 누적 진입 평가.
