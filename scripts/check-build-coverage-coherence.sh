@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # check-build-coverage-coherence.sh
 # Spec: specs/30.spec/green/foundation/build-coverage-output-dir-tri-surface-coherence.md §동작 G-A~G-I + §테스트 현황 (FR-12) + §수용 기준 Should (FR-12)
-# Task: TSK-20260518-20
+# Task: TSK-20260518-25 (의미 (B) value-agnostic capture-then-compare rework; 본체 TSK-20260518-20 / d32ced0 재작업)
 #
-# G-A: vite.config.js `outDir: 'build',` literal hit=1 + build dir 토큰 capture.
-# G-B: .gitignore 의 `/build` anchored line hit=1 + build dir 토큰 capture.
-# G-C: eslint.config.js ignores 배열의 `'build/**'` token hit=1 + dir 토큰 capture.
-# G-D: G-A, G-B, G-C 토큰 cross-surface byte-equal (build axis).
+# G-A: vite.config.js `outDir: '<X>',` capture (value-agnostic) — tok_a = <X>.
+# G-B: .gitignore anchored `^/<Y>$` line 모두 capture (value-agnostic) — build dir 후보 선택 = coverage/node_modules 제외 후 남는 첫 토큰.
+# G-C: eslint.config.js ignores 배열의 `'<Z>/**'` 모든 토큰 capture (value-agnostic) — build dir 후보 선택 동형.
+# G-D: tok_a, tok_b, tok_c byte-equal (build axis, 절대값 무관).
 # G-E: vite.config.js `reportsDirectory` 키 hit=0 (vitest default `./coverage` 의존 baseline).
-# G-F: .gitignore 의 `/coverage` anchored line hit=1 + coverage dir 토큰 capture.
-# G-G: eslint.config.js ignores 배열의 `'coverage/**'` token hit=1 + dir 토큰 capture.
-# G-H: G-F, G-G 토큰 + vitest default `coverage` cross-surface byte-equal (coverage axis).
+# G-F: .gitignore set 에 `coverage` 포함 — tok_f = coverage.
+# G-G: eslint.config.js set 에 `coverage` 포함 — tok_g = coverage.
+# G-H: tok_f, tok_g + vitest default `coverage` cross-surface byte-equal (coverage axis).
 #
 # exit 0: G-A~G-H 모두 PASS (ack 1 줄 stdout).
 # exit 1: 어느 게이트라도 위반 (stderr 상세 라벨 출력 후 fail-fast).
@@ -39,32 +39,44 @@ fi
 
 cd "$ROOT" || exit 1
 
-# G-A: vite outDir 'build' literal + dir 토큰 추출 (§구현 지시 verbatim — literal-pinned 'build').
-g_a_lines="$(grep -nE "^[[:space:]]*outDir:[[:space:]]*'build',[[:space:]]*$" vite.config.js 2>/dev/null || true)"
+# build axis sibling 토큰 — 후보 선택 시 제외 (coverage axis + ESLint flat config 컨벤션 한정).
+SIBLING_COVERAGE="coverage"
+SIBLING_NODE_MODULES="node_modules"
+
+# G-A: vite outDir capture (value-agnostic, capture group 1 = tok_a).
+g_a_lines="$(grep -nE "^[[:space:]]*outDir:[[:space:]]*'([^']+)',[[:space:]]*$" vite.config.js 2>/dev/null || true)"
 g_a_hits="$(printf '%s\n' "$g_a_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
 if [ "$g_a_hits" != "1" ]; then
-  printf 'G-A VIOLATION: vite outDir literal hit=%s expected=1\n' "$g_a_hits" >&2
+  printf 'G-A VIOLATION: vite outDir capture hit=%s expected=1\n' "$g_a_hits" >&2
   exit 1
 fi
 tok_a="$(printf '%s\n' "$g_a_lines" | sed -E "s/.*outDir:[[:space:]]*'([^']+)'.*/\1/")"
 
-# G-B: gitignore '/build' anchored + dir 토큰 추출 (§구현 지시 verbatim — literal-pinned '/build').
-g_b_lines="$(grep -nE "^/build$" .gitignore 2>/dev/null || true)"
+# G-B: gitignore anchored `^/<Y>$` 모든 토큰 capture (value-agnostic). build dir 후보 선택 = sibling 제외 후 첫 토큰.
+g_b_lines="$(grep -nE "^/([a-zA-Z0-9_-]+)$" .gitignore 2>/dev/null || true)"
 g_b_hits="$(printf '%s\n' "$g_b_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
-if [ "$g_b_hits" != "1" ]; then
-  printf 'G-B VIOLATION: gitignore /build hit=%s expected=1\n' "$g_b_hits" >&2
+if [ "$g_b_hits" = "0" ]; then
+  printf 'G-B VIOLATION: gitignore anchored line capture hit=%s expected>=1\n' "$g_b_hits" >&2
   exit 1
 fi
-tok_b="$(printf '%s\n' "$g_b_lines" | sed -E 's@.*:/([^/]+)$@\1@')"
+g_b_tokens="$(printf '%s\n' "$g_b_lines" | sed -E 's@.*:/([^/]+)$@\1@')"
+tok_b="$(printf '%s\n' "$g_b_tokens" | awk -v s1="$SIBLING_COVERAGE" -v s2="$SIBLING_NODE_MODULES" '$0 != s1 && $0 != s2 { print; exit }')"
+if [ -z "$tok_b" ]; then
+  tok_b="<null>"
+fi
 
-# G-C: eslint ignores 'build/**' + dir 토큰 추출 (§구현 지시 verbatim — literal-pinned 'build/**').
-g_c_lines="$(grep -nE "'build/\*\*'" eslint.config.js 2>/dev/null || true)"
-g_c_hits="$(printf '%s\n' "$g_c_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
-if [ "$g_c_hits" != "1" ]; then
-  printf 'G-C VIOLATION: eslint ignores '\''build/**'\'' hit=%s expected=1\n' "$g_c_hits" >&2
+# G-C: eslint ignores `'<Z>/**'` 모든 토큰 capture (value-agnostic). build dir 후보 선택 동형.
+g_c_matches="$(grep -oE "'([a-zA-Z0-9_-]+)/\*\*'" eslint.config.js 2>/dev/null || true)"
+g_c_hits="$(printf '%s\n' "$g_c_matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+if [ "$g_c_hits" = "0" ]; then
+  printf 'G-C VIOLATION: eslint ignores dir/** capture hit=%s expected>=1\n' "$g_c_hits" >&2
   exit 1
 fi
-tok_c="$(printf '%s\n' "$g_c_lines" | grep -oE "'build/\*\*'" | sed -E "s/'([^']+)\/\*\*'/\1/" | head -n1)"
+g_c_tokens="$(printf '%s\n' "$g_c_matches" | sed -E "s/'([^']+)\/\*\*'/\1/")"
+tok_c="$(printf '%s\n' "$g_c_tokens" | awk -v s1="$SIBLING_COVERAGE" -v s2="$SIBLING_NODE_MODULES" '$0 != s1 && $0 != s2 { print; exit }')"
+if [ -z "$tok_c" ]; then
+  tok_c="<null>"
+fi
 
 # G-D: build axis cross-surface byte-equal.
 if [ "$tok_a" != "$tok_b" ] || [ "$tok_b" != "$tok_c" ]; then
@@ -79,23 +91,19 @@ if [ "$g_e_hits" != "0" ]; then
   exit 1
 fi
 
-# G-F: gitignore /coverage anchored + dir 토큰 추출.
-g_f_lines="$(grep -nE "^/coverage$" .gitignore 2>/dev/null || true)"
-g_f_hits="$(printf '%s\n' "$g_f_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
-if [ "$g_f_hits" != "1" ]; then
-  printf 'G-F VIOLATION: gitignore /coverage hit=%s expected=1\n' "$g_f_hits" >&2
+# G-F: gitignore set 에 coverage 포함.
+tok_f="$(printf '%s\n' "$g_b_tokens" | awk -v c="coverage" '$0 == c { print; exit }')"
+if [ "$tok_f" != "coverage" ]; then
+  printf 'G-F VIOLATION: gitignore coverage anchored line absent (expected /coverage)\n' >&2
   exit 1
 fi
-tok_f="$(printf '%s\n' "$g_f_lines" | sed -E 's@.*:/([^/]+)$@\1@')"
 
-# G-G: eslint ignores 'coverage/**' + dir 토큰 추출.
-g_g_lines="$(grep -nE "'coverage/\*\*'" eslint.config.js 2>/dev/null || true)"
-g_g_hits="$(printf '%s\n' "$g_g_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
-if [ "$g_g_hits" != "1" ]; then
-  printf 'G-G VIOLATION: eslint ignores '\''coverage/**'\'' hit=%s expected=1\n' "$g_g_hits" >&2
+# G-G: eslint set 에 coverage 포함.
+tok_g="$(printf '%s\n' "$g_c_tokens" | awk -v c="coverage" '$0 == c { print; exit }')"
+if [ "$tok_g" != "coverage" ]; then
+  printf 'G-G VIOLATION: eslint ignores '\''coverage/**'\'' absent\n' >&2
   exit 1
 fi
-tok_g="$(printf '%s\n' "$g_g_lines" | grep -oE "'coverage/\*\*'" | sed -E "s/'([^']+)\/\*\*'/\1/" | head -n1)"
 
 # G-H: coverage axis cross-surface byte-equal (vitest default = 'coverage').
 if [ "$tok_f" != "coverage" ] || [ "$tok_g" != "coverage" ]; then
