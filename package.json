@@ -30,6 +30,7 @@
     "check:build-coverage-coherence": "bash scripts/check-build-coverage-coherence.sh",
     "check:eslint-ignores-vacuous-zero": "bash scripts/check-eslint-ignores-vacuous-zero.sh",
     "check:vitest-globals-coherence": "bash scripts/check-vitest-globals-coherence.sh",
+    "check:css-modules-coherence": "bash scripts/check-css-modules-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky"
   },
