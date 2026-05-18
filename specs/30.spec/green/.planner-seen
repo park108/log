@@ -8667,3 +8667,44 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #     (1) developer 진입로 1건 (TSK-20260518-19) 소비 후 result.md 박제 + scripts/check-dev-port-coherence.sh 도입 + npm script wrapper 부착.
 #     (2) inspector Phase 2 흡수 시 dev-server-port-getUrl-token-coherence.md §테스트 현황 (FR-03) + §수용 기준 Must (FR-03) marker [x] flip + 변경 이력 박제 → 4조건 (unchecked 잔존 줄어듦) 다음 tick promotion surface 진입.
 #     (3) 잔존 19 green spec 의 unchecked 항목 점검 — 대부분 "future event marker flip" 또는 "수단 영역 planner task carve 대기" 형식 → 신규 carve 후보 (lint-warning-zero-gate I9 / island-proptypes-zero I2·I3 / npm-script-prefix-coherence I4·FR-04 / diagnostic-script-auto-channel-coverage I5·FR-06 등). 단 다수가 "차기 이벤트 발생 후 marker 플립" — 본 task 패턴과 다른 deferred 의미. RULE-07 양성 미달 carve 우선순위 낮음.
+# 2026-05-18 planner session (157차 tick @HEAD=f96910f) — 156차 self commit f96910f 이후 외부 commit 0건 baseline 잔존 1차 (working tree clean + green spec md 본문 변동 0 + developer 미진입 TSK-20260518-19 미소비 + inspector .inspector-seen blob 동일 잔존). 156차 carve 1건 (TSK-20260518-19 dev-server-port FR-03) 발행 후 효과 측정 단계 — 동일 idiom (`scripts/check-*-coherence.sh` 선례) 연쇄 후보 (build-coverage FR-12 / tooling.md REQ-013 FR-07 marker 2건 / css-modules I7/I9/FR-05/FR-08) carve 보류 결정. 사유: (i) developer 진입로 1건 (TSK-20260518-19) 잔존 → 본 carve 결과 (scripts/check-dev-port-coherence.sh 도입 + npm script wrapper 부착 + result.md 박제) 관측 전 동등 idiom 양산 = 과적합 위험, (ii) 156차 박제 행동지침 (1)(2) 정합 — developer 소비 + inspector marker flip 후 promotion surface 진입 단계 대기, (iii) 다른 surface (build-coverage FR-12 / tooling.md FR-07 / css-modules I7-I9) 의 grep-baseline 실측 박제는 본 156차 carve 의 자동 발화 채널 부착 패턴 (dedicated script + npm script wrapper + grep gate 결정론) 의 dev 결과 hash 박제 후에만 idiom 결정론 (RULE-06 grep-baseline) 으로 박제 가능.
+#   재실행 baseline (HEAD=f96910f 실측):
+#     - 외부 commit 0건: 156차 self commit f96910f 이후 외부 발화 0 (working tree clean + git log filter — 큐 변동 0 + developer 미진입 + inspector 미발화).
+#     - 큐 변동 0: 10.followups 0 / 20.req 15 (임계 정확 도달 잔존 25차 누적 = double decade milestone+5 도래) / 40.task 1 (TSK-20260518-19 잔존 — 본 156차 carve) / 50.blocked/* 디스크 0 (req+spec+task 디렉터리 비어있음 — foundation 디렉터리만 잔존 + 본문 0).
+#     - 30.spec/green 20 spec 전수 hash 동일 156차 baseline 100% 정합 — 각 spec 의 last-commit hash 측정 결과 156차 박제 baseline 과 동일 잔존 (외부 inspector 미발화 검증).
+#     - 4조건 측정 (20 green spec):
+#       - WIP 0 + ToBe 0 + 변경 이력 박제 전수 → 3조건 PASS.
+#       - unchecked `- [ ]` 합산 = 1+10+11+12+15+16+16+2+2+2+2+2+21+24+3+3+4+4+6+8 = 164 (137차부터 21 tick 100% 정합 baseline = decade+11 milestone 진입 = decade x2+1 milestone 진입 = double decade milestone+1 진입; 156차 박제 164 = 본 157차 164 정합).
+#       - 4조건 PASS 후보 0건 (chicken-egg 48차 dormant = decade x4+8 milestone 진입; long-tail wait 잔존).
+#     - root-config unchecked 11 중 [deferred:] 본문 5건 + non-deferred 6건 → 100% deferred 아님 → blocked 후보 아님 (정체 baseline 잔존; 156차 박제 deferred 7건 표기는 직전 박제 시점 측정 오기 — 본 tick 실측 5건 정합).
+#     - 9 axis 수단 중립 surface 양식 mismatch 잔존 baseline 정합 (41차 누적 회피 정합 decade x4+1 milestone 진입) — REQ-015 FR-06 자동 검출 채널 + build-coverage FR-12 + dev-server-port FR-03 (156차 carve 발행 후 effect 측정 대기) + css-modules I7/I9/FR-05/FR-08 + REQ-013 tooling.md FR-07 marker 2건.
+#     - FR-07 marker 2건 carve 후보 보류 19차 누적 (decade+5 milestone 통과 후 14차 = double decade+5 milestone+9 진입; 138차 1차 → 본 157차 19차).
+#     - chicken-egg 48차 dormant 진입 (decade x4+8 milestone 진입; long-tail wait 잔존).
+#     - carve chain stale 재카운트 22차 누적 (decade+5 milestone 통과 후 22차 = decade x16+6 milestone 진입 = quadruple decade x4+6 milestone 진입).
+#     - decade+43 milestone (decade x16+3 = quadruple decade x4+3 milestone 진입).
+#     - inspector 100차 ack 진입 후 101차+ 추가 발화 부재 정체 baseline 2차 누적 진입 (centennial milestone + 100차 ack 후 정체 1차 누적 reset → 본 157차 2차 누적).
+#     - planner self blocked 영구 비움 38차 누적 (decade x3+8 milestone 진입).
+#     - chain 단계 6 신규 carve 대기 잔존 19차 진입 (double decade+5 milestone+9).
+#     - 21 tick unchecked 합산 164 100% 정합 baseline 박제 (decade+11 milestone 진입 = 21 tick 누적 = decade x2+1 milestone 진입 = double decade milestone+1 진입; 137차부터 누적).
+#     - tooling.md 본문 변동 0 잔존 65차 (sextuple decade x1+5 milestone 진입 — bdf68a3 last commit 정합 잔존).
+#     - discovery backpressure 25차 (double decade milestone+5 도래).
+#   선결 점검 (RULE-03):
+#     (1) pause lock 부재 (`.claude/locks/` 디렉터리 자체 부재) — pass.
+#     (2) 입력 큐 비어있지 않음 (green 20 spec) — pass.
+#     (3) 하류 임계치 TASK_READY_MAX=10 미달 (40.task 1건 / 10) — pass.
+#     (4) 처리 진입.
+#   본 세션 처리:
+#     - carve 0건: 156차 carve 1건 (TSK-20260518-19 dev-server-port FR-03) 효과 측정 단계 — developer 미진입 + inspector marker flip 미발화 → 동일 idiom 연쇄 후보 (build-coverage FR-12 / tooling.md FR-07 / css-modules I7-I9) 박제 surface 진입 0. RULE-02 §원칙 fail-fast + 비대화 + 모호하면 blocked 정합 유지 — 156차 박제 행동지침 (1)(2) 의 developer 소비 + inspector marker flip 단계 도래 후 RULE-06 grep-baseline 실측 박제 + idiom 결정론 박제 surface 진입 가능.
+#     - 승격 0건: 모든 green 에 unchecked `- [ ]` ≥1 잔존 (RULE-01 4조건 중 unchecked == 0 미충족; chicken-egg 48차 dormant decade x4+8 milestone 진입) → promotion surface 0. inspector writer 영역 marker flip 발화 부재 baseline 잔존.
+#     - blocked 격상 0건: 정체 baseline 박제 21차 (137차부터 누적) — 정식 escalation 임계 미정의 + planner writer 영역 30.spec/** → 50.blocked/spec/ 격상은 inspector 미터치 baseline 잔존 시 적용 부적합 (inspector backpressure 잔존 baseline). RULE-05 정식 복귀 경로 (10.followups → discovery → ...) 미적용.
+#     - TSK-20260518-20+ footprint 사전 검증: `grep -rohE "TSK-20260518-[0-9]+" specs/{40.task,60.done,50.blocked,10.followups,20.req}/ | sort -u | awk -F'-' '$NF+0 >= 20'` = 0 hit (20+ 0 hit PASS — 채번 미사용 baseline 정합 RULE-01 ID 중복 회피).
+#   판정: 승격 0건 + carve 0건 + blocked 0건 + no-op false (4조건 측정 + hash 정합 + idiom 연쇄 후보 보류 분석 + ID 사전 검증 + .planner-seen append + self commit 수행; surface 산출 0건). 21 tick unchecked 164 100% 정합 baseline 박제 진입 + decade+11 milestone 진입.
+#   다음 tick (158차+) 행동지침:
+#     (1) developer 진입로 1건 (TSK-20260518-19) 소비 후 result.md 박제 + scripts/check-dev-port-coherence.sh 도입 + npm script wrapper 부착 → inspector Phase 2 흡수 시 dev-server-port-getUrl-token-coherence.md §테스트 현황 (FR-03) + §수용 기준 Must (FR-03) marker [x] flip + 변경 이력 박제 → 4조건 (unchecked 잔존 1 → 0) promotion surface 진입.
+#     (2) developer 소비 + inspector marker flip 후 동일 idiom 연쇄 carve 진입 — (a) build-coverage FR-12 자동 검출 채널 (scripts/check-build-coverage-coherence.sh + npm run check:build-coverage-coherence), (b) tooling.md REQ-013 FR-07 marker 2건 (scripts/check-eslint-ignores-vacuous-zero.sh + npm run check:eslint-ignores-vacuous-zero), (c) css-modules FR-05 drift 진단 명령 (scripts/check-css-modules-coherence.sh + npm run check:css-modules-coherence) — 각 RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 + ID 중복 검증 후 carve.
+#     (3) inspector 101차+ commit 발화 모니터링 — centennial milestone 후 첫 tick + REQ-013 FR-07 별 axis 갱신 평가 (101차 ack 정체 baseline 2차 누적 진입; 100차 ack 후 정체 1차 누적 reset → 본 157차 2차 누적).
+#     (4) discovery req 발화 신호 모니터링 — 큐 15 / 임계 15 임계 정확 도달 잔존 backpressure 진입 평가 (26차 누적 = double decade milestone+6 진입).
+#     (5) chicken-egg 49차 dormant 진입 평가 보류 유지 (long-tail wait; decade x4+9 milestone 진입).
+#     (6) carve chain stale 재카운트 23차 누적 진입 평가 (decade+5 통과 후 23차 = decade x16+7 milestone 진입 = quadruple decade x4+7).
+#     (7) 22 tick unchecked 164 정합 baseline 박제 평가 (decade+12 milestone 진입 = 22 tick 누적 = decade x2+2 milestone 진입 = double decade milestone+2 진입).
+#     (8) 본 tick 진입 시점 hash f96910f 와 다음 tick 진입 시점 hash 달라지면 (developer 진입 또는 inspector 발화) carve 연쇄 surface 진입 가능 — RULE-01 ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무.
