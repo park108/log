@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 빌드/도구 시스템 불변식 — `vite.config.js:49` `build.outDir` (산출 디렉터리 #1 명시 토큰) + `vite.config.js:80-97` `test.coverage` 블록 (산출 디렉터리 #2 default 의존) + `.gitignore:9,12` (git 추적 제외 측 2 line) + `eslint.config.js:15` `ignores` 배열 (정적 분석 무시 측 2 패턴 P-1, P-2) + repo root 디스크 디렉터리 (`./build/`, `./coverage/`) 실재. 측정 scope = 네 파일 본문 + repo root maxdepth 1 디렉터리 카운트 한정.
 > **관련 요구사항**: REQ-20260518-021
-> **최종 업데이트**: 2026-05-18 (by inspector — 103차 Phase 1 hook-ack TSK-20260518-20 / `d32ced0` FR-12 marker 2건 flip)
+> **최종 업데이트**: 2026-05-18 (by inspector — 105차 Phase 2 REQ-20260518-029 흡수, §동작 G-A/G-B/G-C 의미 (B) value-agnostic capture-then-compare 일관화 + §회귀 R-1/R-6 명확화)
 
 > 본 spec 은 자매 `foundation/tooling.md` §동작 9 (REQ-013, `eslint.config.js:15` `ignores` 5 패턴 단일 표면 vacuous-zero) 의 직교 축 — P-1 (`build/**`) / P-2 (`coverage/**`) 두 패턴을 **다른 두 표면** (`vite.config.js`, `.gitignore`) 과 cross-surface 의미 동치로 확장. tooling.md §동작 9 는 단일 표면 내부 vacuous-zero, 본 spec 은 3 표면 cross-surface set-equality. 두 axis 직교.
 
@@ -13,18 +13,22 @@
 없음 (런타임 인터페이스 아님). 본 spec 은 측정 게이트 박제만 — `vite.config.js` / `.gitignore` / `eslint.config.js` 본문 grep + repo root maxdepth=1 디렉터리 `find`.
 
 ## 동작
-1. (G-A) 산출 디렉터리 #1 (`build`) 산출 측 토큰 게이트 — FR-01
-   - 명령: `grep -cE "^\s*outDir:\s*'build',\s*$" vite.config.js` → **출력 = 1 + rc=0**.
-   - 의미: vite build 산출 측 토큰 (a-1) 이 `'build'` string literal 로 박혀 있다.
-2. (G-B) 산출 디렉터리 #1 (`build`) git 무시 측 토큰 게이트 — FR-02
-   - 명령: `grep -cE "^/build$" .gitignore` → **출력 = 1 + rc=0**.
-   - 의미: `.gitignore` anchored line 단독 (b-1) 박제.
-3. (G-C) 산출 디렉터리 #1 (`build`) ESLint 무시 측 토큰 게이트 — FR-03
-   - 명령: `grep -cE "'build/\*\*'" eslint.config.js` → **출력 = 1 + rc=0**.
-   - 의미: `eslint.config.js:15` `ignores` 배열에 `'build/**'` 토큰 (c-1) 존재.
-4. (G-D) 산출 디렉터리 #1 byte-equal 동치 게이트 — FR-04
-   - 절차: (a-1)(b-1)(c-1) 세 토큰의 디렉터리 명 부분 — (a-1) `outDir: '<X>'` 의 `<X>` / (b-1) `/<Y>` 의 `<Y>` / (c-1) `'<Z>/**'` 의 `<Z>` — 추출 후 byte 비교. **세 토큰 모두 `build` 로 동치** (HEAD baseline).
-   - 의미: (a-1) 만 swap (R-1) / (b-1) 만 swap (R-3) / (c-1) 만 제거 (R-4) 시 동치 위반 검출.
+1. (G-A) 산출 디렉터리 #1 산출 측 토큰 capture 게이트 — FR-01 (의미 (B) value-agnostic capture)
+   - 명령: `grep -nE "^\s*outDir:\s*'([^']+)',\s*$" vite.config.js` → **출력 ≥ 1 line + rc=0** (capture group 1 = `<X>`).
+   - 의미: vite build 산출 측 토큰 (a-1) 이 quoted string literal 로 박혀 있다 (값 X 는 capture). 토큰 부재 또는 quoted literal 아닌 동적 형식 (변수 / template literal) 시 rc=1.
+   - baseline (HEAD): `<X>` = `build`. 값 swap (`build` → `dist`) 만으로는 G-A rc=0 보존 (단일 surface swap 은 G-D 에서 검출).
+2. (G-B) 산출 디렉터리 #1 git 무시 측 토큰 capture 게이트 — FR-02 (의미 (B) value-agnostic capture)
+   - 명령: `grep -nE "^/([a-zA-Z0-9_-]+)$" .gitignore` → **출력 ≥ 1 line + rc=0** (capture group 1 = `<Y>` for each anchored line; 본 spec 평가는 `<Y>` ∈ {산출 디렉터리 #1 후보, 산출 디렉터리 #2 후보} 필터링 후 비교).
+   - 의미: `.gitignore` anchored line 단독 (b-1) 박제. 값 swap 시 G-B 자체 PASS, G-D 에서 cross-surface drift 검출.
+   - baseline (HEAD): 산출 디렉터리 #1 후보 line `<Y>` = `build` @`:12`.
+3. (G-C) 산출 디렉터리 #1 ESLint 무시 측 토큰 capture 게이트 — FR-03 (의미 (B) value-agnostic capture)
+   - 명령: `grep -nE "'([a-zA-Z0-9_-]+)/\*\*'" eslint.config.js` → **출력 ≥ 1 line + rc=0** (capture group 1 = `<Z>` for each match).
+   - 의미: `eslint.config.js:15` `ignores` 배열에 `'<Z>/**'` glob 토큰 (c-1) 존재. 값 swap 시 G-C 자체 PASS, G-D 에서 drift 검출.
+   - baseline (HEAD): 산출 디렉터리 #1 후보 `<Z>` = `build`.
+4. (G-D) 산출 디렉터리 #1 byte-equal 동치 게이트 — FR-04 (의미 (B) cross-surface comparator)
+   - 절차: G-A 의 `<X>` / G-B 산출 디렉터리 #1 후보 `<Y>` / G-C 산출 디렉터리 #1 후보 `<Z>` 세 capture 값 byte 비교. `<X> == <Y> == <Z>` 일치 시 rc=0, 1개라도 mismatch 시 rc=1 + stderr `G-D VIOLATION: build dir drift (vite=<X> gitignore=<Y> eslint=<Z>)`.
+   - 의미: 단일 표면 swap 검출 (R-1: vite swap → `<X>=dist, <Y>=build, <Z>=build` → G-D 위반 / R-3: gitignore swap → `<X>=build, <Y>=dist, <Z>=build` → G-D 위반 / R-4: eslint 제거 → `<Z>` 부재 → G-C rc=1 또는 `<Z>=null` → G-D 위반). 3 surface 동시 swap (R-6) 시 `<X>=<Y>=<Z>=dist` → rc=0 (axis 일치, 절대값 무관).
+   - 의도: **디렉터리 명 자체** (`build` vs `dist`) 는 measure scope 외 (§역할 §의도적으로 하지 않는 것 (i) "swap 수단 중립" 박제 정합). 본 게이트는 3 surface 의 토큰 byte-equal 동치 결과 효능만 측정.
 5. (G-E) 산출 디렉터리 #2 (`coverage`) default 의존 사실 게이트 — FR-06
    - 명령: `grep -cE "reportsDirectory" vite.config.js` → **출력 = 0 + rc=1**.
    - 의미: `vite.config.js.test.coverage` 블록에 `reportsDirectory` 속성 부재 — vitest default `'./coverage'` 의존 baseline 사실 박제. 속성 추가는 본 spec 갱신 신호 (단, 추가 시 값이 `'./coverage'` 또는 `'coverage'` 라면 FR-09 동치 유지).
@@ -46,19 +50,20 @@
   - `tooling.md` §동작 9 (REQ-013, `ignores` 5 패턴 단일 표면 vacuous-zero) — 본 spec 의 P-1/P-2 cross-surface 확장 축 → §동작 9 OOS line 53 "신규 build/coverage 산출 디렉터리 ... 본 req 는 박제된 패턴의 vacuous-zero 한정" 가 본 spec 의 별 axis 박제 신호.
 
 ## 회귀 중점
-1. (R-1) `vite.config.js:49` `outDir: 'build'` → `outDir: 'dist'` 단독 swap 시 G-D byte-equal 위반 검출 (FR-04). 본 spec 부재면 ESLint 단일 표면 (REQ-020) 만 부분 신호.
+1. (R-1) `vite.config.js:49` `outDir: 'build'` → `outDir: 'dist'` 단독 swap 시 G-A rc=0 보존 (capture `<X>=dist`) + G-B `<Y>=build` + G-C `<Z>=build` → G-D byte-equal 위반 검출 + stderr `G-D VIOLATION: build dir drift (vite=dist gitignore=build eslint=build)` (FR-04). 본 spec 부재면 ESLint 단일 표면 (REQ-020) 만 부분 신호.
 2. (R-2) `vite.config.js:80-97` `test.coverage` 블록에 `reportsDirectory: 'reports/coverage'` 신규 키 단독 추가 시 G-E 출력 = 1 ≠ 0 + G-H byte-equal 위반 검출 (FR-06 + FR-09).
-3. (R-3) `.gitignore:12` 만 `/build` → `/dist` 단독 swap 시 G-A 통과 + G-B 출력 = 0 + G-D byte-equal 위반 검출 (FR-02 + FR-04). 산출이 계속 `./build` 로 들어가는데 git 추적 진입 운영 회귀.
-4. (R-4) `eslint.config.js:15` 에서 `'build/**'` 단독 제거 (4 패턴 배열로 축소) 시 G-C 출력 = 0 + G-D byte-equal 위반 검출 (FR-03 + FR-04).
+3. (R-3) `.gitignore:12` 만 `/build` → `/dist` 단독 swap 시 G-A `<X>=build` + G-B 산출 디렉터리 #1 후보 `<Y>=dist` + G-C `<Z>=build` → G-D byte-equal 위반 검출 + stderr `G-D VIOLATION: build dir drift (vite=build gitignore=dist eslint=build)` (FR-02 capture 보존 + FR-04 발화). 산출이 계속 `./build` 로 들어가는데 git 추적 진입 운영 회귀.
+4. (R-4) `eslint.config.js:15` 에서 `'build/**'` 단독 제거 (4 패턴 배열로 축소) 시 G-C 산출 디렉터리 #1 후보 `<Z>` 부재 (capture group 1 list 에서 `build` 항목 미발견) + G-D byte-equal 위반 검출 (FR-03 + FR-04). stderr `G-D VIOLATION: build dir drift (vite=build gitignore=build eslint=<null>)`.
 5. (R-5) 새 산출 디렉터리 (`./storybook-static`, `./.vite/`, `./snapshots/` 등) 가 3 표면 어디에도 박제 부재 시 본 spec 갱신 신호 — baseline 2 디렉터리 한정, 신규 도입은 §변경 이력 ack + §동작 확장 (현 게이트는 R-5 자체 미달 검출 아닌 trigger 박제만).
-6. ESLint 메이저 bump / Vite 메이저 bump / Vitest 메이저 bump 시 default `reportsDirectory` 값 변경 가능성 — FR-09 외부 출처 박제 갱신 (본 spec 갱신 신호).
+6. (R-6) 3 surface 동시 swap (예: `vite.config.js:49` `'build'` → `'dist'` + `.gitignore:12` `/build` → `/dist` + `eslint.config.js:15` `'build/**'` → `'dist/**'`) 시 G-A `<X>=dist` + G-B `<Y>=dist` + G-C `<Z>=dist` → G-D byte-equal `<X>==<Y>==<Z>=dist` 일치 → **rc=0** (axis 일치, 절대값 무관 — §역할 §의도적으로 하지 않는 것 (i) "swap 수단 중립" 박제 정합). 단, 동시 swap 후에도 산출물 disk 실재 자체 (`./dist/` 디스크 존재) 는 별 게이트 (FR-05 / FR-10) 영역.
+7. ESLint 메이저 bump / Vite 메이저 bump / Vitest 메이저 bump 시 default `reportsDirectory` 값 변경 가능성 — FR-09 외부 출처 박제 갱신 (본 spec 갱신 신호).
 
 ## 스코프 규칙
 - **expansion**: 불허 (측정 scope = `vite.config.js` + `.gitignore` + `eslint.config.js` + repo root maxdepth=1 디렉터리 한정).
 - **grep-baseline** (HEAD=`f74ab43` 실측):
-  - (A) `grep -cE "^\s*outDir:\s*'build',\s*$" vite.config.js` → **1** hit (FR-01 PASS).
-  - (B) `grep -cE "^/build$" .gitignore` → **1** hit @`:12` (FR-02 PASS).
-  - (C) `grep -cE "'build/\*\*'" eslint.config.js` → **1** hit @`:15` (FR-03 PASS).
+  - (A) `grep -nE "^\s*outDir:\s*'([^']+)',\s*$" vite.config.js` → **1** hit @`:49` (capture `<X>=build`) (FR-01 PASS, 의미 (B) capture).
+  - (B) `grep -nE "^/([a-zA-Z0-9_-]+)$" .gitignore` → **2** hit @`:9` (`<Y>=coverage`) @`:12` (`<Y>=build`) — 산출 디렉터리 #1 후보 `<Y>=build` PASS (FR-02 PASS, 의미 (B) capture; 추가 `<Y>=node_modules` @`:4` 는 산출 디렉터리 후보 외 필터링).
+  - (C) `grep -oE "'([a-zA-Z0-9_-]+)/\*\*'" eslint.config.js` → **3** hit @`:15` — capture group 1 list = {`build`, `coverage`, `node_modules`}. 산출 디렉터리 #1 후보 `<Z>=build` PASS (FR-03 PASS, 의미 (B) capture; `node_modules` 는 디렉터리 후보 외 필터링, `__tests__`/`api.js` 는 패턴 `<X>/**` 미일치).
   - (D-token) (a-1) `build` / (b-1) `build` / (c-1) `build` → byte-equal `build` 동치 PASS (FR-04).
   - (E) `grep -cE "reportsDirectory" vite.config.js` → **0** hit (FR-06 default 의존 사실 PASS).
   - (F) `grep -cE "^/coverage$" .gitignore` → **1** hit @`:9` (FR-07 PASS).
@@ -108,6 +113,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-05-18 | inspector 105차 Phase 2 (REQ-20260518-029 흡수) | §동작 G-A/G-B/G-C 의미를 (B) value-agnostic capture-then-compare 일관화 — grep 패턴 literal `'build',` / `^/build$` / `'build/\*\*'` 형태에서 capture group 형태 (`'([^']+)',` / `^/([a-zA-Z0-9_-]+)$` / `'([a-zA-Z0-9_-]+)/\*\*'`) 정정. §회귀 R-1/R-3/R-4 의 기대 발화 형식 `G-D VIOLATION: build dir drift (vite=<X> gitignore=<Y> eslint=<Z>)` 명시 + R-6 신규 추가 (3 surface 동시 swap → rc=0 axis 일치 절대값 무관) — §역할 §의도적으로 하지 않는 것 (i) "swap 수단 중립" 박제와 정합. grep-baseline (A)(B)(C) capture 형태 + 실측 카운트 정정 (B 2 hit / C 3 hit). 결정 근거: spec 본문 다수 surface (§역할 (i) + §회귀 R-1/R-3 stderr 형식 + §의도적으로 하지 않는 것 (i) "swap 수단 중립") 가 의미 (B) value-agnostic 으로 self-anchored — 단지 §동작 G-A/G-B/G-C grep 패턴만 literal 형태로 mismatch 였던 불일치 회복. consumed req: `specs/20.req/20260518-build-coverage-tri-surface-gate-semantics-decision.md` → `60.done/2026/05/18/req/` mv. 후속 신호 (planner 영역, 본 inspector tick 영역 외): `scripts/check-build-coverage-coherence.sh` (TSK-20260518-20 / `d32ced0` 회수) 본체는 의미 (A) literal-pinned 채택 — spec 의미 (B) 와 mismatch → script 재작업 carve 후보 발화 baseline 진입 (별 task). FR-12 marker 잔존 의미: 본 spec 시점 dedicated script 부착 사실은 보존, 단 §회귀 R-1/R-3/R-6 새 기대치 PASS 회귀 검출 효능 회복은 후속 carve 영역. RULE-07 자기 검증 — 평서/반복 (grep + capture/compare 단일 명령) / 시점 비의존 (HEAD baseline 사실 인용) / incident 비귀속 (spec self-anchored 의미 결정, TSK-20 incident patch 아닌 spec 의미 결정 결과) / 수단 중립 보존 (디렉터리 명 `build` 자체 결정은 §역할 (i) "swap 수단 중립" 박제, 의미 (B) 채택은 결정 결과 보강) / self-reference scope 보존 (K-self 0 hit 영향 0). RULE-06 grep-baseline (A)(B)(C) 실측 카운트 + line anchor + capture group 형식 명시. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/` 1 spec body-update + `20.req/* → 60.done/req/` mv). RULE-03 (d) — body-update 형식 (green count 변동 0; 20 → 20 유지, GREEN_PENDING_MAX 정합). | §동작 G-A~G-D + §회귀 R-1/R-3/R-4 + §회귀 R-6 신규 + §스코프 grep-baseline (A)(B)(C) + §헤더 |
 | 2026-05-18 | inspector 103차 Phase 1 hook-ack / TSK-20260518-20 / `d32ced0` | FR-12 marker 2건 flip ([x] §테스트 현황 line 84 + §수용 기준 Should line 98) — `scripts/check-build-coverage-coherence.sh` (8 게이트 G-A~G-H fail-fast) + `package.json:30` `"check:build-coverage-coherence"` npm wrapper 부착. HEAD 재실측 PASS (rc=0 + stdout `check-build-coverage-coherence: G-A+G-B+G-C+G-D (build) + G-E+G-F+G-G+G-H (coverage) PASS (build=build coverage=coverage)`). `git merge-base --is-ancestor d32ced0 HEAD` PASS. RULE-07 정합 — 수단 중립 평서문 (§동작 G-I "발화 채널이 존재해야 한다") 보존, dedicated script 채택은 marker 박제 영역 한정. spec 본문·vite.config.js·eslint.config.js·.gitignore·src/** 변경 0 동반 정합. | §테스트 현황 (FR-12) + §수용 기준 (FR-12) + §변경 이력 |
 | 2026-05-18 | inspector (Phase 2, REQ-20260518-021 흡수) / (this commit, HEAD=`f74ab43`) | 최초 등록 (REQ-20260518-021). `vite.build.outDir` literal + `vitest.coverage.reportsDirectory` default 의존 + `.gitignore` anchored + `eslint.config.js.ignores` glob 3 표면 cross-surface byte-equal 동치 결과 효능 불변식 박제. §동작 G-A~G-I 9 게이트 + §회귀 중점 5 시나리오 (R-1~R-5) + §스코프 규칙 grep-baseline (A)~(K-self) 11 gate 실측 (build/coverage 양측 3 표면 PASS + 비대칭 default 의존 사실 + 수단 라벨 0 자기 검증) + §테스트 현황 12 marker (FR-01~FR-12) + §수용 기준 20 marker (FR-01~12 + NFR-01~08). consumed req: `specs/20.req/20260518-build-coverage-output-dir-tri-surface-coherence.md` → `60.done/2026/05/18/req/` mv. 자매 직교 axis: `tooling.md` §동작 9 (REQ-013, `ignores` 5 패턴 단일 표면 vacuous-zero) 의 P-1/P-2 를 cross-surface 3극 동치로 확장. 본 spec 의 In-Scope = baseline 2 디렉터리 (build/coverage) 한정. RULE-07 자기검증 — §동작 G-A~G-I 평서형 + grep/find 단일 명령 반복 검증 가능 + Vite/Vitest/ESLint 메이저 bump 이벤트 비귀속 + P-4 vacuous baseline 박제 같은 incident patch 비귀속 (baseline 사실 평서화) + 수단 중립 (디렉터리 명 결정 / `reportsDirectory` 명시화 / 발화 채널 선정 어느 쪽이든 우선 라벨 0) + self-reference scope 분리 (NFR-04 + 스코프 (K-self) 0 hit). RULE-06 grep-baseline gate (A)~(K-self) 11 건 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/` 신규 1 spec + `20.req/* → 60.done/req/` mv). RULE-03 (d) — 본 carve 로 green 18 → 19 (< GREEN_PENDING_MAX=20, 1 spec 여유 유지). | all (최초 등록) |
 

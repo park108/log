@@ -2707,3 +2707,73 @@
 #
 # 입력 큐 잔여: 15건 (16 - 1 carve = 15; 14 보류 + REQ-029 신규 잔존 = 15건, 차기 tick REQ-029 body-update 흡수 평가 가능 baseline).
 
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`15ccee0` → THIS (105차 tick) — reconcile 1/20 ack (1 spec / 2 marker; multi-agent-commit-message-writer-scope-coherence FR-03 marker 2건 flip; TSK-20260518-24 / 15ccee0 회수) + Phase 2 REQ-029 body-update 흡수 1건 (green count 변동 0)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `07bf6ae` (104차 tick — Phase 1 1/20 ack css-modules FR-05 marker flip + Phase 2 REQ-028 흡수 신설 multi-agent-commit-message-writer-scope-coherence).
+#  - tick 진입 시 HEAD == `15ccee0` (feat: 다중 에이전트 commit writer scope 일치 단일 진단 명령 발화 채널 부착 — `scripts/check-commit-writer-coherence.sh` 235 line 신규 + `package.json:34` `"check:commit-writer-coherence"` npm wrapper 1줄 추가). TSK-20260518-24 회수 `60.done/2026/05/18/task/commit-writer-coherence-check-script/`.
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `15ccee0` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `07bf6ae` 후): 2건 —
+#     · `8f84381` (spec(planner): 164차 tick — `.planner-seen` self-only append; green spec md 본문 변동 0).
+#     · `15ccee0` (feat: commit writer coherence 단일 진단 명령 발화 채널 부착 — TSK-20260518-24 회수; package.json + scripts/check-commit-writer-coherence.sh; src/ 미접촉).
+#  - src/ 영역 commit = 0.
+#  - test/spec 본문 commit = 0.
+#  - config/scripts 영역 commit = 1 (`15ccee0` — 본 hook-ack 대상).
+#  - spec marker 영향 후보 = 1 spec / 2 marker (TSK-20260518-24 / `15ccee0` → multi-agent-commit-message-writer-scope-coherence.md §테스트 현황 (FR-03) line 78 marker + §수용 기준 (Must, FR-03) line 87 marker 2건 ack 후보; 다른 marker 별 task scope 위임 — (FR-05) lock 메커니즘 Could 도입 결정 영역).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 디스크 실측 (104차 종료 시점 15건 유지). 본 tick Phase 2 1 body-update (REQ-029) + 0 격리 → 종료 시 14건.
+#  - 20 green spec hash 시작점 (직전 104차 박제 20 entry 유지):
+#    · 1 spec (multi-agent-commit-message-writer-scope-coherence.md) marker 2건 flip → stale_cycles 0 초기화.
+#    · 1 spec (build-coverage-output-dir-tri-surface-coherence.md) body-update — REQ-029 흡수 (§동작 G-A/G-B/G-C 의미 (B) value-agnostic 일관화 + §회귀 R-1/R-3/R-4/R-6 명확화) → stale_cycles 0 초기화.
+#    · 18 spec 전수 hook-ack 후보 없음 → stale_cycles += 1. 시즌 2 정체 누적: 102차 ack chain 시작 → 103차 → 104차 → 본 105차 ack chain 연속 4 tick.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `15ccee0` 비교):
+#    · working tree clean.
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#  - 50.blocked/{req,task} 디스크 = 0 file 잔존. 50.blocked/spec/foundation/ 1 file 잔존 인계 baseline.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 1건 — TSK-20260518-24 / `15ccee0`):
+#  - multi-agent-commit-message-writer-scope-coherence.md (TSK-20260518-24 / `15ccee0` 회수, `60.done/2026/05/18/task/commit-writer-coherence-check-script/` 정상 mv):
+#     · §테스트 현황 (FR-03) line 78 marker: baseline `[ ]` "자동 검출 채널 ... 수단 영역, planner task carve 대기" → HEAD `15ccee0` 재실측 → `scripts/check-commit-writer-coherence.sh` 235 line 실존 + `test -x` PASS + `package.json:34` `"check:commit-writer-coherence"` npm wrapper 실존 + `bash scripts/check-commit-writer-coherence.sh` rc=0 + stdout `check-commit-writer-coherence: range=HEAD commits=1 violations=0 PASS` 재실측 PASS. `[ ]→[x]` 플립.
+#     · §수용 기준 (Must, FR-03) line 87 marker: baseline `[ ]` "FR-01/FR-02 위반 commit 을 결정론적으로 검출하는 시스템 표면 존재 — 수단 중립, planner task carve 대기" → HEAD 재실측 → R-1 baseline (`5639669^..5639669`) rc=1 + stderr `commit 5639669: msg-scope=planner, paths=[package.json,scripts/check-eslint-ignores-vacuous-zero.sh,specs/60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/TSK-20260518-21-eslint-ignores-vacuous-zero-check-script.md,specs/60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/result.md] (developer)` (R-1 mismatch baseline 박제 형식 정합) + R-3 baseline (`9b95b73^..9b95b73`) rc=0 (R-3 일치) + R-4 자기참조 (`15ccee0^..15ccee0`) rc=0 (자기참조 false-positive 0 보존). `[ ]→[x]` 플립.
+#     · hook-ack: 60.done/2026/05/18/task/commit-writer-coherence-check-script/result.md DoD — `bash scripts/check-commit-writer-coherence.sh` rc=0 + stdout 1줄 ack + `bash scripts/check-commit-writer-coherence.sh 5639669^..5639669` rc=1 + stderr `commit 5639669: ...` 박제 (R-1) + `bash scripts/check-commit-writer-coherence.sh 9b95b73^..9b95b73` rc=0 (R-3) + `npm run check:commit-writer-coherence` rc=0 + `grep -nE '"check:commit-writer-coherence"' package.json` → 1 hit @line 34 + `test -x scripts/check-commit-writer-coherence.sh` (exec 0755) + `npm run lint` rc=0 (warning 0) + `npm run typecheck` rc=0 + `npm test` 57 files / 500 tests PASS (회귀 0) + `npm run build` rc=0 PASS. HEAD 조상 정합 (`git merge-base --is-ancestor 15ccee0 HEAD` PASS). RULE-07 정합 — 수단 중립 평서문 (§역할 "발화 채널 선정 — 수단 영역") 보존, dedicated script 채택은 §수용 기준 marker 박제 영역 한정. spec 본문·`.husky/`·`.git/`·`lint-staged` 설정·`scripts/check-commit-writer-coherence.sh` 본문 변경 0 동반 정합.
+#     · 보류 marker 잔존 (별 task scope): (FR-05) lock 메커니즘 (`.claude/locks/commit.busy` / `flock`) stale cleanup 의미 박제 — Could, 도입 결정 시 별 spec 또는 본 spec §동작 확장 대기. 본 tick FR-03 marker 2건만 flip.
+#     · 변경 이력 1행 박제 (TSK-20260518-24 / `15ccee0`). 헤더 §최종 업데이트 갱신. stale_cycles 0 초기화.
+#  - 나머지 18 green spec 전수 hook-ack 후보 없음 (1 spec build-coverage-... 는 Phase 2 body-update 채널 사용 — Phase 1 ack 채널 무관). 18 spec 전수 stale_cycles += 1 (시즌 2 정체 누적 진입).
+#  - **1 marker spec 2 ack / 20 total spec → Phase 1 1/20 ack.** seen-state 갱신 (1 spec stale_cycles 초기화 (multi-agent-commit) + 1 spec stale_cycles 초기화 (build-coverage Phase 2 body-update) + 18 spec stale_cycles += 1).
+#  - 시즌 2 정체 chain 회복 진입 chain 연속 4 tick — 직전 102차 ack + 103차 ack + 104차 ack + 본 105차 ack chain 연속 진입.
+#
+# Phase 2 처리 (RULE-03 (d) 정합 + 1 body-update — green count 변동 0):
+#  - 본 tick 진입 시 green=20 (104차 종료 시점 20 유지). 신규 carve 불가 (== GREEN_PENDING_MAX).
+#  - 입력 큐 15건 (REQ-029 + 14 보류).
+#  - REQ-20260518-029 body-update 후보 흡수 검토:
+#     · RULE-07 자기 검증: (1) 평서 (spec 본문에 의미 (A) literal-pinned 또는 (B) value-agnostic capture 결정 평서 박제), (2) 반복 검증 가능 (grep + capture-then-compare 단일 명령), (3) 시점 비의존 (HEAD baseline 사실 인용 한정), (4) incident 비의존 — TSK-20260518-20 §구현 지시 vs §테스트 R-1/R-6 mismatch 이라는 incident 가 source 였으나, 본 req 처리는 spec 본문 다수 surface (§역할 §의도적으로 하지 않는 것 (i) "swap 수단 중립" + §회귀 R-1 stderr 형식 `G-D VIOLATION: build dir drift (vite=dist gitignore=build eslint=build)` + 의미 B 형식) 의 self-anchored 의미 결정 결과 박제이므로 incident patch 가 아닌 spec 자체 정합 회복 (RULE-07 §양성 기준 "시스템이 무엇이어야 하는가 평서문").
+#     · 의미 (B) value-agnostic 채택 결정 근거: spec 본문 다수 surface (§역할 §의도적으로 하지 않는 것 (i) "swap 수단 중립" + §회귀 R-1/R-3 stderr 형식 `G-D VIOLATION: ...` + §역할 자체) 가 의미 (B) 로 self-anchored. 단지 §동작 G-A/G-B/G-C grep 패턴만 literal 형태 (`'build',` / `^/build$` / `'build/\*\*'`) 로 박혀 있어 single-surface mismatch 였음. 본 결정은 spec 본문 다수 표면 anchor 가 의미 (B) 인 결정적 증거 → 모호 영역 아님 → inspector 영역 자율 결정 가능.
+#     · spec body-update: §동작 G-A/G-B/G-C grep 패턴을 capture group 형태로 정정 (`'([^']+)',` / `^/([a-zA-Z0-9_-]+)$` / `'([a-zA-Z0-9_-]+)/\*\*'`) + §회귀 R-1/R-3/R-4 의 기대 발화 형식 명시 + R-6 신규 (3 surface 동시 swap → rc=0 axis 일치 절대값 무관) + grep-baseline (A)(B)(C) capture 형태 + 실측 카운트 정정 (B 2 hit / C 3 hit). §역할 §의도적으로 하지 않는 것 (i) "swap 수단 중립" 박제 보존.
+#     · 후속 신호 (planner 영역, 본 inspector tick 영역 외): `scripts/check-build-coverage-coherence.sh` (TSK-20260518-20 / `d32ced0` 회수) 본체는 의미 (A) literal-pinned 채택 구현 — 본 spec 의미 (B) 와 mismatch → script 재작업 carve 후보 발화 baseline 진입 (별 task 영역). FR-12 marker 잔존 의미: 본 spec 시점 dedicated script 부착 사실은 보존, 단 §회귀 R-1/R-3/R-6 새 기대치 PASS 회귀 검출 효능 회복은 후속 carve 영역.
+#  - req mv: `specs/20.req/20260518-build-coverage-tri-surface-gate-semantics-decision.md` → `specs/60.done/2026/05/18/req/`. 1건 처리.
+#  - 14 req 보류 (큐 잔존 14건). 14 req 전수 RULE-07 자기 검증 PASS 이나 모두 신규 axis carve 후보 (기존 spec body-update 후보 아님) — green 20 == GREEN_PENDING_MAX 정확 도달로 신규 carve 보류 의무 진입.
+#  - **본 tick Phase 2 흡수 1건 (body-update) + 격리 0건**. 디스크 green 20 유지 (변동 0; GREEN_PENDING_MAX 정합).
+#
+# req mv: 1건 (REQ-20260518-029 → 60.done/2026/05/18/req/; 종료 시 큐 14건).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/multi-agent-commit-message-writer-scope-coherence.md (§테스트 현황 (FR-03) marker 1건 flip + §수용 기준 (Must, FR-03) marker 1건 flip + 헤더 §최종 업데이트 갱신 + 변경 이력 1행 박제)
+#  - specs/30.spec/green/foundation/build-coverage-output-dir-tri-surface-coherence.md (REQ-029 body-update — §동작 G-A/G-B/G-C 의미 (B) value-agnostic capture 일관화 + §회귀 R-1/R-3/R-4 명확화 + R-6 신규 + §스코프 grep-baseline (A)(B)(C) capture 형태 + 실측 카운트 정정 + 헤더 §최종 업데이트 갱신 + 변경 이력 1행 박제)
+#  - specs/60.done/2026/05/18/req/20260518-build-coverage-tri-surface-gate-semantics-decision.md (mv from 20.req/) — git-ignored path 이므로 commit diff 비포함, 디스크 mv 만
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 105차 tick 박제 + 2 spec stale_cycles 초기화 + 18 spec stale_cycles += 1; append only)
+#
+# RULE-01 writer-boundary 후보 위반 박제 잔존 (운영자 followup 영역 — 본 105차 inspector 영역 ack 의무만 수행):
+#  - 94~104차 박제 동일 — 140차 planner self commit `38f636c` 디스크 stat 에 `specs/30.spec/green/.inspector-seen | 59 ++` 동반 (writer 권한 부재 위반 후보). 본 105차 tick 도 격리/롤백 권한 없음. RULE-05 §Blocked 해제 경로 권장 잔존.
+#  - 104차 박제 잔존 — `5567cfe` partial-stage planner-seen modify + `5639669` 박제 사고 (RULE-02 §commit 위반 후보). 본 105차 tick 신규 신설 multi-agent-commit-message-writer-scope-coherence.md 의 (R-1) baseline 으로 `5639669` 위반 사실 박제 + TSK-20260518-24 / `15ccee0` 회수로 본 위반 검출 발화 채널 부착 정합 — 결정론 검출 표면 `scripts/check-commit-writer-coherence.sh` 회수 완료.
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/{task,req}/ 디스크 0 file 잔존 + 50.blocked/spec/ baseline 인계).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/foundation/ 2 spec marker flip + body-update + .inspector-seen append + 20.req/* → 60.done/req/ mv 1건; 40.task/ + 50.blocked/{task,spec,req} + 10.followups/ + 60.done/task/ + .planner-seen + scripts/ + package.json 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `1/20 ack` 박제 (15ccee0 회수 1 spec 2 marker hook-ack chain 연속 4 tick).
+# RULE-03 (d) 정합 — green 20 == GREEN_PENDING_MAX (신규 carve 보류 의무) + 1 body-update (green count 변동 0 경로) + 1 marker flip (count 변동 0) → 종료 시 green 20 유지 (== GREEN_PENDING_MAX, ≤ 임계 정합).
+# RULE-07 자기 검증 — Phase 1 1 marker spec 2 ack (TSK-20260518-24 / `15ccee0` multi-agent-commit-message-writer-scope-coherence FR-03 marker 2건 — hook-ack 정상 + DoD grep + lint/typecheck/test/build 회귀 0 + R-1/R-3/R-4 baseline PASS + 수단 중립 평서문 보존). Phase 2 1 body-update (REQ-20260518-029 → build-coverage-output-dir-tri-surface-coherence.md 의미 (B) value-agnostic 일관화; RULE-07 평서/반복/시점/incident 자기 검증 PASS + 수단 중립 보존 + spec self-anchored 결정 근거).
+#
+# 입력 큐 잔여: 14건 (15 - 1 body-update = 14; 14 신규 carve 후보 보류 — green 20 == GREEN_PENDING_MAX 정확 도달로 신규 carve 보류 의무 진입; 본 14 req 전수 신규 axis carve 후보 (body-update 후보 아님) — 차기 tick promote/blocked 발화 시 carve 재개 가능).
+
