@@ -2,7 +2,7 @@
 
 > **위치**: `src/**/*.module.css` (stage-1 enum) + `src/common/Skeleton.css` (stage-1 비포함 의도) + `vite.config.js` (`css.modules.localsConvention` 토큰) + `src/**/*.{ts,tsx,js,jsx}` (`styles.<ident>` 접근 식별자 표면).
 > **관련 요구사항**: REQ-20260517-076 FR-05, REQ-20260518-016
-> **최종 업데이트**: 2026-05-18 (by inspector — REQ-016 흡수 §동작 (I6)~(I10) 변환 graph 무결성 박제; 89차 tick body-update 경로 — green 카운트 변동 0)
+> **최종 업데이트**: 2026-05-18 (by inspector — 104차 Phase 1 hook-ack TSK-20260518-23 / `9b95b73` FR-05 marker 1건 flip)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`893cdea`).
 
@@ -64,7 +64,7 @@ CSS Modules 도입 **stage-1 대상 enum** 박제 + **`src/common/Skeleton.css` 
 - [ ] (Must, REQ-016 FR-02) class 정의 ↔ caller 접근 graph 무결성 — §동작 (I7) + 자동 검출 채널 (vite build 또는 별 script) 발화 채널 선정 planner 영역 대기.
 - [x] (Must, REQ-016 FR-03) caller dot-property 식별자 camelCase 정합 — §동작 (I9) baseline static safety 만 PASS (JS parser reject + 현 baseline hyphen/underscore 직접 포함 0 hit). 자동 검출 fixture 박제는 별 task.
 - [x] (Must, REQ-016 FR-04) caller bracket access 0 hit — §동작 (I8) + HEAD=`f695bb0` 실측 PASS.
-- [ ] (Must, REQ-016 FR-05) drift 발생 시 단일 진단 명령 stdout 격차 카테고리 라벨 출력 + exit code ≠ 0 — 수단 중립. 발화 채널 선정 planner 영역 대기.
+- [x] (Must, REQ-016 FR-05) drift 발생 시 단일 진단 명령 stdout 격차 카테고리 라벨 출력 + exit code ≠ 0 — TSK-20260518-23 / `9b95b73` `scripts/check-css-modules-coherence.sh` + `npm run check:css-modules-coherence` (4 게이트 G-I1+G-I2+G-I6+G-I8 fail-fast + 카테고리 라벨 R-1 stage-1-enum-shrink / R-2 skeleton-global-intent-loss / R-3 convention-token-drift / R-4 bracket-access-leak).
 - [x] (Should, REQ-016 FR-06) `css.modules` 객체의 다른 키 추가는 본 spec 갱신 신호이되 위반 아님 — §동작 (I10) 박제.
 - [x] (Should, REQ-016 FR-07) 단방향 변환 contract semantic 자체 박제 — §역할 + §동작 (I6) + (I8) (camelCaseOnly 단방향 / camelCase 양면 / dashes 양면 / dashesOnly 단방향 hyphen) 의도 분리 1 hit 등장.
 - [ ] (Should, REQ-016 FR-08) FR-01~FR-07 회귀 자동 검출 채널 rc=0/1 결정론 + 발화 시점 채널 (pre-commit/pre-push/CI) 존재 — 수단 영역, planner 영역 대기.
@@ -99,6 +99,7 @@ CSS Modules 도입 **stage-1 대상 enum** 박제 + **`src/common/Skeleton.css` 
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-076 흡수) / pending | 최초 박제 — CSS Modules stage-1 enum 4 모듈 + Skeleton.css 글로벌 의도 5 축 (I1~I5) 게이트. baseline: `*.module.css` 4 hits (Toaster/Comment/ImageSelector/Search) / Skeleton.css 헤더 의도 주석 박제. | all |
 | 2026-05-18 | inspector 89차 (Phase 2, REQ-20260518-016 흡수) / pending (`f695bb0` baseline) | §동작 (I6)~(I10) + 5 marker §테스트 현황 + 13 marker §수용 기준 신규 박제 — `localsConvention: 'camelCaseOnly'` 단방향 변환 graph 무결성 (vite.config.js 토큰 ↔ class 정의 ↔ caller 접근 3 축). baseline: (E) localsConvention=camelCaseOnly 1 hit @vite.config.js:54 / (G) bracket access 0 hit / (H) hyphen-underscore 직접 포함 0 hit / (I) 변환 graph 부분집합 관계 PASS. body-update 경로 — green 카운트 변동 0 (20 == GREEN_PENDING_MAX 유지). | 헤더, 역할, 동작, 회귀 중점, 의존성, 테스트 현황, 수용 기준, 스코프 규칙, 변경 이력, 참고 |
+| 2026-05-18 | inspector 104차 Phase 1 hook-ack / TSK-20260518-23 / `9b95b73` | REQ-016 FR-05 marker 1건 flip ([x] §수용 기준 Must FR-05) — `scripts/check-css-modules-coherence.sh` (4 게이트 G-I1+G-I2+G-I6+G-I8 fail-fast + 4 카테고리 라벨 R-1~R-4) + `package.json:33` `"check:css-modules-coherence"` npm wrapper 부착. HEAD `1fe05f4` 재실측 PASS (rc=0 + stdout `check-css-modules-coherence: G-I1 (stage1=4) + G-I2 (intent=1) + G-I6 (convention=1) + G-I8 (bracket=0) PASS`). `git merge-base --is-ancestor 9b95b73 HEAD` PASS. result.md DoD — `npm run lint` rc=0 / `npm run typecheck` rc=0 / R-1~R-4 회귀 fixture 수동 검증 PASS + 결정론 5/5 byte-equal. RULE-07 정합 — 수단 중립 평서문 보존 ((I6)~(I10) 동작 영역 미접촉), dedicated script 채택은 §수용 기준 marker 박제 영역 한정. spec 본문·vite.config.js·src/**/*.module.css·src/common/Skeleton.css·src/**/*.{ts,tsx,js,jsx} 변경 0 동반 정합. 보류 marker 잔존: (I3)(I4) 이벤트 대기 + (I7) 변환 graph 비교 게이트 별 task + (I9) 정적 검출 fixture 별 task + Should FR-08 회귀 자동 검출 채널 별 task. | §수용 기준 (FR-05) + 헤더 + §변경 이력 |
 
 ## 참고
 - **REQ 원문**: REQ-20260517-076 (본 세션 mv 후), REQ-20260518-016 (89차 tick 흡수 — `60.done/2026/05/18/req/20260518-css-modules-localsconvention-camelcase-only-tri-axis-coherence.md`).
