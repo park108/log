@@ -28,6 +28,7 @@
     "check:npm-coherence": "bash scripts/check-package-manager-coherence.sh",
     "check:dev-port-coherence": "bash scripts/check-dev-port-coherence.sh",
     "check:build-coverage-coherence": "bash scripts/check-build-coverage-coherence.sh",
+    "check:eslint-ignores-vacuous-zero": "bash scripts/check-eslint-ignores-vacuous-zero.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky"
   },
