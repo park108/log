@@ -1492,3 +1492,79 @@
 # RULE-06 §스코프 규칙 gate (aa)(ab)(ac)(ad)(ae) 실측 박제 (3 채널 동시 PASS baseline + idiom 분포 6 hit baseline + 수단 라벨 0).
 #
 # 입력 큐 잔여: 14건 (REQ-004/005/006/007/008/009/010/011/012/014/016/017/021/022 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토 — 후보: REQ-007 deps-coherence-pre-commit-gate fork into node-modules-extraneous-coherence.md 자체 spec body update / REQ-021 build-coverage-output-dir tooling.md §동작 11 추가 / REQ-014 dev-server-port-getUrl-token-coherence 신규 spec carve).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`cd75eed` → THIS (87차 tick) — reconcile 0/18 ack (정체 12차 누적; 직전 86차 baseline `8c24611` 이후 외부 commit 1건 `cd75eed` planner 126차 self-only chain 단계 5 axis 완전 소진 + inspector 86차 tooling.md §동작 10 정식 박제 commit 통과 + chicken-egg 24차 신규 차원 진입 평가 dormant — decade+14 milestone 박제, src/ 영역 commit 0) + Phase 2 REQ-20260518-007 흡수 1건 (node-modules-extraneous-coherence.md §동작 G6 verification-point symmetry 시점 정합 신규 박제 — deps coherence pre-commit shift-left axis; green 카운트 변동 0 = 18 유지 — 본 흡수는 본문 갱신 경로) + Phase 2 흡수 6 tick 연속 본문 갱신 패턴 성공 (REQ-013/018/019/020/015 + 007 누적 6건)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `8c24611` (86차 tick — Phase 1 0/18 ack 정체 11차 + Phase 2 REQ-015 cross-surface 흡수 1건 tooling.md §동작 10 본문 갱신 경로 — green 카운트 변동 0).
+#  - tick 진입 시 HEAD == `cd75eed` (spec(planner): 126차 tick chain 단계 5 axis 완전 소진 + inspector 86차 tooling.md §동작 10 정식 박제 commit 통과 + chicken-egg 24차 신규 차원 진입 평가 dormant — decade+14 milestone 박제, planner self-only).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `cd75eed` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `8c24611` 후): 1건 — `cd75eed` (spec(planner): 126차 tick self-only `.planner-seen` 추가, chain 단계 5 axis 완전 소진 + chicken-egg 24차 dormant 박제, decade+14 milestone). green 본문 변동 0 + src/ 영역 변동 0.
+#  - src/ 영역 commit = 0. spec marker 영향 후보 = 0.
+#  - 입력 큐 (20.req/): 본 tick 진입 시 14건 (직전 86차 종료 14건 = REQ-004~012/014/016/017/021/022 13건 + REQ-007 deps-coherence 신규 도착 후 14건 — 실측 디스크 확인 시 14건 일치), 종료 시 13건 (REQ-007 mv).
+#  - 40.task/ 디스크: 0건. 50.blocked/{task,req,spec}/ + 10.followups/ 디스크: 0건.
+#  - 30.spec/green 전체 디스크: 18 spec (foundation 13 + common 3 + styles 1 + testing 1 = 18 — 직전 86차 박제 18 entry 유지; 본 tick REQ-007 흡수로 node-modules-extraneous-coherence.md 1 spec 본문 갱신 → stale_cycles 0 초기화 + 17 spec stale_cycles += 1).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `cd75eed` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0 + unstaged 0.
+#    · git status clean.
+#
+# Phase 1 reconcile 처리 (외부 src/ commit 0 — ack 트리거 0):
+#  - 본 tick 외부 src/ 영역 commit = 0 (`cd75eed` 은 planner self-only). spec marker flip 후보 0.
+#  - 18 green spec 전수 hook-ack 후보 없음 — 18 spec 전수 stale_cycles += 1 진입 (단 본 tick Phase 2 흡수 1 spec [node-modules-extraneous-coherence.md] 은 본문 갱신 직후 stale_cycles 0 초기화).
+#  - **0 marker spec 0 ack / 18 total spec → Phase 1 0/18 ack (정체 12차 누적).** seen-state 갱신.
+#  - 17차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76~84차 0 (정체 9차) → 85차 0 (정체 10차 = decade milestone 정확 도달) → 86차 0 (정체 11차) → 87차 0 (정체 12차). Phase 2 흡수 surface 발화 누적 (REQ-013/018/019/020/015 + 007 = 6 흡수) 가 외부 src/ commit 후속 chain 활성 surface 진입 잔존 — 본 tick cd75eed planner 126차 chain 단계 5 axis 완전 소진 박제는 planner self-only carve dormant 평가, 신규 axis 발화 대기.
+#
+# Phase 2 처리 (RULE-03 (d) 해석 + 본문 갱신 흡수 경로 결정):
+#  - 입력 큐 14건 진입 — 직전 86차 흡수 후 잔존 REQ-004~012/014/016/017/021/022 13건 + REQ-007 신규 14건. RULE-03 (d) 해석:
+#     · green=18 < GREEN_PENDING_MAX=20 → **미초과** (`>` 임계 비활성, 2 spec 여유).
+#     · 기존 spec 본문 갱신 경로 (sibling carve 아닌 흡수) 시 green 카운트 동일 유지 (18 → 18) → 임계 비변동.
+#  - **흡수 결정**: REQ-007 §배경 §선행 spec 명시 — `30.spec/blue/foundation/node-modules-extraneous-coherence.md` (REQ-073) 의 §역할 line 33 역의존 박제 4 채널 후보 (CI / pre-commit / pre-push / npm script) 중 pre-commit 채택 강화 박제 요청. 디스크 실측 — blue 측 부재 + green 측 `30.spec/green/foundation/node-modules-extraneous-coherence.md` 잔존 (REQ-073 흡수 spec, 아직 blue promote 안 됨). green 본문 갱신 경로 = green 카운트 동일 유지. 직전 6 tick 흡수 패턴 (REQ-013/018/019/020/015 → tooling/markdownParser/sanitizeHtml) 과 동일 경로 — 본 87차 흡수는 node-modules-extraneous-coherence 본문 7번째 흡수 sibling 패턴.
+#  - REQ-004~006/008~012/014/016/017/021/022 12건은 신규 spec carve 후보 (또는 일부 본문 갱신 후보) — green 카운트 변동 가능성 — 본 tick 보류 유지 (RULE-03 (d) 보수 해석 정합).
+#
+# Phase 2 흡수 처리 (REQ-007 node-modules-extraneous-coherence.md §동작 G6 신규 박제):
+#  - 흡수 spec: `30.spec/green/foundation/node-modules-extraneous-coherence.md` (REQ-073 선행 spec, 6번째 게이트 axis 추가 G6).
+#  - 본문 갱신:
+#     · 헤더: `위치` 확장 (4 채널 자동 게이트 시점 분포 명시) / `관련 요구사항` REQ-20260518-007 추가 / `최종 업데이트` 2026-05-18 87차 tick 갱신.
+#     · §역할: 3축 결과 효능 박제 명시 (G1 + G2 + G6) + 의도적으로 하지 않는 것 확장 (hook 본문 위치·순서·실행 형태·조건부·lint-staged 직렬·--no-verify·latency·자동 회수 8건 신규 OOS).
+#     · §동작 G6: 6.1 채널 분포 (4 후보 중 pre-commit 부착 결과 효능) / 6.2 결과 효능 (drift 차단 rc≠0 + 정상 통과 rc=0) / 6.3 시점 정합 shift-left / 6.4 수단 중립 (위치·형태·조건부·lint-staged 통합 어느 경로든 valid) / 6.5 scope 분리 (typecheck/lint/test 직교 + 다른 채널 유지 의무 G4 박제).
+#     · §의존성 역의존: husky-pre-push-typecheck.md 직교 축 추가 + 4 채널 명시 + G6 commit 단계 채택 axis 박제.
+#     · §테스트 현황 G6.1/G6.2/G6.3 3 marker `[ ]` 신규 (회수 후 플립 대기 — task carve 후 developer 영역).
+#     · §수용 기준 4 marker 신규 — (Must G6.1) pre-commit grep ≥1 hit + (Must G6.2) drift fixture rc=1 + (Must G6.3) 정상 rc=0 false-positive 0 + (Must G6.4 회귀 0) 기존 hook 분기 효능 회귀 0.
+#     · §스코프 규칙 grep-baseline G6 (af)(ag)(ah)(ai)(aj) 5건 실측 박제 (HEAD=`cd75eed`):
+#        - (af) `grep -nE "check:deps|check-deps" .husky/pre-commit` → **0 hit** (baseline FAIL 평서화).
+#        - (ag) `grep -nE "check:deps|check-deps" .husky/pre-push` → 1 hit @`:1` (G4 박제 유지).
+#        - (ah) `grep -nE "check:deps|check-deps" .github/workflows/ci.yml` → 1 hit @`:29` (req 본문 `:28` vs HEAD `:29` 1 line shift 박제).
+#        - (ai) `grep -nE "\"check:deps\":" package.json` → 1 hit @`:26` (G4 진입점 유지).
+#        - (aj) 4 채널 분포 — { CI ✓ / pre-push ✓ / pre-commit ✗ / npm script ✓ } 비대칭 평서화.
+#     · §rationale 갱신: G6 baseline 5건 박제 + (af) 0 hit baseline FAIL 평서화 + 수단 라벨 0 자기 검증.
+#     · §변경 이력: 87차 tick row 1행 박제 (TSK-20260518-XX / `cd75eed`).
+#  - 본 inspector 변경 표면 1 파일 한정 (`.husky/pre-commit` + `.husky/pre-push` + `.github/workflows/ci.yml` + `package.json` + 다른 spec 변경 0).
+#  - RULE-07 자기 검증 PASS:
+#     · (1) 평서 — "deps coherence 게이트는 commit 시점에도 부착되어 drift 가 commit 시점 첫 차단" 시스템 효능 불변식.
+#     · (2) 반복 검증 가능 — `grep -nE` 단일 명령 + fixture 환경 (`npm install --no-save <pkg>` + `git commit`) 재현 가능.
+#     · (3) 시점 비의존 — hook 본문 위치·형태·조건부 정책 변경 / lint-staged 메이저 업그레이드 / husky 메이저 업그레이드 등 이벤트 비귀속, baseline HEAD `cd75eed` 좌표는 measure anchor + §변경 이력 감사 pointer 한정.
+#     · (4) incident 비귀속 — TSK-20260518-04 push 차단 incident 는 §배경 패턴 신호 단서 박제 (req 본문 명시 — 1회 incident 진단 박제 회피), 본 spec 흡수는 시점 비대칭 시스템 불변식만 박제.
+#     · (5) 수단 중립 — hook 본문 위치 (lint-staged 전/후/인접) / 실행 형태 (`npm run` vs `bash` 직접) / 조건부 (staged path 조건 vs 무조건) / lint-staged 통합 vs 분리 어느 경로든 수용, 우선순위 라벨 0.
+#     · (6) self-reference scope 분리 명시 — §동작 6.5 본 spec 의 G6 는 deps coherence 채널 한정 + 다른 게이트 (typecheck/lint/test) pre-commit 부착 별 spec / 다른 채널 (pre-push/CI/npm script) 유지 의무 G4 박제 — scope 분리 계약.
+#
+# req mv: 1건 (REQ-007 → `60.done/2026/05/18/req/`, 20.req/ 디스크 큐 14 → 13).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/node-modules-extraneous-coherence.md (REQ-007 흡수 — 헤더 갱신 + §역할 G6 + §동작 G6 [6.1~6.5] 신규 + §의존성 역의존 확장 + §테스트 현황 G6 3 marker + §수용 기준 G6 4 marker + §스코프 규칙 grep-baseline G6 (af)(ag)(ah)(ai)(aj) 5건 + rationale 갱신 + §변경 이력 1행. 최종 line count 93)
+#  - specs/20.req/20260518-deps-coherence-pre-commit-gate-shift-left.md → specs/60.done/2026/05/18/req/ 1건 mv (REQ-007; gitignore 적용으로 git tracked 변동 0)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 87차 tick 박제 + node-modules-extraneous-coherence.md stale_cycles 0 초기화 + 17 spec stale_cycles += 1)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. 외부 commit `cd75eed` 의 planner self-only 영역은 inspector 영역 밖 미접촉 정합.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용; 기존 origin/master 격차 그대로 유지).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 본문 갱신 1 파일 + `.inspector-seen` edit 한정; `.planner-seen` 미접촉; 20.req/ 1 req mv only; 40.task/ + 50.blocked/ + 10.followups/ 미접촉; 60.done/req/ 신규 진입).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/18 ack (정체 12차)` 박제 (RULE-04 매 세션 필수).
+# RULE-03 (d) 해석 적용 — green 18 < GREEN_PENDING_MAX=20 미초과 + 본문 갱신 경로 흡수 1 req / 1 spec (green 카운트 동일 유지 — sibling carve 아닌 본문 갱신 흡수) → backpressure 미발생.
+# RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 1 흡수 (REQ-007 시스템 불변식 평서형 + 반복 검증 + 시점 비의존 + incident 비귀속 + 수단 중립 + self-reference scope 분리 6 축 PASS).
+# RULE-06 §스코프 규칙 G6 baseline gate (af)(ag)(ah)(ai)(aj) 5건 실측 박제 ((af) 0 hit baseline FAIL 평서화 + 3 채널 부착 + 4 채널 분포 비대칭).
+#
+# 입력 큐 잔여: 13건 (REQ-004/005/006/008/009/010/011/012/014/016/017/021/022 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토 — 후보: REQ-021 build-coverage-output-dir tooling.md §동작 11 추가 / REQ-014 dev-server-port-getUrl-token-coherence 신규 spec carve / REQ-008 manifest-pwa-install-contract 신규 spec carve).
