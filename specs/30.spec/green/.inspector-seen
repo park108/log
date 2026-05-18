@@ -1261,3 +1261,74 @@
 # RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 2 흡수 (REQ-019 + REQ-020 모두 시스템 불변식 평서형 + 반복 검증 + incident 비귀속 PASS).
 #
 # 입력 큐 잔여: 15건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017/018 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토).
+#
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`4c8f6eb` → THIS (84차 tick) — reconcile 0/20 ack (정체 9차 — 외부 src/ commit 0건; 직전 83차 baseline `fcac70d` 이후 외부 commit 1건 = `4c8f6eb` planner 120차 self-only carve TSK-20260518-15 + chain 단계 3/4 진척 발화 통과 박제) + Phase 2 REQ-20260518-018 흡수 1건 (cross-surface 양 spec 본문 갱신 — markdownParser.md S1 단 + sanitizeHtml.md S2 단; green 카운트 변동 0 = 20 유지; chain 단계 3/4 연속 진척 발화)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `fcac70d` (83차 tick — Phase 1 0/20 ack 정체 8차 + Phase 2 REQ-019/REQ-020 흡수 2건 본문 갱신 경로 — green 카운트 변동 0).
+#  - tick 진입 시 HEAD == `4c8f6eb` (spec(planner): 120차 tick chain 단계 3/4 [req → spec] 진척 발화 통과 + chain 단계 4/4 [spec → task → developer src/] 진입 — carve TSK-20260518-15 양식 (f) recovery task 단일 PR 묶음 sh script 3 file + fixture 5 const 갱신; supersedes TSK-20260518-14).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `4c8f6eb` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `fcac70d` 후): 1건 = `4c8f6eb` planner 120차 self-only `.planner-seen` 한정 (src/ commit 0건).
+#  - src/ 영역 commit = 0 (planner self-only). spec marker 영향 후보 = 0.
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 (REQ-004~018 유지 — 83차 흡수 후 잔존). 종료 시 14건 (REQ-018 mv).
+#  - 40.task/ 디스크: 1건 (TSK-20260518-15 carve — 120차 발화).
+#  - 50.blocked/task/ 디스크: 0건. 10.followups/ 디스크: 0건.
+#  - 20 green spec hash 시작점 (직전 83차 박제 20 entry 유지 — 본 tick REQ-018 흡수로 2 spec 본문 갱신 → 2 spec stale_cycles 0 초기화 + 18 spec stale_cycles += 1; 8 stale ≥45cycle 외부 의존 누적 45-cycle milestone 진입).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `4c8f6eb` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#    · 외부 영역 unstaged modified 3 파일 (scripts/check-node-version-coherence.sh + scripts/check-package-manager-coherence.sh + scripts/check-vite-env-coherence.sh) — inspector 영역 밖, 미접촉.
+#
+# Phase 1 reconcile 처리 (외부 src/ commit 0 — ack 트리거 0):
+#  - 20 green spec 전수 hook-ack 후보 없음 (planner self-only commit — 다른 spec 본문 영향 0).
+#  - 20 spec 전수 stale_cycles += 1 진입 (단 본 tick Phase 2 흡수 2 spec 은 본문 갱신 직후 stale_cycles 0 초기화).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack (정체 9차 누적).** seen-state 갱신.
+#  - 15차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76~83차 0 (정체 8차) → 84차 0 (정체 9차 진입). Phase 2 흡수 surface 발화 (REQ-018/019/020 3 흡수) 가 외부 src/ commit 후속 chain 활성 surface 진입 — chain 단계 4/4 [spec → task → developer src/] 진입 (planner 120차 TSK-15 carve = chain 단계 4/4 진입 발화).
+#
+# Phase 2 처리 (RULE-03 (d) 해석 + chain 단계 3/4 연속 진척 결정):
+#  - 입력 큐 15건 진입 — 83차 흡수 후 잔존 REQ-004~018. RULE-03 (d) 해석:
+#     · green=20 == GREEN_PENDING_MAX=20 → **미초과** (`>` 임계 비활성).
+#     · 기존 spec 본문 갱신 경로 (sibling carve 아닌 흡수) 시 green 카운트 동일 유지 (20 → 20) → 임계 비변동 → 본 tick + 차기 tick 모두 임계 정합 유지.
+#  - **흡수 결정**: REQ-018 §개요 명시 — sanitizeHtml.md (S2 단 내부 정책) + markdownParser.md (S1 단 escape) 양 spec 본문 갱신 경로 = cross-surface 양 spec 분담 흡수. green 카운트 변동 0. 직전 83차 박제 명시 보류된 cross-surface 2단 방어 axis 본 tick 처리.
+#  - REQ-004~017 14건은 신규 spec carve 후보 (또는 일부 본문 갱신 후보) — green 카운트 변동 가능성 — 본 tick 보류 유지 (RULE-03 (d) 보수 해석 정합).
+#
+# Phase 2 흡수 처리 (REQ-018 cross-surface 양 spec):
+#  - 흡수 영역 1: `30.spec/green/common/markdownParser.md` (S1 단 + cross-surface baseline literal).
+#     · §역할 갱신: stack-based list grouping + S1 단 escape cross-surface defense-in-depth 두 축 박제 + 비박제 영역 (escape 5문자 enum 확장 / `<a>` UX 정책) 명시.
+#     · §공개 인터페이스 갱신: `escapeHtmlAttr(s: unknown)` module-private const 박제 — 정의 단일 + 호출 ≥ 5 baseline.
+#     · §동작: (I8) S1 단 escape 단일 모듈 + (I9) S1 단 escape 호출 ≥ 5 + (I10) `<a target='_blank' rel='noreferrer'>` fall-back literal 3건 신규.
+#     · §회귀 중점: I8/I9/I10 위반 시 회귀 시나리오 3건 추가.
+#     · §테스트 현황: (I8)(I9)(I10) 3 marker 박제 직후 [x] (HEAD=`64d7432` baseline PASS).
+#     · §수용 기준: REQ-018 FR-01/FR-02/FR-06 3건 추가.
+#     · §스코프 규칙: REQ-018 grep-baseline (HEAD=`64d7432`) 3건 추가 + rationale 갱신.
+#     · §변경 이력: 84차 tick row 1행 박제.
+#  - 흡수 영역 2: `30.spec/green/common/sanitizeHtml.md` (S2 단 + hook upgrade + 멱등 + cross-surface defense-in-depth).
+#     · §역할 갱신: ALLOWED_* 정책 + DOM 주입 sanitize + hook upgrade + 멱등 4 축 박제.
+#     · §동작: (I7) DOMPurify import 단일 모듈 + (I8) hook upgrade `<a target='_blank'>` rel 양방향 단조 강화 + (I9) hook 멱등 + `removeHook` 부재 + (I10) sanitize 멱등 + (I11) cross-surface 2단 방어 defense-in-depth 5건 신규.
+#     · §회귀 중점: I7~I11 위반 시 회귀 시나리오 5건 추가.
+#     · §테스트 현황: (I7)(I8)(I9)(I10)(I11) 5 marker 박제 직후 [x] (HEAD=`64d7432` baseline PASS — grep + fixture 양 채널 잠금).
+#     · §수용 기준: REQ-018 FR-03/FR-04/FR-05/FR-07 + cross-surface 5건 추가.
+#     · §스코프 규칙: REQ-018 grep-baseline (HEAD=`64d7432`) 5건 추가 + rationale 갱신.
+#     · §변경 이력: 84차 tick row 1행 박제.
+#  - RULE-07 자기 검증 PASS: REQ-018 §개요 평서형 ("S1 ↔ S2 양단 연결 효능 cross-surface defense-in-depth") + 반복 검증 가능 (`grep` 단일 명령 + vitest fixture) + 시점 비의존 (HEAD `64d7432` baseline 은 §스코프 규칙 영역, 본문 효능 평서문 시점 비의존) + incident 비귀속 (특정 incident patch 비귀속 — 시스템 효능 평서문).
+#
+# req mv: 1건 (REQ-018 → `60.done/2026/05/18/req/`, 20.req/ 디스크 큐 15 → 14).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/common/markdownParser.md (REQ-018 흡수 S1 단 — §역할 갱신 + §공개 인터페이스 escapeHtmlAttr 추가 + §동작 I8/I9/I10 3건 신규 + §회귀 중점 3건 + §테스트 현황 3건 + §수용 기준 3건 + §스코프 grep-baseline 3건 + §변경 이력 1행 + 헤더 갱신)
+#  - specs/30.spec/green/common/sanitizeHtml.md (REQ-018 흡수 S2 단 + cross-surface — §역할 갱신 + §동작 I7/I8/I9/I10/I11 5건 신규 + §회귀 중점 5건 + §테스트 현황 5건 + §수용 기준 5건 + §스코프 grep-baseline 5건 + §변경 이력 1행 + 헤더 갱신)
+#  - specs/20.req/ → specs/60.done/2026/05/18/req/ 1건 mv (REQ-018)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 84차 tick 박제 + 2 spec stale_cycles 0 초기화 + 18 spec stale_cycles += 1)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. 외부 unstaged modified 3 파일 (scripts/check-*.sh) inspector 영역 밖 미접촉 정합.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 본문 갱신 2 파일 + `.inspector-seen` edit 한정; `.planner-seen` 미접촉; 20.req/ 1 req mv only; 40.task/ + 50.blocked/ + 10.followups/ 미접촉; 60.done/req/ 신규 진입).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack (정체 9차, 8 stale ≥45cycle)` 박제.
+# RULE-03 (d) 해석 적용 — green 20 == GREEN_PENDING_MAX=20 미초과 + 본문 갱신 경로 흡수 1 req / 2 spec (green 카운트 동일 유지 — sibling carve 아닌 cross-surface 흡수) → backpressure 미발생.
+# RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 1 흡수 / cross-surface 2 spec 갱신 (REQ-018 시스템 불변식 평서형 + 반복 검증 + incident 비귀속 PASS).
+#
+# 입력 큐 잔여: 14건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토).
