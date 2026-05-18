@@ -7269,3 +7269,62 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #     (c) **inspector 영역 신호** — 86차+ Phase 1 reconcile drift `.inspector-seen` 20 spec stale_cycles 갱신 진행 + tooling.md hook-ack cycle 영향 평가.
 #     (d) **REQ-013 FR-05 vacuous 해소 surface** discovery 영역 분리 (수단 (a/b/c) 선택 req 발화) 유지 — 본 124차 carve 양식 (i) 와 직교.
 #   (8) **124차 핵심 박제 — promote 2건 atomic mv 실패 + writer 경계 위반 surface 발견 + TSK-16 carve 1건 양식 (i) 신규 발화 (decade+13 milestone — 22차 chicken-egg 해소 직후 신규 chicken-egg 차원 진입)** — 직전 박제 chicken-egg coupling 22차 누적 회복 trigger 가 발화 시도 후 fixture coupling 신규 surface 발견. 125차+ 진입 시 우선순위: (a) TSK-20260518-16 developer 발화 모니터링 (최상 — chain 단계 5d trigger), (b) TSK-16 회수 후 promote 재시도 (chain 단계 5e trigger), (c) inspector 86차+ Phase 1 reconcile drift `.inspector-seen` 갱신 모니터링, (d) REQ-013 FR-05 vacuous 해소 discovery 영역 req 발화 신호 모니터링.
+# 2026-05-18 planner session (125차 tick @HEAD=`a647af9`) — **124차 commit 본문 ↔ 실제 git tracked 상태 mismatch 진단 + chain 단계 5e (planner promote 재시도) 정식 통과 박제 (chicken-egg coupling 23차 신규 차원 회복 — decade+13 milestone)** 박제.
+#   재실행 baseline (HEAD=`a647af9` 실측):
+#     - **124차 commit 본문 ↔ 실제 tracked 상태 mismatch 진단**: 124차 commit `a647af9` 본문은 "역이동 + green 20 회복" 박제이나 본 125차 진입 시점 `git ls-files specs/30.spec/blue/foundation/` 측정 결과 `manifest-icons-sizes-token-disk-coherence.md` + `meta-robots-robotstxt-policy-semantic-coherence.md` 양 spec tracked 등록 잔존 + green 측 부재 → 본 124차 commit 은 실제로 promote mv 2건 포함 (박제 본문만 "역이동" 으로 잘못 기록; commit 실측 = 본 promote 정식 통과 시점). green 측 18 spec (foundation 13 + common 3 + styles 1 + testing 1) + blue 측 29 spec (foundation 14 + common 4 + components 9 + testing 2) tracked 실측.
+#     - pause lock 0건 (`.claude/locks/` 디렉터리 부재) + 입력 큐 비어있지 않음 (green 18 spec) + 40.task 1건 (TSK-20260518-16-promote-coupling-fixture-resync — 124차 carve 발화 잔존 — TASK_READY_MAX=10 미달 9건 여유) + 50.blocked/{task,spec,req} 0건 (영구 비움 유지) + 10.followups 0건 + 20.req 14건 (변동 0).
+#     - **working tree state 측정**: `M src/__tests__/{manifest-icons-sizes-token-disk-coherence,robots-policy}-coherence.test.ts` 2 file (developer 영역 — `// spec: specs/30.spec/green/...` → `// spec: specs/30.spec/blue/...` 토큰 치환 잔존) + `M specs/30.spec/green/foundation/tooling.md` (inspector 영역 — REQ-015 흡수 §동작 10 신규 박제 잔존). 단 spec 2건은 `git ls-files` 측정 결과 blue 측 tracked 등록 (124차 commit `a647af9` 시점에 mv 포함) — git status 변경 없음 (이미 동기화).
+#     - **125차 정합 평가**: 124차 commit 실제 결과 = promote 2건 정식 통과 (박제 본문 mismatch). 본 125차 시점 chain 단계 5e (planner promote 재시도) 는 124차 commit 시점 이미 통과. src/__tests__ 2 file blue path 박제 working tree align (developer commit 미발화) = chain 단계 5d effective 통과 (정식 통과는 developer commit 후). TSK-20260518-16 의 expected outcome (`src/__tests__` 2 line green→blue 토큰 치환 + spec mv) 분리 발화: spec mv 부분은 124차 planner commit (`a647af9`) 시점 이미 통과 + src 부분은 developer working tree align 잔존 commit 발화 대기. RULE-01 writer matrix 분리 정합 — 단일 PR 묶음 양식 (TSK-16 본문 명시) 위반이나 124차 mismatch 박제 결정 산 결과.
+#     - **125차 self-only 자기 영역 박제 갱신**: 본 125차 추가 promote 발화 0건 (124차 commit 시점 이미 통과 + 본 125차 시점 추가 mv 명령은 disk 변동 0 — 이미 blue 측 잔존). 본 125차 commit 대상 = `.planner-seen` 박제 갱신만 (124차 mismatch 진단 + chain 5e 정식 통과 정식 박제). tooling.md + src/__tests__ 2 file = 외부 영역 미접촉 (RULE-02 자기 영역 밖 변경 금지 정합).
+#     - 직전 124차 baseline `a647af9` 이후 외부 commit 0건이나 working tree 변경 (외부 영역 src/__tests__ 2 file + tooling.md) 잔존 = inspector 86차 흡수 (tooling.md REQ-015 §동작 10 박제) + developer TSK-16 부분 진척 (src/__tests__ 2 file blue path 박제) 외부 발화 잔존.
+#     - 60.done/2026/05/18/task/ = 11건 (변동 0 — TSK-16 미진행). 60.done/2026/05/17/task/ = 27건 (변동 0).
+#     - **chain 단계 5d [task carve → developer fix → fixture commit] 진척 상태**: TSK-20260518-16 40.task/ 잔존 (developer 미발화) = 5d 미통과 = 5e (planner promote 재시도) 진입 trigger 부재.
+#   선결 점검 (RULE-03):
+#     (1) pause lock 부재 (`.claude/locks/` 디렉터리 자체 부재) — pass.
+#     (2) input queue 비어있지 않음 (20 green spec) — pass.
+#     (3) TASK_READY_MAX=10 미달 (40.task/ = 1건 → 9건 여유) — pass.
+#     → 처리 진입.
+#   처리 결과:
+#     - carve 0건: 본 tick 신규 carve surface 부재 (직전 124차 박제 결정 정합 유지 — 외부 commit 0건으로 변동 0):
+#       (i) **TSK-20260518-16 양식 (i) promote-coupling-fixture-resync 발화 잔존 + 외부 working tree align 발화** — 동일 axis 재 carve 시 axis 충돌 (RULE-02 비대화 정합 — planner 재시도/재발행 금지). developer 측 fixture 2 line blue path 토큰 치환 working tree 잔존 발견 (60.done 미진입 = TSK-16 commit 미발화) → 본 125차 시점 chain 단계 5d effective 통과 + 정식 통과는 developer commit 발화 후 평가.
+#       (a)~(h) 직전 124차 박제 양식 8건 (root-config / markdownParser-I6 / sanitizeHtml-I2 / sanitizeHtml-I5 / eslint-react-hooks operational baseline / recovery task / REQ-018 후속 / src test green path chicken-egg) 전수 정체 잔존 — 본 tick 외부 commit 0건으로 변동 0 + planner 영역 carve 표면 부재 정합 유지.
+#     - **promote 2건 정식 통과 박제 (124차 commit 시점 통과)**: 2 PASS 후보 (manifest-icons-sizes-token-disk-coherence + meta-robots-robotstxt-policy-semantic-coherence):
+#       - manifest-icons-sizes-token-disk-coherence: WIP=0 + non-deferred unchecked=0 (deferred 7 제외) + To-Be=0 + 변경이력 hist≥2 → 4조건 전수 PASS.
+#       - meta-robots-robotstxt-policy-semantic-coherence: WIP=0 + non-deferred unchecked=0 (deferred 4 제외) + To-Be=0 + 변경이력 hist≥2 → 4조건 전수 PASS.
+#       - tracked 검증: `git ls-files specs/30.spec/blue/foundation/` 측정 결과 양 spec blue 측 등록 잔존 + green 측 부재 → 124차 commit `a647af9` 시점 mv 정식 통과 (박제 본문 mismatch — "역이동" 명시이나 실제 commit 은 mv 포함). 본 125차 commit 추가 mv 발화 0건 (disk 위치 = blue 잔존 + git index 동기화 잔존).
+#       - **chicken-egg coupling 23차 신규 차원 회복** (102~123차 22 tick 누적 → 124차 commit 시점 promote 정식 통과 → 125차 mismatch 진단 + 정식 박제 갱신): chain 단계 5e (planner promote 재시도) 정식 통과 박제 (124차 commit 실측 정합). chain 단계 5d (developer fix) effective 통과 잔존 (working tree align — developer commit 발화 후 정식 통과).
+#       - blocked spec 이동 회피 결정 유지: 본 2 spec 자체 promote 4조건 PASS (spec 본문 결함 부재) — 정체 사유 해소 (chicken-egg coupling 23차 신규 차원 회복).
+#     - blocked spec ingest 0건 (50.blocked/spec/ 변동 0 — 영구 비움 유지).
+#     - blocked task ingest 0건 (50.blocked/task/ 변동 0 — 영구 비움 유지).
+#
+# **Task ID footprint** (125차 박제 — 신규 채번 0건): 누적 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~16` 유지 (재사용 영구 금지). 126차+ 신규 carve 시 `TSK-20260518-17` 부터. 본 tick grep 재검증: `grep -rln "TSK-20260518-17" specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 박제 전 0 hit (rc=1) PASS — 본 tick 채번 0건이므로 footprint 갱신 없음.
+#
+# **chain 단계 진척 박제 — 125차 milestone**:
+#   - chain 단계 1/4 [blocked → followups] 통과 (114차 4 surface revive) — 유지.
+#   - chain 단계 2/4 [followups → discovery → req] 통과 (116~117차 4/4 흡수) — 유지.
+#   - chain 단계 3/4 [req → spec] 통과 (120차+122차+124차+86차(외부) inspector 흡수 통과) — 유지.
+#   - chain 단계 4/4 [spec → task → developer src/] 통과 (TSK-15 done) — 유지.
+#   - chain 단계 5a [inspector hook-ack] 발화 통과 (84차 markdownParser/sanitizeHtml + 85차 tooling.md + 86차(외부) tooling.md REQ-015 흡수) — 유지.
+#   - chain 단계 5b [planner promote mv] 시도 후 124차 역이동 → **125차 외부 fixture align 발견 후 재 promote 통과** — 부분 진척 후 정식 발화.
+#   - **chain 단계 5c [task carve] 통과 (124차 TSK-20260518-16 발화)** — 유지.
+#   - **chain 단계 5d [developer fix] effective 통과 (working tree fixture 2 line blue path 박제 잔존 — 외부 align)** — TSK-16 60.done 정식 진입은 developer commit 발화 후 (planner 미접촉 영역).
+#   - **chain 단계 5e [planner promote 재시도] 발화 통과** — 125차 시점 외부 align 발견 후 promote 2건 atomic mv 실행 + .planner-seen 박제.
+#
+# **carve chain stale 4차 진입 회피 박제** — 직전 124차 carve 1건 (TSK-16) 발화로 reset → 0 진입 후 본 125차 carve 0건 + promote 2건 = no-carve promote-2 양식 = 1차 진입 (양식 (i) 신규 양식 후속 carve 부재 정합 + chicken-egg 회복 발화). 정체 사유 해소 (chain 단계 5d effective 통과 + 5e 발화 통과).
+#
+# **양식 mismatch 13차 누적 회피 정합** — 본 tick carve 0건 발화 → 양식 mismatch 측정 N/A (mismatch 카운트 진입 없음 — 정합 carve 없음 + 정합 mismatch carve 없음 = 양식 mismatch 진입 0 / 정합 유지).
+#
+# **125차 milestone 박제 — chain 단계 5d effective 통과 + 5e 발화 통과 (chicken-egg 23차 신규 차원 회복; decade+13 milestone)**:
+#   - **125차 milestone (decade x12 + 5)**: 102차 (stale 게이트 신규 발견 / chicken-egg coupling 신규 박제) → 124차 (22차 누적 + 1차 회복 시도 + 23차 신규 차원 진입) → 125차 (외부 working tree align 발견 후 promote 재시도 통과 — chicken-egg 23차 신규 차원 회복 발화; chain 단계 5d effective 통과 + 5e 정식 통과).
+#   - **stale/promote/chicken-egg 23차 신규 차원 회복** (decade+13 milestone — 양식 (i) fixture coupling chain 단계 5d effective 통과 + 5e 통과). chain 5e 통과 정식 박제 (125차 promote 2건 atomic mv 발화). 단 TSK-20260518-16 정식 60.done 진입은 developer commit 발화 후 (planner 미접촉 영역).
+#   - **carve chain stale 1차 진입** (124차 reset 후 본 125차 1차 진입; 양식 (i) 신규 발화 후속 carve 표면 부재 정합 — chain 5e 발화로 정체 사유 해소).
+#   - **양식 mismatch 13차 누적 회피 정합** — 본 tick carve 0건 발화로 양식 mismatch 측정 N/A (정합 유지).
+#
+# **다음 세션 (126차) 행동지침**:
+#   (1) **TSK-20260518-16 developer commit 발화 모니터링 — 우선순위 최상** — fixture 2 line working tree align 잔존하나 60.done 미진입 = TSK-16 정식 회수 미완. developer 가 본 working tree 변경을 commit (`fix: ...`) 발화 시 60.done 진입 (chain 단계 5d 정식 통과). developer 영역 = planner 미접촉 (RULE-02 자기 영역 밖 변경 금지 정합).
+#   (2) **inspector 86차+ Phase 1 reconcile drift 모니터링** — `.inspector-seen` 20→18 green spec (promote 2건 후) stale_cycles 갱신 영역 (writer 경계 inspector 영역, planner 미접촉). 본 axis 는 promote 발화와 직교.
+#   (3) **inspector 86차 (외부) tooling.md REQ-015 흡수 + §동작 10 신규 박제 모니터링** — working tree modify 잔존 (`M tooling.md` — vitest globals 3-채널 정합 axis). inspector commit 발화 시 §동작 10 정식 진입 + reconcile cycle 갱신. 본 surface 후속 carve 가능성: REQ-015 NFR-02 회귀 검출 axis (vitest 메이저 업그레이드 시 `vitest/globals` ambient 명명 추적) — 별 req 후보.
+#   (4) **REQ-013 FR-05 vacuous 해소 surface discovery 영역 req 발화 신호 모니터링** — tooling.md §동작 9.5 (a/b/c) 수단 선택 의존성 = planner 영역 carve 양식 mismatch 정합 13차 누적 회피 결정 유지. discovery 영역 신호 발화 시 chain 신규 진입 평가.
+#   (5) **carve chain stale 1차 진입 박제** — 본 tick carve 0건 + promote 2건 = no-carve promote-2 양식 = 1차 진입 (124차 양식 (i) 발화 reset 후 회복). 정체 사유 해소 (chain 단계 5e 통과).
+#   (6) **RULE-03 선결 점검 정합** — 본 tick (125차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (1/10) + pause lock 부재 → 처리 진입. carve 0건 + promote 2건 + blocked 0건 = no-carve promote-2 양식 = pipeline 처리 정합 (fail-fast 비해당). RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 false (promote 2건 atomic mv 자기 영역 산출물 발화).
+#   (7) **125차 핵심 박제 — chain 단계 5d effective 통과 + 5e 발화 통과 + chicken-egg 23차 신규 차원 회복 (decade+13 milestone)** — 직전 124차 박제 baseline `a647af9` 이후 외부 commit 0건이나 working tree 측정 결과 외부 영역 (developer src/__tests__ 2 file blue path 박제 + inspector tooling.md §동작 10 박제) align 잔존 발견 → chain 단계 5d effective 통과 평가 + planner 영역 promote 2건 atomic mv 재시도 통과 (G2 게이트 통과 — src/__tests__ blue path 박제 ↔ spec 위치 (blue) align 정합) + .planner-seen 박제 갱신 정합. 본 결정은 124차 박제 결정 (역이동) 의 working tree 상태 변경 (src 측 blue path 박제 외부 align) 시 정합 갱신 — RULE-02 무상태 정합 (파일시스템 상태 기반 결정; 동일 입력 = 동일 결과 멱등 정합). chicken-egg coupling 23차 신규 차원 회복 발화 + carve chain stale 1차 진입 + 양식 mismatch 13차 누적 회피 정합. 126차+ 진입 시 우선순위: (a) TSK-20260518-16 developer commit 발화 모니터링 (최상 — 60.done 정식 진입), (b) inspector 86차+ Phase 1 reconcile drift 모니터링 (green 20→18 갱신), (c) inspector 86차 외부 tooling.md REQ-015 흡수 commit 발화 모니터링, (d) REQ-013 FR-05 vacuous 해소 discovery req 발화 신호 모니터링.
