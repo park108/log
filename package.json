@@ -27,6 +27,7 @@
     "check:node-coherence": "bash scripts/check-node-version-coherence.sh",
     "check:npm-coherence": "bash scripts/check-package-manager-coherence.sh",
     "check:dev-port-coherence": "bash scripts/check-dev-port-coherence.sh",
+    "check:build-coverage-coherence": "bash scripts/check-build-coverage-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky"
   },
