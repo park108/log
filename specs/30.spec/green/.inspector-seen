@@ -2045,3 +2045,64 @@
 # RULE-07 자기 검증 — Phase 1 0 ack (외부 변동 0 → 합법 빈 ack). Phase 2 0 흡수 (15 req 전수 RULE-07 자기 검증 평서/반복/시점/incident PASS 이나 body-update 후보 0 + 신규 carve 임계 초과로 보류).
 #
 # 입력 큐 잔여: 15건 (93차 박제 15건 유지 동일, 차기 tick 부터 임계 회복 시 흡수 재개 또는 1 carve + 1 promote chain 으로 임계 유지 흡수).
+
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`7f98b83` → THIS (95차 tick) — reconcile 0/20 ack (20 spec 전수 stale +1 — 직전 94차 baseline `03dd376` 이후 외부 commit 1건 planner self-only `.planner-seen` append 한정 = src/ 0 + test/ 0 + config 0; 외부 src/test/config 변동 0 → 20 spec 전수 hook-ack 후보 0건 + 합법 빈 ack 의무 박제; 92차 정체 1차 → 93차 정체 2차 → 94차 정체 3차 → 본 95차 정체 4차 진입 = 시즌 2 누적 4 tick; 8+cycle stale 18 spec + 7cycle 1 spec (css-modules) + 4cycle 1 spec (tooling.md); FR-07 marker 2건 별 axis 차기 carve 대기 잔존 = planner self-decision 채널 선정 불가 양식 잔존 (planner 영역 진단 — 143차 자기 진단 박제: chain 단계 6 carve 대기 6차 누적 + chicken-egg 35차 dormant + decade x15+3 milestone)) + Phase 2 backpressure no-op (green 20 == GREEN_PENDING_MAX=20 정확 도달 — `>` 임계 비활성; 21 > 20 임계 초과로 carve 보류; 15 req 전수 별 spec carve 후보 — body-update 흡수 후보 0건; 차기 흡수 재개 조건 = planner promote ≥ 1 또는 격리 ≥ 1 또는 body-update 후보 신규 식별)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `15495d5` (94차 tick — Phase 1 0/20 ack 정체 3차 진입 + Phase 2 backpressure no-op 15 req 보류).
+#  - tick 진입 시 HEAD == `7f98b83` (spec(planner): 143차 tick — 142차 self commit 이후 inspector 94차 ack `15495d5` 진입 surface + `.planner-seen` self-only 64 line append + carve 0건 + promote 0건).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `7f98b83` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `15495d5` 후): 1건 (planner self 영역) —
+#     · `7f98b83` (spec(planner): 143차 tick — inspector 94차 ack `15495d5` baseline 진입 surface + spec 본문 변동 0 + carve 0건 + promote 0건 + FR-07 marker 2건 carve 후보 보류 6차 누적 (decade+5 milestone 통과 후 1차) + carve chain stale 재카운트 9차 누적 진입 (decade x15+3 milestone) + chicken-egg 35차 dormant 진입 + 7 tick unchecked 합산 164 100% 정합 baseline 박제. `.planner-seen` self-only 64 line append 한정 — green/test/config 본문 변동 0).
+#  - src/ 영역 commit = 0 (planner self self-only `.planner-seen` 한정 — green spec 영향 0).
+#  - test/spec 본문 commit = 0.
+#  - config 영역 commit = 0 (eslint.config.js / vite.config.js / package.json / scripts/*.sh / .husky/* / index.html / public/manifest.json 전수 변동 0).
+#  - spec marker 영향 후보 = 0 (외부 src/test/config 변동 0 → 20 spec 전수 hook-ack 후보 0건).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 디스크 실측 (apple-touch-icon / check-script-fail-fast / coverage-gate-exit-code / csp-meta-img-src / html-lang-attribute / html-title-manifest / husky-hook-line / manifest-pwa-install / package-json-browserslist / package-json-lockfile / prod-bundle / pwa-splash / viewport-meta / vite-build-sourcemap / vitest-coverage-exclude — 92차/93차/94차 종료 15건 동일 유지). 종료 시 15건 유지 (Phase 2 backpressure 보류 — green 20 == GREEN_PENDING_MAX=20).
+#  - 20 green spec hash 시작점 (직전 94차 박제 20 entry 유지 — 외부 src/config commit 0건으로 20 spec 전수 hash 동일):
+#    · 20 기존 spec 전수 hook-ack 후보 없음 → 20 spec 전수 stale_cycles += 1.
+#    · 8cycle 이상 stale 누적 후보: 94차 7cycle 이상 18 spec 본 95차 8+cycle 진입 (foundation 영역 14 spec 전수 + common 영역 3 spec 전수 + testing 영역 1 spec — runtime-fetch-unmount-safety) + styles/css-modules.md (89차 ack reset 후 본 95차 7차 진입) + foundation/tooling.md (91차 ack reset 후 본 95차 4차 진입).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `7f98b83` 비교): clean (planner 143차 self commit 흡수 — `.planner-seen` 변경 commit 됨 + 외부 working tree 변경 0).
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#  - 보조 측정 (RULE-04 notes 박제용):
+#    · `\[deferred:` spec md 실측: 7 hit / 1 spec (root-config-spec-reference-coherence.md — 93차/94차 박제 동일 잔존).
+#    · unchecked 합산 164 (137~94차 baseline 정합 — 외부 src/config commit 0 잔존 → marker hash 안정 = 본 95차 동일 잔존; 본 tick grep 재실측 = 164 정합).
+#    · WIP 0 + To-Be 0 (spec md 한정 — 본 tick grep 재실측 PASS).
+#    · 변경 이력 박제 전수 20 spec (헤더 §변경 이력 박제 누락 0).
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건):
+#  - 외부 src/test/config commit 0건 → 20 spec 전수 hook-ack 후보 0건.
+#  - 20 spec 전수 marker 직접 grep 재실측 (deferred 7 / WIP 0 / unchecked 164 / ToBe 0) — 직전 94차 baseline 보존 (91차→92차→93차→94차→95차 hook-ack 후 marker hash 안정 잔존).
+#  - **0 marker spec / 20 total spec → Phase 1 0/20 ack.** seen-state 갱신 (20 spec 전수 stale_cycles += 1). 92차 정체 1차 → 93차 정체 2차 → 94차 정체 3차 → 본 95차 정체 4차 진입 (66차 stale 16차 누적 chain 의 시즌 2 누적 4 tick).
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 15건 (92차/93차/94차 잔존 동일):
+#     · 본 tick 진입 시 green=20 == GREEN_PENDING_MAX=20 (정확 도달 — `>` 임계 비활성). 신규 carve 시 21 > 20 임계 초과 → carve 보류.
+#     · **body-update 경로 (sibling 신규 spec carve 아닌 기존 spec 본문 흡수) 만 허용** (89차 css-modules / 91차 tooling.md 흡수 동일 패턴).
+#  - 15 req 전수 재평가 (93차/94차 평가 잔존 동일):
+#     · 15 req 전부 신규 axis (별 spec carve 필요 — 자매 spec 부재 또는 자매 spec OOS 명시). 본 평가에서 body-update 흡수 가능 후보 0건 재확인.
+#     · 후보 평가 상세: REQ build artifact axis (prod-bundle / vite-build-sourcemap / vitest-coverage-exclude / coverage-gate-exit-code) 는 tooling.md 또는 build-coverage body-update 가능성 — 그러나 tooling.md 는 11 unchecked + 본문 line count 한계 근접 + 본문 위치 직교 불일치, body-update 후보 0 잔존. REQ HTML/PWA axis (apple-touch-icon / html-lang / html-title / manifest-pwa / pwa-splash / viewport-meta / csp-meta-img-src) 는 자매 spec foundation/index-html-* 또는 foundation/csp-meta-* 가능성 — 그러나 자매 spec OOS 명시 또는 별 axis 격리 양식, body-update 후보 0 잔존. REQ script axis (check-script-fail-fast / husky-hook-line) 는 자매 spec 부재 또는 별 axis, body-update 후보 0 잔존. REQ package-json axis (package-json-browserslist / package-json-lockfile) 는 자매 spec tooling.md (이미 limit 근접) 또는 별 axis, body-update 후보 0 잔존.
+#  - **15 req 전수 별 spec carve 후보 (body-update 흡수 후보 0건)**. green 20 == GREEN_PENDING_MAX=20 임계 정확 도달 → carve 0건 의무 (21 > 20 임계 초과). 본 tick **Phase 2 흡수 0건 + 격리 0건**.
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+) 또는 body-update 후보 신규 식별. 본 95차 ack 0 + green hash 안정 → 차기 inspector hook-ack 트리거는 외부 src/test/config commit 의존.
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (15 req 전수 보류, 20.req/ 디스크 큐 15건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 95차 tick 박제 + 20 spec 전수 stale_cycles += 1; append only)
+#  - green spec 본문 변동 0 (외부 src/test/config 변동 0 → hook-ack 후보 0건).
+#
+# RULE-01 writer-boundary 후보 위반 박제 잔존 (운영자 followup 영역 — 본 95차 inspector 영역 ack 의무만 수행):
+#  - 94차 박제 동일 — 140차 planner self commit `38f636c` 디스크 stat 에 `specs/30.spec/green/.inspector-seen | 59 ++` 동반 (writer 권한 부재 위반 후보). 본 95차 tick 도 격리/롤백 권한 없음. RULE-05 §Blocked 해제 경로 권장 잔존.
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/{task,spec,req}/ 디스크 0 file 잔존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/.inspector-seen append 1건 한정; 20.req/ 미이동; 40.task/ + 50.blocked/{task,spec,req} + 10.followups/ + 60.done/ 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (외부 변동 0 → 합법 빈 ack 의무 박제).
+# RULE-03 (d) 정합 — green 20 == GREEN_PENDING_MAX=20 (도달은 신규 carve 0건 의무) + body-update 후보 0건 → 흡수 0 + 격리 0 → backpressure no-op 정합.
+# RULE-07 자기 검증 — Phase 1 0 ack (외부 변동 0 → 합법 빈 ack). Phase 2 0 흡수 (15 req 전수 RULE-07 자기 검증 평서/반복/시점/incident PASS 이나 body-update 후보 0 + 신규 carve 임계 초과로 보류).
+#
+# 입력 큐 잔여: 15건 (94차 박제 15건 유지 동일, 차기 tick 부터 임계 회복 시 흡수 재개 또는 1 carve + 1 promote chain 으로 임계 유지 흡수).
