@@ -7167,3 +7167,62 @@ node-modules-extraneous-coherence 2f8821c207135cb91057c1c7a88f0f9a0af1cdcc01ae68
 #   (5) **carve chain stale 2차 진입 박제 강화** — 본 tick carve 0건 / 0건-blocked = no-carve/no-blocked 양식 → 2차 진입. 정체 사유는 chain 단계 5/5 부분 진척 발화 후 inspector 85차+ root-config hook-ack 대기 정합 — pipeline 자율 회복 한계 아닌 정식 진행 대기.
 #   (6) **RULE-03 선결 점검 정합** — 본 tick (122차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (0/10) + pause lock 부재 → 처리 진입. carve 0건 + promote 0건 + blocked 0건 = no-carve no-promote no-blocked 양식 = pipeline 처리 대기 정합 (fail-fast 비해당). RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 true (입력 큐 처리 결과 외부 산출물 0건 + 메타 박제 1건 — 메타만 박제는 no-op 정합).
 #   (7) **122차 핵심 박제 — chain 단계 4/4 처리 통과 + chain 단계 5/5 부분 진척 (decade+12 통과)** — TSK-15 done (`80c08a1`) 통과 + inspector 84차 (`fc72d17`) markdownParser+sanitizeHtml hook-ack 발화 + pipeline 자율 회복 chain 단계 4/4→5/5 부분 진척 발화. carve 0건 + promote 0건 정합 박제 + RULE-02 비대화 정합 (planner 재시도/재발행 금지) + 직전 121차 박제 결정 정합 유지 (root-config promote 는 inspector 85차+ hook-ack 후 평가 / manifest+robots promote 는 stale 회복 chain 활성 후 평가). stale/promote/chicken-egg 20차 누적 (decade+10) + carve chain stale 2차 누적 + 양식 mismatch 12차 누적 회피 정합. 123차+ 진입 시 우선순위: (a) inspector 85차+ root-config hook-ack 진행 모니터링 (최상 — chain 단계 5/5 root-config axis 진척 신호), (b) REQ-018 후속 carve 표면 평가, (c) eslint-react-hooks 양식 (e) carve 평가 재진입, (d) 2 PASS 후보 promote 재평가 chain.
+
+# 2026-05-18 planner session (123차 tick @HEAD=e8af0fd) — chain 단계 5/5 root-config hook-ack 대기 1 tick 누적 진입 (decade+13 통과). 직전 122차 박제 baseline `e8af0fd` 이후 외부 commit 0건 — 모든 큐 변동 0 (10.followups 0 + 20.req 14 + 40.task 0 + 50.blocked/{task,spec,req} 0 + 30.spec/green 20 spec 전수 본문 hash 동일 + 30.spec/blue 27 spec 전수 본문 hash 동일).
+#
+# 123차 진입 시점 큐 측정 (HEAD=`e8af0fd` 실측):
+#   - 30.spec/green/** = 20 spec (foundation 15 + common 3 + styles 1 + testing 1; 본 tick 변동 0).
+#   - 30.spec/blue/** = 27 spec (변동 0).
+#   - 40.task/ = 0건 (변동 0). 50.blocked/task/ = 0건 (영구 비움 유지). 60.done/2026/05/18/task/ = 11 (변동 0).
+#   - 50.blocked/spec/foundation/ = 0건 (영구 비움 유지). 50.blocked/req/ = 0건 (영구 비움 유지).
+#   - 10.followups/ = 0건. 20.req/ = 14건 (변동 0).
+#   - working tree clean (HEAD `e8af0fd` 기준 modified 0).
+#
+# 선결 점검 (RULE-03):
+#   (1) pause lock 부재 (`.claude/locks/` 디렉터리 자체 부재) — pass.
+#   (2) input queue 비어있지 않음 (20 spec) — pass.
+#   (3) TASK_READY_MAX=10 미달 (40.task/ = 0건 → 처리 진입 시 10건 여유) — pass.
+#   → 처리 진입.
+#
+# 처리 결과:
+#   carve: 0건 — 본 tick 신규 carve surface 부재 (직전 122차 박제 결정 정합 유지 — 외부 commit 0건으로 변동 0):
+#     (a) root-config axis = inspector 85차+ hook-ack 대기 (G-B/G-C/FR-02/FR-03/FR-06/FR-07 6 marker flip + 시점 비의존 누적 +1) — 동일 axis 재 carve 시 axis 충돌 (재시도 금지 RULE-02 비대화 정합). TSK-15 done 통과 후 1 tick 누적 대기 진입.
+#     (b)(c)(d) markdownParser/sanitizeHtml unchecked 잔존 (I6 mixed-type / I2 caller / I5 fixture / FR-02-b caller / FR-02-c fixture) — 모두 별 task 위임 또는 별 spec carve 영역. 본 axis 는 planner 영역 carve 표면 부재.
+#     (e) eslint-react-hooks operational baseline recovery — 직전 122차 박제 결정 정합 유지: plugin 미설치 baseline 측정 불가 (3-state 측정 불가) + §carve-precondition P2 (tooling.md + lint-warning-zero-gate.md green→blue 의존) 잔존.
+#     (f) recovery task axis = 120차 TSK-15 발화로 소진 + 122차 TSK-15 done 통과로 chain 단계 4/4 처리 완료. 추가 carve 표면 부재.
+#     (g) REQ-018 흡수 후속 별 spec axis (caller-side sanitize 호출 lint rule 별 spec) — 미발화 잔존.
+#     (h) src test green path 주석 갱신 axis (manifest+robots+meta-desc+csp+mount-id+public-asset 6 file `specs/30.spec/green/foundation/...` 잔존) — chicken-egg coupling 본질. promote (planner writer) + src test 갱신 (developer writer) 단일 PR 묶음 필수하나 writer 영역 격차로 분할 불가 — 해결책은 inspector spec FR 박제 (fixture 약결합 — green/blue 양면 path 허용 또는 spec path 토큰 추출 변환). 본 axis 는 planner 영역 carve 표면 부재.
+#   promote: 0건 — 2 PASS 후보 (manifest-icons-sizes + meta-robots) 재실측:
+#     - manifest-icons-sizes-token-disk-coherence: WIP=0 + unchecked=7 (deferred 7 전수 → remain=0) + To-Be=0 + 변경이력 hist=2 → 4조건 전수 PASS.
+#     - meta-robots-robotstxt-policy-semantic-coherence: WIP=0 + unchecked=4 (deferred 4 전수 → remain=0) + To-Be=0 + 변경이력 hist=2 → 4조건 전수 PASS.
+#     - 단 chicken-egg coupling 21차 누적 도달 (102차부터 21 tick 연속 정체 — 102~123차) — promote stale gate ↔ src test 주석 갱신 ↔ inspector hook-ack ↔ planner promote 4-축 상호 의존. stale 게이트 baseline 재확인: `src/__tests__/manifest-icons-sizes-token-disk-coherence.test.ts:2` + `src/__tests__/robots-policy-coherence.test.ts:3` 의 `specs/30.spec/green/foundation/...` 잔존 박제 (HEAD `e8af0fd` 재실측 통과). 본 tick promote 시도 → 멱등 위반 20차 → 21차 누적 진입 (같은 입력 = HEAD 격차 src test 주석 0건 + 같은 G2 게이트 잔존 + 같은 spec 본문 hash → 같은 결과 역이동). 직전 122차 박제 결정 (`fail-fast 비해당 — 재시도 금지 RULE-02 비대화 정합`) 유지: chain 단계 5/5 부분 진척 발화 (84차 markdownParser/sanitizeHtml hook-ack — root-config 직교) 정합하나 promote stale 회복 trigger 부재 → 21차 누적 회피 결정 정합.
+#     - blocked spec 이동 회피 결정 유지: 본 2 spec 자체 promote 4조건 PASS (spec 본문 결함 부재) — 정체 사유는 외부 chain 의존 (chicken-egg coupling) → blocked reason 부재 → 격리 시 RULE-05 /revisit 경로 부적합 (사람 운영자 결정 불필요). 단 21 tick 누적 → 다음 124차+ 진입 시 chain 단계 5/5 root-config hook-ack 발화 후 stale 회복 가능성 평가.
+#   blocked spec ingest: 0건 (50.blocked/spec/ 변동 0 — 영구 비움 유지).
+#
+# **Task ID footprint** (123차 박제 — 신규 채번 0건): 누적 footprint: `TSK-20260517-01~31` + `TSK-20260518-01~15` 유지 (재사용 영구 금지). 124차+ 신규 carve 시 `TSK-20260518-16` 부터. 본 tick grep 재검증: `grep -rln "TSK-20260518-16" specs/{40.task,60.done,50.blocked,10.followups,20.req}/` 박제 전 0 hit (rc=1) PASS — 본 tick 채번 0건이므로 footprint 갱신 없음.
+#
+# **chain 단계 진척 박제 — 123차 milestone**:
+#   - chain 단계 1/4 [blocked → followups] 통과 (114차 4 surface revive 정식 진입) — 유지.
+#   - chain 단계 2/4 [followups → discovery → req] 통과 (116~117차 4/4 전수 discovery 흡수 발화) — 유지.
+#   - chain 단계 3/4 [req → spec] 통과 (120차 + 122차 inspector 흡수 3/3 전수 통과 — 정식 통과 기준 충족) — 유지.
+#   - chain 단계 4/4 [spec → task → developer src/] 통과 (TSK-15 done 진입 `80c08a1`) — 유지.
+#   - **chain 단계 5/5 [developer src/ → spec hook-ack → green→blue promote] 부분 진척 잔존 (122차 inspector 84차 markdownParser+sanitizeHtml hook-ack 발화 — REQ-018 axis 한정) + root-config hook-ack 대기 1 tick 누적 진입** (inspector 85차+ 미발화 잔존 — 본 tick 외부 commit 0건으로 1 tick 누적).
+#
+# **양식 mismatch 12차 누적 회피 정합** — 본 tick carve 0건 발화 → 양식 mismatch 측정 N/A (mismatch 카운트 진입 없음 — 정합 carve 없음 + 정합 mismatch carve 없음 = 양식 mismatch 진입 0 / 정합 유지).
+#
+# **carve chain stale 3차 진입 박제** — 직전 122차 2차 진입 후 본 123차 carve 0건 + blocked 0건 = no-carve/no-blocked 양식 = 3차 누적 진입. 단 정체 사유는 chain 단계 5/5 부분 진척 발화 후 root-config hook-ack 대기 정합 — pipeline 자율 회복 한계 아닌 정식 진행 대기 (`fail-fast` 비해당 — 재시도 금지 RULE-02 비대화 정합).
+#
+# **123차 milestone 박제 — chain 단계 5/5 root-config hook-ack 대기 1 tick 누적 진입 (decade+13 통과)**:
+#   - **123차 milestone (decade x12 + 3)**: 102차 (stale 게이트 신규 발견 / chicken-egg coupling 신규 박제) → 123차 (21 tick 정체 진입; chain 단계 5/5 부분 진척 발화 후 root-config hook-ack 대기 1 tick 누적 — 정식 진행 양식).
+#   - **stale 게이트 21차 누적 + promote 재시도 회피 21차 + chicken-egg coupling 21차** (decade+11 milestone — 모두 동시 도달). 단 chain 단계 5/5 부분 진척 — 회복 trigger 활성 잔존: inspector 85차+ root-config hook-ack 진행 시 + manifest/robots 의 spec FR 박제 (fixture 약결합 — green/blue 양면 path 허용) 발화 시 stale 회복 가능.
+#   - **carve chain stale 3차 진입** (decade+5 milestone 회피 — 121차 1차 진입 → 122차 2차 진입 → 123차 3차 진입 누적; 단 정체 사유는 chain 단계 5/5 부분 진척 발화 후 inspector 85차+ root-config hook-ack 대기 정합 — 양식 mismatch 아님).
+#   - **양식 mismatch 12차 누적 회피 정합** — 본 tick carve 0건 발화로 양식 mismatch 측정 N/A (정합 유지).
+#
+# **다음 세션 (124차) 행동지침**:
+#   (1) **inspector 85차+ root-config hook-ack 진행 모니터링 — 우선순위 최상** — TSK-15 done (`80c08a1`) 통과 후 inspector 85차+ Phase 1 ack chain 진행 시 root-config-spec-reference-coherence.md 의 G-B + G-C + FR-02 + FR-03 + FR-06 + FR-07 marker `[ ]→[x]` 6건 동시 플립 + 시점 비의존 누적 사례 +1 (G-E §FR 누적). 본 hook-ack 발화 후 root-config promote 후보 진입 평가 가능 (unchecked 11건 - deferred 5 = 6 비-deferred 마커 → 6 marker flip 후 unchecked 0 = 4조건 PASS 가능).
+#   (2) **eslint-react-hooks operational baseline recovery 양식 (e) 평가 재진입** — plugin 미설치 baseline 측정 불가 잔존 + §carve-precondition P2 (tooling.md + lint-warning-zero-gate.md green→blue 의존) 잔존. root-config promote 후 별 carve 평가.
+#   (3) **REQ-018 markdownParser-attr-escape-sanitize-defense-in-depth 흡수 후속 carve 표면 평가** — inspector 84차 흡수 발화 후 markdownParser/sanitizeHtml 의 unchecked 1~4건 잔존 — 모두 별 task 위임 또는 별 spec carve 영역. 본 axis 는 planner 영역 carve 표면 부재 — 별 spec 발화 axis (예: caller-side sanitize 호출 lint rule 별 spec) 발화 시 carve 평가.
+#   (4) **2 PASS 후보 manifest-icons-sizes + meta-robots promote 21차 정체 잔존 모니터링** — chicken-egg coupling 본질 (src test green path 주석 잔존 ↔ promote 시 G-C STALE 위반). 해결책: inspector spec FR 박제 (fixture 약결합 — green/blue 양면 path 허용 또는 spec path 토큰 추출 변환). inspector 85차+ axis 박제 발화 시 stale 회복 chain 활성 가능.
+#   (5) **carve chain stale 3차 진입 박제 강화** — 본 tick carve 0건 / 0건-blocked = no-carve/no-blocked 양식 → 3차 진입. 정체 사유는 chain 단계 5/5 부분 진척 발화 후 inspector 85차+ root-config hook-ack 대기 정합 — pipeline 자율 회복 한계 아닌 정식 진행 대기.
+#   (6) **RULE-03 선결 점검 정합** — 본 tick (123차) input queue (`30.spec/green/**` 20 spec) 비어있지 않음 + TASK_READY_MAX=10 미달 (0/10) + pause lock 부재 → 처리 진입. carve 0건 + promote 0건 + blocked 0건 = no-carve no-promote no-blocked 양식 = pipeline 처리 대기 정합 (fail-fast 비해당). RULE-04 보고 블록 + 메타 박제 (.planner-seen) 박제 정합. no-op 토큰 true (입력 큐 처리 결과 외부 산출물 0건 + 메타 박제 1건 — 메타만 박제는 no-op 정합).
+#   (7) **123차 핵심 박제 — chain 단계 5/5 root-config hook-ack 대기 1 tick 누적 진입 (decade+13 통과)** — 직전 122차 박제 baseline `e8af0fd` 이후 외부 commit 0건 = 모든 큐 변동 0 + 모든 spec 본문 hash 동일 → 멱등 양식 carve 0건 + promote 0건 정합 박제 + RULE-02 비대화 정합 (planner 재시도/재발행 금지) + 직전 122차 박제 결정 정합 유지. stale/promote/chicken-egg 21차 누적 (decade+11) + carve chain stale 3차 누적 + 양식 mismatch 12차 누적 회피 정합. 124차+ 진입 시 우선순위: (a) inspector 85차+ root-config hook-ack 진행 모니터링 (최상 — chain 단계 5/5 root-config axis 진척 신호), (b) REQ-018 후속 carve 표면 평가, (c) eslint-react-hooks 양식 (e) carve 평가 재진입, (d) 2 PASS 후보 promote 재평가 chain.
