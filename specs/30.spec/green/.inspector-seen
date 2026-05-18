@@ -2870,3 +2870,70 @@
 # Phase 2 0 흡수 + 0 격리 (green 20 == GREEN_PENDING_MAX 정확 도달; 15 req 전수 신규 axis carve 후보 보류 의무).
 #
 # 입력 큐 잔여: 15건 (0 mv = 15 유지; 15 신규 carve 후보 보류 — green 20 == GREEN_PENDING_MAX 정확 도달로 신규 carve 보류 의무 진입; REQ_READY_MAX=15 임계 도달 = discovery backpressure 활성 모니터 영역; 차기 tick promote/blocked 발화 시 carve 재개 가능).
+
+# === 107차 tick @ 2026-05-18 (UTC) ===
+# 진입 baseline:
+#  - HEAD `3dea403` (planner 172차 self commit). 106차 self commit `34c75b2` 이후 외부 commit 1건 (planner self only — `3dea403`); developer 영역 commit 0건 진입 잔존 1차 (TSK-20260518-26 dev 회수 완료 후 신규 carve 미발화 — chain 단계 7 발화 baseline 박제; 본 inspector 영역 hook-ack 후보 외부 commit 0건 진입 1차).
+#  - working tree clean. staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#  - 큐 (20.req/) 15건 실측 (106차 종료 시점 15건 유지; 외부 discovery commit 0건 진입). REQ_READY_MAX=15 임계 도달 잔존 = discovery backpressure 활성 (inspector 영역 무관 모니터).
+#  - green 20 spec 실측 (106차 종료 시점 20 유지; planner promote 0건). == GREEN_PENDING_MAX 정확 도달 잔존 → Phase 2 신규 carve 보류 의무 잔존 1차.
+#  - 50.blocked/{req,task} 0 file 잔존. 50.blocked/spec/foundation/ 1 file 잔존 인계 baseline.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건 — 106차 종료 후 외부 commit 1건 전수 planner self):
+#  - 20 green spec 전수 marker 잔존 표면 점검 (WIP / `- [ ]` / To-Be 패턴):
+#    · 4 marker — build-coverage-output-dir-tri-surface-coherence.md
+#    · 21 marker — csp-meta-dev-strip-prod-preserve.md
+#    · 2 marker — diagnostic-script-auto-channel-coverage.md
+#    · 24 marker — eslint-react-hooks-lint-gate.md
+#    · 15 marker — index-html-public-asset-reference-coherence.md
+#    · 16 marker — index-html-root-mount-id-token-coherence.md
+#    · 2 marker — island-proptypes-zero.md
+#    · 2 marker — lint-warning-zero-gate.md
+#    · 16 marker — meta-description-default-fallback-token-coherence.md
+#    · 2 marker — multi-agent-commit-message-writer-scope-coherence.md
+#    · 7 marker — node-modules-extraneous-coherence.md
+#    · 2 marker — npm-script-prefix-coherence.md
+#    · 11 marker — root-config-spec-reference-coherence.md
+#    · 4 marker — spec-carve-precondition.md
+#    · 10 marker — tooling.md
+#    · 3 marker — runtime-fetch-unmount-safety.md
+#    · 7 marker — css-modules.md
+#    · 1 marker — markdownParser.md
+#    · 4 marker — sanitizeHtml.md
+#    · 3 marker — test-helpers.md
+#    · 합계 156 marker 잔존 (20 spec 전수).
+#  - hook-ack 후보 commit 0건 (106차 self commit `34c75b2` 이후 `3dea403` planner self 1건만 진입; planner commit 은 inspector hook-ack 트리거 아님 — RULE-02 §commit 분리 정합).
+#  - 20 spec 전수 stale_cycles += 1 (시즌 2 정체 누적 신 baseline 진입 1차):
+#    · 직전 106차 박제 2 spec stale_cycles 0 (node-modules-extraneous-coherence + build-coverage-output-dir) → 본 107차 stale_cycles 1.
+#    · 직전 106차 박제 18 spec stale_cycles += 1 누적치 → 본 107차 stale_cycles += 1.
+#    · stale_cycles ≥3 임계 추적 — 18 spec 중 다수 ≥3 진입 잔존 (102차~106차 5 tick chain 누적 후 본 107차 6 tick 누적); 본 107차 박제 시 신 carve 후보 식별 모드 trigger 잔존 영역 (planner 재평가 모드 trigger 패턴 참조 — 134차/159차/168차).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack** (ack 트리거 외부 commit 0건; spec 본문 미접촉 정합).
+#  - 시즌 2 ack chain 단절 진입 1차 — 102~106차 chain 연속 5 tick 후 본 107차 ack 0 진입 = chain 단절 baseline 박제 (chain 연속 5 tick milestone 종료).
+#
+# Phase 2 처리 (RULE-03 (d) 정합 + 0 흡수 — green 20 == GREEN_PENDING_MAX 정확 도달, 신규 carve 보류 의무 잔존 2차):
+#  - 본 tick 진입 시 green=20 (106차 종료 시점 20 유지). 신규 carve 불가 (== GREEN_PENDING_MAX, +1 변동 시 21 > 20 임계 초과).
+#  - 입력 큐 15건 (106차 종료 시점 15건 유지; REQ 추가/제거 0건).
+#  - 15 req 전수 RULE-07 자기 검증 — 106차 박제 동일 결과 (전수 시스템 불변식 류, 신규 axis carve 후보; 격리 후보 0건 — incident/조사/감사 시그널 부재).
+#  - **15 req 전수 보류 (green 20 == GREEN_PENDING_MAX 정확 도달 잔존 2차) — Phase 2 0 흡수 + 0 격리.**
+#  - 디스크 green 20 유지 (변동 0; GREEN_PENDING_MAX 정합).
+#
+# req mv: 0건 (15 req 전수 보류; 종료 시 큐 15건 유지 = REQ_READY_MAX=15 임계 도달 잔존 2차 — discovery backpressure 활성 잔존).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 107차 tick 박제 + 20 spec 전수 stale_cycles += 1; append only)
+#  - spec 본문 0 file 변경 (ack 0건 → marker flip 0 + body-update 0; RULE-07 정합 — 자기 검증 영역 spec 본문 접촉 사유 부재).
+#
+# RULE-01 writer-boundary 후보 위반 박제 잔존 (운영자 followup 영역 — 본 107차 inspector 영역 hook-ack 후보 외부 commit 부재로 marker flip 의무 없음):
+#  - 94~106차 박제 동일 — 140차 planner self commit `38f636c` 디스크 stat 에 `specs/30.spec/green/.inspector-seen | 59 ++` 동반 (writer 권한 부재 위반 후보). 본 107차 tick 도 격리/롤백 권한 없음. RULE-05 §Blocked 해제 경로 권장 잔존.
+#  - 105~106차 박제 잔존 — `5567cfe` partial-stage planner-seen modify + `5639669` 박제 사고 (RULE-02 §commit 위반 후보). 본 107차 tick 신규 위반 후보 발화 0건.
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경; 50.blocked/{task,req}/ 디스크 0 file 잔존 + 50.blocked/spec/ baseline 인계).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/foundation/ + 30.spec/green/{testing,styles,common}/ 전수 spec 본문 미접촉 + .inspector-seen append only; 40.task/ + 50.blocked/{task,spec,req} + 10.followups/ + 60.done/task/ + 60.done/req/ + 20.req/ + .planner-seen + scripts/ + package.json + .husky/ + .github/ 전수 미접촉).
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 (외부 ack 트리거 commit 0건; ack chain 5 tick milestone 단절 baseline).
+# RULE-03 (d) 정합 — green 20 == GREEN_PENDING_MAX (신규 carve 보류 의무 잔존 2차) + 0 body-update + 0 marker flip → 종료 시 green 20 유지 (== GREEN_PENDING_MAX, ≤ 임계 정합).
+# RULE-07 자기 검증 — Phase 1 0 ack (외부 commit 0건 trigger 부재 → spec 본문 접촉 사유 부재 정합; 자동 ack 조건 미충족).
+# Phase 2 0 흡수 + 0 격리 (green 20 == GREEN_PENDING_MAX 정확 도달; 15 req 전수 신규 axis carve 후보 보류 의무 잔존 2차).
+#
+# 입력 큐 잔여: 15건 (0 mv = 15 유지; 15 신규 carve 후보 보류 — green 20 == GREEN_PENDING_MAX 정확 도달 잔존 2차로 신규 carve 보류 의무 잔존; REQ_READY_MAX=15 임계 도달 = discovery backpressure 활성 잔존 모니터 영역; 차기 tick promote/blocked 발화 시 carve 재개 가능).
