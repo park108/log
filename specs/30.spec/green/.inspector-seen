@@ -1332,3 +1332,82 @@
 # RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 1 흡수 / cross-surface 2 spec 갱신 (REQ-018 시스템 불변식 평서형 + 반복 검증 + incident 비귀속 PASS).
 #
 # 입력 큐 잔여: 14건 (REQ-004/005/006/007/008/009/010/011/012/013/014/015/016/017 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토).
+#
+# ============================================================================
+# 2026-05-18 @ baseline HEAD=`e8af0fd` → THIS (85차 tick) — reconcile 0/20 ack (정체 10차 누적 — 외부 src/ commit 0건; 직전 84차 baseline `fc72d17` 이후 외부 commit 2건 = `80c08a1` developer fix TSK-15 회수 + `e8af0fd` planner 122차 self-only chain 단계 4/4→5/5 부분 진척 박제) + Phase 2 REQ-20260518-013 흡수 1건 (tooling.md §동작 9 신규 박제 — `eslint.config.js:15` flat-config `ignores` 5 패턴 vacuous-zero 결과 효능 axis; green 카운트 변동 0 = 20 유지; ack 정체 10차 = decade milestone 정확 도달)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `fc72d17` (84차 tick — Phase 1 0/20 ack 정체 9차 + Phase 2 REQ-018 cross-surface 흡수 1건 markdownParser/sanitizeHtml 2 spec 본문 갱신 경로 — green 카운트 변동 0).
+#  - tick 진입 시 HEAD == `e8af0fd` (spec(planner): 122차 tick chain 단계 4/4 처리 통과 + chain 단계 5/5 부분 진척 (decade+12 통과) 박제 — TSK-15 done (`80c08a1` developer fix root-level sh script green→blue + fixture baseline 동시 갱신) + inspector 84차 (`fc72d17`) markdownParser.md + sanitizeHtml.md REQ-018 cross-surface 흡수 발화 통과).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `e8af0fd` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `fc72d17` 후): 2건 —
+#     · `80c08a1` (fix: root-level sh script green→blue 토큰 치환 + fixture baseline 동시 갱신 — TSK-20260518-15 회수, `scripts/check-{node,package-manager,vite-env}-coherence.sh` 3 sh script + fixture 5 const 동시 갱신, developer 영역 commit. green/blue spec 본문 변동 0, src/ 영역 변동 0 — sh script + fixture 영역 한정 변동).
+#     · `e8af0fd` (spec(planner): 122차 tick self-only `.planner-seen` 92 line 추가 — chain 단계 4/4 처리 통과 + chain 단계 5/5 부분 진척 (decade+12 통과) 박제. green/blue 본문 변동 0).
+#  - src/ 영역 commit = 0 (`80c08a1` 은 scripts/ + fixture 영역, src/ 비접촉).
+#  - sh script + fixture 영역 commit = 1 (`80c08a1` developer 영역 한정).
+#  - spec marker 영향 후보 = 0 (sh script + fixture 영역은 spec 본문 직접 영향 0 — root-config-spec-reference-coherence.md REQ-020 흡수 본문은 sibling task TSK-15 회수 surface, planner 영역에서 별도 promote 판단 대기).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 14건 유지 (REQ-004~017 — 84차 REQ-018 흡수 후 잔존). 종료 시 13건 (REQ-013 mv).
+#  - 40.task/ 디스크: 0건 (TSK-15 60.done 진입). 50.blocked/task/ + 50.blocked/req/ + 50.blocked/spec/ + 10.followups/ 디스크: 0건.
+#  - 20 green spec hash 시작점 (직전 84차 박제 20 entry 유지 — 본 tick REQ-013 흡수로 tooling.md 1 spec 본문 갱신 → tooling.md stale_cycles 0 초기화 + 19 spec stale_cycles += 1; 8 stale ≥46cycle 외부 의존 누적 46-cycle milestone 진입).
+#  - 본 tick 진입 시 working tree 상태 (HEAD `e8af0fd` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0 + unstaged 0.
+#    · git status clean.
+#
+# Phase 1 reconcile 처리 (외부 src/ commit 0 — ack 트리거 0):
+#  - 본 tick 외부 src/ 영역 commit = 0 (`80c08a1` 은 scripts/ + fixture 영역). spec marker flip 후보 0.
+#  - 20 green spec 전수 hook-ack 후보 없음 — 20 spec 전수 stale_cycles += 1 진입 (단 본 tick Phase 2 흡수 1 spec [tooling.md] 은 본문 갱신 직후 stale_cycles 0 초기화).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack (정체 10차 누적 = decade milestone 정확 도달).** seen-state 갱신.
+#  - 15차 ack 흐름 trail: 67차 4 → 68차 6 → 69~71차 0 → 72차 6 → 73차 13 → 74차 5 → 75차 22 (정점) → 76~84차 0 (정체 9차) → 85차 0 (정체 10차 = decade milestone 정확 도달). Phase 2 흡수 surface 발화 (REQ-013/018/019/020 4 흡수 누적) 가 외부 src/ commit 후속 chain 활성 surface 진입 — planner 122차 박제 명시 "chain 단계 5/5 부분 진척" 정합. tooling.md §동작 9 박제 후 (P-4 vacuous baseline FAIL 평서화) 가 planner 영역 후속 task carve surface 신규 형성 (해소 수단 패턴 제거/정정/실재 경로 도입 어느 쪽이든 — planner 양식 (g) 후속 carve 가능 surface).
+#
+# Phase 2 처리 (RULE-03 (d) 해석 + 본문 갱신 흡수 경로 결정):
+#  - 입력 큐 14건 진입 — 84차 흡수 후 잔존 REQ-004~017. RULE-03 (d) 해석:
+#     · green=20 == GREEN_PENDING_MAX=20 → **미초과** (`>` 임계 비활성).
+#     · 기존 spec 본문 갱신 경로 (sibling carve 아닌 흡수) 시 green 카운트 동일 유지 (20 → 20) → 임계 비변동 → 본 tick + 차기 tick 모두 임계 정합 유지.
+#  - **흡수 결정**: REQ-013 §자매 spec 격리 명시 — `30.spec/{blue,green}/foundation/tooling.md` 의 `ignores:` 배열 (`eslint.config.js:15`) 박제된 패턴 vacuous-zero axis 가 미박제 영역, 본 req 가 그 별 axis 박제 요청. tooling.md 본문 갱신 경로 = green 카운트 동일 유지. 직전 51d44cc inspector tick REQ-058 흡수 (tooling.md §동작 6 last-write-wins) 직후 §동작 9 ignores vacuous-zero axis 추가 = inverse axis 흡수 (rules merge ↔ ignores vacuous-zero 직교).
+#  - REQ-004~012/014~017 13건은 신규 spec carve 후보 (또는 일부 본문 갱신 후보) — green 카운트 변동 가능성 — 본 tick 보류 유지 (RULE-03 (d) 보수 해석 정합).
+#
+# Phase 2 흡수 처리 (REQ-013 tooling.md §동작 9 신규 박제):
+#  - 흡수 spec: `30.spec/green/foundation/tooling.md` (REQ-028/053/058/075/078/095 선행 spec, 9번째 불변식 추가).
+#  - 본문 갱신:
+#     · 헤더: `관련 요구사항` REQ-20260518-013 추가 / `최종 업데이트` 2026-05-18 85차 tick 갱신.
+#     · §역할: "9건" 으로 갱신 + out-of-scope 3건 추가 (`ignores` 이외 영역 / vacuous 해소 수단 / 발화 시점 채널 선정).
+#     · §동작 9: 9.1 배열 길이 5 박제 / 9.2 5 패턴 hit ≥ 1 결과 효능 (baseline 5/5 axis 중 4 PASS / **P-4 1 FAIL vacuous**) / 9.3 자동 검출 채널 계약 / 9.4 self-reference circularity 회피 scope 분리 / 9.5 수단 중립 5 sub-항목.
+#     · §회귀 중점 5건 증분: 배열 길이 5 변경 / 5 패턴 vacuous 진입 / `ignores` 외 영역 axis 자동 편입 금지 / R-1~R-5 회귀 시나리오.
+#     · §스코프 규칙 grep-baseline gate (x)(y)(z) 3건 실측 박제 (HEAD=`e8af0fd`):
+#        - (x) `grep -nE "^\s*\{\s*ignores:" eslint.config.js` → 1 hit @`:15` (5 entries).
+#        - (y) 5 패턴 cardinality 실측 — y-1 P-1=1, y-2 P-2=1, y-3 P-3=1, **y-4 P-4=0 (vacuous baseline FAIL)**, y-5 P-5=2. 5/5 axis 중 4 PASS / 1 FAIL.
+#        - (z) `awk '/^### 9\./,/^### 회귀 중점/' tooling.md | grep -cE "기본값\|권장\|우선\|default\|best practice\|먼저"` → 0 hit (수단 라벨 0).
+#     · §rationale 갱신: gate (x)/(y)/(z) 평서화 + P-4 vacuous baseline FAIL 박제 (해소 수단 planner 영역 task carve 대기).
+#     · §테스트 현황 7 marker (FR-01~07) 증분 — FR-01/02/03/04/06 즉시 `[x]`, **FR-05 `[ ]` (P-4 vacuous baseline 위반 박제 — 해소 수단 planner 영역 task carve 대기, 회복 시점 marker flip)**, FR-07 `[ ]` (발화 채널 선정 planner 영역 대기).
+#     · §수용 기준 12 marker 증분 (FR-01~07 + NFR-01/02/04/06/07/03/05) — FR-01/02/03/04/06 + NFR-01/02/04/06/07/03/05 즉시 `[x]`, FR-05/07 `[ ]` 유보.
+#     · §변경 이력: 85차 tick row 1행 박제.
+#     · §참고 REQ 원문: REQ-013 mv pointer 추가.
+#  - 본 inspector 변경 표면 1 파일 한정 (`eslint.config.js` + `package.json` + 다른 spec 변경 0).
+#  - RULE-07 자기 검증 PASS:
+#     · (1) 평서 — "eslint.config.js:15 박제 5 패턴 각각이 repo root 트리 매치 hit ≥ 1 을 유지한다" 시스템 효능 불변식.
+#     · (2) 반복 검증 가능 — `grep -nE` + `find -maxdepth` 단일 명령 + cardinality count.
+#     · (3) 시점 비의존 — ESLint 메이저 bump · `build.outDir` 변경 · `__tests__` ↔ `__test__` 명명 변경 등 이벤트 비귀속, baseline HEAD `e8af0fd` 좌표는 measure anchor + §변경 이력 감사 pointer 한정.
+#     · (4) incident 비귀속 — P-4 vacuous baseline FAIL 박제는 위반 사실의 평서화 (시스템 효능 계약의 baseline 측정 anchor), 특정 incident patch 비귀속.
+#     · (5) 수단 중립 — vacuous 해소 (a) 패턴 제거 (b) 패턴 정정 (`**/__tests__/**`) (c) 신규 경로 도입 / 발화 채널 (pre-commit / pre-push / CI / 신규 script) 어느 쪽이든 수용, 우선순위 라벨 0.
+#     · (6) self-reference circularity 회피 명시 — §동작 9.4 specs/** 본문 내 패턴 토큰 occurrence 가 measure scope 외 평서화 = 본 §동작 9 본문이 `**/__test__/*.js` 인용한다고 해서 P-4 hit 가 증가하지 않는다는 scope 분리 계약.
+#
+# req mv: 1건 (REQ-013 → `60.done/2026/05/18/req/`, 20.req/ 디스크 큐 14 → 13).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/foundation/tooling.md (REQ-013 흡수 — 헤더 갱신 + §역할 9건 + out-of-scope 3건 + §동작 9 [9.1~9.5] 신규 + §회귀 중점 5건 + §스코프 grep-baseline (x)(y)(z) + rationale 갱신 + §테스트 현황 7건 + §수용 기준 12건 + §변경 이력 1행 + §참고 REQ 원문 1건. 최종 line count 288)
+#  - specs/20.req/20260518-eslint-flat-config-ignores-pattern-vacuous-zero-axis.md → specs/60.done/2026/05/18/req/ 1건 mv (REQ-013)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 85차 tick 박제 + tooling.md stale_cycles 0 초기화 + 19 spec stale_cycles += 1)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경. 외부 commit `80c08a1` 의 scripts/ + fixture 영역 변경은 developer 영역 — inspector 영역 밖 미접촉 정합.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용; 기존 origin/master 격차 그대로 유지).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 본문 갱신 1 파일 + `.inspector-seen` edit 한정; `.planner-seen` 미접촉; 20.req/ 1 req mv only; 40.task/ + 50.blocked/ + 10.followups/ 미접촉; 60.done/req/ 신규 진입).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack (정체 10차 = decade milestone 정확 도달, 8 stale ≥46cycle 46-cycle milestone)` 박제 (RULE-04 매 세션 필수).
+# RULE-03 (d) 해석 적용 — green 20 == GREEN_PENDING_MAX=20 미초과 + 본문 갱신 경로 흡수 1 req / 1 spec (green 카운트 동일 유지 — sibling carve 아닌 본문 갱신 흡수) → backpressure 미발생.
+# RULE-07 자기 검증 — Phase 1 0 marker (외부 src/ commit 0). Phase 2 1 흡수 (REQ-013 시스템 불변식 평서형 + 반복 검증 + 시점 비의존 + incident 비귀속 + 수단 중립 + self-reference circularity 회피 6 축 PASS).
+# RULE-06 §스코프 규칙 gate (x)(y)(z) 실측 박제 (P-4 baseline FAIL 평서화 — baseline 위반 평서화는 위반 사실의 시스템 효능 계약 측정 anchor 박제).
+#
+# 입력 큐 잔여: 13건 (REQ-004/005/006/007/008/009/010/011/012/014/015/016/017 보류, 차기 tick 부터 신규 spec carve 검토 또는 추가 본문 갱신 흡수 경로 검토).
