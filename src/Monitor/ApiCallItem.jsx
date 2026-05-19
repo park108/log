@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
@@ -34,7 +34,18 @@ const ApiCallItem = (props) => {
 
 	const handleRetry = () => { setIsMount(false); };
 
+	// REQ-20260517-093 (I3)(FR-05) — unmount-safety 채널 박제 (TSK-20260520-01).
+	// React 19 unmounted setState silent-ignore + REQ-091 console.error fail-fast 정합 위해
+	// pending `getApiCallStats` fetch 가 unmount 후 응답을 받더라도 effect 본문의 setter
+	// (`setIsLoading` · `setIsError` · `setTotalCount` · `setCountList` · `setRate` · `setRateColor`)
+	// 발화를 0 hit 로 박제한다.
+	// 수단 = `cancelled` ref (수단 중립 (b) 채택 — Image / File / Monitor.VisitorMon 도메인 동일 패턴).
+	const cancelledFetchRef = useRef(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledFetchRef;
+		cancelled.current = false;
 
 		const fetchData = async (service) => {
 	
@@ -48,7 +59,9 @@ const ApiCallItem = (props) => {
 			try {
 				const res = await getApiCallStats(service, fromTimestamp, toTimestamp);
 				const data = await res.json();
-	
+
+				if(cancelled.current) return;
+
 				if(!hasValue(data.errorType)) {
 					log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms", "SUCCESS");
 					
@@ -93,11 +106,13 @@ const ApiCallItem = (props) => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - API call stats: " + service, "ERROR");
 				setIsError(true);
 				reportError(err);
 			}
-			
+
+			if(cancelled.current) return;
 			setIsLoading(false);
 		}
 
@@ -105,6 +120,10 @@ const ApiCallItem = (props) => {
 			fetchData(service);
 			setIsMount(true);
 		}
+
+		return () => {
+			cancelled.current = true;
+		};
 
 	}, [service, isMount]);
 
