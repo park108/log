@@ -1,7 +1,6 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import * as mock from './api.mock'
 import ContentItem from '../Monitor/ContentItem';
-import * as api from './api';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
@@ -184,87 +183,6 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		const retryAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryAfter).toBeInTheDocument();
 
-	});
-});
-
-// REQ-20260517-093 (I3)(FR-05) — unmount race 박제 (TSK-20260520-01).
-// pending `getContentItemCount` fetch + unmount() + 응답 resolve / reject 시 effect 본문의
-// setter (`setIsLoading` · `setIsError` · `setTotalCount` · `setCounts`) 발화 0 hit + REQ-091
-// cross-validate (`console.error` 0 hit, "Warning: An update.*was not wrapped" 0) 박제.
-describe('ContentItem unmount safety (REQ-20260517-093 FR-05)', () => {
-
-	it('pending getContentItemCount 중 unmount → resolve 가 어떤 setter 도 발화시키지 않는다 (Warning 0 + console.error 0)', async () => {
-
-		vi.useFakeTimers({ shouldAdvanceTime: true })
-			.setSystemTime(new Date(1643375805000));
-
-		vi.stubEnv('DEV', true);
-		vi.stubEnv('PROD', false);
-
-		let resolveResp;
-		const pending = new Promise((resolve) => { resolveResp = resolve; });
-		const getContentItemCountSpy = vi.spyOn(api, 'getContentItemCount').mockReturnValue(pending);
-
-		const consoleErrorSpy = vi.spyOn(console, 'error');
-
-		const { unmount } = render(
-			<ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } />
-		);
-
-		expect(getContentItemCountSpy).toHaveBeenCalledTimes(1);
-		await screen.findByText('Loading...');
-
-		unmount();
-
-		await act(async () => {
-			resolveResp(new Response(JSON.stringify({
-				body: { Count: 7, Items: [] },
-			}), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-			await Promise.resolve();
-			await Promise.resolve();
-		});
-
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
-	});
-
-	it('pending getContentItemCount 중 unmount 후 reject → catch 분기도 setter / console.error 0 hit', async () => {
-
-		vi.useFakeTimers({ shouldAdvanceTime: true })
-			.setSystemTime(new Date(1643375805000));
-
-		vi.stubEnv('DEV', true);
-		vi.stubEnv('PROD', false);
-
-		let rejectResp;
-		const pending = new Promise((_, reject) => { rejectResp = reject; });
-		vi.spyOn(api, 'getContentItemCount').mockReturnValue(pending);
-
-		const consoleErrorSpy = vi.spyOn(console, 'error');
-
-		const { unmount } = render(
-			<ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } />
-		);
-		await screen.findByText('Loading...');
-
-		unmount();
-
-		await act(async () => {
-			rejectResp(new Error('network down'));
-			await Promise.resolve();
-			await Promise.resolve();
-		});
-
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
 	});
 });
 

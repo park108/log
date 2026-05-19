@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedSize } from '../common/common';
 import { activateOnKey } from '../common/a11y';
@@ -34,17 +34,7 @@ const ContentItem = (props) => {
 		to
 	];
 
-	// REQ-20260517-093 (I3)(FR-05) — unmount-safety 채널 박제 (TSK-20260520-01).
-	// React 19 unmounted setState silent-ignore + REQ-091 console.error fail-fast 정합 위해
-	// pending `getContentItemCount` fetch 가 unmount 후 응답을 받더라도 effect 본문의 setter
-	// (`setIsLoading` · `setIsError` · `setTotalCount` · `setCounts`) 발화를 0 hit 로 박제한다.
-	// 수단 = `cancelled` ref (수단 중립 (b) 채택 — Image / File / Monitor.VisitorMon 도메인 동일 패턴).
-	const cancelledFetchRef = useRef(false);
-
 	useEffect(() => {
-
-		const cancelled = cancelledFetchRef;
-		cancelled.current = false;
 
 		const fetchData = async (path) => {
 	
@@ -54,9 +44,7 @@ const ContentItem = (props) => {
 			try {
 				const res = await getContentItemCount(path, from, to);
 				const data = await res.json();
-
-				if(cancelled.current) return;
-
+	
 				if(!hasValue(data.errorType)) {
 					log("[API GET] OK - Content API: " + path, "SUCCESS");
 	
@@ -109,13 +97,11 @@ const ContentItem = (props) => {
 				}
 			}
 			catch(err) {
-				if(cancelled.current) return;
 				log("[API GET] FAILED - Content API: " + path, "ERROR");
 				setIsError(true);
 				reportError(err);
 			}
-
-			if(cancelled.current) return;
+			
 			setIsLoading(false);
 		}
 
@@ -123,10 +109,6 @@ const ContentItem = (props) => {
 			fetchData(path);
 			setIsMount(true);
 		}
-
-		return () => {
-			cancelled.current = true;
-		};
 
 	}, [path, isMount]);
 

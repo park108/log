@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { log, hasValue } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
@@ -36,18 +36,7 @@ const WebVitalsItem = (props) => {
 	const name = props.name;
 	const description = props.description;
 
-	// REQ-20260517-093 (I3)(FR-05) — unmount-safety 채널 박제 (TSK-20260520-01).
-	// React 19 unmounted setState silent-ignore + REQ-091 console.error fail-fast 정합 위해
-	// pending `getWebVitals` fetch 가 unmount 후 응답을 받더라도 effect 본문의 setter
-	// (`setIsLoading` · `setIsError` · `setEvaluationResult`) 발화를 0 hit 로 박제한다.
-	// 수단 = `cancelled` ref (수단 중립 (b) 채택 — Image / File / Monitor.VisitorMon 도메인 동일 패턴).
-	// `setIsMount(false)` (Retry handler) 는 사용자 액션 — unmount race 영역 밖.
-	const cancelledFetchRef = useRef(false);
-
 	useEffect(() => {
-
-		const cancelled = cancelledFetchRef;
-		cancelled.current = false;
 
 		const fetchData = async(name) => {
 
@@ -57,8 +46,6 @@ const WebVitalsItem = (props) => {
 			try {
 				const res = await getWebVitals(name);
 				const fetchedData = await res.json();
-
-				if(cancelled.current) return;
 
 				if(!hasValue(fetchedData.errorType)) {
 					log("[API GET] OK - Web Vital(" + name + "): " + fetchedData.body.Count, "SUCCESS");
@@ -114,13 +101,11 @@ const WebVitalsItem = (props) => {
 				}
 			}
 			catch(err) {
-				if(cancelled.current) return;
 				log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
 				setIsError(true);
 				reportError(err);
 			}
-
-			if(cancelled.current) return;
+		
 			setIsLoading(false);
 		}
 
@@ -128,10 +113,6 @@ const WebVitalsItem = (props) => {
 			fetchData(name);
 			setIsMount(true);
 		}
-
-		return () => {
-			cancelled.current = true;
-		};
 	}, [isMount, name]);
 
 	if(isLoading) {
