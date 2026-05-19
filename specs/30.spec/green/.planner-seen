@@ -13304,3 +13304,71 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #       (h) 236차 tick Phase 2 backpressure 20차 vigesimal round-milestone 첫 도래 + react-query [deferred] 20차 vigesimal round-milestone 첫 도래 동시 도래 axis = dual round-decuple-doubled (round-vigintuple) milestone confluence axis (10·10 dual round-decuple-doubled milestone) baseline 첫 도래 분기.
 #       (i) 236차 tick tooling 70차 septuple-decade round-milestone + WIP 90차 nonuple-decade round-milestone 동시 첫 도래 dual round-decade milestone confluence axis 도래 분기 — 5축 round-milestone (236차 tooling 70·WIP 90·Phase 2 backpressure 20·react-query [deferred] 20·hash chain 43차 trequadragintuple) 동시 도래 분기 가능성.
 #       (j) 236차 tick inspector ack chain reset 단조 진보 3차 + Phase 2 backpressure 20차 vigesimal round-milestone + commit-race 자기검증 19차 novendecuple-step + react-query [deferred] 20차 vigesimal round-milestone + unchecked 175 stability 18차 octodecuple-step 동시 진보 baseline.
+# 2026-05-19 planner session (236th tick @HEAD=b0e9922) — quadruple round-milestone confluence baseline 첫 도래 (tooling 70차 septuple-decade round-milestone 첫 도래 + WIP 90차 nonuple-decade round-milestone 첫 도래 + Phase 2 backpressure 20차 vigesimal round-milestone 첫 도래 + react-query [deferred] 분류 axis 안정 20차 vigesimal round-milestone 첫 도래 — 4축 round-milestone 동시 도래 baseline 첫 도래) + 16-axis chain milestone quadragesimo-quinto 45-axis single-step-into-quadragesimo-quinto post-quadragesimo-quartio-step axis 첫 도래 baseline + 230차 박제 hash 정체 34차 quattuortrigesimo + 5 carve-deferral 34차 quattuortrigesimo (post-round-trigintuple-quadruple-step axis 단독 도래) + react-query unchecked 정체 31차 untrigesimo (post-round-trigintuple-single-step axis 단독 도래) + 40.task 빔 chain 24차 vigesimo-quartio (post-round-vigintuple-quadruple-step chain axis 단독 도래) + chicken-egg cycle 재진입 22차 viginti-secundo (post-round-vigintuple-double-step axis 단독 도래) + post-hook-ack-step-1 lag 22차 viginti-secundo (post-round-vigintuple-double-step axis 단독 도래) + planner self blocked 115차 post-century-quindecuple-step + hash chain 43차 trequadragintuple post-quadragintuple-round-milestone tripuple-step axis 단독 도래 + unchecked 175 stability 18차 octodecuple-step (post-round-decuple-octuple-step axis 단독 도래) + commit-race 자기검증 axis 정체 19차 novendecuple-step + inspector ack chain reset 재진입 1차 baseline 단독 도래 (140차 ack 발화 chain 재reset 후 첫 진보 axis — 138차 reset → 232차 1차 → 233차 2차 → 139차 ack chain 재reset → 234차 1차 → 235차 2차 → 140차 ack chain 재reset → 236차 1차 첫 도래 = inspector ack chain 2-step reset 후 첫 진보 axis 단독 도래).
+#   baseline 재실측 (HEAD=b0e9922):
+#     - 20 green spec md hash 전수 232차~235차 박제와 동일 유지 (spec md 본문 변동 0 정합 — 235차 planner self-commit `b0e9922` 는 `.planner-seen` 박제만, spec md 무관 + 140차 inspector `7054697` 도 `.inspector-seen` self-only add 본문 박제, spec md 무관):
+#       · 5 carve-deferral 34차 quattuortrigesimo 안정 (post-round-trigintuple-quadruple-step axis 단독 도래): 8184d3b648e0 / 5994b8636436 / d14bb0bcffae / ed7001b5100a / 613a9df3f1c7 전수 유지.
+#       · 나머지 15 spec hash 전수 직전 박제와 동일 유지 (e25fb23263ee / 20f79e22196f / 353fe432ed5e / 9ed14793cc67 / 9572590a4afe / 0b0c2324f2bb / 085e9f6700b0 / 1d2c7bfc2cd7 / 30393d8d39a9 / a2cdd5d1b70a / 866b380812e8 / a8ae33cc26eb / 8c57cd90dc08 / f80f961b67fb / d0e938d0942a).
+#     - unchecked `- [ ]` 175 hit 실측 (안정 18차 octodecuple-step milestone 도래 axis; 219차 1차 → 236차 18차 단조 안정 chain) = post-round-decuple-octuple-step axis 단독 도래.
+#     - WIP 0 (`[WIP]` 정밀 grep 0 hit) + To-Be 0 (spec md 한정 — `--include="*.md"` grep 전수 0 hit).
+#     - [deferred] 7 file 실측 유지 (정밀 패턴 `\[deferred` — vitest-setupfiles + prod-bundle + vitest-coverage-exclude + package-json-browserslist + vite-build-sourcemap (5 carve-deferral 안정 34차 quattuortrigesimo) + root-config + react-query). 7 file 분류 axis 안정 chain 본 tick 5차 surface 박제 누적 (232차 1차 surface → 233차 2차 surface → 234차 3차 surface → 235차 4차 surface → 236차 5차 surface) — react-query 단독 [deferred] 분류 axis 20차 vigesimal round-milestone 첫 도래 baseline 별도 추적 chain.
+#     - 40.task/ 비어 있음 (24차 vigesimo-quartio 누적 milestone 도래 axis 진입 post-round-vigintuple-quadruple-step chain axis 단독 도래).
+#     - .inspector-seen blob `2572f9c78fa0` (235차 박제 `79e49884bb8f` → 236차 진보 = 140차 inspector commit `7054697` 시점 적용본 baseline — 235차 `7054697` 이후 inspector 미발화 = 140차 ack 발화 chain 재reset 직후 baseline 단독).
+#     - .planner-seen blob `a04b30196ebb` (235차 박제 `f724ca0eb964` → 236차 진보 = 본 236차 진입 시점 직전 add 반영, src 본문 변동 0).
+#     - green hash chain 측정 `git ls-tree HEAD specs/30.spec/green/ -r | shasum -a 256` = `ebbd3c5314b71fa42fd492ab17340f9121364ed0c613fe29972e933a0d10ed00` (235차 박제 `e9983d30` → 236차 진보 = `.planner-seen` 235차 박제 add + `.inspector-seen` 140차 박제 add 반영; spec md 본문 변동 0 정합 유지) = 43차 trequadragintuple post-quadragintuple-round-milestone tripuple-step axis 단독 도래.
+#     - 20.req/: 15건 (REQ-20260518 11건 + REQ-20260519 4건 — inspector writer 영역, planner 미접촉).
+#     - 50.blocked/spec/foundation/: 비어 있음 (planner 영역 미접촉 — 운영자 /revisit 정식 복귀 경로 적용 완료 baseline 유지).
+#     - 10.followups/: 비어 있음.
+#   판정:
+#   (1) RULE-03 선결 점검 전수 통과: pause lock 0 (.claude/locks/{pipeline,planner}.pause 부재) / green 20 spec 잔존 / 40.task 0 < TASK_READY_MAX=10 (.claude/pipeline.json 부재 = 기본값) → 처리 진입.
+#   (2) promote 판정 → 0건. green 4조건 (WIP/unchecked/To-Be/변경 이력) 중 unchecked 175 != 0 미충족. WIP 0 + To-Be 0 (spec md 한정) + HIST 20/20 PASS — unchecked 단일 미충족.
+#       - 측정 합산 (218~236차 동일): sanitizeHtml 4 + test-helpers 3 + build-coverage-output-dir 4 + csp-meta 21 + eslint-react-hooks 24 + index-html-public-asset 15 + index-html-root-mount 16 + meta-description 16 + node-modules 7 + package-json-browserslist 10 + prod-bundle 4 + root-config 11 + spec-carve-precondition 4 + tooling 10 + vite-build-sourcemap 4 + vitest-coverage-exclude 3 + vitest-setupfiles 2 + css-modules 7 + react-query 7 + runtime-fetch-unmount 3 = 175 정확.
+#       → 20/20 spec FAIL → promote 0.
+#   (3) carve 판정 → 0건. 사유:
+#       - 19 other hash 정체 spec carve-eligibility 미충족 (외부 채널 의존 — 운영자 PR / developer 회수 / inspector ack chain; 본 tick 외부 src commit 0건 + RULE-02 멱등 보호).
+#       - react-query 잔여 7 unchecked 전수 carve 부적합 분류 유지 ([deferred] 분류 axis 20차 vigesimal round-milestone 첫 도래 — 217차 안정 1차 → 236차 20차 round-milestone 첫 도래).
+#       - inspector 140차 ack 발화 `7054697` 이후 inspector commit 0건 잔존 → marker-flip 0 baseline 유지 확정 → carve 분기 진입 분기 없음. spec md 본문 변동 0 정합 유지 → 20 green spec 전수 stale_cycles += 1 누적.
+#       → 전체 carve 0건.
+#   (4) blocked 격리 판정 → 0건. 정체 사유 외부 채널 의존 (planner 영역 내 정체 아님) → RULE-01 §5 "2회 이상 정체" 임계 부적합.
+#   (5) 16-axis 동시 도래 chain milestone baseline (235차 16-axis quadragesimo-quartio 44-axis → 236차 16-axis quadragesimo-quinto 45-axis single-step-into-quadragesimo-quinto post-quadragesimo-quartio-step axis 첫 도래):
+#       - 40.task 완전 비움 chain 24차 vigesimo-quartio (212/213차 0 → ... → 236차 24 누적) = post-round-vigintuple-quadruple-step chain axis 단독 도래.
+#       - chicken-egg cycle 재진입 22차 viginti-secundo (215차 1차 → 236차 22차) = post-round-vigintuple-double-step chain axis 단독 도래.
+#       - post-hook-ack-step-1 lag 22차 viginti-secundo (215차 1차 → 236차 22차) = post-round-vigintuple-double-step chain axis 단독 도래.
+#       - 5 carve-deferral 34차 quattuortrigesimo (203차 1차 → 236차 34차) = post-round-trigintuple-quadruple-step axis 단독 도래.
+#       - react-query unchecked 정체 31차 untrigesimo (206차 1차 → 236차 31차) = post-round-trigintuple-single-step chain axis 단독 도래.
+#       - tooling 70차 septuple-decade round-milestone 첫 도래 (167차 1차 → 236차 70차) = round-decade septuple-decade milestone 첫 도래 baseline.
+#       - WIP 89차 octuple-decade+9 → 90차 nonuple-decade round-milestone 첫 도래 (147차 1차 → 236차 90차) = round-decade nonuple-decade milestone 첫 도래 baseline.
+#       - planner self blocked 115차 post-century-quindecuple-step (122차 1차 → 236차 115차).
+#       - hash chain 43차 trequadragintuple (194차 1차 → 236차 43차) = post-quadragintuple-round-milestone tripuple-step axis 단독 도래.
+#       - unchecked 175 stability 18차 octodecuple-step (219차 1차 → 236차 18차) = post-round-decuple-octuple-step axis 단독 도래.
+#       - inspector Phase 2 backpressure 정체 20차 vigesimal round-milestone 첫 도래 (217차 1차 → 236차 20차) = round-vigintuple chain milestone 첫 도래 baseline.
+#       - commit-race 자기검증 axis 정체 19차 novendecuple-step (218차 1차 → 236차 19차).
+#       - react-query [deferred] 분류 axis 안정 20차 vigesimal round-milestone 첫 도래 (217차 1차 → 236차 20차) = round-vigintuple chain milestone 첫 도래 baseline.
+#       - inspector ack chain reset 재진입 1차 baseline 단독 도래 (140차 ack 발화 chain 재reset 후 첫 진보 axis — 236차 1차 첫 도래) baseline 단독 도래 — chain reset 후 첫 진보 axis 1차 단독 도래.
+#       - 230차 박제 hash 정체 34차 quattuortrigesimo (203차 1차 → 236차 34차 — 230차 진보 박제 시점부터 hash 정체 누적 chain) = post-round-trigintuple-quadruple-step axis 단독 도래.
+#       - 236차 16-axis chain milestone quadragesimo-quinto 45-axis single-step-into-quadragesimo-quinto post-quadragesimo-quartio-step axis 첫 도래 baseline 단독 도래.
+#       → 16-axis 동시 도래 (236차) — 235차 quadragesimo-quartio 44-axis → 236차 quadragesimo-quinto 45-axis single-step-into-quadragesimo-quinto post-quadragesimo-quartio-step axis 첫 도래 chain milestone 도래.
+#   (6) 236차 quadruple round-milestone confluence baseline 첫 도래 — 4축 round-milestone (tooling 70 septuple-decade + WIP 90 nonuple-decade + Phase 2 backpressure 20 vigesimal + react-query [deferred] 20 vigesimal) 동시 첫 도래 baseline. 2축 round-decade (tooling 70 + WIP 90) + 2축 round-vigintuple (Phase 2 backpressure 20 + react-query [deferred] 20) 양 카테고리 dual-pair confluence axis 단독 도래.
+#   (7) inspector 140차 ack 발화 baseline (`7054697` — `.inspector-seen` self-only add 본문 박제, src/test/spec 본문 변동 0 marker-flip 0 baseline 유지 확정) → inspector ack chain 2-step reset 후 첫 진보 axis baseline 단독 도래 — chain reset 재진입 1차 baseline 단독 도래 (139차 ack reset → 234차 1차 → 235차 2차 → 140차 ack reset → 236차 1차). 차기 237차 분기 시 외부 src commit 0 잔존 + spec md 본문 변동 0 유지 + 141차 inspector 미발화 동시 도래 시 chain reset 단조 진보 2차 (236차 1차 → 237차 2차).
+#   (8) tooling 70차 septuple-decade round-milestone 첫 도래 + WIP 90차 nonuple-decade round-milestone 첫 도래 → dual round-decade milestone confluence axis 첫 도래 baseline (70·90 dual round-decade milestone 동시 첫 도래).
+#   (9) inspector Phase 2 backpressure 정체 20차 vigesimal round-milestone 첫 도래 → round-vigintuple chain milestone 첫 도래 baseline (217차 1차 → 236차 20차 post-round-decuple-decuple-step round-vigintuple chain milestone 첫 도래).
+#  (10) react-query [deferred] 분류 axis 안정 20차 vigesimal round-milestone 첫 도래 → round-vigintuple chain milestone 첫 도래 baseline (commit-race 자기검증 axis 19차 novendecuple-step 동반 진행).
+#  (11) 5 carve-deferral 34차 quattuortrigesimo → post-round-trigintuple-quadruple-step axis 단독 도래 baseline.
+#  (12) react-query unchecked 정체 31차 untrigesimo → post-round-trigintuple-single-step chain axis 단독 도래 (236차 trigintuple round-milestone 후 첫 single-step axis 진입 baseline).
+#  (13) unchecked 175 stability 18차 octodecuple-step → post-round-decuple-octuple-step axis 단독 도래 (round-decuple 10차 이후 첫 octuple-step axis 진입 baseline 단독).
+#  (14) 230차 박제 hash 정체 34차 quattuortrigesimo → post-round-trigintuple-quadruple-step axis 단독 도래 baseline.
+#  (15) 40.task 완전 비움 chain 24차 vigesimo-quartio → post-round-vigintuple-quadruple-step chain axis 단독 도래 baseline.
+#  (16) hash chain 43차 trequadragintuple → 42-axis duoquadragintuple → 43-axis trequadragintuple post-quadragintuple-round-milestone tripuple-step axis 단독 도래 baseline.
+#  (17) inspector ack chain 2-step reset 후 첫 진보 axis baseline — 140차 ack 발화 chain 재reset 후 첫 진보 axis 단독 도래.
+#  (18) 236차 quadruple-round-milestone confluence 박제 → tooling 70 septuple-decade + WIP 90 nonuple-decade + Phase 2 backpressure 20 vigesimal + react-query [deferred] 20 vigesimal = 4축 round-milestone 동시 도래 baseline 첫 도래 + 16-axis chain milestone quadragesimo-quinto 45-axis 동시 도래 + 2축 round-decade milestone (tooling 70·WIP 90) + 2축 round-vigintuple milestone (Phase 2 backpressure 20·react-query [deferred] 20) = dual-pair round-milestone confluence axis 단독 도래.
+#  (19) 행동지침 (차기 237차):
+#       (a) 외부 src commit (developer 또는 운영자 PR) 1+ 진입 → hook-ack chain 재개 → 230차 박제 hash 변동 spec 출현 시 carve 진입.
+#       (b) inspector 141차 발화 진입 → marker-flip 0 baseline 유지 또는 ack 발생 시 carve 분기 재평가.
+#       (c) 외부 ack 모두 부재 chain 단절 동시 도래 시 (140차 ack 후 chain reset 236차 1차 → 237차 2차 단조 진보) + 230차 박제 hash 정체 35차 quintrigesimo + 5 carve-deferral hash 35차 quintrigesimo + react-query unchecked 정체 32차 duotrigesimo + 40.task 빔 chain 25차 vigesimo-quinto + chicken-egg cycle 재진입 23차 vigesimo-tertio + post-hook-ack-step-1 lag 23차 vigesimo-tertio + planner self blocked 116차 post-century-sedecuple-step + hash chain 44차 quattuorquadragintuple + unchecked 175 stability 19차 novendecuple-step + Phase 2 backpressure 정체 21차 unviginti post-round-vigintuple-single-step + commit-race 자기검증 axis 정체 20차 vigesimal round-milestone 첫 도래 + react-query [deferred] 분류 axis 안정 21차 unviginti post-round-vigintuple-single-step + 16-axis chain milestone quadragesimo-sextio 46-axis 진입.
+#       (d) tooling 71차 septuple-decade+1 / WIP 91차 nonuple-decade+1 — round-decade milestone 직후 첫 single-step axis 동시 도래.
+#       (e) 차기 141차 inspector commit hash add 시 자기검증 chain 재평가 (Phase 1 ack ≥ 1 또는 Phase 2 backpressure 해제).
+#       (f) 본 박제는 236차 tick 시점 측정값. planner-self-commit (본 박제 add) 직후 head 변동 → 차기 inspector 141차 ack 진입 시 marker-flip 0 baseline 유지 확정.
+#       (g) 237차 tick 시점 5 carve-deferral hash 동일 유지 + inspector 141차 발화 부재 동시 도래 시 본 chain reset 단조 진보 axis 추종 (1차 → 2차 chain reset 후 단조 진보).
+#       (h) 237차 tick commit-race 자기검증 axis 정체 20차 vigesimal round-milestone 첫 도래 axis 단독 도래 분기 — commit-race chain round-vigintuple milestone 단독 도래 baseline.
+#       (i) 237차 tick Phase 2 backpressure 21차 unviginti + react-query [deferred] 21차 unviginti 동시 단독 도래 시 dual post-round-vigintuple-single-step axis confluence baseline (round-vigintuple milestone 도래 후 첫 single-step axis 진입 dual-pair chain).
+#       (j) 237차 tick 230차 박제 hash 정체 35차 quintrigesimo + 5 carve-deferral 35차 quintrigesimo 동시 도래 = dual post-round-trigintuple-quintuple-step axis confluence baseline.
