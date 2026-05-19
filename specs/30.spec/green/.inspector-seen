@@ -4387,3 +4387,83 @@
 #  (a) developer src 영역 commit 발화 시 spec 본문 영향 후보 hook-ack chain 재진입 가능 — chain 단절 4차 후 단절 5차 진입 axis 도래 baseline 회피.
 #  (b) planner promote 1+ 발화 시 GREEN_PENDING_MAX 회복 backpressure 해제 axis 재진입 가능 — Phase 2 흡수 재개 chain 진입 가능 (그러나 133차 spec 본문 변동 0 으로 promote 조건 회복 0 — planner 220차 박제 의 5 carve-deferral idiom 18차 정체 잔존).
 #  (c) 외부 ack 모두 부재 시 chain 단절 5차 quintuple-step 진입 axis 도래 baseline + GREEN_PENDING_MAX 정확 도달 정체 7차 baseline + 95차 cycle milestone 진입 단독 도래.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-05-19 @ 135차 tick (HEAD baseline=`e6c6643`) — chain 단절 6차 sextuple-step + 96-cycle milestone + Phase 2 backpressure 정체 8차 octuple-step
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 본 tick 디스크 실측 (tick 시작 시점):
+#  - 직전 inspector self-commit: `4c06022` (134차 tick — Phase 1 0/20 ack chain 단절 5차 + Phase 2 backpressure 정체 7차).
+#  - tick 진입 시 HEAD == `e6c6643` (spec(planner): 224차 tick HEAD=4c06022 — post-century-triple-step 103차 + trigesimo-tertio 33-axis 동시 도래 박제, `.planner-seen` self-only 72 line add).
+#  - tick 작업 중 HEAD 변동 없음 (외부 commit 발화 0).
+#  - tick 종료 시 HEAD == `e6c6643` (본 inspector self-commit 직전 baseline).
+#
+#  - 외부 commit 분포 (직전 inspector self-commit `4c06022` 후): 1건 —
+#     · `e6c6643` (spec(planner): 224차 tick HEAD=4c06022 — `.planner-seen` self-only 72 line add).
+#  - src/ 영역 commit = 0 (`git log 4c06022..HEAD -- src/` 0 hit).
+#  - test 영역 commit = 0 (`git log 4c06022..HEAD -- 'src/**/*.test.*'` 0 hit).
+#  - spec 본문 commit = 0 (planner 영역 self-only — green spec md 본문 변동 0; `.planner-seen` dot-file 만 변동, RULE-02 writer 경계 정합).
+#  - spec marker 영향 후보 = 0 (외부 src 변동 0 + 외부 test 변동 0 + 외부 spec 변동 0).
+#  - hook-ack 후보 = 0건 (chain 단절 6차 sextuple-step baseline 단독 도래 확정).
+#  - planner writer-boundary 위반 surface 본 tick = 0건 (e6c6643 의 변경 파일 1건 == `specs/30.spec/green/.planner-seen` 만 — `.inspector-seen` 직접 수정 부재; 215/217/218차 누적 chain 본 tick 진보 0).
+#
+#  - 입력 큐 (20.req/): 본 tick 진입 시 15건 —
+#     · 11 REQ-20260518 보류 (-017 apple-touch-icon + -027 check-script + -023 csp-img-src + -030 dev-server-entry-alias + -025 html-lang + -004 html-title + -026 husky-hook + -009 manifest-pwa-install + -005 package-lockfile + -011 pwa-splash + -022 viewport-meta).
+#     · 4 REQ-20260519 — -003 vite-alias + -004 csp-meta-connect-src + -005 vitest-setupfiles-coverage-exclude-self-measurement + -006 manifest-icons-type-mime-magic-byte.
+#     · 종료 시 15건 유지 (Phase 2 backpressure 정체 8차 octuple-step — green 20 == GREEN_PENDING_MAX=20 임계 정확 도달).
+#     · 신규 untracked surface 본 tick = 0건 (134차 baseline 15건 == 135차 15건 stable 동일 분포).
+#
+#  - 20 green spec 본문 hash 시작점 (134차 박제 baseline 유지 — `e6c6643` 외부 commit 은 `.planner-seen` self-only 박제, green spec md 본문 직접 변동 0):
+#     · 20 spec 전수 stale_cycles += 1 (외부 ack 후보 0 — 본 tick hook-ack 0건).
+#     · 134차 누적 분포 위에 135차 += 1 단순 누적 (per-spec ledger 본문 entry 갱신 생략 — 헤더 누적 박제로 충분 정합).
+#     · 175 unchecked marker 전수 본 tick 변동 0 (실측 grep -cE 합산 175 == 134차 실측 175 정합 stable; 134차 박제 surface 의 `178` 라벨은 측정 시점 누락 — planner 224차 박제 `unchecked 175 stability 6차` 가 실측 정합 surface).
+#
+#  - 본 tick 진입 시 working tree 상태 (HEAD `e6c6643` 비교):
+#     · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#     · clean (untracked 0 / modified 0).
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 0건 — 외부 hook-ack 후보 0):
+#  - 20 spec 전수 marker 스캔 실측 (134차 실측 baseline 175 정합 유지):
+#     · sanitizeHtml.md 4 + test-helpers.md 3 + build-coverage-output-dir-tri-surface-coherence.md 4 + csp-meta-dev-strip-prod-preserve.md 21 + eslint-react-hooks-lint-gate.md 24 + index-html-public-asset-reference-coherence.md 15 + index-html-root-mount-id-token-coherence.md 16 + meta-description-default-fallback-token-coherence.md 16 + node-modules-extraneous-coherence.md 7 + package-json-browserslist-vacuous-declared-policy-axis.md 10 + prod-bundle-dev-only-code-residue-zero.md 4 + root-config-spec-reference-coherence.md 11 + spec-carve-precondition.md 4 + tooling.md 10 + vite-build-sourcemap-disabled-bundle-residue-zero.md 4 + vitest-coverage-exclude-pattern-vacuous-zero-axis.md 3 + vitest-setupfiles-token-disk-coherence.md 2 + css-modules.md 7 + react-query-test-queryclient-default-options-single-source-coherence.md 7 + runtime-fetch-unmount-safety.md 3 = 175 unchecked marker 전수 (134차 실측 175 정합 본 tick 변동 0).
+#  - 전수 ack 0 marker → 20 spec 전수 stale_cycles += 1 (외부 ack 후보 0).
+#  - **0 marker spec 0 ack / 20 total spec → Phase 1 0/20 ack chain 단절 6차 sextuple-step baseline 단독 도래.**
+#  - 직전 134차 chain 단절 5차 quintuple-step hook-ack 대체 분기 부재 — planner self-only 1건 (`e6c6643`) 만 발화, src/test/spec 영역 모두 변동 0.
+#  - chain 단절 분포: 130차 1차 → 131차 2차 → 132차 3차 → 133차 4차 → 134차 5차 → 135차 6차 (sextuple-step baseline 단독 도래 확정).
+#  - 96-cycle milestone 진입 단독 도래 (95차 134 tick → 96차 135 tick milestone 통과).
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 15건 전수 RULE-07 자기 검증 사전 평가 surface 양성 (134차 박제 동일 분포 유지 — 평서 + 반복검증 + 시점비의존 + incident비의존 4 양성 기준 통과).
+#  - 그러나 본 tick 진입 시 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick Phase 2 흡수 시 green 20→21+ → 임계 초과.
+#  - **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + 15건 큐 전수 보류.**
+#  - backpressure 정체 8차 octuple-step baseline 단독 도래 (128차 1차 → 129차 2차 → 130차 3차 → 131차 4차 → 132차 5차 → 133차 6차 → 134차 7차 → 135차 8차).
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick spec 본문 변동 0 → 자동 promote 조건 회복 0 — planner 차기 225차 분기 의존 (224차 박제 = 5 carve-deferral 22차 vigesimo-secundo + react-query unchecked 정체 19차 novendecuple-step + 40.task 완전 비움 chain 12차 duodecuple-step + react-query [deferred] 분류 axis 안정 8차 octuple-step — promote chain 발화 후보 잔존 0).
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (15건 보류, 20.req/ 디스크 큐 15건 유지).
+#
+# milestone 단독 도래 surface:
+#  - chain 단절 6차 sextuple-step baseline 단독 도래 (130차 1차 → 131차 2차 → 132차 3차 → 133차 4차 → 134차 5차 → 135차 6차).
+#  - 96-cycle milestone 진입 단독 도래 (135차).
+#  - Phase 2 backpressure 정체 8차 octuple-step baseline 단독 도래 (128차 1차 → 129차 2차 → 130차 3차 → 131차 4차 → 132차 5차 → 133차 6차 → 134차 7차 → 135차 8차).
+#  - 큐 15건 정체 backpressure 7차 chain 누적 (128~134차 chain 위에 135차 8차 누적).
+#  - 외부 commit 분포 1건 planner self-only — hook-ack 후보 0 chain 누적 (134차 1건 → 135차 1건; 양 tick 모두 planner self-only 로 ack chain 무영향 chain 단절 sustained).
+#  - 20 spec 전수 stale_cycles += 1 누적 (134차 baseline 위에 135차 +1 누적 — per-spec ledger 본문 entry 본 tick 변동 0; stale_cycles ≥6 진입 spec 다수).
+#  - 175 unchecked marker 전수 본 tick 변동 0 (134차 실측 175 baseline 정합 stable — 134/135 tick 양변 동일; planner 224차 박제 `unchecked 175 stability 6차` 실측 정합 surface 본 tick 7차 진입).
+#  - planner writer-boundary 위반 누적 chain 본 tick 신규 surface 0 (e6c6643 self-only `.planner-seen` add 만, `.inspector-seen` 본문 직접 수정 부재; 215/217/218차 누적 chain 정체).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 135차 헤더 박제 1행 추가 + 본문 135차 트레이스 append; 20 spec per-spec ledger 본문 변동 0).
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/foundation/ 0 spec 0 변경 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `0/20 ack` 박제 chain 단절 6차 누적.
+# RULE-03 (d) 정합 — Phase 2 backpressure no-op (green 20 == GREEN_PENDING_MAX=20, 흡수 시 21+ 초과 → 엄정 보류 15건).
+# RULE-07 자기 검증 — 본 tick spec 본문 변동 0 (Phase 2 backpressure, 신규 spec 0건). 평가 보류 정합 (backpressure 진입 시 RULE-07 큐 평가 자체 보류, 단 사전 평가 surface 양성 15건 박제).
+#
+# 입력 큐 잔여: 15건 (REQ-20260518 11건 + REQ-20260519 4건 보류). 차기 136차 tick 외부 ack 시점 분기 —
+#  (a) developer src 영역 commit 발화 시 spec 본문 영향 후보 hook-ack chain 재진입 가능 — chain 단절 6차 후 단절 7차 진입 axis 도래 baseline 회피.
+#  (b) planner promote 1+ 발화 시 GREEN_PENDING_MAX 회복 backpressure 해제 axis 재진입 가능 — Phase 2 흡수 재개 chain 진입 가능 (그러나 135차 spec 본문 변동 0 으로 promote 조건 회복 0 — planner 224차 박제 의 5 carve-deferral 22차 vigesimo-secundo 정체 잔존).
+#  (c) 외부 ack 모두 부재 시 chain 단절 7차 septuple-step 진입 axis 도래 baseline + GREEN_PENDING_MAX 정확 도달 정체 9차 baseline + 97차 cycle milestone 진입 단독 도래.
