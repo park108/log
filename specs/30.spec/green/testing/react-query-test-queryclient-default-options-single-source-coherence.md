@@ -2,7 +2,7 @@
 
 > **위치**: `src/test-utils/queryWrapper.tsx` 의 `createQueryTestWrapper` (보조 라인: `:17`) + 측정 scope `src/**/*.test.{js,jsx,ts,tsx}`
 > **관련 요구사항**: REQ-20260519-001
-> **최종 업데이트**: 2026-05-19 (by 127차 inspector tick — 신규 등록)
+> **최종 업데이트**: 2026-05-19 (by 129차 inspector tick — TSK / `9dde28d` 회수 hook-ack 4 Must marker flip)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 baseline HEAD `3649298` 스냅샷.
 
@@ -53,10 +53,10 @@ test 환경 (`src/**/*.test.{js,jsx,ts,tsx}` 파일) 의 `@tanstack/react-query`
 - [ ] inspector audit 채널 / pre-push hook / CI step 선정 — 수단 위임.
 
 ## 수용 기준
-- [ ] (Must) **FR-01** — `src/**/*.test.{js,jsx,ts,tsx}` 파일 본문에서 `new QueryClient(` 호출 hit ≤ 박제된 면제 상한 (현 baseline 4 hit — 회수 후 0 hit 또는 면제 박제). 측정: `grep -rnE "new QueryClient\(" src --include="*.test.*" | wc -l` ≤ spec 박제 상한.
-- [ ] (Must) **FR-02** — `src/test-utils/queryWrapper.tsx` 가 test 채널 `QueryClient` defaultOptions 의 단일 출처. 측정: `grep -nE "new QueryClient\(" src/test-utils/queryWrapper.tsx` → 1+ hit + `grep -rnE "createQueryTestWrapper" src --include="*.test.*"` → 1+ hit.
-- [ ] (Must) **FR-03** — prod 채널 옵션 토큰 (`staleTime: 60_000, retry: 1`) 이 test 채널 옵션 토큰과 분리. 측정: `grep -nE "staleTime: 60_000" src/App.jsx` → 1+ hit + `grep -rnE "staleTime: 60_000" src --include="*.test.*"` → 0 hit.
-- [ ] (Must) **FR-04** — test 채널 옵션 토큰 (`retry: false`, `staleTime: 0`, `gcTime: 0`, `mutations: { retry: false }`) 이 prod 채널 옵션 토큰과 분리. 측정: `grep -rnE "retry: false|staleTime: 0|gcTime: 0" src/App.jsx` → 0 hit + `grep -nE "retry: false|staleTime: 0|gcTime: 0" src/test-utils/queryWrapper.tsx` → 3+ hit.
+- [x] (Must) **FR-01** — `src/**/*.test.{js,jsx,ts,tsx}` 파일 본문에서 `new QueryClient(` 호출 hit ≤ 박제된 면제 상한 (현 baseline 4 hit — 회수 후 0 hit 또는 면제 박제). 측정: `grep -rnE "new QueryClient\(" src --include="*.test.*" | wc -l` ≤ spec 박제 상한. **PASS — HEAD `9dde28d` 재실측 0 hit (baseline 4 → 0, 면제 박제 0 / 상한 0 정합).**
+- [x] (Must) **FR-02** — `src/test-utils/queryWrapper.tsx` 가 test 채널 `QueryClient` defaultOptions 의 단일 출처. 측정: `grep -nE "new QueryClient\(" src/test-utils/queryWrapper.tsx` → 1+ hit + `grep -rnE "createQueryTestWrapper" src --include="*.test.*"` → 1+ hit. **PASS — HEAD `9dde28d` 재실측 helper 1 hit @`:17` + consumer 10 file (Search 1 + Search hooks 1 + Log 3 + Log hooks 5, baseline 6 → 10 진보).**
+- [x] (Must) **FR-03** — prod 채널 옵션 토큰 (`staleTime: 60_000, retry: 1`) 이 test 채널 옵션 토큰과 분리. 측정: `grep -nE "staleTime: 60_000" src/App.jsx` → 1+ hit + `grep -rnE "staleTime: 60_000" src --include="*.test.*"` → 0 hit. **PASS — HEAD `9dde28d` 재실측 App.jsx 1 hit @`:22` + test 0 hit.**
+- [x] (Must) **FR-04** — test 채널 옵션 토큰 (`retry: false`, `staleTime: 0`, `gcTime: 0`, `mutations: { retry: false }`) 이 prod 채널 옵션 토큰과 분리. 측정: `grep -rnE "retry: false|staleTime: 0|gcTime: 0" src/App.jsx` → 0 hit + `grep -nE "retry: false|staleTime: 0|gcTime: 0" src/test-utils/queryWrapper.tsx` → 3+ hit. **PASS — HEAD `9dde28d` 재실측 App.jsx 0 hit + helper 3 hit @`:19-20` (queries + mutations 분리 박제).**
 - [ ] (Must) **FR-05** — 현 baseline 위반 4 violator 박제 (회수는 task 영역). baseline: `src/Search/Search.test.tsx:30` + `src/Log/LogSingle.test.jsx:31` + `src/Log/Writer.test.jsx:22` + `src/Log/LogItem.test.jsx:31`.
 - [x] (Should) **FR-06** — helper consumer baseline 박제 (6 파일 18 호출). 측정 PASS — baseline 실측 (HEAD `3649298`) 6 파일 hit (Search hooks 1 + Log hooks 5).
 - [ ] (Should) **FR-07** — 면제 박제 옵션 (별 axis 분리 시). 본 spec 진입 baseline 면제 박제 0 → FR-01 상한 = 0.
@@ -77,3 +77,4 @@ test 환경 (`src/**/*.test.{js,jsx,ts,tsx}` 파일) 의 `@tanstack/react-query`
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-19 | (none) / 127차 inspector tick (HEAD baseline `3649298`) | 최초 등록 — REQ-20260519-001 흡수, test 환경 QueryClient single-source axis + prod-test 토큰 분리 박제, baseline 4 violator + 1 helper + 6 consumer + 1 prod 박제. FR-06 [x] (현 baseline PASS), 9 marker [ ] (회수/별 task 위임). NFR-03 + FR-08 [deferred] (수단 위임). | all |
+| 2026-05-19 | TSK (react-query-test-queryclient-single-source-recovery) / `9dde28d` | 회수 hook-ack — 4 Must marker (FR-01~FR-04) [x] flip. HEAD `9dde28d` 재실측: `new QueryClient(` in tests = 0 hit (baseline 4 → 0), helper 1 hit + consumer 10 file (baseline 6 → 10), App prod token 1 hit + test 0 hit, App test token 0 hit + helper 3 hit. DoD (result.md): lint warning 0 + typecheck rc=0 + 전체 57 file 500 case PASS (coverage Statements 97.54% / Branches 94.07% / Functions 94.37% / Lines 98.31%) + build PASS (290ms) + 회귀 0. NFR-04 우회 `vi.mock('@tanstack/react-query')` 0 hit 정합. FR-05 (baseline violator 박제) 는 이력 marker 라 flip 무관 — `[ ]` 유지. FR-07~FR-10 + NFR-03 (자동 게이트 / 수단 위임 / 시점 비의존) 는 별 task 영역 — `[ ]` 유지. | 수용 기준, 헤더 일자 |

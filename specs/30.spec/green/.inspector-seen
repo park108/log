@@ -4055,3 +4055,65 @@
 # RULE-07 자기 검증 — 본 tick spec 본문 변동 0 (Phase 2 backpressure, 신규 spec 0건). 평가 보류 정합 (backpressure 진입 시 RULE-07 큐 평가 자체 보류).
 #
 # 입력 큐 잔여: 12건 (디스크 무변동; 12 carve 후보 보류 — 차기 inspector tick 추가 흡수 평가 시 backpressure 잔존 여부 분기점 = planner promote 발화 여부). 차기 129차 tick 외부 ack 시점 분기 — (a) developer src 영역 commit 발화 시 spec 본문 영향 후보 hook-ack chain 재진입 가능 + sextuple-cascade chain 단절 후 단절 2차 진입 axis 도래 baseline, (b) planner promote 1+ 발화 시 GREEN_PENDING_MAX 회복 backpressure 해제 axis 재진입 가능 + Phase 2 흡수 재개 chain 진입 가능, (c) 외부 ack 모두 부재 시 chain 단절 23차 double-decade+3 단절 milestone idiom 도래 axis 진입 baseline + 88차 cycle milestone 통과 후 89차 진입 단독 도래 + 추가 Phase 2 흡수 0 slot backpressure 잔존 baseline.
+
+# ============================================================================
+# 2026-05-19 @ baseline HEAD=`9dde28d` → THIS (129차 tick) — reconcile 4/20 ack (1 spec / 4 marker; sextuple-cascade chain 단절 1차 후 hook-ack 재개 single-step axis 진입 baseline 단독 도래; 19 spec stale_cycles += 1 누적)
+#
+# 본 세션 디스크 실측 (tick 시작 시점, baseline):
+#  - 직전 inspector self-commit: `fc4a08b` (128차 tick — Phase 1 0/20 ack sextuple-cascade chain 단절 1차 + Phase 2 backpressure no-op 12건 보류).
+#  - tick 진입 시 HEAD == `9dde28d` (refactor: react-query test 채널 QueryClient 단일 출처 회수 — 4 violator helper 경유 회수, 외부 developer commit).
+#  - tick 작업 중 HEAD 변동 없음.
+#  - tick 종료 시 HEAD == `9dde28d` (본 inspector self-commit 직전 baseline). seen-state baseline 갱신.
+#  - 외부 commit 분포 (직전 inspector self-commit `fc4a08b` 후): 3건 —
+#     · `5abe65c` (req(discovery): REQ-20260519-004 발행 — CSP `<meta>` connect-src allowlist ↔ runtime fetch origin 1방향 origin-subsumption 결과 효능 시스템 불변식 박제 후보 신호. 20.req/ +1).
+#     · `212c9af` (spec(planner): 212차 tick — post-carve-lag-2 milestone + green 20 spec 정합 baseline + carve 0 + promote 0. `.planner-seen` self-only 57 line 추가).
+#     · `9dde28d` (refactor: react-query test 채널 QueryClient 단일 출처 회수 — `src/Log/{LogItem,LogSingle,Writer}.test.jsx` + `src/Search/Search.test.tsx` 4 파일 인라인 `new QueryClient(...)` + `QueryClientProvider` 블록 제거 → `createQueryTestWrapper` helper 경유 + Wrapper 합성으로 치환. 31 insertions + 57 deletions. TSK / `60.done/2026/05/19/task/react-query-test-queryclient-single-source-recovery/`).
+#  - src/ 영역 commit = 1 (`9dde28d` — Log/Search test 4 파일 회수).
+#  - test 본문 commit = 1 (`9dde28d` 의 4 test file describe block 본문 회수, 신규 describe 0; 회수 영향 13 test file 92 case 전수 PASS + 전체 57 file 500 case 전수 PASS).
+#  - spec marker 영향 후보 = 1 spec / 4 marker (TSK / `9dde28d` → react-query-test-queryclient-default-options-single-source-coherence 의 FR-01 + FR-02 + FR-03 + FR-04 4 Must marker ack 후보).
+#  - 입력 큐 (20.req/): 본 tick 진입 시 13건 (REQ-20260518 11건 + REQ-20260519-003 alias + REQ-20260519-004 csp-connect-src; 직전 128차 12 → `5abe65c` 발행으로 +1 = 13), 종료 시 13건 유지 (Phase 2 backpressure 보류 — green 20 == GREEN_PENDING_MAX=20).
+#  - 20 green spec hash 시작점 (직전 128차 박제 20 entry 유지):
+#    · 1 spec (react-query) hook-ack 4 marker flip — stale_cycles 0 초기화.
+#    · 19 spec 전수 hook-ack 후보 없음 (외부 commit `9dde28d` 의 4 test file 변경은 다른 spec 의 grep gate scope 외 — mount-id spec 은 명시적 `*.test.*` OOS 박제, 그 외 spec 은 본 도메인 직접 grep gate 부재). 19 spec 전수 stale_cycles += 1.
+#  - 본 tick 진입 시 working tree 상태 (HEAD `9dde28d` 비교):
+#    · staged 영역 비어 있음 — RULE-02 stage reset 불필요.
+#    · src/ 영역 staged 0.
+#
+# Phase 1 reconcile 처리 (ack 트리거 commit 1건):
+#  - react-query-test-queryclient-default-options-single-source-coherence.md (TSK / `9dde28d` 회수, `60.done/2026/05/19/task/react-query-test-queryclient-single-source-recovery/` 정상 mv):
+#     · FR-01 (Must): baseline `grep -rnE "new QueryClient\(" src --include="*.test.*"` → 4 hit MISS → HEAD `9dde28d` 재실측 → 0 hit (면제 박제 0 / 상한 0 정합) PASS. `[ ]→[x]` 플립.
+#     · FR-02 (Must): baseline helper 1 hit + consumer 6 file MISS (consumer 6 < 4 violator 회수 후 필요 분포) → HEAD 재실측 → helper 1 hit @`:17` + consumer 10 file (Search 1 + Search hooks 1 + Log 3 + Log hooks 5; baseline 6 → 10 진보) PASS. `[ ]→[x]` 플립.
+#     · FR-03 (Must): baseline App.jsx 1 hit + test 0 hit 정합 → HEAD 재실측 → App.jsx 1 hit @`:22` + test 0 hit PASS. `[ ]→[x]` 플립 (baseline 도 PASS 였으나 회수 commit 시점 박제 의도로 flip 정합).
+#     · FR-04 (Must): baseline App.jsx 0 hit + helper 3 hit 정합 → HEAD 재실측 → App.jsx 0 hit + helper 3 hit @`:19-20` (queries + mutations 분리 박제) PASS. `[ ]→[x]` 플립.
+#     · hook-ack: 60.done/2026/05/19/task/react-query-test-queryclient-single-source-recovery/result.md DoD — `npm run lint` rc=0 warning 0 + `npm test` 전체 57 file 500 case PASS (coverage Statements 97.54% / Branches 94.07% / Functions 94.37% / Lines 98.31% 전역 threshold 통과) + `npm test -- src/Search src/Log` 13 file 92 case PASS (회수 직접 영향 scope) + `npm run build` rc=0 (built in 290ms; test only 변경 → bundle 산출물 변동 미관찰 정합) + NFR-04 우회 `vi.mock('@tanstack/react-query')` 0 hit 정합 — 회귀 0. HEAD `9dde28d` 조상 정합. spec marker 플립 4건 정합.
+#     · 보류 marker (FR-05 baseline violator 박제 — 이력 marker 라 flip 무관 `[ ]` 유지; FR-07 면제 박제 옵션 별 axis; FR-08 + NFR-03 [deferred] 자동 게이트 별 task; FR-09 스코프 경계 명시 본문 박제 marker; FR-10 시점 비의존 본문 박제 marker — 후자 2 marker 는 본 spec 진입 자체 충족이나 회수 task 무관 보수적 `[ ]` 유지) — `[ ]` 유보.
+#     · 변경 이력 1행 박제 (TSK / `9dde28d`). stale_cycles 0 초기화.
+#  - 나머지 19 green spec 전수 hook-ack 후보 없음 (외부 commit `9dde28d` 의 4 test file 변경은 다른 spec 의 grep gate scope 외; `5abe65c` 는 20.req/ 디스크 추가 spec 본문 영향 0; `212c9af` 는 self-only `.planner-seen` 본문 spec 영향 0). 19 spec 전수 stale_cycles += 1.
+#  - **1 marker spec 4 ack / 20 total spec → Phase 1 4/20 ack.** seen-state 갱신 (1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1).
+#
+# Phase 2 처리 (RULE-03 (d) 엄정 적용):
+#  - 입력 큐 13건:
+#     (a) REQ-20260518-002 mount-id-token-coherence — 직전 RULE-07 예비 평가 PASS. 보류 잔존 다수 tick째.
+#     (b)~(k) REQ-20260518-003~012 메타 axis 토큰 동치 후보 다수 (직전 tick 별 RULE-07 예비 평가 PASS / 5 carve-deferral 동기화 안정).
+#     (l) REQ-20260519-003 vite-alias-tsconfig-paths-module-resolution-tri-axis-coherence — 디스크 잔존 (직전 inspector tick 미평가, 본 tick 도 Phase 2 backpressure 보류).
+#     (m) REQ-20260519-004 csp-meta-connect-src-allowlist-runtime-fetch-origin-wildcard-subsumption — `5abe65c` 신규 발행. 본 tick 도 Phase 2 backpressure 보류.
+#  - 본 tick 진입 시 + 종료 시 모두 green 디스크 == 20 == GREEN_PENDING_MAX=20 (`.claude/pipeline.json` override 부재 — 기본값 적용). 본 tick 4 marker flip 은 본문 변동만 (spec 카운트 20 → 20 유지). 본 tick Phase 2 흡수 시 green 20→21+ → 임계 초과. **RULE-03 (d) 엄정 적용 — 본 tick Phase 2 흡수 0건 + REQ 13건 큐 보류.**
+#  - 차기 tick 부터 Phase 2 흡수 재개 조건: planner promote ≥ 1 (green→blue 1+) 또는 격리 ≥ 1 (green→50.blocked/spec/ 1+). 본 tick 4 marker flip 으로 react-query spec promote 가능성 surface (FR-01~FR-04 + FR-06 = 5 marker [x] / 10 marker 총합; promote 조건 unchecked 0 미충족 잔존 5 marker 보류).
+#  - 신규 흡수 0건. 격리 0건. 디스크 green 20 유지 (RULE-03 (d) 정합).
+#
+# req mv: 0건 (REQ 13건 보류, 20.req/ 디스크 큐 13건 유지).
+#
+# 본 세션 commit diff:
+#  - specs/30.spec/green/testing/react-query-test-queryclient-default-options-single-source-coherence.md (FR-01 + FR-02 + FR-03 + FR-04 4 Must marker flip + 변경 이력 1행 박제 + 헤더 최종 업데이트 일자)
+#  - specs/30.spec/green/.inspector-seen (본 갱신 — 1 spec stale_cycles 초기화 + 19 spec stale_cycles += 1 + 129차 박제)
+#
+# RULE-02 destructive 금지 정합 (50.blocked/spec/ 미접촉 — RULE-05 /revisit 경로 의존).
+# RULE-02 working tree (src 영역) 미접촉 정합 — src/ 0 변경.
+# RULE-02 push 금지 정합 (inspector 영역 — push 는 developer 전용).
+# RULE-02 writer 경계 정합 (blue 영역 미접촉, 30.spec/green/** 만; `.planner-seen` 미접촉; 20.req/ 미이동; 40.task/ + 50.blocked/ 미접촉).
+# RULE-02 staged 영역 비어 있음 — `git reset HEAD --` 불필요.
+# RULE-03 Phase 1 예외 정합 — pause lock 부재 + reconcile ack 토큰 `4/20 ack` 박제 (외부 ack 트리거 commit 1건 `9dde28d`; sextuple-cascade chain 단절 1차 후 hook-ack 재개 single-step 진입 baseline 단독 도래; 분모 20 = 종료 시 디스크 잔존 spec 수 == GREEN_PENDING_MAX 정확 도달).
+# RULE-03 (d) 정합 — commit-state green 20 == GREEN_PENDING_MAX=20 + 본 tick 외부 promote 0건 + Phase 2 흡수 0건 + 격리 0 → 종료 시 commit-state green 20 == GREEN_PENDING_MAX 정확 도달 정체 2차 baseline (128차 1차 → 129차 2차).
+# RULE-07 자기 검증 — Phase 1 1 marker spec 4 ack (TSK / `9dde28d` 회수 hook-ack — task 정상 mv 60.done/2026/05/19/task/ 정합). Phase 2 0 흡수 (RULE-03 (d) backpressure — REQ 13건 자체 RULE-07 예비 평가 PASS 누적이나 임계 충돌로 보류).
+#
+# 입력 큐 잔여: 13건 (REQ-20260518 11건 + REQ-20260519-003 + REQ-20260519-004 보류, 차기 tick 부터 임계 회복 시 흡수 재개).
