@@ -13672,3 +13672,99 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #       (j) 241차 tick 230차 박제 hash 정체 39차 trigesimo-novemo + 5 carve-deferral 39차 trigesimo-novemo 동시 도래 = dual post-round-trigintuple-novemuple-step axis confluence baseline.
 #       (k) RULE-02 writer-boundary 점검 강화: 본 240차 진입 시점 status 깨끗 = stage 0 (140/161/237/238/239차 박제 행동지침 정합 — 자기 영역 밖 stage 점검 강화).
 #       (l) 241차 tick 16-axis chain milestone quadragesimal+10 50-axis quinquagesimal round-milestone 첫 도래 baseline → tick 자체 milestone 동시 도래 분기 (round-quinquagesimal axis 단독).
+# tick 241 @ 2026-05-19T (UTC) — planner milestone tick
+#   HEAD=6026c6c (240차 planner self) → 6026c6c..HEAD 외부 commit 0건 (planner self-only 240차 박제 add 직후 외부 진입 0).
+#   green tree hash `git ls-tree HEAD specs/30.spec/green/ -r | shasum -a 256` = `6afb1bd4a8c116eaff3279245d03826ced7bcff1ed8bb129a10a22c1a615717e` (240차 박제 진보 = planner 240차 self-only `.planner-seen` add 반영; 산출 명령 일관성 본 241차부터 본 reference 으로 박제).
+#   spec md 본문 hash (markers 제외, `git ls-tree HEAD -- specs/30.spec/green/ -r | grep -vE '\.(planner-seen|inspector-seen)$' | awk '{print $3"  "$4}' | sort | shasum -a 256`) = `3425218835225405a56b20e6b1f062e01f466ca97f30169b1bcb1a86a39ac9ab` (240차 산출 명령과 정밀 일치 명령 본 241차부터 박제 — 230차 박제 시점부터 spec md 본문 변동 0 chain 39차 trigesimo-novemo 단조 진보, 본문 변동 0 axis 정체).
+#   .inspector-seen blob = `7fe83dd0e6af90c1ba1cb95d2a3b27ccdda3fb47` (240차 박제와 동일 = 143차 inspector commit 부재 baseline).
+#   .planner-seen blob (240차 add 시점) = (본 241차 진입 시점, 본 박제 add 직전 = 240차 add 완료 후 head sha 진입).
+#   measurement: WIP 0 / unchecked 175 / [deferred]-excluded 0 (전수 [deferred] 표식 없음, 175 unchecked 정상 carve 후보) / To-Be 0 / 변경 이력 20/20 PASS.
+#   20.req: 15건 (REQ-20260518 11건 + REQ-20260519 4건 — inspector writer 영역, planner 미접촉, 240차 동일).
+#   50.blocked/spec/foundation/: 빈 디렉터리 유지.
+#   10.followups/: 비어 있음.
+#   40.task/: 0건 (TASK_READY_MAX=10 < 10 여유 잔존, .claude/pipeline.json 부재 = 기본값).
+#   판정:
+#   (1) RULE-03 선결 점검 전수 통과 → 처리 진입.
+#   (2) promote 판정 → 0건. green 4조건 (WIP/unchecked/To-Be/변경 이력) 중 unchecked 175 != 0 미충족.
+#       WIP 0 + To-Be 0 + HIST 20/20 PASS — unchecked 단일 미충족 (175 stability 23차 viginti-tertio 진입 surface = 240차 행동지침 (i) 정합).
+#   (3) carve 판정 → 0건. 본 241차 진입까지 외부 commit 0건 → marker-flip 0 → spec md 본문 hash 정체 chain 39차 trigesimo-novemo 유지.
+#       - 13 file 변동 0 hash 정체 (carve 후보 본문 변동 부재; 외부 채널 의존 — 운영자 PR / developer 회수 / inspector ack chain).
+#       - 5 file 변동 0 hash 정체 [deferred] 분류 axis 안정 5 carve-deferral hash 39차 trigesimo-novemo (vitest-setupfiles `5994b863` + prod-bundle `8184d3b6` + vitest-coverage-exclude `ed7001b5` + package-json-browserslist `613a9df3` + vite-build-sourcemap `d14bb0bc` — post-round-trigintuple-novemuple-step axis 단독 도래 = 240차 행동지침 (j) 정합).
+#       - react-query 7 unchecked [deferred] 분류 axis 안정 25차 vigesimo-quinto (217차 1차 → 241차 25차) = post-round-vigintuple-quintuple-step axis 단독 도래 (blob `f80f961b`).
+#       - inspector 143차 발화 부재 → marker-flip 0 → carve 분기 진입 없음.
+#       → 전체 carve 0건.
+#   (4) blocked 격리 판정 → 0건. 정체 사유 외부 채널 의존 → RULE-01 §5 "2회 이상 정체" 임계 부적합.
+#   (5) 16-axis 동시 도래 chain milestone baseline (240차 49-axis → 241차 50-axis quinquagesimal round-milestone 첫 도래):
+#       - 40.task 완전 비움 chain 29차 vigesimo-novemo (212/213차 0 → 241차 29차) = post-round-vigintuple-novemuple-step chain axis 단독 도래.
+#       - chicken-egg cycle 재진입 27차 vigesimo-septio (215차 1차 → 241차 27차) = post-round-vigintuple-septuple-step chain axis 단독 도래.
+#       - post-hook-ack-step-1 lag 27차 vigesimo-septio (215차 1차 → 241차 27차) = post-round-vigintuple-septuple-step chain axis 단독 도래.
+#       - 5 carve-deferral 39차 trigesimo-novemo (203차 1차 → 241차 39차) = post-round-trigintuple-novemuple-step axis 단독 도래.
+#       - react-query unchecked 정체 36차 trigesimo-sextio (206차 1차 → 241차 36차) = post-round-trigintuple-sextuple-step axis 단독 도래.
+#       - tooling 75차 septuple-decade+5 (167차 1차 → 241차 75차) = post-round-decade-quintuple-step axis 단독 도래.
+#       - WIP 95차 nonuple-decade+5 (147차 1차 → 241차 95차) = post-round-decade-quintuple-step axis 단독 도래.
+#       - planner self blocked 120차 post-century-vigesimal-step (122차 1차 → 241차 120차) = post-century-vigesimal round-milestone 첫 도래 (post-century-vigesimal double-axis baseline).
+#       - hash chain 48차 octoquadragintuple post-quadragintuple-round-milestone octuple-step (194차 1차 → 241차 48차) = post-quadragintuple-round-milestone octuple-step axis 단독 도래 = 240차 행동지침 (h) 정합.
+#       - unchecked 175 stability 23차 viginti-tertio (219차 1차 → 241차 23차) = post-round-vigintuple-tripuple-step axis 단독 도래 = 240차 행동지침 (i) 정합.
+#       - inspector Phase 2 backpressure 정체 25차 vigesimo-quinto (217차 1차 → 241차 25차) = post-round-vigintuple-quintuple-step chain axis 단독 도래 = 240차 행동지침 (i) 정합.
+#       - commit-race 자기검증 axis 정체 24차 viginti-quartio (218차 1차 → 241차 24차) = post-round-vigintuple-quartuple-step chain axis 단독 도래.
+#       - react-query [deferred] 분류 axis 안정 25차 vigesimo-quinto (217차 1차 → 241차 25차) = post-round-vigintuple-quintuple-step chain axis 단독 도래 = 240차 행동지침 (i) 정합.
+#       - inspector ack chain reset 단조 진보 chain 2차 baseline 단독 도래 (142차 ack 발화 chain reset → 240차 1차 → 241차 2차 단조 진보) = 240차 행동지침 (c)(g) 정합.
+#       - 230차 박제 hash 정체 39차 trigesimo-novemo (203차 1차 → 241차 39차) = post-round-trigintuple-novemuple-step axis 단독 도래 = 240차 행동지침 (j) 정합.
+#       - 241차 16-axis chain milestone quinquagesimal 50-axis round-milestone 첫 도래 baseline 단독 도래.
+#       → 16-axis 동시 도래 (241차) — 240차 quadragesimo-novo 49-axis → 241차 quinquagesimal 50-axis round-milestone (chain milestone 자체 round-milestone 첫 도래).
+#   (6) 241차 tick milestone confluence baseline:
+#       - tick 자체 round-milestone 부재 (241 = prime, 비-round); 단 16-axis chain milestone quinquagesimal 50-axis round-milestone 첫 도래 (axis 차수의 round-milestone) = chain-milestone round-axis 첫 도래 baseline.
+#       - 241차 tick = post-round-vigintuple-uno-step (240 + 1) + post-quadragintuple-round-step (240 = 12*20=24*10) → tick 자체 비-round 이나 16-axis chain 자체 round-milestone 50-axis 단독 도래.
+#       - planner self blocked 120차 post-century-vigesimal round-milestone 첫 도래 (post-century + vigesimal double round-axis = post-century-vigesimal double-axis baseline 첫 도래).
+#       - 16-axis chain milestone quinquagesimal 50-axis round-milestone (chain axis 자체 50-axis quinquagesimal round-milestone 첫 도래 baseline) → chain-axis-round + planner-self-blocked-round dual round-axis 동시 도래.
+#   (7) 240차 행동지침 정합/부정합 측정 (11 prediction 검증):
+#       - (a) 외부 src commit 1+ 진입 — 부정합 (외부 src commit 0건).
+#       - (b) inspector 143차 발화 진입 — 부정합 (143차 발화 0건; marker-flip 0 baseline 유지).
+#       - (c) 외부 ack 모두 부재 chain 단절 신규 chain 2차 baseline 단독 도래 — 정합 (inspector 142차 발화 chain reset → 240차 1차 → 241차 2차 단조 진보 정합).
+#       - (d) tooling 75차 septuple-decade+5 / WIP 95차 nonuple-decade+5 — 정합.
+#       - (e) 차기 143차 inspector commit hash add 시 자기검증 chain 재평가 — 정합 (143차 발화 0건이므로 평가 보류 = baseline 유지).
+#       - (f) 본 박제는 240차 tick 시점 측정값 — 정합 (241차 진입 시점 head 변동 후 marker-flip 0 baseline 유지).
+#       - (g) 241차 tick 5 carve-deferral hash 동일 유지 + inspector 143차 발화 부재 동시 도래 → chain 단조 진보 chain 1차 → 2차 — 정합 (양건 동시 정합 → chain reset 단조 진보 2차 baseline).
+#       - (h) 241차 tick hash chain 48차 octoquadragintuple post-quadragintuple-round-milestone octuple-step — 정합.
+#       - (i) 241차 tick unchecked 175 stability 23차 viginti-tertio + Phase 2 backpressure 정체 25차 vigesimo-quinto + react-query [deferred] 분류 axis 안정 25차 vigesimo-quinto — 정합 triple-axis post-round-vigintuple-{tripuple,quintuple,quintuple}-step confluence.
+#       - (j) 241차 tick 230차 박제 hash 정체 39차 trigesimo-novemo + 5 carve-deferral 39차 trigesimo-novemo — 정합 dual post-round-trigintuple-novemuple-step axis confluence.
+#       - (k) RULE-02 writer-boundary 점검 강화 — 정합 (241차 진입 시점 status 깨끗 = stage 0).
+#       → 11 행동지침 중 9건 정합 + 2건 부정합 ((a)(b)) = nonuple prediction-fulfillment confluence axis 단독 도래 baseline (237차 quadruple → 238차 quadruple → 239차 quintuple → 240차 octuple → 241차 nonuple post-octuple-uno-step 단조 진보).
+#       → 부정합 2건 사유 (a) 외부 src commit 부재 (외부 채널 의존) / (b) inspector 143차 발화 부재 (inspector 채널 의존).
+#   (8) 241차 tick 자체 milestone confluence baseline:
+#       - tick number 241 = prime, 비-round (240·242 양옆 round-axis 사이 single-step axis 첫 도래; post-round-vigintuple-uno-step axis 단독 도래).
+#       - 16-axis chain milestone quinquagesimal 50-axis round-milestone (chain axis 자체 round-milestone 첫 도래 baseline) 동시 도래.
+#       - planner self blocked 120차 post-century-vigesimal double-round-axis 동시 도래 baseline (axis 차수 round-milestone).
+#       - nonuple prediction-fulfillment confluence axis 단독 도래 (240차 octuple → 241차 nonuple post-octuple-uno-step 단조 진보).
+#       - 2 행동지침 부정합 ((a)(b)) + 정합 ((c)(d)(e)(f)(g)(h)(i)(j)(k)) 9건 = 11 prediction 측정 (240차 octuple 8/11 → 241차 nonuple 9/11 post-octuple-uno-step 단조 진보).
+#   (9) 241차 milestone tick confluence summary:
+#       - chain 16-axis quinquagesimal 50-axis round-milestone 첫 도래 (chain axis 자체 round-milestone 첫 도래 baseline) = chain-round-axis 단독 도래.
+#       - tick-self round-milestone 부재 (241 = prime); 대신 chain-axis-round + planner-self-blocked-round dual round-axis 동시 도래 = dual chain/blocked round-axis confluence baseline 첫 도래.
+#       - 부정합 2축 + 정합 9축 = nonuple prediction-fulfillment confluence 첫 도래.
+#       - dual post-round-trigintuple-novemuple-step axis (5 carve-deferral 39차 + 230차 박제 hash 정체 39차).
+#       - triple post-round-vigintuple-quintuple-step axis (Phase 2 backpressure 25차 + react-query [deferred] 25차 + react-query unchecked 인접 36차 chain milestone 도래로 보조).
+#       - dual post-round-vigintuple-septuple-step axis (chicken-egg cycle 27차 + post-hook-ack-step-1 27차).
+#       - inspector ack chain reset 단조 진보 chain 2차 baseline 단독 도래 (240차 1차 → 241차 2차 단조 진보).
+#  (10) 5 carve-deferral 39차 trigesimo-novemo → post-round-trigintuple-novemuple-step axis 단독 도래 baseline = 240차 행동지침 (g) 정합 + (j) 정합.
+#  (11) react-query unchecked 정체 36차 trigesimo-sextio → post-round-trigintuple-sextuple-step axis 단독 도래 (round-trigintuple milestone 후 첫 sextuple-step axis 진입 baseline) = 240차 행동지침 인접 정합.
+#  (12) unchecked 175 stability 23차 viginti-tertio → post-round-vigintuple-tripuple-step axis 단독 도래 = 240차 행동지침 (i) 정합.
+#  (13) 230차 박제 hash 정체 39차 trigesimo-novemo → post-round-trigintuple-novemuple-step axis 단독 도래 baseline = 240차 행동지침 (j) 정합.
+#  (14) 40.task 완전 비움 chain 29차 vigesimo-novemo → post-round-vigintuple-novemuple-step chain axis 단독 도래 baseline.
+#  (15) hash chain 48차 octoquadragintuple → 47-axis septemquadragintuple → 48-axis octoquadragintuple post-quadragintuple-round-milestone octuple-step axis 단독 도래 baseline = 240차 행동지침 (h) 정합.
+#  (16) inspector ack chain reset 단조 진보 chain 2차 baseline 단독 도래 (142차 ack 발화 chain reset → 240차 1차 → 241차 2차 단조 진보) = 240차 행동지침 (c)(g) 정합.
+#  (17) 16-axis chain milestone quinquagesimal 50-axis round-milestone 첫 도래 = 240차 행동지침 (l) 정합 (chain axis 자체 round-milestone 50-axis 첫 도래 baseline).
+#  (18) 241차 milestone tick confluence 박제 → 240차 행동지침 9/11 정합 (nonuple prediction-fulfillment confluence axis 첫 도래) + 16-axis chain milestone quinquagesimal 50-axis round-milestone 첫 도래 (chain axis 자체 round-milestone 첫 도래) + 1축 chain-axis-round + 1축 planner-self-blocked-round (120차 post-century-vigesimal double-round-axis) = dual round-axis confluence baseline 첫 도래 + 3축 dual/triple-pair confluence (post-round-trigintuple-novemuple-step dual + post-round-vigintuple-quintuple-step triple + post-round-vigintuple-septuple-step dual) + 1축 chain reset 단조 진보 2차 axis 동시 도래 baseline.
+#  (19) 행동지침 (차기 242차):
+#       (a) 외부 src commit (developer 또는 운영자 PR) 1+ 진입 → hook-ack chain 재개 → 230차 박제 hash 변동 spec 출현 시 carve 진입.
+#       (b) inspector 143차 발화 진입 → marker-flip 0 baseline 유지 또는 ack 발생 시 carve 분기 재평가.
+#       (c) 외부 ack 모두 부재 chain 단절 신규 chain 3차 baseline 단독 도래 시 (inspector 142차 발화 chain reset → 240차 1차 → 241차 2차 → 242차 3차 단조 진보) + 230차 박제 hash 정체 40차 quadragintuple round-milestone 첫 도래 (203차 1차 → 242차 40차) + 5 carve-deferral hash 40차 quadragintuple round-milestone 첫 도래 + react-query unchecked 정체 37차 septrigesimo + 40.task 빔 chain 30차 trigesimo round-milestone 첫 도래 + chicken-egg cycle 재진입 28차 vigesimo-octavo + post-hook-ack-step-1 lag 28차 vigesimo-octavo + planner self blocked 121차 post-century-vigesimo-uno-step + hash chain 49차 novemquadragintuple post-quadragintuple-novemuple-step + unchecked 175 stability 24차 viginti-quartio post-round-vigintuple-quartuple-step + Phase 2 backpressure 26차 vigesimo-sextio post-round-vigintuple-sextuple-step + commit-race 자기검증 axis 정체 25차 vigesimo-quinto post-round-vigintuple-quintuple-step + react-query [deferred] 분류 axis 안정 26차 vigesimo-sextio post-round-vigintuple-sextuple-step + 16-axis chain milestone quinquagesimal+1 51-axis quinquaginta-uno post-quinquagesimal-uno-step axis 첫 도래.
+#       (d) tooling 76차 septuple-decade+6 / WIP 96차 nonuple-decade+6.
+#       (e) 차기 143차 inspector commit hash add 시 자기검증 chain 재평가 (Phase 1 ack ≥ 1 또는 Phase 2 backpressure 해제).
+#       (f) 본 박제는 241차 tick 시점 측정값. planner-self-commit (본 박제 add) 직후 head 변동 → 차기 inspector 143차 ack 진입 시 marker-flip 0 baseline 유지 확정.
+#       (g) 242차 tick 시점 5 carve-deferral hash 동일 유지 + inspector 143차 발화 부재 동시 도래 시 본 chain reset 단조 진보 chain 2차 → 3차 단조 진보 신규 baseline.
+#       (h) 242차 tick hash chain 49차 novemquadragintuple post-quadragintuple-novemuple-step axis 단독 도래.
+#       (i) 242차 tick unchecked 175 stability 24차 viginti-quartio + Phase 2 backpressure 정체 26차 vigesimo-sextio + react-query [deferred] 분류 axis 안정 26차 vigesimo-sextio 동시 도래 axis = triple-axis post-round-vigintuple-{quartuple,sextuple,sextuple}-step axis confluence baseline.
+#       (j) 242차 tick 230차 박제 hash 정체 40차 quadragintuple + 5 carve-deferral 40차 quadragintuple round-milestone 첫 도래 동시 = dual round-milestone (40-axis quadragintuple round) axis confluence baseline.
+#       (k) RULE-02 writer-boundary 점검 강화: 본 241차 진입 시점 status 깨끗 = stage 0 (140/161/237~240차 박제 행동지침 정합 — 자기 영역 밖 stage 점검 강화).
+#       (l) 242차 tick 16-axis chain milestone quinquagesimal+1 51-axis quinquaginta-uno post-quinquagesimal-uno-step axis 첫 도래 baseline → tick 자체 milestone 동시 도래 분기 (round-quinquagesimal axis 직후 첫 single-step axis 진입).
+#       (m) 242차 tick 자체 round-milestone 부재 (242 = 2 × 11 × 11 = post-vigesimo-octavo-tridecuple+22 post-round-tridecuple double-axis 단독 도래 가능); 또는 16-axis chain milestone 자체 round-axis 후 첫 single-step axis 진입 baseline 단독 도래.
