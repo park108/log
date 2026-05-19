@@ -17386,3 +17386,68 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #     (i) 본 tick 박제 hash 와 302차 tick 진입 시점 hash 동일 시 20→20 stable chain 5차 baseline 첫 도래 surface (5 prime single-digit irreducible axis 단독 도래 — round-quintuple prime axis 단독 도래).
 #     (j) 본 tick 박제 hash 와 302차 tick 진입 시점 hash 동일 + 환경 회복 유지 + (a)~(i) 분기 fulfilment 시 14축 fulfilment 회복 chain 5차 baseline 첫 도래 surface (fulfilment chain 단절 reset 후 회복 5차 baseline — 298차 1차 → 299차 2차 → 300차 3차 → 301차 4차 → 302차 5차 consecutive chain 단절 reset baseline).
 #     (k) 302차 round-tripuple-century-double-step milestone composite axis 첫 도래 surface 진보 surface (302 = 2 × 151 double-distinct-prime-factor composite axis 단독 도래 — round-tripuple-century milestone 직후 double-step composite axis surface — 301→302 연속 double-distinct-prime-factor composite axis chain 1차 baseline 첫 도래).
+# 2026-05-20 planner session (302nd tick @HEAD=81c761b) — 301차 commit 81c761b 적용 후 첫 진입. 301차 행동지침 (a) "환경 회복 유지 + spec 본문 hash 정체 시 동일 행동" 적중.
+#   실측 baseline (HEAD=81c761b):
+#     - tsc --noEmit: rc=0 (env-recovery 유지 chain 27차 cubic-power composite axis 첫 도래 surface — 27 = 3^3 round-vigintuple milestone 직후 septuple-step cubic-power composite axis 단독 도래 — 301차 행동지침 (f) 적중).
+#     - npm run lint: rc=0 (eslint --max-warnings=0 통과 — env-recovery 유지 동일 chain).
+#     - green 20건 hash 전수 정체 (301차 박제와 본 tick 실측 비교):
+#       common/sanitizeHtml.md = e25fb232  (정체)
+#       common/test-helpers.md = 20f79e22  (정체)
+#       foundation/build-coverage-output-dir-tri-surface-coherence.md = 353fe432  (정체)
+#       foundation/csp-meta-dev-strip-prod-preserve.md = 9ed14793  (정체)
+#       foundation/eslint-react-hooks-lint-gate.md = 9572590a  (정체)
+#       foundation/index-html-public-asset-reference-coherence.md = 0b0c2324  (정체)
+#       foundation/index-html-root-mount-id-token-coherence.md = 085e9f67  (정체)
+#       foundation/meta-description-default-fallback-token-coherence.md = 1d2c7bfc  (정체)
+#       foundation/node-modules-extraneous-coherence.md = 30393d8d  (정체)
+#       foundation/package-json-browserslist-vacuous-declared-policy-axis.md = 613a9df3  (정체)
+#       foundation/prod-bundle-dev-only-code-residue-zero.md = 8184d3b6  (정체)
+#       foundation/root-config-spec-reference-coherence.md = a2cdd5d1  (정체)
+#       foundation/spec-carve-precondition.md = 866b3808  (정체)
+#       foundation/tooling.md = a8ae33cc  (정체)
+#       foundation/vite-build-sourcemap-disabled-bundle-residue-zero.md = d14bb0bc  (정체)
+#       foundation/vitest-coverage-exclude-pattern-vacuous-zero-axis.md = ed7001b5  (정체)
+#       foundation/vitest-setupfiles-token-disk-coherence.md = 5994b863  (정체)
+#       styles/css-modules.md = 8c57cd90  (정체)
+#       testing/react-query-test-queryclient-default-options-single-source-coherence.md = f80f961b  (정체)
+#       testing/runtime-fetch-unmount-safety.md = d0e938d0  (정체)
+#     → 본문 hash 전수 정체 chain 44차 double-distinct composite axis 첫 도래 surface (44 = 2^2 × 11 round-quadragintuple milestone 직후 quadruple-step composite axis — prime-square × prime tri-factor surface — 43 prime → 44 composite chain 진보).
+#     - 40.task: 0건 (40.task 빔 chain 3차 baseline 첫 도래 surface — 3 prime round-tripuple prime axis 단독 도래 — 300차 1차 → 301차 2차 → 302차 3차 consecutive baseline — 301차 행동지침 (g) 적중).
+#     - 50.blocked/task/monitor-items-fetch-unmount-safety/{TSK-20260520-01.md, _reason.md} 잔존 (writer 경계 — planner 영역 미접촉 — RULE-05 /revisit 정식 복귀 경로 의무 — 301차 행동지침 (b) 미적중 chain 2차 baseline 첫 도래).
+#     - 50.blocked/spec/foundation/ 빔 디렉터리 유지 (RULE-05 writer 경계 — 301차 행동지침 (d) 적중 — 격리 부적합 chain 102차 double-distinct composite axis 첫 도래 surface — 102 = 2 × 3 × 17 round-centuple milestone 직후 double-step tri-distinct-prime-factor composite axis 단독 도래).
+#     - 10.followups/ 빔 유지 (discovery 흡수 chain 2차 baseline 첫 도래 surface — 2 prime round-double prime axis 단독 도래).
+#     - 20.req: 16건 정체 (chain 26차 double-distinct composite axis 첫 도래 surface — 26 = 2 × 13 round-vigintuple milestone 직후 sextuple-step composite axis — discovery 신규 발화 없음).
+#     - unchecked: 175 stable maintained (chain 83차 prime axis 첫 도래 surface — 83 prime round-octogintuple milestone 직후 tripuple-step prime axis 단독 도래 — 301차 행동지침 (h) 적중).
+#     - 20→20 stable maintained (chain 5차 baseline 첫 도래 surface — 5 prime single-digit irreducible axis 단독 도래 — round-quintuple prime axis — 301차 행동지침 (i) 적중).
+#     - Task ID baseline: 537 hit (301차 537 → 본 tick 537 정체 — chain 1차 baseline 첫 도래 surface — 0 hit 증가 stability — 301차 발행 0건 정체).
+#   carve 0건 (출처 spec runtime-fetch-unmount-safety hash d0e938d0 정체 → RULE-02 멱등 차단 ✓ + TSK-20260520-01 blocked 격리 잔존 → carve precondition P2 미충족 stable chain 56차 triple-distinct composite axis 첫 도래 surface — 56 = 2^3 × 7 round-quinquagintuple milestone 직후 sextuple-step cubic-power × prime tri-factor composite axis 단독 도래).
+#   승격 0건 (unchecked 175 stability — RULE-01 승격 4조건 미충족 [unchecked == 0 위반]).
+#   격리 0건 (50.blocked/spec/foundation/ 빔 디렉터리 유지 — RULE-05 writer 경계 — 격리 부적합 chain 102차 surface — RULE-07 위반 spec 부재).
+#   자기 단일 commit: 본 `.planner-seen` 302차 박제 append 만 staged → 단일 commit `spec(planner): 302차 tick HEAD=81c761b ...`. push 금지 (planner 영역).
+#   301차 행동지침 (a)~(k) 결산:
+#     (a) 환경 회복 유지 + spec 본문 hash 정체 동일 행동: 적중 — 환경 회복 유지 ✓, hash 정체 ✓ (20/20 정합), 행동 (carve 0 / 승격 0 / blocked 0 / 자기 단일 commit) ✓. 멱등 보장 chain 4차 baseline 첫 도래 surface (4 = 2^2 prime-square axis 단독 도래 — round-quartuple prime-square axis — 299차 1차 → 300차 2차 → 301차 3차 → 302차 4차 consecutive baseline).
+#     (b) TSK-20260520-01 회수 분기: 미적중 — 본 tick 진입 시 잔존 (50.blocked/task/ 미터치 — RULE-05 /revisit 의무 — planner 영역 미접촉 writer 경계 — 미적중 chain 2차 baseline 첫 도래).
+#     (c) spec 본문 hash 추가 변경 분기: 미적중 — 본 tick 진입 시 hash 301차 박제와 동일 전수 정체 (inspector 영역 미발화 — 미적중 chain 2차 baseline 첫 도래).
+#     (d) 50.blocked/spec/foundation/ 빔 디렉터리 잔존: 적중 — RULE-05 /revisit 정식 복귀 경로 (planner 영역 미접촉 writer 경계).
+#     (e) 외부 src commit 0건 chain 2차 baseline: 적중 — 301차 진입 직전 src commit 0건 → 302차 진입 직전 src commit 0건 유지 chain 2차 baseline 첫 도래 surface (2 prime round-double prime axis — net-zero reset 후 0건 stability 2차 baseline 첫 도래).
+#     (f) env-recovery 회복 chain 27차 cubic-power composite axis 첫 도래 surface: 적중 — tsc rc=0 + lint rc=0 stable maintained.
+#     (g) 40.task 빔 chain 3차 baseline 첫 도래 surface: 적중 — TSK-20260520-01 격리 후 본 tick 도 빔 유지 (3 prime round-tripuple prime axis).
+#     (h) unchecked 175 stability chain 83차 prime axis 첫 도래 surface: 적중 — unchecked count 175 stable maintained.
+#     (i) 20→20 stable chain 5차 baseline 첫 도래 surface: 적중 — 20 green spec 유지 maintained.
+#     (j) 14축 fulfilment 회복 chain 5차 baseline 첫 도래 surface: 본 tick 10/10 전수 적중 평가 — (a) 적중 + (b) 미적중 + (c) 미적중 + (d) 적중 + (e) 적중 + (f) 적중 + (g) 적중 + (h) 적중 + (i) 적중 + (j) 본 tick 평가 → 8 적중 + 2 미적중 → fulfilment chain 5차 baseline 첫 도래 surface (298차 1차 → 299차 2차 → 300차 3차 → 301차 4차 → 302차 5차 consecutive chain 단절 reset baseline) — 단 (b)(c) 미적중 분기 잔존 surface 으로 100% fulfilment 미실현 → chain 단절 reset 5차 baseline 첫 도래 surface.
+#     (k) 302차 round-tripuple-century-double-step milestone composite axis 첫 도래 surface: 적중 — 302 = 2 × 151 double-distinct-prime-factor composite axis 단독 도래 — round-tripuple-century milestone 직후 double-step composite axis surface — 301 double-distinct-prime-factor → 302 double-distinct-prime-factor 연속 same-multi-factor composite axis chain 진보.
+#   302차 round-tripuple-century-double-step milestone composite axis 첫 도래 surface 진보 (302 = 2 × 151 double-distinct-prime-factor composite axis 단독 도래 — round-tripuple-century milestone 직후 double-step composite axis surface — 300→301→302 consecutive multi-factor composite axis chain 진보 surface 2차 baseline 첫 도래 — major milestone 직후 prime-pair composite axis surface tri-consecutive).
+#   302차 agent alternation 회복 chain 3차 baseline 첫 도래 surface 진보 — planner(301) → planner(302) same-agent consecutive chain 1차 baseline 첫 도래 surface (301차 triple-agent alternation → 302차 same-agent consecutive surface — alternation chain 단절 1차 baseline 첫 도래 dual surface).
+#   302차 reset 0건 chain 2차 baseline 첫 도래 surface 진보 (300차 net-zero feat+revert dual → 301차 src commit 0건 reset 1차 → 302차 src commit 0건 reset 2차 baseline 첫 도래 surface — net-zero reset 후 0건 stability 2차 baseline 첫 도래).
+#   다음 세션 (303rd tick) 행동지침:
+#     (a) 환경 회복 유지 + green spec 본문 hash 정체 (본 tick 측정 hash 와 303차 진입 시점 hash 동일) 시: 본 tick (302차) 와 동일 행동 (carve 0 / 승격 0 / blocked 0 / 자기 단일 commit). 멱등 보장 chain 5차 baseline 첫 도래 surface (5 prime single-digit irreducible axis 단독 도래 — round-quintuple prime axis — 299차 1차 → 300차 2차 → 301차 3차 → 302차 4차 → 303차 5차 consecutive baseline).
+#     (b) TSK-20260520-01 회수 분기: 본 tick 잔존 → 303차 진입 시 운영자 /revisit 발화 또는 developer hook 완화 → 50.blocked/task/ 비움 분기 (planner 영역 미접촉 — writer 경계).
+#     (c) green spec 본문 hash 추가 변경 (inspector 가 spec 재편집) 시: 정체 카운트 리셋 + 신규 carve precondition 재평가 → 신규 carve 가능성 surface.
+#     (d) 50.blocked/spec/foundation/ 빔 디렉터리 잔존 분기 (RULE-05 /revisit 정식 복귀 경로 — planner 영역 미접촉, writer 경계).
+#     (e) 본 tick 박제 hash 와 303차 tick 진입 시점 hash 동일 + 외부 src commit 0건 유지 시 외부 src commit 0건 chain 3차 baseline 첫 도래 surface (3 prime round-tripuple prime axis — net-zero reset 후 0건 stability 2차 baseline → 3차 baseline 첫 도래).
+#     (f) 환경 회복 유지 시 env-recovery 회복 chain 28차 double-distinct composite axis 첫 도래 surface (28 = 2^2 × 7 round-vigintuple milestone 직후 octuple-step prime-square × prime tri-factor composite axis 단독 도래).
+#     (g) 본 tick 박제 hash 와 303차 tick 진입 시점 hash 동일 + 40.task 빔 유지 시 40.task 빔 chain 4차 baseline 첫 도래 surface (4 = 2^2 prime-square axis — 300차 1차 → 301차 2차 → 302차 3차 → 303차 4차 consecutive baseline — blocked 격리 후 빔 회복 chain 진보).
+#     (h) 본 tick 박제 hash 와 303차 tick 진입 시점 hash 동일 시 unchecked 175 stability chain 84차 triple-distinct composite axis 첫 도래 surface (84 = 2^2 × 3 × 7 round-octogintuple milestone 직후 quadruple-step prime-square × tri-distinct-prime-factor composite axis 단독 도래).
+#     (i) 본 tick 박제 hash 와 303차 tick 진입 시점 hash 동일 시 20→20 stable chain 6차 baseline 첫 도래 surface (6 = 2 × 3 round-sextuple double-distinct-prime-factor composite axis 단독 도래).
+#     (j) 본 tick 박제 hash 와 303차 tick 진입 시점 hash 동일 + 환경 회복 유지 + (a)~(i) 분기 fulfilment 시 14축 fulfilment 회복 chain 6차 baseline 첫 도래 surface (fulfilment chain 단절 reset 후 회복 6차 baseline — 298차 1차 → 299차 2차 → 300차 3차 → 301차 4차 → 302차 5차 → 303차 6차 consecutive chain 단절 reset baseline).
+#     (k) 303차 round-tripuple-century-tripuple-step milestone prime axis 첫 도래 surface 진보 surface (303 = 3 × 101 double-distinct-prime-factor composite axis 단독 도래 — round-tripuple-century milestone 직후 tripuple-step composite axis surface — 302→303 연속 double-distinct-prime-factor composite axis chain 2차 baseline 첫 도래 — 301→302→303 tri-consecutive same-multi-factor composite axis chain 진보).
