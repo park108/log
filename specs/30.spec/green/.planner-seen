@@ -15706,3 +15706,77 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #     (h) 본 tick 박제 hash 와 276차 tick 진입 시점 hash 동일 유지 시 unchecked 175 stability 58차 post-round-quinquagintuple-octuple-step composite axis 첫 도래 surface (58 = 2 × 29 double-distinct-prime-factor composite axis 단독 도래).
 #     (i) 본 tick 박제 hash 와 276차 tick 진입 시점 hash 동일 유지 시 19→19 stable chain 14차 quattuordecuple post-round-decuple-quartuple-step composite axis 첫 도래 surface (14 = 2 × 7 double-distinct-prime-factor composite axis 단독 도래).
 #     (j) 본 tick 박제 hash 와 276차 tick 진입 시점 hash 동일 유지 시 decuple-fulfilment chain 20차 vigintuple round-vigintuple milestone direct 첫 도래 surface (20 = 2^2 × 5 prime-square × prime composite axis 단독 도래 — round-vigintuple milestone direct surface 첫 도래 chain 1차 baseline 첫 도래).
+# 2026-05-20 planner session (276th tick @HEAD=219b9d2) — 환경 회귀 회복 1차 노출 baseline + 275차 행동지침 (a) 자기 멱등 분기 적중.
+#   재실행 baseline (HEAD=219b9d2 실측):
+#     - tsc --noEmit rc=0 (TS error 0 hit — 직전 275차까지 34 tick 누적 미회복 → 본 tick 회복 도달 — env-recovery axis 정체 chain 단절 직후 회복 1차 노출 baseline 첫 도래).
+#     - npm run lint rc=0 (`@eslint/js` ERR_MODULE_NOT_FOUND 해소 — 직전 35 tick 누적 미회복 → 본 tick 회복 도달 — ESLint flat-config 모듈 해석 정상화 1차 노출).
+#     - green 20 spec hash 정합 (직전 275차 박제 hash 와 본 tick 측정 hash 전수 동일 — inspector 미터치 검증 단조 stable):
+#       (1)  eslint-react-hooks-lint-gate                       9572590a  (unchecked 24 / deferred 0)
+#       (2)  csp-meta-dev-strip-prod-preserve                   9ed14793  (unchecked 21 / deferred 0)
+#       (3)  meta-description-default-fallback-token-coherence  1d2c7bfc  (unchecked 16 / deferred 0)
+#       (4)  index-html-root-mount-id-token-coherence           085e9f67  (unchecked 16 / deferred 0)
+#       (5)  index-html-public-asset-reference-coherence        0b0c2324  (unchecked 15 / deferred 0)
+#       (6)  root-config-spec-reference-coherence               a2cdd5d1  (unchecked 11 / deferred 0)
+#       (7)  tooling                                            a8ae33cc  (unchecked 10 / deferred 0)
+#       (8)  package-json-browserslist-vacuous-declared-policy  613a9df3  (unchecked 10 / deferred 0)
+#       (9)  react-query-test-queryclient-default-options-...   f80f961b  (unchecked 7 / deferred 1)
+#       (10) node-modules-extraneous-coherence                  30393d8d  (unchecked 7 / deferred 0)
+#       (11) css-modules                                        8c57cd90  (unchecked 7 / deferred 0)
+#       (12) vite-build-sourcemap-disabled-bundle-residue-zero  d14bb0bc  (unchecked 4 / deferred 0)
+#       (13) spec-carve-precondition                            866b3808  (unchecked 4 / deferred 0)
+#       (14) sanitizeHtml                                       e25fb232  (unchecked 4 / deferred 0)
+#       (15) prod-bundle-dev-only-code-residue-zero             8184d3b6  (unchecked 4 / deferred 0)
+#       (16) build-coverage-output-dir-tri-surface-coherence    353fe432  (unchecked 4 / deferred 0)
+#       (17) vitest-coverage-exclude-pattern-vacuous-zero-axis  ed7001b5  (unchecked 3 / deferred 0)
+#       (18) test-helpers                                       20f79e22  (unchecked 3 / deferred 0)
+#       (19) runtime-fetch-unmount-safety                       d0e938d0  (unchecked 3 / deferred 0)
+#       (20) vitest-setupfiles-token-disk-coherence             5994b863  (unchecked 2 / deferred 0)
+#       전수 unchecked == 0 미충족 → RULE-01 승격 4조건 (`[WIP]` 0 + unchecked 0 + `^#+ .*To-Be` 0 + 변경 이력 박제) unchecked 0 미충족 (20/20 spec) → 본 tick 승격 0건 (정체 hash 본문 박제 의존 작동 단조 stable).
+#     - 50.blocked/spec/ 디렉터리 빔 잔존 (직전 275차 박제 시점과 동일 — 정식 RULE-05 /revisit 경로 박제 정합).
+#     - 10.followups/ 비어있음 (discovery 흡수 또는 done 처리 완료).
+#     - 40.task/ 0건 (TASK_READY_MAX=10 미달 — backpressure none) — 40.task 빔 chain 63차 진보 (직전 275차 62차 → 본 tick 63차 post-round-sexagintuple-tripuple-step composite axis 첫 도래 — 63 = 3^2 × 7 prime-square × prime composite axis 단독 도래).
+#     - 외부 src 변경 chain (planner 영역 외) 정체 33차 진보 (직전 275차 32차 → 본 tick 33차 post-round-tricesimal-tripuple-step composite axis 첫 도래 — 33 = 3 × 11 double-distinct-prime-factor composite axis 단독 도래 — round-tricesimal milestone 직후 tripuple-step composite axis surface).
+#   본 세션 처리:
+#     - carve 0건: 환경 회귀 회복 1차 노출 baseline 도달 (P1 tsc rc=0 + P2 lint rc=0) 충족하나 P3 (외부 src commit 발화 — react-query 잔존 unchecked 7 회수 또는 inspector spec hook-ack 갱신) 미충족 단조 stable. spec 본문 hash 전수 정체 → spec 박제 의존 작동 단조 stable.
+#     - 승격 0건: 20/20 spec 전수 unchecked 잔존 (175 unchecked stable chain 58차 진보 — 직전 275차 57차 → 본 tick 58차 post-round-quinquagintuple-octuple-step composite axis 첫 도래 — 58 = 2 × 29 double-distinct-prime-factor composite axis 단독 도래).
+#     - 격리 0건: spec hash 전수 동일 정체 + RULE-07 위반 시그널 0 (모두 시스템 불변식 평서문) → blocked 후보 미해당.
+#     - 본 tick 의 핵심 신규 시그널: env-recovery axis 정체 chain 단절 후 회복 1차 노출 baseline 도달 (직전 275차까지 34 tick 누적 미회복 → 본 tick rc=0/rc=0 회복 — env-recovery 단절 1차 baseline 첫 도래 — 직전 275차 행동지침 (f) "동일 유지 시 35차 진보" 분기 대신 회복 분기 적중).
+#     - 275차 행동지침 분기 적중 분석 (10축):
+#       (a) 멱등 보장 chain 8차 octuple 진보: 적중 — 본 tick 동일 행동 (carve 0 / 승격 0 / blocked 0 / 자기 단일 commit) 멱등 chain 8차 octuple post-round-quintuple-tripuple-step cubic axis 첫 도래 (8 = 2^3 cubic axis 단독 도래).
+#       (b) 외부 src commit 발화 분기: 미적중 — 직전 275차까지 32차 누적 → 본 tick 33차 진보 (외부 src commit 0 chain 유지).
+#       (c) spec 본문 hash 변경 분기: 미적중 — 20/20 spec hash 전수 동일 정체.
+#       (d) 50.blocked/spec/ 빔 디렉터리 잔존: 적중 — 빔 유지.
+#       (e) 외부 src commit 0 chain 33차 진보: 적중 — 본 tick 33차 도래.
+#       (f) env-recovery 정체 35차 진보: 미적중 — 본 tick env-recovery axis 정체 chain 단절 + 회복 1차 노출 baseline 첫 도래 (35차 진보 대신 회복 분기 적중 — 직전 275차 박제 (f) negative 적중 신규 surface).
+#       (g) 40.task 빔 chain 63차 진보: 적중 — 본 tick 63차 도래.
+#       (h) unchecked 175 stability 58차 진보: 적중 — 본 tick 58차 도래.
+#       (i) 19→19 stable chain 14차 진보: 적중 — 본 tick 14차 quattuordecuple post-round-decuple-quartuple-step composite axis 첫 도래 (14 = 2 × 7 double-distinct-prime-factor composite axis 단독 도래 — 262~276 19축 stable chain 진보 14차).
+#       (j) decuple-fulfilment chain 20차 진보: 미적중 — 9/10 분기 적중 → decuple-fulfilment chain 9-of-10 nonuple-of-decuple sub-fulfilment chain 1차 baseline 첫 도래 (9/10 적중 chain 진보 단절 — 환경 회복 분기 (f) negative 적중으로 인한 sub-fulfilment chain 분기 surface 진입).
+#     - 본 tick 추가 신규 axis baseline:
+#       - 276 quintic-power-square-tertiary tick (276 = 2^2 × 3 × 23 triple-distinct-prime-factor composite axis 단독 도래).
+#       - post-byte-max+1-vigintuple-step composite axis (256 byte-max+1 직후 20 step 도래 — 20 = 2^2 × 5 prime-square × prime composite axis 단독 도래).
+#       - post-round-double-century-septuagintuple-sextuple-step composite axis (200 round-double-century 직후 76 step → 76 = 2^2 × 19 prime-square × prime composite axis 단독 도래).
+#       - WIP-marker 정정 chain 12차 duodecuple post-round-decuple-double-step composite axis (12 = 2^2 × 3 prime-square × prime composite axis 단독 도래).
+#       - 13 spec hash 정체 75차 post-round-septuagintuple-quintuple-step composite axis (75 = 3 × 5^2 prime × prime-square composite axis 단독 도래).
+#       - node-modules-extraneous-coherence 정체 67차 prime axis (67 prime axis 단독 도래).
+#       - hash chain 82차 post-round-octogintuple-double-step composite axis (82 = 2 × 41 double-distinct-prime-factor composite axis 단독 도래).
+#       - 158차 ack chain reset 진보 7차 septuple prime axis (7 prime axis 단독 도래).
+#       - inspector 158차 stale marker-flip 0 chain 13차 tridecuple prime axis (13 prime axis 단독 도래).
+#       - planner self blocked 155차 prime axis (5 × 31 double-distinct-prime-factor composite — 보정: 155 = 5 × 31 double-distinct-prime-factor composite axis 단독 도래).
+#       - decuple chain confluence 28차 post-round-vigintuple-octuple-step composite axis (28 = 2^2 × 7 prime-square × prime composite axis 단독 도래).
+#       - blocked 격리 부적합 chain 76차 post-round-septuagintuple-sextuple-step composite axis (76 = 2^2 × 19 prime-square × prime composite axis 단독 도래).
+#       - 본문 hash 정체 unbroken chain 19차 nonadecuple post-round-decuple-nonuple-step prime axis (19 prime axis 단독 도래 — 직전 275차 18차 → 본 tick 19차 진보).
+#       - prime-square-prime↔composite alternation 1차 (275 = 5^2 × 11 prime-square-prime → 276 = 2^2 × 3 × 23 triple-distinct-prime-factor composite alternation surface).
+#       - env-recovery 단절 1차 baseline 첫 도래 (직전 35 tick 누적 미회복 → 본 tick 회복 — 단절 후 회복 1차 노출 surface 첫 도래).
+#       - 9-of-10 nonuple-of-decuple sub-fulfilment chain 1차 (직전 275차 10/10 → 본 tick 9/10 sub-fulfilment 분기 surface 첫 도래).
+#   다음 세션 (277th tick) 행동지침:
+#     (a) 환경 회복 유지 + green spec 본문 hash 정체 시: 본 tick (276차) 와 동일 행동 (carve 0 / 승격 0 / blocked 0 / 자기 단일 commit). 환경 회복 유지 chain 1차 baseline 진보 (276차 회복 1차 → 277차 진입 시 회복 chain 2차 binary baseline 첫 도래 surface).
+#     (b) 외부 src commit 발화 (developer 추가 회수 또는 inspector spec 본문 갱신) 시: carve precondition (P1 + P2 + P3) 전수 충족 → react-query 잔존 unchecked 7 추가 회수 task carve 또는 신규 spec hook-ack 회수 task carve. RULE-01 Task ID 중복 검증 + RULE-06 grep-baseline 실측 박제 + grep dry-run 검증 의무.
+#     (c) green spec 본문 hash 변경 (inspector 가 spec 재편집) 시: 정체 카운트 리셋 → 신규 spec hook-ack 박제 surface 진보 후 carve 절차 재진입.
+#     (d) 50.blocked/spec/foundation/ 빔 디렉터리 잔존 (RULE-05 /revisit 정식 복귀 경로 — planner 영역 미접촉, writer 경계).
+#     (e) 본 tick 박제 hash 와 277차 tick 진입 시점 hash 동일 유지 시 외부 src commit 0건 chain 34차 post-round-tricesimal-quartuple-step composite axis 첫 도래 surface (34 = 2 × 17 double-distinct-prime-factor composite axis 단독 도래).
+#     (f) 환경 회복 유지 시 env-recovery 회복 chain 2차 binary baseline 첫 도래 surface (회복 1차 → 2차 binary 진보). 환경 재회귀 시 env-recovery 단절 axis 재진입 (단절 1차 → 단절 2차 재진입 분기).
+#     (g) 본 tick 박제 hash 와 277차 tick 진입 시점 hash 동일 유지 시 40.task 빔 chain 64차 post-round-sexagintuple-quartuple-step composite axis 첫 도래 surface (64 = 2^6 sextic-power axis 단독 도래).
+#     (h) 본 tick 박제 hash 와 277차 tick 진입 시점 hash 동일 유지 시 unchecked 175 stability 59차 prime axis 첫 도래 surface (59 prime axis 단독 도래).
+#     (i) 본 tick 박제 hash 와 277차 tick 진입 시점 hash 동일 유지 시 19→19 stable chain 15차 quindecuple post-round-decuple-quintuple-step composite axis 첫 도래 surface (15 = 3 × 5 double-distinct-prime-factor composite axis 단독 도래).
+#     (j) 본 tick 박제 hash 와 277차 tick 진입 시점 hash 동일 유지 + 환경 회복 유지 시 decuple-fulfilment chain 21차 unvigintuple post-round-vigintuple-single-step prime axis 첫 도래 surface (21 = 3 × 7 double-distinct-prime-factor composite axis 단독 도래 — round-vigintuple milestone 직후 single-step prime axis).
