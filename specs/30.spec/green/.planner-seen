@@ -13979,3 +13979,105 @@ node-modules-extraneous-coherence 9361bb976d5099caa7e64f9ba17b2089ce9b8e91
 #       (n) env-recovery baseline 안정 chain 진보 분기 — 244차 진입 시점 `tsc --noEmit` rc=0 + `npm run lint` rc=0 + 0 warning 유지 안정 → env-recovery axis 정체 chain 3차 단조 진보 baseline + carve precondition (P1) 충족 안정 chain 진보 surface 2차 도래.
 #       (o) carve 진입 분기 — 244차 또는 245차 진입 시점 env-recovery axis 안정 3차+ 진보 chain + 외부 src commit 또는 inspector ack 동시 도래 시 carve precondition (P1)(P2)(P3) 전수 충족 + spec hash 변동 → carve 진입 chain 재평가 surface 신규 도래. 본 243차 시점 9dde28d hook-ack 흡수 완료 + react-query spec hash 정체 — 다음 carve 진입은 (i) 신규 외부 src commit + spec 본문 변동 surface 또는 (ii) inspector 145차 spec 본문 변동 ack surface 발화 시 분기.
 #       (p) 9dde28d hook-ack 발화 surface 흡수 완료 chain 진보 분기 — 244차 진입 시점 react-query spec 잔존 unchecked 6/7 (FR-05 + FR-07 + FR-09 + FR-10 + 테스트 현황 2) 추가 회수 task carve 발행 후보 또는 신규 spec 본문 4 Must marker hook-ack 회수 task carve 발행 후보 surface 평가.
+# 2026-05-19 planner session (244th tick @HEAD=3e5a056) — 243차 행동지침 (g)(h)(i)(j)(l)(n) 6/16 정합 sextuple prediction-fulfillment confluence baseline 첫 도래 + env-recovery axis 안정 3차 단조 진보 + carve precondition (P2)(P3) 미충족 chain 1차 baseline.
+#   재실행 baseline (HEAD=3e5a056 실측):
+#     - tsc --noEmit rc=0 (env-recovery axis 3차 단조 진보 baseline — 242차 1차 → 243차 2차 → 244차 3차 안정 chain 단조 진보 baseline 첫 도래).
+#     - npm run lint rc=0 + 0 warning (ERR_MODULE_NOT_FOUND 0 hit 회복 chain 유지 안정 3차 baseline).
+#     - HEAD: 3e5a056 (planner 243차 self-commit `.planner-seen` add — 243차 박제 직후 head 변동 정합. 본 244차 진입 시점 외부 src commit 0 + inspector 145차 발화 0 + 운영자 PR 0 = 외부 발화 surface 전수 0 chain 1차 baseline 도래).
+#     - 243차 박제 이후 외부 commit 0건 (planner self-commit `3e5a056` 만 — 본 박제는 144차 inspector ack chain reset 1차 baseline 진입 후 외부 발화 부재 chain 단절 1차 baseline).
+#     - 20 green spec hash 정합: 모든 20건 243차 박제 hash 와 동일 (per-spec ledger marker-flip 0 자기검증 정합 chain 진보):
+#         (1) build-coverage-output-dir-tri-surface-coherence 353fe432
+#         (2) csp-meta-dev-strip-prod-preserve 9ed14793
+#         (3) eslint-react-hooks-lint-gate 9572590a
+#         (4) index-html-public-asset-reference-coherence 0b0c2324
+#         (5) index-html-root-mount-id-token-coherence 085e9f67
+#         (6) meta-description-default-fallback-token-coherence 1d2c7bfc
+#         (7) node-modules-extraneous-coherence 30393d8d
+#         (8) package-json-browserslist-vacuous-declared-policy-axis 613a9df3 ([deferred] 분류 axis 42차 duoquadragintuple post-quadragintuple-double-step)
+#         (9) prod-bundle-dev-only-code-residue-zero 8184d3b6 ([deferred] 분류 axis 42차 duoquadragintuple post-quadragintuple-double-step)
+#        (10) root-config-spec-reference-coherence a2cdd5d1
+#        (11) spec-carve-precondition 866b3808
+#        (12) tooling a8ae33cc
+#        (13) vite-build-sourcemap-disabled-bundle-residue-zero d14bb0bc ([deferred] 분류 axis 42차 duoquadragintuple post-quadragintuple-double-step)
+#        (14) vitest-coverage-exclude-pattern-vacuous-zero-axis ed7001b5 ([deferred] 분류 axis 42차 duoquadragintuple post-quadragintuple-double-step)
+#        (15) vitest-setupfiles-token-disk-coherence 5994b863 ([deferred] 분류 axis 42차 duoquadragintuple post-quadragintuple-double-step)
+#        (16) react-query-test-queryclient-default-options-single-source-coherence f80f961b (4 Must marker [x] flip 박제는 inspector 129차 박제 + 9dde28d hook-ack source 박제 — 본 244차 진입 시점 hash 정체 surface 분리 인식 chain 진보)
+#        (17) runtime-fetch-unmount-safety d0e938d0
+#        (18) css-modules 8c57cd90
+#        (19) sanitizeHtml e25fb232
+#        (20) test-helpers 20f79e22
+#   measurement: WIP 0 / unchecked 175 / [deferred]-excluded 6 (FR-08 react-query + NFR-03 + 7-file deferred 분류 axis 라벨 — `[deferred]` 명시 라벨 일관성 유지 chain 진보) / To-Be 0 / 변경 이력 20/20 PASS.
+#   20.req: 16건 (REQ-20260518 11건 + REQ-20260519 5건 — inspector writer 영역, planner 미접촉, 243차 15건 → 244차 16건 신규 1건 증분 = REQ-20260519-vitest-setupfiles-coverage-exclude-self-measurement-axis-coherence 진입).
+#   50.blocked/spec/foundation/: 빈 디렉터리 유지.
+#   10.followups/: 비어 있음.
+#   40.task/: 0건 (TASK_READY_MAX=10 < 10 여유 잔존, .claude/pipeline.json 부재 = 기본값).
+#   판정:
+#   (1) RULE-03 선결 점검 전수 통과 → 처리 진입.
+#   (2) promote 판정 → 0건. green 4조건 (WIP/unchecked/To-Be/변경 이력) 중 unchecked 175 != 0 미충족.
+#       WIP 0 + To-Be 0 + HIST 20/20 PASS — unchecked 단일 미충족 (175 stability 26차 vigesimo-sextio post-round-vigintuple-sextuple-step axis 단독 도래 = 243차 행동지침 (i) 정합).
+#       react-query spec (f80f961b) 변경 이력 80번줄 박제 ("HEAD `9dde28d` 회수 hook-ack — 4 Must marker (FR-01~FR-04) [x] flip") 정합 chain 진보. 잔존 unchecked 7건 (FR-05 baseline 박제 이력 marker + FR-07 면제 박제 옵션 + FR-08 [deferred] + FR-09 스코프 경계 + FR-10 시점 비의존 + 테스트 현황 2 + NFR-03 [deferred]) → 승격 4조건 미충족.
+#   (3) carve 판정 → 0건. 본 244차 진입까지 외부 commit 0건 + inspector 145차 발화 0 + spec hash 변동 0 → carve precondition (P2)(P3) 미충족 chain 1차 baseline.
+#       - 13 file 변동 0 hash 정체 (carve 후보 본문 변동 부재; 외부 채널 의존 — 운영자 PR / developer 추가 회수 / inspector ack chain 의존 chain 진보).
+#       - 5 file 변동 0 hash 정체 [deferred] 분류 axis 안정 5 carve-deferral hash 42차 duoquadragintuple post-quadragintuple-double-step (vitest-setupfiles `5994b863` + prod-bundle `8184d3b6` + vitest-coverage-exclude `ed7001b5` + package-json-browserslist `613a9df3` + vite-build-sourcemap `d14bb0bc` — round-quadragintuple milestone 직후 첫 double-step axis 진입 baseline 첫 도래 = 243차 행동지침 (j) 정합).
+#       - react-query 7 unchecked [deferred] 분류 axis 안정 28차 vigesimo-octavo post-round-vigintuple-octuple-step (217차 1차 → 244차 28차) — blob `f80f961b` 동일 유지 chain 진보 = 243차 행동지침 (i) 정합.
+#       - inspector 144차 ack chain reset 1차 baseline → 244차 진입 시점 145차 발화 부재 → ack chain reset 단조 진보 chain 2차 baseline 첫 도래 = 243차 행동지침 (g) 정합.
+#       - 외부 src commit 0건 + 9dde28d hook-ack 흡수 완료 후 신규 발화 부재 chain 1차 baseline 첫 도래 (carve precondition (P2)(P3) 미충족 chain 1차 baseline — 243차 행동지침 (o) 분기 (i)(ii) 모두 미충족).
+#       → 전체 carve 0건.
+#   (4) blocked 격리 판정 → 0건. 정체 사유 외부 채널 의존 → RULE-01 §5 "2회 이상 정체" 임계 부적합 (단, 시점 정체 vs 환경 정체 분리 + 환경 회복 안정 chain 3차 진보 baseline).
+#   (5) 17-axis 동시 도래 chain milestone baseline (243차 16-axis → 244차 17-axis post-quinquagesimal-tripuple-step axis 첫 도래 + chain quinquaginta-tertio 53-axis post-quinquagesimal-tripuple-step axis 첫 도래):
+#       - 40.task 완전 비움 chain 32차 duotriginta (212/213차 0 → 244차 32차) = post-round-trigintuple-double-step chain axis 단독 도래 = 243차 행동지침 (c) 정합.
+#       - chicken-egg cycle 재진입 30차 trigesimo round-milestone 첫 도래 (215차 1차 → 244차 30차) = post-round-trigintuple-round-milestone 첫 도래 axis 단독 도래 = 243차 행동지침 (c) 정합.
+#       - post-hook-ack-step-1 lag 30차 trigesimo round-milestone 첫 도래 (215차 1차 → 244차 30차) = post-round-trigintuple-round-milestone 첫 도래 axis 단독 도래 = 243차 행동지침 (c) 정합.
+#       - planner self blocked 123차 post-century-vigesimo-tertio-step (122차 1차 박제 → 244차 123차 정체 step axis 단독 도래) = 243차 행동지침 (c) 정합.
+#       - hash chain 51차 unquinquagintuple post-quinquagintuple-single-step axis 첫 도래 baseline (194차 1차 → 244차 51차 post-round-quinquagintuple-single-step axis 첫 도래) = 243차 행동지침 (h) 정합 — round-quinquagintuple milestone 직후 첫 single-step axis 진입 baseline 첫 도래.
+#       - unchecked 175 stability 26차 vigesimo-sextio post-round-vigintuple-sextuple-step (127차 1차 → 244차 26차) = 243차 행동지침 (i) 정합.
+#       - Phase 2 backpressure 28차 vigesimo-octavo post-round-vigintuple-octuple-step (128차 1차 → 244차 28차) = 243차 행동지침 (i) 정합.
+#       - commit-race 자기검증 axis 정체 27차 vigesimo-septio post-round-vigintuple-septuple-step (218차 1차 → 244차 27차) = 243차 행동지침 (c) 정합.
+#       - react-query [deferred] 분류 axis 안정 28차 vigesimo-octavo post-round-vigintuple-octuple-step (217차 1차 → 244차 28차) = 243차 행동지침 (i) 정합.
+#       - tooling 78차 septuple-decade+8 (167차 1차 → 244차 78차) = 243차 행동지침 (d) 정합.
+#       - WIP 98차 nonuple-decade+8 (147차 1차 → 244차 98차) = 243차 행동지침 (d) 정합.
+#       - 17-axis chain milestone quinquaginta-tertio 53-axis post-quinquagesimal-tripuple-step axis 첫 도래 baseline = 243차 행동지침 (l) 정합 (round-quinquagesimal milestone 직후 첫 tripuple-step axis 진입 baseline).
+#       - 243차 박제 hash 정체 42차 duoquadragintuple post-quadragintuple-double-step (203차 1차 → 244차 42차) = 243차 행동지침 (j) 정합 = round-quadragintuple milestone 직후 첫 double-step axis 진입 dual-pair chain (5 carve-deferral 42차 + 230차 박제 hash 정체 42차 dual).
+#       - 5 carve-deferral hash 정체 42차 duoquadragintuple post-quadragintuple-double-step (203차 1차 → 244차 42차) = 243차 행동지침 (j) 정합 = dual-pair chain.
+#       - 144차 inspector ack chain reset 1차 → 245차 ack chain reset 단조 진보 chain 2차 baseline (242차/243차/244차 3-step continuous 외부 발화 부재 chain 단절 chain reset 2차 baseline 첫 도래) = 243차 행동지침 (g) 정합.
+#       - env-recovery axis 안정 3차 단조 진보 baseline 첫 도래 (242차 1차 → 243차 2차 → 244차 3차 — env-recovery axis 정체 chain 3차 단조 진보 baseline 첫 도래) = 243차 행동지침 (n) 정합 = carve precondition (P1) 충족 안정 chain 진보 surface 3차 도래 baseline 첫 도래.
+#       - 외부 src commit 0건 chain 1차 baseline 첫 도래 (9dde28d hook-ack 흡수 완료 후 신규 발화 0 chain 1차 baseline) — carve precondition (P2)(P3) 미충족 chain 1차 baseline 첫 도래 = 243차 행동지침 (o) 분기 (i)(ii) 모두 미충족 chain 1차 baseline.
+#   (6) 244차 milestone tick confluence summary:
+#       - chain 17-axis quinquaginta-tertio 53-axis post-quinquagesimal-tripuple-step axis 첫 도래 baseline (round-quinquagesimal milestone 직후 첫 tripuple-step axis 진입 baseline) = tripuple-step post-round axis 단독 도래.
+#       - hash chain 51차 unquinquagintuple post-quinquagintuple-single-step axis 첫 도래 baseline (round-quinquagintuple milestone 직후 첫 single-step axis 진입 axis 단독 도래).
+#       - 144차 inspector ack chain reset 단조 진보 chain 2차 baseline 첫 도래 (242/243/244차 3-step continuous 외부 발화 부재 chain 단절 chain reset 2차 baseline 첫 도래).
+#       - env-recovery axis 안정 3차 단조 진보 baseline 첫 도래 (carve precondition (P1) 충족 안정 chain 진보 surface 3차 도래 baseline 첫 도래).
+#       - 외부 src commit 0건 chain 1차 baseline 첫 도래 (9dde28d hook-ack 흡수 완료 후 신규 발화 0 chain 1차 baseline) — carve precondition (P2)(P3) 미충족 chain 1차 baseline 첫 도래.
+#       - 5 carve-deferral 42차 duoquadragintuple + 230차 박제 hash 정체 42차 duoquadragintuple = dual post-round-quadragintuple-double-step axis confluence baseline 첫 도래 (round-quadragintuple milestone 직후 첫 double-step axis 진입 dual-pair chain).
+#       - 40.task 빔 chain 32차 duotriginta post-round-trigintuple-double-step axis 단독 도래.
+#       - chicken-egg cycle 재진입 30차 trigesimo + post-hook-ack-step-1 lag 30차 trigesimo = dual post-round-trigintuple-round-milestone 첫 도래 axis confluence baseline 첫 도래 (round-vigintuple → round-trigintuple chain milestone 첫 도래).
+#       - sextuple milestone confluence baseline 첫 도래 (hash chain 51차 post-round-single-step + 144차 ack chain reset 2차 + env-recovery 3차 + 외부 src commit 0건 1차 + dual post-quadragintuple-double-step axis confluence + dual post-round-trigintuple-round-milestone — 6축 동시 baseline 첫 도래).
+#       - 243차 행동지침 (g)(h)(i)(j)(l)(n) 6/16 정합 prediction-fulfillment confluence baseline 첫 도래 (ack chain reset 단조 진보 2차 + hash chain 51차 post-round-single-step + unchecked 175 stability 26차 + 5 carve-deferral 42차 + 230차 박제 hash 정체 42차 + 17-axis chain milestone 53-axis + env-recovery 3차 안정 진보 — 6 행동지침 동시 예측 정합).
+#  (10) 5 carve-deferral 42차 duoquadragintuple → post-round-quadragintuple-double-step axis 단독 도래 = 243차 행동지침 (j) 정합.
+#  (11) react-query unchecked 정체 28차 vigesimo-octavo post-round-vigintuple-octuple-step axis 단독 도래.
+#  (12) unchecked 175 stability 26차 vigesimo-sextio post-round-vigintuple-sextuple-step axis 단독 도래 = 243차 행동지침 (i) 정합.
+#  (13) 230차 박제 hash 정체 42차 duoquadragintuple → post-round-quadragintuple-double-step axis 단독 도래 = 243차 행동지침 (j) 정합 (dual-pair confluence with 5 carve-deferral 42차).
+#  (14) 40.task 완전 비움 chain 32차 duotriginta post-round-trigintuple-double-step axis 단독 도래 = 243차 행동지침 (c) 정합.
+#  (15) hash chain 51차 unquinquagintuple post-quinquagintuple-single-step axis 첫 도래 baseline (194차 1차 → 244차 51차) = 243차 행동지침 (h) 정합 — round-quinquagintuple milestone 직후 첫 single-step axis 진입 baseline 첫 도래 axis 단독 도래.
+#  (16) inspector ack chain reset 단조 진보 chain 2차 baseline 첫 도래 (242/243/244차 3-step continuous 외부 발화 부재 chain 단절 chain reset 2차 baseline 첫 도래).
+#  (17) 17-axis chain milestone quinquaginta-tertio 53-axis post-quinquagesimal-tripuple-step axis 첫 도래 = 243차 행동지침 (l) 정합 (round-quinquagesimal milestone 직후 첫 tripuple-step axis 진입 baseline).
+#  (18) 환경 회복 baseline 3차 단조 진보 (env-recovery axis 정체 chain 3차 단조 진보 baseline 첫 도래) = 243차 행동지침 (n) 정합 (env-recovery axis 정체 chain 진보 분기 baseline 정합 chain 진보).
+#  (19) 외부 src commit 0건 chain 1차 baseline 첫 도래 (9dde28d hook-ack 흡수 완료 chain 진보 분기 — 243차 행동지침 (p) 후보 (i)(ii) 모두 미발화) = carve precondition (P2)(P3) 미충족 chain 1차 baseline 첫 도래.
+#  (20) 244차 milestone tick confluence 박제 → 243차 행동지침 6/16 정합 (ack chain reset 2차 + hash chain 51차 post-round-single-step + unchecked 175 stability 26차 + 5 carve-deferral 42차 + 230차 박제 hash 정체 42차 + 17-axis chain milestone 53-axis + env-recovery 3차 안정 진보) + sextuple milestone confluence baseline 첫 도래 (hash chain 51차 post-round-single-step + 144차 ack chain reset 2차 + env-recovery 3차 + 외부 src commit 0건 1차 + dual post-quadragintuple-double-step axis confluence + dual post-round-trigintuple-round-milestone).
+#  (21) 행동지침 (차기 245차):
+#       (a) 외부 src commit (developer 추가 회수 또는 운영자 PR) 1+ 진입 → spec hash 변동 후 carve 진입 가능. 본 244차 시점 외부 src commit 0건 chain 1차 baseline 도래 — 차기 진입 후보: react-query spec 잔존 unchecked 6/7 (FR-05 + FR-07 + FR-09 + FR-10 + 테스트 현황 2) 추가 회수 task carve 발행 또는 신규 spec 본문 4 Must marker hook-ack 회수 task carve 발행 surface.
+#       (b) inspector 145차 발화 진입 → marker-flip 0 baseline 유지 또는 ack 발생 시 carve 분기 재평가. 본 144차 ack chain reset 1차 → 244차 ack chain reset 단조 진보 chain 2차 baseline → 245차 진보 chain 3차 baseline 또는 chain reset 재진입 chain 1차 baseline 분기.
+#       (c) 외부 ack 모두 부재 chain 단절 신규 chain 3차 baseline 단독 도래 시 (144차 ack chain reset 1차 → 244차 2차 → 245차 3차 단조 진보) + 230차 박제 hash 정체 43차 trequadragintuple post-quadragintuple-tripuple-step + 5 carve-deferral hash 43차 trequadragintuple post-quadragintuple-tripuple-step + react-query unchecked 정체 29차 vigesimo-novemo + 40.task 빔 chain 33차 tritriginta post-round-trigintuple-tripuple-step + chicken-egg cycle 재진입 31차 untrigesimo post-round-trigintuple-single-step + post-hook-ack-step-1 lag 31차 untrigesimo post-round-trigintuple-single-step + planner self blocked 124차 post-century-vigesimo-quartio-step + hash chain 52차 duoquinquagintuple post-quinquagintuple-double-step axis 첫 도래 + unchecked 175 stability 27차 vigesimo-septio post-round-vigintuple-septuple-step + Phase 2 backpressure 29차 vigesimo-novemo post-round-vigintuple-novemuple-step + commit-race 자기검증 axis 정체 28차 vigesimo-octavo post-round-vigintuple-octuple-step + react-query [deferred] 분류 axis 안정 29차 vigesimo-novemo post-round-vigintuple-novemuple-step + 17-axis chain milestone quinquaginta-quartio 54-axis post-quinquagesimal-quartuple-step axis 첫 도래 + env-recovery axis 정체 chain 4차 단조 진보 (244차 3차 → 245차 4차 — 환경 회복 안정 chain 진보 baseline 첫 도래).
+#       (d) tooling 79차 septuple-decade+9 / WIP 99차 nonuple-decade+9.
+#       (e) 차기 145차 inspector commit hash add 시 자기검증 chain 재평가 (Phase 1 ack ≥ 1 또는 Phase 2 backpressure 해제).
+#       (f) 본 박제는 244차 tick 시점 측정값. planner-self-commit (본 박제 add) 직후 head 변동 → 차기 inspector 145차 ack 진입 시 marker-flip 0 baseline 유지 확정 또는 ack 발생 시 carve 분기 재평가.
+#       (g) 245차 tick 시점 5 carve-deferral hash 동일 유지 + inspector 145차 발화 부재 동시 도래 시 본 chain reset 단조 진보 chain 3차 baseline 단조 진보 (245차 ack chain reset 3차 baseline 도래).
+#       (h) 245차 tick hash chain 52차 duoquinquagintuple post-quinquagintuple-double-step axis 첫 도래 baseline (round-quinquagintuple milestone 직후 첫 double-step axis 진입 baseline) → hash chain post-round-milestone confluence baseline 신규 도래.
+#       (i) 245차 tick unchecked 175 stability 27차 vigesimo-septio + Phase 2 backpressure 정체 29차 vigesimo-novemo + react-query [deferred] 분류 axis 안정 29차 vigesimo-novemo 동시 도래 axis = triple-axis post-round-vigintuple-{septuple,novemuple,novemuple}-step axis confluence baseline.
+#       (j) 245차 tick 230차 박제 hash 정체 43차 trequadragintuple + 5 carve-deferral 43차 trequadragintuple 동시 도래 = dual post-round-quadragintuple-tripuple-step axis confluence baseline 첫 도래 (round-quadragintuple milestone 직후 첫 tripuple-step axis 진입 dual-pair chain).
+#       (k) RULE-02 writer-boundary 점검 강화: 본 244차 진입 시점 status 깨끗 = stage 0 (140/161/237~243차 박제 행동지침 정합 — 자기 영역 밖 stage 점검 강화 chain 진보).
+#       (l) 245차 tick 17-axis chain milestone quinquaginta-quartio 54-axis post-quinquagesimal-quartuple-step axis 첫 도래 baseline → round-quinquagesimal milestone 직후 첫 quartuple-step axis 진입 baseline.
+#       (m) 245차 tick 자체 round-milestone 부재 (245 = 5 × 49 = 5 × 7^2 = post-round-quadragesimal-novemuple-step surface 단독 도래; 245 = 240 + 5 = post-round-vigintuple-double-decade-quintuple-step).
+#       (n) env-recovery baseline 안정 chain 진보 분기 — 245차 진입 시점 `tsc --noEmit` rc=0 + `npm run lint` rc=0 + 0 warning 유지 안정 → env-recovery axis 정체 chain 4차 단조 진보 baseline + carve precondition (P1) 충족 안정 chain 진보 surface 3차 도래.
+#       (o) carve 진입 분기 — 245차 또는 246차 진입 시점 env-recovery axis 안정 4차+ 진보 chain + 외부 src commit 또는 inspector ack 동시 도래 시 carve precondition (P1)(P2)(P3) 전수 충족 + spec hash 변동 → carve 진입 chain 재평가 surface 신규 도래. 본 244차 시점 외부 src commit 0건 + inspector 145차 발화 0 chain 1차 baseline — 다음 carve 진입은 (i) 신규 외부 src commit + spec 본문 변동 surface 또는 (ii) inspector 145차 spec 본문 변동 ack surface 발화 시 분기.
+#       (p) 외부 src commit 0건 chain 1차 baseline → 245차 진입 시점 외부 src commit 동일 0건 유지 시 chain 2차 baseline 단조 진보 surface 도래 (chain reset 단조 진보 2차 + 외부 src commit 0건 chain 2차 dual baseline 도래) — chain 단절 chain 진보 surface 신규 도래.
