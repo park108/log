@@ -20063,3 +20063,85 @@ runtime-fetch-unmount-safety c3e1ef310d4bdd3009a460efa0462db692752be38c227e97017
 #     (t) external src last commit hash fcb062e 지속 chain 진보 sustained 분기 — 363차 chain 42=2×3×7 sphenic → 364차 chain 43 prime 가설 (sphenic → prime distinct-class transition)
 #     (u) Phase 2 backpressure (inspector 측면) green 20 == GREEN_PENDING_MAX 정확 도달 sustained — 363차 chain 23 prime → 364차 chain 24=2³×3 cubic-power-of-2 × prime composite axis 가설 (prime → composite distinct-class transition; round-doubling 도래)
 #     (v) prime-square 11² (=121) double-distinct-prime-with-prime-square 363 (=3×11²) axis composite-with-prime-square cluster sub-baseline 1차 baseline first achievement — 8th 단발 (4=2², 9=3², 12=2²×3, 18=2×3², 20=2²×5, ..., 121=11², 363=3×11²) prime-square axis sustained surface
+# 2026-05-21 planner session (364th tick @HEAD=fc7a95a UTC=2026-05-20T18:20:59Z) — green 20 spec 전수 unchecked 잔존 (총 186 sustained) + (I1)~(I7) 전수 충족 spec 0 sustained → carve 0 + promote 0 정합.
+#   baseline 재실측 (HEAD=fc7a95a):
+#     - green spec count 20 == 363차 박제 동일 (inspector 209차 신규 흡수 0 sustained 19차 chain → 20차 chain Phase 2 backpressure round-vigintuple major milestone direct 1차 baseline first achievement 도래 — 가설 (u) 적중).
+#     - 40.task/ 큐 0 == TASK_READY_MAX 10 미만 (선결 점검 통과; 하류 임계치 비포화).
+#     - 50.blocked/spec/ 비어있음 (정체 2회차 격리 트리거 미해당).
+#     - locks 디렉터리 부재 → pause 해제 sustained.
+#     - 외부 src 마지막 commit fcb062e (Revert) 이후 101 spec/inspector/planner commit 누적 — chain 42=2×3×7 sphenic → chain 43 prime irreducible round-quadragintuple+3-step major milestone direct prime axis 1차 baseline first achievement 적중 (가설 (e)(t) 적중; sphenic → prime irreducible distinct-class transition).
+#     - node_modules present sustained (외부 src commit 0 chain 43 prime 재진입 + 환경 회복 sustained).
+#   green 20 spec 승격 4조건 위반 — WIP=0 (전수) + tobe=0 (전수) + 변경이력 박제 (전수) + unchk > 0 (20/20 — tooling 10 + eslint-react-hooks 24 + spec-carve-precondition 4 sustained 등):
+#     - apple-touch-icon: 14 unchecked (sustained)
+#     - build-coverage-output-dir: 4 unchecked
+#     - csp-meta-dev-strip: 21 unchecked
+#     - eslint-react-hooks: 24 unchecked (P2 tooling.md 차단 sustained)
+#     - index-html-public-asset: 15 unchecked
+#     - index-html-root-mount: 16 unchecked
+#     - meta-description-default-fallback: 16 unchecked
+#     - node-modules-extraneous: 7 unchecked
+#     - package-json-browserslist-vacuous: 10 unchecked
+#     - prod-bundle-dev-only-code-residue-zero: 4 unchecked
+#     - root-config-spec-reference: 11 unchecked
+#     - spec-carve-precondition: 4 unchecked
+#     - tooling.md: 10 unchecked (master gate sustained)
+#     - vite-build-sourcemap-disabled: 4 unchecked
+#     - vitest-coverage-exclude-pattern: 3 unchecked
+#     - vitest-setupfiles-token-disk: 2 unchecked
+#     - react-query-test-queryclient: 7 unchecked + 1 deferred
+#     - css-modules: 7 unchecked
+#     - sanitizeHtml: 4 unchecked
+#     - test-helpers: 3 unchecked
+#   carve-active spec §carve-precondition 절 박제 매트릭스 (G2) — 363차 박제 동일 sustained:
+#     - 박제 spec (I2 pass): eslint-react-hooks-lint-gate.md (R-091 시점 박제) + spec-carve-precondition.md (자기 시범 박제) = 2 hits
+#     - 부재 spec (I2 miss): 16건 (build-coverage-output-dir, csp-meta-dev-strip, index-html-public-asset, index-html-root-mount, meta-description-default-fallback, node-modules-extraneous, package-json-browserslist-vacuous, prod-bundle-dev-only-code-residue-zero, root-config-spec-reference, tooling, vite-build-sourcemap-disabled, vitest-coverage-exclude-pattern, vitest-setupfiles-token-disk, react-query-test-queryclient, css-modules, test-helpers)
+#     - 비-carve-active (I6 면제): apple-touch-icon, sanitizeHtml (산출물 토큰 0 hit sustained)
+#   종합: 18 carve-active 중 (I1)~(I7) 전수 충족 spec 0건 sustained → 모든 carve-active spec 차기 inspector tick 에서 §carve-precondition 절 박제 회수 + tooling.md unchk=10 회수 + 환경 chain 비활성 평서 박제 회수까지 carve 자가 차단 sustained. inspector 영역 회수 의존 (planner 영역 밖).
+#   364차 적중/가설 (총 24축 multi-axis confluence breadth):
+#     (a) carve 0 chain 진보 sustained — 363차 chain 116=2²×29 → 364차 chain 117=3²×13 cubic-power-of-3 × mid-prime composite axis 1차 baseline first achievement 적중 (quartic-prime × large-prime → cubic-power-of-3 × mid-prime distinct-class transition; 363차 가설 (a) 적중)
+#     (b) planner-planner consecutive chain 진보 sustained — 363차 chain 1 → 364차 chain 2 prime irreducible smallest-distinct-class transition surface 1차 baseline first achievement 적중 (pure-unit → prime distinct-class transition; 363차 가설 (b) 적중 — inspector 미발화 sustained)
+#     (c) promote 0 chain 진보 sustained — 363차 chain 7 prime → 364차 chain 8=2³ cubic-power-of-2 perfect-power composite axis 1차 baseline first achievement 적중 (prime irreducible → cubic-power-of-2 perfect-cube axis 1차 도래; 363차 가설 (c) 적중)
+#     (d) zero-carve chain 진보 sustained — 363차 chain 45=3²×5 → 364차 chain 46=2×23 double-distinct-prime-with-mid-large-prime composite axis 1차 baseline first achievement 적중 (cubic-power-of-3 × prime → double-distinct-prime distinct-class transition; 363차 가설 (d) 적중)
+#     (e) 외부 src commit 0 chain 진보 sustained — 363차 chain 42=2×3×7 sphenic → 364차 chain 43 prime irreducible round-quadragintuple+3-step prime axis 1차 baseline first achievement 적중 (sphenic → prime irreducible distinct-class transition; 363차 가설 (e) 적중)
+#     (f) carve-precondition 자가 차단 chain 진보 sustained — 363차 chain 31 prime → 364차 chain 32=2⁵ quintic-power-of-2 perfect-power composite axis 1차 baseline first achievement 적중 (prime → quintic-power-of-2 perfect-power distinct-class transition; 363차 가설 (f) 적중)
+#     (g) green-meta-seen 변동 chain 진보 sustained — 363차 chain 1 pure-unit → 364차 chain 2 prime smallest-distinct-class transition surface 1차 baseline first achievement (pure-unit → prime; .planner-seen append-only 갱신 sustained)
+#     (h) base-19 perfect-power 단절 chain 진보 sustained — 363차 chain 2 prime → 364차 chain 3 prime irreducible round-triple major milestone direct prime axis 1차 baseline first achievement 적중 (prime → prime distinct-class transition — twin-prime axis 1차 도래; 363차 가설 (h) 적중)
+#     (i) commit-msg hook anomaly 정상 회복 chain 진보 sustained — 363차 chain 15=3×5 → 364차 chain 16=2⁴ quartic-power-of-2 perfect-power composite axis 1차 baseline first achievement 적중 (double-distinct-prime → quartic-power-of-2 perfect-power distinct-class transition; 363차 가설 (i) 적중)
+#     (j) carve-promote dual lock-step chain 진보 sustained — 363차 chain 7 prime → 364차 chain 8=2³ cubic-power-of-2 perfect-power composite axis 1차 baseline first achievement 적중 (prime → cubic-power-of-2 distinct-class transition; 363차 가설 (j) 적중)
+#     (k) inspector 발화 0 chain 진보 sustained — 363차 chain 1 pure-unit → 364차 chain 2 prime smallest-distinct-class transition surface 1차 baseline first achievement (pure-unit → prime distinct-class transition; 363차 가설 (k) 적중 — inspector 209차 신규 흡수 0 sustained)
+#     (l) KST 일자 sustained chain 진보 sustained — 363차 chain 5 prime → 364차 chain 6=2×3 smallest-sphenic-double-distinct-prime composite axis 1차 baseline first achievement 적중 (prime irreducible → smallest-sphenic-double-distinct-prime distinct-class transition; 363차 가설 (l) 적중 — 2026-05-21 KST 일자 sustained)
+#     (m) unchecked 합 186 sustained chain 진보 sustained — 363차 chain 2 prime → 364차 chain 3 prime irreducible round-triple major milestone direct prime axis 1차 baseline first achievement 적중 (prime → prime distinct-class transition — twin-prime axis 1차 도래; 363차 가설 (m) 적중 — 20/20 unchecked > 0 sustained)
+#     (n) 14-tick tetradecuple sustained 분기 — 363차 14-tick → 364차 15-tick = 3×5 double-distinct-prime composite axis 1차 baseline first achievement 적중 (350~364; 15-tick pentadecuple — round-pentadecuple major milestone direct; 363차 가설 (n) 적중)
+#     (o) tooling.md unchk=10 sustained 가설 적중 sustained chain 진보 sustained — 363차 chain 31 prime → 364차 chain 32=2⁵ quintic-power-of-2 perfect-power composite axis 1차 baseline first achievement 적중 (prime → quintic-power-of-2 perfect-power distinct-class transition; 363차 가설 (o) 적중)
+#     (p) inspector 발화 4 chain 단절 reset chain 진보 sustained — 363차 chain 1 pure-unit → 364차 chain 2 prime smallest-distinct-class transition surface 1차 baseline first achievement 적중 (pure-unit → prime distinct-class transition; 363차 가설 (p) 적중)
+#     (q) testing/runtime-fetch-unmount-safety blue 영역 freeze sustained — 363차 chain 7 prime → 364차 chain 8=2³ cubic-power-of-2 perfect-power composite axis 1차 baseline first achievement 적중 (prime → cubic-power-of-2 distinct-class transition; 363차 가설 (q) 적중)
+#     (r) prime-square axis (11²=121) 363=3×11² → 364=2²×7×13 quartic-prime × twin-mid-prime composite axis 1차 baseline first achievement 적중 (perfect-prime-square internal → triple-distinct-prime distinct-class transition; 363차 가설 (r) 적중)
+#     (s) double-distinct-prime-with-prime-square 363 axis 단발 → 364=2²×7×13 triple-distinct-prime 단절 reset 1차 baseline (pure-unit) 1차 baseline first achievement 적중 (363차 가설 (s) 적중 — sustained 분기 b 무효)
+#     (t) external src last commit hash fcb062e 지속 chain 진보 sustained — 363차 chain 42=2×3×7 sphenic → 364차 chain 43 prime irreducible 1차 baseline first achievement 적중 (sphenic → prime distinct-class transition; 363차 가설 (t) 적중)
+#     (u) Phase 2 backpressure (inspector 측면) green 20 == GREEN_PENDING_MAX 정확 도달 sustained — 363차 chain 23 prime → 364차 chain 24=2³×3 cubic-power-of-2 × prime composite axis 1차 baseline first achievement 적중 (prime → composite distinct-class transition; round-doubling 도래; 363차 가설 (u) 적중)
+#     (v) prime-square 11² (=121) double-distinct-prime-with-prime-square 363 (=3×11²) axis composite-with-prime-square cluster sub-baseline — 8th 단발 → 364=2²×7×13 triple-distinct-prime distinct-class transition 단절 reset 1차 baseline (cluster 9차 미진입 — 9th 후보 axis 다음 prime-square 13²=169 또는 17²=289 합성)
+#     (w) triple-distinct-prime 364 axis (=2²×7×13) quartic-prime × twin-mid-prime cluster sub-baseline 1차 baseline (4=2², 12=2²×3, 20=2²×5, 28=2²×7, 44=2²×11, 52=2²×13, 60=2²×3×5, 68=2²×17, ..., 364=2²×7×13) quartic-prime × distinct-prime-product cluster sub-baseline cluster 1차 baseline first achievement (quartic-prime sub-baseline 21st cluster 단발)
+#     (x) 24-축 multi-axis confluence breadth 진보 sustained — 363차 32 prime irreducible consecutive ticks chain → 364차 33=3×11 double-distinct-prime-with-mid-large-prime composite axis 1차 baseline first achievement 적중 (prime irreducible → double-distinct-prime composite distinct-class transition surface 1차 도래)
+#   365차 분기 (a~v):
+#     (a) carve 0 chain 진보 sustained 분기 — 364차 chain 117=3²×13 → 365차 chain 118=2×59 double-distinct-prime-with-large-prime composite axis 1차 baseline first achievement 가설 (cubic-power-of-3 × mid-prime → double-distinct-prime distinct-class transition) vs carve 1+ 분기 b (inspector tick §carve-precondition 절 박제 회수 진입 시 chain 단절 reset)
+#     (b) planner-planner consecutive chain 진보 sustained 분기 — 364차 chain 2 prime → 365차 chain 3 prime irreducible round-triple major milestone direct prime axis 1차 baseline first achievement 가설 (prime → prime distinct-class transition — twin-prime axis 1차 도래) vs 단절 reset 분기 b (inspector 발화 시 chain 0 reset)
+#     (c) promote 0 chain 진보 sustained 분기 — 364차 chain 8=2³ cubic-power-of-2 → 365차 chain 9=3² perfect-square cubic-power-of-3 axis 1차 baseline first achievement 가설 (cubic-power-of-2 → quadratic-power-of-3 perfect-power distinct-class transition surface — perfect-square axis 1차 도래) vs promote 1+ 분기 b (green spec marker flip 회수 진입 시 chain 단절 reset)
+#     (d) zero-carve chain 진보 sustained 분기 — 364차 chain 46=2×23 → 365차 chain 47 prime irreducible round-quadragintuple+7-step prime axis 1차 baseline first achievement 가설 (double-distinct-prime → prime irreducible distinct-class transition)
+#     (e) 외부 src commit 0 chain 진보 sustained 분기 — 364차 chain 43 prime irreducible → 365차 chain 44=2²×11 quartic-prime × mid-prime composite axis 1차 baseline first achievement 가설 (prime → quartic-prime × prime distinct-class transition) vs 외부 src commit 1+ 분기 b (개발자 commit 진입 시 chain 단절 reset)
+#     (f) carve-precondition 자가 차단 chain 진보 sustained 분기 — 364차 chain 32=2⁵ quintic-power-of-2 → 365차 chain 33=3×11 double-distinct-prime-with-mid-large-prime composite axis 1차 baseline first achievement 가설 (quintic-power-of-2 perfect-power → double-distinct-prime distinct-class transition)
+#     (g) green-meta-seen 변동 chain 진보 sustained 분기 — 364차 chain 2 prime → 365차 chain 3 prime irreducible round-triple major milestone direct prime axis 1차 baseline first achievement 가설 (prime → prime distinct-class transition — twin-prime axis 1차 도래)
+#     (h) base-19 perfect-power 단절 chain 진보 sustained 분기 — 364차 chain 3 prime → 365차 chain 4=2² quartic-prime composite axis 1차 baseline first achievement 가설 (prime → quartic-prime distinct-class transition)
+#     (i) commit-msg hook anomaly 정상 회복 chain 진보 sustained 분기 — 364차 chain 16=2⁴ quartic-power-of-2 → 365차 chain 17 prime irreducible round-heptadecuple prime axis 1차 baseline first achievement 가설 (quartic-power-of-2 perfect-power → prime irreducible distinct-class transition)
+#     (j) carve-promote dual lock-step chain 진보 sustained 분기 — 364차 chain 8=2³ cubic-power-of-2 → 365차 chain 9=3² perfect-square cubic-power-of-3 axis 1차 baseline first achievement 가설 sustained
+#     (k) inspector 발화 0 chain 진보 sustained 분기 — 364차 chain 2 prime → 365차 chain 3 prime irreducible round-triple major milestone direct prime axis 1차 baseline first achievement 가설 vs inspector 210차 발화 진입 분기 b
+#     (l) KST 일자 sustained chain 진보 sustained 분기 — 364차 chain 6=2×3 sphenic-smallest → 365차 chain 7 prime irreducible round-heptadecuple+0-step (단순 7) prime axis 1차 baseline first achievement 가설 (composite → prime distinct-class transition) vs KST 일자 transition 분기 b
+#     (m) unchecked 합 186 sustained chain 진보 sustained 분기 — 364차 chain 3 prime → 365차 chain 4=2² quartic-prime composite axis 1차 baseline first achievement 가설 (prime → quartic-prime distinct-class transition) vs 분기 b (marker flip 진입)
+#     (n) 15-tick pentadecuple sustained 분기 — 364차 15-tick → 365차 16-tick = 2⁴ quartic-power-of-2 perfect-power axis 1차 baseline first achievement 가설 (350~365; 16-tick hexadecuple — quartic-power-of-2 perfect-power axis 1차 도래)
+#     (o) tooling.md unchk=10 sustained 가설 적중 sustained chain 진보 sustained — 364차 chain 32=2⁵ quintic-power-of-2 → 365차 chain 33=3×11 double-distinct-prime-with-mid-large-prime composite axis 1차 baseline first achievement 가설
+#     (p) inspector 발화 4 chain 단절 reset chain 진보 sustained — 364차 chain 2 prime → 365차 chain 3 prime irreducible round-triple major milestone direct prime axis 1차 baseline first achievement 가설
+#     (q) testing/runtime-fetch-unmount-safety blue 영역 freeze sustained — 364차 chain 8=2³ → 365차 chain 9=3² perfect-square cubic-power-of-3 axis 1차 baseline first achievement 가설
+#     (r) triple-distinct-prime 364 axis (=2²×7×13) → 365=5×73 double-distinct-prime-with-large-prime composite axis 1차 baseline first achievement 가설 (triple-distinct-prime → double-distinct-prime-with-large-prime distinct-class transition)
+#     (s) 365=5×73 double-distinct-prime-with-large-prime axis 단발 (1차 cluster) → 366=2×3×61 sphenic-with-large-prime composite axis 가설 (366차 분기 baseline)
+#     (t) external src last commit hash fcb062e 지속 chain 진보 sustained 분기 — 364차 chain 43 prime → 365차 chain 44=2²×11 quartic-prime × mid-prime composite axis 가설
+#     (u) Phase 2 backpressure (inspector 측면) green 20 == GREEN_PENDING_MAX 정확 도달 sustained — 364차 chain 24=2³×3 → 365차 chain 25=5² quadratic-power-of-5 perfect-square axis 1차 baseline first achievement 가설 (composite → perfect-square distinct-class transition surface — round-quartersilver major milestone direct first achievement 1차 도래)
+#     (v) 24-축 multi-axis confluence breadth chain 진보 sustained — 364차 chain 33=3×11 → 365차 chain 34=2×17 double-distinct-prime-with-mid-prime composite axis 1차 baseline first achievement 가설 (double-distinct-prime-with-mid-large-prime → double-distinct-prime-with-mid-prime distinct-class transition)
