@@ -124,7 +124,7 @@
   - 산출 디렉터리 #1 `build`: (a-1) `vite.config.js:49` `outDir: 'build',` / (b-1) `.gitignore:12` `/build` / (c-1) `eslint.config.js:15` `'build/**'` / 디스크: `./build/`.
   - 산출 디렉터리 #2 `coverage`: (a-2) `vite.config.js:80-97` `test.coverage` 블록 — `reportsDirectory` 부재, vitest default `'./coverage'` / (b-2) `.gitignore:9` `/coverage` / (c-2) `eslint.config.js:15` `'coverage/**'` / 디스크: `./coverage/`.
 - **자매 직교 spec / req**:
-  - `specs/30.spec/green/foundation/tooling.md` §동작 9 (REQ-20260518-013) — `eslint.config.js:15` 5 패턴 vacuous-zero 단일 표면. 본 spec 은 그중 P-1/P-2 를 cross-surface 3극 동치로 확장.
+  - `specs/30.spec/blue/foundation/tooling.md` §동작 9 (REQ-20260518-013) — `eslint.config.js:15` 5 패턴 vacuous-zero 단일 표면. 본 spec 은 그중 P-1/P-2 를 cross-surface 3극 동치로 확장.
   - `specs/20.req/20260518-vitest-coverage-exclude-pattern-vacuous-zero-axis.md` (REQ-20260518-012, ready) — `coverage.exclude` 5 패턴 vacuous-zero. 본 spec 과 직교 (coverage 내부 패턴 vs 산출 디렉터리 명).
   - `specs/20.req/20260518-vite-build-sourcemap-disabled-bundle-residue-zero.md` (REQ-20260518-008, ready) — `vite.config.js:50` `sourcemap: false`. 본 spec 과 직교 (sourcemap 부재 효능 vs outDir 토큰 cross-surface).
   - `specs/20.req/20260518-prod-bundle-dev-only-code-residue-zero.md` (REQ-20260518-006, ready) — prod 번들 내용물. 본 spec 과 직교 (디렉터리 명 vs 내용물).

@@ -97,7 +97,7 @@
 - **관련 spec (보완 / 직교)**:
   - `specs/30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-20260517-080) — ESLint warning ↛ master 자동 게이트. 본 spec 과 직교 (rule level vs naming).
   - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-20260517-081) — 진단 script 자동 채널 부착 매트릭스. 본 spec 과 직교 (채널 부착 vs 명명).
-  - `specs/30.spec/green/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — ESLint / lint-staged / `.husky/pre-commit` 진입점 박제. 본 spec 과 직교 (도구 측 계약 vs 명명 단일성).
+  - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — ESLint / lint-staged / `.husky/pre-commit` 진입점 박제. 본 spec 과 직교 (도구 측 계약 vs 명명 단일성).
 - **외부 레퍼런스**:
   - npm 공식 — `scripts` 진입점 규약 (`https://docs.npmjs.com/cli/v10/using-npm/scripts`). `:` 콜론 기반 카테고리화 관례 + `npm run check:*` glob 호출 가능.
   - `npm-run-all` 공식 — `run-p check:*` / `run-s check:*` glob 호출 패턴 (`https://github.com/mysticatea/npm-run-all`).

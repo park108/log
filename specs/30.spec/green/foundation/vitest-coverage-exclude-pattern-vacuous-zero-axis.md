@@ -37,7 +37,7 @@
 - 외부: Vitest `coverage.exclude` glob 의미 (`https://vitest.dev/config/#coverage-exclude`), `@vitest/coverage-v8` `include`/`exclude` 평가 순서 (include 매치 → exclude 매치 제외), micromatch glob 매처 (`{a,b}` brace expansion / `**` recursive / `*` non-recursive 의미).
 - 역의존 (사용처): coverage thresholds 측정 결정론 (`lines: 98 / statements: 97 / functions: 94 / branches: 94`) 이 본 spec 의 5 패턴 vacuous-zero 박제에 부분 의존 (vacuous exclude 가 threshold 통과/미통과 가설 회귀 시 회귀 신호 산란).
 - 직교 spec:
-  - `specs/30.spec/green/foundation/tooling.md` (REQ-053 / REQ-058 / REQ-076) — TypeScript foundation tooling 불변식. `vitest.coverage` 범위 박제는 §동작 4 에 포함되나 **각 exclude 패턴의 vacuous-zero axis** 는 미박제 — 본 spec 이 그 별 axis 박제.
+  - `specs/30.spec/blue/foundation/tooling.md` (REQ-053 / REQ-058 / REQ-076) — TypeScript foundation tooling 불변식. `vitest.coverage` 범위 박제는 §동작 4 에 포함되나 **각 exclude 패턴의 vacuous-zero axis** 는 미박제 — 본 spec 이 그 별 axis 박제.
   - `specs/30.spec/blue/foundation/test-discovery-population-coherence.md` (REQ-20260517-066) — vitest 가 실행하는 test 파일 집합 axis. 본 spec 의 P-4 매치 집합과 동축이지만 본 spec 은 5 패턴 직교 sweep (P-4 단독 아님).
   - `specs/30.spec/blue/foundation/coverage-determinism.md` (REQ-041 또는 동등) — coverage gate 결정론 (`fileParallelism: false`) axis. 본 spec 과 직교 (결정론 = 측정 회수 동일성 vs 본 spec = exclude 매치 vacuous-zero).
   - 자매 req `20260518-coverage-gate-exit-code-determinism-margin-axis.md` (REQ-002) — coverage gate exit-code 결정론 margin axis. 본 spec 과 직교.

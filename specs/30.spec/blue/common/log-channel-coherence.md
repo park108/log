@@ -98,7 +98,7 @@ production 코드의 `console.log` 호출이 **단일 진입점 (dev-only logger
   - `specs/30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-080) — ESLint warning 자동 차단 게이트. 본 spec 과 패턴 동질 (효능 게이트의 자동 차단) + 영역 직교 (rule level vs grep 단일 채널).
   - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081) — 진단 script ↔ 자동 채널 부착 메타. 본 spec 박제 후 grep 검증 자동 채널 부착은 별 task 영역 (수단 중립).
 - **관련 spec (보완 / 직교)**:
-  - `specs/30.spec/green/foundation/tooling.md` (REQ-028 외) §동작 6 ESLint flat-config last-write-wins — 본 spec 과 직교 (rule 정의 의미론 vs grep 채널 검증).
+  - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 외) §동작 6 ESLint flat-config last-write-wins — 본 spec 과 직교 (rule 정의 의미론 vs grep 채널 검증).
   - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037) — CI typecheck step 박제. 본 spec 과 직교 (typecheck 1축 vs grep 채널 1축).
   - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` 자동 게이트. 본 spec 과 직교 (spec 참조 정합 vs 채널 정합) + 메타 패턴 동질 (단일 절차 grep).
 - **외부 레퍼런스**:

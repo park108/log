@@ -102,7 +102,7 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
   - `30.spec/blue/foundation/typecheck-island-extension.md` (REQ-077 blue 승격) — island 정의 후반부 (typecheck error 0) 채널.
   - `30.spec/green/foundation/eslint-react-hooks-lint-gate.md` (REQ-087) — React hook 규칙 (rules-of-hooks + exhaustive-deps) lint-time 차단 채널.
   - `30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-080) — ESLint warning 0 채널.
-  - `30.spec/green/foundation/spec-carve-precondition.md` (REQ-085) — spec carve-precondition 자기 선언 메타 효능 채널.
+  - `60.done/2026/08/24/revisit/spec-carve-precondition.md (폐기)` (REQ-085) — spec carve-precondition 자기 선언 메타 효능 채널.
 - **현장 근거 (HEAD=`3bc98e5`, 2026-05-17 실측, 본 spec 박제 시점)**:
   - island 5 디렉터리 PropTypes 광역 (M-A) — `grep -rn "PropTypes\|prop-types" src/Toaster src/Comment src/File src/Image src/common` → **48 hit / 13 파일** (§스코프 규칙 G1 박제).
   - island 5 디렉터리 PropTypes selector 정밀 (M-B) — `grep -rnE "import.*from\s+['\"]prop-types['\"]|PropTypes\.|\.propTypes\s*=" src/Toaster src/Comment src/File src/Image src/common` → **57 hit** (§스코프 규칙 G2 박제, 본 spec 회복 대상).

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-vitest-globals-coherence.sh
-# Spec: specs/30.spec/green/foundation/tooling.md §동작 10 (REQ-015, vitest globals 3-채널 정합)
+# Spec: specs/30.spec/blue/foundation/tooling.md §동작 10 (REQ-015, vitest globals 3-채널 정합)
 #       + §테스트 현황 line 212 (REQ-015 FR-06) + §수용 기준 line 281 (Should, REQ-015 FR-06)
 # Task: TSK-20260518-22
 #

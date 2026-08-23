@@ -98,7 +98,7 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
   - `specs/30.spec/green/foundation/vite-env-boundary-typing.md` (REQ-20260517-072) — `scripts/check-vite-env-coherence.sh` 자동 게이트. 본 spec 과 직교.
   - `specs/30.spec/green/foundation/node-version-3axis-coherence.md` (REQ-20260517-079, TSK-14 회수 `3910ba8`) — `scripts/check-node-version-coherence.sh` 자동 게이트. 본 spec 과 직교.
 - **관련 spec (보완 / 직교)**:
-  - `specs/30.spec/green/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — §동작 5 (`.ts/.tsx/.d.ts` no-unused-vars rule swap) + gate (j) (`npm run lint` warning 0 측정 시점) 와 **보완** 관계. 본 spec 은 측정 시점 결과 박제를 상시 강제 게이트로 강화하는 별 축.
+  - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — §동작 5 (`.ts/.tsx/.d.ts` no-unused-vars rule swap) + gate (j) (`npm run lint` warning 0 측정 시점) 와 **보완** 관계. 본 spec 은 측정 시점 결과 박제를 상시 강제 게이트로 강화하는 별 축.
   - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037) — CI typecheck step 존재 박제. 본 spec 과 **직교** (step 존재 vs 옵션).
   - `specs/30.spec/green/foundation/typecheck-island-extension.md` (REQ-077 등) — `tsc` error TS 0 게이트. 본 spec 과 직교 (`tsc` vs `eslint`).
 - **외부 레퍼런스**:

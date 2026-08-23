@@ -106,7 +106,7 @@
   - `30.spec/blue/foundation/coverage-determinism.md` (REQ-20260422-041 blue 승격) — `.husky/pre-push` `npm test` 호출 의존 (FR-02 측정 결정론 baseline). 본 spec 효능 도입 후에도 `npm test` 호출 보존 의무 (FR-05).
   - `30.spec/green/foundation/island-proptypes-zero.md` (REQ-088) — island 정의 세 번째 축 (PropTypes 0). 동질 자매 메타 spec 양식 (단일 효능 채널 박제).
   - `30.spec/green/foundation/eslint-react-hooks-lint-gate.md` (REQ-087) — React hook 규칙 (rules-of-hooks + exhaustive-deps) lint-time 차단 채널. 동질 자매 메타 spec 양식.
-  - `30.spec/green/foundation/spec-carve-precondition.md` (REQ-085) — spec carve-precondition 자기 선언 메타 효능 채널.
+  - `60.done/2026/08/24/revisit/spec-carve-precondition.md (폐기)` (REQ-085) — spec carve-precondition 자기 선언 메타 효능 채널.
 - **현장 근거 (HEAD=`e7d6e92`, 2026-05-17 실측, 본 spec 박제 시점)**:
   - `.husky/pre-push` typecheck (M-A) — `grep -nE "typecheck|tsc" .husky/pre-push` → **0 hit** (§스코프 규칙 G2 박제, 본 spec 회복 대상).
   - `.husky/pre-push` 기존 명령 (M-B) — `grep -nE "npm test|check:deps" .husky/pre-push` → 2 hit (line 1 `npm run check:deps || exit 1` + line 2 `npm test`). FR-05 보존 baseline.

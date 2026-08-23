@@ -111,7 +111,7 @@ repo 의 진단 script (`scripts/check-*.sh` 또는 동등 효능 패턴 — `sc
   - `specs/30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-20260517-080) — ESLint warning → 자동 채널 rc ≠ 0 게이트. 본 spec 과 패턴 동질 (효능 게이트의 자동 채널 1+ 부착) + 영역 직교 (ESLint rule level vs `scripts/check-*.sh` 메타).
 - **관련 spec (보완 / 직교)**:
   - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037) — CI typecheck step 1축 박제. 본 spec 과 직교 (typecheck step 1축 vs 진단 script N축).
-  - `specs/30.spec/green/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — §동작 6 ESLint flat-config last-write-wins / gate (j) `npm run lint` warning 0. 본 spec 과 직교 (rule 정의 의미론 / 도구 측정 vs 진단 script 채널).
+  - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — §동작 6 ESLint flat-config last-write-wins / gate (j) `npm run lint` warning 0. 본 spec 과 직교 (rule 정의 의미론 / 도구 측정 vs 진단 script 채널).
   - `specs/30.spec/green/foundation/typecheck-island-extension.md` (REQ-077) — `tsc` error TS 0 island 게이트. 본 spec 과 직교 (`tsc` 직접 호출 vs `scripts/check-*.sh` 패턴).
 - **외부 레퍼런스**:
   - GitHub Actions 공식 — `jobs.<job_id>.steps[].run` exit code ≠ 0 시 job fail (`https://docs.github.com/en/actions/using-jobs/setting-a-default-shell-and-working-directory`). CI step 부착 ⇒ rc ≠ 0 fail-fast.

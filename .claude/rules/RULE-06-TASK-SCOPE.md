@@ -30,5 +30,7 @@
 ## 체크리스트 (planner / inspector)
 baseline 실제 실행·수치 복사 / multiline 은 block boundary fixture 통과 / count 는 import·주석 제외 계산법 명시.
 
+**fixture probe 경로 사전 점검** — 신규 fixture·probe 파일 경로를 baseline 에 박제하기 전 `grep -nE "^<path-prefix>" .gitignore` → **0 hit** 확인. hit 이 있으면 그 경로의 산출물은 커밋되지 않고 조용히 휘발하며, grep 게이트는 파일 부재를 위반이 아니라 통과로 읽는다 (false-negative).
+
 발행된 `40.task/**` 는 rewrite 금지 (RULE-01). 본 규약은 차기 발행부터.
 <!-- 2026-04-21: 블록 경계 false-positive + grep-count + 체크리스트 (REQ-20260421-013) -->

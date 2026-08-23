@@ -109,7 +109,7 @@
   - 일치: `9b95b735d94df3ff4d1a621688efa2eda56900fd` — 메시지 `feat: CSS Modules drift 단일 진단 명령 발화 채널 부착 (scripts/check-css-modules-coherence.sh + npm script)` + 변경 path = `package.json` / `scripts/check-css-modules-coherence.sh`. (C1) developer = (C2) developer.
   - 가족 stage-back: `7b15126` (TSK-20260517-25 가족 surface) — `specs/60.done/2026/05/17/followups/20260517-2041-lint-staged-hook-cross-writer-stage.md` 박제 인용.
 - **자매 직교 spec / req**:
-  - `specs/30.spec/green/foundation/tooling.md` §ESLint flat-config last-write-wins 불변식 (REQ-20260422-058, 7477189 박제). 본 spec 과 직교 (tooling config 표면 vs commit transaction 표면).
+  - `specs/30.spec/blue/foundation/tooling.md` §ESLint flat-config last-write-wins 불변식 (REQ-20260422-058, 7477189 박제). 본 spec 과 직교 (tooling config 표면 vs commit transaction 표면).
   - `specs/30.spec/blue/foundation/coverage-gate-exit-code-determinism-margin-axis.md` (REQ-20260518-008, β β 신설 후 promote). 본 spec 과 직교 (coverage gate exit code 표면 vs commit transaction 표면).
   - `specs/60.done/2026/05/17/followups/20260517-2041-lint-staged-hook-cross-writer-stage.md` — lint-staged hook stage-back 가족 surface (본 R-2 baseline fixture 출처).
   - `specs/10.followups/20260518-1154-developer-planner-commit-race-message-mismatch.md` — 본 req §개요 baseline 신호 출처 (R-1 baseline fixture).

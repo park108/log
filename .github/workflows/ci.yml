@@ -33,6 +33,27 @@ jobs:
       - name: Check spec coherence
         run: npm run check:spec-coherence
 
+      - name: Check package manager coherence
+        run: npm run check:npm-coherence
+
+      - name: Check dev port coherence
+        run: npm run check:dev-port-coherence
+
+      - name: Check build/coverage output dir coherence
+        run: npm run check:build-coverage-coherence
+
+      - name: Check eslint ignores vacuous-zero
+        run: npm run check:eslint-ignores-vacuous-zero
+
+      - name: Check vitest globals coherence
+        run: npm run check:vitest-globals-coherence
+
+      - name: Check CSS Modules coherence
+        run: npm run check:css-modules-coherence
+
+      - name: Check commit writer coherence
+        run: npm run check:commit-writer-coherence
+
       - name: Lint
         run: npm run lint
 

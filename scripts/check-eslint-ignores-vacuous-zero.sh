@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-eslint-ignores-vacuous-zero.sh
-# Spec: specs/30.spec/green/foundation/tooling.md §동작 9 (REQ-013) + §테스트 현황 line 206 (FR-07) + §수용 기준 line 268 (Should, FR-07)
+# Spec: specs/30.spec/blue/foundation/tooling.md §동작 9 (REQ-013) + §테스트 현황 line 206 (FR-07) + §수용 기준 line 268 (Should, FR-07)
 # Task: TSK-20260518-21
 #
 # G-9.1 (배열 위치/길이): eslint.config.js 의 `{ ignores: [...] }` 객체 선언 hit=1 expected.
