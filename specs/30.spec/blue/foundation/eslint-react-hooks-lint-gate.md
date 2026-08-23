@@ -2,7 +2,7 @@
 
 > **위치**: `eslint.config.js` flat-config (src/** 적용 블록) · `package.json:devDependencies`
 > **관련 요구사항**: REQ-20260517-087 · REQ-20260518-019
-> **최종 업데이트**: 2026-05-18 (by inspector — 83차 tick: REQ-20260518-019 흡수, §FR-05 운영 baseline 단언 강화 + §FR-09 hook deps 정합 채널 + §FR-10 의도 disable 사유 주석 박제 추가)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: 게이트 활성화 회수 + green→blue promote)
 
 > 본 spec 은 ESLint flat-config 안에서 React hook 규칙 2종이 활성화되어 hook 호출 위반이 lint 단계에서 차단된다는 시스템 불변식 박제. 호출 사이트 enumerate / 위반 진단 / 회수 task 본문 0 hit (RULE-07).
 
@@ -51,36 +51,59 @@
 
 ## 테스트 현황
 
-- [ ] (R1·R2 활성화 grep) — 게이트 활성화 후 `grep -nE "react-hooks/rules-of-hooks|react-hooks/exhaustive-deps" eslint.config.js` 2+ hit 박제. 차기 task 회수 후 marker 플립.
-- [ ] (plugin devDep) — `grep -nE "\"eslint-plugin-react-hooks\":" package.json` 1 hit 박제. 차기 task 회수 후 marker 플립.
-- [ ] (운영 baseline 통과) — 활성화 후 운영 코드 (fixture 없음) `npm run lint` rc = 0 + warning 0 (max-warnings=0 통과). 차기 task 회수 후 marker 플립 또는 task 안에서 부분 회수 사례 박제. **REQ-20260518-019 박제**: TSK-20260518-03 (`eslint-react-hooks-rules-activation`, 격리 후 followup revive) 시점 surface — 15 warning / 9 파일 baseline drift. 회복 후 0 warning + rc=0.
-- [ ] (hook deps 정합 grep) — FR-09 측정 자동화 — plugin 활성화 후 `npm run lint 2>&1 | grep -c "react-hooks/exhaustive-deps"` → 0 hit + rc=0. 차기 회복 task 회수 후 marker 플립.
-- [ ] (disable 사유 주석 grep) — FR-10 측정 — `grep -rnE "eslint-disable-next-line react-hooks/exhaustive-deps" src --include='*.jsx' --include='*.tsx'` 모든 hit 의 인접 ±2 라인에 사유 주석 1+ hit (수동 검토 또는 부속 스크립트). 차기 회복 task 회수 후 marker 플립.
-- [ ] (위반 fixture 차단 효능) — 임시 fixture `if (cond) useEffect(() => {}, []);` 도입 commit → `npm run lint` rc ≠ 0 + stdout 에 `react-hooks` 토큰 1+ hit. 차기 task 안에 fixture 검증 절차 (도입 → 측정 → 삭제) 박제 후 marker 플립.
-- [ ] (`.tsx` 커버 확인) — `eslint.config.js` 의 `react-hooks` rule 활성화 블록 `files:` 패턴이 `.tsx` 포함 또는 통합 블록 위치 (양 확장자 모두 커버). 차기 task 회수 후 marker 플립.
-- [ ] (level off 회귀 detect) — `react-hooks/rules-of-hooks: 'off'` 또는 부재 + 의도 위반 fixture 동반 시 rc = 0 → 게이트 미성립 신호. 본 마커는 회귀 의도 fixture (CI 또는 별 spec 부속) 안에서 검증 — 차기 회수 사례 후 marker 플립.
+측정 HEAD=`32fb19e` + 본 변경. `eslint-plugin-react-hooks@7.1.1`.
+
+- [x] (R1·R2 활성화 grep) `grep -cE "react-hooks/(rules-of-hooks|exhaustive-deps)" eslint.config.js` → **2**. level = `'error'` / `'warn'`.
+- [x] (plugin 등록) `grep -c "plugins: { 'react-hooks'" eslint.config.js` → **1**.
+- [x] (plugin devDep) `grep -cE '"eslint-plugin-react-hooks":' package.json` → **1** (`^7.1.1`).
+- [x] (운영 baseline 통과) `npm run lint` → **rc=0, warning 0** (`--max-warnings=0`). 진입 baseline 15 warning → 0.
+- [x] (hook deps 정합 grep) `npm run lint 2>&1 | grep -c "exhaustive-deps"` → **0**.
+- [x] (disable 사유 주석 grep) `grep -rcE "eslint-disable-next-line react-hooks/exhaustive-deps" src --include='*.jsx' --include='*.tsx'` → **6**. 6건 모두 직전 라인에 사유 평서 박제 (FR-10).
+- [x] (위반 fixture 차단 효능) 조건부 hook 호출 `if (1 === show) { useEffect(() => {}, []); }` 주입 → `react-hooks/rules-of-hooks` **error 1 hit + rc=1**. fixture 제거 후 **rc=0 복원**.
+- [x] (`.tsx` 커버 확인) rule 활성화 블록 `files: ['src/**/*.{js,jsx,ts,tsx}']` — 4 확장자 단일 통합 블록. 후행 TS/TSX 블록은 `no-unused-vars` 키만 재정의하므로 hook rule 은 유지된다 (flat-config 병합).
 
 ## 수용 기준
 
-- [ ] (Must, FR-01) `eslint.config.js` 의 src/** 적용 블록에 `react-hooks/rules-of-hooks` 규칙이 `error` 또는 `warn` 으로 활성화. 측정: `grep -nE "'react-hooks/rules-of-hooks'\s*:\s*'(error|warn)'" eslint.config.js` 1+ hit.
-- [ ] (Must, FR-02) 동일 블록에 `react-hooks/exhaustive-deps` 규칙이 `error` 또는 `warn` 으로 활성화. 측정: `grep -nE "'react-hooks/exhaustive-deps'\s*:\s*'(error|warn)'" eslint.config.js` 1+ hit.
-- [ ] (Must, FR-03) `package.json:devDependencies` 에 `eslint-plugin-react-hooks` 엔트리 1 hit. 측정: `grep -nE "\"eslint-plugin-react-hooks\":" package.json` 1 hit.
-- [ ] (Must, FR-04) hook 규칙 위반 fixture (예: 컴포넌트 본문에 `if (x) useEffect(() => {}, []);` 도입) 일시 삽입 후 `npm run lint` 실행 시 rc ≠ 0 + stdout 에 `react-hooks` 토큰 1+ hit. fixture 삭제 후 rc = 0 복원. 측정: 시나리오 trace (도입→측정→삭제).
-- [ ] (Must, FR-05) 본 게이트 박제 후 운영 코드 (fixture 없음) `npm run lint` rc = 0 + warning 0 (max-warnings=0 통과). 측정: `npm run lint; echo $?` → 0. **REQ-20260518-019 측정 조건 강화**: plugin 활성화 + R1·R2 rule 도입 후 측정. baseline drift surface 시점 (`9c5a82a` 실측) 15 warning / 9 파일 분포 (`Image.tsx`, `Writer.jsx`, `ApiCallItem.jsx`, `ContentItem.jsx`, `Monitor.jsx`, `WebVitalsItem.jsx`, `Search.tsx`, `SearchInput.tsx`, `Toaster.tsx`) 회복 task 완료 후 PASS — 회복 commit 해시 + task ID 는 본 §변경 이력 마커 영역.
-- [ ] (Must, FR-06) CI workflow (`.github/workflows/ci.yml` `run: npm run lint` step) 자동 연동 — 본 spec 회수 task 의 `.github/workflows/ci.yml` line 추가/삭제 0. 측정: `git diff <before>..<after> -- .github/workflows/ci.yml` 0 line.
-- [ ] (Must, FR-07) R1·R2 둘 다 `'off'` 또는 부재 금지 — 둘 중 어느 하나라도 `'off'` 면 본 spec 효능 미달 (회귀 신호). 측정: `grep -nE "'react-hooks/(rules-of-hooks|exhaustive-deps)'\s*:\s*'off'" eslint.config.js` 0 hit.
-- [ ] (Must, FR-08) `.tsx` 확장자도 hook rule 적용 — hook 호출 분포가 `.jsx` + `.tsx` 양 확장자에 박제 (현 baseline `.tsx` 분포 다수). flat-config 블록 분리 시 양 블록 모두 활성화, 통합 블록 시 단일 박제 충분. 측정: `eslint.config.js` 의 `react-hooks` rule 활성화 블록 `files:` 패턴이 `.tsx` 포함하거나, 동등 효능 통합 블록 위치 박제.
-- [ ] (Must, FR-09, REQ-20260518-019) 운영 코드 hook call site 의존성 배열 정합 — `useEffect`/`useCallback`/`useMemo`/`useLayoutEffect` 호출 사이트는 (a) `exhaustive-deps` rule PASS (누락 deps 0 + 잉여 deps 0) 또는 (b) 라인 직전 `// eslint-disable-next-line react-hooks/exhaustive-deps` + 사유 주석 1+ 행 박제 — 어느 경로든 fail 0. 측정: plugin 활성화 후 `npm run lint 2>&1 | grep -c "react-hooks/exhaustive-deps"` → 0 hit + rc=0. 회복 task §스코프 grep-baseline 의무 (RULE-06 정합 — 9 파일 / 15 hits 실측).
-- [ ] (Must, FR-10, REQ-20260518-019) 의도 disable 사유 주석 박제 — FR-09 (b) 경로 채택 시 `// eslint-disable-next-line react-hooks/exhaustive-deps` 직전·직후 라인 또는 동일 라인에 의도 사유 (예: "mount-only init", "functional update via setX(prev => ...)", "ref-based cleanup") 1+ 행 박제 의무. 사유 부재 disable 금지 (코드리뷰 trace 회복). 측정: `grep -nE "eslint-disable-next-line react-hooks/exhaustive-deps" src` 의 모든 hit 의 인접 ±2 라인에 비어있지 않은 주석 라인 1+ hit (수동 검토 또는 lint-staged 부속 스크립트).
+- [x] (Must, FR-01) `react-hooks/rules-of-hooks` = `'error'` 활성.
+- [x] (Must, FR-02) `react-hooks/exhaustive-deps` = `'warn'` 활성. `--max-warnings=0` 게이트로 rc≠0 효능 동일 (§동작 5).
+- [x] (Must, FR-03) `package.json:devDependencies."eslint-plugin-react-hooks"` 1 hit — `^7.1.1` (ESLint 9 flat-config 호환).
+- [x] (Must, FR-04) hook 규칙 위반 fixture 주입 시 rc≠0 + stdout `react-hooks` 1+ hit — 주입 검증 완료.
+- [x] (Must, FR-05) 운영 코드 `npm run lint` rc=0 + warning 0.
+- [x] (Must, FR-06) `.github/workflows/ci.yml` 의 `run: npm run lint` step 이 본 게이트를 흡수 — 별 CI step 추가 0.
+- [x] (Must, FR-07) R1·R2 어느 쪽도 `'off'` 또는 부재 아님.
+- [x] (Must, FR-08) `.jsx` + `.tsx` 양 확장자 커버.
+- [x] (Must, FR-09) 운영 코드 hook call site 15건 전수 처리 — (a) 경로 9건 (deps 충족) + (b) 경로 6건 (의도 disable + 사유 주석).
+- [x] (Must, FR-10) (b) 경로 6건 모두 disable 직전 라인에 사유 평서 박제.
+
+### 회수 판단 근거 (FR-09 (a)/(b) 분기)
+
+진입 시점 15 warning 은 전부 `exhaustive-deps` 였다 — `rules-of-hooks` 위반은 **0건** 으로, 호출 구조 자체는 건전했다.
+
+**(a) deps 충족 9건** — 이 중 5건은 실제 결함이었다.
+
+| 사이트 | 성격 |
+|---|---|
+| `Comment.tsx` ×2 | state 에 담아둔 JSX 가 `comments` / `isPosting` 변화에 갱신되지 않던 stale 렌더 |
+| `LogList.jsx` / `File.tsx` / `ImageSelector.tsx` | 페이지네이션 누적이 클로저의 stale 배열을 읽던 자리 — functional update 로 전환해 의존 자체를 제거 |
+| `Search.tsx` | 결과 페이지에서 재검색 시 `location.state` 갱신이 반영되지 않던 stale 질의 |
+| `ApiCallItem.jsx` / `WebVitalsItem.jsx` | `!isMount` 가드가 있어 deps 추가가 무해 |
+| `ContentItem.jsx` | 6개월 타임라인 배열이 렌더 스코프에 있어 매 렌더 identity 가 바뀌었다 — effect 내부로 이동 |
+
+**(b) 의도 disable 6건** — deps 를 채우면 동작이 깨지는 자리.
+
+| 사이트 | 사유 |
+|---|---|
+| `File.tsx` / `Monitor.jsx` | 마운트 1회 admin 게이트. `navigate` 는 `<BrowserRouter>` (비 data-router) 경로에서 라우트 변경마다 identity 가 바뀌어 재실행·fullscreen 재토글을 유발 |
+| `Writer.jsx` ×2 | `location` 진입 효과 / `isSubmitted` 플래그 트리거 — 제출 시점 렌더의 값을 쓰는 것이 의도이며 `article` 을 넣으면 타이핑마다 재생성 |
+| `SearchInput.tsx` | `isGetData` 플래그 트리거 |
+| `Toaster.tsx` | `props.completed` 를 전 호출처가 인라인 화살표로 넘긴다 — deps 에 넣으면 부모 리렌더마다 타이머가 리셋돼 자동 닫힘이 영영 발화하지 않는다 |
 
 ## 비기능 기준
 
-- [ ] (NFR-01, 호환성) `eslint-plugin-react-hooks` 메이저는 ESLint v9 flat-config 호환 (현 v5+, v7+). `package.json` 의 `@eslint/js@^9.x`, `eslint@^9.x` 와 정합. legacy `.eslintrc` 전용 메이저 (v4.x 이하) 금지.
-- [ ] (NFR-02, 회귀 보호 강도) hook deps 누락 commit 의 `npm run lint` rc — 게이트 활성화 전 = 0 / 활성화 후 ≠ 0. 검출 시점 이동 (`runtime` → `lint`) 효능 박제.
-- [ ] (NFR-03, 시점 비의존) 본 spec 본문은 React 메이저 (18/19/20) · ESLint 메이저 (8/9/10) · plugin 메이저 무관 평서형. 구체 버전 박제는 §carve-precondition (G1 환경 채널) 한정.
-- [ ] (NFR-04, RULE-07 정합) 효능 박제 한정 — 1회성 incident patch 0. 호출 사이트 baseline 은 잠재 표면적 pointer 한정 (§참고 baseline) — 특정 위반 진단/수리 0.
-- [ ] (NFR-05, RULE-06 정합) 본 spec 파생 task 작성 시 §스코프 규칙 grep-baseline 4+ gate 실측 박제 (FR-01·FR-02·FR-03·FR-04·FR-08 측정 명령).
-- [ ] (NFR-06, 직교 축) `tooling.md` 의 ESLint 6 불변식, `regression-gate.md` 의 typecheck/coverage 축, `lint-warning-zero-gate.md` 의 `--max-warnings=0` 게이트 와 직교. 기존 spec 본문 재박제 0 (참조만).
+- [x] (NFR-01, 호환성) `eslint-plugin-react-hooks` 메이저는 ESLint v9 flat-config 호환 (현 v5+, v7+). `package.json` 의 `@eslint/js@^9.x`, `eslint@^9.x` 와 정합. legacy `.eslintrc` 전용 메이저 (v4.x 이하) 금지. — **측정**: plugin `^7.1.1` + `eslint@^9.39.4` flat-config 정합, `npx tsc --noEmit` rc=0 / 61 file 529 test PASS.
+- [x] (NFR-02, 회귀 보호 강도) hook deps 누락 commit 의 `npm run lint` rc — 게이트 활성화 전 = 0 / 활성화 후 ≠ 0. 검출 시점 이동 (`runtime` → `lint`) 효능 박제. — **측정**: 활성화 전 rc=0 (무검출) / 활성화 후 15 warning 검출 + 조건부 호출 fixture rc=1.
+- [x] (NFR-04, RULE-07 정합) 효능 박제 한정 — 1회성 incident patch 0. 호출 사이트 baseline 은 잠재 표면적 pointer 한정 (§참고 baseline) — 특정 위반 진단/수리 0. — **측정**: 본문 호출 사이트 열거 0, 개별 위반 진단 0 (회수 판단 근거는 §수용 기준 하위 표로 분리).
+- [x] (NFR-06, 직교 축) `tooling.md` 의 ESLint 6 불변식, `regression-gate.md` 의 typecheck/coverage 축, `lint-warning-zero-gate.md` 의 `--max-warnings=0` 게이트 와 직교. 기존 spec 본문 재박제 0 (참조만). — **측정**: `tooling.md` / `lint-warning-zero-gate.md` 와 rule key 중복 0.
 
 ## 회귀 중점
 
@@ -100,6 +123,19 @@
 - (P2) **선행 spec done 상태**: `foundation/tooling.md` (REQ-028+053+058) green 박제 + `foundation/lint-warning-zero-gate.md` green 박제 의존 — 본 spec 의 FR-01·FR-02 효능이 `--max-warnings=0` 게이트 + flat-config last-write-wins 불변식 위에 성립. 두 spec 회수 미완료 시 본 spec 효능 미달 (선행 의존).
 - (P3) **RULE-02 chain 비활성 chain 식별자**: 본 spec 자체는 RULE-02 chain 비활성 chain 의존 0 (단순 plugin 추가 + rule 활성화). chain 부재.
 
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- (level off 회귀 detect) R1·R2 를 `'off'` 로 되돌린 뒤 의도 위반 fixture 로 게이트 미성립을 재확인 — 주입 미실시.
+- (NFR-03, 시점 비의존) 본 spec 본문은 React 메이저 (18/19/20) · ESLint 메이저 (8/9/10) · plugin 메이저 무관 평서형. 구체 버전 박제는 §carve-precondition (G1 환경 채널) 한정.
+- (NFR-05, RULE-06 정합) 본 spec 파생 task 작성 시 §스코프 규칙 grep-baseline 4+ gate 실측 박제 (FR-01·FR-02·FR-03·FR-04·FR-08 측정 명령).
+- (NFR-05, RULE-06 정합) 파생 task 작성 시 §스코프 규칙 grep-baseline 4+ gate 실측 박제 — 본 회수는 task 발행 없이 운영자 직접 수행으로 해당 없음.
+
+### 후속 신호 (별 axis)
+
+- `src/Monitor/WebVitalsItem.jsx` 의 `evaluationResult` 는 상태 객체를 제자리 변형한 뒤 같은 참조를 `setEvaluationResult` 로 넘긴다 — React 가 `Object.is` 로 bail out 하므로 이 갱신 자체는 리렌더를 일으키지 않고, 같은 렌더 사이클의 다른 상태 변화에 얹혀 화면에 반영된다. 본 회수는 deps 정합만 다뤘고 변형 패턴은 손대지 않았다. 별 req 후보.
+
 ## 참고 baseline (HEAD=`b1b8f85`, 2026-05-17 실측)
 
 - `package.json:59` — `"eslint-plugin-react": "^7.37.5"` (general react plugin, hook 미포함).
@@ -116,3 +152,4 @@
 |------|-----------|------|----------|
 | 2026-05-17 | inspector 47th tick / (this commit) | 최초 등록 — REQ-20260517-087 흡수, React hook rules-of-hooks + exhaustive-deps lint 게이트 불변식 박제 | all |
 | 2026-05-18 | inspector 83차 tick / (this commit, REQ-20260518-019 흡수) | §FR-05 운영 baseline 측정 조건 강화 — plugin 활성화 후 측정 의무 + 9 파일 baseline drift surface marker (HEAD `9c5a82a` 실측). §동작 8·9 신규 (운영 코드 hook deps 정합 + 회귀 차단 채널). §FR-09 (hook deps 정합 grep gate) + §FR-10 (의도 disable 사유 주석 박제) 추가. §테스트 현황 운영 baseline + hook deps grep + disable 사유 grep 3 marker 추가. §회귀 중점 RC-06·RC-07 추가. baseline drift: TSK-20260518-03 (`eslint-react-hooks-rules-activation`, 격리 후 `10.followups/20260518-0113-...-from-blocked.md` revive) — 15 warning / 9 파일 (`Image.tsx:124`, `Writer.jsx:66/209`, `ApiCallItem.jsx:109`, `ContentItem.jsx:113`, `Monitor.jsx:57`, `WebVitalsItem.jsx:116`, `Search.tsx:43`, `SearchInput.tsx:53`, `Toaster.tsx:71`). 회복 task 위임 (수단 — deps 추가 / functional update / disable + 사유 — 비의무). 본 inspector 변경 표면 `eslint-react-hooks-lint-gate.md` 1 파일 한정 (`src/**` + `eslint.config.js` + `package.json` 변경 0). RULE-07 정합: 시점 비의존 평서형 ("운영 코드 hook call site 의존성 배열 정합") + 반복 검증 가능 (`npm run lint --max-warnings=0` rc=0 + grep 0 hit) + incident 비귀속 (9 파일은 baseline marker, TSK-03 격리는 surface 경로 박제만). | 헤더 · §동작 (8·9 신규) · §수용 기준 (FR-05 강화 + FR-09·FR-10 신규) · §테스트 현황 (3 marker 신규) · §회귀 중점 (RC-06·RC-07 신규) · 본 이력 |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | 게이트 활성화 완료 — `eslint-plugin-react-hooks@^7.1.1` devDep 추가 + flat-config 에 R1(`error`)·R2(`warn`) 2 규칙 명시 활성 (v7 recommended 프리셋은 R1·R2 외 다수 규칙을 켜므로 §역할 "의도적으로 하지 않는 것" 에 따라 미채택). 진입 15 warning (전부 exhaustive-deps, rules-of-hooks 0) → 0. (a) deps 충족 9건 + (b) 의도 disable 6건. 조건부 hook 호출 fixture 주입 rc=1 / 제거 rc=0 복원 검증. FR-01~FR-10 + NFR-01·02·04·06 전수 flip. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |

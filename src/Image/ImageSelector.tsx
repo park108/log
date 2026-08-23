@@ -134,10 +134,10 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 				if(!hasValue(nextData.errorType)) {
 					log("[API GET] OK - Next Images", "SUCCESS");
 
-					const newImages = images.concat(nextData.body?.Items ?? []);
 					const lastEvaluatedKey = nextData.body?.LastEvaluatedKey;
 
-					setImages(hasValue(nextData.body?.Items) ? newImages : []);
+					// functional update — 클로저가 캡처한 stale `images` 대신 직전 상태를 받는다.
+					setImages(prev => hasValue(nextData.body?.Items) ? prev.concat(nextData.body?.Items ?? []) : []);
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
@@ -165,7 +165,7 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 		return (): void => {
 			cancelled.current = true;
 		};
-	}, [isGetNextData]);
+	}, [isGetNextData, lastTimestamp]);
 
 	useEffect(() => {
 		if(hasValue(lastTimestamp)) {

@@ -54,6 +54,9 @@ const Monitor = (props) => {
 		setFullscreen(true);
 
 		return () => {setFullscreen(false)}
+		// 마운트 1회 admin 게이트 + fullscreen 토글. `navigate` identity 는 라우트 변경마다
+		// 바뀌므로 deps 에 넣으면 이동할 때마다 cleanup 이 fullscreen 을 꺼버린다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	return (

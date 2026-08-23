@@ -106,7 +106,7 @@ const ApiCallItem = (props) => {
 			setIsMount(true);
 		}
 
-	}, [service, isMount]);
+	}, [service, isMount, stackPallet]);
 
 	const Pillar = (attr) => {
 

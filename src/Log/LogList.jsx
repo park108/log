@@ -95,10 +95,10 @@ const LogList = (props) => {
 				if(!hasValue(fetchedData.errorType)) {
 					log("[API GET] OK - Next Logs", "SUCCESS");
 	
-					const newLogs = logs.concat(fetchedData.body.Items);
 					const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
 		
-					setLogs(newLogs);
+					// functional update — 클로저가 캡처한 stale `logs` 대신 직전 상태를 받는다.
+					setLogs(prev => prev.concat(fetchedData.body.Items));
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 				}
 				else {
@@ -121,7 +121,7 @@ const LogList = (props) => {
 			setIsGetNextData(false);
 		}
 
-	}, [isGetNextData]);
+	}, [isGetNextData, lastTimestamp]);
 
 	useEffect(() => {
 		setIsGetData(true);

@@ -68,6 +68,9 @@ const Toaster = (props: ToasterProps): React.ReactElement => {
 				timerRef.current = null;
 			}
 		};
+		// `props.completed` 는 전 호출처가 인라인 화살표로 넘긴다 — deps 에 넣으면 부모가
+		// 리렌더할 때마다 타이머가 리셋돼 자동 닫힘이 영영 발화하지 않는다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [show]);
 
 	return (

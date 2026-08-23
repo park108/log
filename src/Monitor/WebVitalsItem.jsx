@@ -113,7 +113,7 @@ const WebVitalsItem = (props) => {
 			fetchData(name);
 			setIsMount(true);
 		}
-	}, [isMount, name]);
+	}, [isMount, name, evaluationResult]);
 
 	if(isLoading) {
 		return (

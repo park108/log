@@ -65,6 +65,9 @@ const File = (props: FileProps): React.ReactElement => {
 
 		setIsGetData(true);
 		setHtmlTitle("file");
+		// 마운트 1회 admin 게이트. `navigate` 는 BrowserRouter(비 data-router) 에서
+		// 경로 변경마다 identity 가 바뀌므로 deps 에 넣으면 라우트 이동마다 재실행된다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	useEffect(() => {
@@ -123,10 +126,10 @@ const File = (props: FileProps): React.ReactElement => {
 				if(!hasValue(nextData.errorType)) {
 					log("[API GET] OK - Next Files", "SUCCESS");
 
-					const newFiles = files.concat(nextData.body?.Items ?? []);
 					const lastEvaluatedKey = nextData.body?.LastEvaluatedKey;
 
-					setFiles(hasValue(nextData.body?.Items) ? newFiles : []);
+					// functional update — 클로저가 캡처한 stale `files` 대신 직전 상태를 받는다.
+					setFiles(prev => hasValue(nextData.body?.Items) ? prev.concat(nextData.body?.Items ?? []) : []);
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {

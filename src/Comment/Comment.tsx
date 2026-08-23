@@ -178,7 +178,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			setCommentThread("");
 		}
 
-	}, [isShow]);
+	}, [isShow, comments, logTimestamp]);
 
 	useEffect(() => {
 
@@ -196,7 +196,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 		else {
 			setCommentForm("");
 		}
-	}, [isShow, isOpenReplyForm]);
+	}, [isShow, isOpenReplyForm, isPosting, logTimestamp]);
 
 	const toggleShow = (): void => setIsShow(!isShow);
 

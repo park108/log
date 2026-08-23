@@ -20,22 +20,23 @@ const ContentItem = (props) => {
 
 	const handleRetry = () => { setIsMount(false); };
 	
-	const now = new Date();
-	const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
-	const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
-	
-	const timeline = [
-		from,
-		(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
-		(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
-		(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
-		(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
-		(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
-		to
-	];
-
 	useEffect(() => {
 
+		// 6개월 타임라인은 이 효과 안에서만 쓰인다 — 렌더 스코프에 두면 배열 identity 가
+		// 매 렌더 바뀌어 deps 를 무의미하게 만든다.
+		const now = new Date();
+		const to = (new Date(now.getFullYear(), now.getMonth() + 1, 1)).getTime();
+		const from = (new Date(now.getFullYear(), now.getMonth() - 5, 1)).getTime();
+	
+		const timeline = [
+			from,
+			(new Date(now.getFullYear(), now.getMonth() -4, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -3, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -2, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth() -1, 1)).getTime(),
+			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
+			to
+		];
 		const fetchData = async (path) => {
 	
 			setIsLoading(true);

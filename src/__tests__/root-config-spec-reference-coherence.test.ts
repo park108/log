@@ -107,7 +107,7 @@ function specPath(branch: "blue" | "green", relUnderBranch: string): string {
 // G-B baseline (TSK-20260518-15 회복 후 — 3 sh script `:3` 토큰 green→blue
 // 치환 + 본 fixture baseline 동시 갱신 단일 commit 묶음 시점 측정).
 const EXPECTED_GA_SELF_DIAG_COUNT = 6;
-const EXPECTED_GB_PATH_COUNT = 5;
+const EXPECTED_GB_PATH_COUNT = 6;
 const EXPECTED_GB_MISSING: readonly string[] = [];
 const EXPECTED_GB_EXISTS = [
 	specPath("blue", "foundation/node-version-3axis-coherence.md"),
@@ -115,6 +115,8 @@ const EXPECTED_GB_EXISTS = [
 	specPath("blue", "foundation/vite-env-boundary-typing.md"),
 	specPath("green", "foundation/node-modules-extraneous-coherence.md"),
 	specPath("blue", "foundation/src-spec-reference-coherence.md"),
+	// eslint.config.js 의 react-hooks 게이트 블록 주석 (2026-08-24 회수).
+	specPath("blue", "foundation/eslint-react-hooks-lint-gate.md"),
 ] as const;
 
 // G-C baseline — G-B 추출 5 path 중 green 1 path 의 blue 동시 실재 측정.
@@ -277,7 +279,7 @@ describe("root-config-spec-reference-coherence (TSK-20260518-13)", () => {
 		expect(observed).toEqual(expected);
 	});
 
-	it("G-B / FR-02: root 7-file 군에서 spec path 5 hit / 5 file 추출 + 3 MISSING + 2 EXISTS 집합 박제", () => {
+	it("G-B / FR-02: root 7-file 군에서 spec path 6 hit / 6 file 추출 + 3 MISSING + 2 EXISTS 집합 박제", () => {
 		const hits = collectSpecPathHits();
 
 		expect(hits, "G-B path-extract baseline 격차").toHaveLength(

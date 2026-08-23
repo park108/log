@@ -63,6 +63,9 @@ const Writer = () => {
 		}
 
 		return () => {setFullscreen(false)}
+		// `location` 변경에만 반응하는 진입 효과. `navigate` 는 여기서 호출되지 않으며
+		// identity 가 라우트마다 바뀌어 deps 에 넣으면 fullscreen 이 재토글된다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location]);
 
 	useEffect(() => {
@@ -206,6 +209,10 @@ const Writer = () => {
 			}
 			setIsSubmitted(false);
 		}
+		// isSubmitted 플래그 트리거 — 제출이 눌린 렌더의 값들을 그대로 쓰는 것이 의도다.
+		// article 을 deps 에 넣으면 타이핑마다 효과가 재생성되고, navigate/mutation 객체는
+		// identity 가 매 렌더 바뀐다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isSubmitted])
 
 	useEffect(() => {

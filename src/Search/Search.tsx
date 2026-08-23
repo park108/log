@@ -40,7 +40,9 @@ const Search = (): React.ReactElement => {
 		if(hasValue(location.state)) {
 			setQueryString((location.state as SearchLocationState).queryString);
 		}
-	}, []);
+		// `location.state` 를 deps 에 둔다 — 검색 결과 페이지에서 재검색하면 SearchInput 이
+		// 같은 경로로 새 state 를 실어 navigate 하므로, 마운트 1회로는 질의가 갱신되지 않는다.
+	}, [location.state]);
 
 	useEffect(() => {
 		setHtmlTitle("search results for " + queryString);

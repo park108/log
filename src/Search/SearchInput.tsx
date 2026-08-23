@@ -50,6 +50,9 @@ const SearchInput = (): React.ReactElement => {
 			setIsGetData(false);
 		}
 
+		// isGetData 플래그 트리거 — 검색 버튼이 눌린 렌더의 queryString 을 쓰는 것이 의도다.
+		// `navigate` identity 는 라우트마다 바뀐다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isGetData]);
 
 	useEffect(() => {

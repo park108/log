@@ -3,6 +3,7 @@
 // SPEC common/accessibility §3.4.2). Semantic changes: 0.
 import js from '@eslint/js';
 import reactPlugin from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -55,7 +56,18 @@ export default [
       },
     },
     settings: { react: { version: 'detect' } },
+    // React hook 호출 규약 게이트 (REQ-20260517-087 / REQ-20260518-019).
+    // spec: specs/30.spec/blue/foundation/eslint-react-hooks-lint-gate.md
+    // plugin v7 의 recommended 프리셋은 R1·R2 외 다수 규칙 (set-state-in-effect,
+    // static-components, purity 등) 을 함께 켠다 — 본 게이트는 spec §역할
+    // "의도적으로 하지 않는 것" 에 따라 핵심 2종만 명시 활성화한다.
+    plugins: { 'react-hooks': reactHooks },
     rules: {
+      // (R1) hook 은 컴포넌트/커스텀 hook 최상위에서만 호출.
+      'react-hooks/rules-of-hooks': 'error',
+      // (R2) deps 배열 누락/잉여 — stale closure / 불필요 재실행 차단.
+      // 'warn' 이어도 `--max-warnings=0` 게이트로 rc != 0 전파 (spec §동작 5).
+      'react-hooks/exhaustive-deps': 'warn',
       // 4 user rules — meaning preserved verbatim from .eslintrc.yml:32-41.
       // `no-unused-vars` explicit `caughtErrors: 'none'` restores v8 default
       // (v9 changed default to `'all'`); prevents new `catch (_err)` warnings.
