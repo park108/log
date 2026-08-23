@@ -57,8 +57,8 @@ TS island 확정 디렉터리 Component 가 dev-mode test 채널 또는 e2e/head
 - [x] (I4) 위반 검출 단일성 — TSK-20260517-24 회수 (커밋 `0ff5280`) 후 (M-B) `vi.spyOn + expect.not.toHaveBeenCalledWith` 단일 채널 박제 — 임시 fixture (invalid prop type 직접 호출) 로 `AssertionError` + `RUNTIME_WARNING_PATTERN` 매칭 + 호출 인자 표시 검증 PASS (result.md 수동 검증 박제) → 1+ 채널 + 단일 진단 grep 라벨 효능 surface 회복.
 - [x] (I5) 직교 정합 — 본 spec §동작 5 + §의존성 §직교 박제. 4 정적 채널 (REQ-088 selector + REQ-077 typecheck + REQ-080 lint + REQ-087 hook rule) 와 직교 평서.
 - [x] (I6) 자동 확장 효능 — §동작 6 + §공개 인터페이스 평서. 본 spec 본문 island 디렉터리 일괄 박제 0 — "TS island 확정 디렉터리" 추상 평서로 신규 island 수렴 시 자동 적용.
-- [x] (I7) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/testing/console-error-runtime-zero.md | grep -vE '`[^`]*default[^`]*`' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit (§스코프 규칙 G4 박제).
-- [x] (I8) 시점 비의존 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/testing/console-error-runtime-zero.md | grep -cE "App\.test\.jsx|setupTests\.js|:27|:354|:368|:69"` → 0 hit (§스코프 규칙 G5 박제).
+- [x] (I7) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/testing/console-error-runtime-zero.md | grep -vE '`[^`]*default[^`]*`' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit (§스코프 규칙 G4 박제).
+- [x] (I8) 시점 비의존 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/testing/console-error-runtime-zero.md | grep -cE "App\.test\.jsx|setupTests\.js|:27|:354|:368|:69"` → 0 hit (§스코프 규칙 G5 박제).
 - [x] (I9) followup → 본 spec audit 회수 — 본 spec §동작 9 + §변경 이력 + §참고 박제로 정합. TSK-21 followup `20260517-1830-island-proptypes-zero-manual-verify` 흡수 + RULE-07 음성 운영자 수동 미박제.
 
 ## 수용 기준
@@ -85,8 +85,8 @@ TS island 확정 디렉터리 Component 가 dev-mode test 채널 또는 e2e/head
   - (G1) **[runtime warning 채널 baseline — M-A]** `npm test 2>&1 | grep -cE "Warning: (Failed prop type|Each child in a list|Cannot update.*during render|hook .*order)"` — 측정 환경 부재 (silence 패턴이 console.error 흐름 차단 — test 실행 시 stderr 에 흐르지 않음). HEAD=`b76dc02` 박제 시점 zero-point — silence 분리 + fail-fast assertion 또는 별 채널 박제 후 (M-A) 측정 가능.
   - (G2) **[silence 패턴 baseline]** `grep -rnE "vi\.spyOn\(console,\s*['\"]error['\"]\)\.mockImplementation\(\s*\(\)\s*=>\s*\{\s*\}\s*\)" src/` → **28 hit / 23 파일** (실측 HEAD=`b76dc02`). 분포: App.test.jsx + Monitor/* (6 파일) + File/* (4 파일) + Image/* + Comment/* + Search/* (3 파일 — 다중 spy 포함) + common/* (5 파일 — errorReporter / common.test / Navigation / ErrorBoundary) + Log/* (4 파일). island 디렉터리 + 비-island 디렉터리 혼합 — 본 spec 회복 대상은 island 정의 3축 충족 디렉터리 한정. 본 spec 회복 대상 = silence 분리 + fail-fast assertion 또는 별 채널 1+ 추가 — silence 자체 제거 0 (legacy snapshot / 분석 영역 보존). 비-island 디렉터리 (`src/Log/`, `src/Monitor/`) silence 패턴은 본 게이트 적용 외 (island 수렴 시점 자동 적용).
   - (G3) **[runtime warning 메시지 패턴 baseline — React 18 영역]** `Warning: Failed prop type` (prop-types runtime 채널) + `Warning: Each child in a list should have a unique "key" prop` (missing key) + `Warning: Cannot update a component .* while rendering a different component` (concurrent update) + `Warning: React has detected a change in the order of Hooks` (hook order) — 4 카테고리 패턴 박제. React major bump (예: React 19) 시 일부 패턴 사라짐 (defaultProps + propTypes 정적 selector 제거 → `Failed prop type` 메시지 자체 사라짐 가능) + 신규 패턴 추가 — §변경 이력 row 동반 갱신 필요.
-  - (G4) **[FR-08 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/testing/console-error-runtime-zero.md | grep -vE '`[^`]*default[^`]*`' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 3+ 수단 채널 후보 라벨 부여 0 — 백틱 코드 식별자 면제 정밀 패턴). HEAD=`b76dc02` 박제 시점 PASS.
-  - (G5) **[FR-07 / NFR-01 시점 비의존 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/testing/console-error-runtime-zero.md | grep -cE "App\.test\.jsx|setupTests\.js|:27|:354|:368|:69"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 절대 파일명 / 라인 박제 0 — 좌표는 §스코프 규칙 grep-baseline + §변경 이력 한정). HEAD=`b76dc02` 박제 시점 PASS.
+  - (G4) **[FR-08 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/testing/console-error-runtime-zero.md | grep -vE '`[^`]*default[^`]*`' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 3+ 수단 채널 후보 라벨 부여 0 — 백틱 코드 식별자 면제 정밀 패턴). HEAD=`b76dc02` 박제 시점 PASS.
+  - (G5) **[FR-07 / NFR-01 시점 비의존 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/testing/console-error-runtime-zero.md | grep -cE "App\.test\.jsx|setupTests\.js|:27|:354|:368|:69"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 절대 파일명 / 라인 박제 0 — 좌표는 §스코프 규칙 grep-baseline + §변경 이력 한정). HEAD=`b76dc02` 박제 시점 PASS.
 - **rationale**: (G1) runtime warning 채널 baseline — silence 차단으로 측정 환경 부재 zero-point. (G2) silence 패턴 baseline — 3 hit / 1 파일 (정밀 패턴 — silence implementation 매칭 한정). (G3) runtime warning 메시지 패턴 baseline — 4 카테고리 (React 18 영역). (G4) RULE-07 수단 중립 자기 검증. (G5) RULE-07 시점 비의존 자기 검증. 매트릭스: 5 baseline 채널 (G1 측정 채널 + G2 silence 패턴 + G3 메시지 패턴 + G4/G5 본 spec 본문 자기 검증) — 회복 후 G1 0 hit + G2 silence 유지 + fail-fast 보강 + G3 4 카테고리 grep 0 hit + G4/G5 박제 시점 PASS.
 
 ## 변경 이력
@@ -100,7 +100,7 @@ TS island 확정 디렉터리 Component 가 dev-mode test 채널 또는 e2e/head
 - **followup 원전 (audit pointer)**:
   - `specs/60.done/2026/05/17/followups/20260517-1830-island-proptypes-zero-manual-verify.md` (discovery 영역 mv 완료) — TSK-20260517-21 (`island-proptypes-zero-recovery`) DoD 마지막 항목 (수동 dev 서버 + 브라우저 console.error 부재 확인) 자동화 부재 audit. 잠재 후행 축 (a)(b) 본 spec 흡수, (c) 운영자 수동 RULE-07 음성 미박제.
 - **선행 spec (정적 채널 — 본 spec 박제 시점 cross-ref)**:
-  - `specs/30.spec/green/foundation/island-proptypes-zero.md` (REQ-088) — selector M-B 0 hit 정적 채널. 본 spec 의 runtime 채널과 직교 — 어느 한 채널이 다른 채널을 자동 충족 부재.
+  - `specs/30.spec/blue/foundation/island-proptypes-zero.md` (REQ-088) — selector M-B 0 hit 정적 채널. 본 spec 의 runtime 채널과 직교 — 어느 한 채널이 다른 채널을 자동 충족 부재.
   - `specs/30.spec/blue/foundation/typecheck-island-extension.md` (REQ-077) — typecheck error 0 정적 채널. 본 spec 과 직교.
   - `specs/30.spec/blue/foundation/lint-warning-zero-gate.md` (REQ-080) — ESLint warning 0 정적 채널. 본 spec 과 직교 (정적 vs 런타임).
   - `specs/30.spec/blue/foundation/eslint-react-hooks-lint-gate.md` (REQ-087) — hook 규칙 정적 채널. 본 spec 과 직교 — runtime hook order 위반의 dev-mode console.error 흐름은 별 채널.

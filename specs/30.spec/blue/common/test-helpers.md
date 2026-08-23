@@ -2,7 +2,7 @@
 
 > **위치**: `src/test-utils/**` (헬퍼 export 영역), `src/**/*.test.{ts,tsx,js,jsx}` (소비 영역).
 > **관련 요구사항**: REQ-20260517-082
-> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제, REQ-082 흡수; Phase 1 reconcile (I1)(I2)(I3) + FR-01·FR-02·FR-03·FR-04·FR-06 + NFR-05 marker 9건 hook-ack 플립 by TSK-20260517-19 / `82bb7a4`)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 본 spec 은 횡단 test 헬퍼 단일 출처 계약. 라인 번호 박제 없음 — baseline 은 §스코프 규칙 grep-baseline (작성 시 inspector 책임).
 
@@ -40,19 +40,16 @@ typecheck island (strict mode + `noUncheckedIndexedAccess` 정책) 확장 시 �
 - [x] (I1) location-mock 단일 출처 — TSK-20260517-19 (`82bb7a4`) 회수: `src/test-utils/location.ts` 신규 export (`setLocation` / `restoreLocation` / `mockUrlLocation` + `MockableLocation` type) + 호출측 `src/App.test.jsx` 3 hit → 0 hit + `src/common/common.test.ts` file-local 3 const 제거. HEAD=`985c76e` 재실측: `grep -rnE "delete\s+window\.location|window\.location\s*=" src --include="*.test.*"` → 0 hit (baseline 3 hit / 1 file → 회수 PASS).
 - [x] (I2) mock-narrow 단일 출처 — TSK-20260517-19 (`82bb7a4`) 회수: `src/test-utils/mockCalls.ts` 신규 export (`firstCall<Args>` / `nthCall<Args>`) + 호출측 5 file ad-hoc `mock.calls[N]!` 5 hit → 0 hit. HEAD=`985c76e` 재실측: `grep -rnE "\.mock\.calls\[[0-9]+\]!" src --include="*.test.ts" --include="*.test.tsx"` → 0 hit (baseline 5 hit / 5 file → 회수 PASS).
 - [x] (I3) 단일 출처 정합 — TSK-20260517-19 (`82bb7a4`) 회수: HEAD=`985c76e` 재실측: `grep -rnE "const\s+(setLocation|mockUrlLocation|firstCall|nthCall)\s*=" src --include="*.{ts,tsx,js,jsx}"` → `src/test-utils/**` 외부 0 hit (5 export 모두 `src/test-utils/` 내부 — G6 정합). 단일 출처 분기 0.
-- [ ] (I4) typecheck island 확장 흡수 비용 수렴 — 차기 island 확장 회복 task (예: 신규 회복 대상 디렉터리) result.md 에 헬퍼 import 만으로 흡수 완료 박제. 차기 이벤트 후 marker 플립.
 - [x] (I5) test-idioms 패턴 동질 — 본 spec §동작 5 박제로 정합 (영역 직교 + 변경 영향 분리 효능 평서).
-- [ ] (I6) 확장성 평서 — 본 spec §동작 6 박제. 차기 동등 패턴 (`URL` / `URLSearchParams` / `mock.results` 등) 발견 시 일반 형식 확장 별 req 후보. 차기 이벤트 후 marker 플립.
 - [x] (I7) 자매 spec 직교 정합 — 본 spec §동작 7 박제로 정합 (3 spec 직교 평서).
-- [x] (I8) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/common/test-helpers.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 G5 박제).
-- [x] (I9) 시점 비의존 (RULE-07) — `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/common/test-helpers.md | grep -cE "common\.test\.ts|App\.test\.jsx|Comment\.test\.tsx|ErrorBoundary\.test\.tsx|useHoverPopup\.test\.tsx|useSearchList\.test\.ts"` → 0 hit (§스코프 규칙 G6 박제).
+- [x] (I8) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/common/test-helpers.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 G5 박제).
+- [x] (I9) 시점 비의존 (RULE-07) — `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/common/test-helpers.md | grep -cE "common\.test\.ts|App\.test\.jsx|Comment\.test\.tsx|ErrorBoundary\.test\.tsx|useHoverPopup\.test\.tsx|useSearchList\.test\.ts"` → 0 hit (§스코프 규칙 G6 박제).
 
 ## 수용 기준
 - [x] (Must, FR-01) `src/test-utils/**` 단일 모듈에서 location-mock 헬퍼 export 박제. HEAD=`985c76e` 재실측: `grep -rnE "export.*(setLocation|mockUrlLocation|restoreLocation|locationMock)" src/test-utils/` → **3 hit** @`src/test-utils/location.ts:28,39,52` (baseline 0 → 회수 PASS). TSK-20260517-19 (`82bb7a4`).
 - [x] (Must, FR-02) `src/test-utils/**` 단일 모듈에서 mock-narrow 헬퍼 export 박제. HEAD=`985c76e` 재실측: `grep -rnE "export.*(firstCall|nthCall|getMockCall|narrowMockCall)" src/test-utils/` → **2 hit** @`src/test-utils/mockCalls.ts:19,34` (`nthCall` + `firstCall` — baseline 0 → 회수 PASS). TSK-20260517-19 (`82bb7a4`).
 - [x] (Should, FR-03) test 파일 내부 location ad-hoc 흡수 0 — HEAD=`985c76e` 재실측: `grep -rnE "delete\s+window\.location|window\.location\s*=" src --include="*.test.{ts,tsx,js,jsx}"` → **0 hit** (baseline 3 hit / 1 file → 회수 PASS). TSK-20260517-19 (`82bb7a4`).
 - [x] (Should, FR-04) test 파일 내부 `mock.calls[N]!` ad-hoc 흡수 0 — HEAD=`985c76e` 재실측: `grep -rnE "\.mock\.calls\[[0-9]+\]!" src --include="*.test.ts" --include="*.test.tsx"` → **0 hit** (baseline 5 hit / 5 file → 회수 PASS). TSK-20260517-19 (`82bb7a4`).
-- [ ] (Should, FR-05) typecheck island 확장 task 흡수 비용 수렴 — 회복 task result.md 변경 표면에 `src/test-utils/**` 외부 location/mock-narrow 헬퍼 module-level 정의 0 hit. 차기 이벤트 후 marker 플립.
 - [x] (Must, FR-06) 단일 출처 정합 — HEAD=`985c76e` 재실측: `grep -rnE "const\s+(setLocation|mockUrlLocation|firstCall|nthCall)\s*=" src --include="*.{ts,tsx,js,jsx}"` → `src/test-utils/**` 외부 **0 hit** (baseline `src/common/common.test.ts` module-local 3 const → 회수 PASS). TSK-20260517-19 (`82bb7a4`).
 - [x] (Should, FR-07) test-idioms 패턴 동질 + 영역 직교 — 본 spec §동작 5 박제. 본 spec 분리 결정 자체로 정합 (별 spec 분리 vs test-idioms (10)(11) 신축 — inspector 분리 결정).
 - [x] (Must, FR-08) 수단 라벨 0 — `awk` + `grep` 0 hit (§스코프 규칙 G5 자기 검증).
@@ -72,8 +69,8 @@ typecheck island (strict mode + `noUncheckedIndexedAccess` 정책) 확장 시 �
   - (G2) **[mock.calls[N]! ad-hoc 흡수 baseline]** `grep -rnE "\.mock\.calls\[[0-9]+\]!" src --include="*.test.ts" --include="*.test.tsx"` → **5 hit / 5 file** (`src/Comment/Comment.test.tsx:360` + `src/Search/hooks/useSearchList.test.ts:32` + `src/common/ErrorBoundary.test.tsx:61` + `:78` + `src/common/useHoverPopup.test.tsx:109`). FR-04 baseline MISS.
   - (G3) **[file-local location 헬퍼 baseline]** `grep -nE "const\s+(setLocation|restoreLocation|mockUrlLocation)\s*=" src/common/common.test.ts` → 3 hit / 1 file (`src/common/common.test.ts:29` `setLocation` + `:33` `restoreLocation` + `:37` `mockUrlLocation`). FR-06 baseline MISS — `src/test-utils/**` 외부 module-local 박제.
   - (G4) **[`src/test-utils/**` 현 export baseline]** `ls src/test-utils/` → `msw.ts` + `msw.test.ts` + `queryWrapper.tsx` + `timing.ts` + `toaster.ts` + `toaster.test.ts` (6 file). `grep -rnE "export.*(setLocation|mockUrlLocation|restoreLocation|firstCall|nthCall|getMockCall|narrowMockCall)" src/test-utils/` → 0 hit. FR-01·FR-02 baseline MISS — 본 spec 의 회복 대상 zero-point.
-  - (G5) **[FR-08 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/common/test-helpers.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 헬퍼 시그니처 / module 이름 / aggregator 후보 라벨 부여 0). HEAD=`49f3f93` 박제 시점 PASS.
-  - (G6) **[FR-06 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/common/test-helpers.md | grep -cE "common\.test\.ts|App\.test\.jsx|Comment\.test\.tsx|ErrorBoundary\.test\.tsx|useHoverPopup\.test\.tsx|useSearchList\.test\.ts"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 현 ad-hoc 흡수 test 파일명 박제 0). HEAD=`49f3f93` 박제 시점 PASS.
+  - (G5) **[FR-08 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/common/test-helpers.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 헬퍼 시그니처 / module 이름 / aggregator 후보 라벨 부여 0). HEAD=`49f3f93` 박제 시점 PASS.
+  - (G6) **[FR-06 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/common/test-helpers.md | grep -cE "common\.test\.ts|App\.test\.jsx|Comment\.test\.tsx|ErrorBoundary\.test\.tsx|useHoverPopup\.test\.tsx|useSearchList\.test\.ts"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 현 ad-hoc 흡수 test 파일명 박제 0). HEAD=`49f3f93` 박제 시점 PASS.
 - **rationale**: (G1)(G2)(G3)(G4) 본 spec 핵심 회복 대상 baseline — 단일 출처 export 0 (G4) + ad-hoc 흡수 8 hit (G1 3 + G2 5) + file-local 헬퍼 3 const (G3). (G5)(G6) RULE-07 정합 자기 검증. typecheck island 확장 비용 측정: 현 회복 task 가 새 영역 진입 시 G1·G2 패턴 재흡수 가능성 (followup 시그널) — 본 spec 효능 도입으로 흡수 비용 1 import 로 수렴.
 
 ## 변경 이력
@@ -81,6 +78,7 @@ typecheck island (strict mode + `noUncheckedIndexedAccess` 정책) 확장 시 �
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 1 reconcile) / `82bb7a4` (TSK-20260517-19) | (I1)(I2)(I3) + FR-01·FR-02·FR-03·FR-04·FR-06 + NFR-05 marker 9건 hook-ack 플립. HEAD=`985c76e` 재실측 전수 PASS — G1 0 hit (was 3) / G2 0 hit (was 5) / G3 0 hit (was 3) / G4 5 hit (was 0) / G6 외부 0 hit. `src/test-utils/location.ts` + `mockCalls.ts` 2 신규 모듈 박제 + 6 test 파일 import 치환 회수. runtime 변경 0 + package.json 변경 0. | 테스트 현황 + 수용 기준 |
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-082 흡수) / pending (HEAD=`49f3f93`) | 최초 박제 — typecheck island 흡수 헬퍼 단일 출처 9 축 (I1~I9) 게이트. baseline: ad-hoc 흡수 8 hit (G1 3 location / G2 5 mock.calls) + file-local 헬퍼 3 const (G3) + `src/test-utils/**` 단일 출처 export 0 (G4). 본 spec 분리 결정 근거: `30.spec/blue/common/test-idioms.md` (REQ-021) 9 이디엄과 패턴 동질 (test 헬퍼 단일 출처) + 영역 직교 (env/render/MSW/fake-timer/console 9 축 vs location/mock-narrow 2 축). test-idioms (10)(11) 신축 vs 별 spec 박제 → 별 spec 박제 결정: blue spec 확장 시 inspector 가 blue→green 복사 + 9 이디엄 본문 영향 평가 비용 누적 + 본 효능 (typecheck island 영역) 의 변경 영향 분리 효능 우선 — `30.spec/green/common/test-helpers.md` 신규 create. typecheck island 확장 후속 task (회복 task) 의 흡수 비용 수렴 효능 박제 (I4). consumed req: `specs/20.req/20260517-typecheck-island-test-helper-single-source.md` (REQ-082) → `60.done/2026/05/17/req/` mv. consumed followup (감사 pointer): `specs/60.done/2026/05/17/followups/20260517-0548-url-location-mock-helper-cross-cutting.md` (source_task: TSK-20260517-15, category: test-pattern, severity: low) + `specs/60.done/2026/05/17/followups/20260517-0548-vitest-mock-calls-strict-narrow.md` (source_task: TSK-20260517-15, category: type-debt, severity: low). RULE-07 자기검증 — (I1)~(I9) 모두 평서형·반복 검증 가능 (`grep` 단일 명령)·시점 비의존 (G6 0 hit — 구체 test 파일명 본문 박제 0)·incident 귀속 부재 (REQ-082 §배경 의 회귀 시나리오는 시점 비의존)·수단 중립 (G5 0 hit — 헬퍼 시그니처 / module 이름 / aggregator 후보 라벨 0). RULE-06 §스코프 규칙 6 gate (G1~G6) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/common/test-helpers.md` create). | all |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
 
 ## 참고
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-typecheck-island-test-helper-single-source.md` (REQ-082 — 본 세션 mv).
@@ -91,7 +89,7 @@ typecheck island (strict mode + `noUncheckedIndexedAccess` 정책) 확장 시 �
   - `specs/30.spec/blue/common/test-idioms.md` (REQ-20260421-021 + REQ-027/029/035/036) — 9 이디엄 패턴 박제 (env stub / render 가드 / href intent / MSW / fake-timer 진입점 / MSW 계약 어서트 / findBy / fake-timer teardown / console spy 비파괴). 본 spec 과 동질 (test 헬퍼 단일 출처) + 영역 직교.
 - **관련 spec (보완 / 직교)**:
   - `specs/30.spec/blue/foundation/typecheck-island-extension.md` (REQ-20260517-066 + 077) — island 확장 정의 (typecheck error 0 게이트). 본 spec 의 회복 task 흡수 헬퍼 단일 출처와 직교.
-  - `specs/30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-20260517-080) — ESLint warning level 게이트. 본 spec 과 직교 (TypeScript 정책 표면 vs ESLint warning).
+  - `specs/30.spec/blue/foundation/lint-warning-zero-gate.md` (REQ-20260517-080) — ESLint warning level 게이트. 본 spec 과 직교 (TypeScript 정책 표면 vs ESLint warning).
   - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 등) — ESLint / lint-staged / `.husky/pre-commit` 진입점 박제. 본 spec 과 직교 (도구 측 계약 vs 헬퍼 단일 출처).
 - **외부 레퍼런스**:
   - vitest 공식 — `mock.calls` 타입 (`https://vitest.dev/api/mock.html#mock-calls`).
@@ -101,3 +99,11 @@ typecheck island (strict mode + `noUncheckedIndexedAccess` 정책) 확장 시 �
   - RULE-07: 9 불변식 (I1~I9) 모두 시점 비의존 (G6 0 hit 자기 검증) · 평서형 · 반복 검증 가능 (`grep` 단일 명령) · incident 귀속 부재. 수단 박제 0 (G5 0 hit 자기 검증).
   - RULE-06: grep-baseline 6 gate (G1~G6) 실측 박제 (HEAD=`49f3f93`).
   - RULE-01: inspector writer 영역만 (`30.spec/green/common/test-helpers.md` create).
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- (I4) typecheck island 확장 흡수 비용 수렴 — 차기 island 확장 회복 task (예: 신규 회복 대상 디렉터리) result.md 에 헬퍼 import 만으로 흡수 완료 박제. 차기 이벤트 후 marker 플립.
+- (I6) 확장성 평서 — 본 spec §동작 6 박제. 차기 동등 패턴 (`URL` / `URLSearchParams` / `mock.results` 등) 발견 시 일반 형식 확장 별 req 후보. 차기 이벤트 후 marker 플립.
+- (Should, FR-05) typecheck island 확장 task 흡수 비용 수렴 — 회복 task result.md 변경 표면에 `src/test-utils/**` 외부 location/mock-narrow 헬퍼 module-level 정의 0 hit. 차기 이벤트 후 marker 플립.

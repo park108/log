@@ -106,9 +106,13 @@ const EXPECTED_GA_SELF_DIAG_COUNT = 6;
 // hit 12 / 고유 path 11 — tooling.md 이 check-eslint-ignores-vacuous-zero.sh 와
 // check-vitest-globals-coherence.sh 두 곳에서 참조된다. 본 상수는 hit 수 (= 참조를
 // 가진 파일 수) 이고, EXPECTED_GB_EXISTS 는 고유 path 집합이다.
+// hit 12 / 고유 path 11 — tooling.md 이 check-eslint-ignores-vacuous-zero.sh 와
+// check-vitest-globals-coherence.sh 두 곳에서 참조된다. 본 상수는 hit 수 (= 참조를
+// 가진 파일 수) 이고, EXPECTED_GB_EXISTS 는 고유 path 집합이다.
 const EXPECTED_GB_PATH_COUNT = 12;
 const EXPECTED_GB_MISSING: readonly string[] = [];
 const EXPECTED_GB_EXISTS = [
+	specPath("blue", "foundation/build-coverage-output-dir-tri-surface-coherence.md"),
 	specPath("blue", "foundation/dev-server-port-getUrl-token-coherence.md"),
 	specPath("blue", "foundation/eslint-react-hooks-lint-gate.md"),
 	specPath("blue", "foundation/multi-agent-commit-message-writer-scope-coherence.md"),
@@ -118,20 +122,13 @@ const EXPECTED_GB_EXISTS = [
 	specPath("blue", "foundation/src-spec-reference-coherence.md"),
 	specPath("blue", "foundation/tooling.md"),
 	specPath("blue", "foundation/vite-env-boundary-typing.md"),
-	specPath("green", "foundation/build-coverage-output-dir-tri-surface-coherence.md"),
-	specPath("green", "styles/css-modules.md"),
+	specPath("blue", "styles/css-modules.md"),
 ] as const;
 
-// G-C baseline — 추출된 green 2 path 는 동일 slug blue 가 부재하므로 STALE 0.
-const EXPECTED_GC_GREEN_PATHS = [
-	specPath("green", "foundation/build-coverage-output-dir-tri-surface-coherence.md"),
-	specPath("green", "styles/css-modules.md"),
-] as const;
+// G-C baseline — green 큐가 비어 참조된 green path 0. STALE 판정 대상 자체가 없다.
+const EXPECTED_GC_GREEN_PATHS: readonly string[] = [];
 const EXPECTED_GC_STALE: readonly string[] = [];
-const EXPECTED_GC_OK = [
-	specPath("green", "foundation/build-coverage-output-dir-tri-surface-coherence.md"),
-	specPath("green", "styles/css-modules.md"),
-] as const;
+const EXPECTED_GC_OK: readonly string[] = [];
 
 // G-A 자체 진단 baseline — exclude rule 매치 라인의 (파일, 라인번호) 박제
 // (NFR-04 정합 / §task 구현 지시 2 line 번호 단언).
@@ -283,7 +280,7 @@ describe("root-config-spec-reference-coherence (TSK-20260518-13)", () => {
 		expect(observed).toEqual(expected);
 	});
 
-	it("G-B / FR-02: root 파일군(고정 6 + scripts/*.sh 전수)에서 spec path 12 hit / 12 file 추출 + 0 MISSING + 11 고유 EXISTS 집합 박제", () => {
+	it("G-B / FR-02: root 파일군(고정 6 + scripts/*.sh 전수)에서 spec path 12 hit / 12 file 추출 + 0 MISSING + 11 고유 EXISTS (전수 blue) 집합 박제", () => {
 		const hits = collectSpecPathHits();
 
 		expect(hits, "G-B path-extract baseline 격차").toHaveLength(
@@ -337,7 +334,7 @@ describe("root-config-spec-reference-coherence (TSK-20260518-13)", () => {
 		}
 	});
 
-	it("G-C / FR-03: green 2 path 중 blue 동시 실재 0 STALE + 2 OK 집합 박제", () => {
+	it("G-C / FR-03: green 참조 0 — STALE 판정 대상 부재", () => {
 		const hits = collectSpecPathHits();
 		const greenPaths = Array.from(
 			new Set(hits.map((h) => h.specPath).filter((p) => p.includes("/green/"))),

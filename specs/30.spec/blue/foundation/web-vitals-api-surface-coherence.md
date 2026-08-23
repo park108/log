@@ -58,7 +58,7 @@
 - [x] (Must, FR-03) 런타임 5 spy 1회 단언 dual-channel 박제 — baseline (G3) `vi.mock('web-vitals')` 1 hit + (G4) 5 spy × 2 단언 10 hit (HEAD `776846e` 실측 PASS).
 - [x] (Must, FR-04) dual-channel 직교 평서 박제 — §동작 6 + §회귀 중점 박제. 한 채널 PASS 만으로 다른 채널 자동 충족 0.
 - [x] (Should, FR-05) 본 spec 박제 시점 4 채널 (`npm run lint` + `npm test` + `npm run typecheck` + `npm run build`) rc=0 보존 — HEAD `776846e` 시점 직전 task (TSK-28) result.md DoD 박제 `npm run lint rc=0 / npm run typecheck rc=0 / npm test 49 files 453 tests PASS / npm run build 314ms` 4 채널 ack 정합.
-- [x] (Must, FR-06) 본 spec 본문 메이저 숫자 박제 0 hit — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/web-vitals-api-surface-coherence.md | grep -cE "v[0-9]|5\.x|6\.x"` → §스코프 규칙 G5 자기 검증 게이트 박제.
+- [x] (Must, FR-06) 본 spec 본문 메이저 숫자 박제 0 hit — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/web-vitals-api-surface-coherence.md | grep -cE "v[0-9]|5\.x|6\.x"` → §스코프 규칙 G5 자기 검증 게이트 박제.
 - [x] (Must, FR-07) 수단 라벨 0 hit 자기 검증 — §스코프 규칙 G6 자기 검증 게이트 박제.
 - [x] (NFR-01) RULE-07 정합 5 축 (평서 + 반복 + 시점 비의존 + incident 부재 + 수단 중립) 자기 검증 PASS.
 - [x] (NFR-02) RULE-06 정합 — §스코프 규칙 grep-baseline 6 gate (G1~G6) 실측 박제.
@@ -75,8 +75,8 @@
   - (G2) **[비-test 영역 deprecated selector 0 hit baseline]** `grep -rnE "getCLS|getFID|getFCP|getLCP|getTTFB|onFID" src --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" --exclude="*.test.*"` → **0 hit**. 활성 메이저 deprecated 집합 — `getCLS` / `getFID` / `getFCP` / `getLCP` / `getTTFB` / `onFID` (현 baseline v3 deprecated).
   - (G3) **[런타임 채널 mock 격리 baseline]** `grep -nE "vi\.mock\('web-vitals'" src/reportWebVitals.test.js` → **1 hit** (`:9`).
   - (G4) **[런타임 spy × 단언 baseline]** `grep -cE "expect\((onCLS|onINP|onFCP|onLCP|onTTFB)\)\.toHaveBeenCalled" src/reportWebVitals.test.js` → **10 hit** (5 selector × 2 단언 `toHaveBeenCalledTimes(1)` + `toHaveBeenCalledWith(cb)` 박제).
-  - (G5) **[RULE-07 시점 비의존 자기 검증 — 메이저 숫자 0 hit]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/web-vitals-api-surface-coherence.md | grep -cE "v[0-9]|5\.x|6\.x"` → **0 hit** (본 spec §역할 + §공개 인터페이스 + §동작 + §회귀 중점 + §의존성 어디서도 메이저 숫자 박제 0 — 메이저 숫자는 §스코프 규칙 baseline + §변경 이력 한정).
-  - (G6) **[RULE-07 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/web-vitals-api-surface-coherence.md | grep -vE '\`[^\`]*default[^\`]*\`' | grep -vE 'export default' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → **0 hit** (fixture 수단 후보 라벨 (vitest spy vs e2e capture vs CI grep step 등) 부여 0. `` `export default reportWebVitals` `` 은 ESM 표준 API 식별자 면제 — components/app.md G5 동질 면제 패턴 적용).
+  - (G5) **[RULE-07 시점 비의존 자기 검증 — 메이저 숫자 0 hit]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/web-vitals-api-surface-coherence.md | grep -cE "v[0-9]|5\.x|6\.x"` → **0 hit** (본 spec §역할 + §공개 인터페이스 + §동작 + §회귀 중점 + §의존성 어디서도 메이저 숫자 박제 0 — 메이저 숫자는 §스코프 규칙 baseline + §변경 이력 한정).
+  - (G6) **[RULE-07 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/web-vitals-api-surface-coherence.md | grep -vE '\`[^\`]*default[^\`]*\`' | grep -vE 'export default' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → **0 hit** (fixture 수단 후보 라벨 (vitest spy vs e2e capture vs CI grep step 등) 부여 0. `` `export default reportWebVitals` `` 은 ESM 표준 API 식별자 면제 — components/app.md G5 동질 면제 패턴 적용).
 - **rationale**: (G1) 부트 셸 활성 selector 1+ hit baseline — 메이저 bump 시 selector rename / 삭제 시점 회귀 surface. (G2) deprecated 0 hit baseline — dead import 잔존 / migration 미수렴 회귀 surface. (G3)(G4) 런타임 채널 baseline — 라이브러리 export shape 변경 / destructure 실패 회귀 surface. (G5)(G6) RULE-07 자기 검증 — 시점 비의존 + 수단 중립 자기 점검. 매트릭스: 6 baseline 채널 (G1+G2 정적 + G3+G4 런타임 + G5+G6 자기 검증) — 메이저 bump 시 G1+G2 baseline 표만 업데이트 (활성/deprecated selector 집합) + spec 본문 평서 무변동.
 
 ## 변경 이력

@@ -65,7 +65,7 @@ Search 도메인의 fetch 응답 대기 중 표시되는 loading dots 애니메�
 - **REQ 원문 / TSK 원문**: REQ-20260420-004 (Search timer cleanup), TSK-20260420-16 (cleanup 회수 done), REQ-20260517-076 (본 세션 mv 후).
 - **관련 spec**:
   - `specs/30.spec/blue/common/test-idioms.md` (vitest 사용 일반 — 본 spec 의 fake timers 영역과 인접).
-  - `specs/30.spec/green/common/env.md` (env 헬퍼 영역 — 본 fixture (I5) `vi.stubEnv` 영역).
+  - `specs/30.spec/blue/common/env.md` (env 헬퍼 영역 — 본 fixture (I5) `vi.stubEnv` 영역).
 - **RULE 준수**:
   - RULE-07: 6 불변식 (I1~I6) 모두 시점 비의존 평서문 + `grep` / vitest 재현 가능.
   - RULE-06: grep-baseline 3 gate 실측 박제.

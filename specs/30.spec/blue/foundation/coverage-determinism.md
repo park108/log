@@ -40,7 +40,7 @@ FR-01 의 결정론 성질은 다음 수단 집합 중 하나 이상의 결합�
 - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037) — 회귀 게이트 **존재** 축. 본 spec 은 회귀 게이트 **측정 품질** 축으로 직교 + 전제 조건 관계 (FR-03).
 - `specs/30.spec/blue/common/test-idioms.md` — 테스트 **작성 레벨** idiom (격리·MSW handler·shuffle safety). 본 spec 은 CI/게이트 레벨 **측정 품질** 축으로 직교.
 - `specs/60.done/2026/04/21/req/20260421-test-isolation-shuffle-safety.md` (done) — 테스트 간 shuffle 격리. 본 spec 과 축 분리 (격리 ≠ 수치 결정론).
-- `specs/30.spec/green/foundation/dependency-bump-gate.md` (REQ-20260421-035) — dep bump 후 3 명령 회귀 0 게이트. 본 spec 은 dep bump 축 외부 (동일 커밋 내 결정론 축) 이나 `npm test` 를 공유하므로 결정론 향상은 dep bump 게이트 신뢰도 상승에 간접 기여.
+- `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-20260421-035) — dep bump 후 3 명령 회귀 0 게이트. 본 spec 은 dep bump 축 외부 (동일 커밋 내 결정론 축) 이나 `npm test` 를 공유하므로 결정론 향상은 dep bump 게이트 신뢰도 상승에 간접 기여.
 
 ### FR-05: 수단 중립성 (Must — 강제 배제)
 FR-02 열거된 수단 집합 (a~f) 중 어느 하나도 "기본값" / "권장" / "우선 적용" / "default" 로 표시하지 않는다. 모두 동등 허용이다. planner/developer 는 실측 원인 조사 후 idempotent 수렴 경로를 선택한다.
@@ -95,9 +95,9 @@ FR-01/FR-02 본문은 Vitest 메이저 버전 (4.x/5.x), MSW 메이저 (2.x/3.x)
 - [x] (Must, REQ-041 FR-05) 본 spec §변경 이력 에 `REQ-20260421-041` + `TSK-20260421-78` + `6b083b7` + `REQ-20260421-037` + `9734e27` 5 토큰 박제.
 - [x] (Must, REQ-041 FR-06) 본 spec §변경 이력 에 FR-07 택 β (coverage-determinism.md 신설) 판단 근거 1문장 박제.
 - [x] (Should, REQ-041 FR-07) 본 spec §역할 + §불변식 FR-07 에 결정론 축과 경계 마진 정책 분리 명시 1문장 박제.
-- [x] (NFR-01) 추적성 — `grep -rn "REQ-20260421-041" specs/30.spec/green/foundation/coverage-determinism.md` → 3+ hit (§관련 요구사항 + §변경 이력 본문 등).
+- [x] (NFR-01) 추적성 — `grep -rn "REQ-20260421-041" specs/30.spec/blue/foundation/coverage-determinism.md` → 3+ hit (§관련 요구사항 + §변경 이력 본문 등).
 - [x] (NFR-02) RULE-07 정합 — 본 결정론 본문 (§역할·§불변식·§차원 분리) 에 구체 수치 (93/94/95/96/97/98/99/100, ±0.5, ±1) 박제 0 (§스코프 규칙 grep-baseline / §변경 이력 의 현장 수치 재서술 제외 — baseline·이력 감사 교차참조). 구체 shuffle seed 리터럴 (`0x...`, `42` 등) 박제 0. "TODO" 토큰 0.
-- [x] (NFR-03) 범위 제한 — inspector 세션 diff = `specs/30.spec/green/foundation/coverage-determinism.md` 신설 + `20.req → 60.done/req` mv. `.github/workflows/*`, `vite.config.js`, `package.json`, `.husky/**`, `src/**` 변경 0.
+- [x] (NFR-03) 범위 제한 — inspector 세션 diff = `specs/30.spec/blue/foundation/coverage-determinism.md` 신설 + `20.req → 60.done/req` mv. `.github/workflows/*`, `vite.config.js`, `package.json`, `.husky/**`, `src/**` 변경 0.
 - [x] (NFR-04) 차원 분리 — 본 spec 어디에도 "thresholds 4축 선언 존재", "typecheck step 포함", "GitHub Actions 사용" 같은 REQ-037 영역 불변식 재박제 0 (참조만 허용). 본 spec 은 **측정 결정론 차원** 만 박제.
 - [x] (NFR-05) 수단 중립성 — FR-02 열거 (a~f) 중 어느 하나를 "기본값" / "권장" / "우선 적용" / "default" 로 표시 0. 모두 동등.
 - [x] (NFR-06) 버전 무관성 — FR-01/FR-02 본문이 Vitest 메이저 버전, MSW 메이저, Node 메이저에 무관한 표현. API 이름 언급 허용.
@@ -129,7 +129,7 @@ FR-01/FR-02 본문은 Vitest 메이저 버전 (4.x/5.x), MSW 메이저 (2.x/3.x)
 - **연관 spec**:
   - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037 promoted) — 회귀 게이트 존재 축. 본 spec 과 precondition 관계.
   - `specs/30.spec/blue/common/test-idioms.md` — 테스트 작성 레벨 idiom (격리·MSW·shuffle safety).
-  - `specs/30.spec/green/foundation/dependency-bump-gate.md` (REQ-20260421-035) — dep bump 게이트. 본 spec 과 `npm test` 공유 상보 관계.
+  - `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-20260421-035) — dep bump 게이트. 본 spec 과 `npm test` 공유 상보 관계.
 - **외부 근거**:
   - Vitest 공식 — `test.sequence.shuffle` / `test.sequence.seed` / `--reporter=json` — coverage 출력 machine-readable JSON 으로 반복 diff 가능.
   - `@vitest/coverage-v8` — provider='v8' 에서 함수 커버리지는 V8 엔진의 실행 프로파일 기반 수집. async microtask 완결 시점에 따라 함수 "호출됨" 여부 race 가능 (V8 공식 문서).

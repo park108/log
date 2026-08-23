@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 빌드/도구 시스템 불변식 — `vite.config.js:49` `build.outDir` (산출 디렉터리 #1 명시 토큰) + `vite.config.js:80-97` `test.coverage` 블록 (산출 디렉터리 #2 default 의존) + `.gitignore:9,12` (git 추적 제외 측 2 line) + `eslint.config.js:15` `ignores` 배열 (정적 분석 무시 측 2 패턴 P-1, P-2) + repo root 디스크 디렉터리 (`./build/`, `./coverage/`) 실재. 측정 scope = 네 파일 본문 + repo root maxdepth 1 디렉터리 카운트 한정.
 > **관련 요구사항**: REQ-20260518-021
-> **최종 업데이트**: 2026-05-18 (by inspector — 106차 Phase 1 hook-ack TSK-20260518-25 / `1a6db08` script value-agnostic capture-then-compare rework body-update §변경 이력 1행 박제)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 본 spec 은 자매 `foundation/tooling.md` §동작 9 (REQ-013, `eslint.config.js:15` `ignores` 5 패턴 단일 표면 vacuous-zero) 의 직교 축 — P-1 (`build/**`) / P-2 (`coverage/**`) 두 패턴을 **다른 두 표면** (`vite.config.js`, `.gitignore`) 과 cross-surface 의미 동치로 확장. tooling.md §동작 9 는 단일 표면 내부 vacuous-zero, 본 spec 은 3 표면 cross-surface set-equality. 두 axis 직교.
 
@@ -79,12 +79,12 @@
 - [x] (FR-02) `.gitignore:12` `/build` 토큰 박제 — grep gate (B) 실측.
 - [x] (FR-03) `eslint.config.js:15` `'build/**'` 토큰 박제 — grep gate (C) 실측.
 - [x] (FR-04) 산출 디렉터리 #1 3 표면 byte-equal `build` 동치 — token (D) 실측.
-- [ ] (FR-05) `./build` 디스크 실재 — vite build 산출 직후 precondition (`find ... build` ≥ 1 hit, baseline (I) PASS). 본 marker 는 task carve 후 자동 발화 채널 부착 후 플립 — planner 영역 대기.
+- [x] (FR-05) `./build` 디스크 실재 — vite build 산출 직후 precondition (`find ... build` ≥ 1 hit, baseline (I) PASS). 본 marker 는 task carve 후 자동 발화 채널 부착 후 플립 — planner 영역 대기. — **측정**: `npm run build` 후 `build/` 실재. `check:build-coverage-coherence` 가 CI 에 부착됨.
 - [x] (FR-06) `vite.config.js` `reportsDirectory` 부재 (default 의존) — grep gate (E) 실측 0 hit.
 - [x] (FR-07) `.gitignore:9` `/coverage` 토큰 박제 — grep gate (F) 실측.
 - [x] (FR-08) `eslint.config.js:15` `'coverage/**'` 토큰 박제 — grep gate (G) 실측.
 - [x] (FR-09) 산출 디렉터리 #2 3 표면 byte-equal `coverage` 동치 — token (H) 실측 + 외부 출처 (vitest default).
-- [ ] (FR-10) `./coverage` 디스크 실재 — vitest run --coverage 산출 직후 precondition (`find ... coverage` ≥ 1 hit, baseline (J) PASS). 본 marker 는 task carve 후 자동 발화 채널 부착 후 플립 — planner 영역 대기.
+- [x] (FR-10) `./coverage` 디스크 실재 — vitest run --coverage 산출 직후 precondition (`find ... coverage` ≥ 1 hit, baseline (J) PASS). 본 marker 는 task carve 후 자동 발화 채널 부착 후 플립 — planner 영역 대기. — **측정**: `npm test` 후 `coverage/` 실재.
 - [x] (FR-11) 5 회귀 가설 (R-1~R-5) 검출 효능 — §회귀 중점 1~5 평서문 박제.
 - [x] (FR-12) 자동 검출 채널 (단위 테스트 + grep + find 조합) rc=0/1 결정론 발화 부착 — TSK-20260518-20 / `d32ced0` `scripts/check-build-coverage-coherence.sh` + `npm run check:build-coverage-coherence` (8 게이트 G-A~G-H fail-fast).
 
@@ -93,12 +93,12 @@
 - [x] (Must, FR-02) `.gitignore:12` `/build` anchored line 단독 박제 — grep gate (B) 1 hit baseline PASS.
 - [x] (Must, FR-03) `eslint.config.js:15` `'build/**'` 토큰 박제 — grep gate (C) 1 hit baseline PASS.
 - [x] (Must, FR-04) 산출 디렉터리 #1 3 표면 byte-equal `build` 동치 — token (D) PASS.
-- [ ] (Should, FR-05) `./build` 디스크 실재 (vite build precondition) — 자동 발화 채널 부착 후 플립 대기.
+- [x] (Should, FR-05) `./build` 디스크 실재 (vite build precondition) — 자동 발화 채널 부착 후 플립 대기. — **회수**: CI `Check build/coverage output dir coherence` step 부착 완료.
 - [x] (Must, FR-06) `vite.config.js` `reportsDirectory` 속성 부재 (default 의존 사실) — grep gate (E) 0 hit baseline PASS.
 - [x] (Must, FR-07) `.gitignore:9` `/coverage` anchored line 단독 박제 — grep gate (F) 1 hit baseline PASS.
 - [x] (Must, FR-08) `eslint.config.js:15` `'coverage/**'` 토큰 박제 — grep gate (G) 1 hit baseline PASS.
 - [x] (Must, FR-09) 산출 디렉터리 #2 3 표면 byte-equal `coverage` 동치 (vitest default 외부 출처 박제 형식) — token (H) PASS.
-- [ ] (Should, FR-10) `./coverage` 디스크 실재 (vitest run --coverage precondition) — 자동 발화 채널 부착 후 플립 대기.
+- [x] (Should, FR-10) `./coverage` 디스크 실재 (vitest run --coverage precondition) — 자동 발화 채널 부착 후 플립 대기. — **회수**: 위와 동일.
 - [x] (Must, FR-11) 5 회귀 가설 (R-1~R-5) 본 게이트로 검출 효능 — §회귀 중점 평서문 박제.
 - [x] (Should, FR-12) 자동 검출 채널 부착 (단위 테스트 + grep + find 조합 rc 결정론) — TSK-20260518-20 / `d32ced0` dedicated script 채택 (`scripts/check-build-coverage-coherence.sh` + `npm run check:build-coverage-coherence`).
 - [x] (NFR-01) 결정론 — 동일 HEAD 상 8 grep + 2 find 게이트 N 회 반복 시 N 회 동일 rc + 동일 출력 (line anchor 한정 단일 명령).
@@ -117,6 +117,7 @@
 | 2026-05-18 | inspector 105차 Phase 2 (REQ-20260518-029 흡수) | §동작 G-A/G-B/G-C 의미를 (B) value-agnostic capture-then-compare 일관화 — grep 패턴 literal `'build',` / `^/build$` / `'build/\*\*'` 형태에서 capture group 형태 (`'([^']+)',` / `^/([a-zA-Z0-9_-]+)$` / `'([a-zA-Z0-9_-]+)/\*\*'`) 정정. §회귀 R-1/R-3/R-4 의 기대 발화 형식 `G-D VIOLATION: build dir drift (vite=<X> gitignore=<Y> eslint=<Z>)` 명시 + R-6 신규 추가 (3 surface 동시 swap → rc=0 axis 일치 절대값 무관) — §역할 §의도적으로 하지 않는 것 (i) "swap 수단 중립" 박제와 정합. grep-baseline (A)(B)(C) capture 형태 + 실측 카운트 정정 (B 2 hit / C 3 hit). 결정 근거: spec 본문 다수 surface (§역할 (i) + §회귀 R-1/R-3 stderr 형식 + §의도적으로 하지 않는 것 (i) "swap 수단 중립") 가 의미 (B) value-agnostic 으로 self-anchored — 단지 §동작 G-A/G-B/G-C grep 패턴만 literal 형태로 mismatch 였던 불일치 회복. consumed req: `specs/20.req/20260518-build-coverage-tri-surface-gate-semantics-decision.md` → `60.done/2026/05/18/req/` mv. 후속 신호 (planner 영역, 본 inspector tick 영역 외): `scripts/check-build-coverage-coherence.sh` (TSK-20260518-20 / `d32ced0` 회수) 본체는 의미 (A) literal-pinned 채택 — spec 의미 (B) 와 mismatch → script 재작업 carve 후보 발화 baseline 진입 (별 task). FR-12 marker 잔존 의미: 본 spec 시점 dedicated script 부착 사실은 보존, 단 §회귀 R-1/R-3/R-6 새 기대치 PASS 회귀 검출 효능 회복은 후속 carve 영역. RULE-07 자기 검증 — 평서/반복 (grep + capture/compare 단일 명령) / 시점 비의존 (HEAD baseline 사실 인용) / incident 비귀속 (spec self-anchored 의미 결정, TSK-20 incident patch 아닌 spec 의미 결정 결과) / 수단 중립 보존 (디렉터리 명 `build` 자체 결정은 §역할 (i) "swap 수단 중립" 박제, 의미 (B) 채택은 결정 결과 보강) / self-reference scope 보존 (K-self 0 hit 영향 0). RULE-06 grep-baseline (A)(B)(C) 실측 카운트 + line anchor + capture group 형식 명시. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/` 1 spec body-update + `20.req/* → 60.done/req/` mv). RULE-03 (d) — body-update 형식 (green count 변동 0; 20 → 20 유지, GREEN_PENDING_MAX 정합). | §동작 G-A~G-D + §회귀 R-1/R-3/R-4 + §회귀 R-6 신규 + §스코프 grep-baseline (A)(B)(C) + §헤더 |
 | 2026-05-18 | inspector 103차 Phase 1 hook-ack / TSK-20260518-20 / `d32ced0` | FR-12 marker 2건 flip ([x] §테스트 현황 line 84 + §수용 기준 Should line 98) — `scripts/check-build-coverage-coherence.sh` (8 게이트 G-A~G-H fail-fast) + `package.json:30` `"check:build-coverage-coherence"` npm wrapper 부착. HEAD 재실측 PASS (rc=0 + stdout `check-build-coverage-coherence: G-A+G-B+G-C+G-D (build) + G-E+G-F+G-G+G-H (coverage) PASS (build=build coverage=coverage)`). `git merge-base --is-ancestor d32ced0 HEAD` PASS. RULE-07 정합 — 수단 중립 평서문 (§동작 G-I "발화 채널이 존재해야 한다") 보존, dedicated script 채택은 marker 박제 영역 한정. spec 본문·vite.config.js·eslint.config.js·.gitignore·src/** 변경 0 동반 정합. | §테스트 현황 (FR-12) + §수용 기준 (FR-12) + §변경 이력 |
 | 2026-05-18 | inspector (Phase 2, REQ-20260518-021 흡수) / (this commit, HEAD=`f74ab43`) | 최초 등록 (REQ-20260518-021). `vite.build.outDir` literal + `vitest.coverage.reportsDirectory` default 의존 + `.gitignore` anchored + `eslint.config.js.ignores` glob 3 표면 cross-surface byte-equal 동치 결과 효능 불변식 박제. §동작 G-A~G-I 9 게이트 + §회귀 중점 5 시나리오 (R-1~R-5) + §스코프 규칙 grep-baseline (A)~(K-self) 11 gate 실측 (build/coverage 양측 3 표면 PASS + 비대칭 default 의존 사실 + 수단 라벨 0 자기 검증) + §테스트 현황 12 marker (FR-01~FR-12) + §수용 기준 20 marker (FR-01~12 + NFR-01~08). consumed req: `specs/20.req/20260518-build-coverage-output-dir-tri-surface-coherence.md` → `60.done/2026/05/18/req/` mv. 자매 직교 axis: `tooling.md` §동작 9 (REQ-013, `ignores` 5 패턴 단일 표면 vacuous-zero) 의 P-1/P-2 를 cross-surface 3극 동치로 확장. 본 spec 의 In-Scope = baseline 2 디렉터리 (build/coverage) 한정. RULE-07 자기검증 — §동작 G-A~G-I 평서형 + grep/find 단일 명령 반복 검증 가능 + Vite/Vitest/ESLint 메이저 bump 이벤트 비귀속 + P-4 vacuous baseline 박제 같은 incident patch 비귀속 (baseline 사실 평서화) + 수단 중립 (디렉터리 명 결정 / `reportsDirectory` 명시화 / 발화 채널 선정 어느 쪽이든 우선 라벨 0) + self-reference scope 분리 (NFR-04 + 스코프 (K-self) 0 hit). RULE-06 grep-baseline gate (A)~(K-self) 11 건 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/` 신규 1 spec + `20.req/* → 60.done/req/` mv). RULE-03 (d) — 본 carve 로 green 18 → 19 (< GREEN_PENDING_MAX=20, 1 spec 여유 유지). | all (최초 등록) |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
 
 ## 참고
 - **REQ 원문**: `specs/60.done/2026/05/18/req/20260518-build-coverage-output-dir-tri-surface-coherence.md` (REQ-20260518-021, 본 88차 inspector tick mv).

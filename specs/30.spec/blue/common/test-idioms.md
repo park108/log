@@ -135,7 +135,7 @@ fake-timer teardown 은 `src/setupTests.js` 전역 `afterEach(() => { ...; vi.us
 - [x] (Must, REQ-027 FR-02) DOM 쿼리는 React 19 concurrent 환경에서 `findBy*` 계열 async query 사용을 기본 이디엄으로 한다.
 - [x] (Must, REQ-029 FR-01) fake-timer teardown 은 `src/setupTests.js` 전역 `afterEach(() => { ...; vi.useRealTimers(); })` 가 담당. 파일별 명시는 선택 (중복 허용).
 - [x] (Must, FR-07) 각 이디엄마다 §스코프 규칙 grep-baseline 에 positive + negative 1쌍 실측 수치 박제.
-- [x] (Must, FR-08) 출력 경로 `specs/30.spec/green/common/test-idioms.md` (가) 채택. 채택 사유는 §변경 이력 박제 (테스트 인프라 축이 컴포넌트 스코프와 응집도 구분 우선). (2026-04-21 `-spec` suffix 제거 — RULE-01 `29d9da0` 규약 정합.)
+- [x] (Must, FR-08) 출력 경로 `specs/30.spec/blue/common/test-idioms.md` (가) 채택. 채택 사유는 §변경 이력 박제 (테스트 인프라 축이 컴포넌트 스코프와 응집도 구분 우선). (2026-04-21 `-spec` suffix 제거 — RULE-01 `29d9da0` 규약 정합.)
 - [x] (Must, FR-09) `grep -rn "REQ-20260421-021" specs/30.spec/green/` → 1+ hit (본 spec). consumed followup 6건 경로 §변경 이력·§참고 에 박제.
 - [x] (Should, FR-10) 본 spec 은 테스트 이디엄 계약만 다루며 REQ-022 (runtime env), REQ-023 (CI foundation), REQ-024 (React 19 runtime) 축은 독립 유지.
 - [x] (NFR-01) 6 불변식 전원 positive/negative grep 재현 가능.

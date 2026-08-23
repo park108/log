@@ -44,7 +44,7 @@
 
 ## 테스트 현황
 - [x] (G-A) `grep -rnE "[a-z0-9-]+-spec(\.md)?" <root 파일군>` 자체 진단 제외 → 0 hit 게이트 — baseline 2 hit / 2 file (vite.config.js:9 csp-policy-spec, eslint.config.js:3 common/accessibility-spec) → TSK-20260518-01 / `db22348` 회수 후 `vite.config.js eslint.config.js` 대상 0 hit + rc=1 PASS (HEAD `e634ef7` 재실측, 본 inspector 66차 Phase 1 ack). 자체 진단 제외 한정 6 hit / 2 file 잔존 (`.husky/pre-commit` 2 hit + `scripts/check-spec-coherence.sh` 4 hit) — guard 자기 참조 NFR-04 정합 (FR-01 위반 카운트 0).
-- [x] (G-B) root 추출 spec 참조 경로 전원 `test -e` 통과 — baseline 1 hit / 1 file MISSING (scripts/check-spec-coherence.sh:3 의 `specs/30.spec/green/foundation/src-spec-reference-coherence.md` green 부재). — **측정**: `check:spec-coherence` → `G2 0 MISSING`. baseline 의 1 MISSING 은 해소 완료.
+- [x] (G-B) root 추출 spec 참조 경로 전원 `test -e` 통과 — baseline 1 hit / 1 file MISSING (scripts/check-spec-coherence.sh:3 의 `specs/30.spec/blue/foundation/src-spec-reference-coherence.md` green 부재). — **측정**: `check:spec-coherence` → `G2 0 MISSING`. baseline 의 1 MISSING 은 해소 완료.
 - [x] (G-C) root 추출 green 경로의 동일 slug blue 동시 실재 부재 — baseline 1 hit / 1 STALE (위 동일 path 의 blue 측 실재 → green→blue promote 후 stale). — **측정**: green/blue 동일 slug 중복 **0**. baseline 의 1 STALE 은 promote 로 해소.
 - [x] (G-D) 발화 채널 존재 — TSK-20260518-13 / `41d4b96` 회수 fixture `src/__tests__/root-config-spec-reference-coherence.test.ts` 320 line 도입 + `npm test` 자동 발화 채널 정합 (5 게이트 G-A/G-A-self/G-B/G-C/직교토큰 단일 vitest run rc=0/1 결정론 판정). 발화 시점 채널 (CI / pre-commit / pre-push) 부착은 별 carve (수단 위임).
 
@@ -67,8 +67,8 @@
     - `eslint.config.js:3` → `// SPEC common/accessibility-spec §3.4.2). Semantic changes: 0.`
   - (G-B) 위 grep 의 spec slug 추출 → `find specs/30.spec -name "csp-policy*"` 0 hit / `find specs/30.spec -name "accessibility*"` 0 hit (common/ 디렉터리 자체 부재) → **2/2 MISSING**.
   - (G-B/path) root 파일군에서 `specs/30\.spec/(blue|green)/[^"\` ]*\.md` 명시 path 추출 → 1 hit / 1 file:
-    - `scripts/check-spec-coherence.sh:3` → `specs/30.spec/green/foundation/src-spec-reference-coherence.md`
-    - `test -e specs/30.spec/green/foundation/src-spec-reference-coherence.md` → **MISSING**.
+    - `scripts/check-spec-coherence.sh:3` → `specs/30.spec/blue/foundation/src-spec-reference-coherence.md`
+    - `test -e specs/30.spec/blue/foundation/src-spec-reference-coherence.md` → **MISSING**.
   - (G-C) 위 1 hit green path 의 동일 slug blue 측 실재 — `test -e specs/30.spec/blue/foundation/src-spec-reference-coherence.md` → **EXISTS** → **1 STALE** (green→blue promote 완료 후 root 측 참조 갱신 미완).
   - 합계 baseline 격차: 축 A 2 hit + 축 B 2 MISSING (축 A 종속) + 축 B path 1 MISSING + 축 C 1 STALE = **4 distinct hits across 3 files** (vite.config.js:9, eslint.config.js:3, scripts/check-spec-coherence.sh:3; `.husky/pre-commit:3` 은 slug-only 참조로 path-extract grep 미매칭 — 종속 contextual stale).
 - **rationale**: G-A/G-B/G-C baseline 은 본 spec 박제 시점 실측 박제 — 향후 회귀 분석 시 위반 hit / MISSING / STALE 수 변화 추적 기준. 4 distinct hits / 3 files / 1 MISSING / 1 STALE 은 §배경 측정값 기록일 뿐, 본 spec 의 §수용 기준은 hit/MISSING/STALE 수 비의존 (RULE-07 정합). 회수 수단 (정합 spec 신규 박제 / 참조 주석 삭제 / 경로 갱신 / guard root 확장 vs 신설) 은 task 위임 (Out-of-Scope).

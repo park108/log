@@ -70,7 +70,7 @@
 - **REQ 원문**: `specs/60.done/2026/04/18/req/` (REQ-20260418-002 — 단일 진입점 정책), `specs/60.done/2026/05/17/req/20260517-deleted-spec-restore-batch-2-7.md` (REQ-076, 본 세션 mv 후).
 - **선행 done req**: REQ-20260418-002 — env 헬퍼 단일 경유 최초 정의.
 - **관련 spec**:
-  - `specs/30.spec/green/foundation/vite-env-boundary-typing.md` (REQ-072 — `VITE_*` 키 진입점 영역, 본 spec 과 직교 — `DEV/PROD/MODE` 분기 영역만 본 spec 박제).
+  - `specs/30.spec/blue/foundation/vite-env-boundary-typing.md` (REQ-072 — `VITE_*` 키 진입점 영역, 본 spec 과 직교 — `DEV/PROD/MODE` 분기 영역만 본 spec 박제).
   - `specs/30.spec/blue/components/common.md` (Skeleton / ErrorFallback 영역, 본 spec 과 직교).
 - **RULE 준수**:
   - RULE-07: 5 불변식 (I1~I5) 모두 시점 비의존 평서문 + `grep` 단일 명령 재현 가능.

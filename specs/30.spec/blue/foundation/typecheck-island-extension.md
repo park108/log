@@ -52,7 +52,7 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
 - [x] (Must, FR-01) §동작 1 + 2 에 "`src/Toaster/` 및 `src/common/` 디렉터리는 island 자격 (`find <dir> \( -name "*.jsx" -o -name "*.js" \) ! -name "*.d.ts"` → 0 hit + `npm run typecheck 2>&1 | grep -E "^<dir>/" | grep -cE "error TS"` → 0 hit) 을 유지한다" 평서문 박제.
 - [x] (Must, FR-02) §동작 2 (a)~(e) 5 카테고리 baseline + §스코프 규칙 baseline 에 error code 분포 박제 (`TS2769` / `TS2322` / `TS2339` / `TS2790` / `TS7005` / `TS7006` / `TS7034` / `TS18047` / `TS18048` / `TS2722`).
 - [x] (Must, FR-03) 회복 효능 단일 명령 박제 — §동작 3 + §스코프 규칙 gate (G3) `npm run typecheck` exit=0 + `npm run typecheck 2>&1 | grep -cE "error TS"` → 0 hit.
-- [x] (Must, FR-04) 수단 라벨 금지 — §역할 + §동작 5 + §회귀 중점 어디서도 "기본값" / "권장" / "우선" / "default" / "best practice" 부여 0. `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/green/foundation/typecheck-island-extension.md` → 0 hit (§스코프 규칙 baseline gate 박제).
+- [x] (Must, FR-04) 수단 라벨 금지 — §역할 + §동작 5 + §회귀 중점 어디서도 "기본값" / "권장" / "우선" / "default" / "best practice" 부여 0. `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/blue/foundation/typecheck-island-extension.md` → 0 hit (§스코프 규칙 baseline gate 박제).
 - [x] (Should, FR-05) §동작 6 회귀 baseline 측정 명령 3건 박제 (파일별 / error code 분포 / 디렉터리별 0 hit 확인).
 - [x] (Should, FR-06) island 자격 재취득 시점의 audit 신호 박제 — `Toaster` + `common` 0 hit 달성 후 본 req 가 `60.done/req/` 이동 시점이 island 확정 시계열의 신규 entry. 본 spec 의 §변경 이력에 신규 row 박제 시점에 marker 플립. hook-ack: 본 세션 §변경 이력 신규 row (HEAD=`4b5cc1d`) 박제 — Toaster + common 두 디렉터리 island 자격 재취득 audit 신호 확정.
 - [x] (Must, FR-07) task 단 위임 명시 — §역할 "회복 수단 선정" out-of-scope + §동작 5 수단 자유 평서 + §회귀 중점 정책/우회 박제.
@@ -80,7 +80,7 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
     - `ErrorBoundary.tsx` 1.
   - (G5) **[전반 typecheck — 회복 효능 측정]** `npm run typecheck 2>&1 | grep -cE "error TS"` → **128 hit** (HEAD=`79d28cc` 실측, 11 file 누적 = 19 Toaster + 109 common). 회복 효능 = 128 → 0 hit + exit=0.
   - (G6) **[error code 분포 baseline]** `npm run typecheck 2>&1 | grep -oE "error TS[0-9]+" | sort | uniq -c | sort -rn` → 17 unique codes, 분포: `TS2769` 19 / `TS7006` 13 / `TS7005` 13 / `TS2790` 13 / `TS2339` 13 / `TS2322` 13 / `TS7034` 12 / `TS18047` 6 / `TS2365` 4 / `TS2362` 4 / `TS2345` 4 / `TS18048` 4 / `TS2722` 3 / `TS2532` 3 / `TS7031` 2 / `TS2704` 1 / `TS2488` 1 (HEAD=`79d28cc` 실측).
-  - (G7) **[수단 라벨 0 — FR-04 정합]** `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/green/foundation/typecheck-island-extension.md` → 0 hit (본 spec 본문 한정 — §역할 + §동작 + §회귀 중점 어디서도 수단 라벨 부여 0).
+  - (G7) **[수단 라벨 0 — FR-04 정합]** `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/blue/foundation/typecheck-island-extension.md` → 0 hit (본 spec 본문 한정 — §역할 + §동작 + §회귀 중점 어디서도 수단 라벨 부여 0).
   - (G8) **[우회 주석 baseline — NFR-04 정합]** `grep -rn "@ts-expect-error\|@ts-ignore" src/Toaster src/common` → 0 hit (HEAD=`79d28cc` 실측). 회복 task 진행 후에도 ≤ 0 hit 유지 — 우회 주석 일괄 도입 시 NFR-04 위반.
 - **rationale**: (G1)(G2) island 정의 전반부 (.jsx/.js 0 hit) 는 본 spec 박제 시점 이미 PASS — REQ-059 정의 정합. (G3)(G4) 는 본 spec 회복 대상 baseline — 128 hit / 11 file. (G5) 는 합산 — `npm run typecheck` exit=0 게이트와 동치. (G6) 는 task 단 회복 수단 선정 시 카테고리 분포 참고용. (G7) 본 spec FR-04 정합 0 hit. (G8) NFR-04 우회 정책 baseline 0 hit — 회복 후 유지 필수.
 
@@ -106,9 +106,9 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
 - **관련 spec**:
   - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037 — CI typecheck step FR-01).
   - `specs/30.spec/blue/foundation/tooling.md` (ESLint / lint-staged / coverage 축, 직교).
-  - `specs/30.spec/green/common/markdownParser.md` (common/* 영역 referer, 본 spec G4 baseline `markdownParser.ts` 2 hit 와 보완).
-  - `specs/30.spec/green/common/sanitizeHtml.md` (common/* 영역 referer, 본 spec G4 baseline 외 sanitizeHtml.test.ts referer).
-  - `specs/30.spec/green/common/env.md` (common/* 영역 referer, env.ts referer).
+  - `specs/30.spec/blue/common/markdownParser.md` (common/* 영역 referer, 본 spec G4 baseline `markdownParser.ts` 2 hit 와 보완).
+  - `specs/30.spec/blue/common/sanitizeHtml.md` (common/* 영역 referer, 본 spec G4 baseline 외 sanitizeHtml.test.ts referer).
+  - `specs/30.spec/blue/common/env.md` (common/* 영역 referer, env.ts referer).
 - **tsconfig 정책 좌표**: `tsconfig.json:8` `"strict": true` / `:9` `"noImplicitAny": true` / `:10` `"noUncheckedIndexedAccess": true` — 본 spec 정책 유지 가정.
 - **RULE 준수**:
   - RULE-07: 6 불변식 (I1~I6) 모두 시점 비의존·평서형·반복 검증 가능 (`tsc` + `find` + `grep` 재현). incident 좌표 §변경 이력 + 감사 pointer 한정.

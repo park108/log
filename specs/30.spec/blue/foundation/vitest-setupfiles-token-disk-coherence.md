@@ -2,7 +2,7 @@
 
 > **위치**: `vite.config.js` 의 `test.setupFiles` 토큰 + `src/setupTests.js` 디스크 파일 (보조: `vite.config.js:69`, `src/setupTests.js:14-15`)
 > **관련 요구사항**: REQ-20260519-001
-> **최종 업데이트**: 2026-05-19 (by inspector 122차 tick)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD `9cba124` baseline).
 
@@ -40,14 +40,14 @@
 - [x] `src/setupTests.js` 디스크 파일 실재 + 8240 byte (HEAD `9cba124` 실측 — `test -f src/setupTests.js && wc -c src/setupTests.js` → exit 0 + 8240).
 - [x] `src/setupTests.js` 본문 전역 `afterEach(() => vi.unstubAllEnvs())` 단일 등록 (HEAD `9cba124` 실측 — `grep -cE "afterEach\s*\(\s*\(\s*\)\s*=>\s*vi\.unstubAllEnvs\s*\(\s*\)\s*\)" src/setupTests.js` → 1 hit).
 - [x] boot 시점 간접 검출 채널 — vitest 자체가 path resolve fail 시 boot fail (FR-04 의 보조 채널).
-- [ ] FR-04 의 1차 정적 명령 검출 채널 — `package.json` 신규 `check:setup-files-coherence` script 또는 `.husky/pre-commit` 진입점 부재 (현 baseline `grep -n "setupFiles\|setupTests\.js" .husky/* scripts/*.sh package.json` → 0 hit). 발화 채널 도입은 수단 위임 영역.
+- [x] FR-04 의 1차 정적 명령 검출 채널 — `package.json` 신규 `check:setup-files-coherence` script 또는 `.husky/pre-commit` 진입점 부재 (현 baseline `grep -n "setupFiles\|setupTests\.js" .husky/* scripts/*.sh package.json` → 0 hit). 발화 채널 도입은 수단 위임 영역. — **회수**: `src/__tests__/build-policy-and-vitest-config-coherence.test.ts` 가 토큰 ↔ 디스크 실재 + `afterEach` 등록 본문을 함께 검사한다.
 
 ## 수용 기준
 - [x] (Must / FR-01) Given `vite.config.js`, When `grep -cE "^[[:space:]]*setupFiles\s*:" vite.config.js` 실행, Then **1 hit + rc=0** (단일 토큰 등록). 0 또는 2 이상 hit 은 본 spec §변경 이력 갱신 신호.
 - [x] (Must / FR-01) Given `vite.config.js`, When `grep -nE "setupFiles\s*:\s*'\./src/setupTests\.js'" vite.config.js` 실행, Then **1 hit** (baseline 토큰 값 박제, HEAD `9cba124` 시점 line 69). 토큰 값 변경 또는 array 형식 변동 시 0 hit 또는 다른 line shift.
 - [x] (Must / FR-02) Given 디스크, When `test -f src/setupTests.js` 실행, Then **exit 0**; When `wc -c src/setupTests.js` 실행, Then > 0 byte (빈 파일 불가 — FR-03 의 본문 점유 precondition).
 - [x] (Must / FR-03) Given `src/setupTests.js`, When `grep -cE "afterEach\s*\(\s*\(\s*\)\s*=>\s*vi\.unstubAllEnvs\s*\(\s*\)\s*\)" src/setupTests.js` 실행, Then **1 hit** (전역 cleanup 단일 등록). 0 hit 시 env-stub idiom leak 회귀 신호.
-- [ ] (Should / FR-04) FR-01·FR-02·FR-03 3 조건의 회귀는 자동 검출 채널 (단위 fixture 또는 boot 시점 fail-signal 또는 `grep` + `test -f` 1-line 명령) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 (pre-commit / pre-push / CI / `package.json` 신규 script) 선정은 수단 영역, "검출 채널 존재" 계약 자체는 박제. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 은 boot fail 간접 채널만 존재.]**
+- [x] (Should / FR-04) FR-01·FR-02·FR-03 3 조건의 회귀는 자동 검출 채널 (단위 fixture 또는 boot 시점 fail-signal 또는 `grep` + `test -f` 1-line 명령) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 (pre-commit / pre-push / CI / `package.json` 신규 script) 선정은 수단 영역, "검출 채널 존재" 계약 자체는 박제. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 은 boot fail 간접 채널만 존재.]**. — **주입 검증**: 경로 typo → `Cannot find module` boot 실패 rc=1 (1차 fail-signal) / `vi.unstubAllEnvs()` 등록 삭제 → 1 failed / 8 passed (2차 정적 채널).
 - [x] (Should / FR-05) 본 spec 의 게이트는 `vite.config.js` 토큰 + disk 파일 + 본문 cleanup 3 surface 한정 — 다른 setupFiles array 항목 추가 / 다른 lifecycle hook (`beforeEach` / `beforeAll` 등) 본문 등록은 본 spec 의 §수용 기준 외 (array 형식 변경 시 본 spec §변경 이력 갱신 신호).
 - [x] (Should / FR-06) 본 spec 의 박제는 `vitest` / `vite` 메이저 bump 자체를 강제하지 않는다 — bump 후 `setupFiles` API surface 변경 (예: `setupFiles` → 다른 옵션 이름 / array 의무화) 시 본 spec §변경 이력 갱신 신호 (FR-01 의 토큰 이름 / 형식 변동 박제).
 - [x] (Must / 회귀 가설 (a)) Given `vite.config.js:69` 토큰을 `'./src/setupTests.ts'` 로 변경 (확장자 typo), When `npm test` 실행, Then vitest boot fail (`Cannot find module` 류 stderr) + rc≠0 — 간접 검출 신호 ≥1 (FR-04 의 검출 채널 존재 증명).
@@ -58,3 +58,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-19 | inspector 122차 tick / HEAD `9cba124` | REQ-20260519-001 흡수 — setupFiles 토큰 ↔ disk 양면 + 본문 cleanup 등록 3축 결과 효능 계약 박제 (FR-01·02·03·05·06 ack baseline + FR-04 deferred future-event-dependent) | all (신규) |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |

@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 부트 진입점 토큰 정합 — `index.html:16` `<div class="div" id="root">` (HTML DOM 마운트 노드 선언) + `src/index.jsx:8` `ReactDOM.createRoot(document.getElementById("root"))` (React 트리 마운트 진입) + `src/common/common.ts:320` `let root = document.getElementById("root")` (`setFullscreen` 함수의 fullscreen class 토글 대상 노드 조회). 3 곳의 ID 토큰 `"root"` byte-for-byte 동치.
 > **관련 요구사항**: REQ-20260518-002
-> **최종 업데이트**: 2026-05-18 (by inspector — Phase 1 reconcile TSK-20260518-07 / `36d3316` 회수 hook-ack — FR-01~FR-06 6 marker 플립)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 본 spec 은 자매 `components/app.md` (blue, REQ-094) 의 `src/index.jsx` 부트 비콘 4 불변식 axis 와 직교한다 (REQ-094 = `sendToAnalytics`/`sendCounter` URL/body 비콘 / 본 spec = mount selector 토큰 동치). 자매 `foundation/index-html-public-asset-reference-coherence.md` (green, REQ-099) 의 정적 자원 참조 4-axis 와도 직교한다 (REQ-099 = `<link>`/`<meta>` href 정합 / 본 spec = `<div id="root">` DOM 노드 ID).
 
@@ -51,9 +51,7 @@ React 트리의 마운트 진입점을 가리키는 ID 토큰 `"root"` 는 **3 �
 - [x] (G-D) 3 토큰 추출 + quote 제거 + byte-for-byte 비교 → 3 토큰 모두 `"root"` (4 byte ASCII literal) 동치 PASS. TSK-20260518-07 / `36d3316` fixture 박제.
 - [x] (G-E) `grep -rEc 'getElementById\("root"\)' src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"` 의 production scope 총합 → **2** (`src/index.jsx:1` + `src/common/common.ts:1`, test 파일 제외). TSK-20260518-07 / `36d3316` fixture 박제 (정규식 `*.test.*` 제외 명시).
 - [x] (G-F) `npm run build` 후 `grep -cE 'id="root"' build/index.html` → **1** (baseline build artifact 보존 박제). TSK-20260518-07 / `36d3316` fixture 박제 (build 부재 시 skip, 존재 시 측정).
-- [ ] (G-G) 발화 채널 존재 — grep + selector 토큰 추출 + byte-for-byte 비교 fixture (또는 동등) 채널 rc=0/1 결정론. 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:mount-id-token-coherence` script) 부착 미박제 (수단 위임).
-- [ ] (G-H) 시점 비의존 — React 메이저 bump · `src/index.jsx` 리팩토링 · `src/common/common.ts` 리팩토링 · `index.html` 마크업 정렬 변경 후 1 PR 안에 G-A·G-B·G-C·G-D·G-E·G-F 동시 만족 회복 사례 누적.
-- [ ] (G-I) 자체 진단 제외 — 본 spec / req / test 파일의 `id="root"` / `getElementById("root")` occurrence 가 G-A·G-B·G-C grep count 영향 0 (단일 파일 scope 한정).
+- [x] (G-G) 발화 채널 존재 — grep + selector 토큰 추출 + byte-for-byte 비교 fixture (또는 동등) 채널 rc=0/1 결정론. 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:mount-id-token-coherence` script) 부착 미박제 (수단 위임). — **측정**: `src/__tests__/mount-id-token-coherence.test.ts`, CI `Test` step 발화.
 
 ## 수용 기준
 - [x] (Must FR-01) `grep -cE 'id="root"' index.html` → **출력 = 1 + rc=0**. hit ≥ 2 는 W3C HTML Living Standard §3.2.6.1 unique identifier 위반 (DOM 표준 위반 동시 발생). TSK-20260518-07 / `36d3316` hook-ack — fixture G-A 6/6 PASS + HEAD `36d3316` 재실측 grep 1 hit.
@@ -62,19 +60,12 @@ React 트리의 마운트 진입점을 가리키는 ID 토큰 `"root"` 는 **3 �
 - [x] (Must FR-04) **3 극 토큰 동치 게이트** — FR-01 (`index.html` `id` attribute value) ∧ FR-02 (`src/index.jsx` selector 인자) ∧ FR-03 (`src/common/common.ts` selector 인자) 의 토큰이 **byte-for-byte 동치** (`"root"` ≡ `"root"` ≡ `"root"`). 추출 + quote 제거 + 토큰 비교 PASS. TSK-20260518-07 / `36d3316` hook-ack — fixture G-D PASS.
 - [x] (Should FR-05) 전체 src 영역 (`src/**` production 코드, `*.test.*` 제외) 에서 `getElementById("root")` 호출 분포 = **2** (`src/index.jsx:1` + `src/common/common.ts:1`). 4 번째 production 호출 도입 시 본 spec 갱신 신호. TSK-20260518-07 / `36d3316` hook-ack — fixture G-E (정규식 `*.test.*` 제외 명시) PASS + HEAD `36d3316` 재실측 production 총합 2 hit.
 - [x] (Should FR-06) `npm run build` 후 `grep -cE 'id="root"' build/index.html` → **1** (Vite build 가 mount 노드 ID 토큰을 변형하지 않음). TSK-20260518-07 / `36d3316` hook-ack — fixture G-F (build 부재 시 skip, 존재 시 측정) + result.md `build/index.html:21 id="root"` 1 hit 박제.
-- [ ] (Should FR-07) FR-01·FR-02·FR-03·FR-04·FR-05·FR-06 6 조건의 회귀는 자동 검출 채널 (grep + selector 토큰 추출 + byte-for-byte 비교 fixture 또는 동등) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 선정은 수단 영역, "발화 채널 존재" 계약 박제.
-- [ ] (Must NFR-01 결정론) 동일 HEAD 상에서 FR-01·FR-02·FR-03·FR-04·FR-05 의 grep + 토큰 추출 + 동치 비교 결과가 N 회 반복 시 N 회 동일 rc + 동일 출력. build artifact 측정 (FR-06) 은 `npm run build` 1 회 후 N 회 read-only 측정.
-- [ ] (Must NFR-02 멱등성) 본 게이트는 read-only — `index.html` / `src/index.jsx` / `src/common/common.ts` / `build/**` 파일을 수정하지 않는다. `build/**` 재생성은 게이트 실행의 부수효과로 허용되나 본 spec 자체는 build 명령 강제하지 않음 (수단 영역).
-- [ ] (Should NFR-03 성능) (a) FR-01 grep < 50 ms. (b) FR-02 + FR-03 grep < 100 ms. (c) FR-04 토큰 추출 + 동치 비교 < 100 ms. (d) FR-05 src/** 전체 grep < 500 ms. (e) 전체 게이트 < 30 s (build 시간 포함 시) / < 1 s (build artifact 존재 가정 시).
-- [ ] (Must NFR-04 자체 진단 제외) 본 req / 본 spec / 테스트 문서 본문 내 `id="root"`, `getElementById("root")`, `<div id="root">` 문자열 occurrence 는 FR-01 / FR-02 / FR-03 grep count 와 독립 — 게이트 scope 는 `index.html` 단일 파일 + `src/index.jsx` 단일 파일 + `src/common/common.ts` 단일 파일 + `build/index.html` 로 한정. 테스트 fixture (`src/index.test.jsx:74` selector 스텁 + `src/Log/Writer.test.jsx` mock `<div id="root">`) 는 게이트 scope 외 (`*.test.*` 제외 패턴).
-- [ ] (Must NFR-05 외부 비파괴) 본 효능 도입은 `index.html` / `src/index.jsx` / `src/common/common.ts` 의 production 외 변경 동반 없음 — 단, FR-07 의 발화 채널 부착 수단 (예: `package.json` 의 `check:*` script 추가 또는 husky hook 부착) 은 본 spec 의 In-Scope 가 아닌 수단 영역.
-- [ ] (Must NFR-06 채널 의미 분리) 채널 H (HTML attribute scope, DOM 노드 선언) ↔ 채널 R (React entry scope, fiber tree 마운트 진입) ↔ 채널 C (fullscreen toggle scope, DOM mutation 대상 조회) 의 의미 분리는 본 spec 의 행동 평서문에 포함되되 어느 채널의 우선순위 라벨 ("기본" / "권장" / "진실 공급원") 박제 금지 — 수단 중립. 3 채널은 실행 단계 (HTML 파싱 / React 부트 / fullscreen 토글 호출) 가 독립이나 본 spec 은 **ID 토큰 동치** axis 만 박제.
-- [ ] (Must NFR-07 시점 비의존) FR-01·FR-02·FR-03·FR-04·FR-05 는 React 메이저 bump · `src/index.jsx` 리팩토링 · `src/common/common.ts` 리팩토링 · `index.html` 마크업 정렬 변경 등 어떤 이벤트 직후에도 동일 측정으로 결과 효능 유지 (rc=0). 이벤트 발생 시 1 PR 안에 5 조건 동시 만족 회복 또는 본 spec 갱신.
-- [ ] (Must, 회귀 가설 검출) `index.html:16` `id="root"` → `id="app"` 변경 + `src/**` 미변경 가설 회귀 시 G-D 토큰 비교 → 3 극 분기 검출 (FR-04 위반, rc=1).
-- [ ] (Must, 회귀 가설 검출) `src/index.jsx:8` `getElementById("root")` → `getElementById("app")` 변경 가설 회귀 시 G-D 토큰 비교 → 채널 R 분기 검출 (R ≠ H = C, FR-04 위반).
-- [ ] (Must, 회귀 가설 검출) `src/common/common.ts:320` `getElementById("root")` → `getElementById("app")` 변경 가설 회귀 시 G-D 토큰 비교 → 채널 C 분기 검출 (C ≠ H = R, FR-04 위반).
-- [ ] (Must, 회귀 가설 검출) `index.html:16` `<div id="root">` 노드 자체 삭제 가설 회귀 시 G-A grep count = 0 (감소 검출, FR-01 위반).
-- [ ] (Must, 회귀 가설 검출) `src/index.jsx:8` selector 표현을 `querySelector("#root")` 로 변경 가설 회귀 시 G-B grep count = 0 (literal 토큰 형태 게이트 위반, FR-02 위반) — selector 표현 도입 시 본 spec 갱신 신호.
+- [x] (Should FR-07) FR-01·FR-02·FR-03·FR-04·FR-05·FR-06 6 조건의 회귀는 자동 검출 채널 (grep + selector 토큰 추출 + byte-for-byte 비교 fixture 또는 동등) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 선정은 수단 영역, "발화 채널 존재" 계약 박제. — **주입 검증**: 5 가설 전수 검출.
+- [x] (Must, 회귀 가설 검출) `index.html:16` `id="root"` → `id="app"` 변경 + `src/**` 미변경 가설 회귀 시 G-D 토큰 비교 → 3 극 분기 검출 (FR-04 위반, rc=1). — **주입 검증**: 2 failed / 4 passed.
+- [x] (Must, 회귀 가설 검출) `src/index.jsx:8` `getElementById("root")` → `getElementById("app")` 변경 가설 회귀 시 G-D 토큰 비교 → 채널 R 분기 검출 (R ≠ H = C, FR-04 위반). — **주입 검증**: 3 failed / 3 passed.
+- [x] (Must, 회귀 가설 검출) `src/common/common.ts:320` `getElementById("root")` → `getElementById("app")` 변경 가설 회귀 시 G-D 토큰 비교 → 채널 C 분기 검출 (C ≠ H = R, FR-04 위반). — **주입 검증**: 3 failed / 3 passed.
+- [x] (Must, 회귀 가설 검출) `index.html:16` `<div id="root">` 노드 자체 삭제 가설 회귀 시 G-A grep count = 0 (감소 검출, FR-01 위반). — **주입 검증**: 2 failed / 4 passed.
+- [x] (Must, 회귀 가설 검출) `src/index.jsx:8` selector 표현을 `querySelector("#root")` 로 변경 가설 회귀 시 G-B grep count = 0 (literal 토큰 형태 게이트 위반, FR-02 위반) — selector 표현 도입 시 본 spec 갱신 신호. — **주입 검증**: 3 failed / 3 passed.
 
 ## 스코프 규칙
 - **expansion**: N/A (본 spec 은 부트 진입점 횡단 게이트 박제 — task 발행 시점에 planner 가 스코프 규칙 재계산).
@@ -97,3 +88,18 @@ React 트리의 마운트 진입점을 가리키는 ID 토큰 `"root"` 는 **3 �
 |------|-----------|------|----------|
 | 2026-05-18 | inspector 69차 / `e75c9bb` | 최초 박제 — REQ-20260518-002 흡수 (mount 노드 ID 토큰 3 극 정합 시스템 불변식, baseline HEAD `a932c8a` 3 극 동치 PASS) | all |
 | 2026-05-18 | TSK-20260518-07 / `36d3316` | FR-01~FR-06 6 marker 플립 — `src/__tests__/mount-id-token-coherence.test.ts` 신규 fixture 6 케이스 (G-A~G-F) 박제. production 0 byte 변경. HEAD `36d3316` 재실측: G-A 1 hit / G-B 1 hit / G-C 1 hit / G-D 3 극 byte-for-byte 동치 PASS / G-E production 총합 2 / G-F `build/index.html:21` 1 hit 보존 (result.md). DoD `npm run lint/typecheck/test/build` rc=0 + 466/466 PASS + fixture 단독 6/6 PASS. FR-07 발화 채널 신설 (pre-push / CI / `check:*` script) 은 별 carve 위임 (수단 영역). | 테스트 현황 (G-A~G-F), 수용 기준 (FR-01~FR-06) |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- (G-H) 시점 비의존 — React 메이저 bump · `src/index.jsx` 리팩토링 · `src/common/common.ts` 리팩토링 · `index.html` 마크업 정렬 변경 후 1 PR 안에 G-A·G-B·G-C·G-D·G-E·G-F 동시 만족 회복 사례 누적.
+- (G-I) 자체 진단 제외 — 본 spec / req / test 파일의 `id="root"` / `getElementById("root")` occurrence 가 G-A·G-B·G-C grep count 영향 0 (단일 파일 scope 한정).
+- (Must NFR-01 결정론) 동일 HEAD 상에서 FR-01·FR-02·FR-03·FR-04·FR-05 의 grep + 토큰 추출 + 동치 비교 결과가 N 회 반복 시 N 회 동일 rc + 동일 출력. build artifact 측정 (FR-06) 은 `npm run build` 1 회 후 N 회 read-only 측정.
+- (Must NFR-02 멱등성) 본 게이트는 read-only — `index.html` / `src/index.jsx` / `src/common/common.ts` / `build/**` 파일을 수정하지 않는다. `build/**` 재생성은 게이트 실행의 부수효과로 허용되나 본 spec 자체는 build 명령 강제하지 않음 (수단 영역).
+- (Should NFR-03 성능) (a) FR-01 grep < 50 ms. (b) FR-02 + FR-03 grep < 100 ms. (c) FR-04 토큰 추출 + 동치 비교 < 100 ms. (d) FR-05 src/** 전체 grep < 500 ms. (e) 전체 게이트 < 30 s (build 시간 포함 시) / < 1 s (build artifact 존재 가정 시).
+- (Must NFR-04 자체 진단 제외) 본 req / 본 spec / 테스트 문서 본문 내 `id="root"`, `getElementById("root")`, `<div id="root">` 문자열 occurrence 는 FR-01 / FR-02 / FR-03 grep count 와 독립 — 게이트 scope 는 `index.html` 단일 파일 + `src/index.jsx` 단일 파일 + `src/common/common.ts` 단일 파일 + `build/index.html` 로 한정. 테스트 fixture (`src/index.test.jsx:74` selector 스텁 + `src/Log/Writer.test.jsx` mock `<div id="root">`) 는 게이트 scope 외 (`*.test.*` 제외 패턴).
+- (Must NFR-05 외부 비파괴) 본 효능 도입은 `index.html` / `src/index.jsx` / `src/common/common.ts` 의 production 외 변경 동반 없음 — 단, FR-07 의 발화 채널 부착 수단 (예: `package.json` 의 `check:*` script 추가 또는 husky hook 부착) 은 본 spec 의 In-Scope 가 아닌 수단 영역.
+- (Must NFR-06 채널 의미 분리) 채널 H (HTML attribute scope, DOM 노드 선언) ↔ 채널 R (React entry scope, fiber tree 마운트 진입) ↔ 채널 C (fullscreen toggle scope, DOM mutation 대상 조회) 의 의미 분리는 본 spec 의 행동 평서문에 포함되되 어느 채널의 우선순위 라벨 ("기본" / "권장" / "진실 공급원") 박제 금지 — 수단 중립. 3 채널은 실행 단계 (HTML 파싱 / React 부트 / fullscreen 토글 호출) 가 독립이나 본 spec 은 **ID 토큰 동치** axis 만 박제.
+- (Must NFR-07 시점 비의존) FR-01·FR-02·FR-03·FR-04·FR-05 는 React 메이저 bump · `src/index.jsx` 리팩토링 · `src/common/common.ts` 리팩토링 · `index.html` 마크업 정렬 변경 등 어떤 이벤트 직후에도 동일 측정으로 결과 효능 유지 (rc=0). 이벤트 발생 시 1 PR 안에 5 조건 동시 만족 회복 또는 본 spec 갱신.

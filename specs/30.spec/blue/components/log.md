@@ -55,7 +55,7 @@
 ## 스코프 규칙
 - **expansion**: N/A (본 spec 은 grep 게이트 계약 문서가 아니며 baseline 실측만 박제).
 - **grep-baseline** (inspector 발행 시점, HEAD=29d9da0 실측):
-  - (REQ-20260421-027 FR-04(a)) `grep -n "sequence.shuffle.*seed" specs/30.spec/green/components/log.md` → 1+ hit (본 spec §회귀 중점). 본 spec 자체 박제 확인.
+  - (REQ-20260421-027 FR-04(a)) `grep -n "sequence.shuffle.*seed" specs/30.spec/blue/components/log.md` → 1+ hit (본 spec §회귀 중점). 본 spec 자체 박제 확인.
 - **rationale**: `LogItem DELETE` race 는 layer2 cold-start 계열 재진단 축 (REQ-20260421-012/017 동선) 에서 드러난 회귀 surface 이며, spec 불변식은 "seed 불문 결정적 pass" 라는 계약만 유지. 실측·재현 플랜은 task 계층 담당.
 
 ## 테스트 현황

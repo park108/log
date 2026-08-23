@@ -47,7 +47,7 @@
 - [x] (I3) 로컬 dev pin 존재: `ls .nvmrc .node-version .tool-versions 2>/dev/null | wc -l` ≥ 1. 직전 baseline: 0 (HEAD=`79d28cc`). **TSK-20260517-14 / `3910ba8` 회수 후 HEAD=`3910ba8` 실측 1** (`.nvmrc=24` 신규 박제). 본 HEAD=`3910ba8` 재실측 PASS.
 - [x] (I4) 3축 메이저 격차 0: 진단 명령 stdout 에 격차 카테고리 0 hit. 직전 baseline: `engines.node 부재` + `local-pin 부재` 2 hit (HEAD=`79d28cc`). **TSK-20260517-14 / `3910ba8` 회수 후 HEAD=`3910ba8` 실측** `bash scripts/check-node-version-coherence.sh` → exit 0 + stdout `node-version coherence: 3-axis aligned at major 24` (격차 카테고리 0 hit). 본 HEAD=`3910ba8` 재실측 PASS.
 - [x] (I5) 위반 검출 단일성: 진단 명령 1 명령 박제 + grep 가능한 라벨 박제. **TSK-20260517-14 / `3910ba8` 회수 후** `scripts/check-node-version-coherence.sh` 단일 명령 박제 — stdout 격차 카테고리 라벨 (`engines.node 부재` / `local-pin 부재` / `major 격차 N`) grep 가능 (task result.md R5/R6/R7 회귀 fixture 실증). `npm run check:node-coherence` npm script 박제 (`package.json:scripts.check:node-coherence`).
-- [x] (I6) 시점 비의존성: 본 spec 본문 (§역할 + §동작 + §회귀 중점) 어디서도 구체 Node 메이저 숫자 박제 0 — `grep -nE "Node\s+(2[0-9]|18|19)" specs/30.spec/green/foundation/node-version-3axis-coherence.md` → 0 hit in 본문 (감사성 §변경 이력 메타는 별도). HEAD=`79d28cc` 박제 시점 PASS.
+- [x] (I6) 시점 비의존성: 본 spec 본문 (§역할 + §동작 + §회귀 중점) 어디서도 구체 Node 메이저 숫자 박제 0 — `grep -nE "Node\s+(2[0-9]|18|19)" specs/30.spec/blue/foundation/node-version-3axis-coherence.md` → 0 hit in 본문 (감사성 §변경 이력 메타는 별도). HEAD=`79d28cc` 박제 시점 PASS.
 - [x] (I7) 수단 중립: §역할 + §동작 7 에 수단 후보 3 카테고리 박제, 라벨 0. RULE-07 정합.
 - [x] (I8) 직교 정합: §역할 + §동작 8 에 `foundation/ci.md` §1·§2 + `dependency-bump-gate.md` 와의 직교 평서 박제. 본 spec 박제 자체로 정합 박제.
 
@@ -58,8 +58,8 @@
 - [x] (Must, FR-04) 로컬 dev pin 메이저 == FR-02 의 2채널 메이저 (3축 격차 0) — TSK-20260517-14 / `3910ba8` 회수 후 `.nvmrc=24` ↔ `engines.node>=24` ↔ ci.yml `node-version:'24'` 3축 동치. hook-ack: 진단 script `node-version coherence: 3-axis aligned at major 24` + R5/R6/R7 회귀 fixture (`engines.node` 제거 → exit 2 / `.nvmrc` 삭제 → exit 4 / `.nvmrc=22` → exit 5) 실증.
 - [x] (Should, FR-05) 위반 검출 단일성 — TSK-20260517-14 / `3910ba8` 회수 후 `scripts/check-node-version-coherence.sh` 단일 명령 박제 + `npm run check:node-coherence` npm script + stdout 격차 카테고리 라벨 (`engines.node 부재` / `local-pin 부재` / `major 격차 N`) grep 가능. hook-ack: task result.md R5/R6/R7 회귀 시뮬레이션 박제.
 - [x] (Should, FR-06) 본 효능 박제 위치 — inspector 결정으로 별도 spec (`foundation/node-version-3axis-coherence.md`) 분리. `foundation/ci.md` 흡수 대비 (a) 3축 동시 박제로 본 spec 단독 게이트 단일성 + (b) `foundation/ci.md` §3 "존재 시" 조건부 보존 (정합 강화는 본 spec 책임) + (c) 변경 영향 분리 (Node 메이저 정합 vs CI workflow 일반) 효능.
-- [x] (Must, FR-07) 시점 비의존 — 본 spec 본문 (§역할 + §동작 + §회귀 중점) 에 구체 Node 메이저 숫자 박제 0. §변경 이력 메타 / §스코프 규칙 baseline 한정. `grep -nE "Node\s+(2[0-9]|18|19)" specs/30.spec/green/foundation/node-version-3axis-coherence.md` 본문 한정 0 hit (§스코프 규칙 gate (G7) 박제).
-- [x] (Must, FR-08) 수단 라벨 0 — 본 spec 본문에 "기본값" / "권장" / "우선" / "default" / "best practice" 부여 0. `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/green/foundation/node-version-3axis-coherence.md` 본문 한정 0 hit (§스코프 규칙 gate (G8) 박제).
+- [x] (Must, FR-07) 시점 비의존 — 본 spec 본문 (§역할 + §동작 + §회귀 중점) 에 구체 Node 메이저 숫자 박제 0. §변경 이력 메타 / §스코프 규칙 baseline 한정. `grep -nE "Node\s+(2[0-9]|18|19)" specs/30.spec/blue/foundation/node-version-3axis-coherence.md` 본문 한정 0 hit (§스코프 규칙 gate (G7) 박제).
+- [x] (Must, FR-08) 수단 라벨 0 — 본 spec 본문에 "기본값" / "권장" / "우선" / "default" / "best practice" 부여 0. `grep -nE "기본값|권장|우선|default|best practice" specs/30.spec/blue/foundation/node-version-3axis-coherence.md` 본문 한정 0 hit (§스코프 규칙 gate (G8) 박제).
 - [x] (NFR-01) 시점 비의존 — FR-07 동치. 본문 박제 0 + 감사성 메타 1회 부속 (§변경 이력) 정합.
 - [x] (NFR-02) 게이트 단일성 — §동작 5 위반 검출 단일성 평서. 진단 명령 1건 박제 (실현은 task 위임).
 - [x] (NFR-03) RULE-07 정합 — 결과 효능 (3축 메이저 격차 0 + `engines.node` 존재 + local-pin 존재) 만 박제. 1회성 진단 / 릴리스 귀속 patch 0.
@@ -75,8 +75,8 @@
   - (G4) **[로컬 dev pin 존재]** `ls .nvmrc .node-version .tool-versions 2>/dev/null | wc -l` → **0** (HEAD=`79d28cc` 실측 MISS — FR-03 위반 baseline).
   - (G5) **[운영자 로컬 Node 메이저]** `node -v` → 메이저 N (HEAD=`79d28cc` 측정 시점 운영자 환경) — CI 메이저 (G3) 와 격차 1 (FR-04 위반 baseline — FR-01·FR-03 위반에 종속). 구체 메이저 숫자는 §변경 이력 메타 1회 부속 (RULE-07 NFR-01 정합).
   - (G6) **[3축 격차 카테고리 baseline]** 현 시점 진단 명령 시뮬레이션 (`engines.node 부재` + `local-pin 부재` 2 카테고리 + `major 격차 N` 1 카테고리 = 총 3 카테고리 활성). task 단 진단 명령 실현 후 baseline 재측정.
-  - (G7) **[FR-07 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 변경 이력/' specs/30.spec/green/foundation/node-version-3axis-coherence.md | grep -nE "Node\s+(2[0-9]|18|19)"` → **0 hit** (본 spec 본문 한정 — §역할 + §동작 + §회귀 중점 + §의존성 + §테스트 현황 + §수용 기준 + §스코프 규칙 어디서도 구체 Node 메이저 숫자 박제 0). HEAD=`79d28cc` 박제 시점 실측 PASS.
-  - (G8) **[FR-08 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/node-version-3axis-coherence.md | grep -nE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec 본문 §역할 + §동작 + §회귀 중점 한정 — 수단 후보 라벨 부여 0; gate 정의 자체 라인 — §수용 기준 + 본 §스코프 규칙 — 은 자기 참조 평서이므로 제외). HEAD=`79d28cc` 박제 시점 실측 PASS.
+  - (G7) **[FR-07 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 변경 이력/' specs/30.spec/blue/foundation/node-version-3axis-coherence.md | grep -nE "Node\s+(2[0-9]|18|19)"` → **0 hit** (본 spec 본문 한정 — §역할 + §동작 + §회귀 중점 + §의존성 + §테스트 현황 + §수용 기준 + §스코프 규칙 어디서도 구체 Node 메이저 숫자 박제 0). HEAD=`79d28cc` 박제 시점 실측 PASS.
+  - (G8) **[FR-08 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/node-version-3axis-coherence.md | grep -nE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec 본문 §역할 + §동작 + §회귀 중점 한정 — 수단 후보 라벨 부여 0; gate 정의 자체 라인 — §수용 기준 + 본 §스코프 규칙 — 은 자기 참조 평서이므로 제외). HEAD=`79d28cc` 박제 시점 실측 PASS.
 - **rationale**: (G1)(G2)(G4) 본 spec 핵심 회복 대상 baseline — FR-01 + FR-03 위반 즉시 식별. (G3) 본 spec 박제 시점 PASS — `foundation/ci.md` §2 정합. (G5) 운영자 로컬 Node 메이저는 본 spec 본문 박제 0 (NFR-01 정합), §변경 이력 메타 1회 부속 한정. (G6) 진단 명령 카테고리 baseline — task 단 실현 후 재측정. (G7)(G8) RULE-07 정합 자기 검증.
 
 ## 변경 이력

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-build-coverage-coherence.sh
-# Spec: specs/30.spec/green/foundation/build-coverage-output-dir-tri-surface-coherence.md §동작 G-A~G-I + §테스트 현황 (FR-12) + §수용 기준 Should (FR-12)
+# Spec: specs/30.spec/blue/foundation/build-coverage-output-dir-tri-surface-coherence.md §동작 G-A~G-I + §테스트 현황 (FR-12) + §수용 기준 Should (FR-12)
 # Task: TSK-20260518-25 (의미 (B) value-agnostic capture-then-compare rework; 본체 TSK-20260518-20 / d32ced0 재작업)
 #
 # G-A: vite.config.js `outDir: '<X>',` capture (value-agnostic) — tok_a = <X>.

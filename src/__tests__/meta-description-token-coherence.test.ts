@@ -1,5 +1,5 @@
 // TSK-20260518-08 / REQ-20260518-003 — meta description 토큰 양면 정합 fixture.
-// spec: specs/30.spec/green/foundation/meta-description-default-fallback-token-coherence.md
+// spec: specs/30.spec/blue/foundation/meta-description-default-fallback-token-coherence.md
 //       §동작 G-A~G-F + §수용 기준 FR-01~FR-06.
 //
 // 본 fixture 는 2 발화 채널 (H=index.html `<meta name="description">` /

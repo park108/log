@@ -119,7 +119,7 @@ bindListItem(_, 'ul') 결과:
 - **REQ 원문 / TSK 원문**: TSK-20260418-10 (알고리즘 done), REQ-20260517-076 (본 세션 mv 후).
 - **선행 done task**: `specs/60.done/2026/04/18/task/markdownparser-nested-list/` (TSK-20260418-10, 알고리즘 본문 박제처).
 - **관련 spec**:
-  - `specs/30.spec/green/common/sanitizeHtml.md` (본 spec 의 output 소비자 — DOM 주입 직전 sanitize).
+  - `specs/30.spec/blue/common/sanitizeHtml.md` (본 spec 의 output 소비자 — DOM 주입 직전 sanitize).
 - **RULE 준수**:
   - RULE-07: 7 불변식 (I1~I7) 모두 시점 비의존 평서문 + `grep` / 알고리즘 회귀 fixture 로 반복 검증 가능.
   - RULE-06: grep-baseline 2 gate 실측 박제.

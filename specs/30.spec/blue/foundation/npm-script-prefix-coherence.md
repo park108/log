@@ -44,8 +44,8 @@
 - (I4) **[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]** 신규 `scripts/check-*.sh` 도입 시 자동 정합 — 차기 신규 진단 script 도입 PR 후 marker `[ ]` 부착 + checklist 영역 복귀. 현 baseline 측정 target (신규 진단 script PR diff) 부재. 본 axis 는 PR 도래 시점 진입점 prefix 자동 `check:<short>` 박제 + (I2) 게이트 자동 surface 검증으로 활성.
 - [x] (I5) 카테고리 경계 평서 박제 — 본 spec §동작 5 박제로 정합.
 - [x] (I6) 자매 spec 직교 정합 — 본 spec §동작 6 박제로 정합.
-- [x] (I7) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/npm-script-prefix-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 G5 박제).
-- [x] (I8) 시점 비의존 (RULE-07) — `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/npm-script-prefix-coherence.md | grep -cE "(lint|check):[a-z-]+(\s|$|\b)"` → 0 hit 본문 박제 (§스코프 규칙 G6 박제).
+- [x] (I7) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/npm-script-prefix-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 G5 박제).
+- [x] (I8) 시점 비의존 (RULE-07) — `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/foundation/npm-script-prefix-coherence.md | grep -cE "(lint|check):[a-z-]+(\s|$|\b)"` → 0 hit 본문 박제 (§스코프 규칙 G6 박제).
 - [x] (I9) 스코프 경계 박제 — 본 spec §동작 9 박제로 정합.
 
 ## 수용 기준
@@ -74,8 +74,8 @@
   - (G2) **[`lint:*` 전수 baseline]** `grep -nE "^\s*\"lint[^\"]*\":" package.json` → 4 hit (`package.json:23` `lint` top-level + `:24` `lint:spec-coherence` + `:46` `lint-staged` 블록 키 (script 아님) + `:64` `lint-staged` devDep 키 (script 아님)). script 키만 카운트 시 2건 — top-level (FR-10 본 spec 외부) + `lint:<name>` 1건 (anomaly).
   - (G3) **[`check:*` 전수 baseline]** `grep -nE "^\s*\"check[^\"]*\":" package.json` → 3 hit (`:25` `check:vite-env` + `:26` `check:deps` + `:27` `check:node-coherence` — 전원 효능 카테고리 (a) 진단 게이트 + prefix `check:` 정합). FR-01 정합 baseline.
   - (G4) **[호출부 정합 baseline]** `grep -rnE "npm run (lint|check):" .husky .github/workflows` → 4 hit (`.husky/pre-push:1` `npm run check:deps` + `.github/workflows/ci.yml:28` `npm run check:deps` + `:31` `npm run check:node-coherence` + `:37` `npm run check:vite-env`). 모두 `package.json:scripts` 키 실재 — (I3) PASS. `lint:spec-coherence` 자동 채널 호출 0 (직접 `bash scripts/check-spec-coherence.sh` `.husky/pre-commit` 직접 호출 — npm script 명칭 우회 — 무영향).
-  - (G5) **[FR-09 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/npm-script-prefix-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 anomaly 해소 수단 후보 라벨 부여 0). HEAD=`49f3f93` 박제 시점 PASS.
-  - (G6) **[FR-06 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/npm-script-prefix-coherence.md | grep -cE "lint:spec-coherence|check:vite-env|check:deps|check:node-coherence"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 현 구체 npm script 이름 박제 0). HEAD=`49f3f93` 박제 시점 PASS.
+  - (G5) **[FR-09 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/npm-script-prefix-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 anomaly 해소 수단 후보 라벨 부여 0). HEAD=`49f3f93` 박제 시점 PASS.
+  - (G6) **[FR-06 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/foundation/npm-script-prefix-coherence.md | grep -cE "lint:spec-coherence|check:vite-env|check:deps|check:node-coherence"` → **0 hit** (본 spec §역할 + §동작 + §회귀 중점 + §의존성 어디서도 현 구체 npm script 이름 박제 0). HEAD=`49f3f93` 박제 시점 PASS.
 - **rationale**: (G1)(G2)(G3) 본 spec 핵심 baseline — anomaly 1건 박제 + 정합 3건 박제. (G4) 호출부 정합 PASS (4 hit 모두 키 실재). (G5)(G6) RULE-07 정합 자기 검증. 매트릭스 cell 분포: 4 진단 게이트 (`lint:spec-coherence` + `check:vite-env` + `check:deps` + `check:node-coherence`) 중 1 anomaly + 3 정합 — 본 baseline 은 회귀 detection 의 zero-point.
 
 ## 변경 이력
@@ -90,13 +90,13 @@
 - **followup 흡수 (본 spec 의 트리거)**:
   - `specs/60.done/2026/05/17/followups/20260517-0608-lint-script-naming-convention.md` (source_task: TSK-20260517-17, category: naming-convention, severity: low).
 - **선행 자매 spec (단일 진입점 박제 — 본 spec 직교)**:
-  - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` + `package.json scripts.lint:spec-coherence` 단일 진입점 박제. 본 spec 효능 도입 시 G3 박제의 npm script 명칭 갱신 필요 (수단 라벨 0).
+  - `specs/30.spec/blue/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` + `package.json scripts.lint:spec-coherence` 단일 진입점 박제. 본 spec 효능 도입 시 G3 박제의 npm script 명칭 갱신 필요 (수단 라벨 0).
   - `specs/30.spec/blue/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073) — `scripts/check-deps-coherence.sh` 단일 진입점 + `check:deps` 박제 (정합).
   - `specs/30.spec/blue/foundation/vite-env-boundary-typing.md` (REQ-20260517-072) — `scripts/check-vite-env-coherence.sh` 단일 진입점 + `check:vite-env` 박제 (정합).
   - `specs/30.spec/blue/foundation/node-version-3axis-coherence.md` (REQ-20260517-079) — `scripts/check-node-version-coherence.sh` 단일 진입점 + `check:node-coherence` 박제 (정합).
 - **관련 spec (보완 / 직교)**:
-  - `specs/30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-20260517-080) — ESLint warning ↛ master 자동 게이트. 본 spec 과 직교 (rule level vs naming).
-  - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-20260517-081) — 진단 script 자동 채널 부착 매트릭스. 본 spec 과 직교 (채널 부착 vs 명명).
+  - `specs/30.spec/blue/foundation/lint-warning-zero-gate.md` (REQ-20260517-080) — ESLint warning ↛ master 자동 게이트. 본 spec 과 직교 (rule level vs naming).
+  - `specs/30.spec/blue/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-20260517-081) — 진단 script 자동 채널 부착 매트릭스. 본 spec 과 직교 (채널 부착 vs 명명).
   - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — ESLint / lint-staged / `.husky/pre-commit` 진입점 박제. 본 spec 과 직교 (도구 측 계약 vs 명명 단일성).
 - **외부 레퍼런스**:
   - npm 공식 — `scripts` 진입점 규약 (`https://docs.npmjs.com/cli/v10/using-npm/scripts`). `:` 콜론 기반 카테고리화 관례 + `npm run check:*` glob 호출 가능.

@@ -1,5 +1,5 @@
 // TSK-20260518-09 / REQ-20260517-099 — public 정적 자원 3 축 정합 + manifest 양면 동치 fixture.
-// spec: specs/30.spec/green/foundation/index-html-public-asset-reference-coherence.md
+// spec: specs/30.spec/blue/foundation/index-html-public-asset-reference-coherence.md
 //       §동작 G-A~G-J + §수용 기준 FR-01~FR-08 / NFR-01~NFR-06.
 //
 // 본 fixture 는 `index.html` ↔ `public/**` ↔ `build/**` 3 축 정합 + `manifest.json`

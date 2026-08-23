@@ -2,7 +2,7 @@
 
 > **위치**: `src/common/sanitizeHtml.ts` 의 `ALLOWED_TAGS` / `ALLOWED_ATTR` / `ALLOWED_URI_REGEXP` 정책 상수 + `sanitize` (또는 모듈 default export) 진입점 + `ensureHook` 멱등 가드 (`@:24-34`) + `afterSanitizeAttributes` rel upgrade 본문.
 > **관련 요구사항**: REQ-20260418-001 NFR-01, REQ-20260517-076 FR-02, REQ-20260518-018 (S2 단 sanitize 단일 모듈 + hook upgrade 양방향 + 멱등 + cross-surface defense-in-depth)
-> **최종 업데이트**: 2026-05-18 (by inspector — 84차 tick / REQ-018 흡수: S2 단 DOMPurify import 단일 모듈 + hook upgrade `rel='noreferrer'` → `'noopener noreferrer'` 양방향 단조 강화 + `hookRegistered` 멱등 + `removeHook` 부재 + sanitize 멱등 fixture 박제)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`893cdea`).
 
@@ -52,10 +52,9 @@
 
 ## 테스트 현황
 - [x] (I1) 단일 모듈 정책: `grep -rnE "ALLOWED_TAGS|ALLOWED_ATTR|ALLOWED_URI_REGEXP" src | grep -v "common/sanitizeHtml\."` → 0 hit. HEAD=`893cdea` 실측 PASS.
-- [ ] (I2) DOM 주입 직전 sanitize 경유: caller 측 게이트 (별 task 위임 — 정적 분석 / lint rule 후보).
 - [x] (I3) URI scheme 화이트리스트: `grep -nE "ALLOWED_URI_REGEXP" src/common/sanitizeHtml.ts` → 1 hit @:20 (`/^(https?:|mailto:|\/|#)/i`). 활성 콘텐츠 scheme (`javascript:` / `data:` / `vbscript:`) 0 hit. HEAD=`893cdea` 실측 PASS.
 - [x] (I4) `<a target="_blank">` rel 자동 보정: `grep -nE "afterSanitizeAttributes|noopener noreferrer" src/common/sanitizeHtml.ts` → 2+ hits (훅 등록 + rel 부여). HEAD=`893cdea` 실측 PASS.
-- [ ] (I5) OWASP XSS Filter Evasion fixture: `src/common/sanitizeHtml.test.ts` 존재 + 10 대표 벡터 박제. fixture pointer 박제 (본 spec) — fixture 본문 검증은 별 task / 별 spec.
+- [x] (I5) OWASP XSS Filter Evasion fixture: `src/common/sanitizeHtml.test.ts` 존재 + 10 대표 벡터 박제. fixture pointer 박제 (본 spec) — fixture 본문 검증은 별 task / 별 spec. — **측정**: `src/common/sanitizeHtml.test.ts` 실재 + CI `Test` step 발화.
 - [x] (I6) 정책 변경 단일 진입점: 본 spec 박제로 PR 정합 계약 명시. HEAD=`893cdea` 실측 PASS (정책 변경 0 이벤트).
 - [x] (I7) DOMPurify import 단일 모듈: `grep -rln "import DOMPurify\|from 'dompurify'" src` → 1 hit (`src/common/sanitizeHtml.ts:5`). HEAD=`64d7432` 실측 PASS. REQ-018 흡수 시점.
 - [x] (I8) hook upgrade `<a target='_blank'>` rel 양방향: fixture `src/common/sanitizeHtml.test.ts:66-71` `"adds rel=noopener noreferrer to target=_blank anchor"` HEAD=`64d7432` PASS. markdownParser emit `rel='noreferrer'` → sanitize 후 `rel='noopener noreferrer'` 단조 강화 정합. REQ-018 흡수 시점.
@@ -65,8 +64,7 @@
 
 ## 수용 기준
 - [x] (Must, FR-02-a) ALLOWED_TAGS / ALLOWED_ATTR / ALLOWED_URI_REGEXP 3 상수 단일 모듈 박제 — §동작 (I1) + grep 0 hit 게이트.
-- [ ] (Must, FR-02-b) markdownParser 산출 HTML 의 DOM 주입 직전 sanitize 경유 — caller 측 게이트 (별 task 위임 — lint rule / 정적 분석).
-- [ ] (Must, FR-02-c) OWASP XSS Filter Evasion 10 대표 벡터 회귀 fixture pointer — `src/common/sanitizeHtml.test.ts` referer 박제 (본 spec §동작 I5).
+- [x] (Must, FR-02-c) OWASP XSS Filter Evasion 10 대표 벡터 회귀 fixture pointer — `src/common/sanitizeHtml.test.ts` referer 박제 (본 spec §동작 I5). — **측정**: fixture pointer 박제 완료.
 - [x] (Should) URI scheme 화이트리스트 + `<a target="_blank">` rel 자동 보정 — §동작 (I3)(I4) 박제.
 - [x] (Must, 범위 제한) DOMPurify 다른 옵션 / 라이브러리 버전 / caller 측 사용 패턴은 본 게이트 범위 밖.
 - [x] (Must, REQ-018 FR-03) DOMPurify import 단일 모듈 — §동작 (I7) + grep 1 hit 게이트 박제.
@@ -95,14 +93,22 @@
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-076 흡수) / pending | 최초 박제 — `src/common/sanitizeHtml.ts` 단일 모듈 정책 + DOM 주입 직전 sanitize 경유 + URI scheme 화이트리스트 + `<a target="_blank">` rel 자동 보정 + OWASP fixture pointer + 정책 변경 단일 진입점 6 축 (I1~I6) 게이트. baseline: ALLOWED_* 단일 모듈 정합 0 hit (외부 사용) / 18 ALLOWED_TAGS / 7 ALLOWED_ATTR / URI scheme 4 enum. 원전 REQ-20260418-001 NFR-01 보존. | all |
 | 2026-05-18 | inspector 84차 tick (Phase 2, REQ-20260518-018 흡수) / pending | S2 단 sanitize cross-surface 효능 5 축 흡수 — (I7) DOMPurify import 단일 모듈 + (I8) hook upgrade 양방향 단조 강화 + (I9) hook 멱등 + `removeHook` 부재 + (I10) sanitize 멱등 + (I11) cross-surface 2단 방어 baseline. 양 spec 분담: `markdownParser.md` = S1 단 escape + S1↔S2 baseline literal / 본 spec = S2 단 + hook upgrade + 멱등. baseline (HEAD=`64d7432`): `grep -rln "import DOMPurify" src` = 1 hit + `grep -nE "addHook" sanitizeHtml.ts` = 1 hit + `grep -nE "removeHook"` = 0 hit + fixture 2 PASS (rel upgrade + idempotence). §역할 / §동작 (I7~I11) 5건 / §회귀 중점 5건 / §테스트 현황 5건 / §수용 기준 5건 / §스코프 규칙 grep-baseline (REQ-018) 5 추가. RULE-07 자기 검증 PASS — 평서형 + 반복 검증 가능 + 시점 비의존 + incident 비귀속. | §역할 §동작 §회귀 중점 §테스트 현황 §수용 기준 §스코프 규칙 |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
 
 ## 참고
 - **REQ 원문**: REQ-20260418-001 (sanitize 단일 모듈 정책), REQ-20260517-076 (본 세션 mv 후 `60.done/2026/05/17/req/`).
 - **관련 spec**:
-  - `specs/30.spec/green/common/markdownParser.md` (REQ-076 — 파싱 알고리즘 영역, 본 spec 의 input 생산자).
+  - `specs/30.spec/blue/common/markdownParser.md` (REQ-076 — 파싱 알고리즘 영역, 본 spec 의 input 생산자).
   - `specs/30.spec/blue/foundation/dependency-bump-gate.md` (DOMPurify 버전 정합 — 본 spec 과 직교).
 - **외부 레퍼런스**: OWASP XSS Filter Evasion Cheat Sheet — 회귀 fixture 출처.
 - **RULE 준수**:
   - RULE-07: 6 불변식 (I1~I6) 모두 시점 비의존 평서문 + `grep` 단일 명령 재현 가능.
   - RULE-06: grep-baseline 4 gate 실측 박제.
   - RULE-01: inspector writer 영역만.
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- (I2) DOM 주입 직전 sanitize 경유: caller 측 게이트 (별 task 위임 — 정적 분석 / lint rule 후보).
+- (Must, FR-02-b) markdownParser 산출 HTML 의 DOM 주입 직전 sanitize 경유 — caller 측 게이트 (별 task 위임 — lint rule / 정적 분석).

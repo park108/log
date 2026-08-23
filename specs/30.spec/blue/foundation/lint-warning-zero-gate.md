@@ -51,8 +51,8 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
 - [x] (I3) 자동 채널 1+ 의존성: TSK-20260517-17 / `78f87a0` 회수 — `npm run lint` 채널 1+ 활성 (lint script 옵션 주입 → CI Lint step 자동 전파). HEAD=`49f3f93` 재실측 PASS.
 - [x] (I4) zero-point baseline: `npx eslint ./src --max-warnings=0` → rc=0 + error=0 + warning=0 (HEAD=`3910ba8` 실측 PASS — §스코프 규칙 (G1)).
 - [x] (I5) 회귀 fixture 재현성: TSK-20260517-17 / `78f87a0` result.md G2/G3/G4 사이클 실증 — `src/__warn_probe__.ts` 미사용 import 1건 도입 → `npm run lint` rc=1 + warning 1+ + "ESLint found too many warnings (maximum: 0)" stdout / 제거 후 rc=0 회복 / `git status` + `find src -name "__warn_probe__*"` → 잔존 0. HEAD=`49f3f93` 재실측 fixture 도입 없이 zero-point 유지 PASS.
-- [x] (I6) 시점 비의존성: 본 spec 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 어디서도 구체 `warn` level rule 이름 (`no-unused-vars` / `@typescript-eslint/no-unused-vars`) 박제 0 — `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/lint-warning-zero-gate.md | grep -cE "no-unused-vars|@typescript-eslint/no-unused-vars"` → 0 hit (§스코프 규칙 (G7) 박제). HEAD=`3910ba8` 박제 시점 PASS.
-- [x] (I7) 수단 중립: §역할 + §동작 7 에 수단 후보 4 카테고리 박제, 라벨 0. `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/lint-warning-zero-gate.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 (G8) 박제). HEAD=`3910ba8` 박제 시점 PASS.
+- [x] (I6) 시점 비의존성: 본 spec 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 어디서도 구체 `warn` level rule 이름 (`no-unused-vars` / `@typescript-eslint/no-unused-vars`) 박제 0 — `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/foundation/lint-warning-zero-gate.md | grep -cE "no-unused-vars|@typescript-eslint/no-unused-vars"` → 0 hit (§스코프 규칙 (G7) 박제). HEAD=`3910ba8` 박제 시점 PASS.
+- [x] (I7) 수단 중립: §역할 + §동작 7 에 수단 후보 4 카테고리 박제, 라벨 0. `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/lint-warning-zero-gate.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 (G8) 박제). HEAD=`3910ba8` 박제 시점 PASS.
 - [x] (I8) 직교 정합: §역할 + §동작 8 에 7개 관련 spec 과의 직교/보완 평서 박제. 본 spec 박제 자체로 정합 박제.
 - (I9) **[deferred: future-event-dependent — `reportUnusedDisableDirectives` 'off' → 'warn' 전환 미발화]** 부수 보호 표면: 미래 `reportUnusedDisableDirectives: 'off' → 'warn'` 전환 시점에 dead disable 차단 효능 surface — 차기 이벤트 발생 후 marker `[ ]` 부착 + checklist 영역 복귀. 현 baseline (G6) `:21` `'off'` 잔존 — 측정 target (dead disable directive 차단) 부재.
 
@@ -79,8 +79,8 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
   - (G4) **[lint-staged 옵션 부재]** `grep -nE "\"src/\*\*" package.json` → 1 hit @`:43` (`"src/**/*.{js,jsx,ts,tsx,d.ts}": "eslint"` — `--max-warnings` 옵션 부재). FR-01 baseline MISS — 자동 채널 0 (lint-staged 축).
   - (G5) **[warn level rule 존재 baseline]** `grep -cE "'warn'" eslint.config.js` → **3 hit** (HEAD=`3910ba8` 실측 — 본 spec 본문 박제 0 효능 보장하기 위해 hit 수치만 박제, 구체 rule 이름은 §변경 이력 메타 1회 부속 한정). 본 spec 의 자동 게이트 활성 조건 충족 (1+ `warn` level rule 존재).
   - (G6) **[reportUnusedDisableDirectives 현 상태]** `grep -nE "reportUnusedDisableDirectives" eslint.config.js` → 1 hit @`:21` (`reportUnusedDisableDirectives: 'off'`). FR-06 부수 보호 표면 비활성 baseline. 향후 `'warn'` 전환 시 본 게이트 효능 활성 시 자동 차단.
-  - (G7) **[FR-04 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/foundation/lint-warning-zero-gate.md | grep -cE "no-unused-vars|@typescript-eslint/no-unused-vars"` → **0 hit** (본 spec 본문 §역할 + §동작 + §회귀 중점 + §의존성 어디서도 구체 rule 이름 박제 0). HEAD=`3910ba8` 박제 시점 실측 PASS.
-  - (G8) **[FR-07 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/foundation/lint-warning-zero-gate.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec 본문 §역할 + §동작 + §회귀 중점 한정 — 수단 후보 라벨 부여 0). HEAD=`3910ba8` 박제 시점 실측 PASS.
+  - (G7) **[FR-04 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/foundation/lint-warning-zero-gate.md | grep -cE "no-unused-vars|@typescript-eslint/no-unused-vars"` → **0 hit** (본 spec 본문 §역할 + §동작 + §회귀 중점 + §의존성 어디서도 구체 rule 이름 박제 0). HEAD=`3910ba8` 박제 시점 실측 PASS.
+  - (G8) **[FR-07 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/lint-warning-zero-gate.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본 spec 본문 §역할 + §동작 + §회귀 중점 한정 — 수단 후보 라벨 부여 0). HEAD=`3910ba8` 박제 시점 실측 PASS.
 - **rationale**: (G1)(G2)(G3)(G4) 본 spec 핵심 회복 대상 baseline — zero-point PASS 이나 자동 채널 0 (FR-01·FR-02 MISS). (G5) 자동 게이트 활성 조건 충족 박제 (`warn` rule 1+ 존재). (G6) 부수 보호 표면 baseline (현재 비활성). (G7)(G8) RULE-07 정합 자기 검증.
 
 ## 변경 이력
@@ -93,14 +93,14 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
 ## 참고
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-eslint-warning-zero-master-gate.md` (REQ-080 — 본 세션 mv).
 - **선행 자매 spec (자동 게이트 메타 패턴 공유)**:
-  - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` 자동 게이트 패턴. 본 spec 의 game plan 참조.
+  - `specs/30.spec/blue/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` 자동 게이트 패턴. 본 spec 의 game plan 참조.
   - `specs/30.spec/blue/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073) — `scripts/check-deps-coherence.sh` 자동 게이트. 본 spec 과 직교.
-  - `specs/30.spec/green/foundation/vite-env-boundary-typing.md` (REQ-20260517-072) — `scripts/check-vite-env-coherence.sh` 자동 게이트. 본 spec 과 직교.
-  - `specs/30.spec/green/foundation/node-version-3axis-coherence.md` (REQ-20260517-079, TSK-14 회수 `3910ba8`) — `scripts/check-node-version-coherence.sh` 자동 게이트. 본 spec 과 직교.
+  - `specs/30.spec/blue/foundation/vite-env-boundary-typing.md` (REQ-20260517-072) — `scripts/check-vite-env-coherence.sh` 자동 게이트. 본 spec 과 직교.
+  - `specs/30.spec/blue/foundation/node-version-3axis-coherence.md` (REQ-20260517-079, TSK-14 회수 `3910ba8`) — `scripts/check-node-version-coherence.sh` 자동 게이트. 본 spec 과 직교.
 - **관련 spec (보완 / 직교)**:
   - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 + REQ-053 + REQ-058 + REQ-075 + REQ-078) — §동작 5 (`.ts/.tsx/.d.ts` no-unused-vars rule swap) + gate (j) (`npm run lint` warning 0 측정 시점) 와 **보완** 관계. 본 spec 은 측정 시점 결과 박제를 상시 강제 게이트로 강화하는 별 축.
   - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037) — CI typecheck step 존재 박제. 본 spec 과 **직교** (step 존재 vs 옵션).
-  - `specs/30.spec/green/foundation/typecheck-island-extension.md` (REQ-077 등) — `tsc` error TS 0 게이트. 본 spec 과 직교 (`tsc` vs `eslint`).
+  - `specs/30.spec/blue/foundation/typecheck-island-extension.md` (REQ-077 등) — `tsc` error TS 0 게이트. 본 spec 과 직교 (`tsc` vs `eslint`).
 - **외부 레퍼런스**:
   - ESLint 공식 — `--max-warnings <Int>` CLI flag (`https://eslint.org/docs/latest/use/command-line-interface#--max-warnings`). default `-1` (검사 비활성) — 본 spec FR-01 게이트 부착 효능 근거.
   - ESLint 공식 — `linterOptions.reportUnusedDisableDirectives` (`https://eslint.org/docs/latest/use/configure/configuration-files#configuring-linter-options`). FR-06 부수 보호 표면 근거.

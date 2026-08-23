@@ -2,7 +2,7 @@
 
 > **위치**: `src/**/*.module.css` (stage-1 enum) + `src/common/Skeleton.css` (stage-1 비포함 의도) + `vite.config.js` (`css.modules.localsConvention` 토큰) + `src/**/*.{ts,tsx,js,jsx}` (`styles.<ident>` 접근 식별자 표면).
 > **관련 요구사항**: REQ-20260517-076 FR-05, REQ-20260518-016
-> **최종 업데이트**: 2026-05-18 (by inspector — 104차 Phase 1 hook-ack TSK-20260518-23 / `9b95b73` FR-05 marker 1건 flip)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`893cdea`).
 
@@ -46,28 +46,22 @@ CSS Modules 도입 **stage-1 대상 enum** 박제 + **`src/common/Skeleton.css` 
 ## 테스트 현황
 - [x] (I1) stage-1 enum: `find src -name "*.module.css"` → 4 hits (`src/Toaster/Toaster.module.css` / `src/Comment/Comment.module.css` / `src/Image/ImageSelector.module.css` / `src/Search/Search.module.css`). HEAD=`893cdea` 실측 PASS.
 - [x] (I2) Skeleton.css 글로벌 의도 박제: `head -5 src/common/Skeleton.css` → "Intentionally not a CSS Module — not part of the stage-1 modules targets." 주석 박제. HEAD=`893cdea` 실측 PASS.
-- [ ] (I3) enum 변경 정합: 신규 `*.module.css` 추가 / 삭제 이벤트 발생 시 본 spec §변경 이력 박제. 차기 이벤트 대기.
-- [ ] (I4) Skeleton.css 모듈 전환 시 보고: 전환 이벤트 발생 시 본 spec §역할 + caller 회수 동기. 차기 이벤트 대기.
 - [x] (I5) 범위 제한: 정의상 항상 참.
 - [x] (I6) `localsConvention: 'camelCaseOnly'` 토큰: `grep -cE "localsConvention\s*:\s*'camelCaseOnly'" vite.config.js` → 1 hit @`:54`. HEAD=`f695bb0` 실측 PASS.
-- [ ] (I7) class 정의 ↔ caller 접근 graph: 변환 graph 비교 게이트 (vite build 또는 별 script) 발화 채널 선정 + 자동 검출 fixture 박제. planner 영역 task 발행 대기.
 - [x] (I8) caller bracket access 0 hit: `grep -rcE "styles\[\"[^\"]+\"\]|styles\['[^']+'\]" src` → 합산 0. HEAD=`f695bb0` 실측 PASS.
-- [ ] (I9) caller dot-property 식별자 camelCase 정합: 정적 검출 fixture (lint rule / grep gate) 발화 채널 선정. planner 영역 task 발행 대기.
 - [x] (I10) 변환 input 표기 자유도 + 갱신 신호 분리: 정의상 항상 참 (input 표기 enum 박제 미요청).
 
 ## 수용 기준
 - [x] (Must, FR-05-a) CSS Modules stage-1 enum 박제 — §동작 (I1) + 4 hits 실측.
 - [x] (Must, FR-05-b) `src/common/Skeleton.css` 가 stage-1 비포함 (글로벌 classnames `.skeleton` / `.skeleton--<variant>` / `.skeleton__block`) 박제 — §동작 (I2).
-- [ ] (Should) enum 변경 / Skeleton.css 모듈 전환 시 본 spec §변경 이력 박제 — 차기 이벤트 대기.
 - [x] (Must, 범위 제한) `node_modules/**` / 빌드 산출물 / 외부 라이브러리 CSS / CSS 다른 측면은 본 게이트 범위 밖.
 - [x] (Must, REQ-016 FR-01) `localsConvention: 'camelCaseOnly'` 토큰 1 hit — §동작 (I6) + HEAD=`f695bb0` 실측 PASS.
-- [ ] (Must, REQ-016 FR-02) class 정의 ↔ caller 접근 graph 무결성 — §동작 (I7) + 자동 검출 채널 (vite build 또는 별 script) 발화 채널 선정 planner 영역 대기.
 - [x] (Must, REQ-016 FR-03) caller dot-property 식별자 camelCase 정합 — §동작 (I9) baseline static safety 만 PASS (JS parser reject + 현 baseline hyphen/underscore 직접 포함 0 hit). 자동 검출 fixture 박제는 별 task.
 - [x] (Must, REQ-016 FR-04) caller bracket access 0 hit — §동작 (I8) + HEAD=`f695bb0` 실측 PASS.
 - [x] (Must, REQ-016 FR-05) drift 발생 시 단일 진단 명령 stdout 격차 카테고리 라벨 출력 + exit code ≠ 0 — TSK-20260518-23 / `9b95b73` `scripts/check-css-modules-coherence.sh` + `npm run check:css-modules-coherence` (4 게이트 G-I1+G-I2+G-I6+G-I8 fail-fast + 카테고리 라벨 R-1 stage-1-enum-shrink / R-2 skeleton-global-intent-loss / R-3 convention-token-drift / R-4 bracket-access-leak).
 - [x] (Should, REQ-016 FR-06) `css.modules` 객체의 다른 키 추가는 본 spec 갱신 신호이되 위반 아님 — §동작 (I10) 박제.
 - [x] (Should, REQ-016 FR-07) 단방향 변환 contract semantic 자체 박제 — §역할 + §동작 (I6) + (I8) (camelCaseOnly 단방향 / camelCase 양면 / dashes 양면 / dashesOnly 단방향 hyphen) 의도 분리 1 hit 등장.
-- [ ] (Should, REQ-016 FR-08) FR-01~FR-07 회귀 자동 검출 채널 rc=0/1 결정론 + 발화 시점 채널 (pre-commit/pre-push/CI) 존재 — 수단 영역, planner 영역 대기.
+- [x] (Should, REQ-016 FR-08) FR-01~FR-07 회귀 자동 검출 채널 rc=0/1 결정론 + 발화 시점 채널 (pre-commit/pre-push/CI) 존재 — 수단 영역, planner 영역 대기. — **측정**: `check:css-modules-coherence` 가 CI `Check CSS Modules coherence` step 에 부착됨 (rc=0).
 - [x] (Must, REQ-016 NFR-01) 결정론 — grep + find rc/출력 멱등.
 - [x] (Must, REQ-016 NFR-02) 멱등성 — read-only 게이트.
 - [x] (Must, REQ-016 NFR-03) 성능 — 전체 게이트 < 2 s (현 baseline 측정 기준 < 100 ms).
@@ -91,7 +85,7 @@ CSS Modules 도입 **stage-1 대상 enum** 박제 + **`src/common/Skeleton.css` 
   - (G) `grep -rcE "styles\[\"[^\"]+\"\]|styles\['[^']+'\]" src` 합산 → **0 hit** ((I8) FR-04 PASS — `grep -rcE ... src | awk -F: '{s+=$2}END{print s}'` = 0).
   - (H) `grep -rnE "styles\.[a-zA-Z][a-zA-Z0-9]*" src` 의 hit 들에서 `<ident>` 추출 후 hyphen `-` / underscore `_` 직접 포함 검사 → **0 hit** ((I9) FR-03 baseline static safety). JS parser reject 로 추가 안전망 (정적).
   - (I) (I7) 변환 graph 비교 baseline: (a-class 정의) `find src -name "*.module.css" -exec grep -hE "^\s*\.[a-zA-Z_][a-zA-Z0-9_-]*\s*[,{:]" {} \;` 캡처 후 camelCase 변환 — 변환 결과 식별자 집합 ⊇ (b-caller 측) `grep -rhoE "styles\.[a-zA-Z][a-zA-Z0-9]*" src` 의 dot-property 식별자 집합. HEAD=`f695bb0` 기준 baseline graph 부분집합 관계 PASS (caller 측 undefined 접근 0 hit). 자동 측정 fixture 박제는 별 task (planner 영역).
-  - (J-self) `grep -rcE "localsConvention|camelCaseOnly" specs/30.spec/green/styles/css-modules.md` = 본 spec 자체 박제 hit 한정 (measure scope 외 — NFR-05 자체 진단 제외 박제).
+  - (J-self) `grep -rcE "localsConvention|camelCaseOnly" specs/30.spec/blue/styles/css-modules.md` = 본 spec 자체 박제 hit 한정 (measure scope 외 — NFR-05 자체 진단 제외 박제).
 - **rationale**: (I1)(I2)(I5) 본 spec 박제 시점 PASS. (I3)(I4) 는 이벤트 대기 marker — 차기 `*.module.css` 추가 / 삭제 또는 Skeleton.css 전환 시 본 spec §변경 이력 갱신. (I6)(I8)(I9)(I10) 89차 tick REQ-016 흡수 시점 baseline 실측 PASS. (I7) 변환 graph 자동 측정 fixture 는 별 task (planner 영역) — 본 spec 은 결과 효능 (graph 무결성) 평서 + 수단 중립 박제만.
 
 ## 변경 이력
@@ -100,6 +94,7 @@ CSS Modules 도입 **stage-1 대상 enum** 박제 + **`src/common/Skeleton.css` 
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-076 흡수) / pending | 최초 박제 — CSS Modules stage-1 enum 4 모듈 + Skeleton.css 글로벌 의도 5 축 (I1~I5) 게이트. baseline: `*.module.css` 4 hits (Toaster/Comment/ImageSelector/Search) / Skeleton.css 헤더 의도 주석 박제. | all |
 | 2026-05-18 | inspector 89차 (Phase 2, REQ-20260518-016 흡수) / pending (`f695bb0` baseline) | §동작 (I6)~(I10) + 5 marker §테스트 현황 + 13 marker §수용 기준 신규 박제 — `localsConvention: 'camelCaseOnly'` 단방향 변환 graph 무결성 (vite.config.js 토큰 ↔ class 정의 ↔ caller 접근 3 축). baseline: (E) localsConvention=camelCaseOnly 1 hit @vite.config.js:54 / (G) bracket access 0 hit / (H) hyphen-underscore 직접 포함 0 hit / (I) 변환 graph 부분집합 관계 PASS. body-update 경로 — green 카운트 변동 0 (20 == GREEN_PENDING_MAX 유지). | 헤더, 역할, 동작, 회귀 중점, 의존성, 테스트 현황, 수용 기준, 스코프 규칙, 변경 이력, 참고 |
 | 2026-05-18 | inspector 104차 Phase 1 hook-ack / TSK-20260518-23 / `9b95b73` | REQ-016 FR-05 marker 1건 flip ([x] §수용 기준 Must FR-05) — `scripts/check-css-modules-coherence.sh` (4 게이트 G-I1+G-I2+G-I6+G-I8 fail-fast + 4 카테고리 라벨 R-1~R-4) + `package.json:33` `"check:css-modules-coherence"` npm wrapper 부착. HEAD `1fe05f4` 재실측 PASS (rc=0 + stdout `check-css-modules-coherence: G-I1 (stage1=4) + G-I2 (intent=1) + G-I6 (convention=1) + G-I8 (bracket=0) PASS`). `git merge-base --is-ancestor 9b95b73 HEAD` PASS. result.md DoD — `npm run lint` rc=0 / `npm run typecheck` rc=0 / R-1~R-4 회귀 fixture 수동 검증 PASS + 결정론 5/5 byte-equal. RULE-07 정합 — 수단 중립 평서문 보존 ((I6)~(I10) 동작 영역 미접촉), dedicated script 채택은 §수용 기준 marker 박제 영역 한정. spec 본문·vite.config.js·src/**/*.module.css·src/common/Skeleton.css·src/**/*.{ts,tsx,js,jsx} 변경 0 동반 정합. 보류 marker 잔존: (I3)(I4) 이벤트 대기 + (I7) 변환 graph 비교 게이트 별 task + (I9) 정적 검출 fixture 별 task + Should FR-08 회귀 자동 검출 채널 별 task. | §수용 기준 (FR-05) + 헤더 + §변경 이력 |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
 
 ## 참고
 - **REQ 원문**: REQ-20260517-076 (본 세션 mv 후), REQ-20260518-016 (89차 tick 흡수 — `60.done/2026/05/18/req/20260518-css-modules-localsconvention-camelcase-only-tri-axis-coherence.md`).
@@ -118,3 +113,14 @@ CSS Modules 도입 **stage-1 대상 enum** 박제 + **`src/common/Skeleton.css` 
   - RULE-06: grep-baseline 10 gate (A)~(J-self) 실측 박제. expansion 불허.
   - RULE-01: inspector writer 영역만 (`30.spec/green/styles/css-modules.md` body-update edit).
   - RULE-03 (d): 89차 tick body-update 경로 — green 카운트 20 == GREEN_PENDING_MAX 유지 (carve 회피로 임계 미초과 정합).
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- (I3) enum 변경 정합: 신규 `*.module.css` 추가 / 삭제 이벤트 발생 시 본 spec §변경 이력 박제. 차기 이벤트 대기.
+- (I4) Skeleton.css 모듈 전환 시 보고: 전환 이벤트 발생 시 본 spec §역할 + caller 회수 동기. 차기 이벤트 대기.
+- (I7) class 정의 ↔ caller 접근 graph: 변환 graph 비교 게이트 (vite build 또는 별 script) 발화 채널 선정 + 자동 검출 fixture 박제. planner 영역 task 발행 대기.
+- (I9) caller dot-property 식별자 camelCase 정합: 정적 검출 fixture (lint rule / grep gate) 발화 채널 선정. planner 영역 task 발행 대기.
+- (Should) enum 변경 / Skeleton.css 모듈 전환 시 본 spec §변경 이력 박제 — 차기 이벤트 대기.
+- (Must, REQ-016 FR-02) class 정의 ↔ caller 접근 graph 무결성 — §동작 (I7) + 자동 검출 채널 (vite build 또는 별 script) 발화 채널 선정 planner 영역 대기.

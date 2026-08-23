@@ -1,5 +1,5 @@
 // TSK-20260518-07 / REQ-20260518-002 — mount 노드 ID 토큰 3 극 정합 fixture.
-// spec: specs/30.spec/green/foundation/index-html-root-mount-id-token-coherence.md
+// spec: specs/30.spec/blue/foundation/index-html-root-mount-id-token-coherence.md
 //       §동작 G-A~G-F + §수용 기준 FR-01~FR-06.
 //
 // 본 fixture 는 3 극 토큰 (H=index.html / R=src/index.jsx / C=src/common/common.ts)

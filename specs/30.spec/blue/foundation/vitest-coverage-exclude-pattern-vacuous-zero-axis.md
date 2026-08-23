@@ -2,7 +2,7 @@
 
 > **위치**: `vite.config.js` (`vitest.coverage.exclude` 5 박제 글로브 패턴 P-1 ~ P-5) ↔ `src/**` 디스크 트리
 > **관련 요구사항**: REQ-20260518-012
-> **최종 업데이트**: 2026-05-19 (by inspector 125차 tick)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD `0887a06` baseline).
 
@@ -41,7 +41,7 @@
   - `specs/30.spec/blue/foundation/test-discovery-population-coherence.md` (REQ-20260517-066) — vitest 가 실행하는 test 파일 집합 axis. 본 spec 의 P-4 매치 집합과 동축이지만 본 spec 은 5 패턴 직교 sweep (P-4 단독 아님).
   - `specs/30.spec/blue/foundation/coverage-determinism.md` (REQ-041 또는 동등) — coverage gate 결정론 (`fileParallelism: false`) axis. 본 spec 과 직교 (결정론 = 측정 회수 동일성 vs 본 spec = exclude 매치 vacuous-zero).
   - 자매 req `20260518-coverage-gate-exit-code-determinism-margin-axis.md` (REQ-002) — coverage gate exit-code 결정론 margin axis. 본 spec 과 직교.
-  - `specs/30.spec/green/foundation/vitest-setupfiles-token-disk-coherence.md` (REQ-20260519-001) — `setupFiles` 토큰 ↔ 디스크 실재 coherence axis. 본 spec 과 결과 효능 형식 동질 (config token ↔ 디스크 양면 정합), 측정 surface 직교 (`setupFiles` 단일 토큰 vs `coverage.exclude` 5 패턴 sweep).
+  - `specs/30.spec/blue/foundation/vitest-setupfiles-token-disk-coherence.md` (REQ-20260519-001) — `setupFiles` 토큰 ↔ 디스크 실재 coherence axis. 본 spec 과 결과 효능 형식 동질 (config token ↔ 디스크 양면 정합), 측정 surface 직교 (`setupFiles` 단일 토큰 vs `coverage.exclude` 5 패턴 sweep).
 - 자매 패턴 (config token ↔ disk reality 양면 정합 axis): `vitest-setupfiles-token-disk-coherence.md` (REQ-001) 과 형식 동질 (config 선언 ↔ 디스크 실재의 양면 정합 결과 효능), 본 spec 은 5 패턴 균등 sweep axis 로 1 차원 추가.
 
 ## 스코프 규칙
@@ -79,8 +79,7 @@
 - [x] HEAD `0887a06` 실측 — `find src -type f \( -name "*mock.js" -o -name "*mock.jsx" -o -name "*mock.ts" -o -name "*mock.tsx" \) | wc -l` → 6 (FR-04 P-3 PASS).
 - [x] HEAD `0887a06` 실측 — `find src -type f \( -name "*.test.js" -o -name "*.test.jsx" -o -name "*.test.ts" -o -name "*.test.tsx" \) | wc -l` → 56 (FR-05 P-4 PASS — req 원본 baseline 51 → 진입 시점 56, vacuous-zero ≥ 1 계약 유지).
 - [x] HEAD `0887a06` 실측 — `find src -type f -name "*.d.ts" | wc -l` → 2 (FR-06 P-5 PASS).
-- [ ] FR-07 자동 채널 1+ 부착 — 현 baseline 0 hit (CI step / pre-commit/pre-push hook / 진단 script 어느 채널에도 본 효능 게이트 미부착). 발화 채널 도입은 수단 위임 영역.
-- [ ] 회귀 가설 (R-1)~(R-5) fixture 발화 채널 — vacuous 회귀 fixture 본문 미발화 (별 task / 별 spec 위임 영역).
+- [x] FR-07 자동 채널 1+ 부착 — 현 baseline 0 hit (CI step / pre-commit/pre-push hook / 진단 script 어느 채널에도 본 효능 게이트 미부착). 발화 채널 도입은 수단 위임 영역. — **회수**: `src/__tests__/build-policy-and-vitest-config-coherence.test.ts`, CI `Test` step 발화.
 
 ## 수용 기준
 - [x] (Must / FR-01) Given HEAD `0887a06` baseline, When `grep -cE "^[[:space:]]*'src/" vite.config.js` 실행, Then 출력 = **5** + rc=0 (배열 길이 박제). 4 또는 6 은 본 spec 갱신 신호.
@@ -89,7 +88,7 @@
 - [x] (Must / FR-04) Given HEAD `0887a06` baseline, When `find src -type f \( -name "*mock.js" -o -name "*mock.jsx" -o -name "*mock.ts" -o -name "*mock.tsx" \) | wc -l` 실행, Then 출력 ≥ **1** (P-3 vacuous-zero PASS — baseline 6 hit). 출력 = 0 시 P-3 vacuous 회귀.
 - [x] (Must / FR-05) Given HEAD `0887a06` baseline, When `find src -type f \( -name "*.test.js" -o -name "*.test.jsx" -o -name "*.test.ts" -o -name "*.test.tsx" \) | wc -l` 실행, Then 출력 ≥ **1** (P-4 vacuous-zero PASS — req 원본 baseline 51, 본 spec 진입 시점 56; ≥ 1 계약 유지, 정확 cardinality 시점 의존, REQ-066 test discovery population coherence 와 결합 검출).
 - [x] (Must / FR-06) Given HEAD `0887a06` baseline, When `find src -type f -name "*.d.ts" | wc -l` 실행, Then 출력 ≥ **1** (P-5 vacuous-zero PASS — baseline 2 hit). 출력 = 0 시 P-5 vacuous 회귀.
-- [ ] (Should / FR-07) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (R-1)~(R-5) 회귀 시 fail-fast 한다. 측정: `grep -rnE "coverage-exclude|vacuous-zero" .github/workflows/ .husky/ scripts/` 또는 본 spec 박제 토큰 / 진단 script basename → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**
+- [x] (Should / FR-07) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (R-1)~(R-5) 회귀 시 fail-fast 한다. 측정: `grep -rnE "coverage-exclude|vacuous-zero" .github/workflows/ .husky/ scripts/` 또는 본 spec 박제 토큰 / 진단 script basename → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **주입 검증**: 패턴 1개를 매치 0 인 값으로 바꾸면 1 failed / 8 passed 검출.
 - [x] (회귀 가설 (R-1)) Given `src/index.jsx` 를 `src/main.jsx` 로 rename fixture staged, When 본 게이트 실행, Then FR-02 출력 = **0** (P-1 vacuous 검출, rc=1).
 - [x] (회귀 가설 (R-2)) Given `src/reportWebVitals.js` 삭제 fixture staged, When 본 게이트 실행, Then FR-03 출력 = **0** (P-2 vacuous 검출, rc=1).
 - [x] (회귀 가설 (R-3)) Given 6 `*mock.*` 파일 전수 삭제 fixture staged, When 본 게이트 실행, Then FR-04 출력 = **0** (P-3 vacuous 검출, rc=1).
@@ -104,3 +103,10 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-19 | inspector 125차 tick / HEAD `0887a06` | REQ-20260518-012 흡수 — `vite.config.js` `test.coverage.exclude` 5 박제 glob 패턴 (P-1 root entry-point / P-2 web-vitals reporter / P-3 mock api / P-4 테스트 / P-5 ambient declaration) ↔ `src/**` 디스크 매치 집합 양면 정합 vacuous-zero (cardinality ≥ 1) 결과 효능 불변식 박제 (I1~I9 평서 + FR-01·02·03·04·05·06 ack baseline + FR-07 deferred 발화 채널). req 원본 baseline HEAD `41e26e0` P-4 51 hit → 본 spec 진입 시점 HEAD `0887a06` 56 hit drift 박제, ≥ 1 계약 유지. | all (신규) |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- 회귀 가설 (R-1)~(R-5) fixture 발화 채널 — vacuous 회귀 fixture 본문 미발화 (별 task / 별 spec 위임 영역).

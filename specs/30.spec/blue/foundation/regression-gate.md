@@ -37,7 +37,7 @@ GitHub Actions CI workflow (`.github/workflows/*.yml`) 는 `npm ci` 이후 `npm 
 ## 의존성
 - 내부: `package.json` (`"typecheck"` 스크립트), `tsconfig.json` (strict/noImplicitAny/noUncheckedIndexedAccess), `vite.config.js` `test.coverage` 구성.
 - 외부: TypeScript (`tsc --noEmit`), Vitest (`test.coverage.thresholds`), `@vitest/coverage-v8`, GitHub Actions runner.
-- 역의존: `specs/30.spec/blue/foundation/{ci.md,tooling.md}` — 본 spec 이 회귀 게이트 차원을 보완. `specs/30.spec/green/foundation/dependency-bump-gate.md` (REQ-035) — dep bump 게이트 축에서 본 spec 의 FR-01/FR-02 가 간접 편입.
+- 역의존: `specs/30.spec/blue/foundation/{ci.md,tooling.md}` — 본 spec 이 회귀 게이트 차원을 보완. `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-035) — dep bump 게이트 축에서 본 spec 의 FR-01/FR-02 가 간접 편입.
 
 ## 스코프 규칙
 - **expansion**: N/A (본 spec 은 grep 게이트 계약 문서가 아니라 baseline 수치 박제).
@@ -67,9 +67,9 @@ GitHub Actions CI workflow (`.github/workflows/*.yml`) 는 `npm ci` 이후 `npm 
 - [x] (Must, REQ-037 FR-05) §스코프 규칙 grep-baseline 에 FR-01/FR-02 각 측 positive + 보조 gate 총 4개 실측 수치 박제.
 - [x] (Must, REQ-037 FR-06) §변경 이력 에 `REQ-20260421-037`, 선행 done req (`REQ-20260421-028`/`REQ-20260421-023`/`REQ-20260421-034`) + 연관 open req (`REQ-20260421-035`) + 현장 수치 (ci.yml 4 step + typecheck 0 + package.json:24 + vite.config.js:71-82) + HEAD (`0f03547`) 박제.
 - [x] (Must, REQ-037 FR-07) 배치 위치 판단 근거 박제 (§테스트 현황 FR-07 & §변경 이력).
-- [x] (NFR-01, REQ-037) 추적성 — `grep -rn "REQ-20260421-037" specs/30.spec/green/foundation/regression-gate.md` → 3+ hit (§관련 요구사항 / §동작 FR-01 등 본문 / §변경 이력).
+- [x] (NFR-01, REQ-037) 추적성 — `grep -rn "REQ-20260421-037" specs/30.spec/blue/foundation/regression-gate.md` → 3+ hit (§관련 요구사항 / §동작 FR-01 등 본문 / §변경 이력).
 - [x] (NFR-02, REQ-037) RULE-07 정합 — 구체 threshold 숫자 (70/75/80/85/90/95/100) 박제 0 hit (§변경 이력·§참고 감사 교차참조 제외). 특정 CI step 순서 "lint 전", "test 후" 등 박제 0. "TODO" 토큰 0 hit.
-- [x] (NFR-03, REQ-037) 범위 제한 — inspector 세션 diff = `specs/30.spec/green/foundation/regression-gate.md` 신설 + `20.req → 60.done/req` mv. `.github/workflows/*`, `vite.config.js`, `package.json`, `tsconfig.json`, `.husky/**`, `src/**` 변경 0.
+- [x] (NFR-03, REQ-037) 범위 제한 — inspector 세션 diff = `specs/30.spec/blue/foundation/regression-gate.md` 신설 + `20.req → 60.done/req` mv. `.github/workflows/*`, `vite.config.js`, `package.json`, `tsconfig.json`, `.husky/**`, `src/**` 변경 0.
 - [x] (NFR-04, REQ-037) 차원 분리 — 본 spec 어디에도 "ESLint 플랫 구성", "lint-staged 대상", "ambient type alias", "`@/common/*` 등 path alias", "Vitest coverage `include: src/**/*.{js,jsx,ts,tsx}`" 같은 REQ-028 영역 불변식 재박제 0 (참조만 허용). 본 spec 은 **회귀 게이트 차원** 만 박제.
 - [x] (NFR-05, REQ-037) 적용 범위 — FR-01 "CI workflow" 범위는 `.github/workflows/*.yml` 전체, FR-02 "coverage 구성" 범위는 vitest config 파일. 특정 파일명 고정 박제 0.
 - [x] (NFR-06, REQ-037) 버전 무관성 — FR-01/FR-02 본문이 TypeScript 메이저 버전, Vitest 메이저 버전, Node 메이저 버전에 무관 표현.
@@ -94,7 +94,7 @@ GitHub Actions CI workflow (`.github/workflows/*.yml`) 는 `npm ci` 이후 `npm 
 - **직교 축 spec**:
   - `specs/30.spec/blue/foundation/ci.md` — CI 환경 축 (GitHub Actions 사용 + Node LTS + 메이저 floating 태그). 본 spec 과 step 커버리지 축 직교.
   - `specs/30.spec/blue/foundation/tooling.md` — 도구 구성 축 (ESLint·lint-staged·ambient alias·Vitest coverage include 범위). 본 spec 과 threshold 축 직교.
-  - `specs/30.spec/green/foundation/dependency-bump-gate.md` (REQ-20260421-035) — dep bump 후 회귀 0 + React 런타임 경고 0. 본 spec 의 FR-04 에서 상호 관계 명시.
+  - `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-20260421-035) — dep bump 후 회귀 0 + React 런타임 경고 0. 본 spec 의 FR-04 에서 상호 관계 명시.
 - **외부 근거**:
   - TypeScript 공식 — `tsc --noEmit` 은 타입 검사만 수행하며 `allowJs`/`checkJs` 설정에 따라 `.js` 포함 여부 분기. CI green 조건으로 관례적 채택.
   - Vitest 공식 — `test.coverage.thresholds`: `{ lines, statements, functions, branches }` 4축 또는 단일 숫자 (모든 축 동일 적용). 임계 미달 시 비-0 exit.

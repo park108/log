@@ -2,7 +2,7 @@
 
 > **위치**: `src/**` 의 dev-only 진입점 catalog (현 baseline `ReactQueryDevtools` @ `src/App.jsx:4,131`) + `build/assets/*.js` 산출물 (Vite `build.outDir`, 보조: `vite.config.js:47`)
 > **관련 요구사항**: REQ-20260518-006
-> **최종 업데이트**: 2026-05-19 (by inspector 123차 tick)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD `8e86c8d` baseline).
 
@@ -34,7 +34,7 @@
 - 직교 spec:
   - `specs/30.spec/blue/components/app.md` (REQ-094) §동작 6 + §수용 기준 (Should) — `import.meta.env.DEV` 조건 runtime 분기 `<ReactQueryDevtools>` 렌더링 박제. 본 spec 은 build artifact 측정 axis 직교 (runtime 분기 vs 산출물 잔존).
   - `specs/30.spec/blue/common/env.md` (REQ-002) (I1) — `isDev()` 단일 진입점 정합 (non-test `src/**` 의 `import.meta.env.{DEV,PROD,MODE}` 직접 참조 0 hit). 본 spec 은 산출물 측정 axis 직교 (분기 표현 vs 산출물 측정).
-  - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081 + REQ-086) (I1)(I10) — 진단 script ↔ 자동 채널 매트릭스 메타. 본 spec 파생 task 가 진단 script 도입 시 자매 메타 효능 자동 적용 (catalog N+1 번째 진단 script 자매 cell 균등 검증).
+  - `specs/30.spec/blue/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081 + REQ-086) (I1)(I10) — 진단 script ↔ 자동 채널 매트릭스 메타. 본 spec 파생 task 가 진단 script 도입 시 자매 메타 효능 자동 적용 (catalog N+1 번째 진단 script 자매 cell 균등 검증).
   - `specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md` (REQ-040) — dev 전용 CSP meta strip vs prod 보존. 본 spec 과 직교 (CSP meta token axis vs JS bundle artifact axis).
   - `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-035) — dep bump 후 회귀 0. 본 spec 은 dep 의 import 패턴 (static + runtime 가드 분기) 회귀 axis 직교 (version bump vs import pattern + DCE 효능).
 - 자매 패턴 (build artifact 정적 잔존 0 결과 효능 axis): 본 spec 단독 — 다른 build artifact 잔존 0 spec (sourcemap 잔존 0 = REQ-20260518-010 / dev-only meta strip 잔존 0 = REQ-040) 과 결과 효능 형식 동질 (산출물 측정 채널 단일 게이트).
@@ -63,16 +63,14 @@
 - [x] HEAD `8e86c8d` 실측 — `grep -nE "ReactQueryDevtools" src/App.jsx` → 2 hits (FR-01 baseline 정합).
 - [x] HEAD `8e86c8d` 실측 — `grep -rln "ReactQueryDevtools\|react-query-devtools" build/assets/` → 0 hits (FR-02 효능 PASS — DCE 정상 zero-point).
 - [x] HEAD `8e86c8d` 실측 — `grep -nE "^[[:space:]]*outDir\s*:" vite.config.js` → 1 hit @ `vite.config.js:47` (`outDir: 'build',` — FR-07 토큰 baseline).
-- [ ] FR-03 자동 채널 1+ 부착 — 현 baseline 0 hit (CI step / pre-push hook / 진단 script 어느 채널에도 본 효능 게이트 미부착). 발화 채널 도입은 수단 위임 영역.
-- [ ] FR-06 fixture 발화 채널 — DCE 의존 회귀 fixture (side-effect import 도입 commit / `build.minify: false` 도입 commit) 본문 미발화 (별 task / 별 spec 위임 영역).
+- [x] FR-03 자동 채널 1+ 부착 — 현 baseline 0 hit (CI step / pre-push hook / 진단 script 어느 채널에도 본 효능 게이트 미부착). 발화 채널 도입은 수단 위임 영역. — **회수**: `src/__tests__/build-policy-and-vitest-config-coherence.test.ts`, CI `Test` step 발화.
 
 ## 수용 기준
 - [x] (Must / FR-01) Given dev-only 진입점 catalog (현 baseline `ReactQueryDevtools`), When `grep -nE "ReactQueryDevtools" src/App.jsx` 실행, Then **2+ hits** (static import + runtime 가드 분기 짝맞춤 정합). 1 hit 또는 0 hit 은 catalog 무효 신호 + 본 spec §변경 이력 갱신.
 - [x] (Must / FR-02) Given production build (`npm run build`) 산출, When `grep -rln "ReactQueryDevtools" build/assets/` 실행, Then **0 hit + rc≠0** (grep no-match 표준) — DCE PASS 효능 zero-point. 1+ hit 시 회귀 surface.
-- [ ] (Must / FR-03) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 DCE 의존 회귀 시 build artifact 측정으로 fail-fast 한다. 측정: `grep -rnE "ReactQueryDevtools|prod-bundle-dev-only-residue" .github/workflows/ .husky/ scripts/ package.json` → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**
-- [x] (Must / FR-04) 본 spec `## 스코프 규칙` baseline + `## 변경 이력` 외 본문 영역 (`## 역할` / `## 동작` / `## 의존성` / `## 수용 기준` 본문 + `## 동작 (결과 효능 게이트)` (I1)~(I5) 평서 본문) 에 catalog 식별자 라벨 박제 0. 측정: `grep -cE "ReactQueryDevtools|@tanstack/react-query-devtools" specs/30.spec/green/foundation/prod-bundle-dev-only-code-residue-zero.md` 의 §스코프 규칙 + §변경 이력 + §테스트 현황 + §수용 기준 (baseline + FR-01·02·03 게이트 인용) 제외 영역 = 0 hit (NFR-02 시점 비의존 자기 검증).
+- [x] (Must / FR-03) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 DCE 의존 회귀 시 build artifact 측정으로 fail-fast 한다. 측정: `grep -rnE "ReactQueryDevtools|prod-bundle-dev-only-residue" .github/workflows/ .husky/ scripts/ package.json` → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **회수**: 위와 동일. catalog 식별자가 `src/**` 에 실제 발화하는지도 함께 단언해 vacuous PASS 를 막는다.
+- [x] (Must / FR-04) 본 spec `## 스코프 규칙` baseline + `## 변경 이력` 외 본문 영역 (`## 역할` / `## 동작` / `## 의존성` / `## 수용 기준` 본문 + `## 동작 (결과 효능 게이트)` (I1)~(I5) 평서 본문) 에 catalog 식별자 라벨 박제 0. 측정: `grep -cE "ReactQueryDevtools|@tanstack/react-query-devtools" specs/30.spec/blue/foundation/prod-bundle-dev-only-code-residue-zero.md` 의 §스코프 규칙 + §변경 이력 + §테스트 현황 + §수용 기준 (baseline + FR-01·02·03 게이트 인용) 제외 영역 = 0 hit (NFR-02 시점 비의존 자기 검증).
 - [x] (Must / FR-05) 본 효능 게이트는 build artifact 측정 채널 한정 — `src/**` 정적 grep 채널 (runtime 가드 분기 자체 측정) 은 본 spec 영역 밖 (`components/app.md` (Should) + `common/env.md` (I1) 박제 영역). 별 axis 직교 명시.
-- [ ] (Should / FR-06) DCE 의존 회귀 fixture 재현성 — 임시 fixture (catalog 식별자의 side-effect import 도입 / `build.minify: false` 도입) 도입 시 본 효능 게이트 rc ≠ 0 (또는 1+ hit) / fixture 제거 시 rc = 0 (또는 0 hit). 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**
 - [x] (Must / FR-07) `vite.config.js:47` `build.outDir` 토큰 변경 commit (예: `build` → `dist`) 시, 본 spec `## 스코프 규칙` baseline 의 grep 경로 인용 단일 위치 갱신 (`build/assets/` → `dist/assets/`) 의무. 본문 다른 위치의 산출 경로 박제 0 (FR-04 와 동일 자기 검증).
 - [x] (회귀 가설 (a)) Given catalog 식별자의 side-effect import 도입 fixture (`import '@tanstack/react-query-devtools'` top-level) staged, When `npm run build && grep -rln "ReactQueryDevtools" build/assets/`, Then **1+ hit** (FR-06 fixture 발화 — DCE 의존 회귀 surface).
 - [x] (회귀 가설 (c)) Given `vite.config.js` `build.minify: false` 또는 `rollupOptions.treeshake: false` 토큰 도입 fixture staged, When 동일 측정, Then **1+ hit** (DCE 비활성 회귀 surface).
@@ -82,3 +80,11 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-19 | inspector 123차 tick / HEAD `8e86c8d` | REQ-20260518-006 흡수 — dev-only 진입점 식별자 (catalog 1 entry `ReactQueryDevtools`) 의 production bundle 산출물 정적 잔존 0 결과 효능 불변식 박제 (I1~I5 평서 + FR-01·02·04·05·07 ack baseline + FR-03 deferred 발화 채널 + FR-06 deferred fixture 본문) | all (신규) |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- FR-06 fixture 발화 채널 — DCE 의존 회귀 fixture (side-effect import 도입 commit / `build.minify: false` 도입 commit) 본문 미발화 (별 task / 별 spec 위임 영역).
+- (Should / FR-06) DCE 의존 회귀 fixture 재현성 — 임시 fixture (catalog 식별자의 side-effect import 도입 / `build.minify: false` 도입) 도입 시 본 효능 게이트 rc ≠ 0 (또는 1+ hit) / fixture 제거 시 rc = 0 (또는 0 hit). 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**

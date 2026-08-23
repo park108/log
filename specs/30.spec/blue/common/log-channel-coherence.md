@@ -80,8 +80,8 @@ production 코드의 `console.log` 호출이 **단일 진입점 (dev-only logger
   - (G3) **[단일 진입점 정의 single source]** `grep -rnE "^export\s+(const|function)\s+log\b" src --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"` → **1 hit** @`src/common/common.ts` (HEAD=`72f5492` 실측 PASS). 다른 src 파일에서 `export const log` / `export function log` 정의 0 hit.
   - (G4) **[총 console.log hit 분포 (감사성)]** `grep -rnE "console\.log" src --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" | wc -l` → **14 hit** (HEAD=`72f5492` 실측). 단일 진입점 정의 내부 3 hit (`src/common/common.ts:40-42`) + 주석 1 hit (`src/index.jsx:26`) + test 영역 10 hit. 제외 규칙 적용 후 (G1) 0 hit 으로 수렴.
   - (G5) **[ESLint `no-console` rule 현 상태]** `grep -nE "no-console" eslint.config.js` → 0 hit (rule level 미박제 baseline). 본 spec FR-07 수단 중립 — 효능 충족 수단으로 rule 박제 / wrapper / grep gate 어느 쪽이든 허용. 현 시점 grep gate 단일 절차로 효능 측정.
-  - (G6) **[FR-06 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/green/common/log-channel-coherence.md | grep -cE "Monitor\.jsx|FileItem\.tsx|VisitorMon\.jsx|ContentItem\.jsx|WebVitalsItem\.jsx|FileDrop\.tsx|FileUpload\.tsx|File\.tsx|ApiCallItem\.jsx|ImageSelector\.tsx|Comment\.tsx|Search\.tsx|LogItemInfo\.jsx|LogList\.jsx|LogItem\.jsx|Writer\.jsx|common\.test\.ts"` → **0 hit** (본문 §역할 + §동작 + §회귀 중점 + §의존성 어디서도 구체 호출측 파일명 박제 0). HEAD=`72f5492` 박제 시점 실측 PASS.
-  - (G7) **[FR-07 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/common/log-channel-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본문 §역할 + §동작 + §회귀 중점 한정 — 수단 후보 라벨 부여 0). HEAD=`72f5492` 박제 시점 실측 PASS.
+  - (G6) **[FR-06 시점 비의존성 자기 검증]** `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/common/log-channel-coherence.md | grep -cE "Monitor\.jsx|FileItem\.tsx|VisitorMon\.jsx|ContentItem\.jsx|WebVitalsItem\.jsx|FileDrop\.tsx|FileUpload\.tsx|File\.tsx|ApiCallItem\.jsx|ImageSelector\.tsx|Comment\.tsx|Search\.tsx|LogItemInfo\.jsx|LogList\.jsx|LogItem\.jsx|Writer\.jsx|common\.test\.ts"` → **0 hit** (본문 §역할 + §동작 + §회귀 중점 + §의존성 어디서도 구체 호출측 파일명 박제 0). HEAD=`72f5492` 박제 시점 실측 PASS.
+  - (G7) **[FR-07 수단 라벨 자기 검증]** `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/common/log-channel-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → **0 hit** (본문 §역할 + §동작 + §회귀 중점 한정 — 수단 후보 라벨 부여 0). HEAD=`72f5492` 박제 시점 실측 PASS.
 - **rationale**: (G1)(G2)(G3) 본 spec 핵심 효능 baseline — 3 게이트 모두 zero-point PASS (호출측 직접 호출 0 + 진입점 광범위 1+ + 단일 정의 1). (G4) 감사성 — 총 hit 분포 (단일 진입점 내부 + 주석 + test) 제외 규칙 적용 후 0 hit 수렴 증거. (G5) ESLint `no-console` rule 현 baseline (미박제) — FR-07 수단 중립 박제 (도입 결정은 별 영역). (G6)(G7) RULE-07 정합 자기 검증.
 
 ## 변경 이력
@@ -95,12 +95,12 @@ production 코드의 `console.log` 호출이 **단일 진입점 (dev-only logger
   - `specs/30.spec/blue/components/common.md:175` (d-1) `console.error` 호출측 0 hit (제외 규칙 `errorReporter\.` + `\.test\.`) + `:176` (d-2) `reportError` 호출 50 hit (REQ-074 + 선행 REQ-039). 본 spec 의 log 채널 자매 게이트와 메타 패턴 동치 + 영역 직교 (error / log 채널).
   - `src/common/errorReporter.ts:7` `export function reportError` — error 채널 단일 진입점. 본 spec 의 log 채널 단일 진입점 (`src/common/common.ts:33` `export const log`) 과 자매 사례.
 - **선행 자매 spec (메타 패턴 동질 — 자동 차단 게이트)**:
-  - `specs/30.spec/green/foundation/lint-warning-zero-gate.md` (REQ-080) — ESLint warning 자동 차단 게이트. 본 spec 과 패턴 동질 (효능 게이트의 자동 차단) + 영역 직교 (rule level vs grep 단일 채널).
-  - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081) — 진단 script ↔ 자동 채널 부착 메타. 본 spec 박제 후 grep 검증 자동 채널 부착은 별 task 영역 (수단 중립).
+  - `specs/30.spec/blue/foundation/lint-warning-zero-gate.md` (REQ-080) — ESLint warning 자동 차단 게이트. 본 spec 과 패턴 동질 (효능 게이트의 자동 차단) + 영역 직교 (rule level vs grep 단일 채널).
+  - `specs/30.spec/blue/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081) — 진단 script ↔ 자동 채널 부착 메타. 본 spec 박제 후 grep 검증 자동 채널 부착은 별 task 영역 (수단 중립).
 - **관련 spec (보완 / 직교)**:
   - `specs/30.spec/blue/foundation/tooling.md` (REQ-028 외) §동작 6 ESLint flat-config last-write-wins — 본 spec 과 직교 (rule 정의 의미론 vs grep 채널 검증).
   - `specs/30.spec/blue/foundation/regression-gate.md` (REQ-20260421-037) — CI typecheck step 박제. 본 spec 과 직교 (typecheck 1축 vs grep 채널 1축).
-  - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` 자동 게이트. 본 spec 과 직교 (spec 참조 정합 vs 채널 정합) + 메타 패턴 동질 (단일 절차 grep).
+  - `specs/30.spec/blue/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` 자동 게이트. 본 spec 과 직교 (spec 참조 정합 vs 채널 정합) + 메타 패턴 동질 (단일 절차 grep).
 - **외부 레퍼런스**:
   - ESLint `no-console` rule — `https://eslint.org/docs/latest/rules/no-console`. 본 spec FR-07 수단 중립 옵션 (rule 박제 도입은 별 영역).
   - 단일 채널 진입점 패턴 — Sentry / DataDog / OpenTelemetry SDK 일반 (application code 가 SDK 단일 진입점만 호출, native `console.*` 직접 호출 금지). 본 repo 의 `common.ts:33` `export const log` 는 그 패턴의 단순화 형태 (dev-only logger).

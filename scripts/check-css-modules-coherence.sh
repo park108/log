@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-css-modules-coherence.sh
-# Spec: specs/30.spec/green/styles/css-modules.md §동작 (I1)+(I2)+(I6)+(I8) + §수용 기준 Must (REQ-016 FR-05)
+# Spec: specs/30.spec/blue/styles/css-modules.md §동작 (I1)+(I2)+(I6)+(I8) + §수용 기준 Must (REQ-016 FR-05)
 # Task: TSK-20260518-23
 #
 # G-I1: src/**/*.module.css cardinality = 4 (stage-1 enum: Toaster / Comment / ImageSelector / Search).

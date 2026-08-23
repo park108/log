@@ -2,7 +2,7 @@
 
 > **위치**: `vite.config.js` (`build.sourcemap` 토큰 + `build.outDir` 토큰) ↔ production build 산출물 (`build/**`, 보조: `vite.config.js` `build.outDir`)
 > **관련 요구사항**: REQ-20260518-010
-> **최종 업데이트**: 2026-05-19 (by inspector 124차 tick)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: C단계 마커 회수 + green→blue promote)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (HEAD `f070428` baseline).
 
@@ -32,11 +32,11 @@
 - 외부: Vite `build.sourcemap` 옵션 계약 (`https://vite.dev/config/build-options.html#build-sourcemap`, `boolean | 'inline' | 'hidden'`, 기본값 `false`), Rollup sourcemap 산출 계약 (`https://rollupjs.org/configuration-options/#output-sourcemap`).
 - 역의존 (사용처): production deploy 단계의 모든 정적 검사 채널 (CI 게이트 + pre-push hook + 진단 script aggregator) 이 본 결과 효능 게이트의 0 hit 보장에 의존; production runtime 의 sourcemap 노출 표면적 (reverse engineering 표면) 이 본 정책의 박제에 의존.
 - 직교 spec:
-  - `specs/30.spec/green/foundation/prod-bundle-dev-only-code-residue-zero.md` (REQ-20260518-006) — production bundle 의 dev-only 진입점 식별자 잔존 0. 본 spec 과 axis 직교 (식별자 잔존 vs sourcemap 잔존, 양쪽 모두 build artifact 측정이지만 측정 대상 분리).
+  - `specs/30.spec/blue/foundation/prod-bundle-dev-only-code-residue-zero.md` (REQ-20260518-006) — production bundle 의 dev-only 진입점 식별자 잔존 0. 본 spec 과 axis 직교 (식별자 잔존 vs sourcemap 잔존, 양쪽 모두 build artifact 측정이지만 측정 대상 분리).
   - `specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md` (REQ-040) — dev 전용 CSP meta strip vs prod 보존. 본 spec 과 axis 분리 (CSP meta token 비대칭 vs sourcemap artifact 잔존 0, 양쪽 모두 dev/prod 정책이지만 토큰 종류 분리).
   - `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-035) — dep bump 후 회귀 0. 본 spec 은 Vite 메이저 bump 시 기본값 변경 회귀 보호 axis 직교 (정책 선언 명시 박제로 메이저 bump 의존 차단).
-  - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081 + REQ-086) (I1)(I10) — 진단 script ↔ 자동 채널 매트릭스 메타. 본 spec 파생 task 가 진단 script 도입 시 자매 메타 효능 자동 적용 (catalog N+1 번째 진단 script 자매 cell 균등 검증).
-  - `specs/30.spec/green/foundation/index-html-public-asset-reference-coherence.md` (REQ-099) — `index.html` 정적 자원 참조 4종 + manifest icon 디스크 정합. 본 spec 과 직교 (HTML 자원 참조 token vs build 산출물 sourcemap token).
+  - `specs/30.spec/blue/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081 + REQ-086) (I1)(I10) — 진단 script ↔ 자동 채널 매트릭스 메타. 본 spec 파생 task 가 진단 script 도입 시 자매 메타 효능 자동 적용 (catalog N+1 번째 진단 script 자매 cell 균등 검증).
+  - `specs/30.spec/blue/foundation/index-html-public-asset-reference-coherence.md` (REQ-099) — `index.html` 정적 자원 참조 4종 + manifest icon 디스크 정합. 본 spec 과 직교 (HTML 자원 참조 token vs build 산출물 sourcemap token).
 - 자매 패턴 (build artifact 정적 잔존 0 결과 효능 axis): `prod-bundle-dev-only-code-residue-zero.md` (REQ-006) 와 결과 효능 형식 동질 (산출물 측정 채널 단일 게이트), 측정 surface 직교 (sourcemap artifact vs identifier artifact). 양 spec 의 발화 채널 부착은 동일 자동 채널 매트릭스 (`diagnostic-script-auto-channel-coverage.md`) 메타 영역에서 통합 surface 후보.
 
 ## 스코프 규칙
@@ -63,16 +63,14 @@
 - [x] HEAD `f070428` 실측 — `find build -name "*.map" | wc -l` → 0 (FR-02 `.map` 잔존 0 PASS).
 - [x] HEAD `f070428` 실측 — `grep -rcE "sourceMappingURL" build/assets/` → 모든 파일 0 hit (FR-03 `sourceMappingURL` 잔존 0 PASS — `*.js` 44 file + `*.css` 11 file 전수).
 - [x] HEAD `f070428` 실측 — `grep -nE "^[[:space:]]*outDir\s*:" vite.config.js` → 1 hit @ `vite.config.js:49` (`outDir: 'build',` — FR-05 토큰 baseline).
-- [ ] FR-04 자동 채널 1+ 부착 — 현 baseline 0 hit (CI step / pre-push hook / 진단 script 어느 채널에도 본 효능 게이트 미부착). 발화 채널 도입은 수단 위임 영역.
-- [ ] FR-06 fixture 발화 채널 — sourcemap 정책 회귀 fixture (`sourcemap: true` 도입 commit / `sourcemap: 'inline'` 도입 commit / 라인 삭제 commit) 본문 미발화 (별 task / 별 spec 위임 영역).
+- [x] FR-04 자동 채널 1+ 부착 — 현 baseline 0 hit (CI step / pre-push hook / 진단 script 어느 채널에도 본 효능 게이트 미부착). 발화 채널 도입은 수단 위임 영역. — **회수**: `src/__tests__/build-policy-and-vitest-config-coherence.test.ts`, CI `Test` step 발화.
 
 ## 수용 기준
 - [x] (Must / FR-01) Given HEAD `f070428` baseline, When `grep -cE "^\s*sourcemap:\s*false," vite.config.js` 실행, Then 출력 = **1** + rc=0 (정책 토큰 박제). 0 또는 2+ 는 정책 회귀 surface + 본 spec §변경 이력 갱신.
 - [x] (Must / FR-02) Given production build (`npm run build`) 산출, When `find build -name "*.map" | wc -l` 실행, Then 출력 = **0** (`.map` 확장 파일 잔존 0 효능 zero-point). 1+ 시 회귀 surface.
 - [x] (Must / FR-03) Given 동일 build 산출, When `grep -rcE "sourceMappingURL" build/assets/` 실행, Then 모든 파일 0 hit (`*.js` 44 file + `*.css` 11 file 전수 0). 1+ 파일에서 1+ hit 시 회귀 surface (인라인 base64 또는 외부 `.map` 참조).
-- [ ] (Must / FR-04) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (a)(b)(c)(d) 회귀 시 fail-fast 한다. 측정: `grep -rnE "sourcemap|\.map\b|sourceMappingURL" .github/workflows/ .husky/ scripts/` (또는 spec 박제 토큰 / 진단 script basename) → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**
+- [x] (Must / FR-04) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (a)(b)(c)(d) 회귀 시 fail-fast 한다. 측정: `grep -rnE "sourcemap|\.map\b|sourceMappingURL" .github/workflows/ .husky/ scripts/` (또는 spec 박제 토큰 / 진단 script basename) → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **주입 검증**: `sourcemap: false` → `true` 주입 시 1 failed / 8 passed 검출.
 - [x] (Must / FR-05) `vite.config.js:49` `build.outDir` 토큰 변경 commit (예: `build` → `dist`) 시, 본 spec `## 스코프 규칙` baseline 의 measurement path 인용 단일 위치 갱신 (`build/` → `dist/`, `build/assets/` → `dist/assets/`) 의무. 본문 다른 위치의 산출 경로 박제 0 (자기 검증). REQ-20260518-006 FR-07 자매.
-- [ ] (Should / FR-06) sourcemap 정책 회귀 fixture 재현성 — 임시 fixture (`vite.config.js` `sourcemap: true` 도입 / `sourcemap: 'inline'` 도입 / `sourcemap` 라인 삭제) 도입 시 본 효능 게이트 측정 1+ hit (또는 정책 grep count = 0) / fixture 제거 시 baseline 복원. 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**
 - [x] (Must / FR-07) 본 효능 게이트는 정책 + 효능 **양면 동시** 박제 — FR-01 정책 grep + FR-02·FR-03 산출물 측정 양면 게이트 필수. 한쪽만으로는 회귀 surface 누락 (FR-01 만 → CLI flag override 미검출, FR-02·FR-03 만 → build 미실행 시 정책 회귀 미검출). (I5) 평서 박제.
 - [x] (회귀 가설 (a)) Given `vite.config.js:50` 을 `sourcemap: true` 로 변경 fixture staged, When `npm run build && find build -name "*.map" | wc -l`, Then 출력 > 0 (FR-02 회귀 surface — `.map` 파일 산출).
 - [x] (회귀 가설 (a)') Given 동일 fixture, When `grep -rcE "sourceMappingURL" build/assets/`, Then 1+ file 에서 1+ hit (FR-03 회귀 surface — `sourceMappingURL` 주석 산출).
@@ -83,3 +81,11 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-19 | inspector 124차 tick / HEAD `f070428` | REQ-20260518-010 흡수 — `vite.config.js` `build.sourcemap=false` 정책 토큰 + production build 산출물 (`build/**`) 의 `.map` 잔존 0 + `sourceMappingURL` 주석 잔존 0 의 정책 ↔ 효능 2-axis 직접 coherence 결과 효능 불변식 박제 (I1~I6 평서 + FR-01·02·03·05·07 ack baseline + FR-04 deferred 발화 채널 + FR-06 deferred fixture 본문) | all (신규) |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- FR-06 fixture 발화 채널 — sourcemap 정책 회귀 fixture (`sourcemap: true` 도입 commit / `sourcemap: 'inline'` 도입 commit / 라인 삭제 commit) 본문 미발화 (별 task / 별 spec 위임 영역).
+- (Should / FR-06) sourcemap 정책 회귀 fixture 재현성 — 임시 fixture (`vite.config.js` `sourcemap: true` 도입 / `sourcemap: 'inline'` 도입 / `sourcemap` 라인 삭제) 도입 시 본 효능 게이트 측정 1+ hit (또는 정책 grep count = 0) / fixture 제거 시 baseline 복원. 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**
