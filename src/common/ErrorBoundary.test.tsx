@@ -109,4 +109,17 @@ describe('ErrorBoundary', () => {
 		expect(screen.getByText('child ok')).toBeInTheDocument();
 		expect(screen.queryByText('fallback ui')).not.toBeInTheDocument();
 	});
+
+	it('renders nothing when a nullish fallback is given', () => {
+		// render() 의 `fallback ?? null` 우측 분기 — fallback 이 없는 경계에서도
+		// 자식 트리 대신 빈 출력으로 안전하게 귀결한다.
+		const { container } = render(
+			<ErrorBoundary fallback={null}>
+				<Bomb shouldThrow={true} />
+			</ErrorBoundary>
+		);
+
+		expect(container).toBeEmptyDOMElement();
+		expect(screen.queryByText('child ok')).not.toBeInTheDocument();
+	});
 });

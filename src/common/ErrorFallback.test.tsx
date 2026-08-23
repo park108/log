@@ -58,4 +58,15 @@ describe('ErrorFallback', () => {
 
 		expect(screen.getByText(/예기치 않은 오류가 발생했습니다/)).toBeInTheDocument();
 	});
+
+	it('treats an error without a message as a generic (non-network) error', () => {
+		// isNetworkError 의 `error.message ?? ''` 우측 분기 — 직렬화 복원 등으로
+		// message 가 없는 오류 객체도 정규식 검사에서 안전하게 일반 메시지로 귀결한다.
+		const error = { name: 'RestoredError' } as Error;
+
+		render(<ErrorFallback error={error} />);
+
+		expect(screen.getByText(/예기치 않은 오류가 발생했습니다/)).toBeInTheDocument();
+		expect(screen.queryByText(/연결을 확인하고/)).not.toBeInTheDocument();
+	});
 });

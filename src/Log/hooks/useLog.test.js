@@ -44,4 +44,19 @@ describe('useLog', () => {
 		expect(result.current.isSuccess).toBe(false);
 		expect(result.current.isError).toBe(false);
 	});
+
+	it('surfaces error state when getLog returns a non-ok response', async () => {
+		api.getLog.mockResolvedValueOnce({
+			ok: false,
+			status: 500,
+			json: async () => ({}),
+		});
+
+		const { Wrapper } = createQueryTestWrapper();
+		const { result } = renderHook(() => useLog(1655737033793), { wrapper: Wrapper });
+
+		await waitFor(() => expect(result.current.isError).toBe(true));
+		expect(result.current.error).toBeInstanceOf(Error);
+		expect(result.current.error.message).toContain('500');
+	});
 });

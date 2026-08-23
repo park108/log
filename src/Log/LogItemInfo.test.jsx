@@ -338,4 +338,19 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-05) — M5 Edit Link sp
 		expect(el.getAttribute('tabIndex')).toBeNull();
 		expect(el.getAttribute('onkeydown')).toBeNull();
 	});
+
+	it('temporary=true 이면 제목에 임시 글 마커가 노출된다', () => {
+		renderInfo({ temporary: true });
+
+		expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('✍️');
+	});
+
+	it('item 이 없으면 관리자 툴바에서 버전 버튼을 렌더하지 않는다', () => {
+		// 버전 버튼은 관리자 툴바 안에 있으므로 isAdmin()=true 로 툴바를 노출시킨 뒤
+		// `hasValue(item)` 거짓 분기를 확인한다.
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo({ item: undefined });
+
+		expect(screen.queryByTestId('versions-button')).not.toBeInTheDocument();
+	});
 });
