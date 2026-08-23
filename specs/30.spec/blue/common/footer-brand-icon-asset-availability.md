@@ -80,7 +80,7 @@ Footer 가 발화하는 모든 브랜드 아이콘 자산 참조는 **3-축 (가
      |---|---|---|---|
      | 1 | `index.html` | `:9` `img-src 'self' data: https://d0.awsstatic.com https://brand.linkedin.com` | 원본 CSP directive |
      | 2 | `src/__tests__/csp-meta-build-artifact-preservation.test.ts` | `:49` | build artifact 보존 fixture 의 directive 문자열 박제 |
-     | 3 | `specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md` | `:19` | 자매 spec §동작 의 원본 directive 박제 |
+     | 3 | `specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md` | `:19` | 자매 spec §동작 의 원본 directive 박제 |
      | 4 | `src/common/Footer.tsx` | `:52` | 발화 원점 (G-A 대상) |
 
    - 추가 stale 후보 (게이트 대상 아님, 갱신 신호): `specs/20.req/20260518-csp-meta-img-src-allowlist-src-external-domain-token-coherence.md` 의 §baseline (`{d0.awsstatic.com, brand.linkedin.com}` 2-origin 집합) — 본 spec 이행 시 해당 req 의 baseline 은 1-origin 집합으로 재측정 필요. **req 큐 파일은 내용 수정 금지 (RULE-01)** 이므로, 정합 회복은 inspector 흡수 시점 재측정으로 위임한다.
@@ -145,7 +145,7 @@ Footer 가 발화하는 모든 브랜드 아이콘 자산 참조는 **3-축 (가
 
 ## 스코프 규칙
 
-- **expansion**: 불허 — 본 spec 의 게이트 충족 목적 변경은 아래 baseline 열거 표면 (`src/common/Footer.tsx`, `index.html`, `src/__tests__/csp-meta-build-artifact-preservation.test.ts`, `specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md`) + 신규 파일 (`src/common/Footer.test.tsx`, 수단 2 선택 시 `public/<asset>`) 로 한정. `d0.awsstatic.com` 관련 표면은 scope 밖이며 위반 hit 발견 시 `50.blocked/task/` 격리.
+- **expansion**: 불허 — 본 spec 의 게이트 충족 목적 변경은 아래 baseline 열거 표면 (`src/common/Footer.tsx`, `index.html`, `src/__tests__/csp-meta-build-artifact-preservation.test.ts`, `specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md`) + 신규 파일 (`src/common/Footer.test.tsx`, 수단 2 선택 시 `public/<asset>`) 로 한정. `d0.awsstatic.com` 관련 표면은 scope 밖이며 위반 hit 발견 시 `50.blocked/task/` 격리.
 - **grep-baseline** (HEAD=`e1d3501`, 2026-08-24 실측):
   - `grep -rnE 'src="https?://' src --include="*.tsx" --include="*.jsx" --include="*.ts" --include="*.js"` → **2 hits in 1 file**:
     - `src/common/Footer.tsx:19` — `src="https://d0.awsstatic.com/logos/powered-by-aws.png"` (별 axis, HTTP 200)
@@ -156,7 +156,7 @@ Footer 가 발화하는 모든 브랜드 아이콘 자산 참조는 **3-축 (가
     - `index.html:9`
     - `src/__tests__/csp-meta-build-artifact-preservation.test.ts:49`
     - `src/common/Footer.tsx:52`
-    - `specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md:19`
+    - `specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md:19`
   - `grep -c "<svg" src/common/Footer.tsx` → **1** (GitHub 아이콘 — inline 수단의 기존 선례).
   - `ls src/common/*.test.*` → **14 파일**, `Footer` 대응 **0** (G-G fixture 부재 baseline).
   - `wc -l src/common/Footer.tsx` → **64**.

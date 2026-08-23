@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-commit-writer-coherence.sh
-# Spec: specs/30.spec/green/foundation/multi-agent-commit-message-writer-scope-coherence.md §동작 (C1)+(C2)+(C3)+(C4)+(C5) + §수용 기준 Must (REQ-20260518-028 FR-03)
+# Spec: specs/30.spec/blue/foundation/multi-agent-commit-message-writer-scope-coherence.md §동작 (C1)+(C2)+(C3)+(C4)+(C5) + §수용 기준 Must (REQ-20260518-028 FR-03)
 # Task: TSK-20260518-24
 #
 # G-C1 메시지 prefix → writer label (msg_label):

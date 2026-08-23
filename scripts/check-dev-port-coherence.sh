@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-dev-port-coherence.sh
-# Spec: specs/30.spec/green/foundation/dev-server-port-getUrl-token-coherence.md §동작 G-A·G-B·G-C·G-E + §테스트 현황 (FR-03) + §수용 기준 Must (FR-03)
+# Spec: specs/30.spec/blue/foundation/dev-server-port-getUrl-token-coherence.md §동작 G-A·G-B·G-C·G-E + §테스트 현황 (FR-03) + §수용 기준 Must (FR-03)
 # Task: TSK-20260518-19
 #
 # G-A: src/common/common.ts:74 의 dev 분기 `return "http://localhost:<port>/";` 리터럴 hit=1 + port 토큰 capture.

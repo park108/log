@@ -1,7 +1,7 @@
 // TSK-20260518-13 / REQ-20260517-097 — root-level config/script/hook → spec
 // 참조 3축 정합 결정론 측정 fixture.
 //
-// spec: specs/30.spec/green/foundation/root-config-spec-reference-coherence.md
+// spec: specs/30.spec/blue/foundation/root-config-spec-reference-coherence.md
 //       §동작 G-A·G-B·G-C·G-G + §수용 기준 (Must FR-01·FR-02·FR-03·NFR-01·NFR-02·NFR-04).
 //
 // 본 fixture 는 저장소 root 의 빌드/도구/훅/진단 스크립트 7-file 군 내 spec
@@ -35,7 +35,7 @@
 // TSK-11/12 동형 패턴). 토큰은 런타임 부분 조합으로 구성.
 
 import { describe, it, expect } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 // 프로젝트 루트는 본 fixture 위치 (`src/__tests__/`) 기준 상위 2 단계
@@ -49,18 +49,11 @@ const PATH_SELF = join(
 	"root-config-spec-reference-coherence.test.ts",
 );
 
-// 측정 대상 7-file 군 (vite.config.js, eslint.config.js, tsconfig.json,
-// index.html, .husky/pre-commit, .husky/pre-push, scripts/*.sh). scripts/*.sh
-// 는 baseline 시점 5 file (check-deps / check-node-version / check-package-manager
-// / check-spec / check-vite-env).
-const SCRIPTS_BASENAMES = [
-	"check-deps-coherence.sh",
-	"check-node-version-coherence.sh",
-	"check-package-manager-coherence.sh",
-	"check-spec-coherence.sh",
-	"check-vite-env-coherence.sh",
-] as const;
-
+// 측정 대상 — 고정 6 file + scripts/*.sh 전수.
+//
+// scripts 는 하드코딩 목록이었는데, 이후 추가된 스크립트가 목록에 반영되지 않아
+// 그 안의 끊긴 spec 참조가 스캔 범위 밖에 숨어 있었다 (2026-08-24 실측: 2건).
+// 디렉터리 열거로 바꿔 신규 스크립트가 자동으로 범위에 들어오게 한다.
 function rootFilePaths(): readonly string[] {
 	const fixed = [
 		"vite.config.js",
@@ -70,7 +63,10 @@ function rootFilePaths(): readonly string[] {
 		".husky/pre-commit",
 		".husky/pre-push",
 	];
-	const scripts = SCRIPTS_BASENAMES.map((name) => join("scripts", name));
+	const scripts = readdirSync(join(REPO_ROOT, "scripts"))
+		.filter((name) => name.endsWith(".sh"))
+		.sort()
+		.map((name) => join("scripts", name));
 	return [...fixed, ...scripts].map((rel) => join(REPO_ROOT, rel));
 }
 
@@ -107,26 +103,34 @@ function specPath(branch: "blue" | "green", relUnderBranch: string): string {
 // G-B baseline (TSK-20260518-15 회복 후 — 3 sh script `:3` 토큰 green→blue
 // 치환 + 본 fixture baseline 동시 갱신 단일 commit 묶음 시점 측정).
 const EXPECTED_GA_SELF_DIAG_COUNT = 6;
-const EXPECTED_GB_PATH_COUNT = 6;
+// hit 12 / 고유 path 11 — tooling.md 이 check-eslint-ignores-vacuous-zero.sh 와
+// check-vitest-globals-coherence.sh 두 곳에서 참조된다. 본 상수는 hit 수 (= 참조를
+// 가진 파일 수) 이고, EXPECTED_GB_EXISTS 는 고유 path 집합이다.
+const EXPECTED_GB_PATH_COUNT = 12;
 const EXPECTED_GB_MISSING: readonly string[] = [];
 const EXPECTED_GB_EXISTS = [
+	specPath("blue", "foundation/dev-server-port-getUrl-token-coherence.md"),
+	specPath("blue", "foundation/eslint-react-hooks-lint-gate.md"),
+	specPath("blue", "foundation/multi-agent-commit-message-writer-scope-coherence.md"),
+	specPath("blue", "foundation/node-modules-extraneous-coherence.md"),
 	specPath("blue", "foundation/node-version-3axis-coherence.md"),
 	specPath("blue", "foundation/package-manager-major-coherence.md"),
-	specPath("blue", "foundation/vite-env-boundary-typing.md"),
-	specPath("green", "foundation/node-modules-extraneous-coherence.md"),
 	specPath("blue", "foundation/src-spec-reference-coherence.md"),
-	// eslint.config.js 의 react-hooks 게이트 블록 주석 (2026-08-24 회수).
-	specPath("blue", "foundation/eslint-react-hooks-lint-gate.md"),
+	specPath("blue", "foundation/tooling.md"),
+	specPath("blue", "foundation/vite-env-boundary-typing.md"),
+	specPath("green", "foundation/build-coverage-output-dir-tri-surface-coherence.md"),
+	specPath("green", "styles/css-modules.md"),
 ] as const;
 
-// G-C baseline — G-B 추출 5 path 중 green 1 path 의 blue 동시 실재 측정.
-// 0 STALE + 1 OK (green node-modules-extraneous-coherence 만 잔존, blue 측 부재).
+// G-C baseline — 추출된 green 2 path 는 동일 slug blue 가 부재하므로 STALE 0.
 const EXPECTED_GC_GREEN_PATHS = [
-	specPath("green", "foundation/node-modules-extraneous-coherence.md"),
+	specPath("green", "foundation/build-coverage-output-dir-tri-surface-coherence.md"),
+	specPath("green", "styles/css-modules.md"),
 ] as const;
 const EXPECTED_GC_STALE: readonly string[] = [];
 const EXPECTED_GC_OK = [
-	specPath("green", "foundation/node-modules-extraneous-coherence.md"),
+	specPath("green", "foundation/build-coverage-output-dir-tri-surface-coherence.md"),
+	specPath("green", "styles/css-modules.md"),
 ] as const;
 
 // G-A 자체 진단 baseline — exclude rule 매치 라인의 (파일, 라인번호) 박제
@@ -279,7 +283,7 @@ describe("root-config-spec-reference-coherence (TSK-20260518-13)", () => {
 		expect(observed).toEqual(expected);
 	});
 
-	it("G-B / FR-02: root 7-file 군에서 spec path 6 hit / 6 file 추출 + 3 MISSING + 2 EXISTS 집합 박제", () => {
+	it("G-B / FR-02: root 파일군(고정 6 + scripts/*.sh 전수)에서 spec path 12 hit / 12 file 추출 + 0 MISSING + 11 고유 EXISTS 집합 박제", () => {
 		const hits = collectSpecPathHits();
 
 		expect(hits, "G-B path-extract baseline 격차").toHaveLength(
@@ -333,7 +337,7 @@ describe("root-config-spec-reference-coherence (TSK-20260518-13)", () => {
 		}
 	});
 
-	it("G-C / FR-03: green 4 path 중 blue 동시 실재 3 STALE + 1 OK 집합 박제", () => {
+	it("G-C / FR-03: green 2 path 중 blue 동시 실재 0 STALE + 2 OK 집합 박제", () => {
 		const hits = collectSpecPathHits();
 		const greenPaths = Array.from(
 			new Set(hits.map((h) => h.specPath).filter((p) => p.includes("/green/"))),

@@ -104,7 +104,7 @@ repo 의 진단 script (`scripts/check-*.sh` 또는 동등 효능 패턴 — `sc
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-diagnostic-script-auto-channel-coverage.md` (REQ-081 — 본 세션 mv).
 - **선행 자매 spec (단일 게이트 부착 사례 — 본 spec 의 보완 관계)**:
   - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071, TSK-06 / `1cfa78e`) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` staged 조건부 + `package.json scripts.lint:spec-coherence`. 본 spec 매트릭스의 1 cell (pre-commit staged 조건부 1).
-  - `specs/30.spec/green/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073, TSK-09 / `7d085a3`) G4 — `scripts/check-deps-coherence.sh` + CI step + pre-push. 본 spec 매트릭스의 2 cell.
+  - `specs/30.spec/blue/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073, TSK-09 / `7d085a3`) G4 — `scripts/check-deps-coherence.sh` + CI step + pre-push. 본 spec 매트릭스의 2 cell.
   - `specs/30.spec/green/foundation/vite-env-boundary-typing.md` (REQ-20260517-072, TSK-08 / `cb47bd2`) G4 — `scripts/check-vite-env-coherence.sh` + CI step + pre-commit staged 조건부. 본 spec 매트릭스의 2 cell.
   - `specs/30.spec/blue/foundation/node-version-3axis-coherence.md` (REQ-20260517-079, TSK-14 / `3910ba8`, green→blue 승격 `4b5cc1d`) I5 — `scripts/check-node-version-coherence.sh` + `npm run check:node-coherence`. **본 spec 매트릭스의 zero-point cell** (자동 채널 0 부착 — npm script 노출만, CI / hook 어느 것도 호출 0). 본 spec 의 직접 motivating 사례.
 - **선행 자매 spec (패턴 동질 메타)**:

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-deps-coherence.sh
-# Spec: specs/30.spec/green/foundation/node-modules-extraneous-coherence.md §동작 G1·G2 + §G4 자동 게이트
+# Spec: specs/30.spec/blue/foundation/node-modules-extraneous-coherence.md §동작 G1·G2 + §G4 자동 게이트
 # Task: TSK-20260517-09
 #
 # G1 (extraneous 0):     npm ls --depth=0 출력의 ' extraneous$' 라인 카운트 -> 0.
@@ -30,7 +30,10 @@ ls_out="$(npm ls --depth=0 2>&1 || true)"
 extraneous_count="$(printf '%s\n' "$ls_out" | grep -cE ' extraneous$' || true)"
 
 # G2-M: installed top-level entry 카운트 (├ 또는 └ 시작 라인).
-installed_m="$(printf '%s\n' "$ls_out" | grep -cE '^[├└]' || true)"
+# UNMET DEPENDENCY / invalid 라인은 제외한다 — 선언만 있고 실제로 설치되지 않은
+# 항목도 트리 라인으로 출력되므로, 그대로 세면 declared 와 항상 같아져 G2 가
+# 잡으라는 drift (선언 O / 설치 X) 를 정확히 놓친다.
+installed_m="$(printf '%s\n' "$ls_out" | grep -E '^[├└]' | grep -cvE 'UNMET DEPENDENCY|invalid' || true)"
 
 # G2-N: declared (dependencies + devDependencies) 키 수.
 declared_n="$(node -e "const p=require('./package.json'); console.log(Object.keys({...(p.dependencies||{}), ...(p.devDependencies||{})}).length)")"

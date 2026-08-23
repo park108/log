@@ -1,5 +1,5 @@
 // TSK-20260518-10 / REQ-20260517-098 — CSP meta build artifact 보존 결정론 fixture.
-// spec: specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md
+// spec: specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md
 //       §동작 G-A (FR-01) + §수용 기준 FR-01 / NFR-01 / NFR-05.
 //
 // 본 fixture 는 `index.html:9` 의 단일 `<meta http-equiv="Content-Security-Policy">`

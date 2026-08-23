@@ -33,7 +33,7 @@
 - 역의존 (사용처): production deploy 단계의 모든 정적 검사 채널 (CI 게이트 + pre-push hook + 진단 script aggregator) 이 본 결과 효능 게이트의 0 hit 보장에 의존; production runtime 의 sourcemap 노출 표면적 (reverse engineering 표면) 이 본 정책의 박제에 의존.
 - 직교 spec:
   - `specs/30.spec/green/foundation/prod-bundle-dev-only-code-residue-zero.md` (REQ-20260518-006) — production bundle 의 dev-only 진입점 식별자 잔존 0. 본 spec 과 axis 직교 (식별자 잔존 vs sourcemap 잔존, 양쪽 모두 build artifact 측정이지만 측정 대상 분리).
-  - `specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md` (REQ-040) — dev 전용 CSP meta strip vs prod 보존. 본 spec 과 axis 분리 (CSP meta token 비대칭 vs sourcemap artifact 잔존 0, 양쪽 모두 dev/prod 정책이지만 토큰 종류 분리).
+  - `specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md` (REQ-040) — dev 전용 CSP meta strip vs prod 보존. 본 spec 과 axis 분리 (CSP meta token 비대칭 vs sourcemap artifact 잔존 0, 양쪽 모두 dev/prod 정책이지만 토큰 종류 분리).
   - `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-035) — dep bump 후 회귀 0. 본 spec 은 Vite 메이저 bump 시 기본값 변경 회귀 보호 axis 직교 (정책 선언 명시 박제로 메이저 bump 의존 차단).
   - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081 + REQ-086) (I1)(I10) — 진단 script ↔ 자동 채널 매트릭스 메타. 본 spec 파생 task 가 진단 script 도입 시 자매 메타 효능 자동 적용 (catalog N+1 번째 진단 script 자매 cell 균등 검증).
   - `specs/30.spec/green/foundation/index-html-public-asset-reference-coherence.md` (REQ-099) — `index.html` 정적 자원 참조 4종 + manifest icon 디스크 정합. 본 spec 과 직교 (HTML 자원 참조 token vs build 산출물 sourcemap token).

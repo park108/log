@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 빌드/도구 시스템 불변식 — 저장소 root `index.html` 의 단일 `<meta http-equiv="Content-Security-Policy" ...>` 메타 태그 + `vite.config.js` 의 `stripCspMetaInDev` plugin (`vite.config.js:13-27`) + plugin 등록 chain (`vite.config.js:30-36` `plugins: [react(...), svgr(), stripCspMetaInDev()]`). 게이트 측정 대상: `build/index.html` 산출물 (prod) + `transformIndexHtml.handler` 호출 결과 (dev fixture).
 > **관련 요구사항**: REQ-20260517-098
-> **최종 업데이트**: 2026-05-17 (by inspector — 최초 박제; Phase 2 REQ-098 흡수)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: 마커 회수 + 검출 공백 회복 + green→blue promote)
 
 > 본 spec 은 자매 `foundation/root-config-spec-reference-coherence.md` (REQ-097) 의 §Out-of-Scope 명시 "정합 spec 신규 박제" 결과 효능 axis 보완 — REQ-097 §스코프 규칙 baseline 의 `vite.config.js:9` `csp-policy-spec` 참조 위반 hit 수렴 수단 중 하나의 결과 효능을 박제하되, REQ-097 의 참조 path 정합 axis 와 직교 (본 spec 은 CSP 동작 계약 자체 박제).
 
@@ -41,29 +41,40 @@
 - 자매 spec: `foundation/root-config-spec-reference-coherence.md` (green, REQ-097) — `vite.config.js:9` `csp-policy-spec` 참조 주석의 RULE-01 suffix 위반 + 디스크 부재 baseline 박제. 본 spec 은 그 위반 수렴 수단 중 "정합 spec 신규 박제" 의 결과 효능 axis (수단 중립적으로 본 spec 박제 자체가 REQ-097 G-B/G-C 의 1 MISSING 종속 수렴에 기여하지는 않음 — `csp-policy-spec` slug 와 본 `csp-meta-dev-strip-prod-preserve` slug 가 상이; 수렴은 별도 task 의 `vite.config.js:9` 주석 갱신/삭제 수단으로 처리).
 
 ## 테스트 현황
-- [ ] (G-A) `npm run build && grep -c "Content-Security-Policy" build/index.html` → 1 + rc=0 (baseline 1 hit 박제, HEAD `7477189` 실측 — REQ-098 §배경).
-- [ ] (G-B) dev `transformIndexHtml.handler(html_with_csp)` → `Content-Security-Policy` 0 hit + 다른 meta/`<title>`/`<link>` 보존 (baseline `vite.config.test.js:23-43` 5 expect 박제).
-- [ ] (G-C) `stripCspMetaInDev()` returned plugin 의 `apply == 'serve'` + `transformIndexHtml.order == 'post'` (baseline `vite.config.test.js:13-21` 2 it 박제).
-- [ ] (G-D) 멱등 noop (`vite.config.test.js:45-58` 1 it) + single-match (`vite.config.test.js:60-74` 1 it) — baseline 2 it 박제. 2회 연속 동작 멱등 (case (b)) 는 unit fixture 신규 박제 후보 (현 미박제 — task 영역).
-- [ ] (G-E) 발화 채널 존재 — `vite.config.test.js` 6 it 은 vitest discovery 정합 (자매 REQ test-discovery-population-coherence) 으로 발화되나, build artifact grep (G-A) 의 pre-push / CI 발화 채널은 미박제 (수단 위임).
-- [ ] (G-F) 시점 비의존 — `vite` / `@vitejs/plugin-react` 메이저 bump 또는 `index.html:8` CSP directive 갱신 후 1 PR 안에 G-A·G-B·G-C·G-D 동시 만족 회복 사례 누적.
-- [ ] (G-G) 자체 진단 제외 — 본 spec / req / test 파일의 `Content-Security-Policy` occurrence 가 G-A grep count 영향 0 (단일 파일 scope `build/index.html`).
+
+fixture: `vite.config.test.js` (9 `it`, 전수 PASS) + `src/__tests__/csp-meta-build-artifact-preservation.test.ts`. 측정 HEAD=`19c5b2a` + 본 변경.
+
+- [x] (G-A) `npm run build && grep -c "Content-Security-Policy" build/index.html` → **1 + rc=0**.
+- [x] (G-B) dev `transformIndexHtml.handler(html_with_csp)` → `Content-Security-Policy` **0 hit** + 다른 meta / `<title>` / `<link>` 보존.
+- [x] (G-C) `stripCspMetaInDev()` plugin 의 `apply === 'serve'` + `transformIndexHtml.order === 'post'`.
+- [x] (G-D) 멱등 noop (CSP 부재 입력) + 2회 연속 적용 동일 + single-match (다중 CSP 입력 시 첫 hit 만 제거).
+- [x] (G-E) 발화 채널 존재 — `npm test` (CI `Test` step) 이 두 fixture 를 흡수.
+- [x] (G-H, 신규) plugin 등록 chain 실재 — `vite.config.js` default export 의 `plugins` 에 `strip-csp-meta-in-dev` 가 포함.
 
 ## 수용 기준
-- [ ] (Must FR-01) `npm run build` 직후 `grep -c "Content-Security-Policy" build/index.html` → **출력 = 1 + rc=0**. 원본 `index.html:8` 의 CSP directive 8 항목 (default-src / script-src / connect-src / img-src / style-src / object-src / base-uri / frame-ancestors / form-action) substring 보존.
-- [ ] (Must FR-02) `vite serve` (dev) 출력 HTML 또는 등가 `transformIndexHtml.handler(html_with_csp)` 호출 결과에 `Content-Security-Policy` 0 hit. 다른 meta 태그 (charset / viewport / description / robots 등) 와 `<title>`, `<link>` 보존 (CSP meta 한정 제거 — 다른 element 손실 0).
-- [ ] (Must FR-03) dev strip 동작 수단 채택 시 (예: `stripCspMetaInDev` plugin) 그 plugin 의 (i) `apply === 'serve'` + (ii) `transformIndexHtml.order === 'post'` 동시 만족. build 모드 발화 0 회.
-- [ ] (Must FR-04) dev strip 동작은 멱등이다 — (a) CSP meta 부재 입력 → 출력 == 입력 (noop), (b) CSP meta 1 hit 입력 2회 연속 동작 → 1회 동작 결과 동일, (c) CSP meta 다중 hit 입력 → 첫 hit 만 제거 (single regex match, regex flag `g` 비사용).
-- [ ] (Should FR-05) FR-01·FR-02·FR-03·FR-04 4 조건의 회귀는 자동 검출 채널 (단위 테스트 + build artifact grep 또는 동등 fixture) 을 통해 rc=0/1 결정론으로 판정된다. 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:csp-artifact` script) 선정 수단 영역, "발화 채널 존재" 계약 박제.
-- [ ] (Must NFR-01 결정론) 동일 HEAD 상에서 `npm run build && grep -c "Content-Security-Policy" build/index.html` N 회 실행 시 N 회 동일 rc=0 + 동일 출력 (=1). dev `transformIndexHtml.handler` fixture 도 동일 입력 → 동일 출력.
-- [ ] (Must NFR-02 멱등성) dev strip 자체가 idempotent (FR-04 박제). 본 게이트는 read-only — `index.html` / `vite.config.js` / build artifact 를 수정하지 않는다 (build artifact 재생성은 게이트 실행의 부수효과로 허용되나 본 spec 자체는 build 명령 강제하지 않음 — 수단 영역).
-- [ ] (Should NFR-03 성능) `grep -c "Content-Security-Policy" build/index.html` < 100 ms (단일 파일). dev `transformIndexHtml.handler` fixture 단위 테스트 < 100 ms / it. 전체 게이트 < 30 s (build 시간 포함 시) / < 1 s (build artifact 존재 가정 시).
-- [ ] (Must NFR-04 보안) prod build artifact 의 CSP meta 보존은 보안 baseline (XSS / data exfiltration 방어 표면). dev strip 은 HMR 호환 보장 한정 — prod 보안 baseline 약화 금지. dev artifact 외부 공개 금지 (`server.host` 기본값 localhost 의존).
-- [ ] (Must NFR-05 자체 진단 제외) 본 req / spec / 테스트 (`vite.config.test.js`) 의 본문 내 `Content-Security-Policy` 문자열 occurrence 는 FR-01 의 build artifact grep count 1 과 독립 — 게이트 scope 는 `build/index.html` 단일 파일 한정 (NFR-03 (a) 단일 파일 grep).
-- [ ] (Must, 회귀 가설 검출) `vite.config.js:16` `apply: 'serve'` → `apply: 'build'` 변경 가설 회귀 시 `npm run build` 후 `grep -c "Content-Security-Policy" build/index.html` = 0 + rc=1 으로 검출 (FR-03 조건 (i) 위반의 결과 효능 — FR-01 위반).
-- [ ] (Must, 회귀 가설 검출) `vite.config.js:13-27` `stripCspMetaInDev` 함수 정의 또는 `vite.config.js:30-36` plugin 등록 chain 에서 삭제 가설 회귀 시 dev `transformIndexHtml.handler` 호출 결과에 CSP meta 잔존 (FR-02 위반 검출).
-- [ ] (Must, 회귀 가설 검출) `vite.config.js:20-22` regex 의 flag `m` → `g` (global) 변경 가설 회귀 시 다중 CSP meta 입력 fixture 에서 첫 hit 만 제거 ≠ 전체 제거 (FR-04 (c) 위반 검출).
-- [ ] (Must, 시점 비의존) `vite` 또는 `@vitejs/plugin-react` 메이저 bump 또는 `index.html:8` CSP directive 갱신 후 1 PR 안에 FR-01·FR-02·FR-03·FR-04 동시 만족 회복 사례 누적 ≥ 1건.
+
+- [x] (Must FR-01) `npm run build` 직후 `grep -c "Content-Security-Policy" build/index.html` → **1 + rc=0**. 원본 directive 문자열이 build artifact 에 보존된다.
+- [x] (Must FR-02) dev 출력에 `Content-Security-Policy` 0 hit + 다른 meta 태그 보존.
+- [x] (Must FR-03) dev strip 수단(`stripCspMetaInDev` plugin)의 `apply === 'serve'` + `transformIndexHtml.order === 'post'`.
+- [x] (Must FR-04) dev strip 은 멱등 — (a) CSP 부재 입력 noop, (b) 2회 연속 적용 = 1회 결과, (c) 다중 hit 입력에서 첫 hit 만 제거.
+- [x] (Should FR-05) FR-01~FR-04 회귀가 자동 검출 채널로 rc=0/1 결정론 판정. CI `Test` step 발화.
+- [x] (Must NFR-04 보안) prod build artifact 의 CSP meta 보존 — FR-01 로 측정. dev strip 은 HMR `eval` 호환 목적이며 prod 보안 baseline 을 훼손하지 않는다.
+- [x] (Must, 회귀 가설 R-a) `apply: 'serve'` → `'build'` 주입 → `npm run build` 후 `build/index.html` CSP hit **1 → 0**. 검출 확인.
+- [x] (Must, 회귀 가설 R-b) `plugins` chain 에서 `stripCspMetaInDev()` 등록 제거 주입 → **1 failed / 8 passed**. 검출 확인.
+- [x] (Must, 회귀 가설 R-c) 정규식 flag `/m` → `/gm` 주입 → **1 failed / 8 passed**. 검출 확인.
+
+### 검출 공백 회수 (2026-08-24)
+
+회귀 가설 3건을 실제로 주입해 보니 **2건이 검출되지 않았다.** 가설이 참인지 확인하지 않은 채 수용 기준에만 적혀 있던 상태였다.
+
+| 가설 | 최초 주입 결과 | 원인 |
+|---|---|---|
+| R-b plugin 등록 제거 | **미검출** (9/9 PASS) | fixture 가 `stripCspMetaInDev` 를 직접 import 해 handler 만 검사 — `plugins` chain 등록 여부는 관측 표면 밖 |
+| R-c flag `/m` → `/gm` | **미검출** (9/9 PASS) | 기존 다중 CSP fixture 가 들여쓰기를 쓰는데, 정규식 말미의 greedy `\s*` 가 다음 줄 선행 공백까지 삼켜 후속 `^` 매치를 무력화한다. `g` 를 붙여도 결과가 동일해 관측되지 않았다 |
+
+두 공백을 `vite.config.test.js` 에 `it` 2개로 닫았다 — (1) default export `plugins` chain 에 `strip-csp-meta-in-dev` 포함 단언, (2) 행 선두(column 0)에 meta 를 둔 fixture 로 single-match 계약 고정. 재주입 시 두 가설 모두 `1 failed / 8 passed` 로 검출된다.
+
+R-c 의 가설 문구("`g` 도입 시 전체 제거")는 실제 메커니즘과 다르다 — greedy `\s*` 때문에 `g` 는 첫 매치 이후 줄 선두 정렬이 깨져 전체 제거로 이어지지 않는다. 위반의 본질은 "전체 제거"가 아니라 "single-match 계약이 고정돼 있지 않음" 이며, 새 fixture 는 후자를 직접 고정한다.
 
 ## 스코프 규칙
 - **expansion**: N/A (본 spec 은 빌드 시스템 횡단 게이트 박제 — task 발행 시점에 planner 가 스코프 규칙 재계산).
@@ -81,3 +92,14 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-098 흡수) / `a5edd2d` | 최초 박제 — `index.html` CSP meta 출력 비대칭 결과 효능 계약 4 조건 게이트 (G-A prod build artifact 보존 + G-B dev serve strip + G-C plugin apply/order 제약 + G-D 멱등 single-match). baseline G-A 1 hit (회귀 0) / G-B/C/D unit fixture 5 it 박제 / G-E 발화 채널 1/2 (vitest ✓ / build artifact pre-push/CI ✗ — 수단 위임). 자매 axis: `foundation/root-config-spec-reference-coherence.md` (REQ-097) — 두 spec 직교 axis (REQ-097 참조 path 정합 vs 본 spec CSP 동작 계약). | all |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | 마커 회수 + 검출 공백 2건 회복. 코드(`vite.config.js:13-35` plugin + 등록)는 이미 완성 상태였고 fixture 도 7 `it` 존재했으나 marker 가 0/21 로 방치돼 있었다. 회귀 가설 3건 주입 검증 결과 R-b(등록 제거) · R-c(`/gm`) 미검출 — `vite.config.test.js` 에 plugins chain 단언 + column-0 fixture 2 `it` 추가로 회수 (7 → 9 `it`). G-A~G-E + G-H / FR-01~FR-05 + NFR-04 + 회귀 가설 3 전수 flip. 판정 불가 5항목 §참고 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- (G-F / 시점 비의존) `vite` · `@vitejs/plugin-react` 메이저 bump 또는 `index.html` CSP directive 갱신 후 1 PR 안에 G-A~G-D 동시 만족 회복 — 차기 이벤트 대기.
+- (G-G / NFR-05 자체 진단 제외) 본 spec / req / fixture 본문의 `Content-Security-Policy` occurrence 가 G-A grep count 에 영향 0 — G-A scope 가 `build/index.html` 단일 파일이라 자명.
+- (NFR-01 결정론) 동일 HEAD 상 `npm run build && grep -c` N 회 반복 동일 출력 — 반복 측정 미실시.
+- (NFR-02 멱등성) 게이트가 read-only — 측정 명령이 파일을 수정하지 않음은 자명 (`build/**` 재생성은 build 명령의 부수효과).
+- (NFR-03 성능) `grep -c build/index.html` < 100 ms / dev handler fixture < 100 ms — 단독 분리 측정 미실시.

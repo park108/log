@@ -35,7 +35,7 @@
   - `specs/30.spec/blue/components/app.md` (REQ-094) §동작 6 + §수용 기준 (Should) — `import.meta.env.DEV` 조건 runtime 분기 `<ReactQueryDevtools>` 렌더링 박제. 본 spec 은 build artifact 측정 axis 직교 (runtime 분기 vs 산출물 잔존).
   - `specs/30.spec/blue/common/env.md` (REQ-002) (I1) — `isDev()` 단일 진입점 정합 (non-test `src/**` 의 `import.meta.env.{DEV,PROD,MODE}` 직접 참조 0 hit). 본 spec 은 산출물 측정 axis 직교 (분기 표현 vs 산출물 측정).
   - `specs/30.spec/green/foundation/diagnostic-script-auto-channel-coverage.md` (REQ-081 + REQ-086) (I1)(I10) — 진단 script ↔ 자동 채널 매트릭스 메타. 본 spec 파생 task 가 진단 script 도입 시 자매 메타 효능 자동 적용 (catalog N+1 번째 진단 script 자매 cell 균등 검증).
-  - `specs/30.spec/green/foundation/csp-meta-dev-strip-prod-preserve.md` (REQ-040) — dev 전용 CSP meta strip vs prod 보존. 본 spec 과 직교 (CSP meta token axis vs JS bundle artifact axis).
+  - `specs/30.spec/blue/foundation/csp-meta-dev-strip-prod-preserve.md` (REQ-040) — dev 전용 CSP meta strip vs prod 보존. 본 spec 과 직교 (CSP meta token axis vs JS bundle artifact axis).
   - `specs/30.spec/blue/foundation/dependency-bump-gate.md` (REQ-035) — dep bump 후 회귀 0. 본 spec 은 dep 의 import 패턴 (static + runtime 가드 분기) 회귀 axis 직교 (version bump vs import pattern + DCE 효능).
 - 자매 패턴 (build artifact 정적 잔존 0 결과 효능 axis): 본 spec 단독 — 다른 build artifact 잔존 0 spec (sourcemap 잔존 0 = REQ-20260518-010 / dev-only meta strip 잔존 0 = REQ-040) 과 결과 효능 형식 동질 (산출물 측정 채널 단일 게이트).
 

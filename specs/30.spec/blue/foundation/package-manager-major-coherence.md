@@ -103,7 +103,7 @@
   - `30.spec/blue/foundation/regression-gate.md` (REQ-037) — CI typecheck + coverage 4축.
   - `30.spec/blue/foundation/ci.md` — CI workflow 일반.
   - `30.spec/blue/foundation/tooling.md` — toolchain 일반.
-  - `30.spec/green/foundation/node-modules-extraneous-coherence.md` (REQ-078) — extraneous deps 정합 채널 (직교).
+  - `30.spec/blue/foundation/node-modules-extraneous-coherence.md` (REQ-078) — extraneous deps 정합 채널 (직교).
   - `30.spec/green/foundation/husky-pre-push-typecheck.md` (REQ-089) — pre-push hook typecheck local early signal 채널 (직교).
 - **선행 done req**:
   - `specs/60.done/2026/05/17/req/20260517-node-runtime-version-3axis-coherence.md` (REQ-079) — Node 3축 정합 + 본 spec 별 axis 명시.

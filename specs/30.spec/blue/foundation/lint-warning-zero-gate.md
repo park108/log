@@ -94,7 +94,7 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-eslint-warning-zero-master-gate.md` (REQ-080 — 본 세션 mv).
 - **선행 자매 spec (자동 게이트 메타 패턴 공유)**:
   - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` 자동 게이트 패턴. 본 spec 의 game plan 참조.
-  - `specs/30.spec/green/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073) — `scripts/check-deps-coherence.sh` 자동 게이트. 본 spec 과 직교.
+  - `specs/30.spec/blue/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073) — `scripts/check-deps-coherence.sh` 자동 게이트. 본 spec 과 직교.
   - `specs/30.spec/green/foundation/vite-env-boundary-typing.md` (REQ-20260517-072) — `scripts/check-vite-env-coherence.sh` 자동 게이트. 본 spec 과 직교.
   - `specs/30.spec/green/foundation/node-version-3axis-coherence.md` (REQ-20260517-079, TSK-14 회수 `3910ba8`) — `scripts/check-node-version-coherence.sh` 자동 게이트. 본 spec 과 직교.
 - **관련 spec (보완 / 직교)**:

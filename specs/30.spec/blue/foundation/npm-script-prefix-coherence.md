@@ -91,7 +91,7 @@
   - `specs/60.done/2026/05/17/followups/20260517-0608-lint-script-naming-convention.md` (source_task: TSK-20260517-17, category: naming-convention, severity: low).
 - **선행 자매 spec (단일 진입점 박제 — 본 spec 직교)**:
   - `specs/30.spec/green/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` + `package.json scripts.lint:spec-coherence` 단일 진입점 박제. 본 spec 효능 도입 시 G3 박제의 npm script 명칭 갱신 필요 (수단 라벨 0).
-  - `specs/30.spec/green/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073) — `scripts/check-deps-coherence.sh` 단일 진입점 + `check:deps` 박제 (정합).
+  - `specs/30.spec/blue/foundation/node-modules-extraneous-coherence.md` (REQ-20260517-073) — `scripts/check-deps-coherence.sh` 단일 진입점 + `check:deps` 박제 (정합).
   - `specs/30.spec/blue/foundation/vite-env-boundary-typing.md` (REQ-20260517-072) — `scripts/check-vite-env-coherence.sh` 단일 진입점 + `check:vite-env` 박제 (정합).
   - `specs/30.spec/blue/foundation/node-version-3axis-coherence.md` (REQ-20260517-079) — `scripts/check-node-version-coherence.sh` 단일 진입점 + `check:node-coherence` 박제 (정합).
 - **관련 spec (보완 / 직교)**:

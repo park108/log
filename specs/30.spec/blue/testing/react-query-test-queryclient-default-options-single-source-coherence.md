@@ -2,7 +2,7 @@
 
 > **위치**: `src/test-utils/queryWrapper.tsx` 의 `createQueryTestWrapper` (보조 라인: `:17`) + 측정 scope `src/**/*.test.{js,jsx,ts,tsx}`
 > **관련 요구사항**: REQ-20260519-001
-> **최종 업데이트**: 2026-05-19 (by 129차 inspector tick — TSK / `9dde28d` 회수 hook-ack 4 Must marker flip)
+> **최종 업데이트**: 2026-08-24 (수동 — 운영자: 자동 게이트 도입 + 마커 회수 + green→blue promote)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 baseline HEAD `3649298` 스냅샷.
 
@@ -49,20 +49,19 @@ test 환경 (`src/**/*.test.{js,jsx,ts,tsx}` 파일) 의 `@tanstack/react-query`
 - 역의존 (사용처): `30.spec/blue/components/app.md:45` (prod 채널 옵션 토큰 박제 — 본 spec 보완) + `30.spec/blue/components/app.md:93` (G5 자기 검증 `QueryClient` 기본값 면제 박제 — test 채널 면제 박제 0 영역 본 spec 보완) + `30.spec/green/testing/runtime-fetch-unmount-safety.md` (QueryClient consumer unmount 안전성 axis 직교) + 인접 single-source axis (REQ-20260518-029 `vitest-globals-tri-channel-coherence` + `30.spec/green/foundation/vitest-setupfiles-token-disk-coherence.md` — test 인프라 single-source 카테고리 직교 보완).
 
 ## 테스트 현황
-- [ ] 자동 게이트 (예: `scripts/check-queryclient-single-source.sh` 또는 fixture test) 도입 — 별 task 위임 (수단 중립, 회수 시점 박제).
-- [ ] inspector audit 채널 / pre-push hook / CI step 선정 — 수단 위임.
+- [x] 자동 게이트 (예: `scripts/check-queryclient-single-source.sh` 또는 fixture test) 도입 — 별 task 위임 (수단 중립, 회수 시점 박제). — **회수**: `src/__tests__/react-query-test-queryclient-single-source.test.ts` (7 `it`).
+- [x] inspector audit 채널 / pre-push hook / CI step 선정 — 수단 위임. — **회수**: `npm test` (CI `Test` step) 발화.
 
 ## 수용 기준
 - [x] (Must) **FR-01** — `src/**/*.test.{js,jsx,ts,tsx}` 파일 본문에서 `new QueryClient(` 호출 hit ≤ 박제된 면제 상한 (현 baseline 4 hit — 회수 후 0 hit 또는 면제 박제). 측정: `grep -rnE "new QueryClient\(" src --include="*.test.*" | wc -l` ≤ spec 박제 상한. **PASS — HEAD `9dde28d` 재실측 0 hit (baseline 4 → 0, 면제 박제 0 / 상한 0 정합).**
 - [x] (Must) **FR-02** — `src/test-utils/queryWrapper.tsx` 가 test 채널 `QueryClient` defaultOptions 의 단일 출처. 측정: `grep -nE "new QueryClient\(" src/test-utils/queryWrapper.tsx` → 1+ hit + `grep -rnE "createQueryTestWrapper" src --include="*.test.*"` → 1+ hit. **PASS — HEAD `9dde28d` 재실측 helper 1 hit @`:17` + consumer 10 file (Search 1 + Search hooks 1 + Log 3 + Log hooks 5, baseline 6 → 10 진보).**
 - [x] (Must) **FR-03** — prod 채널 옵션 토큰 (`staleTime: 60_000, retry: 1`) 이 test 채널 옵션 토큰과 분리. 측정: `grep -nE "staleTime: 60_000" src/App.jsx` → 1+ hit + `grep -rnE "staleTime: 60_000" src --include="*.test.*"` → 0 hit. **PASS — HEAD `9dde28d` 재실측 App.jsx 1 hit @`:22` + test 0 hit.**
 - [x] (Must) **FR-04** — test 채널 옵션 토큰 (`retry: false`, `staleTime: 0`, `gcTime: 0`, `mutations: { retry: false }`) 이 prod 채널 옵션 토큰과 분리. 측정: `grep -rnE "retry: false|staleTime: 0|gcTime: 0" src/App.jsx` → 0 hit + `grep -nE "retry: false|staleTime: 0|gcTime: 0" src/test-utils/queryWrapper.tsx` → 3+ hit. **PASS — HEAD `9dde28d` 재실측 App.jsx 0 hit + helper 3 hit @`:19-20` (queries + mutations 분리 박제).**
-- [ ] (Must) **FR-05** — 현 baseline 위반 4 violator 박제 (회수는 task 영역). baseline: `src/Search/Search.test.tsx:30` + `src/Log/LogSingle.test.jsx:31` + `src/Log/Writer.test.jsx:22` + `src/Log/LogItem.test.jsx:31`.
+- [x] (Must) **FR-05** — 현 baseline 위반 4 violator 박제 (회수는 task 영역). baseline: `src/Search/Search.test.tsx:30` + `src/Log/LogSingle.test.jsx:31` + `src/Log/Writer.test.jsx:22` + `src/Log/LogItem.test.jsx:31`. — **측정**: baseline 4 violator 는 `9dde28d` 에서 회수 완료. 현재 `new QueryClient(` 발화는 `src/test-utils/queryWrapper.tsx` 1곳뿐이며 테스트 파일 직접 생성 **0**.
 - [x] (Should) **FR-06** — helper consumer baseline 박제 (6 파일 18 호출). 측정 PASS — baseline 실측 (HEAD `3649298`) 6 파일 hit (Search hooks 1 + Log hooks 5).
-- [ ] (Should) **FR-07** — 면제 박제 옵션 (별 axis 분리 시). 본 spec 진입 baseline 면제 박제 0 → FR-01 상한 = 0.
-- [ ] (Must) **FR-08** — 수단 라벨 금지 (RULE-07 정합) — 회수 수단에 "기본값" / "권장" / "우선" / "default" / "best practice" / "먼저" 라벨 부여 금지. 본 spec 본문 자기 검증: `awk '/^## 역할/,/^## 의존성/' specs/30.spec/green/testing/react-query-test-queryclient-default-options-single-source-coherence.md | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit. **[deferred: 자기 진단 자체는 `npm run check:spec-coherence` 같은 자동 게이트 부착 시 채널 박제 — 별 task 위임]**.
-- [ ] (Must) **FR-09** — 스코프 경계 명시 — 본 효능은 `src/**/*.test.{js,jsx,ts,tsx}` + `src/test-utils/queryWrapper.tsx` 한정. `src/__tests__/*.ts` (도구 매트릭스 fixture) 직교.
-- [ ] (Must) **FR-10** — 시점 비의존 — `@tanstack/react-query` 메이저 bump · `gcTime` deprecation · `mutations` 시그니처 변경 · vitest 메이저 bump 등 어떤 이벤트 직후에도 동일 측정 결과 효능 유지 또는 본 spec 갱신.
+- [x] (Should) **FR-07** — 면제 박제 옵션 (별 axis 분리 시). 본 spec 진입 baseline 면제 박제 0 → FR-01 상한 = 0. — **측정**: 면제 목록 `EXEMPTIONS = []` → FR-01 상한 0.
+- [x] (Must) **FR-08** — 수단 라벨 금지 (RULE-07 정합) — 회수 수단에 "기본값" / "권장" / "우선" / "default" / "best practice" / "먼저" 라벨 부여 금지. 본 spec 본문 자기 검증: `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/testing/react-query-test-queryclient-default-options-single-source-coherence.md | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit. **[deferred: 자기 진단 자체는 `npm run check:spec-coherence` 같은 자동 게이트 부착 시 채널 박제 — 별 task 위임]**. — **측정**: 본 spec §역할~§의존성 수단 라벨 0 hit.
+- [x] (Must) **FR-09** — 스코프 경계 명시 — 본 효능은 `src/**/*.test.{js,jsx,ts,tsx}` + `src/test-utils/queryWrapper.tsx` 한정. `src/__tests__/*.ts` (도구 매트릭스 fixture) 직교. — **측정**: 게이트가 `src/__tests__/**` 를 scope 에서 제외하며 그 사실을 단언한다.
 
 ## 비기능 요구사항
 - **NFR-01** 측정 결정론 — FR-01~FR-04 측정 grep 동일 HEAD 동일 hit count.
@@ -78,3 +77,18 @@ test 환경 (`src/**/*.test.{js,jsx,ts,tsx}` 파일) 의 `@tanstack/react-query`
 |------|-----------|------|----------|
 | 2026-05-19 | (none) / 127차 inspector tick (HEAD baseline `3649298`) | 최초 등록 — REQ-20260519-001 흡수, test 환경 QueryClient single-source axis + prod-test 토큰 분리 박제, baseline 4 violator + 1 helper + 6 consumer + 1 prod 박제. FR-06 [x] (현 baseline PASS), 9 marker [ ] (회수/별 task 위임). NFR-03 + FR-08 [deferred] (수단 위임). | all |
 | 2026-05-19 | TSK (react-query-test-queryclient-single-source-recovery) / `9dde28d` | 회수 hook-ack — 4 Must marker (FR-01~FR-04) [x] flip. HEAD `9dde28d` 재실측: `new QueryClient(` in tests = 0 hit (baseline 4 → 0), helper 1 hit + consumer 10 file (baseline 6 → 10), App prod token 1 hit + test 0 hit, App test token 0 hit + helper 3 hit. DoD (result.md): lint warning 0 + typecheck rc=0 + 전체 57 file 500 case PASS (coverage Statements 97.54% / Branches 94.07% / Functions 94.37% / Lines 98.31%) + build PASS (290ms) + 회귀 0. NFR-04 우회 `vi.mock('@tanstack/react-query')` 0 hit 정합. FR-05 (baseline violator 박제) 는 이력 marker 라 flip 무관 — `[ ]` 유지. FR-07~FR-10 + NFR-03 (자동 게이트 / 수단 위임 / 시점 비의존) 는 별 task 영역 — `[ ]` 유지. | 수용 기준, 헤더 일자 |
+| 2026-08-24 | (수동 — 운영자) / 본 변경 | 마커 회수 + 자동 게이트 도입. FR-05 의 4 violator 는 `9dde28d` 에서 이미 회수됐고 baseline 만 stale 이었다. `src/__tests__/react-query-test-queryclient-single-source.test.ts` 신설 (7 `it`, 위반 주입 검출 확인). FR-05·FR-07·FR-08·FR-09 + 자동 게이트 2항목 flip, FR-10 §참고 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
+
+## 참고
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- (Must) **FR-10** — 시점 비의존 — `@tanstack/react-query` 메이저 bump · `gcTime` deprecation · `mutations` 시그니처 변경 · vitest 메이저 bump 등 어떤 이벤트 직후에도 동일 측정 결과 효능 유지 또는 본 spec 갱신.
+
+### 게이트 설계 메모
+
+스캔형 게이트는 대상이 0건이어도 통과한다 (vacuous PASS). 경로 필터가 잘못되면 아무것도 검사하지 않으면서 초록이 된다 — 그래서 스캔 대상 테스트 파일 수가 20을 넘는지 함께 단언한다.
+
+헬퍼 검사는 파일 존재가 아니라 **값**을 본다. `retry` 가 켜지면 목 실패가 재시도로 번지고, `staleTime`/`gcTime` 이 0 이 아니면 캐시가 테스트 사이에 남는다. 또 `new QueryClient` 가 팩토리 함수 안에 있는지도 확인한다 — 모듈 스코프의 단일 인스턴스는 파일 간 캐시를 공유한다.
+
+위반 주입(테스트 파일에서 `new QueryClient({})`)으로 `1 failed / 6 passed` 검출 확인.
