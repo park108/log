@@ -42,9 +42,6 @@ jobs:
       - name: Check build/coverage output dir coherence
         run: npm run check:build-coverage-coherence
 
-      - name: Check eslint ignores vacuous-zero
-        run: npm run check:eslint-ignores-vacuous-zero
-
       - name: Check vitest globals coherence
         run: npm run check:vitest-globals-coherence
 
@@ -68,3 +65,8 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # ignores 5 패턴의 vacuous-zero 검사는 build/ 와 coverage/ 가 디스크에
+      # 있어야 성립한다 (P-1 build/**, P-2 coverage/**). Test + Build 뒤에 둔다.
+      - name: Check eslint ignores vacuous-zero
+        run: npm run check:eslint-ignores-vacuous-zero
