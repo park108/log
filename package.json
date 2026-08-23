@@ -40,18 +40,6 @@
     "npm": ">=10"
   },
   "packageManager": "npm@10.9.2",
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,d.ts}": "eslint"
   },
