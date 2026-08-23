@@ -46,7 +46,7 @@ const CSP_DIRECTIVE_TOKENS = [
 	"default-src 'self'",
 	"script-src 'self'",
 	"connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com",
-	"img-src 'self' data: https://d0.awsstatic.com https://brand.linkedin.com",
+	"img-src 'self' data: https://d0.awsstatic.com",
 	"style-src 'self' 'unsafe-inline'",
 	"object-src 'none'",
 	"base-uri 'self'",

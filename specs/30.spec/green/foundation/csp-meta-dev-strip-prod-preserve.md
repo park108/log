@@ -16,7 +16,7 @@
 1. (G-A) prod build artifact 보존 게이트 — FR-01
    - 명령: `npm run build && grep -c "Content-Security-Policy" build/index.html` → **출력 = 1 + rc=0**.
    - 의미: `vite build` 산출물은 원본 `index.html:8` 의 CSP meta 를 정확히 1회 보존한다 (보안 baseline 약화 0).
-   - 보조: 원본 `index.html:8` CSP directive 문자열 (`default-src 'self'; script-src 'self'; connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com; img-src 'self' data: https://d0.awsstatic.com https://brand.linkedin.com; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self';`) 의 substring 동등성도 보존 (directive 8 항목 전수 유지).
+   - 보조: 원본 `index.html:8` CSP directive 문자열 (`default-src 'self'; script-src 'self'; connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com; img-src 'self' data: https://d0.awsstatic.com; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self';`) 의 substring 동등성도 보존 (directive 8 항목 전수 유지).
 2. (G-B) dev serve strip 게이트 — FR-02
    - 절차: dev 모드 출력 HTML 또는 등가의 `transformIndexHtml.handler(html)` 호출 (CSP meta 포함 입력) → 출력에서 `Content-Security-Policy` **0 hit**.
    - 의미: dev serve 는 HMR `eval` 호환 보장을 위해 CSP meta 를 제거한다.

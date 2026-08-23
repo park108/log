@@ -49,9 +49,9 @@ const Footer = () => {
 					title="LinkedIn Profile"
 				>
 					<img
-						src="https://brand.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"
-						alt="[in]"
-						width="27"
+						src="/LI-In-Bug.png"
+						alt="LinkedIn Profile"
+						width="32"
 						height="27"
 						loading="lazy"
 					/>
