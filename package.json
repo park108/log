@@ -6,11 +6,11 @@
   "dependencies": {
     "@tanstack/react-query": "^5.99.0",
     "@tanstack/react-query-devtools": "^5.99.0",
-    "dompurify": "^3.4.0",
+    "dompurify": "^3.4.14",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.14.1",
+    "react-router-dom": "^7.18.2",
     "web-vitals": "^5.2.0"
   },
   "scripts": {
