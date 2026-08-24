@@ -2,7 +2,7 @@
 
 > **위치**: `index.html:2` `<html lang="en">` (보조: 라인). 산출물 보존 극은 `build/index.html` 의 동일 요소.
 > **관련 요구사항**: REQ-20260518-025
-> **최종 업데이트**: 2026-08-24 (by inspector — 신규 등록)
+> **최종 업데이트**: 2026-08-24 (by inspector — 215차 tick. TSK-20260824-03 (`52e1b52`) 로 발화 채널이 부착돼 §테스트 현황 마지막 marker 를 `[x]` 로 플립. G-A~G-E 5 게이트 + 채널 실재를 현 HEAD=`510ae0f` 에서 전수 재실행 확인.)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -60,13 +60,18 @@
 
 ## 발화 채널
 
-**현 HEAD 에 자동 발화 채널이 없다.** 실측 (2026-08-24):
+**채널 실재 — `src/__tests__/html-lang-locale-declaration.test.ts`** (TSK-20260824-03 / `52e1b52`, 7 케이스). 현 HEAD=`510ae0f` 재실측 (2026-08-24 inspector):
 
 ```
-grep -rn "html lang\|documentElement.lang" src/__tests__/ scripts/ .github/  → 0 hit
+grep -rn "html lang\|documentElement.lang" src/__tests__/ scripts/ .github/  → 6 hit
+npx vitest run src/__tests__/html-lang-locale-declaration.test.ts            → 7 passed (rc=0)
 ```
 
-RULE-07 §promote 조건 4 에 따라 promote 차단 사유가 아니라 **"채널 부착 task 발행"을 선행 조건**으로 한다. planner 는 승격 전 G-A~G-E 를 발화시키는 채널 1개 이상을 부착하는 task 를 발행한다. 수단은 위임한다 — vitest 픽스처 / `check:*` 스크립트 + `ci.yml` step 중 택일. 자매 spec `foundation/viewport-meta-mobile-rendering-contract.md` 와 동일 파일(`index.html`)을 측정하므로 채널 1개로 합쳐 부착하는 것이 합리적이다 (수단 판단은 planner).
+발화 경로는 `npm test` 수집 → `.github/workflows/ci.yml:72-73` (`- name: Test` / `run: npm test`) + `.husky/pre-push:3` 2 지점. 채널 신규 등록 표면 0.
+
+**채널의 검출력은 주입 왕복으로 확인한다** — 정상 트리의 초록은 민감도 0 인 픽스처도 낸다. TSK-20260824-03 이 6 방향 (R-1~R-5 + G-C) 을 주입해 `injection: 6/6 detect` 를 박제했고, inspector 는 현 HEAD 에서 그중 1 방향을 재확인했다: `index.html:2` `<html lang="en">` → `<html>` 주입 시 픽스처 rc=1 (7 케이스 중 3 FAIL), 원복 후 rc=0.
+
+G-D 자기 무효화 회피는 **경로 제외가 아니라 토큰 런타임 조립**으로 이뤄졌다 — 픽스처는 자기 자신을 포함해 어떤 파일도 스캔에서 빼지 않으며, 따라서 `grep -rn 'documentElement.lang' src --include=...` 원 명령이 픽스처 추가 후에도 0 hit 을 유지한다 (현 HEAD 재실측 0 hit). 제외 과잉으로 다른 파일의 위반을 삼키는 경로가 구조적으로 없다.
 
 ## 테스트 현황
 
@@ -75,7 +80,7 @@ RULE-07 §promote 조건 4 에 따라 promote 차단 사유가 아니라 **"채�
 - [x] G-C 루트 요소 단일성 — 명령 실행 rc=0.
 - [x] G-D 런타임 재정의 부재 — 명령 실행 rc=0 (0 hit).
 - [x] G-E 산출물 보존 — 명령 실행 rc=0 (`build/index.html` 실재, diff 무출력).
-- [ ] 전용 자동 픽스처 — 부재 (§발화 채널 참조; 채널 부착 task 선행 조건).
+- [x] 전용 자동 픽스처 — `src/__tests__/html-lang-locale-declaration.test.ts` 실재 (TSK-20260824-03 / `52e1b52`, 7 케이스 PASS). 채널 grep 6 hit, `npm test` 수집 경로 발화. 검출력은 주입 6/6 detect + inspector 현 HEAD 1 방향 재확인 (§발화 채널).
 
 ## 수용 기준
 
@@ -101,3 +106,4 @@ RULE-07 §promote 조건 4 에 따라 promote 차단 사유가 아니라 **"채�
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-24 | inspector tick / REQ-20260518-025 | 최초 등록. G-A~G-E 5 게이트 명령 전수 HEAD 실행 rc=0 확인 후 `[x]` 박제. 발화 채널 부재 실측 박제 (grep 0 hit). | all |
+| 2026-08-24 | TSK-20260824-03 / `52e1b52` (inspector Phase 1 reconcile @ HEAD=`510ae0f`) | 발화 채널 부착 확인 → §테스트 현황 "전용 자동 픽스처" `[ ]` → `[x]`. G-A~G-E 5 게이트 + 채널 grep (6 hit) + 픽스처 실행 (7 passed) 전수 재실행 PASS. 주입 1 방향 (`lang` 속성 삭제 → rc=1) 재확인 후 원복. RULE-07 §promote 조건 4 "발화 채널 실경로 박제 + 현 HEAD 실재" 충족. | §발화 채널, §테스트 현황 |

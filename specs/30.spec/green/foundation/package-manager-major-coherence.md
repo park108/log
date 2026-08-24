@@ -2,7 +2,7 @@
 
 > **위치**: `package.json` (`engines.npm` / `packageManager`), `package-lock.json` (`lockfileVersion`), `.github/workflows/ci.yml` (`actions/setup-node` step), repo root `.npmrc` (선택 채널).
 > **관련 요구사항**: REQ-20260517-090 (선행 REQ-20260517-079 `node-version-3axis-coherence.md` §역할 + §회귀 중점 별 axis 후보 박제 후속).
-> **최종 업데이트**: 2026-08-24 (by inspector — 214차 tick, REQ-20260824-002 흡수. (I2)(I4)(I5) + (Must FR-02)(Must FR-04) marker 를 `[x]` → `[ ]` 로 되돌리고 (I10)~(I13) 판정 근거 실행성 축 추가. **blue baseline `:54` `:56` `:65` 의 `[x]` 는 거짓이다 — §참고 §blue baseline 정정 요구 참조.**)
+> **최종 업데이트**: 2026-08-24 (by inspector — 215차 tick 드리프트 회수. TSK-20260824-01-a (`267505e`, 선언 메이저를 실행 런타임에 정합) + TSK-20260824-01-b (`9e06afa`, 판정 채널을 런타임 실측 게이트로 교체) 회수로 (I2)(I4)(I5)(I10)(I11)(I13) + (Must FR-02)(FR-04)(FR-08)(FR-09) 10 marker 플립. 잔여 미충족 1건 — (I12) 워크플로 입력 키 유효성 (판정 채널 부재).)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 박제 시점 스냅샷 (HEAD=`b76dc02`).
 
@@ -63,32 +63,38 @@
 
 ## 테스트 현황
 
-> 재실측 기준: HEAD=`ce15908` (2026-08-24, Node `v24.19.0` / npm `11.17.0`). `<SPEC>` 는 본 파일 경로 (green/blue 어디에 있든 동일 명령).
+> 재실측 기준: HEAD=`510ae0f` (2026-08-24, Node `v24.19.0` / npm `11.17.0`). `<SPEC>` 는 본 파일 경로 (green/blue 어디에 있든 동일 명령).
+>
+> 본 tick 의 플립은 **게이트 재실행 결과**다 — 커밋 메시지·`result.md` 의 자기 신고가 아니라 현 HEAD 에서 각 marker 의 명령을 직접 실행한 출력이 근거다. 검출력을 요구하는 marker ((I5)(I11)(FR-04)) 는 정상 트리의 rc=0 이 아니라 **격차 주입 후 rc≠0** 으로 판정했다 (아래 각 marker 에 주입 명령·출력 박제).
 
 - [x] (I1) `package.json` 메이저 정합 채널 1+ 박제 — `node -e "const p=require('./package.json'); process.exit((p.engines && p.engines.npm) || p.packageManager ? 0 : 1)"` → rc=0. `grep -nE "\"packageManager\":|\"npm\":" package.json` → 2 hit (`:42` `:44`). 재실측 PASS.
-- [ ] (I2) CI 채널 메이저 격차 0 박제 — **위반**. 선언 채널 메이저 10 (`package.json:44 "packageManager": "npm@10.9.2"`) ↔ 실행 매니저 `npm -v` = `11.17.0` (메이저 11) → 격차 1. CI 는 `.github/workflows/ci.yml:25-27` `actions/setup-node@v6` + `node-version: '24'` 로 동일 Node 메이저의 번들 매니저를 실행한다. 과거 이 marker 를 `[x]` 로 만든 근거 (`ci.yml:22 npm-version: '10'` 1 hit) 는 `actions/setup-node` 가 정의하지 않는 입력 키였고 (액션 입력 12종에 부재), 커밋 `e1d3501` 에서 제거돼 현 HEAD 에는 라인 자체가 없다 — `grep -cE "npm-version|node-version-file|corepack" .github/workflows/ci.yml` → **0 hit**.
+- [x] (I2) CI 채널 메이저 격차 0 박제 — **CI 잡 실행 출력으로 판정**. TSK-20260824-01-a (`267505e`) 가 선언 채널을 실행 런타임에 정합시켰다 (`package.json:42 "npm": ">=11"` + `:44 "packageManager": "npm@11.17.0"`). 현 HEAD 의 CI run `32685135180` (headSha `510ae0f`, conclusion=success) 의 `Check package manager coherence` step stdout: `package-manager coherence: engines.npm=>=11 packageManager=npm@11.17.0 declared=11 runtime=11 lockfileVersion=3 aligned` — **CI 러너 안에서 실행된 매니저 메이저가 11 로 실측**되어 선언 메이저와 격차 0. 판정 근거가 (I10) 요구대로 토큰 존재가 아니라 실행 출력이다. 과거 이 marker 를 거짓으로 플립시켰던 `ci.yml:22 npm-version: '10'` 토큰은 현 HEAD 에 부재하며 (`grep -cE "npm-version|node-version-file|corepack" .github/workflows/ci.yml` → 0 hit), 그 부재가 본 marker 에 영향을 주지 않는다는 것이 실행 근거 전환의 요점이다.
 - [x] (I3) `lockfileVersion` 메이저 포맷 격차 0 박제 — `grep -nE '"lockfileVersion"' package-lock.json` → 1 hit @`:4` 값 `3`. 재실측 PASS.
-- [ ] (I4) 4축 격차 0 동시 박제 — (I2) 위반으로 미충족. 현 상태 3/4 축 (I1 PASS + I3 PASS + I5 위반 + I2 위반).
-- [ ] (I5) 위반 검출 단일성 — **위반**. (I2) 격차 1 이 존재하는 상태에서 `npm run --silent check:npm-coherence` → rc=**0**, stdout `package-manager coherence: engines.npm=>=10 packageManager=npm@10.9.2 aligned` (격차 라벨 0 hit). 진단 채널 자체는 존재하나 (`scripts/check-package-manager-coherence.sh` + `npm run check:npm-coherence` + `.github/workflows/ci.yml:42-43` CI step 등재 — 3 채널 실재) 현존 격차를 검출하지 못한다.
+- [x] (I4) 4축 격차 0 동시 박제 — **4/4 축 PASS** (I1 채널 존재 + I2 CI 실행 메이저 격차 0 + I3 lockfileVersion 격차 0 + I5 검출 단일성). 단일 명령 재실측: `npm run --silent check:npm-coherence` → rc=0 / `engines.npm=>=11 packageManager=npm@11.17.0 declared=11 runtime=11 lockfileVersion=3 aligned` — 4축 값이 한 줄에 동시 출력된다.
+- [x] (I5) 위반 검출 단일성 — **주입 재실행으로 확인**. 정상 트리 rc=0 은 근거가 아니므로 inspector 가 현 HEAD 에서 2 방향을 주입해 재판정했다.
+  - 선언 메이저 주입 (`packageManager` `npm@11.17.0` → `npm@10.9.2`): rc=**3**, stdout 1행 `npm major 격차 1` + 요약 `... declared=10 runtime=11 ... FAIL (격차 1)` — 격차 카테고리 라벨 grep 1 hit.
+  - lockfile 축 주입 (`lockfileVersion` `3` → `2`): rc=**3**, stdout `lockfileVersion 격차 1 (expected 3 for npm major 11)` + 동일 요약 — 라벨 grep 1 hit.
+  - 두 주입 모두 원복 후 `git status --porcelain` 무출력 · 게이트 rc=0 복귀 확인.
+  진단 채널 3 지점 실재 (`scripts/check-package-manager-coherence.sh` + `package.json` `scripts.check:npm-coherence` + `.github/workflows/ci.yml:43` CI step).
 - [x] (I6) 시점 비의존 (RULE-07) — `awk '/^## 역할/,/^## 테스트 현황/' "<SPEC>" | grep -cE "npm\s+(7|8|9|10|11)|lockfileVersion\s*:\s*(2|3)|: 2 |\"2\"|\"3\""` → 0 hit (§스코프 규칙 G4).
 - [x] (I7) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' "<SPEC>" | grep -vE '`[^`]*default[^`]*`' | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit (§스코프 규칙 G5).
 - [x] (I8) 직교 정합 — §동작 8 박제 + 자매 메타 spec 6건 명시.
 - [x] (I9) REQ-079 별 axis 후속 박제 — §동작 9 + §변경 이력 + §참고 cross-ref.
-- [ ] (I10) 판정 근거의 실행성 — **위반**. `grep -cE "npm -v|npm --version" scripts/check-package-manager-coherence.sh` → **0 hit**. 게이트는 `package.json` 의 `engines.npm` 과 `packageManager` **두 선언의 존재만** 읽고 (`:31-32`), 두 선언을 서로 비교해 `aligned` 를 출력한다. `grep -c "ci.yml" scripts/check-package-manager-coherence.sh` → 0 — 실행 채널을 참조하는 경로가 없다.
-- [ ] (I11) 격차의 실패 전이 — **위반**. 격차 1 이 존재하는 현 HEAD 에서 `npm run check:npm-coherence` rc=0 이고 CI 잡 전 스텝 PASS (CI #228 `f34203e`). 무효 입력이 있던 시기에도 `actions/setup-node` 는 경고 annotation 만 남기고 step 은 성공했다 (CI #226).
+- [x] (I10) 판정 근거의 실행성 — TSK-20260824-01-b (`9e06afa`) 가 게이트를 런타임 실측으로 교체했다. `grep -cE "npm -v|npm --version" scripts/check-package-manager-coherence.sh` → **3 hit** (재실측). 게이트는 선언 2키를 서로 비교하지 않고 `npm -v` 출력을 실측 축으로 삼아 선언 메이저와 대조하며, lockfileVersion 기대값도 **실측 메이저** 기준으로 산출한다. `grep -c "ci.yml" ...` → 0 은 유지되나 이는 위반이 아니라 설계다 — 게이트 자신이 CI 잡 안에서 실행돼 그 러너의 매니저를 측정하므로, 워크플로 파일을 읽는 경로는 (I10) 이 배격한 토큰 근거로 회귀하는 길이다.
+- [x] (I11) 격차의 실패 전이 — 주입 격차가 rc≠0 으로 전이함을 재실행 확인 (위 (I5) 2 방향 모두 rc=**3**). 전이 경로는 `npm run` 의 exit code 전파 (주입 시 `npm run --silent check:npm-coherence` 자체가 rc=3 반환) → `.github/workflows/ci.yml:43` step (`run: npm run check:npm-coherence`, `shell: /usr/bin/bash -e`) 이며, 경고 annotation 으로 강등되는 경로가 없다. **CI 잡을 실제로 red 로 만든 관측은 본 tick 에 없다** — 근거는 (게이트 rc=3 재실행) + (해당 게이트가 CI step 으로 등재됨) 의 합성이다.
 - [ ] (I12) 워크플로 입력 키 유효성 — **판정 채널 부재**. 현 HEAD 의 `setup-node@v6` step 은 `node-version` (`:27`) / `cache` (`:28`) 2 키만 지정하며 두 키 모두 액션 입력 집합의 원소이므로 상태는 충족이나, 이를 판정하는 자동 채널이 저장소에 없다 (`actionlint` 등 미도입). 채널 부착 task 선행 (RULE-07 §promote 4).
-- [ ] (I13) 진단 출력의 양측 동시 박제 — **위반**. `npm run --silent check:npm-coherence | grep -cE "runtime=|실측"` → **0 hit**. 현 stdout 은 선언 2키만 출력하고 실측 메이저를 포함하지 않는다.
+- [x] (I13) 진단 출력의 양측 동시 박제 — `npm run --silent check:npm-coherence | grep -cE "runtime=|실측"` → **1 hit** (재실측). 성공 경로 stdout 이 `declared=11 runtime=11` 로 선언·실측을 동시에 낸다. 실패 경로도 동일 요약을 동반한다 — 위 (I5) 주입 출력 `... declared=10 runtime=11 ... FAIL (격차 1)` 이 양측 동시 박제의 실패측 사례다.
 
 ## 수용 기준
 
 > 전 항목 HEAD=`ce15908` 에서 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 자기 참조·자명·주입 부류는 §참고 §미측정·비판정 항목으로 강등했다.
 
 - [x] (Must, FR-01) `package.json` 메이저 정합 채널 1+ 박제 — `node -e "const p=require('./package.json'); process.exit((p.engines && p.engines.npm) || p.packageManager ? 0 : 1)"` → rc=0 (재실측 PASS).
-- [ ] (Must, FR-02) 선언 채널 메이저 == 실행 매니저 메이저 — `node -e "const p=require('./package.json'); const d=String(p.packageManager||p.engines.npm).match(/\d+/)[0]; const r=require('child_process').execSync('npm -v').toString().match(/\d+/)[0]; console.log('declared='+d,'runtime='+r); process.exit(d===r?0:1)"` → rc=0. **실측 rc=1 / `declared=10 runtime=11`.** 본 명령이 CI step 으로 실행되면 CI 런타임을 판정한다 (실행 환경 실측 — 토큰 존재 무관).
+- [x] (Must, FR-02) 선언 채널 메이저 == 실행 매니저 메이저 — `node -e "const p=require('./package.json'); const d=String(p.packageManager||p.engines.npm).match(/\d+/)[0]; const r=require('child_process').execSync('npm -v').toString().match(/\d+/)[0]; console.log('declared='+d,'runtime='+r); process.exit(d===r?0:1)"` → rc=**0** / `declared=11 runtime=11` (HEAD=`510ae0f` 재실측). CI 러너 실측은 run `32685135180` step stdout 의 `declared=11 runtime=11` — 토큰 존재 무관한 실행 환경 판정.
 - [x] (Must, FR-03) `lockfileVersion` 메이저 포맷 격차 0 — `grep -nE '"lockfileVersion"' package-lock.json` → 1 hit @`:4` 값 `3` (재실측 PASS).
-- [ ] (Must, FR-04) 위반 검출 단일성 — 격차가 존재하는 상태에서 `npm run --silent check:npm-coherence` → rc≠0. **실측 rc=0** (stdout `... aligned`) — 위반.
-- [ ] (Must, FR-08) 판정 채널의 런타임 실측 — `grep -cE "npm -v|npm --version" scripts/check-package-manager-coherence.sh` → 1 hit 이상. **실측 0 hit.**
-- [ ] (Must, FR-09) 진단 stdout 의 양측 동시 출력 — `npm run --silent check:npm-coherence | grep -cE "runtime=|실측"` → 1 hit 이상. **실측 0 hit.**
+- [x] (Must, FR-04) 위반 검출 단일성 — 격차가 존재하는 상태에서 `npm run --silent check:npm-coherence` → rc≠0. **주입 재실측 rc=3** (선언 메이저 주입 → `npm major 격차 1` / lockfile 주입 → `lockfileVersion 격차 1 (expected 3 for npm major 11)`), 원복 후 rc=0. 정상 트리 rc=0 은 본 marker 의 근거가 아니다 (§테스트 현황 (I5) 주입 왕복 참조).
+- [x] (Must, FR-08) 판정 채널의 런타임 실측 — `grep -cE "npm -v|npm --version" scripts/check-package-manager-coherence.sh` → 1 hit 이상. **재실측 3 hit** (TSK-20260824-01-b / `9e06afa`).
+- [x] (Must, FR-09) 진단 stdout 의 양측 동시 출력 — `npm run --silent check:npm-coherence | grep -cE "runtime=|실측"` → 1 hit 이상. **재실측 1 hit** (`declared=11 runtime=11`).
 
 ## 스코프 규칙
 - **expansion**: 허용 — 패키지 매니저 메이저 정합 회복 task 가 `package.json` (`engines.npm` 또는 `packageManager` 추가) + `package-lock.json` (lockfile rewrite) + `.github/workflows/ci.yml` (`setup-node` step npm 메이저 채널 추가) + 선택 `.npmrc` (`engine-strict` 정책) + 신규 `scripts/check-package-manager-coherence.sh` (또는 동등 진단 script) 동시 박제 — 4+ 파일 + 신규 script 추가 scope 확장 허용. 신규 npm 메이저 활성 메이저 호환 포맷 변경 (예: npm 12 메이저 lockfileVersion 4 도입 — 가상 시나리오) 시 §스코프 규칙 grep-baseline G3 재실측 + §변경 이력 row 추가.

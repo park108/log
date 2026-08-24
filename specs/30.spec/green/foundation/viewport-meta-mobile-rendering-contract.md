@@ -2,7 +2,7 @@
 
 > **위치**: `index.html:5` `<meta name="viewport" content="width=device-width, initial-scale=1" />` (보조: 라인). 산출물 보존 극은 `build/index.html` 의 동일 element.
 > **관련 요구사항**: REQ-20260518-022
-> **최종 업데이트**: 2026-08-24 (by inspector — 신규 등록)
+> **최종 업데이트**: 2026-08-24 (by inspector — 215차 tick. TSK-20260824-04 (`510ae0f`) 로 발화 채널이 부착돼 §테스트 현황 마지막 marker 를 `[x]` 로 플립. G-A~G-E 5 게이트 + 채널 실재를 현 HEAD=`510ae0f` 에서 전수 재실행 확인.)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -57,13 +57,18 @@
 
 ## 발화 채널
 
-**현 HEAD 에 자동 발화 채널이 없다.** 실측 (2026-08-24):
+**채널 실재 — `src/__tests__/viewport-meta-mobile-rendering.test.ts`** (TSK-20260824-04 / `510ae0f`, 9 케이스). 현 HEAD=`510ae0f` 재실측 (2026-08-24 inspector):
 
 ```
-grep -rn "viewport" src/__tests__/ src/common/Footer.test.tsx scripts/ .github/  → 0 hit
+grep -rn "viewport" src/__tests__/ scripts/ .github/                          → 34 hit
+npx vitest run src/__tests__/viewport-meta-mobile-rendering.test.ts           → 9 passed (rc=0)
 ```
 
-RULE-07 §promote 조건 4 에 따라 이는 promote 차단 사유가 아니라 **"채널 부착 task 발행"을 선행 조건**으로 한다. planner 는 본 spec 승격 전 G-A~G-E 5 게이트를 발화시키는 채널 1개 이상을 부착하는 task 를 발행한다. 수단은 위임한다 — vitest 픽스처(`src/__tests__/**`) / `scripts/check-*.sh` + `package.json scripts.check:*` + `ci.yml` step 중 택일.
+발화 경로는 `npm test` 수집 → `.github/workflows/ci.yml:72-73` (`- name: Test` / `run: npm test`) + `.husky/pre-push:3` 2 지점. 채널 신규 등록 표면 0.
+
+**채널의 검출력은 주입 왕복으로 확인한다** — 정상 트리의 초록은 민감도 0 인 픽스처도 낸다. TSK-20260824-04 가 6 방향 (R-1~R-5 + G-E) 을 주입해 `injection: 6/6 detect` 를 박제했고, inspector 는 현 HEAD 에서 그중 1 방향을 재확인했다: `index.html:5` content 에 `user-scalable=no` 주입 시 픽스처 rc=1 (9 케이스 중 3 FAIL), 원복 후 rc=0. 이 방향은 §역할 방어 대상 (2) 의 접근성 회귀 축이다.
+
+자기 hit 회피는 확대 차단 토큰 3 종의 **런타임 조립**으로 이뤄졌고 스캔 대상이 `index.html` / `build/index.html` / `public/manifest.json` 로 닫혀 있다 — 픽스처 추가 후에도 G-C 원 명령이 0 hit 을 유지한다 (현 HEAD 재실측 rc=0).
 
 ## 테스트 현황
 
@@ -72,7 +77,7 @@ RULE-07 §promote 조건 4 에 따라 이는 promote 차단 사유가 아니라 
 - [x] G-C 확대 차단 토큰 0 — 명령 실행 rc=0 (0 hit).
 - [x] G-D 산출물 보존 — 명령 실행 rc=0 (`build/index.html` 실재, diff 무출력).
 - [x] G-E standalone 동행 — 명령 실행 rc=0.
-- [ ] 전용 자동 픽스처 — 부재 (§발화 채널 참조; 채널 부착 task 선행 조건).
+- [x] 전용 자동 픽스처 — `src/__tests__/viewport-meta-mobile-rendering.test.ts` 실재 (TSK-20260824-04 / `510ae0f`, 9 케이스 PASS). 채널 grep 34 hit, `npm test` 수집 경로 발화. 검출력은 주입 6/6 detect + inspector 현 HEAD 1 방향 재확인 (§발화 채널).
 
 ## 수용 기준
 
@@ -98,3 +103,4 @@ RULE-07 §promote 조건 4 에 따라 이는 promote 차단 사유가 아니라 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-24 | inspector tick / REQ-20260518-022 | 최초 등록. G-A~G-E 5 게이트 명령 전수 HEAD 실행 rc=0 확인 후 `[x]` 박제. 발화 채널 부재 실측 박제 (grep 0 hit). | all |
+| 2026-08-24 | TSK-20260824-04 / `510ae0f` (inspector Phase 1 reconcile @ HEAD=`510ae0f`) | 발화 채널 부착 확인 → §테스트 현황 "전용 자동 픽스처" `[ ]` → `[x]`. G-A~G-E 5 게이트 + 채널 grep (34 hit) + 픽스처 실행 (9 passed) 전수 재실행 PASS. 주입 1 방향 (`user-scalable=no` 유입 → rc=1) 재확인 후 원복. RULE-07 §promote 조건 4 "발화 채널 실경로 박제 + 현 HEAD 실재" 충족. | §발화 채널, §테스트 현황 |
