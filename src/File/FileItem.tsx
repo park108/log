@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
 import { activateOnKey } from '../common/a11y';
@@ -26,17 +26,40 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 	const refreshFiles = props.deleted;
 	const refreshTimeout = 3000;
 
+	// REQ-20260825-002 / TSK-20260825-04 — post-unmount 무발화 가드.
+	// 이 컴포넌트의 async continuation 은 effect 가 아니라 **이벤트 핸들러** 에 있다
+	// (`deleteFileItem` · `copyFileUrl`). await 이후 코드는 언마운트 뒤에도 그대로
+	// 실행돼 log / reportError / state setter / 부모 콜백을 발화한다. 수단 = mount
+	// 여부 ref (같은 도메인 선례 `FileUpload.tsx` 의 `cancelled` ref 와 동일 이디엄,
+	// 생명주기 전체를 덮어야 하므로 이름만 `isMounted`).
+	const isMounted = useRef<boolean>(true);
+	const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	useEffect(() => {
+		isMounted.current = true;
+		return () => {
+			isMounted.current = false;
+			if(null !== refreshTimerRef.current) {
+				clearTimeout(refreshTimerRef.current);
+				refreshTimerRef.current = null;
+			}
+		};
+	}, []);
+
 	const deleteFileItem = async () => {
 
 		setIsDeleting(true);
 
 		try {
 			const res = await deleteFile(props.fileName as string);
+			if(!isMounted.current) return;
+
 			const status = await res.json();
+			if(!isMounted.current) return;
 
 			if(200 === status.statusCode) {
 				log("[API DELETE] OK - File: " + props.fileName, "SUCCESS");
-				setTimeout(() => refreshFiles?.(), refreshTimeout);
+				refreshTimerRef.current = setTimeout(() => refreshFiles?.(), refreshTimeout);
 			}
 			else {
 				log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
@@ -47,6 +70,8 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 			}
 		}
 		catch(err) {
+			if(!isMounted.current) return;
+
 			log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
 			setToasterMessage("Upload file failed for network issue.");
 			setToasterType("error");
@@ -57,6 +82,8 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 
 	const copyFileUrl = async () => {
 		const ok = await copyToClipboard(props.url as string);
+		if(!isMounted.current) return;
+
 		if (ok) {
 			setToasterMessage(props.fileName + " URL copied.");
 			setToasterType("success");

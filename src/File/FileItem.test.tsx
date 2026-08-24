@@ -4,6 +4,41 @@ import * as errorReporter from '../common/errorReporter';
 import * as api from './api';
 import FileItem from './FileItem';
 
+// TSK-20260825-04 / REQ-20260825-002 — setter 계수 관측기.
+// React 18.2 의 `dispatchSetState` 는 unmount 된 fiber 에서 `root === null` 경로로
+// **경고 없이** bail out 한다. 따라서 post-await 발화가 state setter 뿐인 표면
+// (`copyFileUrl`) 은 console spy 로는 민감도 0 이다 — 가드를 제거해도 콘솔 단정은
+// 계속 통과한다. 그 표면을 관측하려면 setter 호출 자체를 세야 한다.
+// ESM namespace 는 non-configurable 이라 `vi.spyOn(React, 'useState')` 가 불가하고,
+// 모듈 mock 으로 `useState` 를 감싸는 형태만 성립한다. 팩토리는 호이스트되므로
+// 카운터는 `vi.hoisted` 로 바인딩한다. wrapper 는 원본 `useState` 에 그대로 위임해
+// 기존 케이스의 동작을 바꾸지 않는다.
+const setterRec = vi.hoisted(() => ({ calls: 0 }));
+
+vi.mock('react', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('react')>();
+	const useState = (init?: unknown): [unknown, (next: unknown) => void] => {
+		const [value, setValue] = actual.useState(init as never);
+		const counted = (next: unknown): void => {
+			setterRec.calls += 1;
+			(setValue as (n: unknown) => void)(next);
+		};
+		return [value, counted];
+	};
+	return { ...actual, useState };
+});
+
+/** 외부에서 결말을 제어하는 pending Promise — unmount 와 resolve 사이 창을 연다. */
+function deferred<T>(): { promise: Promise<T>; resolve: (v: T) => void; reject: (e: unknown) => void } {
+	let resolve!: (v: T) => void;
+	let reject!: (e: unknown) => void;
+	const promise = new Promise<T>((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	return { promise, resolve, reject };
+}
+
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
 beforeEach(() => {
@@ -265,6 +300,164 @@ describe('FileItem reportError 채널 (REQ-20260421-039 FR-03)', () => {
 		await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
 
 		spy.mockRestore();
+		vi.restoreAllMocks();
+	});
+});
+
+// ── TSK-20260825-04 / REQ-20260825-002 — post-unmount 무발화 race fixture ──────
+// 출처 spec: testing/runtime-fetch-unmount-safety §동작 (I1)(I2)(I8) · (FR-06)(FR-10).
+// 이 컴포넌트의 async continuation 은 effect 가 아니라 이벤트 핸들러에 있다.
+// 삭제 버튼을 누른 직후 이탈하면 `await` 이후 코드가 그대로 실행돼 계약이 금지한
+// 발화(log · reportError · state setter · 부모 콜백)를 낸다.
+//
+// 관측 표면을 2종 모두 둔다 (하나로 갈음하지 않는다):
+//   (F1 계열) 콘솔류 관측 — `deleteFileItem` 갈래 (log 3 · reportError 2).
+//   (F2 계열) setter 계수 관측 — `copyFileUrl` 갈래 (콘솔류 0 · setter 5).
+// 단정은 전부 **무필터** 다 — 문구 필터를 끼우면 현 React 버전에서 도달 불가한
+// 경고 문구만 세는 공허한 fixture 가 된다.
+
+describe('FileItem post-unmount 무발화 (race fixture)', () => {
+
+	it('F1: deleteFile 이 unmount 후 resolve 해도 log · reportError · console 무발화', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const pending = deferred<Response>();
+		vi.spyOn(api, 'deleteFile').mockReturnValue(pending.promise);
+
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
+		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const { container, unmount } = render(<FileItem {...defaultProps} />);
+
+		await act(async () => {
+			fireEvent.click(container.querySelector('.span--fileitem-delete')!);
+		});
+
+		unmount();
+		// 관측 창은 unmount 이후로 한정한다 — 마운트 중 정상 발화까지 세면 단정 불가.
+		logSpy.mockClear();
+		reportSpy.mockClear();
+		consoleErrorSpy.mockClear();
+
+		// 첫 await 경계의 가드를 단독으로 관측한다. 응답 본문 파싱(`res.json()`) 자체가
+		// 언마운트 뒤 continuation 이므로, 그것이 호출되면 첫 가드가 사라진 것이다.
+		// (뒤 경계의 가드가 콘솔 발화를 대신 막아 주더라도 이 단정은 통과하지 않는다.)
+		const jsonSpy = vi.fn(async () => ({ statusCode: 200 }));
+
+		await act(async () => {
+			pending.resolve({ json: jsonSpy } as unknown as Response);
+			await Promise.resolve();
+		});
+
+		expect(jsonSpy).not.toHaveBeenCalled();
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(reportSpy).not.toHaveBeenCalled();
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+		vi.restoreAllMocks();
+	});
+
+	it('F1b: res.json() 이 unmount 후 resolve 해도 무발화 (두 번째 await 경계)', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const jsonPending = deferred<{ statusCode: number }>();
+		vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: () => jsonPending.promise,
+		} as unknown as Response);
+
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
+		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		const { container, unmount } = render(<FileItem {...defaultProps} />);
+
+		// 이 시점에 첫 await 는 이미 통과했고 (컴포넌트는 아직 마운트 상태),
+		// 실행은 `await res.json()` 에서 멈춰 있다.
+		await act(async () => {
+			fireEvent.click(container.querySelector('.span--fileitem-delete')!);
+		});
+
+		unmount();
+		logSpy.mockClear();
+		reportSpy.mockClear();
+
+		await act(async () => {
+			jsonPending.resolve({ statusCode: 400 });
+			await Promise.resolve();
+		});
+
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(reportSpy).not.toHaveBeenCalled();
+
+		vi.restoreAllMocks();
+	});
+
+	it('F1c: deleteFile reject 가 unmount 후 도달해도 무발화 (catch 경로)', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const pending = deferred<Response>();
+		vi.spyOn(api, 'deleteFile').mockReturnValue(pending.promise);
+
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
+		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		const { container, unmount } = render(<FileItem {...defaultProps} />);
+
+		await act(async () => {
+			fireEvent.click(container.querySelector('.span--fileitem-delete')!);
+		});
+
+		unmount();
+		logSpy.mockClear();
+		reportSpy.mockClear();
+
+		await act(async () => {
+			pending.reject(new Error('network down'));
+			await Promise.resolve();
+		});
+
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(reportSpy).not.toHaveBeenCalled();
+
+		vi.restoreAllMocks();
+	});
+
+	it('F2: copyToClipboard 가 unmount 후 resolve 해도 state setter 호출 0 (setter 전용 표면)', async () => {
+
+		const pending = deferred<boolean>();
+		vi.spyOn(common, 'copyToClipboard').mockReturnValue(pending.promise);
+
+		const { container, unmount } = render(<FileItem {...defaultProps} />);
+
+		fireEvent.click(container.querySelector('.div--fileitem-filename')!);
+
+		setterRec.calls = 0;
+		unmount();
+
+		await act(async () => {
+			pending.resolve(true);
+			await Promise.resolve();
+		});
+
+		expect(setterRec.calls).toBe(0);
+
+		vi.restoreAllMocks();
+	});
+
+	it('F2b: 마운트 상태의 copy 성공 경로는 그대로 setter 를 발화한다 (가드 분기 양쪽 도달)', async () => {
+
+		vi.spyOn(common, 'copyToClipboard').mockResolvedValue(true);
+
+		const { container } = render(<FileItem {...defaultProps} />);
+
+		setterRec.calls = 0;
+		await act(async () => {
+			fireEvent.click(container.querySelector('.div--fileitem-filename')!);
+		});
+
+		expect(setterRec.calls).toBeGreaterThan(0);
+		expect(container.querySelector('.div--fileitem-filename')).toBeInTheDocument();
+
 		vi.restoreAllMocks();
 	});
 });
