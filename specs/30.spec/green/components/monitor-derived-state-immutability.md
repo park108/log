@@ -105,7 +105,7 @@ Monitor 영역 컴포넌트가 `useState` 로 보유한 **객체 state 는 in-pl
 - 대조군 (준수 사례): `src/Monitor/ApiCallItem.jsx:100` `setRateColor({ color: ... })` — 새 객체 리터럴 set.
 - 원 followup: `specs/10.followups/20260824-2020-webvitalsitem-state-object-mutation.md` (source_task `TSK-20260824-07-a`, severity low). 그 task 는 `## 스코프 규칙` expansion **불허** 였으므로 developer 가 정당하게 이관했다 — 스코프 규칙이 설계대로 작동한 사례다.
 - 헤더 카운트 결함은 followup 원문에 없었고 discovery 가 req 작성 중 추가 발견했다. inspector 가 tick 219 에서 독립 재현했다 (대입 라인 0건 · 렌더 소비 `:175` · 테스트 공백 확인).
-- 직교 spec: `specs/30.spec/blue/components/monitor.md` — Monitor 페이지 셸·패널 구성 축. 본 spec 은 아이템 컴포넌트의 state 관리 축이라 직교하며, 승격 시 별 파일로 남는다.
+- 직교 spec: `monitor` (components) — Monitor 페이지 셸·패널 구성 축. 본 spec 은 아이템 컴포넌트의 state 관리 축이라 직교하며, 승격 시 별 파일로 남는다.
 
 ### 미측정·비판정 항목
 
