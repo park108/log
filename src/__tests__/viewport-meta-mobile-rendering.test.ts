@@ -12,7 +12,8 @@
 //   G-A 선언 단일성   : index.html 의 name="viewport" + content="..." 메타 === 1
 //   G-B content 동치  : content 가 기기폭 + 배율 1 조합 (width=device-width, initial-scale=1)
 //   G-C 확대 차단 0   : index.html 에 확대 차단 토큰 3 종 0 hit — §역할 방어 대상 (2) 직접 채널
-//   G-D 산출물 보존   : build/index.html 존재 시 viewport element 가 원본과 동일 / 부재 시 skip
+//   G-D 산출물 보존   : 동시대 build/index.html 의 viewport element 가 원본과 동일
+//                       (미빌드·stale 은 미측정 skip — TSK-20260824-08-a)
 //   G-E standalone    : public/manifest.json 의 display 가 standalone (G-A~G-C 필수성 근거)
 //
 // 손상의 결과: 메타 소실 시 모바일 브라우저는 데스크톱 가정 폭(약 980 CSS px)으로
@@ -45,12 +46,14 @@
 // — CI (.github/workflows/ci.yml `- name: Test`) 와 .husky/pre-push 두 지점에서
 // 발화한다. 신규 채널 등록 표면 0 (package.json / ci.yml 무변경).
 //
-// 멱등성: read-only — readFileSync / existsSync / readdirSync / statSync 만 사용한다.
+// 멱등성: read-only — readFileSync / existsSync / readdirSync / statSync + 공통
+// 헬퍼(../test-utils/buildArtifactGate — 3 상태 판정 수렴처) 만 사용한다.
 // 어떤 production 파일도 수정하지 않으며 `npm run build` 를 강제하지 않는다.
 
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { measureBuildArtifacts } from "../test-utils/buildArtifactGate";
 
 // 프로젝트 루트는 본 fixture 위치 (`src/__tests__/`) 기준 상위 2 단계
 // (선례 csp-meta-build-artifact-preservation / html-lang-locale-declaration 동형).
@@ -160,36 +163,35 @@ describe("viewport-meta-mobile-rendering (TSK-20260824-04)", () => {
 		).toHaveLength(0);
 	});
 
-	it("G-D / R-5: build/index.html 존재 시 viewport element 가 원본과 동일 (부재 시 skip)", () => {
+	it("G-D / R-5: 동시대 build/index.html 의 viewport element 가 원본과 동일 (미빌드·stale 은 skip)", (ctx) => {
 		const source = extractViewportElements(readIndexHtml());
 		// skip 술어는 **파일 단위** 다 (spec §동작 4 의 `[ -f build/index.html ] || exit 0`
 		// 동치). 디렉터리 단위 술어를 쓰면 build/ 만 있고 index.html 이 아직 없는
-		// 부분 빌드 상태에서 skip 대신 FAIL 한다.
-		if (!existsSync(PATH_BUILD_INDEX_HTML)) {
-			// build/ 는 gitignored — 본 fixture 는 `npm run build` 를 강제하지 않는다.
-			// 선례: csp-meta-build-artifact-preservation.test.ts 의 skip 규약.
-			expect(source).toHaveLength(1);
-			return;
-		}
+		// 부분 빌드 상태에서 skip 대신 FAIL 한다. 미측정을 원본 극 단언으로
+		// 대체하지도 않는다 — 산출물을 재지 않은 초록은 측정과 구별되지 않는다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD_INDEX_HTML],
+			sources: [PATH_INDEX_HTML],
+		});
 		const artifact = extractViewportElements(readFileSync(PATH_BUILD_INDEX_HTML, "utf8"));
 		expect(
 			artifact,
-			"G-D 위반 — 빌드 파이프라인이 head 를 재작성해 viewport element 를 변형·소실시켰다 (prod 표면에서만 관측되는 회귀).",
+			`G-D 위반 — 빌드 파이프라인이 head 를 재작성해 viewport element 를 변형·소실시켰다 (prod 표면에서만 관측되는 회귀). ${gate.mtimeEvidence}`,
 		).toEqual(source);
 	});
 
-	it("G-D 보조: 산출물 html 열거가 게이트 측정 대상을 벗어나지 않는다 (사각지대 부재)", () => {
-		if (!existsSync(PATH_BUILD_INDEX_HTML)) {
-			// 부분 빌드·미빌드 상태 — 측정 생략 (G-D 본 케이스와 동일 술어).
-			expect(listHtmlFiles(BUILD_DIR)).not.toContain("index.html");
-			return;
-		}
+	it("G-D 보조: 동시대 산출물의 html 열거가 게이트 측정 대상을 벗어나지 않는다 (사각지대 부재)", (ctx) => {
+		// G-D 본 케이스와 동일 술어 — 디렉터리와 완료 앵커 파일을 함께 요구한다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [BUILD_DIR, PATH_BUILD_INDEX_HTML],
+			sources: [PATH_INDEX_HTML],
+		});
 		// 측정 대상은 열거 산출이다. 산출물에 index.html 밖의 html 진입점이
 		// 생기면 그 문서의 viewport 선언은 G-D 사각지대에 숨는다.
 		const uncovered = listHtmlFiles(BUILD_DIR).filter((name) => name !== "index.html");
 		expect(
 			uncovered,
-			`G-D 측정 밖 산출물 html 진입점이 존재한다 — 게이트 확장 필요:\n${uncovered.map((u) => `  build/${u}`).join("\n")}`,
+			`G-D 측정 밖 산출물 html 진입점이 존재한다 — 게이트 확장 필요:\n${uncovered.map((u) => `  build/${u}`).join("\n")}\n${gate.mtimeEvidence}`,
 		).toHaveLength(0);
 	});
 

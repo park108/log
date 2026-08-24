@@ -13,7 +13,8 @@
 //   G-B BCP 47 형식 적합 : 추출값이 ^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$ 를 만족
 //   G-C 루트 요소 단일성 : index.html 의 <html> 시작 태그 자체 === 1
 //   G-D 런타임 재정의 부재: src/** (.ts/.tsx/.js/.jsx) 전수 스캔 0 hit
-//   G-E 산출물 보존      : build/index.html 존재 시 루트 선언이 원본과 동일 / 부재 시 skip
+//   G-E 산출물 보존      : 동시대 build/index.html 의 루트 선언이 원본과 동일
+//                          (미빌드·stale 은 미측정 skip — TSK-20260824-08-a)
 //
 // ── 자체 진단 제외 (G-D 자기 무효화 회피 — 필수) ─────────────────────────────
 // G-D 의 스캔 대상은 `src/**` 전수이고 본 fixture 자신이 그 안에 있다. 스캔
@@ -38,12 +39,15 @@
 // — CI (.github/workflows/ci.yml `- name: Test`) 와 .husky/pre-push 두 지점에서
 // 발화한다. 신규 채널 등록 표면 0 (package.json / ci.yml 무변경).
 //
-// 멱등성: read-only — readFileSync / existsSync / readdirSync / statSync 만 사용한다.
-// 어떤 production 파일도 수정하지 않으며 `npm run build` 를 강제하지 않는다.
+// 멱등성: read-only — readFileSync / readdirSync / statSync + 공통 헬퍼의
+// existsSync / statSync 만 사용한다. 어떤 production 파일도 수정하지 않으며
+// `npm run build` 를 강제하지 않는다. G-E 의 3 상태 판정(미빌드 / stale / 동시대)은
+// ../test-utils/buildArtifactGate 1 곳에 수렴한다 (REQ-20260824-003 FR-02~04).
 
 import { describe, it, expect } from "vitest";
-import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
+import { measureBuildArtifacts } from "../test-utils/buildArtifactGate";
 
 // 프로젝트 루트는 본 fixture 위치 (`src/__tests__/`) 기준 상위 2 단계
 // (선례 csp-meta-build-artifact-preservation / mount-id-token-coherence 동형).
@@ -207,19 +211,20 @@ describe("html-lang-locale-declaration (TSK-20260824-03)", () => {
 		).toHaveLength(0);
 	});
 
-	it("G-E / R-5: build/index.html 존재 시 루트 로케일 선언이 원본과 동일 (부재 시 skip)", () => {
+	it("G-E / R-5: 동시대 build/index.html 의 루트 로케일 선언이 원본과 동일 (미빌드·stale 은 skip)", (ctx) => {
 		const source = extractLangDeclarations(readIndexHtml());
-		if (!existsSync(PATH_BUILD_INDEX_HTML)) {
-			// build/ 는 gitignored — 본 fixture 는 `npm run build` 를 강제하지 않는다.
-			// 부재 시 read-only no-op (spec §동작 5 의 `[ -f ... ] || exit 0` 동치).
-			// 선례: csp-meta-build-artifact-preservation.test.ts 의 skip 규약.
-			expect(source.length).toBe(1);
-			return;
-		}
+		// 미측정을 원본 극 단언으로 대체하지 않는다 — `expect(source.length).toBe(1)`
+		// 은 산출물을 재지 않은 채 초록을 내며 실행 출력에서 측정과 구별되지 않는다.
+		// 산출물이 원본보다 낡았을 때(gitignored `build/` 에서 일상적인 창) 아래
+		// 위반 메시지를 내면 원인 지목이 틀린다 — stale 은 재빌드 지시로 갈린다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD_INDEX_HTML],
+			sources: [PATH_INDEX_HTML],
+		});
 		const artifact = extractLangDeclarations(readFileSync(PATH_BUILD_INDEX_HTML, "utf8"));
 		expect(
 			artifact,
-			"G-E 위반 — 빌드가 루트 요소의 로케일 선언을 변형·소실시켰다 (prod 표면에서만 관측되는 회귀).",
+			`G-E 위반 — 빌드가 루트 요소의 로케일 선언을 변형·소실시켰다 (prod 표면에서만 관측되는 회귀). ${gate.mtimeEvidence}`,
 		).toEqual(source);
 	});
 

@@ -9,18 +9,21 @@
 //   G-C / FR-03: src/common/common.ts `getElementById("root")` match count === 1
 //   G-D / FR-04: 3 극 토큰 캡처 + byte-for-byte 동치 ("root" ≡ "root" ≡ "root")
 //   G-E / FR-05: src/** production scope (`*.test.*` 제외) 총합 === 2
-//   G-F / FR-06: build/index.html 존재 시 `id="root"` count === 1 (부재 시 skip)
+//   G-F / FR-06: 동시대 build/index.html 의 `id="root"` count === 1
+//                (미빌드·stale 은 미측정 skip — TSK-20260824-08-a / REQ-20260824-003)
 //
-// 멱등성 (§spec NFR-02): read-only — fs.readFileSync 만 사용, 어떤 production
-// 파일도 수정하지 않는다. build artifact 강제 생성하지 않음 (수단 영역).
+// 멱등성 (§spec NFR-02): read-only — fs.readFileSync + 공통 헬퍼의 existsSync /
+// statSync 만 사용, 어떤 production 파일도 수정하지 않는다. build artifact 강제
+// 생성하지 않음 (수단 영역) — 3 상태 판정은 ../test-utils/buildArtifactGate 에 수렴.
 //
 // 자체 진단 제외 (§spec NFR-04): 본 fixture 본문 내 `id="root"` / `getElementById("root")`
 // 문자열 occurrence 는 게이트 scope 외 — G-E walk 는 `*.test.*` 제외 패턴으로
 // 본 fixture 자기 자신을 측정 대상에서 배제한다.
 
 import { describe, it, expect } from "vitest";
-import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { measureBuildArtifacts } from "../test-utils/buildArtifactGate";
 
 // 프로젝트 루트는 본 fixture 위치 (`src/__tests__/`) 기준 상위 2 단계.
 const REPO_ROOT = resolve(__dirname, "..", "..");
@@ -123,15 +126,18 @@ describe("mount-id-token-coherence (TSK-20260518-07)", () => {
 		expect(total).toBe(2);
 	});
 
-	it("G-F / FR-06: build/index.html 존재 시 `id=\"root\"` match count === 1 (부재 시 skip)", () => {
-		if (!existsSync(PATH_BUILD_INDEX_HTML)) {
-			// §spec NFR-02 — 본 fixture 는 `npm run build` 강제하지 않음.
-			// build artifact 부재 시 read-only no-op (skip 동치).
-			expect(true).toBe(true);
-			return;
-		}
+	it("G-F / FR-06: 동시대 build/index.html 의 `id=\"root\"` match count === 1 (미빌드·stale 은 skip)", (ctx) => {
+		// 미측정은 skip 으로 계수한다 — 자명 단언은 실행 출력에서 측정과 구별되지
+		// 않는다. 3 상태 판정(미빌드 / stale / 동시대)은 공통 헬퍼 1 곳에 있다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD_INDEX_HTML],
+			sources: [PATH_INDEX_HTML],
+		});
 		const src = readFileSync(PATH_BUILD_INDEX_HTML, "utf8");
 		const count = countMatches(src, RE_HTML_ID_ROOT);
-		expect(count).toBe(1);
+		expect(
+			count,
+			`G-F 위반 — 빌드가 mount 노드 ID 토큰을 변형·소실시켰다. ${gate.mtimeEvidence}`,
+		).toBe(1);
 	});
 });

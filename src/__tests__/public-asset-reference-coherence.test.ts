@@ -6,15 +6,17 @@
 // 의 `icons[*].src` / `theme_color` 양면 의미 동치를 결정론 채널로 박제한다:
 //   G-A / FR-01: index.html 4 종 자원 참조 grep count === 4
 //   G-B / FR-02: public/** 4 파일 디스크 실재
-//   G-C / FR-03: build/** 산출 자원 보존 (build 존재 시 measure / 부재 시 skip)
+//   G-C / FR-03: build/** 산출 자원 보존 (동시대 산출물 measure / 미빌드·stale 은 skip)
 //   G-D / FR-04: <meta name="theme-color"> content ↔ manifest.json.theme_color 양면 동치
 //   G-E / FR-05: manifest.json.icons[*].src 전수 디스크 실재
 //   G-F / FR-06: manifest.json valid JSON + build artifact byte-equal
 //   G-G / FR-07: 3 채널 양면 의도 분리 박제 (apple-icon-precomposed.png ∉ icons / favicon.ico ∈ icons)
 //
-// 멱등성 (§spec NFR-02): read-only — fs.readFileSync / existsSync / JSON.parse 만
-// 사용, 어떤 production 파일도 수정하지 않는다. `npm run build` 강제 부재 (G-C/G-F
-// 조건부 skip 분기 박제).
+// 멱등성 (§spec NFR-02): read-only — fs.readFileSync / existsSync / JSON.parse +
+// 공통 헬퍼의 statSync 만 사용, 어떤 production 파일도 수정하지 않는다.
+// `npm run build` 강제 부재 — G-C/G-F 의 3 상태 판정(미빌드/stale/동시대)은
+// ../test-utils/buildArtifactGate 1 곳에 수렴한다 (TSK-20260824-08-a /
+// REQ-20260824-003 FR-02~04).
 //
 // 자체 진단 제외 (§spec NFR-05 / G-J): 본 fixture 본문 내 `manifest.json` /
 // `favicon.ico` / `apple-icon-precomposed.png` / `theme-color` 문자열 occurrence
@@ -24,6 +26,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { measureBuildArtifacts } from "../test-utils/buildArtifactGate";
 
 // 프로젝트 루트는 본 fixture 위치 (`src/__tests__/`) 기준 상위 2 단계.
 const REPO_ROOT = resolve(__dirname, "..", "..");
@@ -98,21 +101,28 @@ describe("public-asset-reference-coherence (TSK-20260518-09)", () => {
 		}
 	});
 
-	it("G-C / FR-03: build/** 산출 자원 보존 — build 존재 시 measure / 부재 시 skip", () => {
-		if (!existsSync(PATH_BUILD)) {
-			// §spec NFR-02 — 본 fixture 는 `npm run build` 강제하지 않음.
-			// build 부재 시 read-only no-op (skip 동치).
-			expect(true).toBe(true);
-			return;
-		}
+	it("G-C / FR-03: build/** 산출 자원 보존 — 동시대 산출물만 measure (미빌드·stale 은 skip)", (ctx) => {
+		// 술어 입도 — 디렉터리 존재를 빌드 완료로 읽지 않는다. `build/` 는 남았는데
+		// `build/index.html` 이 없는 상태(중단된 `vite build` · outDir 변경 잔재)는
+		// 위반이 아니라 미측정이다. 디렉터리와 완료 앵커 파일을 **함께** 요구한다.
+		//
+		// 앵커가 동시대로 확인된 뒤의 자산 부재는 미측정이 아니라 위반이다 —
+		// 완료된 빌드가 자산을 떨궜다는 뜻이므로 아래 열거는 측정 대상으로 남긴다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD, PATH_BUILD_INDEX_HTML],
+			sources: [PATH_INDEX_HTML, ...PUBLIC_ASSET_NAMES.map((name) => join(PATH_PUBLIC, name))],
+		});
 		for (const name of BUILD_ASSET_NAMES) {
 			const full = join(PATH_BUILD, name);
-			expect(existsSync(full), `build/${name} 산출 부재`).toBe(true);
+			expect(existsSync(full), `build/${name} 산출 부재. ${gate.mtimeEvidence}`).toBe(true);
 		}
 		// build/index.html 라인 카운트 === 4 (§spec FR-03 의 src ↔ dist 보존 양면 동치).
 		const buildHtml = readFileSync(PATH_BUILD_INDEX_HTML, "utf8");
 		const buildHtmlCount = countMatchingLines(buildHtml, RE_INDEX_HTML_ASSET_REF);
-		expect(buildHtmlCount).toBe(4);
+		expect(
+			buildHtmlCount,
+			`G-C 위반 — 빌드가 자원 참조 라인을 변형·소실시켰다. ${gate.mtimeEvidence}`,
+		).toBe(4);
 	});
 
 	it("G-D / FR-04: <meta theme-color> content ↔ manifest.json.theme_color byte-for-byte 동치", () => {
@@ -143,18 +153,22 @@ describe("public-asset-reference-coherence (TSK-20260518-09)", () => {
 		}
 	});
 
-	it("G-F / FR-06: manifest.json valid JSON + build artifact byte-equal — build 존재 시 measure", () => {
-		// (i) valid JSON parse — throw 0 단언.
+	it("G-F / FR-06: manifest.json valid JSON + 동시대 build artifact byte-equal (미빌드·stale 은 skip)", (ctx) => {
+		// (i) valid JSON parse — throw 0 단언 (원본 극, 산출물과 무관).
 		const publicRaw = readFileSync(PATH_PUBLIC_MANIFEST, "utf8");
 		expect(() => JSON.parse(publicRaw)).not.toThrow();
 
-		// (ii) build artifact 존재 시 byte-equal 단언.
-		if (!existsSync(PATH_BUILD_MANIFEST)) {
-			expect(true).toBe(true);
-			return;
-		}
+		// (ii) 산출물 극 — 동시대일 때만 byte-equal 을 단언한다. 산출물이 원본보다
+		// 낡았다면 내용 차이는 "빌드가 변형했다" 가 아니라 "아직 재빌드 안 했다" 다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD_MANIFEST],
+			sources: [PATH_PUBLIC_MANIFEST],
+		});
 		const buildRaw = readFileSync(PATH_BUILD_MANIFEST, "utf8");
-		expect(buildRaw).toBe(publicRaw);
+		expect(
+			buildRaw,
+			`G-F 위반 — 빌드가 manifest.json 을 변형시켰다. ${gate.mtimeEvidence}`,
+		).toBe(publicRaw);
 	});
 
 	it("G-G / FR-07: 3 채널 양면 의도 분리 — apple-icon-precomposed.png ∉ icons / favicon.ico ∈ icons", () => {

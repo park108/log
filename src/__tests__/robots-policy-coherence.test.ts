@@ -13,10 +13,12 @@
 //                === { path: "allow-all", crawl: "allow" }
 //   G-E / FR-05: M_A permissive ≡ M_B permissive → 양면 동치 PASS
 //   G-F / FR-06: build/index.html meta 1 hit + build/robots.txt byte-equal source
-//                — build 존재 시 measure / 부재 시 skip (§spec NFR-02 멱등성)
+//                — 동시대 산출물 존재 시 measure / 미빌드·stale 은 미측정 skip
+//                  (TSK-20260824-08-a / REQ-20260824-003 FR-02~04)
 //
-// 멱등성 (§spec NFR-02): read-only — fs.readFileSync / existsSync 만 사용,
-// production 파일을 수정하지 않는다. `npm run build` 강제하지 않음.
+// 멱등성 (§spec NFR-02): read-only — fs.readFileSync + 공통 헬퍼의 existsSync /
+// statSync 만 사용, production 파일을 수정하지 않는다. `npm run build` 강제하지
+// 않음 — 3 상태 판정(미빌드/stale/동시대)은 ../test-utils/buildArtifactGate 에 수렴.
 //
 // 자체 진단 제외 (§task 구현 지시 8 — TSK-07/08/09/10/11 동형 직교 토큰 검증):
 // 본 fixture 본문 내 다른 task production literal 토큰 (선례 4 carve) occurrence
@@ -34,6 +36,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { measureBuildArtifacts } from "../test-utils/buildArtifactGate";
 
 // 프로젝트 루트는 본 fixture 위치 (`src/__tests__/`) 기준 상위 2 단계
 // (선례 TSK-07/08/09/10/11 동형).
@@ -255,25 +258,28 @@ describe("robots-policy-coherence (TSK-20260518-12)", () => {
 		expect(result.reason).toBe("permissive ≡ permissive");
 	});
 
-	it("G-F / FR-06: build artifact 동치 보존 — build 존재 시 meta 1 hit + byte-equal source / 부재 시 skip", () => {
-		const buildIndexExists = existsSync(PATH_BUILD_INDEX_HTML);
-		const buildRobotsExists = existsSync(PATH_BUILD_ROBOTS);
-		if (!buildIndexExists && !buildRobotsExists) {
-			// §spec NFR-02 — fixture 는 `npm run build` 강제하지 않음.
-			expect(true).toBe(true);
-			return;
-		}
-		if (buildIndexExists) {
-			const src = readFileSync(PATH_BUILD_INDEX_HTML, "utf8");
-			const count = countMatches(src, RE_HTML_META_ROBOTS);
-			expect(count).toBe(1);
-		}
-		if (buildRobotsExists) {
-			const sourceBuf = readFileSync(PATH_PUBLIC_ROBOTS);
-			const buildBuf = readFileSync(PATH_BUILD_ROBOTS);
-			// byte-for-byte 동치 — Vite `publicDir` 자동 복사 보존.
-			expect(buildBuf.equals(sourceBuf)).toBe(true);
-		}
+	it("G-F / FR-06: 동시대 build artifact 동치 보존 — meta 1 hit + byte-equal source (미빌드·stale 은 skip)", (ctx) => {
+		// 술어 입도는 **파일 단위** 이며 두 산출물을 함께 요구한다. 한쪽만 있는
+		// 부분 산출은 위반이 아니라 미측정이다. 미측정은 자명 단언이 아니라 skip
+		// 으로 계수돼야 실행 출력에서 측정과 구별된다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD_INDEX_HTML, PATH_BUILD_ROBOTS],
+			sources: [PATH_INDEX_HTML, PATH_PUBLIC_ROBOTS],
+		});
+		const src = readFileSync(PATH_BUILD_INDEX_HTML, "utf8");
+		const count = countMatches(src, RE_HTML_META_ROBOTS);
+		expect(
+			count,
+			`G-F 위반 — 빌드가 채널 A 메타 선언을 변형·소실시켰다. ${gate.mtimeEvidence}`,
+		).toBe(1);
+
+		const sourceBuf = readFileSync(PATH_PUBLIC_ROBOTS);
+		const buildBuf = readFileSync(PATH_BUILD_ROBOTS);
+		// byte-for-byte 동치 — Vite `publicDir` 자동 복사 보존.
+		expect(
+			buildBuf.equals(sourceBuf),
+			`G-F 위반 — 빌드가 채널 B robots.txt 를 변형시켰다. ${gate.mtimeEvidence}`,
+		).toBe(true);
 	});
 
 	it("직교 토큰 검증 (§task 구현 지시 8): 본 fixture 본문 내 다른 task production literal 토큰 0 hit — RULE-06 expansion 불허 강제", () => {

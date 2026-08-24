@@ -6,24 +6,26 @@
 // 메타 태그가 `vite build` 산출물 (`build/index.html`) 에 **정확히 1회 보존**
 // 됨을 결정론 (rc=0/1) 채널로 박제한다:
 //   G-A / FR-01: build/index.html `Content-Security-Policy` match count === 1
-//                (build 존재 시 measure / 부재 시 skip — §spec NFR-02 정합)
+//                (동시대 산출물 존재 시 measure / 미빌드·stale 은 미측정 skip)
 //   G-A 보조  : index.html (원본) `Content-Security-Policy` match count === 1
 //   directive 보존: build/index.html 존재 시 9 directive substring 전수 보존
 //                   — `vite build` 가 directive 값을 변형하지 않음 (byte-for-byte).
 //   NFR-05    : 본 fixture 본문 내 `Content-Security-Policy` occurrence 는
 //                G-A scope (`build/index.html` 단일 파일) 외 — 자체 진단 제외 박제.
 //
-// 멱등성 (§spec NFR-02): read-only — fs.readFileSync / existsSync 만 사용,
-// 어떤 production 파일도 수정하지 않는다. `npm run build` 강제 부재 (G-A 메인 +
-// directive 보존 조건부 skip 분기 박제).
+// 멱등성 (§spec NFR-02): read-only — fs.readFileSync + 공통 헬퍼의 existsSync /
+// statSync 만 사용, 어떤 production 파일도 수정하지 않는다. `npm run build` 강제
+// 부재 (미빌드·stale 은 미측정 skip — TSK-20260824-08-a / REQ-20260824-003 FR-02~04,
+// 3 상태 판정은 ../test-utils/buildArtifactGate 에 수렴).
 //
 // 자체 진단 제외 (§spec NFR-05 / G-G): 본 fixture 본문 내 `Content-Security-Policy`
 // 문자열 occurrence 는 G-A grep count 영향 0 — G-A scope 는 `build/index.html`
 // 단일 파일 한정, 본 fixture 는 `src/__tests__/` 산하.
 
 import { describe, it, expect } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { measureBuildArtifacts } from "../test-utils/buildArtifactGate";
 
 // 프로젝트 루트는 본 fixture 위치 (`src/__tests__/`) 기준 상위 2 단계
 // (선례 TSK-07 / TSK-08 / TSK-09 동형).
@@ -55,16 +57,19 @@ const CSP_DIRECTIVE_TOKENS = [
 ] as const;
 
 describe("csp-meta-build-artifact-preservation (TSK-20260518-10)", () => {
-	it("G-A / FR-01: build/index.html `Content-Security-Policy` match count === 1 — build 존재 시 measure / 부재 시 skip", () => {
-		if (!existsSync(PATH_BUILD_INDEX_HTML)) {
-			// §spec NFR-02 — 본 fixture 는 `npm run build` 강제하지 않음.
-			// build 부재 시 read-only no-op (skip 동치).
-			expect(true).toBe(true);
-			return;
-		}
+	it("G-A / FR-01: build/index.html `Content-Security-Policy` match count === 1 — 동시대 산출물만 측정 (미빌드·stale 은 skip)", (ctx) => {
+		// 미측정을 자명 단언으로 대체하지 않는다 — skip 으로 계수돼야 실행 출력에서
+		// "쟀고 통과했다" 와 구별된다. 3 상태 판정은 공통 헬퍼 1 곳에 있다.
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD_INDEX_HTML],
+			sources: [PATH_INDEX_HTML],
+		});
 		const src = readFileSync(PATH_BUILD_INDEX_HTML, "utf8");
 		const matches = src.match(RE_CSP_TOKEN) ?? [];
-		expect(matches.length).toBe(1);
+		expect(
+			matches.length,
+			`G-A 위반 — 빌드가 CSP meta 태그를 변형·소실시켰다. ${gate.mtimeEvidence}`,
+		).toBe(1);
 	});
 
 	it("G-A 보조: index.html (원본) `Content-Security-Policy` match count === 1", () => {
@@ -73,15 +78,17 @@ describe("csp-meta-build-artifact-preservation (TSK-20260518-10)", () => {
 		expect(matches.length).toBe(1);
 	});
 
-	it("G-A directive 보존: build/index.html 존재 시 9 directive substring 전수 보존 — 부재 시 skip", () => {
-		if (!existsSync(PATH_BUILD_INDEX_HTML)) {
-			// §spec NFR-02 — build 부재 시 skip.
-			expect(true).toBe(true);
-			return;
-		}
+	it("G-A directive 보존: 동시대 build/index.html 의 9 directive substring 전수 보존 (미빌드·stale 은 skip)", (ctx) => {
+		const gate = measureBuildArtifacts(ctx, {
+			artifacts: [PATH_BUILD_INDEX_HTML],
+			sources: [PATH_INDEX_HTML],
+		});
 		const src = readFileSync(PATH_BUILD_INDEX_HTML, "utf8");
 		for (const token of CSP_DIRECTIVE_TOKENS) {
-			expect(src.includes(token), `build/index.html directive 보존 위반 — token 부재: ${token}`).toBe(true);
+			expect(
+				src.includes(token),
+				`build/index.html directive 보존 위반 — token 부재: ${token}. ${gate.mtimeEvidence}`,
+			).toBe(true);
 		}
 	});
 
