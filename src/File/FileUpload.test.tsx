@@ -233,6 +233,9 @@ describe('FileUpload unmount race — setTimeout cleanup (REQ-20260517-092 FR-01
 			expect(toaster).toBeInTheDocument();
 
 			// COMPLETE 전이 직후 — REFRESH_TIMEOUT 경과 전 unmount.
+			// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+			// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+			refreshSpy.mockClear();
 			unmount();
 
 			// pending timer 가 cleanup 으로 취소되었는지: timer 진행해도 refreshSpy 미호출.
@@ -409,6 +412,9 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 		await waitFor(() => expect(getPreSignedUrlSpy).toHaveBeenCalledTimes(1));
 
 		// unmount 후 응답 도착 — cancelled.current = true 박제로 setter 0 hit 유지 기대.
+		// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+		// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+		consoleErrorSpy.mockClear();
 		unmount();
 
 		await act(async () => {
@@ -419,13 +425,12 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 			await Promise.resolve();
 		});
 
-		// REQ-091 cross-validate — unmounted setState Warning 0 hit.
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
+		// REQ-091 cross-validate — **무필터** console.error 0 hit.
+		// 문구 필터는 두지 않는다: React 18.2 는 unmount 된 fiber 의 setState 에
+		// 경고를 내지 않으므로(dispatchSetState 가 조용히 bail out) 특정 문구로
+		// 거른 뒤 0 을 세는 단정은 코드 상태와 무관하게 항상 통과한다 (민감도 0).
+		// 관측 창은 unmount() 직전 mockClear 로 연다.
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
 
 		// refreshFiles 도 호출되지 않아야 한다 — COMPLETE 분기 setIsUploading 도달 0 hit 의 surface.
 		expect(refreshSpy).not.toHaveBeenCalled();
@@ -471,6 +476,9 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 		await waitFor(() => expect(putFileSpy).toHaveBeenCalledTimes(1));
 
 		// unmount 후 응답 도착.
+		// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+		// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+		consoleErrorSpy.mockClear();
 		unmount();
 
 		await act(async () => {
@@ -479,12 +487,8 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 			await Promise.resolve();
 		});
 
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
+		// **무필터** console.error 0 hit (관측 창 = unmount 이후).
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
 
 		expect(refreshSpy).not.toHaveBeenCalled();
 	});
@@ -520,6 +524,9 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 
 		await waitFor(() => expect(getPreSignedUrlSpy).toHaveBeenCalledTimes(1));
 
+		// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+		// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+		consoleErrorSpy.mockClear();
 		unmount();
 
 		await act(async () => {
@@ -528,12 +535,8 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 			await Promise.resolve();
 		});
 
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
+		// **무필터** console.error 0 hit (관측 창 = unmount 이후).
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
 
 		expect(refreshSpy).not.toHaveBeenCalled();
 	});
@@ -576,6 +579,9 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 
 		await waitFor(() => expect(putFileSpy).toHaveBeenCalledTimes(1));
 
+		// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+		// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+		consoleErrorSpy.mockClear();
 		unmount();
 
 		await act(async () => {
@@ -584,12 +590,8 @@ describe('FileUpload unmount-safety (REQ-20260517-093 FR-02)', () => {
 			await Promise.resolve();
 		});
 
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
+		// **무필터** console.error 0 hit (관측 창 = unmount 이후).
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
 
 		expect(refreshSpy).not.toHaveBeenCalled();
 	});

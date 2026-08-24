@@ -175,7 +175,9 @@ describe('VisitorMon retry keyboard activation (a11y pattern B)', () => {
 // pending `getVisitors` fetch + unmount() + 응답 resolve 시 effect 본문의 setter
 // (`setIsLoading` · `setIsError` · `setTotalCount` · `setDailyCount` · `setEnvTotalCount` ·
 // `setBrowsers` · `setOs` · `setEngines`) 발화 0 hit + REQ-091 cross-validate
-// (`console.error` 0 hit, Warning: An update was not wrapped 0) 박제.
+// 무필터 `console.error` 0 hit 단정으로 cross-validate 한다 (문구 필터 없음 —
+// React 18.2 는 unmounted fiber 의 setState 에 경고를 내지 않으므로 문구로 거른
+// 뒤 세는 단정은 코드 상태와 무관하게 항상 0 이다).
 // `getVisitors` 를 vi.spyOn 으로 stub — pending Promise / resolve / reject 제어 박제.
 describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 
@@ -200,6 +202,9 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 		await screen.findAllByText('Loading...');
 
 		// unmount 후 응답 도착 — cancelled.current = true 박제로 setter 0 hit 유지 기대.
+		// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+		// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+		consoleErrorSpy.mockClear();
 		unmount();
 
 		await act(async () => {
@@ -214,13 +219,12 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 			await Promise.resolve();
 		});
 
-		// REQ-091 cross-validate — unmounted setState Warning 또는 임의 console.error 0 hit.
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
+		// REQ-091 cross-validate — **무필터** console.error 0 hit.
+		// 문구 필터는 두지 않는다: React 18.2 는 unmount 된 fiber 의 setState 에
+		// 경고를 내지 않으므로(dispatchSetState 가 조용히 bail out) 특정 문구로
+		// 거른 뒤 0 을 세는 단정은 코드 상태와 무관하게 항상 통과한다 (민감도 0).
+		// 관측 창은 unmount() 직전 mockClear 로 연다.
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
 	});
 
 	it('pending getVisitors 중 unmount 후 reject → catch 분기도 setter / console.error 0 hit', async () => {
@@ -237,6 +241,9 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 		const { unmount } = render(<VisitorMon stackPallet={stackPallet.colors}/>);
 		await screen.findAllByText('Loading...');
 
+		// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+		// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+		consoleErrorSpy.mockClear();
 		unmount();
 
 		await act(async () => {
@@ -245,11 +252,7 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 			await Promise.resolve();
 		});
 
-		const errorCalls = consoleErrorSpy.mock.calls;
-		const unmountedSetStateCalls = errorCalls.filter((c) => {
-			const msg = typeof c[0] === 'string' ? c[0] : '';
-			return /update.*was not wrapped|cannot update a component|unmounted/i.test(msg);
-		});
-		expect(unmountedSetStateCalls.length).toBe(0);
+		// **무필터** console.error 0 hit (관측 창 = unmount 이후).
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
 	});
 });

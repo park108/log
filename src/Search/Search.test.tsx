@@ -301,14 +301,18 @@ describe('loading dots timer cleanup', () => {
 		act(() => { vi.advanceTimersByTime(300); });
 		expect(getLoadingDotsText()).toBe('.');
 
+		// 관측 창을 unmount 이후로 한정한다 — 마운트 중 발화까지 세면
+		// 단정이 성립하지 않는다 (현재 마운트 중 발화는 0 이지만 창을 명시한다).
+		errSpy.mockClear();
 		unmount();
 
 		// unmount 후 추가 tick 예약 시도 — clearInterval 이 정합이면 경고 0.
 		act(() => { vi.advanceTimersByTime(900); });
 
-		const unmountedWarn = errSpy.mock.calls.filter(
-			c => String(c[0]).includes('unmounted')
-		);
-		expect(unmountedWarn.length).toBe(0);
+		// **무필터** console.error 0 hit. `.includes('unmounted')` 필터는 제거했다 —
+		// React 18.2 는 unmount 된 fiber 의 setState 에 경고를 내지 않으므로 그 필터의
+		// 결과는 코드 상태와 무관하게 항상 0 이었다 (민감도 0. 리터럴 문구 grep 으로는
+		// 이 변형이 잡히지 않아 채널의 G-F 가 구조로 판정한다).
+		expect(errSpy).not.toHaveBeenCalled();
 	});
 });

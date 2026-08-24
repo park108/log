@@ -14,6 +14,7 @@
 //   G-C race fixture 존재   : 대상마다 형제 테스트 + unmount() 왕복 존재.
 //   G-D 관측 표면 정합      : fixture 가 **그 대상이 실제로 내는 발화 종류**를 관측한다.
 //   G-E 두 술어 정합        : 확장 ⊇ 선행 + 차집합도 집행 대상 + 열거 버그 검출.
+//   G-F 무필터 단정         : 발화 기록을 필터로 좁힌 뒤 0 을 세는 fixture 0건.
 //
 // ── 집행 대상 = 확장 술어 (TSK-20260825-05 / REQ-20260825-002) ───────────────
 // G-B / G-C / G-D 의 대상은 `widenedSurface()` — "훅을 쓰고 post-await 발화가 있는
@@ -44,9 +45,15 @@
 //       고정하지 않고, 차집합도 같은 요구를 통과함을 단언한다(E-3).
 //       실코드 쪽 회복은 TSK-20260825-04 (`src/File/FileItem.tsx`) 가 선행 착지했다.
 //   (2) fixture 관측 강도 — G-D 는 "발화 종류에 맞는 관측기 존재" 까지만 본다.
-//       **[열림]** 콘솔 spy 를 **필터링해** 특정 문구만 세는 형태(현 React 버전에서
-//       도달 불가한 경고 문구 필터)는 여전히 통과한다. 무필터 0 단정까지 요구하면
-//       선행 시대의 fixture 가 red 가 된다 — 정상화는 TSK-20260825-06 소관이다.
+//       **[닫힘 — TSK-20260825-06]** 콘솔 spy 의 호출 기록을 **필터로 좁힌 뒤 0 을
+//       세는** 형태는 이제 G-F 가 잡는다. 그 형태는 코드 상태와 무관하게 항상 0 을
+//       내므로(React 18.2 는 unmounted fiber 의 setState 에 경고를 내지 않는다)
+//       민감도 0 이었고, 정상 트리에서 초록이라 어떤 재실행으로도 신고되지 않았다.
+//       선행 시대 fixture 4 파일 10 블록의 필터는 같은 task 가 제거했다.
+//       판정은 **문구 열거가 아니라 구조**다 — 리터럴 문구 grep 은 `.includes()`
+//       변형(`src/Search/Search.test.tsx`)을 구조적으로 놓쳤다. G-D 의
+//       `fixtureObservations` 는 손대지 않는다: "관측기가 있는가"(G-D)와
+//       "관측이 필터로 공허해졌는가"(G-F)는 분업이다.
 //   (3) 갈래(함수) 단위 분류 — **[열림]** `requiredSurfaces` 는 **파일 단위** 분류다.
 //       한 파일에 콘솔류 갈래와 setter-only 갈래가 공존하면 후자의 관측 요구가
 //       파일 단위 분류에 흡수된다. 갈래 단위 세분화는 별 축이다.
@@ -117,6 +124,16 @@ const RE_USE_STATE_WRAP = /useState/;
 const RE_ZERO_COUNT_ASSERT = /expect\(\s*[\w.]+\s*\)\.toBe\(\s*0\s*\)|toHaveBeenCalledTimes\(\s*0\s*\)|not\.toHaveBeenCalled/;
 // lazy 분리 구현 — `lazy(() => import('./X'))`
 const RE_LAZY_IMPORT = /lazy\(\s*\(\s*\)\s*=>\s*import\(\s*['"]([^'"]+)['"]\s*\)/g;
+
+// ── G-F 토큰 (무필터 단정) ───────────────────────────────────────────────────
+// 테스트 파일 열거 — 목록 하드코딩 0. 확장자 드리프트(.cts/.mts)까지 덮는다.
+const RE_TEST_FILE = /\.test\.[cm]?[jt]sx?$/;
+// 호출 기록 별칭 — `const errorCalls = consoleErrorSpy.mock.calls;`
+// 이 추적이 없으면 착수 시점 위반 4 파일 중 3 파일을 놓친다 (중간 변수 경유 필터).
+const RE_MOCK_CALLS_ALIAS = /(?:const|let)\s+(\w+)\s*=\s*(\w+)\.mock\.calls\b/g;
+// 필터 뒤 이어지는 0 단정. 창 400자 — 실측 위반 블록의 필터~단정 거리 최대 ~200자.
+const RE_ZERO_ASSERT_NEAR = /toBe\(\s*0\s*\)|toHaveLength\(\s*0\s*\)|not\.toHaveBeenCalled|length\s*===\s*0|toBeFalsy\(/;
+const FILTER_ZERO_WINDOW = 400;
 
 type ScanEntry = { abs: string; rel: string };
 
@@ -326,6 +343,66 @@ export function surfaceViolations(targets: Target[]): { violations: string[]; se
 	return { violations, setterOnlyChecked };
 }
 
+/** 정규식 리터럴 이스케이프 — 별칭·spy 이름을 패턴에 끼워 넣기 위한 것. */
+function escapeForRegExp(literal: string): string {
+	return literal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * 발화 spy 바인딩 이름 — `vi.spyOn(console, 'error')` 또는 발화 메서드(log/error/
+ * warn/info/reportError) 를 겨냥한 spy. `vi.spyOn(window, 'addEventListener')` 처럼
+ * 발화가 아닌 spy 는 제외한다 — 이 구분이 없으면 정상 테스트를 위반으로 잡는다
+ * (`src/App.test.jsx` 가 실물 대조군이다).
+ */
+export function emissionSpyNames(testSource: string): string[] {
+	const finder = new RegExp(RE_SPY_BINDING.source, "g");
+	const names: string[] = [];
+	let m: RegExpExecArray | null;
+	while ((m = finder.exec(testSource)) !== null) {
+		const [, name, target, method] = m;
+		if (name === undefined || target === undefined || method === undefined) continue;
+		if (target === "console" || CONSOLE_SPY_METHODS.has(method)) names.push(name);
+	}
+	return names;
+}
+
+/**
+ * G-F 판정 — **발화 기록을 필터로 좁힌 뒤 0 을 단정하는** 형태를 찾는다.
+ *
+ * 문구 열거가 아니라 구조로 본다. 리터럴 문구 grep(`update.*was not wrapped` 등)은
+ * `.includes('unmounted')` 변형을 놓쳤다 (실측 — `src/Search/Search.test.tsx`).
+ * 필터가 씌워진 0 단정은 필터가 어떤 문구를 쓰든 "코드가 그 문구를 내지 않으면 항상
+ * 통과" 라는 같은 결함을 갖는다.
+ *
+ * 반환값은 위반 지점의 **기록 표현식·별칭 이름** 목록이다 (사람이 찾아갈 수 있게).
+ */
+export function filteredEmissionZeroAssertions(testSource: string): string[] {
+	const spies = new Set(emissionSpyNames(testSource));
+	if (spies.size === 0) return [];
+
+	// 직결 형태(`spy.mock.calls.filter(`) + 별칭 형태(`const calls = spy.mock.calls`).
+	const records = new Set<string>();
+	for (const spy of spies) records.add(`${spy}.mock.calls`);
+	const aliasFinder = new RegExp(RE_MOCK_CALLS_ALIAS.source, "g");
+	let a: RegExpExecArray | null;
+	while ((a = aliasFinder.exec(testSource)) !== null) {
+		const [, alias, owner] = a;
+		if (alias === undefined || owner === undefined) continue;
+		if (spies.has(owner)) records.add(alias);
+	}
+
+	const violations: string[] = [];
+	for (const record of records) {
+		const finder = new RegExp(`\\b${escapeForRegExp(record)}\\s*\\.filter\\s*\\(`, "g");
+		let m: RegExpExecArray | null;
+		while ((m = finder.exec(testSource)) !== null) {
+			const window = testSource.slice(m.index, m.index + FILTER_ZERO_WINDOW);
+			if (RE_ZERO_ASSERT_NEAR.test(window)) violations.push(record);
+		}
+	}
+	return [...new Set(violations)];
+}
+
 function fmt(list: string[]): string {
 	return list.map((l) => `  ${l}`).join("\n");
 }
@@ -492,6 +569,60 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		).toHaveLength(0);
 	});
 
+	it("G-F: 발화 기록을 필터로 좁힌 뒤 0 을 단정하는 fixture 가 없다 (문구 아닌 구조 판정)", () => {
+		const enumerated = collectFiles(SRC_DIR).filter((f) => RE_TEST_FILE.test(f.rel));
+
+		// 공허 통과 가드 (1) — 0 hit 게이트는 대상이 비면 자동 통과한다.
+		// 착수 시점 실측 69.
+		expect(
+			enumerated.length,
+			"테스트 파일 열거가 40 미만이다 — 열거가 축소돼 게이트가 공허해졌다",
+		).toBeGreaterThanOrEqual(40);
+
+		// ── 자기 제외 1건과 그 대가 ────────────────────────────────────────────
+		// 본 파일은 G-F 판정 함수의 **양성 fixture** 를 합성 문자열로 들고 있다
+		// (analyzer 자가 검증). 그 문자열은 판정상 진짜 위반과 구별되지 않는다.
+		// 문자열을 쪼개 패턴을 피하는 것은 자기 게이트를 우회하는 형태라 택하지
+		// 않고, **자기 자신 1건만** 제외한다. 제외의 대가는 아래 두 단언으로 갚는다:
+		//   (i) 제외 대상이 열거에 실재하고 정확히 1건일 것 (제외 과잉 차단)
+		//   (ii) 그 파일이 판정 함수에 **양성으로** 걸릴 것 — 즉 판정이 살아 있음을
+		//        합성 문자열이 아니라 **실파일 텍스트**로 확인한다 (민감도 상시 증명).
+		expect(
+			enumerated.map((f) => f.rel),
+			"자기 제외 대상이 열거에 없다 — 제외 규칙이 죽은 경로를 가리킨다",
+		).toContain(REL_SELF);
+		const testFiles = enumerated.filter((f) => f.rel !== REL_SELF);
+		expect(enumerated.length - testFiles.length, "자기 제외가 1건이 아니다 — 제외 과잉").toBe(1);
+		expect(
+			filteredEmissionZeroAssertions(readFileSync(join(REPO_ROOT, REL_SELF), "utf8")).length,
+			"본 파일의 양성 fixture 가 판정에 걸리지 않는다 — G-F 판정이 죽었다",
+		).toBeGreaterThan(0);
+
+		let filesWithEmissionSpy = 0;
+		const violations: string[] = [];
+		for (const f of testFiles) {
+			const source = readFileSync(f.abs, "utf8");
+			if (emissionSpyNames(source).length > 0) filesWithEmissionSpy += 1;
+			for (const record of filteredEmissionZeroAssertions(source)) {
+				violations.push(`${f.rel} — \`${record}\` 를 filter 로 좁힌 뒤 0 을 단정한다`);
+			}
+		}
+
+		// 공허 통과 가드 (2) — 파일은 세지만 spy 인식이 무너지면 위반이 구조적으로
+		// 보이지 않는다. 착수 시점 실측은 아래 하한보다 크다.
+		expect(
+			filesWithEmissionSpy,
+			"발화 spy 를 보유한 테스트 파일이 10 미만이다 — spy 인식이 무너졌다",
+		).toBeGreaterThanOrEqual(10);
+
+		expect(
+			violations,
+			`필터로 좁힌 0 단정 (민감도 0 fixture):\n${fmt(violations)}\n` +
+				"React 18.2 는 unmounted fiber 의 setState 에 경고를 내지 않는다 — 문구로 거른 뒤 세는 " +
+				"단정은 가드를 전부 제거해도 통과한다. 무필터 0 단정으로 바꿔라.",
+		).toHaveLength(0);
+	});
+
 	it("analyzer 자가 검증: 표기 변형 · 블록 경계 · 발화 분류 (RULE-06 §fixture 대표성)", () => {
 		// 블록 경계 — post-await 구간이 인접 블록으로 새지 않는다.
 		const twoBlocks = [
@@ -558,5 +689,56 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			"expect(rec.calls).toBe(0);",
 		].join("\n");
 		expect(fixtureObservations(recorder).setterSurface).toBe(true);
+
+		// ── G-F 판정 자가 검증 (RULE-06 §fixture 대표성) ──────────────────────
+		// 양성 1 — 별칭 경유. 착수 시점 위반 4 파일 중 3 파일이 이 형태였다.
+		const aliasFiltered = [
+			"const s = vi.spyOn(console, 'error');",
+			"const calls = s.mock.calls;",
+			"const f = calls.filter(c => /x/.test(c[0]));",
+			"expect(f.length).toBe(0);",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(aliasFiltered), "별칭 경유 필터를 놓쳤다").toContain("calls");
+
+		// 양성 2 — 직결. 리터럴 문구 grep 이 놓친 `.includes()` 변형이 이 형태다.
+		const directFiltered = [
+			"const s = vi.spyOn(console, 'error');",
+			"const w = s.mock.calls.filter(c => String(c[0]).includes('unmounted'));",
+			"expect(w.length).toBe(0);",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(directFiltered), "직결 필터를 놓쳤다").toContain("s.mock.calls");
+
+		// 음성 1 — 발화 spy 가 아니다 (`src/App.test.jsx` 의 실제 형태).
+		const nonEmissionSpy = [
+			"const a = vi.spyOn(window, 'addEventListener');",
+			"const r = a.mock.calls.filter(([e]) => e === 'resize');",
+			"expect(r.length).toBe(2);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(nonEmissionSpy),
+			"발화가 아닌 spy 의 필터를 위반으로 잡았다 — 정상 테스트 오탐",
+		).toHaveLength(0);
+
+		// 음성 2 — 0 단정이 아니다.
+		const nonZeroAssert = [
+			"const s = vi.spyOn(console, 'error');",
+			"const w = s.mock.calls.filter(c => /x/.test(c[0]));",
+			"expect(w.length).toBeGreaterThanOrEqual(1);",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(nonZeroAssert), "0 단정이 아닌 필터를 잡았다").toHaveLength(0);
+
+		// 음성 3 — 무필터 0 단정 (본 task 가 정착시킨 형태).
+		const unfiltered = [
+			"const s = vi.spyOn(console, 'error');",
+			"s.mockClear();",
+			"unmount();",
+			"expect(s).not.toHaveBeenCalled();",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(unfiltered), "무필터 0 단정을 위반으로 잡았다").toHaveLength(0);
+
+		// spy 종류 인식 — 발화 spy 만 이름을 낸다.
+		expect(emissionSpyNames("const s = vi.spyOn(console, 'error');")).toEqual(["s"]);
+		expect(emissionSpyNames("const s = vi.spyOn(errorReporter, 'reportError');")).toEqual(["s"]);
+		expect(emissionSpyNames("const a = vi.spyOn(window, 'addEventListener');")).toEqual([]);
 	});
 });
