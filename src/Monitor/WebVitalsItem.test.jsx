@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
-import WebVitalsItem from '../Monitor/WebVitalsItem';
+import WebVitalsItem, { createInitialEvaluationResult, buildEvaluationResult } from '../Monitor/WebVitalsItem';
+import { webVitalsProd } from './__fixtures__/monitor';
 import * as api from './api';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
@@ -277,5 +278,120 @@ describe('WebVitalsItem unmount safety (REQ-20260517-093 FR-03)', () => {
 		expect(consoleLogSpy).not.toHaveBeenCalled();
 		expect(reportErrorSpy).not.toHaveBeenCalled();
 		expect(consoleErrorSpy).not.toHaveBeenCalled();
+	});
+});
+
+// REQ-20260825-001 / monitor-derived-state-immutability §동작 (G-2)(G-3)(G-4)
+// 파생 state 를 새 객체로 교체하므로 헤더 카운트가 응답을 따라간다.
+// 기존 케이스는 `empty result set (totalCount = 0)` 하나뿐이라 0 을 기대하는 경로만
+// 있었고, 그래서 영구 `(0)` 결함을 놓쳤다.
+describe('WebVitalsItem header count (REQ-20260825-001 G-2)', () => {
+
+	describe('non-empty response', () => {
+		useMockServer(() => mock.prodServerOk);
+
+		it('헤더가 평가 항목 수를 표시한다 — 응답 4건 중 "BAD DATA" 1건 제외 → (3)', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			// 기대값은 Items.length(4) 가 아니라 평가 항목 수(3) 다 — 두 수를 구분하는 픽스처.
+			const header = await screen.findByText("Cumulative Layout Shift (3)");
+			expect(header).toBeInTheDocument();
+		});
+	});
+
+	describe('empty response', () => {
+		useMockServer(() => mock.prodServerEmpty);
+
+		it('빈 응답이면 헤더 (0) + 라벨 None', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			const label = await screen.findByText("None");
+			expect(label).toBeInTheDocument();
+
+			const header = await screen.findByText("Cumulative Layout Shift (0)");
+			expect(header).toBeInTheDocument();
+		});
+	});
+});
+
+describe('buildEvaluationResult 필드 완전성 (REQ-20260825-001 G-3)', () => {
+
+	// 키 목록은 하드코딩하지 않고 초기값 팩토리에서 도출한다 (RULE-06 §열거 고정 금지).
+	const NESTED = ['good', 'needImprovement', 'poor'];
+
+	it('조립 결과의 키 집합이 초기값의 키 집합을 전수 포함한다 (중첩 3객체 포함)', () => {
+
+		const initial = createInitialEvaluationResult();
+		const built = buildEvaluationResult(webVitalsProd.Items);
+
+		// 공허 통과 금지 — 기대 키 집합이 비면 "포함" 단언은 무조건 통과한다.
+		expect(Object.keys(initial).length).toBeGreaterThan(0);
+		expect(Object.keys(built)).toEqual(expect.arrayContaining(Object.keys(initial)));
+
+		for(const key of NESTED) {
+			expect(Object.keys(initial[key]).length).toBeGreaterThan(0);
+			expect(Object.keys(built[key])).toEqual(expect.arrayContaining(Object.keys(initial[key])));
+		}
+	});
+
+	it('매 호출 새 객체를 반환한다 — 초기값 팩토리도 참조를 공유하지 않는다', () => {
+
+		expect(createInitialEvaluationResult()).not.toBe(createInitialEvaluationResult());
+		expect(createInitialEvaluationResult().good).not.toBe(createInitialEvaluationResult().good);
+
+		const a = buildEvaluationResult(webVitalsProd.Items);
+		const b = buildEvaluationResult(webVitalsProd.Items);
+		expect(a).not.toBe(b);
+		expect(a).toEqual(b);
+	});
+
+	it('평가 밖 항목("BAD DATA")은 totalCount 에 세지 않는다', () => {
+
+		const built = buildEvaluationResult(webVitalsProd.Items);
+
+		expect(webVitalsProd.Items.length).toBe(4);
+		expect(built.totalCount).toBe(3);
+		expect(built.good.count).toBe(1);
+		expect(built.needImprovement.count).toBe(1);
+		expect(built.poor.count).toBe(1);
+	});
+
+	it('falsy 입력이면 초기값과 같은 형태의 빈 집계를 반환한다', () => {
+
+		const built = buildEvaluationResult(undefined);
+
+		expect(built.totalCount).toBe(0);
+		expect(built.evaluation).toBe("None");
+		expect(Object.keys(built)).toEqual(expect.arrayContaining(Object.keys(createInitialEvaluationResult())));
+	});
+});
+
+describe('WebVitalsItem re-fetch 폭주 없음 (REQ-20260825-001 G-4)', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	it('로드 완료 후에도 getWebVitals 는 1회만 호출된다', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		// spyOn 은 기본적으로 원본을 호출한다 — msw 핸들러 경로를 유지한 채 계수만 한다.
+		const apiSpy = vi.spyOn(api, 'getWebVitals');
+
+		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+		await screen.findByText("Cumulative Layout Shift (3)");
+
+		// 새 참조를 set 하므로 자기 참조 deps 가 남아 있으면 여기서 호출 수가 늘어난다.
+		await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+		expect(apiSpy).toHaveBeenCalledTimes(1);
 	});
 });

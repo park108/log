@@ -14,6 +14,71 @@ const HEADER_STYLE = {
 	undefined: "span span--monitor-evaluation span--monitor-none"
 };
 
+// REQ-20260825-001 / monitor-derived-state-immutability §동작 (G-1)(G-3)
+// 파생 state 는 in-place 변이 대신 **새 객체 조립 → 교체** 로만 갱신한다.
+// in-place 변이는 갱신 경로가 잊은 필드(과거: `totalCount`)를 초기값으로 은폐해
+// 헤더가 영구 `(0)` 을 표시하는 결함을 만들었다. 매 호출 새 객체를 반환하며
+// 공유 상수 객체를 export 하지 않는다 (공유 참조 = 같은 부류의 문제).
+export const createInitialEvaluationResult = () => ({
+	totalCount: 0,
+	evaluation: "None",
+	good: { count: 0, rate: 0, style: {} },
+	needImprovement: { count: 0, rate: 0, style: {} },
+	poor: { count: 0, rate: 0, style: {} }
+});
+
+// 현행 표기 보존: count 가 0 이면 "" , 아니면 백분율 정수 문자열.
+const toRate = (count, totalCount) => 0 === count ? "" : (100 * count / totalCount).toFixed(0);
+// totalCount 가 0 이면 "NaN%" 가 되는 현행 산술을 그대로 이식한다 (스코프 밖).
+const toStyle = (count, totalCount) => ({ width: 100 * count / totalCount + "%" });
+
+// 순수 함수 — 기존 state 를 읽지 않고 응답 Items(또는 falsy) 만으로 전 필드를 조립한다.
+export const buildEvaluationResult = (items) => {
+
+	let good = 0;
+	let poor = 0;
+	let needImprovement = 0;
+
+	for(const item of (items || [])) {
+		switch(item.evaluation) {
+			case "GOOD": ++good; break;
+			case "POOR": ++poor; break;
+			case "NEEDS IMPROVEMENT": ++needImprovement; break;
+			default: break;
+		}
+	}
+
+	// "BAD DATA" 등 평가 밖 항목은 세지 않는다 — 응답 항목 수 != 평가 항목 수.
+	const totalCount = good + poor + needImprovement;
+
+	const goodRate = toRate(good, totalCount);
+	const needImprovementRate = toRate(needImprovement, totalCount);
+	const poorRate = toRate(poor, totalCount);
+
+	// 분기 순서·경계는 현행 그대로 (문자열 rate 의 강제변환 의미 포함).
+	let evaluation;
+	if(75 <= goodRate) {
+		evaluation = "GOOD";
+	}
+	else if(25 < poorRate) {
+		evaluation = "POOR";
+	}
+	else if(0 < totalCount) {
+		evaluation = "NEEDS IMPROVEMENT";
+	}
+	else {
+		evaluation = "None";
+	}
+
+	return {
+		totalCount,
+		evaluation,
+		good: { count: good, rate: goodRate, style: toStyle(good, totalCount) },
+		needImprovement: { count: needImprovement, rate: needImprovementRate, style: toStyle(needImprovement, totalCount) },
+		poor: { count: poor, rate: poorRate, style: toStyle(poor, totalCount) }
+	};
+};
+
 const WebVitalsItem = (props) => {
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -25,13 +90,7 @@ const WebVitalsItem = (props) => {
 	// useId() 기반 고유 id → 다중 WebVitalsItem 인스턴스 간 ID 충돌 회피.
 	const popup = useHoverPopup();
 
-	const [evaluationResult, setEvaluationResult] = useState({
-		totalCount: 0,
-		evaluation: "None",
-		good: { count: 0, rate: 0, style: {} },
-		needImprovement: { count: 0, rate: 0, style: {} },
-		poor: { count: 0, rate: 0, style: {} }
-	});
+	const [evaluationResult, setEvaluationResult] = useState(createInitialEvaluationResult());
 
 	const name = props.name;
 	const description = props.description;
@@ -63,49 +122,7 @@ const WebVitalsItem = (props) => {
 				if(!hasValue(fetchedData.errorType)) {
 					log("[API GET] OK - Web Vital(" + name + "): " + fetchedData.body.Count, "SUCCESS");
 
-					const data = fetchedData.body.Items;
-
-					let good = 0;
-					let poor = 0;
-					let needImprovement = 0;
-				
-					for(let item of data) {
-						switch(item.evaluation) {
-							case "GOOD": ++good; break;
-							case "POOR": ++poor; break;
-							case "NEEDS IMPROVEMENT": ++needImprovement; break;
-							default: break;
-						}
-					}
-
-					const totalCount = good + poor + needImprovement;
-
-					evaluationResult.good.count = good;
-					evaluationResult.needImprovement.count = needImprovement;
-					evaluationResult.poor.count = poor;
-
-					evaluationResult.good.rate = 0 === good ? "" : (100 * good / totalCount).toFixed(0);
-					evaluationResult.needImprovement.rate = 0 === needImprovement ? "" : (100 * needImprovement / totalCount).toFixed(0);
-					evaluationResult.poor.rate = 0 === 	poor ? "" : (100 * poor / totalCount).toFixed(0);
-
-					evaluationResult.good.style = {width: 100 * good / totalCount + "%"}
-					evaluationResult.needImprovement.style = {width: 100 * needImprovement / totalCount + "%"};
-					evaluationResult.poor.style = {width: 100 * poor / totalCount + "%"};
-
-					if(75 <= evaluationResult.good.rate) {
-						evaluationResult.evaluation = "GOOD";
-					}
-					else if(25 < evaluationResult.poor.rate) {
-						evaluationResult.evaluation = "POOR";
-					}
-					else if(0 < totalCount) {
-						evaluationResult.evaluation = "NEEDS IMPROVEMENT";
-					}
-					else {
-						evaluationResult.evaluation = "None";
-					}
-
-					setEvaluationResult(evaluationResult);
+					setEvaluationResult(buildEvaluationResult(fetchedData.body.Items));
 				}
 				else {
 					log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
@@ -131,7 +148,9 @@ const WebVitalsItem = (props) => {
 		return () => {
 			cancelled.current = true;
 		};
-	}, [isMount, name, evaluationResult]);
+	// deps 에서 `evaluationResult` 를 제외한다 — 새 참조를 set 하므로 자기 참조 deps 는
+	// Object.is bail-out 을 잃고 무한 재fetch 가 된다 (§동작 G-4).
+	}, [isMount, name]);
 
 	if(isLoading) {
 		return (
