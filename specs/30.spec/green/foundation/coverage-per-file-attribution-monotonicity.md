@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 측정 계약 — `vite.config.js:80-97` `test.coverage` (provider `v8`, thresholds branches 94) + `package.json:21` `scripts.test` (`vitest run --coverage`). 관측 최소 사례는 `src/Toaster/Toaster.tsx` 의 `branchMap` 슬롯.
 > **관련 요구사항**: REQ-20260824 (coverage-per-file-branch-aggregation-determinism)
-> **최종 업데이트**: 2026-08-24 (by inspector — 결함 신고 재정식화 등록)
+> **최종 업데이트**: 2026-08-24 (by inspector — Phase 1 재실행 + 반복 변동 축 재판정)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -41,6 +41,7 @@
      | 3 | `[5, 2]` | `[353, 0]` |
      | 4 | `[4, 0]` | `[0, 0]` |
      전수 실행은 단독 실행의 테스트를 포함하므로 covered 집합은 축소될 수 없다. `src/Toaster/Toaster.test.tsx` 는 두 경로 모두 PASS 한다 — 테스트가 죽은 것이 아니라 집계가 실행 사실을 잃는다.
+   - **재확인 (2026-08-24, HEAD `7912860`)**: `src/__tests__/` 에 테스트 파일 2건이 추가돼 전수 실행의 청크 구성이 바뀐 뒤에도 위반 슬롯 집합은 `0.1,2.1,3.1,4.0` 으로 동일하다 (전수 3 표본 전부 rc=1, 1008/1063). 위반은 테스트 집합 구성에 불변이다.
 2. **(G-B) 판정 채널의 관측 가능성** — 위반 시 rc≠0 이고 위반 파일 경로가 stdout 에 나온다.
    - 근거: 위 G-A 실측 출력이 파일 경로 + 소실 슬롯 목록을 1행으로 낸다. 침묵 실패(rc=0 인데 위반 존재)는 허용되지 않는다.
 3. **(G-C) 판정 채널의 저장소 등재** — 판정이 `package.json` `scripts.check:*` 또는 vitest 수집 경로에 실재한다.
@@ -50,7 +51,7 @@
 ## 의존성
 
 - 내부 측정 대상: `vite.config.js` (`test.coverage` 블록), `package.json:21` (`scripts.test`), `coverage/coverage-final.json` (json reporter 산출물), `src/Toaster/Toaster.tsx` + `src/Toaster/Toaster.test.tsx` (현 최소 재현 사례).
-- 외부: `@vitest/coverage-v8` (`provider: 'v8'`), Node `v24`.
+- 외부: `@vitest/coverage-v8` (`provider: 'v8'`), Node `v24`. **provider 는 현 HEAD 의 측정 컨텍스트 스냅샷이지 계약 조건이 아니다** — 단조성은 provider 중립 명제이고, provider 교체로 G-A 를 rc=0 으로 만드는 것은 §역할 (iv) 가 위임한 수단 선택에 속한다. 본 spec 은 어떤 provider 도 고정하지 않는다.
 - 역의존 (사용처):
   - `specs/30.spec/blue/foundation/coverage-determinism.md` — 합계 결정성 axis. 본 spec 과 직교하며, 합계 결정성은 파일별 정확성의 충분조건이 아니다.
   - `specs/30.spec/blue/foundation/coverage-gate-exit-code-determinism-margin-axis.md` — exit code 단일성 axis. 직교.
@@ -92,6 +93,8 @@ planner 는 (a) G-A 판정을 수행하는 채널 부착과 (b) 현행 4 슬롯 
 ### 미측정·비판정 항목
 
 - **반복 실행 간 per-file 수치 동일성.** 원 req 는 전수 실행 2회에서 1008/1063 ↔ 1011/1063 (`Toaster.tsx` 13/18 ↔ 16/18) 불일치를 보고했다. 본 tick 의 재측정 2회는 **둘 다 1008/1063, `Toaster.tsx` 13/18 로 동일**했고 파일별 covered 슬롯 집합 차이도 0 파일이었다. 즉 실행 간 변동은 간헐적이며 2 표본으로는 재현되지 않았다. RULE-07 §체크박스 부적격 부류가 "N 회 반복 동일 출력" 을 미측정 NFR 로 분류하므로 체크박스로 두지 않는다. 단조성(G-A)은 2 표본 모두에서 동일하게 위반됐으므로 그쪽이 안정된 판정 축이다.
+  - **표본 추가 (2026-08-24, HEAD `7912860`)**: 전수 3 표본 전부 1008/1063 · `Toaster.tsx` 13/18 이고 파일별 covered 슬롯 집합 차이는 0 파일이었다. 강등 사유(표본 부족)는 유지된다.
+  - **CI 실패 run 은 이 축의 표본이 아니다.** 동일 커밋 red -> green 사례(`7912860`)의 실패 run 은 커버리지 합계가 `94.82%` (= 1008/1063) 로 로컬과 일치했고, exit 1 의 원인은 `Errors 2 errors` — `EnvironmentTeardownError: [vitest-worker]: Closing rpc while "onUserConsoleLog" was pending` (`src/Monitor/Monitor.test.jsx` 귀속) 이다. 수치 변동이 아니라 **exit code 단일성** 사건이며, §역할 (ii) 가 본 spec 에서 명시적으로 배제한 `coverage-gate-exit-code-determinism-margin-axis` 영역이다.
 - **CI(linux/x64) ↔ 로컬(darwin/arm64) per-file 격차.** 원 req 가 `src/Comment/CommentForm.tsx` 에서 CI 11/14 ↔ 로컬 14/14 격차를 보고했으나 Docker 부재로 재현 채널이 없다. 플랫폼 교차 측정 수단이 마련되기 전에는 판정 대상이 아니다.
 - **소실의 근본 원인.** v8 provider 의 슬롯 인덱스 귀속 문제인지 워커 간 병합 문제인지 본 spec 은 판정하지 않는다. 원인 규명은 수정 task 의 조사 범위다.
 
@@ -99,4 +102,5 @@ planner 는 (a) G-A 판정을 수행하는 채널 부착과 (b) 현행 4 슬롯 
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-24 | inspector tick / HEAD 7912860 | Phase 1 재실행: G-A rc=1 (4 슬롯, 3 표본 불변) · G-C 0 hit — 마커 플립 없음. 반복 변동 축은 표본 3건 추가 후에도 강등 유지 (CI 실패 run 은 exit-code 축 사건으로 판정, 본 축 표본 아님). provider 고정이 계약 조건이 아님을 §의존성에 명시. | 동작, 의존성, 참고 |
 | 2026-08-24 | inspector tick / REQ-20260824 | 결함 신고를 단조성 불변식으로 재정식화해 최초 등록 (RULE-07 §처리 결함 신고 재정식화). G-A 위반 4 슬롯 독립 재현. 반복 실행 변동은 2 표본 미재현으로 §미측정 항목 강등. | all |
