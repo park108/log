@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedSize } from '../common/common';
 import { activateOnKey } from '../common/a11y';
@@ -19,8 +19,19 @@ const ContentItem = (props) => {
 	const stackPallet = props.stackPallet;
 
 	const handleRetry = () => { setIsMount(false); };
-	
+
+	// REQ-20260517-093 (I1)(I2)(FR-03) / TSK-20260824-07-a — unmount 후 발화 차단 가드.
+	// pending `getContentItemCount` 응답이 unmount 이후 도착하더라도 state setter 뿐 아니라
+	// `log()` · `reportError()` 까지 0 hit 로 유지한다 (React 19 의 unmounted setState
+	// silent-ignore 는 log/reportError 를 막지 못하므로 setter 한정 가드는 불충분).
+	// 수단 = `cancelled` ref (VisitorMon.jsx 선례와 동일 이디엄).
+	// 주의: 아래 `isMount` state 는 최초 로드 여부 플래그이며 본 가드와 무관하다.
+	const cancelledFetchRef = useRef(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledFetchRef;
+		cancelled.current = false;
 
 		// 6개월 타임라인은 이 효과 안에서만 쓰인다 — 렌더 스코프에 두면 배열 identity 가
 		// 매 렌더 바뀌어 deps 를 무의미하게 만든다.
@@ -45,6 +56,8 @@ const ContentItem = (props) => {
 			try {
 				const res = await getContentItemCount(path, from, to);
 				const data = await res.json();
+
+				if(cancelled.current) return;
 	
 				if(!hasValue(data.errorType)) {
 					log("[API GET] OK - Content API: " + path, "SUCCESS");
@@ -98,6 +111,7 @@ const ContentItem = (props) => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Content API: " + path, "ERROR");
 				setIsError(true);
 				reportError(err);
@@ -111,6 +125,9 @@ const ContentItem = (props) => {
 			setIsMount(true);
 		}
 
+		return () => {
+			cancelled.current = true;
+		};
 	}, [path, isMount]);
 
 	const Pillar = (attr) => {

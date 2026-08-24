@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from 'prop-types';
 import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
@@ -34,7 +34,18 @@ const ApiCallItem = (props) => {
 
 	const handleRetry = () => { setIsMount(false); };
 
+	// REQ-20260517-093 (I1)(I2)(FR-03) / TSK-20260824-07-a — unmount 후 발화 차단 가드.
+	// pending `getApiCallStats` 응답이 unmount 이후 도착하더라도 state setter 뿐 아니라
+	// `log()` · `reportError()` 까지 0 hit 로 유지한다 (React 19 의 unmounted setState
+	// silent-ignore 는 log/reportError 를 막지 못하므로 setter 한정 가드는 불충분).
+	// 수단 = `cancelled` ref (VisitorMon.jsx 선례와 동일 이디엄).
+	// 주의: 아래 `isMount` state 는 최초 로드 여부 플래그이며 본 가드와 무관하다.
+	const cancelledFetchRef = useRef(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledFetchRef;
+		cancelled.current = false;
 
 		const fetchData = async (service) => {
 	
@@ -48,6 +59,8 @@ const ApiCallItem = (props) => {
 			try {
 				const res = await getApiCallStats(service, fromTimestamp, toTimestamp);
 				const data = await res.json();
+
+				if(cancelled.current) return;
 	
 				if(!hasValue(data.errorType)) {
 					log("[API GET] OK - API call stats: " + service + ", Processing time is " + (data.body.ProcessingTime).toLocaleString() + " ms", "SUCCESS");
@@ -93,6 +106,7 @@ const ApiCallItem = (props) => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - API call stats: " + service, "ERROR");
 				setIsError(true);
 				reportError(err);
@@ -106,6 +120,9 @@ const ApiCallItem = (props) => {
 			setIsMount(true);
 		}
 
+		return () => {
+			cancelled.current = true;
+		};
 	}, [service, isMount, stackPallet]);
 
 	const Pillar = (attr) => {

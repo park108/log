@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { log, hasValue } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
@@ -36,7 +36,18 @@ const WebVitalsItem = (props) => {
 	const name = props.name;
 	const description = props.description;
 
+	// REQ-20260517-093 (I1)(I2)(FR-03) / TSK-20260824-07-a — unmount 후 발화 차단 가드.
+	// pending `getWebVitals` 응답이 unmount 이후 도착하더라도 state setter 뿐 아니라
+	// `log()` · `reportError()` 까지 0 hit 로 유지한다 (React 19 의 unmounted setState
+	// silent-ignore 는 log/reportError 를 막지 못하므로 setter 한정 가드는 불충분).
+	// 수단 = `cancelled` ref (VisitorMon.jsx 선례와 동일 이디엄).
+	// 주의: 아래 `isMount` state 는 최초 로드 여부 플래그이며 본 가드와 무관하다.
+	const cancelledFetchRef = useRef(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledFetchRef;
+		cancelled.current = false;
 
 		const fetchData = async(name) => {
 
@@ -46,6 +57,8 @@ const WebVitalsItem = (props) => {
 			try {
 				const res = await getWebVitals(name);
 				const fetchedData = await res.json();
+
+				if(cancelled.current) return;
 
 				if(!hasValue(fetchedData.errorType)) {
 					log("[API GET] OK - Web Vital(" + name + "): " + fetchedData.body.Count, "SUCCESS");
@@ -101,6 +114,7 @@ const WebVitalsItem = (props) => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Web Vital(" + name + ")", "ERROR");
 				setIsError(true);
 				reportError(err);
@@ -113,6 +127,10 @@ const WebVitalsItem = (props) => {
 			fetchData(name);
 			setIsMount(true);
 		}
+
+		return () => {
+			cancelled.current = true;
+		};
 	}, [isMount, name, evaluationResult]);
 
 	if(isLoading) {

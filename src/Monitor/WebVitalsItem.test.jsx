@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import WebVitalsItem from '../Monitor/WebVitalsItem';
+import * as api from './api';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
@@ -197,5 +198,84 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 		// The error UI is still rendered (no re-mount triggered).
 		const retryButtonAfter = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButtonAfter).toBeInTheDocument();
+	});
+});
+
+// REQ-20260517-093 (I1)(I2)(FR-03) / TSK-20260824-07-a — unmount race 박제.
+// pending `getWebVitals` 응답이 unmount 이후 도착해도 외부 발화가 0 hit 임을 고정한다.
+// 단정 채널 3종: (a) unmounted setState 경고 0 (console.error 0 hit),
+// (b) `log()` → `console.log` 0 hit (DEV 분기에서만 실제로 나가므로 DEV 로 stub),
+// (c) `reportError()` 0 hit. 세 spy 는 전역 `vi.restoreAllMocks()` (setupTests.js) 보다
+// 먼저, 즉 `it` 본문 안에서 단정한다.
+describe('WebVitalsItem unmount safety (REQ-20260517-093 FR-03)', () => {
+
+	it('pending getWebVitals 중 unmount → 응답 resolve 가 어떤 발화도 하지 않는다', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		let resolveResp;
+		const pending = new Promise((resolve) => { resolveResp = resolve; });
+		const apiSpy = vi.spyOn(api, 'getWebVitals').mockReturnValue(pending);
+
+		const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		const { unmount } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+		expect(apiSpy).toHaveBeenCalledTimes(1);
+		await screen.findByText('Loading...');
+
+		unmount();
+
+		// unmount 이전 발화(렌더 경로)는 판정 대상이 아니다 — 이후 채널만 남긴다.
+		consoleLogSpy.mockClear();
+		consoleErrorSpy.mockClear();
+
+		await act(async () => {
+			resolveResp(new Response(JSON.stringify({
+				body: { Count: 1, Items: [{ evaluation: 'GOOD' }] },
+			}), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		expect(consoleLogSpy).not.toHaveBeenCalled();
+		expect(reportErrorSpy).not.toHaveBeenCalled();
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
+	});
+
+	it('pending getWebVitals 중 unmount 후 reject → catch 경로도 발화 0 hit', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		let rejectResp;
+		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		vi.spyOn(api, 'getWebVitals').mockReturnValue(pending);
+
+		const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		const { unmount } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+		await screen.findByText('Loading...');
+
+		unmount();
+
+		consoleLogSpy.mockClear();
+		consoleErrorSpy.mockClear();
+
+		await act(async () => {
+			rejectResp(new Error('network down'));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		expect(consoleLogSpy).not.toHaveBeenCalled();
+		expect(reportErrorSpy).not.toHaveBeenCalled();
+		expect(consoleErrorSpy).not.toHaveBeenCalled();
 	});
 });
