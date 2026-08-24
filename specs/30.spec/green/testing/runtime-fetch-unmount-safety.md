@@ -1,8 +1,8 @@
 # async effect 의 unmount 이후 발화 0 (setter · 로그 · 에러리포트)
 
-> **위치**: 프로덕션 컴포넌트의 `useEffect` 본문 중 `await` / `.then(` 을 거치는 전부. 현 미가드 표면은 `src/Monitor/{ContentItem,ApiCallItem,WebVitalsItem}.jsx`, `src/Log/{LogList,Writer}.jsx`, `src/File/{File,FileDrop}.tsx`, `src/Comment/Comment.tsx`. 기박제 표면은 `src/Image/ImageSelector.tsx`, `src/File/FileUpload.tsx`, `src/Monitor/VisitorMon.jsx`.
+> **위치**: 프로덕션 컴포넌트의 `useEffect` 본문 중 `await` / `.then(` 을 거치는 전부. 현 HEAD=`a48339d` 의 술어 대상은 **11 파일 전수 가드 보유** — `src/Monitor/{VisitorMon,ContentItem,ApiCallItem,WebVitalsItem}.jsx`, `src/File/{File,FileDrop,FileUpload}.tsx`, `src/Comment/Comment.tsx`, `src/Image/ImageSelector.tsx`, `src/Log/{Writer,LogList}.jsx`. 미가드 표면 0.
 > **관련 요구사항**: REQ-20260517-093 (최초), REQ-20260824-002 (audit 대상 교정 + 발화 대상 확장).
-> **최종 업데이트**: 2026-08-24 (by inspector — 거짓 `[x]` 되돌림 + 대상 집합 술어화 + 보장 대상 확장).
+> **최종 업데이트**: 2026-08-24 (by inspector — Phase 1 reconcile tick 217. 미가드 8 파일 회복 + 판정 채널 부착 확인 후 Must 4건 플립. FR-05 의 `head -1` 취약성 제거).
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -39,11 +39,14 @@
 1. **(I1) await 후 발화의 unmount 가드** — 프로덕션 `useEffect` 본문에서 `await` / `.then(` 이후에 실행되는 코드는 unmount 되었으면 setter 를 호출하지 않는다.
 2. **(I2) 발화 대상의 확장** — 같은 지점에서 `log()` · `reportError()` 등 컴포넌트 외부로 나가는 호출도 하지 않는다. setter 만 막고 로그·에러리포트를 남기는 부분 가드는 본 불변식을 충족하지 않는다.
 3. **(I3) 대상 집합의 술어 도출** — audit 은 파일명 목록을 하드코딩하지 않고 술어("`useEffect` 등록 + 본문 `await`/`.then(`")로 대상을 산출한다. 신규 컴포넌트는 목록 갱신 없이 자동으로 대상에 든다.
-   - **현 HEAD 실측 (2026-08-24, `414e66b`)**: 술어 대상 11 파일 중 가드 보유 3 (`ImageSelector.tsx` / `FileUpload.tsx` / `VisitorMon.jsx`), 미가드 **8 파일** — `Monitor/{ContentItem,ApiCallItem,WebVitalsItem}.jsx`, `File/{File,FileDrop}.tsx`, `Comment/Comment.tsx`, `Log/{LogList,Writer}.jsx`. (M-A) rc=1.
+   - 최초 등록 시점(`414e66b`) 실측: 술어 대상 11 파일 중 가드 보유 3, 미가드 **8 파일**. (M-A) rc=1.
+   - **현 HEAD(`a48339d`) 실측: 충족.** 술어 대상 11 파일 전수 가드 보유, 미가드 **0**. (M-A) rc=0. 회복 경로는 TSK-20260824-07-a (`9c86492`, Monitor 3) → -07-b (`290fcca`, File 2 + Comment 1) → -07-c (`15de04c`, Log 2 + `LogList.test.jsx` 신설).
 4. **(I4) wrapper 는 대상이 아니라 통과점** — `src/Monitor/{ContentMon,ApiCallMon,WebVitalsMon}.jsx` 는 fetch 를 하지 않는 wrapper 이며(각 35/34/37 행, `await`/`fetch` 0 hit), 실제 fetch 는 `lazy` 로 가져오는 `*Item.jsx` 에 있다(각 `await` 2 hit). **wrapper 에 대한 0 hit 는 구현의 안전을 뜻하지 않는다.**
 5. **(I5) 도메인 자동 충족 주장은 프로덕션 import 경로로 판정한다** — "React Query 를 쓰므로 자동 충족" 은 해당 훅이 **라우팅되는 컴포넌트에서 실제로 import 될 때만** 성립한다. 훅 파일의 존재나 `useQuery` grep hit 는 근거가 아니다.
    - 현 HEAD: `src/Log/hooks/useLogList.js` 의 프로덕션 import 0 (정의·자기 export 뿐), 라우팅 경로는 `src/Log/Log.jsx` → `lazy(() => import('./LogList'))` → `src/Log/LogList.jsx` 가 `./api` 의 `getLogs`/`getNextLogs` 를 직접 호출하는 raw fetch 다. Search (`src/Search/hooks/useSearchList.ts`) 는 `Search.tsx` 에서 실제로 소비된다.
-6. **(I6) 판정 채널의 저장소 등재** — (M-A) 또는 (M-B) 가 자동 발화 경로 1+ 를 갖는다. 현 HEAD 실측 0 hit (`grep -nE '"check:.*unmount' package.json` 0 hit, `unmount()` 를 쓰는 테스트는 8 미가드 파일 중 0 개).
+6. **(I6) 판정 채널의 저장소 등재** — (M-A) 또는 (M-B) 가 자동 발화 경로 1+ 를 갖는다.
+   - 최초 등록 시점(`414e66b`) 실측: 0 hit.
+   - **현 HEAD(`a48339d`) 실측: 충족.** `src/__tests__/post-unmount-emission-audit.test.ts` (TSK-20260824-07-d / `eb8270a`) 가 G-A~G-E 5 게이트로 (M-A) 를 판정하며, `src/__tests__/**` 산하이므로 `npm test` 수집 → `ci.yml` Test step + `.husky/pre-push` 2 지점에서 발화한다. 대상 11 파일 전수가 형제 race fixture 를 보유한다 ((M-B)).
 
 ## 의존성
 
@@ -63,36 +66,44 @@
 
 ## 발화 채널
 
-**현 HEAD 에 자동 발화 채널이 없다** ((I6) 0 hit). RULE-07 §promote 조건 4 에 따라 promote 차단 사유가 아니라 **"채널 부착 task 발행"이 선행 조건**이다.
+**채널 실재 — `src/__tests__/post-unmount-emission-audit.test.ts`** (TSK-20260824-07-d / `eb8270a`, 7 케이스). 게이트 5종: G-A 대상 집합 술어 산출 · G-B 가드 보유 · G-C race fixture 존재 · G-D 관측 표면 정합 · G-E 술어 경계 고정. `src/__tests__/**` 산하라 `npm test` 수집 경로에 자동 등재되며 `ci.yml` Test step + `.husky/pre-push` 2 지점에서 발화한다 (`package.json`/`ci.yml` 무변경).
 
-planner 는 (a) 판정 채널 부착((M-A) 를 `check:*` 로 등재하거나 (M-B) fixture 를 vitest 수집 경로에 두는 것) 과 (b) 미가드 8 파일의 회복, 두 갈래로 발행한다. (a) 는 게이트 신설이므로 **RULE-06 §게이트 실효 검증(주입)** 이 DoD 로 따라붙는다.
+**채널의 검출력은 주입 왕복으로 확인한다** — 정상 트리의 초록은 민감도 0 인 채널도 낸다. 현 HEAD=`a48339d` inspector 재실측 (2 방향):
+
+| 주입 | (M-A) grep | audit 채널 | 형제 race fixture |
+|---|---|---|---|
+| (D1) `ContentItem.jsx` 의 가드 식별자·guard return 전부 제거 | **rc=1** | **rc=1** (`가드 없는 async effect 표면:`) | **rc=1** (2 failed) |
+| (D2) 부분 가드 — `log()` 만 가드 앞으로 이동 (setter 는 가드 안) | rc=0 | rc=0 | **rc=1** (`expected "log" to not be called at all, but actually been called 1 times`) |
+
+**두 층의 분업이 (D2) 에서 드러난다.** 정적 게이트((M-A)/audit)는 "가드 식별자가 파일에 있는가" 까지만 보므로 부분 가드를 통과시킨다 — (I2) 위반의 검출 지점은 (M-B) race fixture 의 무발화 단정이다. 어느 한 층만으로는 본 spec 이 성립하지 않으며, 그래서 FR-01(정적 표면)과 FR-03(대상 전수 fixture)이 **함께** Must 다.
 
 ## 테스트 현황
 
-- [x] (M-A) 술어 audit 실행 가능 — 2026-08-24 inspector 실측, rc=1 / 8 파일 출력.
+- [x] (M-A) 술어 audit 실행 가능 — 현 HEAD `a48339d` 재실행 rc=0 / 미가드 0 파일 (등록 시점 rc=1 / 8 파일).
 - [x] 기박제 3 도메인 fixture 실재 — `src/Image/ImageSelector.test.tsx` · `src/File/FileUpload.test.tsx` · `src/Monitor/VisitorMon.test.jsx` 가 `unmount()` 를 사용한다.
-- [ ] (M-A) rc=0 — 현재 미가드 8 파일.
-- [ ] (M-B) 미가드 표면의 unmount race fixture — 8 파일 중 `unmount()` 를 쓰는 테스트 0. `src/Log/LogList.jsx` 는 테스트 파일 자체가 부재하다.
-- [ ] (M-C) 판정 채널 등재 — 부재.
+- [x] (M-A) rc=0 — 술어 대상 11 파일 전수 가드 보유 (TSK-20260824-07-a/-b/-c / `9c86492`·`290fcca`·`15de04c`).
+- [x] (M-B) 대상 전수의 unmount race fixture — 11/11 파일이 형제 테스트에서 `unmount()` 왕복을 보유. `src/Log/LogList.test.jsx` 는 `15de04c` 로 신설됐다. 부분 가드 주입 시 `log` 무발화 단정이 검출한다 (§발화 채널 D2).
+- [x] (M-C) 판정 채널 등재 — `src/__tests__/post-unmount-emission-audit.test.ts` (`eb8270a`), `npm test` 수집 경로 발화.
 
 ## 수용 기준
 
-> 전 항목 HEAD=`414e66b` 에서 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 주입·자기서술 부류는 §참고 §미측정·비판정 항목으로 강등했다.
+> 전 항목 HEAD=`a48339d` 에서 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 주입·자기서술 부류는 §참고 §미측정·비판정 항목으로 강등했다. **4/4 rc=0** — inspector 가 planner 실측을 받아쓰지 않고 현 HEAD 에서 전수 재실행한 뒤 2 방향을 역주입해 검출력을 재판정했다 (§발화 채널).
 
-- [ ] (Must, FR-01/FR-02) 미가드 표면 0 — `bash -c 'test "$(for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" && ! grep -qE "cancelled|AbortController|isMounted|signal" "$f" && echo "$f"; done | wc -l)" -eq 0'` → rc=0. **2026-08-24 실측 rc=1 / 8 파일.**
-- [ ] (Must, FR-03) 술어 대상 파일마다 unmount race fixture 존재 — `bash -c 'n=0; for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" || continue; b="${f%.*}"; grep -lq "unmount()" "$b".test.jsx "$b".test.tsx 2>/dev/null || { echo "$f"; n=$((n+1)); }; done; exit $((n>0))'` → rc=0. **2026-08-24 실측 rc=1 / 8 파일** (기가드 3 파일은 통과).
-- [ ] (Must, FR-04) 판정 채널 등재 — `bash -c 'grep -qE "\"check:[a-z-]*unmount[a-z-]*\"" package.json || ls src/__tests__/*unmount* >/dev/null 2>&1'` → rc=0. **2026-08-24 실측 rc=1 (0 hit).**
-- [ ] (Must, FR-05) 채널이 대상을 열거로 고정하지 않음 — 채널 등재 후, 그 채널 파일에 대상 파일명 하드코딩 0: `bash -c 'f=$(grep -rlE "unmount" scripts src/__tests__ 2>/dev/null | head -1); test -n "$f" && test "$(grep -cE "ContentItem|ApiCallItem|WebVitalsItem|LogList|FileDrop" "$f")" -eq 0'` → rc=0. **채널 부재로 현재 rc≠0** — FR-04 충족 후 판정된다.
+- [x] (Must, FR-01/FR-02) 미가드 표면 0 — `bash -c 'test "$(for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" && ! grep -qE "cancelled|AbortController|isMounted|signal" "$f" && echo "$f"; done | wc -l)" -eq 0'` → rc=0. **HEAD=`a48339d` 실측 rc=0 / 미가드 0 파일** (착수 전 8 파일). 술어 대상 집합이 비면 공허하게 rc=0 이 되므로 vacuous-zero 를 별도 확인했다 — 대상 **11 파일** (0 아님). 역주입(`ContentItem.jsx` 가드 제거) 시 rc=1 + 파일 경로 출력. **본 명령은 파일 단위 토큰 존재만 보므로 부분 가드((I2) 위반) 는 통과시킨다 — 그 층은 FR-03 이 담당한다** (§발화 채널 D2).
+- [x] (Must, FR-03) 술어 대상 파일마다 unmount race fixture 존재 — `bash -c 'n=0; for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" || continue; b="${f%.*}"; grep -lq "unmount()" "$b".test.jsx "$b".test.tsx 2>/dev/null || { echo "$f"; n=$((n+1)); }; done; exit $((n>0))'` → rc=0. **HEAD=`a48339d` 실측 rc=0 / 11 파일 전수 보유** (착수 전 8 파일 미보유). 이 fixture 층이 부분 가드를 잡는 유일한 지점이다 — `log()` 를 가드 밖으로 옮기는 주입에서 `ContentItem.test.jsx` 가 rc=1 (`expected "log" to not be called at all`) 로 검출했다.
+- [x] (Must, FR-04) 판정 채널 등재 — `bash -c 'grep -qE "\"check:[a-z-]*unmount[a-z-]*\"" package.json || ls src/__tests__/*unmount* >/dev/null 2>&1'` → rc=0. **HEAD=`a48339d` 실측 rc=0** — `src/__tests__/post-unmount-emission-audit.test.ts` (TSK-20260824-07-d / `eb8270a`). 파일 실재만으로는 검출력이 서지 않으므로 가드 제거를 주입해 채널이 rc=1 을 내는 것을 확인했다 (§발화 채널 D1).
+- [x] (Must, FR-05) 채널이 대상을 열거로 고정하지 않음 — unmount 판정에 관여하는 파일 **전수**에 대상 파일명 하드코딩 0: `bash -c 'n=0; for f in $(grep -rlE "unmount" scripts src/__tests__ 2>/dev/null); do grep -qE "ContentItem|ApiCallItem|WebVitalsItem|LogList|FileDrop" "$f" && { echo "$f"; n=$((n+1)); }; done; exit $((n>0))'` → rc=0. **HEAD=`a48339d` 실측 rc=0 / 대상 1 파일 (`post-unmount-emission-audit.test.ts`), 열거 hit 0.** 역주입(채널에 `ContentItem` 등 이름 열거 추가) 시 rc=1.
+  - **구 명령의 `head -1` 을 제거했다** — 매칭 파일 중 첫 1건만 재는 형태는 채널이 2개 이상이 되는 순간 어느 파일을 쟀는지가 정렬 순서에 좌우된다. 현재는 매칭이 1건이라 두 형태의 판정이 일치하지만(주입 시 둘 다 rc=1 확인), 열거 고정은 **어느 채널 파일에서도** 금지이므로 전수 순회가 계약에 맞다.
 
 ## 스코프 규칙
 
 - **expansion**: 허용 — 회복이 컴포넌트 `*.jsx`/`*.tsx` + 대응 `*.test.{jsx,tsx}` + 신규 판정 채널(`scripts/` 또는 `src/__tests__/`) 을 동시에 건드린다. `src/Log/LogList.jsx` 는 테스트 파일 신규 생성이 필요하다. 공통 헬퍼(`src/common/`) 도입도 허용하되 수단은 지정하지 않는다.
-- **grep-baseline** (HEAD=`414e66b`, 2026-08-24 실측):
-  - (G1) **[술어 대상 집합]** `for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" && echo "$f"; done` → **11 파일**. 가드 식별자(`cancelled|AbortController|isMounted|signal`) 보유 3 / 미보유 8.
-  - (G2) **[미가드 8 파일]** `src/Monitor/ContentItem.jsx`, `src/Monitor/ApiCallItem.jsx`, `src/Monitor/WebVitalsItem.jsx`, `src/File/File.tsx`, `src/File/FileDrop.tsx`, `src/Comment/Comment.tsx`, `src/Log/LogList.jsx`, `src/Log/Writer.jsx`. `useEffect(` 등록 수 / `return () =>` cleanup 수: ContentItem 1/0, ApiCallItem 1/0, WebVitalsItem 1/0, File 4/0, FileDrop 2/1, Comment 5/1, LogList 7/0, Writer 5/2. **cleanup 이 존재하는 3 파일도 async effect 쪽 cleanup 은 아니다** (FileDrop/Comment/Writer 의 cleanup 은 인접 동기 effect 소속).
+- **grep-baseline** (HEAD=`414e66b`, 2026-08-24 실측 — **task 발행 시점 baseline. 현 HEAD=`a48339d` 재실측은 각 항목 말미 `→ 현재:` 로 병기**):
+  - (G1) **[술어 대상 집합]** `for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" && echo "$f"; done` → **11 파일**. 가드 식별자(`cancelled|AbortController|isMounted|signal`) 보유 3 / 미보유 8. → 현재: 대상 **11 파일 불변**, 보유 **11** / 미보유 **0**.
+  - (G2) **[미가드 8 파일]** `src/Monitor/ContentItem.jsx`, `src/Monitor/ApiCallItem.jsx`, `src/Monitor/WebVitalsItem.jsx`, `src/File/File.tsx`, `src/File/FileDrop.tsx`, `src/Comment/Comment.tsx`, `src/Log/LogList.jsx`, `src/Log/Writer.jsx`. `useEffect(` 등록 수 / `return () =>` cleanup 수: ContentItem 1/0, ApiCallItem 1/0, WebVitalsItem 1/0, File 4/0, FileDrop 2/1, Comment 5/1, LogList 7/0, Writer 5/2. **cleanup 이 존재하는 3 파일도 async effect 쪽 cleanup 은 아니다** (FileDrop/Comment/Writer 의 cleanup 은 인접 동기 effect 소속). → 현재: 8 파일 전수 회복 (TSK-20260824-07-a `9c86492` / -07-b `290fcca` / -07-c `15de04c`), 형제 race fixture 전수 보유.
   - (G3) **[wrapper 0 hit 반례]** `grep -cE "await |\.then\(" src/Monitor/{ContentMon,ApiCallMon,WebVitalsMon}.jsx` → 각 **0**, 대응 `*Item.jsx` → 각 **2**. `grep -rnE "useEffect.*async|async\s*\(\s*\)\s*=>" src/Monitor/{ContentMon,ApiCallMon,WebVitalsMon}.jsx` → **0 hit, rc=1** (blue 가 `[x]` 근거로 삼은 그 명령).
   - (G4) **[프로덕션 React Query 소비]** `grep -rn "useLogList" src | grep -v "\.test\."` → **2 hit, 둘 다 `src/Log/hooks/useLogList.js` 자기 파일** (`:14` 정의, `:25` default export). 프로덕션 import 0.
-  - (G5) **[판정 채널]** `grep -nE '"check:[a-z-]*unmount' package.json` → **0 hit**. `grep -rln "unmount()" src --include="*.test.*"` → 8 파일이나 미가드 8 파일과 교집합 0.
+  - (G5) **[판정 채널]** `grep -nE '"check:[a-z-]*unmount' package.json` → **0 hit**. `grep -rln "unmount()" src --include="*.test.*"` → 8 파일이나 미가드 8 파일과 교집합 0. → 현재: 판정 채널 `src/__tests__/post-unmount-emission-audit.test.ts` 실재 (`eb8270a`), 술어 대상 11 파일과 race fixture 의 교집합 **11/11**.
 - **rationale**: (G1)(G2) 회복 대상의 zero-point. (G3) 은 열거 고정 게이트가 어떻게 false-negative 를 내는지의 반례 — RULE-06 §열거 고정 금지 / §관측 표면 의 실사례다. (G4) 는 "훅 존재 = 자동 충족" 추론의 반례. (G5) 는 채널 부재.
 
 ## 참고
@@ -120,11 +131,13 @@ planner 는 (a) 판정 채널 부착((M-A) 를 `check:*` 로 등재하거나 (M-
 
 회복 전까지 blue 는 거짓 `[x]` 를 유지하므로, **`runtime-fetch-unmount-safety` 의 blue marker 를 "Monitor 축 검증 완료" 로 읽는 판단은 이 절을 함께 읽어야 한다.** 실제로 이 `[x]` 가 사는 동안 같은 표면의 회복 task 는 revert 된 채 재발행되지 않았다.
 
+**현 HEAD=`a48339d` 상태**: 위 표의 실측 근거는 전부 해소됐다 (미가드 8 → 0, 판정 채널 실재, `LogList` raw fetch 도 가드 + fixture 보유). 그러나 **blue 문서 자체는 여전히 거짓 근거로 `[x]` 를 유지한다** — inspector 는 blue 를 편집하지 않으므로 (RULE-01), 정정은 위 경로 1(본 green 의 승격) 로만 이뤄진다. 본 green 은 §수용 기준 4/4 rc=0 이므로 경로 1 의 선행 조건은 충족됐다.
+
 ### 미측정·비판정 항목
 
 RULE-07 §수용 기준 문장 규약에 따라 체크박스에서 강등한 항목 (감사성 보존, promote 비차단).
 
-- **(주입 부류 — 이관 필수) 미가드 상태 주입 시 rc≠0.** 가드를 1건 되돌린 상태에서 판정 채널이 rc≠0 + 해당 파일 경로를 stdout 에 내는지의 검증. 고장을 내야 판정되므로 spec 체크박스가 아니다. **이관처: 본 spec §발화 채널 (a) 판정 채널 부착 task 의 DoD** — RULE-06 §게이트 실효 검증, 검출 방향 2 (setter 가드 제거 / 로그·에러리포트만 가드 밖으로 이동) 전수 주입, `RULE-04` notes `injection: 2/2 detect` 필수.
+- **(주입 부류 — 이관 완료) 미가드 상태 주입 시 rc≠0.** **이관처 소화: TSK-20260824-07-d / `eb8270a` DoD (`injection: 2/2 detect`)**, 선행 회복 3 task 도 각각 주입을 박제했다 (07-a 12/12, 07-b 24/24, 07-c 전역 미가드 술어 8→0). inspector tick 217 재주입으로 두 방향을 독립 재현했다 — (D1) 가드 제거 → (M-A)·audit·fixture 3층 전부 rc=1, (D2) 부분 가드 → fixture 만 rc=1 (§발화 채널 표).
 - **(미측정 NFR) `npm test` 의 unhandled error 0.** 원 req FR-06 이 요구한 "`Errors N errors` 행 부재 + rc=0" 은 (a) 현 HEAD 에서 이미 참인 실행이 있고 (b) 실패가 간헐적이라 1회 실행으로 판정되지 않는다 — "N 회 반복 동일 출력" 부류. 또한 `npm test` rc 는 이미 CI 게이트이므로 체크박스로 두면 중복 게이트다. 본 spec 의 판정 축은 발화 자체((M-A)(M-B))이고, teardown 경합은 그 **증상**으로 §역할 관측 표면 2 에 보존한다.
 - **(회복 task 제약) 도달 불가 분기 0.** §회귀 중점 R-4. "가드가 만드는 신규 분기가 도달 불가를 남기지 않는다" 는 회복 수단에 대한 제약이며 시스템 불변식이 아니다. **이관처: 회복 task 의 DoD** — 도입 분기가 fixture 로 도달되거나 분기 증가 0 임을 `result.md` 에 박제한다.
 - **(중복 게이트 부류) 회복 후 테스트 회귀 0.** "가드·fixture 추가 후 `npm test` rc=0" 은 현 HEAD 에서 이미 참이고, 위반 시 `.github/workflows/ci.yml` Test step 이 즉시 실패한다 — RULE-07 §반려 시그널의 중복 게이트다. 회복 task 의 DoD 에서 다루고 본 spec 체크박스로 두지 않는다.
@@ -135,6 +148,7 @@ RULE-07 §수용 기준 문장 규약에 따라 체크박스에서 강등한 항
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-24 | TSK-20260824-07-a / `9c86492` · -07-b / `290fcca` · -07-c / `15de04c` · -07-d / `eb8270a` (inspector Phase 1 reconcile @ tick 217) | **FR-01~FR-05 · (M-A)(M-B)(M-C) `[ ]` → `[x]`.** 미가드 8 파일이 3 task 로 전수 회복되고(Monitor 3 → File 2 + Comment 1 → Log 2, `LogList.test.jsx` 신설), 판정 채널 `src/__tests__/post-unmount-emission-audit.test.ts` 가 부착됐다(G-A~G-E 5 게이트, `npm test` 수집 발화). planner 실측을 받아쓰지 않고 4/4 를 현 HEAD 에서 재실행한 뒤 2 방향을 역주입했다 — (D1) `ContentItem.jsx` 의 가드 식별자·guard return 제거 → (M-A) grep rc=1 · audit 채널 rc=1 · 형제 fixture rc=1 (3층 전부 검출), (D2) `log()` 만 가드 앞으로 이동한 부분 가드 → 정적 2층은 통과하고 **fixture 만 rc=1** (`expected "log" to not be called at all, but actually been called 1 times`). **(D2) 가 FR-01 과 FR-03 의 분업을 확정했다** — 파일 단위 토큰 게이트는 (I2) 위반을 구조적으로 못 잡으므로 두 Must 는 어느 하나로 대체될 수 없다. 이 분업을 §발화 채널에 표로 박제했다. 아울러 FR-05 명령의 `head -1` 을 전수 순회로 교체했다 — 채널이 2개 이상이 되면 정렬 순서가 판정을 좌우한다. §역할·§동작 3·6 의 "현 HEAD 실측" 문구는 등록 시점 표기로 내리고 현 HEAD 실측을 병기했다. | §역할 + §동작 3·6 + §발화 채널 + §테스트 현황 + §수용 기준 + §스코프 규칙 + §참고 |
 | 2026-08-24 | inspector tick (REQ-20260824-002 흡수) / HEAD=`414e66b` | **거짓 `[x]` 되돌림 + 대상 집합 술어화 + 보장 대상 확장.** blue 의 (I4)(I5)(Should FR-05) 는 `*Mon.jsx` wrapper 3 파일을 측정해 0 hit 를 얻고 "race 노출 0" 으로 닫혔으나, 실제 fetch 는 `*Item.jsx` 에 있고 세 파일 모두 미가드다. 술어 도출((I3))로 재측정한 결과 미가드 **8 파일** — Monitor 3 + File 2 + Comment 1 + Log 2. "Log = React Query 자동 충족" 전제도 거짓 (`useLogList` 프로덕션 import 0). 보장 대상을 setter 에서 `log()`·`reportError()` 를 포함한 외부 발화 전부로 확장((I2)). 구 §수용 기준 25 marker 중 자기서술·자명 부류는 §참고 §미측정·비판정 항목으로 강등하고, 실행 가능한 Must 6건으로 교체했다. 주입 부류는 채널 부착 task DoD 로 이관 표기. | all |
 | 2026-05-20 | inspector 203차 tick / `fed31ba` | (I4)+(I7)+(Should FR-05) 3 marker 플립. **(I4)/(FR-05) 근거는 본 개정에서 무효화됐다** — 위 2026-08-24 행 참조. (I7) fixture 박제 (Image/File/VisitorMon 3 도메인) 는 유효. | 테스트 현황, 수용 기준 |
 | 2026-05-18 | inspector 67차 tick / `760a491` | (I3)+(I6)+(FR-03)+(FR-04) 플립 — `VisitorMon.jsx` cancelled-flag ref 박제 회수. 유효. | 테스트 현황, 수용 기준 |

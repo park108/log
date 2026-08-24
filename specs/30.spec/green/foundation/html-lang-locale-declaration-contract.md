@@ -48,9 +48,9 @@
 6. **(G-F) 추출 패턴의 양 표면 동기화** — 본 spec 의 §동작 명령(grep)과 자동 픽스처의 정규식(`RE_ROOT_WITH_LANG` / `RE_ROOT_LANG_CAPTURE`)은 **같은 집합을 인식한다**. 한쪽만 갱신해 두 표면의 판정이 갈리는 상태를 허용하지 않는다.
    - grep 표면: `<html[^>]*[[:space:]]lang="[^"]+"` (라인 단위).
    - JS 표면: `` new RegExp(`<html[^>\r\n]*${WS}lang="[^"]+"`) `` — `[^>]` 가 아니라 **`[^>\r\n]`** 이다. JS 문자 클래스는 개행을 포함하므로 `[^>]*` 로 두면 `<html\n  lang="en">` 을 매치해 grep(라인 단위, 0 hit)과 갈린다. 픽스처가 이미 그 동치를 케이스로 단정하고 있다.
-   - HEAD 실측: 픽스처는 첫-속성 고정형(`<html${WS}+lang=`)을 2 지점에 보유한다 — 미동기 상태.
+   - HEAD 실측 (HEAD=`a48339d`, inspector 재실행): 픽스처는 확장형 `` `<html[^>\r\n]*${WS}lang=` `` 을 2 지점에 보유한다 (`:84` `RE_ROOT_WITH_LANG`, `:85` `RE_ROOT_LANG_CAPTURE`). 첫-속성 고정형 잔존 0 — 두 표면 동기. TSK-20260824-09 / `a48339d`.
 7. **(G-G) 픽스처의 표기 대표성** — 자동 픽스처의 케이스 표에는 `lang` 앞에 다른 속성이 오는 루트 태그가 최소 1건 포함된다 (RULE-06 §fixture 대표성). 공백 수 변형만으로는 순서 의존 결함이 관측되지 않는다.
-   - HEAD 실측: 케이스 8건 전부 `lang` 이 첫 속성 — 0건.
+   - HEAD 실측 (`a48339d`): 케이스 표 14건 중 속성 선행 2건 — `:267` `<html data-theme="dark" lang="en">`, `:268` `<html class="no-js" lang="ko-KR">` (둘 다 `withLang: 1` 기대). TSK-20260824-09.
 
 ## 의존성
 
@@ -83,6 +83,8 @@ npx vitest run src/__tests__/html-lang-locale-declaration.test.ts            →
 
 **채널의 검출력은 주입 왕복으로 확인한다** — 정상 트리의 초록은 민감도 0 인 픽스처도 낸다. TSK-20260824-03 이 6 방향 (R-1~R-5 + G-C) 을 주입해 `injection: 6/6 detect` 를 박제했고, inspector 는 현 HEAD 에서 그중 1 방향을 재확인했다: `index.html:2` `<html lang="en">` → `<html>` 주입 시 픽스처 rc=1 (7 케이스 중 3 FAIL), 원복 후 rc=0.
 
+**현 HEAD=`a48339d` 재실측 (2026-08-24 inspector tick 217).** 픽스처는 케이스 표 14행으로 확장됐고 `npx vitest run src/__tests__/html-lang-locale-declaration.test.ts` → rc=0 (7 passed). 확장 패턴 교체(TSK-20260824-09)는 채널 경로를 바꾸지 않았다 — `npm test` 수집 + `ci.yml` Test step + `.husky/pre-push` 3 지점 불변. 주입 왕복 2/2 detect 재현 (§참고 §미측정·비판정 항목).
+
 G-D 자기 무효화 회피는 **경로 제외가 아니라 토큰 런타임 조립**으로 이뤄졌다 — 픽스처는 자기 자신을 포함해 어떤 파일도 스캔에서 빼지 않으며, 따라서 `grep -rn 'documentElement.lang' src --include=...` 원 명령이 픽스처 추가 후에도 0 hit 을 유지한다 (현 HEAD 재실측 0 hit). 제외 과잉으로 다른 파일의 위반을 삼키는 경로가 구조적으로 없다.
 
 ## 테스트 현황
@@ -92,22 +94,22 @@ G-D 자기 무효화 회피는 **경로 제외가 아니라 토큰 런타임 조
 - [x] G-C 루트 요소 단일성 — 명령 실행 rc=0.
 - [x] G-D 런타임 재정의 부재 — 명령 실행 rc=0 (0 hit).
 - [x] G-E 산출물 보존 — 확장 패턴으로 재실행 rc=0 (`build/index.html` 실재, diff 무출력).
-- [ ] G-F 양 표면 동기화 — 픽스처가 첫-속성 고정형 2 지점 (`:66` `RE_ROOT_WITH_LANG`, `:67` `RE_ROOT_LANG_CAPTURE`).
-- [ ] G-G 픽스처 표기 대표성 — 속성 선행 케이스 0건.
+- [x] G-F 양 표면 동기화 — 픽스처 정규식이 확장형 `` `[^>\r\n]*${WS}lang=` `` 으로 교체됨 (`:84`, `:85`). 첫-속성 고정형 잔존 0 (TSK-20260824-09 / `a48339d`).
+- [x] G-G 픽스처 표기 대표성 — 속성 선행 케이스 2건 (`:267` `data-theme`, `:268` `class` + region subtag), 케이스 표 14건 (TSK-20260824-09 / `a48339d`).
 - [x] 전용 자동 픽스처 — `src/__tests__/html-lang-locale-declaration.test.ts` 실재 (TSK-20260824-03 / `52e1b52`, 7 케이스 PASS). 채널 grep 6 hit, `npm test` 수집 경로 발화. 검출력은 주입 6/6 detect + inspector 현 HEAD 1 방향 재확인 (§발화 채널).
 
 ## 수용 기준
 
-> 전 항목 HEAD=`414e66b` 에서 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약).
+> 전 항목 HEAD=`a48339d` 에서 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 8/8 rc=0 — inspector 가 planner 실측을 받아쓰지 않고 현 HEAD 에서 전수 재실행했다 (§변경 이력 2026-08-24 tick 217).
 
 - [x] (Must) G-A: `test "$(grep -cE '<html[^>]*[[:space:]]lang="[^"]+"' index.html)" -eq 1` → rc=0 (확장 패턴 재실측).
 - [x] (Must) G-B: `grep -oE '<html[^>]*[[:space:]]lang="[^"]+"' index.html | sed -E 's/.*lang="([^"]+)".*/\1/' | grep -qE '^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$'` → rc=0 (추출값 `en`).
 - [x] (Must) G-C: `test "$(grep -cE '<html[[:space:]>]' index.html)" -eq 1` → rc=0.
 - [x] (Should) G-D: `test "$(grep -rn 'documentElement.lang' src --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' | wc -l)" -eq 0` → rc=0.
 - [x] (Should) G-E: `bash -c '[ -f build/index.html ] || exit 0; diff <(grep -oE "<html[^>]*[[:space:]]lang=\"[^\"]+\"" index.html) <(grep -oE "<html[^>]*[[:space:]]lang=\"[^\"]+\"" build/index.html)'` → rc=0 (확장 패턴 재실측).
-- [ ] (Must) G-F 양 표면 동기화 — 픽스처에 첫-속성 고정형 잔존 0: `test "$(grep -c 'WS}+lang=' src/__tests__/html-lang-locale-declaration.test.ts)" -eq 0` → rc=0. **2026-08-24 실측 2 hit (`:66`, `:67`) → rc=1.**
-- [ ] (Must) G-G 픽스처 표기 대표성 — 루트 태그에 `lang` 이외 속성이 선행하는 케이스 1건 이상: `test "$(grep -cE '<html[[:space:]]+(data-|class=|id=|dir=)' src/__tests__/html-lang-locale-declaration.test.ts)" -ge 1` → rc=0. **2026-08-24 실측 0 hit → rc=1.**
-- [ ] (Must) G-H 확장 후 회귀 0 — `npx vitest run src/__tests__/html-lang-locale-declaration.test.ts` → rc=0. 기존 7 케이스(공백 다중 · 값 공백화 · 오형식 3 · 개행 분리)의 기대 count 가 확장 패턴에서 전부 보존돼야 한다. **2026-08-24 실측 rc=0 (7 passed) — 확장 적용 후 재판정 대상.**
+- [x] (Must) G-F 양 표면 동기화 — 픽스처에 첫-속성 고정형 잔존 0: `test "$(grep -c 'WS}+lang=' src/__tests__/html-lang-locale-declaration.test.ts)" -eq 0` → rc=0. **HEAD=`a48339d` 실측 0 hit → rc=0** (착수 전 2 hit `:66`/`:67` → 확장 후 `:84`/`:85` 확장형). 역주입 (`:84` 를 `<html${WS}+lang=` 로 되돌림) 시 1 hit → rc=1 로 검출됨.
+- [x] (Must) G-G 픽스처 표기 대표성 — 케이스 표에 `lang` 이외 속성이 선행하면서 `withLang: 1` 을 기대하는 행이 1건 이상: `test "$(grep -cE 'html: .<html[[:space:]]+[a-z-]+="[^"]*".*[[:space:]]lang="[^"]+".*withLang: 1' src/__tests__/html-lang-locale-declaration.test.ts)" -ge 1` → rc=0. **HEAD=`a48339d` 실측 2 hit (`:267`, `:268`) → rc=0.** 구 패턴 `<html[[:space:]]+(data-|class=|id=|dir=)` 은 주석 라인(`:72`)과 접미 배제 케이스(`:273` `withLang: 0`)까지 세어, 대표 케이스 2건을 삭제해도 rc=0 을 유지했다 (inspector 주입 실측: loose 4→2 rc=0 / tight 2→0 rc=1). 방어 대상을 겨누도록 패턴을 좁혔다.
+- [x] (Must) G-H 확장 후 회귀 0 — `npx vitest run src/__tests__/html-lang-locale-declaration.test.ts` → rc=0. 기존 케이스(공백 다중 · 값 공백화 · 오형식 3 · 개행 분리 · 경계 미침범 · 접미 배제)의 기대 count 가 확장 패턴에서 전부 보존돼야 한다. **HEAD=`a48339d` 실측 rc=0 (7 passed, 케이스 표 14행).** 정상 트리 rc=0 은 근거가 아니므로 inspector 가 2 방향을 주입해 재판정했다: 속성 선행 주입 → rc=0 (오탐 0) / `lang` 삭제 → rc=1 (2 failed).
 
 ## 참고
 
@@ -119,7 +121,7 @@ G-D 자기 무효화 회피는 **경로 제외가 아니라 토큰 런타임 조
 
 - 스크린리더 실제 발음 결과 — 보조기술 실행 채널 부재. 본 spec 은 선언 존재·형식까지만 판정한다.
 - 선언된 로케일과 본문 실제 언어의 의미 일치 (`lang="en"` 인데 본문이 한국어인 경우) — 자연어 판별 채널 부재.
-- **(주입 부류 — 이관 필수) 확장 패턴의 오탐 0 주입 검증.** 루트 태그에 속성을 선행 주입한 상태에서 픽스처가 rc=0 을 유지하고, `lang` 을 삭제한 상태에서 rc≠0 이 되는지의 왕복. 고장·변형을 주입해야 판정되므로 spec 체크박스가 아니다. **이관처: G-F/G-G 를 충족시키는 픽스처 수정 task 의 DoD** — 게이트 수정 task 이므로 RULE-06 §게이트 실효 검증이 적용되며, 검출 방향 2 (속성 선행 → 오탐 0 / 선언 삭제 → 검출 1) 전수 주입 후 `RULE-04` notes `injection: 2/2 detect` 박제.
+- **(주입 부류 — 이관 완료) 확장 패턴의 오탐 0 주입 검증.** 루트 태그에 속성을 선행 주입한 상태에서 픽스처가 rc=0 을 유지하고, `lang` 을 삭제한 상태에서 rc≠0 이 되는지의 왕복. 고장·변형을 주입해야 판정되므로 spec 체크박스가 아니다. **이관처 소화: TSK-20260824-09 / `a48339d` DoD — `injection: 2/2 detect` 박제** (`specs/60.done/2026/08/24/task/html-lang-fixture-pattern-sync/result.md` §게이트 실효 검증). inspector 가 tick 217 에서 현 HEAD 로 동일 2 방향을 재주입해 왕복을 독립 재현했다 (속성 선행 → rc=0 / `lang` 삭제 → rc=1, 2 failed).
 
 ### 확장 패턴 실측 매트릭스 (2026-08-24, inspector)
 
@@ -147,6 +149,7 @@ grep 표면 동일 매트릭스는 파일 픽스처로 재실행해 동일 결�
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-24 | TSK-20260824-09 / `a48339d` (inspector Phase 1 reconcile @ tick 217) | **G-F·G-G·G-H `[ ]` → `[x]`.** 픽스처 정규식이 확장형 `` `<html[^>\r\n]*${WS}lang=` `` 으로 교체되고(`:84`,`:85`) 속성 선행 케이스 2건이 추가돼(`:267`,`:268`, 케이스 표 14행) 3 Must 가 전부 rc=0 이 됐다. planner 실측을 받아쓰지 않고 8/8 을 현 HEAD 에서 재실행했으며, 정상 트리 rc=0 은 근거가 아니므로 4 방향을 주입해 재판정했다 — (i) 속성 선행 주입 → 픽스처 rc=0 (오탐 0), (ii) `lang` 삭제 → rc=1 (2 failed), (iii) `:84` 를 첫-속성 고정형으로 역주입 → G-F rc=1, (iv) 대표 케이스 2행 삭제 → G-G rc=1. **(iv) 가 구 G-G 명령의 결함을 드러냈다** — `<html[[:space:]]+(data-|class=|id=|dir=)` 은 주석(`:72`)과 `withLang: 0` 인 접미 배제 케이스(`:273`)까지 세어 대표 케이스를 전부 지워도 rc=0 을 유지했다(4→2 hit). 방어 대상(케이스 표의 `withLang: 1` 행)을 겨누도록 명령을 좁혔다. 아울러 이미 거짓이 된 실측 문구("2 hit → rc=1", "미동기 상태", "케이스 8건 전부 첫 속성")를 현 HEAD 값으로 정정했다 (상류 followup `20260824-2245-html-lang-spec-gf-gg-gh-checkbox-stale`). | §동작 6·7 + §발화 채널 + §테스트 현황 + §수용 기준 + §참고 |
 | 2026-08-24 | inspector tick (REQ-20260824-003 FR-05/FR-06 흡수) / HEAD=`414e66b` | **토큰 추출 패턴을 속성 순서 비의존으로 확장.** 현행 `<html[[:space:]]+lang=` 은 `lang` 이 첫 속성일 것을 요구해 `<html data-theme="dark" lang="en">` 에서 count 0 → FAIL 한다 (실측: 현행 0 / 확장 1). 지금은 `index.html:2` 가 `<html lang="en">` 이라 오탐 0 이지만, 속성 추가 시 CI red 가 "로케일 선언 손상" 으로 오독된다. §동작 1·2·5 명령과 §수용 기준 G-A/G-B/G-E 를 `<html[^>]*[[:space:]]lang="[^"]+"` 로 교체하고, 두 표면 동기화(G-F) · 픽스처 표기 대표성(G-G) · 확장 후 회귀 0(G-H) 3 Must 를 신설했다. **JS 표면은 `[^>\r\n]*` 여야 한다** — `[^>]*` 로 두면 개행 분리 케이스에서 grep 과 갈린다 (§참고 실측 매트릭스). 주입 부류는 픽스처 수정 task DoD 로 이관 표기. | §역할 + §동작 + §회귀 중점 + §테스트 현황 + §수용 기준 + §참고 |
 | 2026-08-24 | inspector tick / REQ-20260518-025 | 최초 등록. G-A~G-E 5 게이트 명령 전수 HEAD 실행 rc=0 확인 후 `[x]` 박제. 발화 채널 부재 실측 박제 (grep 0 hit). | all |
 | 2026-08-24 | TSK-20260824-03 / `52e1b52` (inspector Phase 1 reconcile @ HEAD=`510ae0f`) | 발화 채널 부착 확인 → §테스트 현황 "전용 자동 픽스처" `[ ]` → `[x]`. G-A~G-E 5 게이트 + 채널 grep (6 hit) + 픽스처 실행 (7 passed) 전수 재실행 PASS. 주입 1 방향 (`lang` 속성 삭제 → rc=1) 재확인 후 원복. RULE-07 §promote 조건 4 "발화 채널 실경로 박제 + 현 HEAD 실재" 충족. | §발화 채널, §테스트 현황 |
