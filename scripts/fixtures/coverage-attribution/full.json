@@ -1,0 +1,51 @@
+{
+  "/repo/src/Toaster/Toaster.tsx": {
+    "path": "/repo/src/Toaster/Toaster.tsx",
+    "statementMap": {},
+    "fnMap": {},
+    "branchMap": {
+      "0": { "type": "if", "loc": { "start": { "line": 50, "column": 2 }, "end": { "line": 52, "column": 3 } } },
+      "2": { "type": "if", "loc": { "start": { "line": 55, "column": 2 }, "end": { "line": 57, "column": 3 } } },
+      "3": { "type": "if", "loc": { "start": { "line": 58, "column": 7 }, "end": { "line": 59, "column": 3 } } },
+      "4": { "type": "if", "loc": { "start": { "line": 60, "column": 2 }, "end": { "line": 62, "column": 3 } } }
+    },
+    "s": {},
+    "f": {},
+    "b": {
+      "0": [410, 415],
+      "2": [120, 87],
+      "3": [30, 208],
+      "4": [6, 0]
+    }
+  },
+  "/repo/src/common/markdownParser.ts": {
+    "path": "/repo/src/common/markdownParser.ts",
+    "statementMap": {},
+    "fnMap": {},
+    "branchMap": {
+      "0": { "type": "switch", "loc": { "start": { "line": 18, "column": 4 }, "end": { "line": 31, "column": 5 } } },
+      "1": { "type": "binary-expr", "loc": { "start": { "line": 40, "column": 9 }, "end": { "line": 40, "column": 44 } } }
+    },
+    "s": {},
+    "f": {},
+    "b": {
+      "0": [12, 0, 5, 9],
+      "1": [0, 3]
+    }
+  },
+  "/repo/src/Search/hooks/useSearchList.ts": {
+    "path": "/repo/src/Search/hooks/useSearchList.ts",
+    "statementMap": {},
+    "fnMap": {},
+    "branchMap": {
+      "0": { "type": "if", "loc": { "start": { "line": 12, "column": 2 }, "end": { "line": 14, "column": 3 } } },
+      "1": { "type": "cond-expr", "loc": { "start": { "line": 20, "column": 10 }, "end": { "line": 20, "column": 52 } } }
+    },
+    "s": {},
+    "f": {},
+    "b": {
+      "0": [0, 0],
+      "1": [0, 0, 0]
+    }
+  }
+}

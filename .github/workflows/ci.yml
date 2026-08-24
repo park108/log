@@ -72,6 +72,16 @@ jobs:
       - name: Test
         run: npm test
 
+      # 커버리지 per-file 분기 귀속 단조성 (coverage-per-file-attribution-monotonicity §동작 1-3).
+      # 부분집합(샤드) 실행에서 covered 인 분기 슬롯은 전수 실행에서도 covered 여야 한다.
+      # 이 계약이 깨지면 Test(:72) 의 threshold 판정 자체가 집계 경로의 함수가 되지만,
+      # 커버리지 수치는 게이트의 출력이라 어떤 상위 채널도 이를 신고하지 않는다.
+      # vitest 를 전수 1회 + 샤드 N회 구동하므로 npm test 본체에 인라인하지 않고 분리한다.
+      # 샤드 목록은 하드코딩하지 않는다 (RULE-06 §열거 고정 금지) — vitest 자신의 수집
+      # 목록에서 도출하고, 열거 합이 전수 수집 수와 어긋나면 실패시킨다.
+      - name: Check coverage per-file attribution monotonicity
+        run: npm run check:coverage-attribution
+
       - name: Build
         run: npm run build
 

@@ -1,0 +1,40 @@
+{
+  "/repo/src/Toaster/Toaster.tsx": {
+    "path": "/repo/src/Toaster/Toaster.tsx",
+    "statementMap": {},
+    "fnMap": {},
+    "branchMap": {},
+    "s": {},
+    "f": {},
+    "b": {
+      "0": [14, 14],
+      "2": [0, 5],
+      "3": [0, 2],
+      "4": [4, 0]
+    }
+  },
+  "/repo/src/common/markdownParser.ts": {
+    "path": "/repo/src/common/markdownParser.ts",
+    "statementMap": {},
+    "fnMap": {},
+    "branchMap": {},
+    "s": {},
+    "f": {},
+    "b": {
+      "0": [0, 0, 5, 0],
+      "1": [0, 3]
+    }
+  },
+  "/repo/src/Search/hooks/useSearchList.ts": {
+    "path": "/repo/src/Search/hooks/useSearchList.ts",
+    "statementMap": {},
+    "fnMap": {},
+    "branchMap": {},
+    "s": {},
+    "f": {},
+    "b": {
+      "0": [0, 0],
+      "1": [0, 0, 0]
+    }
+  }
+}
