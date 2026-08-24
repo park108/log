@@ -67,8 +67,22 @@ const WS = "[^\\S\\r\\n]";
 
 // G-A / G-E — lang 속성을 가진 루트 시작 태그. 값이 비면 `[^"]+` 가 미매치라
 // count 가 0 으로 떨어진다 (R-2 공백화의 직접 검출 지점).
-const RE_ROOT_WITH_LANG = new RegExp(`<html${WS}+lang="[^"]+"`, "g");
-const RE_ROOT_LANG_CAPTURE = new RegExp(`<html${WS}+lang="([^"]+)"`);
+//
+// **속성 순서 비의존 (G-F)** — `lang` 을 첫 속성으로 가정하면
+// `<html data-theme="dark" lang="en">` 처럼 선언이 온전한 표기가 count 0 으로
+// 떨어져 "로케일 선언 손상" 이라는 틀린 메시지로 FAIL 한다 (R-6 오탐). 선행
+// 구간 `[^>\r\n]*` 이 임의 속성을 흡수하되 시작 태그 경계(`>`)는 넘지 않으므로
+// 후속 태그(`<body lang=...>`)로 새지 않는다.
+//
+// **`[^>]` 가 아니라 `[^>\r\n]` 인 이유 (G-F 의 핵심)** — JS 문자 클래스는
+// 개행을 포함한다. `[^>]*` 로 두면 `<html\n  lang="en">` 을 매치하지만 grep 은
+// 라인 단위라 같은 입력에서 0 hit 이다 — 두 표면의 판정이 갈린다. 개행을 뺀
+// 클래스가 spec §동작의 grep 패턴 `<html[^>]*[[:space:]]lang="[^"]+"` 와
+// 동치를 이룬다 (아래 케이스 표의 "개행 분리" 항이 그 동치의 유일한 분기점).
+//
+// 선행 토큰 `${WS}` 는 `data-lang="x"` 류 접미 일치를 배제한다.
+const RE_ROOT_WITH_LANG = new RegExp(`<html[^>\\r\\n]*${WS}lang="[^"]+"`, "g");
+const RE_ROOT_LANG_CAPTURE = new RegExp(`<html[^>\\r\\n]*${WS}lang="([^"]+)"`);
 
 // G-C — lang 유무와 무관한 루트 시작 태그. `</html>` 은 `<` 다음이 `/` 라 미매치.
 const RE_ROOT_TAG = new RegExp(`<html(?:${WS}|>)`, "g");
@@ -244,7 +258,19 @@ describe("html-lang-locale-declaration (TSK-20260824-03)", () => {
 			{ label: "종료 태그는 미매치", html: "</html>", withLang: 0, rootTag: 0, value: null },
 			// grep 은 라인 단위라 속성이 다음 줄로 내려가면 못 잡는다. JS 정규식이
 			// 개행을 넘어 매치하면 두 표면의 판정이 갈리므로 여기서 고정한다.
+			// `[^>\r\n]` 를 `[^>]` 로 되돌리면 여기서 1 이 되어 grep 과 갈린다 —
+			// 확장 패턴 동치의 유일한 분기점이라 이 케이스가 G-F 의 파수꾼이다.
 			{ label: "개행 분리 (grep 라인 단위 동치)", html: '<html\n  lang="en">', withLang: 0, rootTag: 0, value: null },
+			// ── 속성 선행 (R-6 오탐 제거 / G-G 표기 대표성) ──────────────────────
+			// 첫-속성 고정 패턴에서는 아래 2 건이 withLang 0 을 내 "선언 손상" 으로
+			// 오보됐다. 선언은 온전하므로 1 이어야 한다.
+			{ label: "속성 선행 (data-theme)", html: '<html data-theme="dark" lang="en">', withLang: 1, rootTag: 1, value: "en" },
+			{ label: "속성 선행 (class + region subtag)", html: '<html class="no-js" lang="ko-KR">', withLang: 1, rootTag: 1, value: "ko-KR" },
+			// 선행 구간이 시작 태그 경계(`>`)를 넘지 않는다 — 후속 태그의 lang 을
+			// 루트 선언으로 오인하면 R-1(루트 속성 삭제)이 검출되지 않는다.
+			{ label: "경계 미침범 (후속 <body lang>)", html: '<html>\n<body lang="en">', withLang: 0, rootTag: 1, value: null },
+			// 선행 토큰 WS 가 없으면 `data-lang` 이 매치해 선언 부재가 은폐된다.
+			{ label: "접미 일치 배제 (data-lang)", html: '<html data-lang="x">', withLang: 0, rootTag: 1, value: null },
 		];
 
 		for (const c of cases) {
