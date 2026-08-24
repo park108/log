@@ -72,6 +72,15 @@ jobs:
       - name: Test
         run: npm test
 
+      # Monitor 파생 state 불변 교체 게이트 (monitor-derived-state-immutability §동작 G-1).
+      # `useState` 바인딩의 in-place 변이는 갱신 경로가 잊은 필드를 초기값으로 은폐한다
+      # — WebVitalsItem 헤더가 응답과 무관하게 영구 `(0)` 을 표시한 결함이 그 경로였다.
+      # eslint 는 이 부류를 잡지 않고 테스트는 잊힌 필드를 단언하지 않으므로 정적 판정이
+      # 유일한 발화 채널이다. 스캔 대상·검사 식별자는 하드코딩하지 않고 도출하며
+      # (RULE-06 §열거 고정 금지) 대상 집합이 비면 공허 통과로 실패시킨다.
+      - name: Check Monitor derived state immutability
+        run: npm run check:monitor-state-immutability
+
       # 커버리지 per-file 분기 귀속 단조성 (coverage-per-file-attribution-monotonicity §동작 1-3).
       # 부분집합(샤드) 실행에서 covered 인 분기 슬롯은 전수 실행에서도 covered 여야 한다.
       # 이 계약이 깨지면 Test(:72) 의 threshold 판정 자체가 집계 경로의 함수가 되지만,
