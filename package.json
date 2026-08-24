@@ -39,9 +39,9 @@
   },
   "engines": {
     "node": ">=24",
-    "npm": ">=10"
+    "npm": ">=11"
   },
-  "packageManager": "npm@10.9.2",
+  "packageManager": "npm@11.17.0",
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,d.ts}": "eslint"
   },
