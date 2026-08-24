@@ -33,7 +33,9 @@
     "check:css-modules-coherence": "bash scripts/check-css-modules-coherence.sh",
     "check:commit-writer-coherence": "bash scripts/check-commit-writer-coherence.sh",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "pipeline:health": "bash scripts/pipeline-health.sh",
+    "check:acceptance-criteria": "bash scripts/check-acceptance-criteria.sh"
   },
   "engines": {
     "node": ">=24",

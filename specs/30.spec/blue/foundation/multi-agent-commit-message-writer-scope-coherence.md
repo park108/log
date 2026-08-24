@@ -77,7 +77,6 @@
 - [x] (C5) 자기참조 false-positive 부재 baseline — §동작 (C5) + (R-4) 평서문.
 - [x] (FR-03) 자동 검출 채널 (post-commit hook / pre-push hook / CI / `check:commit-writer-coherence` script 등) rc=0/1 결정론 발화 부착 — `scripts/check-commit-writer-coherence.sh` (235 line, exec 0755) + `package.json:34` `"check:commit-writer-coherence"` npm wrapper 박제 (TSK-20260518-24 / `15ccee0`). 본 baseline 에서 `bash scripts/check-commit-writer-coherence.sh` rc=0 + R-1 (`5639669^..5639669`) rc=1 + R-3 (`9b95b73^..9b95b73`) rc=0 + R-4 자기참조 (`15ccee0^..15ccee0`) rc=0 실측 정합.
 - [x] (FR-04) HEAD 1 commit 단독 + commit range `<base>..HEAD` 양면 적용 baseline — §동작 (C4) + (R-5) 평서문.
-- (FR-05) **[deferred: future-event-dependent — lock 메커니즘 채택 미발화]** `.claude/locks/commit.busy` 또는 `flock /tmp/repo-commit.lock` 류 lock 메커니즘 채택 시 stale lock cleanup 의미 박제 — Could, 도입 결정 시 별 spec 또는 본 spec §동작 확장. 현 baseline 측정 target (lock 메커니즘 자체) 부재 — 본 axis 는 lock 채택 발화 시점에 활성. 채택 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
 - [x] (R-1) `5639669` baseline 위반 박제 — grep-baseline (A)(B) 실측 PASS.
 - [x] (R-3) `9b95b73` baseline 일치 박제 — grep-baseline (C)(D) 실측 PASS.
 
@@ -86,7 +85,6 @@
 - [x] (Must, FR-02) 각 commit 의 메시지 prefix 는 변경 path 의 writer 영역과 일치해야 한다 — §동작 (C1) + (C3) + (R-1)(R-3) baseline 박제.
 - [x] (Must, FR-03) FR-01/FR-02 위반 commit 을 결정론적으로 검출하는 시스템 표면 (예: `scripts/check-commit-writer-coherence.sh` 또는 post-commit hook) 존재 — `scripts/check-commit-writer-coherence.sh` 부착 (TSK-20260518-24 / `15ccee0`). 발화 형식 `commit <hash>: msg-scope=<X>, paths=[<p1>,...] (<Y>)` rc=1 + 일치 시 stdout `... commits=K violations=0 PASS` rc=0 실측.
 - [x] (Should, FR-04) 검증 표면은 HEAD 1 commit 단독 또는 commit range (`<base>..HEAD`) 모두에 적용 가능 — §동작 (C4) 평서문.
-- (Could, FR-05) **[deferred: future-event-dependent — lock 메커니즘 채택 미발화]** 동시 commit 진입 차단 lock 표면 채택 시 stale lock cleanup 의미 박제 — 도입 결정 시 별 spec 또는 본 spec §동작 확장. 본 axis 는 §역할 §의도적으로 하지 않는 것 (i) (lock 메커니즘 수단 중립 — 운영자/별 req 영역) 정합 — 채택 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
 - [x] (Must, NFR-01) 결정론 — 동일 commit `<hash>` 입력 → 항상 동일 rc / 동일 stderr 박제. 시간·환경 비의존.
 - [x] (Must, NFR-02) 추적성 — 위반 commit 의 stderr 출력 형식 `commit <hash>: msg-scope=<X>, paths=[<p1>,<p2>,...] (<Y>)` 박제. §동작 (R-1) baseline.
 - [x] (Must, NFR-03) 자기검증 — 검증 표면 자체의 commit (`scripts/check-commit-writer-coherence.sh` + `package.json` developer 영역 + `feat:` 메시지) 평가 시 false-positive 발생 0. §동작 (C5) + (R-4) baseline.
@@ -103,6 +101,14 @@
 | 2026-05-18 | inspector 105차 (Phase 1, TSK-20260518-24) / `15ccee0` | §테스트 현황 (FR-03) line 78 marker + §수용 기준 (Must, FR-03) line 87 marker 2건 `[ ]→[x]` flip. 발화 채널 부착 — `scripts/check-commit-writer-coherence.sh` (235 line, exec 0755) + `package.json:34` `"check:commit-writer-coherence"` npm wrapper. 직접 실측 PASS: `bash scripts/check-commit-writer-coherence.sh` rc=0 (HEAD 단독 commits=1 violations=0 PASS) + `... 15ccee0^..15ccee0` rc=0 (R-4 자기참조 PASS) + `... 9b95b73^..9b95b73` rc=0 (R-3 일치) + `... 5639669^..5639669` rc=1 + stderr `commit 5639669: msg-scope=planner, paths=[package.json,scripts/check-eslint-ignores-vacuous-zero.sh,specs/60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/TSK-20260518-21-eslint-ignores-vacuous-zero-check-script.md,specs/60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/result.md] (developer)` (R-1 mismatch 박제 형식 정합). hook-ack — `npm test` 57 files / 500 tests PASS (회귀 0) + `npm run lint` rc=0 / warning 0 + `npm run typecheck` rc=0 + `npm run build` rc=0. HEAD 조상 정합 (`git merge-base --is-ancestor 15ccee0 HEAD` PASS). RULE-07 정합 — 수단 중립 평서문 (§역할 "발화 채널 선정 — 수단 영역") 보존, dedicated script 채택은 §수용 기준 marker 박제 영역 한정. spec 본문·`.husky/`·`.git/`·`lint-staged` 설정·`scripts/check-commit-writer-coherence.sh` 본문 변경 0 동반 정합 (script 는 외부 commit `15ccee0` 박제). 보류 marker 잔존 (별 task scope): (FR-05) lock 메커니즘 stale cleanup 의미 박제 — Could, 도입 결정 시 별 spec 또는 본 spec §동작 확장 대기. | §테스트 현황 + §수용 기준 + §헤더 |
 
 ## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (FR-05) **[deferred: future-event-dependent — lock 메커니즘 채택 미발화]** `.claude/locks/commit.busy` 또는 `flock /tmp/repo-commit.lock` 류 lock 메커니즘 채택 시 stale lock cleanup 의미 박제 — Could, 도입 결정 시 별 spec 또는 본 spec §동작 확장. 현 baseline 측정 target (lock 메커니즘 자체) 부재 — 본 axis 는 lock 채택 발화 시점에 활성. 채택 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
+- (Could, FR-05) **[deferred: future-event-dependent — lock 메커니즘 채택 미발화]** 동시 commit 진입 차단 lock 표면 채택 시 stale lock cleanup 의미 박제 — 도입 결정 시 별 spec 또는 본 spec §동작 확장. 본 axis 는 §역할 §의도적으로 하지 않는 것 (i) (lock 메커니즘 수단 중립 — 운영자/별 req 영역) 정합 — 채택 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
+
 - **REQ 원문**: `specs/60.done/2026/05/18/req/20260518-multi-agent-commit-serialization-invariant.md` (REQ-20260518-028, 본 104차 inspector tick mv).
 - baseline fixtures (HEAD=`1fe05f4`):
   - mismatch: `5639669ae7ff9866700e9c64540a981f3cc44a71` — 메시지 `spec(planner): 161차 tick HEAD=27e8c2e ...` + 변경 path = `package.json` (+1) / `scripts/check-eslint-ignores-vacuous-zero.sh` (+71 신규) / `specs/60.done/2026/05/18/task/eslint-ignores-vacuous-zero-check-script/TSK-20260518-21-eslint-ignores-vacuous-zero-check-script.md` (+75) / `specs/60.done/.../result.md` (+44). (C1) planner ≠ (C2) developer.

@@ -15,7 +15,6 @@
 #   src/**                                          → {developer}
 #   10.followups/**                                 → {developer, discovery}      (developer create / discovery mv)
 #   20.req/**                                       → {discovery, inspector}      (discovery create / inspector mv)
-#   30.spec/green/.planner-seen                     → {planner}
 #   30.spec/green/**                                → {inspector, planner}        (inspector create/edit / planner mv → blue)
 #   30.spec/blue/**                                 → {planner}
 #   40.task/**                                      → {planner, developer}        (planner create / developer mv)
@@ -100,8 +99,6 @@ path_to_labels() {
     src/*)                                           printf 'developer';;
     10.followups/*|specs/10.followups/*)             printf 'developer discovery';;
     20.req/*|specs/20.req/*)                         printf 'discovery inspector';;
-    30.spec/green/.planner-seen|specs/30.spec/green/.planner-seen)
-                                                     printf 'planner';;
     30.spec/blue/*|specs/30.spec/blue/*)             printf 'planner';;
     30.spec/green/*|specs/30.spec/green/*)           printf 'inspector planner';;
     40.task/*|specs/40.task/*)                       printf 'planner developer';;

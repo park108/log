@@ -84,13 +84,19 @@
 
 ## 참고
 
-### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
 
 - **[deferred: 외부 이벤트 의존 — spec 박제/삭제/이동/rename/green→blue promote 후 1 PR 회복 누적 사례 ≥2건 미축적, 별 tick reconcile 누적]** (G-E) 시점 비의존 — spec 박제/삭제/이동/rename/green→blue promote 후 1 PR 안에 G-A·G-B·G-C 동시 0 hit / 0 MISSING / 0 STALE 유지 사례 누적.
 - **[deferred: 발화 시점 채널 별 carve — spec 본문 박제 "root 파일 변경 시점 pre-commit staged diff 매칭 또는 promote 시점 planner mv 직후" 발화 채널은 npm test 자동 발화 (TSK-20260518-13 fixture) 와 의미 일부 중첩하나 staged diff 매칭 미충족, 별 carve 영역]** (Should FR-05) 본 게이트는 root 파일 변경 시점 또는 promote 시점 발화 채널을 가진다 — 채널 선정 수단 영역, "발화 채널 존재" 계약 박제.
 - **[deferred: 결정론 N 회 반복 측정 미박제 — TSK-20260518-13 result.md "수동 미실시 — 동일 HEAD 상 N 회 실행 동일 출력 수동 검증 불가 (시간 한정). fixture 가 read-only + fs.existsSync 결정론 측정이므로 NFR-01 정합 가설" 박제, 별 carve 또는 본 inspector tick 별 누적 측정]** (Must NFR-01 결정론) 동일 HEAD 상에서 본 게이트 N 회 실행 시 N 회 동일 rc + 동일 stderr 라인 수 (race condition / 순서 의존 부재).
 - **[deferred: 성능 측정 단독 분리 미박제 — TSK-20260518-13 fixture Duration 단독 분리 측정 미명시 (npm test 전체 57 file / 500 test 범주), 별 carve 또는 측정 별 axis]** (Should NFR-03 성능) 단일 명령 실행 시간 < 2 s (CI 단계 부착 시 측정 — root 파일군은 < 20 files 규모).
 - **[deferred: 외부 이벤트 의존 — spec 박제/삭제/이동/rename/green→blue promote 후 1 PR 회복 누적 사례 ≥2건 미축적, 별 tick reconcile 누적 trace]** (Must, 시점 비의존 누적) G-E — 이벤트 후 G-A·G-B·G-C 동시 0 hit / 0 MISSING / 0 STALE 유지 사례 누적 ≥ 2건.
+
+
+### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
 
 ### 후속 신호
 

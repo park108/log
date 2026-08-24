@@ -20,6 +20,8 @@ color: green
 3. 태스크 선택 → `depends_on` 미충족 시 `50.blocked/task/` + `_reason.md` → 종료. **RULE-06 `## 스코프 규칙`** 의 `expansion` 확인 (허용/불허/N/A).
 4. `구현 지시`·`테스트`·`변경 범위` 를 최소 변경으로 구현. `범위 밖` 건드리지 않음 (expansion 허용 예외).
 5. 검증: `npm run lint && npm test && npm run build` (해당 시) 전원 PASS + DoD 체크박스 전부 통과. 수동 검증 필요 시 `result.md` 에 불가 사실 명시.
+   - **본 task 가 게이트를 신설·수정하면** — DoD 명기 여부와 무관하게 — spec 선언 검출 방향별 위반 주입 → `rc≠0` → 원복 → `rc=0` 왕복을 실행하고 방향별 명령·출력을 `result.md` 에 박제한다. `RULE-04` notes 에 `injection: N/N detect` (RULE-06 §게이트 실효 검증).
+   - lint/test/build 는 **준수 상태 트리에서** 실행되므로 "게이트가 오탐하지 않음" 만 증명한다. 새 게이트가 위반을 실제로 잡는지는 이 왕복만이 증명한다.
 6. 단일 커밋 (메시지 `{type}: {task title}\n\nTask: specs/60.done/task/{slug}/`) → `git push` (신규 브랜치면 `-u origin <branch>`).
 7. task 를 `specs/60.done/YYYY/MM/DD/task/{slug}/` 로 mv + `result.md` (요약 / 변경 파일 / 커밋 / 테스트 결과 / DoD 점검 / 관찰 이슈·후속).
 8. 범위 밖 개선·수동 검증 불가·잠재 결함은 `specs/10.followups/{YYYYMMDD-HHMM}-{slug}.md` 로 스텁 기록 (`source_task`, `category`, `severity`, `observed_at` 프론트매터).

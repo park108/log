@@ -54,7 +54,6 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
 - [x] (I6) 시점 비의존성: 본 spec 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 어디서도 구체 `warn` level rule 이름 (`no-unused-vars` / `@typescript-eslint/no-unused-vars`) 박제 0 — `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/foundation/lint-warning-zero-gate.md | grep -cE "no-unused-vars|@typescript-eslint/no-unused-vars"` → 0 hit (§스코프 규칙 (G7) 박제). HEAD=`3910ba8` 박제 시점 PASS.
 - [x] (I7) 수단 중립: §역할 + §동작 7 에 수단 후보 4 카테고리 박제, 라벨 0. `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/lint-warning-zero-gate.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 (G8) 박제). HEAD=`3910ba8` 박제 시점 PASS.
 - [x] (I8) 직교 정합: §역할 + §동작 8 에 7개 관련 spec 과의 직교/보완 평서 박제. 본 spec 박제 자체로 정합 박제.
-- (I9) **[deferred: future-event-dependent — `reportUnusedDisableDirectives` 'off' → 'warn' 전환 미발화]** 부수 보호 표면: 미래 `reportUnusedDisableDirectives: 'off' → 'warn'` 전환 시점에 dead disable 차단 효능 surface — 차기 이벤트 발생 후 marker `[ ]` 부착 + checklist 영역 복귀. 현 baseline (G6) `:21` `'off'` 잔존 — 측정 target (dead disable directive 차단) 부재.
 
 ## 수용 기준
 - [x] (Must, FR-01) `eslint.config.js` 가 1+ `warn` level rule 을 정의하는 동안 자동 게이트 채널 (lint script / CI Lint step / pre-commit lint-staged / 동등 효능 채널) 중 **최소 1+** 가 warning 1+ → rc ≠ 0 효능 활성. TSK-20260517-17 / `78f87a0` 회수 — `package.json:23` `--max-warnings=0` 옵션 주입 (수단 (a) 채택, 본 spec §동작 7 수단 라벨 0 정합) → lint script + CI Lint step (`ci.yml:31` `npm run lint`) 2 채널 자동 활성. HEAD=`49f3f93` 재실측 PASS.
@@ -62,7 +61,6 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
 - [x] (Must, FR-03) zero-point baseline — HEAD=`3910ba8` 실측 `npx eslint ./src --max-warnings=0` rc=0 + error=0 + warning=0 박제 (§스코프 규칙 (G1)).
 - [x] (Must, FR-04) 시점 비의존 — 본 spec 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 어디서도 구체 `warn` level rule 이름 박제 0. `awk` + `grep` 0 hit (§스코프 규칙 (G7)).
 - [x] (Should, FR-05) 직교 정합 — 본 효능 게이트는 7개 관련 spec 과 직교/보완 관계 (§동작 8 평서). TSK-20260517-17 / `78f87a0` result.md G8 자매 check 4종 전수 rc=0 박제 (`npm run lint:spec-coherence` G1 0 hit / G2 0 MISSING + `npm run check:deps` extraneous=0 declared=29 installed=29 + `npm run check:vite-env` G1 0 cast / G2 10 used ⊆ 10 declared + `npm run check:node-coherence` 3-axis aligned at major 24). 본 효능 활성과 자매 게이트 동시 충족 cross-gate 정합 hook-ack PASS.
-- (Could, FR-06) **[deferred: future-event-dependent — `reportUnusedDisableDirectives` 'off' → 'warn' 전환 미발화]** `reportUnusedDisableDirectives` 부수 보호 — 미래 `'off' → 'warn'` 전환 시점에 dead disable 차단 효능 surface. 차기 이벤트 발생 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착. 본 axis 는 §스코프 규칙 (G6) 의 `'off'` baseline 잔존 시점 미활성 — 전환 결정은 별 req 영역.
 - [x] (Must, FR-07) 수단 라벨 0 — 본 spec 본문에 `기본값|권장|우선|default|best practice` 0 hit. `awk` + `grep` 0 hit (§스코프 규칙 (G8)).
 - [x] (NFR-01) 시점 비의존 — FR-04 동치. 본문 박제 0 + 감사성 메타 1회 부속 (§변경 이력) 정합.
 - [x] (NFR-02) 게이트 단일성 — §공개 인터페이스 (A) `npx eslint ./src --max-warnings=0` 단일 명령 rc 박제. 복수 게이트 AND 필수 분기 명시 부재 (단일 명령 충분).
@@ -91,6 +89,14 @@ ESLint `warn` level rule 위반이 master branch 진입을 차단하지 못하�
 | 2026-05-19 | inspector 120차 tick (사용자 trigger surface — 분기 B 재배치) / HEAD=`b7d52ba` baseline | §테스트 현황 (I9) line 57 + §수용 기준 (Could FR-06) line 65 marker 2건 future-event-dependent 분기 B 재배치 — checklist `- [ ]` 마커 제거 + `**[deferred: future-event-dependent — <사유>]**` 박제. 본 spec 의 (I9) + (FR-06) "미래 `reportUnusedDisableDirectives: 'off'→'warn'` 전환 시점" 은 미래 사건 의존 — 현 baseline (G6) `'off'` 잔존, 측정 target (dead disable 차단) 부재. 본 재배치는 RULE-07 정합 보존: (a) spec 본문 "시스템 불변식 평서" 유지 (axis 본문 보존), (b) checklist 영역 외 이동으로 RULE-01 §승격 4조건 `unchecked == 0` 통과 surface, (c) "삭제" 아닌 "축 보존 + 측정 target 미존재 명시" — 미래 전환 발화 시 checklist 마커 복귀 구조. (I1)~(I8) + FR-01~FR-05 + FR-07 + NFR-01~05 직전 ack 유지. 본 spec unchecked 0 도래 — planner 차기 tick promote 후보 진입 (green→blue). 변경 표면 본 spec 1 file (§테스트 현황 1줄 + §수용 기준 1줄 + 헤더 + 본 이력) + `src/**` / 외부 file 변경 0 (NFR-05 정합). | 헤더 · §테스트 현황 (I9) · §수용 기준 (FR-06) · 본 이력 |
 
 ## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (I9) **[deferred: future-event-dependent — `reportUnusedDisableDirectives` 'off' → 'warn' 전환 미발화]** 부수 보호 표면: 미래 `reportUnusedDisableDirectives: 'off' → 'warn'` 전환 시점에 dead disable 차단 효능 surface — 차기 이벤트 발생 후 marker `[ ]` 부착 + checklist 영역 복귀. 현 baseline (G6) `:21` `'off'` 잔존 — 측정 target (dead disable directive 차단) 부재.
+- (Could, FR-06) **[deferred: future-event-dependent — `reportUnusedDisableDirectives` 'off' → 'warn' 전환 미발화]** `reportUnusedDisableDirectives` 부수 보호 — 미래 `'off' → 'warn'` 전환 시점에 dead disable 차단 효능 surface. 차기 이벤트 발생 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착. 본 axis 는 §스코프 규칙 (G6) 의 `'off'` baseline 잔존 시점 미활성 — 전환 결정은 별 req 영역.
+
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-eslint-warning-zero-master-gate.md` (REQ-080 — 본 세션 mv).
 - **선행 자매 spec (자동 게이트 메타 패턴 공유)**:
   - `specs/30.spec/blue/foundation/src-spec-reference-coherence.md` (REQ-20260517-071) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` 자동 게이트 패턴. 본 spec 의 game plan 참조.

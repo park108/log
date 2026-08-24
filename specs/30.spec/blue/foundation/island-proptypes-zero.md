@@ -49,8 +49,6 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
 
 ## 테스트 현황
 - [x] (I1) island 정의 세 번째 축 효능 — selector 정밀 grep (M-B) 5 island 디렉터리 0 hit + 6 island (Search 포함) 0 hit 회복 PASS (HEAD=`b76dc02` 시점 실측 — TSK-20260517-21 회수 `efe55e8`, hook-ack: 본 task result.md "exit=0" + "회귀 0" 13 hit + HEAD ancestor PASS).
-- (I2) **[deferred: future-event-dependent — 신규 island 확정 미발화]** 자동 확장 효능 — island 정의 정합 패턴 박제. 본 spec 박제 자체로 정합 — marker 플립 axis 는 신규 island 확정 (예: `src/Log/` 또는 `src/Monitor/` 수렴) 시점에 본 게이트 자동 적용 검증 후 활성. 현 박제 시점 6 island 디렉터리 적용 baseline (§스코프 규칙 G2) 박제 + 차기 island 도래 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
-- (I3) **[deferred: future-event-dependent — 비-island → island 진입 미발화]** 비-island false-positive 부재 — 본 spec 박제 자체로 평서 정합. marker 플립 axis 는 신규 island 확정 (비-island → island) 진입 시점에 본 게이트 fail 신호 발생 + 직전 비-island 시점 fail 신호 부재 검증 후 활성. 현 baseline 측정 target (island 진입 이벤트) 부재. 진입 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
 - [x] (I4) 단일 출처 (TS Props 계약) — (I1) 효능 회복 동반 PASS. TSK-21 회수 `efe55e8` 11 selector 박제 파일에서 `import PropTypes` + `.propTypes={...}` block 제거 → island 6 디렉터리 Component Props 단일 출처 (TS interface/type) 정합. typecheck exit=0 + lint warning 0 + 440/440 test pass 정적 박제 hook-ack.
 - [x] (I5) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/island-proptypes-zero.md | grep -vE '`[^`]*default[^`]*`' | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 G3 박제).
 - [x] (I6) 자기 진단 주석 처리 분기 — §동작 6 박제 + §스코프 규칙 G1 광역 baseline 박제 (M-A 48 hit) + G2 selector 정밀 baseline 박제 (M-B 57 hit, 광역 -2 자기 진단 주석 = 46 selector 박제 외 별도 +11 import 등 — §스코프 규칙 G2 분포 박제 한정). 본 spec 박제 자체로 평서 정합.
@@ -91,6 +89,14 @@ TypeScript island 자격 (REQ-20260517-059 FR-01 정의 — `.jsx`/`.js` 0 hit +
 | 2026-05-19 | inspector 120차 tick (사용자 trigger surface — 분기 B 재배치) / HEAD=`b7d52ba` baseline | §테스트 현황 (I2) line 52 + (I3) line 53 marker 2건 future-event-dependent 분기 B 재배치 — checklist `- [ ]` 마커 제거 + `**[deferred: future-event-dependent — <사유>]**` 박제. 본 spec 의 (I2) "신규 island 확정 시점 자동 적용" + (I3) "비-island → island 진입 시점 false-positive 부재" 는 미래 사건 의존 — 현 baseline 측정 target (island 진입 이벤트) 부재. 본 재배치는 RULE-07 정합 보존: (a) spec 본문 "시스템 불변식 평서" 유지 (axis 본문 보존), (b) checklist 영역 외 이동으로 RULE-01 §승격 4조건 `unchecked == 0` 통과 surface, (c) "삭제" 아닌 "축 보존 + 측정 target 미존재 명시" — 미래 사건 발화 시 checklist 마커 복귀 구조. (I1) + (I4)~(I9) + FR-01~FR-07 + NFR-01~07 직전 ack 유지. 본 spec unchecked 0 도래 — planner 차기 tick promote 후보 진입 (green→blue). 변경 표면 본 spec 1 file (§테스트 현황 2줄 + 헤더 + 본 이력) + `src/**` / 외부 file 변경 0 (NFR-05 정합). | §테스트 현황 (I2)(I3) · 헤더 · 본 이력 |
 
 ## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (I2) **[deferred: future-event-dependent — 신규 island 확정 미발화]** 자동 확장 효능 — island 정의 정합 패턴 박제. 본 spec 박제 자체로 정합 — marker 플립 axis 는 신규 island 확정 (예: `src/Log/` 또는 `src/Monitor/` 수렴) 시점에 본 게이트 자동 적용 검증 후 활성. 현 박제 시점 6 island 디렉터리 적용 baseline (§스코프 규칙 G2) 박제 + 차기 island 도래 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
+- (I3) **[deferred: future-event-dependent — 비-island → island 진입 미발화]** 비-island false-positive 부재 — 본 spec 박제 자체로 평서 정합. marker 플립 axis 는 신규 island 확정 (비-island → island) 진입 시점에 본 게이트 fail 신호 발생 + 직전 비-island 시점 fail 신호 부재 검증 후 활성. 현 baseline 측정 target (island 진입 이벤트) 부재. 진입 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
+
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-island-proptypes-spec-absorption.md` (REQ-088 — 본 세션 mv).
 - **선행 done req (audit pointer — REQ-062 spec 박제 미흡수 회수 트리거)**:
   - `specs/60.done/2026/05/17/req/20260517-island-prop-types-removal.md` (REQ-20260517-062) — island 정의 3 축 (확장자 + typecheck error 0 + **PropTypes 0**) 박제 요청. spec 박제 미흡수 + 현장 효능 미수렴 → 본 spec 이 후속 박제 (REQ-088 흡수). REQ-062 §수용 기준 5건 marker [ ] 미플립 — done 이동 시점 spec 박제 동반 의무 강제 아님 (RULE 차원 메타 인식).

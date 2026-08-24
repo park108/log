@@ -69,7 +69,6 @@
 - [x] (Must / FR-01) Given HEAD `f070428` baseline, When `grep -cE "^\s*sourcemap:\s*false," vite.config.js` 실행, Then 출력 = **1** + rc=0 (정책 토큰 박제). 0 또는 2+ 는 정책 회귀 surface + 본 spec §변경 이력 갱신.
 - [x] (Must / FR-02) Given production build (`npm run build`) 산출, When `find build -name "*.map" | wc -l` 실행, Then 출력 = **0** (`.map` 확장 파일 잔존 0 효능 zero-point). 1+ 시 회귀 surface.
 - [x] (Must / FR-03) Given 동일 build 산출, When `grep -rcE "sourceMappingURL" build/assets/` 실행, Then 모든 파일 0 hit (`*.js` 44 file + `*.css` 11 file 전수 0). 1+ 파일에서 1+ hit 시 회귀 surface (인라인 base64 또는 외부 `.map` 참조).
-- [x] (Must / FR-04) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (a)(b)(c)(d) 회귀 시 fail-fast 한다. 측정: `grep -rnE "sourcemap|\.map\b|sourceMappingURL" .github/workflows/ .husky/ scripts/` (또는 spec 박제 토큰 / 진단 script basename) → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **주입 검증**: `sourcemap: false` → `true` 주입 시 1 failed / 8 passed 검출.
 - [x] (Must / FR-05) `vite.config.js:49` `build.outDir` 토큰 변경 commit (예: `build` → `dist`) 시, 본 spec `## 스코프 규칙` baseline 의 measurement path 인용 단일 위치 갱신 (`build/` → `dist/`, `build/assets/` → `dist/assets/`) 의무. 본문 다른 위치의 산출 경로 박제 0 (자기 검증). REQ-20260518-006 FR-07 자매.
 - [x] (Must / FR-07) 본 효능 게이트는 정책 + 효능 **양면 동시** 박제 — FR-01 정책 grep + FR-02·FR-03 산출물 측정 양면 게이트 필수. 한쪽만으로는 회귀 surface 누락 (FR-01 만 → CLI flag override 미검출, FR-02·FR-03 만 → build 미실행 시 정책 회귀 미검출). (I5) 평서 박제.
 - [x] (회귀 가설 (a)) Given `vite.config.js:50` 을 `sourcemap: true` 로 변경 fixture staged, When `npm run build && find build -name "*.map" | wc -l`, Then 출력 > 0 (FR-02 회귀 surface — `.map` 파일 산출).
@@ -85,7 +84,14 @@
 
 ## 참고
 
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (Must / FR-04) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (a)(b)(c)(d) 회귀 시 fail-fast 한다. 측정: `grep -rnE "sourcemap|\.map\b|sourceMappingURL" .github/workflows/ .husky/ scripts/` (또는 spec 박제 토큰 / 진단 script basename) → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **주입 검증**: `sourcemap: false` → `true` 주입 시 1 failed / 8 passed 검출.
+- (Should / FR-06) sourcemap 정책 회귀 fixture 재현성 — 임시 fixture (`vite.config.js` `sourcemap: true` 도입 / `sourcemap: 'inline'` 도입 / `sourcemap` 라인 삭제) 도입 시 본 효능 게이트 측정 1+ hit (또는 정책 grep count = 0) / fixture 제거 시 baseline 복원. 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**
+
+
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 
 - FR-06 fixture 발화 채널 — sourcemap 정책 회귀 fixture (`sourcemap: true` 도입 commit / `sourcemap: 'inline'` 도입 commit / 라인 삭제 commit) 본문 미발화 (별 task / 별 spec 위임 영역).
-- (Should / FR-06) sourcemap 정책 회귀 fixture 재현성 — 임시 fixture (`vite.config.js` `sourcemap: true` 도입 / `sourcemap: 'inline'` 도입 / `sourcemap` 라인 삭제) 도입 시 본 효능 게이트 측정 1+ hit (또는 정책 grep count = 0) / fixture 제거 시 baseline 복원. 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**

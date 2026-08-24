@@ -88,7 +88,6 @@
 - [x] (Must / FR-04) Given HEAD `0887a06` baseline, When `find src -type f \( -name "*mock.js" -o -name "*mock.jsx" -o -name "*mock.ts" -o -name "*mock.tsx" \) | wc -l` 실행, Then 출력 ≥ **1** (P-3 vacuous-zero PASS — baseline 6 hit). 출력 = 0 시 P-3 vacuous 회귀.
 - [x] (Must / FR-05) Given HEAD `0887a06` baseline, When `find src -type f \( -name "*.test.js" -o -name "*.test.jsx" -o -name "*.test.ts" -o -name "*.test.tsx" \) | wc -l` 실행, Then 출력 ≥ **1** (P-4 vacuous-zero PASS — req 원본 baseline 51, 본 spec 진입 시점 56; ≥ 1 계약 유지, 정확 cardinality 시점 의존, REQ-066 test discovery population coherence 와 결합 검출).
 - [x] (Must / FR-06) Given HEAD `0887a06` baseline, When `find src -type f -name "*.d.ts" | wc -l` 실행, Then 출력 ≥ **1** (P-5 vacuous-zero PASS — baseline 2 hit). 출력 = 0 시 P-5 vacuous 회귀.
-- [x] (Should / FR-07) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (R-1)~(R-5) 회귀 시 fail-fast 한다. 측정: `grep -rnE "coverage-exclude|vacuous-zero" .github/workflows/ .husky/ scripts/` 또는 본 spec 박제 토큰 / 진단 script basename → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **주입 검증**: 패턴 1개를 매치 0 인 값으로 바꾸면 1 failed / 8 passed 검출.
 - [x] (회귀 가설 (R-1)) Given `src/index.jsx` 를 `src/main.jsx` 로 rename fixture staged, When 본 게이트 실행, Then FR-02 출력 = **0** (P-1 vacuous 검출, rc=1).
 - [x] (회귀 가설 (R-2)) Given `src/reportWebVitals.js` 삭제 fixture staged, When 본 게이트 실행, Then FR-03 출력 = **0** (P-2 vacuous 검출, rc=1).
 - [x] (회귀 가설 (R-3)) Given 6 `*mock.*` 파일 전수 삭제 fixture staged, When 본 게이트 실행, Then FR-04 출력 = **0** (P-3 vacuous 검출, rc=1).
@@ -106,6 +105,13 @@
 | 2026-08-24 | (수동 — 운영자) / 본 변경 | C단계 마커 회수 — RULE-07 §수용 기준 문장 규약 적용. 판정 가능한 항목은 실측·주입 근거와 함께 flip, 미래 사건·미측정 NFR·자명 명제·별 축 위임 항목은 §참고 §미측정·비판정 항목 으로 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
 
 ## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (Should / FR-07) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 (R-1)~(R-5) 회귀 시 fail-fast 한다. 측정: `grep -rnE "coverage-exclude|vacuous-zero" .github/workflows/ .husky/ scripts/` 또는 본 spec 박제 토큰 / 진단 script basename → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **주입 검증**: 패턴 1개를 매치 0 인 값으로 바꾸면 1 failed / 8 passed 검출.
+
 
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 

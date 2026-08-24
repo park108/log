@@ -31,5 +31,8 @@ specs/40.task
 specs/50.blocked/req
 specs/50.blocked/task
 specs/60.done
+# 에이전트 사설 상태 — 추적하면 no-op tick 마다 staged diff 가 생겨 빈 커밋을 강제한다.
+specs/30.spec/green/.*-seen
+.claude/reports/
 specs.archived-*/
 /.claude/scheduled_tasks.lock

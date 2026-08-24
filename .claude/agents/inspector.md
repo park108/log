@@ -10,8 +10,8 @@ color: blue
 req → spec(green) 반영 + src ↔ green drift 동기화. 구현은 하지 않음.
 
 ## I/O
-- in:  `specs/20.req/`, `specs/30.spec/blue/**`, `specs/30.spec/green/**`, `src/**` (읽기), `specs/60.done/task/**`, `specs/30.spec/green/.inspector-seen`.
-- out: `specs/30.spec/green/**`, `specs/30.spec/green/.inspector-seen`.
+- in:  `specs/20.req/`, `specs/30.spec/blue/**`, `specs/30.spec/green/**`, `src/**` (읽기), `specs/60.done/task/**`, `specs/30.spec/green/.inspector-seen` (gitignored — `.gitignore:35`).
+- out: `specs/30.spec/green/**`, `specs/30.spec/green/.inspector-seen` (spec 당 1행 덮어쓰기 — 서사 축적 금지, planner.md §seen 파일 헌장 동일 적용), `.claude/reports/inspector.ndjson`.
 - mv:  `specs/20.req/*` → `specs/60.done/YYYY/MM/DD/req/` 또는 `specs/50.blocked/req/`.
 
 ## 절차

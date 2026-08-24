@@ -68,7 +68,6 @@
 ## 수용 기준
 - [x] (Must / FR-01) Given dev-only 진입점 catalog (현 baseline `ReactQueryDevtools`), When `grep -nE "ReactQueryDevtools" src/App.jsx` 실행, Then **2+ hits** (static import + runtime 가드 분기 짝맞춤 정합). 1 hit 또는 0 hit 은 catalog 무효 신호 + 본 spec §변경 이력 갱신.
 - [x] (Must / FR-02) Given production build (`npm run build`) 산출, When `grep -rln "ReactQueryDevtools" build/assets/` 실행, Then **0 hit + rc≠0** (grep no-match 표준) — DCE PASS 효능 zero-point. 1+ hit 시 회귀 surface.
-- [x] (Must / FR-03) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 DCE 의존 회귀 시 build artifact 측정으로 fail-fast 한다. 측정: `grep -rnE "ReactQueryDevtools|prod-bundle-dev-only-residue" .github/workflows/ .husky/ scripts/ package.json` → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **회수**: 위와 동일. catalog 식별자가 `src/**` 에 실제 발화하는지도 함께 단언해 vacuous PASS 를 막는다.
 - [x] (Must / FR-04) 본 spec `## 스코프 규칙` baseline + `## 변경 이력` 외 본문 영역 (`## 역할` / `## 동작` / `## 의존성` / `## 수용 기준` 본문 + `## 동작 (결과 효능 게이트)` (I1)~(I5) 평서 본문) 에 catalog 식별자 라벨 박제 0. 측정: `grep -cE "ReactQueryDevtools|@tanstack/react-query-devtools" specs/30.spec/blue/foundation/prod-bundle-dev-only-code-residue-zero.md` 의 §스코프 규칙 + §변경 이력 + §테스트 현황 + §수용 기준 (baseline + FR-01·02·03 게이트 인용) 제외 영역 = 0 hit (NFR-02 시점 비의존 자기 검증).
 - [x] (Must / FR-05) 본 효능 게이트는 build artifact 측정 채널 한정 — `src/**` 정적 grep 채널 (runtime 가드 분기 자체 측정) 은 본 spec 영역 밖 (`components/app.md` (Should) + `common/env.md` (I1) 박제 영역). 별 axis 직교 명시.
 - [x] (Must / FR-07) `vite.config.js:47` `build.outDir` 토큰 변경 commit (예: `build` → `dist`) 시, 본 spec `## 스코프 규칙` baseline 의 grep 경로 인용 단일 위치 갱신 (`build/assets/` → `dist/assets/`) 의무. 본문 다른 위치의 산출 경로 박제 0 (FR-04 와 동일 자기 검증).
@@ -84,7 +83,14 @@
 
 ## 참고
 
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (Must / FR-03) 본 효능 게이트는 자동 채널 (`.github/workflows/*.yml` CI step / `.husky/*` git hook / `package.json check:*` script / 동등 효능 채널) 중 **최소 1+** 에 부착되어 DCE 의존 회귀 시 build artifact 측정으로 fail-fast 한다. 측정: `grep -rnE "ReactQueryDevtools|prod-bundle-dev-only-residue" .github/workflows/ .husky/ scripts/ package.json` → 1+ hit. **[deferred: future-event-dependent — 발화 채널 도입 PR 미발생; 현 baseline 0 hit, 수단 선정 위임.]**. — **회수**: 위와 동일. catalog 식별자가 `src/**` 에 실제 발화하는지도 함께 단언해 vacuous PASS 를 막는다.
+- (Should / FR-06) DCE 의존 회귀 fixture 재현성 — 임시 fixture (catalog 식별자의 side-effect import 도입 / `build.minify: false` 도입) 도입 시 본 효능 게이트 rc ≠ 0 (또는 1+ hit) / fixture 제거 시 rc = 0 (또는 0 hit). 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**
+
+
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 
 - FR-06 fixture 발화 채널 — DCE 의존 회귀 fixture (side-effect import 도입 commit / `build.minify: false` 도입 commit) 본문 미발화 (별 task / 별 spec 위임 영역).
-- (Should / FR-06) DCE 의존 회귀 fixture 재현성 — 임시 fixture (catalog 식별자의 side-effect import 도입 / `build.minify: false` 도입) 도입 시 본 효능 게이트 rc ≠ 0 (또는 1+ hit) / fixture 제거 시 rc = 0 (또는 0 hit). 본 fixture 본문은 본 spec 영역 밖 (별 task / 별 spec 위임). **[deferred: future-event-dependent — fixture 본문 박제 PR 미발생; 별 spec / 별 task 영역.]**

@@ -13,11 +13,13 @@
 - 다른 에이전트 큐 파일 내용 수정.
 - `rm -rf`, `git reset --hard`, `git clean -f`, `git checkout -- .`, `git push --force*`, `git config`, `--no-verify`, `git commit --amend`.
 - 삭제 필요 시 `mv` 로 대체.
+- **예외**: `RULE-03 §정체 감지` 가 정한 lock 자가 생성(`.claude/locks/**`)·`50.blocked/pipeline/` 쓰기·`.claude/reports/<agent>.ndjson` append 는 자기 writer 영역으로 간주한다. **lock 삭제는 운영자 전용.**
 
 ## 커밋 / 푸시
 - 세션 시작: 자기 영역 밖 staged 항목은 `git reset HEAD -- <path>` 로 언스테이지.
 - 세션 종료 직전: 자기 영역 내 변경만 단일 커밋. `git add` 는 파일 명시. 스테이지 비면 생략.
 - 민감 파일 (.env, *.pem, 자격증명) 금지.
+- **subject ≤ 72자.** tick 카운터·체인 수치·소인수분해 서사 금지 — 상세는 body 로. (`.husky/commit-msg` 강제)
 - 메시지: `{scope}({agent}): {요약}` — `{scope}` ∈ {spec, req, task, followup}. developer task 커밋은 `{type}: {task title}` — `{type}` ∈ {feat, fix, refactor, chore, test, docs}.
 - **push 는 developer 전용**. 그 외는 로컬 커밋까지.
 - 훅 실패는 원인 수정·재시도. 우회 금지.

@@ -60,13 +60,11 @@ test 환경 (`src/**/*.test.{js,jsx,ts,tsx}` 파일) 의 `@tanstack/react-query`
 - [x] (Must) **FR-05** — 현 baseline 위반 4 violator 박제 (회수는 task 영역). baseline: `src/Search/Search.test.tsx:30` + `src/Log/LogSingle.test.jsx:31` + `src/Log/Writer.test.jsx:22` + `src/Log/LogItem.test.jsx:31`. — **측정**: baseline 4 violator 는 `9dde28d` 에서 회수 완료. 현재 `new QueryClient(` 발화는 `src/test-utils/queryWrapper.tsx` 1곳뿐이며 테스트 파일 직접 생성 **0**.
 - [x] (Should) **FR-06** — helper consumer baseline 박제 (6 파일 18 호출). 측정 PASS — baseline 실측 (HEAD `3649298`) 6 파일 hit (Search hooks 1 + Log hooks 5).
 - [x] (Should) **FR-07** — 면제 박제 옵션 (별 axis 분리 시). 본 spec 진입 baseline 면제 박제 0 → FR-01 상한 = 0. — **측정**: 면제 목록 `EXEMPTIONS = []` → FR-01 상한 0.
-- [x] (Must) **FR-08** — 수단 라벨 금지 (RULE-07 정합) — 회수 수단에 "기본값" / "권장" / "우선" / "default" / "best practice" / "먼저" 라벨 부여 금지. 본 spec 본문 자기 검증: `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/testing/react-query-test-queryclient-default-options-single-source-coherence.md | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit. **[deferred: 자기 진단 자체는 `npm run check:spec-coherence` 같은 자동 게이트 부착 시 채널 박제 — 별 task 위임]**. — **측정**: 본 spec §역할~§의존성 수단 라벨 0 hit.
 - [x] (Must) **FR-09** — 스코프 경계 명시 — 본 효능은 `src/**/*.test.{js,jsx,ts,tsx}` + `src/test-utils/queryWrapper.tsx` 한정. `src/__tests__/*.ts` (도구 매트릭스 fixture) 직교. — **측정**: 게이트가 `src/__tests__/**` 를 scope 에서 제외하며 그 사실을 단언한다.
 
 ## 비기능 요구사항
 - **NFR-01** 측정 결정론 — FR-01~FR-04 측정 grep 동일 HEAD 동일 hit count.
 - **NFR-02** 게이트 메타성 — 단일 grep + 단일 보조 grep 의 hit count 비교로 검증 가능.
-- **NFR-03** 회귀 fixture 도입 비용 — **[deferred: 신규 자동 게이트 (fixture test 또는 `scripts/check-*.sh`) 도입 + 수단 중립 — 별 task 위임]**.
 - **NFR-04** 우회 정책 회피 — `vi.mock('@tanstack/react-query', ...)` 우회로 형식 충족 시 NFR-04 위반.
 - **NFR-05** 외부 비파괴 — prod 채널 옵션 토큰 / `QueryClientProvider` 마운트 / `react-query` 메이저 / `tsconfig.json` strict / 컴포넌트 props 시그니처 변경 0.
 - **NFR-06** 시점 비의존 — react-query · vitest 메이저 bump · `gcTime` deprecation 직후 동일 효능 유지 또는 본 spec 갱신.
@@ -80,6 +78,14 @@ test 환경 (`src/**/*.test.{js,jsx,ts,tsx}` 파일) 의 `@tanstack/react-query`
 | 2026-08-24 | (수동 — 운영자) / 본 변경 | 마커 회수 + 자동 게이트 도입. FR-05 의 4 violator 는 `9dde28d` 에서 이미 회수됐고 baseline 만 stale 이었다. `src/__tests__/react-query-test-queryclient-single-source.test.ts` 신설 (7 `it`, 위반 주입 검출 확인). FR-05·FR-07·FR-08·FR-09 + 자동 게이트 2항목 flip, FR-10 §참고 강등. green→blue promote. | §테스트 현황 / §수용 기준 / §참고 |
 
 ## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (Must) **FR-08** — 수단 라벨 금지 (RULE-07 정합) — 회수 수단에 "기본값" / "권장" / "우선" / "default" / "best practice" / "먼저" 라벨 부여 금지. 본 spec 본문 자기 검증: `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/testing/react-query-test-queryclient-default-options-single-source-coherence.md | grep -cE "기본값|권장|우선|default|best practice|먼저"` → 0 hit. **[deferred: 자기 진단 자체는 `npm run check:spec-coherence` 같은 자동 게이트 부착 시 채널 박제 — 별 task 위임]**. — **측정**: 본 spec §역할~§의존성 수단 라벨 0 hit.
+- **NFR-03** 회귀 fixture 도입 비용 — **[deferred: 신규 자동 게이트 (fixture test 또는 `scripts/check-*.sh`) 도입 + 수단 중립 — 별 task 위임]**.
+
 
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 

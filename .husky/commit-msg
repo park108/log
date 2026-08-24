@@ -1,0 +1,12 @@
+# RULE-02 — subject 길이 제약.
+# 2026-08-24 이전 tick 커밋 subject 가 median 1,500자 소인수분해 서사로 자라
+# git log 가 사람이 훑을 수 없는 표면이 됐다. 상세는 body 로 간다.
+subject="$(head -1 "$1")"
+len="$(printf '%s' "$subject" | wc -m | tr -d ' ')"
+
+if [ "$len" -gt 72 ]; then
+  printf 'commit-msg: subject %s자 > 72자 제한 (RULE-02)\n' "$len" >&2
+  printf '  %s\n' "$(printf '%s' "$subject" | cut -c1-72)…" >&2
+  printf '  상세는 body 로 옮기세요.\n' >&2
+  exit 1
+fi

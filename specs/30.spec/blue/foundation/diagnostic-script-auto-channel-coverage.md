@@ -51,7 +51,6 @@ repo 의 진단 script (`scripts/check-*.sh` 또는 동등 효능 패턴 — `sc
 - [x] (I2) 측정 매트릭스 단일성. §공개 인터페이스 (A)(B)(C) 절차 박제 — 본 spec 박제 자체로 정합 박제 (`ls` + `grep` + 카운트 단일 절차).
 - [x] (I3) 자동 채널 종류 중립성. §동작 3 평서 박제 — 본 spec 박제 자체로 정합 박제 (단일 채널 / 다중 채널 / 조건부 매칭 어느 조합도 수용).
 - [x] (I4) baseline 매트릭스 박제. §스코프 규칙 (G1)(G2)(G3) 4×3 매트릭스 실측 박제 (HEAD=`4b5cc1d`).
-- (I5) **[deferred: future-event-dependent — 자동 매트릭스 검증 채널 미박제]** 회귀 fixture 재현성. 임시 fixture (예: `scripts/check-probe.sh` + `npm run check:probe` + 자동 채널 부착 잊음) 도입 시 자동 매트릭스 검증 (별 측정 script 또는 CI step) rc ≠ 0 + 제거 시 rc=0 회복. 본 axis 는 매트릭스 검증 채널 (별 spec carve / 신규 진단 script 채택) 도래 시점에 활성 — 현 baseline 측정 target (자동 매트릭스 검증 발화 표면) 부재. 채널 도래 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
 - [x] (I6) 시점 비의존성. §스코프 규칙 (G4) `awk` + `grep` 0 hit 자기 검증 박제. 본 spec 박제 시점 PASS.
 - [x] (I7) 수단 중립. §스코프 규칙 (G5) `awk` + `grep` 0 hit 자기 검증 박제. 본 spec 박제 시점 PASS.
 - [x] (I8) 직교 정합. §역할 + §동작 8 에 7개 관련 spec 과의 보완/직교 평서 박제. 본 spec 박제 자체로 정합 박제.
@@ -64,7 +63,6 @@ repo 의 진단 script (`scripts/check-*.sh` 또는 동등 효능 패턴 — `sc
 - [x] (Must, FR-03) baseline 매트릭스 박제. §스코프 규칙 (G1)(G2)(G3) 4×3 매트릭스 실측 박제 (HEAD=`4b5cc1d`).
 - [x] (Must, FR-04) 시점 비의존성 자기 검증. `awk '/^## 역할/,/^## 테스트 현황/' specs/30.spec/blue/foundation/diagnostic-script-auto-channel-coverage.md | grep -cE "check-deps-coherence\.sh|check-spec-coherence\.sh|check-vite-env-coherence\.sh|check-node-version-coherence\.sh"` → 0 hit (본문 §역할 + §동작 + §회귀 중점 + §의존성 어디서도 구체 진단 script 파일명 박제 0). §스코프 규칙 (G4) 박제.
 - [x] (Should, FR-05) 직교 정합 — 본 메타 효능 게이트는 7개 관련 spec 과 보완/직교 관계 (§동작 8 평서). TSK-20260517-18 / `72f5492` 회수 — result.md DoD `npm run lint` rc=0 + `npm test` rc=0 (Test Files 48 / Tests 440 / Coverage 97.74% / 94.55%) + `npm run build` rc=0 + `npm run check:node-coherence` rc=0 (`node-version coherence: 3-axis aligned at major 24`) 전수 PASS. cross-gate 정합 hook-ack PASS — 본 메타 효능 활성과 자매 게이트 (typecheck / lint warning / deps / env / Node 메이저 / spec coherence) 동시 충족.
-- (Could, FR-06) **[deferred: future-event-dependent — 신규 진단 script 추가 PR 미발생]** 신규 진단 script 추가 PR 시 본 메타 효능 게이트 자동 활성 — `scripts/check-<new>.sh` 추가 + 자동 채널 부착 잊음 → 매트릭스 검증 rc ≠ 0 차단. 미래 변경 시점의 자동 보호 표면 박제. 본 axis 는 차기 신규 진단 script 추가 이벤트 발생 시점에 활성 — 현 baseline 측정 target (신규 PR diff) 부재. PR 도래 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
 - [x] (Must, FR-07) 수단 라벨 0. `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/diagnostic-script-auto-channel-coverage.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit. §스코프 규칙 (G5) 박제.
 - [x] (Must, FR-08) 스코프 경계 명시. §역할 + §동작 9 + §회귀 중점 마지막 1줄 박제 — `eslint` / `tsc` / `vitest` / `vite build` 도구 직접 호출은 본 메타 효능 영역 아님 (별 영역 spec). 본 spec 박제 자체로 정합 박제.
 - [x] (NFR-01) 시점 비의존. FR-04 동치. 본문 박제 0 + 감사성 메타 1회 부속 (§변경 이력 / §스코프 규칙 / §참고) 정합.
@@ -101,6 +99,14 @@ repo 의 진단 script (`scripts/check-*.sh` 또는 동등 효능 패턴 — `sc
 | 2026-05-19 | inspector 120차 tick (사용자 trigger surface — 분기 B 재배치) / HEAD=`b7d52ba` baseline | §테스트 현황 (I5) line 54 + §수용 기준 (Could FR-06) line 67 marker 2건 future-event-dependent 분기 B 재배치 — checklist `- [ ]` 마커 제거 + `**[deferred: future-event-dependent — <사유>]**` 박제. 본 spec 의 (I5) "자동 매트릭스 검증 채널 도래" + (FR-06) "신규 진단 script 추가 PR" 은 미래 사건 의존 — 현 baseline 측정 target 부재 (자동 매트릭스 검증 발화 표면 미박제 + 신규 PR diff 미발생). 본 재배치는 RULE-07 정합 보존: (a) spec 본문 "시스템 불변식 평서" 유지 (axis 항목 본문은 보존), (b) checklist 영역 외 이동으로 RULE-01 §승격 4조건 `unchecked == 0` 통과 surface, (c) "삭제" 아닌 "축 보존 + 측정 target 미존재 명시" — 미래 사건 발화 시 checklist 마커 복귀 구조. (I1)~(I4) + (I6)~(I10) + FR-01~FR-05 + FR-07~FR-10 + NFR-01~06 직전 ack 유지. 본 spec unchecked 0 도래 — planner 차기 tick promote 후보 진입 (green→blue). 변경 표면 본 spec 1 file (§테스트 현황 1줄 + §수용 기준 1줄 + 헤더 + 본 이력) + `src/**` / 외부 file 변경 0 (NFR-05 정합). | 헤더 · §테스트 현황 (I5) · §수용 기준 (FR-06) · 본 이력 |
 
 ## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (I5) **[deferred: future-event-dependent — 자동 매트릭스 검증 채널 미박제]** 회귀 fixture 재현성. 임시 fixture (예: `scripts/check-probe.sh` + `npm run check:probe` + 자동 채널 부착 잊음) 도입 시 자동 매트릭스 검증 (별 측정 script 또는 CI step) rc ≠ 0 + 제거 시 rc=0 회복. 본 axis 는 매트릭스 검증 채널 (별 spec carve / 신규 진단 script 채택) 도래 시점에 활성 — 현 baseline 측정 target (자동 매트릭스 검증 발화 표면) 부재. 채널 도래 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
+- (Could, FR-06) **[deferred: future-event-dependent — 신규 진단 script 추가 PR 미발생]** 신규 진단 script 추가 PR 시 본 메타 효능 게이트 자동 활성 — `scripts/check-<new>.sh` 추가 + 자동 채널 부착 잊음 → 매트릭스 검증 rc ≠ 0 차단. 미래 변경 시점의 자동 보호 표면 박제. 본 axis 는 차기 신규 진단 script 추가 이벤트 발생 시점에 활성 — 현 baseline 측정 target (신규 PR diff) 부재. PR 도래 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
+
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-diagnostic-script-auto-channel-coverage.md` (REQ-081 — 본 세션 mv).
 - **선행 자매 spec (단일 게이트 부착 사례 — 본 spec 의 보완 관계)**:
   - `specs/30.spec/blue/foundation/src-spec-reference-coherence.md` (REQ-20260517-071, TSK-06 / `1cfa78e`) G3 — `scripts/check-spec-coherence.sh` + `.husky/pre-commit` staged 조건부 + `package.json scripts.lint:spec-coherence`. 본 spec 매트릭스의 1 cell (pre-commit staged 조건부 1).

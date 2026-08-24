@@ -57,6 +57,9 @@ jobs:
       - name: Check commit writer coherence
         run: npm run check:commit-writer-coherence
 
+      - name: Check acceptance criteria
+        run: npm run check:acceptance-criteria
+
       - name: Lint
         run: npm run lint
 

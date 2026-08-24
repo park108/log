@@ -41,7 +41,6 @@
 - [x] (I1) prefix ↔ 효능 카테고리 1:1 매핑 평서 박제 — 본 spec §동작 1·5 박제로 정합.
 - [x] (I2) anomaly 검출 단일 게이트 PASS — TSK-20260517-20 (`985c76e`) 회수: `lint:spec-coherence` → `check:spec-coherence` rename. HEAD=`985c76e` 재실측: `grep -nE "\"lint:[^\"]+\":\s*\"bash\s+scripts/check-" package.json` → **0 hit** (baseline 1 hit @`:24` → 회수 PASS).
 - [x] (I3) 호출부 정합 baseline PASS — 호출부 4 hit 전원 `package.json:scripts` 키에 실재 (`grep -rnE "npm run (lint\|check):" .husky .github/workflows` → 4 hit / 모두 키 set 포함).
-- (I4) **[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]** 신규 `scripts/check-*.sh` 도입 시 자동 정합 — 차기 신규 진단 script 도입 PR 후 marker `[ ]` 부착 + checklist 영역 복귀. 현 baseline 측정 target (신규 진단 script PR diff) 부재. 본 axis 는 PR 도래 시점 진입점 prefix 자동 `check:<short>` 박제 + (I2) 게이트 자동 surface 검증으로 활성.
 - [x] (I5) 카테고리 경계 평서 박제 — 본 spec §동작 5 박제로 정합.
 - [x] (I6) 자매 spec 직교 정합 — 본 spec §동작 6 박제로 정합.
 - [x] (I7) 수단 중립 (RULE-07) — `awk '/^## 역할/,/^## 의존성/' specs/30.spec/blue/foundation/npm-script-prefix-coherence.md | grep -cE "기본값|권장|우선|default|best practice"` → 0 hit (§스코프 규칙 G5 박제).
@@ -53,7 +52,6 @@
 - [x] (Must, FR-01) `package.json:scripts` prefix 카테고리 단일성 — `check:<name>` ↔ 진단 게이트 / `lint:<name>` ↔ 코드 스타일 1:1 정합. TSK-20260517-20 (`985c76e`) 회수: `lint:spec-coherence` → `check:spec-coherence` rename → 4 진단 게이트 모두 `check:` prefix 정합 (`check:spec-coherence` + `check:vite-env` + `check:deps` + `check:node-coherence`) / `lint:*` script 키 0건 (top-level `lint` + lint-staged 블록은 본 spec 외부 — FR-10 스코프 경계 정합).
 - [x] (Must, FR-02) anomaly 검출 게이트 — HEAD=`985c76e` 재실측: `grep -nE "\"lint:[^\"]+\":\s*\"bash\s+scripts/check-" package.json` → **0 hit** (baseline 1 hit @`:24` → 회수 PASS). TSK-20260517-20 (`985c76e`).
 - [x] (Should, FR-03) 호출부 정합 — `npm run lint:<name>` 또는 `npm run check:<name>` 호출이 `package.json:scripts` 키에 실재. HEAD=`49f3f93` 실측 PASS (§스코프 규칙 G4 4 hit / 모두 키 실재).
-- (Could, FR-04) **[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]** 신규 `scripts/check-*.sh` 추가 시 자동 정합 — 차기 진단 script 도입 PR 의 진입점 prefix 자동 `check:<short>` 박제. 회귀 시 (I2) 게이트 자동 surface. 차기 이벤트 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
 - [x] (Must, FR-05) baseline 박제 — §스코프 규칙 grep-baseline G1·G2·G3·G4 4 gate 실측 매트릭스 (HEAD=`49f3f93`).
 - [x] (Must, FR-06) 시점 비의존성 — 본문 (§역할 + §동작 + §회귀 중점 + §의존성) 어디서도 현 anomaly 구체 npm script 이름 / count / 매트릭스 cell 분포 박제 0 (§스코프 규칙 G6 자기 검증).
 - [x] (Should, FR-07) 효능 카테고리 경계 평서 — §동작 5 (a)(b) 효능 형태 평서 박제. 경계 모호 사례 (`tsc --noEmit` 정적 분석 vs `node scripts/check-tsconfig-strict.sh` 진단 게이트) 별도 명시 가능.
@@ -86,6 +84,14 @@
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-083 흡수) / pending (HEAD=`49f3f93`) | 최초 박제 — `package.json:scripts` prefix 카테고리 단일성 9 축 (I1~I9) 게이트. baseline 매트릭스: 4 진단 게이트 (`scripts/check-*-coherence.sh` 호출) 중 1 anomaly (`lint:` prefix 1 hit `:24`) + 3 정합 (`check:` prefix 3 hit `:25/:26/:27`). 호출부 baseline PASS (4 hit / 모두 키 실재). 본 spec 분리 결정 근거: 자매 spec (`src-spec-reference-coherence.md` G3, `node-modules-extraneous-coherence.md`, `vite-env-boundary-typing.md`, `node-version-3axis-coherence.md` — 단일 진입점 박제) 와 본 효능 (횡단 명명 카테고리 단일성) 이 별 축 (단일 게이트 박제 vs 명명 단일성) — 별 spec 분리가 게이트 단일성 + 변경 영향 분리 효능. `lint-warning-zero-gate.md` 와 패턴 동질 (자동 게이트 횡단 메타) + 영역 직교 (warning rule level vs script naming). `diagnostic-script-auto-channel-coverage.md` 와 패턴 동질 + 영역 직교 (자동 채널 부착 vs 명명 카테고리). consumed req: `specs/20.req/20260517-npm-script-prefix-category-coherence.md` (REQ-083) → `60.done/2026/05/17/req/` mv. consumed followup (감사 pointer): `specs/60.done/2026/05/17/followups/20260517-0608-lint-script-naming-convention.md` (source_task: TSK-20260517-17, category: naming-convention, severity: low). RULE-07 자기검증 — (I1)~(I9) 모두 평서형·반복 검증 가능 (`grep` 또는 node 1-liner 단일 명령)·시점 비의존 (G6 0 hit — 구체 npm script 이름 본문 박제 0)·incident 귀속 부재 (REQ-083 §배경 의 회귀 가설은 시점 비의존 시나리오)·수단 중립 (G5 0 hit — anomaly 해소 수단 후보 라벨 0). RULE-06 §스코프 규칙 6 gate (G1~G6) 실측 박제. RULE-01 inspector writer 영역만 (`30.spec/green/foundation/npm-script-prefix-coherence.md` create). | all |
 
 ## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- (I4) **[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]** 신규 `scripts/check-*.sh` 도입 시 자동 정합 — 차기 신규 진단 script 도입 PR 후 marker `[ ]` 부착 + checklist 영역 복귀. 현 baseline 측정 target (신규 진단 script PR diff) 부재. 본 axis 는 PR 도래 시점 진입점 prefix 자동 `check:<short>` 박제 + (I2) 게이트 자동 surface 검증으로 활성.
+- (Could, FR-04) **[deferred: future-event-dependent — 차기 진단 script 도입 PR 미발생]** 신규 `scripts/check-*.sh` 추가 시 자동 정합 — 차기 진단 script 도입 PR 의 진입점 prefix 자동 `check:<short>` 박제. 회귀 시 (I2) 게이트 자동 surface. 차기 이벤트 발화 시 본 axis checklist 영역 복귀 + marker `[ ]` 부착.
+
 - **REQ 원문**: `specs/60.done/2026/05/17/req/20260517-npm-script-prefix-category-coherence.md` (REQ-083 — 본 세션 mv).
 - **followup 흡수 (본 spec 의 트리거)**:
   - `specs/60.done/2026/05/17/followups/20260517-0608-lint-script-naming-convention.md` (source_task: TSK-20260517-17, category: naming-convention, severity: low).

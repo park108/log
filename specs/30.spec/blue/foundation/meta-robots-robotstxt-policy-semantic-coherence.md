@@ -70,7 +70,6 @@
 - [x] G-F build artifact 측 동치 보존 (`diff public/robots.txt build/robots.txt` 0 line + `grep build/index.html` 1) — TSK-20260518-12 fixture G-F 단언 PASS (build 부재 시 skip + build 존재 시 byte-equal 보존 + meta 1 hit 단언, result.md DoD `npm run build` rc=0 + `diff` 0 line 박제).
 - [x] G-G 회귀 검출 채널 존재 — 단위 테스트 fixture (`src/__tests__/robots-policy-coherence.test.ts` 295 line 7 단언) 도입 완료 + `npm test` 자동 발화 채널 정합.
 - [x] G-H 채널 의미 분리 박제 (어느 채널 우선순위 라벨 박제 금지 — 수단 중립) — fixture 본문 우선순위 라벨 박제 부재 + spec 본문 `## 동작 §G-H` 우선순위 라벨 박제 금지 명시 정합.
-- [ ] **[deferred: 시점 비의존 회복 — vite 메이저 bump · meta content 변경 · robots.txt 본문 변경 · IANA 토큰 추가 · User-agent group 추가 이벤트 후 1 PR 회복 누적 사례 미축적, 외부 이벤트 의존]** G-I 시점 비의존 회복.
 - [x] G-J 자체 진단 제외 — fixture scope `index.html` + `public/robots.txt` + `build/index.html` + `build/robots.txt` 4-file 한정 + 직교 토큰 7종 self-read 0 hit PASS (런타임 부분 조합 패턴 적용).
 - [x] G-K 멱등성 (read-only 보장) — fixture `fs.readFileSync` + `execSync grep/wc/test/diff` read-only 정합 (production 0 byte 변경 + source mtime + byte-equal 보존, result.md DoD 박제).
 
@@ -82,16 +81,13 @@
 - [x] (Must) FR-05 — TSK-20260518-12 fixture G-E 단언 PASS — M_A 와 M_B 양면 의미 동치 비교 (양쪽 모두 permissive ≡ permissive). 단방향 분기 → 본 spec 위반. baseline (HEAD `7477189`): 양쪽 모두 permissive → PASS.
 - [x] (Must) FR-06 — TSK-20260518-12 fixture G-F 단언 PASS — build artifact 측 (`build/robots.txt` byte-equal source + `build/index.html` meta robots 1 hit) 양면 의미 동치 보존. byte-for-byte 검증은 REQ-099 G-C 위임. result.md DoD `npm run build` rc=0 + `build/index.html` 2092 byte + `build/robots.txt` 67 byte + `diff public/robots.txt build/robots.txt` 0 line 박제.
 - [x] (Should) FR-07 — TSK-20260518-12 fixture 7 단언 (G-A~G-F + 직교 토큰) 도입으로 회귀 자동 검출 채널 + `npm test` 자동 발화 채널 (56 file / 495 test 부합) 박제 완료. pre-push hook / CI / `check:robots-policy-coherence` script 등 추가 발화 시점 채널은 별 carve (수단 위임).
-- [ ] **[deferred: 형식 확장 이벤트 의존 — IANA registered 추가 토큰 (`noimageindex`/`nosnippet`/`max-snippet:N`/`unavailable_after:DATE`) 또는 `robots.txt` `User-agent` 다중 group 도입 시 별 axis carve]** (Could) FR-08 — 형식 분기 확장 박제 신호.
 
 ## 비기능 기준
 - [x] (NFR-01 결정론) 동일 HEAD 상에서 G-A ∧ G-B ∧ G-C ∧ G-D ∧ G-E 의 grep + `test -f` + `wc -l` + 본문 토큰 파싱 + 의미 매핑 + 동치 비교 결과 N 회 반복 시 N 회 동일 rc + 동일 출력 — TSK-20260518-12 fixture read-only + execSync 결정론 명령 + result.md "신규 fixture 7/7 PASS" 박제 + 본 inspector 75차 tick HEAD `41d4b96` 재실행 PASS (NFR-02/04 결합 보조 ack).
 - [x] (NFR-02 멱등성) 본 게이트는 read-only — TSK-20260518-12 fixture `fs.readFileSync` + `execSync grep/wc/test/diff` 만 사용. `index.html` / `public/**` / `build/**` 파일 0 byte 수정 (result.md DoD 박제).
-- [ ] **[deferred: 성능 측정 미박제 — fixture Duration 단독 분리 미명시 (전체 npx vitest 1.18s 범주, 단독 측정 별 carve)]** (NFR-03 성능) (a) FR-01 grep + FR-02 `test -f` + `wc -l` < 100 ms. (b) FR-03 + FR-04 본문 토큰 파싱 + 의미 매핑 < 200 ms. (c) FR-05 동치 비교 < 100 ms. (d) 전체 게이트 < 30 s (build 시간 포함 시) / < 1 s (build artifact 존재 가정 시).
 - [x] (NFR-04 자체 진단 제외) TSK-20260518-12 fixture self-read false-positive 회피 패턴 적용 — 직교 토큰 7종 부분 문자열 런타임 조합 (`buildOrthogonalTokens()`) + 주석 라벨 전수 제거 + scope `index.html` + `public/robots.txt` + `build/index.html` + `build/robots.txt` 4-file 한정.
 - [x] (NFR-05 외부 비파괴) 본 효능 도입은 `index.html` / `public/robots.txt` / `vite.config.js` 의 src 외부 변경 동반 없음 (TSK-20260518-12 production 0 byte 변경 정합, 신규 1 파일 `src/__tests__/robots-policy-coherence.test.ts` 295 line 한정). FR-07 발화 채널 부착 수단 (`package.json` `check:*` script / husky hook) 은 본 spec In-Scope 외 수단 영역.
 - [x] (NFR-06 채널 의미 분리) meta robots (HTML 페이지-수준) ↔ robots.txt (HTTP path 수준) 의 의미 분리는 본 spec 의 행동 평서문에 포함되되 어느 채널의 우선순위 라벨 박제 금지 — 수단 중립. fixture 본문 + spec 본문 우선순위 라벨 박제 부재 정합.
-- [ ] **[deferred: 외부 이벤트 의존 — vite 메이저 bump · meta content 변경 · robots.txt 본문 변경 · IANA 토큰 추가 등 이벤트 후 1 PR 회복 누적 사례 미축적, 별 tick reconcile]** (NFR-07 시점 비의존) FR-01·FR-02·FR-03·FR-04·FR-05·FR-06 은 어떤 이벤트 직후에도 동일 측정으로 결과 효능 유지 (rc=0). 이벤트 발생 시 1 PR 안에 6 조건 동시 만족 회복 또는 본 spec 갱신.
 
 ## 스코프 규칙
 - **expansion**: N/A (본 spec 은 시스템 불변식 박제 — 게이트는 read-only 측정 횡단, task 발행 시점에 planner 가 §스코프 규칙 재계산).
@@ -108,3 +104,14 @@
 |------|-----------|------|----------|
 | 2026-05-18 | inspector (REQ-20260518-001 흡수) | 최초 박제 — `<meta name="robots">` (채널 A) ↔ `public/robots.txt` (채널 B) 양면 의미 동치 시스템 불변식 + 11 게이트 (G-A~G-K) + baseline HEAD `7477189` (M_A `{index: allow, follow: allow}` ≡ M_B `{path: allow-all, crawl: allow}` → PASS) | all |
 | 2026-05-18 | inspector (Phase 1 ack, TSK-20260518-12 / `06ce0db` 회수) / `75차 tick` | §테스트 현황 G-A/G-B/G-C/G-D/G-E/G-F/G-G/G-H/G-J/G-K + §수용 기준 FR-01~FR-07 + §비기능 NFR-01/02/04/05/06 17 marker `[ ]→[x]` 플립. ack 근거: TSK-20260518-12 / `06ce0db` (HEAD 조상 — 본 inspector 75차 tick HEAD `41d4b96` 시점 git merge-base --is-ancestor 정합). hook-ack: `60.done/2026/05/18/task/robots-policy-coherence-fixture/result.md` DoD 박제 — fixture `src/__tests__/robots-policy-coherence.test.ts` 295 line 신규 + G-A~G-F 7 단언 PASS + `npm run lint` rc=0 + `npm test` 56 file / 495 test PASS + `npm run build` rc=0 + `diff public/robots.txt build/robots.txt` 0 line 보존 + 직교 토큰 7종 self-read 0 hit + production 0 byte 변경. baseline 갱신 (HEAD `41d4b96` 재실측): `grep -cE '<meta\s+name="robots"' index.html` = 1 + `test -f public/robots.txt` exit 0 + `wc -c < public/robots.txt` = 67 + `grep -nE "^User-agent|^Disallow" public/robots.txt` = 2 hit + 본 inspector tick fixture 단독 재실행 `npx vitest run src/__tests__/robots-policy-coherence.test.ts` 7/7 PASS. 보류 marker 4건 (G-I 시점 비의존 + NFR-07 시점 비의존 + FR-08 형식 분기 확장 + NFR-03 성능 단독 측정) 은 `[deferred: 사유]` 태깅 — 외부 이벤트 의존 / 별 axis carve / 측정 별 carve. | 헤더 · §테스트 현황 (G-A~G-K) · §수용 기준 (FR-01~FR-08) · §비기능 (NFR-01~07) · 본 이력 |
+
+## 참고
+
+### deferred (blue 승격 시 강등)
+
+> `[deferred]` 는 green 전용 상태다. blue 는 baseline 이므로 미결 태그를 갖지 않는다 (RULE-07 §promote).
+
+- **[deferred: 시점 비의존 회복 — vite 메이저 bump · meta content 변경 · robots.txt 본문 변경 · IANA 토큰 추가 · User-agent group 추가 이벤트 후 1 PR 회복 누적 사례 미축적, 외부 이벤트 의존]** G-I 시점 비의존 회복.
+- **[deferred: 형식 확장 이벤트 의존 — IANA registered 추가 토큰 (`noimageindex`/`nosnippet`/`max-snippet:N`/`unavailable_after:DATE`) 또는 `robots.txt` `User-agent` 다중 group 도입 시 별 axis carve]** (Could) FR-08 — 형식 분기 확장 박제 신호.
+- **[deferred: 성능 측정 미박제 — fixture Duration 단독 분리 미명시 (전체 npx vitest 1.18s 범주, 단독 측정 별 carve)]** (NFR-03 성능) (a) FR-01 grep + FR-02 `test -f` + `wc -l` < 100 ms. (b) FR-03 + FR-04 본문 토큰 파싱 + 의미 매핑 < 200 ms. (c) FR-05 동치 비교 < 100 ms. (d) 전체 게이트 < 30 s (build 시간 포함 시) / < 1 s (build artifact 존재 가정 시).
+- **[deferred: 외부 이벤트 의존 — vite 메이저 bump · meta content 변경 · robots.txt 본문 변경 · IANA 토큰 추가 등 이벤트 후 1 PR 회복 누적 사례 미축적, 별 tick reconcile]** (NFR-07 시점 비의존) FR-01·FR-02·FR-03·FR-04·FR-05·FR-06 은 어떤 이벤트 직후에도 동일 측정으로 결과 효능 유지 (rc=0). 이벤트 발생 시 1 PR 안에 6 조건 동시 만족 회복 또는 본 spec 갱신.
