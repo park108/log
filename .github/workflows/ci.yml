@@ -75,6 +75,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      # build 산출물 조건부 픽스처(3 상태 판정 · TSK-20260824-08-a)는 산출물이
+      # 디스크에 있어야 측정된다. Test(:72) 시점에는 build/ 가 gitignored 라 부재하고
+      # 전량 skip 으로 계수된다 — 검출력 0. Build 뒤에서 1회 실측한다.
+      # 대상 목록은 하드코딩하지 않는다 (RULE-06 §열거 고정 금지) — 진입점이
+      # vite outDir + 헬퍼 import + build 경로 표현으로 도출하고, 미측정(skip)이
+      # 남으면 실패시킨다.
+      - name: Check build artifact fixtures measured
+        run: npm run check:build-artifact
+
       # ignores 5 패턴의 vacuous-zero 검사는 build/ 와 coverage/ 가 디스크에
       # 있어야 성립한다 (P-1 build/**, P-2 coverage/**). Test + Build 뒤에 둔다.
       - name: Check eslint ignores vacuous-zero
