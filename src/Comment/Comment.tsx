@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, type ReactNode } from "react";
+import React, { useState, useEffect, useRef, Suspense, lazy, type ReactNode } from "react";
 import { log, hasValue, isAdmin } from '../common/common';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
@@ -56,6 +56,16 @@ const Comment = (props: CommentProps): React.ReactElement => {
 
 	let logTimestamp = props.logTimestamp;
 
+	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-b — unmount 후 발화 차단 가드.
+	// pending `getComments` / `postComment` 응답이 unmount 이후 도착해도 state setter 뿐 아니라
+	// `log()` · `reportError()` 까지 0 hit 로 유지한다 (React 19 의 unmounted setState
+	// silent-ignore 는 log/reportError 를 막지 못하므로 setter 한정 가드는 불충분).
+	// 수단 = `cancelled` ref (도메인 이웃 `FileUpload.tsx` 와 동일 이디엄).
+	// `postNewComment` 는 effect 가 아니라 submit 핸들러지만 `await postComment(...)`
+	// 이후 같은 발화를 하므로 마운트 수명 ref 를 별도로 둔다 — 전송 직후 이탈 경로.
+	const cancelledFetchRef = useRef<boolean>(false);
+	const cancelledPostRef = useRef<boolean>(false);
+
 	const postNewComment = async (comment: CommentPostPayload): Promise<void> => {
 
 		setIsPosting(true);
@@ -63,6 +73,8 @@ const Comment = (props: CommentProps): React.ReactElement => {
 		try {
 			const res = await postComment(comment);
 			const status = await res.json();
+
+			if(cancelledPostRef.current) return;
 
 			if(200 === status.statusCode) {
 				log("[API POST] OK - Comment", "SUCCESS");
@@ -81,6 +93,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			}
 		}
 		catch(err) {
+			if(cancelledPostRef.current) return;
 			log("[API POST] FAILED - Comment", "ERROR");
 			reportError(err);
 
@@ -93,10 +106,18 @@ const Comment = (props: CommentProps): React.ReactElement => {
 	}
 
 	useEffect(() => {
-		return () => setIsLoading(false);
+		const cancelled = cancelledPostRef;
+		cancelled.current = false;
+		return () => {
+			cancelled.current = true;
+			setIsLoading(false);
+		};
 	}, []);
 
 	useEffect(() => {
+
+		const cancelled = cancelledFetchRef;
+		cancelled.current = false;
 
 		const fetchData = async (timestamp: number | undefined): Promise<void> => {
 
@@ -105,6 +126,8 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			try {
 				const res = await getComments(timestamp as number, isAdmin());
 				const newData = await res.json();
+
+				if(cancelled.current) return;
 
 				if(!hasValue(newData.errorType)) {
 					log("[API GET] OK - Comments", "SUCCESS");
@@ -121,6 +144,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Comments", "ERROR");
 				reportError(err);
 			}
@@ -133,6 +157,10 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			fetchData(logTimestamp);
 			setReload(false);
 		}
+
+		return () => {
+			cancelled.current = true;
+		};
 
 	}, [logTimestamp, reload]);
 

@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import * as mock from './api.mock';
+import * as api from './api';
 import * as common from '../common/common';
 import * as errorReporter from '../common/errorReporter';
 import Comment from './Comment';
@@ -414,5 +415,148 @@ describe('Comment reportError 채널 (REQ-20260421-039 FR-03)', () => {
 
 			reportErrorSpy.mockRestore();
 		});
+	});
+});
+
+// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-b —
+// async unmount race 박제. `getComments` (effect `:99` 경로) 와 `postComment`
+// (`postNewComment` submit 핸들러 경로) 를 `vi.spyOn` 으로 외부 resolve/reject 가능한
+// deferred 로 바꾼 뒤 `unmount()` → 응답 도착 왕복을 만든다.
+// 단정 3종: (a) state 전이 0 (토스터 문구 DOM 부재), (b) `console.log` 0 hit,
+// (c) `console.error` 0 hit. spy 는 unmount 직후 `mockClear()` 로 기준점을 잡아
+// unmount **이전** 발화와 분리한다. DEV stub 필수 — `log()` 는 `isDev()` 분기 안에서만
+// `console.log` 로 나가므로 PROD stub 이면 (b) 단정이 공허해진다.
+describe('Comment unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
+
+	const OK_COMMENTS = (): Response => new Response(JSON.stringify({
+		body: { Items: [] },
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	const flushAfterResponse = async (): Promise<void> => {
+		await act(async () => {
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+		});
+	};
+
+	beforeEach(() => {
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+	});
+
+	it('pending getComments 중 unmount → 응답 resolve 가 어떤 발화도 하지 않는다', async () => {
+
+		let resolveResp!: (r: Response) => void;
+		const pending = new Promise<Response>((resolve) => { resolveResp = resolve; });
+		const getCommentsSpy = vi.spyOn(api, 'getComments').mockReturnValue(pending);
+
+		const { unmount } = render(<Comment logTimestamp={1655302060414} />);
+
+		await waitFor(() => expect(getCommentsSpy).toHaveBeenCalledTimes(1));
+
+		unmount();
+
+		const logSpy = vi.spyOn(console, 'log');
+		const errorSpy = vi.spyOn(console, 'error');
+		logSpy.mockClear();
+		errorSpy.mockClear();
+
+		resolveResp(OK_COMMENTS());
+		await flushAfterResponse();
+
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(errorSpy).not.toHaveBeenCalled();
+	});
+
+	it('pending getComments 중 unmount 후 reject → catch 경로도 어떤 발화도 하지 않는다', async () => {
+
+		let rejectResp!: (e: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
+		const getCommentsSpy = vi.spyOn(api, 'getComments').mockReturnValue(pending);
+
+		const { unmount } = render(<Comment logTimestamp={1655302060414} />);
+
+		await waitFor(() => expect(getCommentsSpy).toHaveBeenCalledTimes(1));
+
+		unmount();
+
+		const logSpy = vi.spyOn(console, 'log');
+		const errorSpy = vi.spyOn(console, 'error');
+		logSpy.mockClear();
+		errorSpy.mockClear();
+
+		rejectResp(new Error('comments network down'));
+		await flushAfterResponse();
+
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(errorSpy).not.toHaveBeenCalled();
+	});
+
+	it('pending postComment 중 unmount → 응답 resolve 가 어떤 발화도 하지 않는다 (핸들러 경로)', async () => {
+
+		vi.spyOn(api, 'getComments').mockResolvedValue(OK_COMMENTS());
+
+		let resolvePost!: (r: Response) => void;
+		const pendingPost = new Promise<Response>((resolve) => { resolvePost = resolve; });
+		const postCommentSpy = vi.spyOn(api, 'postComment').mockReturnValue(pendingPost);
+
+		const { unmount } = render(<Comment logTimestamp={1655302060414} />);
+
+		fireEvent.click(await screen.findByTestId('comment-toggle-button'));
+
+		const textArea = await screen.findByPlaceholderText('Write your comment');
+		fireEvent.change(textArea, { target: { value: 'Test comment' } });
+		fireEvent.click(await screen.findByText('Submit Comment'));
+
+		await waitFor(() => expect(postCommentSpy).toHaveBeenCalledTimes(1));
+
+		unmount();
+
+		const logSpy = vi.spyOn(console, 'log');
+		const errorSpy = vi.spyOn(console, 'error');
+		logSpy.mockClear();
+		errorSpy.mockClear();
+
+		resolvePost(new Response(JSON.stringify({ statusCode: 200 }), {
+			status: 200, headers: { 'Content-Type': 'application/json' },
+		}));
+		await flushAfterResponse();
+
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(errorSpy).not.toHaveBeenCalled();
+		expect(screen.queryByText('The comment posted.')).toBeNull();
+	});
+
+	it('pending postComment 중 unmount 후 reject → 핸들러 catch 경로도 어떤 발화도 하지 않는다', async () => {
+
+		vi.spyOn(api, 'getComments').mockResolvedValue(OK_COMMENTS());
+
+		let rejectPost!: (e: unknown) => void;
+		const pendingPost = new Promise<Response>((_, reject) => { rejectPost = reject; });
+		const postCommentSpy = vi.spyOn(api, 'postComment').mockReturnValue(pendingPost);
+
+		const { unmount } = render(<Comment logTimestamp={1655302060414} />);
+
+		fireEvent.click(await screen.findByTestId('comment-toggle-button'));
+
+		const textArea = await screen.findByPlaceholderText('Write your comment');
+		fireEvent.change(textArea, { target: { value: 'Test comment' } });
+		fireEvent.click(await screen.findByText('Submit Comment'));
+
+		await waitFor(() => expect(postCommentSpy).toHaveBeenCalledTimes(1));
+
+		unmount();
+
+		const logSpy = vi.spyOn(console, 'log');
+		const errorSpy = vi.spyOn(console, 'error');
+		logSpy.mockClear();
+		errorSpy.mockClear();
+
+		rejectPost(new Error('post network down'));
+		await flushAfterResponse();
+
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(errorSpy).not.toHaveBeenCalled();
+		expect(screen.queryByText('The comment posted failed for network issue.')).toBeNull();
 	});
 });

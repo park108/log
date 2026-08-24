@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { log, hasValue } from '../common/common';
 import { reportError } from '../common/errorReporter';
 import { getPreSignedUrl, putFile } from './api';
@@ -26,7 +26,17 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 
 	const refreshFiles = props.callbackAfterUpload;
 
+	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-b — unmount 후 발화 차단 가드.
+	// pending `getPreSignedUrl` / `putFile` 응답이 unmount 이후 도착해도 `setIsUploading`
+	// 뿐 아니라 `log()` · `reportError()` 까지 0 hit 로 유지한다 (React 19 의 unmounted
+	// setState silent-ignore 는 log/reportError 를 막지 못하므로 setter 한정 가드는 불충분).
+	// 수단 = `cancelled` ref — 같은 도메인 선례 `FileUpload.tsx` 와 동일 이디엄.
+	const cancelledUploadRef = useRef<boolean>(false);
+
 	useEffect(() => {
+
+		const cancelled = cancelledUploadRef;
+		cancelled.current = false;
 
 		const uploadFile = async (item: File, isLast: boolean): Promise<void> => {
 
@@ -43,6 +53,8 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 				const res = await getPreSignedUrl(name, type);
 				preSignedUrlData = await res.json() as PreSignedUrlResponse;
 
+				if(cancelled.current) return;
+
 				if(!hasValue((preSignedUrlData as PreSignedUrlResponse).errorType)) {
 					uploadUrl = (preSignedUrlData as PreSignedUrlResponse).body!.UploadUrl as string;
 					log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
@@ -55,6 +67,7 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Presigned URL", "ERROR");
 				reportError(err);
 				if(isLast) setIsUploading("FAILED");
@@ -64,6 +77,8 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 
 				try {
 					const res = await putFile(uploadUrl, item.type, item);
+
+					if(cancelled.current) return;
 
 					if(200 === res.status) {
 						log("[API PUT] OK - File: " + name, "SUCCESS");
@@ -76,6 +91,7 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 					}
 				}
 				catch(err) {
+					if(cancelled.current) return;
 					log("[API PUT] FAILED - File: " + name, "ERROR");
 					reportError(err);
 					if(isLast) setIsUploading("FAILED");
@@ -86,6 +102,10 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 		for(let i = 0; i < files.length; i++) {
 			uploadFile(files[i] as File, i === files.length - 1);
 		}
+
+		return (): void => {
+			cancelled.current = true;
+		};
 
 	}, [files]);
 

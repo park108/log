@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, CSSProperties } from "react";
+import React, { useState, useEffect, useMemo, useRef, CSSProperties } from "react";
 import { useNavigate } from 'react-router-dom';
 import { getFiles, getNextFiles	 } from './api';
 import { log, hasValue, isAdmin, isMobile, setHtmlTitle } from '../common/common';
@@ -54,6 +54,15 @@ const File = (props: FileProps): React.ReactElement => {
 
 	const navigate = useNavigate();
 
+	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-b — unmount 후 발화 차단 가드.
+	// pending `getFiles` / `getNextFiles` 응답이 unmount 이후 도착해도 state setter 뿐 아니라
+	// `log()` · `reportError()` 까지 0 hit 로 유지한다 (React 19 의 unmounted setState
+	// silent-ignore 는 log/reportError 를 막지 못하므로 setter 한정 가드는 불충분).
+	// 수단 = `cancelled` ref — 같은 도메인 선례 `FileUpload.tsx` 와 동일 이디엄.
+	// 두 async effect 는 재실행 조건(deps)이 서로 달라 ref 를 공유하지 않는다.
+	const cancelledFirstFetchRef = useRef<boolean>(false);
+	const cancelledNextFetchRef = useRef<boolean>(false);
+
 	useEffect(() => {
 
 		if(!isAdmin()) {
@@ -72,6 +81,9 @@ const File = (props: FileProps): React.ReactElement => {
 
 	useEffect(() => {
 
+		const cancelled = cancelledFirstFetchRef;
+		cancelled.current = false;
+
 		const fetchFirst = async (): Promise<void> => {
 
 			setIsLoading(true);
@@ -79,6 +91,8 @@ const File = (props: FileProps): React.ReactElement => {
 			try {
 				const res = await getFiles();
 				const newData = await res.json() as FilesResponse;
+
+				if(cancelled.current) return;
 
 				if(!hasValue(newData.errorType)) {
 					log("[API GET] OK - Files", "SUCCESS");
@@ -97,6 +111,7 @@ const File = (props: FileProps): React.ReactElement => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Files", "ERROR");
 				setToasterMessage("Get files failed.");
 				setIsShowToasterBottom(1);
@@ -111,9 +126,16 @@ const File = (props: FileProps): React.ReactElement => {
 			setIsGetData(false);
 		}
 
+		return (): void => {
+			cancelled.current = true;
+		};
+
 	}, [isGetData]);
 
 	useEffect(() => {
+
+		const cancelled = cancelledNextFetchRef;
+		cancelled.current = false;
 
 		const fetchMore = async (timestamp: number | undefined): Promise<void> => {
 
@@ -122,6 +144,8 @@ const File = (props: FileProps): React.ReactElement => {
 			try {
 				const res = await getNextFiles(timestamp as number);
 				const nextData = await res.json() as FilesResponse;
+
+				if(cancelled.current) return;
 
 				if(!hasValue(nextData.errorType)) {
 					log("[API GET] OK - Next Files", "SUCCESS");
@@ -140,6 +164,7 @@ const File = (props: FileProps): React.ReactElement => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Next Files", "ERROR");
 				setToasterMessage("Get more files failed for network issue.");
 				setIsShowToasterBottom(1);
@@ -153,6 +178,10 @@ const File = (props: FileProps): React.ReactElement => {
 			fetchMore(lastTimestamp);
 			setIsGetNextData(false);
 		}
+
+		return (): void => {
+			cancelled.current = true;
+		};
 
 	}, [isGetNextData, lastTimestamp]);
 
