@@ -78,7 +78,7 @@ export default defineConfig({
 		// 본 구성은 (g-2) 수단 택일 적용 — 수단 중립성 FR-05 준수 (단정 표현 배제).
 		fileParallelism: false,
 		coverage: {
-			provider: 'v8',
+			provider: 'istanbul',
 			reporter: ['text', 'html', 'lcov'],
 			include: ['src/**/*.{js,jsx,ts,tsx}'],
 			exclude: [
