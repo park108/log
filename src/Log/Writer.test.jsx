@@ -7,6 +7,33 @@ import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
 import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
+// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c — setter 호출 recorder.
+// `Writer.jsx` 의 유일한 `await` 는 `copyMarkdownString` 핸들러(async effect 0개)에 있고,
+// 그 post-await 발화는 **전부 state setter** 다 (`log()` / `reportError()` 0 hit).
+// React 18 의 `dispatchSetState` 는 unmount 된 fiber 에서 root=null 로 조용히 bail out 하므로
+// (`react-dom.development.js` — 경고 없음) 콘솔·DOM 어느 표면에도 흔적이 남지 않는다.
+// 즉 "가드 제거 → race 케이스 FAIL" 왕복이 성립하려면 setter 호출 자체를 세야 한다.
+// `vi.spyOn(React, 'useState')` 는 ESM namespace 가 non-configurable 이라 불가하므로
+// (`Cannot spy on export "useState"`), `vi.mock('react')` 로 `useState` 를 감싼다.
+// recorder 가 off 인 동안 동작·setter identity 는 원본과 동일하다 (identity 는 Map 으로 고정).
+const setterRecorder = vi.hoisted(() => ({ on: false, calls: 0 }));
+
+vi.mock('react', async (importOriginal) => {
+	const actual = await importOriginal();
+	const wrapped = new Map();
+	const useState = (initial) => {
+		const [value, set] = actual.useState(initial);
+		if (!wrapped.has(set)) {
+			wrapped.set(set, (...args) => {
+				if (setterRecorder.on) setterRecorder.calls += 1;
+				return set(...args);
+			});
+		}
+		return [value, wrapped.get(set)];
+	};
+	return { ...actual, useState, default: { ...actual.default, useState } };
+});
+
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
 const stubMode = (mode) => {
@@ -572,5 +599,97 @@ describe('Writer a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 		expect(spaceEvent).toBe(false);
 		// Space 가 click 과 동일 핸들러를 실행 → 텍스트 전환.
 		expect(el.textContent).toContain('HTML');
+	});
+});
+
+// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c —
+// `copyMarkdownString` 핸들러의 unmount race 박제.
+// **술어 해상도 주의**: spec §동작 3 의 술어("`useEffect` 등록 + 본문 `await`/`.then(`")는
+// 파일 단위라 `Writer.jsx` 를 대상으로 잡지만, 이 파일의 async effect 는 **0개**다.
+// 실제 race 표면은 effect 가 아니라 `copyMarkdownString` 클릭 핸들러의 `await copyToClipboard(...)`
+// 이후 토스터 발화 3건이다 — 가드를 effect 에 붙이면 게이트만 통과하고 race 는 남는다.
+describe('Writer unmount-safety (REQ-20260517-093 (I1)(I2)) — 핸들러 경로', () => {
+
+	const renderWriterForRace = () => {
+		stubMode('development');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockReturnValue(true);
+
+		const testEntry = {
+			pathname: "/log/write",
+			state: null,
+		};
+
+		return render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
+	};
+
+	const flushAfterResponse = async () => {
+		await act(async () => {
+			await new Promise(resolve => setTimeout(resolve, 0));
+		});
+	};
+
+	const raceAfterUnmount = async (unmount, settle) => {
+		unmount();
+
+		const logSpy = vi.spyOn(console, 'log');
+		const errorSpy = vi.spyOn(console, 'error');
+		logSpy.mockClear();
+		errorSpy.mockClear();
+		setterRecorder.calls = 0;
+		setterRecorder.on = true;
+
+		settle();
+		await flushAfterResponse();
+
+		setterRecorder.on = false;
+
+		return { logSpy, errorSpy };
+	};
+
+	it('pending copyToClipboard 중 unmount → 성공 resolve 가 토스터 setter 를 호출하지 않는다', async () => {
+
+		let resolveCopy;
+		const pending = new Promise((resolve) => { resolveCopy = resolve; });
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockReturnValue(pending);
+
+		const { unmount } = renderWriterForRace();
+
+		fireEvent.click(await screen.findByTestId("a-button"));
+		await waitFor(() => expect(copySpy).toHaveBeenCalledTimes(1));
+
+		const { logSpy, errorSpy } = await raceAfterUnmount(unmount, () => resolveCopy(true));
+
+		expect(setterRecorder.calls).toBe(0);
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(errorSpy).not.toHaveBeenCalled();
+		expect(screen.queryByText("Markdown string copied.")).toBeNull();
+	});
+
+	it('pending copyToClipboard 중 unmount → 실패 resolve 도 토스터 setter 를 호출하지 않는다', async () => {
+
+		let resolveCopy;
+		const pending = new Promise((resolve) => { resolveCopy = resolve; });
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockReturnValue(pending);
+
+		const { unmount } = renderWriterForRace();
+
+		fireEvent.click(await screen.findByTestId("img-button"));
+		await waitFor(() => expect(copySpy).toHaveBeenCalledTimes(1));
+
+		const { logSpy, errorSpy } = await raceAfterUnmount(unmount, () => resolveCopy(false));
+
+		expect(setterRecorder.calls).toBe(0);
+		expect(logSpy).not.toHaveBeenCalled();
+		expect(errorSpy).not.toHaveBeenCalled();
+		expect(screen.queryByText(/Copy failed \(permission denied or unavailable\)/)).toBeNull();
 	});
 });

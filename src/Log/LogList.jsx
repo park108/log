@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
@@ -17,12 +17,21 @@ const LogList = (props) => {
 
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
 
+	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c — unmount 후 발화 차단 가드.
+	// 두 async effect 의 deps 가 서로 다르므로(`[isGetData]` / `[isGetNextData, lastTimestamp]`)
+	// ref 를 분리한다. 하나를 공유하면 한쪽 cleanup 이 다른 쪽 in-flight 응답을 취소한다.
+	const cancelledFirstFetchRef = useRef(false);
+	const cancelledNextFetchRef = useRef(false);
+
 	useEffect(() => {
 		setIsGetData(true);
 		setHtmlTitle("log");
 	}, []);
 
 	useEffect(() => {
+
+		const cancelled = cancelledFirstFetchRef;
+		cancelled.current = false;
 
 		const fetchFirst = async () => {
 	
@@ -49,6 +58,8 @@ const LogList = (props) => {
 			try {
 				const res = await getLogs();
 				const fetchedData = await res.json();
+
+				if(cancelled.current) return;
 	
 				if(!hasValue(fetchedData.errorType)) {
 					log("[API GET] OK - Logs", "SUCCESS");
@@ -66,6 +77,7 @@ const LogList = (props) => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Logs", "ERROR");
 				log(err, "ERROR");
 				setIsError(true);
@@ -79,9 +91,16 @@ const LogList = (props) => {
 			setIsGetData(false);
 		}
 
+		return () => {
+			cancelled.current = true;
+		};
+
 	}, [isGetData]);
 
 	useEffect(() => {
+
+		const cancelled = cancelledNextFetchRef;
+		cancelled.current = false;
 
 		const fetchMore = async (timestamp) => {
 
@@ -91,6 +110,8 @@ const LogList = (props) => {
 			try {
 				const res = await getNextLogs(timestamp);
 				const fetchedData = await res.json();
+
+				if(cancelled.current) return;
 	
 				if(!hasValue(fetchedData.errorType)) {
 					log("[API GET] OK - Next Logs", "SUCCESS");
@@ -108,6 +129,7 @@ const LogList = (props) => {
 				}
 			}
 			catch(err) {
+				if(cancelled.current) return;
 				log("[API GET] FAILED - Next Logs", "ERROR");
 				log(err, "ERROR");
 				setIsError(true);
@@ -120,6 +142,10 @@ const LogList = (props) => {
 			fetchMore(lastTimestamp);
 			setIsGetNextData(false);
 		}
+
+		return () => {
+			cancelled.current = true;
+		};
 
 	}, [isGetNextData, lastTimestamp]);
 

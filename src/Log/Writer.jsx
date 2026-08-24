@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
 import { activateOnKey } from '../common/a11y';
@@ -44,6 +44,21 @@ const Writer = () => {
 
 	const createLogMutation = useCreateLog();
 	const updateLogMutation = useUpdateLog();
+
+	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c — unmount 후 발화 차단 가드.
+	// 이 파일에는 async effect 가 **0개**다. 유일한 `await` 는 `copyMarkdownString` 클릭
+	// 핸들러 안에 있으므로(§구현 지시 2), effect 수명이 아니라 **마운트 수명** ref 를 쓴다
+	// (`Comment.tsx` 의 `cancelledPostRef` 와 동일 이디엄). 아래 마운트 1회 effect 의
+	// cleanup 이 플래그를 뒤집는다 — 인접 effect 의 cleanup 을 재사용하지 않는다.
+	const cancelledCopyRef = useRef(false);
+
+	useEffect(() => {
+		const cancelled = cancelledCopyRef;
+		cancelled.current = false;
+		return () => {
+			cancelled.current = true;
+		};
+	}, []);
 
 	useEffect(() => {
 
@@ -231,6 +246,9 @@ const Writer = () => {
 		const markdownString = MARKDOWN_STRING_TEMPLATE[tag];
 
 		const ok = await copyToClipboard(markdownString);
+
+		if(cancelledCopyRef.current) return;
+
 		if (ok) {
 			setToasterType("information");
 			setToasterMessage("Markdown string copied.");
