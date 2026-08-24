@@ -10,10 +10,21 @@
 // 전부 통과한다 — 그 침묵을 깨는 것이 본 채널의 유일한 목적이다.
 //
 //   G-A 대상 집합 술어 산출 : 디렉터리 재귀 열거 + 술어. 파일명 하드코딩 0.
-//   G-B 가드 보유          : 대상 전수에 unmount 가드 식별자 존재 (spec (M-A) 동치).
+//   G-B 가드 보유          : 대상 전수에 unmount 가드 식별자 존재.
 //   G-C race fixture 존재   : 대상마다 형제 테스트 + unmount() 왕복 존재.
 //   G-D 관측 표면 정합      : fixture 가 **그 대상이 실제로 내는 발화 종류**를 관측한다.
-//   G-E 술어 경계 고정      : 확장 표면과의 차집합이 정확히 "effect 미등록" 부류다.
+//   G-E 두 술어 정합        : 확장 ⊇ 선행 + 차집합도 집행 대상 + 열거 버그 검출.
+//
+// ── 집행 대상 = 확장 술어 (TSK-20260825-05 / REQ-20260825-002) ───────────────
+// G-B / G-C / G-D 의 대상은 `widenedSurface()` — "훅을 쓰고 post-await 발화가 있는
+// 파일" 전수다. `useEffect` 등록 여부를 묻지 않으므로 **이벤트 핸들러의 async
+// continuation** 도 집행 대상에 든다. 선행 술어 `specScopedTargets()` 는 삭제하지
+// 않고 G-E 의 비교항으로 남는다 — 두 술어의 정합이 깨지는 것 자체가 신호다.
+//
+// 최초 판본의 대상 한정(`useEffect` 등록 파일)은 **계약의 경계가 아니라 최초 측정
+// 수단의 경계**였다. 출처 spec 이 선언을 async continuation 일반으로 넓히면서
+// "선언 범위 = 술어 대상" 이 불변식으로 승격됐고, 본 채널의 집행 대상이 그것을 따라
+// 이동했다. 사각이 닫힌 경위는 아래 "측정하지 않는 것" 절에 그대로 남겼다.
 //
 // ── G-D 를 둔 이유 (관측 표면 비대칭) ────────────────────────────────────────
 // React 18 의 `dispatchSetState` 는 unmount 된 fiber 에서 조용히 bail out 한다 —
@@ -24,17 +35,21 @@
 // **setter 전용 표면에는 setter 계수 관측기**를 요구한다.
 //
 // ── 본 채널이 측정하지 **않는** 것 (측정된 잔여 false-negative) ──────────────
-// 아래 두 부류는 착수 시점 실측으로 위반이 실재하며, 그 회복은 본 task 의 scope
-// 밖이다 (RULE-06 §expansion 불허). 채널을 그 범위까지 넓히면 첫 실행부터 red 로
-// 고착되므로, 넓히지 않고 **경계를 G-E 로 고정 + 후속 이슈로 승계**한다.
+// 최초 판본(TSK-20260824-07-d)이 자백한 두 부류의 현황이다. 항목을 지우지 않고
+// 상태를 갱신한다 — 사각이 있었다는 사실과 닫힌 경위가 함께 남아야 다음 사람이
+// 같은 한정을 "원래 그런 것" 으로 다시 믿지 않는다.
 //   (1) effect 미등록 async 핸들러 — 클릭·submit 핸들러의 `await` 이후 발화.
-//       spec §역할·(M-A) 술어가 `useEffect` 등록 파일로 한정돼 있어 대상에서 빠진다.
-//       G-E 가 "차집합 = effect 미등록" 을 고정해 열거 누락과 구별한다.
+//       **[닫힘 — TSK-20260825-05]** 집행 대상을 `widenedSurface()` 로 옮겨 이 부류가
+//       G-B / G-C / G-D 의 정식 대상이 됐다. G-E 는 더 이상 "차집합 = 면제 목록" 을
+//       고정하지 않고, 차집합도 같은 요구를 통과함을 단언한다(E-3).
+//       실코드 쪽 회복은 TSK-20260825-04 (`src/File/FileItem.tsx`) 가 선행 착지했다.
 //   (2) fixture 관측 강도 — G-D 는 "발화 종류에 맞는 관측기 존재" 까지만 본다.
-//       콘솔 spy 를 **필터링해** 특정 문구만 세는 형태(현 React 버전에서 도달 불가한
-//       경고 문구 필터)는 통과한다. 무필터 0 단정까지 요구하면 선행 시대의 fixture
-//       3건이 red 가 된다 (착수 시점 실측) — 그 정상화는 본 task scope 밖이다.
-// 두 부류 모두 result.md 에 주입 왕복 출력으로 박제하고 followup 으로 넘겼다.
+//       **[열림]** 콘솔 spy 를 **필터링해** 특정 문구만 세는 형태(현 React 버전에서
+//       도달 불가한 경고 문구 필터)는 여전히 통과한다. 무필터 0 단정까지 요구하면
+//       선행 시대의 fixture 가 red 가 된다 — 정상화는 TSK-20260825-06 소관이다.
+//   (3) 갈래(함수) 단위 분류 — **[열림]** `requiredSurfaces` 는 **파일 단위** 분류다.
+//       한 파일에 콘솔류 갈래와 setter-only 갈래가 공존하면 후자의 관측 요구가
+//       파일 단위 분류에 흡수된다. 갈래 단위 세분화는 별 축이다.
 //
 // ── 파일 목록을 상수로 두지 않는 이유 (RULE-06 §열거 고정 금지) ─────────────
 // 선행 baseline 은 wrapper 3 파일을 열거해 측정했고, 실제 fetch 는 `lazy()` 로
@@ -177,7 +192,7 @@ export function postAsyncEmissions(source: string): EmissionKinds {
 	};
 }
 
-type Target = {
+export type Target = {
 	rel: string;
 	source: string;
 	emissions: EmissionKinds;
@@ -197,7 +212,11 @@ export function specScopedTargets(files: ScanEntry[]): Target[] {
 
 /**
  * 확장 표면 — effect 등록 여부를 묻지 않고 "훅을 쓰는 파일 중 post-await 발화가
- * 있는 것" 전수. 핸들러 경로(effect 미등록)까지 포함한다. G-E 의 비교 대상.
+ * 있는 것" 전수. 핸들러 경로(effect 미등록)까지 포함한다.
+ *
+ * **G-B / G-C / G-D 의 집행 대상** (TSK-20260825-05). 이전 판본은 이 함수를 G-E 의
+ * 비교항으로만 썼고 집행은 `specScopedTargets` 이 했다 — 그래서 이벤트 핸들러의
+ * async continuation 이 측정 밖에 있었다.
  */
 export function widenedSurface(files: ScanEntry[]): Target[] {
 	const out: Target[] = [];
@@ -254,6 +273,59 @@ export function requiredSurfaces(emissions: EmissionKinds): Array<"console" | "s
 	return [];
 }
 
+/** G-B 동치 — 가드 식별자를 갖지 않는 대상. */
+export function guardViolations(targets: Target[]): string[] {
+	return targets.filter((t) => !RE_GUARD_IDENTIFIER.test(t.source)).map((t) => t.rel);
+}
+
+/** G-C 동치 — 형제 테스트가 없거나 그 안에 `unmount()` 왕복이 없는 대상. */
+export function fixtureViolations(targets: Target[]): string[] {
+	const missing: string[] = [];
+	for (const t of targets) {
+		const testRel = siblingTestPath(t.rel);
+		if (testRel === null) {
+			missing.push(`${t.rel} — 형제 테스트 파일 부재`);
+			continue;
+		}
+		const testSource = readFileSync(join(REPO_ROOT, testRel), "utf8");
+		if (!RE_UNMOUNT_CALL.test(testSource)) missing.push(`${t.rel} — ${testRel} 에 unmount() 왕복 부재`);
+	}
+	return missing;
+}
+
+/** G-D 동치 — 대상의 발화 종류가 요구하는 관측기를 형제 fixture 가 갖는가. */
+export function surfaceViolations(targets: Target[]): { violations: string[]; setterOnlyChecked: number } {
+	const violations: string[] = [];
+	let setterOnlyChecked = 0;
+
+	for (const t of targets) {
+		const need = requiredSurfaces(t.emissions);
+		if (need.length === 0) continue;
+		const testRel = siblingTestPath(t.rel);
+		if (testRel === null) {
+			violations.push(`${t.rel} — 형제 테스트 부재 (G-C 참조)`);
+			continue;
+		}
+		const obs = fixtureObservations(readFileSync(join(REPO_ROOT, testRel), "utf8"));
+		if (need.includes("setter")) {
+			setterOnlyChecked += 1;
+			if (!obs.setterSurface) {
+				violations.push(
+					`${t.rel} — post-await 발화가 setter 전용(console ${t.emissions.consoleLike} / setter ${t.emissions.setterLike})인데 ` +
+						`${testRel} 에 setter 계수 관측기가 없다. 콘솔 spy 단정은 이 표면에서 공허하다.`,
+				);
+			}
+		}
+		if (need.includes("console") && !obs.consoleSurface) {
+			violations.push(
+				`${t.rel} — post-await 콘솔류 발화 ${t.emissions.consoleLike}건인데 ${testRel} 에 소비되는 발화 spy 가 없다.`,
+			);
+		}
+	}
+
+	return { violations, setterOnlyChecked };
+}
+
 function fmt(list: string[]): string {
 	return list.map((l) => `  ${l}`).join("\n");
 }
@@ -261,15 +333,29 @@ function fmt(list: string[]): string {
 describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", () => {
 	it("G-A: 대상 집합이 디렉터리 열거 + 술어로 산출된다 (파일명 하드코딩 0)", () => {
 		const files = productionFiles();
-		const targets = specScopedTargets(files);
+		const targets = widenedSurface(files);
+		const specScoped = specScopedTargets(files);
 
 		expect(files.length, "프로덕션 열거가 비었다 — 게이트 공허 통과 위험").toBeGreaterThan(0);
 
-		// 착수 시점 실측 11. 열거가 조용히 쪼그라들면(디렉터리 누락·확장자 드리프트)
-		// 남은 대상만 검사하고 통과하는 사각지대가 생긴다.
+		// 공허 통과 가드 — 세 수치를 전부 단언한다. 하나라도 조용히 0 으로 무너지면
+		// 나머지 게이트(G-B/G-C/G-D)는 빈 집합을 검사하고 통과한다.
+		//
+		// 확장 술어 대상 하한 12 (TSK-20260825-05 착수 시점 실측). 이 수치는
+		// `RE_HOOK_CALL` 의 `(?:<[^()]*>)?` 절이 지워지는 회귀도 함께 잡는다 —
+		// 그 절이 빠지면 `useState<boolean>(false)` 표기 파일이 통째로 빠져
+		// 대상이 11 로 붕괴한다 (실측된 false-negative. analyzer 자가 검증의
+		// 표기 변형 단언과 이중으로 고정한다).
 		expect(
 			targets.length,
-			`술어 대상이 11 미만이다 — 열거가 축소됐다:\n${fmt(targets.map((t) => t.rel))}`,
+			`확장 술어 대상이 12 미만이다 — 열거 또는 술어가 축소됐다:\n${fmt(targets.map((t) => t.rel))}`,
+		).toBeGreaterThanOrEqual(12);
+
+		// 선행 술어(effect 등록 한정) 대상 하한 11. 집행에는 쓰이지 않지만 G-E 의
+		// 비교항이므로 이쪽이 무너지면 두 술어 정합 판정이 공허해진다.
+		expect(
+			specScoped.length,
+			`선행 술어 대상이 11 미만이다 — 열거가 축소됐다:\n${fmt(specScoped.map((t) => t.rel))}`,
 		).toBeGreaterThanOrEqual(11);
 
 		// (I4) wrapper 함정 고정 — fetch 를 하지 않는 wrapper 만 겨냥한 패턴은 어떤
@@ -330,60 +416,24 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		).toHaveLength(0);
 	});
 
-	it("G-B / R-1: 술어 대상 전수에 unmount 가드 식별자가 있다 (spec (M-A) 동치)", () => {
-		const targets = specScopedTargets(productionFiles());
-		const unguarded = targets.filter((t) => !RE_GUARD_IDENTIFIER.test(t.source)).map((t) => t.rel);
+	it("G-B / R-1: 확장 술어 대상 전수에 unmount 가드 식별자가 있다", () => {
+		const targets = widenedSurface(productionFiles());
+		const unguarded = guardViolations(targets);
 		expect(
 			unguarded,
-			`가드 없는 async effect 표면:\n${fmt(unguarded)}\n` +
-				"await 이후 코드가 unmount 후에도 실행돼 setter · log · reportError 를 발화한다.",
+			`가드 없는 async continuation 표면:\n${fmt(unguarded)}\n` +
+				"await 이후 코드가 unmount 후에도 실행돼 setter · log · reportError 를 발화한다. " +
+				"effect 등록 여부는 묻지 않는다 — 이벤트 핸들러의 continuation 도 같은 계약을 진다.",
 		).toHaveLength(0);
 	});
 
-	it("G-C: 술어 대상마다 unmount 왕복 fixture 가 존재한다", () => {
-		const targets = specScopedTargets(productionFiles());
-		const missing: string[] = [];
-		for (const t of targets) {
-			const testRel = siblingTestPath(t.rel);
-			if (testRel === null) {
-				missing.push(`${t.rel} — 형제 테스트 파일 부재`);
-				continue;
-			}
-			const testSource = readFileSync(join(REPO_ROOT, testRel), "utf8");
-			if (!RE_UNMOUNT_CALL.test(testSource)) missing.push(`${t.rel} — ${testRel} 에 unmount() 왕복 부재`);
-		}
+	it("G-C: 확장 술어 대상마다 unmount 왕복 fixture 가 존재한다", () => {
+		const missing = fixtureViolations(widenedSurface(productionFiles()));
 		expect(missing, `race fixture 부재:\n${fmt(missing)}`).toHaveLength(0);
 	});
 
 	it("G-D / R-2: fixture 가 그 대상이 실제로 내는 발화 종류를 관측한다 (표면 비대칭 차단)", () => {
-		const targets = specScopedTargets(productionFiles());
-		const violations: string[] = [];
-		let setterOnlyChecked = 0;
-
-		for (const t of targets) {
-			const need = requiredSurfaces(t.emissions);
-			if (need.length === 0) continue;
-			const testRel = siblingTestPath(t.rel);
-			if (testRel === null) {
-				violations.push(`${t.rel} — 형제 테스트 부재 (G-C 참조)`);
-				continue;
-			}
-			const obs = fixtureObservations(readFileSync(join(REPO_ROOT, testRel), "utf8"));
-			if (need.includes("setter")) {
-				setterOnlyChecked += 1;
-				if (!obs.setterSurface) {
-					violations.push(
-						`${t.rel} — post-await 발화가 setter 전용(console ${t.emissions.consoleLike} / setter ${t.emissions.setterLike})인데 ` +
-							`${testRel} 에 setter 계수 관측기가 없다. 콘솔 spy 단정은 이 표면에서 공허하다.`,
-					);
-				}
-			}
-			if (need.includes("console") && !obs.consoleSurface) {
-				violations.push(
-					`${t.rel} — post-await 콘솔류 발화 ${t.emissions.consoleLike}건인데 ${testRel} 에 소비되는 발화 spy 가 없다.`,
-				);
-			}
-		}
+		const { violations, setterOnlyChecked } = surfaceViolations(widenedSurface(productionFiles()));
 
 		expect(violations, `관측 표면 불일치:\n${fmt(violations)}`).toHaveLength(0);
 
@@ -392,32 +442,53 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		expect(setterOnlyChecked, "setter 전용 분류가 음수일 수 없다").toBeGreaterThanOrEqual(0);
 	});
 
-	it("G-E: 확장 표면과의 차집합이 정확히 'effect 미등록' 부류다 (열거 누락과 구별)", () => {
+	it("G-E: 두 술어의 정합 — 확장 ⊇ 선행 · 차집합도 집행 대상 (면제 아님)", () => {
 		const files = productionFiles();
-		const targets = specScopedTargets(files);
+		const specScoped = specScopedTargets(files);
 		const widened = widenedSurface(files);
-		const targetRels = new Set(targets.map((t) => t.rel));
+		const specScopedRels = new Set(specScoped.map((t) => t.rel));
 
-		// (1) 발화가 있는 spec 대상은 확장 표면에도 반드시 든다 — 두 술어의 정합.
+		// (E-1) 발화가 있는 선행 술어 대상은 확장 표면에도 반드시 든다 — 두 술어 중
+		//       하나가 고장나면 여기서 잡힌다.
 		const widenedRels = new Set(widened.map((t) => t.rel));
-		const escaped = targets
+		const escaped = specScoped
 			.filter((t) => t.emissions.consoleLike + t.emissions.setterLike > 0)
 			.filter((t) => !widenedRels.has(t.rel))
 			.map((t) => t.rel);
 		expect(
 			escaped,
-			`spec 대상이 확장 표면 열거에서 샜다 — 두 술어 중 하나가 고장났다:\n${fmt(escaped)}`,
+			`선행 술어 대상이 확장 표면 열거에서 샜다 — 두 술어 중 하나가 고장났다:\n${fmt(escaped)}`,
 		).toHaveLength(0);
 
-		// (2) 차집합의 모든 파일이 effect 미등록이어야 한다. 하나라도 effect 를
-		//     등록하고 있다면 그것은 "spec 경계" 가 아니라 **G-A 열거 누락**이다.
-		const outOfScope = widened.filter((t) => !targetRels.has(t.rel));
-		const enumerationBugs = outOfScope
-			.filter((t) => RE_EFFECT_REGISTRATION.test(t.source))
-			.map((t) => t.rel);
+		// (E-2) 확장이 축소로 뒤집히지 않는다. 술어 편집으로 확장 표면이 선행보다
+		//       좁아지면 집행 대상이 조용히 줄어든다.
+		expect(
+			widened.length,
+			`확장 술어 대상(${widened.length})이 선행 술어 대상(${specScoped.length})보다 적다 — 확장이 축소로 뒤집혔다.`,
+		).toBeGreaterThanOrEqual(specScoped.length);
+
+		// (E-3) 차집합(확장 ∖ 선행)은 **면제 목록이 아니라 집행 대상의 일부**다.
+		//       이전 판본의 G-E 는 "차집합 = effect 미등록 부류" 를 고정해 사각을
+		//       유지했다. 이제는 같은 차집합에 가드 · fixture · 관측 요구를 그대로
+		//       적용하고, 그 통과를 여기서 한 번 더 못박는다 (G-B/G-C/G-D 가 이미
+		//       전수를 보지만, 차집합이 비게 되는 회귀와 구별하기 위해 분리 단언한다).
+		const diff = widened.filter((t) => !specScopedRels.has(t.rel));
+		const diffViolations = [
+			...guardViolations(diff),
+			...fixtureViolations(diff),
+			...surfaceViolations(diff).violations,
+		];
+		expect(
+			diffViolations,
+			`effect 미등록 async continuation 이 가드·fixture·관측 요구를 통과하지 못했다:\n${fmt(diffViolations)}`,
+		).toHaveLength(0);
+
+		// (E-4) 차집합의 모든 파일이 effect 미등록이어야 한다. 하나라도 effect 를
+		//       등록하고 있다면 그것은 술어 경계가 아니라 **선행 술어 열거 버그**다.
+		const enumerationBugs = diff.filter((t) => RE_EFFECT_REGISTRATION.test(t.source)).map((t) => t.rel);
 		expect(
 			enumerationBugs,
-			`effect 를 등록하는데도 대상 집합에서 빠진 파일 — 열거 버그다:\n${fmt(enumerationBugs)}`,
+			`effect 를 등록하는데도 선행 술어 대상에서 빠진 파일 — 열거 버그다:\n${fmt(enumerationBugs)}`,
 		).toHaveLength(0);
 	});
 
