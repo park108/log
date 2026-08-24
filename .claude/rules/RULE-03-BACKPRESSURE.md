@@ -51,6 +51,10 @@ Phase 1 은 `git diff <직전 seen 기록 HEAD>..HEAD -- src/ <게이트 경로>
 ### (S2) 자가 일시정지
 자기 no-op streak ≥ 12 또는 `reconcile` 전수 stale ≥ 3 cycle 이면 `.claude/locks/<agent>.pause` 를 자가 생성하고 (S1) 과 동일한 `_reason.md` 를 남긴 뒤 종료한다.
 
+**`stale_cycles` 는 게이트를 실제로 재실행했는데 ack 하지 못한 경우에만 증가한다.** `reconcile: skipped (no delta)` — 즉 `git diff` 가 공집합이라 재실행을 생략한 tick — 은 증가시키지 않는다.
+
+> 이 구분이 없으면 (S2) 는 정상 상태를 정체로 오인한다. src 가 안 바뀐 조용한 구간(developer 커밋 사이)에서 no-delta 스킵이 3 tick 만 이어져도 inspector 가 자가 정지한다. (S2) 가 겨냥하는 것은 "재측정했는데 212회 연속 0/20 ack" 인 트레드밀이지 "측정할 것이 없어 넘어간" 상태가 아니다. — 2026-08-24 재가동 첫 tick 에서 inspector 가 지적.
+
 전 큐 hash 불변 + `60.done` 증가 0 이 24h 지속되면 `.claude/locks/pipeline.pause` 를 자가 생성한다.
 
 ### (S3) 정체 spec 강제 격리 — planner 의무
