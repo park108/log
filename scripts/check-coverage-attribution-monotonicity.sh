@@ -17,7 +17,9 @@
 # exit 0 : 위반 0
 # exit 1 : 단조성 위반 (소실 슬롯 ≥ 1) — 위반 파일 경로를 stdout 에 1행 이상 출력
 # exit 2 : 입력·실행 오류 (산출물 부재/파싱 실패/알 수 없는 인자)
-# exit 3 : 공허 산출물 — 판정이 아무것도 재지 않았다 (부분집합 covered 슬롯 0)
+# exit 3 : 공허 산출물 — 판정이 아무것도 재지 않았다. 두 층 각각이 이 코드를 낸다:
+#            (a) 전수 covered 슬롯 0 ([VACUOUS-FULL]) — --allow-empty 로 면제되지 않는다
+#            (b) 부분집합 covered 슬롯 0 ([EMPTY]) — --allow-empty 시 면제된다
 # exit 4 : 완전성 단언 붕괴 — 샤드 열거가 전수 수집을 재현하지 못했다
 #
 # 설계 주의 (RULE-06):
@@ -28,6 +30,8 @@
 #  * covered 가 전부 0 인 산출물은 subset ⊆ full 을 자동 만족한다. 샤드마다 실행 사실을
 #    (i) Tests N passed · N>0, (ii) "No test files found" 부재, (iii) covered>0 로 확인한다.
 #    (iii) 의 예외는 샤드명 하드코딩이 아니라 "(i)(ii) 통과 + covered=0" 조건으로 기술한다.
+#  * 그 예외는 부분집합(샤드) 층 한정이다. 전수 산출물이 공허하면 모든 부분집합이 자동으로
+#    포함되어 전 샤드가 초록이 되므로, 전수 층 공허는 면제 없이 항상 실패로 판정한다.
 #  * 수치 상수(70 파일 / 12 샤드 / 637 테스트)를 박지 않는다 — 매 실행 산출한다.
 
 set -u
@@ -152,6 +156,14 @@ console.log(
   `${tag}full_covered=${F.total} subset_covered=${S.total} ` +
   `full_files=${F.filesWithBranches} subset_files=${S.filesWithBranches}`
 );
+
+// 전수 공허 차단: 측정 대상이 통째로 비면 모든 부분집합이 자동으로 포함되어 전 샤드가
+// 초록이 된다. 이 층은 면제 인자를 참조하지 않는다 — 면제는 부분집합 층에만 미친다.
+// 부분집합 차단보다 앞에 둔다: 둘 다 공허하면 진단은 "측정 대상이 통째로 비었다" 여야 한다.
+if (F.total === 0) {
+  console.log(`${tag}[VACUOUS-FULL] 전수 covered 슬롯 0 — 측정 대상이 통째로 공허하다 (모든 부분집합이 자동 포함)`);
+  fail(3, `[FAIL] ${tag}공허 산출물: full covered=0. 전수 실행이 실제로 코드를 실행했는지 확인하라. 면제 인자는 이 층에 적용되지 않는다.`);
+}
 
 // 공허 통과 차단: 부분집합이 아무 슬롯도 covered 로 갖지 않으면 포함 관계는 자동 참이다.
 if (S.total === 0 && !allowEmpty) {
@@ -296,6 +308,19 @@ if [ ! -f "$FULL_DIR/coverage-final.json" ]; then
   exit 2
 fi
 
+# ── 2b. 전수 층 공허 조기 차단 ────────────────────────────────────────────────
+# 전수 자기 대조로 전수 covered 총합만 확인한다 (판정 코어 재사용 — 별도 계산 로직 없음).
+# 전수가 공허하면 이후 전 샤드가 자동 통과하므로 첫 샤드 이전에 끊는다.
+# (M2) 대조 모드는 이 경로를 거치지 않는다 — 동일 차단이 판정 코어에도 있다.
+PREFLIGHT="$(judge "$FULL_DIR/coverage-final.json" "$FULL_DIR/coverage-final.json" "full-preflight" "" 2>&1)"
+PRE_RC=$?
+if [ "$PRE_RC" != "0" ]; then
+  printf '%s\n' "$PREFLIGHT"
+  echo "[FAIL] 전수 산출물이 공허하다 — 부분집합 대조를 시작하지 않는다 (rc=$PRE_RC)" >&2
+  exit "$PRE_RC"
+fi
+printf '%s\n' "$PREFLIGHT" | head -1
+
 # ── 3. 완전성 단언: 샤드 열거 합 == 전수 실행이 실제로 돌린 파일 수 ───────────
 # 두 값의 출처가 다르다 (열거 vs 전수 실행 요약). 같은 출처면 이 단언은 공허하다.
 if [ "$ENUM_COUNT" != "$FULL_FILES" ]; then
@@ -382,6 +407,8 @@ while IFS= read -r key; do
   fi
 
   # (iii) covered>0. 예외는 (i)(ii) 통과 + covered=0 인 경우로만 기술한다 (샤드명 하드코딩 금지).
+  # 아래 "allow-empty" 는 부분집합(샤드) 층 면제만 켠다. 전수 층 공허 차단([VACUOUS-FULL])은
+  # 이 인자를 참조하지 않으므로 전수 산출물이 비면 면제 여부와 무관하게 여기서 실패한다.
   JOUT="$(judge "$FULL_DIR/coverage-final.json" "$SDIR/coverage-final.json" "$key" "allow-empty" 2>&1)"
   JRC=$?
   printf '%s\n' "$JOUT"

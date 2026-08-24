@@ -26,11 +26,33 @@ bash scripts/check-coverage-attribution-monotonicity.sh \
   --full scripts/fixtures/coverage-attribution/full-v8-regression.json \
   --subset scripts/fixtures/coverage-attribution/subset.json
 
-# 공허 산출물 — rc=3 (부분집합 covered 0 은 포함 관계를 자동 만족하므로 별도 차단)
+# 공허 산출물 (부분집합 층) — rc=3 (부분집합 covered 0 은 포함 관계를 자동 만족하므로 별도 차단)
 bash scripts/check-coverage-attribution-monotonicity.sh \
   --full scripts/fixtures/coverage-attribution/full.json \
   --subset scripts/fixtures/coverage-attribution/subset-empty.json
+
+# 위와 동일 입력 + --allow-empty — rc=0 (부분집합 층 면제. `root` 샤드의 정상 covered=0 경로)
+bash scripts/check-coverage-attribution-monotonicity.sh \
+  --full scripts/fixtures/coverage-attribution/full.json \
+  --subset scripts/fixtures/coverage-attribution/subset-empty.json --allow-empty
+
+# 공허 산출물 (전수 층) — rc=3, `--allow-empty` 유무와 무관. 같은 픽스처를 --full 에도 준다.
+# 전수가 공허하면 모든 부분집합이 자동 포함되므로 면제 대상이 아니다 ([VACUOUS-FULL]).
+bash scripts/check-coverage-attribution-monotonicity.sh \
+  --full scripts/fixtures/coverage-attribution/subset-empty.json \
+  --subset scripts/fixtures/coverage-attribution/subset-empty.json --allow-empty
 ```
+
+## 기대 rc 요약
+
+| `--full` | `--subset` | 면제 | rc | 토큰 |
+|---|---|---|---|---|
+| `full.json` | `subset.json` | — | 0 | `[OK]` |
+| `full-v8-regression.json` | `subset.json` | — | 1 | `[VIOLATION]` |
+| `full.json` | `subset-empty.json` | — | 3 | `[EMPTY]` |
+| `full.json` | `subset-empty.json` | `--allow-empty` | 0 | `[OK]` |
+| `subset-empty.json` | `subset-empty.json` | — | 3 | `[VACUOUS-FULL]` |
+| `subset-empty.json` | `subset-empty.json` | `--allow-empty` | 3 | `[VACUOUS-FULL]` |
 
 ## 담고 있는 표기 변형
 
