@@ -17,11 +17,3 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json|package-lock\.json)$'; then
   bash scripts/check-deps-coherence.sh || exit 1
 fi
-
-# monitor derived state immutability gate — TSK-20260825-03 / spec: components/monitor-derived-state-immutability.md §동작 G-1
-# staged 변경에 src/Monitor/** 포함 시 검사.
-# npm script 동치: check:monitor-state-immutability (package.json / ci.yml 과 같은 스크립트).
-# 기존 3 블록과 같이 npm 오버헤드 없이 bash 로 직접 호출한다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^src/Monitor/'; then
-  bash scripts/check-monitor-state-immutability.sh || exit 1
-fi
