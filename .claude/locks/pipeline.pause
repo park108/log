@@ -1,9 +1,0 @@
-2026-08-24 수동 정지 (운영자 park108 + Claude Code 세션)
-
-사유: green→blue 갭 수동 triage.
-- planner 369차 tick / carve 0 chain 122 / promote 0 chain 13
-- inspector 212차 tick / reconcile 0/20 ack (전수 stale)
-- 20.req 15/15, 30.spec/green 20/20 동시 만수위 → 상류 2단 no-op
-- fcb062e..HEAD 113 commit 중 src/ 변경 2건
-
-triage 완료 + carve-precondition 처리 방향 결정 후 본 파일 삭제로 해제 (RULE-05).
