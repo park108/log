@@ -135,8 +135,8 @@ spec 본문이 인용한 실측·전칭 단언은 현 HEAD 재실행과 일치�
 
 - [x] 단일 출처 게이트 실재 + 공허 가드 — `src/__tests__/react-query-test-queryclient-single-source.test.ts:40`(스캔) · `:52`(파일 수 > 20 단언).
 - [x] 더블 형상 게이트 실재 + `predicates=` 산출 — `scripts/check-test-double-shape-fidelity.sh`.
-- [ ] 시그니처 고정 제거 — HEAD=`5b2ed3b` (tick 225 재실행) **1 hit** (`:85` 빈 괄호 리터럴, `grep -cF`). (S-1) 의 부착 대상. 델타 무관 영역이라 tick 224 와 동일.
-- [ ] 산문 면역의 특이도 증인 — HEAD=`5b2ed3b` (tick 225 재실행) `witness=0`. (S-2)(R-4) 의 부착 대상.
+- [ ] 시그니처 고정 제거 — HEAD=`d7b08dd` (tick 226 재실행) **1 hit** (`:85` 빈 괄호 리터럴, `grep -cF`). (S-1) 의 부착 대상. `5b2ed3b..d7b08dd` 델타에 `src/__tests__/` 변경이 0건이라 tick 224·225 와 동일.
+- [ ] 산문 면역의 특이도 증인 — HEAD=`d7b08dd` (tick 226 재실행) `witness=0`. (S-2)(R-4) 의 부착 대상.
 - [x] 도출 대조 — tick 223 실측 게이트 `predicates=13` = 진리원 도출 13. (S-3).
 
 ## 수용 기준
@@ -177,3 +177,4 @@ spec 본문이 인용한 실측·전칭 단언은 현 HEAD 재실행과 일치�
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-25 | REQ-20260825-021 (inspector tick 223) | 최초 등록. followup 3건을 흡수한 req 를 불변식으로 반영. **req 수용 기준 11항을 그대로 쓰지 않았다**: (a) FR-05·FR-06 의 5항이 전부 slug `testing/test-double-return-shape-fidelity` 의 **green 경로를 문자열로 직접 참조**한다 — `RULE-07 §promote 조건 2` 는 승격으로 경로가 바뀌는 명령을 금지하며, 대상 spec 이 tick 223 에 promote 후보가 됐으므로 그 명령들은 곧 전부 깨진다. 다섯 항의 실체(도출 12→13 · 전칭 단언 철회)는 **tick 223 Phase 1 이 이미 정정 완료**했고, 재발 방지 계약만 (S-3)(S-4) 로 남기되 판정은 **경로 무관한 도출 대조**로 교체했다. (b) FR-04 의 "stdout `predicates=` 값이 spec 박제 값과 같다" 는 spec 파일을 읽어야 성립하므로 **진리원(`common.ts`) 도출 ↔ 게이트 산출** 대조로 환원했다 — 상수 고정을 피하는 부수 효과도 얻는다 ((R-5)). (c) FR-03 의 "행 선두 `*`·`//` 제외" 는 **게이트 소스 grep** 으로 판정되기 쉬운 형태라 **특이도 증인** 판정으로 교체했다 — 죽은 제외 코드가 소스 grep 을 통과하는 것이 이 축이 겨눈 병리 그 자체다. (d) `npm test` · `check:spec-coherence` · `check:acceptance-criteria` 3항은 **중복 게이트 부류**(위반 시 husky·CI 즉시 실패)라 체크박스로 두지 않았다. (e) NFR-01 항목은 단독 판정력이 없으므로 **동반 조건**임을 명시했다. **신규 추가 (req 에 없던 항목)**: (S-5) 특이도의 명시적 지위 — `RULE-06` 이 특이도를 요구하지 않는다는 비대칭을 spec 층에서 보상한다, (R-4) 증인 소멸 회귀 + 증인이 `src/__tests__/**` 에 있으면 게이트 스캔 밖이라 무효라는 실측 근거, (R-6) (S-4) 를 문구 금지 grep 으로 대리하는 회귀 — 표현만 바꾼 거짓 전칭이 통과한다. | all |
+| 2026-08-26 | (inspector tick 226) | **Phase 1 재실행 2/2 ack 0 — stale 3 cycle.** (S-1) `:85` 빈 괄호 리터럴 1 hit (`grep -cF`) · (S-2) `witness=0` 로 tick 224·225 와 불변. (S-3) `truth=13 gate=13` · (NFR-01) rc=0 은 유지. `5b2ed3b..d7b08dd` 델타에 `src/__tests__/` 변경이 0건이므로 불변은 예상된 결과이며 **재실행은 실제로 수행했다** (no-delta 스킵 아님 — 커밋 6건이 `src/`·`scripts/` 를 건드렸다). 두 항목 모두 **수리 task 미발행** 상태이고 본 spec 은 수용 기준 2/4 로 promote 후보가 아니다. | 테스트 현황 |

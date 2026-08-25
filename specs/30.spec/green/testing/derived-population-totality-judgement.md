@@ -1,8 +1,8 @@
 # 도출된 모집단에 대한 판정은 전항 성립을 요구한다
 
-> **위치**: `src/common/a11y.audit.test.ts` (모집단 축) · `scripts/check-declared-branch-discrimination.sh` (임계 축). 라인은 HEAD=`5b2ed3b` 스냅샷이며 **식별자 우선**.
+> **위치**: `src/common/a11y.audit.test.ts` (모집단 축) · `scripts/check-declared-branch-discrimination.sh` (임계 축, 판정문 `:101`). 라인은 HEAD=`d7b08dd` 스냅샷이며 **식별자 우선**.
 > **관련 요구사항**: REQ-20260825-025
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 225 최초 등록)
+> **최종 업데이트**: 2026-08-26 (by inspector — tick 226 Phase 1 ack 4/4 + (T-4) 판정 명령 교정)
 
 ## 역할
 
@@ -33,6 +33,8 @@
 
 (B) 의 도출 수 `name_count` 는 **ack 라인 출력에만 쓰이고 판정에 쓰이지 않는다** (`:96-97` vs `:99`). 도출은 정확한데 그 정확함이 판정에 연결돼 있지 않다.
 
+**착지 (tick 226 ack)** — 표는 tick 225 시점의 **실패 형상 기록**이다. 현 HEAD 에서 (A) 는 `.tsx` 를 포함한 도출 기반 대조를 갖고 (TSK-20260826-36 / `0e2845f`), (B) 의 판정문은 `:101` `[ "$asserted" -ne "$name_count" ]` 로 도출 수에 직접 연결됐다 (TSK-20260826-35 / `f73dfbd`).
+
 ### (D-2) (A) 의 모집단은 확장자 하나로 절반이 새어나간다
 
 `a11y.audit.test.ts:53` 이 `full.endsWith('.jsx')` 로 수집을 한정한다. 파일 상단 선언(`:2` "전수 검증", `:5` "전수 수집")과 어긋난다.
@@ -47,6 +49,8 @@ tick 225 실측 (HEAD=`5b2ed3b`): 프로덕션 `.jsx` **16** · 프로덕션 `.t
 
 따라서 (B) 의 유일한 잠재 채널은 게이트인데, 그 게이트의 임계가 `≥1` 이라 3 중 2 삭제를 통과시킨다. seam 주입 실측: `adminmenu=4 asserted=1` → rc=0.
 
+**tick 226 재확인** — TSK-20260826-35 의 developer 가 DoD 밖에서 잰 결과, **부분 퇴행 주입 상태에서도** `npm test` 가 `704 passed / 74 files` · `Branches 95.69%` 로 준수 트리와 **완전히 동일**했다. 상향 **후에도** 테스트·커버리지가 이 축의 신호가 아니라는 뜻이며, 게이트가 유일 채널이라는 §동작 (D-3) 의 명제가 재확인됐다.
+
 ### (D-4) 임계 상향은 spec 개정에 후행한다
 
 `asserted ≥ 1` 은 스크립트의 임의 선택이 아니라 **소유 spec 이 명시 승인한 값**이다 (slug `testing/declared-branch-discriminating-assertion` §수용 기준 (B-1) 판정문 + "기준은 `≥1` 이므로 착지는 요구를 초과한다" 서술).
@@ -59,6 +63,8 @@ tick 225 실측 (HEAD=`5b2ed3b`): 프로덕션 `.jsx` **16** · 프로덕션 `.t
 - (A) 프로덕션 `.tsx` 8 지점은 육안상 전부 준수다 — 7 지점이 `tabIndex` + `onKeyDown` 을 보유하고 `ImageSelector.tsx:174` 는 native `<button>` 이라 `NATIVE_TAG_NAMES`(`:40`) 자동 제외 대상이다.
 
 **단 (A) 의 즉시 통과는 보장이 아니다** — §참고 §미측정·비판정 항목의 opening-tag 파싱 경계를 참조한다.
+
+**tick 226 결과** — 두 예고가 모두 적중했다. (B) 는 상향 후에도 `adminmenu=3 asserted=3` rc=0, (A) 는 `.tsx` 20 파일 확장 후에도 감사 rc=0 (4 passed) 이다. 즉 확장이 드러낼 수 있었던 opening-tag 파싱 경계 위반은 **실제로는 0 건**이었다 — 미측정이던 표면이 처음 측정돼 준수로 확인됐다.
 
 ## 의존성
 
@@ -76,18 +82,21 @@ tick 225 실측 (HEAD=`5b2ed3b`): 프로덕션 `.jsx` **16** · 프로덕션 `.t
 
 - [x] (B) 게이트 채널 실재 — `check:branch-discrimination` 이 `package.json` 에 등재돼 있고 tick 225 재실행 `adminmenu=3 asserted=3` rc=0.
 - [x] (B) 전항 요구로 상향해도 현 HEAD 가 충족 — tick 225 재실행 `test "$n" -eq "$tot"` rc=0.
-- [ ] (A) 감사 모집단의 `.tsx` 포함 — tick 225 실측 0 hit. (T-1) 의 부착 대상.
-- [ ] (A) inventory 도출 기반 대조 — tick 225 실측 `toBeGreaterThan(0)` 단독 가드 잔존. (T-2) 의 부착 대상.
-- [ ] (B) 게이트 임계 전항 요구 — tick 225 실측 `:99` `-lt 1` 잔존. (T-4) 의 부착 대상.
+- [x] (A) 감사 모집단의 `.tsx` 포함 — tick 226 ack (TSK-20260826-36 / `0e2845f`). tick 225 실측 0 hit 이었다.
+- [x] (A) inventory 도출 기반 대조 — tick 226 ack. 비공허 가드 단독 잔존 0 (TSK-20260826-36 / `0e2845f`).
+- [x] (B) 게이트 임계 전항 요구 — tick 226 ack. `:101` `-ne "$name_count"` (TSK-20260826-35 / `f73dfbd`). tick 225 실측 `:99` `-lt 1` 잔존이었다.
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (`RULE-07 §수용 기준 문장 규약`). 명령은 `src/**` · `scripts/**` 만 참조하며 **spec 경로를 어느 것도 참조하지 않는다** (`§promote 조건 2`). **HEAD=`5b2ed3b` (tick 225 등록) 기준 1/5.**
+> 전 항목 명령 1회로 rc 판정 가능 (`RULE-07 §수용 기준 문장 규약`). 명령은 `src/**` · `scripts/**` 만 참조하며 **spec 경로를 어느 것도 참조하지 않는다** (`§promote 조건 2`). **HEAD=`d7b08dd` (tick 226 재실행) 기준 5/5 — 전항 충족.** tick 225 등록 시점(HEAD=`5b2ed3b`) 기준은 1/5 였다. **단 (T-4) 는 tick 226 이 판정 명령을 교정한 뒤에야 rc=0 이 됐다** — 실제 임계 상향은 TSK-20260826-35 (`f73dfbd`) 가 착지시켰고, 미충족으로 보이던 것은 ERE 중간 `$` 의 앵커 해석 때문이었다.
 
-- [ ] (Must, T-1) (A) 수집 모집단이 프로덕션 컴포넌트 확장자 전체를 포함한다 — 판정: `bash -c 'test "$(grep -cE "tsx" src/common/a11y.audit.test.ts)" -ge 1'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225) 실측 rc=1 / 0 hit → 미충족.** **단독 판정력 없음 (과신 금지)** — 문자열 `tsx` 는 주석으로도 들어간다. 이 항목은 (T-2)(T-3) 과 **동반해야만** 의미를 가지며, 실제 수집 확장 여부를 재는 것은 (T-2) 의 도출 대조다.
-- [ ] (Must, T-2) (A) inventory 회귀 방어가 도출 기반 대조다 — 비공허 가드 단독 잔존 0. 판정: `bash -c 'test "$(grep -cE "PROD_[A-Z_]*FILES\.length\)\.toBeGreaterThan\(0\)" src/common/a11y.audit.test.ts)" -eq 0'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225) 실측 rc=1 → 미충족.** **`> 0` 가드의 삭제를 요구하는 것이 아니다** — §역할 핵심 명제대로 비공허와 전항은 둘 다 필요하다. 요구하는 것은 **비공허 가드가 유일한 inventory 방어인 상태의 해소**이며, 도출 대조가 부착되면 이 패턴은 자연히 사라지거나 보조 위치로 내려간다.
-- [ ] (Must, T-3) (A) 감사 자체가 초록 — 판정: `npx vitest run src/common/a11y.audit.test.ts` → **rc=0**. **HEAD=`5b2ed3b` (tick 225) 실측 rc=0 이나, 이는 확장 *전* 모집단에 대한 통과다.** 본 항목의 판정 의미는 (T-1)(T-2) 착지 **후** 에 발생한다 — 확장된 모집단에서도 초록이어야 한다는 요구이며, 신규 위반이 드러나면 수정하거나 `PATTERN_B_EXEMPTIONS` 에 **`rationale` 동반** 등재해야 한다. 등재 없는 통과는 허용하지 않는다.
-- [ ] (Must, T-4) (B) 게이트 임계가 전항 요구다 — 판정: `bash -c 'test "$(grep -c "asserted\" -lt 1" scripts/check-declared-branch-discrimination.sh)" -eq 0 && grep -qE "asserted\"[[:space:]]*(-ne|!=)[[:space:]]*\"\$name_count" scripts/check-declared-branch-discrimination.sh'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225) 실측 rc=1 / `:99` `-lt 1` 잔존 → 미충족.** 두 조건의 논리곱인 이유 — 잔존 0 만 재면 판정문을 **삭제**해도 통과하고, 신규 패턴만 재면 구 판정문이 남은 채 병존해도 통과한다.
+- [x] (Must, T-1) (A) 수집 모집단이 프로덕션 컴포넌트 확장자 전체를 포함한다 — 판정: `bash -c 'test "$(grep -cE "tsx" src/common/a11y.audit.test.ts)" -ge 1'` → **rc=0**. **HEAD=`d7b08dd` (tick 226 재실행) 실측 rc=0 → 충족** (TSK-20260826-36 / `0e2845f`). **단독 판정력 없음 (과신 금지)** — 문자열 `tsx` 는 주석으로도 들어간다. 이 항목은 (T-2)(T-3) 과 **동반해야만** 의미를 가지며, 실제 수집 확장 여부를 재는 것은 (T-2) 의 도출 대조다.
+- [x] (Must, T-2) (A) inventory 회귀 방어가 도출 기반 대조다 — 비공허 가드 단독 잔존 0. 판정: `bash -c 'test "$(grep -cE "PROD_[A-Z_]*FILES\.length\)\.toBeGreaterThan\(0\)" src/common/a11y.audit.test.ts)" -eq 0'` → **rc=0**. **HEAD=`d7b08dd` (tick 226 재실행) 실측 rc=0 → 충족** (TSK-20260826-36 / `0e2845f`). **`> 0` 가드의 삭제를 요구하는 것이 아니다** — §역할 핵심 명제대로 비공허와 전항은 둘 다 필요하다. 요구하는 것은 **비공허 가드가 유일한 inventory 방어인 상태의 해소**이며, 도출 대조가 부착되면 이 패턴은 자연히 사라지거나 보조 위치로 내려간다.
+- [x] (Must, T-3) (A) 감사 자체가 초록 — 판정: `npx vitest run src/common/a11y.audit.test.ts` → **rc=0**. **HEAD=`d7b08dd` (tick 226 재실행) 실측 rc=0 (4 passed) → 충족.** tick 225 의 rc=0 은 확장 *전* 모집단에 대한 통과였으나, TSK-20260826-36 (`0e2845f`) 이 `.tsx` 20 파일을 모집단에 넣은 **후**의 rc=0 이므로 이제 판정 의미를 갖는다. developer 는 DoD 밖에서 `UserLogin.tsx` 의 `tabIndex` 제거 위반을 **확장 전** 감사에 걸어 rc=0 임을 확인했다 — 확장이 문면뿐이었다면 양쪽 rc 가 같았을 것이고, 달랐다는 사실이 모집단이 실제로 넓어졌음의 증거다. 본 항목의 판정 의미는 (T-1)(T-2) 착지 **후** 에 발생한다 — 확장된 모집단에서도 초록이어야 한다는 요구이며, 신규 위반이 드러나면 수정하거나 `PATTERN_B_EXEMPTIONS` 에 **`rationale` 동반** 등재해야 한다. 등재 없는 통과는 허용하지 않는다.
+- [x] (Must, T-4) (B) 게이트 임계가 전항 요구다 — 판정: `bash -c 'f=scripts/check-declared-branch-discrimination.sh; old=$(grep -cE "asserted\"[[:space:]]*-lt[[:space:]]*1" "$f"); new=$(grep -cE "asserted\"[[:space:]]*(-ne|!=)[[:space:]]*\"[\$]name_count" "$f"); echo "legacy-lt1=$old totality=$new"; [ "$old" -eq 0 ] && [ "$new" -ge 1 ]'` → **rc=0**. **HEAD=`d7b08dd` (tick 226 재실행) 실측 rc=0 / `legacy-lt1=0 totality=1` → 충족** (TSK-20260826-35 / `f73dfbd`, `check-declared-branch-discrimination.sh:101` `[ "$asserted" -ne "$name_count" ]`).
+  **tick 226 이 판정 명령 자체를 교정했다 (`RULE-07 §수용 기준 문장 규약` — 도달 불가 명령).** 종전 명령의 두 번째 조건은 `grep -qE "asserted\"[[:space:]]*(-ne|!=)[[:space:]]*\"\$name_count"` 였는데, `\$` 가 **bash 의 겹따옴표 단계에서 소비**돼 grep 에는 `$name_count` 가 전달된다. ERE 에서 중간 `$` 는 **행끝 앵커**로 해석되므로 그 패턴은 `...\"` 로 끝나는 행만 매치하고 앵커 뒤의 `name_count` 는 **어떤 입력으로도 성립할 수 없다**. tick 226 실측: 앵커판 `0 hit` / 앵커까지만 자른 `...\"$` 도 `0 hit` (대상 행은 `"$name_count" ]; then` 으로 이어지므로) / `[$]` 문자 클래스판 **`:101` 1 hit**. 즉 **어떤 착지로도 rc=0 이 될 수 없는 명령**이었다.
+  **"민감도 부족" 이 아니라 "도달 불가" 다.** developer 는 이 항목을 민감도 문제로 보고했으나 그 재현 명령은 `\$name_count` 에서 **백슬래시가 빠져** 있었다 — 손으로 옮겨 적으며 인용 단계가 한 겹 줄어든 것이다. discovery 가 **문면 명령을 파일에서 추출해 실행**해 뒤집었고 tick 226 이 재확인했다. **명령은 파일에서 추출해 실행한다 — 손으로 다시 치지 않는다.**
+  교정판은 `$` 를 `[$]` 문자 클래스로 감싸 인용 단계와 무관하게 리터럴로 고정한다. 두 조건의 논리곱인 이유는 그대로다 — 잔존 0 만 재면 판정문을 **삭제**해도 통과하고, 신규 패턴만 재면 구 판정문이 남은 채 병존해도 통과한다. **3방향 실측 (tick 226)**: 임계를 `-lt 1` 로 되돌린 픽스처 `rc=1 legacy-lt1=1 totality=0` / 판정문을 상수식으로 치환한 픽스처 `rc=1 legacy-lt1=0 totality=0` / 구·신 판정문 **병존** 픽스처 `rc=1 legacy-lt1=1 totality=1`. 준수 트리만 rc=0 이다.
 - [x] (Must, T-5) (B) 도출·충족 수치의 동시 발화 + 현 트리 정합 — 판정: `bash -c 'out=$(npm run --silent check:branch-discrimination 2>&1); echo "$out"; a=$(echo "$out" | sed -nE "s/.*adminmenu=([0-9]+).*/\1/p" | head -1); k=$(echo "$out" | sed -nE "s/.*asserted=([0-9]+).*/\1/p" | head -1); [ -n "$a" ] && [ -n "$k" ] || { echo "ack 라인 미발화" >&2; exit 2; }; [ "$a" -gt 0 ] || exit 2; [ "$a" = "$k" ]'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225 재실행) 실측 rc=0 / `adminmenu=3 asserted=3` → 충족.** **공허 통과 가드 내장** — ack 라인이 없거나 도출이 0 이면 `exit 2` 로 무판정과 충족을 분리한다. 이 항목은 상향 **전에도 참**이지만 `RULE-07 §반려 시그널` 의 중복 게이트 부류가 아니다: 두 수치의 **동시 발화**가 사라지는 회귀(ack 라인에서 `adminmenu` 를 빼는 변경)를 붉게 만드는 게이트가 현재 존재하지 않으며, 그 수치가 없으면 (T-4) 의 전항 요구는 관측 불가능해진다.
 
 ## 참고
@@ -125,3 +134,4 @@ tick 225 실측 (HEAD=`5b2ed3b`): 프로덕션 `.jsx` **16** · 프로덕션 `.t
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-25 | REQ-20260825-025 (inspector tick 225) | 최초 등록. **req 수용 기준 8항을 그대로 쓰지 않았다.** (a) req 판본의 FR-05 선행 판정이 slug `testing/declared-branch-discriminating-assertion` 의 **blue 경로 리터럴을 측정 명령 안에서 직접 참조**해 `RULE-07 §promote 조건 2` 를 위반했다 — 측정 명령에서 제거하고, 순서 제약은 §동작 (D-4) 평서문 + **동반 green 판본 등록**이라는 구조적 수단으로 대체했다. (b) req 의 `npm test` · `check:*` 2항은 **중복 게이트 부류**라 체크박스에서 제외하고 §참고에 전제로 남겼다. (c) req 의 게이트 판정문 기준이 `-lt 1` 잔존 0 **단독**이었는데 그것만으로는 판정문을 통째로 지워도 통과하므로 신규 전항 패턴 실재와의 **논리곱**((T-4))으로 교체했다. (d) **(T-5) 신규 추가** (req 에 없던 항목) — 두 수치의 동시 발화가 사라지는 회귀를 잡는 게이트가 없고, 그 수치가 없으면 (T-4) 의 전항 요구 자체가 관측 불가능해진다. (e) (T-1) 은 문자열 `tsx` grep 이라 주석으로 통과 가능함을 **과신 금지 형태로 항목 안에 박제**하고 (T-2) 동반 필수를 명시했다. **§동작 (D-2) 수치를 독립 재측정** — req 는 `.jsx 33 / .tsx 39` (테스트 파일 포함)를 실었으나 감사의 실제 모집단은 프로덕션 한정이므로 `프로덕션 .jsx 16 / .tsx 20` 으로 재측정해 박제했다. `role="button"` 보유 프로덕션 `.tsx` 6 파일 8 지점은 req 박제와 일치 확인. **§참고 소유 공백 항목 신설** — req 가 inspector 판단에 위임한 "a11y.audit 소유 spec 신설 여부" 에 대해 **신설하지 않는다**는 판정과 그 근거(신설은 req 가 Out-of-Scope 로 둔 판정 규칙 축을 끌어와야 성립)를 박제하고, 공백이 남아 있다는 사실 자체를 감추지 않았다. | all |
+| 2026-08-26 | TSK-20260826-35 / `f73dfbd` · TSK-20260826-36 / `0e2845f` (inspector tick 226) | **Phase 1 reconcile ack 4/4 → 수용 기준 5/5.** (T-1)(T-2)(T-3)(T-4) 플립 + 테스트 현황 3항 갱신. **(T-4) 판정 명령 교정 — 도달 불가 명령**: 종전 ERE 의 `\$name_count` 가 겹따옴표 단계에서 `$name_count` 로 풀리고, ERE 중간 `$` 는 **행끝 앵커**라 앵커 뒤 `name_count` 가 성립 불가였다. 어떤 착지로도 rc=0 이 될 수 없는 명령이었다. `[$]` 문자 클래스로 교체하고 3방향 픽스처(되돌림·삭제·병존)로 판정력을 실측했다. **developer 의 '민감도' 보고를 반영하지 않고 discovery 의 정정을 채택했다** — developer 재현 명령은 백슬래시가 빠져 인용 단계가 한 겹 줄어든 상태였고, discovery 가 문면 명령을 **파일에서 추출해 실행**해 뒤집었다. tick 226 이 추출 실행으로 재확인했고 교정판도 파일에서 재추출해 실행한 뒤 테스트 바이트와 `diff` 일치를 확인했다. **(D-1)(D-3)(D-5) 에 착지·재확인 결과 박제** — (A) 확장이 드러낼 수 있던 opening-tag 파싱 경계 위반은 실측 0 건이었고, 부분 퇴행 주입 하에서도 `npm test` 704/74 · Branches 95.69% 가 준수 트리와 동일해 게이트 단일 채널 명제가 재확인됐다. | 동작 (D-1)(D-3)(D-5) · 테스트 현황 · 수용 기준 (T-1)(T-2)(T-3)(T-4) |
