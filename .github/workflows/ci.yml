@@ -103,6 +103,18 @@ jobs:
       - name: Check test double return shape fidelity
         run: npm run check:test-double-shape
 
+      # 선언된 분기 구별 단언 게이트 (declared-branch-discriminating-assertion §동작 (B-1)).
+      # 더블로 분기를 선택한 케이스는 그 선택이 여는 관측 결과를 구별하는 단언을 가져야 한다.
+      # 위 형상 축(check:test-double-shape)이 선행 축이다 — 형상이 정합해야 분기가 비로소
+      # 실행되고, 그 다음에야 단언의 구별력이 의미를 갖는다.
+      # **테스트는 이 축의 채널이 될 수 없다**: 위반은 테스트를 붉게 만들지 않고 오히려
+      # 초록을 만든다. 실측에서 분기 0회 실행과 1회 실행이 통과 수·분기 커버리지 모두
+      # 완전히 동일했다 (677 passed · Branches 95.65%) — 커버리지 수치는 이 축의 신호가 아니다.
+      # admin 항목명은 하드코딩하지 않고 Navigation.tsx 에서 도출하며 (RULE-06 §열거 고정 금지)
+      # 도출이 0 이면 위반(1)이 아니라 무판정(2)으로 실패시킨다.
+      - name: Check declared branch discrimination
+        run: npm run check:branch-discrimination
+
       # api base URL 도출 총성 게이트 (api-base-url-assembly-totality §동작 (A-1)(A-3)(A-4)).
       # 미정의 base 가 `undefined + "?limit=10"` → 문자열 `"undefined?limit=10"` 이라는
       # **상대 URL** 로 조립돼 자기 origin 에 요청이 나가고, SPA 폴백이 index.html 을 200 으로

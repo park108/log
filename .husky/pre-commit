@@ -52,3 +52,14 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(\.env|src/types/env\.d\.ts$|scripts/check-env-api-base-presence\.sh$)'; then
   bash scripts/check-env-api-base-presence.sh || exit 1
 fi
+
+# 선언된 분기 구별 단언 게이트 — TSK-20260825-33 / spec: testing/declared-branch-discriminating-assertion.md §동작 (B-1)
+# staged 변경에 src/common/Navigation 또는 게이트 스크립트 자신이 포함되면 검사.
+# npm script 동치: check:branch-discrimination (package.json / ci.yml 과 같은 스크립트).
+# 더블로 분기를 선택한 케이스가 그 선택이 여는 관측 결과를 구별하지 않으면, 더블을 뒤집어도
+# 케이스는 초록이다 — 위반이 테스트를 붉게 만들지 않으므로 테스트 자신이 판정자가 될 수 없다.
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/common/Navigation|scripts/check-declared-branch-discrimination\.sh$)'; then
+  bash scripts/check-declared-branch-discrimination.sh || exit 1
+fi
