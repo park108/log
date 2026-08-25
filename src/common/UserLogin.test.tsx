@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import UserLogin, { getLoginUrl, getLogoutUrl } from './UserLogin';
 import * as common from './common';
+import * as errorReporter from './errorReporter';
 
 // REQ-20260420-010: functional env getter (`isDev()` / `isProd()` in `env.js`)
 // reads `import.meta.env.DEV` / `.PROD` lazily on each call, so `vi.stubEnv`
@@ -145,5 +146,73 @@ describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
     // activateOnKey 가 preventDefault 호출 → fireEvent 의 반환값이 false (cancelled)
     expect(spaceEvent).toBe(false);
     expect(window.location.href).toContain('localhost:3000');
+  });
+});
+
+describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))', () => {
+
+  let originalLocation: Location;
+
+  beforeEach(() => {
+    originalLocation = window.location;
+    // jsdom 의 `window.location` 은 read-only setter — 테스트 한정 cast 로 흡수.
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Location }).location =
+      { ...originalLocation, href: '' } as unknown as Location;
+  });
+
+  afterEach(() => {
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Location }).location = originalLocation;
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it('로그인 URL 이 공란이면 리디렉트 없이 reportError 로 발화한다', () => {
+    setEnv(true, false);
+    vi.stubEnv('VITE_COGNITO_LOGIN_URL_DEV', '');
+    vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
+    const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+    render(<UserLogin />);
+    fireEvent.click(screen.getByTestId('login-button'));
+
+    // href 불변 + 보고 1회 — "아무 일도 일어나지 않음"(무발화) 과 구별된다.
+    expect(window.location.href).toBe('');
+    expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('로그아웃 URL 이 공란이면 리디렉트 없이 reportError 로 발화한다', () => {
+    setEnv(true, false);
+    vi.stubEnv('VITE_COGNITO_LOGOUT_URL_DEV', '');
+    vi.spyOn(common, 'isLoggedIn').mockReturnValue(true);
+    vi.spyOn(common, 'deleteCookie').mockImplementation(() => {});
+    const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+    render(<UserLogin />);
+    fireEvent.click(screen.getByTestId('login-button'));
+
+    expect(window.location.href).toBe('');
+    expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('키보드 활성(Enter) 경로도 공란이면 동일하게 발화한다', () => {
+    setEnv(true, false);
+    vi.stubEnv('VITE_COGNITO_LOGIN_URL_DEV', '');
+    vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
+    const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+    render(<UserLogin />);
+    fireEvent.keyDown(screen.getByTestId('login-button'), { key: 'Enter' });
+
+    expect(window.location.href).toBe('');
+    expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('prod 도 dev 도 아니면 두 URL 도출이 undefined 다', () => {
+    setEnv(false, false);
+
+    expect(getLoginUrl()).toBeUndefined();
+    expect(getLogoutUrl()).toBeUndefined();
   });
 });

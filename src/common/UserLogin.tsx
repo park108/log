@@ -2,6 +2,7 @@ import type { SyntheticEvent } from "react";
 import * as common from '../common/common';
 import { isDev, isProd } from './env';
 import { activateOnKey } from './a11y';
+import { reportError } from './errorReporter';
 
 export const getLoginUrl = (): string | undefined => {
 	if (isProd()) return import.meta.env.VITE_COGNITO_LOGIN_URL_PROD;
@@ -27,10 +28,12 @@ const UserLogin = () => {
 			common.deleteCookie("access_token");
 			const url = getLogoutUrl();
 			if (url) window.location.href = url;
+			else reportError(new Error("logout redirect URL unresolved — VITE_COGNITO_LOGOUT_URL_* missing or blank"));
 		}
 		else {
 			const url = getLoginUrl();
 			if (url) window.location.href = url;
+			else reportError(new Error("login redirect URL unresolved — VITE_COGNITO_LOGIN_URL_* missing or blank"));
 		}
 	};
 
