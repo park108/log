@@ -7,9 +7,9 @@ import { getWebVitals } from './api';
 import PropTypes from 'prop-types';
 
 const HEADER_STYLE = {
-	"GOOD": "span span--monitor-evaluation span--monitor-good",
-	"POOR": "span span--monitor-evaluation span--monitor-poor",
-	"NEEDS IMPROVEMENT": "span span--monitor-evaluation span--monitor-warn",
+	"GOOD": "span span--monitor-evaluation span--monitor-evaluation-good",
+	"POOR": "span span--monitor-evaluation span--monitor-evaluation-poor",
+	"NEEDS IMPROVEMENT": "span span--monitor-evaluation span--monitor-evaluation-warn",
 	"None": "span span--monitor-evaluation span--monitor-none",
 	undefined: "span span--monitor-evaluation span--monitor-none"
 };

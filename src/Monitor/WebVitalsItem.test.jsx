@@ -5,6 +5,8 @@ import { webVitalsProd } from './__fixtures__/monitor';
 import * as api from './api';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 각 테스트 후 spy 를 원본으로
@@ -410,13 +412,18 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 	const VALID_WIDTH = /^\d+(\.\d+)?%$/;
 	const NAN_FREE = (w) => !String(w).includes('NaN');
 
-	// **슬롯 클래스만으로 막대를 고르면 안 된다** — 평가 헤더 span 이 같은 슬롯 클래스를
-	// 공유하고(`HEADER_STYLE`: `span--monitor-evaluation span--monitor-poor`) 막대보다
-	// **앞에** 렌더되므로 `querySelector('.span--monitor-poor')` 는 헤더를 집는다.
-	// 헤더에는 인라인 style 이 없어 폭이 `""` 로 읽히고, 0 경계(헤더 = `-none`)에서는
-	// 충돌하지 않아 **비-0 경로에서만** 어긋난다. 실측으로 T-3 이 이 함정에 걸렸다.
+	// **역할별 서로소 네임스페이스** — 평가 헤더는 `span--monitor-evaluation-<슬롯>` 을,
+	// 상태 막대는 `span--monitor-<슬롯>` 을 쓴다. 두 집합이 겹치지 않으므로 **단독 슬롯
+	// 선택자**가 막대를 결정적으로 집는다.
+	//
+	// 종전에는 두 역할이 슬롯을 공유했고, 문서 순서상 앞선 헤더가 먼저 잡혔다. 헤더에는
+	// 인라인 style 이 없어 폭이 `""` 로 읽혔고, 0 경계(헤더 = `-none`)에서는 충돌하지 않아
+	// **비-0 경로에서만** 어긋났다. 그래서 소비자가 막대 클래스와 슬롯 클래스를 **연접**한
+	// 복합 선택자로 우회했었다 — 이 상수는 그 우회를 걷어낸 결과다. (N-6) 이 그 연접 표기를
+	// 정적으로 세므로 여기서도 표기 자체를 쓰지 않는다. 마크업이 공유로 되돌아가면
+	// (T-5) 가 붉어진다.
 	const BAR_SLOTS = ['span--monitor-good', 'span--monitor-warn', 'span--monitor-poor'];
-	const BAR_SELECTOR = (slot) => `.span--monitor-bar.${slot}`;
+	const BAR_SELECTOR = (slot) => `.${slot}`;
 
 	describe('0 경계 — totalCount = 0', () => {
 		useMockServer(() => mock.prodServerEmpty);
@@ -462,6 +469,32 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 					'무효 CSS 는 렌더러가 버려 빈 문자열이 된다 — 화면에 안 보인다고 유효한 값이 아니다.',
 			).toHaveLength(0);
 		});
+
+		// (T-6) 0 경계 — 출처 spec §동작 (N-2). 0 집계에서 헤더 슬롯은 `-none` 이라 막대
+		// 슬롯과 원래 충돌하지 않았다. 이 케이스는 그 **대조군**이며, 역할 분리가 0 경계의
+		// 결정성을 깨뜨리지 않았음을 고정한다. (T-5) 와 쌍으로 두어야 "0 에서만 통과하던"
+		// 종전 비대칭이 반대 방향(0 에서만 실패)으로 재발하는 것을 구별할 수 있다.
+		it('(T-6) 0 집계에서도 단독 슬롯 선택자가 막대를 집는다 — 인라인 style 보유로 식별', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			await screen.findByText("None");
+
+			for(const cls of BAR_SLOTS) {
+				const el = container.querySelector(`.${cls}`);
+				expect(el, `단독 선택자 .${cls} 가 아무 요소도 집지 못했다`).not.toBeNull();
+				// 막대만이 인라인 style 을 갖는다 — 평가 헤더를 집으면 style 속성이 없다.
+				expect(
+					el.getAttribute('style'),
+					`단독 선택자 .${cls} 가 인라인 style 없는 요소를 집었다 — 평가 헤더와 슬롯이 다시 겹쳤다`,
+				).not.toBeNull();
+				expect(el.getAttribute('class'), `.${cls} 로 집힌 요소가 막대가 아니다`).toContain('span--monitor-bar');
+				expect(el.style.width, `.${cls} 로 집힌 막대의 폭이 "0%" 가 아니다`).toBe('0%');
+			}
+		});
 	});
 
 	describe('비-0 경로 — totalCount = 3', () => {
@@ -484,6 +517,32 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 				expect(bar.style.width, `.${cls} 막대의 폭 산술이 바뀌었다`).toBe('33.333333333333336%');
 			}
 		});
+
+		// (T-5) 비-0 경로 — 출처 spec §참고 (Dir-1). 헤더 평가가 `POOR` 이므로 슬롯을
+		// 공유하던 시절 `.span--monitor-poor` 는 헤더를 집었다. 역할 분리 후 단독 선택자가
+		// 막대를 집는다는 것이 이 계약의 사용자 관측 표면이다.
+		it('(T-5) 비-0 집계에서 단독 슬롯 선택자가 막대를 집는다 — 인라인 style 보유로 식별', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			await screen.findByText("POOR");
+
+			for(const cls of BAR_SLOTS) {
+				const el = container.querySelector(`.${cls}`);
+				expect(el, `단독 선택자 .${cls} 가 아무 요소도 집지 못했다`).not.toBeNull();
+				// 헤더에는 인라인 style 이 없다. 오선택은 예외가 아니라 `""` 로 조용히 관측되므로
+				// style 속성의 **존재**를 직접 단언한다.
+				expect(
+					el.getAttribute('style'),
+					`단독 선택자 .${cls} 가 인라인 style 없는 요소(= 평가 헤더)를 집었다 — 역할 네임스페이스가 다시 겹쳤다`,
+				).not.toBeNull();
+				expect(el.getAttribute('class'), `.${cls} 로 집힌 요소가 막대가 아니다`).toContain('span--monitor-bar');
+				expect(el.style.width, `.${cls} 로 집힌 막대의 폭이 유효한 백분율이 아니다`).toMatch(VALID_WIDTH);
+			}
+		});
 	});
 
 	describe('비율 텍스트 보존', () => {
@@ -500,5 +559,69 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 			expect(built.poor.rate).toBe('');
 			expect(built.evaluation).toBe('None');
 		});
+	});
+});
+
+// 역할 분리(TSK-20260825-34)가 **시각을 바꾸지 않았음**을 정적으로 고정한다.
+// (N-8) 은 슬롯 규칙에 색 **리터럴**이 들어오는 방향만 잡는다. 변수는 유지한 채 **다른**
+// 변수를 참조하는 방향 — `.span--monitor-evaluation-poor { color: var(--success-text-color) }`
+// — 은 (N-8)·(N-5)·(N-6)·렌더 테스트를 전부 통과하면서 화면 색만 바꾼다. 그 방향을 겨눈다.
+// jsdom 은 계산된 스타일을 완전히 해석하지 않으므로 판정은 **선언 집합** 수준이다.
+describe('Monitor 슬롯 시각 불변 (REQ-20260825-009 Dir-4)', () => {
+
+	const CSS_PATH = path.resolve(__dirname, 'Monitor.css');
+	const EVAL_PREFIX = 'span--monitor-evaluation-';
+
+	// 주석을 먼저 걷어낸다 — 주석 본문의 `.span--monitor-…` 표기가 규칙으로 오계수된다.
+	const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+	// 규칙 파싱. 본문 패턴을 `[^{}]*` 로 둬 **블록 경계를 넘지 않게** 한다 —
+	// `[\s\S]*?` 는 경계를 존중하지 않아 인접 규칙까지 한 덩어리로 삼킨다.
+	const parseRules = (css) => {
+		const rules = new Map();
+		const RULE = /^\.([A-Za-z0-9_-]+)\s*\{([^{}]*)\}/gm;
+		let m;
+		while((m = RULE.exec(css)) !== null) {
+			const decls = m[2]
+				.split(';')
+				.map((d) => d.trim().replace(/\s+/g, ' '))
+				.filter((d) => d.length > 0)
+				.sort();
+			rules.set(m[1], decls);
+		}
+		return rules;
+	};
+
+	it('(T-7) 평가 전용 슬롯 규칙의 선언 집합이 대응 막대 슬롯 규칙과 동일하다', () => {
+
+		const rules = parseRules(stripComments(readFileSync(CSS_PATH, 'utf-8')));
+
+		// 규칙명 하드코딩 금지 (`RULE-06 §열거 고정 금지`) — 쌍을 파일에서 도출한다.
+		const pairs = [...rules.keys()]
+			.filter((k) => k.startsWith(EVAL_PREFIX) && k.length > EVAL_PREFIX.length)
+			.map((k) => ({ evalName: k, roleName: `span--monitor-${k.slice(EVAL_PREFIX.length)}` }));
+
+		// 공허 통과 차단 — 도출이 비면 "불일치 0건" 은 무조건 참이다. 하한은 good/warn/poor 3.
+		expect(
+			pairs.length,
+			`평가 전용 슬롯 규칙 도출이 ${pairs.length} 건이다 — 3 미만이면 판정이 공허하다`,
+		).toBeGreaterThanOrEqual(3);
+
+		const mismatches = pairs
+			.map(({ evalName, roleName }) => ({
+				evalName,
+				roleName,
+				a: rules.get(evalName),
+				b: rules.get(roleName),
+			}))
+			.filter(({ a, b }) => b === undefined || JSON.stringify(a) !== JSON.stringify(b));
+
+		expect(
+			mismatches,
+			'평가 슬롯과 막대 슬롯의 선언 집합이 어긋났다 — 역할 분리가 시각 회귀를 들여왔다:\n' +
+				mismatches
+					.map((v) => `  .${v.evalName} → ${JSON.stringify(v.a)}\n  .${v.roleName} → ${JSON.stringify(v.b)}`)
+					.join('\n'),
+		).toHaveLength(0);
 	});
 });

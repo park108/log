@@ -66,6 +66,25 @@
 	background-color: var(--normal-background-color);
 }
 
+/* 평가 헤더 전용 슬롯 — 상태 막대(.span--monitor-good|warn|poor)와 서로소인
+ * 네임스페이스다. 단독 슬롯 선택자가 역할을 결정적으로 지목하게 하려는 것이며,
+ * 색은 대응 역할 규칙과 **같은 CSS 변수**를 참조해 시각적으로 불변이다.
+ * 선언 집합 동일성은 WebVitalsItem.test.jsx 가 이 파일에서 도출해 단언한다. */
+.span--monitor-evaluation-good {
+	color: var(--success-text-color);
+	background-color: var(--success-background-color);
+}
+
+.span--monitor-evaluation-warn {
+	color: var(--warning-text-color);
+	background-color: var(--warning-background-color);
+}
+
+.span--monitor-evaluation-poor {
+	color: var(--error-text-color);
+	background-color: var(--error-background-color);
+}
+
 .span--monitor-retrybutton {
 	display: inline-block;
 	cursor: pointer;
