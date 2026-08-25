@@ -68,10 +68,6 @@
   cursor: pointer;
 }
 
-.a--logitem-loglink {
-  font-size: 0.8rem;
-}
-
 .span--logitem-toolbaricon path {
   fill: #999999;
 }
