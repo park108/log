@@ -21,6 +21,14 @@
 - (iv) `*_API_BASE` 6 키 — `foundation/api-base-url-assembly-totality §동작 (A-5)` 가 이미 덮는다.
 - (v) 배포 플랫폼(Amplify)이 주입하는 환경변수의 실재. 저장소에 관측 채널이 없다.
 
+### seam 승인 (REQ-20260825-024 선행 반영 — inspector tick 224)
+
+본 계약은 (U-1)(U-4) 로 검증 채널의 **식별자·호출 라인·산출 형식**을 소유한다. 그 소유가 채널의 **판정 모집단 도출 방식까지** 고정하는 것으로 읽혀서는 안 된다.
+
+- 검증 채널은 판정 모집단의 루트·glob 을 **기본값 있는 환경변수 seam** 으로 노출해도 좋다. 그 형태의 계약은 slug `foundation/gate-judgement-population-injectable-seam` 이 소유한다.
+- seam 은 기본값 방식이므로 **호출 라인을 바꾸지 않는다** — (U-4) 의 앵커 판정(`bash scripts/check-env-api-base-presence.sh` / `npm run check:env-api-base`)은 seam 도입 전후로 동일하게 참이다. (U-1) 의 산출 기반 판정도 기본값 실행에서 동일 모집단을 보므로 영향받지 않는다.
+- **이 절이 필요한 이유**: TSK-20260825-28 은 게이트의 민감도 검증 4 방향 중 3 방향이 실 `.env*` 쓰기를 요구해 격리됐고, 그 원인은 모집단 하드코딩이다. seam 이 없으면 (U-1) 의 사각(`VITE_COGNITO_*` 4 키) 을 닫는 task 가 **다시 같은 자리에서 막힌다**. 그러나 본 계약에 seam 요구가 없는 한 구현자가 인터페이스를 추가하면 spec 이 승인하지 않은 표면이 되므로, **승인은 여기서 이뤄지고 요구는 위 slug 가 갖는다**.
+
 ## 공개 인터페이스
 
 - `export const getLoginUrl = (): string | undefined` — `src/common/UserLogin.tsx:6`.
@@ -141,13 +149,13 @@ HEAD 실측 — `.env.test:11-14` 4 키 전부 비공란, `.env.example:13-16` 4
 
 - [x] 채워진 값 아래의 로그인·로그아웃 리디렉트 4 케이스 — `src/common/UserLogin.test.tsx:70-91`.
 - [x] a11y 활성 경로 (클릭·Enter·Space) — `:114-149`.
-- [ ] 공란 조건에서의 무발화 부재 — HEAD 0건. (U-3) 의 부착 대상.
-- [ ] `getLoginUrl`/`getLogoutUrl` 미정의 갈래의 테스트 실행 — HEAD `toBeUndefined()` **0 hit**.
+- [x] 공란 조건에서의 무발화 부재 — **tick 224 ack (`eb5019b`)** `UserLogin.test.tsx` 에 공란 `stubEnv` 케이스 **3건** 실재 + 파일 rc=0. tick 223 실측 0건이었다 (TSK-20260825-29 / `7465638`).
+- [x] `getLoginUrl`/`getLogoutUrl` 미정의 갈래의 테스트 실행 — **tick 224 ack (`eb5019b`)** `toBeUndefined()` **2 hit**. tick 223 실측 0 hit 이었다 (TSK-20260825-29 / `7465638`).
 - [ ] `VITE_COGNITO_*` 4 키의 실재 검증 채널 — HEAD 0건. (U-1)(U-2) 의 부착 대상.
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` · `scripts/**` · `.env*` · `package.json` · `.husky/*` · `.github/**` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`139cd78` 기준 1/5** — 신규 등록이며 (U-4) 상속분만 충족이다.
+> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` · `scripts/**` · `.env*` · `package.json` · `.husky/*` · `.github/**` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`eb5019b` (tick 224 재실행) 기준 3/5** — (U-3)(U-3 보조) 가 TSK-20260825-29 (`7465638`) 로 닫혔다. **(U-2) 는 tick 224 세션에서 재판정하지 못했다** — 판정 명령이 `.env.test` 를 읽는데 그 세션의 권한 경계가 `.env*` 접근을 금지한다. 미충족이 아니라 **미판정**이며, 우회를 시도하지 않았다 (§참고).
 
 - [ ] (Must, U-1) 선언 전수 대상성 — `env.d.ts` 선언 `VITE_*` 키가 전부 검증 채널 **산출에 판정 대상으로 열거**된다. 판정:
   ```
@@ -155,12 +163,12 @@ HEAD 실측 — `.env.test:11-14` 4 키 전부 비공란, `.env.example:13-16` 4
   ```
   → **rc=0**. **HEAD=`139cd78` 실측 rc=1 / `declared=10 uncovered=10` → 미충족.** **`uncovered=10` 이 `4` 가 아닌 이유를 오독하지 말 것** — `*_API_BASE` 6 키는 모집단 안에 있으나 산출이 `keys=6` 수치뿐이라 **어떤 키를 판정했는지 관측되지 않는다**. 즉 이 판정은 사각 4건과 **커버리지 주장의 불투명성** 을 동시에 잰다 ((U-1) 후반부·(R-2)). **공허 통과 가드 내장** — 도출 0 이면 `exit 2`. ack 라인이 `declared=10` 으로 비공허임을 수치로 함께 낸다. 채널 식별자가 후속 task 에서 바뀌면 이 항목의 `check:env-api-base` 를 그 식별자로 갱신한다.
 - [ ] (Must, U-2 값 층) 값 실재 — `bash -c 'd=$(grep -cE "readonly[[:space:]]+VITE_COGNITO_[A-Z_]+" src/types/env.d.ts); test "$d" -gt 0 && test "$(grep -cE "^VITE_COGNITO_[A-Z_]+=.+" .env.test)" -eq "$d"'` → rc=0. **HEAD=`139cd78` 실측 rc=0 / `4 == 4` → 충족이나 방어는 없다.** 이 항목을 `RULE-07 §반려 시그널` 의 "이미 참인 보존 명제" 로 반려하지 않은 이유는 명제의 참·거짓이 아니라 **위반 시 실패하는 기존 게이트가 존재하지 않는다**는 데 있다 — §동작 (U-1) 표의 세 게이트 어느 것도 이 조건을 보지 않는다. 기대 개수를 리터럴 `4` 가 아니라 선언 수 `d` 로 도출하는 것은 (R-1) 대응이며, `d` 가 0 이면 명제가 공허하게 참이 되므로 `-gt 0` 을 함께 요구한다.
-- [ ] (Must, U-3) 공란 조건 케이스의 실재와 통과 — 리디렉트 URL 이 공란인 조건을 구성한 케이스가 `src/common/UserLogin.test.tsx` 에 실재하고 그 파일이 rc=0 이다. 판정:
+- [x] (Must, U-3) 공란 조건 케이스의 실재와 통과 — 리디렉트 URL 이 공란인 조건을 구성한 케이스가 `src/common/UserLogin.test.tsx` 에 실재하고 그 파일이 rc=0 이다. 판정:
   ```
   bash -c 'test "$(grep -cE "stubEnv\((.)VITE_COGNITO_[A-Z_]+\1,[[:space:]]*(.)\2\)" src/common/UserLogin.test.tsx)" -ge 1 && npx vitest run src/common/UserLogin.test.tsx >/dev/null 2>&1'
   ```
-  → **rc=0**. **HEAD=`139cd78` 실측 rc=1 / 공란 stub 0 hit → 미충족.** 조건 **구성 수단**(`vi.stubEnv` + 빈 문자열)은 픽스처 기계장치이므로 고정하되, **관측 수단**은 고정하지 않는다 (§역할 (iii)). **검출 경계 (과신 금지)**: 이 명령은 케이스의 *실재*와 파일의 *통과*를 재며, 그 케이스의 단언이 실제로 무발화를 배제하는지는 재지 않는다 — 단언 품질은 (R-5) 와 §발화 채널 (Dir) 로 이관돼 있다. 미검출일지언정 미기록이 아니다. 파일을 `UserLogin.test.tsx` 로 고정하는 것은 수단 지정이 아니라 **구현 단위의 자기 테스트** 라는 위치 관례다.
-- [ ] (Should, U-3 보조) 미정의 갈래의 테스트 실행 — `bash -c 'test "$(grep -cE "toBeUndefined\(\)" src/common/UserLogin.test.tsx)" -ge 1'` → rc=0. **HEAD=`139cd78` 실측 rc=1 / 0 hit → 미충족.** `getLoginUrl`/`getLogoutUrl` 의 세 번째 갈래(`return undefined`)가 어떤 테스트에서도 실행되지 않는 상태를 닫는다. 도달 가능성 자체는 §참고로 강등했다.
+  → **rc=0**. **HEAD=`eb5019b` (tick 224 재실행) 실측 rc=0 / 공란 stub **3 hit** + `UserLogin.test.tsx` rc=0 → 충족** (TSK-20260825-29 / `7465638`). tick 223 실측은 rc=1 / 0 hit 이었다. 조건 **구성 수단**(`vi.stubEnv` + 빈 문자열)은 픽스처 기계장치이므로 고정하되, **관측 수단**은 고정하지 않는다 (§역할 (iii)). **검출 경계 (과신 금지)**: 이 명령은 케이스의 *실재*와 파일의 *통과*를 재며, 그 케이스의 단언이 실제로 무발화를 배제하는지는 재지 않는다 — 단언 품질은 (R-5) 와 §발화 채널 (Dir) 로 이관돼 있다. 미검출일지언정 미기록이 아니다. 파일을 `UserLogin.test.tsx` 로 고정하는 것은 수단 지정이 아니라 **구현 단위의 자기 테스트** 라는 위치 관례다.
+- [x] (Should, U-3 보조) 미정의 갈래의 테스트 실행 — `bash -c 'test "$(grep -cE "toBeUndefined\(\)" src/common/UserLogin.test.tsx)" -ge 1'` → rc=0. **HEAD=`eb5019b` (tick 224 재실행) 실측 rc=0 / **2 hit** → 충족** (TSK-20260825-29 / `7465638`). tick 223 실측은 rc=1 / 0 hit 이었다. `getLoginUrl`/`getLogoutUrl` 의 세 번째 갈래(`return undefined`)가 어떤 테스트에서도 실행되지 않는 상태를 닫는다. 도달 가능성 자체는 §참고로 강등했다.
 - [x] (Must, U-4 상속) 배선 실경로 — 검증 채널이 실행 표면에 **호출 라인**으로 등재된다: `bash -c 'grep -qE "^[[:space:]]*(bash scripts/check-env-api-base-presence\.sh|npm run check:env-api-base)" .husky/pre-commit .github/workflows/ci.yml'` → rc=0. **HEAD=`139cd78` 실측 rc=0 → 충족** (`.husky/pre-commit:53` · `ci.yml:78`). **호출 형태(`bash <경로>` / `npm run <식별자>`) + 행 시작 앵커를 함께 요구하는 이유** — 둘 중 하나라도 빠지면 주석이 통과시킨다. 실측: 식별자만으로 훑는 `grep -nE "check:env-api-base"` 는 `.husky/pre-commit:49` 의 주석 `# npm script 동치: check:env-api-base (…)` 를 hit 한다. 배선이 전부 지워져도 그 주석 한 줄이 남으면 초록이다. 채널 확장 시 이 등재가 유지돼야 한다.
 
 ## 참고
@@ -182,4 +190,5 @@ HEAD 실측 — `.env.test:11-14` 4 키 전부 비공란, `.env.example:13-16` 4
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-25 | TSK-20260825-29 / `7465638` (inspector tick 224) | **Phase 1 reconcile ack — (U-3)(U-3 보조) 플립, 수용 기준 1/5 → 3/5.** `UserLogin.tsx` 의 무발화를 `reportError` 발화로 전환한 착지가 `UserLogin.test.tsx` 에 공란 `stubEnv` 케이스 **3건**과 `toBeUndefined()` **2 hit** 을 남겼다 (tick 224 재실행 실측, 파일 rc=0; tick 223 은 각각 0). **(U-1) 은 재실행 후에도 미충족** — `declared=10 uncovered=10` 으로 tick 223 과 동일하며, `check:env-api-base` 산출이 여전히 판정한 키 이름을 내지 않는다(커버리지 주장의 불투명성). **(U-2) 는 미판정** — 판정 명령이 `.env.test` 를 읽는데 tick 224 세션의 권한 경계가 `.env*` 접근을 금지했다. 미충족으로 계상하지 않으며 우회도 시도하지 않았다. 이 경계는 TSK-20260825-28 이 격리된 사유와 동일 계열이고, 그 격리가 신고한 **"게이트가 판정 대상 경로를 하드코딩해 주입 불가"** 는 REQ-20260825-024 축이 다룬다 — 본 tick 이 §역할에 seam 요구를 추가한 이유다. | 수용 기준, 테스트 현황, 역할, 변경 이력 |
 | 2026-08-25 | REQ-20260825-022 (inspector tick 223) | 최초 등록. followup 1건을 흡수한 req 를 불변식으로 반영. **req 수용 기준 9항을 그대로 쓰지 않았다**: (a) FR-01 의 `grep -cE "readonly VITE_[A-Z_]+" env.d.ts` → `10` 은 **선언 개수를 세는 자명 명제**라 커버리지를 재지 않는다 (10 은 지금도 참이다). 선언 키를 도출해 **채널 산출과 대조**하는 판정으로 교체했고, 그 결과 `uncovered=10` 이라는 실측을 얻어 사각 4건뿐 아니라 **기존 6 키의 커버리지 주장이 산출에서 관측되지 않는다**는 사실까지 드러났다 ((R-2) 로 승격). (b) FR-01/FR-04 의 "stdout 에 `VITE_COGNITO_LOGIN_URL_PROD` 가 열거된다" 는 1 키 리터럴 고정이라 (a) 의 전수 대조에 흡수했다. (c) FR-02 의 `.env.test` 기대값 리터럴 `4` 를 **선언 수 도출 + `-gt 0` 공허 가드**로 교체했다 (`RULE-06 §열거 고정 금지`). (d) "제외 규칙이 게이트 본문에 박제돼 있다" 는 **본문 grep 판정**이라 주석 한 줄로 통과한다 — 실제로 `check-env-api-base-presence.sh:37` 이 이미 `VITE_COGNITO_*` 를 주석으로 담고 있어 그 형태의 게이트는 현 HEAD 가 그대로 초록이었다. 특이도 방향 (Dir-4) 로 이관했다. (e) NFR-03 배선 판정 `grep -nE "^[[:space:]]*(bash\|npm run) .*env"` 는 **다른 게이트의 배선으로 충족된다** — 실측 결과 `.husky/pre-commit:12` `bash scripts/check-vite-env-coherence.sh` 가 hit 하므로, 본 축의 배선이 전부 지워져도 `≥1 hit` 이 참이다. 채널 식별자를 고정해 좁혔다. 앵커도 함께 유지한다 — 식별자만으로 훑으면 `.husky/pre-commit:49` 의 주석 `# npm script 동치: check:env-api-base` 가 hit 해 배선 없이 통과한다 (실측 확인). (f) `npm test` rc=0 · `npm run check:vite-env` rc=0 두 항은 **중복 게이트 부류**(위반 시 기존 husky·CI 가 즉시 실패)라 체크박스로 두지 않았다. **신규 추가 (req 에 없던 항목)**: (U-1) 후반부 "산출에서 관측 가능" 요건, (R-2) 산출 침묵 회귀, (R-5) 단언이 침묵을 허용하는 오회복 — 공란 케이스를 추가하되 단언이 무발화를 배제하지 않으면 그 테스트는 결함을 **승인**한다, (R-6) 타입 선언 강화로의 오회복 — `string \| undefined` 는 빈 문자열 경로를 잡지 못한다, (Dir-4) 특이도 방향. | all |

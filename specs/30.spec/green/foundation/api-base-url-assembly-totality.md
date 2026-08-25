@@ -74,6 +74,14 @@ return await fetch(getApiUrl() as string);
 
 이 캐스팅은 **기존 게이트를 정확히 비껴간다.** `scripts/check-vite-env-coherence.sh:37` 의 G1 패턴은 `import\.meta\.env\.VITE_[A-Z_]+[[:space:]]+as[[:space:]]+string` 이라 `import.meta.env.VITE_X as string` 만 잡는다. `getApiUrl() as string` 은 **함수 결과에 대한 캐스팅**이라 hit 하지 않는다 — **같은 병리의 한 칸 옆이 무방비다.**
 
+### (A-5 범위) 채널의 판정 모집단 도출 방식은 본 계약의 소유 밖 (REQ-20260825-024 선행 반영 — inspector tick 224)
+
+(A-5) 는 `VITE_*_API_BASE` 런타임 실재 검증 채널의 **저장소 등재**를 판정한다. 그 판정은 채널이 **무엇으로 모집단을 도출하는지** 를 고정하지 않는다.
+
+- 채널이 판정 모집단의 루트·glob 을 **기본값 있는 환경변수 seam** 으로 받는 것은 본 계약과 무모순이다. seam 형태의 계약은 slug `foundation/gate-judgement-population-injectable-seam` 이 소유한다.
+- (A-5) 의 판정 명령은 스크립트 본문의 토큰 실재만 보므로 seam 도입에 **불변**이다 (tick 224 확인).
+- 이 절은 승인을 명시할 뿐 요구를 만들지 않는다 — 따라서 본 spec 의 수용 기준 항목 수는 변하지 않는다 (미체크 0 유지).
+
 ### (A-5) 선언과 실재의 괴리
 
 `src/types/env.d.ts:4` 는 `readonly VITE_LOG_API_BASE: string` 으로 선언하지만 **런타임 보장이 아니다**. 해당 키가 `.env*` 에 없으면 값은 `undefined` 이고 `BASE + "/prod"` 는 `"undefined/prod"` 가 된다 — 총성이 성립해도 이쪽으로 같은 결과에 도달한다. 타입 선언과 런타임 실재 사이에 검증 지점이 있어야 한다.
@@ -162,5 +170,6 @@ return await fetch(getApiUrl() as string);
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-25 | REQ-20260825-024 (inspector tick 224) | **seam 승인 절 신설 — 수용 기준 불변 (4/4, 미체크 0 유지).** REQ-20260825-024 의 순서 제약 해소분이다: (A-5) 가 검증 채널의 저장소 등재를 소유하는데 그 소유가 채널의 **판정 모집단 도출 방식까지** 고정하는 것으로 읽히면 developer 가 seam 을 추가할 수 없다. 승인만 명시하고 요구는 slug `foundation/gate-judgement-population-injectable-seam` 에 둬 **본 spec 에 미체크 항목을 추가하지 않았다** — promote 후보 상태를 유지하기 위한 의도적 설계다. (A-5) 판정 명령이 스크립트 본문 토큰만 보므로 seam 도입에 불변임을 확인했다. | 동작 |
 | 2026-08-25 | TSK-20260825-25·26·27 / `9b3532f`·`f9b7638`·`139cd78` (inspector tick 223) | **Phase 1 reconcile — 4/4 ack, 수용 기준 전수 플립.** 재실행 결과: (A-1/A-3) `api-derivations=7 partial=0` rc=0, (A-4) 도출부 캐스팅 0 hit rc=0, (A-2) 조립 픽스처 19 tests passed rc=0, (A-5) `check:env-api-base` 등재 rc=0. 총성 확보 수단은 **거절 가드**(`if (!BASE) throw`)이며 6 모듈 전원이 같은 형태를 공유한다 — (R-2) 가 경고한 역순(정직한 선언만 지우는 오회복)이 아니라 `Image/api.ts` 의 `string | undefined` 선언을 `string` 으로 **참이 되게 만든** 방향이다. **본문 정정 3건**: (1) §발화 채널의 "채널 없음" 4행을 실경로 4행으로 교체 (`check:api-base-url` · `check:env-api-base` · 조립 픽스처), (2) §동작 (A-1) 표·(A-2)·(A-4) 의 위반 서술을 소거 이력으로 명시 강등 — 현 HEAD 상태와 어긋난 채 남으면 spec 이 거짓 진술을 든다, (3) **§동작 (A-5) 에 "실재" 의 파일 범위를 신설 확정** — 키 행은 `.env*` 전 파일, 값은 `*.example` 제외. TSK-20260825-27 이 이 범위를 구현하며 spec 확정을 요청했고(task §하지 않을 것), 범위는 계약이지 구현 편의가 아니므로 spec 이 받는다. 같은 절에 (Dir-C) `missing-values` 계수 차이(선행 실측 1 vs 착지 0)를 **착지 구현 지지**로 판정 박제했다 — 계약이 고정하는 것은 무엇이 위반인가이지 어느 카운터에 세는가가 아니며, 이중 계수는 `값이 비어 있음` 이라는 사실과 다른 메시지를 낸다. | §동작 (A-1·A-2·A-4·A-5), §발화 채널, §테스트 현황, §수용 기준, §참고, 본 이력 |
 | 2026-08-25 | REQ-20260825-016 (inspector tick 222) | 최초 등록. followup 1건을 흡수한 req 를 불변식으로 반영. **req 수용 기준 5항을 그대로 쓰지 않았다**: (a) 총성 판정이 `src/Log/api.js` **1 파일 하드코딩**이었다 — `RULE-06 §열거 고정 금지` 위반이자 req 자신의 §배경 표(6 모듈)와 스코프가 어긋난다. `src/**/api.{js,ts}` glob 산출 + 중괄호 균형으로 본문을 잘라 마지막 실행문을 보는 판정으로 교체해 실측 `api-derivations=7 partial=2` 를 얻었다 (모듈 6 + `Monitor` 위임 1). **공허 통과 가드**(도출 0 → `exit 2`)를 신규 부착했다. (b) req 의 `grep -nE "^\s*return undefined;" src/Image/api.ts` 는 **파일·표기 양쪽에 고정**이라 (a) 의 총성 판정에 흡수했다 — `return undefined` 를 지우고 `return void 0` 로 바꾸면 통과하는 자리였다. (c) FR-03 "반환 타입 선언이 전 모듈 동일" 은 `.js` 2 모듈이 주석을 가질 수 없어 **어느 시점에도 참이 될 수 없는 문장**이다 — "미정의를 반환 타입으로 선언한 모듈 0" 으로 환원해 (A-1) 에 합쳤다. (d) 캐스팅 패턴을 `getApiUrl\(\) as string` 에서 `get(ApiUrl|API)\(\)\s+as\s+[A-Za-z]` 로 넓혔다 — `getAPI()` 와 `as unknown as string` 우회를 덮되 (R-4) 의 무관 5건은 여전히 배제한다. **신규 추가 (req 에 없던 항목)**: (R-2) 정직한 선언만 지우는 오회복(순서가 뒤집히면 결함이 남고 경고만 사라진다), (R-3)/(Dir-3) `?? ""` 우회 — 빈 base 는 `"?limit=10"` 이 되어 **여전히 상대 URL** 이므로 `as string` 제거만으로는 닫히지 않는다, (R-5) 순진한 tail-return 패턴의 오판을 회귀 중점으로 승격. | all |
