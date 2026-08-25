@@ -395,3 +395,110 @@ describe('WebVitalsItem re-fetch 폭주 없음 (REQ-20260825-001 G-4)', () => {
 		expect(apiSpy).toHaveBeenCalledTimes(1);
 	});
 });
+
+describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', () => {
+
+	// 폭 유효성 판정 기준.
+	//
+	// **`NaN` 문자열 검색만으로는 아무것도 잡히지 않는다** — `width: "NaN%"` 는 무효
+	// CSS 라 jsdom 도 브라우저도 그 선언을 통째로 **버린다**. 실측(2026-08-25):
+	//   render(<span style={{ width: "NaN%" }} />)
+	//     → style.width === ""  ·  getAttribute('style') === null  ·  cssText === ""
+	// 즉 "width 문자열에 NaN 이 없다" 는 가드 유무와 무관하게 **항상 참**인 민감도 0
+	// 단정이다. 그래서 판정을 "유효한 백분율 표기인가" 로 뒤집는다 — 무효값이 버려져
+	// 빈 문자열이 된 상태도 이 패턴에서 탈락한다.
+	const VALID_WIDTH = /^\d+(\.\d+)?%$/;
+	const NAN_FREE = (w) => !String(w).includes('NaN');
+
+	// **슬롯 클래스만으로 막대를 고르면 안 된다** — 평가 헤더 span 이 같은 슬롯 클래스를
+	// 공유하고(`HEADER_STYLE`: `span--monitor-evaluation span--monitor-poor`) 막대보다
+	// **앞에** 렌더되므로 `querySelector('.span--monitor-poor')` 는 헤더를 집는다.
+	// 헤더에는 인라인 style 이 없어 폭이 `""` 로 읽히고, 0 경계(헤더 = `-none`)에서는
+	// 충돌하지 않아 **비-0 경로에서만** 어긋난다. 실측으로 T-3 이 이 함정에 걸렸다.
+	const BAR_SLOTS = ['span--monitor-good', 'span--monitor-warn', 'span--monitor-poor'];
+	const BAR_SELECTOR = (slot) => `.span--monitor-bar.${slot}`;
+
+	describe('0 경계 — totalCount = 0', () => {
+		useMockServer(() => mock.prodServerEmpty);
+
+		it('(T-1) 세 막대의 폭이 "0%" 다 — 0/0 이 NaN% 로 새지 않는다', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			await screen.findByText("None");
+
+			for(const cls of BAR_SLOTS) {
+				const bar = container.querySelector(BAR_SELECTOR(cls));
+				expect(bar, `막대 노드 ${BAR_SELECTOR(cls)} 가 없다 — 선택자가 렌더 구조와 어긋났다`).not.toBeNull();
+				expect(bar.style.width, `.${cls} 막대의 폭이 "0%" 가 아니다`).toBe('0%');
+			}
+		});
+
+		it('(T-2) 막대 전 노드의 폭이 유효한 백분율이다 (열거 순회 + 노드 수 하한)', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			await screen.findByText("None");
+
+			// 클래스 선택자 열거 — 목록 하드코딩이 아니라 렌더 결과에서 도출한다.
+			const bars = [...container.querySelectorAll('.span--monitor-bar')];
+
+			// 공허 통과 차단 — 대상 집합이 비면 "무효 0건" 은 무조건 참이다.
+			expect(bars.length, '막대 노드가 3 미만이다 — 순회 대상이 비어 판정이 공허해졌다').toBeGreaterThanOrEqual(3);
+
+			const invalid = bars
+				.map((b, i) => ({ i, w: b.style.width, cls: b.getAttribute('class') }))
+				.filter(({ w }) => !VALID_WIDTH.test(w) || !NAN_FREE(w));
+
+			expect(
+				invalid,
+				`유효하지 않은 막대 폭:\n${invalid.map((v) => `  [${v.i}] ${v.cls} → ${JSON.stringify(v.w)}`).join('\n')}\n` +
+					'무효 CSS 는 렌더러가 버려 빈 문자열이 된다 — 화면에 안 보인다고 유효한 값이 아니다.',
+			).toHaveLength(0);
+		});
+	});
+
+	describe('비-0 경로 — totalCount = 3', () => {
+		useMockServer(() => mock.prodServerOk);
+
+		it('(T-3) 세 막대의 폭이 리터럴 "33.333333333333336%" 다 — 반올림 도입 금지', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+
+			await screen.findByText("POOR");
+
+			// 기준값은 현행 산술의 출력 그대로다. toFixed/반올림을 도입하면 여기서 깨진다 —
+			// 그것은 계약 충족이 아니라 회귀다.
+			for(const cls of BAR_SLOTS) {
+				const bar = container.querySelector(BAR_SELECTOR(cls));
+				expect(bar, `막대 노드 ${BAR_SELECTOR(cls)} 가 없다`).not.toBeNull();
+				expect(bar.style.width, `.${cls} 막대의 폭 산술이 바뀌었다`).toBe('33.333333333333336%');
+			}
+		});
+	});
+
+	describe('비율 텍스트 보존', () => {
+
+		it('(T-4) 0 집계에서 rate 가 "" 로 보존된다 — 빈 막대에 0 을 표시하지 않는다', () => {
+
+			const built = buildEvaluationResult(undefined);
+
+			expect(built.totalCount).toBe(0);
+			// `""` 를 `"0"` 으로 바꾸면 사용자 관측 텍스트가 바뀌고, 평가 분기가 문자열
+			// rate 의 강제변환에 기대므로 evaluation 까지 흔들린다.
+			expect(built.good.rate).toBe('');
+			expect(built.needImprovement.rate).toBe('');
+			expect(built.poor.rate).toBe('');
+			expect(built.evaluation).toBe('None');
+		});
+	});
+});

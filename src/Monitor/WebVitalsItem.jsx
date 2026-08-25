@@ -29,8 +29,18 @@ export const createInitialEvaluationResult = () => ({
 
 // 현행 표기 보존: count 가 0 이면 "" , 아니면 백분율 정수 문자열.
 const toRate = (count, totalCount) => 0 === count ? "" : (100 * count / totalCount).toFixed(0);
-// totalCount 가 0 이면 "NaN%" 가 되는 현행 산술을 그대로 이식한다 (스코프 밖).
-const toStyle = (count, totalCount) => ({ width: 100 * count / totalCount + "%" });
+// 0 경계 가드 — `totalCount === 0` 이면 `0/0 → NaN` 이라 DOM 에 `width: "NaN%"` 가
+// 실린다. 0건은 예외가 아니라 설계된 정상 상태이므로(항목이 세 분류에 하나도 들지
+// 않으면 evaluation="None" 으로 명시 취급) 인정된 정상 입력이 무효 출력을 내지 않게
+// `"0%"` 로 접는다. 브라우저는 무효 CSS 를 버려 화면에 안 보이지만 DOM 은 값을 실제로
+// 보유하고 스냅샷·시각 회귀·접근성 도구는 그것을 그대로 읽는다.
+// 분기 변수가 `toRate` 와 다른 것은 정상이다 — `toRate` 는 표기상 `count` 로 분기하지만
+// `NaN` 을 만드는 것은 **분모**다. 비-0 경로의 산술은 그대로 둔다 (반올림 도입 금지).
+const toStyle = (count, totalCount) => (
+	Number.isFinite(totalCount) && 0 !== totalCount
+		? { width: 100 * count / totalCount + "%" }
+		: { width: "0%" }
+);
 
 // 순수 함수 — 기존 state 를 읽지 않고 응답 Items(또는 falsy) 만으로 전 필드를 조립한다.
 export const buildEvaluationResult = (items) => {
