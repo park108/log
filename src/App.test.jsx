@@ -291,8 +291,8 @@ describe('click login button', () => {
 
 	it("test logout", async () => {
 	
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValueOnce(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValueOnce(true);
 
 		render(<App />);
 
@@ -305,8 +305,8 @@ describe('click login button', () => {
 
 	it("test login", async () => {
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValueOnce(false);
-		vi.spyOn(common, "isAdmin").mockResolvedValueOnce(false);
+		vi.spyOn(common, "isLoggedIn").mockReturnValueOnce(false);
+		vi.spyOn(common, "isAdmin").mockReturnValueOnce(false);
 
 		render(<App />);
 

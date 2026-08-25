@@ -36,8 +36,8 @@ beforeEach(() => {
 
 test('render log has data in session', async () => {
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(false);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(false);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(false);
+	vi.spyOn(common, "isAdmin").mockReturnValue(false);
 
 	sessionStorage.setItem("logList", JSON.stringify([
 		{"contents":"123456","author":"park108@gmail.com","timestamp":1655736946977}
@@ -68,8 +68,8 @@ describe('Log render logged-in on prod server (ok)', () => {
 
 		stubMode('production');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		render(
             <MemoryRouter initialEntries={[testEntry]}>
@@ -158,8 +158,8 @@ describe('Log render logs and getting next failed', () => {
 
 		stubMode('production');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		render(
             <MemoryRouter initialEntries={[testEntry]}>
@@ -187,8 +187,8 @@ describe('Log render logs and getting next error', () => {
 
 		stubMode('production');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		render(
             <MemoryRouter initialEntries={[testEntry]}>

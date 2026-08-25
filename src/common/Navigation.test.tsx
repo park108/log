@@ -32,8 +32,8 @@ describe('render navigation menu correctly', () => {
 	it('render title menu correctly', () => {
 
 		// Mocking login and admin check
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(false);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(false);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(false);
 
 		const testEntry = {
 			pathname: "/log"
@@ -59,8 +59,8 @@ describe('render navigation menu correctly', () => {
 	it('render file menu correctly', () => {
 
 		// Mocking login and admin check
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/file"
@@ -96,8 +96,8 @@ describe('render navigation menu correctly', () => {
 	it('render monitor menu correctly', async () => {
 
 		// Mocking login and admin check
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/monitor"

@@ -42,8 +42,8 @@ const withQuery = (node) => {
 // polling 안에 결정적으로 충족된다. render 본체는 즉시 cleanup 해 테스트 간
 // DOM / React 상태 격리 불변식 (REQ-20260420-004 §FR-01) 을 깨뜨리지 않는다.
 beforeAll(async () => {
-	vi.spyOn(common, 'isLoggedIn').mockResolvedValue(true);
-	vi.spyOn(common, 'isAdmin').mockResolvedValue(true);
+	vi.spyOn(common, 'isLoggedIn').mockReturnValue(true);
+	vi.spyOn(common, 'isAdmin').mockReturnValue(true);
 	render(withQuery(
 		<MemoryRouter>
 			<LogItem
@@ -82,8 +82,8 @@ it('render log item correctly', async () => {
 		,"author":"park108@gmail.com"
 	}
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 	stubMode('production');
 
@@ -142,8 +142,8 @@ it('render log item correctly', async () => {
 
 describe("LogItem sanitizes rendered markdown HTML", () => {
 	beforeEach(() => {
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(false);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(false);
 	});
 
 	const baseItem = (contents) => ({
@@ -209,8 +209,8 @@ describe('LogItem DELETE 5xx error toaster', () => {
 			,"author":"park108@gmail.com"
 		}
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/log"
@@ -264,8 +264,8 @@ describe('LogItem DELETE network-error toaster', () => {
 			,"author":"park108@gmail.com"
 		}
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/log"
@@ -319,8 +319,8 @@ describe('LogItem render and delete failed (confirm cancel then accept)', () => 
 			,"author":"park108@gmail.com"
 		}
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/log"
@@ -380,8 +380,8 @@ describe('LogItem render and delete network error', () => {
 			,"author":"park108@gmail.com"
 		}
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/log"
