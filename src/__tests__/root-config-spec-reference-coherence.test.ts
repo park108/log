@@ -8,8 +8,8 @@
 // 참조의 3축 시스템 불변식을 박제한다:
 //   G-A / FR-01: RULE-01 "-spec" suffix 금지 — 자체 진단 exclude rule 적용 후
 //                root 7-file 군 내 `-spec(.md)?` regex match === 0 hit.
-//   G-A-self / NFR-04: 자체 진단 exclude 전 match count === 6 hit
-//                (.husky/pre-commit:3,6 + scripts/check-spec-coherence.sh:2,3,19,62).
+//   G-A-self / NFR-04: 자체 진단 exclude 전 match count === 7 hit
+//                (.husky/pre-commit:3,6 + scripts/check-spec-coherence.sh:2,3,49,201,202).
 //   G-B / FR-02: 디스크 실재 — 7-file 군에서 추출한 spec path (`specs/30.spec/
 //                (blue|green)/...md` 패턴) 5 hit / 5 file 의 fs.existsSync 측정.
 //                baseline: 3 MISSING + 2 EXISTS 집합 박제.
@@ -102,7 +102,10 @@ function specPath(branch: "blue" | "green", relUnderBranch: string): string {
 
 // G-B baseline (TSK-20260518-15 회복 후 — 3 sh script `:3` 토큰 green→blue
 // 치환 + 본 fixture baseline 동시 갱신 단일 commit 묶음 시점 측정).
-const EXPECTED_GA_SELF_DIAG_COUNT = 6;
+// TSK-20260825-08 — check-spec-coherence.sh 의 spec-scope 확장(G4/G5)으로 self-diag
+// 라인 집합이 이동·증가했다 (6 -> 7). 수치는 손으로 세지 않고 §task 구현 지시 9 의
+// 파생 명령(본 fixture 의 collectSpecSuffixHits 재현) 출력을 그대로 옮겼다.
+const EXPECTED_GA_SELF_DIAG_COUNT = 7;
 // hit 12 / 고유 path 11 — tooling.md 이 check-eslint-ignores-vacuous-zero.sh 와
 // check-vitest-globals-coherence.sh 두 곳에서 참조된다. 본 상수는 hit 수 (= 참조를
 // 가진 파일 수) 이고, EXPECTED_GB_EXISTS 는 고유 path 집합이다.
@@ -140,8 +143,9 @@ const EXPECTED_GA_SELF_DIAG_HITS: ReadonlyArray<{
 	{ relPath: ".husky/pre-commit", line: 6 },
 	{ relPath: "scripts/check-spec-coherence.sh", line: 2 },
 	{ relPath: "scripts/check-spec-coherence.sh", line: 3 },
-	{ relPath: "scripts/check-spec-coherence.sh", line: 19 },
-	{ relPath: "scripts/check-spec-coherence.sh", line: 62 },
+	{ relPath: "scripts/check-spec-coherence.sh", line: 49 },
+	{ relPath: "scripts/check-spec-coherence.sh", line: 201 },
+	{ relPath: "scripts/check-spec-coherence.sh", line: 202 },
 ];
 
 // 직교 토큰 검증 baseline — 다른 task production literal occurrence === 0 단언
@@ -265,14 +269,14 @@ describe("root-config-spec-reference-coherence (TSK-20260518-13)", () => {
 		).toHaveLength(0);
 	});
 
-	it("G-A-self / NFR-04: 자체 진단 exclude 전 match count === 6 + (파일,라인) 박제", () => {
+	it("G-A-self / NFR-04: 자체 진단 exclude 전 match count === 7 + (파일,라인) 박제", () => {
 		const hits = collectSpecSuffixHits();
 		const selfDiag = hits.filter((h) => h.selfDiag);
 
 		expect(selfDiag).toHaveLength(EXPECTED_GA_SELF_DIAG_COUNT);
 
 		// (relPath, line) 페어 집합 — 라인당 다중 match 가 있어도 본 baseline 은
-		// 라인당 1 match 1:1 (실측 검증). 그래서 hit 6 = 페어 6.
+		// 라인당 1 match 1:1 (실측 검증). 그래서 hit 7 = 페어 7.
 		const observed = selfDiag.map((h) => `${h.relPath}:${h.line}`).sort();
 		const expected = EXPECTED_GA_SELF_DIAG_HITS.map(
 			(h) => `${h.relPath}:${h.line}`,
