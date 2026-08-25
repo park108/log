@@ -1,8 +1,8 @@
 # 인증 진입점 실패의 사용자 관측 가능 표면
 
-> **위치**: `src/common/UserLogin.tsx` 의 `UserLogin` — 실패 갈래 `:29-31`(로그아웃) · `:34-36`(로그인), 진입점 `:41-48`
+> **위치**: `src/common/UserLogin.tsx` 의 `UserLogin` — 실패 갈래 `:40-43`(로그아웃) · `:51-54`(로그인), 진입점 `:60-71`, 실패 표면 `:66`(`aria-disabled`) · `:72-74`(`role="alert"`). 라인은 HEAD=`5b2ed3b` 스냅샷이며 **식별자 우선**.
 > **관련 요구사항**: REQ-20260825-023
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 224 최초 등록)
+> **최종 업데이트**: 2026-08-25 (by inspector — tick 225 Phase 1 reconcile: 수용 기준 3/3 전수 ack)
 
 ## 역할
 
@@ -50,6 +50,14 @@
 
 class 교체만으로는 접근성 트리에 아무 변화가 없다. 요구되는 형태는 `role="alert"` 발화 또는 `aria-disabled="true"` — 둘 다 접근성 트리 노출 형태다.
 
+### (O-5) 부재 단언은 존재 단언과 같은 문자열을 포함하므로, 정적 판정만으로는 표면 유무가 구별되지 않는다
+
+`.not.toHaveAttribute('aria-disabled')` 는 `toHaveAttribute('aria-disabled'` 를 **부분문자열로 포함한다.** §수용 기준 (S-2) 의 ERE 는 앵커가 없어 부정 접두 `not.` 를 보지 못하고, (S-1) 은 소스 grep 이라 주석 한 줄로 충족된다. 따라서 **표면 미부착 + 주석 1줄 + 실패 케이스가 부재 단언만 보유** 인 트리는 (S-1)(S-2)(S-3) 과 보고 채널과 `npm test` 를 **전부 rc=0 으로 통과하면서 사용자 표면 라인은 0** 이다.
+
+tick 225 가 이 오답 트리를 스크래치패드 픽스처로 **재구성해 독립 확인**했다 — (S-2) `failure-cases=1 unobserved=0` rc=0, (S-1) 주석 단독 rc=0. 저장소 트리는 건드리지 않았다.
+
+**이것은 본 계약의 판정력 경계이며 감추지 않는다.** 세 기준의 논리곱은 *필요조건*이지 충분조건이 아니다. 오답 트리를 실제로 분리하는 것은 §참고 §게이트 실효 검증 이관의 **(Dir-1) 민감도 주입 하나뿐**이며, 그래서 그 절이 강등이 아니라 **이관**으로 존치돼야 한다 (`RULE-07 §처리`). 현 HEAD 가 충족인 근거도 판정식 rc 가 아니라 **실패 3 블록의 양성 단언을 직접 읽어 대조한 것**이다 (§테스트 현황).
+
 ## 의존성
 
 - 내부: `src/common/UserLogin.tsx`, `src/common/errorReporter.ts`, `src/common/a11y.js` (`activateOnKey`), (수단 선택 시) `src/Toaster/Toaster.tsx`.
@@ -58,29 +66,31 @@ class 교체만으로는 접근성 트리에 아무 변화가 없다. 요구되�
 
 ## 발화 채널
 
-**위반이 현 HEAD 의 어떤 게이트도 붉게 만들지 않는다.** 실패 갈래가 화면에 아무것도 내지 않아도 `npm test` 는 초록이다 — 현 3 케이스가 단언하는 것은 `href` 불변과 `reportError` 호출뿐이고 둘 다 현 구현에서 참이다 (tick 224 실측 `failure-cases=3 unobserved=3`). `check:*` 18종 중 렌더 결과를 보는 것은 0건이다.
+상시 채널은 **vitest 수집 경로**(`src/common/UserLogin.test.tsx`)다 — 실패 갈래 3 케이스가 `aria-disabled` 와 `role="alert"` 를 **양성 단언**하므로 표면을 제거하면 그 케이스들이 붉어진다. 그 경로는 `vite.config.js:63,68` 수집 범위 안이며 `npm test` · CI 에서 발화한다. tick 225 실행 `1 passed (1) / 16 passed (16)` rc=0.
 
-착지 후의 상시 채널은 **vitest 수집 경로**(`src/common/UserLogin.test.tsx`)다 — 이 축의 위반은 실패 갈래 테스트를 붉게 만들기 때문이다. 그 경로는 `vite.config.js` 수집 범위 안이며 `npm test` · CI 에서 발화한다.
+**채널 부착 전 상태의 박제 (감사성)** — tick 224 시점에는 위반이 어떤 게이트도 붉게 만들지 못했다. 당시 3 케이스가 단언하는 것은 `href` 불변과 `reportError` 호출뿐이었고 둘 다 결함 구현에서 참이었다 (tick 224 실측 `failure-cases=3 unobserved=3`). `check:*` 19종 중 렌더 결과를 보는 것은 지금도 0건이므로, 본 축의 유일한 상시 채널은 위 vitest 경로다.
+
+**채널의 판정력 한계는 §동작 (O-5)** — 이 채널은 *부재 단언으로 갈아끼운* 회귀를 잡지 못한다. 그 방향은 (Dir-1) 주입에만 걸린다.
 
 ## 테스트 현황
 
 - [x] 채워진 값 아래의 로그인·로그아웃 리디렉트 4 케이스 — `src/common/UserLogin.test.tsx`.
 - [x] a11y 활성 경로 (클릭·Enter·Space) 케이스 실재.
 - [x] 실패 3 케이스의 실재 — tick 224 실측 `failure-cases=3` (`reportErrorSpy).toHaveBeenCalledTimes` 보유 `it` 블록 도출).
-- [ ] 실패 3 케이스의 **렌더 결과 단언** — tick 224 실측 `unobserved=3`. (S-2) 의 부착 대상.
-- [ ] 성공 갈래의 표면 **부재 단언** — tick 224 실측 0 hit. (S-3) 의 부착 대상.
+- [x] 실패 3 케이스의 **렌더 결과 단언** — tick 225 재실행 `failure-cases=3 unobserved=0` (TSK-20260825-32 / `42ee3e7`). 3 케이스 각각이 `toHaveAttribute('aria-disabled','true')` + `getByRole('alert')` 양성 단언을 보유한다 (`UserLogin.test.tsx:185-186` · `:202-203` · `:218-219` 직접 확인).
+- [x] 성공 갈래의 표면 **부재 단언** — tick 225 재실행 2 hit (`UserLogin.test.tsx:235-236`). 해당 `it` 은 `reportErrorSpy` 를 세우지 **않아** (S-2) 실패 케이스 모집단에 들어가지 않는다 — 부재 단언만으로 `unobserved=0` 이 되는 사각을 구현이 명시적으로 회피했다 (`:224-225` 주석).
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (`RULE-07 §수용 기준 문장 규약`). 명령은 `src/**` 만 참조하며 **spec 경로를 참조하지 않는다** (`§promote 조건 2`). **HEAD=`eb5019b` (tick 224 등록) 기준 0/3.**
+> 전 항목 명령 1회로 rc 판정 가능 (`RULE-07 §수용 기준 문장 규약`). 명령은 `src/**` 만 참조하며 **spec 경로를 참조하지 않는다** (`§promote 조건 2`). **HEAD=`5b2ed3b` (tick 225 재실행) 기준 3/3 — 전수 충족.**
 
-- [ ] (Must, S-1) 표면 실재 — 실패 갈래가 접근성 트리에 도달하는 표면을 렌더한다. 판정: `bash -c 'grep -qE "aria-disabled=|role=\"alert\"|<Toaster" src/common/UserLogin.tsx'` → **rc=0**. **HEAD=`eb5019b` (tick 224) 실측 rc=1 / 0 hit → 미충족.** **검출 경계 (과신 금지)** — 이것은 소스 grep 이라 `RULE-06 §관측 표면` 이 경고하는 형태이며 주석 한 줄로 통과할 수 있다. **단독으로는 판정력이 없고 (S-2) 와 동반해야 의미를 갖는다** — (S-2) 는 렌더 결과를 단언하는 테스트의 실재를 요구하고 그 테스트는 `npm test` 에서 실제로 실행된다. 두 항목을 분리해 둔 이유는 착지 순서(구현 → 테스트)를 관측 가능하게 남기기 위함이다.
-- [ ] (Must, S-2) 실패 갈래 케이스의 렌더 결과 단언 — 모집단을 테스트 파일에서 **도출**해 대조한다 (`RULE-06 §열거 고정 금지`). 판정:
+- [x] (Must, S-1) 표면 실재 — 실패 갈래가 접근성 트리에 도달하는 표면을 렌더한다. 판정: `bash -c 'grep -qE "aria-disabled=|role=\"alert\"|<Toaster" src/common/UserLogin.tsx'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225 재실행) 실측 rc=0 / 3 hit → 충족** (`UserLogin.tsx:66` `aria-disabled={entryFailure ? "true" : undefined}` · `:73` `<span role="alert">`; `:65` 는 주석 hit). **검출 경계 (과신 금지)** — 이것은 소스 grep 이라 `RULE-06 §관측 표면` 이 경고하는 형태이며 주석 한 줄로 통과할 수 있다. **단독으로는 판정력이 없고 (S-2) 와 동반해야 의미를 갖는다** — (S-2) 는 렌더 결과를 단언하는 테스트의 실재를 요구하고 그 테스트는 `npm test` 에서 실제로 실행된다. 두 항목을 분리해 둔 이유는 착지 순서(구현 → 테스트)를 관측 가능하게 남기기 위함이다.
+- [x] (Must, S-2) 실패 갈래 케이스의 렌더 결과 단언 — 모집단을 테스트 파일에서 **도출**해 대조한다 (`RULE-06 §열거 고정 금지`). 판정:
   ```
   awk '/^[[:space:]]*it\(/ { b++ } /reportErrorSpy\)\.toHaveBeenCalledTimes/ { rep[b]=1 } /toHaveAttribute\((.)aria-disabled|ByRole\((.)alert|toBeDisabled\(\)/ { obs[b]=1 } END { for (i=1;i<=b;i++) if (rep[i]) { f++; if (!obs[i]) m++ } printf "failure-cases=%d unobserved=%d\n", f, m; exit (f==0 ? 2 : (m>0 ? 1 : 0)) }' src/common/UserLogin.test.tsx
   ```
-  → **rc=0**. **HEAD=`eb5019b` (tick 224 재실행) 실측 rc=1 / `failure-cases=3 unobserved=3` → 미충족.** **공허 통과 가드 내장** — 실패 케이스 도출이 0 이면 `exit 2` 로, 케이스가 사라져 조용히 참이 되는 상태를 충족으로 읽지 않는다. ack 라인이 `failure-cases=3` 으로 비공허임을 수치로 낸다. **인용 부호 비의존** — 패턴이 `\((.)` 형태라 `'alert'` · `"alert"` 양쪽을 받는다. **`window.location.href` 불변 단언을 관측으로 계수하지 않는 이유**는 §동작 (O-2) — 그 상태가 곧 결함이므로 인정하면 기준이 현 HEAD 에서 이미 참이 된다.
-- [ ] (Should, S-3) 특이도 — 성공 갈래 부재 단언. 판정: `bash -c 'grep -qE "(queryByRole\((.)alert(.)\)\)\.(toBeNull|not\.toBeInTheDocument)|not\.toHaveAttribute\((.)aria-disabled)" src/common/UserLogin.test.tsx'` → **rc=0**. **HEAD=`eb5019b` (tick 224) 실측 rc=1 / 0 hit → 미충족.** **이 항목이 없으면 "항상 표시되는 배너" 가 (S-1)(S-2) 를 통과한다** — 실패 갈래에서 표면이 보이는 것만 재고 성공 갈래에서 안 보이는 것을 재지 않기 때문이다. slug `testing/declared-branch-discriminating-assertion` 의 구별 단언 요구와 같은 구조이며, 그 spec 의 모집단(`isAdmin` 계열 23 지점)에는 본 지점이 **포함되지 않는다**.
+  → **rc=0**. **HEAD=`5b2ed3b` (tick 225 재실행) 실측 rc=0 / `failure-cases=3 unobserved=0` → 충족.** 판정식 결과를 받아쓰지 않고 `UserLogin.test.tsx` 3 실패 블록을 **직접 읽어** 양성 단언 실재를 대조했다 (tick 225). **공허 통과 가드 내장** — 실패 케이스 도출이 0 이면 `exit 2` 로, 케이스가 사라져 조용히 참이 되는 상태를 충족으로 읽지 않는다. ack 라인이 `failure-cases=3` 으로 비공허임을 수치로 낸다. **인용 부호 비의존** — 패턴이 `\((.)` 형태라 `'alert'` · `"alert"` 양쪽을 받는다. **`window.location.href` 불변 단언을 관측으로 계수하지 않는 이유**는 §동작 (O-2) — 그 상태가 곧 결함이므로 인정하면 기준이 현 HEAD 에서 이미 참이 된다.
+- [x] (Should, S-3) 특이도 — 성공 갈래 부재 단언. 판정: `bash -c 'grep -qE "(queryByRole\((.)alert(.)\)\)\.(toBeNull|not\.toBeInTheDocument)|not\.toHaveAttribute\((.)aria-disabled)" src/common/UserLogin.test.tsx'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225 재실행) 실측 rc=0 / 2 hit (`:235` `queryByRole('alert')).toBeNull()` · `:236` `not.toHaveAttribute('aria-disabled')`) → 충족.** **이 항목이 없으면 "항상 표시되는 배너" 가 (S-1)(S-2) 를 통과한다** — 실패 갈래에서 표면이 보이는 것만 재고 성공 갈래에서 안 보이는 것을 재지 않기 때문이다. slug `testing/declared-branch-discriminating-assertion` 의 구별 단언 요구와 같은 구조이며, 그 spec 의 모집단(`isAdmin` 계열 23 지점)에는 본 지점이 **포함되지 않는다**.
 
 ## 참고
 
@@ -91,6 +101,7 @@ class 교체만으로는 접근성 트리에 아무 변화가 없다. 요구되�
 - **(Dir-1) 민감도** — `UserLogin.tsx` 실패 갈래에서 새 표면 렌더를 제거(또는 성공 갈래와 동일하게 되돌림) → 해당 테스트 `rc≠0` → 원복 → `rc=0`.
 - **(Dir-2) 특이도** — 주입 없이 그대로 실행 → `rc=0`. 이 방향이 없으면 "항상 실패하는 단언" 이 (Dir-1) 을 통과한다.
 - **(Dir-3) 갈래 구별** — 성공 갈래에서 표면이 나타나도록 조건을 반전 → (S-3) 의 특이도 단언 `rc≠0` → 원복.
+- **(Dir-4) 부재 단언 치환 (§동작 (O-5) 직결)** — 실패 3 케이스의 양성 단언 `toHaveAttribute('aria-disabled','true')` · `getByRole('alert')` 를 부재형(`not.toHaveAttribute` · `queryByRole(...).toBeNull`)으로 **치환**하고 표면 렌더를 제거 → 해당 테스트 `rc≠0` → 원복 → `rc=0`. **이 방향이 없으면 §수용 기준 3항 전부와 `npm test` 가 사용자 표면 0 인 트리를 초록으로 통과한다** (tick 225 픽스처 재구성으로 확인).
 
 ### 미측정·비판정 항목
 
@@ -111,3 +122,4 @@ class 교체만으로는 접근성 트리에 아무 변화가 없다. 요구되�
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-25 | REQ-20260825-023 (inspector tick 224) | 최초 등록. **req 수용 기준 3항을 전수 재실행해 수치를 독립 확인**한 뒤 흡수했다 (`failure-cases=3 unobserved=3` · AC-1 0 hit · AC-3 0 hit — req 박제와 일치). **위치는 `foundation/`** — `components/` 는 `src/` 구현 단위와 1:1 이라는 운영자 원칙상 `UserLogin` 의 귀속처는 blue `components/common` 이나, 본 계약은 그 as-is 서술과 축이 다르고 상류 slug `foundation/auth-redirect-url-totality-and-observable-failure` 와 **같은 실패 갈래를 공유**하므로 그 옆에 둔다. **§동작 (O-1) 신설** — req 의 논지를 관측자 3 집합 표로 재구성했다. 이 계약이 상류의 재탕이 아닌 근거가 바로 이 표이며, `reportError` 부착으로 상류가 **이미 충족된 상태**에서도 본 계약이 미충족이라는 사실이 그 독립성의 실측 증거다. **§동작 (O-2) 신설**: `href` 불변 단언을 관측으로 계수하지 않는 근거를 계약 본문에 고정했다 — 이 판단이 뒤집히면 (S-2) 는 현 HEAD 에서 이미 참이 되어 공허해진다. **§동작 (O-3)**: 위반 모집단이 1건임을 명시해 전칭 계약으로의 확대를 차단했다. **(S-1) 의 검출 경계를 항목 안에 박제** — 소스 grep 단독은 주석으로 통과하므로 (S-2) 동반이 필수임을 과신 금지 형태로 남겼다. | all |
+| 2026-08-25 | TSK-20260825-32 (`42ee3e7`) / inspector tick 225 | **Phase 1 reconcile — 수용 기준 3/3 전수 ack, marker 5건 플립** (S-1·S-2·S-3 + §테스트 현황 2항). 게이트를 현 HEAD 에서 **실제 재실행**했고 `result.md` 주장은 받아쓰지 않았다: (S-1) rc=0 3 hit / (S-2) rc=0 `failure-cases=3 unobserved=0` / (S-3) rc=0 2 hit / `npx vitest run src/common/UserLogin.test.tsx` → `16 passed` rc=0. **판정식 rc 에 의존하지 않고 `UserLogin.test.tsx` 3 실패 블록을 직접 읽어** 양성 단언(`:185-186` · `:202-203` · `:218-219`)을 대조한 뒤 플립했다 — 그 대조가 필요한 이유가 신설된 **§동작 (O-5)** 다. **(O-5) 신설**: developer 가 DoD 밖에서 보고한 (S-2) 사각을 tick 225 가 스크래치패드 픽스처로 **독립 재현**해 확정했다 — `.not.toHaveAttribute('aria-disabled')` 가 `toHaveAttribute('aria-disabled'` 를 부분문자열로 포함하고 (S-2) 의 ERE 에 앵커가 없어, 표면 미부착 + 주석 1줄 + 부재 단언만인 트리가 3 기준과 `npm test` 를 전부 rc=0 으로 통과하면서 사용자 표면 라인은 0 이다. 판정력 경계를 완화·은폐하지 않고 계약 본문에 박제했고 **(Dir-4)** 를 이관 절에 신설해 그 방향의 귀속처를 만들었다. **§발화 채널 재작성**: 채널이 실제로 부착됐으므로 상시 채널을 vitest 수집 경로로 확정하고(`vite.config.js:63,68`), 부착 전 상태(`unobserved=3`)는 감사성 목적으로 별도 문단에 보존했다. **§위치 라인 갱신** — `42ee3e7` 로 라인이 밀려 종전 `:29-31`·`:34-36`·`:41-48` 이 전부 오지시였다. | §위치, §동작 (O-5), §발화 채널, §테스트 현황, §수용 기준, §참고 (Dir-4), 본 이력 |

@@ -151,7 +151,7 @@ HEAD 실측 — `.env.test:11-14` 4 키 전부 비공란, `.env.example:13-16` 4
 - [x] a11y 활성 경로 (클릭·Enter·Space) — `:114-149`.
 - [x] 공란 조건에서의 무발화 부재 — **tick 224 ack (`eb5019b`)** `UserLogin.test.tsx` 에 공란 `stubEnv` 케이스 **3건** 실재 + 파일 rc=0. tick 223 실측 0건이었다 (TSK-20260825-29 / `7465638`).
 - [x] `getLoginUrl`/`getLogoutUrl` 미정의 갈래의 테스트 실행 — **tick 224 ack (`eb5019b`)** `toBeUndefined()` **2 hit**. tick 223 실측 0 hit 이었다 (TSK-20260825-29 / `7465638`).
-- [ ] `VITE_COGNITO_*` 4 키의 실재 검증 채널 — HEAD 0건. (U-1)(U-2) 의 부착 대상.
+- [ ] `VITE_COGNITO_*` 4 키의 실재 검증 채널 — HEAD=`5b2ed3b` (tick 225 재실행) `declared=10 uncovered=10`, 0건 불변. (U-1)(U-2) 의 부착 대상. **TSK-20260825-31 의 seam 도입은 이 항목을 움직이지 않는다** — seam 은 판정 **입력 경로**만 바꾸고 산출의 키 열거 여부는 건드리지 않기 때문이며, 이는 slug `foundation/gate-judgement-population-injectable-seam` §동작 (P-4) 가 예고한 그대로다.
 
 ## 수용 기준
 

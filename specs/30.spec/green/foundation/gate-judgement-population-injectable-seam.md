@@ -1,8 +1,8 @@
 # 상시 게이트의 판정 모집단 주입 seam
 
-> **위치**: `scripts/check-*.sh` — 판정 모집단 루트를 도출하는 지점 (기준 사례: `scripts/check-env-api-base-presence.sh:84`)
+> **위치**: `scripts/check-*.sh` — 판정 모집단 루트를 도출하는 지점 (기준 사례: `scripts/check-env-api-base-presence.sh:60` `ENV_PRESENCE_ROOT`). 라인은 HEAD=`5b2ed3b` 스냅샷이며 **식별자 우선**.
 > **관련 요구사항**: REQ-20260825-024
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 224 최초 등록)
+> **최종 업데이트**: 2026-08-25 (by inspector — tick 225 Phase 1 reconcile: 수용 기준 4/4 전수 ack)
 
 ## 역할
 
@@ -56,29 +56,29 @@ seam 은 **기본값 방식**이라 호출 라인을 바꾸지 않는다. 따라
 
 ## 발화 채널
 
-본 계약의 위반(seam 부재)은 **어떤 기존 게이트도 붉게 만들지 않는다.** `check:*` 18종 중 게이트 자신의 인터페이스를 판정하는 것은 0건이며, `check:acceptance-criteria` 는 spec 문서를 본다. 따라서 §수용 기준의 명령이 현재 유일한 판정 채널이며, 상시 채널 부착은 **후속 task 의 선행 조건**이다 (`RULE-07 §promote 조건 4` — 채널 부재는 promote 차단이 아니라 채널 부착 task 발행을 선행 조건으로 한다).
+본 계약의 위반(seam 부재)은 **어떤 기존 게이트도 붉게 만들지 않는다.** `check:*` 19종(tick 225 실측, `package.json`) 중 게이트 자신의 인터페이스를 판정하는 것은 여전히 0건이며, `check:acceptance-criteria` 는 spec 문서를 본다. 따라서 §수용 기준의 명령이 현재 유일한 판정 채널이며, 상시 채널 부착은 **후속 task 의 선행 조건**이다 (`RULE-07 §promote 조건 4` — 채널 부재는 promote 차단이 아니라 채널 부착 task 발행을 선행 조건으로 한다).
 
 ## 테스트 현황
 
 - [x] 기존 seam 3건의 실재 — `SPEC_COHERENCE_SPEC_ROOT`(`check-spec-coherence.sh:55`) · `MONITOR_STATE_SCAN_ROOT`(`check-monitor-state-immutability.sh:60`) · `TEST_DOUBLE_SCAN_ROOT`(`check-test-double-shape-fidelity.sh:58`). tick 224 실측 `gates=17 seam=3`.
 - [x] seam 을 통한 저장소 무변경 주입이 실제로 가능함의 증인 — tick 224 가 `SPEC_COHERENCE_SPEC_ROOT` 로 격리 트리를 판정시켜 G4 검출을 재현했다 (`green(missing=1)`, rc=1). 저장소 `specs/30.spec` 는 건드리지 않았다.
-- [ ] `.env*` 계열 게이트의 seam — HEAD `eb5019b` 실측 `env-gates=1 no-seam=1`. (E-1) 의 부착 대상.
-- [ ] 격리 픽스처 디렉터리 — HEAD 부재. (E-3) 의 부착 대상.
+- [x] `.env*` 계열 게이트의 seam — tick 225 재실행 `env-gates=1 no-seam=0` (TSK-20260825-31 / `8baba52`). `check-env-api-base-presence.sh:60` `ENV_PRESENCE_ROOT="${ENV_PRESENCE_SCAN_ROOT:-}"`.
+- [x] 격리 픽스처 디렉터리 — tick 225 재실행 `scripts/fixtures/env-presence/` 실재 + git 추적 3파일(`.env.example` · `.env.test` · `env.d.ts`) + `.gitignore` 매치 0.
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (`RULE-07 §수용 기준 문장 규약`). 명령은 `scripts/**` · `.gitignore` · git 인덱스 · `package.json` 만 참조하며 **spec 경로를 참조하지 않는다** (`§promote 조건 2`). **HEAD=`eb5019b` (tick 224 등록) 기준 1/4.**
+> 전 항목 명령 1회로 rc 판정 가능 (`RULE-07 §수용 기준 문장 규약`). 명령은 `scripts/**` · `.gitignore` · git 인덱스 · `package.json` 만 참조하며 **spec 경로를 참조하지 않는다** (`§promote 조건 2`). **HEAD=`5b2ed3b` (tick 225 재실행) 기준 4/4 — 전수 충족.**
 >
 > **패턴 인용 주의** — `\$\{` 를 담은 ERE 는 반드시 **홑따옴표**로 감싼다. 겹따옴표 안에서는 셸이 `\$` 를 `$` 로 바꿔 ERE 가 앵커로 읽고 무조건 0 hit 이 된다 (거짓 음성).
 
-- [ ] (Must, E-1) `.env*` 계열 게이트 전수 seam 보유 — 모집단을 게이트 본문에서 **도출**한다 (`RULE-06 §열거 고정 금지`). 판정:
+- [x] (Must, E-1) `.env*` 계열 게이트 전수 seam 보유 — 모집단을 게이트 본문에서 **도출**한다 (`RULE-06 §열거 고정 금지`). 판정:
   ```
   bash -c 'tot=0; miss=0; for f in scripts/check-*.sh; do grep -qE '"'"'ls-files "?\.env'"'"' "$f" || continue; tot=$((tot+1)); grep -qE '"'"'^[A-Z_]*(ROOT|GLOB|FILES)="\$\{[A-Z_]+:-'"'"' "$f" || { echo "no-seam: $f" >&2; miss=$((miss+1)); }; done; printf "env-gates=%d no-seam=%d\n" "$tot" "$miss"; [ "$tot" -gt 0 ] || exit 2; test "$miss" -eq 0'
   ```
-  → **rc=0**. **HEAD=`eb5019b` (tick 224) 실측 rc=1 / `env-gates=1 no-seam=1` (`scripts/check-env-api-base-presence.sh`) → 미충족.** **공허 통과 가드 내장** — 모집단 도출이 0 이면 `exit 2` 로, 대상이 사라져 조용히 참이 되는 상태를 충족으로 읽지 않는다.
+  → **rc=0**. **HEAD=`5b2ed3b` (tick 225 재실행) 실측 rc=0 / `env-gates=1 no-seam=0` → 충족.** **grep 통과를 seam 실재로 받아쓰지 않았다** — tick 225 가 `ENV_PRESENCE_SCAN_ROOT` 를 **부재 경로로 지정해 직접 실행**했고 `exit 2` (`선언 파일 없음 — .../__no_such_dir__/env.d.ts`) 를 얻어 seam 이 실제로 도출 경로를 갈아끼운다는 것을 확인했다. 픽스처 지정 실행이 기본 실행과 **동일 산출**(`keys=6 envfiles=2 valued-files=1`)을 내는 것은 우연이 아니라 픽스처가 실 형상을 모사하도록 만들어졌기 때문이며, 그 동일성 자체가 (Dir-5) 기준선이다. **공허 통과 가드 내장** — 모집단 도출이 0 이면 `exit 2` 로, 대상이 사라져 조용히 참이 되는 상태를 충족으로 읽지 않는다.
 - [x] (Must, E-2) 기본값 동치 — seam 미설정 산출의 모집단 수가 추적 파일 수와 일치한다. 판정: `bash -c 'exp=$(git ls-files ".env*" | grep -c .); [ "$exp" -gt 0 ] || { echo "derive=0 vacuous" >&2; exit 2; }; got=$(npm run --silent check:env-api-base 2>&1 | sed -nE "s/.*envfiles=([0-9]+).*/\1/p" | head -1); printf "tracked=%s reported=%s\n" "$exp" "$got"; [ "$got" = "$exp" ]'` → **rc=0**. **HEAD=`eb5019b` (tick 224) 실측 rc=0 / `tracked=2 reported=2` → 충족.** 이 항목은 seam 도입 **후에도** 참이어야 하는 보존 명제다. **`RULE-07 §반려 시그널` 의 중복 게이트 부류가 아닌 경계** — `check-env-api-base-presence.sh:89-92` 가 이미 `envfile_count -eq 0` 을 `exit 2` 로 잡으므로 **0 방향은 중복**이다. 본 항목이 유일하게 덮는 것은 **0 이 아닌 다른 집합**을 가리키는 방향(seam 기본값이 픽스처 디렉터리로 굳는 회귀)이며 그 상태에서 기존 게이트는 rc=0 이다. **이 명령이 `.env*` 를 읽지 않는 점에 유의** — git 인덱스의 파일 **이름 수**와 게이트 **산출 수치**만 비교하므로 `.env*` 접근이 금지된 세션에서도 판정 가능하다.
-- [ ] (Must, E-3) 격리 픽스처 실재 + `.gitignore` 미매치 — 판정: `bash -c 'grep -qE "^scripts/fixtures" .gitignore && { echo "fixture root is gitignored" >&2; exit 1; }; test -d scripts/fixtures/env-presence'` → **rc=0**. **HEAD=`eb5019b` (tick 224) 실측 rc=1 (gitignore 매치 0 · 디렉터리 부재) → 미충족.** 경로 근거: `scripts/fixtures/` 는 이미 `coverage-attribution/` 픽스처를 담고 있고 `.gitignore` 어느 행과도 매치되지 않는다 (tick 224 사전 점검 완료). 디렉터리명은 구현자 재량이며 변경 시 본 항목의 경로를 함께 갱신한다.
-- [ ] (Should, E-4) seam 커버리지 관측 + 기존 3건 보존 — 판정: `bash -c 'tot=0; seam=0; for f in scripts/check-*.sh; do tot=$((tot+1)); grep -qE '"'"'^[A-Z_]*(ROOT|GLOB|FILES)="\$\{[A-Z_]+:-'"'"' "$f" && seam=$((seam+1)); done; printf "gates=%d seam=%d\n" "$tot" "$seam"; [ "$tot" -gt 0 ] || exit 2; test "$seam" -ge 4'` → **rc=0**. **HEAD=`eb5019b` (tick 224) 실측 rc=1 / `gates=17 seam=3` → 미충족.** 하한 4 = 기존 3 보존 + env 게이트 1. **기존 3 중 하나가 제거되면 본 항목이 유일한 검출자다** — 현재 그 제거는 어떤 게이트도 붉게 만들지 않으며 무변경 주입 검증만 조용히 불능이 된다.
+- [x] (Must, E-3) 격리 픽스처 실재 + `.gitignore` 미매치 — 판정: `bash -c 'grep -qE "^scripts/fixtures" .gitignore && { echo "fixture root is gitignored" >&2; exit 1; }; test -d scripts/fixtures/env-presence'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225 재실행) 실측 rc=0 → 충족.** `git ls-files scripts/fixtures/env-presence/` 3건으로 **실제 추적**을 확인했다 — `RULE-06 §fixture probe 경로 사전 점검` 이 경고하는 조용한 휘발(파일 부재를 통과로 읽음)이 발생하지 않았다. 경로 근거: `scripts/fixtures/` 는 이미 `coverage-attribution/` 픽스처를 담고 있고 `.gitignore` 어느 행과도 매치되지 않는다 (tick 224 사전 점검 완료). 디렉터리명은 구현자 재량이며 변경 시 본 항목의 경로를 함께 갱신한다.
+- [x] (Should, E-4) seam 커버리지 관측 + 기존 3건 보존 — 판정: `bash -c 'tot=0; seam=0; for f in scripts/check-*.sh; do tot=$((tot+1)); grep -qE '"'"'^[A-Z_]*(ROOT|GLOB|FILES)="\$\{[A-Z_]+:-'"'"' "$f" && seam=$((seam+1)); done; printf "gates=%d seam=%d\n" "$tot" "$seam"; [ "$tot" -gt 0 ] || exit 2; test "$seam" -ge 4'` → **rc=0**. **HEAD=`5b2ed3b` (tick 225 재실행) 실측 rc=0 / `gates=18 seam=5` → 충족.** 하한 4 = 기존 3 보존 + env 게이트 1. **분모·분자 동시 증가에 유의** — `gates` 17→18 은 `check-declared-branch-discrimination.sh` 신설(TSK-20260825-33 / `58f2ddf`), `seam` 3→5 는 env 게이트 1 + 그 신규 게이트의 `BRANCH_DISCRIMINATION_SCAN_ROOT`(`:54`) 다. 즉 신규 게이트가 seam 을 **처음부터** 갖고 태어났다. **기존 3 중 하나가 제거되면 본 항목이 유일한 검출자다** — 현재 그 제거는 어떤 게이트도 붉게 만들지 않으며 무변경 주입 검증만 조용히 불능이 된다.
 
 ## 참고
 
@@ -116,3 +116,4 @@ REQ-20260825-024 §참고의 판정을 승계한다. 오늘 관측된 "측정 �
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-25 | REQ-20260825-024 (inspector tick 224) | 최초 등록. **req 수용 기준 4항을 형태 보존해 흡수**하되 (E-2) 의 판정 근거를 다시 세웠다 — req 판본은 `npm run check:env-api-base` 산출과 `git ls-files` 를 비교하는데, tick 224 세션은 `.env*` 접근이 금지돼 있어 **그 명령이 세션 권한 안에서 실행 가능한지 자체가 쟁점**이었다. 실행해 보니 게이트 산출은 파일명·수치만 내므로 판정이 성립했고, 그 사실을 항목 안에 박제했다 — 본 계약이 요구하는 능력의 필요성을 스스로 예시하는 자리다. **§동작 (P-3) 신설** (req 의 "왜 `.env*` 가 특별한가" 를 복원 보장 비대칭 표로 재구성 — Must/Should 경계의 근거). **§동작 (P-4) 신설**: seam 이 소유 계약을 깨지 않음을 명시하고, 순서 제약의 원인이 **문자열 파손이 아니라 계약 소유권**임을 계약 본문에 고정했다. **§테스트 현황에 증인 1건 추가** — tick 224 가 `SPEC_COHERENCE_SPEC_ROOT` 로 격리 트리를 판정시켜 G4 검출을 실제로 재현했다(저장소 무변경). 요구되는 능력이 이미 3 게이트에서 작동함의 실측 증거다. **§발화 채널**: 위반이 어떤 기존 게이트도 붉게 만들지 않음을 명시하고 상시 채널 부착을 후속 task 선행 조건으로 뒀다. | all |
+| 2026-08-25 | TSK-20260825-31 (`8baba52`) / inspector tick 225 | **Phase 1 reconcile — 수용 기준 4/4 전수 ack, marker 5건 플립** (E-1·E-3·E-4 + §테스트 현황 2항; E-2 는 tick 224 이래 충족 유지). 게이트를 현 HEAD 에서 **실제 재실행**했고 `result.md` 주장은 받아쓰지 않았다: (E-1) rc=0 `env-gates=1 no-seam=0` / (E-2) rc=0 `tracked=2 reported=2` / (E-3) rc=0 / (E-4) rc=0 `gates=18 seam=5`. **grep 통과를 seam 실재로 계수하지 않았다** — `RULE-06 §관측 표면` 이 경고하는 형태이므로 `ENV_PRESENCE_SCAN_ROOT` 를 **부재 경로로 지정해 스크립트를 직접 실행**해 `exit 2` 를 얻었고(`npm run` 경유는 zsh `PIPESTATUS` 공란으로 rc 가 소실돼 직접 호출로 재측정), 이로써 seam 이 도출 경로를 실제로 갈아끼움을 확인했다. 픽스처 지정 실행과 기본 실행의 산출이 동일한 것(`keys=6 envfiles=2 valued-files=1`)은 seam 무효의 증거가 아니라 픽스처가 실 형상을 모사한 결과이며 (Dir-5) 기준선과 일치한다 — 이 구별을 (E-1) 항목 본문에 박제했다. **§발화 채널 수치 갱신** (`check:*` 18→19종, 자기 인터페이스 판정 게이트는 여전히 0건 — 상시 채널 부착이 후속 task 선행 조건이라는 결론은 불변). **§위치 라인 정정** — 종전 `:84` 는 seam 도입 후 `:60` `ENV_PRESENCE_ROOT` 로 이동했다. **관측 1건**: `gates` 17→18 과 `seam` 3→5 가 동시에 늘었고 증분의 하나가 신규 게이트 `check-declared-branch-discrimination.sh:54` 의 seam 이다 — 본 계약이 요구한 형태가 신규 게이트에서 **기본값으로 채택**된 첫 사례다. | §위치, §발화 채널, §테스트 현황, §수용 기준, 본 이력 |

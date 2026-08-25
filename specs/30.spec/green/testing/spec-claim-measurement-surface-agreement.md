@@ -135,8 +135,8 @@ spec 본문이 인용한 실측·전칭 단언은 현 HEAD 재실행과 일치�
 
 - [x] 단일 출처 게이트 실재 + 공허 가드 — `src/__tests__/react-query-test-queryclient-single-source.test.ts:40`(스캔) · `:52`(파일 수 > 20 단언).
 - [x] 더블 형상 게이트 실재 + `predicates=` 산출 — `scripts/check-test-double-shape-fidelity.sh`.
-- [ ] 시그니처 고정 제거 — HEAD **1 hit** (`:85` 빈 괄호 리터럴). (S-1) 의 부착 대상.
-- [ ] 산문 면역의 특이도 증인 — HEAD **0건**. (S-2)(R-4) 의 부착 대상.
+- [ ] 시그니처 고정 제거 — HEAD=`5b2ed3b` (tick 225 재실행) **1 hit** (`:85` 빈 괄호 리터럴, `grep -cF`). (S-1) 의 부착 대상. 델타 무관 영역이라 tick 224 와 동일.
+- [ ] 산문 면역의 특이도 증인 — HEAD=`5b2ed3b` (tick 225 재실행) `witness=0`. (S-2)(R-4) 의 부착 대상.
 - [x] 도출 대조 — tick 223 실측 게이트 `predicates=13` = 진리원 도출 13. (S-3).
 
 ## 수용 기준

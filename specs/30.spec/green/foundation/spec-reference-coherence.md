@@ -82,9 +82,9 @@
 
 ## 테스트 현황
 
-- [ ] (G-1) 참조 실재 — HEAD=`139cd78` (tick 223 재실행) 부재 **13 distinct, 전량 blue** (tick 222 의 14 에서 1 감소 — planner 승격으로 참조 대상 1건이 실재하게 됐다). green 스코프는 **0**. 미충족 (blue 편집 writer 부재 — §미측정·비판정 항목).
-- [ ] (G-2) suffix 표기 0 — HEAD=`139cd78` (tick 223 재실행) **11 line, 전량 blue**. green 스코프는 **0**. 미충족 (동일 사유).
-- [ ] (G-3) 인용 설정값 일치 — HEAD=`139cd78` (tick 223 재실행) 종전 provider 토큰 인용 **2 line (전량 blue)** vs 실제 `istanbul`. 미충족. tick 220 판본의 4 hit 중 2 건은 본 spec 자신의 문장이었고 tick 221 이 제거했다.
+- [ ] (G-1) 참조 실재 — HEAD=`5b2ed3b` (tick 225 재실행) 부재 **13 distinct, 전량 blue** — tick 223·224 와 동수 불변 (tick 222 의 14 에서 1 감소 — planner 승격으로 참조 대상 1건이 실재하게 됐다). green 스코프는 **0**. 미충족 (blue 편집 writer 부재 — §미측정·비판정 항목).
+- [ ] (G-2) suffix 표기 0 — HEAD=`5b2ed3b` (tick 225 재실행) **11 line, 전량 blue** — 불변. green 스코프는 **0**. 미충족 (동일 사유).
+- [ ] (G-3) 인용 설정값 일치 — HEAD=`5b2ed3b` (tick 225 재실행) 종전 provider 토큰 인용 **2 line (전량 blue)** vs 실제 `istanbul`. 미충족. tick 220 판본의 4 hit 중 2 건은 본 spec 자신의 문장이었고 tick 221 이 제거했다.
 - [x] (G-4) 채널 스코프 포함 — `SPEC_ROOT=specs/30.spec` 스코프 보유 + 산출 출력 (TSK-20260825-08 / `f2bd538`).
 - [x] (G-5) 비공허 단언 — 채널이 `SPEC_MIN_FILES` / `SPEC_MIN_DISTINCT=50` 하한을 **보유하고 하드 실패**한다 (`check-spec-coherence.sh:59`·`:191`).
 
