@@ -81,6 +81,17 @@ jobs:
       - name: Check Monitor derived state immutability
         run: npm run check:monitor-state-immutability
 
+      # 테스트 더블 반환 형상 정합 게이트 (test-double-return-shape-fidelity §동작 T-1).
+      # 동기 술어 `(): boolean` 을 `mockResolvedValue` 로 대체하면 `Promise.resolve(false)`
+      # 가 truthy 라 음성 케이스가 양성 분기를 실행한다 — 비-admin 차단 경로가 한 번도
+      # 실행되지 않았고 요청 쿼리에 `[object Promise]` 가 직렬화된 결함이 그 경로였다.
+      # **테스트는 이 축의 채널이 될 수 없다**: 위반은 테스트를 붉게 만들지 않고 오히려
+      # 단언을 무력화해 초록을 만든다 (spec (R-5)). 그래서 정적 판정이 유일한 발화 채널이다.
+      # 검사 술어·스캔 파일은 하드코딩하지 않고 도출하며 (RULE-06 §열거 고정 금지)
+      # 대상 집합이 비면 공허 통과로 실패시킨다.
+      - name: Check test double return shape fidelity
+        run: npm run check:test-double-shape
+
       # 커버리지 per-file 분기 귀속 단조성 (coverage-per-file-attribution-monotonicity §동작 1-3).
       # 부분집합(샤드) 실행에서 covered 인 분기 슬롯은 전수 실행에서도 covered 여야 한다.
       # 이 계약이 깨지면 Test(:72) 의 threshold 판정 자체가 집계 경로의 함수가 되지만,

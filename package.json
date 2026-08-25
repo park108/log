@@ -34,6 +34,7 @@
     "check:vitest-globals-coherence": "bash scripts/check-vitest-globals-coherence.sh",
     "check:css-modules-coherence": "bash scripts/check-css-modules-coherence.sh",
     "check:monitor-state-immutability": "bash scripts/check-monitor-state-immutability.sh",
+    "check:test-double-shape": "bash scripts/check-test-double-shape-fidelity.sh",
     "check:commit-writer-coherence": "bash scripts/check-commit-writer-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",

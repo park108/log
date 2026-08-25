@@ -25,3 +25,12 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^src/Monitor/'; then
   bash scripts/check-monitor-state-immutability.sh || exit 1
 fi
+
+# test double return shape fidelity gate — TSK-20260825-21 / spec: testing/test-double-return-shape-fidelity.md §동작 T-1
+# staged 변경에 src/** 또는 게이트 스크립트 자신이 포함되면 검사.
+# npm script 동치: check:test-double-shape (package.json / ci.yml 과 같은 스크립트).
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|scripts/check-test-double-shape-fidelity\.sh$)'; then
+  bash scripts/check-test-double-shape-fidelity.sh || exit 1
+fi
