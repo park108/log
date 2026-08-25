@@ -27,8 +27,11 @@
 # 매치하지 않는다 (실측: 샘플 추가 전 rc=1 / 추가 후 rc=0).
 #
 # §도출 — 리터럴 하드코딩 금지 (RULE-06 §열거 고정 금지):
-#   키       = $ENV_DECL 의 `readonly VITE_*_API_BASE` 선언. 실측 6 키.
-#              (같은 파일이 VITE_COGNITO_* 4 키를 더 선언하나 본 축은 *_API_BASE 한정.)
+#   키       = $ENV_DECL 의 `readonly VITE_*` 선언 **전부**. 실측 10 키.
+#              접미사 리터럴을 도출 패턴에 두지 않는다 — `VITE_[A-Z_]+` 로 연다.
+#              (TSK-20260825-37 이전에는 `VITE_[A-Z_]*API_BASE` 라 VITE_COGNITO_*
+#              4 키가 모집단 밖이었다. 리터럴 4 키를 덧붙이는 수정이었다면 5번째
+#              인증 키가 같은 방식으로 사각이 됐을 것이다.)
 #   env 파일 = git ls-files ".env*" — **커밋된 것만**. 실측 2 파일.
 #   주입 seam = $ENV_PRESENCE_SCAN_ROOT — 설정 시 위 두 모집단을 그 디렉터리
 #              (`<root>/env.d.ts` + `git ls-files "<root>/.env*"`) 로 겨눈다.
@@ -37,9 +40,11 @@
 # 미선언 방향: gitignore 된 로컬 env 파일(`.env.local` 류). `git ls-files` 가 내지
 #   않으므로 **선언된 경계 밖**이다. 로컬 값의 실재는 이 게이트가 판정하지 않는다.
 # 미선언 방향: 배포 플랫폼(Amplify) 주입 환경변수. 저장소에 관측 채널이 없다.
-# 미선언 방향: VITE_COGNITO_* 4 키의 실재. 본 축은 *_API_BASE 한정이다.
-#   확대는 별 task + 주입 검증으로 한다 — 검출 공백은 기록되지 않으면 존재하지
-#   않는 것으로 오독된다.
+# ~~미선언 방향: VITE_COGNITO_* 4 키의 실재. 본 축은 *_API_BASE 한정이다.~~
+#   **해소됨 (TSK-20260825-37).** 도출이 `VITE_[A-Z_]+` 로 열려 선언 키 전수가
+#   모집단에 든다. 자백을 지우지 않고 남기는 이유 — 이 게이트가 4 키를 보지 못한
+#   기간이 실재했고, 그 사각은 주석으로만 기록돼 있었다. 검출 공백은 기록되지
+#   않으면 존재하지 않는 것으로 오독된다.
 #
 # **값을 출력하지 않는다.** 위반 메시지는 파일명과 키 이름만 낸다.
 #
@@ -79,15 +84,15 @@ VIOLATIONS="$(mktemp)"
 trap 'rm -f "$KEYS" "$ENVFILES" "$VALUEFILES" "$VIOLATIONS"' EXIT
 
 # 키 도출.
-grep -oE 'readonly[[:space:]]+VITE_[A-Z_]*API_BASE' "$ENV_DECL" 2>/dev/null \
-  | sed -E 's/.*(VITE_[A-Z_]*API_BASE)/\1/' \
+grep -oE 'readonly[[:space:]]+VITE_[A-Z_]+' "$ENV_DECL" 2>/dev/null \
+  | sed -E 's/.*(VITE_[A-Z_]+)/\1/' \
   | sort -u > "$KEYS"
 
 key_count="$(grep -c . "$KEYS" 2>/dev/null || true)"
 key_count="${key_count:-0}"
 
-if [ "$key_count" -lt 6 ]; then
-  printf 'check-env-api-base-presence: 도출 규칙 붕괴 — 선언 키 %s개 (하한 6, 실측치).\n' "$key_count" >&2
+if [ "$key_count" -lt 10 ]; then
+  printf 'check-env-api-base-presence: 도출 규칙 붕괴 — 선언 키 %s개 (하한 10, 실측치).\n' "$key_count" >&2
   printf '  선언 표기가 바뀌었거나 정규식이 낡았다. 0 을 충족으로 읽지 않는다.\n' >&2
   exit 2
 fi
@@ -154,9 +159,21 @@ if [ "$missing_rows" -ne 0 ] || [ "$missing_values" -ne 0 ]; then
   while IFS= read -r line; do
     printf '  %s\n' "$line" >&2
   done < "$VIOLATIONS"
+  # 판정 키 산출 열거 — 위반 경로에도 낸다. 위반 시에만 커버리지가 불투명해지면
+  # (U-1) 이 rc!=0 상태에서 관측 불가가 된다. **값은 내지 않는다 (키 이름만).**
+  while IFS= read -r k; do
+    [ -n "$k" ] || continue
+    printf '  judged: %s\n' "$k" >&2
+  done < "$KEYS"
   exit 1
 fi
 
 printf 'check-env-api-base-presence: keys=%s envfiles=%s valued-files=%s missing-rows=%s missing-values=%s\n' \
   "$key_count" "$envfile_count" "$valuefile_count" "$missing_rows" "$missing_values"
+# 판정 키 산출 열거 — 어떤 키가 실제로 판정됐는지를 산출로 낸다. 수치만으로는
+# 모집단이 조용히 줄어든 상태와 구별되지 않는다. **값은 내지 않는다 (키 이름만).**
+while IFS= read -r k; do
+  [ -n "$k" ] || continue
+  printf '  judged: %s\n' "$k"
+done < "$KEYS"
 exit 0
