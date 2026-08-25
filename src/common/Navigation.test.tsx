@@ -54,6 +54,12 @@ describe('render navigation menu correctly', () => {
 		expect(link).not.toBeNull();
 		const href = link!.getAttribute('href');
 		expect(href === null || /^https?:\/\//.test(href)).toBe(true);
+
+		// REQ-20260825-020 §동작 (B-1) — 비-admin 갈래를 admin 갈래와 구별하는 부재 단언.
+		// 위 두 단언은 isAdmin() 의 양 갈래 모두에서 참이므로 구별력이 0 이다.
+		expect(screen.queryByText("log")).toBeNull();
+		expect(screen.queryByText("file")).toBeNull();
+		expect(screen.queryByText("mon")).toBeNull();
 	});
 
 	it('render file menu correctly', () => {
