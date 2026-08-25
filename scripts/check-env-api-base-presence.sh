@@ -30,6 +30,9 @@
 #   키       = $ENV_DECL 의 `readonly VITE_*_API_BASE` 선언. 실측 6 키.
 #              (같은 파일이 VITE_COGNITO_* 4 키를 더 선언하나 본 축은 *_API_BASE 한정.)
 #   env 파일 = git ls-files ".env*" — **커밋된 것만**. 실측 2 파일.
+#   주입 seam = $ENV_PRESENCE_SCAN_ROOT — 설정 시 위 두 모집단을 그 디렉터리
+#              (`<root>/env.d.ts` + `git ls-files "<root>/.env*"`) 로 겨눈다.
+#              미설정이 기본이며 그때 도출은 위와 문자 그대로 동일하다.
 #
 # 미선언 방향: gitignore 된 로컬 env 파일(`.env.local` 류). `git ls-files` 가 내지
 #   않으므로 **선언된 경계 밖**이다. 로컬 값의 실재는 이 게이트가 판정하지 않는다.
@@ -51,7 +54,16 @@
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-ENV_DECL="$ROOT/src/types/env.d.ts"
+
+# 판정 모집단 주입 seam (spec: foundation/gate-judgement-population-injectable-seam).
+# 미설정 시 기본 모집단은 현행 도출과 완전히 동일하다 — pre-commit·CI 동작 불변.
+ENV_PRESENCE_ROOT="${ENV_PRESENCE_SCAN_ROOT:-}"
+
+if [ -n "$ENV_PRESENCE_ROOT" ]; then
+  ENV_DECL="$ROOT/$ENV_PRESENCE_ROOT/env.d.ts"
+else
+  ENV_DECL="$ROOT/src/types/env.d.ts"
+fi
 
 cd "$ROOT" || exit 1
 
@@ -81,7 +93,11 @@ if [ "$key_count" -lt 6 ]; then
 fi
 
 # env 파일 도출 — 커밋된 것만.
-git ls-files ".env*" 2>/dev/null | sort > "$ENVFILES"
+if [ -n "$ENV_PRESENCE_ROOT" ]; then
+  git ls-files "$ENV_PRESENCE_ROOT/.env*" 2>/dev/null | sort > "$ENVFILES"
+else
+  git ls-files ".env*" 2>/dev/null | sort > "$ENVFILES"
+fi
 
 envfile_count="$(grep -c . "$ENVFILES" 2>/dev/null || true)"
 envfile_count="${envfile_count:-0}"
