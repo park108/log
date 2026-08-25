@@ -130,14 +130,14 @@ it('render log item correctly', async () => {
 	fireEvent.click(editButton);
 
 	// Mouse over/out event
-	const linkUrl = await screen.findByText("https://www.park108.net/log/1655736946977");
-	expect(linkUrl).toBeInTheDocument();
+	const linkTrigger = await screen.findByTestId("link-copy-button");
+	expect(linkTrigger).toBeInTheDocument();
 
-	fireEvent.mouseOver(linkUrl);
-	fireEvent.mouseOver(linkUrl); // Already class changed
-	fireEvent.mouseMove(linkUrl);
-	fireEvent.mouseOut(linkUrl);
-	fireEvent.mouseOut(linkUrl); // Already class changed
+	fireEvent.mouseOver(linkTrigger);
+	fireEvent.mouseOver(linkTrigger); // Already class changed
+	fireEvent.mouseMove(linkTrigger);
+	fireEvent.mouseOut(linkTrigger);
+	fireEvent.mouseOut(linkTrigger); // Already class changed
 });
 
 describe("LogItem sanitizes rendered markdown HTML", () => {

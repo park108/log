@@ -49,21 +49,13 @@ const LogItemInfo = (props) => {
 					role="button"
 					tabIndex={0}
 					data-testid="link-copy-button"
+					aria-label="Copy the log link"
 					onClick={copyLogLink}
 					onKeyDown={activateOnKey(copyLogLink)}
 					className="span span--logitem-toolbaricon"
+					{...linkPopup.triggerProps}
 				>
 					<LinkButton />
-					<span className="hidden--width-640px">
-						<a
-							role="button"
-							href={ getUrl() + "log/" + timestamp }
-							className="a a--logitem-loglink"
-							{...linkPopup.triggerProps}
-						>
-							{ getUrl() + "log/" + timestamp }
-						</a>
-					</span>
 					{ linkPopup.isVisible && (
 						<div
 							className="div div--logitem-linkmessage"

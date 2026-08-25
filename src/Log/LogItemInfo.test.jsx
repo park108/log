@@ -70,11 +70,11 @@ describe('LogItemInfo hoverPopup migration', () => {
 		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
 		renderInfo();
 
-		const linkUrl = screen.getByText('https://www.park108.net/log/1655736946977');
-		expect(linkUrl).toBeInTheDocument();
+		const linkTrigger = screen.getByTestId('link-copy-button');
+		expect(linkTrigger).toBeInTheDocument();
 
 		act(() => {
-			fireEvent.focus(linkUrl);
+			fireEvent.focus(linkTrigger);
 		});
 
 		const popup = screen.getByText('Click to Clipboard');
@@ -82,12 +82,12 @@ describe('LogItemInfo hoverPopup migration', () => {
 		expect(popup).toHaveAttribute('role', 'tooltip');
 		expect(popup).toHaveAttribute('aria-hidden', 'false');
 
-		const describedBy = linkUrl.getAttribute('aria-describedby');
+		const describedBy = linkTrigger.getAttribute('aria-describedby');
 		expect(describedBy).toBeTruthy();
 		expect(popup.getAttribute('id')).toBe(describedBy);
 
 		await act(async () => {
-			fireEvent.blur(linkUrl);
+			fireEvent.blur(linkTrigger);
 			await vi.advanceTimersByTimeAsync(100);
 		});
 
@@ -122,9 +122,9 @@ describe('LogItemInfo hoverPopup migration', () => {
 		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
 		renderInfo();
 
-		const linkUrl = screen.getByText('https://www.park108.net/log/1655736946977');
+		const linkTrigger = screen.getByTestId('link-copy-button');
 		act(() => {
-			fireEvent.focus(linkUrl);
+			fireEvent.focus(linkTrigger);
 		});
 		expect(screen.getByText('Click to Clipboard')).toBeInTheDocument();
 
