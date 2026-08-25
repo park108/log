@@ -30,7 +30,7 @@ vi.mock('../api', () => ({
  * fresh 창은 `queryClient.setQueryDefaults` 로 **이 키 계층에만** 얹는다. 세 가지 제약을
  * 동시에 지키기 위해서다 (blue spec
  * `react-query-test-queryclient-default-options-single-source-coherence`):
- * (a) 테스트 파일에서 QueryClient 를 직접 인스턴스화하지 않는다 (D-1),
+ * (a) 테스트 파일에서 `new QueryClient({ ... })` 를 직접 호출하지 않는다 (D-1),
  * (b) helper 의 전역 기본 옵션 토큰은 유일 출처로 남는다 (D-2) — 전역 기본값을 갈아끼우지
  *     않고 키 계층 default 만 얹으므로 helper 의 단일 출처성이 유지된다,
  * (c) prod 채널 토큰(`60_000`)을 테스트 파일에 복제하지 않는다 (FR-03 — prod/test 토큰 분리).

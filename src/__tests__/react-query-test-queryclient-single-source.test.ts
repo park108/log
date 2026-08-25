@@ -36,8 +36,19 @@ const testFiles = (): string[] =>
 		.filter(f => !relative(SRC, f).startsWith("__tests__"))
 		.map(f => relative(ROOT, f));
 
+// 행 선두 주석(`//` · `*` · `/*`)은 금지 토큰을 *언급*할 뿐 실행되지 않는다.
+// 파일 전문 정규식은 그 산문까지 위반으로 계수하므로 행 단위로 판정한다
+// (RULE-06 §정밀 패턴 권고 — 제외는 행 선두 한정이라 본문 호출은 그대로 걸린다).
+const COMMENT_LINE = /^\s*(\/\/|\*|\/\*)/;
+const INSTANTIATION = /new\s+QueryClient\s*\(/;
+
+const hasDirectInstantiation = (source: string): boolean =>
+	source
+		.split("\n")
+		.some(line => !COMMENT_LINE.test(line) && INSTANTIATION.test(line));
+
 const directInstantiations = (): string[] =>
-	testFiles().filter(f => /new\s+QueryClient\s*\(/.test(readFileSync(join(ROOT, f), "utf8")));
+	testFiles().filter(f => hasDirectInstantiation(readFileSync(join(ROOT, f), "utf8")));
 
 describe("react-query 테스트 채널 QueryClient 단일 출처", () => {
 
@@ -82,7 +93,7 @@ describe("react-query 테스트 채널 QueryClient 단일 출처", () => {
 			const helper = readFileSync(join(ROOT, HELPER), "utf8");
 
 			// 모듈 스코프에 단일 인스턴스를 두면 파일 간 캐시가 공유된다.
-			const inFactory = /createQueryTestWrapper\s*=\s*\(\)[^{]*\{[\s\S]*?new\s+QueryClient/;
+			const inFactory = /createQueryTestWrapper\s*=\s*\([^)]*\)[^{]*\{[\s\S]*?new\s+QueryClient/;
 			expect(inFactory.test(helper)).toBe(true);
 		});
 	});
