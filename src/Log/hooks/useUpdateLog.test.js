@@ -32,7 +32,9 @@ describe('useUpdateLog', () => {
 		expect(api.putLog).toHaveBeenCalledWith(newItem, false);
 		expect(invalidateSpy).toHaveBeenCalledTimes(2);
 		expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['log', 'list'] });
-		expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['log', 'detail', 42] });
+		// REQ-20260825-015 (K-2) — 무효화 키는 정규화(String) 표기다. 읽기 경로가
+		// `useParams()` 문자열로 만든 엔트리와 같은 해시여야 하기 때문이다.
+		expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['log', 'detail', '42'] });
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 	});
 

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { putLog } from '../api';
+import { logDetailKey } from './logQueryKeys';
 
 /**
  * Log 수정 변경 훅. spec `server-state-spec.md` §3.3.1.1 참조.
@@ -44,7 +45,7 @@ export const useUpdateLog = (callbacks = {}) => {
 		},
 		onSuccess: (data, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['log', 'list'] });
-			queryClient.invalidateQueries({ queryKey: ['log', 'detail', variables.timestamp] });
+			queryClient.invalidateQueries({ queryKey: logDetailKey(variables.timestamp) });
 			callbacks.onSuccess?.(data, variables);
 		},
 		onError: (error, variables) => {

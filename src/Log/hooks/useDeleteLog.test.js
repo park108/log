@@ -30,7 +30,8 @@ describe('useDeleteLog', () => {
 
 		expect(api.deleteLog).toHaveBeenCalledWith('a@b.com', 42);
 		expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['log', 'list'] });
-		expect(removeSpy).toHaveBeenCalledWith({ queryKey: ['log', 'detail', 42] });
+		// REQ-20260825-015 (K-3) — 제거 키도 같은 정규화 지점을 경유한다.
+		expect(removeSpy).toHaveBeenCalledWith({ queryKey: ['log', 'detail', '42'] });
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 	});
 

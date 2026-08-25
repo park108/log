@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteLog } from '../api';
+import { logDetailKey } from './logQueryKeys';
 
 /**
  * Log 삭제 변경 훅. spec `server-state-spec.md` §3.3.1.1 항목 3 참조.
@@ -44,7 +45,7 @@ export const useDeleteLog = (callbacks = {}) => {
 		},
 		onSuccess: (data, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['log', 'list'] });
-			queryClient.removeQueries({ queryKey: ['log', 'detail', variables.timestamp] });
+			queryClient.removeQueries({ queryKey: logDetailKey(variables.timestamp) });
 			callbacks.onSuccess?.(data, variables);
 		},
 		onError: (error, variables) => {
