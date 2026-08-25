@@ -20,7 +20,7 @@
 - (i) 색상·레이아웃·CSS 클래스 변경.
 - (ii) 백엔드 응답 스키마 변경과 `evaluation` 값 정규화(대소문자 변형 수용 등). 본 계약은 **결과의 안전성**만 규정하고 원인(응답 형상)은 규정하지 않는다.
 - (iii) `totalCount > 0` 경로의 산술 변경. 본 계약은 0 경계만 규정한다 (G-4).
-- (iv) fetch·상태 전이 경로 — 직교 spec `monitor-derived-state-immutability` (slug 식별) 의 축이다.
+- (iv) fetch·상태 전이 경로 — 직교 spec `monitor` (components, slug 식별) §동작 §파생 state 계약 의 축이다.
 - (v) 가드의 **구현 수단** 선택(삼항·early return·기본값 등) — planner·developer 영역.
 
 ## 공개 인터페이스
@@ -36,7 +36,7 @@
      toStyle(1, 3) → { width: "33.333333333333336%" }
      ```
 2. **(G-2) 0 경계의 값** — `totalCount === 0` 이면 세 막대의 `style.width` 는 `"0%"` 다. 폭이 없는 막대가 "집계 대상 없음" 의 표현이다.
-3. **(G-3) 인접 축 보존** — `totalCount === 0` 일 때 헤더는 `"<지표명> (0)"`, 평가 라벨은 `"None"` 을 유지한다. G-2 도입이 이 두 축을 흔들지 않음을 고정한다 (직교 spec `monitor-derived-state-immutability` G-2 가 세운 동작의 회귀 방지).
+3. **(G-3) 인접 축 보존** — `totalCount === 0` 일 때 헤더는 `"<지표명> (0)"`, 평가 라벨은 `"None"` 을 유지한다. G-2 도입이 이 두 축을 흔들지 않음을 고정한다 (직교 spec `monitor` (components) §파생 state 계약 G-2 가 세운 동작의 회귀 방지).
 4. **(G-4) 비-0 경로 불변** — `totalCount > 0` 인 경우의 폭 산술(`100 * count / totalCount`)은 변경되지 않는다. 0 경계 가드 도입이 정상 경로 값을 바꾸면 그것은 계약 충족이 아니라 회귀다.
    - 현 HEAD 실측 기준값 (`webVitalsProd` — good 1 / needImprovement 1 / poor 1, `totalCount` 3): 세 막대 전부 `width: "33.333333333333336%"`. **반올림·`toFixed` 도입은 이 값을 바꾸므로 G-4 위반이다.**
 5. **(G-5) 함수쌍의 0 경계 대칭** — 비율 텍스트(`toRate`)와 막대 폭(`toStyle`)은 동일한 0 경계 가드를 갖는다. 같은 함수쌍의 인접 분기에서 한쪽만 방어된 상태를 계약 위반으로 본다.
@@ -50,7 +50,7 @@
 - 내부: `src/Monitor/WebVitalsItem.jsx` (계약 대상), `src/Monitor/__fixtures__/monitor.js` (`webVitalsProd` 외), `src/Monitor/api.mock.js` (`prodServerOk` / `prodServerEmpty`).
 - 외부: `vitest` + `@testing-library/react`, `msw`, jsdom 의 `style` 속성 반영 의미론.
 - 역의존 (사용처): `src/Monitor/WebVitalsMon.jsx` 가 지표별로 `WebVitalsItem` 을 렌더 — 0 경계 무효값은 6개 지표(CLS/FID/LCP/INP/FCP/TTFB) 전부에 동시에 나타난다.
-- 직교 spec: `monitor-derived-state-immutability` (slug 식별) — 파생 state 의 불변 교체·필드 완전성 축. 본 spec 은 조립된 값의 **유효성** 축이라 직교한다.
+- 직교 spec: `monitor` (components, slug 식별) §동작 §파생 state 계약 — 파생 state 의 불변 교체·필드 완전성 축. 본 spec 은 조립된 값의 **유효성** 축이라 직교한다.
 
 ## 회귀 중점
 

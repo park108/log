@@ -72,7 +72,7 @@ jobs:
       - name: Test
         run: npm test
 
-      # Monitor 파생 state 불변 교체 게이트 (monitor-derived-state-immutability §동작 G-1).
+      # Monitor 파생 state 불변 교체 게이트 (monitor §동작 G-1).
       # `useState` 바인딩의 in-place 변이는 갱신 경로가 잊은 필드를 초기값으로 은폐한다
       # — WebVitalsItem 헤더가 응답과 무관하게 영구 `(0)` 을 표시한 결함이 그 경로였다.
       # eslint 는 이 부류를 잡지 않고 테스트는 잊힌 필드를 단언하지 않으므로 정적 판정이

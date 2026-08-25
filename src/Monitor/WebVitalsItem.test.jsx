@@ -281,7 +281,7 @@ describe('WebVitalsItem unmount safety (REQ-20260517-093 FR-03)', () => {
 	});
 });
 
-// REQ-20260825-001 / monitor-derived-state-immutability §동작 (G-2)(G-3)(G-4)
+// REQ-20260825-001 / monitor §동작 (G-2)(G-3)(G-4)
 // 파생 state 를 새 객체로 교체하므로 헤더 카운트가 응답을 따라간다.
 // 기존 케이스는 `empty result set (totalCount = 0)` 하나뿐이라 0 을 기대하는 경로만
 // 있었고, 그래서 영구 `(0)` 결함을 놓쳤다.

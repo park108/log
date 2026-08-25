@@ -14,7 +14,7 @@ const HEADER_STYLE = {
 	undefined: "span span--monitor-evaluation span--monitor-none"
 };
 
-// REQ-20260825-001 / monitor-derived-state-immutability §동작 (G-1)(G-3)
+// REQ-20260825-001 / monitor §동작 (G-1)(G-3)
 // 파생 state 는 in-place 변이 대신 **새 객체 조립 → 교체** 로만 갱신한다.
 // in-place 변이는 갱신 경로가 잊은 필드(과거: `totalCount`)를 초기값으로 은폐해
 // 헤더가 영구 `(0)` 을 표시하는 결함을 만들었다. 매 호출 새 객체를 반환하며

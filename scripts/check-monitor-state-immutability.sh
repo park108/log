@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-monitor-state-immutability.sh
-# Spec: components/monitor-derived-state-immutability §동작 (G-1) · §발화 채널 · §회귀 중점 (R-3)(R-4)
+# Spec: components/monitor §동작 (G-1) · §발화 채널 · §회귀 중점 (R-3)(R-4)
 # Task: TSK-20260825-03
 #
 # G-1: `useState` 로 얻은 파생 state 바인딩을 **in-place 변이** 해서는 안 된다.
