@@ -208,15 +208,20 @@ describe('Search aborts in-flight fetch on unmount', () => {
 
 		const { unmount } = renderWithQueryRouter(<Search />);
 
+		// 관측 창을 unmount 이후로 한정한다 — errorSpy 는 render 이전에 설치돼
+		// 마운트 중 발화까지 담고 있다 (:305-312 가 같은 이유로 mockClear 를 둔다).
+		errorSpy.mockClear();
+
 		// mount 직후 fetch 는 in-flight. 응답 도착 전 unmount.
 		unmount();
 
 		// microtask + macrotask 모두 flush
 		await new Promise((r) => setTimeout(r, 0));
 
-		// 기대: React "Cannot update unmounted component" 경고가 0. (NFR-01 per REQ-021)
-		const warn = errorSpy.mock.calls.find(args => String(args[0]).includes('unmounted'));
-		expect(warn).toBeUndefined();
+		// **무필터** console.error 0 hit. `.includes('unmounted')` 필터는 제거했다 —
+		// React 18.2 는 unmount 된 fiber 의 setState 에 경고를 내지 않으므로 그 필터의
+		// 결과는 코드 상태와 무관하게 항상 0 이었다 (민감도 0). 구조 판정은 G-F 가 본다.
+		expect(errorSpy).not.toHaveBeenCalled();
 
 		errorSpy.mockRestore();
 	});

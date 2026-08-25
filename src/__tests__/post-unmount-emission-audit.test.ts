@@ -131,9 +131,72 @@ const RE_TEST_FILE = /\.test\.[cm]?[jt]sx?$/;
 // 호출 기록 별칭 — `const errorCalls = consoleErrorSpy.mock.calls;`
 // 이 추적이 없으면 착수 시점 위반 4 파일 중 3 파일을 놓친다 (중간 변수 경유 필터).
 const RE_MOCK_CALLS_ALIAS = /(?:const|let)\s+(\w+)\s*=\s*(\w+)\.mock\.calls\b/g;
-// 필터 뒤 이어지는 0 단정. 창 400자 — 실측 위반 블록의 필터~단정 거리 최대 ~200자.
-const RE_ZERO_ASSERT_NEAR = /toBe\(\s*0\s*\)|toHaveLength\(\s*0\s*\)|not\.toHaveBeenCalled|length\s*===\s*0|toBeFalsy\(/;
+// ── deny-by-default 전환 (TSK-20260825-09) ─────────────────────────────────
+// 종전에는 **위반 형태를 열거**했다: 선택자는 `.filter(` 하나, 영단정 어휘는
+// `toBe(0)|toHaveLength(0)|not.toHaveBeenCalled|length === 0|toBeFalsy(` 다섯.
+// 두 열거 모두 목록 밖 형태를 통과시켰고, 실측상 `.find(…) + toBeUndefined()` ·
+// `.some(…) + toBe(false)` · `.filter(…) + toBeUndefined()` 셋이 새어 나갔다
+// (`src/Search/Search.test.tsx:218` 이 첫 형태의 실물이었다). 열거에 형태를
+// **추가**하면 같은 사각이 `.flatMap(…) + toStrictEqual([])` 로 즉시 재생산된다.
+//
+// 그래서 두 축 모두 기본값을 뒤집는다 — 목록에 없는 신규 형태는 통과가 아니라
+// **위반**이다. 정상 용례의 집합은 유한하고 저장소에서 실측 가능하지만, 위반
+// 형태의 집합은 무한하기 때문이다.
+//
+// (축 1) 선택자 — 발화 기록에 대한 **모든 메서드 호출**을 좁힘으로 간주한다.
+// 아래 허용 목록에 있는 이름만 예외다.
+//
+// 목록은 **비어 있다**. 근거: 발화 기록 전체를 보존하는 접근은 메서드 호출이
+// 아니라 속성 접근·인덱싱(`.length` · `[0]`)으로 쓰이며 그 둘은 이 패턴에
+// 걸리지 않는다 (`Comment.test.tsx:386` · `common.test.ts:94` ·
+// `Toaster.test.tsx:157` 가 그 형태다). `.map(` 류를 넣고 싶어지면 멈춰라 —
+// `record.map(…).filter(…)` 의 `.filter` 는 기록이 아니라 map 결과에 붙으므로
+// 허용하는 순간 체인 한 칸으로 축 1 이 통째로 우회된다. 목록 확장은 그 우회가
+// 불가능함을 보인 뒤에만 한다.
+const RECORD_ACCESS_ALLOWLIST: ReadonlySet<string> = new Set<string>([]);
+//
+// (축 2) 영단정 어휘 — 좁힘 결과에 대한 창 내 `expect(` 는 **기본이 위반**이고,
+// 비어있지 않음/양수를 단정하는 형태만 허용한다. `toBeGreaterThanOrEqual(0)` 은
+// 어떤 배열에도 참이므로 허용에서 뺀다 (공허 단정). 원시 비교식(`length > 0` ·
+// `length === 1`)도 허용하지 않는다 — `expect(w.length > 0).toBe(false)` 처럼
+// **비교식을 단정 안으로 옮긴 영단정**이 허용 어휘를 달고 통과해버린다.
+const RE_NONEMPTY_ASSERT_NEAR =
+	/toBeGreaterThan\s*\(|toBeGreaterThanOrEqual\s*\(\s*[1-9]|toBe\s*\(\s*[1-9]|toHaveLength\s*\(\s*[1-9]|toBeDefined\s*\(|toBeTruthy\s*\(|toContain\s*\(/;
+// `toHaveBeenCalled*` 는 `not.` 이 붙지 않은 경우만 비어있지 않음 단정이다.
+const RE_NEGATED_CALLED = /not\s*\.\s*toHaveBeenCalled\w*/g;
+const RE_POSITIVE_CALLED = /toHaveBeenCalled\s*\(|toHaveBeenCalledWith\s*\(|toHaveBeenCalledTimes\s*\(\s*[1-9]/;
+const RE_EXPECT_CALL = /expect\s*\(/;
+// 좁힘~단정 창 400자 — 실측 위반 블록의 좁힘~단정 거리 최대 ~200자.
 const FILTER_ZERO_WINDOW = 400;
+
+/**
+ * 창에서 좁힘 결과를 소비하는 **가장 가까운 단정문 1건**을 잘라낸다.
+ *
+ * 창 전체를 허용 판정에 쓰면 400자 뒤의 **무관한** 비어있지 않음 단정이 위반을
+ * 취소한다 (실측 — 본 파일의 fixture 는 바로 다음 줄에 fixture 를 검사하는 바깥
+ * 단정 `.toContain("calls")` 를 두고 있어, 창 전체 판정에서는 양성 fixture 가
+ * 전부 통과로 뒤집혔다). 좁힘을 소비하는 단정은 **가장 가까운 것**이므로 그
+ * 하나만 본다. 이 축소는 deny 방향이다 — 무관한 선행 단정이 끼면 통과가 아니라
+ * 위반으로 계수된다.
+ */
+export function nearestAssertion(window: string): string | null {
+	const at = window.search(RE_EXPECT_CALL);
+	if (at < 0) return null;
+	let depth = 0;
+	for (let i = at; i < window.length; i += 1) {
+		const ch = window[i];
+		if (ch === "(") depth += 1;
+		else if (ch === ")") depth -= 1;
+		else if (ch === ";" && depth <= 0) return window.slice(at, i + 1);
+	}
+	return window.slice(at);
+}
+
+/** 단정문이 "비어있지 않음/양수" 를 단정하는가 (축 2 허용 판정). */
+export function assertsNonEmptyNear(assertion: string): boolean {
+	if (RE_NONEMPTY_ASSERT_NEAR.test(assertion)) return true;
+	return RE_POSITIVE_CALLED.test(assertion.replace(RE_NEGATED_CALLED, ""));
+}
 
 type ScanEntry = { abs: string; rel: string };
 
@@ -367,12 +430,21 @@ export function emissionSpyNames(testSource: string): string[] {
 }
 
 /**
- * G-F 판정 — **발화 기록을 필터로 좁힌 뒤 0 을 단정하는** 형태를 찾는다.
+ * G-F 판정 — **발화 기록을 좁힌 뒤 비어있음을 단정하는** 형태를 찾는다.
  *
  * 문구 열거가 아니라 구조로 본다. 리터럴 문구 grep(`update.*was not wrapped` 등)은
  * `.includes('unmounted')` 변형을 놓쳤다 (실측 — `src/Search/Search.test.tsx`).
- * 필터가 씌워진 0 단정은 필터가 어떤 문구를 쓰든 "코드가 그 문구를 내지 않으면 항상
+ * 좁힘이 씌워진 영단정은 좁힘이 어떤 문구를 쓰든 "코드가 그 문구를 내지 않으면 항상
  * 통과" 라는 같은 결함을 갖는다.
+ *
+ * **판정은 deny-by-default 다** (두 축 모두). 좁힘 선택자는 허용 목록
+ * (`RECORD_ACCESS_ALLOWLIST`) 밖의 **모든** 메서드 호출이고, 영단정 어휘는
+ * `assertsNonEmptyNear` 가 허용하지 **않는** 모든 단정이다. 신규 형태의 기본값이
+ * 통과가 아니라 위반이므로, 목록에 없는 조합(`.flatMap` + `toStrictEqual([])`)도
+ * 그 조합을 게이트가 알지 못한 채 잡힌다 (자가 검증의 비열거성 probe 가 증명한다).
+ *
+ * 창 안에 `expect(` 자체가 없으면 위반이 아니다 — 좁히기만 하고 단정하지 않는
+ * 코드는 본 계약의 대상이 아니다.
  *
  * 반환값은 위반 지점의 **기록 표현식·별칭 이름** 목록이다 (사람이 찾아갈 수 있게).
  */
@@ -393,11 +465,18 @@ export function filteredEmissionZeroAssertions(testSource: string): string[] {
 
 	const violations: string[] = [];
 	for (const record of records) {
-		const finder = new RegExp(`\\b${escapeForRegExp(record)}\\s*\\.filter\\s*\\(`, "g");
+		// 축 1 — `.filter(` 고정이 아니라 **임의의 메서드 호출**을 잡는다.
+		// `.length`(속성) · `[0]`(인덱싱)은 메서드 호출이 아니므로 걸리지 않는다.
+		const finder = new RegExp(`\\b${escapeForRegExp(record)}\\s*\\.(\\w+)\\s*\\(`, "g");
 		let m: RegExpExecArray | null;
 		while ((m = finder.exec(testSource)) !== null) {
+			const method = m[1];
+			if (method !== undefined && RECORD_ACCESS_ALLOWLIST.has(method)) continue;
 			const window = testSource.slice(m.index, m.index + FILTER_ZERO_WINDOW);
-			if (RE_ZERO_ASSERT_NEAR.test(window)) violations.push(record);
+			// 축 2 — 창에 단정이 없으면 대상 밖, 있으면 **비어있지 않음 단정만** 통과.
+			const assertion = nearestAssertion(window);
+			if (assertion === null) continue;
+			if (!assertsNonEmptyNear(assertion)) violations.push(record);
 		}
 	}
 	return [...new Set(violations)];
@@ -569,7 +648,7 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		).toHaveLength(0);
 	});
 
-	it("G-F: 발화 기록을 필터로 좁힌 뒤 0 을 단정하는 fixture 가 없다 (문구 아닌 구조 판정)", () => {
+	it("G-F: 발화 기록을 좁힌 뒤 비어있음을 단정하는 fixture 가 없다 (열거 아닌 deny-by-default 구조 판정)", () => {
 		const enumerated = collectFiles(SRC_DIR).filter((f) => RE_TEST_FILE.test(f.rel));
 
 		// 공허 통과 가드 (1) — 0 hit 게이트는 대상이 비면 자동 통과한다.
@@ -604,7 +683,7 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			const source = readFileSync(f.abs, "utf8");
 			if (emissionSpyNames(source).length > 0) filesWithEmissionSpy += 1;
 			for (const record of filteredEmissionZeroAssertions(source)) {
-				violations.push(`${f.rel} — \`${record}\` 를 filter 로 좁힌 뒤 0 을 단정한다`);
+				violations.push(`${f.rel} — \`${record}\` 를 메서드 호출로 좁힌 뒤 비어있음을 단정한다`);
 			}
 		}
 
@@ -617,7 +696,7 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 
 		expect(
 			violations,
-			`필터로 좁힌 0 단정 (민감도 0 fixture):\n${fmt(violations)}\n` +
+			`좁힌 뒤의 영단정 (민감도 0 fixture):\n${fmt(violations)}\n` +
 				"React 18.2 는 unmounted fiber 의 setState 에 경고를 내지 않는다 — 문구로 거른 뒤 세는 " +
 				"단정은 가드를 전부 제거해도 통과한다. 무필터 0 단정으로 바꿔라.",
 		).toHaveLength(0);
@@ -735,6 +814,86 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			"expect(s).not.toHaveBeenCalled();",
 		].join("\n");
 		expect(filteredEmissionZeroAssertions(unfiltered), "무필터 0 단정을 위반으로 잡았다").toHaveLength(0);
+
+		// 양성 3 — `.find(…)` + `toBeUndefined()`. `src/Search/Search.test.tsx:218` 의
+		// 실물 형태다. 선택자·어휘 **두 축 모두** 종전 열거 밖이라 미검출이었다.
+		const findUndefined = [
+			"const s = vi.spyOn(console, 'error');",
+			"const w = s.mock.calls.find(c => String(c[0]).includes('unmounted'));",
+			"expect(w).toBeUndefined();",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(findUndefined), "`.find` + `toBeUndefined` 를 놓쳤다").toContain("s.mock.calls");
+
+		// 양성 4 — `.some(…)` + `toBe(false)`. 어휘가 `toBe(0)` 이 아니라 `toBe(false)` 다.
+		const someFalse = [
+			"const s = vi.spyOn(console, 'error');",
+			"const seen = s.mock.calls.some(c => /x/.test(c[0]));",
+			"expect(seen).toBe(false);",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(someFalse), "`.some` + `toBe(false)` 를 놓쳤다").toContain("s.mock.calls");
+
+		// 양성 5 — `.filter(…)` + `toBeUndefined()`. 선택자는 종전 열거 **안**, 어휘만
+		// 밖인 조합. 두 축이 독립임을 고정한다 (한 축만 넓히면 이 형태로 샌다).
+		const filterUndefined = [
+			"const s = vi.spyOn(console, 'error');",
+			"const w = s.mock.calls.filter(c => /x/.test(c[0]))[0];",
+			"expect(w).toBeUndefined();",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(filterUndefined), "`.filter` + `toBeUndefined` 를 놓쳤다").toContain("s.mock.calls");
+
+		// 양성 6 (**비열거성 probe**) — 게이트 판정 소스 어디에도 등장하지 않는
+		// 메서드·매처 조합. 아래 두 단언이 **함께** 통과해야 deny-by-default 다:
+		//   (i) 이 조합이 위반으로 잡힌다.
+		//   (ii) 게이트 판정 소스에 그 어휘가 없다 — 즉 목록에 추가돼서 잡힌 게 아니다.
+		// (ii) 가 깨지면 이뤄진 것은 전환이 아니라 열거 확장이다.
+		const unknownCombination = [
+			"const s = vi.spyOn(console, 'error');",
+			"const w = s.mock.calls.flatMap(c => c);",
+			"expect(w).toStrictEqual([]);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(unknownCombination),
+			"게이트가 모르는 조합을 통과시켰다 — 기본값이 여전히 '통과' 다",
+		).toContain("s.mock.calls");
+
+		// 판정 소스 = 판정 함수 본문 + 토큰 상수. fixture 문자열(위 조합이 들어 있다)은
+		// 판정 로직이 아니므로 제외한다.
+		const gateSource = [
+			filteredEmissionZeroAssertions.toString(),
+			assertsNonEmptyNear.toString(),
+			nearestAssertion.toString(),
+			emissionSpyNames.toString(),
+			RE_NONEMPTY_ASSERT_NEAR.source,
+			RE_POSITIVE_CALLED.source,
+			RE_NEGATED_CALLED.source,
+			RE_MOCK_CALLS_ALIAS.source,
+			RE_EXPECT_CALL.source,
+			[...RECORD_ACCESS_ALLOWLIST].join(","),
+		].join("\n");
+		// 공허 방지 — gateSource 가 비면 not.toMatch 는 무조건 통과한다.
+		expect(gateSource.length, "판정 소스 수집이 비었다 — 비열거성 단언이 공허해진다").toBeGreaterThan(200);
+		expect(gateSource, "판정 소스에 허용 목록 상수가 없다 — 수집 대상이 어긋났다").toContain("RECORD_ACCESS_ALLOWLIST");
+		expect(
+			gateSource,
+			"판정 소스가 probe 어휘를 열거하고 있다 — deny-by-default 전환이 아니라 열거 확장이다",
+		).not.toMatch(/flatMap|toStrictEqual/);
+
+		// 음성 4 — 발화 기록의 `.slice(…)` + `toHaveLength(2)`. 선택자 축에는 걸리지만
+		// 양수 단정이므로 허용된다 (`src/App.test.jsx:206` 이 실물 형태다).
+		const slicePositive = [
+			"const s = vi.spyOn(console, 'error');",
+			"const first = s.mock.calls.slice(0, 2);",
+			"expect(first).toHaveLength(2);",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(slicePositive), "양수 단정을 위반으로 잡았다 — 정상 테스트 오탐").toHaveLength(0);
+
+		// 음성 5 — 좁히기만 하고 단정하지 않는다. 본 계약의 대상이 아니다.
+		const narrowWithoutAssert = [
+			"const s = vi.spyOn(console, 'error');",
+			"const w = s.mock.calls.filter(c => /x/.test(c[0]));",
+			"console.log(w.length);",
+		].join("\n");
+		expect(filteredEmissionZeroAssertions(narrowWithoutAssert), "단정 없는 좁힘을 위반으로 잡았다").toHaveLength(0);
 
 		// spy 종류 인식 — 발화 spy 만 이름을 낸다.
 		expect(emissionSpyNames("const s = vi.spyOn(console, 'error');")).toEqual(["s"]);
