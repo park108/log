@@ -27,10 +27,12 @@
 # 재지 않는다 (spec §수용 기준 (B-1) §검출 경계). 후자는 게이트 도입 task 의 DoD 주입
 # (RULE-06 §게이트 실효 검증) 이 담당했고 그 왕복은 1회성이라 여기에 상주하지 않는다.
 #
-# 임계는 spec 이 정한 `asserted >= 1` 이다. 도출 항목이 3 이어도 **1건만 있으면 통과**하므로
-# 3 중 2 를 지우는 부분 퇴행은 이 게이트가 잡지 않는다 (도입 시 실측 확인). spec §수용 기준이
-# "기준은 ≥1 이므로 착지는 요구를 초과한다" 로 그 여유를 명시 승인한 상태다. 임계 상향은
-# spec 개정이 선행해야 한다 — 게이트가 spec 보다 엄격해지면 판정 근거가 문서 밖으로 샌다.
+# 임계는 spec 이 정한 **전항 요구** `asserted == adminmenu` 다 (TSK-20260825-35 상향).
+# 종전 임계는 `asserted >= 1` 이라 도출 3 중 1건만 있으면 통과했고, 3 중 2 를 지우는 부분
+# 퇴행을 잡지 못했다 — 도출 수 `name_count` 가 ack 라인에만 쓰이고 판정에 연결되지 않았다.
+# 상향은 소유 spec `testing/declared-branch-discriminating-assertion` (B-1) 이 전항 요구로
+# 개정돼 blue 로 승격된 **뒤에** 적용했다. 게이트가 spec 보다 엄격해지면 판정 근거가 문서
+# 밖으로 새므로 순서를 뒤집지 않는다.
 #
 # 항목명 매칭은 부분 문자열이다 (`[^)]*<name>[^)]*`). `name: "log"` 는 `queryByText("login")`
 # 으로도 충족된다. 항목명이 서로의 접두사가 되는 표기가 도입되면 이 경계가 실제 사각이 된다.
@@ -42,7 +44,7 @@
 # ──────────────────────────────────────────────────────────────────────────────
 #
 # exit 0: (B-1) PASS (ack 1 줄 stdout).
-# exit 1: 위반 — 도출된 항목 중 어느 것도 부재 단언을 갖지 않는다.
+# exit 1: 위반 — 도출 N 중 충족 K 가 N 에 미달한다 (K < N). 부분 퇴행도 위반이다.
 # exit 2: 도출 공허 (측정 대상 소실) — "위반이 있다" 와 "잴 것이 없어졌다" 는 다른 사건이다.
 #         0 을 충족으로 읽지 않는 것이 이 축의 핵심이다.
 
@@ -96,10 +98,12 @@ EOF
 printf 'check-declared-branch-discrimination: root=%s adminmenu=%s asserted=%s\n' \
   "$BRANCH_DISC_ROOT" "$name_count" "$asserted"
 
-if [ "$asserted" -lt 1 ]; then
-  printf 'B-1 VIOLATION: 도출된 admin 항목 %s개 중 부재 단언 0건 (category: discriminating-assertion-absent)\n' "$name_count" >&2
+if [ "$asserted" -ne "$name_count" ]; then
+  printf 'B-1 VIOLATION: 도출된 admin 항목 %s개 중 부재 단언 %s건 (미충족 %s건) (category: discriminating-assertion-absent)\n' \
+    "$name_count" "$asserted" "$((name_count - asserted))" >&2
   printf '  미충족 항목:%s\n' "$missing" >&2
-  printf '  음성 더블(isAdmin -> false)이 여는 갈래를 구별하는 단언이 없다. 더블을 뒤집어도 초록이다.\n' >&2
+  printf '  음성 더블(isAdmin -> false)이 여는 갈래를 구별하는 단언이 도출 전항을 덮지 못한다.\n' >&2
+  printf '  미충족 항목은 더블을 뒤집어도 초록이다 — 부분 퇴행도 위반이다.\n' >&2
   printf '  대상: %s\n' "$NAV_TEST" >&2
   exit 1
 fi
