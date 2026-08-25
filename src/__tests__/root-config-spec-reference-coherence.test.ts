@@ -133,19 +133,70 @@ const EXPECTED_GC_GREEN_PATHS: readonly string[] = [];
 const EXPECTED_GC_STALE: readonly string[] = [];
 const EXPECTED_GC_OK: readonly string[] = [];
 
-// G-A 자체 진단 baseline — exclude rule 매치 라인의 (파일, 라인번호) 박제
-// (NFR-04 정합 / §task 구현 지시 2 line 번호 단언).
-const EXPECTED_GA_SELF_DIAG_HITS: ReadonlyArray<{
+// G-A 자체 진단 baseline — exclude rule 매치 라인의 **내용 식별자** 박제
+// (NFR-04 정합 / fixture-baseline-position-independence (P-1)).
+//
+// ── 왜 행 번호를 버렸는가 (TSK-20260825-15) ─────────────────────────────────
+// 종전 baseline 은 `{ relPath, line: <숫자> }` 였고 `` `${relPath}:${line}` `` 로
+// 대조했다. 그래서 대상 파일에 **주석 한 줄만 추가해도** 이 fixture 가 red 가 됐다 —
+// 측정하려는 불변식("exclude 후 `-spec` 토큰 0 hit")은 조금도 위반되지 않았는데도.
+// 비용은 두 번 실현됐다: (1) TSK-20260825-07 (`check:spec-coherence` 스코프 확장)
+// 이 이 결합 때문에 `50.blocked/task/` 로 격리됐다 — 그 task 는 `expansion: 불허` 에
+// 스크립트 1 파일이었고 본 fixture 는 스코프 밖이었다. (2) baseline 재박제
+// (COUNT 6→7 · 라인 `19`·`62` → `49`·`201`·`202`).
+//
+// 지금은 **(파일, 매치 토큰, 라인 내용 앵커)** 3튜플로 지목한다. 셋 다 위치가 아니라
+// 정체다 — 파일이 이름을 바꾸거나, 매치 토큰이 달라지거나, 그 라인의 문구가 사라지면
+// 판정이 바뀌는 것이 **옳다**. 파일 안에서 라인이 몇 번째인지만 판정에서 빠졌다.
+//
+// **개수 단언(`EXPECTED_GA_SELF_DIAG_COUNT`)은 유지한다.** 가장 쉬운 "해결" 은
+// baseline 을 통째로 지우는 것이고 그러면 위치 종속은 즉시 사라지면서 **검출력도 0**
+// 이 된다. 3튜플 대조는 baseline↔관측 **양방향 1:1** 이라 누락도 잉여도 잡는다.
+//
+// 앵커 선정 규칙: 그 라인에만 있는 문구를 쓰되 `spec` 디렉터리 경로 리터럴은 피한다
+// (자매 게이트 `check-spec-coherence.sh` 의 G2 disk-existence 스캔에 잡힌다 —
+// 본 파일의 `SPEC_DIR_FRAG_*` 우회가 같은 이유로 존재한다).
+interface SelfDiagBaselineEntry {
+	/** 대상 파일 — 위치가 아니라 정체다. 이름이 바뀌면 판정이 바뀌는 것이 옳다. */
 	relPath: string;
-	line: number;
-}> = [
-	{ relPath: ".husky/pre-commit", line: 3 },
-	{ relPath: ".husky/pre-commit", line: 6 },
-	{ relPath: "scripts/check-spec-coherence.sh", line: 2 },
-	{ relPath: "scripts/check-spec-coherence.sh", line: 3 },
-	{ relPath: "scripts/check-spec-coherence.sh", line: 49 },
-	{ relPath: "scripts/check-spec-coherence.sh", line: 201 },
-	{ relPath: "scripts/check-spec-coherence.sh", line: 202 },
+	/** `RE_SPEC_SUFFIX` 가 그 라인에서 뽑아낸 토큰. */
+	matched: string;
+	/** 그 라인에만 있는 내용 조각. 라인이 이동해도 함께 이동한다. */
+	anchor: string;
+}
+
+const EXPECTED_GA_SELF_DIAG_HITS: ReadonlyArray<SelfDiagBaselineEntry> = [
+	{ relPath: ".husky/pre-commit", matched: "src-spec", anchor: "spec coherence gate" },
+	{
+		relPath: ".husky/pre-commit",
+		matched: "check-spec",
+		anchor: "bash scripts/check-spec-coherence.sh",
+	},
+	{
+		relPath: "scripts/check-spec-coherence.sh",
+		matched: "check-spec",
+		anchor: "# check-spec-coherence.sh",
+	},
+	{
+		relPath: "scripts/check-spec-coherence.sh",
+		matched: "src-spec",
+		anchor: "§동작 G1·G2",
+	},
+	{
+		relPath: "scripts/check-spec-coherence.sh",
+		matched: "check-spec",
+		anchor: "src/ not found at",
+	},
+	{
+		relPath: "scripts/check-spec-coherence.sh",
+		matched: "check-spec",
+		anchor: "G1 0 hit / G2 0 MISSING",
+	},
+	{
+		relPath: "scripts/check-spec-coherence.sh",
+		matched: "check-spec",
+		anchor: "spec-scope root=",
+	},
 ];
 
 // 직교 토큰 검증 baseline — 다른 task production literal occurrence === 0 단언
@@ -202,18 +253,41 @@ function relFromRepoRoot(absPath: string): string {
 // 사용 (NFR-04 정합).
 type SpecSuffixHit = {
 	relPath: string;
+	/**
+	 * 관측된 행 번호. **판정에는 쓰이지 않는다** — 위반 리포트에서 사람이 찾아갈 수
+	 * 있게 하는 진단 필드다 (fixture-baseline-position-independence (P-1) 은
+	 * *baseline* 의 행 번호 박제를 금지하지, 관측의 행 번호 산출을 금지하지 않는다).
+	 */
 	line: number;
 	matched: string;
+	/** 매치된 라인의 원문. 내용 앵커 대조의 입력이다. */
+	lineText: string;
 	selfDiag: boolean;
 };
 
-function collectSpecSuffixHits(): SpecSuffixHit[] {
-	const hits: SpecSuffixHit[] = [];
+type SourceEntry = { rel: string; src: string };
+
+function rootSources(): SourceEntry[] {
+	const entries: SourceEntry[] = [];
 	for (const abs of rootFilePaths()) {
 		if (!existsSync(abs)) continue;
-		const src = readUtf8(abs);
+		entries.push({ rel: relFromRepoRoot(abs), src: readUtf8(abs) });
+	}
+	return entries;
+}
+
+/**
+ * 순수 측정 — 디스크가 아니라 **주어진 소스**에서 hit 을 뽑는다.
+ *
+ * 디스크 읽기와 분리한 이유는 (P-1) 의 위치 비종속성을 **저장소에 상주하는 단언**으로
+ * 증명하기 위해서다: 같은 내용을 아래로 밀어 넣은 소스를 먹여도 baseline 대조 결과가
+ * 불변임을 재는 테스트가 아래에 있다. 이 분리가 없으면 그 증명은 파일을 실제로 편집하는
+ * 1회성 주입으로만 가능하고, 회귀 시점에 아무도 다시 재지 않는다.
+ */
+function collectSpecSuffixHitsFrom(sources: readonly SourceEntry[]): SpecSuffixHit[] {
+	const hits: SpecSuffixHit[] = [];
+	for (const { rel, src } of sources) {
 		const lines = src.split("\n");
-		const rel = relFromRepoRoot(abs);
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
 			if (line === undefined) continue;
@@ -227,12 +301,48 @@ function collectSpecSuffixHits(): SpecSuffixHit[] {
 					relPath: rel,
 					line: i + 1,
 					matched,
+					lineText: line,
 					selfDiag,
 				});
 			}
 		}
 	}
 	return hits;
+}
+
+function collectSpecSuffixHits(): SpecSuffixHit[] {
+	return collectSpecSuffixHitsFrom(rootSources());
+}
+
+/**
+ * baseline ↔ 관측 **양방향 1:1** 대조. 행 번호를 보지 않는다.
+ *
+ * `unmatched` 는 baseline 에 있는데 관측되지 않은 항목(= 내용 소실),
+ * `leftover` 는 관측됐는데 baseline 이 모르는 항목(= 내용 증가)이다. 둘 다 비어야
+ * 통과다 — 한쪽만 보면 "전부 통과시키는 baseline" 또는 "전부 red 를 내는 baseline"
+ * 이 그 한쪽을 만족시킨다.
+ */
+function diffAgainstBaseline(observed: readonly SpecSuffixHit[]): {
+	unmatched: string[];
+	leftover: string[];
+} {
+	const consumed = new Set<number>();
+	const unmatched: string[] = [];
+	for (const expected of EXPECTED_GA_SELF_DIAG_HITS) {
+		const idx = observed.findIndex(
+			(h, i) =>
+				!consumed.has(i) &&
+				h.relPath === expected.relPath &&
+				h.matched === expected.matched &&
+				h.lineText.includes(expected.anchor),
+		);
+		if (idx < 0) unmatched.push(`${expected.relPath} :: ${expected.matched} :: ${expected.anchor}`);
+		else consumed.add(idx);
+	}
+	const leftover = observed
+		.filter((_, i) => !consumed.has(i))
+		.map((h) => `${h.relPath}:${h.line} :: ${h.matched} :: ${h.lineText.trim()}`);
+	return { unmatched, leftover };
 }
 
 // G-B measurement — root 7-file 군에서 spec path 추출. 동일 path 의 중복
@@ -269,19 +379,50 @@ describe("root-config-spec-reference-coherence (TSK-20260518-13)", () => {
 		).toHaveLength(0);
 	});
 
-	it("G-A-self / NFR-04: 자체 진단 exclude 전 match count === 7 + (파일,라인) 박제", () => {
-		const hits = collectSpecSuffixHits();
-		const selfDiag = hits.filter((h) => h.selfDiag);
+	it("G-A-self / NFR-04: 자체 진단 exclude 전 match count === 7 + (파일,토큰,앵커) 박제", () => {
+		const selfDiag = collectSpecSuffixHits().filter((h) => h.selfDiag);
 
+		// (P-3) 개수 민감도 — 이 단언을 빼면 baseline 을 비우는 것만으로 위치 종속이
+		// 사라지고 검출력도 함께 0 이 된다.
 		expect(selfDiag).toHaveLength(EXPECTED_GA_SELF_DIAG_COUNT);
 
-		// (relPath, line) 페어 집합 — 라인당 다중 match 가 있어도 본 baseline 은
-		// 라인당 1 match 1:1 (실측 검증). 그래서 hit 7 = 페어 7.
-		const observed = selfDiag.map((h) => `${h.relPath}:${h.line}`).sort();
-		const expected = EXPECTED_GA_SELF_DIAG_HITS.map(
-			(h) => `${h.relPath}:${h.line}`,
-		).sort();
-		expect(observed).toEqual(expected);
+		// 내용 식별자 대조. 라인 위치는 보지 않는다.
+		const { unmatched, leftover } = diffAgainstBaseline(selfDiag);
+		expect(
+			unmatched,
+			`자체 진단 baseline 이 관측되지 않았다 (내용 소실):\n${unmatched.map((u) => `  ${u}`).join("\n")}`,
+		).toEqual([]);
+		expect(
+			leftover,
+			`baseline 이 모르는 자체 진단 hit (내용 증가):\n${leftover.map((l) => `  ${l}`).join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("(P-1) 자체 진단 baseline 판정이 **라인 위치에 비종속**이다", () => {
+		// 대상 파일 상단에 빈 주석을 밀어 넣어 모든 라인을 아래로 이동시킨다.
+		// 실제 파일은 건드리지 않는다 — 순수 측정 함수에 이동된 소스를 먹인다.
+		const SHIFT = 3;
+		const padding = "# [position-shift probe]\n".repeat(SHIFT);
+		const shifted = rootSources().map(({ rel, src }) => ({ rel, src: padding + src }));
+
+		const before = collectSpecSuffixHits().filter((h) => h.selfDiag);
+		const after = collectSpecSuffixHitsFrom(shifted).filter((h) => h.selfDiag);
+
+		// (i) 프로브가 공허하지 않다 — 라인 번호가 **실제로** 이동했다. 이 단언이 없으면
+		//     padding 이 무시돼도(예: 소스가 비어 있어도) (ii) 가 무조건 참이 된다.
+		expect(before.length, "자체 진단 hit 이 0 이다 — 프로브가 공허하다").toBeGreaterThan(0);
+		expect(after.map((h) => h.line)).toEqual(before.map((h) => h.line + SHIFT));
+
+		// (ii) 그런데 baseline 대조 결과는 불변이다.
+		expect(after).toHaveLength(EXPECTED_GA_SELF_DIAG_COUNT);
+		expect(diffAgainstBaseline(after)).toEqual({ unmatched: [], leftover: [] });
+
+		// (iii) 대조군 — 행 번호로 대조하면 같은 이동에서 **전량이 어긋난다**. 이것이
+		//       종전 baseline 이 주석 한 줄에 red 가 되던 결합의 실물이며, 위 (ii) 가
+		//       우연이 아님을 보인다.
+		const positionalBefore = before.map((h) => `${h.relPath}:${h.line}`).sort();
+		const positionalAfter = after.map((h) => `${h.relPath}:${h.line}`).sort();
+		expect(positionalAfter).not.toEqual(positionalBefore);
 	});
 
 	it("G-B / FR-02: root 파일군(고정 6 + scripts/*.sh 전수)에서 spec path 12 hit / 12 file 추출 + 0 MISSING + 11 고유 EXISTS (전수 blue) 집합 박제", () => {
