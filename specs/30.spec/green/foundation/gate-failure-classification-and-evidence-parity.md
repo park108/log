@@ -2,7 +2,7 @@
 
 > **위치**: `scripts/check-coverage-attribution-monotonicity.sh` — 종료 코드 선언 `:17-23`, 전수 층 산출물 부재 분기 `:306-308`, 샤드 루프 `:343-431` 의 실패 `continue` 분기 5개 (`:376`·`:385`·`:395`·`:401`·`:406`), 집계 종료 `:451-453`. 소비 채널 `package.json:31` `scripts.check:coverage-attribution` → `.github/workflows/ci.yml:92`.
 > **관련 요구사항**: REQ-20260825-007 (gate-failure-classification-and-evidence-parity)
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 220 최초 등록)
+> **최종 업데이트**: 2026-08-25 (by inspector — tick 221 Phase 1 reconcile @ HEAD=`6f58541`. TSK-20260825-11 착지 반영: 수용 기준 2/5 → **5/5**. 라인 번호는 등록 시점 스냅샷이라 현 HEAD 와 어긋난다 — 식별자 우선 규약대로 `record_rc_class` / `rc_rank` / `RC_CLASS` 로 찾는다)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -95,23 +95,23 @@
 ## 테스트 현황
 
 - [x] 정상 트리에서 게이트 `rc=0` — `ci.yml:92` 가 매 CI 실행에서 발화한다.
-- [ ] 층 간 등급 대칭 판정 — HEAD 0건. G-1/G-2 의 부착 대상.
-- [ ] 분기별 증거 보존 판정 — HEAD 0건. G-3 의 부착 대상.
-- [ ] 헤더 선언 ↔ 본문 종료 코드 정합 판정 — HEAD 0건. G-5 의 부착 대상.
+- [x] 층 간 등급 대칭 판정 — `scripts/check-coverage-attribution-monotonicity.sh` 의 `record_rc_class` / `rc_rank` / `RC_CLASS` (TSK-20260825-11 / `0509d47`). 전수 `:505` `exit 2` ↔ 샤드 `:607` `RC=2` 로 수렴.
+- [x] 분기별 증거 보존 판정 — 샤드 루프 `continue` **5 분기 전수**가 `rc=$SRC_RC` 를 메시지에 싣는다 (tick 220 시점 1/5).
+- [x] 헤더 선언 ↔ 본문 종료 코드 정합 판정 — 본문 리터럴 `exit` 인자 집합 ⊆ 선언 `{0,1,2,3,4}`, 그리고 `:283` `case "$RC_CLASS"` 가 선언 밖 등급을 `[FAIL]` 로 낸다. 스크립트 자신이 `[self-test]` 블록으로 등급 우선순위를 자가 단언한다.
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `scripts/**` · `package.json` · `ci.yml` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`8da63f6` 기준 2/5** — 신규 등록이며 G-1·G-2·G-3 미충족이 정상이다.
+> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `scripts/**` · `package.json` · `ci.yml` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`6f58541` 기준 5/5 rc=0** — inspector tick 221 이 다섯 명령을 전수 재실행해 확인했다 (`result.md` 주장 미인용). tick 220 등록 시점은 2/5 였고 TSK-20260825-11 (`0509d47`) 이 G-1·G-2·G-3 을 함께 닫았다. **세 항목을 한 task 로 묶은 것이 옳았다** — 등급만 갈라지고 증거가 없으면 3축 판별이 불가능하고, 증거만 남고 등급이 같으면 측정 실패가 계속 계약 위반으로 보고된다 (§참고 "두 축은 서로의 전제").
 
-- [ ] (Must) G-3 증거 대칭: 샤드 루프에서 실패로 `continue` 하는 분기 중 `SRC_RC` **참조**를 갖지 않는 것이 **0건**이다. 판정:
+- [x] (Must) G-3 증거 대칭: 샤드 루프에서 실패로 `continue` 하는 분기 중 `SRC_RC` **참조**를 갖지 않는 것이 **0건**이다. 판정:
   ```
   bash -c 'test "$(awk "/^  SRC_RC=/{s=1} s&&/\\\$SRC_RC/{ev=NR} s&&/^    continue\$/{print (ev>NR-12)?\"OK\":\"NO\"}" scripts/check-coverage-attribution-monotonicity.sh | grep -c "^NO")" -eq 0'
   ```
-  **HEAD=`8da63f6` 실측 rc=1 / `NO` 4건 → 미충족** — `continue` 5 분기 중 `SRC_RC` 참조 보존은 `:385`(메시지 `rc=$SRC_RC`, `:382`) 1건뿐이고 `:376`·`:395`·`:401`·`:406` 4건이 버린다 (§동작 3 표).
+  **HEAD=`6f58541` 실측 rc=0 / `NO` 0건 → 충족** (tick 220 시점 rc=1 / `NO` 4건). TSK-20260825-11 (`0509d47`) 이 `continue` 5 분기 전수에 `rc=$SRC_RC` 를 실었다 — `:592`(통과 테스트 0) · `:600`(파일 수 불일치) · `:607`(coverage-final.json 부재) 이 신규 보존분이고, 종전 유일 보존 분기와 합쳐 5/5 다. 공허 통과 차단 재실측: `continue` 분기 수 **5** (≥ 5).
   - **대입과 참조를 구분한다.** 판정 패턴이 `SRC_RC` 를 그대로 찾으면 `:367` 의 대입 `SRC_RC=$?` 자체가 증거로 계수돼 `:376` 분기가 거짓 `OK` 로 나온다 — inspector tick 220 이 초안 명령에서 실제로 이 오탐을 관측하고 `\$SRC_RC` 참조 한정으로 교정했다. 대입은 어느 분기에서나 12행 안에 있으므로 이 구분 없이는 판정이 항상 관대해진다.
   - **공허 통과 차단**: 같은 스캔의 `continue` 분기 수가 **≥ 5** 임을 함께 확인한다 — `awk '/^  SRC_RC=/{s=1} s&&/^    continue$/{n++} END{print n+0}'` → HEAD 실측 **5**. 대상이 0이면 "누락 0건" 은 무조건 참이다.
-- [ ] (Must) G-1 층 간 등급 대칭: 전수 층과 샤드 층의 `coverage-final.json` 부재 분기가 **같은 종료 코드**로 수렴한다. 판정: 두 분기가 같은 등급 값을 내는지 정적으로 확인 — `bash -c 'grep -A2 -nE "\[ ! -f \"\\\$(FULL_DIR|SDIR)/coverage-final.json\" \]" scripts/check-coverage-attribution-monotonicity.sh | grep -cE "exit 2|RC=2" | grep -qx 2'`. **HEAD 실측 rc=1 → 미충족** — 전수 `:308` `exit 2` / 샤드 `:405` `FAILED=1` → `:453` `exit 1`.
-- [ ] (Must) G-2 등급 간 구분: 측정 실패와 계약 위반이 서로 다른 종료 코드를 낸다. 판정: 샤드 층 집계 종료가 단일 `exit 1` 이 아니라 등급별로 갈라짐을 확인 — `bash -c 'test "$(grep -cE "^[[:space:]]*exit [0-9]" scripts/check-coverage-attribution-monotonicity.sh)" -ge 1 && grep -qE "FAILED_(MEASURE|INPUT)|MEASURE_FAIL|RC_CLASS" scripts/check-coverage-attribution-monotonicity.sh'`. **HEAD 실측 rc=1 → 미충족** — 등급 구분 변수가 없고 `FAILED` 단일 플래그가 {측정 실패, 공허, 단조성 위반} 3 등급을 접는다 (§동작 2). 변수명은 예시이며 **등급별 상태가 분리 보유되는 사실**이 판정 대상이다 — 구현 수단은 task 가 정한다.
+- [x] (Must) G-1 층 간 등급 대칭: 전수 층과 샤드 층의 `coverage-final.json` 부재 분기가 **같은 종료 코드**로 수렴한다. 판정: 두 분기가 같은 등급 값을 내는지 정적으로 확인 — `bash -c 'grep -A2 -nE "\[ ! -f \"\\\$(FULL_DIR|SDIR)/coverage-final.json\" \]" scripts/check-coverage-attribution-monotonicity.sh | grep -cE "exit 2|RC=2" | grep -qx 2'`. **HEAD=`6f58541` 실측 rc=0 → 충족** (tick 220 시점 rc=1). 전수 `:505` `exit 2` / 샤드 `:607` 메시지 `측정 실패 → RC=2, 전수 층 exit 2 와 대칭` + `record_rc_class` 로 두 분기가 같은 등급 2 로 수렴한다. 판정 명령이 요구하는 `exit 2|RC=2` 매치 수는 정확히 **2** 다.
+- [x] (Must) G-2 등급 간 구분: 측정 실패와 계약 위반이 서로 다른 종료 코드를 낸다. 판정: 샤드 층 집계 종료가 단일 `exit 1` 이 아니라 등급별로 갈라짐을 확인 — `bash -c 'test "$(grep -cE "^[[:space:]]*exit [0-9]" scripts/check-coverage-attribution-monotonicity.sh)" -ge 1 && grep -qE "FAILED_(MEASURE|INPUT)|MEASURE_FAIL|RC_CLASS" scripts/check-coverage-attribution-monotonicity.sh'`. **HEAD=`6f58541` 실측 rc=0 → 충족** (tick 220 시점 rc=1). `RC_CLASS` (`:248`) + `rc_rank` 우선순위 병합 (`:263`) + `record_rc_class` 로 등급별 상태가 분리 보유되고, 종료는 `:291` `exit "$RC_CLASS"` 로 등급을 그대로 낸다. `FAILED` 단일 플래그가 3 등급을 접던 상태가 해소됐다. 변수명은 예시이며 **등급별 상태가 분리 보유되는 사실**이 판정 대상이다 — 구현 수단은 task 가 정한다.
 - [x] (Must) G-4 정상 경로 불변: 정상 트리에서 `npm run check:coverage-attribution` → `rc=0`. **HEAD 실측 rc=0 → 충족** (현행 상태 고정). 분류 도입 후에도 이 항목이 `[x]` 로 남아야 하며, 이것이 §역할 (i) "판정 완화 금지" 의 **반대 방향** 안전장치다 — 완화는 이 항목을 통과시키지만 G-1~G-3 을 충족시키지 못한다.
 - [x] (Must) G-5 선언·구현 정합: 본문의 리터럴 `exit` 인자 집합이 헤더 선언 집합의 부분집합이다. 판정: `bash -c 'test -z "$(grep -oE "^[[:space:]]*exit [0-9]+" scripts/check-coverage-attribution-monotonicity.sh | grep -oE "[0-9]+$" | sort -u | grep -vE "^(0|1|2|3|4)$")"'` → `rc=0`. **HEAD 실측 rc=0 / 본문 집합 `{0,1,2,4}` ⊆ 선언 `{0,1,2,3,4}` → 충족.** G-1/G-2 를 충족시키는 변경이 새 코드를 도입하면 헤더 선언을 함께 갱신해야 이 항목이 `[x]` 로 유지된다 (동반 조건 — §동작 5).
 
@@ -135,4 +135,5 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-25 | inspector tick 221 / HEAD=`6f58541` (TSK-20260825-11 `0509d47`) | **G-1·G-2·G-3 충족 플립 (2/5 → 5/5)** + 테스트 현황 3건 플립. 다섯 판정 명령을 전수 재실행했다. G-3 은 `continue` 5 분기 전수가 `rc=$SRC_RC` 를 싣는 것을, G-1 은 전수 `exit 2` ↔ 샤드 `RC=2` 수렴을, G-2 는 `RC_CLASS`+`rc_rank` 등급 분리 보유를 확인했다. 공허 통과 차단(분기 수 ≥ 5)과 정상 경로 불변(G-4 `npm run check:coverage-attribution` rc=0, 샤드 12 / 파일 70 / 테스트 654)도 함께 재측정했다. **추가 관측**: 스크립트가 `[self-test]` 블록으로 등급 우선순위 병합을 자가 단언한다 — 등급 도입이 열거 확장이 아님을 스크립트 자신이 증명하는 형태이며 G-5 의 동반 조건(`case "$RC_CLASS"` 의 선언 밖 등급 `[FAIL]`)과 짝을 이룬다. **미충족 0** — 본 spec 은 promote 후보다. | 테스트 현황, 수용 기준, 변경 이력 |
 | 2026-08-25 | REQ-20260825-007 (inspector tick 220) | 최초 등록. followup 2건(`0730`·`0735`)을 통합한 req 를 흡수. **RULE-07 자기검증**: 대상 명제가 현 HEAD 에서 **거짓**이므로(전수 `exit 2` ↔ 샤드 `exit 1`, 5 분기 중 증거 보존 1건) 중복 게이트가 아니며, 검출하는 상위 게이트도 없다 — §역할에 방어 대상을 명시했다 (`RULE-07 §주제 우선순위 2`). **req 대비 교정 3건**: (a) 샤드 층이 접는 등급이 2 가 아니라 **3** 임을 발견 — `:415-417` 의 `JRC != 0` → `FAILED=1` 이 공허 산출물(`3`)까지 함께 접는다. (b) req 의 수용 기준 3번("헤더 선언 ⊇ 본문 exit 집합")은 **현 HEAD 에서 이미 참**이라(`{0,1,2,4}` ⊆ `{0,1,2,3,4}`) 단독으로는 자명 명제에 가깝다 — 삭제하지 않고 G-1/G-2 변경에 붙는 **동반 조건**으로 위치를 바꿔 `[x]` 로 등록했다. (c) req 의 수용 기준 5번(존재하지 않는 subset 경로 주입)은 '가정 주입 요구' 부류라 체크박스에서 내리고 (Dir-1) 로 이관했다 — **이관처 없는 강등 금지** 준수. 아울러 G-4(정상 경로 `rc=0`)를 `[x]` 로 등록해 "판정 완화" 방향의 오회복이 이 항목만으로는 충족될 수 없음을 명시했다. 정적 판정에 `rg` 를 쓰지 않는 근거(바이너리 부재 · CI 설치 step 부재 · `pipefail` 부재 시 조용한 통과)를 §발화 채널에 박제했다. | all |

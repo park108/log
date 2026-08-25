@@ -3,7 +3,7 @@
 > **위치**: 프로덕션 컴포넌트에서 `await` / `.then(` 을 거치는 코드 전부 — **effect 본문·이벤트 핸들러 무관**. HEAD=`8da63f6` 확장 술어 대상 **12 파일**, 전수 가드 보유 / 미보유 **0** (등록 시점 `b14cd3a` 는 미보유 1 = `src/File/FileItem.tsx`). effect 한정 선행 술어 대상도 **12 파일**로 확장 술어와 일치한다 (차집합 공집합) — `src/Monitor/{VisitorMon,ContentItem,ApiCallItem,WebVitalsItem}.jsx`, `src/File/{File,FileDrop,FileUpload}.tsx`, `src/Comment/Comment.tsx`, `src/Image/ImageSelector.tsx`, `src/Log/{Writer,LogList}.jsx`.
 > **관련 요구사항**: REQ-20260517-093 (최초), REQ-20260824-002 (audit 대상 교정 + 발화 대상 확장), REQ-20260825-002 (선언 범위 확장 + 관측 강도 대칭).
 > **선행 판본**: 동일 slug `runtime-fetch-unmount-safety` 의 blue 판본 (동일 상대 경로 — 승격 시 대체된다).
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 220 Phase 1 reconcile @ HEAD=`8da63f6`. TSK-20260825-04·05·06 착지 반영: 수용 기준 4/9 → **8/9**. FR-09 는 측정 명령이 불변식을 과소 측정함을 발견해 명령을 교정하고 미충족 유지).
+> **최종 업데이트**: 2026-08-25 (by inspector — tick 221 Phase 1 reconcile @ HEAD=`6f58541`. TSK-20260825-09 착지 반영: FR-09 **충족**. 동시에 G-F 판정의 새 사각 (B5) 를 실측 발견해 **FR-11** 을 신설했다 — 수용 기준 **9/10**).
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -118,7 +118,8 @@
 | (B1) 대상 집합 | 술어가 `useEffect` 를 요구해 핸들러 async 전용 파일(`src/File/FileItem.tsx`)이 계수되지 않는다 | (I7) / FR-07·FR-08 | **해소** — 확장 술어가 집행 대상 (TSK-20260825-05) |
 | (B2) 관측 강도 | setter-only 표면에서 `console` spy 단정이 항상 0 hit — 가드를 제거해도 통과 | (I8) / FR-10 | **해소** — setter recorder + 양방향 fixture (F2/F2b) |
 | (B3) 필터 | 선행 시대 fixture 3건이 React 18 이 내지 않는 경고로 필터링한 뒤 0 을 단정 | (I9) / FR-09 | **부분 해소** — 3 파일 제거, 1건 잔존 ((B4)) |
-| **(B4) 필터 판정의 선택자·영단정 어휘** *(inspector tick 220 신규)* | G-F 가 필터 형태를 `.filter(` **선택자 하나**로만 찾고, 영단정 어휘에 `toBeUndefined` 계열이 없다. `.find(...)` + `expect(x).toBeUndefined()` 조합은 통과한다 | (I9) / FR-09 | **미해소** — 실존 1건 (`src/Search/Search.test.tsx:218`) |
+| **(B4) 필터 판정의 선택자·영단정 어휘** *(inspector tick 220 신규)* | G-F 가 필터 형태를 `.filter(` **선택자 하나**로만 찾고, 영단정 어휘에 `toBeUndefined` 계열이 없다. `.find(...)` + `expect(x).toBeUndefined()` 조합은 통과한다 | (I9) / FR-09 | **해소** — 두 축 모두 deny-by-default 로 전환 (TSK-20260825-09 / `4bcfddf`) |
+| **(B5) 필터 판정의 좁힘~단정 위상** *(inspector tick 221 신규)* | G-F 가 좁힘 토큰 **뒤로만** 400자 창을 열고 그 창의 첫 `expect(` 를 판정 대상으로 삼는다. 좁힘이 `expect(` **안에** 있는 인라인 형태는 창에 `expect(` 가 없어 "단정 없는 좁힘" 으로 분류돼 통과한다. 기록 식별 축(`spy.mock.calls` 직결 / `const x = spy.mock.calls` 별칭)은 deny 전환에서 제외돼 여전히 **열거**이므로 구조분해(`const { calls } = spy.mock`)도 샌다 | (I10) / FR-11 | **미해소** — 실물 0건이나 채널 부재 |
 
 **(B4) 실측 (inspector tick 220).** G-F 판정 함수 `filteredEmissionZeroAssertions` (`post-unmount-emission-audit.test.ts:379`) 의 두 축을 형태별로 검사했다 — 선택자는 `:397` 의 `\b<record>\s*\.filter\s*\(` 로 **`.filter` 고정**이고, 영단정 어휘는 `:135` `RE_ZERO_ASSERT_NEAR` = `toBe(0)|toHaveLength(0)|not.toHaveBeenCalled|length === 0|toBeFalsy(` 다.
 
@@ -134,6 +135,20 @@
 
 이 사각이 특히 값진 이유는 **G-F 가 바로 그 파일을 동기로 삼아 만들어졌다**는 데 있다 — 판정 함수 주석 `:373` 이 "`.includes('unmounted')` 변형을 놓쳤다 (실측 — `src/Search/Search.test.tsx`)" 라고 적고 있다. 문구 축은 구조로 옮겨 해결했으나 **선택자 축이 새로운 문구 축이 됐다.** 리터럴 열거를 구조 판정으로 바꿔도, 그 구조 판정이 다시 열거(선택자 1종·어휘 5종)이면 같은 부류의 사각이 한 단계 아래에서 재생산된다.
 
+**(B5) 실측 (inspector tick 221).** 판정 함수 `filteredEmissionZeroAssertions` 를 현 HEAD 소스 그대로 추출해 형태별 입력으로 호출했다 (`result.md` 주장 미인용 — 함수 본문 직접 실행).
+
+| 형태 | G-F 판정 | 비고 |
+|---|---|---|
+| `const w = spy.mock.calls.filter(…); expect(w.length).toBe(0)` | **검출** | 기존 양성 fixture (대조군) |
+| `expect(spy.mock.calls.filter(…)).toHaveLength(0)` | **미검출** | 인라인 — 좁힘이 `expect(` 안 |
+| `expect(spy.mock.calls.filter(…)).toEqual([])` | **미검출** | 인라인 |
+| `expect(spy.mock.calls.find(…)).toBeUndefined()` | **미검출** | 인라인. `Search.test.tsx:218` 을 한 줄로 접기만 하면 이 형태다 |
+| `const { calls } = spy.mock; calls.filter(…)` + 영단정 | **미검출** | 구조분해 별칭 — `RE_MOCK_CALLS_ALIAS` 밖 |
+
+**원인은 deny-by-default 의 미적용 축 2개다.** TSK-20260825-09 는 (축 1) 좁힘 선택자와 (축 2) 영단정 어휘를 기본 위반으로 뒤집었으나, (축 3) **기록 표현식 식별**과 (축 4) **좁힘~단정 위상**은 그대로 열거·단방향으로 남았다. 특히 (축 4) 의 통과 경로는 의도된 것이다 — `nearestAssertion` 이 `null` 을 반환하면 "좁히기만 하고 단정하지 않는 코드" 로 보아 위반이 아니라고 판정한다 (음성 fixture 5). 인라인 형태는 **단정이 있는데도** 그 분기로 떨어진다.
+
+**이것은 (B4) 와 같은 형태의 재생산이다.** 문구 열거 → 선택자 열거 → 위상 단방향. 축을 하나 뒤집을 때마다 남은 축이 새 사각이 된다. 그래서 FR-11 은 "인라인도 잡아라" 가 아니라 **판정이 좁힘~단정 관계를 위상 무관하게 본다** 를 요구하고, 검출 확인은 비열거성 probe 로 한다 ((Dir-E)).
+
 **나머지 사각은 전부 "정상 트리에서 초록" 이다.** dry-run·재실행·CI 어느 것도 이들을 신고하지 않는다 — 민감도 0 게이트의 정의 그대로다 (`RULE-06 §게이트 실효 검증`).
 
 **게이트 실효 검증의 이관처.** (B1)(B2)(B3) 을 닫는 게이트 수정 task 는 `## 검증/DoD` 에 아래 3 방향 주입을 명기하고 developer 는 `RULE-04` notes 에 `injection: N/N detect` 를 박제한다 (`RULE-07 §처리` — 이관처 없는 강등 금지).
@@ -142,6 +157,7 @@
 - (Dir-B setter-only 무관측) setter-only 표면의 가드 1건 제거 → race fixture `rc≠0`. console spy 만으로는 잡히지 않음을 같은 주입으로 대조 박제한다 (수정 전/후 rc 대조).
 - (Dir-C 필터 우회) 무발화 단정 앞에 문구 필터를 재도입 → `rc≠0` (필터 재도입 자체가 FR-09 위반으로 검출).
 - **(Dir-D 선택자 우회 — tick 220 신규)** (B4) 를 닫는 task 는 위 표의 미검출 3형태를 **각각** 주입해 `rc≠0` 을 확인한다. `RULE-06 §게이트 실효 검증` 의 "선언한 방향 수만큼 주입" 에 따라 선택자 축(`.find` / `.some`)과 영단정 어휘 축(`toBeUndefined` / `toBe(false)`)을 **분리 계수**한다 — 두 원인이 독립이므로 한 형태의 통과가 다른 축의 검출력을 보증하지 않는다. 게이트 자신의 양성 fixture(`:706`·`:714`·`:725`)에 형태별 1건을 추가하는 것이 자연스러운 부착점이다.
+- **(Dir-E 위상·기록 우회 — tick 221 신규)** (B5) 를 닫는 task 는 **4 방향**을 각각 주입해 `rc≠0` 을 확인한다: (E1) 인라인 `expect(record.filter(…)).toHaveLength(0)`, (E2) 인라인 `expect(record.find(…)).toBeUndefined()`, (E3) 구조분해 별칭 경유 좁힘+영단정, (E4) **비열거성** — 판정 소스 어디에도 없는 메서드·매처 조합을 인라인으로 주입. (E4) 는 (B4) 의 양성 6 과 같은 취지로 "열거 확장이 아니라 전환" 임을 증명한다. 원복 후 전 방향 `rc=0`.
 
 **두 층의 분업이 (D2) 에서 드러난다.** 정적 게이트((M-A)/audit)는 "가드 식별자가 파일에 있는가" 까지만 보므로 부분 가드를 통과시킨다 — (I2) 위반의 검출 지점은 (M-B) race fixture 의 무발화 단정이다. 어느 한 층만으로는 본 spec 이 성립하지 않으며, 그래서 FR-01(정적 표면)과 FR-03(대상 전수 fixture)이 **함께** Must 다.
 
@@ -156,13 +172,14 @@
 - [x] **(I1/FR-02) `src/File/FileItem.tsx` 의 핸들러 가드** — 가드 식별자 **9 hit** (등록 시점 0). TSK-20260825-04 / `35f21fd`.
 - [x] **(M-B) `FileItem` 의 unmount race fixture** — `src/File/FileItem.test.tsx` `unmount()` **4 hit** (`:337`·`:380`·`:410`·`:435`), 케이스 F1/F1b/F1c(콘솔 계열) + F2/F2b(setter-only 양방향). 등록 시점 0 hit.
 - [x] **(I8) setter-only 표면의 관측** — 계약 (M-B) 에 수단 박제 + fixture 실물 등재 (`FileItem.test.tsx:16` `vi.hoisted` 카운터 / `:18-28` `vi.mock('react')` wrapper / `:425` F2 무발화 · `:447` F2b 발화 확인).
-- [ ] **(I9) 무필터 단정** — 리터럴 문구 층은 해소(3 파일 / 10 line → **0**, TSK-20260825-06). **잔존 1건 미충족** — `src/Search/Search.test.tsx:218` 이 `.find(...includes('unmounted'))` + `toBeUndefined()` 로 같은 도달 불가 필터를 유지하며, 구조 게이트 G-F 도 이를 놓친다 (§발화 채널 (B4)).
+- [x] **(I9) 무필터 단정** — 리터럴 층 0 (TSK-20260825-06) + 선택자 층 0 (TSK-20260825-09 / `4bcfddf`). 구조 게이트 G-F 는 열거에서 **deny-by-default** 로 전환됐다 (`RECORD_ACCESS_ALLOWLIST` 공집합 + 비열거성 probe). **다만 G-F 의 검출 표면은 아직 전체가 아니다 — 인라인 좁힘을 놓친다** (FR-11 / §발화 채널 (B5)).
+- [ ] **(I10) 재도입 차단의 표면 완전성** — G-F 가 인라인 좁힘(`expect(spy.mock.calls.filter(…)).toHaveLength(0)`)·구조분해 별칭(`const { calls } = spy.mock`)을 검출하지 못한다. HEAD 트리에 해당 형태의 실물은 0건이나, 그 0 을 지키는 채널이 없다. FR-11 의 부착 대상.
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 주입·자기서술 부류는 §참고 §미측정·비판정 항목으로 강등했다. **HEAD=`8da63f6` 기준 8/9 rc=0** — inspector tick 220 이 아홉 명령을 전수 재실행해 확인했다 (`result.md` 주장 미인용). 미충족 1건은 FR-09 이며, **그 판정 명령 자체가 불변식보다 좁았음을 발견해 2층으로 교정한 결과** 미충족으로 남았다 (교정 전 명령으로는 rc=0 이었다).
+> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 주입·자기서술 부류는 §참고 §미측정·비판정 항목으로 강등했다. **HEAD=`6f58541` 기준 9/10 rc=0** — inspector tick 220 이 아홉 명령을 전수 재실행해 확인했다 (`result.md` 주장 미인용). 미충족 1건은 **FR-11** 이며, tick 221 이 G-F 판정 함수를 형태별로 직접 호출해 인라인 좁힘·구조분해 별칭 미검출을 관측한 결과 신설된 항목이다 (§발화 채널 (B5)). tick 220 의 미충족 항목이던 FR-09 는 TSK-20260825-09 착지로 충족됐고, 그 자리를 **같은 게이트의 한 층 위 사각**이 이어받은 형태다.
 >
-> **순서 의존이 있다** (역순 부착은 첫 실행부터 red): (FR-06 `FileItem` 가드) → (FR-07 술어 확장) 는 TSK-20260825-04 → -05 로 그 순서대로 착지했다. 남은 FR-09 는 **필터 제거(`Search.test.tsx:218`)와 G-F 검출 확대((B4))를 한 task 로 묶어야 한다** — 필터만 제거하면 게이트는 여전히 재도입을 막지 못하고, 게이트만 넓히면 첫 실행부터 red 다.
+> **순서 의존이 있다** (역순 부착은 첫 실행부터 red): (FR-06 `FileItem` 가드) → (FR-07 술어 확장) 는 TSK-20260825-04 → -05 로 그 순서대로 착지했다. FR-09 도 같은 이유로 **필터 제거와 G-F 검출 확대를 한 task 로 묶어** 착지했다 (TSK-20260825-09). 남은 FR-11 은 **게이트 단독 task 다** — 트리에 인라인·구조분해 실물이 0건이라 판정 확대가 첫 실행부터 green 이며, 선행 제거 작업이 없다.
 
 - [x] (Must, FR-01/FR-02) **effect 표면 한정** 미가드 0 — `bash -c 'test "$(for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" && ! grep -qE "cancelled|AbortController|isMounted|signal" "$f" && echo "$f"; done | wc -l)" -eq 0'` → rc=0. **HEAD=`a48339d` 실측 rc=0 / 미가드 0 파일** (착수 전 8 파일). 술어 대상 집합이 비면 공허하게 rc=0 이 되므로 vacuous-zero 를 별도 확인했다 — 대상 **11 파일** (0 아님). 역주입(`ContentItem.jsx` 가드 제거) 시 rc=1 + 파일 경로 출력. **본 명령은 파일 단위 토큰 존재만 보므로 부분 가드((I2) 위반) 는 통과시킨다 — 그 층은 FR-03 이 담당한다** (§발화 채널 D2).
 - [x] (Must, FR-03) **effect 술어 대상** 파일마다 unmount race fixture 존재 — `bash -c 'n=0; for f in $(grep -rln "useEffect" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\."); do grep -q "await \|\.then(" "$f" || continue; b="${f%.*}"; grep -lq "unmount()" "$b".test.jsx "$b".test.tsx 2>/dev/null || { echo "$f"; n=$((n+1)); }; done; exit $((n>0))'` → rc=0. **HEAD=`a48339d` 실측 rc=0 / 11 파일 전수 보유** (착수 전 8 파일 미보유). 이 fixture 층이 부분 가드를 잡는 유일한 지점이다 — `log()` 를 가드 밖으로 옮기는 주입에서 `ContentItem.test.jsx` 가 rc=1 (`expected "log" to not be called at all`) 로 검출했다.
@@ -172,14 +189,25 @@
 - [x] (Must, FR-06) `src/File/FileItem.tsx` 의 async 핸들러가 unmount 가드를 보유 — `grep -cE "cancelled|AbortController|isMounted|signal" src/File/FileItem.tsx` → **1 이상**. **HEAD=`8da63f6` 실측 9 → 충족** (등록 시점 0). 토큰 존재만으로는 부분 가드를 통과시키므로 동작 층은 FR-10 이 함께 잡는다.
 - [x] (Must, FR-07) 확장 술어의 미가드 표면 0 — §공개 인터페이스 (M-A) 의 확장 술어 블록 → **rc=0**. **HEAD=`8da63f6` 실측 rc=0 / 미가드 0 파일 → 충족** (등록 시점 rc=1 / 1 파일). vacuous-zero 를 함께 차단한다: 같은 루프의 **대상 집합 크기 ≥ 12** — 실측 **12** (0 아님, 공허 통과 아님).
 - [x] (Must, FR-08) 선언 범위와 술어 대상의 차집합 공집합 — 확장 술어 대상과 선행(`useEffect` 요구) 술어 대상의 차집합이 회복 후에도 **계약상 대상 전수**임을 유지. 판정: 확장 술어 대상 수 ≥ 선행 술어 대상 수 이고, 확장 대상 전수가 FR-07 을 통과. **HEAD=`8da63f6` 실측 확장 12 · 선행 12 (12 ≥ 12) + FR-07 rc=0 → 충족** (등록 시점 12 vs 11, 차집합 미가드). 차집합이 닫힌 경위는 §동작 3b — 선행 술어의 구조적 한계가 제거된 것이 아니므로 집행 대상은 계속 확장 술어다.
-- [ ] (Must, FR-09) 도달 불가 필터 0 — **판정 명령을 2층으로 교정한다** (inspector tick 220. 종전 1층 명령은 리터럴 문구만 봐서 `.includes(...)` 변형을 놓쳤고, 그 결과 불변식이 위반된 상태에서 rc=0 을 냈다):
+- [x] (Must, FR-09) 도달 불가 필터 0 — **판정 명령은 2층이다** (inspector tick 220 교정. 종전 1층 명령은 리터럴 문구만 봐서 `.includes(...)` 변형을 놓쳤고, 그 결과 불변식이 위반된 상태에서 rc=0 을 냈다):
   ```
   bash -c 'grep -rn "update.*was not wrapped\|cannot update a component" src --include="*.test.tsx" --include="*.test.jsx" | grep -q . && exit 1;
            grep -rnE "\.mock\.calls[[:space:]]*\.(filter|find|some)[[:space:]]*\(.*includes\(.unmounted" src --include="*.test.tsx" --include="*.test.jsx" | grep -q . && exit 1;
            exit 0'
   ```
-  **HEAD=`8da63f6` 실측 rc=1 → 미충족.** 1층(리터럴) 0 line — TSK-20260825-06 이 3 파일 / 10 line 을 제거해 충족. 2층(선택자) **1 hit** — `src/Search/Search.test.tsx:218`. 2층은 정상 용례를 오탐하지 않음을 함께 확인했다 (`src/App.test.jsx:176-185` 의 `.mock.calls.filter(([event]) => ...)` 4건 미매치). 충족 조건은 두 층 모두 0 이며, 재도입 차단은 §발화 채널 (B4) 의 G-F 확대가 맡는다.
+  **HEAD=`6f58541` 실측 rc=0 → 충족** (tick 220 시점 rc=1). 1층(리터럴) 0 line — TSK-20260825-06. 2층(선택자) 0 hit — TSK-20260825-09 (`4bcfddf`) 가 `src/Search/Search.test.tsx:218`·`:317` 의 `.find(...includes('unmounted')) + toBeUndefined()` 를 무필터 `expect(errorSpy).not.toHaveBeenCalled()` 로 교체했다. 2층은 정상 용례를 오탐하지 않음을 함께 확인했다 (`src/App.test.jsx:176-185` 의 `.mock.calls.filter(([event]) => ...)` 4건 미매치 — 이벤트 계수 용례라 좁힘-후-영단정이 아니다).
+  - **관측 창 축소가 함께 들어왔다.** 교체된 단정은 무필터라 마운트 중 발화까지 세므로 `errorSpy.mockClear()` 를 `unmount()` 직전에 둔다. 이 축소는 계약이 규정한 관측 창(= unmount 이후)과 일치하며 민감도를 낮추지 않는다 — 창 밖 발화를 세지 않을 뿐 창 안 발화는 전수 계수한다. 무필터 단정을 도입하면서 창을 정의하지 않으면 첫 실행부터 red 가 되므로, **무필터화와 창 정의는 한 쌍**이다 (FR-11 이 이 쌍을 재도입 층에서 고정한다).
 - [x] (Must, FR-10) `FileItem` 의 unmount race fixture 실재 — `grep -c "unmount()" src/File/FileItem.test.tsx` → **1 이상**, 그리고 `npx vitest run src/File/FileItem.test.tsx` → rc=0. **HEAD=`8da63f6` 실측 4 hit + rc=0 → 충족** (등록 시점 0). 관측기는 (I8) 대로 `log`/`reportError` spy **와** setter recorder 를 함께 둔다 — `copyFileUrl` 갈래는 setter-only 라 console spy 만으로는 민감도 0 이다. 실물: `:321` F1 · `:361` F1b(두 번째 await 경계) · `:395` F1c(catch 경로) 가 콘솔 계열, `:425` F2 가 setter 계열 무발화, `:447` F2b 가 마운트 상태의 setter **발화**를 단정해 관측기의 민감도를 세운다.
+- [ ] (Must, FR-11) **재도입 차단의 표면 완전성** — 도달 불가 필터의 구조 판정이 좁힘~단정의 **위상**과 기록 표현식의 **표기**에 무관하다. 판정:
+  ```
+  bash -c 'npx vitest run src/__tests__/post-unmount-emission-audit.test.ts >/dev/null 2>&1 || exit 1;
+           grep -qE "expect\(\s*[A-Za-z_]+\.mock\.calls\s*\.[A-Za-z]+\(" src/__tests__/post-unmount-emission-audit.test.ts || exit 1;
+           grep -qE "const[[:space:]]*\{[^}]*calls[^}]*\}[[:space:]]*=" src/__tests__/post-unmount-emission-audit.test.ts || exit 1;
+           exit 0'
+  ```
+  **HEAD=`6f58541` 실측 rc=1 → 미충족** — 채널은 rc=0 이나 두 grep 이 각각 **0 hit**. 판정을 "인라인·구조분해 형태를 **양성 fixture 로 보유한 채** 채널이 통과한다" 로 둔 이유는, 그 파일의 자가 검증이 이미 `expect(filteredEmissionZeroAssertions(fixture)).toContain(record)` 형태이기 때문이다 — fixture 실재 + 채널 rc=0 이 곧 검출 성립이다. fixture 없이 채널만 초록인 상태는 검출력 0 과 구별되지 않는다.
+  - **토큰 grep 을 판정에 쓰지 않는 대안을 검토했고 기각했다.** `RECORD_ACCESS_ALLOWLIST` 나 `nearestAssertion` 의 본문 형태를 grep 하는 판정은 구현 수단을 지정하게 되고(§역할 (i)), 동시에 "그 토큰이 있으면 통과" 라 검출력과 무관해진다. 판정 대상은 **형태별 입력에 대한 판정 함수의 출력**이며 그것을 관측하는 유일한 채널이 자가 검증 fixture 다.
+  - inspector tick 221 실측 근거는 §발화 채널 (B5) 표. 주입 4방향은 (Dir-E) 로 이관했다.
 
 ## 스코프 규칙
 
@@ -255,6 +283,7 @@ RULE-07 §수용 기준 문장 규약에 따라 체크박스에서 강등한 항
 | 2026-08-25 | REQ-20260825-002 (inspector tick 219 흡수) | **spec→spec 참조를 slug 식별로 교체.** 본 판본의 cross-ref 5건이 `specs/30.spec/{blue,green}/...md` 전체 경로였다. 그 표기는 승격마다 끊긴다 — 실제로 본 tick 중 `coverage-per-file-attribution-monotonicity` 가 blue 로 승격되면서(`f014ddf`) 참조 2건이 즉시 stale 이 됐다. spec↔spec 참조는 무검증 구역이라(`check-spec-coherence.sh:8` 스코프 `src/**` 한정, `:41` G2 는 전체 경로만 추출) 파이프라인이 붉어지지 않고 조용히 끊긴다. slug 는 이동에 불변이고, `src/**` 안에 같은 표기가 쓰였을 때 G2 가 `MISSING` 으로 pre-commit 을 막는 부작용도 없다. | §위치 + §역할 + §의존성 + §참고 |
 | 2026-08-25 | REQ-20260825-002 (inspector tick 219 흡수) | **선언 범위 확장 + 측정 표면 3 사각 박제. 신규 Must 5건(FR-06~FR-10) `[ ]`.** followup 4건(`2055`·`2125`·`2139`·`2140`)을 통합한 req 를 흡수했다. **원 req 의 진단을 교정했다** — req 는 "선언 범위 > 측정 표면" 으로 봤으나 선행 판본은 선언(`:11` · (I1))도 `useEffect` 한정이라 둘이 정합했다. 실제 결함은 **선언 자체가 위험보다 좁다** 는 것이고, 이 차이가 작업 범위를 바꾼다 (술어 1건 확장 → §역할·(I1)·술어·fixture 동시 확장). §역할과 (I1) 의 주어를 async continuation 일반으로 넓히고 (I7)~(I10) 을 신설했다. 실측 전수 재현: 확장 술어 대상 **12** vs 선행 **11**, 차집합 **`src/File/FileItem.tsx`** (useEffect 0 · 가드 0 · 콘솔류 발화 6 · `unmount()` fixture 0), 도달 불가 필터 **3 파일 / 10 line**, TS 타입 인자 `(<[^()]*>)?` 누락 시 확장 표면이 11 로 붕괴해 차집합이 공집합으로 오보고되는 것까지 재현했다. React 버전 표기도 정정 — 선행 판본의 "React 19" 는 현 HEAD `18.2.0` 이며 18.2 도 `enqueueConcurrentHookUpdate` 의 `root === null` 경로에서 **경고 없이** bail out 한다 (`react-dom.development.js:17523-17529` 실측). 그 침묵이 (I8) setter-only 무관측의 원인이므로 버전 정정은 표기가 아니라 논거다. 기존 `[x]` 4건은 **effect 표면 한정** 측정으로서 참이므로 유지하되 한정어를 명시했다 — 확장 범위를 잰 것으로 오독되면 마커 재배치와 같아진다. 주입 3방향은 게이트 수정 task DoD 로 이관했다. 순서 의존(FileItem 가드 → 술어 확장 / 필터 제거 → 강도 상향)을 §수용 기준 머리말에 박제했다. | §역할 + §공개 인터페이스 + §동작 1·3b·4b·4c·4d + §회귀 중점 R-5~R-7 + §발화 채널 + §테스트 현황 + §수용 기준 + §참고 |
 | 2026-08-24 | TSK-20260824-07-a / `9c86492` · -07-b / `290fcca` · -07-c / `15de04c` · -07-d / `eb8270a` (inspector Phase 1 reconcile @ tick 217) | **FR-01~FR-05 · (M-A)(M-B)(M-C) `[ ]` → `[x]`.** 미가드 8 파일이 3 task 로 전수 회복되고(Monitor 3 → File 2 + Comment 1 → Log 2, `LogList.test.jsx` 신설), 판정 채널 `src/__tests__/post-unmount-emission-audit.test.ts` 가 부착됐다(G-A~G-E 5 게이트, `npm test` 수집 발화). planner 실측을 받아쓰지 않고 4/4 를 현 HEAD 에서 재실행한 뒤 2 방향을 역주입했다 — (D1) `ContentItem.jsx` 의 가드 식별자·guard return 제거 → (M-A) grep rc=1 · audit 채널 rc=1 · 형제 fixture rc=1 (3층 전부 검출), (D2) `log()` 만 가드 앞으로 이동한 부분 가드 → 정적 2층은 통과하고 **fixture 만 rc=1** (`expected "log" to not be called at all, but actually been called 1 times`). **(D2) 가 FR-01 과 FR-03 의 분업을 확정했다** — 파일 단위 토큰 게이트는 (I2) 위반을 구조적으로 못 잡으므로 두 Must 는 어느 하나로 대체될 수 없다. 이 분업을 §발화 채널에 표로 박제했다. 아울러 FR-05 명령의 `head -1` 을 전수 순회로 교체했다 — 채널이 2개 이상이 되면 정렬 순서가 판정을 좌우한다. §역할·§동작 3·6 의 "현 HEAD 실측" 문구는 등록 시점 표기로 내리고 현 HEAD 실측을 병기했다. | §역할 + §동작 3·6 + §발화 채널 + §테스트 현황 + §수용 기준 + §스코프 규칙 + §참고 |
+| 2026-08-25 | inspector tick 221 / HEAD=`6f58541` (TSK-20260825-09 `4bcfddf`) | **FR-09 충족 플립 + FR-11 신설.** 2층 판정 명령 재실행 rc=0 — 리터럴 0 line · 선택자 0 hit (`Search.test.tsx:218`·`:317` 이 무필터 단정으로 교체). G-F 는 열거에서 deny-by-default 로 전환됐고 (B4) 가 해소됐다. **동시에 새 사각 (B5) 를 실측 발견했다** — 판정 함수를 현 HEAD 소스 그대로 추출해 형태별로 호출한 결과, 인라인 좁힘(`expect(record.filter(…)).toHaveLength(0)`) 3형태와 구조분해 별칭 1형태를 **전부 미검출**했다 (대조군 별칭 형태는 검출). 원인은 `nearestAssertion` 이 좁힘 토큰 **뒤로만** 창을 열어 인라인 형태가 "단정 없는 좁힘" 음성 분기로 떨어지는 것과, 기록 식별 축이 deny 전환에서 제외돼 열거로 남은 것 2개다. 트리에 실물은 0건이라 FR-09 자체는 충족이나 **재도입 차단이 성립하지 않으므로** FR-11 로 분리 박제하고 주입 4방향을 (Dir-E) 로 이관했다. |
 | 2026-08-24 | inspector tick (REQ-20260824-002 흡수) / HEAD=`414e66b` | **거짓 `[x]` 되돌림 + 대상 집합 술어화 + 보장 대상 확장.** blue 의 (I4)(I5)(Should FR-05) 는 `*Mon.jsx` wrapper 3 파일을 측정해 0 hit 를 얻고 "race 노출 0" 으로 닫혔으나, 실제 fetch 는 `*Item.jsx` 에 있고 세 파일 모두 미가드다. 술어 도출((I3))로 재측정한 결과 미가드 **8 파일** — Monitor 3 + File 2 + Comment 1 + Log 2. "Log = React Query 자동 충족" 전제도 거짓 (`useLogList` 프로덕션 import 0). 보장 대상을 setter 에서 `log()`·`reportError()` 를 포함한 외부 발화 전부로 확장((I2)). 구 §수용 기준 25 marker 중 자기서술·자명 부류는 §참고 §미측정·비판정 항목으로 강등하고, 실행 가능한 Must 6건으로 교체했다. 주입 부류는 채널 부착 task DoD 로 이관 표기. | all |
 | 2026-05-20 | inspector 203차 tick / `fed31ba` | (I4)+(I7)+(Should FR-05) 3 marker 플립. **(I4)/(FR-05) 근거는 본 개정에서 무효화됐다** — 위 2026-08-24 행 참조. (I7) fixture 박제 (Image/File/VisitorMon 3 도메인) 는 유효. | 테스트 현황, 수용 기준 |
 | 2026-05-18 | inspector 67차 tick / `760a491` | (I3)+(I6)+(FR-03)+(FR-04) 플립 — `VisitorMon.jsx` cancelled-flag ref 박제 회수. 유효. | 테스트 현황, 수용 기준 |
