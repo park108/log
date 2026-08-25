@@ -128,9 +128,37 @@ const RE_LAZY_IMPORT = /lazy\(\s*\(\s*\)\s*=>\s*import\(\s*['"]([^'"]+)['"]\s*\)
 // ── G-F 토큰 (무필터 단정) ───────────────────────────────────────────────────
 // 테스트 파일 열거 — 목록 하드코딩 0. 확장자 드리프트(.cts/.mts)까지 덮는다.
 const RE_TEST_FILE = /\.test\.[cm]?[jt]sx?$/;
-// 호출 기록 별칭 — `const errorCalls = consoleErrorSpy.mock.calls;`
-// 이 추적이 없으면 착수 시점 위반 4 파일 중 3 파일을 놓친다 (중간 변수 경유 필터).
-const RE_MOCK_CALLS_ALIAS = /(?:const|let)\s+(\w+)\s*=\s*(\w+)\.mock\.calls\b/g;
+// ── (축 3) 기록 도달 경로 — deny-by-default 전환 (TSK-20260825-13) ─────────
+// 종전에는 기록 표현식을 **2형태로 열거**했다: 직결 `spy.mock.calls` 와
+// `const errorCalls = consoleErrorSpy.mock.calls` 별칭 (`RE_MOCK_CALLS_ALIAS`).
+// 그래서 구조분해 `const { calls } = spy.mock` 도, `const m = spy.mock` 후
+// `m.calls` 접근도 기록으로 인식되지 않았다 (inspector tick 221 실측 — 둘 다
+// 미검출). 형태를 2개 더 얹는 것은 같은 사각을 `const { mock } = spy` 로 즉시
+// 재생산한다.
+//
+// 그래서 이 축도 기본값을 뒤집는다 — **발화 spy 를 뿌리로 갖는 임의의 바인딩
+// 연쇄를 따라 `mock.calls` 에 도달하면 그것이 기록이다.** 판정은 바인딩 *형태*를
+// 열거하지 않고 (a) 단순 바인딩 (b) 구조분해 두 **문법 범주**의 경로를 고정점까지
+// 전개해 정규 경로를 만든 뒤, 정규 경로가 `<spy>.mock.calls` 의 접두이면 남은
+// 꼬리를 이어 붙여 기록 표현식을 만든다. 중간 단계 수·깊이에 무관하다.
+const RE_MEMBER_PATH = String.raw`[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*`;
+// (a) 단순 바인딩 — `const calls = s.mock.calls;` / `const m = s.mock;` / `const x = m;`
+// 초기화식이 **멤버 경로로 끝나야** 한다. `const w = s.mock.calls.filter(…)` 처럼
+// 호출로 끝나는 바인딩은 기록이 아니라 좁힘 **결과**이므로 걸리지 않는다.
+const RE_PATH_BINDING = new RegExp(
+	String.raw`(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(${RE_MEMBER_PATH})\s*(?=[;,)\r\n]|$)`,
+	"g",
+);
+// (b) 구조분해 바인딩 — `const { calls } = s.mock;` / `const { calls: w } = s.mock;`
+const RE_DESTRUCTURED_BINDING = new RegExp(
+	String.raw`(?:const|let|var)\s*\{([^{}]*)\}\s*=\s*(${RE_MEMBER_PATH})\s*(?=[;,)\r\n]|$)`,
+	"g",
+);
+const RE_IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
+// 도달 경로 허용 목록 — **비어 있다**. 축 1·2 와 같은 근거다: 기록에 도달하는
+// 별칭 이름의 집합은 유한하지 않고, 여기에 이름을 넣는 순간 그 이름을 쓴 재도입이
+// 통째로 통과한다. 비어 있어야 (E4) probe 가 "열거 확장이 아니라 전환" 을 증명한다.
+const RECORD_REACH_ALLOWLIST: ReadonlySet<string> = new Set<string>([]);
 // ── deny-by-default 전환 (TSK-20260825-09) ─────────────────────────────────
 // 종전에는 **위반 형태를 열거**했다: 선택자는 `.filter(` 하나, 영단정 어휘는
 // `toBe(0)|toHaveLength(0)|not.toHaveBeenCalled|length === 0|toBeFalsy(` 다섯.
@@ -190,6 +218,54 @@ export function nearestAssertion(window: string): string | null {
 		else if (ch === ";" && depth <= 0) return window.slice(at, i + 1);
 	}
 	return window.slice(at);
+}
+
+/**
+ * (축 4) 좁힘 지점을 **감싸는** `expect(...)` 문을 찾는다 — 창의 반대 방향.
+ *
+ * 종전 판정은 좁힘 토큰에서 **뒤로만** 창을 열었다. 그래서 좁힘이 `expect(` 인자
+ * **안쪽**에 있는 인라인 형태(`expect(spy.mock.calls.filter(…)).toHaveLength(0)`)는
+ * 창에 `expect(` 가 없어 "단정 없는 좁힘" 음성 분기로 떨어져 통과했다 (inspector
+ * tick 221 실측). 위상이 단방향인 한, 좁힘 선택자와 영단정 어휘를 아무리 deny 로
+ * 뒤집어도 **한 줄로 접기만 하면** 재도입이 통과한다.
+ *
+ * **뒤쪽 창은 좁힘을 감싸는 `expect` 에만 쓴다.** 앞쪽의 아무 `expect(` 나 집어오면
+ * 직전 줄의 무관한 단정(허용 어휘를 단)이 좁힘을 취소해 **deny 가 allow 로 뒤집힌다**.
+ * 괄호 균형이 좁힘 지점을 **포함**하는지가 그 오답을 막는 유일한 조건이므로, 후보
+ * `expect(` 마다 여는 괄호의 짝을 실제로 세어 포함 여부를 판정한다. 포함 후보가
+ * 여럿이면 (중첩 `expect`) **가장 가까운 것**을 쓴다 — 앞쪽 창에서 "가장 가까운
+ * 단정" 을 쓰는 것과 같은 이유다.
+ */
+export function enclosingAssertion(source: string, at: number): string | null {
+	const from = Math.max(0, at - FILTER_ZERO_WINDOW);
+	const back = source.slice(from, at);
+	const finder = new RegExp(RE_EXPECT_CALL.source, "g");
+	let nearest: number | null = null;
+	let e: RegExpExecArray | null;
+	while ((e = finder.exec(back)) !== null) {
+		const start = from + e.index;
+		if (enclosesIndex(source, start, at)) nearest = start;
+	}
+	if (nearest === null) return null;
+	return nearestAssertion(source.slice(nearest, nearest + FILTER_ZERO_WINDOW * 2));
+}
+
+/** `expect(` 의 여는 괄호 짝이 `at` 을 넘겨 닫히는가 (= 좁힘을 인자로 감싸는가). */
+function enclosesIndex(source: string, expectStart: number, at: number): boolean {
+	const open = source.indexOf("(", expectStart);
+	if (open < 0 || open > at) return false;
+	const limit = Math.min(source.length, at + FILTER_ZERO_WINDOW * 2);
+	let depth = 0;
+	for (let i = open; i < limit; i += 1) {
+		const ch = source[i];
+		if (ch === "(") depth += 1;
+		else if (ch === ")") {
+			depth -= 1;
+			if (depth === 0) return i > at;
+		}
+	}
+	// 한도 안에서 닫히지 않았다 — 좁힘 지점을 지나쳤으므로 감싼 것으로 본다 (deny 방향).
+	return true;
 }
 
 /** 단정문이 "비어있지 않음/양수" 를 단정하는가 (축 2 허용 판정). */
@@ -430,6 +506,78 @@ export function emissionSpyNames(testSource: string): string[] {
 }
 
 /**
+ * (축 3) 발화 기록(`<spy>.mock.calls`)에 **도달하는 모든 표현식**을 산출한다.
+ *
+ * deny-by-default 다 — 알려진 2형태를 열거하는 대신, 파일의 바인딩을 두 **문법
+ * 범주**(단순 경로 바인딩 · 구조분해)로 수집해 정규 경로를 고정점까지 전개한다.
+ * 정규 경로가 `<spy>.mock.calls` 와 같으면 그 별칭 자체가 기록이고, 접두이면
+ * 남은 꼬리를 이어 붙인 표현식이 기록이다 (`const m = s.mock` → `m.calls`,
+ * `const { mock } = s` → `mock.calls`). 그래서 새로운 우회 표기는 목록에 추가되지
+ * 않아도 잡힌다 — 잡히지 않으려면 spy 뿌리를 끊어야 하고, 끊으면 기록이 아니다.
+ *
+ * 호출로 끝나는 바인딩(`const w = s.mock.calls.filter(…)`)은 기록이 아니라 좁힘
+ * **결과**이므로 경로 패턴에 걸리지 않는다 — 걸리면 좁힘 결과를 다시 좁혔는지로
+ * 판정이 번져 정상 용례를 오탐한다.
+ */
+export function recordExpressions(testSource: string, spies: ReadonlySet<string>): string[] {
+	const bindings: Array<[string, string]> = [];
+
+	const pathFinder = new RegExp(RE_PATH_BINDING.source, "g");
+	let b: RegExpExecArray | null;
+	while ((b = pathFinder.exec(testSource)) !== null) {
+		const [, alias, path] = b;
+		if (alias === undefined || path === undefined) continue;
+		bindings.push([alias, path.replace(/\s+/g, "")]);
+	}
+
+	const destructureFinder = new RegExp(RE_DESTRUCTURED_BINDING.source, "g");
+	let d: RegExpExecArray | null;
+	while ((d = destructureFinder.exec(testSource)) !== null) {
+		const [, props, base] = d;
+		if (props === undefined || base === undefined) continue;
+		for (const entry of props.split(",")) {
+			const parts = entry.split(":").map((piece) => piece.trim());
+			const key = parts[0];
+			const renamed = parts.length > 1 ? parts[1] : undefined;
+			const alias = renamed !== undefined && renamed !== "" ? renamed : key;
+			if (key === undefined || alias === undefined) continue;
+			if (!RE_IDENTIFIER.test(key) || !RE_IDENTIFIER.test(alias)) continue;
+			bindings.push([alias, `${base.replace(/\s+/g, "")}.${key}`]);
+		}
+	}
+
+	// 고정점 전개 — 선언 순서·중간 단계 수에 무관하게 뿌리(spy)까지 접는다.
+	const canonical = new Map<string, string>();
+	for (let pass = 0; pass <= bindings.length; pass += 1) {
+		let changed = false;
+		for (const [alias, path] of bindings) {
+			if (RECORD_REACH_ALLOWLIST.has(alias)) continue;
+			const segments = path.split(".");
+			const head = segments[0];
+			if (head === undefined) continue;
+			const root = spies.has(head) ? head : canonical.get(head);
+			if (root === undefined) continue;
+			const resolved = [root, ...segments.slice(1)].join(".");
+			if (resolved === alias || canonical.get(alias) === resolved) continue;
+			canonical.set(alias, resolved);
+			changed = true;
+		}
+		if (!changed) break;
+	}
+
+	const records = new Set<string>();
+	for (const spy of spies) records.add(`${spy}.mock.calls`);
+	for (const [alias, path] of canonical) {
+		for (const spy of spies) {
+			const target = `${spy}.mock.calls`;
+			if (path === target) records.add(alias);
+			else if (target.startsWith(`${path}.`)) records.add(`${alias}${target.slice(path.length)}`);
+		}
+	}
+	return [...records];
+}
+
+/**
  * G-F 판정 — **발화 기록을 좁힌 뒤 비어있음을 단정하는** 형태를 찾는다.
  *
  * 문구 열거가 아니라 구조로 본다. 리터럴 문구 grep(`update.*was not wrapped` 등)은
@@ -443,8 +591,22 @@ export function emissionSpyNames(testSource: string): string[] {
  * 통과가 아니라 위반이므로, 목록에 없는 조합(`.flatMap` + `toStrictEqual([])`)도
  * 그 조합을 게이트가 알지 못한 채 잡힌다 (자가 검증의 비열거성 probe 가 증명한다).
  *
- * 창 안에 `expect(` 자체가 없으면 위반이 아니다 — 좁히기만 하고 단정하지 않는
- * 코드는 본 계약의 대상이 아니다.
+ * 창은 **양방향**이다 (TSK-20260825-13). 좁힘을 인자로 감싸는 `expect(` 가 앞쪽에
+ * 있으면 그것이, 없으면 뒤쪽 창의 가장 가까운 `expect(` 가 판정 대상이다. 양쪽 어디에도
+ * `expect(` 가 없으면 위반이 아니다 — 좁히기만 하고 단정하지 않는 코드는 본 계약의
+ * 대상이 아니다.
+ *
+ * ── 네 축의 현 상태 (RULE-06 §열거 고정 금지) ──────────────────────────────
+ *   (축 1) 좁힘 선택자   deny  — `RECORD_ACCESS_ALLOWLIST` 공집합 (TSK-…-09)
+ *   (축 2) 영단정 어휘   deny  — `assertsNonEmptyNear` 허용만 통과 (TSK-…-09)
+ *   (축 3) 기록 식별     deny  — `recordExpressions` 도달 경로 전개 (TSK-…-13)
+ *   (축 4) 좁힘~단정 위상 양방향 — `enclosingAssertion` (TSK-…-13)
+ * **남은 열거 1건**: `emissionSpyNames` 의 발화 spy 판정은 `CONSOLE_SPY_METHODS`
+ * 라는 **메서드 이름 열거**다. `vi.spyOn(customLogger, 'emit')` 처럼 목록 밖 이름의
+ * 발화 관측기는 spy 로 인식되지 않아 그 파일의 좁힘이 통째로 판정 밖으로 빠진다.
+ * 이 축은 본 task 범위 밖이며 followup 으로 남는다 — 여기 적어 두는 이유는, 축을
+ * 하나 뒤집을 때마다 **남은 축이 다음 사각이 된다** 는 것이 이 게이트의 3회 반복된
+ * 실측이기 때문이다 (문구 열거 → 선택자 열거 → 위상 단방향 → 기록 열거).
  *
  * 반환값은 위반 지점의 **기록 표현식·별칭 이름** 목록이다 (사람이 찾아갈 수 있게).
  */
@@ -452,16 +614,8 @@ export function filteredEmissionZeroAssertions(testSource: string): string[] {
 	const spies = new Set(emissionSpyNames(testSource));
 	if (spies.size === 0) return [];
 
-	// 직결 형태(`spy.mock.calls.filter(`) + 별칭 형태(`const calls = spy.mock.calls`).
-	const records = new Set<string>();
-	for (const spy of spies) records.add(`${spy}.mock.calls`);
-	const aliasFinder = new RegExp(RE_MOCK_CALLS_ALIAS.source, "g");
-	let a: RegExpExecArray | null;
-	while ((a = aliasFinder.exec(testSource)) !== null) {
-		const [, alias, owner] = a;
-		if (alias === undefined || owner === undefined) continue;
-		if (spies.has(owner)) records.add(alias);
-	}
+	// 축 3 — 형태 열거가 아니라 **도달 경로**로 기록을 식별한다.
+	const records = new Set(recordExpressions(testSource, spies));
 
 	const violations: string[] = [];
 	for (const record of records) {
@@ -472,9 +626,13 @@ export function filteredEmissionZeroAssertions(testSource: string): string[] {
 		while ((m = finder.exec(testSource)) !== null) {
 			const method = m[1];
 			if (method !== undefined && RECORD_ACCESS_ALLOWLIST.has(method)) continue;
-			const window = testSource.slice(m.index, m.index + FILTER_ZERO_WINDOW);
+			// 축 4 — 창을 **양방향**으로 연다. 좁힘을 인자로 감싸는 `expect(` 가
+			// 있으면 그것이 좁힘을 소비하는 단정이고(인라인 형태), 없으면 종전대로
+			// 앞쪽 창의 가장 가까운 단정을 본다.
 			// 축 2 — 창에 단정이 없으면 대상 밖, 있으면 **비어있지 않음 단정만** 통과.
-			const assertion = nearestAssertion(window);
+			const assertion =
+				enclosingAssertion(testSource, m.index) ??
+				nearestAssertion(testSource.slice(m.index, m.index + FILTER_ZERO_WINDOW));
 			if (assertion === null) continue;
 			if (!assertsNonEmptyNear(assertion)) violations.push(record);
 		}
@@ -841,6 +999,98 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		].join("\n");
 		expect(filteredEmissionZeroAssertions(filterUndefined), "`.filter` + `toBeUndefined` 를 놓쳤다").toContain("s.mock.calls");
 
+		// ── TSK-20260825-13 (Dir-E) 4방향 — 위상 양방향화 + 기록 식별 deny 전환 ──
+		// 아래 넷은 착수 시점 HEAD 의 판정이 **전부 미검출**한 형태다 (inspector tick 221
+		// 실측). 대조군(양성 2)만 검출됐다는 사실이 축 3·4 가 남은 사각임을 고정한다.
+
+		// (E1) 양성 — 인라인 좁힘 + `toHaveLength(0)`. 좁힘이 `expect(` **안쪽**이라
+		// 뒤쪽 창에는 `expect(` 가 없다. 양성 2 를 **한 줄로 접기만 한** 형태이며,
+		// `src/Search/Search.test.tsx:218` 을 이렇게 접으면 종전 판정은 통과했다.
+		const inlineHaveLength = [
+			"const s = vi.spyOn(console, 'error');",
+			"expect(s.mock.calls.filter(c => String(c[0]).includes('unmounted'))).toHaveLength(0);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(inlineHaveLength),
+			"(E1) 인라인 좁힘 + toHaveLength(0) 을 놓쳤다 — 위상이 여전히 단방향이다",
+		).toContain("s.mock.calls");
+
+		// (E2) 양성 — 인라인 좁힘 + `toBeUndefined()`. 선택자·어휘·위상 세 축이 동시에
+		// 종전 열거 밖인 조합.
+		const inlineUndefined = [
+			"const s = vi.spyOn(console, 'error');",
+			"expect(s.mock.calls.find(c => String(c[0]).includes('unmounted'))).toBeUndefined();",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(inlineUndefined),
+			"(E2) 인라인 좁힘 + toBeUndefined 를 놓쳤다",
+		).toContain("s.mock.calls");
+
+		// (E3) 양성 — 구조분해 별칭 `const { calls } = s.mock`. 기록 식별이 열거이던
+		// 동안 이 형태는 기록으로 인식조차 되지 않아 좁힘이 통째로 판정 밖이었다.
+		const destructuredAlias = [
+			"const s = vi.spyOn(console, 'error');",
+			"const { calls } = s.mock;",
+			"const w = calls.filter(c => /x/.test(c[0]));",
+			"expect(w.length).toBe(0);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(destructuredAlias),
+			"(E3) 구조분해 별칭을 기록으로 인식하지 못했다",
+		).toContain("calls");
+
+		// (E3b) 양성 — `const m = s.mock` 경유 2단 도달. 도달 경로 전개가 중간 단계
+		// 수에 무관함을 고정한다 (열거였다면 이 형태도 별도 항목이 필요했다).
+		const mockObjectAlias = [
+			"const s = vi.spyOn(console, 'error');",
+			"const m = s.mock;",
+			"const w = m.calls.filter(c => /x/.test(c[0]));",
+			"expect(w.length).toBe(0);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(mockObjectAlias),
+			"(E3b) `spy.mock` 별칭 경유 도달을 놓쳤다",
+		).toContain("m.calls");
+
+		// (E3c) 양성 — `const { mock } = s` 구조분해 후 `mock.calls`. 게이트가 형태를
+		// 열거했다면 (E3)·(E3b) 를 넣어도 이 형태는 다시 샜을 것이다.
+		const destructuredMock = [
+			"const s = vi.spyOn(console, 'error');",
+			"const { mock } = s;",
+			"const w = mock.calls.some(c => /x/.test(c[0]));",
+			"expect(w).toBe(false);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(destructuredMock),
+			"(E3c) `const { mock } = spy` 경유 도달을 놓쳤다",
+		).toContain("mock.calls");
+
+		// 양성 7 — **뒤쪽 창이 앞쪽 단정을 오채택하지 않음**. 좁힘 직전 줄에 무관한
+		// 허용 어휘 단정(`toBeTruthy`)이 있어도 그것은 좁힘을 감싸지 않으므로 위반이
+		// 취소되면 안 된다. 이 단언이 없으면 양방향화가 **deny 를 allow 로 뒤집는**
+		// 형태로 들어와도 나머지 fixture 가 전부 통과한다 (TSK-20260825-13 §구현 지시 1).
+		const precedingUnrelatedAssert = [
+			"const s = vi.spyOn(console, 'error');",
+			"expect(document.body).toBeTruthy();",
+			"const w = s.mock.calls.filter(c => /x/.test(c[0]));",
+			"expect(w.length).toBe(0);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(precedingUnrelatedAssert),
+			"선행 무관 단정이 위반을 취소했다 — 뒤쪽 창이 감싸지 않는 expect 를 집었다",
+		).toContain("s.mock.calls");
+
+		// 음성 6 — 인라인 좁힘이지만 **비어있지 않음** 단정이다. 양방향화가 위상만
+		// 뒤집고 어휘 판정을 건너뛰면 이 정상 용례가 오탐된다.
+		const inlineNonEmpty = [
+			"const s = vi.spyOn(console, 'error');",
+			"expect(s.mock.calls.map(c => String(c[0]))).toContain('boom');",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(inlineNonEmpty),
+			"인라인 좁힘 + 비어있지 않음 단정을 위반으로 잡았다 — 정상 테스트 오탐",
+		).toHaveLength(0);
+
 		// 양성 6 (**비열거성 probe**) — 게이트 판정 소스 어디에도 등장하지 않는
 		// 메서드·매처 조합. 아래 두 단언이 **함께** 통과해야 deny-by-default 다:
 		//   (i) 이 조합이 위반으로 잡힌다.
@@ -856,23 +1106,45 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			"게이트가 모르는 조합을 통과시켰다 — 기본값이 여전히 '통과' 다",
 		).toContain("s.mock.calls");
 
+		// (E4) 양성 — **인라인 × 비열거성**. 위 양성 6 의 조합을 한 줄로 접은 형태로,
+		// 축 3·4 전환 이후에도 "게이트가 모르는 조합" 이 기본 위반임을 고정한다.
+		const inlineUnknownCombination = [
+			"const s = vi.spyOn(console, 'error');",
+			"expect(s.mock.calls.flatMap(c => c)).toStrictEqual([]);",
+		].join("\n");
+		expect(
+			filteredEmissionZeroAssertions(inlineUnknownCombination),
+			"(E4) 인라인 × 게이트가 모르는 조합을 통과시켰다 — 기본값이 여전히 '통과' 다",
+		).toContain("s.mock.calls");
+
 		// 판정 소스 = 판정 함수 본문 + 토큰 상수. fixture 문자열(위 조합이 들어 있다)은
 		// 판정 로직이 아니므로 제외한다.
 		const gateSource = [
 			filteredEmissionZeroAssertions.toString(),
 			assertsNonEmptyNear.toString(),
 			nearestAssertion.toString(),
+			enclosingAssertion.toString(),
+			recordExpressions.toString(),
 			emissionSpyNames.toString(),
 			RE_NONEMPTY_ASSERT_NEAR.source,
 			RE_POSITIVE_CALLED.source,
 			RE_NEGATED_CALLED.source,
-			RE_MOCK_CALLS_ALIAS.source,
+			RE_PATH_BINDING.source,
+			RE_DESTRUCTURED_BINDING.source,
 			RE_EXPECT_CALL.source,
 			[...RECORD_ACCESS_ALLOWLIST].join(","),
+			[...RECORD_REACH_ALLOWLIST].join(","),
 		].join("\n");
 		// 공허 방지 — gateSource 가 비면 not.toMatch 는 무조건 통과한다.
 		expect(gateSource.length, "판정 소스 수집이 비었다 — 비열거성 단언이 공허해진다").toBeGreaterThan(200);
 		expect(gateSource, "판정 소스에 허용 목록 상수가 없다 — 수집 대상이 어긋났다").toContain("RECORD_ACCESS_ALLOWLIST");
+		expect(gateSource, "판정 소스에 도달 경로 허용 목록이 없다 — 축 3 수집 대상이 어긋났다").toContain(
+			"RECORD_REACH_ALLOWLIST",
+		);
+		// 축 1·3 의 허용 목록은 **둘 다 공집합이어야** deny-by-default 다. 이름이 하나라도
+		// 들어오면 그 이름을 쓴 재도입이 통째로 통과한다 (TSK-20260825-13 §구현 지시 3).
+		expect(RECORD_ACCESS_ALLOWLIST.size, "축 1 허용 목록이 비어있지 않다 — deny 전환이 되돌아갔다").toBe(0);
+		expect(RECORD_REACH_ALLOWLIST.size, "축 3 허용 목록이 비어있지 않다 — deny 전환이 되돌아갔다").toBe(0);
 		expect(
 			gateSource,
 			"판정 소스가 probe 어휘를 열거하고 있다 — deny-by-default 전환이 아니라 열거 확장이다",
