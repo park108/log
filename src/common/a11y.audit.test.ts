@@ -2,7 +2,8 @@
  * a11y 패턴 B audit — role="button" 전수 검증 (REQ-20260421-033 FR-08, Should).
  *
  * spec `30.spec/green/common/a11y.md` §audit 테스트 구현:
- *  - `src/**\/*.jsx` 의 `role="button"` 포함 JSX 요소를 전수 수집.
+ *  - `src/**\/*.{jsx,tsx}` 의 `role="button"` 포함 JSX 요소를 전수 수집.
+ *    모집단이 확장자 필터로 조용히 축소되는 회귀는 §테스트의 **전수성 대조** 가 잡는다.
  *  - 각 요소에 대해 `tabIndex={0}` + `onKeyDown={activateOnKey(...)}` 동시 부여 검증.
  *  - 미충족 지점이 `a11y.audit.exemptions.js` 의 `PATTERN_B_EXEMPTIONS` 에 등재되어 있지
  *    않으면 **fail** (의도된 회귀 게이트).
@@ -40,21 +41,65 @@ const REPO_ROOT = path.resolve(SRC_ROOT, '..');
 const NATIVE_TAG_NAMES = new Set(['button', 'a', 'input', 'textarea', 'select', 'summary']);
 const CONTEXT_WINDOW_LINES = 24; // opening tag 경계 탐색 안전망 (JSX 속성 per-line 기준 충분)
 
+// 감사 모집단의 확장자. `.tsx` 는 TSK-20260825-36 에서 추가됐다 — 그 전까지 `role="button"`
+// 보유 프로덕션 `.tsx` 6 파일 / 8 지점이 전부 모집단 **밖**이었고, 파일 상단의 "전수 검증"
+// 선언과 어긋난 채 침묵했다.
+const COMPONENT_EXTENSIONS = ['.jsx', '.tsx'];
+
 /**
- * src/ 하위 *.jsx 재귀 수집. `.test.`, `.audit.` 접두 파일 제외.
+ * src/ 하위 JSX 구문 파일(*.jsx · *.tsx) 재귀 수집. `.test.`, `.audit.` 파일 제외.
+ *
+ * 확장자 열거는 의도적이다 — 감사 대상이 JSX 구문 파일이기 때문이다. 다만 열거는 모집단을
+ * 조용히 축소시킬 수 있으므로 (`RULE-06 §열거 고정 금지`) `collectRoleButtonCarriers` 가
+ * 확장자와 **무관하게** 도출한 집합과의 전수성 대조를 §테스트에 함께 박제한다.
+ *
  * @returns {string[]} 파일 절대경로 목록.
  */
-function collectProductionJsx(dir: string = SRC_ROOT, acc: string[] = []): string[] {
+function collectProductionComponents(dir: string = SRC_ROOT, acc: string[] = []): string[] {
 	for (const entry of readdirSync(dir)) {
 		const full = path.join(dir, entry);
 		const s = statSync(full);
 		if (s.isDirectory()) {
-			collectProductionJsx(full, acc);
-		} else if (s.isFile() && full.endsWith('.jsx')) {
+			collectProductionComponents(full, acc);
+		} else if (s.isFile() && COMPONENT_EXTENSIONS.some((ext) => full.endsWith(ext))) {
 			const base = path.basename(full);
 			if (base.includes('.test.') || base.includes('.audit.')) continue;
 			acc.push(full);
 		}
+	}
+	return acc;
+}
+
+/**
+ * `role="button"` 문자열을 보유한 프로덕션 파일을 **확장자와 무관하게** 재귀 수집한다.
+ *
+ * 이것이 감사 모집단(`collectProductionComponents`)과 **독립**이라는 점이 요점이다. 두 도출이
+ * 같은 확장자 목록을 공유하면 목록이 줄어들 때 양쪽이 함께 줄어 대조가 공허해진다 — 모집단
+ * 축소가 "위반 0건" 으로 읽히는 것이 정확히 그 실패 형태다.
+ *
+ * dotfile·dotdir 은 제외한다 (`.DS_Store` 등 비텍스트 산출물). 읽기 실패 파일은 건너뛴다.
+ *
+ * @returns {string[]} 파일 절대경로 목록.
+ */
+function collectRoleButtonCarriers(dir: string = SRC_ROOT, acc: string[] = []): string[] {
+	for (const entry of readdirSync(dir)) {
+		if (entry.startsWith('.')) continue;
+		const full = path.join(dir, entry);
+		const s = statSync(full);
+		if (s.isDirectory()) {
+			collectRoleButtonCarriers(full, acc);
+			continue;
+		}
+		if (!s.isFile()) continue;
+		const base = path.basename(full);
+		if (base.includes('.test.') || base.includes('.audit.')) continue;
+		let content: string;
+		try {
+			content = readFileSync(full, 'utf-8');
+		} catch {
+			continue;
+		}
+		if (content.includes('role="button"')) acc.push(full);
 	}
 	return acc;
 }
@@ -138,7 +183,7 @@ function isExempt(violation: Violation): boolean {
 
 // ---------- 검증 실행 (모듈 로드 1회) ----------
 
-const PROD_JSX_FILES = collectProductionJsx();
+const PROD_COMPONENT_FILES = collectProductionComponents();
 
 /**
  * @typedef {Object} Violation
@@ -154,7 +199,7 @@ const PROD_JSX_FILES = collectProductionJsx();
 
 const violations: Violation[] = [];
 
-for (const abs of PROD_JSX_FILES) {
+for (const abs of PROD_COMPONENT_FILES) {
 	const src = readFileSync(abs, 'utf-8');
 	const lines = src.split('\n');
 	const repoRel = toRepoRel(abs);
@@ -209,8 +254,34 @@ const unexempted = violations.filter((v) => !isExempt(v));
 // ---------- 테스트 ----------
 
 describe('a11y 패턴 B audit — role="button" 전수 검증 (REQ-20260421-033 FR-08)', () => {
-	it('프로덕션 .jsx 파일 inventory 가 비어있지 않다 (회귀 방어: 스캐너 자체 무력화 감지)', () => {
-		expect(PROD_JSX_FILES.length).toBeGreaterThan(0);
+	// 모집단 전수성 대조 — 종전에는 `expect(PROD_*_FILES.length).toBeGreaterThan(0)` 하나였다.
+	// **비공허 가드가 전항 요구 자리에 있었다**: 모집단이 반토막 나도 `> 0` 은 침묵하므로
+	// TS 이관으로 `.tsx` 가 통째로 빠진 상태를 감지하지 못했다. 비공허는 아래 수치 하한이
+	// 승계하고, 이 케이스는 "빠진 파일이 있는가" 를 직접 잰다.
+	it('role="button" 보유 프로덕션 파일이 감사 모집단에 전수 포함된다 (모집단 축소 감지)', () => {
+		const carriers = collectRoleButtonCarriers();
+
+		// 공허 통과 차단 — 도출이 비면 "누락 0건" 은 무조건 참이다. 2026-08-26 실측 13.
+		expect(
+			carriers.length,
+			`role="button" 보유 프로덕션 파일 도출이 ${carriers.length} 건이다 — 하한 미만이면 대조가 공허하다`,
+		).toBeGreaterThanOrEqual(10);
+
+		// 모집단은 carriers 를 포함해야 하므로 크기도 그 이상이다.
+		expect(PROD_COMPONENT_FILES.length).toBeGreaterThanOrEqual(carriers.length);
+
+		const population = new Set(PROD_COMPONENT_FILES);
+		const missing = carriers
+			.filter((f) => !population.has(f))
+			.map(toRepoRel)
+			.sort();
+
+		expect(
+			missing,
+			'감사 모집단이 role="button" 보유 파일을 전수 포함하지 않는다 — 아래 파일은 ' +
+				`수집 확장자(${COMPONENT_EXTENSIONS.join(', ')}) 밖이라 한 번도 감사되지 않는다:\n` +
+				missing.map((f) => `  - ${f}`).join('\n'),
+		).toEqual([]);
 	});
 
 	it('role="button" 포함 요소 중 패턴 B 미충족 지점이 PATTERN_B_EXEMPTIONS 외에 존재하지 않는다', () => {
@@ -230,9 +301,9 @@ describe('a11y 패턴 B audit — role="button" 전수 검증 (REQ-20260421-033 
 		expect(unexempted).toEqual([]);
 	});
 
-	it('activateOnKey 를 import 한 *.jsx 는 실제로 onKeyDown={activateOnKey(...)} 를 1회 이상 사용한다 (dead import 방지)', () => {
+	it('activateOnKey 를 import 한 프로덕션 컴포넌트는 실제로 onKeyDown={activateOnKey(...)} 를 1회 이상 사용한다 (dead import 방지)', () => {
 		const deadImports: string[] = [];
-		for (const abs of PROD_JSX_FILES) {
+		for (const abs of PROD_COMPONENT_FILES) {
 			const src = readFileSync(abs, 'utf-8');
 			const importsActivate = /import\s*\{[^}]*\bactivateOnKey\b[^}]*\}\s*from\s*['"][^'"]+['"]/.test(
 				src,
