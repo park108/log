@@ -39,8 +39,8 @@ describe('reder UserLogin by stage', () => {
   it("render test stage logout menu correctly", () => {
     setEnv(true, false);
 
-    vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-    vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+    vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+    vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
     render(<UserLogin />);
     const menu = screen.getByText("👨‍💻 Jongkil Park");
@@ -51,8 +51,8 @@ describe('reder UserLogin by stage', () => {
   it("render prod stage logout menu correctly", () => {
     setEnv(false, true);
 
-    vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-    vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+    vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+    vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
     render(<UserLogin />);
     const menu = screen.getByText("👨‍💻 Jongkil Park");

@@ -84,8 +84,8 @@ describe('Writer create log ok on prod server', () => {
 
 		stubMode('production');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {
@@ -131,8 +131,8 @@ describe('Writer create log failed on prod server', () => {
 
 		stubMode('production');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {
@@ -178,8 +178,8 @@ describe('Writer create log network error on prod server', () => {
 
 		stubMode('production');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {
@@ -225,8 +225,8 @@ describe('Writer edit log ok on dev server', () => {
 
 		stubMode('development');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {
@@ -274,8 +274,8 @@ describe('Writer edit log failed on dev server', () => {
 
 		stubMode('development');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {
@@ -323,8 +323,8 @@ describe('Writer edit log network error on dev server', () => {
 
 		stubMode('development');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {
@@ -368,8 +368,8 @@ describe('Writer edit log network error on dev server', () => {
 describe("Writer preview sanitizes rendered markdown HTML", () => {
 
 	const renderWriter = () => {
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {
@@ -420,8 +420,8 @@ test('event testing', async () => {
 		console.log("INPUT MESSAGE on ALERT = " + message);
 	});
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 	const testEntry = {
@@ -496,8 +496,8 @@ test('copyMarkdownString shows error Toaster when clipboard write rejects', asyn
 		writable: true,
 	});
 
-	vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-	vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+	vi.spyOn(common, "isAdmin").mockReturnValue(true);
 	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 	const testEntry = {
@@ -526,8 +526,8 @@ test('copyMarkdownString shows error Toaster when clipboard write rejects', asyn
 describe('Writer a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 
 	const renderWriter = () => {
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
 
 		const testEntry = {

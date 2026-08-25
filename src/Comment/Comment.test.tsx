@@ -31,7 +31,7 @@ describe('Comment render list and post on dev server (ok)', () => {
 
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true); // User is admin in this case.
+		vi.spyOn(common, "isAdmin").mockReturnValue(true); // User is admin in this case.
 
 		render(<Comment />);
 

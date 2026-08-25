@@ -73,8 +73,8 @@ describe('LogSingle render on prod server (ok)', () => {
 		sessionStorage.setItem("logList", JSON.stringify(logFromServer));
 		sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestampFromServer));
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		vi.spyOn(window, 'confirm').mockImplementation((message) => {
 			console.log("INPUT MESSAGE on ALERT = " + message);
@@ -129,8 +129,8 @@ describe('LogSingle render on dev server (ok)', () => {
 
 		stubMode('development');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/log/1656034616036?search=true"
@@ -159,8 +159,8 @@ describe('LogSingle get OK delete failed', () => {
 
 		stubMode('development');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/log/1656034616036"
@@ -202,8 +202,8 @@ describe('LogSingle get OK delete network error', () => {
 
 		stubMode('development');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const testEntry = {
 			pathname: "/log/1656034616036"
@@ -314,8 +314,8 @@ describe('LogSingle useLog hook integration', () => {
 
 		stubMode('development');
 
-		vi.spyOn(common, "isLoggedIn").mockResolvedValue(true);
-		vi.spyOn(common, "isAdmin").mockResolvedValue(true);
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
 		const useLogSpy = vi.spyOn(useLogModule, 'useLog');
 
