@@ -2,7 +2,7 @@
 
 > **위치**: `src/__tests__/**` 의 자체 진단 baseline. 현 유일 대상 `src/__tests__/root-config-spec-reference-coherence.test.ts` (`EXPECTED_GA_SELF_DIAG_COUNT` · `EXPECTED_GA_SELF_DIAG_HITS`). 결합 상대는 `scripts/check-spec-coherence.sh` · `.husky/pre-commit`.
 > **관련 요구사항**: REQ-20260825-011 (fixture-baseline-position-independence)
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 221 최초 등록)
+> **최종 업데이트**: 2026-08-25 (by inspector — tick 222 Phase 1 reconcile @ HEAD=`ff699f9`. TSK-20260825-15 착지 반영: (P-1)(P-2/P-5) **충족** — 수용 기준 **4/4**, unchecked 0. 이전: tick 221 최초 등록)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -88,15 +88,15 @@
 
 - [x] "exclude 후 0 hit" hard 단언 실재 — `root-config-spec-reference-coherence.test.ts:261`.
 - [x] 자체 진단 개수 단언 실재 — `:276` `toHaveLength(EXPECTED_GA_SELF_DIAG_COUNT)`.
-- [ ] 위치 비종속 지목 — HEAD **7 항목이 행 번호 박제**. (P-1) 의 부착 대상.
-- [ ] 위치 편집 둔감성의 판정 채널 — HEAD 0건. (P-2) 의 부착 대상 (주입 방향으로 이관).
+- [x] 위치 비종속 지목 — 7 항목이 **내용 식별자로 전환**됐다 (TSK-20260825-15 / `f62e028`). tick 222 재검 — `{ relPath, line: <숫자> }` 가 `{ relPath, matched, anchor }` 로 바뀌었고 `anchor` 는 `"bash scripts/check-spec-coherence.sh"` · `"# check-spec-coherence.sh"` · `"§동작 G1·G2"` · `"src/ not found at"` · `"G1 0 hit / G2 0 MISSING"` · `"spec-scope root="` · `"spec coherence gate"` 로 **전부 그 라인의 실내용**이다. 대조는 `h.lineText.includes(expected.anchor)` 이며 미일치 시 `relPath :: matched :: anchor` 를 열거해 보고한다. `line` 잔존 **0** (`src/**/*.test.{ts,tsx}` 전수).
+- [x] 위치 편집 둔감성의 판정 채널 — 전환 후 채널이 통과한다 (`npx vitest run …` + `bash scripts/check-spec-coherence.sh` 양쪽 rc=0). 주입 방향 자체는 `TSK-20260825-15` DoD 로 이관돼 착지했다 (`injection: 2/2 detect`).
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` · `scripts/**` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`6f58541` 기준 2/4** — (P-3)(P-4) 는 현행 fixture 가 이미 보유하며, 형태 전환 후에도 유지돼야 하는 **보존 항목**이다.
+> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` · `scripts/**` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`ff699f9` 기준 4/4 — unchecked 0.** (P-3)(P-4) 는 등록 시점부터 현행 fixture 가 보유했고 형태 전환 후에도 유지돼야 하는 **보존 항목**이며, tick 222 재실행에서 값이 내려가지 않았음을 함께 확인했다 ((R-2) 오회복 부재).
 
-- [ ] (Must, P-1) 행 번호 baseline 소멸 — `bash -c 'test "$(grep -rcE "(^|[^A-Za-z])line:[[:space:]]*[0-9]+" src --include="*.test.ts" --include="*.test.tsx" | grep -v ":0$" | wc -l)" -eq 0'` → **rc=0**. **HEAD 실측 rc=1 / 1 파일 (7 항목) → 미충족.** 단어 경계 없는 패턴을 쓰지 않는 이유는 §공개 인터페이스 (M-A) 참조 — 그 형태는 같은 파일에서 **9** 를 내고 그중 2는 한글 주석의 `baseline: 3` 이다.
-- [ ] (Must, P-2/P-5) 전환 후에도 대상 fixture 가 통과 — `bash -c 'npx vitest run src/__tests__/root-config-spec-reference-coherence.test.ts >/dev/null 2>&1 && bash scripts/check-spec-coherence.sh >/dev/null 2>&1'` → rc=0. **HEAD 실측 rc=0 이나 (P-1) 미충족 상태의 통과이므로 단독으로는 판정력이 없다** — 본 항목은 (P-1) 과 **함께** `[x]` 일 때만 의미를 갖는 동반 조건이며, 형태 전환이 fixture 를 깨뜨리지 않았음을 고정한다. 그래서 `[ ]` 로 둔다.
+- [x] (Must, P-1) 행 번호 baseline 소멸 — `bash -c 'test "$(grep -rcE "(^|[^A-Za-z])line:[[:space:]]*[0-9]+" src --include="*.test.ts" --include="*.test.tsx" | grep -v ":0$" | wc -l)" -eq 0'` → **rc=0**. **HEAD=`ff699f9` 실측 rc=0 → 충족** (tick 221 시점 rc=1 / 1 파일 · 7 항목). tick 222 는 rc 만 보지 않고 **삭제가 아니라 전환**임을 확인했다 — 7 항목이 사라진 것이 아니라 `anchor` 내용 식별자로 대체됐고 (P-3) 의 개수 상수도 유지된다. rc 만 보면 baseline 을 통째로 지운 오회복이 통과한다 ((R-2)). 단어 경계 없는 패턴을 쓰지 않는 이유는 §공개 인터페이스 (M-A) 참조 — 그 형태는 같은 파일에서 **9** 를 내고 그중 2는 한글 주석의 `baseline: 3` 이다.
+- [x] (Must, P-2/P-5) 전환 후에도 대상 fixture 가 통과 — `bash -c 'npx vitest run src/__tests__/root-config-spec-reference-coherence.test.ts >/dev/null 2>&1 && bash scripts/check-spec-coherence.sh >/dev/null 2>&1'` → rc=0. **HEAD=`ff699f9` 실측 rc=0 → 충족.** 본 항목은 단독으로는 판정력이 없다 — (P-1) 미충족 상태에서도 통과했었다. **(P-1) 과 함께 `[x]` 인 지금에야 의미를 갖는 동반 조건**이며, 형태 전환이 fixture 를 깨뜨리지 않았음을 고정한다. 이 동반 관계는 승격 후에도 유지된다 (둘 중 하나만 `[x]` 인 상태는 판정 미완).
 - [x] (Must, P-3) 내용 민감도 보존 — 자체 진단 라인 **개수**를 단언하는 상수 비교가 실재한다: `grep -c "EXPECTED_GA_SELF_DIAG_COUNT" src/__tests__/root-config-spec-reference-coherence.test.ts` → **1 이상**. **HEAD 실측 2 → 충족.** 형태 전환 task 는 이 항목을 `[x]` 로 **유지**해야 한다 — 값이 내려가면 (R-2) 오회복이다.
 - [x] (Must, P-4) hard 조건 보존 — "exclude 후 0 hit" 단언이 실재하고 통과한다: `bash -c 'grep -qE "exclude 후 match === 0 hit|exclude 후 잔존" src/__tests__/root-config-spec-reference-coherence.test.ts && npx vitest run src/__tests__/root-config-spec-reference-coherence.test.ts >/dev/null 2>&1'` → rc=0. **HEAD 실측 rc=0 → 충족** (`:261` it 제목 + `:266` 실패 메시지).
 
@@ -118,4 +118,5 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-25 | inspector tick 222 / HEAD=`ff699f9` (TSK-20260825-15 `f62e028`) | **drift reconcile — (P-1)(P-2/P-5) 플립. 수용 기준 4/4, unchecked 0.** 두 명령을 재실행해 `rc=0` 을 얻었고, `result.md` 를 인용하지 않고 **삭제가 아니라 전환**임을 diff 로 확인했다 — `{ relPath, line: <숫자> }` 7 항목이 `{ relPath, matched, anchor }` 로 대체되고 대조가 `lineText.includes(anchor)` 로 바뀌었다. (R-2) "baseline 삭제로의 오회복" 은 (P-3) 개수 상수 유지로 함께 배제했다. | 테스트 현황, 수용 기준, 변경 이력 |
 | 2026-08-25 | REQ-20260825-011 (inspector tick 221) | 최초 등록. followup 1건을 흡수한 req 를 불변식으로 반영. **req 의 측정 패턴을 교정했다** — 원안 `grep -cE "line:[[:space:]]*[0-9]+"` 는 대상 파일에서 **9** 를 내며 그중 2는 한글 주석의 `baseline: 3 MISSING` · `baseline: 3 STALE` 이 `…line: 3` 으로 걸린 오탐이다 (inspector tick 221 실측). 그 패턴을 수용 기준에 두면 "0 으로 만들라" 가 무관한 주석 재작성을 강요하고, 반대로 주석만 손봐도 수치가 내려가 진척으로 오독된다. 앞자리 영문자를 배제한 `(^|[^A-Za-z])line:` 로 교정해 실측을 **7** 로 확정했다. **req 수용 기준 6항 중 2항은 그대로 쓰지 않았다** — `npm test → rc=0` 은 본 계약의 위반과 무관하게 항상 참일 수 있어 판정력이 없고(자명 명제 부류), `npx vitest … rc=0` + `bash scripts/… rc=0` 은 (P-1) 미충족 상태에서도 통과하므로 **동반 조건**임을 명시해 `[ ]` 로 두었다. **신규 추가 (req 에 없던 항목)**: (a) (P-3) 을 `[x]` **보존 항목**으로 세워 (R-2) "baseline 삭제로의 오회복" 을 차단했다 — (P-1)(P-2) 만 보면 통째로 지우는 것이 최단 경로다. (b) (R-4) 패턴 과잉 회귀 — 위 교정 자체가 회귀 중점이 된다. (c) §참고 순서 의존 — 같은 fixture 를 공유하는 직교 축의 잔여가 blue writer 부재로 닫히지 않으므로 본 계약을 그 뒤로 미루지 말 것을 명시했다. | all |

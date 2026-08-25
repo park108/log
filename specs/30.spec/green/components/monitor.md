@@ -2,7 +2,7 @@
 
 > **위치**: `src/Monitor/` (Monitor.jsx, ContentMon.jsx, ContentItem.jsx, ApiCallMon.jsx, ApiCallItem.jsx, WebVitalsMon.jsx, WebVitalsItem.jsx, VisitorMon.jsx, api.js, api.mock.js, Monitor.css)
 > **관련 요구사항**: — (셸 축은 as-is 서술) / REQ-20260825-001 (파생 state 축) / REQ-20260825-006 (렌더 값 유효성 축)
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 221. blue 판본을 green 으로 내려 **렌더 값 유효성 축(V-1~V-6)을 병합**했다. 운영자가 세운 `components/` = 구현 단위 1:1 원칙의 두 번째 적용이며, 축의 스코프가 `src/Monitor/WebVitalsItem` 이라 `monitor` 에 귀속된다. 승격 시 blue 판본을 그대로 대체한다 — 셸·파생 state 축은 손대지 않았다)
+> **최종 업데이트**: 2026-08-25 (by inspector — tick 222. 셸 축 6항에 판정 명령을 부착하고 §테스트 현황 2항의 거짓 서술을 정정했다. 이로써 세 축 27 항목이 전부 명령 1회 rc 판정 가능하며 unchecked 는 0 이다. 이전: tick 221. blue 판본을 green 으로 내려 **렌더 값 유효성 축(V-1~V-6)을 병합**했다. 운영자가 세운 `components/` = 구현 단위 1:1 원칙의 두 번째 적용이며, 축의 스코프가 `src/Monitor/WebVitalsItem` 이라 `monitor` 에 귀속된다. 승격 시 blue 판본을 그대로 대체한다 — 셸·파생 state 축은 손대지 않았다)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (셸 축 2026-04-20 · 파생 state 축 `8da63f6` · 렌더 값 유효성 축 `6f58541`).
 
@@ -148,6 +148,33 @@ el.style.width = 'NaN%'
 
 ## 발화 채널
 
+**HEAD=`ff699f9` 에서 셸 축 6항 전부 발화 채널을 갖는다** (tick 221 까지 전무했고, planner tick 13 이 정확히 그 사유로 승격을 거부했다 — "§수용 기준 셸 축 6항이 전부 `[x]` 인데 측정 채널이 없다"). `RULE-07 §promote 조건 4` 의 실경로 박제 요건 충족.
+
+| 셸 축 항목 | 채널 (`src/Monitor/Monitor.test.jsx`) | 상태 |
+|---|---|---|
+| (1) non-admin 리다이렉트 | `redirect if not admin` — `/log` 라우트 **도착** + `setFullscreen`/`setHtmlTitle` 미호출 | 부착 완료 (TSK-20260825-16) |
+| (2) fullscreen 왕복 | `shell axis 2` — 호출 순서열 `[true, false]` | 부착 완료 |
+| (3) 4 패널 순서 | `shell axis 3` — `heading` level 1 열거의 개수 4 + 순서 배열 | 부착 완료 |
+| (4) 독립 Suspense 경계 | `shell axis 4` — 미해소 고정 후 `main.childElementCount === 4` + 전 노드 `DIV`·빈 `innerHTML` | 부착 완료 |
+| (5) `CHART_PALLETS` 주입 | `shell axis 5` — 패널 prop 기록기로 `stackPallet[0].backgroundColor` 고정값 대조 + `WebVitalsMon` 미수령 | 부착 완료 |
+| (6) 레이아웃 셸 | `shell axis 6` — `main--main-contents` 클래스 + 주입 `contentHeight` 의 `style.height` | 부착 완료 |
+
+**셸 축 채널의 두 함정과 그 회피 — tick 222 가 최종본에서 재확인했다.**
+
+- **(4) 의 순서 종속.** `lazy` 의 미해소 상태에 기대면 판정이 **케이스 실행 순서에 종속**된다 — 파일 첫 케이스에서는 `lazy` 가 미해소라 빈 `<div>` 4개가 나오지만, 앞선 케이스가 한 번이라도 패널을 로드하면 모듈 캐시가 데워져 같은 코드가 `ARTICLE` 4개를 낸다. 최종본은 **패널 자신이 미해소를 만들게** 해 이 결합을 끊었다 (`panelProps.state.suspend`). tick 222 실측 — 파일 전체 실행 `rc=0` (7 passed) · 단독 실행 `-t "independent suspense"` `rc=0` (1 passed / 6 skipped). **양쪽 통과 = 순서 비종속.** 이 결합은 TSK-20260825-15 가 fixture baseline 에서 막 제거한 것과 같은 부류라 재도입되지 않은 것이 중요하다.
+- **(5) 의 공허.** 렌더 결과(`background-color` 보유 요소)로 팔레트 주입을 판정하면 테스트 환경에 API 응답이 없어 대상이 **0개**이고, 판정은 데이터가 비는 한 언제나 공허하게 통과한다. 최종본은 `lazy` 대상 모듈을 **원본을 감싸는 기록기**로 대체해 prop 을 캡처한다 — 원본을 그대로 렌더하므로 heading 문구는 실제 패널의 것이고 (문구를 테스트가 지어내지 않는다) 캡처는 prop 축만 관측한다. 나아가 두 팔레트의 **고정 첫 색**(`#F8696B` / `#CAD2C5`)을 대조한다 — `ApiCall ≠ Content` 같은 구조 단언은 두 팔레트를 맞교환해도 참이라 교환을 못 잡는다.
+
+**셸 축의 게이트 실효 검증 — inspector tick 222 가 독립 재현했다** (`result.md` 주장 미인용, 저장소 트리 미변경). `src/` 사본을 격리 디렉터리에 두고 `Monitor.jsx` 에 항목별 위반 1건씩을 주입해 `injection: 6/6 detect` 를 확인했다. 주입 후 `rc=1`, 원복 후 `rc=0` 이 6방향 전부에서 성립했다.
+
+| 주입 방향 | 대상 | 결과 |
+|---|---|---|
+| (Dir-1) non-admin early return 제거 | `Monitor.jsx` admin 가드 | `rc=1` — `redirect if not admin` red |
+| (Dir-2) unmount cleanup 제거 | `return () => {setFullscreen(false)}` | `rc=1` — `shell axis 2` red |
+| (Dir-3) 패널 순서 교환 | `ContentMon` ↔ `ApiCallMon` | `rc=1` — `shell axis 3`·`5` red |
+| (Dir-4) Suspense 4 경계 → 1 경계 병합 | JSX 트리 | `rc=1` — `shell axis 4` red |
+| (Dir-5) 팔레트 교환 | `CHART_PALLETS[0]` ↔ `[1]` | `rc=1` — `shell axis 5` red |
+| (Dir-6) `main--main-contents` 클래스 제거 | `<main className>` | `rc=1` — `shell axis 6` red |
+
 **HEAD=`8da63f6` 에서 파생 state 축의 네 게이트 전부 발화 채널을 갖는다** (등록 시점에는 전무했다). `RULE-07 §promote 조건 4` 의 실경로 박제 요건 충족.
 
 | 게이트 | 채널 | 상태 |
@@ -179,9 +206,9 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 ## 테스트 현황
 
 ### 페이지 셸
-- [x] `src/Monitor/Monitor.test.jsx` — non-admin 리다이렉트, fullscreen on/off, 4 패널 마운트.
-- [x] 각 패널 / 아이템 `.test.jsx` (ApiCallMon/Item, ContentMon/Item, WebVitalsMon/Item, VisitorMon).
-- [x] `src/Monitor/__fixtures__/` 지표 응답 박제.
+- [x] `src/Monitor/Monitor.test.jsx` — 셸 축 6항 전수 (`237` 행 · `it` 7 · `expect(` 24). **tick 222 정정**: 이 항목은 tick 221 까지 `non-admin 리다이렉트, fullscreen on/off, 4 패널 마운트` 라고 적혀 있었으나 **사실이 아니었다** — 착수 시점 파일은 `51` 행 · `it` 2 · `expect(` 총 1 이었고 `redirect if not admin` 케이스는 단언이 **0개**였다 (throw 가 없는 한 실패 불가). `setFullscreen` · `Suspense` · `CHART_PALLETS` · `main--main-contents` 는 **토큰조차 0 hit**. 없던 것은 동작이 아니라 채널이었고 TSK-20260825-16 (`a131c07`) 이 부착했다.
+- [x] 아이템 단위 `.test.jsx` — `ApiCallItem` · `ContentItem` · `WebVitalsItem` · `WebVitalsMon` · `VisitorMon` 실재. **tick 222 정정**: 종전 문장은 `각 패널 / 아이템 (ApiCallMon/Item, ContentMon/Item, …)` 이었으나 `ApiCallMon.test.jsx` · `ContentMon.test.jsx` 는 **부재**다 (디렉터리 열거 실측). 두 패널의 렌더는 `Monitor.test.jsx` 셸 축 (3)(5) 가 heading 순서·prop 주입 축에서만 관측한다 — 패널 내부 집계 축은 미관측이며 별 축이다 (§참고 §미측정·비판정 항목).
+- [x] `src/Monitor/__fixtures__/` 지표 응답 박제 — `monitor.js`.
 
 ### 파생 state
 - [x] `WebVitalsItem` 의 평가 라벨 분기 — `GOOD` / `POOR` / `NEEDS IMPROVEMENT` / `None`.
@@ -198,15 +225,20 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 
 ## 수용 기준
 
-> 파생 state 축·렌더 값 유효성 축 전 항목은 명령 1회로 rc 판정 가능하다 (RULE-07 §수용 기준 문장 규약). **파생 state 축 HEAD=`6f58541` 기준 4/4 충족** (tick 221 재실행: 도출 열거 0 line · 보조 단언 0 · G-4 grep 0 · `check:monitor-state-immutability` ack `files=8 bindings=25 shadowed=2 directions=6`). 등록 시점 기준은 `8da63f6` 4/4 였다 — inspector tick 220 이 네 명령을 전수 재실행해 확인했고 (result.md 주장 미인용), planner tick 12 가 승격 직전 8/8 을 독립 재실행했다. 측정 명령은 `src/**` · `package.json` script 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2).
+> **세 축 전 항목이 명령 1회로 rc 판정 가능하다** (RULE-07 §수용 기준 문장 규약). 셸 축은 tick 221 까지 판정 명령이 **전무**했고 (planner tick 13 이 그 사유로 승격을 거부했다), TSK-20260825-16 이 채널을 부착해 tick 222 에서 6항 전부에 명령이 붙었다. 파생 state 축·렌더 값 유효성 축은 **파생 state 축 HEAD=`6f58541` 기준 4/4 충족** (tick 221 재실행: 도출 열거 0 line · 보조 단언 0 · G-4 grep 0 · `check:monitor-state-immutability` ack `files=8 bindings=25 shadowed=2 directions=6`). 등록 시점 기준은 `8da63f6` 4/4 였다 — inspector tick 220 이 네 명령을 전수 재실행해 확인했고 (result.md 주장 미인용), planner tick 12 가 승격 직전 8/8 을 독립 재실행했다. 측정 명령은 `src/**` · `package.json` script 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2).
 
 ### 페이지 셸 (현재 상태)
-- [x] (Must) non-admin 진입 시 `/log` 로 리다이렉트하고 fullscreen · title 미설정.
-- [x] (Must) admin 진입 시 `setFullscreen(true)` 적용, 라우트 이탈 시 `setFullscreen(false)` 로 복원.
-- [x] (Must) 4 패널 순서: ContentMon → ApiCallMon → WebVitalsMon → VisitorMon.
-- [x] (Must) 각 패널은 독립 `Suspense fallback=<div/>` 로 감싼 lazy 로드.
-- [x] (Should) 패널별 색 팔레트 주입은 `CHART_PALLETS` 모듈 상수에서 참조.
-- [x] (NFR) 페이지 레이아웃은 `main--main-contents` + 상위 `<main style={contentHeight}>` 로 오프라인/온라인 공용 셸과 높이 계산 일관성 유지.
+
+> 여섯 항목의 공통 채널은 `npx vitest run src/Monitor/Monitor.test.jsx` 다 — **HEAD=`ff699f9` 실측 `rc=0` / 7 tests passed**. 각 항목은 채널 `rc=0` **이면서** 그 항목을 재는 단언이 실재함을 함께 판정한다 (채널만 초록인 상태는 검출력 0 과 구별되지 않는다). `grep` 은 **`-F` (고정 문자열)** 로 지정한다 — 저장소 개발 환경의 `grep` 은 `ugrep` 이라 ERE 의 미이스케이프 괄호가 오류로 떨어진다 (tick 222 실측).
+>
+> **판정 순서 비종속** — 셸 축 (4) 는 tick 222 에서 파일 전체 실행(`rc=0`)과 단독 실행(`-t "independent suspense"` → 1 passed / 6 skipped)에서 **모두 통과**함을 확인했다. 모듈 캐시가 차가우면 `lazy` 가, 데워지면 패널 자신이 미해소를 만들어 어느 쪽이든 fallback 4개가 관측된다.
+
+- [x] (Must) non-admin 진입 시 `/log` 로 리다이렉트하고 fullscreen · title 미설정. 판정: 위 채널 `rc=0` **이면서** 리다이렉트 **도착** 단언 + 미호출 단언 실재 — `grep -cF "log route landing" src/Monitor/Monitor.test.jsx` → **1 이상** · `grep -cF "not.toHaveBeenCalled()" src/Monitor/Monitor.test.jsx` → **2 이상**. **HEAD 실측 rc=0 + 2 + 2 → 충족** (등록 시점 단언 0). 도착으로 판정하는 이유 — `navigate` 호출만 세면 대상 라우트가 없어도 통과한다.
+- [x] (Must) admin 진입 시 `setFullscreen(true)` 적용, 라우트 이탈 시 `setFullscreen(false)` 로 복원. 판정: 위 채널 `rc=0` **이면서** 호출 **순서열** 단언 실재 — `grep -cF "toEqual([true, false])" src/Monitor/Monitor.test.jsx` → **1 이상**. **HEAD 실측 rc=0 + 1 → 충족.** 여부가 아니라 순서열로 재는 이유 — 호출 여부만 보면 cleanup 이 사라지고 mount 가 두 번 불린 형태와 구별되지 않는다.
+- [x] (Must) 4 패널 순서: ContentMon → ApiCallMon → WebVitalsMon → VisitorMon. 판정: 위 채널 `rc=0` **이면서** 순서 배열 단언 + 개수 하한 실재 — `grep -cF "PANEL_HEADINGS_IN_ORDER" src/Monitor/Monitor.test.jsx` → **1 이상**. **HEAD 실측 rc=0 + 7 → 충족.** 개수 하한(`toHaveLength(4)`)을 동반하지 않으면 열거 0 에서 "순서 일치" 가 공허하게 참이 된다.
+- [x] (Must) 각 패널은 독립 `Suspense fallback=<div/>` 로 감싼 lazy 로드. 판정: 위 채널 `rc=0` **이면서** 경계 **수** 단언 실재 — `grep -cF "childElementCount" src/Monitor/Monitor.test.jsx` → **1 이상**. **HEAD 실측 rc=0 + 1 → 충족.** 4 경계가 1 개로 병합되면 fallback 도 1 개가 되므로 이 수치가 독립성의 판별력을 갖는다.
+- [x] (Should) 패널별 색 팔레트 주입은 `CHART_PALLETS` 모듈 상수에서 참조. 판정: 위 채널 `rc=0` **이면서** 주입 prop 단언 실재 — `grep -cF "stackPallet" src/Monitor/Monitor.test.jsx` → **1 이상**. **HEAD 실측 rc=0 + 1 → 충족.** 렌더 결과(`background-color` 보유 요소)로는 잴 수 없다 — 테스트 환경에 API 응답이 없어 그 요소가 **0개**라 데이터가 비는 한 언제나 공허 통과한다 (§발화 채널).
+- [x] (NFR) 페이지 레이아웃은 `main--main-contents` + 상위 `<main style={contentHeight}>` 로 오프라인/온라인 공용 셸과 높이 계산 일관성 유지. 판정: 위 채널 `rc=0` **이면서** 클래스·주입 높이 단언 실재 — `grep -cF "main--main-contents" src/Monitor/Monitor.test.jsx` → **1 이상**. **HEAD 실측 rc=0 + 2 → 충족.** 클래스만 보지 않고 주입한 `contentHeight` 가 `main.style.height` 로 실린 것까지 함께 잰다.
 
 ### 파생 state
 - [x] (Must) G-1: §동작 §파생 state 계약 1 의 도출 열거 판정이 **0 line**. **HEAD=`8da63f6` 실측 0 line → 충족** (등록 시점 `1c9f94d` 는 13 line). 보조 단언 — `grep -c "setEvaluationResult(evaluationResult)" src/Monitor/WebVitalsItem.jsx` → **0** (실측 0). 저장소 게이트 동치 확인 — `npm run check:monitor-state-immutability` → `rc=0`, ack 가 `files=8 bindings=25` 이상으로 **공허 통과 아님**을 수치로 확인.
@@ -238,6 +270,7 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 
 ### 미측정·비판정 항목
 
+- **`ApiCallMon` · `ContentMon` 의 패널 단위 집계 축.** 두 패널은 자기 `.test.jsx` 가 없어 (tick 222 디렉터리 열거 실측) 내부 페치·집계 루프가 어떤 채널에서도 관측되지 않는다. 셸 축 (3)(5) 가 heading 순서와 prop 주입만 잰다. 이는 본 문서가 규정하는 세 축 밖의 **별 축**이며, 채널이 정의되기 전에는 명령 1회로 rc 판정할 수 없어 체크박스로 두지 않는다.
 - **`<React.StrictMode>` / concurrent 재실행에서의 누적 변이 관측.** 측정 채널이 없어 체크박스로 두지 않는다. G-1 을 충족하면 구조적으로 발생 불가하므로 별도 방어가 필요하지 않다.
 - **`Object.is(prev, next) === true` bail-out 자체의 관측.** 현 HEAD 에서 같은 effect 의 `setIsLoading(false)` 가 리렌더를 일으켜 변이 결과가 화면에 반영되므로 bail-out 은 사용자에게 직접 보이지 않는다. 관측 가능한 귀결만 박제했다 — G-2 (`totalCount` 영구 0).
 - **G-1 게이트의 주입 검출력.** '가정 주입 요구' 부류라 체크박스가 아니다 — 게이트 신설 task `TSK-20260825-03` 및 확대 task `TSK-20260825-10` 의 DoD 로 이관돼 착지했고, inspector tick 220 이 스캔 루트 격리로 독립 재현했다. 결과는 §발화 채널에 박제. 상시 판정 대상이 아니므로 계속 비체크박스로 둔다.
@@ -273,6 +306,7 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-25 | inspector tick 222 / HEAD=`ff699f9` (TSK-20260825-16 `a131c07`) | **drift reconcile — 셸 축 6항에 판정 명령 부착 + 테스트 현황 2항 사실 정정.** 셸 축은 6항이 전부 `[x]` 인데 측정 명령이 없어 planner tick 13 이 승격을 거부한 자리였다. TSK-20260825-16 이 채널을 부착했고 (`51`행·`it` 2·`expect(` 1 → `237`행·`it` 7·`expect(` 24) 본 tick 이 **재측정 후** 명령을 박제했다 — `npx vitest run src/Monitor/Monitor.test.jsx` `rc=0` (7 passed) + 항목별 단언 실재 grep. **`result.md` 주장은 인용하지 않았다**: (a) 6방향 주입을 격리 사본에서 **독립 재현**해 `injection: 6/6 detect` 확인, (b) (4) 의 순서 비종속을 단독 실행(`1 passed / 6 skipped`)과 전체 실행 양쪽 `rc=0` 으로 확인, (c) (5) 가 공허하지 않음을 prop 기록기 + 고정 색 대조로 확인. **테스트 현황 정정 2건**: 종전 `[x] Monitor.test.jsx — non-admin 리다이렉트, fullscreen on/off, 4 패널 마운트` 는 사실이 아니었고 (착수 시점 `redirect if not admin` 은 단언 0개), 종전 `[x] 각 패널 / 아이템 .test.jsx (ApiCallMon/Item, ContentMon/Item, …)` 도 사실이 아니다 — `ApiCallMon.test.jsx`·`ContentMon.test.jsx` 는 **부재**다 (디렉터리 열거 실측). 파생 state 축·렌더 값 유효성 축은 HEAD=`ff699f9` 에서 전수 재실행해 불변 ack (`check:monitor-state-immutability` `files=8 bindings=25 shadowed=2 directions=6` · `npx vitest run src/Monitor/` 6 files / **62** tests rc=0). | 발화 채널, 테스트 현황, 수용 기준, 참고 |
 | 2026-08-25 | inspector tick 221 / HEAD=`6f58541` (TSK-20260825-12 `4014c66`) | **`components/webvitals-aggregation-render-value-validity` (green) 병합 + 렌더 값 유효성 축 5/5 충족 플립.** 운영자가 세운 `components/` = `src/` 구현 단위 1:1 원칙을 두 번째로 적용했다 — 그 spec 의 스코프가 `src/Monitor/WebVitalsItem` 이라 `monitor` 에 귀속되며, 별 파일로 승격하면 `blue/components/` 에 구현 단위 아닌 이름이 다시 생긴다. 병합 방식은 운영자 판본을 따랐다: 식별자·측정 명령 보존, `§동작` 을 갈래로 분리, 회귀 중점·테스트 현황·수용 기준 동일 기준 분리, 계보 보존. **식별자만 `G-n` → `V-n` 으로 이동**했다 — 두 축이 각각 `G-1` 을 써서 한 문서 안에서 충돌하기 때문이며, 외부 참조는 §참고 §식별자 대응표가 해소한다. **근거 서술 정정 2건 (실측)**: (1) tick 220 판본의 "DOM 은 무효값을 실제로 보유한다" 는 거짓 — 렌더러가 무효 선언을 통째로 폐기해 `style.width === ""` · `getAttribute("style") === null` 이 된다. 귀결은 "막대가 폭 선언을 잃는다" + "`NaN` 문구 부재 단정은 민감도 0" 두 가지이며, 이에 따라 V-1 전수 항목의 판정을 **문구 부재에서 유효성 매치로 교체**했다. (2) tick 220 판본이 V-6 의 주 근거로 든 "`toRate` 반환값 변경이 `evaluation` 을 흔든다" 는 재현되지 않는다 — `""` 와 `"0"` 은 관계 비교에서 둘 다 `0` 으로 강제변환되고 0 집계의 `evaluation` 은 `0 < totalCount` 가 거짓이라 `"None"` 으로 떨어진다. V-6 의 근거는 **사용자 관측 텍스트** 하나로 축소했다. 두 정정 모두 TSK-20260825-12 developer 가 구현 중 측정으로 최초 관측한 것이며 (문면대로 구현하면 검출력 0 게이트가 남는 자리였다), 본 tick 이 독립 재현 후 계약에 반영했다. **관측 표면 함정 1건도 계약에 승격**했다 — 평가 헤더 span 이 슬롯 클래스를 공유하고 막대보다 앞서 렌더되므로 슬롯 단독 선택자는 비-0 경로에서만 헤더를 잰다 (§공개 인터페이스 · R-9). | all |
 | 2026-08-25 | operator (수동) | **`components/monitor-derived-state-immutability` 병합.** `components/` 는 `src/` 구현 단위 1:1 원칙이며 파생 state 축의 스코프가 `src/Monitor/**` 로 본 문서와 동일하다. G-1~G-4 식별자와 측정 명령은 그대로 보존했고, 외부 참조 6곳(`scripts/check-monitor-state-immutability.sh`, `ci.yml`, `WebVitalsItem.jsx`, `WebVitalsItem.test.jsx`, green spec 2곳)의 slug 를 `monitor` 로 갱신했다. | all |
 | 2026-08-25 | TSK-20260825-10 `d672a28` | 게이트 검출 방향 확대 — 복합 대입 `+=` · 증감 `++` · 논리 대입 `||=` · 배열 변이 `.push()` 를 흡수하고 선언·구현 정합 자가 단언을 부착 (`injection: 14/14 detect`). 섀도잉 계수 `shadowed=2` 를 ack 에 노출해 조용한 skip 배제. | 동작 §파생 state 1, 회귀 중점 R-4, 발화 채널 |
