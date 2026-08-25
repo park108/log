@@ -11,13 +11,34 @@ const Comment = lazy(() => import('../Comment/Comment'));
 
 const LogItem = (props) => {
 
-	const deleteMutation = useDeleteLog();
-	const isDeleting = deleteMutation.isPending;
 	const [itemClass, setItemClass] = useState("article article--main-item");
 
 	const [isShowToaster, setIsShowToaster] = useState(0);
 	const [toasterMessage, setToasterMessage] = useState("");
 	const [toasterType, setToasterType] = useState("error");
+
+	// 알림 콜백은 훅 옵션으로 넘긴다 — `mutate(vars, { onSuccess })` 의 per-call 콜백은
+	// MutationObserver 가 구독자를 가진 동안에만 발화하고, 구독은 이 컴포넌트의 passive
+	// effect 가 커밋된 뒤에 생긴다. lazy 하위(Comment)가 아직 커밋되지 않은 창에서 삭제가
+	// 완료되면 per-call 콜백은 조용히 버려진다 (`useDeleteLog` 주석 참조).
+	const deleteMutation = useDeleteLog({
+		onSuccess: () => {
+			log("[API DELETE] OK - Log", "SUCCESS");
+			props.deleted();
+		},
+		onError: (err) => {
+			log("[API DELETE] FAILED - Log", "ERROR");
+			log(err, "ERROR");
+			setToasterMessage(
+				err && err.message && err.message.startsWith("DELETE /log failed")
+					? "Deleting log failed."
+					: "Deleting log network error."
+			);
+			setToasterType("error");
+			setIsShowToaster(1);
+		},
+	});
+	const isDeleting = deleteMutation.isPending;
 
 	const author = props.author;
 	const contents = props.contents;
@@ -25,26 +46,7 @@ const LogItem = (props) => {
 	const showComments = props.showComments;
 
 	const deleteLogItem = () => {
-		deleteMutation.mutate(
-			{ author, timestamp },
-			{
-				onSuccess: () => {
-					log("[API DELETE] OK - Log", "SUCCESS");
-					props.deleted();
-				},
-				onError: (err) => {
-					log("[API DELETE] FAILED - Log", "ERROR");
-					log(err, "ERROR");
-					setToasterMessage(
-						err && err.message && err.message.startsWith("DELETE /log failed")
-							? "Deleting log failed."
-							: "Deleting log network error."
-					);
-					setToasterType("error");
-					setIsShowToaster(1);
-				},
-			}
-		);
+		deleteMutation.mutate({ author, timestamp });
 	}
 
 	useEffect(() => {
