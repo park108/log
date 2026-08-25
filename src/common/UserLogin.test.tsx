@@ -175,11 +175,15 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
     render(<UserLogin />);
-    fireEvent.click(screen.getByTestId('login-button'));
+    const el = screen.getByTestId('login-button');
+    fireEvent.click(el);
 
     // href 불변 + 보고 1회 — "아무 일도 일어나지 않음"(무발화) 과 구별된다.
     expect(window.location.href).toBe('');
     expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+    // 사용자 관측 표면 — 콘솔이 아니라 접근성 트리에 도달한다 (양성 단언).
+    expect(el).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
   it('로그아웃 URL 이 공란이면 리디렉트 없이 reportError 로 발화한다', () => {
@@ -190,10 +194,13 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
     render(<UserLogin />);
-    fireEvent.click(screen.getByTestId('login-button'));
+    const el = screen.getByTestId('login-button');
+    fireEvent.click(el);
 
     expect(window.location.href).toBe('');
     expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+    expect(el).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
   it('키보드 활성(Enter) 경로도 공란이면 동일하게 발화한다', () => {
@@ -203,10 +210,30 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
     render(<UserLogin />);
-    fireEvent.keyDown(screen.getByTestId('login-button'), { key: 'Enter' });
+    const el = screen.getByTestId('login-button');
+    fireEvent.keyDown(el, { key: 'Enter' });
 
     expect(window.location.href).toBe('');
     expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+    expect(el).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
+  // 성공 갈래 대조 — 실패 표면이 "항상 떠 있는 배너" 가 아님을 요구한다.
+  // 이 케이스가 없으면 상시 렌더 구현이 위 3 케이스를 전부 통과한다.
+  // reportErrorSpy 를 세우지 않는다 — (S-2) 판정식의 실패 케이스 모집단에 들어가면
+  // 부재 단언만으로 unobserved=0 이 되는 사각이 열린다.
+  it('URL 이 도출되는 성공 갈래에서는 실패 표면이 렌더되지 않는다', () => {
+    setEnv(true, false);
+    vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
+
+    render(<UserLogin />);
+    const el = screen.getByTestId('login-button');
+    fireEvent.click(el);
+
+    expect(window.location.href).toContain('localhost:3000');
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(el).not.toHaveAttribute('aria-disabled');
   });
 
   it('prod 도 dev 도 아니면 두 URL 도출이 undefined 다', () => {
