@@ -1,0 +1,2 @@
+measurement-tree tracked probe — TSK-20260825-39
+내용 변경 방향(Dir-1)의 대상이다. 이름을 유지한 채 이 줄이 바뀌면 지문이 변해야 한다.
