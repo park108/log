@@ -42,8 +42,66 @@ const Writer = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	const createLogMutation = useCreateLog();
-	const updateLogMutation = useUpdateLog();
+	// REQ-20260825-014 (M-1)(M-2)(M-3) — 알림 콜백은 **훅 옵션**으로 넘긴다.
+	// `mutate(vars, { onSuccess })` 형태의 per-call 콜백은 MutationObserver 가 구독자를
+	// 보유할 때만 발화한다 (`@tanstack/query-core` mutationObserver —
+	// `if (this.#mutateOptions && this.hasListeners())`). 구독은 이 컴포넌트의 passive effect
+	// 가 커밋될 때 생기므로, lazy 하위(`LogItem` / `ImageSelector`) 와 Suspense 경계 때문에
+	// 커밋이 밀린 창 안에 응답이 도착하면 알림이 조용히 버려진다 — 글은 저장됐는데 폼이
+	// `isProcessing` 으로 멈추고 사용자는 재시도해 **중복 글**을 만든다.
+	// 콜백이 더 이상 `createLog()` / `editLog()` 지역 스코프에 없으므로 timestamp 는
+	// 클로저가 아니라 `variables.timestamp` 로 받는다 (mutate 인자가 이미 싣고 있다).
+	const createLogMutation = useCreateLog({
+		onSuccess: (_data, variables) => {
+			log("[API POST] OK - Log", "SUCCESS");
+
+			setToasterType("success");
+			setToasterMessage("The log posted.");
+			setIsShowToaster(1);
+
+			setIsProcessing(false);
+			navigate("/log/" + variables.timestamp);
+		},
+		onError: (err) => {
+			log("[API POST] FAILED - Log", "ERROR");
+			log(err, "ERROR");
+
+			setToasterType("error");
+			setToasterMessage(
+				err && err.message && err.message.startsWith("POST /log failed")
+					? "Posting log failed."
+					: "Posting log network error."
+			);
+			setIsShowToaster(1);
+
+			setIsProcessing(false);
+		},
+	});
+	const updateLogMutation = useUpdateLog({
+		onSuccess: (_data, variables) => {
+			log("[API PUT] OK - Log", "SUCCESS");
+
+			setToasterMessage("The log changed.");
+			setIsShowToaster(1);
+
+			setIsProcessing(false);
+			navigate("/log/" + variables.timestamp);
+		},
+		onError: (err) => {
+			log("[API PUT] FAILED - Log", "ERROR");
+			log(err, "ERROR");
+
+			setToasterType("error");
+			setToasterMessage(
+				err && err.message && err.message.startsWith("PUT /log failed")
+					? "Editing log failed."
+					: "Editing log network error."
+			);
+			setIsShowToaster(1);
+
+			setIsProcessing(false);
+		},
+	});
 
 	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c — unmount 후 발화 차단 가드.
 	// 이 파일에는 async effect 가 **0개**다. 유일한 `await` 는 `copyMarkdownString` 클릭
@@ -134,35 +192,7 @@ const Writer = () => {
 
 			setIsProcessing(true);
 
-			createLogMutation.mutate(
-				{ timestamp: newTimestamp, article, isTemporary },
-				{
-					onSuccess: () => {
-						log("[API POST] OK - Log", "SUCCESS");
-
-						setToasterType("success");
-						setToasterMessage("The log posted.");
-						setIsShowToaster(1);
-
-						setIsProcessing(false);
-						navigate("/log/" + newTimestamp);
-					},
-					onError: (err) => {
-						log("[API POST] FAILED - Log", "ERROR");
-						log(err, "ERROR");
-
-						setToasterType("error");
-						setToasterMessage(
-							err && err.message && err.message.startsWith("POST /log failed")
-								? "Posting log failed."
-								: "Posting log network error."
-						);
-						setIsShowToaster(1);
-
-						setIsProcessing(false);
-					},
-				}
-			);
+			createLogMutation.mutate({ timestamp: newTimestamp, article, isTemporary });
 		}
 	
 		const editLog = () => {
@@ -178,34 +208,7 @@ const Writer = () => {
 
 			newItem.logs = changedLogs;
 
-			updateLogMutation.mutate(
-				{ newItem, isTemporary, timestamp: historyData.timestamp },
-				{
-					onSuccess: () => {
-						log("[API PUT] OK - Log", "SUCCESS");
-
-						setToasterMessage("The log changed.");
-						setIsShowToaster(1);
-
-						setIsProcessing(false);
-						navigate("/log/" + historyData.timestamp);
-					},
-					onError: (err) => {
-						log("[API PUT] FAILED - Log", "ERROR");
-						log(err, "ERROR");
-
-						setToasterType("error");
-						setToasterMessage(
-							err && err.message && err.message.startsWith("PUT /log failed")
-								? "Editing log failed."
-								: "Editing log network error."
-						);
-						setIsShowToaster(1);
-
-						setIsProcessing(false);
-					},
-				}
-			);
+			updateLogMutation.mutate({ newItem, isTemporary, timestamp: historyData.timestamp });
 		}
 
 		if(isSubmitted) {
