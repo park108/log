@@ -1,14 +1,13 @@
-import { isDev, isProd } from '../common/env';
+import { isProd } from '../common/env';
 
 const BASE = import.meta.env.VITE_IMAGE_API_BASE;
-const getApiUrl = (): string | undefined => {
+const getApiUrl = (): string => {
 	if (isProd()) return BASE + "/prod";
-	if (isDev()) return BASE + "/test";
-	return undefined;
+	return BASE + "/test";
 }
 
 export const getImages = async (): Promise<Response> => {
-	return await fetch(getApiUrl() as string);
+	return await fetch(getApiUrl());
 }
 
 export const getNextImages = async (timestamp: number | string): Promise<Response> => {

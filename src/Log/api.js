@@ -1,11 +1,11 @@
 import { markdownToHtml } from '../common/markdownParser';
 import { isAdmin } from "../common/common";
-import { isDev, isProd } from '../common/env';
+import { isProd } from '../common/env';
 
 const BASE = import.meta.env.VITE_LOG_API_BASE;
 const getApiUrl = () => {
 	if (isProd()) return BASE + "/prod";
-	if (isDev()) return BASE + "/test";
+	return BASE + "/test";
 }
 
 const DEFAULT_ITEM_PER_PAGE = 10;

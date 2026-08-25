@@ -34,3 +34,12 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|scripts/check-test-double-shape-fidelity\.sh$)'; then
   bash scripts/check-test-double-shape-fidelity.sh || exit 1
 fi
+
+# api base URL 도출 총성 게이트 — TSK-20260825-25 / spec: foundation/api-base-url-assembly-totality.md §동작 (A-1)(A-3)(A-4)
+# staged 변경에 src/** 또는 게이트 스크립트 자신이 포함되면 검사.
+# npm script 동치: check:api-base-url (package.json / ci.yml 과 같은 스크립트).
+# 미정의 base 는 "undefined?limit=10" 이라는 상대 URL 로 조립돼 자기 origin 으로 나간다 —
+# tsc 는 checkJs:false 라 .js 도출부를 못 보고, 호출부가 rejection 을 삼켜 테스트는 초록이다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|scripts/check-api-base-url-totality\.sh$)'; then
+  bash scripts/check-api-base-url-totality.sh || exit 1
+fi

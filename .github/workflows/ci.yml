@@ -92,6 +92,18 @@ jobs:
       - name: Check test double return shape fidelity
         run: npm run check:test-double-shape
 
+      # api base URL 도출 총성 게이트 (api-base-url-assembly-totality §동작 (A-1)(A-3)(A-4)).
+      # 미정의 base 가 `undefined + "?limit=10"` → 문자열 `"undefined?limit=10"` 이라는
+      # **상대 URL** 로 조립돼 자기 origin 에 요청이 나가고, SPA 폴백이 index.html 을 200 으로
+      # 돌려주면 뒤따르는 res.json() 이 파싱 오류로 깨진다 — 요청 실패가 아니라 잘못된 성공이다.
+      # **테스트도 tsc 도 이 축의 채널이 아니다**: tsconfig 의 checkJs:false 라 .js 도출부는
+      # 타입 검사 밖이고, 호출부가 fetch rejection 을 삼켜 실측 4회 유출에도 스위트는 초록이었다.
+      # 그래서 정적 판정이 유일한 발화 채널이다.
+      # 스캔 파일은 하드코딩하지 않고 도출하며 (RULE-06 §열거 고정 금지) 도출 지점이
+      # 0 이면 공허 통과로 실패시킨다.
+      - name: Check api base URL derivation totality
+        run: npm run check:api-base-url
+
       # 커버리지 per-file 분기 귀속 단조성 (coverage-per-file-attribution-monotonicity §동작 1-3).
       # 부분집합(샤드) 실행에서 covered 인 분기 슬롯은 전수 실행에서도 covered 여야 한다.
       # 이 계약이 깨지면 Test(:72) 의 threshold 판정 자체가 집계 경로의 함수가 되지만,

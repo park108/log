@@ -29,16 +29,18 @@ describe('Image api endpoint selection', () => {
 		expect(String(firstCall(fetchSpy)[0])).toContain('/test');
 	});
 
-	it('resolves to no endpoint when the build is neither production nor development', async () => {
+	it('falls back to the test endpoint when the build is neither production nor development', async () => {
 		stubMode('test');
 		const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}'));
 
 		await getImages();
 
-		// getApiUrl() 이 undefined 로 귀결하는 경계 — 엔드포인트 문자열이 만들어지지 않는다.
+		// getApiUrl() 은 총함수다 — prod 가 아닌 모든 mode 는 test 엔드포인트로 귀결한다.
+		// 미정의가 문자열 연결로 URL 에 승격되는 경로가 없음을 마지막 단언이 직접 막는다.
 		const url = String(firstCall(fetchSpy)[0]);
 		expect(url).not.toContain('/prod');
-		expect(url).not.toContain('/test');
+		expect(url).toContain('/test');
+		expect(url).not.toContain('undefined');
 	});
 
 	it('appends lastTimestamp on the paged endpoint', async () => {
