@@ -10,7 +10,7 @@
 
 테스트 더블이 대체하는 함수의 **반환 형상**(동기 값 / `Promise`)은 대체 대상의 선언과 일치한다. 동기 술어를 `mockResolvedValue` 로 대체하는 것처럼 **프로덕션에서 성립 불가능한 형상**을 주입하지 않는다.
 
-`RULE-07 §주제 우선순위` 귀속은 **2순위 (토큰·설정 정합)** 이며, `§역할` 이 요구하는 대로 **방어 대상을 명시한다**: 이 계약이 막는 것은 "테스트가 초록인데 제품의 비-admin 차단 경로가 한 번도 실행되지 않는" silent regression 이다. 그 상태는 기존 자동 게이트 어느 것도 검출하지 못한다 — `tsc --noEmit`·`eslint --max-warnings=0`·`npm test`·`check:*` 15종 전부 HEAD=`ff699f9` 에서 `rc=0` 이다.
+`RULE-07 §주제 우선순위` 귀속은 **2순위 (토큰·설정 정합)** 이며, `§역할` 이 요구하는 대로 **방어 대상을 명시한다**: 이 계약이 막는 것은 "테스트가 초록인데 제품의 비-admin 차단 경로가 한 번도 실행되지 않는" silent regression 이다. 그 상태는 **본 계약의 게이트가 서기 전까지** 기존 자동 게이트 어느 것도 검출하지 못했다 — `tsc --noEmit`·`eslint --max-warnings=0`·`npm test`·`check:*` 15종 전부 HEAD=`ff699f9` 에서 위반 67건을 안은 채 `rc=0` 이었다. HEAD=`139cd78` 에는 `check:test-double-shape` 가 이 축을 직접 측정한다.
 
 **위반은 테스트를 붉게 만들지 않는다. 오히려 단언을 무력화해 초록을 만든다.** 그래서 테스트 자신이 이 축의 판정자가 될 수 없다.
 
@@ -40,7 +40,7 @@ export function isAdmin(): boolean {
 
 **(T-1) 반환 형상 일치** — 테스트 더블의 반환 형상은 대체 대상 함수의 선언 반환 형상과 일치한다. 동기 술어(`(): boolean`)를 `mockResolvedValue` / `mockResolvedValueOnce` 로 대체하는 지점이 `src/**` 에 0건이다.
 
-HEAD=`ff699f9` 실측 위반 **67 라인 / 8 파일**:
+tick 222 등록 시 (HEAD=`ff699f9`) 실측 위반 **67 라인 / 8 파일**. **HEAD=`139cd78` 는 0 라인 / 0 파일** (tick 223 재실행 ack — 아래 표는 소거 이력으로 보존한다):
 
 | 파일 | hits |
 |---|---|
@@ -71,7 +71,13 @@ return await fetch(getApiUrl() + "?logTimestamp=" + timestamp + "&isAdmin=" + ad
 `Promise.resolve(false)` 는 객체이므로 **truthy** 다. 따라서 `mockResolvedValue(false)` 는 "false 를 반환한다" 가 아니라 **"항상 참으로 평가되는 값을 반환한다"** 이다.
 
 - `src/common/Navigation.tsx:24` `if(isAdmin())` — `mockResolvedValue(false)` 로 "not admin" 을 선언한 케이스가 **admin 분기를 실행**한다. 그 테스트의 단언(`href === null || /^https?:\/\//.test(href)`)은 어느 분기가 실행됐는지에 무관하므로 초록이다.
-- `src/Monitor/Monitor.jsx:46` `if(!isAdmin())` · `src/File/File.tsx:68` `if(!isAdmin())` — `!Promise` 는 항상 `false` 이므로 **비-admin 접근 차단 경로는 어떤 테스트에서도 실행된 적이 없다.**
+- `src/Monitor/Monitor.jsx:46` `if(!isAdmin())` · `src/File/File.tsx:68` `if(!isAdmin())` — `!Promise` 는 항상 `false` 이므로 **`mockResolvedValue(false)` 로 선언한 음성 케이스는 차단 갈래를 실행하지 못한다.**
+
+> **정정 (tick 223).** tick 222 판본은 이 두 줄에 *"비-admin 접근 차단 경로는 어떤 테스트에서도 실행된 적이 없다"* 는 **전칭 단언**을 달았다. **그 단언은 거짓이다.** 두 지점의 음성 케이스는 tick 222 시점(`ff699f9`)에 이미 정합한 동기 더블로 세워져 있었고 따라서 차단 갈래는 실행돼 왔다 — `src/File/File.test.tsx:45` `vi.spyOn(common, "isAdmin").mockReturnValue(false)` (`df62c28` 이래 존속, `test('redirect to log when user is not admin')`), `src/Monitor/Monitor.test.jsx:88` `mockReturnValue(isAdmin)` + `:112` `asAdmin(false)`. 두 파일 모두 (T-1) 위반 8 파일 표에 **없다** — 표 자신이 반례를 이미 들고 있었는데 본문이 그것을 읽지 않았다.
+>
+> 참인 것은 조건부 명제뿐이다: **`mockResolvedValue(false)` 로 선언된 음성 케이스에 한해** 그 케이스는 자기가 선언한 갈래를 실행하지 않는다. 실측 반례가 있는 축은 `src/common/Navigation.tsx:24` 이며, 거기서는 `ff699f9` 기준 `isAdmin` 더블 **3건이 전부 `mockResolvedValue`** 라 음성 케이스(`:36`)가 실제로 admin 갈래를 실행했다.
+>
+> **이 정정을 남기는 이유** — planner 는 이 단언을 task 로 옮기지 않고 실측 매핑으로 대체했고, 게이트도 이 문장을 재지 않는다. 즉 거짓 단언이 파이프라인 하류 어디에서도 붉어지지 않은 채 spec 본문에만 남는다. 측정되지 않는 문장이 spec 안에서 조용히 거짓이 되는 자리이며, `20.req/20260825-spec-claim-measurement-surface-agreement.md` (REQ-20260825-021) 가 겨눈 병리 그 자체다.
 
 **(T-4) 판정의 도출성** — 정합 판정의 대상 함수 목록은 **하드코딩이 아니라 선언으로부터 도출**된다 (`RULE-06 §열거 고정 금지`). `isAdmin`·`isLoggedIn` 2개만 박아 두면 세 번째 동기 술어가 사각으로 남는다.
 
@@ -85,7 +91,7 @@ return await fetch(getApiUrl() + "?logTimestamp=" + timestamp + "&isAdmin=" + ad
 
 ## 회귀 중점
 
-- **(R-1) 열거 고정으로의 회귀.** 판정을 `isAdmin|isLoggedIn` 리터럴로 되돌리면 `common.ts` 에 추가되는 동기 술어가 그대로 사각이 된다. HEAD 실측 도출 결과는 **12개**이며 그중 2개만 현재 위반 대상이다 — 나머지 10개는 아직 위반이 없을 뿐 판정 범위 안에 있어야 한다.
+- **(R-1) 열거 고정으로의 회귀.** 판정을 `isAdmin|isLoggedIn` 리터럴로 되돌리면 `common.ts` 에 추가되는 동기 술어가 그대로 사각이 된다. HEAD=`139cd78` 실측 도출 결과는 **13개**이며 그중 2개(`isAdmin`·`isLoggedIn`)만 실제 위반 이력을 가졌다 — 나머지 11개는 아직 위반이 없을 뿐 판정 범위 안에 있어야 한다. **이 수치는 tick 223 에 12 → 13 으로 정정됐다**: tick 222 판본의 도출 정규식이 반환형 문자 클래스에 쉼표를 넣지 않아 `parseJwt (token: unknown): Record<string, unknown> | null` (`common.ts:47`) 이 탈락했다. 즉 **열거 고정을 피하려고 세운 도출 판정이 문자 클래스 하나로 다시 사각을 만들고 있었다** — (R-1) 이 겨눈 병리가 도출 판정 자신의 안에서 재현된 사례다.
 - **(R-2) `mockReturnValue` 로의 일괄 치환이 만드는 오회복.** 67건을 기계적으로 바꾸면 (T-3) 이 처음으로 참인 음성 분기를 실행시키므로 **일부 테스트가 붉어지는 것이 정상**이다. 붉어진 단언을 완화해 초록으로 되돌리는 것은 회복이 아니다 — 그 분기가 처음 실행된 것이고, 실패는 제품이나 단언의 실제 상태를 알려준다.
 - **(R-3) 프로덕션 `await` 추가로의 오회복.** (T-0) 이 배제한 방향이다. `Comment.tsx:127` 에 `await` 를 넣으면 `[object Promise]` 는 사라지지만 더블은 여전히 형상을 위반하고 (T-3) 의 truthy 문제는 그대로 남는다 — 증상만 지우고 원인을 보존하는 최단 경로다.
 - **(R-4) 특이도 붕괴.** 패턴을 `\.mockResolvedValue` 로 넓히면 정합한 59건이 위반으로 계수된다. 판정은 반드시 **대체 대상의 선언 형상**과 짝지어야 한다.
@@ -93,40 +99,42 @@ return await fetch(getApiUrl() + "?logTimestamp=" + timestamp + "&isAdmin=" + ad
 
 ## 발화 채널
 
-**HEAD=`ff699f9` 에 이 축의 발화 채널이 없다.** `check:*` 15종 중 반환 형상 정합을 재는 것 0, `npm test` 수집 경로에 이 축의 단언 0.
+**HEAD=`139cd78` 에 이 축의 발화 채널이 실재한다** (tick 222 판본의 "채널 없음" 서술을 tick 223 이 교체). `scripts/check-test-double-shape-fidelity.sh` 가 `package.json` `scripts.check:test-double-shape` (`:37`) · `.husky/pre-commit:34-35` · `.github/workflows/ci.yml:104` 세 면에 등재됐다 (TSK-20260825-21 / `9629f87`). 채널은 테스트 성공/실패와 **독립**으로 발화한다 ((R-5) 요건 충족). 현 HEAD 실행 출력 — `check-test-double-shape-fidelity: T-1 0 hit (root=src predicates=13 files=73)`, rc=0.
 
 | 게이트 | HEAD=`ff699f9` 채널 | 상태 |
 |---|---|---|
-| T-1 / T-4 (형상 일치·도출성) | 없음 (정적 판정은 §수용 기준) | **부착 필요** |
+| T-1 / T-4 (형상 일치·도출성) | `scripts/check-test-double-shape-fidelity.sh` — `check:test-double-shape` · `.husky/pre-commit:34` · `ci.yml:104` | **부착 완료** (`9629f87`) |
 | T-3 (truthy 전제) | 없음 — 전제 자체는 §수용 기준에서 판정 가능 | 계약 서술 + 전제 박제 |
-| T-5 (특이도) | 없음 | **부착 필요** |
+| T-5 (특이도) | 같은 스크립트 — 도출이 `Promise` 반환 선언을 제외하므로 `copyToClipboard` 류는 계수 밖 | **부착 완료** (`9629f87`) |
 
-`RULE-07 §promote 조건 4` 에 따라 채널 부재는 promote 차단이 아니라 **채널 부착 task 발행을 선행 조건**으로 한다. **채널은 테스트 성공/실패와 독립이어야 한다** — `package.json` `scripts.check:*` 또는 `.husky/*` 가 적격이고, 위반 파일 자신의 통과 여부는 부적격이다 ((R-5)).
+`RULE-07 §promote 조건 4` 의 실경로 요건은 위 3면 등재로 충족됐다. **채널은 테스트 성공/실패와 독립이어야 한다** — `package.json` `scripts.check:*` 또는 `.husky/*` 가 적격이고, 위반 파일 자신의 통과 여부는 부적격이다 ((R-5)).
 
 **게이트 실효 검증의 이관처 (RULE-07 §처리 · RULE-06 §게이트 실효 검증).** 아래는 **'가정 주입 요구' 부류**라 본 spec 의 체크박스가 아니며, 검출 방향을 보존한 채 **채널 부착 task 의 `## 검증/DoD`** 로 이관한다. `RULE-04` notes 에 `injection: 2/2 detect` 박제. **이관처 task 가 발행되기 전까지 귀속처는 이 절의 명시적 지시다** (이관처 없는 강등 금지).
 
-- (Dir-1) 동기 술어에 `mockResolvedValue` 1건 주입 → `rc≠0` 확인 → 원복 → `rc=0`.
-- (Dir-2) 실제 `Promise` 반환 대상(`copyToClipboard`)의 정합한 `mockResolvedValue` 가 **오탐되지 않음** 확인 → `rc=0` 유지. (T-5) 의 직접 대응이며, 이 방향이 없으면 `\.mockResolvedValue` 전면 금지 게이트가 (Dir-1) 만으로 통과한다.
+- (Dir-1) 동기 술어에 `mockResolvedValue` 1건 주입 → `rc≠0` 확인 → 원복 → `rc=0`. **이관·소화 완료** — TSK-20260825-21 / `9629f87`, `injection: 2/2 detect`.
+- (Dir-2) 실제 `Promise` 반환 대상(`copyToClipboard`)의 정합한 `mockResolvedValue` 가 **오탐되지 않음** 확인 → `rc=0` 유지. (T-5) 의 직접 대응이며, 이 방향이 없으면 `\.mockResolvedValue` 전면 금지 게이트가 (Dir-1) 만으로 통과한다. **이관·소화 완료** — 동 task 동 커밋.
 
 ## 테스트 현황
 
 - [x] 대조군 정합 표기 실재 — `src/Comment/CommentItem.test.tsx:40` `mockReturnValue(false)`.
-- [ ] 위반 0 — HEAD **67 라인 / 8 파일**. (T-1) 의 부착 대상.
-- [ ] 선언 도출형 판정 채널 — HEAD 0건. (T-4) 의 부착 대상.
-- [ ] 비-admin 차단 경로의 실제 실행 — `Monitor.jsx:46` · `File.tsx:68` 의 `!isAdmin()` 갈래는 (T-3) 때문에 어떤 테스트에서도 실행된 적이 없다. 더블 형상 교정 이후에야 관측 가능해진다.
+- [x] 위반 0 — tick 223 ack (`139cd78`) 게이트 출력 `T-1 0 hit (root=src predicates=13 files=73)`. tick 222 실측 **67 라인 / 8 파일** → **0** (TSK-20260825-19 A군 4파일 35건 / TSK-20260825-20 B군 4파일 32건).
+- [x] 선언 도출형 판정 채널 — tick 223 ack (`139cd78`) `scripts/check-test-double-shape-fidelity.sh` 실재 + 3면 등재 (TSK-20260825-21 / `9629f87`).
+- [x] 음성 분기의 실제 실행 — tick 223 ack (`139cd78`) `Navigation.tsx:24` 의 음성 케이스(`Navigation.test.tsx:36`)가 `mockReturnValue(false)` 로 교정돼 **처음으로** 비-admin 갈래를 실행한다 (TSK-20260825-20 / `a23cfb8`, 음성 선언 0→7 보존). `Monitor.jsx:46` · `File.tsx:68` 은 tick 222 이전부터 정합한 더블로 실행돼 왔다 — §동작 (T-3) 의 정정 참조.
 
 ## 수용 기준
 
-> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` · `package.json` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`ff699f9` 기준 1/4** — 신규 등록이며 (T-3) 전제만 충족이다.
+> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` · `package.json` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`139cd78` (tick 223 전수 재실행) 기준 4/4** — tick 222 등록 시 1/4 였다.
 
-- [ ] (Must, T-1/T-4) 선언 도출형 위반 0 — 대상 목록을 `src/common/common.ts` 의 **동기 반환 export 선언에서 도출**해, 그 이름에 `mockResolvedValue` 를 설치하는 지점이 0 이다. 판정:
+- [x] (Must, T-1/T-4) 선언 도출형 위반 0 — 대상 목록을 `src/common/common.ts` 의 **동기 반환 export 선언에서 도출**해, 그 이름에 `mockResolvedValue` 를 설치하는 지점이 0 이다. 판정:
   ```
-  node -e 'const fs=require("fs"),p=require("path");const d=fs.readFileSync("src/common/common.ts","utf8");const sync=[...d.matchAll(/export function ([A-Za-z0-9_]+)\s*\([^)]*\)\s*:\s*(?!Promise)([A-Za-z<>\[\]|{} ]+?)\s*\{/g)].map(m=>m[1]);if(sync.length===0){console.error("derive=0 vacuous");process.exit(2)}const Q=String.fromCharCode(39),D=String.fromCharCode(34);let n=0;const walk=x=>fs.readdirSync(x,{withFileTypes:true}).forEach(e=>{const f=p.join(x,e.name);if(e.isDirectory())walk(f);else if(/\.test\.[jt]sx?$/.test(f)){fs.readFileSync(f,"utf8").split("\n").forEach((l,i)=>sync.forEach(fn=>{if(l.includes("spyOn")&&l.includes("mockResolvedValue")&&(l.includes(Q+fn+Q)||l.includes(D+fn+D))){n++;console.error(f+":"+(i+1)+" "+fn)}}))}});walk("src");console.log("sync-predicates="+sync.length+" violations="+n);process.exit(n===0?0:1)'
+  node -e 'const fs=require("fs"),p=require("path");const d=fs.readFileSync("src/common/common.ts","utf8");const sync=[...d.matchAll(/export function ([A-Za-z0-9_]+)\s*\([^)]*\)\s*:\s*(?!Promise)([A-Za-z<>\[\]|{}, ]+?)\s*\{/g)].map(m=>m[1]);if(sync.length===0){console.error("derive=0 vacuous");process.exit(2)}const Q=String.fromCharCode(39),D=String.fromCharCode(34);let n=0;const walk=x=>fs.readdirSync(x,{withFileTypes:true}).forEach(e=>{const f=p.join(x,e.name);if(e.isDirectory())walk(f);else if(/\.test\.[jt]sx?$/.test(f)){fs.readFileSync(f,"utf8").split("\n").forEach((l,i)=>sync.forEach(fn=>{if(l.includes("spyOn")&&l.includes("mockResolvedValue")&&(l.includes(Q+fn+Q)||l.includes(D+fn+D))){n++;console.error(f+":"+(i+1)+" "+fn)}}))}});walk("src");console.log("sync-predicates="+sync.length+" violations="+n);process.exit(n===0?0:1)'
   ```
-  → **rc=0**. **HEAD=`ff699f9` 실측 rc=1 / `sync-predicates=12 violations=67` → 미충족.** **tick 222 는 이 명령을 문면 그대로 실행해 확인했다** — 초안은 `new RegExp('…\\s*\\)…')` 형태였는데 JS 문자열 리터럴이 `\s`·`\)` 의 백슬래시를 먹어 `Unmatched ')'` 로 죽었다 (rc=1 이 **위반 검출이 아니라 문법 오류**였다). 정규식 조립을 `includes` 3중 조건으로 교체했고, 따옴표는 `String.fromCharCode(39/34)` 로 만들어 셸 인용 계층과 충돌하지 않게 했다. **판정 명령은 박제 전에 실행해야 한다** — 실행하지 않으면 `rc≠0` 이라는 사실만으로 미충족처럼 보이고, 착지 후에도 영원히 `rc≠0` 인 게이트가 남는다. **공허 통과 가드 내장** — 도출 결과가 0 이면 `exit 2` 다. 도출이 무너지면 "위반 0" 은 무조건 참이 되고, 그 상태가 정상 트리에서 초록을 내며 정착한다. ack 라인이 `sync-predicates=12` 로 **비공허**임을 수치로 함께 낸다. **검출 경계 (과신 금지)**: 도출은 `export function` 선언 형태만 훑는다. `export const f = () => …` 형태의 동기 술어는 현 HEAD `common.ts` 에 없으나 (실측) 이 판정의 **선언된 경계 밖**이다 — 미검출일지언정 미기록이 아니다. 반대로 이 경계 덕에 `copyToClipboard` (`:413` `export const … async … Promise<boolean>`) 는 자연히 제외되어 (T-5) 특이도가 성립한다.
+  → **rc=0**. **HEAD=`139cd78` (tick 223) 실측 rc=0 / `sync-predicates=13 violations=0` → 충족** (TSK-20260825-19 A군 35건 + TSK-20260825-20 B군 32건 = 67건 소거). tick 222 등록 시 실측은 `sync-predicates=12 violations=67` / rc=1 이었다.
+
+  **tick 223 판정 명령 정정 — `12` 는 참값이 아니었다.** tick 222 판본의 반환형 문자 클래스 `[A-Za-z<>\[\]|{} ]` 에 **쉼표가 없어** `parseJwt (token: unknown): Record<string, unknown> | null` (`src/common/common.ts:47`) 이 도출에서 탈락했다. 부착된 게이트(`scripts/check-test-double-shape-fidelity.sh`)는 이 결함 없이 `predicates=13` 을 낸다. 두 수치가 갈린 상태를 그대로 두면 선택지는 둘뿐인데 **둘 다 나쁘다** — (a) spec 수치를 유지하려면 게이트가 spec 의 정규식 결함을 재현해야 하고, 그러면 `parseJwt` 는 영구 사각이 된다, (b) 게이트만 옳고 spec 은 거짓 수치를 든 채로 `RULE-07 §promote 조건 2` 의 전수 rc=0 재실행에서 어긋난다. 따라서 **spec 쪽 정규식을 `[A-Za-z<>\[\]|{}, ]` 로 교정하고 수치를 13 으로 정정**했다 (developer 불복 수용). 정정 후 이 문서의 명령과 게이트가 같은 `13` 을 낸다 — tick 223 이 양쪽 모두 실행해 대조했다. **tick 222 는 이 명령을 문면 그대로 실행해 확인했다** — 초안은 `new RegExp('…\\s*\\)…')` 형태였는데 JS 문자열 리터럴이 `\s`·`\)` 의 백슬래시를 먹어 `Unmatched ')'` 로 죽었다 (rc=1 이 **위반 검출이 아니라 문법 오류**였다). 정규식 조립을 `includes` 3중 조건으로 교체했고, 따옴표는 `String.fromCharCode(39/34)` 로 만들어 셸 인용 계층과 충돌하지 않게 했다. **판정 명령은 박제 전에 실행해야 한다** — 실행하지 않으면 `rc≠0` 이라는 사실만으로 미충족처럼 보이고, 착지 후에도 영원히 `rc≠0` 인 게이트가 남는다. **공허 통과 가드 내장** — 도출 결과가 0 이면 `exit 2` 다. 도출이 무너지면 "위반 0" 은 무조건 참이 되고, 그 상태가 정상 트리에서 초록을 내며 정착한다. ack 라인이 `sync-predicates=13` 으로 **비공허**임을 수치로 함께 낸다. **검출 경계 (과신 금지)**: 도출은 `export function` 선언 형태만 훑는다. `export const f = () => …` 형태의 동기 술어는 현 HEAD `common.ts` 에 없으나 (실측) 이 판정의 **선언된 경계 밖**이다 — 미검출일지언정 미기록이 아니다. 반대로 이 경계 덕에 `copyToClipboard` (`:413` `export const … async … Promise<boolean>`) 는 자연히 제외되어 (T-5) 특이도가 성립한다.
 - [x] (Must, T-3 전제) `Promise.resolve(false)` 는 truthy 다 — `bash -c 'test "$(node -e "console.log(Boolean(Promise.resolve(false)))")" = "true"'` → **rc=0**. **HEAD=`ff699f9` 실측 `true` → 충족.** 자명해 보이지만 이 항목이 **귀결 β 전체의 전제**다 — 이것이 거짓이면 `mockResolvedValue(false)` 로 선언한 음성 케이스가 실제로 음성이고 (T-3) 의 근거가 사라진다. 전제와 귀결을 한 문서에서 함께 재판정할 수 있게 박제한다.
-- [ ] (Must, T-1 회귀 부재) 교정이 기존 테스트를 깨지 않는다 — `bash -c 'npx vitest run src/common/Navigation.test.tsx src/Log/LogSingle.test.tsx >/dev/null 2>&1 || npx vitest run src/common/Navigation.test.tsx src/Log/LogSingle.test.jsx >/dev/null 2>&1'` → rc=0. **HEAD=`ff699f9` 실측 rc=0 이나 (T-1) 미충족 상태의 통과이므로 단독으로는 판정력이 없다** — 본 항목은 (T-1) 과 **함께** `[x]` 일 때만 의미를 갖는 **동반 조건**이다. 다만 (R-2) 대로 교정 직후 일부 단언이 붉어지는 것은 **정상**이며, 그 경우 회복 경로는 단언 완화가 아니라 처음 실행된 분기에 대한 판정이다.
-- [ ] (Must, T-4 채널 등재) 판정 채널이 저장소에 등재되고 **테스트 성공/실패와 독립**으로 발화한다 — `bash -c 'node -e "const s=require(\"./package.json\").scripts;process.exit(Object.keys(s).some(k=>/^check:/.test(k)&&/(double|mock|return-shape|shape)/.test(k))?0:1)"'` → rc=0. **HEAD=`ff699f9` 실측 rc=1 → 미충족** (`check:*` 15종 중 0). **vitest 수집 경로를 이 항목의 대안으로 두지 않았다** — 위반은 테스트를 붉게 만들지 않으므로 테스트 채널은 이 축에서 검출력을 갖지 못한다 ((R-5)). `RULE-07 §promote 조건 4` 의 실경로 요건이며, 채널 부재는 promote 차단이 아니라 채널 부착 task 발행의 선행 조건이다.
+- [x] (Must, T-1 회귀 부재) 교정이 기존 테스트를 깨지 않는다 — `bash -c 'npx vitest run src/common/Navigation.test.tsx src/Log/LogSingle.test.tsx >/dev/null 2>&1 || npx vitest run src/common/Navigation.test.tsx src/Log/LogSingle.test.jsx >/dev/null 2>&1'` → rc=0. **HEAD=`139cd78` (tick 223) 실측 rc=0 이며 (T-1) 도 같은 HEAD 에서 rc=0 이라 동반 조건이 처음으로 성립했다** — tick 222 시점의 rc=0 은 (T-1) 미충족 상태의 통과라 단독 판정력이 없었다. 다만 (R-2) 대로 교정 직후 일부 단언이 붉어지는 것은 **정상**이며, 그 경우 회복 경로는 단언 완화가 아니라 처음 실행된 분기에 대한 판정이다.
+- [x] (Must, T-4 채널 등재) 판정 채널이 저장소에 등재되고 **테스트 성공/실패와 독립**으로 발화한다 — `bash -c 'node -e "const s=require(\"./package.json\").scripts;process.exit(Object.keys(s).some(k=>/^check:/.test(k)&&/(double|mock|return-shape|shape)/.test(k))?0:1)"'` → rc=0. **HEAD=`139cd78` (tick 223) 실측 rc=0 → 충족** — `package.json:37` `"check:test-double-shape"` 가 명명 규칙(`shape`)에 매치한다. 등재는 `.husky/pre-commit:34` · `ci.yml:104` 까지 3면이다 (TSK-20260825-21 / `9629f87`, `check:*` 15→16종). **vitest 수집 경로를 이 항목의 대안으로 두지 않았다** — 위반은 테스트를 붉게 만들지 않으므로 테스트 채널은 이 축에서 검출력을 갖지 못한다 ((R-5)). `RULE-07 §promote 조건 4` 의 실경로 요건이며, 채널 부재는 promote 차단이 아니라 채널 부착 task 발행의 선행 조건이다.
 
 ## 참고
 
@@ -146,4 +154,5 @@ return await fetch(getApiUrl() + "?logTimestamp=" + timestamp + "&isAdmin=" + ad
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-25 | TSK-20260825-19·20·21 / `1b44d51`·`a23cfb8`·`9629f87` (inspector tick 223) | **Phase 1 reconcile — 4/4 ack, 전 항목 플립.** 위반 67 → 0, 게이트 3면 등재 (`check:test-double-shape` / `.husky/pre-commit:34` / `ci.yml:104`), 현 HEAD 게이트 출력 `T-1 0 hit (root=src predicates=13 files=73)`. **본문 정정 2건 (드리프트 동기화 — 착지 반영이 아니다)**: (1) **`sync-predicates` 12 → 13.** tick 222 판본의 도출 정규식이 반환형 문자 클래스에 쉼표를 빠뜨려 `parseJwt` 가 탈락해 있었다. 12 를 유지하려면 게이트가 그 결함을 재현해야 하므로 **spec 쪽을 교정**했다 (developer 불복 수용). §수용 기준 (T-1) 명령·(R-1)·§공허 가드 서술 전부 반영. (2) **§동작 (T-3) 의 전칭 단언 철회.** *"비-admin 차단 경로는 어떤 테스트에서도 실행된 적이 없다"* 는 `File.test.tsx:45`(`df62c28` 이래)·`Monitor.test.jsx:88+:112` 의 정합한 `mockReturnValue(false)` 반례로 **거짓**이었다 — 조건부 명제(`mockResolvedValue` 로 선언된 케이스에 한해)로 축소하고 실측 반례가 있는 축은 `Navigation.tsx:24` 임을 박제했다. 두 정정 모두 **어떤 게이트도 재지 않는 문장**에서 발생했다 (REQ-20260825-021 의 표면). | 동작·회귀 중점·발화 채널·테스트 현황·수용 기준 |
 | 2026-08-25 | REQ-20260825-017 (inspector tick 222) | 최초 등록. followup 1건을 **진단 정정해** 흡수한 req 를 불변식으로 반영 (`RULE-05 §결함 신고 재정식화`) — 관측(`isAdmin=[object Promise]`)은 정확하고 귀속(프로덕션 `await` 누락)이 틀렸으며, 그 정정 없이 spec 이 섰으면 정상 코드를 훼손하는 task 가 발행됐다. **req 수용 기준 6항을 그대로 쓰지 않았다**: (a) `grep -rnE "\"(isAdmin\|isLoggedIn)\")\.mockResolvedValue…"` 는 **열거 고정**이라 `RULE-06` 위반이자 req 자신의 FR-04 와 모순이다 — `common.ts` 의 동기 export 선언에서 대상을 **도출**하는 판정으로 교체해 실측 `sync-predicates=12 violations=67` 을 얻었다 (열거판과 동일한 67 이면서 사각이 없다). **공허 통과 가드**(도출 0 → `exit 2`)를 신규 부착했다 — 도출이 무너지면 "위반 0" 이 무조건 참이 되는 자리다. (b) `npm run typecheck rc=0` 은 **중복 게이트 부류**라 §참고로 강등했다. (c) `npx vitest run … rc=0` 두 항은 (T-1) 미충족 상태에서도 통과하므로 **동반 조건**임을 명시해 한 항목으로 합쳤다. (d) 채널 등재 항목에서 **vitest 수집 경로를 대안에서 제외**했다 — 위반이 테스트를 붉게 만들지 않는다는 것이 이 축의 전제이므로 테스트 채널은 검출력 0 이다. **신규 추가 (req 에 없던 항목)**: (R-2) `mockReturnValue` 일괄 치환 후 붉어진 단언을 완화하는 오회복, (R-3) 프로덕션 `await` 추가로의 오회복((T-0) 이 배제한 방향의 재발), (R-5) 채널을 테스트로 두는 회귀, 그리고 §수용 기준 (T-1) 의 **검출 경계 명시** — 도출이 `export function` 형태만 훑는다는 사실을 미검출일지언정 **미기록이 아니게** 박제했다. | all |

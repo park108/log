@@ -3,7 +3,7 @@
 > **위치**: `src/Log/` (Log.jsx, LogList.jsx, LogSingle.jsx, LogItem.jsx, LogItemInfo.jsx, Writer.jsx, api.js, api.mock.js, hooks/**, Log.css, Writer.css)
 > **관련 요구사항**: REQ-20260421-027, REQ-20260421-030, REQ-20260421-042, REQ-20260422-045, **REQ-20260825-014** (뮤테이션 완료 알림 축), **REQ-20260825-015** (단건 캐시 키 동일성 축)
 > **선행 판본**: 동일 slug `components/log` 의 blue 판본 (동일 상대 경로 — 승격 시 대체된다).
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 222. blue 판본을 green 으로 내려 **뮤테이션 완료 알림 축(M-1~M-4)** 과 **단건 캐시 키 동일성 축(K-1~K-4)** 을 흡수했다. 두 축 모두 `src/Log/**` 귀속이라 `components/` = `src/` 구현 단위 1:1 원칙에 따라 별 파일을 만들지 않았다 — `components/monitor` 병합과 같은 판단이다. 기존 네 축(REQ-027/030/042/045)의 서술은 손대지 않았다)
+> **최종 업데이트**: 2026-08-25 (by inspector — tick 223 Phase 1 reconcile: M·K 두 축 수용 기준 7항 전수 플립 + (K-2) 관측량 문면 정정. 이하 tick 222 등록 서술 — blue 판본을 green 으로 내려 **뮤테이션 완료 알림 축(M-1~M-4)** 과 **단건 캐시 키 동일성 축(K-1~K-4)** 을 흡수했다. 두 축 모두 `src/Log/**` 귀속이라 `components/` = `src/` 구현 단위 1:1 원칙에 따라 별 파일을 만들지 않았다 — `components/monitor` 병합과 같은 판단이다. 기존 네 축(REQ-027/030/042/045)의 서술은 손대지 않았다)
 
 > **식별자 네임스페이스**: 뮤테이션 완료 알림 축은 `M-n`, 단건 캐시 키 동일성 축은 `K-n` 이다. 두 축은 같은 `onSuccess` 안에 있으나 판정 대상이 다르다 — 전자는 **콜백이 발화하는가**, 후자는 **발화한 콜백이 겨눈 캐시 엔트리가 실재하는가** 다. 하나가 성립해도 다른 하나는 위반일 수 있다.
 
@@ -126,26 +126,26 @@ HEAD=`ff699f9` 실측 — 세 지점의 실제 타입이 갈린다:
 
 ## 발화 채널
 
-**HEAD=`ff699f9` 에 두 신규 축의 발화 채널이 없다.** `check:*` 15종 · `npm test` · `tsc --noEmit` · `eslint --max-warnings=0` 어느 것도 "per-call 뮤테이션 콜백이 구독 창 밖에서 버려질 수 있는가" 나 "queryKey 원소의 타입이 생성 경로마다 갈리는가" 를 묻지 않는다. `src/Log/hooks/*.js` 는 `.js` 이고 `tsconfig.json:12` 가 `"checkJs": false` 라 타입 검사 대상 자체가 아니며, `invalidateQueries` 는 매칭 0건에도 예외를 던지지 않고 resolve 한다 — **실패 신호가 존재하지 않는다.**
+**HEAD=`139cd78` 에 두 신규 축의 발화 채널이 실재한다** (tick 222 판본의 "채널 없음" 서술을 tick 223 이 교체 — 아래 문단은 부착 이전 상태의 근거로 보존한다). 채널은 `vite.config.js:83` 수집 경로 안의 두 픽스처 파일이며 `npm test` · CI 에서 발화한다. **이 축에서 vitest 수집 경로가 적격인 이유** — 위반은 알림 미발화·캐시 미적중이라 픽스처를 **붉게 만든다**. (테스트를 붉게 만들지 않는 축은 `testing/test-double-return-shape-fidelity` 이고 거기서는 `check:*` 를 요구했다.) 아래는 tick 222 기준 서술이다: **HEAD=`ff699f9` 에 두 신규 축의 발화 채널이 없었다.** `check:*` 15종 · `npm test` · `tsc --noEmit` · `eslint --max-warnings=0` 어느 것도 "per-call 뮤테이션 콜백이 구독 창 밖에서 버려질 수 있는가" 나 "queryKey 원소의 타입이 생성 경로마다 갈리는가" 를 묻지 않는다. `src/Log/hooks/*.js` 는 `.js` 이고 `tsconfig.json:12` 가 `"checkJs": false` 라 타입 검사 대상 자체가 아니며, `invalidateQueries` 는 매칭 0건에도 예외를 던지지 않고 resolve 한다 — **실패 신호가 존재하지 않는다.**
 
 | 게이트 | HEAD=`ff699f9` 채널 | 상태 |
 |---|---|---|
-| M-1 / M-2 (구독 시점 비종속) | 없음 | **부착 필요** |
-| M-3 (시그니처 가용성) | 없음 (정적 grep 은 §수용 기준) | **부착 필요** |
-| M-4 (per-call 부재) | 없음 (정적 판정은 §수용 기준) | **부착 필요** |
-| K-1 (해시 동일성) | 없음 | **부착 필요** |
-| K-2 / K-3 (무효화·제거 적중) | 없음 — 현행 `queryWrapper.tsx:19` 의 `staleTime: 0` 은 **관측 은폐 장치**라 채널이 아니다 | **부착 필요** |
-| K-4 (단일 결정 지점) | 없음 | 계약 서술로만 |
+| M-1 / M-2 (구독 시점 비종속) | `src/Log/hooks/mutation-notification-subscription-order.test.jsx` (vitest 수집) | **부착 완료** (`b976979`) |
+| M-3 (시그니처 가용성) | 정적 grep — §수용 기준 (M-3) | 계약 서술 + §수용 기준 |
+| M-4 (per-call 부재) | 정적 판정 — §수용 기준 (M-4) | 계약 서술 + §수용 기준 |
+| K-1 (해시 동일성) | 전제 판정 — §수용 기준 (K-1) | 계약 서술 + §수용 기준 |
+| K-2 / K-3 (무효화·제거 적중) | `src/Log/hooks/log-detail-cache-key-identity.test.jsx` — `setQueryDefaults` 로 키 계층 fresh 창을 얹어 `queryWrapper.tsx` 의 `staleTime: 0` **관측 은폐**를 우회 | **부착 완료** (`f69a896`) |
+| K-4 (단일 결정 지점) | `src/Log/hooks/logQueryKeys.js` 단일 팩토리 + §수용 기준 (K-4) 정적 판정 | 계약 서술 + §수용 기준 |
 
-`RULE-07 §promote 조건 4` 에 따라 채널 부재는 promote 차단이 아니라 **채널 부착 task 발행을 선행 조건**으로 한다.
+`RULE-07 §promote 조건 4` 의 실경로 요건은 위 두 픽스처의 실재로 충족됐다 (tick 223 재실행 — 2 files 6 tests passed).
 
 > **관측 표면 주의** (`RULE-06 §관측 표면`) — (M-1) 의 판정은 "훅이 콜백 인자를 받는가" 가 아니라 **구독이 늦게 성립한 순서에서 알림이 실제로 1회 발화하는가** 다. 시그니처만 재면 호출처가 여전히 per-call 을 쓰는 상태를 통과시킨다. 마찬가지로 (K-2) 의 판정은 "무효화를 호출했는가" 가 아니라 **그 호출이 실제 엔트리를 건드렸는가** 다 — 매칭 0건도 resolve 하기 때문이다.
 
 **게이트 실효 검증의 이관처 (RULE-07 §처리 · RULE-06 §게이트 실효 검증).** 아래는 **'가정 주입 요구' 부류**라 본 spec 의 체크박스가 아니며, 검출 방향을 보존한 채 **채널 부착 task 의 `## 검증/DoD`** 로 이관한다 — developer 는 `RULE-04` notes 에 `injection: N/N detect` 를 박제한다. **이관처 task 가 발행되기 전까지 귀속처는 이 절의 명시적 지시다** (이관처 없는 강등 금지).
 
-- (Dir-M1) 알림 전달을 per-call 경로로 되돌린다 → 구독 지연 픽스처에서 `rc≠0`. 원복 → `rc=0`.
+- (Dir-M1) 알림 전달을 per-call 경로로 되돌린다 → 구독 지연 픽스처에서 `rc≠0`. 원복 → `rc=0`. **이관·소화 완료** — TSK-20260825-23 / `b976979`.
 - (Dir-M2) 구독 지연을 제거한(즉시 커밋되는) 픽스처로 바꾼다 → (Dir-M1) 의 주입이 **통과**함을 대조 박제. 픽스처가 실제로 지연을 강제하고 있음의 증명이며, 이것이 없으면 (Dir-M1) 은 다른 이유로 붉었을 수 있다.
-- (Dir-K1) 무효화 키를 숫자로 되돌린다 → `staleTime > 0` 픽스처에서 `rc≠0`. 원복 → `rc=0`.
+- (Dir-K1) 무효화 키를 숫자로 되돌린다 → `staleTime > 0` 픽스처에서 `rc≠0`. 원복 → `rc=0`. **이관·소화 완료** — TSK-20260825-24 / `f69a896`.
 - (Dir-K2) 같은 주입을 `staleTime: 0` 픽스처에서 수행한다 → **여전히 `rc=0`** 임을 대조 박제. 테스트 기본값이 이 축을 삼킨다는 사실 자체를 게이트가 기록하게 한다.
 
 ## 테스트 현황
@@ -154,10 +154,10 @@ HEAD=`ff699f9` 실측 — 세 지점의 실제 타입이 갈린다:
 - [x] `__fixtures__/` 에 API 응답 샘플 박제.
 - [x] LogItem DELETE shuffle 안정성 — seed={1,2,3} 불문 결정적 pass (TSK-20260421-63 / `261a51a`; `src/Log/LogItem.test.jsx` `beforeAll` warm-up 박제, seed=1/2/3 + 임의 seed 전부 11/11 pass, 전체 383 tests PASS 회귀 0).
 - [x] LogSingle render budget 불변식 — cold-start 에서 render/assert 가 budget 상한 이내 수렴 (TSK-20260421-65 / `585d381` 실현; `src/Log/LogSingle.test.jsx:125, :155` prod/dev `it` 종결에 `}, ASYNC_ASSERTION_TIMEOUT_MS);` 박제, 9/9 it pass / 47 files 383 tests pass / lint 0 / build 0).
-- [ ] (M-1/M-2) 구독 성립을 응답 도착 **이후**로 강제하는 재현 픽스처 — HEAD 0건. 채널 부착 대상.
-- [ ] (M-3) `useCreateLog` · `useUpdateLog` 의 콜백 수용 시그니처 — HEAD **0 hit** (`useDeleteLog` 만 `(callbacks = {}) =>` 보유).
-- [ ] (M-4) per-call 콜백 전달 0 — HEAD **2건** (`Writer.jsx:137`·`:181`).
-- [ ] (K-2/K-3) `staleTime > 0` 으로 구성한 `QueryClient` 픽스처 — HEAD 0건. 현행 `queryWrapper.tsx:19` 는 `staleTime: 0` 이라 이 축의 판정에 쓸 수 없다.
+- [x] (M-1/M-2) 구독자 부재 창을 결정적으로 강제하는 재현 픽스처 — **tick 223 ack (`139cd78`)** `src/Log/hooks/mutation-notification-subscription-order.test.jsx` (4 it: 생성·수정 × 성공·실패). tick 222 실측 0건 → 1 파일 (TSK-20260825-23 / `b976979`).
+- [x] (M-3) `useCreateLog` · `useUpdateLog` 의 콜백 수용 시그니처 — **tick 223 ack (`139cd78`)** 양쪽 `(callbacks = {}) =>` 보유. tick 222 실측 0 hit 이었다.
+- [x] (M-4) per-call 콜백 전달 0 — **tick 223 ack (`139cd78`)** 괄호 깊이 판정 0건. tick 222 실측 2건 (`Writer.jsx:137`·`:181`) 이었다.
+- [x] (K-2/K-3) `staleTime > 0` fresh 창을 가진 픽스처 — **tick 223 ack (`139cd78`)** `src/Log/hooks/log-detail-cache-key-identity.test.jsx` (2 it). `queryWrapper.tsx` 의 전역 `staleTime: 0` 을 갈아끼우지 않고 `setQueryDefaults(['log','detail'], …)` 로 **키 계층에만** 얹어, helper 단일 출처성(blue `react-query-test-queryclient-default-options-single-source-coherence`)을 깨지 않는다. tick 222 실측 0건 (TSK-20260825-24 / `f69a896`).
 - [x] (Must, REQ-20260421-042 FR-01) LogSingle render budget 실효 margin — render-budget 상수 값 이 vitest 기본 `testTimeout` 값과 양의 margin (margin > 0) 을 가진다. **HEAD=c563025 수렴**: `vite.config.js:75` `testTimeout: 10000` 명시 → `src/Log/LogSingle.test.jsx:129, :159` it-scoped 3rd-arg `ASYNC_ASSERTION_TIMEOUT_MS = 5000` → margin = 10000 − 5000 = **5000 ms > 0** (boolean 계약 충족, FR-02). 수단 α 채택 (TSK-20260421-88 / `c563025`; 1 파일 편집, LogSingle 9/9 it pass / 48 files 436 tests pass / coverage threshold 4축 PASS / lint 0 / build 0).
 
 ## 수용 기준 (현재 상태)
@@ -175,31 +175,32 @@ HEAD=`ff699f9` 실측 — 세 지점의 실제 타입이 갈린다:
 
 ### 뮤테이션 완료 알림 (M)
 
-> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`ff699f9` 기준 0/4** — 신규 등록이며 전 항목 미충족이 정상이다.
+> 전 항목 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 측정 명령은 `src/**` 만 참조한다 (spec 자신의 green/blue 경로 미참조 — RULE-07 §promote 조건 2). **HEAD=`139cd78` (tick 223 전수 재실행) 기준 4/4** — tick 222 등록 시 0/4 였다. 착지: TSK-20260825-23 / `b976979`.
 
-- [ ] (Must, M-4) per-call 콜백 전달 0 — `src/**` 프로덕션 코드에 2인자 이상으로 호출되는 `.mutate(` 가 없다. 판정:
+- [x] (Must, M-4) per-call 콜백 전달 0 — `src/**` 프로덕션 코드에 2인자 이상으로 호출되는 `.mutate(` 가 없다. 판정:
   ```
   node -e "const fs=require('fs'),p=require('path');let n=0;const walk=d=>fs.readdirSync(d,{withFileTypes:true}).forEach(e=>{const f=p.join(d,e.name);if(e.isDirectory())walk(f);else if(/\.(js|jsx|ts|tsx)\$/.test(f)&&!/\.test\./.test(f)){const s=fs.readFileSync(f,'utf8');const re=/\.mutate\(/g;let m;while((m=re.exec(s))){let i=m.index+m[0].length,d2=1,arg=1;while(i<s.length&&d2>0){const c=s[i];if(c==='('||c==='['||c==='{')d2++;else if(c===')'||c===']'||c==='}')d2--;else if(c===','&&d2===1)arg++;i++}if(arg>1){n++;console.error(f+':'+s.slice(0,m.index).split('\n').length)}}}});walk('src');process.exit(n===0?0:1)"
   ```
-  → **rc=0**. **HEAD=`ff699f9` 실측 rc=1 / 2건 (`src/Log/Writer.jsx:137`·`:181`) → 미충족.** **행 단위 grep 을 쓰지 않는 이유**: 실물의 2번째 인자는 `mutate(` 다음 줄부터 시작하는 멀티라인 객체 리터럴이라 어떤 단일 행 패턴에도 걸리지 않는다. 위 판정은 괄호 깊이를 세어 **최상위 쉼표 개수**로 인자 수를 구하므로 표기(줄바꿈·들여쓰기·인자 순서)에 무관하다. 특이도 확인 — 1인자 호출 `LogItem.jsx:49` `deleteMutation.mutate({ author, timestamp })` 는 매치되지 않는다 (실측).
-- [ ] (Must, M-3) 시그니처 가용성 — `bash -c 'grep -qE "export const useCreateLog = \([A-Za-z_{]" src/Log/hooks/useCreateLog.js && grep -qE "export const useUpdateLog = \([A-Za-z_{]" src/Log/hooks/useUpdateLog.js'` → **rc=0**. **HEAD=`ff699f9` 실측 rc=1 → 미충족** (양쪽 다 `= () =>`). 대조군 — `useDeleteLog.js:34` `export const useDeleteLog = (callbacks = {}) => {` 는 같은 패턴에 매치한다 (`ff699f9` 착지분). 빈 괄호를 배제하는 문자 클래스를 쓰는 이유는 `= () =>` 가 넓은 패턴 `\(.*\) =>` 에 걸려 **현 HEAD 에서 이미 통과**하기 때문이다.
-- [ ] (Must, M-1) 구독 지연 순서에서의 성공 알림 1회 — 구독 성립을 응답 도착 **이후**로 강제한 렌더 픽스처가 테스트 파일로 실재하고, 생성·수정 뮤테이션이 200 으로 성공할 때 호출처 성공 알림이 각각 1회 관측된다. 판정: 그 픽스처 파일에 대해 `npx vitest run <파일>` → rc=0 **이면서** 파일이 실재. **HEAD=`ff699f9` 실측 — 픽스처 0건 → 미충족.** 파일 경로는 채널 부착 task 가 확정하며 확정 시 이 항목에 박제한다. 자연 발생 경합에 의존하는 판정은 이 항목을 충족하지 않는다 ((R-M2)).
-- [ ] (Must, M-2) 같은 픽스처의 실패 경로 — 뮤테이션이 비-200 으로 실패할 때 호출처 실패 알림이 1회 관측된다. 판정은 (M-1) 과 동일 명령. **HEAD=`ff699f9` 미충족.** 성공 경로만 픽스처화하면 실패 알림이 유실되는 상태가 그대로 남는다 — 사용자에게는 "저장 실패를 알리지 않음" 이 "성공을 알리지 않음" 과 같은 무게다.
+  → **rc=0**. **HEAD=`139cd78` (tick 223) 실측 rc=0 / 0건 → 충족** (`Writer.jsx:195`·`:211` 이 1인자 호출로 이관, 콜백은 훅 옵션 경로). tick 222 등록 시 실측은 rc=1 / 2건 (`Writer.jsx:137`·`:181`) 이었다. **행 단위 grep 을 쓰지 않는 이유**: 실물의 2번째 인자는 `mutate(` 다음 줄부터 시작하는 멀티라인 객체 리터럴이라 어떤 단일 행 패턴에도 걸리지 않는다. 위 판정은 괄호 깊이를 세어 **최상위 쉼표 개수**로 인자 수를 구하므로 표기(줄바꿈·들여쓰기·인자 순서)에 무관하다. 특이도 확인 — 1인자 호출 `LogItem.jsx:49` `deleteMutation.mutate({ author, timestamp })` 는 매치되지 않는다 (실측).
+- [x] (Must, M-3) 시그니처 가용성 — `bash -c 'grep -qE "export const useCreateLog = \([A-Za-z_{]" src/Log/hooks/useCreateLog.js && grep -qE "export const useUpdateLog = \([A-Za-z_{]" src/Log/hooks/useUpdateLog.js'` → **rc=0**. **HEAD=`139cd78` (tick 223) 실측 rc=0 → 충족** — `useCreateLog.js:34` · `useUpdateLog.js` 양쪽이 `(callbacks = {}) =>` 를 보유한다. tick 222 등록 시 rc=1 (양쪽 다 `= () =>`) 이었다. 대조군 — `useDeleteLog.js:34` `export const useDeleteLog = (callbacks = {}) => {` 는 같은 패턴에 매치한다 (`ff699f9` 착지분). 빈 괄호를 배제하는 문자 클래스를 쓰는 이유는 `= () =>` 가 넓은 패턴 `\(.*\) =>` 에 걸려 **현 HEAD 에서 이미 통과**하기 때문이다.
+- [x] (Must, M-1) 구독 지연 순서에서의 성공 알림 1회 — 구독 성립을 응답 도착 **이후**로 강제한 렌더 픽스처가 테스트 파일로 실재하고, 생성·수정 뮤테이션이 200 으로 성공할 때 호출처 성공 알림이 각각 1회 관측된다. 판정: `bash -c 'test -f src/Log/hooks/mutation-notification-subscription-order.test.jsx && npx vitest run src/Log/hooks/mutation-notification-subscription-order.test.jsx >/dev/null 2>&1'` → **rc=0**. **HEAD=`139cd78` (tick 223) 실측 rc=0 / 1 file 4 tests passed → 충족** (TSK-20260825-23 / `b976979`). 자연 발생 경합에 의존하는 판정은 이 항목을 충족하지 않는다 ((R-M2)) — 이 픽스처는 `unmount()` 로 **구독자 부재 창을 결정적으로 강제**하고, 그 창 안에서 응답을 resolve 한다. `it` 는 생성·수정 각 1건이며 알림은 `Writer.jsx:56`·`:82` 의 `log(...)` 호출 **횟수 1** 로 관측한다 — 언마운트 이후에는 DOM·토스터가 남지 않으므로 렌더 결과가 관측 표면이 될 수 없다.
+- [x] (Must, M-2) 같은 픽스처의 실패 경로 — 뮤테이션이 비-200 으로 실패할 때 호출처 실패 알림이 1회 관측된다. 판정은 (M-1) 과 동일 명령. **HEAD=`139cd78` (tick 223) 실측 rc=0 → 충족** — 같은 파일의 `it` 2건이 네트워크 reject(생성)와 비-200 응답(수정) 두 실패 형태를 각각 덮는다 (`Writer.jsx:66`·`:91`). 성공 경로만 픽스처화하면 실패 알림이 유실되는 상태가 그대로 남는다 — 사용자에게는 "저장 실패를 알리지 않음" 이 "성공을 알리지 않음" 과 같은 무게다.
 
 ### 단건 캐시 키 동일성 (K)
 
-> **HEAD=`ff699f9` 기준 1/4.** (K-1) 의 전제는 현 HEAD 에서 이미 판정 가능하며, 나머지 셋은 채널 부재로 미충족이다.
+> **HEAD=`139cd78` (tick 223 전수 재실행) 기준 4/4.** tick 222 등록 시 1/4 였다. 착지: TSK-20260825-24 / `f69a896`.
 >
 > **(K-2)(K-3) 의 판정은 반드시 `staleTime > 0` 인 `QueryClient` 에서 이뤄진다.** `staleTime: 0` 픽스처에서는 적중과 미적중이 **관측적으로 동일**하다 (§동작 (K)). 현행 `src/test-utils/queryWrapper.tsx:19` 가 정확히 그 상태이므로 이 축의 픽스처는 그것을 재사용할 수 없다.
 
-- [x] (Must, K-1 전제) 두 표기가 서로 다른 캐시 엔트리다 — `bash -c 'test "$(node -e "console.log(JSON.stringify([1656034616036])===JSON.stringify(['\''1656034616036'\'']))")" = "false"'` → **rc=0**. **HEAD=`ff699f9` 실측 `false` → 충족.** 이 항목은 라이브러리 해시 규약(JSON 직렬화 기반)이 본 계약의 전제로 실재함을 고정한다 — 전제가 무너지면(해시가 타입 무관해지면) 나머지 세 항목의 근거가 사라지므로 함께 재판정해야 한다.
-- [ ] (Must, K-2) 수정 후 무효화 적중 — `staleTime > 0` `QueryClient` 와 문자열 키로 채워진 `['log','detail','<ts>']` 엔트리를 가진 픽스처에서, 수정 뮤테이션 성공 후 그 엔트리의 `isInvalidated` 가 참이다. 판정: 그 픽스처 파일에 대해 `npx vitest run <파일>` → rc=0 **이면서** 파일이 실재. **HEAD=`ff699f9` 실측 — 픽스처 0건 → 미충족.** "무효화를 호출했는가" 가 아니라 **엔트리 상태**로 재는 이유는 `invalidateQueries` 가 매칭 0건에도 resolve 하기 때문이다.
-- [ ] (Must, K-3) 삭제 후 제거 적중 — 같은 픽스처에서 삭제 뮤테이션 성공 후 `queryClient.getQueryData(['log','detail','<ts>'])` 가 `undefined` 다. 판정은 (K-2) 와 동일 명령. **HEAD=`ff699f9` 미충족.**
-- [ ] (Should, K-4) 타입 결정의 단일 지점 — `['log','detail', …]` 키를 조립하는 `src/**` 프로덕션 지점이 전부 동일한 정규화 경로를 경유한다. 판정: `bash -c 'test "$(grep -rnE "\[.log., *.detail." src --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -vE "^[^:]+:[0-9]+:[[:space:]]*\*" | wc -l)" -le 1'` → **rc=0**. **HEAD=`ff699f9` 실측 rc=1 / 3 지점 (`useLog.js:15` · `useUpdateLog.js:34` · `useDeleteLog.js:47`) → 미충족.** 주석 행 3건(`useLog.js:5` · `useDeleteLog.js:9` · `useUpdateLog.js:7`)은 `^<파일>:<행>:<공백>*` 제외 규칙으로 걸러진다 — tick 222 실측 필터 전 **6 line** / 후 **3 line**. 걸러내지 않으면 문서 주석이 위반으로 계수돼 판정이 흔들린다 (초안의 `^[^:]*: *\*` 는 `grep -n` 의 `<파일>:<행>:` 접두를 계산에 넣지 않아 **한 건도 걸러내지 못했다** — tick 222 가 명령을 실제로 실행해 발견하고 교정했다). 상한을 `1` 로 두는 것은 **단일 정규화 지점 그 자체**를 허용하기 위함이다.
+- [x] (Must, K-1 전제) 두 표기가 서로 다른 캐시 엔트리다 — `bash -c 'test "$(node -e "console.log(JSON.stringify([1656034616036])===JSON.stringify(['\''1656034616036'\'']))")" = "false"'` → **rc=0**. **HEAD=`139cd78` (tick 223 재실행) 실측 `false` → 충족.** 이 항목은 라이브러리 해시 규약(JSON 직렬화 기반)이 본 계약의 전제로 실재함을 고정한다 — 전제가 무너지면(해시가 타입 무관해지면) 나머지 세 항목의 근거가 사라지므로 함께 재판정해야 한다.
+- [x] (Must, K-2) 수정 후 무효화 적중 — `staleTime > 0` `QueryClient` 와 문자열 키로 채워진 `['log','detail','<ts>']` 엔트리를 가진 픽스처에서, 수정 뮤테이션 성공 후 그 엔트리가 **무효화됐음이 관측된다**. 판정: `bash -c 'test -f src/Log/hooks/log-detail-cache-key-identity.test.jsx && npx vitest run src/Log/hooks/log-detail-cache-key-identity.test.jsx >/dev/null 2>&1'` → **rc=0**. **HEAD=`139cd78` (tick 223) 실측 rc=0 / 1 file 2 tests passed → 충족** (TSK-20260825-24 / `f69a896`). "무효화를 호출했는가" 가 아니라 **엔트리 상태**로 재는 이유는 `invalidateQueries` 가 매칭 0건에도 resolve 하기 때문이다. **tick 223 서술 정정** — tick 222 판본은 관측량을 `isInvalidated` 플래그로 특정했으나, 착지한 채널은 그보다 하류인 **재마운트 시 보이는 내용**으로 잰다 (`queryClient.setQueryDefaults(['log','detail'], { staleTime: 30_000, gcTime: 300_000 })` 로 **이 키 계층에만** fresh 창을 얹은 뒤, 문자열 키로 채운 엔트리를 숫자 timestamp 수정으로 무효화한 뒤, 같은 문자열 키로 재마운트해 새 내용이 보이는지). 플래그가 아니라 사용자 관측면을 재므로 **더 강한 판정**이며 (플래그가 참이어도 재조회가 안 일어나면 붉어진다), 계약이 요구하는 것은 특정 API 필드가 아니라 적중 그 자체이므로 문면을 채널에 맞춘다.
+- [x] (Must, K-3) 삭제 후 제거 적중 — 같은 픽스처에서 삭제 뮤테이션 성공 후 `queryClient.getQueryData(['log','detail','<ts>'])` 가 `undefined` 다. 판정은 (K-2) 와 동일 명령. **HEAD=`139cd78` (tick 223) 실측 rc=0 → 충족** — 같은 파일이 `getQueryData` 와 `getQueryCache().find()` 를 **둘 다** `undefined` 로 단언한다 (엔트리 껍데기 잔존까지 배제).
+- [x] (Should, K-4) 타입 결정의 단일 지점 — `['log','detail', …]` 키를 조립하는 `src/**` 프로덕션 지점이 전부 동일한 정규화 경로를 경유한다. 판정: `bash -c 'test "$(grep -rnE "\[.log., *.detail." src --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -vE "^[^:]+:[0-9]+:[[:space:]]*\*" | wc -l)" -le 1'` → **rc=0**. **HEAD=`139cd78` (tick 223) 실측 rc=0 / 1 지점 (`src/Log/hooks/logQueryKeys.js:29` `logDetailKey`) → 충족** — 세 호출처가 전부 그 팩토리를 경유한다 (TSK-20260825-24 / `f69a896`). tick 222 등록 시 rc=1 / 3 지점 (`useLog.js:15` · `useUpdateLog.js:34` · `useDeleteLog.js:47`) 이었다. 주석 행 3건(`useLog.js:5` · `useDeleteLog.js:9` · `useUpdateLog.js:7`)은 `^<파일>:<행>:<공백>*` 제외 규칙으로 걸러진다 — tick 222 실측 필터 전 **6 line** / 후 **3 line**. 걸러내지 않으면 문서 주석이 위반으로 계수돼 판정이 흔들린다 (초안의 `^[^:]*: *\*` 는 `grep -n` 의 `<파일>:<행>:` 접두를 계산에 넣지 않아 **한 건도 걸러내지 못했다** — tick 222 가 명령을 실제로 실행해 발견하고 교정했다). 상한을 `1` 로 두는 것은 **단일 정규화 지점 그 자체**를 허용하기 위함이다.
 
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-25 | TSK-20260825-23·24 / `b976979`·`f69a896` (inspector tick 223) | **Phase 1 reconcile — M·K 두 축 7항 전수 플립 (수용 기준 12/19 → 19/19, 미충족 0).** 현 HEAD 재실행 결과: (M-4) 괄호 깊이 판정 rc=0 / 0건, (M-3) 시그니처 grep rc=0, (M-1)(M-2) `mutation-notification-subscription-order.test.jsx` 4 it pass, (K-1) 전제 rc=0, (K-2)(K-3) `log-detail-cache-key-identity.test.jsx` 2 it pass, (K-4) 조립 지점 rc=0 / 1 지점(`logQueryKeys.js:29`). 두 픽스처 합산 2 files 6 tests passed. **`result.md` 주장을 받아쓰지 않고 픽스처 본문을 읽어 관측 표면을 대조했다** — (M-1) 은 `unmount()` 로 구독자 부재 창을 결정적으로 만들고 `common.log` 호출 횟수로 재므로 (R-M2) 의 "자연 발생 경합 의존" 금지를 충족하고, (K-2) 는 `setQueryDefaults` 로 키 계층에만 fresh 창을 얹어 helper 단일 출처성을 깨지 않는다. **본문 정정 1건**: (K-2) 의 관측량을 `isInvalidated` 플래그로 특정한 tick 222 문면을 **재마운트 시 보이는 내용**으로 교체했다 — 착지한 채널이 그 하류를 재며 플래그보다 강한 판정이기 때문이다. 계약이 요구하는 것은 특정 API 필드가 아니라 적중 그 자체다. §발화 채널의 "채널 없음" 서술도 실경로 2건으로 교체했다. | §발화 채널, §테스트 현황, §수용 기준, 본 이력 |
 | 2026-08-25 | REQ-20260825-014 · REQ-20260825-015 (inspector tick 222) | **두 축 최초 등록 — blue `components/log.md` → green carry-over 후 §동작에 `## 뮤테이션 완료 알림 계약 (M)` · `## 단건 캐시 키 동일성 계약 (K)` 신설.** `components/` = `src/` 구현 단위 1:1 원칙에 따라 별 파일을 만들지 않았다 (두 축 모두 `src/Log/**` 귀속). **req 수용 기준을 그대로 쓰지 않았다**: (a) REQ-014 의 `grep -rnE "\.mutate\("` 는 **행 단위라 멀티라인 2번째 인자를 볼 수 없다** — 실물 두 건이 정확히 그 형태다. 괄호 깊이 기반 인자 수 판정으로 교체해 실측 2건(오탐 0, 1인자 호출 미매치)을 얻었다. (b) REQ-014 의 시그니처 grep `\(.+\) =>` 는 **현 HEAD 의 `= () =>` 를 잡지 못하는 것이 아니라 반대로 통과시킨다** — `.+` 가 공백을 먹지 않으니 0 hit 이 맞으나, 착지 후 판정에서 인자 이름이 없는 형태를 구별하지 못한다. `\([A-Za-z_{]` 로 교체했다. (c) REQ-015 의 `node -e "…JSON.stringify(…)"` 자명 명제는 **전제 박제 항목**으로 살렸다 — 라이브러리 해시 규약이 전제이며 무너지면 나머지 세 항목의 근거가 사라진다는 사실을 문장에 명시했다. (d) REQ-015 의 (K-4) 열거 항목은 "전 지점이 동일 경로를 경유한다" 가 사람 판단이라 **지점 수 상한**으로 환원했고, 주석 행 오탐 2건을 제외 규칙으로 걸렀다. **신규 추가 (req 에 없던 항목)**: (R-M3) `mutateAsync` 우회 시 unmount 발화 축과의 동시 충족, (R-K3) 테스트 기본값의 관측 은폐를 회귀 중점으로 승격, (Dir-M2)(Dir-K2) **대조 주입 방향** — 픽스처가 실제로 지연/`staleTime` 을 강제하고 있음을 증명하지 않으면 (Dir-M1)(Dir-K1) 이 다른 이유로 붉었을 가능성을 배제할 수 없다. | §관련 요구사항, §역할, §동작 (M·K 신설), §회귀 중점, §발화 채널 (신설), §테스트 현황, §수용 기준, §참고, 본 이력 |
 | 2026-04-20 | operator / — | 최초 등록 (as-is 서술 spec, blue) | all |
 | 2026-04-21 | inspector / 29d9da0 | REQ-20260421-027 FR-01 흡수 — blue `components/log.md` → green carry-over. § 회귀 중점에 "LogItem DELETE 테스트는 `vitest --sequence.shuffle --sequence.seed={1,2,3}` 에서 race 없이 pass" 불변식 1줄 추가. consumed followup: `specs/10.followups/20260421-0541-test-isolation-shuffle-safety-cold-start-spec-from-blocked.md`. 선행 done req: `20260421-test-isolation-shuffle-safety-cold-start-spec-reseed-from-followup.md` (REQ-017), `20260421-layer2-cold-start-race-root-cause-rediagnosis.md` (REQ-012), `20260420-react-19-findby-timing-stabilization.md`. | §회귀 중점, §스코프 규칙, §테스트 현황, §수용 기준 |
