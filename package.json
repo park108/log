@@ -38,6 +38,7 @@
     "check:branch-discrimination": "bash scripts/check-declared-branch-discrimination.sh",
     "check:api-base-url": "bash scripts/check-api-base-url-totality.sh",
     "check:env-api-base": "bash scripts/check-env-api-base-presence.sh",
+    "check:gate-seam": "bash scripts/check-gate-seam-coverage.sh",
     "check:commit-writer-coherence": "bash scripts/check-commit-writer-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",

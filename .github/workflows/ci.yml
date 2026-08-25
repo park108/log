@@ -115,6 +115,16 @@ jobs:
       - name: Check declared branch discrimination
         run: npm run check:branch-discrimination
 
+      # 게이트 주입 seam 커버리지 (gate-judgement-population-injectable-seam §수용 기준 (E-1)(E-3)(E-4)).
+      # 게이트 **자신의 인터페이스**를 판정한다 — check:* 중 이 축을 재는 것이 이것 하나다.
+      # 이 게이트가 없던 기간에는 누군가 ENV_PRESENCE_SCAN_ROOT seam 을 지워도 pre-commit·CI 가
+      # 전부 초록이었다. seam 이 사라지면 `RULE-06 §게이트 실효 검증` 의 주입 왕복이 불가능해져
+      # **민감도 검증 능력 자체**가 사라진다 (TSK-20260825-28 이 그 부재로 blocked 됐다).
+      # 게이트 목록은 하드코딩하지 않고 glob 으로 도출하며 (RULE-06 §열거 고정 금지)
+      # 도출이 0 이면 위반(1)이 아니라 무판정(2)으로 실패시킨다.
+      - name: Check gate seam coverage
+        run: npm run check:gate-seam
+
       # api base URL 도출 총성 게이트 (api-base-url-assembly-totality §동작 (A-1)(A-3)(A-4)).
       # 미정의 base 가 `undefined + "?limit=10"` → 문자열 `"undefined?limit=10"` 이라는
       # **상대 URL** 로 조립돼 자기 origin 에 요청이 나가고, SPA 폴백이 index.html 을 200 으로

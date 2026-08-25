@@ -63,3 +63,14 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/common/Navigation|scripts/check-declared-branch-discrimination\.sh$)'; then
   bash scripts/check-declared-branch-discrimination.sh || exit 1
 fi
+
+# 게이트 주입 seam 커버리지 — TSK-20260825-38 / spec: foundation/gate-judgement-population-injectable-seam.md §수용 기준 (E-1)(E-3)(E-4)
+# staged 변경에 게이트 스크립트 계열(scripts/check-*.sh) 또는 주입 픽스처가 포함되면 검사.
+# npm script 동치: check:gate-seam (package.json / ci.yml 과 같은 스크립트).
+# 트리거 ERE 가 `scripts/check-` 전체를 덮으므로 **게이트 자신을 수정하는 커밋**도 발화한다 —
+# 게이트만 수정하는 커밋이 자기 자신을 발화시키지 않으면 무력화 변경이 그대로 통과한다.
+# seam 이 사라지면 잃는 것은 편의가 아니라 민감도 검증 능력 자체다. TSK-20260825-28 이
+# 정확히 그 능력 부재로 blocked 됐고, seam 이 생긴 뒤 TSK-20260825-37 로 재발행돼 착지했다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-|scripts/fixtures/)'; then
+  bash scripts/check-gate-seam-coverage.sh || exit 1
+fi
