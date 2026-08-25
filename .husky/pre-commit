@@ -43,3 +43,12 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|scripts/check-api-base-url-totality\.sh$)'; then
   bash scripts/check-api-base-url-totality.sh || exit 1
 fi
+
+# VITE_*_API_BASE 선언·실재 괴리 게이트 — TSK-20260825-27 / spec: foundation/api-base-url-assembly-totality.md §동작 (A-5)
+# staged 변경에 .env* · 선언 파일 · 게이트 스크립트 자신이 포함되면 검사.
+# npm script 동치: check:env-api-base (package.json / ci.yml 과 같은 스크립트).
+# 타입 선언은 런타임 보장이 아니다 — 선언된 키가 실재하지 않으면 조립 결과가
+# "undefined/prod" 가 되고, tsc 는 선언을 참으로 가정하므로 이 괴리를 못 본다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(\.env|src/types/env\.d\.ts$|scripts/check-env-api-base-presence\.sh$)'; then
+  bash scripts/check-env-api-base-presence.sh || exit 1
+fi

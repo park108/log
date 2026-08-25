@@ -36,6 +36,7 @@
     "check:monitor-state-immutability": "bash scripts/check-monitor-state-immutability.sh",
     "check:test-double-shape": "bash scripts/check-test-double-shape-fidelity.sh",
     "check:api-base-url": "bash scripts/check-api-base-url-totality.sh",
+    "check:env-api-base": "bash scripts/check-env-api-base-presence.sh",
     "check:commit-writer-coherence": "bash scripts/check-commit-writer-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",

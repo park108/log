@@ -66,6 +66,17 @@ jobs:
       - name: Check vite env boundary typing
         run: npm run check:vite-env
 
+      # VITE_*_API_BASE 선언·실재 괴리 검증 (api-base-url-assembly-totality §동작 (A-5)).
+      # src/types/env.d.ts 의 `readonly VITE_LOG_API_BASE: string` 은 **런타임 보장이
+      # 아니다** — 키가 .env* 에 없거나 값이 비면 조립 결과는 "undefined/prod" 또는
+      # "/prod" 가 된다. 도출 총성(check:api-base-url)이 성립해도 같은 결과에 도달하는
+      # 두 번째 경로이고, tsc 는 선언을 참으로 가정하므로 이 괴리를 구조적으로 못 본다.
+      # 판정은 두 층이다: 키 행 실재는 커밋된 env 파일 전부, 값 실재는 템플릿
+      # (*.example) 제외. 키·파일 목록은 하드코딩하지 않고 도출하며
+      # (RULE-06 §열거 고정 금지) 도출이 공허하면 exit 2 로 구별해 실패시킨다.
+      - name: Check env api base presence
+        run: npm run check:env-api-base
+
       - name: Typecheck
         run: npm run typecheck
 
