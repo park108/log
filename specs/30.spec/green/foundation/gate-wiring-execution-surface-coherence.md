@@ -56,7 +56,6 @@
 - [ ] `.husky/pre-commit` 의 각 발화 조건 블록에 대해, 같은 블록이 호출하는 스크립트 경로가 그 조건 정규식에 매치한다 — `node -e "const fs=require('fs');const R=/scripts\/[A-Za-z0-9._\/-]+\.sh/g;const L=fs.readFileSync('.husky/pre-commit','utf8').split('\n').map(l=>l.replace(/#.*/,''));let b=0,pr=0,bad=0,re=null,cur=[];const fl=()=>{if(re)for(const q of cur){pr++;if(!new RegExp(re).test(q))bad++}re=null;cur=[]};for(const l of L){const m=l.match(/grep -qE '(.*)'/);if(m){fl();re=m[1];b++;continue}if(/^\s*fi\b/.test(l)){fl();continue}if(re)cur.push(...(l.match(R)||[]))}fl();console.log(b>=1&&pr>=1?1:0,bad);process.exit(b&&pr&&!bad?0:1)"` → 출력 `1 0` / rc=0. 각 라인의 `#` 이후 구간은 계수 전에 절단한다(FR-03). 첫 필드는 조건 블록 수와 (블록, 스크립트) 쌍 수가 모두 ≥1 임을 단언한다 — 어느 한쪽이 0 이면 불일치 0 이 되어 초록으로 읽히므로 위반이다. 블록·쌍 절대값은 고정하지 않는다.
 - [ ] 배선 정합 게이트가 `package.json scripts.check:*` 에 등재되고 `.github/workflows/ci.yml` 에서 실행 라인으로 호출된다 — `node -e "const fs=require('fs');const K='check:gate-wiring';const s=require('./package.json').scripts;const a=typeof s[K]==='string'&&s[K].trim().length>0?1:0;const ci=fs.readFileSync('.github/workflows/ci.yml','utf8').split('\n').map(l=>l.replace(/#.*/,'')).filter(l=>/run:\s*npm run check:gate-wiring(\s|$)/.test(l)).length;console.log(a,ci?1:0);process.exit(a&&ci?0:1)"` → 출력 `1 1` / rc=0. ci 측 계수는 주석 절단 후 `run:` 실행 라인에 한정한다 — 단순 문자열 포함 계수는 `ci.yml` 주석에 적힌 게이트 이름을 배선으로 오인한다(FR-03).
 - [x] 도출 명령이 공집합을 초록으로 읽지 않는다 — `node -e "const s=require('./package.json').scripts;const p=[...new Set(Object.entries(s).filter(([k])=>k.startsWith('check:')).flatMap(([,v])=>v.match(/scripts\/[A-Za-z0-9._\/-]+\.sh/g)||[]))];console.log(p.length>=1?1:0);process.exit(p.length?0:1)"` → 출력 `1` / rc=0 (RULE-06 §추출 실패 검출). 도출 개수 절대값은 고정하지 않는다.
-- [ ] 기존 게이트 회귀 0 — `npm test` rc=0.
 
 ## 참고
 
@@ -68,6 +67,7 @@
 - 위 두 이관 항목(FR-03 · FR-05)의 이관처 task 는 현 HEAD 에 아직 없다. 배선 정합 게이트 도입 task 발행이 필요하며, 그 task 의 `## 검증/DoD` 에 두 방향 주입을 `injection: 2/2 detect` 로 박제한다.
 - FR-05 (Should) 의 "staged 아님에도 정상 판정" 은 게이트 도입 시점 1회 주입으로만 확인 가능하므로, 그 주입은 게이트 도입 task 의 DoD 로 이관한다 (RULE-06 §게이트 실효 검증, RULE-07 §처리 — 이관처: 배선 정합 게이트 도입 task).
 - `scripts/check-commit-writer-coherence.sh` 의 경로 분류 12갈래 중 8갈래(`10.followups` · `20.req` · `40.task` · `50.blocked/{req,task}` · `60.done/*/{req,task,followups}`)는 해당 경로가 gitignore 대상이라 커밋 diff 에 실릴 수 없어 구조적으로 도달 불가다. 배선은 살아 있으나 집행 대상이 공집합인 형태 — 본 계약 방어 대상 (1) 의 사촌 축이며 별도 req 로 다룬다.
+- 기존 게이트 회귀 0(`npm test` rc=0)은 본 계약의 수용 기준에서 제외한다. 회귀 부재는 이미 pre-commit·ci 가 집행하는 명제라 여기 체크박스로 두면 중복 게이트이며(RULE-07 §반려 시그널), 본 계약은 코드 변경을 스스로 만들지 않아 판정 시점도 계약에 귀속되지 않는다. 회귀 검증의 귀속처는 배선 정합 게이트 도입 task 의 `## 검증/DoD` 다 — 그 task 발행 요청은 `specs/10.followups/20260826-1830-gate-wiring-coherence-gate-issuance.md` 에 이미 있다.
 
 ### 관측 근거
 
@@ -104,3 +104,4 @@
 - 2026-08-26 inspector: 수용 기준 1항(FR-01 단일 형태) 판정 명령을 공집합 비-초록 단언 포함으로 박제 후 실행 — 출력 `1 1` rc=1, 위반 1건(`check:build-artifact` 인라인 셸)으로 `[ ]` 유지.
 - 2026-08-26 inspector: 수용 기준 4항(FR-04) 판정 명령에 (블록, 스크립트) 쌍 수 ≥1 단언 추가 후 재실행 — 출력 `1 4` rc=1, 불일치 4건으로 `[ ]` 유지. 쌍 수 0 이면 불일치 0 이 되어 초록으로 읽히던 공집합 경로를 차단.
 - 2026-08-26 inspector: 수용 기준 5항(발화 채널 실재) ci 계수를 주석 절단 후 `run: npm run <key>` 실행 라인 한정으로 좁힘 — 음성 대조 `check:gate-wiring` rc=1 (`0 0`), 양성 대조 `check:deps`·주석+실행 혼재 `check:commit-writer-coherence` rc=0 (`1 1`). `[ ]` 유지 — RULE-07 §promote 조건 4 상 채널 부착 task 발행이 선행 조건.
+- 2026-08-26 inspector: 수용 기준 7항(`npm test` 회귀 0)을 §미측정·비판정 항목으로 강등 — 기존 자동 게이트 중복 명제이며 귀속처는 게이트 도입 task DoD (이관처 followup 기발행).
