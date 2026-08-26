@@ -50,12 +50,12 @@
 
 ### 발화 채널 (RULE-07 §promote 조건 4)
 
-본 계약의 Must 판정이 발화할 실경로는 `package.json scripts.check:*` 등재 + `.github/workflows/ci.yml` 의 `run:` 실행 라인 또는 `.husky/*` 실행 라인 ≥ 1 이다. 현 HEAD 에 채널이 없으면 promote 차단이 아니라 **채널 부착 task 발행이 선행 조건**이다.
+본 계약의 Must 판정은 집행 게이트 키 **`check:gate-firing-channel`** 로 발화한다. 실경로는 `package.json` → `scripts.check:gate-firing-channel` 등재 + `.github/workflows/ci.yml` 의 `run:` 실행 라인 또는 `.husky/*` 실행 라인 ≥ 1 이다. 현 HEAD 에 채널이 없으면 promote 차단이 아니라 **채널 부착 task 발행이 선행 조건**이다.
 
 ## 수용 기준
 
 - [ ] (FR-01·02·03·04·05) 발화 채널 0 인 `check:*` 가 없다 — `node -e "const fs=require('fs'),R=/scripts\/[A-Za-z0-9._\/-]+\.sh/g;const s=require('./package.json').scripts;const K=Object.keys(s).filter(k=>k.startsWith('check:'));const cut=t=>t.split('\n').map(l=>l.replace(/#.*/,''));const ci=cut(fs.readFileSync('.github/workflows/ci.yml','utf8'));const H=fs.readdirSync('.husky').filter(f=>fs.statSync('.husky/'+f).isFile()).map(f=>cut(fs.readFileSync('.husky/'+f,'utf8'))).flat();const key=new Set(),pth=new Set();ci.forEach(l=>{const m=l.match(/run:\s*npm run (check:[A-Za-z0-9:._-]+)/);if(m)key.add(m[1])});H.forEach(l=>{const m=l.match(/npm run (check:[A-Za-z0-9:._-]+)/);if(m)key.add(m[1]);(l.match(R)||[]).forEach(x=>pth.add(x))});const dead=K.filter(k=>!key.has(k)&&!(s[k].match(R)||[]).some(x=>pth.has(x)));console.log(K.length>=1&&H.length>=1&&ci.length>=1?1:0,dead.length,dead.join(','));process.exit(K.length&&H.length&&ci.length&&!dead.length?0:1)"` → 출력 `1 0` / rc=0. 첫 필드는 세 도출(대상 키 · 훅 라인 · ci 라인)이 전부 비어있지 않음을 단언한다(FR-05). 둘째 필드는 채널 0 키의 개수, 셋째는 그 키 이름 열거다(FR-01). 대상 키는 `check:` 접두 열거, 훅 파일은 `.husky/` 디렉터리 열거로 도출하며 개수·이름을 고정하지 않는다(FR-04·07). 모든 라인은 `#` 이후 절단 후 계수한다(FR-03).
-- [ ] (FR-06) 집행 게이트가 `check:*` 에 등재되고 위 판정의 대상 집합에 포함되며 dead 로 열거되지 않는다.
+- [ ] (FR-06) 집행 게이트 `check:gate-firing-channel` 이 `package.json scripts` 에 등재되고 자신도 발화 채널 ≥ 1 을 갖는다 — `node -e "const fs=require('fs'),R=/scripts\/[A-Za-z0-9._\/-]+\.sh/g,K='check:gate-firing-channel';const s=require('./package.json').scripts;const a=typeof s[K]==='string'&&s[K].trim().length>0?1:0;const cut=t=>t.split('\n').map(l=>l.replace(/#.*/,''));const L=cut(fs.readFileSync('.github/workflows/ci.yml','utf8')).concat(fs.readdirSync('.husky').filter(f=>fs.statSync('.husky/'+f).isFile()).map(f=>cut(fs.readFileSync('.husky/'+f,'utf8'))).flat());const own=a?(s[K].match(R)||[]):[];const ch=L.filter(l=>new RegExp('npm run '+K+'(\\s|$)').test(l)||own.some(x=>l.includes(x))).length;console.log(a,ch?1:0);process.exit(a&&ch?0:1)"` → 출력 `1 1` / rc=0. 등재된 순간 그 키는 1항 판정의 모집단에 들어오므로, 채널 미부착이면 1항이 자기 자신을 dead 로 열거한다. 채널 계수는 주석 절단 후 실행 라인 한정이며 ci·훅 어느 쪽이든 1건이면 충족이다(FR-02 합집합, 수단 미지정).
 - [ ] (FR-04·07) 판정 스크립트 본문에 게이트 개수·스크립트명·훅 파일명 리터럴이 없다 (자기 파일명 제외).
 
 ## 참고
@@ -87,6 +87,7 @@
 - 도입 커밋 `d7b08dd` 의 변경 파일 5건에 `ci.yml` 과 `.husky/*` 가 **포함되지 않았다**. `git rev-list --count d7b08dd..HEAD` = **54**.
 - 종수는 req 작성 시점 21종에서 22종으로 증가했다 — 판정은 절대 종수를 고정하지 않는다 (FR-07).
 - 판정 (HEAD `9cf62a4`, inspector 재실행): 명령을 본 파일에서 추출(len=900, 비어있지 않음 단언 통과) 후 실행 → 출력 `1 1 check:measurement-tree-attribution` / rc=1 — **미충족**. 목표는 `1 0` / rc=0 이다. 첫 필드 1 은 세 도출이 전부 비공집합임을 뜻한다(FR-05 자기 차단 통과).
+- 판정 2항 (HEAD `9cf62a4`): 명령 추출(len=631) 후 실행 → 출력 `0 0` / rc=1 — 집행 게이트 `check:gate-firing-channel` **미등재**. 판정력 대조 (같은 로직에 키만 치환): `check:deps` → `1 1` rc=0 (훅 배선), `check:gate-seam` → `1 1` rc=0 (ci 배선), `check:measurement-tree-attribution` → `1 0` rc=1 (등재됐으나 채널 0). 등재·채널 두 축을 각각 판별한다.
 - 특이도 인메모리 대조 (discovery `REQ-20260827-030` 실측, 재인용): `ci.yml` 에 `run:` **실행 라인** 추가 → `dead=0`, 같은 내용을 **주석**으로 추가 → `dead=1 check:measurement-tree-attribution`. 주석 절단(FR-03)이 실제로 작동한다.
 
 ### 관련 문서
@@ -100,3 +101,4 @@
 
 - 2026-08-27 inspector: REQ-20260827-030 흡수 — green 신규 등록 (골격). 판정 명령 박제·실행은 후속 단위 커밋.
 - 2026-08-27 inspector: 수용 기준 1항 판정 명령 박제 후 추출·실행 — 출력 `1 1 check:measurement-tree-attribution` rc=1 로 `[ ]` 유지. 채널 부착 또는 집행 게이트 신설이 선행 조건.
+- 2026-08-27 inspector: 수용 기준 2항(FR-06 집행 게이트 자기 발화) 판정 명령 박제 + 집행 게이트 키를 `check:gate-firing-channel` 로 지정 후 실행 — 출력 `0 0` rc=1 로 `[ ]` 유지. RULE-07 §promote 조건 4 상 채널 부착(게이트 신설) task 발행이 선행 조건이다.
