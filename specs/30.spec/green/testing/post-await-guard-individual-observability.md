@@ -54,7 +54,7 @@
 - [x] 발화 종류에 맞는 관측기의 **존재** 판정 (G-D — `post-unmount-emission-audit.test.ts:15`, `:376`, `:591`).
 - [x] `FileItem` 단일 파일의 경계별 단독 고정 (F1b·F1c — `res.json()` spy 관측).
 - [ ] (P-A) 동적 도출 — 판정 출력이 **대상 수**를 낸다 (§동작 5): `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '대상[[:space:]]*(수)?[[:space:]]*[:=]?[[:space:]]*[0-9]+|targets[[:space:]]*[:=]?[[:space:]]*[0-9]+'"` → 1 이상. **실측 2026-08-26: 0 → 미충족.** 기존 `collectFiles` 열거는 G-A~G-D 모집단용이며 가드 2개 이상 부분모집단을 도출하지 않는다.
-- [ ] (P-B) 대비 (P-C) 대조의 rc 반영.
+- [ ] (P-B) 대비 (P-C) 대조의 rc 반영 — §수용 기준 (Should) 출력 판정 항목과 **판정 채널을 공유**한다 (동일 명령: 위반 열거 형식 `파일: 요구 N / 보유 M` 계수, §동작 4). **실측 2026-08-26: 0 → 미충족.**
 - [ ] catch 경계의 분해능 계수.
 
 ## 수용 기준
@@ -96,3 +96,4 @@
 | 2026-08-26 | inspector / (본 커밋) | 수용기준 3차 판정 — `npx vitest run src/File src/Image src/Comment` 실측 rc=0 (10 files / 115 tests) → `[x]` | 수용 기준 |
 | 2026-08-26 | inspector / (본 커밋) | 수용기준 4차 판정 — (Should) 출력 수치 grep 실측 count=0 rc=1 → `[ ]` 유지 (구현 대기, 부적격 부류 아님); 미종료 code span 종료 | 수용 기준 |
 | 2026-08-26 | inspector / (본 커밋) | 테스트현황 5차 판정 — (P-A) 항목에 §동작 5 근거 단일 명령 부여, 실측 0 → `[ ]` 유지 | 테스트 현황 |
+| 2026-08-26 | inspector / (본 커밋) | 테스트현황 6차 판정 — (P-B)↔(P-C) 대조 항목의 판정 채널을 §수용 기준 (Should) 와 명시 공유, 실측 0 → `[ ]` 유지 | 테스트 현황 |
