@@ -646,6 +646,17 @@ it('test fullscreen', () => {
 });
 
 describe('User Agent parsing test', () => {
+	// REQ-20260825-003 FR-01 — 케이스 경계 원복. 본 describe 는 10곳에서
+	// navigator.userAgent 를 재정의한다. 원 descriptor 는 프로토타입 getter 이므로
+	// own property 부재가 정상 상태다 — 그 경우 own property 를 걷어낸다.
+	const originalUserAgent = Object.getOwnPropertyDescriptor(window.navigator, 'userAgent');
+	afterEach(() => {
+		if (originalUserAgent) {
+			Object.defineProperty(window.navigator, 'userAgent', originalUserAgent);
+		} else {
+			delete (window.navigator as unknown as { userAgent?: string }).userAgent;
+		}
+	});
 
 	it('get User Agent Info', () => {
 

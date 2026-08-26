@@ -64,6 +64,17 @@ beforeEach(() => {
 	});
 });
 
+// REQ-20260825-003 FR-01 — clipboard 는 최상위 beforeEach 와 케이스 본문(현 L491)
+// 두 곳에서 재정의된다. jsdom 기본 navigator 에 own clipboard 는 없다.
+const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+afterEach(() => {
+	if (originalClipboard) {
+		Object.defineProperty(navigator, 'clipboard', originalClipboard);
+	} else {
+		delete navigator.clipboard;
+	}
+});
+
 it('redirect if not admin', async () => {
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(false);
