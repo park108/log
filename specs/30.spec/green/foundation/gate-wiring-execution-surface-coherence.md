@@ -55,7 +55,7 @@
 - [x] `.husky/pre-commit` 실행 라인에서 호출되는 `scripts/*.sh` 경로 집합이 `scripts.check:*` 도출 경로 집합의 부분집합이다 — `node -e "const fs=require('fs');const R=/scripts\/[A-Za-z0-9._\/-]+\.sh/g;const s=require('./package.json').scripts;const D=new Set(Object.entries(s).filter(([k])=>k.startsWith('check:')).flatMap(([,v])=>v.match(R)||[]));const H=[...new Set(fs.readFileSync('.husky/pre-commit','utf8').split('\n').map(l=>l.replace(/#.*/,'')).join('\n').match(R)||[])];const d=H.filter(x=>!D.has(x));console.log(d.length);process.exit(H.length&&!d.length?0:1)"` → 출력 `0` / rc=0. 각 라인의 `#` 이후 구간은 계수 전에 절단하며(FR-03), 훅 도출 개수 0 이면 `rc≠0`.
 - [ ] `.husky/pre-commit` 의 각 발화 조건 블록에 대해, 같은 블록이 호출하는 스크립트 경로가 그 조건 정규식에 매치한다 — `node -e "const fs=require('fs');const R=/scripts\/[A-Za-z0-9._\/-]+\.sh/g;const L=fs.readFileSync('.husky/pre-commit','utf8').split('\n').map(l=>l.replace(/#.*/,''));let b=0,bad=0,re=null,cur=[];const fl=()=>{if(re)for(const q of cur)if(!new RegExp(re).test(q))bad++;re=null;cur=[]};for(const l of L){const m=l.match(/grep -qE '(.*)'/);if(m){fl();re=m[1];b++;continue}if(/^\s*fi\b/.test(l)){fl();continue}if(re)cur.push(...(l.match(R)||[]))}fl();console.log(bad);process.exit(b&&!bad?0:1)"` → 출력 `0` / rc=0. 블록 도출 개수 0 이면 `rc≠0`.
 - [ ] 배선 정합 게이트가 `package.json scripts.check:*` 에 등재되고 `.github/workflows/ci.yml` 에서 실행된다 — `node -e "const fs=require('fs');const K='check:gate-wiring';const s=require('./package.json').scripts;const a=typeof s[K]==='string'&&s[K].trim().length>0?1:0;const ci=fs.readFileSync('.github/workflows/ci.yml','utf8').split('\n').map(l=>l.replace(/#.*/,'')).filter(l=>l.includes(K)).length;console.log(a,ci?1:0);process.exit(a&&ci?0:1)"` → 출력 `1 1` / rc=0. 두 파일 모두 주석 절단 후 실행 라인 기준으로 계수한다.
-- [ ] 도출 명령이 공집합을 초록으로 읽지 않는다 — `check:*` 도출 경로 개수 ≥ 1 을 단언하고, 개수 0 이면 `rc≠0` (RULE-06 §추출 실패 검출).
+- [x] 도출 명령이 공집합을 초록으로 읽지 않는다 — `node -e "const s=require('./package.json').scripts;const p=[...new Set(Object.entries(s).filter(([k])=>k.startsWith('check:')).flatMap(([,v])=>v.match(/scripts\/[A-Za-z0-9._\/-]+\.sh/g)||[]))];console.log(p.length>=1?1:0);process.exit(p.length?0:1)"` → 출력 `1` / rc=0 (RULE-06 §추출 실패 검출). 도출 개수 절대값은 고정하지 않는다.
 - [ ] 기존 게이트 회귀 0 — `npm test` rc=0.
 
 ## 참고
@@ -99,3 +99,4 @@
 - 2026-08-26 inspector: 수용 기준 3항(훅 호출 ⊆ npm script 도출) 판정 명령 박제 후 실행 — 훅 실행 라인 도출 9건, 차집합 0건 rc=0, `[x]` 확정.
 - 2026-08-26 inspector: 수용 기준 4항(FR-04 발화 조건 자기 포함) 판정 명령 박제 후 실행 — 블록 9건 중 불일치 4건 rc=1, `[ ]` 유지 (§관측 근거 표와 일치).
 - 2026-08-26 inspector: 수용 기준 5항(발화 채널 실재) 판정 명령 박제 후 실행 — `check:gate-wiring` 미등재·ci step 부재로 출력 `0 0` rc=1, `[ ]` 유지. RULE-07 §promote 조건 4 상 채널 부착 task 발행이 선행 조건이다.
+- 2026-08-26 inspector: 수용 기준 6항(공집합 비-초록) 판정 명령 박제 후 실행 — 도출 개수 ≥1 단언 rc=0, `[x]` 확정. 절대 개수는 고정하지 않는다.
