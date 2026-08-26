@@ -13,7 +13,19 @@
 - 다른 에이전트 큐 파일 내용 수정.
 - `rm -rf`, `git reset --hard`, `git clean -f`, `git checkout -- .`, `git push --force*`, `git config`, `--no-verify`, `git commit --amend`.
 - 삭제 필요 시 `mv` 로 대체.
+- **자기가 만들지 않은 워킹트리 변경의 원복** (§교차 작업 파괴). 경로를 지목한 `git checkout <path>` · `git restore <path>` · 백업 덮어쓰기도 포함한다 — 위 금지 목록의 `git checkout -- .` 류만 피하면 되는 것이 아니다.
+- **메인 워킹트리에서의 프로토타이핑.** 실험은 저장소 밖 임시 경로에서 한다. `git worktree` 를 쓰더라도 산출이 메인 트리에 새지 않는지 확인한다.
 - **예외**: `RULE-03 §정체 감지` 가 정한 lock 자가 생성(`.claude/locks/**`)·`50.blocked/pipeline/` 쓰기·`.claude/reports/<agent>.ndjson` append 는 자기 writer 영역으로 간주한다. **lock 삭제는 운영자 전용.**
+
+### 교차 작업 파괴 (2026-08-24 관측 · 2026-08-26 명문화)
+
+> planner 가 `git worktree` 프로토타이핑 산출을 메인 트리에 흘렸고, 이를 "즉시 원복" 하면서 자기가 만들지 않은 developer 의 **미커밋 작업을 blind revert** 했다. developer 는 `git checkout`·`reset`·`clean` 을 한 번도 실행하지 않았는데 `nothing to commit, working tree clean` 을 만나 이를 감지했다. 복구된 것은 순전히 운이었다 — 주입 절차의 부산물로 `cp -p` 백업이 남아 있었다.
+
+- 워킹트리 원복은 **자기가 이 세션에서 만든 변경에 한정**한다. 그 밖은 원복 대상이 아니라 **다른 writer 의 작업**이다.
+- 파괴가 의심되면 **추가 조치 없이 즉시 중단**하고 `50.blocked/pipeline/` 에 박제한다. 되살리려는 시도가 2차 파괴가 된다.
+- **파괴 창과 겹친 측정은 무효다.** 그 구간의 `rc` 는 존재하지 않는 트리의 rc 이며 `RULE-07 §promote 조건 2` · `RULE-06 §게이트 실효 검증` 의 증거로 쓸 수 없다. 재측정 전까지 그 수치를 보고에 박제하지 않는다.
+
+> 실제 피해가 더 컸던 쪽은 파일이 아니라 **측정 귀속**이었다. developer 는 파괴 창이 `npm test`·`build`·`check:*` 구간과 겹쳤다는 이유로 1차 검증 라운드 전체를 폐기해야 했다.
 
 ## 커밋 / 푸시
 - 세션 시작: 자기 영역 밖 staged 항목은 `git reset HEAD -- <path>` 로 언스테이지.
