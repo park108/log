@@ -1,8 +1,8 @@
 # Monitor 컴포넌트 (관리자 대시보드)
 
 > **위치**: `src/Monitor/` (Monitor.jsx, ContentMon.jsx, ContentItem.jsx, ApiCallMon.jsx, ApiCallItem.jsx, WebVitalsMon.jsx, WebVitalsItem.jsx, VisitorMon.jsx, api.js, api.mock.js, Monitor.css)
-> **관련 요구사항**: — (셸 축은 as-is 서술) / REQ-20260825-001 (파생 state 축) / REQ-20260825-006 (렌더 값 유효성 축)
-> **최종 업데이트**: 2026-08-25 (by inspector — tick 222. 셸 축 6항에 판정 명령을 부착하고 §테스트 현황 2항의 거짓 서술을 정정했다. 이로써 세 축 27 항목이 전부 명령 1회 rc 판정 가능하며 unchecked 는 0 이다. 이전: tick 221. blue 판본을 green 으로 내려 **렌더 값 유효성 축(V-1~V-6)을 병합**했다. 운영자가 세운 `components/` = 구현 단위 1:1 원칙의 두 번째 적용이며, 축의 스코프가 `src/Monitor/WebVitalsItem` 이라 `monitor` 에 귀속된다. 승격 시 blue 판본을 그대로 대체한다 — 셸·파생 state 축은 손대지 않았다)
+> **관련 요구사항**: — (셸 축은 as-is 서술) / REQ-20260825-001 (파생 state 축) / REQ-20260825-006 (렌더 값 유효성 축) / REQ-20260825-009 (렌더 역할 네임스페이스 축)
+> **최종 업데이트**: 2026-08-27 (by operator — `components/monitor-render-role-class-namespace-disjointness` 를 4번째 축으로 병합. `components/` 는 `src/` 구현 단위와 1:1 이라는 운영자 원칙에 따른다. 이전 갱신: 2026-08-25 tick 222. 셸 축 6항에 판정 명령을 부착하고 §테스트 현황 2항의 거짓 서술을 정정했다. 이로써 세 축 27 항목이 전부 명령 1회 rc 판정 가능하며 unchecked 는 0 이다. 이전: tick 221. blue 판본을 green 으로 내려 **렌더 값 유효성 축(V-1~V-6)을 병합**했다. 운영자가 세운 `components/` = 구현 단위 1:1 원칙의 두 번째 적용이며, 축의 스코프가 `src/Monitor/WebVitalsItem` 이라 `monitor` 에 귀속된다. 승격 시 blue 판본을 그대로 대체한다 — 셸·파생 state 축은 손대지 않았다)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (셸 축 2026-04-20 · 파생 state 축 `8da63f6` · 렌더 값 유효성 축 `6f58541`).
 
@@ -119,6 +119,29 @@ el.style.width = 'NaN%'
    - **tick 220 판본의 근거 1건을 정정한다.** 그 판본은 "평가 분기(`75 <= goodRate` / `25 < poorRate`)가 문자열 `rate` 를 비교하므로 반환값 변경이 `evaluation` 산출까지 흔든다" 를 V-6 의 주된 근거로 들었다. **재현되지 않는다** — `""` 와 `"0"` 은 관계 비교에서 **둘 다 `0` 으로 강제변환**되므로 두 분기 결과가 동일하고, 0 집계의 `evaluation` 은 어차피 `0 < totalCount` 가 거짓이라 `"None"` 으로 떨어진다. `count === 0` 인 슬롯은 `totalCount > 0` 인 경우에도 마찬가지로 두 표기가 같은 비교 결과를 낸다 (inspector tick 221 실측 · TSK-20260825-12 developer 최초 관측).
    - 따라서 V-6 을 Must 로 두는 이유는 **사용자에게 보이는 텍스트** 하나이며, 그것으로 충분하다. 잘못된 인과를 근거로 남겨두면 이후 판단이 그 위에 쌓인다.
 
+### 렌더 역할 네임스페이스 계약
+
+대상은 `src/Monitor/WebVitalsItem.jsx` 의 렌더 트리 — `HEADER_STYLE` `:9-15`(평가 라벨, 역할 전용 슬롯 `span--monitor-evaluation-*`) · 막대 렌더 `:213-219`(`span--monitor-bar` + `span--monitor-{good,warn,poor}`). 슬롯 CSS `src/Monitor/Monitor.css:50-67`(막대) · `:73-86`(헤더), 역할 기하 `:38`(`bar`) · `:43`(`evaluation`).
+
+**역할이 다른 요소는 서로소인 클래스 집합을 갖는다.** 따라서 색상 슬롯 클래스 1개짜리 단독 선택자는 **정확히 하나의 역할**만 선택하며, 그 선택 결과가 DOM 문서 순서에 의존하지 않는다.
+
+핵심 명제 — **식별 가능성은 마크업의 책임이지 소비자의 책임이 아니다.** 현행은 "슬롯 클래스만으로는 요소를 식별할 수 없으니 소비자가 항상 복합 선택자를 써야 한다" 는 **암묵 규칙**에 의존하는데, 그 규칙은 어디에도 강제돼 있지 않고 위반해도 아무것도 붉어지지 않는다.
+
+이 축이 의도적으로 하지 **않는** 것:
+- (i) **색상 값·CSS 변수 자체를 바꾸지 않는다.** 동일 변수 재사용은 허용이며 시각 결과는 불변이어야 한다 ((N-3)).
+- (ii) **집계 로직·평가 분기를 다루지 않는다.** 막대 폭의 **값** 유효성은 위 §렌더 값 유효성 계약 소관이며, 이 축은 막대의 **식별** 결정성이다 — 판정 대상이 다르다.
+- (iii) **`src/Monitor` 밖으로 일반화하지 않는다.** 다른 컴포넌트의 역할-슬롯 공유 여부는 미측정이다 (§참고).
+
+1. **(N-1) 오선택이 예외가 아니라 무해한 값으로 관측되므로 조용하다** — `document.querySelector('.span--monitor-poor')` 는 **헤더**를 집는다 (헤더 `:205`, 막대 `:213-219` — 문서 순서상 헤더가 앞선다). 헤더에는 인라인 `style` 이 없으므로 `style.width` 가 예외를 던지지 않고 **빈 문자열**로 읽힌다. 즉 잘못된 요소를 집었다는 사실이 오류로 드러나지 않는다.
+   - tick 225 실측 (HEAD=`5b2ed3b`): 헤더 슬롯 4종 · 막대 슬롯 3종 · **공유 3종** (`span--monitor-good` · `span--monitor-poor` · `span--monitor-warn`).
+   - **착지 (TSK-20260826-34 / `627d8e6`, tick 226 ack)** — 헤더 슬롯이 `span--monitor-evaluation-*` 네임스페이스로 분리돼 **공유 0** 이다. 위 서술은 계약이 겨누는 **실패 형상**의 기록으로 존치한다 — 재발 시 같은 관측이 다시 성립한다.
+2. **(N-2) 0 경계에서만 통과하는 비대칭이 검출을 늦춘다** — **0 집계에서는 헤더 슬롯이 `span--monitor-none`** 이라 막대 슬롯과 충돌하지 않는다. 그래서 0 경계 케이스는 통과하고 **비-0 경로에서만** 어긋난다 — 경계값 테스트를 먼저 갖춘 스위트일수록 늦게 발견된다.
+   - **방어 대상 (`RULE-07 §주제 우선순위` 축 1 — 사용자 관측 가능 렌더 결과)**: 슬롯 클래스로 막대를 지목하는 모든 소비자(테스트 · 스타일 · 향후 쿼리)가 **비-0 경로에서 조용히 헤더를 집는다.**
+3. **(N-3) 역할 분리는 시각 결과를 바꾸지 않는다** — 역할별 슬롯이 분리돼도 두 역할의 색은 **동일 CSS 변수**(`--success-*` · `--warning-*` · `--error-*` · `--normal-*`)를 참조한다. 현행 슬롯 규칙은 색 리터럴을 하나도 쓰지 않으며(tick 225 실측 `slot-rules=4 color-literals=0`), 분리 과정에서 리터럴로 재구현하면 시각 회귀가 조용히 들어온다 — **(N-8)** 이 그 방향을 막는다. **tick 226 착지 후 실측** `slot-tokens=9 css-rules=9 color-literals=0` — 분리된 헤더 슬롯 3종도 대응 막대 슬롯과 **같은 CSS 변수**를 참조한다 (`Monitor.css:73,:78,:83` vs `:50,:55,:60`).
+4. **(N-4) 우회는 이미 소비자 쪽에 들어와 있다** — `TSK-20260825-12` 의 T-3 이 이 함정에 걸려 red 였다 (`expected '' to be '33.333333333333336%'`). 우회는 `.span--monitor-bar.<slot>` **복합 선택자로 테스트에 들어갔고**(`WebVitalsItem.test.jsx:419` `BAR_SELECTOR`), 원인인 마크업은 그대로였다.
+   - **따라서 복합 선택자의 잔존은 이 축의 미충족 지표다** — 계약이 충족되면 소비자는 역할 모호성 회피 목적의 복합 선택자를 **필요로 하지 않는다**.
+   - **착지 (tick 226 ack)** — `BAR_SELECTOR` 우회가 제거됐다. 현재 `:457` 은 `.span--monitor-bar` 단독으로 막대를 집고, `:494`·`:542` 는 **단독 슬롯 선택자로 집힌 요소가 막대임**을 역으로 단언한다 — 우회 지점이 계약의 측정 지점으로 뒤집혔다.
+
 ## 의존성
 
 - 외부: `react`, `react-router-dom`, `prop-types`. 파생 state 축은 React `useState` / `useEffect` 참조 동일성 의미론 (`Object.is` bail-out), `msw` (테스트 서버), `vitest` + `@testing-library/react`.
@@ -145,6 +168,11 @@ el.style.width = 'NaN%'
 3. (R-7) 대칭화가 텍스트를 바꿈 — `toRate` 의 `""` 를 `"0"` 등으로 통일. V-6 이 차단한다. **가장 실현 가능성이 높은 회귀**다. "대칭" 을 반환값 통일로 읽으면 자연스럽게 도달하는 오답이기 때문이다.
 4. (R-8) **판정이 문구 부재로 되돌아감** — `NaN` 문구를 찾는 단정으로 회귀하면 게이트는 초록인 채 검출력만 0 이 된다 (§역할 실측). 유효성 패턴 매치를 값 판정의 형태로 고정하는 것이 이 회귀의 유일한 방어다.
 5. (R-9) **관측 표면이 헤더로 미끄러짐** — 슬롯 클래스 단독 선택자로 되돌아가면 비-0 경로에서만 헤더를 재는 상태가 된다 (§공개 인터페이스). 비-0 기준값 단언(V-4)이 이 미끄러짐을 함께 잡는다 — 헤더의 폭은 `""` 라 리터럴 단언에서 즉시 탈락한다.
+
+### 렌더 역할 네임스페이스
+1. (R-10) **역할 슬롯 재공유** — 헤더 슬롯을 `span--monitor-evaluation-*` 에서 되돌리거나, 신설 역할이 막대 슬롯 토큰을 재사용하는 부류. (N-5) 가 두 집합의 교집합으로 잡는다.
+2. (R-11) **복합 선택자 우회의 재도입** — 소비자가 `.span--monitor-bar.<slot>` 로 모호성을 회피하면 마크업 결함이 가려진다. (N-6) 이 실행 라인 한정으로 잡는다 (주석은 제외한다 — 없앤 함정을 설명하는 주석까지 막으면 다음 사람이 맥락을 잃는다).
+3. (R-12) **슬롯 색의 리터럴 재구현** — 역할 분리 과정에서 CSS 변수 대신 색 리터럴을 쓰면 나머지 판정을 전부 통과하면서 시각만 바뀐다. (N-8) 이 차단한다.
 
 ## 발화 채널
 
@@ -203,6 +231,13 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 
 > **관측 표면 주의** (`RULE-06 §관측 표면`) — 단언은 `buildEvaluationResult` 반환값 단위 격리만으로 끝내지 않고 **렌더된 DOM 노드의 `style.width`** 를 포함한다 (T-1/T-2/T-3). 조립 함수가 옳아도 렌더 경로가 그 값을 싣지 않는 회귀는 단위 단언이 보지 못한다. V-6 만 단위 표면인데, 그 축의 렌더 층은 V-2 의 `"0%"` 막대가 함께 관측한다.
 
+
+### 렌더 역할 네임스페이스
+
+**vitest 수집 경로** `src/Monitor/WebVitalsItem.test.jsx` (`vite.config.js:63,68` 수집 범위 안, `npm test` · CI 발화).
+
+**tick 225 시점의 채널 한계는 해소됐다** — 당시에는 소비자가 복합 선택자로 우회한 탓에 이 축의 위반이 스위트를 붉게 만들지 못했다. TSK-20260826-34 (`627d8e6`) 가 `:494`·`:542` 에 **단독 슬롯 선택자 → 막대 여부** 역단언을 부착하면서 vitest 채널이 이 축의 실발화 채널이 됐다 (`npx vitest run src/Monitor` 65 passed). §수용 기준 (N-5)(N-6)(N-8) 의 정적 판정은 그와 **독립인 2차 채널**로 존치한다 — 테스트가 다시 우회 형태로 퇴행하는 방향은 정적 판정만이 잡는다.
+
 ## 테스트 현황
 
 ### 페이지 셸
@@ -222,6 +257,12 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 - [x] 무효값 전수 순회 + 공허 통과 가드 — `(T-2)` `.span--monitor-bar` 열거 순회, 노드 수 하한 `≥ 3` 동반.
 - [x] 비-0 경로 폭 기준값 단언 — `(T-3)` 리터럴 `"33.333333333333336%"`.
 - [x] `toRate` 0 경로 표기 단언 — `(T-4)` 세 슬롯 `rate === ""` + `evaluation === "None"`.
+
+### 렌더 역할 네임스페이스
+- [x] `WebVitalsItem` 스위트 실재 — `src/Monitor/WebVitalsItem.test.jsx`.
+- [x] 공유 실측 — tick 226 재실행 `header=5 bar=4 shared=0` (교정판). tick 225 는 `header=4 bar=3 shared=3` 이었으나 그 수치는 sed 범위 재시작이 만든 것이며 (N-5) 참고.
+- [x] 역할 서로소 — tick 226 ack. `shared=0` (TSK-20260826-34 / `627d8e6`).
+- [x] 복합 선택자 불요 — tick 226 ack. HEAD 0 hit (tick 225 는 1 hit `:419`).
 
 ## 수용 기준
 
@@ -260,6 +301,26 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 - [x] (Must) V-6: 0 집계에서 **비율 텍스트가 빈 문자열로 보존**됨을 단언하는 테스트가 실재하고 통과한다. 판정 대상은 이미 export 된 표면이다 — `buildEvaluationResult(undefined)` 의 `good.rate`/`needImprovement.rate`/`poor.rate` 가 각각 `""`. 판정: 위 vitest rc=0 **이면서** `grep -c "\.rate" src/Monitor/WebVitalsItem.test.jsx` → **1 이상**. **HEAD 실측 rc=0 + 3 → 충족** (등록 시점 0).
   - V-5(함수쌍 0 경계 대칭)는 **별도 명령을 두지 않는다.** 대칭은 두 축이 각각 0 경계에서 단언될 때 성립하며, 폭 축은 위 V-1/V-2 가, 텍스트 축은 본 항목이 잡는다 — 두 항목이 함께 `[x]` 인 상태가 곧 V-5 충족이다.
   - **가드 토큰 grep 을 판정에 쓰지 않는 이유**: `grep -qE "0 === count \?|totalCount === 0"` 류는 등록 시점(미충족 상태)에서 **이미 매치했다** — `toRate` 의 기존 가드가 걸리기 때문이다 (inspector tick 220 실측). 구현 토큰은 어느 함수의 가드인지 구분하지 못해 미충족 상태에서 통과를 낸다.
+
+### 렌더 역할 네임스페이스
+
+> 전 항목 명령 1회로 rc 판정 가능. 명령은 `src/**` 만 참조하며 **spec 경로를 어느 것도 참조하지 않는다** (`§promote 조건 2`). **HEAD=`d7b08dd` (tick 226 재실행) 기준 4/4 전항 충족.** tick 225 등록 시점(HEAD=`5b2ed3b`)은 2/4 였고, **4 항목 중 2 건((N-5)(N-8))은 tick 226 이 판정 명령을 교정한 뒤에야 rc=0 이 됐다** — 실제 요구는 TSK-20260826-34 (`627d8e6`) 가 착지시켰고 미충족으로 보이던 것은 명령 쪽 결함이었다.
+
+- [x] (Must, N-5) 역할 간 슬롯 토큰이 서로소다 — 두 집합을 파일에서 **도출**해 교집합을 잰다 (`RULE-06 §열거 고정 금지`). 판정:
+  ```
+  bash -c 'f=src/Monitor/WebVitalsItem.jsx; h=$(awk "/^const HEADER_STYLE/{i=1} i{print} i&&/^};/{exit}" "$f" | grep -oE "span--monitor-[a-z-]+" | sort -u); b=$(grep -oE "span--monitor-bar[[:space:]]+span--monitor-[a-z-]+" "$f" | grep -oE "span--monitor-[a-z-]+" | sort -u); [ -n "$h" ] && [ -n "$b" ] || { echo "derive=0 vacuous" >&2; exit 2; }; sh=$(comm -12 <(printf "%s\n" "$h") <(printf "%s\n" "$b")); n=$(printf "%s" "$sh" | grep -c .); echo "header=$(printf "%s\n" "$h" | grep -c .) bar=$(printf "%s\n" "$b" | grep -c .) shared=$n"; [ -n "$sh" ] && echo "shared-tokens: $(echo $sh)" >&2; [ "$n" -eq 0 ]'
+  ```
+  → **rc=0**. **HEAD=`d7b08dd` (tick 226 재실행) 실측 rc=0 / `header=5 bar=4 shared=0` → 충족** (TSK-20260826-34 / `627d8e6`). 헤더는 `span--monitor-evaluation-{good,warn,poor}` · `span--monitor-none`, 막대는 `span--monitor-bar` · `span--monitor-{good,warn,poor}` 로 갈라졌다.
+  **tick 226 이 판정 명령 자체를 교정했다 (`RULE-07 §수용 기준 문장 규약` — 도달 불가 명령).** 종전 명령의 `sed -n "/HEADER_STYLE/,/^};/p"` 는 **범위가 재시작**한다: `HEADER_STYLE` 은 정의부 `:9` 와 **사용부 `:205`** 두 곳에서 매치하므로 sed 는 `:205`~EOF 를 두 번째 범위로 다시 열고, 그 안에 막대 span `:213-219` 가 들어와 막대 슬롯 3종이 **헤더 집합으로 계수**됐다. 그 결과 명령은 **착지 여부와 무관하게 항상 `shared=3` rc=1** 이었다 — tick 226 실측으로 준수 트리와 위반 픽스처가 **둘 다 rc=1** 임을 확인했다 (판정력 0). 교정판은 `awk "/^const HEADER_STYLE/{i=1} i{print} i&&/^};/{exit}"` 로 **단발 범위**를 구조적으로 보장한다 — `exit` 가 첫 `};` 에서 종료하므로 시작 패턴이 몇 번 더 등장해도 재시작이 없다.
+  **토큰 열거도 함께 제거했다** — 종전은 `(good|warn|poor|none)` 4종을 명령에 **하드코딩**해 `RULE-06 §열거 고정 금지` 를 위반했고, 역할 분리로 신설된 `span--monitor-evaluation-*` 는 그 열거 밖이라 측정되지 않았다. 교정판은 `span--monitor-[a-z-]+` 로 양쪽 집합을 **도출**한다.
+  **판정력 3분할 실측 (tick 226)** — 준수 트리 `rc=0 shared=0` / 헤더 슬롯을 분리 전으로 되돌린 픽스처 `rc=1 shared=3` / 슬롯 표기를 통째로 바꾼 픽스처 `rc=2 derive=0 vacuous`. **공허 통과 가드 내장** — 어느 한쪽 도출이 0 이면 `exit 2`. **`bash -c` 필수** — 프로세스 치환 `<(...)` 를 쓰므로 POSIX `sh` 에서는 동작하지 않는다.
+- [x] (Must, N-6) 소비자가 역할 모호성 회피용 복합 선택자를 **실행 경로에서** 필요로 하지 않는다 — 판정: `bash -c 'f=src/Monitor/WebVitalsItem.test.jsx; tot=$(grep -c "span--monitor-bar" "$f"); [ "$tot" -gt 0 ] || { echo "derive=0 vacuous" >&2; exit 2; }; code=$(grep -nE "span--monitor-bar\." "$f" | grep -vE "^[0-9]+:[[:space:]]*(//|/\*|\*)"); n=$(printf "%s" "$code" | grep -c .); echo "bar-refs=$tot compound-in-code=$n"; [ -n "$code" ] && printf "%s\n" "$code" >&2; [ "$n" -eq 0 ]'` → **rc=0**. **HEAD=`d7b08dd` (tick 226 재실행) 실측 rc=0 / `bar-refs=3 compound-in-code=0` → 충족** (TSK-20260826-34 / `627d8e6`). tick 225 실측은 rc=1 / 1 hit (`:419` `BAR_SELECTOR`) 이었다. 현재 `WebVitalsItem.test.jsx:457` 은 `.span--monitor-bar` **단독** 선택자로 막대를 집고, `:494`·`:542` 는 **단독 슬롯 선택자로 집힌 요소가 막대인지**를 역으로 단언한다 — 우회 지점이 계약의 측정 지점으로 뒤집혔다.
+  **tick 226 이 이 명령도 교정했다 — 종전 판본은 위양성이었다 (`대상 이탈`).** 이 항목이 재려는 것은 **실행되는 선택자**인데 종전 `grep -c` 는 **주석을 구별하지 못했다**. TSK-20260826-34 착지 시 코드에는 복합 선택자가 한 곳도 없었는데 *제거된 우회를 설명하는 주석 한 줄*이 유일한 hit 이 되어 rc=1 이었고, developer 는 게이트를 낮추는 대신 주석 문구를 바꿔 해소했다. **부작용의 방향이 나쁘다** — 없앤 함정을 설명하는 주석을 쓸 수 없게 되고, 그것은 회귀 재발 시 다음 사람이 맥락을 잃는 방향이다. 교정판은 `//` · `/*` · `*` 로 시작하는 라인을 계수에서 제외한다.
+  **양방향 주입 실측 (tick 226)** — 주석 라인에 `.span--monitor-bar.span--monitor-good` 삽입: **종전 rc=1 (위양성) / 교정판 rc=0 `compound-in-code=0` (면역)**. 코드 라인에 같은 토큰 삽입: **종전 rc=1 / 교정판 rc=1 `compound-in-code=1`** — 위반 라인을 번호와 함께 stderr 로 낸다. 즉 특이도를 얻으면서 민감도를 잃지 않는다.
+  **`\.` 이스케이프가 요점** — 이스케이프 없이 `grep "span--monitor-bar."` 로 쓰면 `.` 가 임의 1문자가 되어 `span--monitor-bar ` (공백 포함 일반 사용)까지 매치해 항상 hit 이 난다. 이 항목이 재는 것은 **클래스 연접(`.`)** 뿐이다. **공허 통과 가드 내장** — 파일에 `span--monitor-bar` 참조가 하나도 없으면 `exit 2` 로, 소비자가 통째로 사라진 상태를 충족으로 읽지 않는다 (`bar-refs=` 로 비공허를 수치 발화).
+- [x] (Must, N-7) Monitor 스위트가 초록이다 — 판정: `npx vitest run src/Monitor` → **rc=0**. **HEAD=`5b2ed3b` (tick 225) 실측 rc=0 → 충족.** **본 항목의 판정 의미는 (N-5)(N-6) 착지 *후* 에 발생한다** — 현재의 초록은 소비자가 복합 선택자로 우회한 결과이며 계약 충족의 증거가 아니다 (§발화 채널). 역할 분리 후에도 초록이어야 한다는 요구로서 존치한다.
+- [x] (Must, N-8) 슬롯 색상이 CSS 변수 참조로만 구성된다 — 판정: `bash -c 'j=src/Monitor/WebVitalsItem.jsx; c=src/Monitor/Monitor.css; t=$( { awk "/^const HEADER_STYLE/{i=1} i{print} i&&/^};/{exit}" "$j"; grep -oE "span--monitor-bar[[:space:]]+span--monitor-[a-z-]+" "$j"; } | grep -oE "span--monitor-[a-z-]+" | sort -u); [ -n "$t" ] || { echo "derive=0 vacuous" >&2; exit 2; }; tot=$(printf "%s\n" "$t" | grep -c .); s=0; n=0; miss=""; for k in $t; do blk=$(awk "/^\\.$k[[:space:]]*\\{/{i=1} i{print} i&&/^\\}/{exit}" "$c"); if [ -z "$blk" ]; then miss="$miss $k"; continue; fi; s=$((s+1)); n=$((n+$(printf "%s\n" "$blk" | grep -cE "#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\("))); done; echo "slot-tokens=$tot css-rules=$s color-literals=$n"; [ -n "$miss" ] && echo "no-css-rule:$miss" >&2; [ "$s" -eq "$tot" ] || exit 2; [ "$n" -eq 0 ]'` → **rc=0**. **HEAD=`d7b08dd` (tick 226 재실행) 실측 rc=0 / `slot-tokens=9 css-rules=9 color-literals=0` → 충족.**
+  **tick 226 이 이 명령도 교정했다 — 종전 판본은 위음성이었다 (`대상 이탈`).** 종전 명령은 CSS 규칙을 `^\.span--monitor-(good|warn|poor|none)` 로 **열거 고정** 했는데, TSK-20260826-34 가 역할을 분리하면서 헤더 슬롯이 `span--monitor-evaluation-{good,warn,poor}` (`Monitor.css:73,:78,:83`) 로 **신설**돼 그 열거 밖으로 나갔다. 즉 이 항목이 겨누던 회귀(**역할 분리 과정에서 슬롯을 리터럴 색으로 재구현**)가 실제로 일어날 수 있는 자리가 분리 직후 **측정 범위 밖**이 됐다 — 게이트가 방어하려던 바로 그 변경이 게이트의 사각을 만들었다. **주입 실측 (tick 226)**: `.span--monitor-evaluation-good` 에 `color: #1a7f37;` 1행 주입 → 종전 명령 **rc=0 `slot-rules=4 color-literals=0` (검출 실패)** / 교정판 **rc=1 `slot-tokens=9 css-rules=9 color-literals=1` (검출)**. 교정판은 측정 대상을 `WebVitalsItem.jsx` 의 두 역할이 **실제로 렌더하는 클래스 집합에서 도출**하므로 (N-5) 와 같은 진리원을 공유하며, 슬롯이 또 신설·개명돼도 자동으로 따라간다. **공허 통과 가드 강화** — 도출 토큰 수와 CSS 규칙 수가 **불일치하면 `exit 2`** 다 (종전은 규칙 수 `>0` 만 봤다). 도출된 클래스에 대응 CSS 규칙이 없으면 `no-css-rule:` 로 이름을 낸다. **`RULE-07 §반려 시그널` 의 중복 게이트 부류가 아닌 경계** — 위반해도 붉어지는 기존 게이트가 없다 (`check:css-modules-coherence` 는 모듈 경계를 보지 색 리터럴을 보지 않는다).
 
 ## 참고
 
@@ -302,6 +363,30 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 - **0 경계 가드의 주입 검출력.** '가정 주입 요구' 부류 — §발화 채널의 (Dir-1)~(Dir-3) 으로 채널 부착 task DoD 에 이관했고 `TSK-20260825-12` (`injection: 4/4 detect`) 로 착지했다.
 - **무효 CSS 값의 브라우저별 처리.** 선언 폐기는 명세 동작이나 본 문서는 브라우저 구현 비교가 아니라 **렌더 경로가 싣는 값**을 판정한다. 렌더링 결과의 시각적 동일성은 측정 채널이 없어 체크박스로 두지 않는다.
 
+### 게이트 실효 검증 이관 — 렌더 역할 네임스페이스 (RULE-07 §처리 · RULE-06 §게이트 실효 검증)
+
+아래는 **'가정 주입 요구' 부류**라 체크박스로 두지 않으며, 검출 방향을 보존한 채 **수리 task 의 `## 검증/DoD`** 로 이관한다. developer 는 `RULE-04` notes 에 `injection: N/N detect` · `control: M/M pass` 를 박제한다. **이관처 task 가 발행되기 전까지 귀속처는 본 절의 명시적 지시다** (이관처 없는 강등 금지).
+
+- **(Dir-7) 식별 결정성 — 비-0 경로** — 비-0 집계 픽스처에서 **막대 슬롯 클래스 1개짜리 단독 선택자**로 조회한 요소가 인라인 `style.width` 를 보유한다(빈 문자열이 아니다). 역할 분리를 되돌리면 이 단언이 `rc≠0` → 원복 → `rc=0`.
+- **(Dir-8) 0 경계 비대칭의 소멸** — 0 집계 픽스처에서도 같은 단독 선택자가 막대를 반환한다. **이 방향이 없으면 (Dir-7) 만으로는 "0 에서만 통과하던" 종전 비대칭이 반대 방향으로 재발한 것을 구별하지 못한다** (§동작 (N-2)).
+- **(Dir-9) 특이도** — 주입 없이 현 트리 실행 → `npx vitest run src/Monitor` `rc=0` · `npm test` `rc=0`.
+- **(Dir-70) 시각 불변 (NFR)** — 분리 전후 두 역할 요소의 `class` 를 CSS 규칙에 대입했을 때 적용되는 **선언 집합이 같다**. 리터럴 재구현 방향은 (N-8) 이 정적으로 잡으나, 변수는 유지한 채 **다른** 변수를 참조하는 방향은 이 주입에서만 드러난다.
+
+### 식별자 대응표 — 렌더 역할 네임스페이스 (외부 참조 호환)
+
+병합 전 slug `components/monitor-render-role-class-namespace-disjointness` (REQ-20260825-009) 의 식별자 대응이다. **`N-n` 은 그대로 보존**했다 — 외부 게이트가 `:N-5` · `:N-6` 을 슬러그와 함께 지목하기 때문이다. 충돌한 것은 `Dir-n` 뿐이다 (본 문서가 렌더 값 유효성 축에서 `Dir-1`~`Dir-6` 을 이미 쓴다).
+
+| 병합 전 | 본 문서 |
+|---|---|
+| (N-1) ~ (N-8) | **동일 — (N-1) ~ (N-8)** |
+| (Dir-1) 식별 결정성 — 비-0 경로 | **(Dir-7)** |
+| (Dir-2) 0 경계 비대칭의 소멸 | **(Dir-8)** |
+| (Dir-3) 특이도 | **(Dir-9)** |
+| (Dir-4) 시각 불변 (NFR) | **(Dir-10)** |
+| 회귀 중점 (신설) | **R-10 ~ R-12** |
+
+슬러그 참조 갱신 대상 2건: `blue/testing/acceptance-command-measures-declared-subject.md` (C-3 판정 명령이 slug 를 열거한다) · `green/testing/judgement-command-derivation-completeness.md`.
+
 ## 변경 이력
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
@@ -313,3 +398,4 @@ inspector tick 220 이 **결과를 받아쓰지 않고 독립 재현**했다 —
 | 2026-08-25 | TSK-20260825-02 `9e93c23` · TSK-20260825-03 `c89f6dc` (inspector tick 220 Phase 1) | **drift reconcile — 파생 state 수용 기준 0/4 → 4/4, 테스트 현황 3건 플립.** 네 측정 명령을 HEAD=`8da63f6` 에서 전수 재실행해 확인했다 (`result.md` 주장 미인용): G-1 도출 열거 13 → **0 line** · 보조 `setEvaluationResult(evaluationResult)` 1 → **0** · `npm run check:monitor-state-immutability` rc=0 (비공허) / G-2·G-3 `npx vitest run src/Monitor/WebVitalsItem.test.jsx` rc=0 + 단언 실재·production export 소비 확인 / G-4 자기 참조 deps 1 → **0** (`:134` → `:153` `[isMount, name]`) + `npx vitest run src/Monitor/` rc=0. | 동작 §파생 state, 회귀 중점, 발화 채널, 테스트 현황, 수용 기준, 참고 |
 | 2026-08-25 | REQ-20260825-001 (inspector tick 219) | 파생 state 축 최초 등록. followup `20260824-2020-webvitalsitem-state-object-mutation` → discovery req 를 **불변식으로 재정식화**해 흡수 (RULE-07 §결함 신고 재정식화). req 의 FR-01 판정 grep 은 그대로 쓰지 않았다 — 원안은 `src/Monitor` 전체 점 표기 대입을 훑어 **34 line** 을 내며 그중 21 line 이 정당한 코드라 "0 line" 이 될 수 없고, 남은 필터가 사람 판단이라 `RULE-07 §수용 기준 문장 규약`을 위반한다. 파일별 `useState` 바인딩명을 **도출**하는 판정으로 교체해 실측 **13 line** (위반 전량, 오탐 0) 을 얻었다. G-1↔G-4 의 **순서 의존**을 신규 명시했다 — req 에는 없던 항목이며 함께 처리하지 않으면 수정이 회귀를 만든다. | 동작 §파생 state, 역할 |
 | 2026-04-20 | operator / — | 셸 축 최초 등록 (as-is 서술 spec) | 역할, 공개 인터페이스, 동작 §페이지 셸, 회귀 중점 §페이지 셸 |
+| 2026-08-27 | (operator) | **`components/monitor-render-role-class-namespace-disjointness` 를 4번째 축으로 병합.** `components/` 는 `src/` 구현 단위와 1:1 이라는 운영자 원칙에 따른다 — 그 문서는 `src/Monitor/` 의 렌더 역할 계약이지 별도 구현 단위가 아니다. `N-n` 은 외부 게이트가 slug 와 함께 지목하므로 **보존**했고, 충돌한 `Dir-1`~`Dir-4` 만 `Dir-7`~`Dir-10` 으로 재배치했다 (본 문서가 `Dir-1`~`Dir-6` 사용 중). 회귀 중점 R-10~R-12 신설. **수용 기준 명령은 손으로 옮기지 않고 원본에서 프로그램으로 추출해 이식했다.** | 동작 · 회귀 중점 · 발화 채널 · 테스트 현황 · 수용 기준 · 참고 |
