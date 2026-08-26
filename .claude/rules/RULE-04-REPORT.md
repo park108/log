@@ -6,7 +6,11 @@
 |---|---|---|
 | stdout | 즉시 관측 | 소멸 채널 — 이것만으로는 부족 |
 | `.claude/reports/<agent>.ndjson` | RULE-03 정체 판정 입력 | **gitignored**, tick 당 1 JSON 라인 append |
-| 커밋 body | 감사 이력 | 커밋이 발생한 tick 한정 |
+| 커밋 body | 감사 이력 | 커밋이 발생한 tick 한정 · **커밋 시점 확정분 한정** (아래) |
+
+**커밋 body 는 커밋 시점의 기록이지 미래 측정의 저장소가 아니다.** `RULE-02 §단위 커밋` 이 구현 직후 커밋을 지시하고 `RULE-06 §게이트 실효 검증` 의 injection·control 왕복이 그 뒤에 수행되므로, 커밋 시점에 존재하지 않는 수치는 body 에 담기지 않는다. 그 토큰은 **stdout + ndjson 2채널로 충족**된다 — `--amend` 는 금지이고 (`RULE-02 §금지`) `specs/**` 는 gitignored 라 후속 커밋에 담을 변경도 없다.
+
+> 셋을 동시에 만족시킬 방법이 없다는 것을 `TSK-20260827-01` 의 developer 가 실행 중에 발견했다 (`injection: 2/2 detect` · `control: 2/2 pass` 가 `c084b28` body 에서 누락). 단위 커밋을 게이트 task 에서 면제하면 오늘 16 세션을 날린 all-or-nothing 이 그 부류에 되살아나므로, 문면을 사실관계에 맞춘다.
 
 > stdout 만 있던 기간에 772 tick 의 보고가 전부 증발했다. 113차 tick 의 자가 사망 진단("자율 회복 완전 정지 100% no-op")도 그렇게 사라졌고, 파이프라인은 256 tick 을 더 돌았다.
 
