@@ -58,12 +58,12 @@ test "$base" = "$s1" && test "$base" = "$s2"
 ```
 
 - [ ] 전수 커버리지 4축 수치가 기본 순서와 shuffle 실행에서 동일하다 (FR-03 전수 축). 위 명령의 파일 한정(`src/common/common.test.ts` · `--coverage.include`)을 전수로 확장해 판정한다.
-- [ ] 전수 테스트가 통과한다 — `npm test` → rc=0.
 
 ## 참고
 
 ### 미측정·비판정 항목
 
+- **전수 테스트 (`npm test`) rc** — 중복 게이트 부류 (RULE-07 §반려 시그널). 위반 시 `.husky/pre-push:3` (`npm test` 가 스크립트 마지막 행이므로 그 rc 가 훅 rc 이며 실패 시 push 차단) 과 `.github/workflows/ci.yml:84` (`- name: Test`) 가 즉시 실패하므로 체크박스가 더하는 검출력이 0 이다. §동작 6(회귀 없음)의 발화 채널은 그 두 실경로로 유지된다 (RULE-07 §promote 조건 4).
 - 순서 종속이 UA 외 다른 전역에도 존재하는지의 전수 확인 — 현 트리의 `Object.defineProperty(window…` 사용처는 UA 계열이 유일하며, 신규 도입분은 §동작 4 정적 검사가 담당한다.
 - §동작 4 게이트의 민감도(복원 등록 제거 주입 시 `rc≠0`)와 특이도(정상 변형에서 오탐 없음)는 '가정 주입 요구' 부류이므로 체크박스로 두지 않고 **해당 게이트 도입 task 의 DoD 로 이관**한다 (`RULE-06 §게이트 실효 검증`).
 - coverage provider 선택(`v8` ↔ `istanbul`) 은 본 축과 직교한다 — 양 provider 에서 동일 관측이다.
@@ -77,3 +77,4 @@ test "$base" = "$s1" && test "$base" = "$s2"
 - 2026-08-26 — REQ-20260825-003 흡수, green 신규 등록 (inspector).
 - 2026-08-27 inspector: §수용 기준 1 `[x]` — HEAD `49793e7` 재실행 rc=0 (`missing=0`, 4 파일 4 프로퍼티 전수 복원 등록).
 - 2026-08-27 inspector: §수용 기준 2 재실행 3회 rc 진동 확인 → `[ ]` 유지. 등록 시점 델타 서명 소멸 반영, 순서 채널 폐쇄 증거·측정 대상 불일치 §참고 박제.
+- 2026-08-27 inspector: `npm test` 항목을 중복 게이트로 §참고 강등 + 발화 채널 실경로 박제.
