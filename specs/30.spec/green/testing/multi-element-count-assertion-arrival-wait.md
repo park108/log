@@ -51,18 +51,18 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 
 > 아래 명령은 전부 **rc=0 == 계약 충족** 으로 통일돼 있다 (0 hit 을 요구하는 항목은 `! grep -q` 형태). 판정은 hit 수 육안 대조가 아니라 종료 코드로 한다.
 
-- [ ] (Must, 동작 1·2) Given 패널 개수 단언 지점, When `bash -c '! grep -qE "await screen\.findAllByRole" src/Monitor/Monitor.test.jsx'`, Then rc=0 (≥1 resolve 스냅샷 계수 형태 부재).
+- [x] (Must, 동작 1·2) Given 패널 개수 단언 지점, When `bash -c '! grep -qE "await screen\.findAllByRole" src/Monitor/Monitor.test.jsx'`, Then rc=0 (≥1 resolve 스냅샷 계수 형태 부재).
 - [ ] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -qE "toHaveLength\(PANEL_HEADINGS_IN_ORDER\.length\)" src/Monitor/Monitor.test.jsx'`, Then rc=0 (개수 단언 보존).
 - [ ] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -qE "toEqual\(PANEL_HEADINGS_IN_ORDER\)" src/Monitor/Monitor.test.jsx'`, Then rc=0 (순서 단언 보존).
 - [ ] (Must, 동작 3) Given 동일 파일, When `bash -c '! grep -qE "setTimeout|advanceTimersByTime|await new Promise" src/Monitor/Monitor.test.jsx'`, Then rc=0 (고정 지연 부재 — req 는 셸 축 블록 한정이었으나 파일 전역으로 상향, 현 HEAD 에서 충족).
 - [ ] (Must, 동작 1) Given 현 HEAD, When `npx vitest run src/Monitor/Monitor.test.jsx`, Then rc=0.
 - [ ] (Must, 동작 1) Given 현 HEAD, When `npm test`, Then rc=0 (경합 창은 전량 실행 부하에서만 노출된다 — 이쪽이 판별 채널이다).
 
-### 현 HEAD 실측 (2026-08-26, `8b934b8`)
+### 현 HEAD 실측 (2026-08-27, `49793e7`)
 
 | 항목 | 결과 |
 |---|---|
-| `! grep -q "await screen\.findAllByRole"` | **rc=1 — 미충족** (`src/Monitor/Monitor.test.jsx:165` 잔존) |
+| `! grep -q "await screen\.findAllByRole"` | rc=0 — 충족 (`5be66f4` 가 `:165` 를 개수 도달 대기로 정합화) |
 | `grep -q "toHaveLength(PANEL_HEADINGS_IN_ORDER.length)"` | rc=0 |
 | `grep -q "toEqual(PANEL_HEADINGS_IN_ORDER)"` | rc=0 |
 | `! grep -q "setTimeout\|advanceTimersByTime\|await new Promise"` | rc=0 |
@@ -87,3 +87,4 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 
 - 2026-08-26 inspector: REQ-20260825-019 흡수, green 신규.
 - 2026-08-26 inspector: 수용 기준 명령을 rc=0 == 충족 형태로 통일 (`! grep -q`), 현 HEAD 실측 박제, 단일 파일 실행의 비판별성 강등 표기.
+- 2026-08-27 inspector: 동작 1·2 대기 조건 정합 항목 `[x]` — HEAD `49793e7` 재실행 rc=0 (수리 커밋 `5be66f4`).
