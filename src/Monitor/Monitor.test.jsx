@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import Monitor from '../Monitor/Monitor';
 import * as common from '../common/common';
@@ -161,8 +161,16 @@ it('mounts four panels in declared order (shell axis 3)', async () => {
 
 	renderMonitor();
 
-	await screen.findByText(PANEL_HEADINGS_IN_ORDER[0]);
-	const headings = await screen.findAllByRole('heading', { level: 1 });
+	// 대기 조건 == 단언 조건. `findAllBy*` 는 매치 1개에서 resolve 하므로
+	// 4 패널이 각자의 Suspense 경계에서 독립적으로 도착하는 이 화면에서는
+	// 대기(≥1)와 단언(=4)이 어긋난다. 개수 도달을 술어로 삼아 붙인다.
+	await waitFor(() =>
+		expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(PANEL_HEADINGS_IN_ORDER.length),
+	);
+
+	// 순서 단언에 쓰는 스냅샷은 대기 이후 동기 조회로 다시 뜬다 —
+	// `waitFor` 콜백 내부 배열을 밖으로 새어 나가게 하지 않는다.
+	const headings = screen.getAllByRole('heading', { level: 1 });
 
 	// 개수 하한 — 0건이면 "순서 일치" 가 공허하게 참이 된다.
 	expect(headings).toHaveLength(PANEL_HEADINGS_IN_ORDER.length);
