@@ -37,10 +37,28 @@ done
 echo "missing=$miss"
 test "$miss" -eq 0
 ```
-- [ ] 서로 다른 두 shuffle seed 실행의 전수 branches covered 가 동일하다.
-- [ ] 기본 순서 실행과 shuffle 실행의 전수 branches covered 가 동일하다.
-- [ ] `src/common/common.ts` UA 3항 연쇄의 전 슬롯이 shuffle 실행에서도 covered 다.
-- [ ] 전수 테스트가 통과한다.
+- [ ] `src/common/common.ts` 의 branches covered 가 **기본 순서 · 두 shuffle seed** 3회 실행에서 모두 동일하다. 현 HEAD 실측 rc=1 — 두 차례 측정에서 `base=139 / seed=138,138` 과 `base=138 / seed=137,137`. **절대값은 호출간 이동하나 base−shuffle 델타 1 슬롯은 양쪽에서 동일**하므로 판정은 절대값이 아니라 3회 실행의 상호 일치로 한다.
+
+```bash
+D=$(mktemp -d)
+run() {
+  npx vitest run src/common/common.test.ts --coverage --coverage.reporter=json-summary \
+    --coverage.reportsDirectory="$D/$1" --coverage.include='src/common/common.ts' \
+    --coverage.thresholds.branches=0 --coverage.thresholds.lines=0 \
+    --coverage.thresholds.functions=0 --coverage.thresholds.statements=0 \
+    "${@:2}" >/dev/null 2>&1
+  node -p "require('$D/$1/coverage-summary.json').total.branches.covered"
+}
+base=$(run base)
+s1=$(run s1 --sequence.shuffle.tests --sequence.seed=20260824)
+s2=$(run s2 --sequence.shuffle.tests --sequence.seed=424242)
+echo "base=$base seed20260824=$s1 seed424242=$s2"
+test -n "$base" && test -n "$s1" && test -n "$s2" || { echo "[EXTRACT-FAIL] empty measure"; exit 2; }
+test "$base" = "$s1" && test "$base" = "$s2"
+```
+
+- [ ] 전수 커버리지 4축 수치가 기본 순서와 shuffle 실행에서 동일하다 (FR-03 전수 축). 위 명령의 파일 한정(`src/common/common.test.ts` · `--coverage.include`)을 전수로 확장해 판정한다.
+- [ ] 전수 테스트가 통과한다 — `npm test` → rc=0.
 
 ## 참고
 
@@ -49,6 +67,7 @@ test "$miss" -eq 0
 - 순서 종속이 UA 외 다른 전역에도 존재하는지의 전수 확인 — 현 트리의 `Object.defineProperty(window…` 사용처는 UA 계열이 유일하며, 신규 도입분은 §동작 4 정적 검사가 담당한다.
 - §동작 4 게이트의 민감도(복원 등록 제거 주입 시 `rc≠0`)와 특이도(정상 변형에서 오탐 없음)는 '가정 주입 요구' 부류이므로 체크박스로 두지 않고 **해당 게이트 도입 task 의 DoD 로 이관**한다 (`RULE-06 §게이트 실효 검증`).
 - coverage provider 선택(`v8` ↔ `istanbul`) 은 본 축과 직교한다 — 양 provider 에서 동일 관측이다.
+- `src/common/common.ts` 의 branches covered **절대값**이 동일 플래그·동일 트리의 반복 호출에서 1 슬롯 이동하는 것이 본 계약 등록 시점에 관측됐다 (139 ↔ 138). 원인 미규명이며 §수용 기준은 절대값을 고정하지 않고 동일 세션 3회 실행의 상호 일치만 요구한다. 순서 축과 별개의 잔여 비결정성일 수 있으므로 원인 규명은 후속 과제다.
 
 ## 변경 이력
 
