@@ -52,7 +52,7 @@
 
 - [ ] `check:*` 값이 전부 `bash scripts/<name>.sh` 단일 형태다 — `node -e "const s=require('./package.json').scripts;const bad=Object.entries(s).filter(([k,v])=>k.startsWith('check:')&&!/^bash scripts\/[A-Za-z0-9._-]+\.sh$/.test(v.trim()));console.log(bad.length);process.exit(bad.length?1:0)"` → 출력 `0` / rc=0.
 - [x] `check:*` 가 지시하는 모든 스크립트 파일이 실재한다 — `node -e "const fs=require('fs');const s=require('./package.json').scripts;const p=[...new Set(Object.entries(s).filter(([k])=>k.startsWith('check:')).flatMap(([,v])=>v.match(/scripts\/[A-Za-z0-9._\/-]+\.sh/g)||[]))];const miss=p.filter(f=>!fs.existsSync(f));console.log(miss.length);process.exit(miss.length?1:0)"` → 출력 `0` / rc=0.
-- [ ] `.husky/pre-commit` 실행 라인에서 호출되는 `scripts/*.sh` 경로 집합이 `scripts.check:*` 도출 경로 집합의 부분집합이다 — 차집합 0건.
+- [x] `.husky/pre-commit` 실행 라인에서 호출되는 `scripts/*.sh` 경로 집합이 `scripts.check:*` 도출 경로 집합의 부분집합이다 — `node -e "const fs=require('fs');const R=/scripts\/[A-Za-z0-9._\/-]+\.sh/g;const s=require('./package.json').scripts;const D=new Set(Object.entries(s).filter(([k])=>k.startsWith('check:')).flatMap(([,v])=>v.match(R)||[]));const H=[...new Set(fs.readFileSync('.husky/pre-commit','utf8').split('\n').map(l=>l.replace(/#.*/,'')).join('\n').match(R)||[])];const d=H.filter(x=>!D.has(x));console.log(d.length);process.exit(H.length&&!d.length?0:1)"` → 출력 `0` / rc=0. 각 라인의 `#` 이후 구간은 계수 전에 절단하며(FR-03), 훅 도출 개수 0 이면 `rc≠0`.
 - [ ] `.husky/pre-commit` 의 각 발화 조건 블록에 대해, 같은 블록이 호출하는 스크립트 경로가 그 조건 정규식에 매치한다 — 불일치 0건.
 - [ ] 배선 정합 게이트가 `package.json scripts.check:*` 에 등재되고 `.github/workflows/ci.yml` 에서 실행된다 — 두 파일 각각 실행 라인 기준 ≥1 hit.
 - [ ] 도출 명령이 공집합을 초록으로 읽지 않는다 — `check:*` 도출 경로 개수 ≥ 1 을 단언하고, 개수 0 이면 `rc≠0` (RULE-06 §추출 실패 검출).
@@ -96,3 +96,4 @@
 - 2026-08-26 inspector: §관측 근거 baseline 을 현 HEAD 실측으로 갱신 — pre-commit 조건 블록 9건 중 FR-04 위반 4건, FR-01 위반 1건, FR-02 차집합 0건, 도출 20/21.
 - 2026-08-26 inspector: 가정 주입 요구 체크박스 1건(주석-비의존 판정)을 §미측정·비판정 항목으로 강등 — 검출 2축(민감도·특이도) 선언 보존 + 이관처 task 발행 필요 박제.
 - 2026-08-26 inspector: 수용 기준 2항(도출 경로 실재) 판정 명령 박제 후 실행 — 결손 0건 rc=0, `[x]` 확정.
+- 2026-08-26 inspector: 수용 기준 3항(훅 호출 ⊆ npm script 도출) 판정 명령 박제 후 실행 — 훅 실행 라인 도출 9건, 차집합 0건 rc=0, `[x]` 확정.
