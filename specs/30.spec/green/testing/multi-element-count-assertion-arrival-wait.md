@@ -55,7 +55,7 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 - [x] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -qE "toHaveLength\(PANEL_HEADINGS_IN_ORDER\.length\)" src/Monitor/Monitor.test.jsx'`, Then rc=0 (개수 단언 보존).
 - [x] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -qE "toEqual\(PANEL_HEADINGS_IN_ORDER\)" src/Monitor/Monitor.test.jsx'`, Then rc=0 (순서 단언 보존).
 - [x] (Must, 동작 3) Given 동일 파일, When `bash -c '! grep -qE "setTimeout|advanceTimersByTime|await new Promise" src/Monitor/Monitor.test.jsx'`, Then rc=0 (고정 지연 부재 — req 는 셸 축 블록 한정이었으나 파일 전역으로 상향, 현 HEAD 에서 충족).
-- [ ] (Must, 동작 1) Given 현 HEAD, When `npx vitest run src/Monitor/Monitor.test.jsx`, Then rc=0.
+- [x] (Must, 동작 1) Given 현 HEAD, When `npx vitest run src/Monitor/Monitor.test.jsx`, Then rc=0.
 - [ ] (Must, 동작 1) Given 현 HEAD, When `npm test`, Then rc=0 (경합 창은 전량 실행 부하에서만 노출된다 — 이쪽이 판별 채널이다).
 
 ### 현 HEAD 실측 (2026-08-27, `49793e7`)
@@ -66,7 +66,7 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 | `grep -q "toHaveLength(PANEL_HEADINGS_IN_ORDER.length)"` | rc=0 |
 | `grep -q "toEqual(PANEL_HEADINGS_IN_ORDER)"` | rc=0 |
 | `! grep -q "setTimeout\|advanceTimersByTime\|await new Promise"` | rc=0 |
-| `npx vitest run src/Monitor/Monitor.test.jsx` | rc=0 (7 passed) — **비판별**, 아래 참고 |
+| `npx vitest run src/Monitor/Monitor.test.jsx` | rc=0 (7 passed) — **비판별**, 아래 참고 (수리 후 재실행 동일) |
 | 동작 (5) 열거 명령 | 19 hits / 7 files (req 실측치와 일치) |
 
 ## 참고
@@ -89,3 +89,4 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 - 2026-08-26 inspector: 수용 기준 명령을 rc=0 == 충족 형태로 통일 (`! grep -q`), 현 HEAD 실측 박제, 단일 파일 실행의 비판별성 강등 표기.
 - 2026-08-27 inspector: 동작 1·2 대기 조건 정합 항목 `[x]` — HEAD `49793e7` 재실행 rc=0 (수리 커밋 `5be66f4`).
 - 2026-08-27 inspector: 동작 3·4 형태 보존 항목 3건 `[x]` — HEAD `49793e7` 재실행 전수 rc=0.
+- 2026-08-27 inspector: 단일 파일 실행 항목 `[x]` — HEAD `49793e7` rc=0 (7 passed). 판별력 없음은 §참고 기존 표기 유지.
