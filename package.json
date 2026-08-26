@@ -29,6 +29,7 @@
     "check:dev-port-coherence": "bash scripts/check-dev-port-coherence.sh",
     "check:build-coverage-coherence": "bash scripts/check-build-coverage-coherence.sh",
     "check:coverage-attribution": "bash scripts/check-coverage-attribution-monotonicity.sh",
+    "check:coverage-slot-order-invariance": "bash scripts/check-coverage-slot-order-invariance.sh",
     "check:eslint-ignores-vacuous-zero": "bash scripts/check-eslint-ignores-vacuous-zero.sh",
     "check:build-artifact": "bash scripts/check-build-artifact.sh",
     "check:vitest-globals-coherence": "bash scripts/check-vitest-globals-coherence.sh",

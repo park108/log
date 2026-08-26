@@ -162,6 +162,20 @@ jobs:
       - name: Check coverage per-file attribution monotonicity
         run: npm run check:coverage-attribution
 
+      # 커버리지 슬롯 집합 순서 무관성 (test-global-state-restoration-order-independence §동작 2 / FR-02).
+      # 기본 순서 실행과 shuffle seed 실행이 **동일한 covered 슬롯 집합** 을 내야 한다.
+      # 위 단조성 축(check:coverage-attribution)은 집계 경로를 재고 이 축은 실행 **순서** 를 잰다.
+      # **개수는 이 축의 신호가 아니다**: 순서와 무관한 슬롯 1건의 교체는 집합을 바꾸면서 개수를
+      # 보존하고(거짓 통과), cold-start 슬롯 1건의 증감은 집합 차이 없이 개수를 흔든다(거짓 위반).
+      # 실측 — 개수 판정은 동일 HEAD 3회 호출에서 139/139/140 → 139/139/139 → 139/139/139 로 rc 가
+      # 진동했다. 집합은 개수의 상위 개념이라 두 방향을 함께 닫는다.
+      # **빈 집합 2개는 서로 같다** — 측정이 실패하면 비교가 자동 성립해 게이트가 초록이 되므로
+      # 슬롯 도출 0·산출물 부재·대상 엔트리 부재는 통과(0)가 아니라 무판정(2)으로 실패시킨다.
+      # 대상 파일 엔트리는 하드코딩하지 않고 접미사 매칭으로 도출하며 (RULE-06 §열거 고정 금지)
+      # seed 목록도 주입 seam 이다. 커버리지를 3~4회 구동하므로 pre-commit 이 아니라 CI 에 둔다.
+      - name: Check coverage slot set order invariance
+        run: npm run check:coverage-slot-order-invariance
+
       - name: Build
         run: npm run build
 
