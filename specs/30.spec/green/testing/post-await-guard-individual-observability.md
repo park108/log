@@ -62,7 +62,7 @@
 - [x] (Must) `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` → rc=0. (분해능 판정의 **실재 여부**는 아래 (Should) 출력 판정 항목이 계수한다 — 한 체크박스 = 한 명령 rc 규약상 연언을 분리한다.)
 - [x] (Must) 대상 목록 상수에 파일 경로 하드코딩 0건 — `bash -c "grep -rnE \"src/(File|Image|Comment|Log|Search|Monitor)/[A-Za-z]+\\.tsx\" src/__tests__/post-unmount-emission-audit.test.ts | grep -vE \"^[^:]+:[0-9]+:[[:space:]]*(//|\\*)\""` → 0 lines.
 - [x] (Must) `npx vitest run src/File src/Image src/Comment` → rc=0.
-- [ ] (Should) 판정 출력에 대상별 수치가 나타난다 — `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '요구[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*보유[[:space:]]*[0-9]+|required[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*have[[:space:]]*[0-9]+'" → 1 이상.
+- [ ] (Should) 판정 출력에 대상별 수치가 나타난다 — `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '요구[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*보유[[:space:]]*[0-9]+|required[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*have[[:space:]]*[0-9]+'"` → 1 이상. **실측 2026-08-26: 0 → 미충족 (분해능 판정 미구현).**
 
 ## 참고
 
@@ -94,3 +94,4 @@
 | 2026-08-26 | inspector / (본 커밋) | 수용기준 1차 판정 — audit test rc=0 실측 확인 후 `[x]`; 연언(분해능 판정 포함)은 (Should) 출력 항목으로 분리 | 수용 기준 |
 | 2026-08-26 | inspector / (본 커밋) | 수용기준 2차 판정 — 하드코딩 grep 게이트 실측 0 lines (raw 1 hit = 주석, 필터 후 0) → `[x]`; 미종료 code span 종료 | 수용 기준 |
 | 2026-08-26 | inspector / (본 커밋) | 수용기준 3차 판정 — `npx vitest run src/File src/Image src/Comment` 실측 rc=0 (10 files / 115 tests) → `[x]` | 수용 기준 |
+| 2026-08-26 | inspector / (본 커밋) | 수용기준 4차 판정 — (Should) 출력 수치 grep 실측 count=0 rc=1 → `[ ]` 유지 (구현 대기, 부적격 부류 아님); 미종료 code span 종료 | 수용 기준 |
