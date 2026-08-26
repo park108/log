@@ -3,6 +3,7 @@
 > **위치**: 프로덕션 컴포넌트에서 `await` / `.then(` 을 거치는 코드 전부 — **effect 본문·이벤트 핸들러 무관**. HEAD=`8da63f6` 확장 술어 대상 **12 파일**, 전수 가드 보유 / 미보유 **0** (등록 시점 `b14cd3a` 는 미보유 1 = `src/File/FileItem.tsx`). effect 한정 선행 술어 대상도 **12 파일**로 확장 술어와 일치한다 (차집합 공집합) — `src/Monitor/{VisitorMon,ContentItem,ApiCallItem,WebVitalsItem}.jsx`, `src/File/{File,FileDrop,FileUpload}.tsx`, `src/Comment/Comment.tsx`, `src/Image/ImageSelector.tsx`, `src/Log/{Writer,LogList}.jsx`.
 > **관련 요구사항**: REQ-20260517-093 (최초), REQ-20260824-002 (audit 대상 교정 + 발화 대상 확장), REQ-20260825-002 (선언 범위 확장 + 관측 강도 대칭).
 > **선행 판본**: 동일 slug `runtime-fetch-unmount-safety` 의 blue 판본 (동일 상대 경로 — 승격 시 대체된다).
+> **판본**: green (blue `testing/runtime-fetch-unmount-safety` 재판본 — FR-08 판정 문면만 교체, 그 밖의 절은 blue 와 바이트 동일)
 > **최종 업데이트**: 2026-08-25 (by inspector — tick 222 Phase 1 reconcile @ HEAD=`ff699f9`. TSK-20260825-13 착지 반영: **FR-11 충족** — 수용 기준 **10/10**, unchecked 0. 이전: tick 221 이 FR-09 를 플립하고 FR-11 을 신설).
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
@@ -188,7 +189,11 @@
   - **구 명령의 `head -1` 을 제거했다** — 매칭 파일 중 첫 1건만 재는 형태는 채널이 2개 이상이 되는 순간 어느 파일을 쟀는지가 정렬 순서에 좌우된다. 현재는 매칭이 1건이라 두 형태의 판정이 일치하지만(주입 시 둘 다 rc=1 확인), 열거 고정은 **어느 채널 파일에서도** 금지이므로 전수 순회가 계약에 맞다.
 - [x] (Must, FR-06) `src/File/FileItem.tsx` 의 async 핸들러가 unmount 가드를 보유 — `grep -cE "cancelled|AbortController|isMounted|signal" src/File/FileItem.tsx` → **1 이상**. **HEAD=`8da63f6` 실측 9 → 충족** (등록 시점 0). 토큰 존재만으로는 부분 가드를 통과시키므로 동작 층은 FR-10 이 함께 잡는다.
 - [x] (Must, FR-07) 확장 술어의 미가드 표면 0 — §공개 인터페이스 (M-A) 의 확장 술어 블록 → **rc=0**. **HEAD=`8da63f6` 실측 rc=0 / 미가드 0 파일 → 충족** (등록 시점 rc=1 / 1 파일). vacuous-zero 를 함께 차단한다: 같은 루프의 **대상 집합 크기 ≥ 12** — 실측 **12** (0 아님, 공허 통과 아님).
-- [x] (Must, FR-08) 선언 범위와 술어 대상의 차집합 공집합 — 확장 술어 대상과 선행(`useEffect` 요구) 술어 대상의 차집합이 회복 후에도 **계약상 대상 전수**임을 유지. 판정: 확장 술어 대상 수 ≥ 선행 술어 대상 수 이고, 확장 대상 전수가 FR-07 을 통과. **HEAD=`8da63f6` 실측 확장 12 · 선행 12 (12 ≥ 12) + FR-07 rc=0 → 충족** (등록 시점 12 vs 11, 차집합 미가드). 차집합이 닫힌 경위는 §동작 3b — 선행 술어의 구조적 한계가 제거된 것이 아니므로 집행 대상은 계속 확장 술어다.
+- [x] (Must, FR-08) 선언 범위와 술어 대상의 차집합 공집합 — 확장 술어 대상과 선행(`useEffect` 요구) 술어 대상의 차집합이 회복 후에도 **계약상 대상 전수**임을 유지한다. 판정:
+  ```
+  ext=0; pre=0; ung=0; for f in $(grep -rlE "await |\.then\(" --include="*.jsx" --include="*.tsx" src | grep -v "\.test\." | sort); do grep -qE "\buse[A-Z][A-Za-z]*(<[^()]*>)?[[:space:]]*\(" "$f" || continue; ext=$((ext+1)); grep -q "useEffect" "$f" && pre=$((pre+1)); grep -qE "cancelled|AbortController|isMounted|signal" "$f" || { echo "UNGUARDED $f" >&2; ung=$((ung+1)); }; done; echo "extended=$ext preceding=$pre unguarded=$ung"; [ "$ext" -ge 12 ] || { echo "공허: extended<12" >&2; exit 2; }; [ "$ext" -ge "$pre" ] && [ "$ung" -eq 0 ]
+  ```
+  → **rc=0**. **HEAD=`61ce5ab` (inspector tick 227) 실측 rc=0 / `extended=12 preceding=12 unguarded=0` → 충족** (등록 시점 확장 12 vs 선행 11, 차집합 미가드). 차집합이 닫힌 경위는 §동작 3b — 선행 술어의 구조적 한계가 제거된 것이 아니므로 집행 대상은 계속 확장 술어다. **tick 227 에 문면을 산문에서 명령으로 교체했다** — 종전 판본의 판정은 "확장 술어 대상 수 ≥ 선행 술어 대상 수 이고, 확장 대상 전수가 FR-07 을 통과" 라는 **서술**이어서 `RULE-07 §수용 기준 문장 규약`(명령 1회 rc 판정)을 만족하지 못했고, `check:acceptance-criteria` 의 판정 명령 모집단에서 구조적으로 이탈해 G-3·G-4 가 이 항목을 **영구 무검출**로 두었다 (REQ-20260826-028 §배경 — 판정 선언 69항 중 도출 0 인 2건의 하나). **두 술어를 같은 순회에서 동시에 계수한다** — 별도 순회로 재면 `grep` 대상 집합이 갈릴 때 두 수치가 서로 다른 모집단을 재고도 대소 비교가 성립해 버린다. **공허 가드 내장** — 확장 대상이 12 미만이면 `exit 2`(무판정)로, 술어가 낡아 모집단이 쪼그라든 상태를 충족으로 읽지 않는다. `unguarded` 는 FR-07 과 같은 층을 같은 순회에서 재므로 두 항목의 산출이 갈릴 수 없다. 미가드 파일은 **이름으로** stderr 에 발화된다.
 - [x] (Must, FR-09) 도달 불가 필터 0 — **판정 명령은 2층이다** (inspector tick 220 교정. 종전 1층 명령은 리터럴 문구만 봐서 `.includes(...)` 변형을 놓쳤고, 그 결과 불변식이 위반된 상태에서 rc=0 을 냈다):
   ```
   bash -c 'grep -rn "update.*was not wrapped\|cannot update a component" src --include="*.test.tsx" --include="*.test.jsx" | grep -q . && exit 1;
@@ -289,3 +294,4 @@ RULE-07 §수용 기준 문장 규약에 따라 체크박스에서 강등한 항
 | 2026-05-20 | inspector 203차 tick / `fed31ba` | (I4)+(I7)+(Should FR-05) 3 marker 플립. **(I4)/(FR-05) 근거는 본 개정에서 무효화됐다** — 위 2026-08-24 행 참조. (I7) fixture 박제 (Image/File/VisitorMon 3 도메인) 는 유효. | 테스트 현황, 수용 기준 |
 | 2026-05-18 | inspector 67차 tick / `760a491` | (I3)+(I6)+(FR-03)+(FR-04) 플립 — `VisitorMon.jsx` cancelled-flag ref 박제 회수. 유효. | 테스트 현황, 수용 기준 |
 | 2026-05-17 | inspector (REQ-20260517-093 흡수) / `cac6fa2` | 최초 박제 — Image/File/Monitor 3 도메인 unmount-safety 비대칭 해소. | all |
+| 2026-08-26 | REQ-20260826-028 FR-08 (inspector tick 227) | **green 재판본 — FR-08 판정 문면을 산문에서 실행 가능한 명령으로 교체.** 그 밖의 절은 blue 판본과 바이트 동일하며 계약 내용 변경 0. 사유: 종전 문면은 판정을 **선언**했으나 실행 가능한 명령 스팬이 없어 `check:acceptance-criteria` 의 판정 명령 모집단에서 이탈했고, G-3(주소 범위 재시작)·G-4(실행 금지어) 가 이 항목을 **구조적으로 무검출**로 두었다. tick 227 독립 실측 — `specs/30.spec/**` §수용 기준 최상위 체크박스 783항 중 판정 선언 69항, 그중 모집단 도출 0 이 **2항**이었고 본 항목이 그 하나였다 (나머지 1항은 green `testing/acceptance-command-measures-declared-subject:114` — 같은 tick 에 해소). 교체 후 실측 `extended=12 preceding=12 unguarded=0` rc=0 으로 blue 박제 수치와 일치 — **계약을 완화하지 않았다.** blue 직접 편집 0건 (`RULE-01` writer 경계; `foundation/spec-reference-coherence:21` 이 명시한 새 green 판본 → planner 승격 mv 경로). | 수용 기준 |
