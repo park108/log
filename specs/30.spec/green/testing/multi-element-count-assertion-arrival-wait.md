@@ -49,11 +49,25 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 
 ## 수용 기준
 
-- [ ] (Must, 동작 1·2) Given `src/Monitor/Monitor.test.jsx` 의 패널 개수 단언, When `bash -c 'grep -nE "await screen\.findAllByRole" src/Monitor/Monitor.test.jsx'`, Then 0 hit.
-- [ ] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -cE "toHaveLength\(PANEL_HEADINGS_IN_ORDER\.length\)" src/Monitor/Monitor.test.jsx'`, Then ≥1.
-- [ ] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -cE "toEqual\(PANEL_HEADINGS_IN_ORDER\)" src/Monitor/Monitor.test.jsx'`, Then ≥1.
-- [ ] (Must, 동작 3) Given 동일 파일, When `bash -c 'grep -nE "setTimeout|advanceTimersByTime|await new Promise" src/Monitor/Monitor.test.jsx'`, Then 0 hit.
+> 아래 명령은 전부 **rc=0 == 계약 충족** 으로 통일돼 있다 (0 hit 을 요구하는 항목은 `! grep -q` 형태). 판정은 hit 수 육안 대조가 아니라 종료 코드로 한다.
+
+- [ ] (Must, 동작 1·2) Given 패널 개수 단언 지점, When `bash -c '! grep -qE "await screen\.findAllByRole" src/Monitor/Monitor.test.jsx'`, Then rc=0 (≥1 resolve 스냅샷 계수 형태 부재).
+- [ ] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -qE "toHaveLength\(PANEL_HEADINGS_IN_ORDER\.length\)" src/Monitor/Monitor.test.jsx'`, Then rc=0 (개수 단언 보존).
+- [ ] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -qE "toEqual\(PANEL_HEADINGS_IN_ORDER\)" src/Monitor/Monitor.test.jsx'`, Then rc=0 (순서 단언 보존).
+- [ ] (Must, 동작 3) Given 동일 파일, When `bash -c '! grep -qE "setTimeout|advanceTimersByTime|await new Promise" src/Monitor/Monitor.test.jsx'`, Then rc=0 (고정 지연 부재 — req 는 셸 축 블록 한정이었으나 파일 전역으로 상향, 현 HEAD 에서 충족).
 - [ ] (Must, 동작 1) Given 현 HEAD, When `npx vitest run src/Monitor/Monitor.test.jsx`, Then rc=0.
+- [ ] (Must, 동작 1) Given 현 HEAD, When `npm test`, Then rc=0 (경합 창은 전량 실행 부하에서만 노출된다 — 이쪽이 판별 채널이다).
+
+### 현 HEAD 실측 (2026-08-26, `8b934b8`)
+
+| 항목 | 결과 |
+|---|---|
+| `! grep -q "await screen\.findAllByRole"` | **rc=1 — 미충족** (`src/Monitor/Monitor.test.jsx:165` 잔존) |
+| `grep -q "toHaveLength(PANEL_HEADINGS_IN_ORDER.length)"` | rc=0 |
+| `grep -q "toEqual(PANEL_HEADINGS_IN_ORDER)"` | rc=0 |
+| `! grep -q "setTimeout\|advanceTimersByTime\|await new Promise"` | rc=0 |
+| `npx vitest run src/Monitor/Monitor.test.jsx` | rc=0 (7 passed) — **비판별**, 아래 참고 |
+| 동작 (5) 열거 명령 | 19 hits / 7 files (req 실측치와 일치) |
 
 ## 참고
 
@@ -63,7 +77,8 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 
-- **전량 실행 반복 결정성** — 부하 의존 flake 의 재현율은 러너 부하의 함수이므로 "N 회 반복 통과" 는 결정적 rc 판정이 아니다. 판정 대상에서 제외한다.
+- **단일 파일 실행의 비판별성** — `npx vitest run src/Monitor/Monitor.test.jsx` 는 계약이 위반된 현 HEAD 에서도 rc=0 이다 (2026-08-26 실측 7 passed). 이 항목은 수리 후 회귀 바닥선이지 위반 검출 채널이 아니다. 검출은 전량 실행(`npm test`)과 형태 게이트(위 grep 4건)가 맡는다.
+- **전량 실행 반복 결정성** — 부하 의존 flake 의 재현율은 러너 부하의 함수이므로 "N 회 반복 통과" 는 결정적 rc 판정이 아니다. 판정 대상에서 제외한다. 단일 `npm test` rc 로만 판정한다.
 - **판별력 실효 (패널이 3개로 줄면 red)** — 가정 주입 요구 부류. 검출 방향은 "기여 패널 수 감소 → 개수 단언 red" 이며, 주입 판정은 본 계약을 수리하는 task 의 DoD 로 이관한다 (RULE-06 §게이트 실효 검증). 이관처 task 미발행 시 발행 요청을 `10.followups/` 에 남긴다.
 - **모집단 전수 분류 (19건)** — 분류표의 등재 여부는 단일 명령 rc 로 판정되지 않는다. 동작 (5) 의 열거 명령이 산출하는 각 지점의 분류는 수리 task 의 산출물로 박제한다.
 - **프로덕션 비파괴 (`src/Monitor/**` 변경 0)** — 변경 없음은 task 단위 diff 범위 조건이며 HEAD 단독 rc 판정 대상이 아니다.
@@ -71,3 +86,4 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 ## 변경 이력
 
 - 2026-08-26 inspector: REQ-20260825-019 흡수, green 신규.
+- 2026-08-26 inspector: 수용 기준 명령을 rc=0 == 충족 형태로 통일 (`! grep -q`), 현 HEAD 실측 박제, 단일 파일 실행의 비판별성 강등 표기.
