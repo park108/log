@@ -21,6 +21,7 @@
 - 민감 파일 (.env, *.pem, 자격증명) 금지.
 - **subject ≤ 72자.** tick 카운터·체인 수치·소인수분해 서사 금지 — 상세는 body 로. (`.husky/commit-msg` 강제)
 - 메시지: `{scope}({agent}): {요약}` — `{scope}` ∈ {spec, req, task, followup}. developer task 커밋은 `{type}: {task title}` — `{type}` ∈ {feat, fix, refactor, chore, test, docs}.
+- **운영자 커밋은 `operator: {요약}`** (agent 괄호 없음). 에이전트는 이 형식을 쓰지 않는다. 범위는 `rules/` · `.claude/agents/` · `.gitignore` 등 `check-commit-writer-coherence` 가 `meta` 로 분류하는 경로에 한정하며, **`meta` 경로와 에이전트 소유 경로(`src/**` · `specs/**` · `scripts/**`)를 한 커밋에 섞지 않는다** — 섞으면 어떤 단일 writer 도 생성할 수 없는 커밋이 되어 cross-writer 판정에 걸린다 (2026-08-24 실제 발생).
 - **push 는 developer 전용**. 그 외는 로컬 커밋까지.
 - 훅 실패는 원인 수정·재시도. 우회 금지.
 
