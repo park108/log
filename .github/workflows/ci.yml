@@ -103,6 +103,21 @@ jobs:
       - name: Check test double return shape fidelity
         run: npm run check:test-double-shape
 
+      # 전역 원복 정적 게이트 (test-global-state-restoration-order-independence §동작 (FR-04)(NFR-02)).
+      # 테스트가 window·navigator·globalThis 프로퍼티를 재정의하고 원복하지 않으면 그 상태는
+      # 뒤 케이스로 누출돼 **실행 순서가 커버리지 수치를 바꾸는 채널**을 만든다.
+      # **테스트는 이 축의 채널이 될 수 없다**: 단일 순서 1회 실행에서 위반은 초록이다.
+      # 실측 — 원복 훅 0건 트리에서 base=139 / seed=138,138, 프로퍼티별 원복 등록 후
+      # 140/140/140 으로 일치했고 통과 수는 양쪽 다 동일했다. 현행 커버리지 게이트는 전부
+      # 단일 순서 1회 실행을 측정하므로 이 슬롯 이동을 구조적으로 보지 못한다.
+      # 검출 단위는 파일이 아니라 재정의된 **프로퍼티**다 — 파일 단위 판정은 무관한 훅 1건의
+      # 존재만으로 통과하므로 성기다. 복원은 afterEach/afterAll 훅 등록 블록 안에서만 계수하며
+      # it 본문 직렬 호출을 등록으로 오인하지 않는다 (NFR-02).
+      # 대상 파일·프로퍼티는 하드코딩하지 않고 도출하며 (RULE-06 §열거 고정 금지)
+      # 도출이 0 이면 위반(1)이 아니라 무판정(2)으로 실패시킨다.
+      - name: Check global state restoration
+        run: npm run check:global-state-restoration
+
       # 선언된 분기 구별 단언 게이트 (declared-branch-discriminating-assertion §동작 (B-1)).
       # 더블로 분기를 선택한 케이스는 그 선택이 여는 관측 결과를 구별하는 단언을 가져야 한다.
       # 위 형상 축(check:test-double-shape)이 선행 축이다 — 형상이 정합해야 분기가 비로소

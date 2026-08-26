@@ -39,6 +39,7 @@
     "check:api-base-url": "bash scripts/check-api-base-url-totality.sh",
     "check:env-api-base": "bash scripts/check-env-api-base-presence.sh",
     "check:gate-seam": "bash scripts/check-gate-seam-coverage.sh",
+    "check:global-state-restoration": "bash scripts/check-global-state-restoration.sh",
     "check:measurement-tree-attribution": "bash scripts/check-measurement-tree-attribution.sh",
     "check:commit-writer-coherence": "bash scripts/check-commit-writer-coherence.sh",
     "typecheck": "tsc --noEmit",

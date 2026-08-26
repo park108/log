@@ -74,3 +74,17 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-|scripts/fixtures/)'; then
   bash scripts/check-gate-seam-coverage.sh || exit 1
 fi
+
+# 전역 원복 정적 게이트 — TSK-20260827-04-b / spec: testing/test-global-state-restoration-order-independence.md §동작 (FR-04)(NFR-02)
+# staged 변경에 src/** 또는 게이트 스크립트 자신이 포함되면 검사.
+# npm script 동치: check:global-state-restoration (package.json / ci.yml 과 같은 스크립트).
+# 원복 없는 전역 재정의는 뒤 케이스로 누출돼 **실행 순서가 커버리지 수치를 바꾸는 채널**을
+# 만든다. 실측: 원복 훅 0건 트리에서 base=139 / seed=138,138, 원복 등록 후 140/140/140 —
+# 통과 수는 양쪽 다 동일했다. 위반이 테스트를 붉게 만들지 않으므로 테스트가 판정자가 될 수 없다.
+# 검출 단위는 파일이 아니라 **재정의된 프로퍼티**이며, 복원은 afterEach/afterAll 훅 등록
+# 블록 안에서만 계수한다 — it 본문 직렬 호출은 등록이 아니다 (NFR-02).
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|scripts/check-global-state-restoration\.sh$)'; then
+  bash scripts/check-global-state-restoration.sh || exit 1
+fi
