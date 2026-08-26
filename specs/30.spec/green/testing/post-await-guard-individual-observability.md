@@ -59,7 +59,7 @@
 
 ## 수용 기준
 
-- [ ] (Must) `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` → rc=0 (분해능 판정 포함).
+- [x] (Must) `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` → rc=0. (분해능 판정의 **실재 여부**는 아래 (Should) 출력 판정 항목이 계수한다 — 한 체크박스 = 한 명령 rc 규약상 연언을 분리한다.)
 - [ ] (Must) 대상 목록 상수에 파일 경로 하드코딩 0건 — `bash -c "grep -rnE \"src/(File|Image|Comment|Log|Search|Monitor)/[A-Za-z]+\\.tsx\" src/__tests__/post-unmount-emission-audit.test.ts | grep -vE \"^[^:]+:[0-9]+:[[:space:]]*(//|\\*)\"" → 0 lines.
 - [ ] (Must) `npx vitest run src/File src/Image src/Comment` → rc=0.
 - [ ] (Should) 판정 출력에 대상별 수치가 나타난다 — `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '요구[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*보유[[:space:]]*[0-9]+|required[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*have[[:space:]]*[0-9]+'" → 1 이상.
@@ -91,3 +91,4 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-26 | REQ-20260825-013 / (본 커밋) | 최초 등록 — 다중 post-await 가드 분해능 계약 | all |
+| 2026-08-26 | inspector / (본 커밋) | 수용기준 1차 판정 — audit test rc=0 실측 확인 후 `[x]`; 연언(분해능 판정 포함)은 (Should) 출력 항목으로 분리 | 수용 기준 |
