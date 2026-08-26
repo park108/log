@@ -61,10 +61,10 @@
 
 ### 미측정·비판정 항목
 
-- `.github/workflows/ci.yml` step 집합과 `check:*` 집합의 정합은 인접 축이나 본 계약은 규정하지 않는다.
+- `.github/workflows/ci.yml` step 집합과 `check:*` 집합의 정합은 인접 축이나 본 계약은 규정하지 않는다. 그 축(선언된 게이트의 발화 채널 총성)은 `30.spec/green/foundation/declared-gate-firing-channel-totality.md` 가 인수한다 — 본 항목은 미측정이 아니라 **이관 완료**다.
 - `check:build-artifact` 를 파일로 추출한 뒤의 동작 동일성은 추출 task 의 DoD 로 판정한다.
 - FR-03 의 주석-비의존 판정은 게이트 도입 시점 1회 주입으로만 확인된다. 검출 방향 2축을 선언으로 보존한다 — (민감도) 훅의 스크립트 호출 실행 라인 1건을 주석으로 내린 변형 트리에서 게이트는 `rc≠0` 이어야 한다. (특이도) 원복 트리 및 주석만 늘어난 정상 변형 트리에서는 `rc=0` 이어야 한다. 이 주입은 배선 정합 게이트 도입 task 의 DoD 로 이관한다 (RULE-06 §게이트 실효 검증, RULE-07 §처리).
-- 위 두 이관 항목(FR-03 · FR-05)의 이관처 task 는 현 HEAD 에 아직 없다. 배선 정합 게이트 도입 task 발행이 필요하며, 그 task 의 `## 검증/DoD` 에 두 방향 주입을 `injection: 2/2 detect` 로 박제한다.
+- 위 두 이관 항목(FR-03 · FR-05)의 이관처 task 는 현 HEAD 에 아직 없다. 이관처는 `declared-gate-firing-channel-totality` 가 요구하는 **발화 채널 총성 게이트 신설 task** 로 지정한다 (그 spec §미측정·비판정 항목 > 승계 이관). 배선 정합 게이트 도입 task 발행이 필요하며, 그 task 의 `## 검증/DoD` 에 두 방향 주입을 `injection: 2/2 detect` 로 박제한다.
 - FR-05 (Should) 의 "staged 아님에도 정상 판정" 은 게이트 도입 시점 1회 주입으로만 확인 가능하므로, 그 주입은 게이트 도입 task 의 DoD 로 이관한다 (RULE-06 §게이트 실효 검증, RULE-07 §처리 — 이관처: 배선 정합 게이트 도입 task).
 - `scripts/check-commit-writer-coherence.sh` 의 경로 분류 12갈래 중 8갈래(`10.followups` · `20.req` · `40.task` · `50.blocked/{req,task}` · `60.done/*/{req,task,followups}`)는 해당 경로가 gitignore 대상이라 커밋 diff 에 실릴 수 없어 구조적으로 도달 불가다. 배선은 살아 있으나 집행 대상이 공집합인 형태 — 본 계약 방어 대상 (1) 의 사촌 축이며 별도 req 로 다룬다.
 - 기존 게이트 회귀 0(`npm test` rc=0)은 본 계약의 수용 기준에서 제외한다. 회귀 부재는 이미 pre-commit·ci 가 집행하는 명제라 여기 체크박스로 두면 중복 게이트이며(RULE-07 §반려 시그널), 본 계약은 코드 변경을 스스로 만들지 않아 판정 시점도 계약에 귀속되지 않는다. 회귀 검증의 귀속처는 배선 정합 게이트 도입 task 의 `## 검증/DoD` 다 — 그 task 발행 요청은 `specs/10.followups/20260826-1830-gate-wiring-coherence-gate-issuance.md` 에 이미 있다.
@@ -105,3 +105,4 @@
 - 2026-08-26 inspector: 수용 기준 4항(FR-04) 판정 명령에 (블록, 스크립트) 쌍 수 ≥1 단언 추가 후 재실행 — 출력 `1 4` rc=1, 불일치 4건으로 `[ ]` 유지. 쌍 수 0 이면 불일치 0 이 되어 초록으로 읽히던 공집합 경로를 차단.
 - 2026-08-26 inspector: 수용 기준 5항(발화 채널 실재) ci 계수를 주석 절단 후 `run: npm run <key>` 실행 라인 한정으로 좁힘 — 음성 대조 `check:gate-wiring` rc=1 (`0 0`), 양성 대조 `check:deps`·주석+실행 혼재 `check:commit-writer-coherence` rc=0 (`1 1`). `[ ]` 유지 — RULE-07 §promote 조건 4 상 채널 부착 task 발행이 선행 조건.
 - 2026-08-26 inspector: 수용 기준 7항(`npm test` 회귀 0)을 §미측정·비판정 항목으로 강등 — 기존 자동 게이트 중복 명제이며 귀속처는 게이트 도입 task DoD (이관처 followup 기발행).
+- 2026-08-27 inspector: §미측정 1행(ci step ↔ `check:*` 정합 제외)을 `declared-gate-firing-channel-totality` 이관 완료로 정정 + FR-03·FR-05 주입 이관처 task 지정.
