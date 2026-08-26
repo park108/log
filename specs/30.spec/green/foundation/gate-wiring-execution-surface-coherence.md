@@ -71,10 +71,25 @@
 ### 관측 근거
 
 - 실측 (HEAD `4014c66`): `.husky/pre-commit:23` 주석 `# npm script 동치: check:monitor-state-immutability`, `:26` 실행 `bash scripts/check-monitor-state-immutability.sh || exit 1`. `:26` 제거 + `:23` 잔존 시 배선 grep 판정 초록.
-- 실측: pre-commit 4 블록의 발화 조건 `^(src/|specs/30\.spec/)` · `^src/` · `^(package\.json|package-lock\.json)$` · `^src/Monitor/` 어느 것도 `^scripts/` 를 포함하지 않는다.
+- 실측 (HEAD `abefbb8`) — pre-commit 조건 블록 **9건** 중 **4건**이 FR-04 위반이다. 자기 스크립트 경로를 발화 조건에 포함하지 않는 블록:
+
+| 조건 라인 | 발화 조건 | 호출 라인 | 스크립트 | FR-04 |
+|---|---|---|---|---|
+| `:5` | `^(src/\|specs/30\.spec/)` | `:6` | check-spec-coherence.sh | 위반 |
+| `:11` | `^src/` | `:12` | check-vite-env-coherence.sh | 위반 |
+| `:17` | `^(package\.json\|package-lock\.json)$` | `:18` | check-deps-coherence.sh | 위반 |
+| `:25` | `^src/Monitor/` | `:26` | check-monitor-state-immutability.sh | 위반 |
+| `:34` | `^(src/\|scripts/check-test-double-shape-fidelity\.sh$)` | `:35` | check-test-double-shape-fidelity.sh | 충족 |
+| `:43` | `^(src/\|scripts/check-api-base-url-totality\.sh$)` | `:44` | check-api-base-url-totality.sh | 충족 |
+| `:52` | `^(\.env\|src/types/env\.d\.ts$\|scripts/check-env-api-base-presence\.sh$)` | `:53` | check-env-api-base-presence.sh | 충족 |
+| `:63` | `^(src/common/Navigation\|scripts/check-declared-branch-discrimination\.sh$)` | `:64` | check-declared-branch-discrimination.sh | 충족 |
+| `:74` | `^(scripts/check-\|scripts/fixtures/)` | `:75` | check-gate-seam-coverage.sh | 충족 |
+
+- 실측 (HEAD `abefbb8`) — FR-01 위반 **1건** (`check:build-artifact`), FR-02 차집합 **0건** (훅 호출 9 경로 ⊆ 도출 20 경로), 도출 경로 개수 **20 / `check:*` 21종**. 도출 실패 1건이 곧 FR-01 위반 1건과 동일 항목이다.
 - `check:*` 종수는 req 작성 시점 15종에서 현재 21종으로 증가했다 — 수용 기준은 절대 종수를 고정하지 않는다.
 - 소비 followup 3건 병합: `20260825-0700-pre-commit-wiring-observation-surface` (FR-03) · `20260825-1105-precommit-gate-trigger-excludes-gate-script` (FR-04·05) · `20260824-2236-check-script-logic-inlined-in-package-json` (FR-01).
 
 ## 변경 이력
 
 - 2026-08-24 inspector: REQ-20260825-010 흡수 — green 신규 등록.
+- 2026-08-26 inspector: §관측 근거 baseline 을 현 HEAD 실측으로 갱신 — pre-commit 조건 블록 9건 중 FR-04 위반 4건, FR-01 위반 1건, FR-02 차집합 0건, 도출 20/21.
