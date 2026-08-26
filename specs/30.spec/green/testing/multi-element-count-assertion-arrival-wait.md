@@ -56,7 +56,12 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 - [x] (Must, 동작 4) Given 동일 파일, When `bash -c 'grep -qE "toEqual\(PANEL_HEADINGS_IN_ORDER\)" src/Monitor/Monitor.test.jsx'`, Then rc=0 (순서 단언 보존).
 - [x] (Must, 동작 3) Given 동일 파일, When `bash -c '! grep -qE "setTimeout|advanceTimersByTime|await new Promise" src/Monitor/Monitor.test.jsx'`, Then rc=0 (고정 지연 부재 — req 는 셸 축 블록 한정이었으나 파일 전역으로 상향, 현 HEAD 에서 충족).
 - [x] (Must, 동작 1) Given 현 HEAD, When `npx vitest run src/Monitor/Monitor.test.jsx`, Then rc=0.
-- [ ] (Must, 동작 1) Given 현 HEAD, When `npm test`, Then rc=0 (경합 창은 전량 실행 부하에서만 노출된다 — 이쪽이 판별 채널이다).
+
+본 계약의 전량 실행 판별 채널은 아래 실경로에서 자동 발화한다 (RULE-07 §promote 조건 4):
+
+- `.husky/pre-push:3` — `npm test` (스크립트 마지막 행이므로 그 rc 가 훅 rc 이며 실패 시 push 차단).
+- `.github/workflows/ci.yml:84` — `- name: Test` / `run: npm test`.
+- `package.json:21` — `"test": "vitest run --coverage"`.
 
 ### 현 HEAD 실측 (2026-08-27, `49793e7`)
 
@@ -78,7 +83,8 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 
 - **단일 파일 실행의 비판별성** — `npx vitest run src/Monitor/Monitor.test.jsx` 는 계약이 위반된 현 HEAD 에서도 rc=0 이다 (2026-08-26 실측 7 passed). 이 항목은 수리 후 회귀 바닥선이지 위반 검출 채널이 아니다. 검출은 전량 실행(`npm test`)과 형태 게이트(위 grep 4건)가 맡는다.
-- **전량 실행 반복 결정성** — 부하 의존 flake 의 재현율은 러너 부하의 함수이므로 "N 회 반복 통과" 는 결정적 rc 판정이 아니다. 판정 대상에서 제외한다. 단일 `npm test` rc 로만 판정한다.
+- **전량 실행 (`npm test`) rc** — 중복 게이트 부류 (RULE-07 §반려 시그널). 위반 시 `.husky/pre-push:3` 과 `.github/workflows/ci.yml:84` 가 즉시 실패하므로 수용 기준 체크박스가 더하는 검출력이 0 이다. 채널 자체는 위 실경로에 박제돼 있고 계약의 판별 채널로 유지된다 — 강등 대상은 채널이 아니라 체크박스다. 부가로 RULE-07 §promote 조건 2 는 promote 직전 수용 기준 명령 전수 재실행을 요구하므로, 7~8분 명령을 수용 기준에 두면 승격 시도마다 전량 실행 비용이 강제된다.
+- **전량 실행 반복 결정성** — 부하 의존 flake 의 재현율은 러너 부하의 함수이므로 "N 회 반복 통과" 는 결정적 rc 판정이 아니다. 판정 대상에서 제외한다.
 - **판별력 실효 (패널이 3개로 줄면 red)** — 가정 주입 요구 부류. 검출 방향은 "기여 패널 수 감소 → 개수 단언 red" 이며, 주입 판정은 본 계약을 수리하는 task 의 DoD 로 이관한다 (RULE-06 §게이트 실효 검증). 이관처 task 미발행 시 발행 요청을 `10.followups/` 에 남긴다.
 - **모집단 전수 분류 (19건)** — 분류표의 등재 여부는 단일 명령 rc 로 판정되지 않는다. 동작 (5) 의 열거 명령이 산출하는 각 지점의 분류는 수리 task 의 산출물로 박제한다.
 - **프로덕션 비파괴 (`src/Monitor/**` 변경 0)** — 변경 없음은 task 단위 diff 범위 조건이며 HEAD 단독 rc 판정 대상이 아니다.
@@ -90,3 +96,4 @@ bash -c 'grep -rn -A4 "await screen.findAllBy" src --include="*.test.jsx" --incl
 - 2026-08-27 inspector: 동작 1·2 대기 조건 정합 항목 `[x]` — HEAD `49793e7` 재실행 rc=0 (수리 커밋 `5be66f4`).
 - 2026-08-27 inspector: 동작 3·4 형태 보존 항목 3건 `[x]` — HEAD `49793e7` 재실행 전수 rc=0.
 - 2026-08-27 inspector: 단일 파일 실행 항목 `[x]` — HEAD `49793e7` rc=0 (7 passed). 판별력 없음은 §참고 기존 표기 유지.
+- 2026-08-27 inspector: `npm test` 항목을 중복 게이트로 §참고 강등 + 발화 채널 실경로 3건 박제. §수용 기준 전수 `[x]`.
