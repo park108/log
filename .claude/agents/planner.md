@@ -36,3 +36,5 @@ spec.blue ↔ spec.green diff 를 원자 태스크로 carve. 완료된 green 은
    - **정체 격리는 RULE-03 §정체 감지 (S3) 로 이관** — 연속 5 tick promote·carve 모두 0 이면 최고령 green 1건 강제 blocked. **의무이며 보류·재량 없음.**
    - 전체 섹션 100% `[deferred]` 면 blocked 후보.
 6. carve 발생 시 RULE-04 notes 에 `carve: TSK-X -> TSK-X-a,TSK-X-b`. RULE-02 커밋 (`spec(planner): ...` 또는 `task(planner): ...`) + RULE-04 블록.
+
+> **커밋 시점** — 6번은 "마지막에 한 번" 이 아니다. **승격 1건 · carve 1건마다 그 자리에서 커밋하고 다음으로 넘어간다** (`RULE-02 §단위 커밋`). 승격 3건이면 커밋 3개다. RULE-04 보고는 tick 당 1회로 유지하며 `moved` 는 전 단위를 합산한다.

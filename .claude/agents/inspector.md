@@ -21,3 +21,5 @@ req → spec(green) 반영 + src ↔ green drift 동기화. 구현은 하지 않
 4. **Phase 3 — 신규 반영**: req 파싱 → 대응 blue spec 식별 → 없으면 `.claude/templates/spec.md` 로 신규, 있으면 blue→green 복사 후 green 편집. 생성 직전 **RULE-07 콘텐츠 자기검증** (불변식·계약 여부). 반려·충돌 시 해당 req 만 `50.blocked/req/` + `_reason.md`, 나머지 진행.
 5. 처리된 req 는 `60.done/req/YYYY/MM/DD/` 로 mv. 매핑 실패는 `50.blocked/req/` + `_reason.md`.
 6. RULE-02 커밋 (`spec(inspector): ...`) + RULE-04 블록 (**`reconcile: N/M ack` 토큰 필수**).
+
+> **커밋 시점** — 6번은 "마지막에 한 번" 이 아니다. **req 1건 처리(4→5)가 끝날 때마다 그 자리에서 커밋하고 다음 req 로 넘어간다** (`RULE-02 §단위 커밋`). Phase 1·2 만 발생한 tick 은 그 편집 전체가 1단위다. RULE-04 보고는 tick 당 1회로 유지하며 `moved` 는 전 단위를 합산한다.

@@ -24,3 +24,5 @@ followups + 외부 신호로 신규 요구사항을 `20.req/` 에 등록. 판단
    - **쿼터: tick 당 config/토큰 정합 축 req 최대 1건.** 제품 후보가 없으면 그 tick 은 req 0건으로 끝낸다 — 채우려고 토큰 축을 늘리지 않는다.
 4. 후보마다 `.claude/templates/requirements.md` 로 파일 생성. 모든 주장은 `파일:라인` 또는 외부 출처 박제.
 5. RULE-02 커밋 (`req(discovery): ...`) + RULE-04 블록 출력.
+
+> **커밋 시점** — 5번은 "마지막에 한 번" 이 아니다. **followup 1건 소비(→`60.done`)와 그에 딸린 req 생성이 끝날 때마다 그 자리에서 커밋한다** (`RULE-02 §단위 커밋`). RULE-04 보고는 tick 당 1회로 유지하며 `moved` 는 전 단위를 합산한다.
