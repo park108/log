@@ -19,8 +19,24 @@
 
 ## 수용 기준
 
-- [ ] 전역 프로퍼티를 재정의하는 각 테스트 파일에 대해, **재정의된 프로퍼티별로** 복원 등록이 존재한다 — 복원 등록 부재 프로퍼티 0건.
-- [ ] 복원 등록 판정은 훅 등록 한정 패턴으로 이루어지며, `it` 본문 직렬 호출을 등록으로 계수하지 않는다.
+- [ ] **재정의된 프로퍼티별로** 복원 등록이 존재한다 — 부재 프로퍼티 0건. 판정은 훅 등록 한정 패턴이며 `it` 본문 직렬 호출을 등록으로 계수하지 않는다.
+
+```bash
+miss=0
+files=$(grep -rlE "Object\.defineProperty\s*\(\s*(window|globalThis|navigator)" src --include="*.test.*")
+test -n "$files" || { echo "[EXTRACT-FAIL] no candidate file"; exit 2; }
+for f in $files; do
+  props=$(grep -oE "Object\.defineProperty\s*\([^,]+,\s*['\"][A-Za-z_$]+" "$f" | sed -E "s/.*['\"]//" | sort -u)
+  test -n "$props" || { echo "[EXTRACT-FAIL] $f"; exit 2; }
+  echo "props($f): $(echo $props)"
+  hooks=$(awk '/^[[:space:]]*(afterEach|afterAll)[[:space:]]*\(/,/^[[:space:]]*\}\);?[[:space:]]*$/' "$f")
+  for p in $props; do
+    echo "$hooks" | grep -q "$p" || { echo "[MISSING] $f :: $p"; miss=$((miss+1)); }
+  done
+done
+echo "missing=$miss"
+test "$miss" -eq 0
+```
 - [ ] 서로 다른 두 shuffle seed 실행의 전수 branches covered 가 동일하다.
 - [ ] 기본 순서 실행과 shuffle 실행의 전수 branches covered 가 동일하다.
 - [ ] `src/common/common.ts` UA 3항 연쇄의 전 슬롯이 shuffle 실행에서도 covered 다.
