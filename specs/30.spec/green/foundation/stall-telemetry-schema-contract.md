@@ -1,8 +1,8 @@
 # 정체 판정 계측 라인의 타입 계약과 손상 가시성
 
-> **위치**: `scripts/pipeline-health.sh` 의 진행 판정부(`moved` 참조 지점) · `package.json scripts."pipeline:health"` · 집행 게이트 `scripts.check:telemetry-schema` (미등재 — §promote 참조) · 픽스처 `scripts/fixtures/telemetry-schema/`
+> **위치**: `scripts/pipeline-health.sh` 의 진행 판정부(`moved` 참조 지점) · `package.json scripts."pipeline:health"` · 집행 게이트 `scripts.check:telemetry-schema` (등재·배선 완료 — §promote 참조) · 픽스처 `scripts/fixtures/telemetry-schema/`
 > **관련 요구사항**: REQ-20260825-008
-> **최종 업데이트**: 2026-08-27 (by inspector, REQ-20260825-008 흡수 — green 신규 등록)
+> **최종 업데이트**: 2026-08-27 (by inspector — tick 234 Phase 1 reconcile @ HEAD=`d9cd735`. TSK-20260827-07·08 착지 반영: 수용 기준 0/3 → **3/3**)
 > **측정 HEAD**: `badcfe2` (본 문서의 모든 수치는 inspector 가 이 HEAD 에서 직접 실행한 실측)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**.
@@ -65,9 +65,11 @@
 
 ## 수용 기준
 
+> **재측정 @ HEAD `d9cd735` (tick 234): 3항 전수 rc=0 — 전부 `[x]` 로 플립.** 2회 연속 동일 출력(멱등) 확인. 근거 커밋 `5531a50`(게이트 신설 + 채널 부착) · `b3cda49`(보고 루트 seam + `moved`/`streak` 가드 대칭 + 손상 가시화) 둘 다 HEAD 조상. 각 항의 `badcfe2` 실측 문구는 등록 시점 스냅샷이며 역사 기록으로 존치한다.
+>
 > 전 항목 HEAD `badcfe2` 에서 명령 1회로 rc 판정 가능 (RULE-07 §수용 기준 문장 규약). 명령은 `package.json` · `scripts/**` 만 참조하며 **spec 자신의 green/blue 경로를 참조하지 않는다** (promote 조건 2). 대상 경로·seam 이름·픽스처 목록은 전부 **도출**하며 하드코딩하지 않는다 (RULE-06 §열거 고정 금지).
 
-- [ ] **(Must, T-2) 진행 판정의 타입 가드 — `moved`/`streak` 대칭**
+- [x] **(Must, T-2) 진행 판정의 타입 가드 — `moved`/`streak` 대칭**
   ```
   bash -c '
   f=$(node -e "var s=(require(\"./package.json\").scripts||{})[\"pipeline:health\"]||\"\";var m=s.match(/scripts\/[A-Za-z0-9._\/-]+\.sh/);process.stdout.write(m?m[0]:\"\")")
@@ -92,7 +94,7 @@
   | 비교 지점에 `typeof e.moved === "number"` 주입 | `unguarded=0 streak-guards=1` | **0** (민감도) |
   | `moved` 참조가 없는 스크립트 | `moved-refs=0` → `population-empty` | **2** (공집합 무판정) |
 
-- [ ] **(Must, T-1·T-3·T-4) 집행 게이트가 픽스처를 방향별로 판정한다**
+- [x] **(Must, T-1·T-3·T-4) 집행 게이트가 픽스처를 방향별로 판정한다**
   ```
   bash -c '
   v=$(node -e "var s=(require(\"./package.json\").scripts||{})[\"check:telemetry-schema\"]||\"\";process.stdout.write(s)")
@@ -135,7 +137,7 @@
 
     마지막 두 행이 본 항목의 핵심이다. `RULE-06 §게이트 실효 검증` 이 경고하는 **민감도 0 게이트**와, 그 반대인 **특이도 0 게이트**가 둘 다 `rc=1` 로 걸린다.
 
-- [ ] **(Must, T-3) 손상 라인이 진단 출력에 드러난다**
+- [x] **(Must, T-3) 손상 라인이 진단 출력에 드러난다**
   ```
   bash -c '
   f=$(node -e "var s=(require(\"./package.json\").scripts||{})[\"pipeline:health\"]||\"\";var m=s.match(/scripts\/[A-Za-z0-9._\/-]+\.sh/);process.stdout.write(m?m[0]:\"\")")
@@ -202,7 +204,9 @@ TOTAL lines=114 schema-violations=7 parse-failures=0
 
 ### promote 선행 조건 (RULE-07 §promote 조건 4)
 
-Must 측정 게이트 `check:telemetry-schema` 가 현 HEAD 에 **미등재**다. 채널 부재는 promote 차단이 아니라 **채널 부착 task 발행을 선행 조건**으로 한다. 부착 시 `package.json scripts` 등재 + `.husky/*` 또는 `ci.yml` 실행 라인 ≥1 이 함께 필요하다 — 그러지 않으면 green `declared-gate-firing-channel-totality` 1항이 이 키를 dead 로 열거해 즉시 붉어진다.
+**해소됨 @ HEAD `d9cd735`** — `check:telemetry-schema` 가 `package.json scripts` 에 등재되고 발화 채널이 부착됐다 (`check:gate-firing-channel` 실행 결과 `dead=0` 유지 확인). 아래는 등록 시점 서술이다.
+
+Must 측정 게이트 `check:telemetry-schema` 가 등록 시점 HEAD 에 **미등재**였다. 채널 부재는 promote 차단이 아니라 **채널 부착 task 발행을 선행 조건**으로 한다. 부착 시 `package.json scripts` 등재 + `.husky/*` 또는 `ci.yml` 실행 라인 ≥1 이 함께 필요하다 — 그러지 않으면 green `declared-gate-firing-channel-totality` 1항이 이 키를 dead 로 열거해 즉시 붉어진다.
 
 ### 픽스처 경로 사전 점검 (RULE-06)
 
@@ -230,3 +234,4 @@ Must 측정 게이트 `check:telemetry-schema` 가 현 HEAD 에 **미등재**다
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-27 | inspector / REQ-20260825-008 | **green 신규 등록.** 원 req 의 Given/When/Then 8항을 판정 가능한 3항으로 재정식화 — 대상 경로·seam 이름·픽스처 목록을 전부 도출형으로 바꾸고(RULE-06 §열거 고정 금지) 공집합·미등재를 `exit 2` 무판정으로 fail-closed 화했다. 3항 전부 HEAD `badcfe2` 에서 inspector 가 직접 실행(rc=1 / rc=2 / rc=2)했고, 판정 상태 3·5·3종 probe 를 실측해 박제했다. 원 req 의 `npm test rc=0` 항은 중복 게이트라 §미측정으로 강등, `향후 적합 기록`·`p(재발)`·`소급 정정`·`rules 개명` 은 부적격 부류로 §미측정 존치. 실측 중 원 req 미보고 위반 1건(`developer:29` `tick: string`) 추가 발견. | 전체 (신설) | |
+| 2026-08-27 | TSK-20260827-07 · TSK-20260827-08 / `5531a50` · `b3cda49` | **Phase 1 reconcile — 수용 기준 0/3 → 3/3 플립.** 3항 전부 기계 추출(791/1482/813 bytes) 후 HEAD `d9cd735` 에서 재실행: T-2 `unguarded=0 streak-guards=1` rc=0 (등록 시점 `unguarded=1` 비대칭 해소) / T-1·T-3·T-4 `valid-fixtures=2 invalid-fixtures=7 pass=10 fail=0` rc=0 / T-3 `seam=PIPELINE_REPORTS_ROOT` rc=0. 2회 연속 동일 출력. 근거 커밋 2건 모두 `git merge-base --is-ancestor` 로 HEAD 조상 확인. promote 선행 조건(채널 부착) 해소 — **promote-candidate**. | 수용 기준 · promote 선행 조건 · 헤더 |
