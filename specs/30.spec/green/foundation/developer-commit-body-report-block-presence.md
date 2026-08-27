@@ -2,13 +2,13 @@
 
 > **위치**: 커밋 메시지 표면 — `git log -1 --format=%b <hash>` (body) + `git log -1 --format=%s <hash>` (writer 라벨 도출). 발화 채널은 `package.json scripts.check:commit-writer-coherence` → `scripts/check-commit-writer-coherence.sh` → `.github/workflows/ci.yml:58`.
 > **관련 요구사항**: REQ-20260827-032
-> **최종 업데이트**: 2026-08-27 (by inspector — 최초 등록)
+> **최종 업데이트**: 2026-08-28 (by inspector — Phase 1 reconcile: 수용 기준 4항 전수 플립)
 
 ## 역할
 
 **developer writer 로 판정된 커밋의 body 에 `RULE-04` 보고 블록이 존재한다** 는 불변식. `RULE-04` 는 보고 3채널 중 stdout 을 소멸 채널로, `.claude/reports/**` 를 gitignored 로 규정하므로 **영속 감사 채널은 커밋 body 가 유일**하다.
 
-**방어 대상 (RULE-07 §주제 우선순위 2)** — 이 spec 이 막는 silent regression 은 **task 의 검증 증거가 어떤 영속 채널에도 남지 않은 채 task 가 닫히는 것**이다. 조용한 이유는 세 겹이다: (a) stdout 은 세션 종료와 함께 소멸하고, (b) `.claude/reports/`(`.gitignore:36`) 와 `specs/60.done`(`.gitignore:33`) 는 추적되지 않으며, (c) 그럼에도 파이프라인은 정상으로 보인다 — task 는 `60.done` 으로 이동했고 커밋은 존재하며 훅은 전부 초록이다. **현 HEAD 에서 커밋 body 를 판정 입력으로 삼는 게이트는 0건**이므로 블록 부재는 위반이 아니라 측정 대상 밖이다 (§동작 (B-0) 실측).
+**방어 대상 (RULE-07 §주제 우선순위 2)** — 이 spec 이 막는 silent regression 은 **task 의 검증 증거가 어떤 영속 채널에도 남지 않은 채 task 가 닫히는 것**이다. 조용한 이유는 세 겹이다: (a) stdout 은 세션 종료와 함께 소멸하고, (b) `.claude/reports/`(`.gitignore:36`) 와 `specs/60.done`(`.gitignore:33`) 는 추적되지 않으며, (c) 그럼에도 파이프라인은 정상으로 보인다 — task 는 `60.done` 으로 이동했고 커밋은 존재하며 훅은 전부 초록이다. 등록 시점(HEAD=`b5e6e81`)에는 **커밋 body 를 판정 입력으로 삼는 게이트가 0건**이어서 블록 부재가 위반이 아니라 측정 대상 밖이었다 (§동작 (B-0) baseline). TSK-20260828-03(`d9dd7d2`) 착지로 그 사각이 닫혔고, 본 계약은 이제 그 판정이 유지된다는 불변식으로 선다.
 
 의도적으로 하지 않는 것:
 
@@ -26,7 +26,7 @@
 
 - **(B-0) 현 HEAD 실측 (baseline · 시점 의존)**: 최근 120 커밋 모집단에서 developer prefix 커밋 **47**, 블록 보유 **4**, 블록 부재 **43**, body 공백 **2** (HEAD=`b5e6e81` 측정). 이 수치는 슬라이딩 윈도로 매 커밋 이동하므로 **체크박스가 아니라 baseline** 이다 (REQ 원문의 49/5/44/1 은 discovery 측정 시점 HEAD 기준이며 그 이후 inspector 커밋 2건이 윈도를 밀었다). 판정은 수치가 아니라 아래 (B-1)~(B-5) 의 구조 명제가 진다.
 - **(B-1) writer 라벨 도출 재사용**: 판정 대상 여부는 `scripts/check-commit-writer-coherence.sh` `G-C1` 의 prefix→label 매핑이 정한다. developer 라벨(`^(feat|fix|refactor|chore|test|docs)(\(...\))?:` · `^followup\(developer\):`) 만 모집단이다.
-- **(B-2) body 를 판정 입력으로 읽는다**: 판정 표면은 `%b`(또는 `%B`) 를 실제로 읽는다. 현 HEAD 의 두 훅은 body 를 참조조차 하지 않는다 — `.husky/commit-msg:4` 는 `head -1` 로 subject 만, `check-commit-writer-coherence.sh` 는 subject prefix 와 변경 path 만 본다.
+- **(B-2) body 를 판정 입력으로 읽는다**: 판정 표면은 `%b`(또는 `%B`) 를 실제로 읽는다. 등록 시점에는 두 훅 어디도 body 를 참조하지 않았다 — `.husky/commit-msg:4` 는 `head -1` 로 subject 만, `check-commit-writer-coherence.sh` 는 subject prefix 와 변경 path 만 봤다. `d9dd7d2` 이후 후자가 `%b` 판독을 갖는다. `.husky/commit-msg` 의 subject 전용 성격은 본 축의 사각으로 남으며 그 축은 본 계약이 다루지 않는다.
 - **(B-3) 위반 진단은 해시를 열거한다**: "N 건 위반" 만으로는 교정 대상을 특정할 수 없다. 단일 커밋과 `<base>..HEAD` 범위 양면에서 위반 커밋의 해시가 stderr 에 열거된다 (`G-C4` 가 이미 두 형태를 지원한다).
 - **(B-4) 적용 경계**: 발화 채널의 호출 형태가 **이력 전수를 대상으로 삼지 않는다**. 43건의 과거 위반이 모든 실행을 붉히면 게이트는 즉시 무시되거나 우회된다 — (i) 과 정합해야 한다.
 - **(B-5) 블록 판정 토큰의 도출**: 존재 판정 토큰은 `RULE-04` 가 정의한 필수 필드에서 도출한다. 임의 문자열 1개를 하드코딩하면 규약 개정 시 게이트가 조용히 공허해진다 (`RULE-06 §열거 고정 금지`).
@@ -42,21 +42,22 @@
 - [x] (특이도 대조군) 블록 **보유** developer 커밋은 현 게이트에서 통과한다 — `bash -c 'bash scripts/check-commit-writer-coherence.sh 7465638^..7465638'` → 현 HEAD rc=0. 본 계약 충족 후에도 이 값이 보존되어야 한다 (오탐 0).
 - [x] (특이도 대조군) developer 가 아닌 커밋은 대상 밖이다 — `bash -c 'bash scripts/check-commit-writer-coherence.sh dfe3632^..dfe3632'` → 현 HEAD rc=0 (`spec(inspector)` — `G-C3` skip). 본 계약 충족 후에도 보존.
 - [x] (모집단 비공허) 판정 모집단이 실재한다 — `bash -c 'n=0; for h in $(git log --format=%H -n 120); do git log -1 --format=%s "$h" | grep -qE "^(feat|fix|refactor|chore|test|docs)(\(.*\))?:" && n=$((n+1)); done; echo "$n"; [ "$n" -ge 1 ]'` → HEAD=`b5e6e81` 출력 `47` / rc=0. 모집단 추출은 (B-1) 과 동일한 `G-C1` prefix 정규식을 쓴다. 판정은 `-ge 1` 이므로 슬라이딩 윈도로 수치가 이동해도 안정적이다. 이 대조군이 통과한다는 사실이 아래 수용 기준의 미충족이 **모집단 부재가 아니라 실제 판정 부재**임을 보인다.
-- (민감도 · 체크박스 아님) body 가 통째로 빈 developer 커밋의 검출 여부는 아래 §수용 기준 2번 항이 판정한다 — 중복 계수를 피해 체크박스로 두지 않는다. 현 HEAD 미충족.
+- (민감도 · 체크박스 아님) body 가 통째로 빈 developer 커밋의 검출 여부는 아래 §수용 기준 2번 항이 판정한다 — 중복 계수를 피해 체크박스로 두지 않는다. HEAD=`d9dd7d2` 에서 그 항이 충족됐다.
 
 ## 수용 기준
 
-- [ ] (Must · B-2) 판정 표면이 커밋 body 를 읽는다 — `bash -c 'f=scripts/check-commit-writer-coherence.sh; test -s "$f" || exit 2; n=$(grep -cE "format=%b|format=%B|--format=%b" "$f"); echo "$n"; [ "$n" -ge 1 ]'` → 현 HEAD 출력 `0` / rc=1. 비어있음 가드(`-s`)는 판정 표면이 사라진 상태를 통과가 아니라 무판정(`exit 2`)으로 끝낸다.
-- [ ] (Must · B-2·B-3) 블록 부재 developer 커밋이 검출되고 해시가 열거된다 — `bash -c 'o=$(bash scripts/check-commit-writer-coherence.sh badcfe2^..badcfe2 2>&1); rc=$?; [ "$rc" -ne 0 ] || exit 1; printf "%s" "$o" | grep -q "badcfe2"'` → 현 HEAD rc=1 (게이트가 `commits=1 violations=0 PASS` 로 통과시킨다). `badcfe2` 는 body 가 공집합인 실 이력 커밋이므로 가정 주입이 아니다.
-- [ ] (Must · B-3) 범위 판정에서 위반 전건이 열거된다 — `bash -c 'o=$(bash scripts/check-commit-writer-coherence.sh 5531a50^..b3cda49 2>&1); rc=$?; [ "$rc" -ne 0 ] || exit 1; printf "%s" "$o" | grep -q "5531a50" && printf "%s" "$o" | grep -q "b3cda49"'` → 현 HEAD rc=1. 그 범위의 developer 커밋 2건은 **둘 다** 블록 부재다 — 1건만 열거하면 push 시 중간 커밋이 빠진다.
-- [ ] (Should · B-5) 존재 판정 토큰이 `RULE-04` 정의에서 도출된다 — `bash -c 'f=scripts/check-commit-writer-coherence.sh; test -s "$f" || exit 2; n=$(grep -cE "RULE-04-REPORT|no-op:|last-productive:|backpressure:" "$f"); echo "$n"; [ "$n" -ge 2 ]'` → 현 HEAD 출력 `0` / rc=1. 단일 문자열 하드코딩(`-ge 1`)이 아니라 복수 필드 도출(`-ge 2`)을 요구한다.
-- [x] (Must · B-4) 발화 채널이 실재하며 이력 전수를 대상으로 삼지 않는다 — `bash -c 'grep -qE "\"check:commit-writer-coherence\"" package.json || exit 1; l=$(grep -nE "run: npm run check:commit-writer-coherence" .github/workflows/ci.yml); [ -n "$l" ] || exit 2; printf "%s" "$l" | grep -qE "\.\." && exit 1; exit 0'` → 현 HEAD rc=0 (`package.json:46` · `ci.yml:58`, range 인자 없음 = HEAD 단독). `RULE-07 §promote 조건 4` 의 채널 실경로 요건을 이 항이 진다.
+- [x] (Must · B-2) 판정 표면이 커밋 body 를 읽는다 — `bash -c 'f=scripts/check-commit-writer-coherence.sh; test -s "$f" || exit 2; n=$(grep -cE "format=%b|format=%B|--format=%b" "$f"); echo "$n"; [ "$n" -ge 1 ]'` → HEAD=`d9dd7d2` 출력 `1` / rc=0 (TSK-20260828-03 / `d9dd7d2` 착지). 비어있음 가드(`-s`)는 판정 표면이 사라진 상태를 통과가 아니라 무판정(`exit 2`)으로 끝낸다.
+- [x] (Must · B-2·B-3) 블록 부재 developer 커밋이 검출되고 해시가 열거된다 — `bash -c 'o=$(bash scripts/check-commit-writer-coherence.sh badcfe2^..badcfe2 2>&1); rc=$?; [ "$rc" -ne 0 ] || exit 1; printf "%s" "$o" | grep -q "badcfe2"'` → HEAD=`d9dd7d2` rc=0 — 게이트가 `badcfe2` 를 위반으로 열거한다 (착지 전에는 `commits=1 violations=0 PASS` 로 통과시켰다). `badcfe2` 는 body 가 공집합인 실 이력 커밋이므로 가정 주입이 아니다.
+- [x] (Must · B-3) 범위 판정에서 위반 전건이 열거된다 — `bash -c 'o=$(bash scripts/check-commit-writer-coherence.sh 5531a50^..b3cda49 2>&1); rc=$?; [ "$rc" -ne 0 ] || exit 1; printf "%s" "$o" | grep -q "5531a50" && printf "%s" "$o" | grep -q "b3cda49"'` → HEAD=`d9dd7d2` rc=0 — 두 해시가 모두 열거된다. 그 범위의 developer 커밋 2건은 **둘 다** 블록 부재다 — 1건만 열거하면 push 시 중간 커밋이 빠진다.
+- [x] (Should · B-5) 존재 판정 토큰이 `RULE-04` 정의에서 도출된다 — `bash -c 'f=scripts/check-commit-writer-coherence.sh; test -s "$f" || exit 2; n=$(grep -cE "RULE-04-REPORT|no-op:|last-productive:|backpressure:" "$f"); echo "$n"; [ "$n" -ge 2 ]'` → HEAD=`d9dd7d2` 출력 `3` / rc=0. 단일 문자열 하드코딩(`-ge 1`)이 아니라 복수 필드 도출(`-ge 2`)을 요구한다.
+- [x] (Must · B-4) 발화 채널이 실재하며 이력 전수를 대상으로 삼지 않는다 — `bash -c 'grep -qE "\"check:commit-writer-coherence\"" package.json || exit 1; l=$(grep -nE "run: npm run check:commit-writer-coherence" .github/workflows/ci.yml); [ -n "$l" ] || exit 2; printf "%s" "$l" | grep -qE "\.\." && exit 1; exit 0'` → HEAD=`d9dd7d2` rc=0 (`package.json:46` · `ci.yml:58`, range 인자 없음 = HEAD 단독). `RULE-07 §promote 조건 4` 의 채널 실경로 요건을 이 항이 진다.
 
 ## 변경 이력
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-27 | REQ-20260827-032 / `b5e6e81`+ | 최초 등록 (inspector Phase 3 흡수) | all |
+| 2026-08-28 | TSK-20260828-03 / `d9dd7d2` | Phase 1 reconcile — 수용 기준 4항 재실행 전수 PASS 후 플립 (`%b` 판독 1 · `badcfe2` 단건 열거 · `5531a50..b3cda49` 전건 열거 · RULE-04 필드 도출 3). 특이도 대조군 `7465638`·`dfe3632` rc=0 보존 (`rule04-fields=10`) | 수용 기준 |
 
 ## 참고
 
