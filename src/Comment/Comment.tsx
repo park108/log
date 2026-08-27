@@ -141,12 +141,20 @@ const Comment = (props: CommentProps): React.ReactElement => {
 				else {
 					log("[API GET] FAILED - Comments", "ERROR");
 					reportError(newData);
+
+					setToasterMessage("Failed to load comments.");
+					setToasterType("error");
+					setIsShowToaster(1);
 				}
 			}
 			catch(err) {
 				if(cancelled.current) return;
 				log("[API GET] FAILED - Comments", "ERROR");
 				reportError(err);
+
+				setToasterMessage("Failed to load comments for network issue.");
+				setToasterType("error");
+				setIsShowToaster(1);
 			}
 
 			setIsLoading(false);

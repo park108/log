@@ -184,10 +184,11 @@ describe('Comment render list and post on prod server (failed scenario — post 
 
 		render(<Comment />);
 
-		// Failed server: GET returns 500 → error UI (no comment list). Open form via the
-		// failure-path toggle (same "N comment" button renders 0 when GET fails).
-		// To reach the post-fail flow directly, open the form then populate name/comment.
-		const toggle = await screen.findByText(/comment/);
+		// Failed server: GET returns 500 → 조회 실패 표면(토스터)가 함께 뜨고 토글 라벨은 "Add a comment" 로
+		// 남는다 (spec `components/comment` §동작 7). 두 표면이 모두 /comment/ 에 걸리므로
+		// 텍스트 쿼리는 다중 매치로 throw 할 수 있다 — 토글은 data-testid 로 특정한다.
+		// 본 케이스가 판정하는 것은 POST 실패 토스트다 (진입 경로만 교체).
+		const toggle = await screen.findByTestId("comment-toggle-button");
 		expect(toggle).toBeInTheDocument();
 		fireEvent.click(toggle);
 
@@ -226,7 +227,8 @@ describe('Comment render list and post on prod server (network-error scenario �
 
 		render(<Comment />);
 
-		const toggle = await screen.findByText(/comment/);
+		// 진입 경로만 교체 (위 prodServerFailed 케이스와 동일 사유).
+		const toggle = await screen.findByTestId("comment-toggle-button");
 		expect(toggle).toBeInTheDocument();
 		fireEvent.click(toggle);
 
