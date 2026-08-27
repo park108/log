@@ -63,15 +63,15 @@ post-unmount 발화 감사 게이트가 **"무엇이 발화 관측기(spy)인가
 
 ## 테스트 현황
 
-- [x] (특이도 대조군) 판정 술어 도출 seam 이 실재하며 공허하지 않다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; n=$(grep -cE "emissionSpyNames|filteredEmissionZeroAssertions" "$f"); echo "$n"; [ "$n" -ge 1 ]'` → 현 HEAD 출력 `31` / rc=0. 이 대조군이 통과한다는 사실이 아래 수용 기준의 미충족이 **표면 부재가 아니라 실제 축 미전환**임을 보인다.
+- [x] (특이도 대조군) 판정 술어 도출 seam 이 실재하며 공허하지 않다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; n=$(grep -cE "emissionSpyNames|filteredEmissionZeroAssertions" "$f"); echo "$n"; [ "$n" -ge 1 ]'` → 현 HEAD 출력 `31` / rc=0 (**실측 2026-08-28: `35` / rc=0** — 술어 전환으로 seam 증가, 하한 단언이라 판정 불변). 이 대조군이 통과한다는 사실이 아래 수용 기준의 미충족이 **표면 부재가 아니라 실제 축 미전환**임을 보인다.
 - [x] 축 1~4 의 deny 전환 (TSK-20260825-09 · TSK-20260825-13) — `specs/30.spec/blue/testing/runtime-fetch-unmount-safety.md` (I9)(I10) 이 판정.
 
 ## 수용 기준
 
-- [ ] (Must · FR-01) 관측기 판정에 메서드 이름 리터럴 집합이 0 건이다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; n=$(grep -cE "SPY_METHODS|new Set\(\[.(log|error|warn|info|reportError)." "$f"); echo "$n"; [ "$n" = 0 ]'` → 현 HEAD 출력 `4` / rc=1. 첫 필드는 열거 잔존 라인 수다. 비어있음 가드(`-s`)는 판정 표면이 사라져 모집단이 비는 상태를 통과가 아니라 무판정(`exit 2`)으로 끝낸다.
-- [ ] (Must · FR-02) 관측기 0 도출의 무신호 단락이 0 건이다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; n=$(grep -cE "spies\.size === 0\) return \[\];" "$f"); echo "$n"; [ "$n" = 0 ]'` → 현 HEAD 출력 `1` / rc=1. `:615` 의 조용한 `[]` 반환이 그 1 건이다.
-- [ ] (Must · FR-03) 판정 출력이 관측기 보유 파일 수를 낸다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; o=$(npx vitest run "$f" 2>&1); n=$(printf "%s" "$o" | grep -cE "관측기 보유 파일[[:space:]]*[:=][[:space:]]*[0-9]+|spy-bearing[[:space:]]*[:=][[:space:]]*[0-9]+"); echo "$n"; [ "$n" -ge 1 ]'` → 현 HEAD 출력 `0` / rc=1. 대상 수가 출력에 나타나지 않으면 (Q-C) 의 하한은 관측할 채널이 없다.
-- [x] (Must · FR-04) 판정 표면 전수가 통과한다 — `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` → 현 HEAD rc=0 (1 file / 8 tests, 749ms). 전환 후에도 이 값이 보존되어야 한다.
+- [x] (Must · FR-01) 관측기 판정에 메서드 이름 리터럴 집합이 0 건이다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; n=$(grep -cE "SPY_METHODS|new Set\(\[.(log|error|warn|info|reportError)." "$f"); echo "$n"; [ "$n" = 0 ]'` → **실측 2026-08-28 (HEAD `dac5a60`): 출력 `0` / rc=0 → 충족** (`7423ef7` = TSK-20260827-10-b 가 이름 열거를 술어로 전환). 첫 필드는 열거 잔존 라인 수다. 비어있음 가드(`-s`)는 판정 표면이 사라져 모집단이 비는 상태를 통과가 아니라 무판정(`exit 2`)으로 끝낸다.
+- [x] (Must · FR-02) 관측기 0 도출의 무신호 단락이 0 건이다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; n=$(grep -cE "spies\.size === 0\) return \[\];" "$f"); echo "$n"; [ "$n" = 0 ]'` → **실측 2026-08-28 (HEAD `dac5a60`): 출력 `0` / rc=0 → 충족** (`a1c2972` = TSK-20260827-10-a 가 `auditEmissionZeroAssertions` 로 단락을 신호화). 과거 `:615` 의 조용한 `[]` 반환이 그 1 건이었다.
+- [x] (Must · FR-03) 판정 출력이 관측기 보유 파일 수를 낸다 — `bash -c 'f=src/__tests__/post-unmount-emission-audit.test.ts; test -s "$f" || exit 2; o=$(npx vitest run "$f" 2>&1); n=$(printf "%s" "$o" | grep -cE "관측기 보유 파일[[:space:]]*[:=][[:space:]]*[0-9]+|spy-bearing[[:space:]]*[:=][[:space:]]*[0-9]+"); echo "$n"; [ "$n" -ge 1 ]'` → **실측 2026-08-28 (HEAD `dac5a60`): 출력 `1` / rc=0 → 충족** (`[G-F] spy-bearing: 24 / short-circuit: 48 / judged: 72 / enumerated: 73`). 대상 수가 출력에 나타나지 않으면 (Q-C) 의 하한은 관측할 채널이 없다.
+- [x] (Must · FR-04) 판정 표면 전수가 통과한다 — `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` → 현 HEAD rc=0 (1 file / 8 tests, 749ms). 전환 후에도 이 값이 보존되어야 한다. **실측 2026-08-28 (HEAD `dac5a60`): rc=0 (1 file / 10 tests) → 보존** (테스트 수는 G-G 신설분 증가이며 계약이 고정하는 값이 아니다).
 
 ## 참고
 
@@ -106,3 +106,4 @@ FR-01·FR-02·FR-03 을 재는 게이트 **수정** task 는 아래 방향을 �
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-27 | inspector / REQ-20260825-018 | 최초 등록 — 발화 관측기 판정 술어(축 5) deny-by-default 계약 흡수. (S4) TTL 10/14 결론: 인접 green `post-await-guard-individual-observability` 와 **축 중복 아님** (그 spec §역할 (iii) 이 본 축을 입력으로 선언), spec 전수 `CONSOLE_SPY_METHODS` grep 0 hit → 흡수 | all |
+| 2026-08-28 | TSK-20260827-10-a / `a1c2972` · TSK-20260827-10-b / `7423ef7` | Phase 1 reconcile — FR-01 `4`→`0` rc=0 · FR-02 `1`→`0` rc=0 · FR-03 `0`→`1` rc=0 실측 후 3건 `[x]` 플립. FR-04 rc=0 보존, 특이도 대조군 `35` rc=0. 두 커밋 `merge-base --is-ancestor` HEAD 확인 | 수용 기준, 테스트 현황 |
