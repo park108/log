@@ -125,3 +125,18 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|scripts/check-)'; then
   bash scripts/check-output-parsing-color-independence.sh || exit 1
 fi
+
+# 게이트 배선 실행 표면 정합 — TSK-20260828-02 / spec: foundation/gate-wiring-execution-surface-coherence.md §동작 (FR-01)(FR-02)(FR-03)(FR-05)
+# staged 변경에 선언 파일 · 이 훅 자신 · 게이트 스크립트 계열이 포함되면 검사.
+# npm script 동치: check:gate-wiring (package.json / ci.yml 과 같은 스크립트).
+# 위 총성 축(check:gate-firing-channel)이 "채널이 1개라도 있는가" 를 재는 데 비해 이 축은
+# "그 채널이 실행 표면에서 정합한가" 를 잰다 — 별 키다.
+# 배선 판정이 주석 한 줄로 충족되던 형태를 닫는다: 게이트 호출 실행 라인이 삭제되고 설명
+# 주석만 남으면 문자열 grep 기반 판정은 초록을 유지했다. 관측 표면은 주석 절단 후 실행
+# 라인이며, 주석에만 남은 스크립트 경로는 배선이 아니라 위반이다.
+# 측정 대상은 staged 집합이 아니라 작업 트리다 — 훅 밖(CI · 수동 실행)에서도 같은 판정을 낸다.
+# 트리거에 게이트 스크립트 계열을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|\.husky/pre-commit$|scripts/)'; then
+  bash scripts/check-gate-wiring.sh || exit 1
+fi

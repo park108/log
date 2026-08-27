@@ -152,6 +152,20 @@ jobs:
       - name: Check declared gate firing channel
         run: npm run check:gate-firing-channel
 
+      # 게이트 배선 실행 표면 정합 (gate-wiring-execution-surface-coherence §동작 FR-01·FR-02·FR-03·FR-05).
+      # package.json check:* · .husky/pre-commit · scripts/** 3자의 배선 정합을 잰다.
+      # 위 총성 축(check:gate-firing-channel)이 "채널이 1개라도 있는가" 를 재는 데 비해
+      # 이 축은 "그 채널이 실행 표면에서 정합한가" 를 잰다 — 별 키다.
+      # 이 축의 판정은 지금까지 spec 본문의 일회용 node -e 명령으로만 존재했다. 상시 채널이
+      # 없으므로 (1) 훅의 게이트 호출 실행 라인이 삭제되고 설명 주석만 남는 형태와
+      # (2) 훅 호출과 npm script 의 경로 분기가 로컬 커밋·CI 어디에서도 붉어지지 않았다.
+      # 관측 표면은 주석 절단 후 **실행 라인**이다 — 주석에만 남은 스크립트 경로는 배선이
+      # 아니라 위반이다. 절단하지 않으면 이 게이트는 자기가 겨누는 결함을 자기가 재현한다.
+      # 대상 키·경로는 하드코딩하지 않고 열거로 도출하며 (RULE-06 §열거 고정 금지)
+      # 도출이 0 이면 통과(0)가 아니라 무판정(2)으로 실패시킨다.
+      - name: Check gate wiring coherence
+        run: npm run check:gate-wiring
+
       # 정체 판정 계측 라인의 타입 계약 (stall-telemetry-schema-contract §동작 (T-1)(T-3)(T-4)).
       # `RULE-03` (S1)(S2)(S3) 는 판정을 `.claude/reports/<agent>.ndjson` 의 moved·streak 에
       # 전적으로 위임하는데 그 타입을 보는 채널이 없었다. 손상은 **유효한 JSON** 이라 파싱도
