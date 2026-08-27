@@ -7,9 +7,13 @@
 # G2 (선언↔설치 등식):  N (declared = dependencies + devDependencies 키 수) == M (installed top-level 라인 수 '^[├└]').
 # 범위 (수단 중립):       npm script + hook + CI workflow 중 1개 이상 부착 (spec §역할 line 10 정합).
 #
-# 출력:
-#   PASS -> stdout 1 줄: '[deps] extraneous=0 declared=N installed=M (PASS)'
-#   FAIL -> stderr 진단 + exit 1.
+# 출력 / 종료 등급 (3등급 — 측정 실패는 통과 등급도 위반 등급도 쓰지 않는다):
+#   0 = PASS       -> stdout 1 줄: '[deps] extraneous=0 declared=N installed=M (PASS)'
+#   1 = FAIL       -> 위반 있음 (G1 extraneous != 0 / G2 N != M). stderr 진단.
+#   2 = 무판정      -> 측정 실패. 판독 입력이 비었거나 정수 형식이 아니어서 G1/G2 를
+#                     판정할 수 없는 상태. 'MEASUREMENT FAILURE:' 접두로 stderr 에 낸다.
+#                     "위반 0" 과 "위반을 볼 수 없음" 을 같은 등급으로 보고하지 않기 위한
+#                     신설 등급이다 (판독 표면 계약 FR-04).
 
 set -u
 
@@ -25,6 +29,15 @@ cd "$ROOT" || exit 1
 
 # npm ls --depth=0 출력 캡처. extraneous 가 있어도 exit≠0 일 수 있으므로 || true 로 흡수.
 ls_out="$(npm ls --depth=0 2>&1 || true)"
+
+# fail-closed 가드 (무판정) — ls_out 이 비면 아래 grep -c 는 전부 0 을 반환하고
+# 그 0 이 그대로 "extraneous 0 / installed 0" 통과 근거가 된다. "extraneous 가 없다" 와
+# "extraneous 를 볼 수 없다" 를 같은 등급으로 읽지 않기 위해 산술 진입 전에 차단한다.
+# 위반(exit 1) 과 구별해 exit 2 (측정 실패) 로 낸다.
+if [ -z "$ls_out" ]; then
+  printf 'MEASUREMENT FAILURE: npm ls --depth=0 produced no output (ls_out empty)\n' >&2
+  exit 2
+fi
 
 # G1: extraneous 라인 카운트.
 extraneous_count="$(printf '%s\n' "$ls_out" | grep -cE ' extraneous$' || true)"
