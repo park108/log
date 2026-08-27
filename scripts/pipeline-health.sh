@@ -1,21 +1,36 @@
 #!/usr/bin/env bash
 # pipeline-health.sh — SDD 파이프라인 건강도 1화면 요약.
 # Rule: .claude/rules/RULE-04-REPORT.md (보고 영속화) + RULE-03 (정체 감지)
+# Spec: foundation/stall-telemetry-schema-contract §동작 (T-2)(T-3)(T-4)
 #
 # 369 tick 무음 스톨의 직접 원인 중 하나는 "지금 파이프라인이 살아 있는가" 를
 # 한눈에 볼 표면이 없었다는 것이다. 보고는 stdout 으로 증발했고, 유일하게
 # 영속된 채널은 20,633줄짜리 seen 파일이었다.
 #
+# §계측 손상은 조용하지 않다 (T-2)(T-3) — (S1)(S2)(S3) 는 판정을 전적으로
+#   ndjson 의 moved · streak 에 위임한다. 손상은 **유효한 JSON** 이라 파싱에서
+#   걸리지 않고 비교만 거짓이 되므로, 생산적 tick 이 조용히 "진행 0" 이 된다.
+#   귀결은 정상 에이전트의 거짓 정지이고 stall lock 은 운영자만 지운다.
+#   따라서 진행 판정은 **타입 확인을 선행**하고(두 필드에 동일하게),
+#   위반 라인은 파일:라인 · tick · 필드명과 함께 출력에 드러낸다.
+#   파싱 실패도 빈 catch 로 침묵 소거하지 않는다.
+#
+# §보고 루트 주입 seam — 판정 트리를 주입할 수 있어야 위 가시성을 실증할 수 있다.
+#   아래 REPORTS_ROOT 선언이 이 파일의 첫 번째이자 유일한 기본값 치환 표기다.
+#   출처 spec 의 seam 도출은 대문자 변수 기본값 표기의 출현에서 head -1 을 취하므로
+#   **주석에 그 표기를 예시로 적는 것만으로도 판정이 엉뚱한 이름을 잡는다.**
+#   그래서 예시를 여기 두지 않는다 (TSK-20260827-07 에서 실제로 발생한 사고다).
+#
 # 사용: npm run pipeline:health  (또는 bash scripts/pipeline-health.sh)
-# 출력: 큐 깊이/임계치, 에이전트별 no-op streak, 마지막 생산 행위, lock, blocked.
-# exit 0 항상 — 진단 표면이지 게이트가 아니다.
+# 출력: 큐 깊이/임계치, 에이전트별 no-op streak, 마지막 생산 행위, 계측 손상, lock, blocked.
+# exit 0 항상 — 진단 표면이지 게이트가 아니다. 계측 파일 부재도 정상이다 (T-4).
 
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 
-REPORTS=".claude/reports"
+REPORTS_ROOT="${PIPELINE_REPORTS_ROOT:-.claude/reports}"
 LOCKS=".claude/locks"
 
 # 임계치 (RULE-03 기본값; .claude/pipeline.json 이 있으면 override)
@@ -46,27 +61,87 @@ printf '  %-16s %s\n' '50.blocked'   "$(find specs/50.blocked -name '*.md' -type
 
 printf '\n== 에이전트 ==\n'
 for a in discovery inspector planner developer; do
-  f="$REPORTS/$a.ndjson"
+  f="$REPORTS_ROOT/$a.ndjson"
   if [ ! -f "$f" ]; then
     printf '  %-10s 보고 없음 (한 번도 tick 하지 않았거나 RULE-04 미이행)\n' "$a"
     continue
   fi
-  # 마지막 라인 = 최신 tick. streak 과 마지막 생산 행위를 뽑는다.
+  # 마지막 라인 = 최신 tick. streak · 마지막 생산 행위 · 계측 손상을 뽑는다.
   node -e '
     const fs = require("fs"), a = process.argv[1], f = process.argv[2];
-    const lines = fs.readFileSync(f, "utf8").split("\n").filter(Boolean);
-    let last = null;
-    try { last = JSON.parse(lines[lines.length - 1]); } catch { }
-    if (!last) { console.log(`  ${a.padEnd(10)} ndjson 파싱 실패`); process.exit(0); }
-    // 마지막으로 moved > 0 이었던 tick = 실질 진행 (RULE-03 정의).
-    let prod = null;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      try { const e = JSON.parse(lines[i]); if (e.moved > 0) { prod = e; break; } } catch { }
+    const lines = fs.readFileSync(f, "utf8").split("\n").filter((s) => s.trim().length > 0);
+
+    const isInt = (v) => typeof v === "number" && Number.isInteger(v);
+    const isNonNegInt = (v) => isInt(v) && v >= 0;
+
+    // (T-1) 계측 라인 타입 계약. 출처는 RULE-04 §ndjson 라인 형식.
+    // 이 표만이 계약의 소재지다 — 개수·이름을 분기에 복제하지 않는다.
+    // 선언되지 않은 키(agent · queues · thresholds 등)는 판정하지 않는다.
+    const SCHEMA = [
+      { field: "ts", ok: (v) => typeof v === "string" && v.length > 0 },
+      { field: "tick", ok: isInt },
+      { field: "no_op", ok: (v) => typeof v === "boolean" },
+      { field: "streak", ok: isNonNegInt },
+      { field: "moved", ok: isNonNegInt },
+      { field: "notes", ok: (v) => Array.isArray(v) && v.every((x) => typeof x === "string") },
+    ];
+
+    const actual = (o, k) => {
+      if (!Object.prototype.hasOwnProperty.call(o, k)) return "undefined";
+      const v = o[k];
+      if (v === null) return "null";
+      if (Array.isArray(v)) return "object(array)";
+      if (typeof v === "number" && !Number.isInteger(v)) return "number(non-integer)";
+      if (typeof v === "number" && v < 0) return "number(negative)";
+      return typeof v;
+    };
+
+    const rows = [];
+    const damaged = [];
+    for (let i = 0; i < lines.length; i++) {
+      let o;
+      try {
+        o = JSON.parse(lines[i]);
+      } catch (e) {
+        // (T-3) 파싱 실패도 계수·표시한다. 빈 catch 로 지우지 않는다.
+        rows.push(null);
+        damaged.push({ n: i + 1, tick: "?", why: "파싱 실패 — " + e.message });
+        continue;
+      }
+      if (o === null || typeof o !== "object" || Array.isArray(o)) {
+        rows.push(null);
+        damaged.push({ n: i + 1, tick: "?", why: "파싱 실패 — JSON 객체가 아님" });
+        continue;
+      }
+      rows.push(o);
+      const bad = SCHEMA.filter((s) => !s.ok(o[s.field])).map((s) => s.field + ": " + actual(o, s.field));
+      if (bad.length > 0) damaged.push({ n: i + 1, tick: String(o.tick === undefined ? "?" : o.tick), why: bad.join(" · ") });
     }
-    const streak = last.streak ?? "?";
-    const warn = typeof streak === "number" && streak >= 12 ? "  ** streak 임계 초과 **" : "";
-    const ago = prod ? `${prod.ts?.slice(0, 10)} (tick ${prod.tick})` : "기록 내 없음";
-    console.log(`  ${a.padEnd(10)} tick ${String(last.tick ?? "?").padEnd(5)} streak ${String(streak).padEnd(4)} 마지막 진행 ${ago}${warn}`);
+
+    // 마지막으로 진행이 있었던 tick = 실질 진행 (RULE-03 정의).
+    // 타입 확인을 선행한다 (T-2) — 손상은 0 으로 강등되지 않고 아래에 드러난다.
+    let prod = null;
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const e = rows[i];
+      if (e && typeof e.moved === "number" && e.moved > 0) { prod = e; break; }
+    }
+
+    const last = rows.length > 0 ? rows[rows.length - 1] : null;
+    if (last) {
+      const streak = last.streak === undefined ? "?" : last.streak;
+      const warn = typeof streak === "number" && streak >= 12 ? "  ** streak 임계 초과 **" : "";
+      const ago = prod ? `${prod.ts?.slice(0, 10)} (tick ${prod.tick})` : "기록 내 없음";
+      console.log(`  ${a.padEnd(10)} tick ${String(last.tick === undefined ? "?" : last.tick).padEnd(5)} streak ${String(streak).padEnd(4)} 마지막 진행 ${ago}${warn}`);
+    } else {
+      console.log(`  ${a.padEnd(10)} 마지막 라인 판독 불가 (총 ${lines.length} 라인)`);
+    }
+
+    for (const d of damaged) {
+      console.log(`    ! ${f}:${d.n} tick ${d.tick} — ${d.why}`);
+    }
+    if (damaged.length > 0) {
+      console.log(`    ! ${a} 계측 ${damaged.length}/${lines.length} 라인 손상 — 정체 판정 입력이 왜곡된다 (RULE-03 S1/S2/S3).`);
+    }
   ' "$a" "$f"
 done
 
