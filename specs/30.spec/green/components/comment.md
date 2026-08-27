@@ -66,7 +66,7 @@
 - [x] (Should) 답글 폼 활성화 중에는 상단 `CommentForm` 을 숨긴다.
 - [x] (Should) `Toaster position="bottom"` · `duration=2000` · `completed` 콜백으로 `show=2` 진입.
 - [x] (NFR) `Comment` 는 `React.memo` 로 export — 부모 리렌더 시 props 변화 없으면 재렌더 회피.
-- [ ] **(Must, §동작 7 / FR-01·FR-02·FR-03) 실패 갈래의 표면 동반** — 실패 갈래를 소스에서 **도출**해 읽기/쓰기를 대조한다 (`RULE-06 §열거 고정 금지` — 갈래 목록을 하드코딩하지 않는다).
+- [x] **(Must, §동작 7 / FR-01·FR-02·FR-03) 실패 갈래의 표면 동반** — 실패 갈래를 소스에서 **도출**해 읽기/쓰기를 대조한다 (`RULE-06 §열거 고정 금지` — 갈래 목록을 하드코딩하지 않는다).
   ```
   awk '
     /\[API (GET|POST)\] FAILED/ && !inb {
@@ -86,7 +86,7 @@
     }
   ' src/Comment/Comment.tsx
   ```
-  → **rc=0** 이어야 한다. **HEAD `badcfe2` inspector 재실행 실측: `GET-failure-branches=2 observed=0 | POST-failure-branches=2 observed=2` / rc=1 → 미충족.**
+  → **rc=0** 이어야 한다. **실측 2026-08-28 (HEAD `dac5a60`): `GET-failure-branches=2 observed=2 | POST-failure-branches=2 observed=2` / rc=0 → 충족** (`TSK-20260827-11-a` / `4d3e0ea`). `badcfe2` 실측은 `observed=0` rc=1 이었다. **주석 통과 배제 확인** — 계수된 두 GET 갈래의 표면은 실행 라인이다: errorType 갈래 `Comment.tsx:145-147`, catch 갈래 `:155-157` 모두 `setToasterMessage(...)` · `setToasterType("error")` · `setIsShowToaster(1)` 실호출.
   - **공집합 비-초록** — 어느 한쪽 모집단이 0 이면 `exit 2` (무판정). 도출이 깨진 채 초록이 되는 경로를 막는다.
   - **판정 상태 4종 실측 (inspector, HEAD `badcfe2`, probe 사본)** — 특이도·민감도·부분충족·공집합을 각각 확인했다. 민감도 0 인 게이트가 정상 트리에서 dry-run 을 통과하는 사례(`RULE-06 §게이트 실효 검증`)를 배제한다.
 
@@ -100,7 +100,7 @@
   - **대조군 동시 감시** — `POST-failure-branches` 를 같은 명령에서 출력하므로 쓰기 표면 회귀도 함께 잡힌다.
   - **단독 판정력 없음 (과신 금지)** — 소스 grep 이라 `RULE-06 §관측 표면` 이 경고하는 형태이며 주석 한 줄로 통과할 수 있다. **아래 항목과 동반해야만 의미를 갖는다.** 아래 항목이 요구하는 단언은 `npm test` 에서 실제로 실행된다.
 
-- [ ] **(Must, §동작 7 / FR-04 · Should FR-05) 테스트가 실패 표면을 단언한다** — GET 실패/성공 시나리오를 `api.mock.ts` **정의에서 도출**해 대조한다.
+- [x] **(Must, §동작 7 / FR-04 · Should FR-05) 테스트가 실패 표면을 단언한다** — GET 실패/성공 시나리오를 `api.mock.ts` **정의에서 도출**해 대조한다.
   ```
   bash -c '
   M=src/Comment/api.mock.ts; T=src/Comment/Comment.test.tsx
@@ -123,7 +123,7 @@
   if [ "$s" -ge 1 ] && [ "$b" -ge 1 ]; then exit 0; fi
   exit 1'
   ```
-  → **rc=0** 이어야 한다. **HEAD `badcfe2` inspector 재실행 실측: 도출 `FAIL=[prodServerFailed prodServerNetworkError devServerFailed devServerNetworkError] OK=[prodServerOk devServerOk]`, `get-failing-scenarios=4 surface-asserts=0 | get-ok-scenarios=2 absence-asserts=0` / rc=1 → 미충족.**
+  → **rc=0** 이어야 한다. **실측 2026-08-28 (HEAD `dac5a60`): `get-failing-scenarios=4 surface-asserts=4 | get-ok-scenarios=2 absence-asserts=1` / rc=0 → 충족.** `badcfe2` 실측은 `surface-asserts=0 absence-asserts=0` rc=1 이었다. **귀속 한계 미발현 확인** — surface-asserts 4 는 전부 GET 실패 시나리오 소속이다 (`Comment.test.tsx:119`·`:121` under `devServerFailed:106`, `:150`·`:152` under `devServerNetworkError:138`). `prodServerFailed`·`prodServerNetworkError` 세그먼트 기여 0 이므로 POST 단언 오계수는 발생하지 않았다. absence-asserts 1 은 `:626` under `devServerOk:613`.
   - **공집합 비-초록** — 실패 또는 성공 시나리오 모집단이 0 이면 `exit 2`. `get-failing-scenarios=4` 가 모집단 비공허임을 수치로 낸다.
   - **판정 상태 4종 실측 (inspector, HEAD `badcfe2`, probe 사본)**
 
@@ -136,11 +136,11 @@
 
   - **귀속 한계 (알려진 약점)** — 세그먼트 귀속이 `useMockServer` 라인 기준 단순 분할이라, GET 실패 세그먼트 안의 **POST** 실패 단언이 `surface-asserts` 로 오계수될 수 있다. 현 HEAD 에서는 `:206` 이 `findByText("The comment posted failed.")` 형태라 `SURF` 에 매칭되지 않아 `0` 이 정확하다. 이 약점은 위 항목(읽기 갈래 소스 대조)과 동반될 때 닫힌다 — **두 기준은 함께 판정한다.**
 
-- [ ] **(Should, §동작 7 / FR-06) 조회 실패 문구가 작성 실패 문구를 재사용하지 않는다**
+- [x] **(Should, §동작 7 / FR-06) 조회 실패 문구가 작성 실패 문구를 재사용하지 않는다**
   ```
   bash -c 'test $(grep -cE "The comment posted failed" src/Comment/Comment.tsx) -eq 2'
   ```
-  → **rc=0**. **HEAD `badcfe2` inspector 재실행 실측: 2 hit (`:90` · `:100`) / rc=0 → 이미 충족.**
+  → **rc=0**. **실측 2026-08-28 (HEAD `dac5a60`): 2 hit (`:90` · `:100`) / rc=0 → 충족.** `badcfe2` 에서도 rc=0 이었으나 동반 항목 미충족으로 마커를 보류했었다 — 세 항목이 함께 충족된 본 tick 에 플립한다.
   **추출 실효성** — 위 세 블록은 본 spec 파일에서 기계 추출해 실행했고 각각 607 / 1221 / 85 bytes 로 **비공집합**이었다 (`RULE-06 §추출 실패 검출` — 빈 문자열 추출 시 `bash -c ""` 가 `rc=0` 으로 오통과하는 경로 차단).
   회귀 방지용이다 — 조회 실패 처리를 추가하며 기존 POST 문구를 복사해 붙이면 3 이 되어 rc=1 이 된다.
 
@@ -158,8 +158,8 @@
 ### 자격 심사 (RULE-07)
 
 - **축** — §주제 우선순위 **1순위 (사용자 관측 가능 동작)**. 토큰·설정 정합 축이 아니다.
-- **방어 대상 (silent regression)** — "조회 실패가 정상 종료로 흡수되어 빈 상태로 렌더되는" 회귀. 기존 자동 게이트가 검출하지 못하는 이유가 구조적이다: 실패 경로가 예외를 던지지 않고 정상 종료하므로(`catch` 흡수 후 `setIsLoading(false)` 진행) unhandled rejection·error boundary 어디에도 걸리지 않는다. GET 실패를 **실제로 실행하는** 테스트가 4 시나리오 있는데 렌더 결과 단언은 0 이다. `npm test` 704 tests / 74 files 전부 초록인 상태에서 본 위반이 살아 있다.
-- **중복 게이트 아님** — 현재 **거짓**인 명제다(실측 rc=1 × 2). "현재 이미 참" 부류가 아니다.
+- **방어 대상 (silent regression)** — "조회 실패가 정상 종료로 흡수되어 빈 상태로 렌더되는" 회귀. 기존 자동 게이트가 검출하지 못하는 이유가 구조적이다: 실패 경로가 예외를 던지지 않고 정상 종료하므로(`catch` 흡수 후 `setIsLoading(false)` 진행) unhandled rejection·error boundary 어디에도 걸리지 않는다. GET 실패를 **실제로 실행하는** 테스트가 4 시나리오 있는데 렌더 결과 단언은 0 이다. `npm test` 704 tests / 74 files 전부 초록인 상태에서 본 위반이 살아 있었다 (등록 시점). 2026-08-28 `4d3e0ea` 로 해소 — `npx vitest run src/Comment` 3 files / 36 tests rc=0.
+- **중복 게이트 아님** — 등록 시점에 **거짓**인 명제였다(`badcfe2` 실측 rc=1 × 2). "현재 이미 참" 부류가 아니었다. `TSK-20260827-11-a` (`4d3e0ea`) 착지로 현재는 참이 됐으나, 그 참을 지키는 채널은 본 계약이 요구한 테스트 단언(`surface-asserts=4` · `absence-asserts=1`)이며 `npm test` 에서 실행된다 — 계약이 만든 게이트이지 선행 게이트의 중복이 아니다.
 
 ### 중복 회피 근거
 
@@ -182,3 +182,5 @@
 | 2026-04-20 | operator / — | 최초 등록 (as-is 서술 spec) | all |
 | 2026-04-21 | inspector / REQ-20260422-045 | **REQ-045 FR-01 흡수** — blue `components/comment.md` → green carry-over 후 §동작 하위 §접근성 소절 신설 (2줄). `activateOnKey` / 패턴 B 식별자 + `components/common.md` §a11y 상호참조 박제. 기존 §공개 인터페이스·§동작·§회귀 중점·§의존성·§수용 기준 서술 수정 0 (NFR-02 준수). 선행 done: REQ-20260421-033 FR-07 "blue 승격 시 comment/log/common/image.md §접근성 상호참조" Should 항 — writer 매트릭스상 blue 직접 편집 불가로 영구 미충족 상태였던 것을 본 green 경유 경로로 해소. RULE-07 자기검증: 상호참조 문장 존재는 `grep -c` 로 반복 검증 가능한 시스템 관찰 불변식, 1회성 incident patch 아님. | §최종 업데이트, §관련 요구사항, §동작 (§접근성 신설), 본 이력 |
 | 2026-08-27 | inspector / REQ-20260827-034 | **REQ-034 (RULE-07 축 1 — 사용자 관측 가능 동작) 흡수** — blue `components/comment.md` → green carry-over 후 §동작 7(조회 실패 표면, 빈 상태와의 구별) 신설 · §회귀 중점에 "기존 GET 실패 테스트가 위반에 의존한다" 박제 · §수용 기준 3항(도출형 명령 2 + 문구 재사용 방지 1) 추가 · §게이트 실효 검증 이관 4방향 신설 · §참고 신설. 3항 전부 HEAD `badcfe2` 에서 inspector 가 직접 재실행해 수치 박제(rc=1 / rc=1 / rc=0). §위치의 `.jsx`→`.tsx` 표기 정정(파일 실존 기준). 기존 §공개 인터페이스·§동작 1-6·§의존성·기존 수용 기준 8항 서술 수정 0. | §최종 업데이트, §관련 요구사항, §위치, §동작(7 신설), §회귀 중점, §수용 기준, §게이트 실효 검증 이관(신설), §참고(신설), 본 이력 |
+
+- 2026-08-28 inspector Phase 1 (HEAD `dac5a60`): **수용 기준 3항 전수 플립 — [x]11/[ ]3 → [x]14/[ ]0.** `TSK-20260827-11-a` (`4d3e0ea`, `merge-base --is-ancestor` HEAD 확인) 이 `getComments` 실패 2 갈래에 Toaster 표면을 부착했다. 세 판정 블록을 본 파일에서 기계 추출(641 / 1261 / 87 bytes — 전부 비공집합)해 재실행: FR-01·02·03 `observed 0 → 2` rc=0 · FR-04·05 `surface 0 → 4, absence 0 → 1` rc=0 · FR-06 2 hit rc=0. 소스 grep 판정의 알려진 두 약점을 실측으로 배제했다 — (a) 주석 통과: 계수된 표면이 `Comment.tsx:145-147`·`:155-157` 실행 라인, (b) 세그먼트 오귀속: surface-asserts 4 전량이 GET 실패 시나리오 소속. 회귀 검증 `npx vitest run src/Comment` 3 files / 36 tests rc=0. §게이트 실효 검증 이관 절(Dir-1~Dir-4)은 유지 — 주입 4방향은 여전히 task DoD 귀속이며 이관처 없는 강등은 RULE-07 이 금지한다.
