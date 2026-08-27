@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 계약. 판정 표면은 `src/__tests__/post-unmount-emission-audit.test.ts` 이며, 대상 표면은 post-await 가드가 2개 이상인 `src/**` 컴포넌트다.
 > **관련 요구사항**: REQ-20260825-013 (post-await-guard-individual-observability)
-> **최종 업데이트**: 2026-08-26 (by inspector — 최초 등록)
+> **최종 업데이트**: 2026-08-28 (by inspector — TSK-20260828-01 착지 반영)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (`93f320d`).
 
@@ -42,6 +42,7 @@
 4. `(P-B) > (P-C)` 인 원소가 1건이라도 있으면 그 원소를 **`파일: 요구 N / 보유 M`** 형태로 stderr 에 열거하고 `rc≠0` 을 낸다.
 5. 판정 출력은 통과 시에도 **대상별 수치**를 낸다 — 대상 수 · 요구 분해능 합 · 보유 관측 지점 합.
 6. 가드를 손대지 않은 정상 트리에서 본 판정은 `rc=0` 이며 기존 테스트 파일 전수 통과를 깨지 않는다.
+7. **(P-B) 합에 절대 하한을 함께 고정한다.** §동작 4 의 `(P-B) > (P-C)` 대조는 **단독으로는 민감도 0** 이다 — 본 계약이 §역할에서 지목한 방어 대상(중간 가드 제거)은 `요구` 를 **줄이므로** 대조를 오히려 여유롭게 만든다. 따라서 판정은 상대 대조와 **무관하게** (P-B) 합의 하한 위반을 `rc≠0` 으로 낸다. 하한을 내리는 편집(정상적인 가드 축소 리팩터)은 명시적이어야 한다.
 
 ## 의존성
 
@@ -53,21 +54,23 @@
 
 - [x] 발화 종류에 맞는 관측기의 **존재** 판정 (G-D — `post-unmount-emission-audit.test.ts:15`, `:376`, `:591`).
 - [x] `FileItem` 단일 파일의 경계별 단독 고정 (F1b·F1c — `res.json()` spy 관측).
-- [ ] (P-A) 동적 도출 — 판정 출력이 **대상 수**를 낸다 (§동작 5): `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '대상[[:space:]]*(수)?[[:space:]]*[:=]?[[:space:]]*[0-9]+|targets[[:space:]]*[:=]?[[:space:]]*[0-9]+'"` → 1 이상. **실측 2026-08-26: 0 → 미충족.** 기존 `collectFiles` 열거는 G-A~G-D 모집단용이며 가드 2개 이상 부분모집단을 도출하지 않는다.
-- [ ] (P-B) 대비 (P-C) 대조의 rc 반영 — §수용 기준 (Should) 출력 판정 항목과 **판정 채널을 공유**한다 (동일 명령: 위반 열거 형식 `파일: 요구 N / 보유 M` 계수, §동작 4). **실측 2026-08-26: 0 → 미충족.**
+- [x] (P-A) 동적 도출 — 판정 출력이 **대상 수**를 낸다 (§동작 5): `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '대상[[:space:]]*(수)?[[:space:]]*[:=]?[[:space:]]*[0-9]+|targets[[:space:]]*[:=]?[[:space:]]*[0-9]+'"` → 1 이상. **실측 2026-08-28 (HEAD `dac5a60`): 1 → 충족** (`[G-G] 대상 수: 11`). 기존 `collectFiles` 열거는 G-A~G-D 모집단용이며, G-G 가 그 위에서 가드 2개 이상 부분모집단을 도출한다.
+- [x] (P-B) 대비 (P-C) 대조의 rc 반영 — §수용 기준 (Should) 출력 판정 항목과 **판정 채널을 공유**한다 (동일 명령: 위반 열거 형식 `파일: 요구 N / 보유 M` 계수, §동작 4). **실측 2026-08-28 (HEAD `dac5a60`): 11 → 충족** (대상 11건 전수 대상별 발화).
 
 ## 수용 기준
 
 - [x] (Must) `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` → rc=0. (분해능 판정의 **실재 여부**는 아래 (Should) 출력 판정 항목이 계수한다 — 한 체크박스 = 한 명령 rc 규약상 연언을 분리한다.)
 - [x] (Must) 대상 목록 상수에 파일 경로 하드코딩 0건 — `bash -c "grep -rnE \"src/(File|Image|Comment|Log|Search|Monitor)/[A-Za-z]+\\.tsx\" src/__tests__/post-unmount-emission-audit.test.ts | grep -vE \"^[^:]+:[0-9]+:[[:space:]]*(//|\\*)\""` → 0 lines.
 - [x] (Must) `npx vitest run src/File src/Image src/Comment` → rc=0.
-- [ ] (Should) 판정 출력에 대상별 수치가 나타난다 — `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '요구[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*보유[[:space:]]*[0-9]+|required[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*have[[:space:]]*[0-9]+'"` → 1 이상. **실측 2026-08-26: 0 → 미충족 (분해능 판정 미구현).**
+- [x] (Should) 판정 출력에 대상별 수치가 나타난다 — `bash -c "npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -cE '요구[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*보유[[:space:]]*[0-9]+|required[[:space:]]*[0-9]+[[:space:]]*/[[:space:]]*have[[:space:]]*[0-9]+'"` → 1 이상. **실측 2026-08-28 (HEAD `dac5a60`): 11 → 충족.**
+- [x] (Must) (P-B) 합의 **절대 하한**이 판정 표면에 실재한다 (§동작 7) — `bash -c "grep -nE -A6 '^[[:space:]]*totalRequired,$' src/__tests__/post-unmount-emission-audit.test.ts | grep -cE 'toBeGreaterThanOrEqual\([0-9]+\)'"` → 1 이상. 상대 하한(`toBeGreaterThanOrEqual(targets.length * 2)`)은 리터럴 패턴에 매치되지 않으므로 이 명령은 둘을 갈라낸다. **실측 2026-08-28 (HEAD `dac5a60`): 1 → 충족.**
 
 ## 참고
 
 - 소비한 followup: `20260825-0840-fileitem-unmount-guard-observations.md` (TSK-20260825-04, test-observability/medium).
 - 채널 주석의 잔여 false-negative 기록(`post-unmount-emission-audit.test.ts:47-55`) 은 "문구 필터" 부류만 담고 있어 본 축이 기록되어 있지 않다. 분해능 축의 등재가 필요하다.
 - 상위 계약: `post-unmount-async-effect-emission-zero` — 발화 0 자체.
+- **민감도 0 실측 (2026-08-28, `TSK-20260828-01`)** — 본 판정의 최초 구현(`67c7b08`)은 `요구 ≤ 보유` 대조만 갖췄고 그 상태에서 **검출력이 0** 이었다. 중간 가드를 제거하면 `요구` 가 함께 줄어(예: 3→2) 대조가 더 여유로워지기 때문이다. 즉 **spec §역할이 지목한 방어 대상이 게이트를 통과시키는 방향으로 작용**했다. 그 상태에서 lint · tsc · `npm test` · `check:*` 전종이 모두 초록이었다 — 정상 트리 기준 `rc=0` 은 이 부류에서 아무 것도 보증하지 않는다. 검출은 `dac5a60` 의 **요구 합 절대 하한**(§동작 7)이 단독 근거다. 파생 계약을 세울 때 **위반이 판정량 자체를 축소시키는 방향인지** 를 먼저 확인할 것.
 
 ### 게이트 실효 검증 이관 (RULE-07 §수용 기준 문장 규약 · RULE-06 §게이트 실효 검증)
 
@@ -98,3 +101,5 @@
 | 2026-08-26 | inspector / (본 커밋) | 테스트현황 5차 판정 — (P-A) 항목에 §동작 5 근거 단일 명령 부여, 실측 0 → `[ ]` 유지 | 테스트 현황 |
 | 2026-08-26 | inspector / (본 커밋) | 테스트현황 6차 판정 — (P-B)↔(P-C) 대조 항목의 판정 채널을 §수용 기준 (Should) 와 명시 공유, 실측 0 → `[ ]` 유지 | 테스트 현황 |
 | 2026-08-26 | inspector / (본 커밋) | 테스트현황 7차 판정 — catch 경계 계수 항목을 `## 참고 > 미측정·비판정` 으로 강등 (분리 관측 채널 부재); §동작 2 요구·주입 방향은 보존 | 테스트 현황, 참고 |
+| 2026-08-28 | TSK-20260828-01 / `67c7b08`+`dac5a60` | Phase 1 reconcile — (P-A) 대상 수 실측 1(`대상 수: 11`) · (Should) 대상별 수치 실측 11 · (P-B)↔(P-C) 대조 채널 실측 11 → 3건 `[x]` 플립 | 테스트 현황, 수용 기준 |
+| 2026-08-28 | TSK-20260828-01 / `dac5a60` | §동작 7 신설 — 상대 대조 단독은 민감도 0 이므로 (P-B) 합 절대 하한을 계약에 박제; 대응 수용기준 1건 추가·실측 `[x]`; 민감도 0 실측 경위를 §참고에 기록 | 동작, 수용 기준, 참고 |
