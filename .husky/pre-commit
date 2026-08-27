@@ -113,3 +113,15 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-telemetry-schema\.sh$|scripts/fixtures/telemetry-schema/)'; then
   bash scripts/check-telemetry-schema.sh || exit 1
 fi
+
+# 도구 출력 판독의 색상 비종속·fail-closed — TSK-20260827-09-b / spec: foundation/gate-output-parsing-color-independent-fail-closed.md §동작 (FR-01)(FR-02)(FR-03)(FR-04)(FR-06)
+# staged 변경에 게이트 스크립트 계열 또는 선언 파일(package.json)이 포함되면 검사.
+# npm script 동치: check:output-parsing-color-independence (package.json / ci.yml 과 같은 스크립트).
+# 판독이 색상에 무너지면 게이트는 초록인 채 검출력만 사라진다 — 판정 산술이 붕괴해도 rc 는
+# 무색 실행과 같아서 CI 도 이 붕괴를 붉게 만들지 않았다. 위반이 게이트를 붉게 만들지 못하므로
+# 게이트 자신이 이 축의 판정자가 될 수 없다.
+# 트리거에 게이트 스크립트 계열 전체를 넣는 이유 — 판독 게이트 본문을 고치는 커밋과 게이트
+# 자신을 무력화하는 커밋 양쪽이 모두 이 검사를 발화시켜야 한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|scripts/check-)'; then
+  bash scripts/check-output-parsing-color-independence.sh || exit 1
+fi

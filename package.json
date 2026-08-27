@@ -48,7 +48,8 @@
     "prepare": "husky",
     "pipeline:health": "bash scripts/pipeline-health.sh",
     "check:acceptance-criteria": "bash scripts/check-acceptance-criteria.sh",
-    "check:telemetry-schema": "bash scripts/check-telemetry-schema.sh"
+    "check:telemetry-schema": "bash scripts/check-telemetry-schema.sh",
+    "check:output-parsing-color-independence": "bash scripts/check-output-parsing-color-independence.sh"
   },
   "engines": {
     "node": ">=24",
