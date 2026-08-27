@@ -42,6 +42,7 @@
     "check:gate-seam": "bash scripts/check-gate-seam-coverage.sh",
     "check:global-state-restoration": "bash scripts/check-global-state-restoration.sh",
     "check:measurement-tree-attribution": "bash scripts/check-measurement-tree-attribution.sh",
+    "check:gate-firing-channel": "bash scripts/check-gate-firing-channel.sh",
     "check:commit-writer-coherence": "bash scripts/check-commit-writer-coherence.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",

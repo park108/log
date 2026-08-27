@@ -140,6 +140,26 @@ jobs:
       - name: Check gate seam coverage
         run: npm run check:gate-seam
 
+      # 선언된 게이트의 발화 채널 총성 (declared-gate-firing-channel-totality §동작 (FR-01)…(FR-07)).
+      # 게이트는 **선언되는 것으로 존재하지 않는다** — 아무도 부르지 않으면 종수만 는다.
+      # npm script + 스크립트 파일만 추가한 커밋이 이 워크플로와 훅을 건드리지 않은 채
+      # 착지했고, 그 게이트는 뒤이은 54 커밋 동안 한 번도 실행되지 않았다. 그 사이 어떤
+      # 기존 게이트도 붉어지지 않는다: 파일도 seam 도 npm 진입점도 정상이고 배선만 없기
+      # 때문이다. 하필 그것이 측정 귀속 래퍼여서 거짓 양성 오보를 막을 채널이 잠들어 있었다.
+      # 관측 표면은 주석 절단 후 **실행 라인**이다 — 주석에 적힌 게이트 이름은 채널이 아니다.
+      # 대상 키·훅 파일은 하드코딩하지 않고 열거로 도출하며 (RULE-06 §열거 고정 금지)
+      # 도출이 0 이면 위반(1)이 아니라 무판정(2)으로 실패시킨다.
+      - name: Check declared gate firing channel
+        run: npm run check:gate-firing-channel
+
+      # 측정 귀속 래퍼 자신의 발화 채널 (measurement-tree-attribution §동작 (M-6)).
+      # 인자 없는 호출은 현 트리 지문 1줄을 내고 exit 0 이다 — 래퍼가 깨지거나 지문 산출이
+      # 불가능해지면 exit 2 로 붉어진다. 위 총성 계약이 요구하는 채널 하한 1 을 이 step 이
+      # 충족한다. **기존 step 을 이 래퍼로 감싸지 않는다**: `run:` 직후 키가 래퍼 이름으로
+      # 바뀌어 감싸인 키가 채널 0 으로 전락한다. 래퍼의 채택률은 별 축이다.
+      - name: Check measurement tree attribution
+        run: npm run check:measurement-tree-attribution
+
       # api base URL 도출 총성 게이트 (api-base-url-assembly-totality §동작 (A-1)(A-3)(A-4)).
       # 미정의 base 가 `undefined + "?limit=10"` → 문자열 `"undefined?limit=10"` 이라는
       # **상대 URL** 로 조립돼 자기 origin 에 요청이 나가고, SPA 폴백이 index.html 을 200 으로
