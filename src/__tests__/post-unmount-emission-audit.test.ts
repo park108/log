@@ -609,10 +609,23 @@ export function recordExpressions(testSource: string, spies: ReadonlySet<string>
  * 실측이기 때문이다 (문구 열거 → 선택자 열거 → 위상 단방향 → 기록 열거).
  *
  * 반환값은 위반 지점의 **기록 표현식·별칭 이름** 목록이다 (사람이 찾아갈 수 있게).
+ *
+ * ── (Q-B) 단락 신호 (TSK-20260827-10-a / FR-02) ────────────────────────────
+ * 관측기가 0 으로 도출되면 축 1~4 판정은 **한 건도 수행되지 않는다**. 종전 판본은
+ * 그 사실을 빈 배열로 반환해 "판정했고 위반이 없었다" 와 관측적으로 동일하게 만들었다
+ * (관측기 0 분기가 빈 배열을 즉시 돌려줬다). 이제 `shortCircuited` 로 두 상태를 구별해
+ * 돌려주고, `filteredEmissionZeroAssertions` 는 기존 호출 지점의 `string[]` 계약을
+ * 유지하는 얇은 어댑터로 남는다.
  */
-export function filteredEmissionZeroAssertions(testSource: string): string[] {
+export type EmissionAudit = {
+	/** 관측기 0 도출로 축 1~4 판정이 **수행되지 않았다** — "위반 0" 과 구별된다. */
+	shortCircuited: boolean;
+	violations: string[];
+};
+
+export function auditEmissionZeroAssertions(testSource: string): EmissionAudit {
 	const spies = new Set(emissionSpyNames(testSource));
-	if (spies.size === 0) return [];
+	if (spies.size === 0) return { shortCircuited: true, violations: [] };
 
 	// 축 3 — 형태 열거가 아니라 **도달 경로**로 기록을 식별한다.
 	const records = new Set(recordExpressions(testSource, spies));
@@ -637,8 +650,50 @@ export function filteredEmissionZeroAssertions(testSource: string): string[] {
 			if (!assertsNonEmptyNear(assertion)) violations.push(record);
 		}
 	}
-	return [...new Set(violations)];
+	return { shortCircuited: false, violations: [...new Set(violations)] };
 }
+
+/**
+ * 축 1~4 위반 목록만 필요한 호출자용 어댑터. 단락과 "위반 0" 이 여기서 합쳐지므로,
+ * 두 상태를 구별해야 하는 호출자는 `auditEmissionZeroAssertions` 를 직접 쓴다.
+ */
+export function filteredEmissionZeroAssertions(testSource: string): string[] {
+	return auditEmissionZeroAssertions(testSource).violations;
+}
+
+/**
+ * 관측 요구 집합 — **발화 호출(`log(` · `reportError(` · `console.*(`)을 가진
+ * 프로덕션 파일의 형제 테스트** 전수. 프로덕션 열거에서 매 실행 산출한다.
+ *
+ * (Q-C) 하한을 상수로 박는 대신(구 판본의 리터럴 하한 10 — 착수 실측 18 대비
+ * 슬랙 8) 이 집합을 대조항으로 쓴다. 관측기 인식이 무너져 대상이 1 건 줄면 그 파일이
+ * 이 집합 안에서 **단락** 쪽으로 넘어가므로, 합이 보존되는 분할 완전성으로는 보이지
+ * 않는 축소가 이름으로 지목된다.
+ */
+export function emissionObservationRequired(): string[] {
+	const required = new Set<string>();
+	for (const f of productionFiles()) {
+		const source = readFileSync(f.abs, "utf8");
+		if ((source.match(RE_CONSOLE_EMIT) ?? []).length === 0) continue;
+		const testRel = siblingTestPath(f.rel);
+		if (testRel === null) continue;
+		required.add(testRel);
+	}
+	return [...required].sort();
+}
+
+/**
+ * 관측 부채 — 위 요구를 아직 만족하지 못하는 형제 테스트 (착수 시점 3 건).
+ *
+ * 기본 방향은 deny 이고 목록은 **예외에만** 쓰인다 (모집단은 디렉터리 열거로 산출한다
+ * — RULE-06 §열거 고정 금지). 죽은 항목은 G-F 가 매 실행 차단하고, 부채가 갚아져도
+ * (관측기가 붙어도) 실패하지 않는다 — 상한이지 고정점이 아니다.
+ */
+const EMISSION_OBSERVATION_DEBT = new Set([
+	join("src", "Log", "LogItem.test.jsx"),
+	join("src", "Log", "LogItemInfo.test.jsx"),
+	join("src", "Monitor", "Monitor.test.jsx"),
+]);
 
 function fmt(list: string[]): string {
 	return list.map((l) => `  ${l}`).join("\n");
@@ -835,22 +890,81 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			"본 파일의 양성 fixture 가 판정에 걸리지 않는다 — G-F 판정이 죽었다",
 		).toBeGreaterThan(0);
 
-		let filesWithEmissionSpy = 0;
+		// 판정 대상 전수를 **보유 / 단락** 두 부류로 분류한다. 단락은 축 1~4 를 한 건도
+		// 수행하지 않은 파일이며, 위반 0 으로 통과한 파일과 같은 칸에 들어가지 않는다.
+		const spyBearing: string[] = [];
+		const shortCircuited: string[] = [];
 		const violations: string[] = [];
 		for (const f of testFiles) {
 			const source = readFileSync(f.abs, "utf8");
-			if (emissionSpyNames(source).length > 0) filesWithEmissionSpy += 1;
-			for (const record of filteredEmissionZeroAssertions(source)) {
+			const audit = auditEmissionZeroAssertions(source);
+			(audit.shortCircuited ? shortCircuited : spyBearing).push(f.rel);
+			for (const record of audit.violations) {
 				violations.push(`${f.rel} — \`${record}\` 를 메서드 호출로 좁힌 뒤 비어있음을 단정한다`);
 			}
 		}
 
+		// (FR-03-a) 대상 수를 **실행 출력**으로 낸다. 주석은 판정에 계수되지 않는다 —
+		// 게이트가 몇 개의 파일을 실제로 판정했는지는 실행하는 사람이 볼 수 있어야 한다.
+		// `console.log` 는 기본 reporter 가 삼킨다 (vitest 4 실측 — `--reporter=verbose`
+		// 에서만 노출). 대상 수는 **어떤 reporter 로 실행해도** 보여야 하므로 stdout 에
+		// 직접 쓴다.
+		process.stdout.write(
+			`[G-F] spy-bearing: ${spyBearing.length} / short-circuit: ${shortCircuited.length} / ` +
+				`judged: ${testFiles.length} / enumerated: ${enumerated.length} (self 제외 1)\n`,
+		);
+
 		// 공허 통과 가드 (2) — 파일은 세지만 spy 인식이 무너지면 위반이 구조적으로
-		// 보이지 않는다. 착수 시점 실측은 아래 하한보다 크다.
+		// 보이지 않는다. **상수 없는 분할 완전성** 으로 고정한다: 판정 대상은 보유·단락
+		// 어느 쪽으로도 새지 않고, 보유가 0 이면 게이트는 아무것도 판정하지 않은 것이다
+		// (모집단이 디렉터리 열거이므로 "빈 디렉터리 = 정상" 부류가 없다).
 		expect(
-			filesWithEmissionSpy,
-			"발화 spy 를 보유한 테스트 파일이 10 미만이다 — spy 인식이 무너졌다",
-		).toBeGreaterThanOrEqual(10);
+			spyBearing.length + shortCircuited.length,
+			"보유 + 단락이 판정 대상 수와 다르다 — 분류가 새고 있다",
+		).toBe(testFiles.length);
+		expect(
+			testFiles.length,
+			"판정 대상이 0 이다 — 열거가 무너졌다",
+		).toBeGreaterThan(0);
+		expect(
+			spyBearing.length,
+			`관측기 보유 파일이 0 이다 — 게이트가 축 1~4 를 한 건도 판정하지 않았다 (단락 ${shortCircuited.length})`,
+		).toBeGreaterThanOrEqual(1);
+
+		// (FR-03-b) 축소 대조 — 분할 완전성만으로는 축소가 붉어지지 않는다. 보유 1 건이
+		// 단락으로 넘어가도 **합은 보존**되기 때문이다. 그래서 단락 집합을 deny 방향으로
+		// 감사한다: 발화 호출을 가진 프로덕션 파일의 형제 테스트는 관측기를 보유해야 하고,
+		// 예외는 부채 목록에 이름으로만 존재한다. 대조항은 상수가 아니라 프로덕션 열거에서
+		// 매 실행 산출된다.
+		const required = emissionObservationRequired();
+		expect(
+			required.length,
+			"관측 요구 모집단이 비었다 — 대조가 공허해졌다 (프로덕션 열거 또는 형제 해석이 무너졌다)",
+		).toBeGreaterThan(0);
+		const enumeratedRels = new Set(enumerated.map((f) => f.rel));
+		const requiredOutside = required.filter((r) => !enumeratedRels.has(r));
+		expect(
+			requiredOutside,
+			`관측 요구 대상이 테스트 파일 열거 밖이다 — 두 열거가 어긋났다:\n${fmt(requiredOutside)}`,
+		).toHaveLength(0);
+
+		// 부채 목록 죽은 항목 차단 (RULE-06 §열거 고정 금지 — 하드코딩엔 완전성 보조 단언).
+		const deadDebt = [...EMISSION_OBSERVATION_DEBT].filter((r) => !required.includes(r));
+		expect(
+			deadDebt,
+			`관측 부채 목록이 요구 집합에 없는 경로를 가리킨다 — 예외가 죽은 경로다:\n${fmt(deadDebt)}`,
+		).toHaveLength(0);
+
+		const shortCircuitedRels = new Set(shortCircuited);
+		const unobserved = required.filter(
+			(r) => shortCircuitedRels.has(r) && !EMISSION_OBSERVATION_DEBT.has(r),
+		);
+		expect(
+			unobserved,
+			`발화하는 프로덕션 파일의 형제 테스트가 관측기 0 으로 **단락**됐다:\n${fmt(unobserved)}\n` +
+				`판정 대상 집합이 조용히 줄었다 (spy-bearing ${spyBearing.length} / short-circuit ${shortCircuited.length}). ` +
+				"관측기를 되살리거나, 그 파일이 관측 대상이 아님을 부채 목록에 근거와 함께 등재하라.",
+		).toHaveLength(0);
 
 		expect(
 			violations,
@@ -1121,6 +1235,7 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		// 판정 로직이 아니므로 제외한다.
 		const gateSource = [
 			filteredEmissionZeroAssertions.toString(),
+			auditEmissionZeroAssertions.toString(),
 			assertsNonEmptyNear.toString(),
 			nearestAssertion.toString(),
 			enclosingAssertion.toString(),
@@ -1171,5 +1286,23 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		expect(emissionSpyNames("const s = vi.spyOn(console, 'error');")).toEqual(["s"]);
 		expect(emissionSpyNames("const s = vi.spyOn(errorReporter, 'reportError');")).toEqual(["s"]);
 		expect(emissionSpyNames("const a = vi.spyOn(window, 'addEventListener');")).toEqual([]);
+
+		// ── (Q-B) 단락 신호 자가 검증 (TSK-20260827-10-a / FR-02) ────────────
+		// 관측기 0 인 소스는 "위반 0" 이 아니라 **단락** 으로 분류된다. 아래 양성은 축 1
+		// 위반 형태를 그대로 갖고 있으면서 관측기만 인식 밖인 소스다 — 종전 판본에서는
+		// 정상 통과 파일과 구별되지 않았다.
+		const noObserver = [
+			"const emit = vi.spyOn(customLogger, 'emit');",
+			"const w = emit.mock.calls.filter(c => /x/.test(c[0]));",
+			"expect(w.length).toBe(0);",
+		].join("\n");
+		const shortCircuitAudit = auditEmissionZeroAssertions(noObserver);
+		expect(shortCircuitAudit.shortCircuited, "관측기 0 도출이 단락으로 분류되지 않았다").toBe(true);
+		expect(shortCircuitAudit.violations, "단락은 위반을 낼 수 없다 — 판정을 수행하지 않았기 때문이다").toHaveLength(0);
+
+		// 대조 — 같은 좁힘·같은 어휘인데 관측기가 인식되는 소스는 **판정된다**.
+		const judgedAudit = auditEmissionZeroAssertions(aliasFiltered);
+		expect(judgedAudit.shortCircuited, "관측기 보유 소스를 단락으로 분류했다").toBe(false);
+		expect(judgedAudit.violations.length, "판정된 소스의 위반이 사라졌다").toBeGreaterThan(0);
 	});
 });
