@@ -116,7 +116,43 @@ const RE_SETTER_EMIT = /\bset[A-Z]\w*\s*\(/g;
 const RE_UNMOUNT_CALL = /\bunmount\s*\(\s*\)/;
 // `const logSpy = vi.spyOn(console, 'log')` / `const s = vi.spyOn(errorReporter, 'reportError')`
 const RE_SPY_BINDING = /(?:const|let)\s+(\w+)\s*=\s*vi\.spyOn\(\s*([\w.]+)\s*,\s*['"](\w+)['"]/g;
-const CONSOLE_SPY_METHODS = new Set(["log", "error", "warn", "info", "reportError"]);
+// ── (축 5) 발화 관측기 판정 토큰 — deny-by-default 전환 (TSK-20260827-10-b) ─
+// 종전 판본은 발화 spy 를 **메서드 이름 다섯 개의 리터럴 집합**으로 정했다
+// (콘솔 4종 + 리포터 1종). 그래서 목록 밖 이름의
+// 관측기(`vi.spyOn(customLogger,'emit')`)를 쓰는 파일은 spy 로 인식되지 않아 축 1~4
+// 판정에서 **통째로 빠졌고**, 그 상태가 "위반 없음" 과 관측적으로 동일했다. 이름을
+// 하나 더 얹는 것은 같은 사각을 `telemetry.capture` 로 즉시 재생산한다.
+//
+// 그래서 이 축도 기본값을 뒤집는다 — **`vi.spyOn` 이 만든 spy 는 기본적으로 발화
+// 관측기이고**, 아래 두 **구조적 비-발화 형태**만 예외로 빠진다. 예외는 애플리케이션
+// 메서드 어휘가 아니라 (N1) mock 의 종류 · (N2) 호스트 환경 객체 경유 여부 라는
+// **구조**로 정의되므로, 새 발화 설비가 도입돼도 목록 갱신 없이 잡힌다.
+//
+//   (N1) **값 공급 스텁** — `mockReturnValue`/`mockResolvedValue`/`mockRejectedValue`
+//        계열이 붙은 spy 는 프로덕션이 **반환값을 소비**하는 입력 의존성이다
+//        (`api.getLogs` · `globalThis.fetch` · `common.isAdmin`). 발화는
+//        fire-and-forget 이라 값을 공급할 이유가 없다. **묵음** 스텁
+//        (`mockImplementation(() => {})`)은 값을 공급하지 않으므로 제외되지 않는다 —
+//        콘솔 관측기의 표준 형태가 그것이다.
+//   (N2) **플랫폼 배선 표면** — 호스트 환경 객체를 **경유해** 접근하는 멤버
+//        (`window.addEventListener` · `globalThis.fetch` · `global.clearTimeout`).
+//        런타임 배선을 관측하는 spy 이지 애플리케이션 발화의 싱크가 아니다.
+//        `console.error` · `errorReporter.reportError` 는 이 경유가 없다.
+const RE_VALUE_SUPPLYING_MOCK = /mockReturnValue|mockResolvedValue|mockRejectedValue/;
+const HOST_ENVIRONMENT_ROOTS = new Set([
+	"window",
+	"globalThis",
+	"global",
+	"self",
+	"top",
+	"parent",
+	"document",
+	"navigator",
+	"location",
+	"history",
+	"screen",
+	"process",
+]);
 // setter 계수 관측기 — ESM namespace 는 non-configurable 이라 `vi.spyOn(React,'useState')`
 // 가 불가하다. 모듈 mock 으로 useState 를 감싸는 형태만이 setter 호출을 셀 수 있다.
 const RE_REACT_MODULE_MOCK = /vi\.mock\(\s*['"]react['"]/;
@@ -397,20 +433,60 @@ export function siblingTestPath(rel: string): string | null {
 	return null;
 }
 
+export type SpyBinding = { name: string; target: string; method: string };
+
+/** 테스트 소스의 `const x = vi.spyOn(target, 'method')` 바인딩 전수. */
+export function spyBindings(testSource: string): SpyBinding[] {
+	const finder = new RegExp(RE_SPY_BINDING.source, "g");
+	const out: SpyBinding[] = [];
+	let m: RegExpExecArray | null;
+	while ((m = finder.exec(testSource)) !== null) {
+		const [, name, target, method] = m;
+		if (name === undefined || target === undefined || method === undefined) continue;
+		out.push({ name, target, method });
+	}
+	return out;
+}
+
+/** (N1) — 그 spy 가 프로덕션이 소비할 **값을 공급**하는가 (입력 의존성 스텁). */
+function suppliesValueToProduction(binding: SpyBinding, testSource: string): boolean {
+	const mock = `\\s*\\.\\s*(?:${RE_VALUE_SUPPLYING_MOCK.source})`;
+	if (new RegExp(`\\b${escapeForRegExp(binding.name)}${mock}`).test(testSource)) return true;
+	const site =
+		`vi\\.spyOn\\(\\s*${escapeForRegExp(binding.target)}\\s*,` +
+		`\\s*['"]${escapeForRegExp(binding.method)}['"]\\s*\\)`;
+	return new RegExp(`${site}${mock}`).test(testSource);
+}
+
+/** (N2) — 호스트 환경 객체를 **경유한** 접근인가 (플랫폼 배선 표면). */
+function isPlatformWiringSurface(binding: SpyBinding): boolean {
+	const root = binding.target.split(".")[0];
+	return root !== undefined && HOST_ENVIRONMENT_ROOTS.has(root);
+}
+
+/**
+ * (Q-A) 발화 관측기 판정 — **deny-by-default** (spec FR-01).
+ *
+ * 기본값은 "관측기다". (N1)(N2) 두 구조적 비-발화 형태에만 예외를 준다. 목록에 없는
+ * 새 발화 설비(`vi.spyOn(telemetry, 'capture')`)는 예외에 걸리지 않으므로 **자동으로
+ * 판정 대상**이 된다 — 종전 이름 열거에서는 통째로 판정 밖이었다.
+ */
+export function isEmissionObserver(binding: SpyBinding, testSource: string): boolean {
+	if (isPlatformWiringSurface(binding)) return false;
+	if (suppliesValueToProduction(binding, testSource)) return false;
+	return true;
+}
+
 export type Observations = { consoleSurface: boolean; setterSurface: boolean };
 
 /** 테스트 소스가 어떤 발화 표면을 실제로 관측하는지 판정한다. */
 export function fixtureObservations(testSource: string): Observations {
-	const finder = new RegExp(RE_SPY_BINDING.source, "g");
-	let m: RegExpExecArray | null;
 	let consoleSurface = false;
-	while ((m = finder.exec(testSource)) !== null) {
-		const [, name, target, method] = m;
-		if (name === undefined || target === undefined || method === undefined) continue;
-		const emissionSpy = target === "console" || CONSOLE_SPY_METHODS.has(method);
-		if (!emissionSpy) continue;
+	for (const binding of spyBindings(testSource)) {
+		if (!isEmissionObserver(binding, testSource)) continue;
 		// spy 를 바인딩만 하고 쓰지 않으면 관측이 아니다 — 단정 또는 호출 기록 소비를 요구한다.
-		const used = new RegExp(`expect\\(\\s*${name}\\b|\\b${name}\\.mock\\.calls`).test(testSource);
+		const n = escapeForRegExp(binding.name);
+		const used = new RegExp(`expect\\(\\s*${n}\\b|\\b${n}\\.mock\\.calls`).test(testSource);
 		if (used) consoleSurface = true;
 	}
 	const setterSurface =
@@ -488,21 +564,17 @@ function escapeForRegExp(literal: string): string {
 }
 
 /**
- * 발화 spy 바인딩 이름 — `vi.spyOn(console, 'error')` 또는 발화 메서드(log/error/
- * warn/info/reportError) 를 겨냥한 spy. `vi.spyOn(window, 'addEventListener')` 처럼
- * 발화가 아닌 spy 는 제외한다 — 이 구분이 없으면 정상 테스트를 위반으로 잡는다
- * (`src/App.test.jsx` 가 실물 대조군이다).
+ * 발화 spy 바인딩 이름 — `isEmissionObserver` 가 관측기로 판정한 바인딩 전수.
+ *
+ * 판정은 이름 열거가 아니라 **deny-by-default** 다 (축 5). 그래서 목록에 없던
+ * `vi.spyOn(customLogger, 'emit')` 도 관측기로 잡히고, `vi.spyOn(window,
+ * 'addEventListener')` 같은 플랫폼 배선은 (N2) 로 여전히 제외된다 — 이 구분이 없으면
+ * 정상 테스트를 위반으로 잡는다 (`src/App.test.jsx` 가 실물 대조군이다).
  */
 export function emissionSpyNames(testSource: string): string[] {
-	const finder = new RegExp(RE_SPY_BINDING.source, "g");
-	const names: string[] = [];
-	let m: RegExpExecArray | null;
-	while ((m = finder.exec(testSource)) !== null) {
-		const [, name, target, method] = m;
-		if (name === undefined || target === undefined || method === undefined) continue;
-		if (target === "console" || CONSOLE_SPY_METHODS.has(method)) names.push(name);
-	}
-	return names;
+	return spyBindings(testSource)
+		.filter((binding) => isEmissionObserver(binding, testSource))
+		.map((binding) => binding.name);
 }
 
 /**
@@ -596,17 +668,18 @@ export function recordExpressions(testSource: string, spies: ReadonlySet<string>
  * `expect(` 가 없으면 위반이 아니다 — 좁히기만 하고 단정하지 않는 코드는 본 계약의
  * 대상이 아니다.
  *
- * ── 네 축의 현 상태 (RULE-06 §열거 고정 금지) ──────────────────────────────
+ * ── 다섯 축의 현 상태 (RULE-06 §열거 고정 금지) ────────────────────────────
  *   (축 1) 좁힘 선택자   deny  — `RECORD_ACCESS_ALLOWLIST` 공집합 (TSK-…-09)
  *   (축 2) 영단정 어휘   deny  — `assertsNonEmptyNear` 허용만 통과 (TSK-…-09)
  *   (축 3) 기록 식별     deny  — `recordExpressions` 도달 경로 전개 (TSK-…-13)
  *   (축 4) 좁힘~단정 위상 양방향 — `enclosingAssertion` (TSK-…-13)
- * **남은 열거 1건**: `emissionSpyNames` 의 발화 spy 판정은 `CONSOLE_SPY_METHODS`
- * 라는 **메서드 이름 열거**다. `vi.spyOn(customLogger, 'emit')` 처럼 목록 밖 이름의
- * 발화 관측기는 spy 로 인식되지 않아 그 파일의 좁힘이 통째로 판정 밖으로 빠진다.
- * 이 축은 본 task 범위 밖이며 followup 으로 남는다 — 여기 적어 두는 이유는, 축을
- * 하나 뒤집을 때마다 **남은 축이 다음 사각이 된다** 는 것이 이 게이트의 3회 반복된
- * 실측이기 때문이다 (문구 열거 → 선택자 열거 → 위상 단방향 → 기록 열거).
+ *   (축 5) 관측기 식별   deny  — `isEmissionObserver` (N1)(N2) 예외 (TSK-…-10-b)
+ * **이름 열거 잔존 0건.** 축 5 는 메서드 이름 열거였고, 목록 밖 이름의 관측기
+ * (`vi.spyOn(customLogger, 'emit')`)를 쓰는 파일은 좁힘이 통째로 판정 밖으로 빠졌다.
+ * 이제 기본값이 "관측기" 이고 예외는 구조((N1) 값 공급 스텁 · (N2) 플랫폼 배선)로만
+ * 주어진다. 다섯 축을 뒤집는 동안 **남은 축이 매번 다음 사각이었다** 는 것이 이 게이트의
+ * 4회 반복된 실측이므로(문구 열거 → 선택자 열거 → 위상 단방향 → 기록 열거 → 관측기
+ * 열거), 여섯 번째 사각의 부재는 여기서 단정하지 않는다.
  *
  * 반환값은 위반 지점의 **기록 표현식·별칭 이름** 목록이다 (사람이 찾아갈 수 있게).
  *
@@ -1241,6 +1314,7 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			enclosingAssertion.toString(),
 			recordExpressions.toString(),
 			emissionSpyNames.toString(),
+			isEmissionObserver.toString(),
 			RE_NONEMPTY_ASSERT_NEAR.source,
 			RE_POSITIVE_CALLED.source,
 			RE_NEGATED_CALLED.source,
@@ -1249,6 +1323,8 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			RE_EXPECT_CALL.source,
 			[...RECORD_ACCESS_ALLOWLIST].join(","),
 			[...RECORD_REACH_ALLOWLIST].join(","),
+			RE_VALUE_SUPPLYING_MOCK.source,
+			[...HOST_ENVIRONMENT_ROOTS].join(","),
 		].join("\n");
 		// 공허 방지 — gateSource 가 비면 not.toMatch 는 무조건 통과한다.
 		expect(gateSource.length, "판정 소스 수집이 비었다 — 비열거성 단언이 공허해진다").toBeGreaterThan(200);
@@ -1282,18 +1358,57 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		].join("\n");
 		expect(filteredEmissionZeroAssertions(narrowWithoutAssert), "단정 없는 좁힘을 위반으로 잡았다").toHaveLength(0);
 
-		// spy 종류 인식 — 발화 spy 만 이름을 낸다.
+		// ── (Q-A) 관측기 판정 자가 검증 — deny-by-default (TSK-20260827-10-b / FR-01) ──
+		// 양성 (보존) — 콘솔·리포터 관측기.
 		expect(emissionSpyNames("const s = vi.spyOn(console, 'error');")).toEqual(["s"]);
 		expect(emissionSpyNames("const s = vi.spyOn(errorReporter, 'reportError');")).toEqual(["s"]);
-		expect(emissionSpyNames("const a = vi.spyOn(window, 'addEventListener');")).toEqual([]);
+		// 양성 (신규) — **목록 밖 이름**의 발화 설비. 종전 이름 열거에서는 spy 로 인식되지
+		// 않아 이 소스를 가진 파일의 축 1~4 판정이 통째로 단락됐다.
+		expect(
+			emissionSpyNames("const emit = vi.spyOn(customLogger, 'emit');"),
+			"목록 밖 이름의 발화 관측기를 인식하지 못했다 — 축 5 가 여전히 이름 열거다",
+		).toEqual(["emit"]);
+		expect(
+			emissionSpyNames("const t = vi.spyOn(telemetry, 'capture');"),
+			"두 번째 목록 밖 설비도 인식하지 못했다 — 목록을 한 칸 늘렸을 뿐이다",
+		).toEqual(["t"]);
+		// 음성 (N2) — 플랫폼 배선. 호스트 환경 객체를 **경유한** 접근은 발화 싱크가 아니다.
+		expect(
+			emissionSpyNames("const a = vi.spyOn(window, 'addEventListener');"),
+			"플랫폼 배선 spy 를 관측기로 잡았다 — 술어 과잉 확장 (정상 테스트 오탐)",
+		).toEqual([]);
+		expect(
+			emissionSpyNames("const f = vi.spyOn(globalThis, 'fetch');"),
+			"호스트 전역 경유 spy 를 관측기로 잡았다 — 술어 과잉 확장",
+		).toEqual([]);
+		// 음성 (N1) — 값 공급 스텁. 반환값이 프로덕션에 소비되는 입력 의존성이다.
+		expect(
+			emissionSpyNames(
+				["const g = vi.spyOn(api, 'getLogs');", "g.mockResolvedValue({ items: [] });"].join("\n"),
+			),
+			"값 공급 스텁을 관측기로 잡았다 — 술어 과잉 확장",
+		).toEqual([]);
+		// (N1) 은 **묵음** 스텁을 제외하지 않는다 — 콘솔 관측기의 표준 형태가 그것이다.
+		expect(
+			emissionSpyNames(
+				["const s = vi.spyOn(console, 'error');", "s.mockImplementation(() => {});"].join("\n"),
+			),
+			"묵음 스텁이 붙은 콘솔 관측기를 제외했다 — (N1) 이 과잉이라 관측기가 조용히 줄어든다",
+		).toEqual(["s"]);
+		// 이름 열거 부재 — 판정 소스가 발화 메서드 어휘를 들고 있으면 전환이 아니라 열거 확장이다.
+		expect(
+			[isEmissionObserver.toString(), emissionSpyNames.toString()].join("\n"),
+			"관측기 판정이 여전히 발화 메서드 이름을 열거한다 — deny 전환이 아니다",
+		).not.toMatch(/reportError|['"]warn['"]|['"]info['"]/);
 
 		// ── (Q-B) 단락 신호 자가 검증 (TSK-20260827-10-a / FR-02) ────────────
-		// 관측기 0 인 소스는 "위반 0" 이 아니라 **단락** 으로 분류된다. 아래 양성은 축 1
-		// 위반 형태를 그대로 갖고 있으면서 관측기만 인식 밖인 소스다 — 종전 판본에서는
-		// 정상 통과 파일과 구별되지 않았다.
+		// 관측기 0 인 소스는 "위반 0" 이 아니라 **단락** 으로 분류된다. 아래 소스는 축 1
+		// 위반 형태를 그대로 갖고 있으면서 spy 가 전부 (N2) 플랫폼 배선이라 관측기가 0 이다.
+		// (축 5 전환 전에는 `customLogger.emit` 이 이 자리에 있었다 — 이제 그것은 관측기로
+		// 인식되므로 단락 fixture 로 쓸 수 없다. 아래 축 5 회귀 고정이 그 소스를 이어받는다.)
 		const noObserver = [
-			"const emit = vi.spyOn(customLogger, 'emit');",
-			"const w = emit.mock.calls.filter(c => /x/.test(c[0]));",
+			"const a = vi.spyOn(window, 'addEventListener');",
+			"const w = a.mock.calls.filter(c => /x/.test(c[0]));",
 			"expect(w.length).toBe(0);",
 		].join("\n");
 		const shortCircuitAudit = auditEmissionZeroAssertions(noObserver);
@@ -1304,5 +1419,25 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		const judgedAudit = auditEmissionZeroAssertions(aliasFiltered);
 		expect(judgedAudit.shortCircuited, "관측기 보유 소스를 단락으로 분류했다").toBe(false);
 		expect(judgedAudit.violations.length, "판정된 소스의 위반이 사라졌다").toBeGreaterThan(0);
+
+		// ── (Q-A) 축 5 전환의 회귀 고정 (TSK-20260827-10-b / FR-01) ──────────
+		// **종전 판본의 단락 사례**가 이제는 판정된다. 같은 소스가 전환 전에는
+		// `shortCircuited: true` (축 1~4 판정 0 건) 였고 — 그 상태는 "위반 없음" 과
+		// 관측적으로 동일했다 — 전환 후에는 축 1 위반으로 잡힌다. 이 두 단언이 축 5
+		// false-negative 의 재도입을 고정한다: 판정을 이름 열거로 되돌리면 둘 다 붉어진다.
+		const outOfListObserver = [
+			"const emit = vi.spyOn(customLogger, 'emit');",
+			"const w = emit.mock.calls.filter(c => /x/.test(c[0]));",
+			"expect(w.length).toBe(0);",
+		].join("\n");
+		const outOfListAudit = auditEmissionZeroAssertions(outOfListObserver);
+		expect(
+			outOfListAudit.shortCircuited,
+			"목록 밖 이름의 관측기를 쓴 소스가 여전히 단락된다 — 축 5 전환이 되돌아갔다",
+		).toBe(false);
+		expect(
+			outOfListAudit.violations,
+			"목록 밖 관측기의 축 1 위반을 잡지 못했다 — 판정 대상 집합이 조용히 줄어 있다",
+		).toContain("emit.mock.calls");
 	});
 });

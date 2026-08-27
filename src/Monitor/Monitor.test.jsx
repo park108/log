@@ -145,13 +145,20 @@ it('sets fullscreen on admin mount and clears it on unmount (shell axis 2)', asy
 
 	expect(setHtmlTitleSpy).toHaveBeenCalledWith("monitor");
 	expect(setFullscreenSpy).toHaveBeenCalledWith(true);
-	expect(setFullscreenSpy.mock.calls.map(([value]) => value)).toEqual([true]);
+	// 좁힘 결과를 **먼저 길이로** 고정한 뒤 값을 비교한다. `expect(<좁힘>).toEqual([...])`
+	// 인라인 형태는 post-unmount 발화 감사(축 1·2)에서 "좁힌 뒤 비어있음이 아님을 증명하지
+	// 못하는 단정" 으로 읽힌다 — 길이 단언이 그 증명을 명시적으로 준다.
+	const enterValues = setFullscreenSpy.mock.calls.map(([value]) => value);
+	expect(enterValues).toHaveLength(1);
+	expect(enterValues).toEqual([true]);
 
 	unmount();
 
 	// cleanup 이 fullscreen 을 되돌린다. 진입 true → 이탈 false 의 **순서**까지 고정한다 —
 	// 호출 여부만 보면 cleanup 이 사라지고 mount 가 두 번 불린 형태와 구별되지 않는다.
-	expect(setFullscreenSpy.mock.calls.map(([value]) => value)).toEqual([true, false]);
+	const roundTripValues = setFullscreenSpy.mock.calls.map(([value]) => value);
+	expect(roundTripValues).toHaveLength(2);
+	expect(roundTripValues).toEqual([true, false]);
 });
 
 // ── 셸 축 (3) 4 패널 DOM 순서 ───────────────────────────────────────────────
