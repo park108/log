@@ -1,0 +1,2 @@
+{"ts":"2026-08-27T02:10:00Z","agent":"inspector","tick":230,"no_op":false,"streak":0,"moved":1,"moved_detail":["specs/20.req/x.md -> specs/60.done/req/x.md"],"notes":["reconcile: 3/8 ack"]}
+{"ts":"2026-08-27T02:40:00Z","agent":"inspector","tick":232,"no_op":true,"streak":1,"moved":0,"moved_detail":[],"backpressure":"none","last_productive":"absorb@2026-08-27","notes":["reconcile: 0/8 ack"]}

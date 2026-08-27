@@ -1,0 +1,4 @@
+{"ts":"2026-08-27T00:00:00Z","agent":"discovery","tick":41,"no_op":false,"streak":0,"moved":1,"queues":{"in":5,"out":7},"thresholds":{"REQUIREMENTS_READY_MAX":15},"notes":[]}
+{"ts":"2026-08-27T00:30:00Z","agent":"inspector","tick":233,"no_op":false,"streak":0,"moved":1,"queues":{"in":7,"out":8},"thresholds":{"GREEN_PENDING_MAX":20},"notes":["reconcile: 0/8 ack"]}
+{"ts":"2026-08-27T01:00:00Z","agent":"planner","tick":378,"no_op":false,"streak":0,"moved":1,"queues":{"in":8,"out":2},"thresholds":{"TASK_READY_MAX":10},"notes":["carve: 0","promote-verify: 3/3 rc0"]}
+{"ts":"2026-08-27T01:15:00Z","agent":"developer","tick":52,"no_op":true,"streak":1,"moved":0,"queues":{"in":0,"out":0},"thresholds":{"TASK_READY_MAX":10},"notes":["orphan: 0"]}

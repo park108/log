@@ -101,3 +101,15 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|\.husky/|\.github/workflows/|scripts/check-gate-firing-channel\.sh$)'; then
   bash scripts/check-gate-firing-channel.sh || exit 1
 fi
+
+# 정체 판정 계측 라인의 타입 계약 — TSK-20260827-07 / spec: foundation/stall-telemetry-schema-contract.md §동작 (T-1)(T-3)(T-4)
+# staged 변경에 게이트 자신 또는 판정 픽스처가 포함되면 검사.
+# npm script 동치: check:telemetry-schema (package.json / ci.yml 과 같은 스크립트).
+# RULE-03 (S1)(S2)(S3) 는 moved·streak 에 판정을 전적으로 위임하는데 그 손상은 유효한 JSON 이라
+# 파싱도 통과하고 비교만 거짓이 된다 — 생산적 tick 이 조용히 '진행 0' 이 되어 정상 에이전트가
+# 거짓 정지하고, stall lock 은 운영자만 지울 수 있어 자동 복구 경로가 없다.
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-telemetry-schema\.sh$|scripts/fixtures/telemetry-schema/)'; then
+  bash scripts/check-telemetry-schema.sh || exit 1
+fi

@@ -47,7 +47,8 @@
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "pipeline:health": "bash scripts/pipeline-health.sh",
-    "check:acceptance-criteria": "bash scripts/check-acceptance-criteria.sh"
+    "check:acceptance-criteria": "bash scripts/check-acceptance-criteria.sh",
+    "check:telemetry-schema": "bash scripts/check-telemetry-schema.sh"
   },
   "engines": {
     "node": ">=24",
