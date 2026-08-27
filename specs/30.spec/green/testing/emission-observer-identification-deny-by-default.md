@@ -22,7 +22,7 @@ post-unmount 발화 감사 게이트가 **"무엇이 발화 관측기(spy)인가
 
 - (i) **판정 수단을 특정하지 않는다.** 술어 재정의 · AST 파싱 · 관측기 등록 규약 중 무엇이든 무방하다 (REQ §Out-of-Scope — planner·developer 영역). 계약이 고정하는 것은 **방향(deny)** 과 **대상 집합의 관측 가능성**이다.
 - (ii) **축 1~4 의 잔여 false-negative 를 다루지 않는다.** 그 축들은 `specs/30.spec/blue/testing/runtime-fetch-unmount-safety.md` 의 (I9)(I10) 소관이다.
-- (iii) **가드 분해능을 다루지 않는다.** `specs/30.spec/green/testing/post-await-guard-individual-observability.md` 는 같은 판정 표면 위에 서지만 대상이 **src 컴포넌트의 post-await 가드 수 대비 fixture 관측 지점 수** 이며, 그 spec §역할 (iii) 이 발화 종류 분류를 "입력으로 쓴다" 고 선언한다. 본 계약은 **그 입력을 만드는 술어** 를 규정한다 — 층이 다르다.
+- (iii) **가드 분해능을 다루지 않는다.** `testing/post-await-guard-individual-observability` 는 같은 판정 표면 위에 서지만 대상이 **src 컴포넌트의 post-await 가드 수 대비 fixture 관측 지점 수** 이며, 그 spec §역할 (iii) 이 발화 종류 분류를 "입력으로 쓴다" 고 선언한다. 본 계약은 **그 입력을 만드는 술어** 를 규정한다 — 층이 다르다.
 - (iv) **`RECORD_ACCESS_ALLOWLIST` 공집합 죽은 분기 정리**(followup `20260825-1015`) 와 `scripts/check-monitor-state-immutability.sh` 로의 별칭 추적 이식(followup `20260825-1105`) 은 모집단 밖이다.
 
 ## 공개 인터페이스
@@ -59,7 +59,7 @@ post-unmount 발화 감사 게이트가 **"무엇이 발화 관측기(spy)인가
 
 - 내부: `src/__tests__/post-unmount-emission-audit.test.ts` (판정 표면) · `src/common/common.ts` (`log`) · `src/common/errorReporter.ts` (`reportError`) — 후자 둘은 현행 열거가 겨눈 발화 지점의 예시이며 판정 대상 목록이 아니다.
 - 외부: `vitest`.
-- 역의존 (사용처): `specs/30.spec/green/testing/post-await-guard-individual-observability.md` (본 계약의 판정 결과를 입력으로 소비) · `specs/30.spec/blue/testing/runtime-fetch-unmount-safety.md` (축 1~4 가 본 술어의 하류).
+- 역의존 (사용처): `testing/post-await-guard-individual-observability` (본 계약의 판정 결과를 입력으로 소비) · `specs/30.spec/blue/testing/runtime-fetch-unmount-safety.md` (축 1~4 가 본 술어의 하류).
 
 ## 테스트 현황
 
@@ -77,10 +77,11 @@ post-unmount 발화 감사 게이트가 **"무엇이 발화 관측기(spy)인가
 
 ### 비-중복 근거 (인접 spec 열거)
 
-- `specs/30.spec/green/testing/post-await-guard-individual-observability.md` — 같은 판정 표면이나 대상이 **가드 분해능** ((P-A)(P-B)(P-C)) 이고, 그 §역할 (iii) 이 발화 종류 분류를 "입력으로 쓴다" 고 명시해 본 축을 자기 모집단 밖으로 선언한다. 본 계약이 그 입력의 생산자다.
+- `testing/post-await-guard-individual-observability` — 같은 판정 표면이나 대상이 **가드 분해능** ((P-A)(P-B)(P-C)) 이고, 그 §역할 (iii) 이 발화 종류 분류를 "입력으로 쓴다" 고 명시해 본 축을 자기 모집단 밖으로 선언한다. 본 계약이 그 입력의 생산자다.
 - `specs/30.spec/blue/testing/runtime-fetch-unmount-safety.md` — 축 1~4 ((I8)(I9)(I10)) 와 audit **대상 파일 집합**(프로덕션 파일 술어)을 규정한다. 본 계약은 그 대상 파일 안에서 **어떤 spy 가 관측기인지** 를 규정하며 층이 다르다. 그 spec 의 사각 표 (B4)(B5) 에 축 5 는 등재돼 있지 않다.
-- `specs/30.spec/green/foundation/gate-output-parsing-color-independent-fail-closed.md` — 모집단이 `package.json scripts.check:*` → `scripts/*.sh` 이며 그 §역할 (iii) 이 "파일 텍스트만 스캔하는 게이트" 를 모집단 밖으로 둔다. 본 계약의 판정 표면은 vitest 테스트 파일이라 그 모집단 밖이다.
+- `foundation/gate-output-parsing-color-independent-fail-closed` — 모집단이 `package.json scripts.check:*` → `scripts/*.sh` 이며 그 §역할 (iii) 이 "파일 텍스트만 스캔하는 게이트" 를 모집단 밖으로 둔다. 본 계약의 판정 표면은 vitest 테스트 파일이라 그 모집단 밖이다.
 - 실측: `grep -rln "CONSOLE_SPY_METHODS|emissionSpyNames|발화 관측기" specs/30.spec/` → **0 hit** (등록 직전). 어떤 spec 도 본 축을 덮지 않았다.
+- 표기: 위 인접 spec 중 미승격(green) 항목은 lifecycle 경로(`30.spec/{blue,green}/…`) 가 아니라 **slug** 로 지칭한다 — 승격으로 경로가 바뀌어도 참조가 끊기지 않아야 하기 때문이다 (RULE-01 §파일 이름: spec 은 디렉터리 경로로 식별).
 
 ### 미측정·비판정 항목
 
