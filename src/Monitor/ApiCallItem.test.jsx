@@ -2,6 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import ApiCallItem from './ApiCallItem';
 import * as api from './api';
+import * as common from '../common/common';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
@@ -273,5 +274,42 @@ describe('ApiCallItem unmount safety (REQ-20260517-093 FR-03)', () => {
 		expect(consoleLogSpy).not.toHaveBeenCalled();
 		expect(reportErrorSpy).not.toHaveBeenCalled();
 		expect(consoleErrorSpy).not.toHaveBeenCalled();
+	});
+
+	// ── G-G 경계 도달 대조 (TSK-20260828-01 / REQ-20260825-013) ────────────────
+	// 위 두 케이스는 전부 **무발화** 단정이다. 무발화는 "가드가 막았다" 와 "애초에
+	// 그 경로에 도달하지 않았다" 를 구별하지 못한다 — 중간 가드 1개가 사라져도 뒤
+	// 경계의 가드가 대신 막아 초록이 유지된다 (spec post-await-guard-individual-
+	// observability §역할 (a)). 아래는 그 창을 여는 **양성** 관측이다: 같은 reject 를
+	// unmount **없이** 흘리면 catch 진입 경계를 넘어 log · reportError 가 실제로 발화한다.
+	it('unmount 하지 않은 같은 reject 는 catch 경계를 넘어 log · reportError 를 발화한다 (경계 도달 대조)', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		let rejectResp;
+		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		vi.spyOn(api, 'getApiCallStats').mockReturnValue(pending);
+
+		// `log()` 는 DEV 에서만 console 에 쓴다 — 발화 함수 자체를 관측한다.
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
+		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		render( <ApiCallItem title="log" service="log" stackPallet={stackPallet.colors} /> );
+
+		await screen.findByText('Loading...');
+
+		// 관측 창을 응답 도착 이후로 한정한다 (마운트 중 발화 제외).
+		logSpy.mockClear();
+		reportErrorSpy.mockClear();
+
+		await act(async () => {
+			rejectResp(new Error('network down'));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		expect(logSpy).toHaveBeenCalledWith('[API GET] FAILED - API call stats: log', 'ERROR');
+		expect(reportErrorSpy).toHaveBeenCalledTimes(1);
 	});
 });

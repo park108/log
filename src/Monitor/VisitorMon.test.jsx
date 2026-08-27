@@ -2,6 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import * as mock from './api.mock'
 import VisitorMon from '../Monitor/VisitorMon';
 import * as api from './api';
+import * as common from '../common/common';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
@@ -254,5 +255,43 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 
 		// **무필터** console.error 0 hit (관측 창 = unmount 이후).
 		expect(consoleErrorSpy).not.toHaveBeenCalled();
+	});
+
+	// ── G-G 경계 도달 대조 (TSK-20260828-01 / REQ-20260825-013) ────────────────
+	// 위 두 케이스는 전부 **무발화** 단정이다. 무발화는 "가드가 막았다" 와 "애초에
+	// 그 경로에 도달하지 않았다" 를 구별하지 못한다 — 그래서 중간 가드 1개가 사라져도
+	// 뒤 경계의 가드가 대신 막아 초록이 유지된다 (spec post-await-guard-individual-
+	// observability §역할 (a)). 아래는 그 창을 여는 **양성** 관측이다: 같은 reject 를
+	// unmount **없이** 흘리면 catch 진입 경계를 넘어 log · reportError 가 실제로 발화한다.
+	it('unmount 하지 않은 같은 reject 는 catch 경계를 넘어 log · reportError 를 발화한다 (경계 도달 대조)', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		let rejectResp;
+		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		vi.spyOn(api, 'getVisitors').mockReturnValue(pending);
+
+		// `log()` 는 DEV 에서만 console 에 쓴다 — 콘솔 spy 로는 이 경계가 보이지 않는다.
+		// 발화 함수 자체를 관측한다 (FileItem 선례와 동일 이디엄).
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
+		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		render(<VisitorMon stackPallet={stackPallet.colors}/>);
+		await screen.findAllByText('Loading...');
+
+		// 관측 창을 응답 도착 이후로 한정한다 (마운트 중 발화 제외).
+		logSpy.mockClear();
+		reportErrorSpy.mockClear();
+
+		const boom = new Error('network down');
+		await act(async () => {
+			rejectResp(boom);
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		expect(logSpy).toHaveBeenCalledWith('[API GET] FAILED - Visitor information', 'ERROR');
+		expect(reportErrorSpy).toHaveBeenCalledTimes(1);
 	});
 });

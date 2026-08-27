@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import * as mock from './api.mock'
 import ImageSelector from '../Image/ImageSelector';
 import * as api from '../Image/api';
+import * as common from '../common/common';
 import * as errorReporter from '../common/errorReporter';
 import { useMockServer } from '../test-utils/msw';
 
@@ -384,5 +385,83 @@ describe('ImageSelector unmount-safety (REQ-20260517-093 FR-01)', () => {
 
 		// **무필터** console.error 0 hit (관측 창 = unmount 이후).
 		expect(consoleErrorSpy).not.toHaveBeenCalled();
+	});
+
+	// ── G-G 경계 도달 대조 (TSK-20260828-01 / REQ-20260825-013) ────────────────
+	// 위 세 케이스는 전부 **무발화** 단정이다. 무발화는 "가드가 막았다" 와 "애초에
+	// 그 경로에 도달하지 않았다" 를 구별하지 못한다 — 중간 가드 1개가 사라져도 뒤
+	// 경계의 가드가 대신 막아 초록이 유지된다 (spec post-await-guard-individual-
+	// observability §역할 (a)). 아래 둘은 그 창을 여는 **양성** 관측이며, 이 컴포넌트의
+	// 두 effect (첫 페치 · 추가 페치) 가 각각 갖는 catch 진입 경계에 하나씩 대응한다.
+	// `log()` 는 DEV 에서만 console 에 쓰므로(common.log) 콘솔 spy 로는 이 경계가
+	// 보이지 않는다 — 발화 함수 자체를 관측한다 (FileItem 선례와 동일 이디엄).
+	it('unmount 하지 않은 첫 페치 reject 는 catch 경계를 넘어 log · reportError 를 발화한다 (경계 도달 대조)', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		let rejectResp!: (e: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
+		vi.spyOn(api, 'getImages').mockReturnValue(pending);
+
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
+		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		render(<ImageSelector show={true} />);
+		await screen.findByText('Loading...');
+
+		// 관측 창을 응답 도착 이후로 한정한다 (마운트 중 발화 제외).
+		logSpy.mockClear();
+		reportErrorSpy.mockClear();
+
+		await act(async () => {
+			rejectResp(new Error('network down'));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		expect(logSpy).toHaveBeenCalledWith('[API GET] FAILED - Images', 'ERROR');
+		expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+	});
+
+	it('unmount 하지 않은 추가 페치 reject 는 catch 경계를 넘어 log · reportError 를 발화한다 (경계 도달 대조)', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		// 1차 페치는 정상 OK 응답 — See More 버튼 surface 확보.
+		const firstResp = new Response(JSON.stringify({
+			body: {
+				Items: [{ key: 'k1', url: 'http://x/1' }],
+				LastEvaluatedKey: { timestamp: 99999 },
+			},
+		}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+		vi.spyOn(api, 'getImages').mockResolvedValue(firstResp);
+
+		let rejectNext!: (e: unknown) => void;
+		const pendingNext = new Promise<Response>((_, reject) => { rejectNext = reject; });
+		const getNextSpy = vi.spyOn(api, 'getNextImages').mockReturnValue(pendingNext);
+
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
+		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		render(<ImageSelector show={true} />);
+
+		const seeMore = await screen.findByRole('button', { name: /see\s*more/i });
+		fireEvent.click(seeMore);
+		await waitFor(() => expect(getNextSpy).toHaveBeenCalledTimes(1));
+
+		// 관측 창을 2차 응답 도착 이후로 한정한다 (1차 페치의 정상 발화 제외).
+		logSpy.mockClear();
+		reportErrorSpy.mockClear();
+
+		await act(async () => {
+			rejectNext(new Error('network down'));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		expect(logSpy).toHaveBeenCalledWith('[API GET] FAILED - Next Images', 'ERROR');
+		expect(reportErrorSpy).toHaveBeenCalledTimes(1);
 	});
 });

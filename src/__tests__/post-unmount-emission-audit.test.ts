@@ -768,6 +768,179 @@ const EMISSION_OBSERVATION_DEBT = new Set([
 	join("src", "Monitor", "Monitor.test.jsx"),
 ]);
 
+// ── G-G 토큰 (다중 post-await 가드 분해능 — TSK-20260828-01 / REQ-20260825-013) ─
+// 출처 spec: testing/post-await-guard-individual-observability §동작 1~6.
+//
+// G-A~G-F 는 "가드가 있는가 / 관측기가 있는가 / 관측이 필터로 공허해졌는가" 까지만
+// 본다. 가드가 **여러 개** 걸린 continuation 에서 중간 가드 1개가 사라지면 뒤 경계의
+// 가드가 대신 막아 주므로 "최종 발화 0" 단정은 그대로 초록이다 (TSK-20260825-04 의
+// injection Dir-B1 1차 시도가 `FileItem` 첫 경계 가드를 제거하고도 rc=0 을 낸 실측).
+// G-G 는 그 사각에 **분해능** 축을 세운다 — 대상별로 `요구 N / 보유 M` 을 내고
+// `요구 > 보유` 를 집행한다.
+//
+//   (P-A) 대상 모집단   post-await 가드 경계가 2개 이상인 프로덕션 파일 (디렉터리 열거).
+//   (P-B) 요구 분해능   그 파일의 post-await 가드 경계 수 (try 본문 + catch 진입).
+//   (P-C) 보유 관측     형제 fixture 의 **양성** 호출 단정 수 (중간 관측).
+
+/**
+ * 주석 절단 — `//` 행 주석과 `/* *\/` 블록 주석을 제거한다.
+ *
+ * (P-B)(P-C) 는 **실행 라인만** 계수해야 한다. 주석에 적힌 가드 토큰
+ * (`// if(cancelled.current) return;`) 이나 단정 토큰이 판정을 충족시키면 게이트는
+ * 코드가 아니라 서술을 세게 된다 — 그것이 이 부류에서 반복 관측된 false-negative 다.
+ *
+ * 문자열 리터럴은 상태로 추적하므로 `"https://x"` 의 `//` 는 잘리지 않는다. 정규식
+ * 리터럴은 별도 상태로 추적하지 않는 **근사**이며, 이스케이프(`\/`) 다음 문자는
+ * 건너뛰므로 `/\/\//` 같은 표기는 보존된다. 남는 한계는 자가 검증이 고정한다.
+ */
+export function stripComments(source: string): string {
+	let out = "";
+	let i = 0;
+	const n = source.length;
+	while (i < n) {
+		const c = source[i];
+		if (c === '"' || c === "'" || c === "`") {
+			out += c;
+			i += 1;
+			while (i < n) {
+				const d = source[i];
+				if (d === "\\") {
+					out += source.slice(i, i + 2);
+					i += 2;
+					continue;
+				}
+				out += d;
+				i += 1;
+				if (d === c) break;
+			}
+			continue;
+		}
+		if (c === "\\") {
+			out += source.slice(i, i + 2);
+			i += 2;
+			continue;
+		}
+		if (c === "/" && source[i + 1] === "/") {
+			while (i < n && source[i] !== "\n") i += 1;
+			continue;
+		}
+		if (c === "/" && source[i + 1] === "*") {
+			i += 2;
+			while (i < n && !(source[i] === "*" && source[i + 1] === "/")) {
+				if (source[i] === "\n") out += "\n";
+				i += 1;
+			}
+			i += 2;
+			continue;
+		}
+		out += c;
+		i += 1;
+	}
+	return out;
+}
+
+/** 가드 검사 지점 — `if (…cancelled|isMounted|signal|aborted…)` 형태의 조건. */
+const RE_GUARD_CHECK = /\bif\s*\(\s*[^()]*(?:cancelled|isMounted|signal|aborted)[^()]*\)/g;
+/** 예외 처리기 머리 — try 본문 종료 직후의 `catch (…) {` · `finally {`. */
+const RE_HANDLER_HEAD = /^\s*(?:catch\s*(?:\([^)]*\))?|finally)\s*\{/;
+/** (P-A) 모집단 편입 하한 — "가드가 여러 개" 가 본 계약의 전제다. */
+const MULTI_GUARD_MIN = 2;
+
+/**
+ * `await` / `.then(` 각 지점부터 **그 continuation 이 끝나는 곳까지** 의 인덱스 구간.
+ *
+ * `postAsyncRegions` (G-D 계열) 와의 차이는 하나다 — 깊이 0 의 `}` 를 만났을 때
+ * 뒤에 `catch` · `finally` 가 붙어 있으면 **끊지 않고 계속한다**. try 본문에서
+ * 시작한 continuation 은 catch 진입 경계와 그 뒤 코드까지 이어지기 때문이다
+ * (spec §동작 2 — "try 본문 경계와 catch 진입 경계를 모두 계수한다").
+ *
+ * 그래서 `try { await f(); if(cancelled) return; } catch { if(cancelled) return; }
+ * if(cancelled) return;` 은 경계 3 으로 산출된다. G-D 의 근사(첫 `}` 에서 절단)로는
+ * 뒤 두 경계가 통째로 보이지 않는다.
+ *
+ * **근사 한계**: 중괄호 계수는 문자열·정규식 리터럴 안의 중괄호를 구분하지 않는다
+ * (주석은 호출 전에 절단된다). 계수 대상이 `if (…) `조건 뿐이라 리터럴 중괄호가
+ * 경계 수를 바꾸는 실측 사례는 없으며, 이 한계는 자가 검증 fixture 가 고정한다.
+ */
+export function postAwaitContinuations(source: string): Array<[number, number]> {
+	const spans: Array<[number, number]> = [];
+	const finder = new RegExp(RE_ASYNC_TOKEN.source, "g");
+	let m: RegExpExecArray | null;
+	while ((m = finder.exec(source)) !== null) {
+		const start = m.index;
+		let depth = 0;
+		let end = source.length;
+		for (let i = start; i < source.length; i += 1) {
+			const c = source[i];
+			if (c === "{") depth += 1;
+			else if (c === "}") {
+				if (depth === 0) {
+					// 뒤에 예외 처리기가 붙으면 continuation 은 끝나지 않았다.
+					if (RE_HANDLER_HEAD.test(source.slice(i + 1, i + 200))) continue;
+					end = i;
+					break;
+				}
+				depth -= 1;
+			}
+		}
+		spans.push([start, end]);
+	}
+	return spans;
+}
+
+/**
+ * (P-B) — post-await continuation 안에 있는 **가드 검사 지점 수**.
+ *
+ * 지점은 인덱스로 식별하므로 같은 지점이 여러 `await` 의 구간에 겹쳐 들어가도 1 로
+ * 센다. `await` **앞** 의 가드(진입 가드)는 post-await 경계가 아니므로 제외된다.
+ */
+export function guardBoundaries(source: string): number {
+	const src = stripComments(source);
+	const spans = postAwaitContinuations(src);
+	const finder = new RegExp(RE_GUARD_CHECK.source, "g");
+	const sites = new Set<number>();
+	let m: RegExpExecArray | null;
+	while ((m = finder.exec(src)) !== null) {
+		const at = m.index;
+		if (spans.some(([s, e]) => at > s && at <= e)) sites.add(at);
+	}
+	return sites.size;
+}
+
+/** 부정 호출 단정 — (P-C) 에서 제외한다 (spec §역할 (ii): "발화 0 자체" 는 범위 밖). */
+const RE_NEGATED_CALL_ASSERT = /\bnot\s*\.\s*toHaveBeenCalled\w*/g;
+/**
+ * (P-C) 중간 관측 — 그 경계 **이후로 진행했는지**를 드러내는 **양성** 호출 단정.
+ * `not.toHaveBeenCalled` 계열은 최종 발화 무발화이므로 계수 전에 지운다.
+ */
+const RE_INTERMEDIATE_OBSERVATION =
+	/toHaveBeenCalledWith\s*\(|toHaveBeenCalledTimes\s*\(\s*[1-9]|toHaveBeenCalled\s*\(\s*\)/g;
+
+export function intermediateObservations(testSource: string): number {
+	const src = stripComments(testSource).replace(RE_NEGATED_CALL_ASSERT, " ");
+	return (src.match(RE_INTERMEDIATE_OBSERVATION) ?? []).length;
+}
+
+export type ResolutionTarget = { rel: string; testRel: string | null; required: number; have: number };
+
+/**
+ * (P-A)(P-B)(P-C) 동시 산출. 스캔 루트는 인자로 받는다 — 루트가 없거나 그 아래에
+ * 프로덕션 파일이 없으면 **빈 배열**을 돌려주고, 호출자가 그것을 무판정 실패로 처리한다
+ * (spec §동작 1 — 도출 붕괴 은폐 방지).
+ */
+export function resolutionTargets(root: string = SRC_DIR): ResolutionTarget[] {
+	if (!existsSync(root)) return [];
+	const out: ResolutionTarget[] = [];
+	for (const f of collectFiles(root).filter((x) => isProductionFile(x.rel))) {
+		const required = guardBoundaries(readFileSync(f.abs, "utf8"));
+		if (required < MULTI_GUARD_MIN) continue;
+		const testRel = siblingTestPath(f.rel);
+		const have = testRel === null ? 0 : intermediateObservations(readFileSync(join(REPO_ROOT, testRel), "utf8"));
+		out.push({ rel: f.rel, testRel, required, have });
+	}
+	return out.sort((a, b) => a.rel.localeCompare(b.rel));
+}
+
 function fmt(list: string[]): string {
 	return list.map((l) => `  ${l}`).join("\n");
 }
@@ -1045,6 +1218,150 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 				"React 18.2 는 unmounted fiber 의 setState 에 경고를 내지 않는다 — 문구로 거른 뒤 세는 " +
 				"단정은 가드를 전부 제거해도 통과한다. 무필터 0 단정으로 바꿔라.",
 		).toHaveLength(0);
+	});
+
+	it("G-G: 다중 post-await 가드 표면의 분해능 — 대상별 `요구 N / 보유 M` 집행", () => {
+		// 등급 분리 — 모집단은 **디렉터리 열거**다. `src/` 루트가 없으면 측정 자체가
+		// 불가능하므로 무판정 실패이고, 루트는 있으나 (P-A) 가 공집합인 것도 무판정
+		// 실패다 (spec §동작 1). 빈 **하위** 디렉터리가 존재하는 것 자체는 위반이
+		// 아니다 — 열거가 그 디렉터리를 그냥 지나칠 뿐이다. package.json 키 열거
+		// 모집단의 "빈 목록 = 정상" 규칙을 여기에 복사하지 않는다.
+		expect(existsSync(SRC_DIR), "스캔 루트(src/)가 없다 — 무판정 (측정 불가)").toBe(true);
+
+		const targets = resolutionTargets();
+
+		expect(
+			targets.length,
+			"(P-A) 도출이 공집합이다 — 무판정. 다중 post-await 가드 표면이 실제로 사라진 것이 아니라면 " +
+				"가드 검사 패턴 또는 continuation 구간 산출이 무너진 것이다 (도출 붕괴 은폐 방지).",
+		).toBeGreaterThan(0);
+
+		const totalRequired = targets.reduce((n, t) => n + t.required, 0);
+		const totalHave = targets.reduce((n, t) => n + t.have, 0);
+
+		// (§동작 5) 통과 시에도 대상별 수치를 낸다. `console.log` 는 vitest 4 기본
+		// reporter 가 삼키므로 stdout 에 직접 쓴다 (G-F 의 spy-bearing 행과 같은 채널).
+		const summary = `[G-G] 대상 수: ${targets.length} / 요구 합: ${totalRequired} / 보유 합: ${totalHave}\n`;
+		process.stdout.write(summary);
+		const perTarget = targets.map((t) => `[G-G] ${t.rel}: 요구 ${t.required} / 보유 ${t.have}\n`);
+		for (const line of perTarget) process.stdout.write(line);
+
+		// 회피 경로 차단 (1) — 출력한 `대상 수` 가 (P-A) 도출 수와 같은가. 총계만
+		// 줄여 찍고 전건 열거는 그대로 두는 경로를 막는다. 파싱은 출력 문자열 자체에서
+		// 한다 — 변수를 다시 읽으면 "출력이 맞는가" 가 아니라 "변수가 자기 자신인가" 다.
+		const printed = /대상 수: (\d+) \/ 요구 합: (\d+) \/ 보유 합: (\d+)/.exec(summary);
+		expect(printed, `총계 1행의 형식이 깨졌다: ${summary}`).not.toBeNull();
+		expect(Number(printed?.[1]), "출력한 대상 수가 (P-A) 도출 수와 다르다").toBe(targets.length);
+		expect(perTarget.length, "대상 전건 출력 행 수가 도출 수와 다르다").toBe(targets.length);
+		expect(Number(printed?.[2]), "출력한 요구 합이 대상별 요구의 합과 다르다").toBe(totalRequired);
+		expect(Number(printed?.[3]), "출력한 보유 합이 대상별 보유의 합과 다르다").toBe(totalHave);
+
+		// 회피 경로 차단 (2) — 모집단 수 하한. 분할 완전성·형식 정합만으로는 대상이
+		// 조용히 줄어드는 것이 붉어지지 않는다 (줄어든 채로도 전부 정합하기 때문이다).
+		// 착수 시점 실측 11 (TSK-20260828-01). 슬랙 2 — 컴포넌트 통폐합 여지.
+		expect(
+			targets.length,
+			`(P-A) 대상이 9 미만이다 — 열거 또는 가드 경계 산출이 축소됐다:\n${fmt(
+				targets.map((t) => `${t.rel} (요구 ${t.required})`),
+			)}`,
+		).toBeGreaterThanOrEqual(9);
+
+		// 공허 방지 — 요구 합이 대상 수 × 2 미만이면 (P-A) 술어(경계 2 이상)와 (P-B)
+		// 산출이 어긋난 것이다. 둘은 같은 함수에서 나오므로 어긋나면 버그다.
+		expect(
+			totalRequired,
+			"요구 합이 대상 수 × 2 미만이다 — 모집단 술어와 경계 산출이 어긋났다",
+		).toBeGreaterThanOrEqual(targets.length * 2);
+
+		// (§동작 4) 집행 — `요구 > 보유` 인 원소를 대상별 형태로 열거하고 실패시킨다.
+		const under = targets
+			.filter((t) => t.required > t.have)
+			.map(
+				(t) =>
+					`${t.rel}: 요구 ${t.required} / 보유 ${t.have}` +
+					(t.testRel === null ? " (형제 fixture 부재 — G-C 참조)" : ` (${t.testRel})`),
+			);
+		expect(
+			under,
+			`post-await 가드 경계 수보다 형제 fixture 의 중간 관측이 적다:\n${fmt(under)}\n` +
+				"중간 가드 1개가 사라져도 뒤 경계의 가드가 대신 막아 '최종 발화 0' 단정은 통과한다. " +
+				"경계 이후 진행을 드러내는 **양성** 관측(다음 단계 호출을 spy 로 관측)을 보강하라. " +
+				"숫자를 맞추기 위한 무의미 단정은 금지다 — 그 경우 (P-B) 산정의 과대 계수를 좁혀라.",
+		).toHaveLength(0);
+	});
+
+	it("G-G 자가 검증: 주석 절단 · catch 경계 계수 · 부정 단정 제외", () => {
+		// ── 주석 절단 — 판정은 **실행 라인**만 본다 ──────────────────────────
+		expect(stripComments("const a = 1; // if(cancelled.current) return;\n")).not.toContain("cancelled");
+		expect(stripComments("/* if(isMounted.current) return; */\nconst a = 1;")).not.toContain("isMounted");
+		// 문자열 안의 `//` 는 주석이 아니다 (URL 오절단 방지).
+		expect(stripComments('const u = "https://x/y"; // c'), "문자열 안의 // 를 주석으로 잘랐다").toContain(
+			"https://x/y",
+		);
+		// 주석에만 있는 가드는 경계로 계수되지 않는다.
+		const commentedGuard = ["const f = async () => {", "\tawait g();", "\t// if(cancelled.current) return;", "\tlog('x');", "};"].join("\n");
+		expect(guardBoundaries(commentedGuard), "주석 안의 가드를 경계로 셌다").toBe(0);
+		// 같은 라인을 실행 구간으로 되돌리면 1 이 된다 — 절단이 계수보다 앞이라는 증거.
+		const liveGuard = commentedGuard.replace("// if(", "if(");
+		expect(guardBoundaries(liveGuard), "실행 구간의 가드를 놓쳤다").toBe(1);
+		// 부정 단정의 주석 절단도 같은 방향으로 움직인다.
+		expect(intermediateObservations("// expect(s).toHaveBeenCalledWith(1);\n")).toBe(0);
+		expect(intermediateObservations("expect(s).toHaveBeenCalledWith(1);\n")).toBe(1);
+
+		// ── catch 진입 경계 (spec §동작 2) ───────────────────────────────────
+		// try 본문 경계 · catch 진입 경계 · try/catch 이후 경계 셋을 모두 센다.
+		const threeBoundaries = [
+			"const f = async () => {",
+			"\ttry {",
+			"\t\tconst res = await g();",
+			"\t\tif(cancelled.current) return;",
+			"\t\tlog('ok');",
+			"\t}",
+			"\tcatch(err) {",
+			"\t\tif(cancelled.current) return;",
+			"\t\tlog('fail');",
+			"\t}",
+			"\tif(cancelled.current) return;",
+			"\tsetIsLoading(false);",
+			"};",
+		].join("\n");
+		expect(guardBoundaries(threeBoundaries), "catch 진입 경계 또는 try 이후 경계를 놓쳤다").toBe(3);
+
+		// 진입 가드(`await` 앞)는 post-await 경계가 아니다.
+		const preGuard = ["const f = async () => {", "\tif(cancelled.current) return;", "\tawait g();", "};"].join("\n");
+		expect(guardBoundaries(preGuard), "await 앞의 진입 가드를 post-await 경계로 셌다").toBe(0);
+
+		// 인접 블록으로 새지 않는다 — 다른 함수의 가드까지 삼키면 요구가 부풀어 오른다.
+		const adjacent = [
+			"const f = async () => {",
+			"\tawait g();",
+			"\tlog('inside');",
+			"};",
+			"const h = () => {",
+			"\tif(cancelled.current) return;",
+			"};",
+		].join("\n");
+		expect(guardBoundaries(adjacent), "인접 블록의 가드까지 계수했다").toBe(0);
+
+		// 수단 중립 (spec §역할 (i)) — ref 플래그 · isMounted · AbortSignal 셋 다 경계다.
+		for (const cond of ["cancelled.current", "!isMounted.current", "controller.signal.aborted"]) {
+			const src = ["const f = async () => {", "\tawait g();", `\tif(${cond}) return;`, "};"].join("\n");
+			expect(guardBoundaries(src), `가드 수단을 놓쳤다: ${cond}`).toBe(1);
+		}
+		// 동등 표현 치환에도 경계 수는 불변이다 (정상 리팩터를 위반으로 잡지 않는다).
+		const equivalent = ["const f = async () => {", "\tawait g();", "\tif (cancelled.current === true) return;", "};"].join("\n");
+		expect(guardBoundaries(equivalent), "동등 표현 가드를 놓쳤다 — 게이트가 과잉 특정이다").toBe(1);
+
+		// ── (P-C) 양성 단정만 센다 ───────────────────────────────────────────
+		expect(intermediateObservations("expect(s).not.toHaveBeenCalled();"), "부정 단정을 중간 관측으로 셌다").toBe(0);
+		expect(intermediateObservations("expect(s).not.toHaveBeenCalledWith(1);"), "부정 With 단정을 셌다").toBe(0);
+		expect(intermediateObservations("expect(s).toHaveBeenCalledTimes(0);"), "0회 단정을 셌다").toBe(0);
+		expect(intermediateObservations("expect(s).toHaveBeenCalledTimes(1);")).toBe(1);
+		expect(intermediateObservations("expect(s).toHaveBeenCalled();")).toBe(1);
+		expect(intermediateObservations("await waitFor(() => expect(s).toHaveBeenCalledWith('a', 'b'));")).toBe(1);
+
+		// ── 스캔 루트 부재 · 공집합은 무판정으로 빠진다 (등급 분리) ──────────
+		expect(resolutionTargets(join(REPO_ROOT, "no-such-root-for-gg")), "없는 루트에서 대상이 나왔다").toHaveLength(0);
 	});
 
 	it("analyzer 자가 검증: 표기 변형 · 블록 경계 · 발화 분류 (RULE-06 §fixture 대표성)", () => {
