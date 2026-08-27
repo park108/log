@@ -1,0 +1,11 @@
+npx lint-staged
+
+# 채널 (b) — 훅 실행 라인의 `npm run <key>`.
+if git diff --cached --name-only | grep -qE '^src/'; then
+    # npm run check:beta || exit 1   — 실행 라인을 주석으로 강등 (S-3)
+fi
+
+# 채널 (c) — 키가 가리키는 scripts/*.sh 경로 직접 호출.
+if git diff --cached --name-only | grep -qE '^scripts/'; then
+  bash scripts/check-gamma.sh || exit 1
+fi
