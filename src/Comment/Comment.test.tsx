@@ -9,6 +9,9 @@ import { useMockServer } from '../test-utils/msw';
 // TSK-20260517-19 / REQ-20260517-082 — `mock.calls[N]` strict narrow 단일 출처
 // (`src/test-utils/mockCalls`). non-null assertion 흡수는 본 import 로 회수.
 import { firstCall } from '../test-utils/mockCalls';
+// TSK-20260827-11-b / REQ-20260827-034 — Toaster 표시/숨김 관찰은 `src/test-utils/toaster`
+// 헬퍼만 경유한다 (그 파일 헤더가 테스트 본문의 DOM 셀렉터 직접 호출을 금지한다).
+import { waitForToasterVisible, waitForToasterHidden, getToasterElement } from '../test-utils/toaster';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
@@ -108,6 +111,26 @@ describe('Comment render failed when internal error on dev server', () => {
 		vi.stubEnv('PROD', false);
 
 		render(<Comment />);
+
+		// REQ-20260827-034 FR-01·FR-02·FR-03 (spec `components/comment` §동작 7) — errorType 갈래.
+		// 조회 실패는 "댓글 0건 성공" 과 **구별되는** 표면을 낸다. 도달 조건(문구 노드 부착)을
+		// 먼저 세운 뒤 판정한다 — blue `multi-element-count-assertion-arrival-wait`.
+		await screen.findByText('Failed to load comments.');
+		await waitForToasterVisible('error', 'bottom');
+
+		const alertEl = getToasterElement('error', 'bottom');
+		expect(alertEl).not.toBeNull();
+		expect(alertEl).toHaveAttribute('role', 'alert'); // FR-02 접근성 트리 관측
+		expect(alertEl).toHaveTextContent('Failed to load comments.');
+
+		// FR-06 — 작성 실패 문구를 재사용하지 않는다.
+		expect(screen.queryByText('The comment posted failed.')).toBeNull();
+
+		// 토글 라벨은 "0건 성공" 과 동일하다 — 구별을 담당하는 것은 위 실패 표면이다.
+		// `findByTestId` 는 라벨 전이를 기다리지 않고 즉시 반환하므로 도달 조건을 명시한다.
+		await waitFor(() => {
+			expect(screen.getByTestId('comment-toggle-button')).toHaveTextContent('Add a comment');
+		});
 	});
 });
 
@@ -120,6 +143,24 @@ describe('Comment render failed when network error on dev server', () => {
 		vi.stubEnv('PROD', false);
 
 		render(<Comment />);
+
+		// REQ-20260827-034 FR-01·FR-02·FR-03 — catch 갈래. errorType 갈래와 **독립으로** 판정한다
+		// (한쪽만 단언하면 다른 갈래의 누락이 통과한다 — spec §게이트 실효 검증 Dir-1/Dir-2).
+		await screen.findByText('Failed to load comments for network issue.');
+		await waitForToasterVisible('error', 'bottom');
+
+		const alertEl = getToasterElement('error', 'bottom');
+		expect(alertEl).not.toBeNull();
+		expect(alertEl).toHaveAttribute('role', 'alert'); // FR-02 접근성 트리 관측
+		expect(alertEl).toHaveTextContent('Failed to load comments for network issue.');
+
+		// FR-06 — 작성 실패 문구를 재사용하지 않는다.
+		expect(screen.queryByText('The comment posted failed for network issue.')).toBeNull();
+
+		// 라벨 전이 도달 조건 (위 케이스와 동일 사유).
+		await waitFor(() => {
+			expect(screen.getByTestId('comment-toggle-button')).toHaveTextContent('Add a comment');
+		});
 	});
 });
 
@@ -560,5 +601,63 @@ describe('Comment unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 		expect(logSpy).not.toHaveBeenCalled();
 		expect(errorSpy).not.toHaveBeenCalled();
 		expect(screen.queryByText('The comment posted failed for network issue.')).toBeNull();
+	});
+});
+
+// REQ-20260827-034 FR-05 (spec `components/comment` §동작 7 특이도) / TSK-20260827-11-b —
+// 조회가 **성공**하면 실패 표면이 나타나지 않는다. 이 방향이 없으면 "상시 표시되는 오류 배너" 가
+// FR-01 을 형식 통과한다. 부재 단언은 반드시 **도달 조건 뒤**에 둔다 — `<Toaster>` 는 lazy 라
+// chunk 해석 전에는 어떤 부재 단언도 무조건 통과한다 (경합 승리로 통과하는 단언 금지,
+// blue `testing/multi-element-count-assertion-arrival-wait`).
+describe('Comment GET 성공 시 조회 실패 표면 부재 (REQ-20260827-034 FR-05)', () => {
+	useMockServer(() => mock.devServerOk);
+
+	const expectNoGetFailureSurface = async (): Promise<void> => {
+		// 도달 조건 — Toaster lazy chunk 가 실제로 마운트될 때까지 대기한다.
+		// **type 무관**으로 기다린다: "success" 한정으로 기다리면 도달 조건과 판정이 뒤섞여
+		// 실패 표면 발화를 "부재 단언" 이 아니라 "대기 실패" 로 잡게 된다.
+		await waitFor(() => {
+			expect(
+				getToasterElement('success', 'bottom') ?? getToasterElement('error', 'bottom')
+			).not.toBeNull();
+		});
+
+		// 실패 표면 부재 (FR-05).
+		await waitForToasterHidden('error', 'bottom');
+		expect(getToasterElement('error', 'bottom')).toBeNull();
+		expect(screen.queryByText('Failed to load comments.')).toBeNull();
+		expect(screen.queryByText('Failed to load comments for network issue.')).toBeNull();
+	};
+
+	test('GET 성공(10건) 이면 조회 실패 표면이 나타나지 않는다', async () => {
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(<Comment logTimestamp={1655302060414} />);
+
+		// 도달 조건 — 초기 GET 완료 (라벨 전이).
+		expect(await screen.findByText('10 comments')).toBeInTheDocument();
+
+		await expectNoGetFailureSurface();
+	});
+
+	test('GET 성공이고 0건이면 조회 실패 표면이 나타나지 않는다 (빈 상태 ≠ 실패 상태)', async () => {
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		// 0건 성공 응답. 실패 갈래와 **같은** 토글 라벨("Add a comment")로 도달하므로
+		// 라벨만으로는 두 상태가 구별되지 않는다 — 구별은 오직 실패 표면의 유무다.
+		vi.spyOn(api, 'getComments').mockResolvedValue(new Response(
+			JSON.stringify({ body: { Items: [] } }),
+			{ status: 200, headers: { 'Content-Type': 'application/json' } },
+		));
+
+		render(<Comment logTimestamp={1655302060414} />);
+
+		// 도달 조건 — 초기 GET 완료 (라벨 전이).
+		expect(await screen.findByText('Add a comment')).toBeInTheDocument();
+
+		await expectNoGetFailureSurface();
 	});
 });
