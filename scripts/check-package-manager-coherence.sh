@@ -44,8 +44,20 @@
 #            'npm 런타임 실측 불가')
 #
 # 본 게이트는 read-only — package.json / package-lock.json 을 수정하지 않는다.
+#
+# 색상 방어 (판독 표면 계약 FR-01·FR-05) — 도구 캡처가 색상을 받지 않게 한다:
+#   (a) 도구 호출에 'NO_COLOR=1 FORCE_COLOR=0' 행 단위 접두 — 색상화 자체를 끈다.
+#   (b) 캡처 직후 strip_ansi 로 잔여 SGR 시퀀스 제거 — 상위 래퍼가 주입한 색상을 벗긴다.
+#   행 단위 접두를 택한 이유: 도구 캡처 지점이 소수(node -e 2 + npm -v 1)라 오염원 옆에
+#   방어를 붙이는 편이 누락 검출이 쉽다 (전역 export 는 하위 프로세스 전파가 암묵적).
+#   방어가 없으면 'npm -v' 가 색상화됐을 때 grep -oE '[0-9]+' 가 버전 숫자가 아니라
+#   SGR 파라미터(예: 33)를 먼저 집어 runtime_major 가 조용히 오염된다.
 
 set -u
+
+# 판독 전 ANSI SGR 제거 (FR-01·FR-05). '^'/'$' 앵커와 grep -oE 판독은 이 필터를 거친
+# 입력에 대해서만 수행한다 — 색상이 켜지면 행두는 ESC, 행말은 리셋 시퀀스다.
+strip_ansi() { LC_ALL=C sed "s/$(printf '\033')\[[0-9;]*m//g"; }
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
@@ -59,8 +71,10 @@ if [ ! -f "$PKG_JSON" ]; then
 fi
 
 # 선언 채널 (a)(b) — node 로 추출 (수단 중립, 구체 메이저 숫자 비박제)
-engines_npm="$(node -e "const p=require('./package.json'); const v=p.engines && p.engines.npm; if(!v){process.exit(10)} process.stdout.write(String(v))" 2>/dev/null || true)"
-package_manager="$(node -e "const p=require('./package.json'); const v=p.packageManager; if(!v){process.exit(10)} process.stdout.write(String(v))" 2>/dev/null || true)"
+engines_npm="$(NO_COLOR=1 FORCE_COLOR=0 node -e "const p=require('./package.json'); const v=p.engines && p.engines.npm; if(!v){process.exit(10)} process.stdout.write(String(v))" 2>/dev/null || true)"
+engines_npm="$(printf '%s' "$engines_npm" | strip_ansi)"
+package_manager="$(NO_COLOR=1 FORCE_COLOR=0 node -e "const p=require('./package.json'); const v=p.packageManager; if(!v){process.exit(10)} process.stdout.write(String(v))" 2>/dev/null || true)"
+package_manager="$(printf '%s' "$package_manager" | strip_ansi)"
 
 labels=""
 
@@ -87,7 +101,8 @@ declared_src="${package_manager:-$engines_npm}"
 declared_major="$(printf '%s' "$declared_src" | grep -oE '[0-9]+' | head -n1 || true)"
 
 # 실측 축 (c) — 실행 중인 매니저 버전. 토큰 존재가 아니라 실행 출력이 근거다 ((I10)).
-runtime_version="$(npm -v 2>/dev/null | head -n1 || true)"
+runtime_version="$(NO_COLOR=1 FORCE_COLOR=0 npm -v 2>/dev/null | head -n1 || true)"
+runtime_version="$(printf '%s' "$runtime_version" | strip_ansi)"
 runtime_major="$(printf '%s' "$runtime_version" | grep -oE '[0-9]+' | head -n1 || true)"
 
 # lockfile 축 (d)
