@@ -2,7 +2,7 @@
 
 > **위치**: `package.json` 의 `scripts.check:*` 와 그 값이 가리키는 `scripts/*.sh` — 판독 지점 `scripts/check-deps-coherence.sh` 의 `ls_out`, `scripts/check-package-manager-coherence.sh` 의 `runtime_version`, 준수 예시 `scripts/check-build-artifact.sh` 의 `out` → `summary`.
 > **관련 요구사항**: REQ-20260825-012
-> **최종 업데이트**: 2026-08-27 (by inspector — Phase 1 drift reconcile: 수용 기준 4항 전수 ack)
+> **최종 업데이트**: 2026-08-27 (by inspector — Phase 2: 주입 요구 항목 1건 평서문 강등)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷.
 
@@ -83,7 +83,6 @@
 ## 테스트 현황
 
 - [x] (특이도 대조군) 판독 게이트 모집단이 비어있지 않고, 그중 색상 방어를 갖춘 준수 예시가 최소 1건 검출된다 — `node -e 'const fs=require("fs");const s=JSON.parse(fs.readFileSync("package.json","utf8")).scripts;const R=/scripts\/[A-Za-z0-9._\/-]+\.sh/;const CUT=t=>t.split("\n").map(l=>l.replace(/#.*/,""));const TOOL=/\b(npx|npm)\s+\S/;const J=/\b(grep|case|sed|awk)\b/;const DEF=/NO_COLOR|FORCE_COLOR=0|\[0-9;\]\*m|\[\[:cntrl:\]\]/;const pass=[];let n=0;for(const k of Object.keys(s).filter(x=>x.startsWith("check:"))){const m=s[k].match(R);const f=m&&fs.existsSync(m[0])?m[0]:null;const L=CUT(f?fs.readFileSync(f,"utf8"):s[k]);const V=[];L.forEach(l=>{const a=l.match(/([A-Za-z_][A-Za-z0-9_]*)="?\$\(/);if(a&&TOOL.test(l))V.push(a[1])});const read=V.filter(v=>L.some(l=>l.includes("$"+v)&&J.test(l)));if(!read.length)continue;n++;if(L.some(l=>DEF.test(l)))pass.push(k)}console.log(n,pass.length,pass.join(","));process.exit(n>=1&&pass.length>=1?0:1)'` → 현 HEAD 출력 `3 3 check:deps,check:npm-coherence,check:build-artifact` / rc=0 (`12989c2` 시점은 `3 1 check:build-artifact` / rc=0). 이 대조군이 통과한다는 사실이 §수용 기준 1항의 probe 가 **준수 형태를 위반으로 읽지 않음**(특이도)을 보인다.
-- [ ] 색상 강제 환경에서의 위반 주입(민감도)은 spec 체크박스가 아니라 집행 게이트 신설 task 의 DoD 다 — §참고 > 게이트 실효 검증 이관.
 
 ## 수용 기준
 
@@ -108,10 +107,11 @@
 - **`.github/workflows/ci.yml` 인라인 셸의 판독 지점.** 본 계약의 모집단 도출은 `package.json scripts.check:*` → `scripts/*.sh` 경로를 따르며 워크플로 인라인 판독으로의 확장은 규정하지 않는다.
 - **`scripts/pipeline-health.sh`** 는 `check:*` 등재가 없어 게이트가 아니다. 색상 방어 부재는 동일하나 모집단 밖이다.
 - **도구별 색상 활성 조건**(TTY 감지 · `CI` 환경변수 · 리포터 옵션)의 전수 목록. 계약은 "환경과 무관" 만 규정하고 활성 조건을 열거하지 않는다.
+- **색상 강제 환경에서의 위반 주입(민감도).** '가정 주입 요구' 부류이므로 spec 체크박스가 아니라 집행 게이트 신설 task 의 `## 검증/DoD` 에 귀속한다 (RULE-07 §수용 기준 문장 규약 · RULE-06 §게이트 실효 검증). 이관처 `TSK-20260827-09-b` 가 `b61c880` 에서 이행을 완료했고 그 `result.md` 에 `injection: 3/3 detect` · `control: 2/2 pass` 가 박제돼 있다. 검출 방향(S-1·S-2·S-3)과 대조군(C-1·C-2)의 서술은 §게이트 실효 검증 이관 절에 보존된다.
 
 ### 게이트 실효 검증 이관 (RULE-07 §수용 기준 문장 규약 · RULE-06 §게이트 실효 검증 · §음성 대조)
 
-가정 주입 요구 부류이므로 집행 게이트 `check:output-parsing-color-independence` 신설 task 의 `## 검증/DoD` 로 이관한다. 이관처 task 가 발행되기 전에는 본 절이 검출 방향의 보존처다.
+가정 주입 요구 부류이므로 집행 게이트 `check:output-parsing-color-independence` 신설 task 의 `## 검증/DoD` 로 이관한다. **이관처 `TSK-20260827-09-b` (`b61c880`) 가 이행 완료** — `specs/60.done/2026/08/27/task/output-parsing-color-independence-gate/result.md` 에 `injection: 3/3 detect` · `control: 2/2 pass` 가 박제돼 있다. 본 절은 이후 게이트 수정 task 가 재주입해야 할 검출 방향의 선언처다.
 
 - (민감도 S-1) 색상 방어를 가진 판독 게이트에서 그 방어 라인을 제거한 변형 트리 → `rc≠0` 이며 출력에 그 키가 열거된다.
 - (민감도 S-2) 판독 게이트에 부재 가드도 fallback 종료도 없는 캡처-판정 쌍을 추가한 변형 트리 → `rc≠0` (FR-03).
@@ -126,3 +126,4 @@
 |------|-----------|------|----------|
 | 2026-08-27 | inspector / REQ-20260825-012 | 최초 등록 — 판독 게이트 색상 비종속·fail-closed 계약 흡수 | all |
 | 2026-08-27 | `6b1a936`·`9d79993`·`9b33125`·`b61c880` | Phase 1 drift reconcile — 수용 기준 4항 전수 재실행 rc=0 확인 후 `[x]` 플립. 모집단 불변(reading-gates=3, check-keys 25→26) 확인 — 회피 경로 아님 | 역할 · 동작 FR-07 · 테스트 현황 · 수용 기준 |
+| 2026-08-27 | inspector / `b61c880` | Phase 2 — '가정 주입 요구' 부류 체크박스 1건을 `## 참고 > 미측정·비판정 항목` 으로 평서문 강등. 이관처 `TSK-20260827-09-b` 이행 완료(`injection: 3/3 detect` · `control: 2/2 pass`) 확인 후 처리 — 이관처 없는 강등 아님 | 테스트 현황 · 참고 |
