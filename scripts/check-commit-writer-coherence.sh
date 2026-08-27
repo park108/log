@@ -41,13 +41,73 @@
 # G-C4 인자 부재 → HEAD 단독. `<base>..HEAD` 형식 → range 평가 (K commit 위반 시 모두 박제 + rc=1).
 # G-C5 본 script 자기 commit (developer 영역) self-evaluate 시 false-positive 0.
 #
+# G-C6 developer 라벨 commit body 의 RULE-04 보고 블록 존재 판정:
+#   Spec: slug foundation/developer-commit-body-report-block-presence §동작 (B-1)~(B-5)
+#         (lifecycle 경로가 아니라 slug 로 지칭한다 — 승격 mv 로 경로가 바뀌어도 참조가 끊기지 않는다.)
+#   Task: TSK-20260828-03
+#   모집단   = G-C1 이 developer 를 반환한 commit 한정. 라벨 도출을 재구현하지 않는다 (B-1) —
+#              동일 사실의 두 번째 구현은 두 번째 진실 공급원이 된다.
+#   판정토큰 = RULE-04 규약 파일 보고 블록 펜스에서 도출한 필수 필드 전수 (B-5). 임의 문자열
+#              하드코딩은 규약 개정 시 게이트를 조용히 공허하게 만든다 (RULE-06 §열거 고정 금지).
+#   판정입력 = commit body. 행 선두 `- <field>:` 형태를 계수한다 (B-2). RULE-04 는 열 필드를
+#              전부 필수로 규정하고 빈 값도 `[]` 로 적도록 요구하므로 부분 보유는 보유가 아니다.
+#   위반출력 = stderr 에 해시 열거 (B-3). 단일 commit 과 range 양면 동일.
+#   적용경계 = 인자 부재 시 대상은 HEAD 단독 (B-4). 이력 전수를 붉히지 않는다 — 과거 위반이
+#              모든 실행을 붉히면 게이트는 즉시 무시되거나 우회된다.
+#   G-C1~G-C5 의 판정 의미는 바꾸지 않는다. body 축은 그 위에 얹는 층이다.
+#
+# §등급 분리 — 성질이 다른 두 모집단이 있고 공집합의 rc 등급이 서로 다르다.
+#   한쪽 규칙을 다른 쪽에 기계적으로 복사하면 계약이 깨진다.
+#   (a) RULE-04 필드 집합 — 도출된 **키 집합**. 공집합 → exit 2 (무판정).
+#       도출기가 낡아 0 이 되면 게이트가 조용히 공허해진다. 통과로 읽지 않는다.
+#   (b) 판정 대상 commit 집합 — 인자가 정한 **range 열거**. 공집합 → exit 0 (PASS).
+#       blue foundation/multi-agent-commit-message-writer-scope-coherence §동작 (C4) 가
+#       "K=0 일 때만 rc=0" 을 명시한다. 이 값을 2 로 바꾸면 그 계약이 깨진다.
+#
 # exit 0: 모든 평가 commit PASS (또는 unscoped/meta-only skip 만 존재).
 # exit 1: 위반 commit ≥1 (또는 인자 해석 실패).
+# exit 2: 무판정 — RULE-04 필드 도출 0건 또는 도출 완전성 붕괴 (도출원 부재 · 펜스 구조 변경).
+#         "잴 토큰이 없어졌다" 를 "위반이 없다" 로 읽지 않는다.
 
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
+
+# 판정 토큰 도출원 주입 seam. 미설정 시 기본은 저장소의 규약 파일이다.
+REPORT_FIELD_SOURCE_FILES="${COMMIT_BODY_REPORT_SOURCE:-.claude/rules/RULE-04-REPORT.md}"
+
+# 도출 완전성 보조 단언 토큰 (콜론 포함 표기). 열거 고정이 아니라 도출 붕괴 검출용 역방향
+# 단언이다 — 펜스는 살아 있는데 필드가 일부만 나오는 형상을 전수 도출로 읽지 않는다.
+REQUIRED_FIELD_TOKENS='no-op: last-productive:'
+
+RULE04_FIELDS=""
+if [ -f "$REPORT_FIELD_SOURCE_FILES" ]; then
+  RULE04_FIELDS="$(awk 'BEGIN{B=sprintf("%c",96);F=B B B} index($0,F)==1{fc=!fc; next} fc && /^- [a-z-]+:/ {sub(/^- /,""); sub(/:.*/,""); print}' "$REPORT_FIELD_SOURCE_FILES" | sort -u)"
+fi
+
+RULE04_FIELD_COUNT=0
+if [ -n "$RULE04_FIELDS" ]; then
+  RULE04_FIELD_COUNT="$(printf '%s\n' "$RULE04_FIELDS" | grep -c . || true)"
+  RULE04_FIELD_COUNT="${RULE04_FIELD_COUNT:-0}"
+fi
+
+if [ "$RULE04_FIELD_COUNT" -eq 0 ]; then
+  printf 'check-commit-writer-coherence: NO-JUDGEMENT rule04-field-derivation-empty (source=%s)\n' \
+    "$REPORT_FIELD_SOURCE_FILES" >&2
+  printf '  도출원 RULE-04-REPORT 펜스에서 필드가 0건 나왔다. 잴 토큰이 없어진 것을 통과로 읽지 않는다.\n' >&2
+  exit 2
+fi
+
+for token in $REQUIRED_FIELD_TOKENS; do
+  field="${token%:}"
+  if ! printf '%s\n' "$RULE04_FIELDS" | grep -qx -- "$field"; then
+    printf 'check-commit-writer-coherence: NO-JUDGEMENT rule04-field-derivation-degraded (missing=%s source=%s)\n' \
+      "$token" "$REPORT_FIELD_SOURCE_FILES" >&2
+    printf '  도출 완전성 보조 단언 실패. 부분 도출을 전수 도출로 읽지 않는다.\n' >&2
+    exit 2
+  fi
+done
 
 ARG="${1:-HEAD}"
 
@@ -55,7 +115,9 @@ case "$ARG" in
   *..*)
     HASHES="$(git log --format=%H "$ARG" 2>/dev/null || true)"
     if [ -z "$HASHES" ]; then
-      printf 'check-commit-writer-coherence: range=%s commits=0 violations=0 PASS\n' "$ARG"
+      # §등급 분리 (b) — commit 집합 공집합은 무판정이 아니라 PASS 다 (blue §동작 (C4)).
+      printf 'check-commit-writer-coherence: range=%s commits=0 violations=0 PASS rule04-fields=%s\n' \
+        "$ARG" "$RULE04_FIELD_COUNT"
       exit 0
     fi
     ;;
@@ -142,6 +204,7 @@ intersect_labels() {
 }
 
 violations=0
+body_violations=0
 commits=0
 
 while IFS= read -r hash; do
@@ -153,6 +216,24 @@ while IFS= read -r hash; do
 
   if [ "$msg_label" = "unscoped" ]; then
     continue
+  fi
+
+  # G-C6 body 축. 모집단은 msg_label 이 정한다 (B-1) — path 축과 독립으로 얹는 층이므로
+  # meta-only skip 보다 앞에서 판정한다.
+  if [ "$msg_label" = "developer" ]; then
+    body="$(git log -1 --format=%b "$hash" 2>/dev/null || true)"
+    present=0
+    for field in $RULE04_FIELDS; do
+      if printf '%s\n' "$body" | grep -qE "^- ${field}:"; then
+        present=$((present + 1))
+      fi
+    done
+    if [ "$present" -lt "$RULE04_FIELD_COUNT" ]; then
+      short_hash="$(printf '%s' "$hash" | cut -c1-7)"
+      printf 'commit %s: msg-scope=developer, rule04-block=absent (fields=%s/%s)\n' \
+        "$short_hash" "$present" "$RULE04_FIELD_COUNT" >&2
+      body_violations=$((body_violations + 1))
+    fi
   fi
 
   paths="$(git log -1 --name-only --format= "$hash" 2>/dev/null | awk 'NF')"
@@ -221,12 +302,14 @@ done <<EOF
 $HASHES
 EOF
 
-if [ "$violations" -gt 0 ]; then
-  printf 'check-commit-writer-coherence: range=%s commits=%s violations=%s FAIL\n' \
-    "$ARG" "$commits" "$violations" >&2
+total_violations=$((violations + body_violations))
+
+if [ "$total_violations" -gt 0 ]; then
+  printf 'check-commit-writer-coherence: range=%s commits=%s violations=%s FAIL rule04-fields=%s body-violations=%s\n' \
+    "$ARG" "$commits" "$total_violations" "$RULE04_FIELD_COUNT" "$body_violations" >&2
   exit 1
 fi
 
-printf 'check-commit-writer-coherence: range=%s commits=%s violations=0 PASS\n' \
-  "$ARG" "$commits"
+printf 'check-commit-writer-coherence: range=%s commits=%s violations=0 PASS rule04-fields=%s\n' \
+  "$ARG" "$commits" "$RULE04_FIELD_COUNT"
 exit 0
