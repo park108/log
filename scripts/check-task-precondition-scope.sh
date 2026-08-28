@@ -293,22 +293,88 @@ try {
     else if (!priorSlug.has(id)) priorSlug.set(id, slugOf(text));
   });
 
-  const PATH_TOKEN_RE = /[A-Za-z0-9_.][A-Za-z0-9_./-]*/g;
-  const requiredOf = (reasonPath) => {
-    const sec = sectionOf(read(reasonPath), /재발행/);
-    const found = [];
-    (sec.match(PATH_TOKEN_RE) || []).forEach((tok) => {
-      const t = tok.replace(/[.]+$/, "");
-      if (!/[./]/.test(t)) return;
-      if (found.includes(t)) return;
-      try {
-        if (fs.existsSync(t) && fs.statSync(t).isFile()) found.push(t);
-      } catch (e) {
-        /* 존재 판정 실패는 미실재와 같다 */
+  // ── 처방 절 추출 정밀도 (FR-01 절 경계 · FR-02 극성) ──────────────────────
+  // 선택자는 "제목이 처방 키워드로 시작하는 절" 이며 첫 매칭 절에서 수집을 종료한다.
+  // 제목 부분일치 + 절마다 술어 재평가는 같은 키워드를 제목에 품은 검증 기록·측정표 절이
+  // 수집 구간을 다시 열게 했고, 그 절의 표 셀이 요구 경로로 계수됐다.
+  const PRESC_HEAD_RE = /^##\s+재발행/;
+  // 부정 서술 표지. 자연어 부정은 열거로 닫히지 않으므로 미포함 표현이 요구로 남는 것은
+  // 위반이 아니라 알려진 잔여다.
+  const NEGATION_RE = /없다|없어|없음|무영향|않는다|않았다|아니다|아니라|제외한|제외하|대상이 아니/;
+  // 측정표·대조군 표의 셀은 처방이 아니다.
+  const TABLE_ROW_RE = /^\s*\|/;
+
+  const prescriptionOf = (text) => {
+    const picked = [];
+    let matches = 0;
+    let on = false;
+    text.split("\n").forEach((l, i) => {
+      if (/^##\s/.test(l)) {
+        if (PRESC_HEAD_RE.test(l)) {
+          matches += 1;
+          on = matches === 1;
+        } else if (on) {
+          on = false;
+        }
+        return;
       }
+      if (on) picked.push({ n: i + 1, t: l });
     });
-    return found;
+    return { lines: picked, matches };
   };
+
+  const PATH_TOKEN_RE = /[A-Za-z0-9_.][A-Za-z0-9_./-]*/g;
+  const isRealFile = (t) => {
+    try {
+      return fs.existsSync(t) && fs.statSync(t).isFile();
+    } catch (e) {
+      /* 존재 판정 실패는 미실재와 같다 */
+      return false;
+    }
+  };
+
+  // 사유서 1건당 1회만 분석한다. `excluded` 는 극성·표 셀로 요구 도출이 막힌
+  // (문서:라인, 토큰) 단위 계수다 — 같은 토큰이 다른 처방 라인에서 요구로 남을 수 있다.
+  const analysisCache = new Map();
+  const analyze = (reasonPath) => {
+    const cached = analysisCache.get(reasonPath);
+    if (cached) return cached;
+    const sec = prescriptionOf(read(reasonPath));
+    const required = [];
+    const excluded = [];
+    sec.lines.forEach((x) => {
+      const prescriptive = !NEGATION_RE.test(x.t) && !TABLE_ROW_RE.test(x.t);
+      const seen = new Set();
+      (x.t.match(PATH_TOKEN_RE) || []).forEach((tok) => {
+        const t = tok.replace(/[.]+$/, "");
+        if (!/[./]/.test(t)) return;
+        if (seen.has(t)) return;
+        seen.add(t);
+        if (!isRealFile(t)) return;
+        if (prescriptive) {
+          if (!required.includes(t)) required.push(t);
+        } else {
+          excluded.push(rel(reasonPath) + ":" + x.n + " " + t);
+        }
+      });
+    });
+    const res = { required: required, excluded: excluded, matches: sec.matches };
+    analysisCache.set(reasonPath, res);
+    return res;
+  };
+  const requiredOf = (reasonPath) => analyze(reasonPath).required;
+
+  // 추출 정밀도 계수는 링크 그래프가 아니라 사유서 모집단 전수에서 도출한다.
+  let reasonDocCount = 0;
+  let ambiguousDocs = 0;
+  let polarityExcluded = 0;
+  reasonDocs.forEach((p) => {
+    if (!path.basename(p).endsWith(REASON_SUFFIX)) return;
+    reasonDocCount += 1;
+    const a = analyze(p);
+    if (a.matches >= 2) ambiguousDocs += 1;
+    polarityExcluded += a.excluded.length;
+  });
 
   let linked = 0;
   const fr02 = [];
@@ -369,6 +435,9 @@ try {
   const stat =
     "docs=" + docs.length +
     " reasons=" + reasonDocs.length +
+    " reason-docs=" + reasonDocCount +
+    " prescription-section-ambiguous=" + ambiguousDocs +
+    " polarity-excluded=" + polarityExcluded +
     " claims=" + claimUnits +
     " linked=" + linked +
     " violations=" + (fr01.length + fr02.length) +
