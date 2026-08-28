@@ -327,12 +327,24 @@ pd_blue_count="$(printf '%s' "$pd_blue_hits" | grep -c . || true)"
 pd_green_count="$(printf '%s' "$pd_green_hits" | grep -c . || true)"
 undeclared_bearing="$(printf '%s' "$pd_hits" | grep -c . || true)"
 
-# blue 귀속 열거는 기존 ADVISORY 채널이 진다. blue_advisory **계수는 올리지 않는다** —
-# 그 수치는 G-1~G-5 의 '귀속 미충족' 계수이고 (P-D) 는 층 이탈이라 부류가 다르다.
-# (P-D) 의 계수는 emit_bearing 의 undeclared-bearing-blue= 가 진다.
+# blue 귀속 열거와 **계수를 함께** ADVISORY 채널이 진다 (FR-01). 계수를 올리지 않으면
+# 헤더가 '0건' 이라 말한 바로 아래에 열거가 붙어 채널이 자기 수치와 어긋난다.
+# 부류 구분은 열거 접두 [P-D blue 선언토큰 이탈] 와 emit_bearing 의
+# undeclared-bearing-blue= 가 유지한다 — 계수 합산이 부류를 지우지 않는다.
 if [ "$pd_blue_count" -ne 0 ]; then
+  blue_advisory=$((blue_advisory + pd_blue_count))
   blue_advisory_hits="${blue_advisory_hits}$(printf '%s\n' "$pd_blue_hits" | head -10 | sed 's/^/  [P-D blue 선언토큰 이탈] /')
 "
+fi
+
+# ── (P-D) rc 이빨 3: green 귀속 층 이탈 ────────────────────────────────────
+# green 귀속 (P-D) 이탈은 rc 에 반영한다 (FR-03). g2_green_count 선례와 동일 형태다.
+# 열거는 emit_bearing 의 [P-D green 선언토큰 이탈] 채널이 진다 — 같은 사실의
+# 두 번째 공급원을 만들지 않는다.
+if [ "$pd_green_count" -ne 0 ]; then
+  printf 'P-D VIOLATION: §수용 기준 명령 보유 항목이 판정 선언 토큰에서 이탈 %s건 (green 귀속 · 기대 0)\n' "$pd_green_count" >&2
+  printf 'Hint: 항목에 판정 선언 토큰을 붙인다 (RULE-07 §수용 기준 문장 규약). 열거는 emit_bearing 라인이 낸다.\n' >&2
+  green_violations=1
 fi
 
 if [ "$g5_blue_count" -ne 0 ]; then
