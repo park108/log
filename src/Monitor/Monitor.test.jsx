@@ -113,6 +113,10 @@ it('redirect if not admin', async () => {
 
 	const setFullscreenSpy = vi.spyOn(common, "setFullscreen");
 	const setHtmlTitleSpy = vi.spyOn(common, "setHtmlTitle");
+	// 발화 관측기 (TSK-20260828-09 / FR-02) — `Monitor.jsx` admin 게이트 effect 는
+	// `log("Redirect to /log")` 를 발화한 뒤 navigate 한다. 그 발화를 관측하는 spy 가
+	// 없으면 이 파일은 post-unmount 발화 감사에서 단락된다. 좁힘 없는 **양성** 인자 단정.
+	const emissionSpy = vi.spyOn(common, "log");
 
 	render(
 		<MemoryRouter initialEntries={[testEntry]}>
@@ -125,6 +129,7 @@ it('redirect if not admin', async () => {
 
 	// 리다이렉트 **도착**을 단언한다 — `navigate` 호출만 세면 라우트가 없어도 통과한다.
 	expect(await screen.findByText('log route landing')).toBeInTheDocument();
+	expect(emissionSpy).toHaveBeenCalledWith("Redirect to /log");
 
 	// non-admin 은 셸을 세우지 않는다 (early return 이 fullscreen·title 앞에 있다).
 	expect(setFullscreenSpy).not.toHaveBeenCalled();

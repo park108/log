@@ -208,6 +208,11 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 	it('M6: Space 키로 delete 가 활성된다 (preventDefault + window.confirm 호출)', () => {
 		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
 		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		// 발화 관측기 (TSK-20260828-09 / FR-02) — `LogItemInfo.jsx` 의 abort 콜백은
+		// `log("Deleting aborted")` 를 발화한다. confirm 이 false 를 돌려주는 이 경로가
+		// 바로 그 콜백을 태우는 유일한 경로이며, 관측기가 없으면 이 파일은 감사에서
+		// 단락된다. 좁힘 없는 **양성** 인자 단정이다.
+		const emissionSpy = vi.spyOn(common, 'log');
 		renderInfo({ delete: vi.fn() });
 
 		const el = screen.getByTestId('delete-button');
@@ -215,6 +220,7 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 
 		expect(spaceEvent).toBe(false);
 		expect(confirmSpy).toHaveBeenCalledWith('Are you sure delete the log?');
+		expect(emissionSpy).toHaveBeenCalledWith('Deleting aborted');
 	});
 });
 

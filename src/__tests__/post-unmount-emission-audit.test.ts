@@ -756,16 +756,60 @@ export function emissionObservationRequired(): string[] {
 }
 
 /**
- * 관측 부채 — 위 요구를 아직 만족하지 못하는 형제 테스트 (착수 시점 3 건).
+ * 관측 부채 — 위 요구를 아직 만족하지 못하는 형제 테스트.
+ *
+ * **현재 공집합이다** (TSK-20260828-09 / FR-02). 착수 시점의 3 건
+ * (`Log/LogItem.test.jsx` · `Log/LogItemInfo.test.jsx` · `Monitor/Monitor.test.jsx`)
+ * 은 목록에서 지워진 것이 아니라 **관측기가 실제로 부착돼** 요구를 만족했다. 셋 다
+ * 형제 프로덕션의 발화(`log(...)`)를 좁힘 없는 양성 인자 단정으로 관측한다.
+ *
+ * 선언과 아래 `deadDebt` 단언 구조는 남긴다 (FR-06) — 장래에 이 목록이 다시 늘면
+ * 그 항목이 요구 집합에 실재하는지를 매 실행 검사한다. 목록은 **상한**이지 고정점이
+ * 아니므로 공집합이라고 해서 어떤 단언도 공허해지지 않는다: 부채가 0 인 상태에서
+ * 관측기가 하나라도 떨어지면 그 파일이 `unobserved` 로 즉시 지목된다.
  *
  * 기본 방향은 deny 이고 목록은 **예외에만** 쓰인다 (모집단은 디렉터리 열거로 산출한다
- * — RULE-06 §열거 고정 금지). 죽은 항목은 G-F 가 매 실행 차단하고, 부채가 갚아져도
- * (관측기가 붙어도) 실패하지 않는다 — 상한이지 고정점이 아니다.
+ * — RULE-06 §열거 고정 금지).
  */
-const EMISSION_OBSERVATION_DEBT = new Set([
-	join("src", "Log", "LogItem.test.jsx"),
-	join("src", "Log", "LogItemInfo.test.jsx"),
-	join("src", "Monitor", "Monitor.test.jsx"),
+// 이 상수의 선언 형태는 계약이다 (출처 spec AC-1 추출기가 그 형태를 읽는다) — 주석에
+// 같은 형태를 적으면 추출기가 주석을 먼저 물어 무판정이 된다 (실측). 그래서 여기서는
+// 형태를 재인용하지 않는다.
+// 형태를 바꾸면 추출이 실패해 `rc=2`(무판정)가 되고 그것은 충족과 **구별된다**.
+// 그래서 타입은 앞 애노테이션이 아니라 뒤 단언으로 준다.
+const EMISSION_OBSERVATION_DEBT = new Set([]) as ReadonlySet<string>;
+
+/**
+ * 관측기 보유 baseline — **래칫** (TSK-20260828-09 / FR-03).
+ *
+ * `unobserved` 판정의 모집단은 종전에 `emissionObservationRequired()` 하나였다. 그
+ * 집합은 "발화 호출을 가진 프로덕션 파일의 형제 테스트" 이므로, 발화가 **0** 인
+ * 프로덕션의 형제(`src/App.test.jsx` — `src/App.jsx` 의 발화 계수 0)는 관측기를
+ * 보유하고 있어도 모집단 밖이었다. 그 파일의 관측기가 목록 밖 형태로 바뀌면
+ * `spy-bearing` 계수가 1 줄 뿐 **어떤 단언도 붉어지지 않았다** (착수 전 실측: 24 → 23,
+ * rc=0).
+ *
+ * 동적 합집합(`required ∪ spyBearing`)으로는 이 축이 검출되지 않는다 — 관측기가
+ * 사라진 파일은 같은 실행에서 `spyBearing` 밖으로 나가므로 합집합에서도 함께 빠진다.
+ * **모집단이 위반과 함께 줄어드는** 형태다. 그래서 모집단의 이 부분은 실행 간
+ * **지속되는** 하드코딩 baseline 이어야 하고, 하드코딩의 대가는 아래 세 단언이 갚는다
+ * (RULE-06 §열거 고정 금지):
+ *
+ *   (R-1) 래칫     `baseline \ spyBearing` == 0 — 보유하던 파일이 관측기를 잃으면 지목.
+ *   (R-2) 완전성   `spyBearing \ (required ∪ baseline)` == 0 — 모집단 밖 관측기 보유
+ *                  파일이 생기면 등재를 강제한다. 목록이 낡아 새 보유 파일이 래칫
+ *                  밖에 숨는 것을 막는다.
+ *   (R-3) 사장 차단 baseline ⊆ 테스트 파일 열거 — 죽은 경로를 가리키지 않는다.
+ *
+ * 초기값은 손으로 세지 않고 `spyBearing \ required` 를 실행 출력으로 도출해 옮겼다
+ * (TSK-20260828-09 실측 — 그 차집합은 **5 건**이었다). 다섯 건은 모두 형제 프로덕션의
+ * 발화 계수가 0 이라 `required` 에 들지 않으면서 관측기는 보유한 파일이다.
+ */
+const EMISSION_OBSERVER_BEARING = new Set([
+	join("src", "App.test.jsx"),
+	join("src", "Log", "LogSingle.test.jsx"),
+	join("src", "Log", "hooks", "useCreateLog.test.js"),
+	join("src", "Log", "hooks", "useDeleteLog.test.js"),
+	join("src", "Log", "hooks", "useUpdateLog.test.js"),
 ]);
 
 // ── G-G 토큰 (다중 post-await 가드 분해능 — TSK-20260828-01 / REQ-20260825-013) ─
@@ -1150,14 +1194,26 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 			}
 		}
 
+		// (FR-03) 판정 모집단 = `required ∪ baseline`. `required` 는 매 실행 프로덕션
+		// 열거에서 산출되고, `baseline` 은 실행 간 **지속되는 래칫**이다 (둘의 역할은
+		// `EMISSION_OBSERVER_BEARING` 주석 참조). 출력에 쓰이므로 계수 전에 산출한다.
+		const required = emissionObservationRequired();
+		const population = new Set([...required, ...EMISSION_OBSERVER_BEARING]);
+		const bearingOutsidePopulation = spyBearing.filter((r) => !population.has(r));
+
 		// (FR-03-a) 대상 수를 **실행 출력**으로 낸다. 주석은 판정에 계수되지 않는다 —
 		// 게이트가 몇 개의 파일을 실제로 판정했는지는 실행하는 사람이 볼 수 있어야 한다.
 		// `console.log` 는 기본 reporter 가 삼킨다 (vitest 4 실측 — `--reporter=verbose`
 		// 에서만 노출). 대상 수는 **어떤 reporter 로 실행해도** 보여야 하므로 stdout 에
 		// 직접 쓴다.
+		//
+		// (AC-4) `bearing-outside-population` — 모집단 밖 관측기 보유 파일 수. 기존 4개
+		// 계수는 회귀 관측 표면이므로 **줄이지 않는다**.
 		process.stdout.write(
 			`[G-F] spy-bearing: ${spyBearing.length} / short-circuit: ${shortCircuited.length} / ` +
-				`judged: ${testFiles.length} / enumerated: ${enumerated.length} (self 제외 1)\n`,
+				`judged: ${testFiles.length} / enumerated: ${enumerated.length} (self 제외 1) / ` +
+				`population: ${population.size} (required ${required.length} + baseline ${EMISSION_OBSERVER_BEARING.size}) / ` +
+				`bearing-outside-population: ${bearingOutsidePopulation.length}\n`,
 		);
 
 		// 공허 통과 가드 (2) — 파일은 세지만 spy 인식이 무너지면 위반이 구조적으로
@@ -1182,16 +1238,50 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		// 감사한다: 발화 호출을 가진 프로덕션 파일의 형제 테스트는 관측기를 보유해야 하고,
 		// 예외는 부채 목록에 이름으로만 존재한다. 대조항은 상수가 아니라 프로덕션 열거에서
 		// 매 실행 산출된다.
-		const required = emissionObservationRequired();
 		expect(
 			required.length,
 			"관측 요구 모집단이 비었다 — 대조가 공허해졌다 (프로덕션 열거 또는 형제 해석이 무너졌다)",
 		).toBeGreaterThan(0);
+		// 공허 통과 가드 (3) — 모집단 하한. `required` 가 살아 있어도 baseline 이 통째로
+		// 비면 FR-03 축은 아무것도 지키지 않는다. **모집단이 위반과 함께 줄어드는 것**이
+		// 이 축의 함정이므로, 모집단 자체에 하한을 건다.
+		expect(
+			population.size,
+			`판정 모집단이 요구 집합보다 작다 — 모집단 산출이 무너졌다 (required ${required.length} / population ${population.size})`,
+		).toBeGreaterThanOrEqual(required.length);
 		const enumeratedRels = new Set(enumerated.map((f) => f.rel));
 		const requiredOutside = required.filter((r) => !enumeratedRels.has(r));
 		expect(
 			requiredOutside,
 			`관측 요구 대상이 테스트 파일 열거 밖이다 — 두 열거가 어긋났다:\n${fmt(requiredOutside)}`,
+		).toHaveLength(0);
+
+		// ── (FR-03) 래칫 baseline 3 단언 ─────────────────────────────────────
+		// (R-1) 래칫 — 보유하던 파일이 관측기를 잃으면 **이름으로** 지목된다. 동적
+		//       합집합으로는 그 파일이 모집단에서도 함께 빠져 아무것도 붉어지지 않는다.
+		const ratchetLost = [...EMISSION_OBSERVER_BEARING].filter((r) => !spyBearing.includes(r));
+		expect(
+			ratchetLost,
+			`관측기 보유 baseline 의 파일이 관측기를 잃었다 (단락으로 넘어갔다):\n${fmt(ratchetLost)}\n` +
+				`판정 대상 집합이 조용히 줄었다 (spy-bearing ${spyBearing.length} / short-circuit ${shortCircuited.length}). ` +
+				"관측기를 되살려라. baseline 에서 이름을 지우는 것은 우회다 — 이 목록은 래칫이다.",
+		).toHaveLength(0);
+
+		// (R-2) 완전성 — 하드코딩 목록의 대가 (RULE-06 §열거 고정 금지). 모집단 밖에서
+		//       관측기를 보유한 파일이 생기면 등재를 강제한다. 이 단언이 없으면 목록이
+		//       낡아 새 보유 파일이 래칫 밖에 숨는다.
+		expect(
+			bearingOutsidePopulation,
+			`관측기를 보유했으나 판정 모집단 밖인 파일이다 — 래칫 밖에 숨는다:\n${fmt(bearingOutsidePopulation)}\n` +
+				"`EMISSION_OBSERVER_BEARING` 에 등재하라 (모집단을 맞추려 프로덕션에 발화를 추가하지 않는다).",
+		).toHaveLength(0);
+
+		// (R-3) 사장 항목 차단 — `deadDebt` 와 같은 형태. baseline 이 죽은 경로를
+		//       가리키면 래칫은 아무것도 잠그지 않는다.
+		const deadBearing = [...EMISSION_OBSERVER_BEARING].filter((r) => !enumeratedRels.has(r));
+		expect(
+			deadBearing,
+			`관측기 보유 baseline 이 테스트 파일 열거에 없는 경로를 가리킨다 — 죽은 항목이다:\n${fmt(deadBearing)}`,
 		).toHaveLength(0);
 
 		// 부채 목록 죽은 항목 차단 (RULE-06 §열거 고정 금지 — 하드코딩엔 완전성 보조 단언).
@@ -1202,7 +1292,9 @@ describe("post-unmount-emission-audit (TSK-20260824-07-d / REQ-20260824-002)", (
 		).toHaveLength(0);
 
 		const shortCircuitedRels = new Set(shortCircuited);
-		const unobserved = required.filter(
+		// 모집단을 `required` 에서 `required ∪ baseline` 으로 넓힌다 (FR-03). 부채 차감의
+		// **구조는 유지**한다 — 부채는 상한이며 FR-02 로 공집합이 됐을 뿐이다.
+		const unobserved = [...population].filter(
 			(r) => shortCircuitedRels.has(r) && !EMISSION_OBSERVATION_DEBT.has(r),
 		);
 		expect(

@@ -234,12 +234,19 @@ describe('LogItem DELETE 5xx error toaster', () => {
 
 		window.confirm = vi.fn(() => true);
 
+		// 발화 관측기 (TSK-20260828-09 / FR-02) — `LogItem.jsx` deleteMutation onError 는
+		// `log(...)` 2회 + setter 3개를 발화한다. 그 발화를 관측하는 spy 가 없으면 이 파일은
+		// post-unmount 발화 감사에서 **단락**되어 축 1~4 판정을 한 건도 받지 않는다.
+		// 좁힘 없는 **양성** 인자 단정이다 (영단정 아님).
+		const emissionSpy = vi.spyOn(common, "log");
+
 		const deleteButton = await screen.findByTestId("delete-button");
 		fireEvent.click(deleteButton);
 
 		// Error toaster should be visible with the 5xx-specific copy.
 		const toasterMessage = await screen.findByText("Deleting log failed.");
 		expect(toasterMessage).toBeInTheDocument();
+		expect(emissionSpy).toHaveBeenCalledWith("[API DELETE] FAILED - Log", "ERROR");
 	});
 });
 
