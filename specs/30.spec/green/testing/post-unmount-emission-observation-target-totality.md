@@ -27,6 +27,8 @@ post-unmount 발화 감사가 판정하는 **대상 집합은 전수여야 한�
 ### FR-01 — 세 형제 테스트가 판정 대상이 된다 (Must)
 `src/Log/LogItem.test.jsx` · `src/Log/LogItemInfo.test.jsx` · `src/Monitor/Monitor.test.jsx` 가 발화 관측기를 보유해 post-unmount 발화 감사 축 1~4 의 판정 대상이 된다.
 
+> 판정은 AC-3 이 수행한다 — 세 파일이 감사의 **단락 목록에 나타나지 않음**이 곧 축 1~4 의 판정 대상이 됐다는 뜻이다. 관측기 보유를 이름 열거로 별도 계수하지 않는다.
+
 ### FR-02 — 부채 집합이 공집합이 된다 (Must)
 `EMISSION_OBSERVATION_DEBT` 는 공집합이 된다. 부채 목록은 상한이므로 **관측기를 붙이는 방향의 변경은 게이트를 깨지 않는다**.
 
@@ -59,8 +61,15 @@ vitest 수집 경로 `src/__tests__/post-unmount-emission-audit.test.ts` — **�
 
 ## 수용 기준
 
-- [ ] (Must, FR-02·AC-1) 부채 집합의 원소 수가 **0** 이다 — 판정: `node -e "const s=require('fs').readFileSync('src/__tests__/post-unmount-emission-audit.test.ts','utf8');const m=s.match(/EMISSION_OBSERVATION_DEBT = new Set\(\[([^\]]*)\]\)/);if(!m)process.exit(2);process.exit(m[1].replace(/\s|\/\/.*/g,'')===''?0:1)"` → **실측 2026-08-28 (HEAD `8189a07`): rc=1 → 미충족** (부채 3건). 모집단 추출 실패는 `rc=2` 로 통과와 구분한다 — 추출기가 낡아 빈 문자열을 얻는 상태를 충족으로 읽지 않는다.
-- [ ] (Must, FR-01·AC-2) 세 형제 테스트가 발화 관측기를 **3/3** 보유한다 — 판정: (구현 시 관측기 술어와 동일한 판정을 쓴다. 이름 열거로 판정하지 않는다 — 인접 blue `emission-observer-identification-deny-by-default` 가 그 축을 소유한다.)
+> 전 항목 **명령 1회로 rc 판정 가능** (`RULE-07 §수용 기준 문장 규약`). 펜스 항목은 본문을 추출해 `bash -c "$(추출)"` 로 실행한다 — 명령이 정규식·따옴표를 중첩해 홑백틱 인라인 스팬에 담기지 않기 때문이다.
+>
+> **AC-2 는 결번이다.** req 원문의 AC-2("세 형제 테스트가 관측기 3/3 보유")는 AC-3 과 **동일한 판정을 다른 문면으로 요구**하므로 중복 게이트(`RULE-07 §반려 시그널`)로 보고 통합했다 — FR-01 의 판정은 AC-3 이 수행한다. 관측기 보유 여부를 이름 열거로 따로 재지 않는 것은 인접 blue `emission-observer-identification-deny-by-default` 가 그 술어를 소유하기 때문이기도 하다.
+
+- [ ] (Must, FR-02·AC-1) 부채 집합의 원소 수가 **0** 이다 — 판정: (펜스 — `bash -c "$(추출)"` 로 실행)
+  ```
+  node -e 'const s=require("fs").readFileSync("src/__tests__/post-unmount-emission-audit.test.ts","utf8");const m=s.match(/EMISSION_OBSERVATION_DEBT = new Set\(\[([^\]]*)\]\)/);if(!m)process.exit(2);process.exit(m[1].replace(/\s|\/\/.*/g,"")===""?0:1)'
+  ```
+  → **실측 2026-08-28 (HEAD `8189a07`): rc=1 → 미충족** (부채 3원소). 모집단 추출 실패는 `rc=2` 로 통과와 구분한다 — 추출기가 낡아 빈 문자열을 얻는 상태를 충족으로 읽지 않는다.
 - [ ] (Must, FR-01·FR-05·AC-3) 감사 테스트 단독 실행에서 `rc=0` 이고 세 파일이 단락 목록에 나타나지 않는다 — 판정: `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` (본 tick 미실행 — 아래 §미측정 참조).
 - [ ] (Must, FR-03·AC-4) 게이트 출력에 **모집단 밖 관측기 보유 파일 수 == 0** 이 명시된다.
 - [ ] (Should, FR-06·AC-6) `deadDebt` 단언이 잔존한다 — 부채가 공집합이 되어도 검사 자체는 남는다.

@@ -72,7 +72,11 @@ task 문서가 선행 조건 해소를 `0 hit` 으로 주장하면 그 주장은
 
 ## 수용 기준
 
-- [ ] (Must, FR-01·AC-1) 게이트가 `check:*` 키로 배선돼 있다 — 판정: `node -e "process.exit(Object.keys(require('./package.json').scripts).some(k=>/^check:/.test(k)&&/precondition/.test(k))?0:1)"` → **실측 2026-08-28 (HEAD `8189a07`): rc=1 → 미충족** (채널 미부착. `RULE-07 §promote 조건 4` 상 승격 차단이 아니라 채널 부착 task 발행이 선행 조건).
+- [ ] (Must, FR-01·AC-1) 게이트가 `check:*` 키로 배선돼 있다 — 판정: (펜스 — `bash -c "$(추출)"` 로 실행)
+  ```
+  node -e 'const s=require(process.cwd()+"/package.json").scripts;const ks=Object.keys(s);if(ks.length<20)process.exit(2);process.exit(ks.some(k=>/^check:/.test(k)&&/precondition/.test(k))?0:1)'
+  ```
+  → **실측 2026-08-28 (HEAD `8189a07`): rc=1 → 미충족** (채널 미부착. `RULE-07 §promote 조건 4` 상 승격 차단이 아니라 채널 부착 task 발행이 선행 조건).
 - [ ] (Must, FR-01·AC-3) 준수 fixture(비공허 대조 동반 1건 + `git ls-files` 전수 범위 1건)를 seam 으로 지정해 실행 시 `rc=0` — 특이도.
 - [ ] (Must, FR-02·AC-5) `expansion: 허용` 준수 변형에서 `rc=0` — 특이도. 위반 변형과 **한 축만** 다르다.
 - [ ] (Must, FR-04·AC-6) 빈 디렉터리를 모집단 루트로 지정하면 stdout 에 `NO-JUDGEMENT` 와 모집단 계수가 나오고, 그 출력이 위반 0 통과 출력과 **문자열로 다르다**.
