@@ -2,7 +2,7 @@
 
 > **위치**: 게이트 채택 표면 — `package.json` `scripts.check:*` 에서 도출되는 스크립트 집합. 래퍼는 `scripts/check-measurement-tree-attribution.sh`.
 > **관련 요구사항**: REQ-20260828-038 (measurement-tree-attribution-wrapper-adoption-completeness)
-> **최종 업데이트**: 2026-08-28 (by inspector — tick 238 최초 등록)
+> **최종 업데이트**: 2026-08-29 (by inspector — tick 241 재실행, (W-2) 미충족 3cycle 유지)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (`559dde0`).
 > cross-ref 는 **slug 로만** 쓴다 — 전체 경로를 쓰면 참조 대상이 승격될 때 dangling 이 된다 (green `foundation/spec-reference-coherence` §역할 1).
@@ -98,7 +98,9 @@
 >
 > **펜스 항목 실행 규약** — 펜스 본문을 추출해 `bash -c "$(추출)"` 로 실행한다. 펜스를 쓰는 이유는 명령이 정규식·따옴표를 중첩해 홑백틱 인라인 스팬에 담기지 않기 때문이다.
 >
-> **HEAD=`559dde0` (tick 238) 기준 3/4** — 미충족 1건은 (W-2) 이며 이것이 본 계약의 판정량이다.
+> **HEAD=`0e5b39e` (tick 241) 기준 3/4** — 미충족 1건은 (W-2) 이며 이것이 본 계약의 판정량이다. tick 238 등록 이래 3 tick 연속 동일하다 (238 → 240 → 241, 전부 재실행 후 `rc=1` · 출력 문자열 불변).
+>
+> **이 잔여는 green 편집으로 닫히지 않는다.** (W-2) 를 `rc=0` 으로 만드는 유일한 변경은 `package.json` 의 `scripts.check:coverage-attribution` 를 래퍼 경유로 바꾸는 것이며, `package.json` 은 `RULE-01` 상 inspector 의 writer 영역이 아니다. 수용 기준을 고쳐 닫는 길도 없다 — 잔여 이름을 발화하는 것이 계약의 판정량 자체이므로 (W-2) 를 약화시키면 계약이 소멸한다. **부착 task 발행이 유일한 경로이며 그 주체는 planner 다.**
 
 - [x] (Must, W-1) 채택 모집단이 **도출**되고 세 수치가 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
@@ -107,7 +109,7 @@
   t=$(printf '%s\n' "$o" | sed -nE 's/^total=([0-9]+).*/\1/p')
   [ -n "$t" ] && [ "$t" -ge 20 ] || exit 2
   ```
-  → **rc=0**. **HEAD=`559dde0` 실측 rc=0 / `total=27 wrapper-routed=1`.** 하한 `total ≥ 20` 은 "`scripts` 파싱이 깨져 아무것도 세지 않은" 상태를 `exit 2` **무판정**으로 가른다 — 그 상태에서 `wrapper-routed=0` 은 위반이 아니라 무의미다. **이 항목 단독으로는 판정력이 약하다** (수치가 나오기만 하면 통과). 판정량은 (W-2) 이며 이 항목은 그 **전건**이다.
+  → **rc=0**. **HEAD=`0e5b39e` (tick 241) 실측 rc=0 / `total=28 wrapper-routed=1`.** (직전 `559dde0`: `total=27 wrapper-routed=1`.) 분모가 27 → 28 로 늘고 분자는 1 로 고정이다 — 채택률은 게이트가 늘수록 **떨어지는 방향**이며, 그 사실이 `total` 을 함께 발화하는 이유다. 하한 `total ≥ 20` 은 "`scripts` 파싱이 깨져 아무것도 세지 않은" 상태를 `exit 2` **무판정**으로 가른다 — 그 상태에서 `wrapper-routed=0` 은 위반이 아니라 무의미다. **이 항목 단독으로는 판정력이 약하다** (수치가 나오기만 하면 통과). 판정량은 (W-2) 이며 이 항목은 그 **전건**이다.
 - [ ] (Must, W-2) **미채택 잔여가 0** 이고 잔여는 **이름으로** 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
   node -e '
@@ -131,7 +133,7 @@
   console.log("loop-exec-population="+pop.length+" unwrapped="+miss.length+" -> "+miss.join(","));
   process.exit(miss.length===0?0:1);'
   ```
-  → **rc=0**. **HEAD=`559dde0` 실측 rc=1 / `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` → 미충족.** 이것이 계약의 **판정량**이다. 잔여를 **이름으로** 내는 것이 필수다 — `unwrapped=1` 만으로는 어느 게이트가 빠졌는지 관측되지 않고, 수리 주체가 대상을 특정할 수 없다. 모집단 공집합은 `exit 2` 무판정으로 가른다: 도출식이 낡아 아무것도 집지 못하는 상태와 전수 채택된 상태는 **둘 다 `unwrapped=0`** 이며, 구분하지 않으면 도출기 부패가 충족으로 새어 나간다.
+  → **rc=0**. **HEAD=`0e5b39e` (tick 241) 실측 rc=1 / `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` → 미충족 (3cycle).** `559dde0`(tick 238) · `ec82e08`(tick 240) 실측과 **출력 문자열이 완전히 동일**하다. tick 240·241 은 게이트 스크립트에 delta 가 있는 상태에서 재실행했고(240: `check:` 키 1개 추가, 241: `check-acceptance-criteria.sh`·`check-task-precondition-scope.sh` 수정) 그럼에도 모집단·잔여가 불변이었다 — 신규·수정 게이트는 루프 내 `npx`/`vitest` 실행이 없어 모집단에 들지 않는다. 즉 이 미충족은 **관측 실패가 아니라 부착 미발생**이다. 이것이 계약의 **판정량**이다. 잔여를 **이름으로** 내는 것이 필수다 — `unwrapped=1` 만으로는 어느 게이트가 빠졌는지 관측되지 않고, 수리 주체가 대상을 특정할 수 없다. 모집단 공집합은 `exit 2` 무판정으로 가른다: 도출식이 낡아 아무것도 집지 못하는 상태와 전수 채택된 상태는 **둘 다 `unwrapped=0`** 이며, 구분하지 않으면 도출기 부패가 충족으로 새어 나간다.
 - [x] (Must, W-3) 래퍼가 감싼 명령의 `rc` 를 **그대로 전파**하고 지문을 발화한다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
   out=$(bash scripts/check-measurement-tree-attribution.sh -- bash -c 'exit 3' 2>&1)
@@ -143,6 +145,16 @@
 - [x] (Must, W-4) **무판정 등급이 위반 등급과 구분돼 실재**한다 — 판정: `bash -c 'bash scripts/check-measurement-tree-attribution.sh -- >/dev/null 2>&1; test $? -eq 2'` → **rc=0**. **HEAD=`559dde0` 실측 rc=0** (`--` 뒤 명령 부재 → fail-closed `rc=2`). "위반"(1) 과 "이 측정을 믿을 수 없음"(2) 을 합치면 **드리프트가 트리 결함으로 오귀인되는** 바로 그 사고가 등급 층에서 재발한다. 래퍼가 3분할(`0` 유효 / `1` 드리프트·전파 / `2` fail-closed)을 **보유**함을 관측 산출로 확인한다 — 스크립트 본문 `grep` 으로 판정하지 않는다 (주석에 등급을 적어 두면 통과하는 공허 기준이 된다).
 
 ## 참고
+
+### 재실행 이력 (W-2)
+
+| tick | HEAD | 판정 표면 delta | 출력 | rc |
+|---|---|---|---|---|
+| 238 | `559dde0` | (등록) | `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` | 1 |
+| 240 | `ec82e08` | `package.json` `check:` 키 +1 | 동일 문자열 | 1 |
+| 241 | `0e5b39e` | 게이트 스크립트 2건 수정 | 동일 문자열 | 1 |
+
+delta 를 가진 tick 에서 두 번 재실행했고 두 번 다 불변이다. `RULE-03 §(S2)` 상 `stale_cycles` 는 이 재실행들에 대해 증가하며 현재 **3cycle** 이지만, (S2) 발동 조건은 **`reconcile` 전수 stale** 이고 같은 tick 들에서 다른 spec 의 ack 가 있었으므로(241: 17/17) 전수 stale 이 아니다. 자가 정지 대상이 아니라 **부착 대기**다.
 
 ### 검출 방향 실측 (HEAD=`559dde0`, tick 238)
 
@@ -178,4 +190,5 @@ req 가 요구한 FR-05 (*"완전성 붕괴(등급 4) 와 귀속 실패(무판�
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-29 | inspector tick 241 | (W-2) 재실행 — `rc=1` 출력 문자열 불변 (3cycle). (W-1) 재실측 `total=27 → 28` (분모만 증가, 분자 1 고정). 잔여가 green 편집으로 닫히지 않는 구조적 사유(`package.json` 은 inspector writer 영역 밖 · (W-2) 약화는 계약 소멸)를 §수용 기준 머리말에 박제하고 재실행 이력 표를 §참고 에 신설 | 수용 기준 머리말 · W-1 · W-2 · 참고 |
 | 2026-08-28 | REQ-20260828-038 (inspector tick 238) | 최초 등록. **req 수용 기준 6항을 그대로 쓰지 않았다**: (a) req 3항 *"`check:coverage-attribution` 값에 래퍼가 포함된다"* 는 **스크립트명 리터럴을 판정 입력으로 쓰므로** req 자신의 FR-01(`RULE-06 §열거 고정 금지`)과 충돌한다 — (W-2) 의 **도출 기반 잔여 계수**로 흡수하고, 현 유일 원소가 `check:coverage-attribution` 이라는 사실은 §동작 실측표에 **관측으로** 박제했다. (b) req 5항 *"`grep -nE '무관하게' <래퍼>`"* 는 **스크립트 본문 grep** 이라 주석 문구만으로 충족되는 공허 기준이다 — 관측 산출 기반 (W-3)(W-4) 로 교체했다. (c) req 6항 *"하드코딩 여부를 검사"* 는 판정 형태가 정의되지 않아 체크박스에서 내리고, 대신 **사본 `package.json` 합성 키 주입**으로 도출 실재를 §참고 (Dir-2) 에 실측 박제했다. (d) req 4항의 지문·rc 전파를 (W-3) 하나로 합쳤다. (e) **req NFR-01 을 반증했다** — 승계된 `0.1s 미만` 은 현 HEAD 실측 `5.0s` 와 두 자릿수 배 차이이며 §미측정·비판정 항목 에 정정 박제했다 (결론은 불변, 근거 수치는 교체). (f) **req 가 보지 못한 등급 충돌을 발견해 §참고 에 신설했다** — FR-05 는 `등급 4 vs 무판정` 만 봤으나 실제 충돌은 래퍼 드리프트 `exit 1` 과 채택 대상 단조성 위반 `exit 1` 사이에 있다. (g) §동작 에 **주석 배제** 절을 신설했다 — 주석 미절단 도출은 모집단을 1 → 3 으로 부풀리고 `Hint:` 문자열·`awk` 프로그램 텍스트를 실호출로 오계수한다 (실측). | all |
