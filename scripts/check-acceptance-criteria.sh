@@ -26,6 +26,12 @@
 #       금지어가 든 명령은 어떤 에이전트도 실행할 수 없으므로
 #       RULE-07 §promote 조건 2 를 영구히 만족시킬 수 없다 — 결과는 도달 불가와 같다.
 #
+#  G-5  §수용 기준에서 **판정을 선언한** 항목 전수가 판정 명령 도출에 귀속 == 항목수
+#       도출이 좁아 겨눈 표면의 일부를 애초에 보지 않는 상태를 rc=0 으로 덮지 않는다.
+#       judgement-commands= 는 단조 비감소라 누락이 생겨도 줄지 않고, DERIVE_MIN 은
+#       현 도출 기준 4분의 1 붕괴까지 침묵한다 — 민감도 0 형상이 판정 층이 아니라
+#       **모집단 층**에서 재현되는 자리다.
+#
 # G-3·G-4 의 모집단은 **판정 명령**이지 산문이 아니다. 함정 부류를 설명하는
 # 문장이 hit 이 되면 어떤 시정으로도 0 에 도달하지 못하는 자기봉쇄 기준이 된다
 # (spec §동작 (P-5) 에 실제 발생 기록). 같은 이유로 G-4 의 검출 토큰은
@@ -55,6 +61,8 @@
 # exit 0: 전 게이트 PASS (ack stdout)
 # exit 1: 위반 (stderr 상세 후 fail-fast)
 # exit 2: 무판정 — 판정 명령 도출이 공허(<100). 충족으로 읽지 않는다.
+# exit 3: 항목 도출 추출 실패 — 무판정(2)과 구별한다. 빈 추출이 declared=0 으로
+#         새어 무판정처럼 보이는 경로를 막는다.
 
 set -u
 
@@ -180,6 +188,115 @@ if [ "$derived" -lt "$DERIVE_MIN" ]; then
   exit 2
 fi
 
+# ── G-5: 선언 항목의 도출 귀속 (P-A · P-C) ─────────────────────────────────
+# spec: green testing/judgement-command-derivation-completeness §동작 1~6
+#
+#   (P-A) §수용 기준 구간의 **행 선두** 체크박스 항목 중 판정을 **선언한** 것.
+#   (P-B) 위에서 도출한 cmds — 모집단을 넓히지도 좁히지도 않고 그대로 재사용한다.
+#   (P-C) 항목 구간(항목 라인 ~ 다음 최상위 체크박스/다음 `## ` 헤더 직전)에
+#         (P-B) 원소가 1건 이상 떨어지는가.
+#
+# 선언 판별 토큰은 임의 선택이 아니라 **재현으로 고정**했다: spec §동작 §실측 이
+# 박제한 HEAD=61ce5ab 값 items=783 declared=69 covered=67 을 재현하는 토큰이다.
+# 산문의 "판정" 낱말이 항목을 선언으로 만들지 않도록 판별은 §수용 기준 구간의
+# 최상위 체크박스 항목 구간에 한정한다 (spec §동작 §자기 비봉쇄).
+#
+# 선언 항목 비공허 하한. DERIVE_MIN 과 **같은 층의 고정 하한**이며 상대 하한이
+# 아니다 (spec §역할 (ii) 가 상대화를 기각). 붕괴는 충족이 아니라 무판정(exit 2)이다.
+DECLARE_MIN=20
+
+# cmds 라인 접두 `파일:라인:` 만 뽑는다. 도출기를 새로 만들지 않는다 (A-4 비감소).
+cmd_locs="$(printf '%s\n' "$cmds" | sed -n 's/^\([^:]*\):\([0-9][0-9]*\):.*$/\1 \2/p')"
+
+acc_files="$(find "$ACC_ROOT" -name '*.md' -type f 2>/dev/null | sort)"
+acc_spans=""
+if [ -n "$acc_files" ]; then
+  # 파일당 새 프로세스를 띄우지 않는다 — 전 파일을 단일 awk 순회로 처리한다.
+  # cmd_locs 는 ENVIRON 으로 넘긴다 (-v 는 백슬래시 이스케이프 처리를 한다).
+  acc_spans="$(CMDLOCS="$cmd_locs" awk '
+    function emit(endl,   i, cov) {
+      if (!open) return
+      itemc++
+      if (odecl) {
+        declc++
+        cov = 0
+        for (i = ostart; i <= endl; i++) if ((ofile SUBSEP i) in cmd) { cov = 1; break }
+        if (cov) covc++; else miss[++missn] = ofile ":" ostart
+      }
+      open = 0
+    }
+    BEGIN {
+      n = split(ENVIRON["CMDLOCS"], L, "\n")
+      for (i = 1; i <= n; i++) { if (L[i] == "") continue; split(L[i], a, " "); cmd[a[1] SUBSEP a[2]] = 1 }
+    }
+    FNR == 1 { emit(lastfnr); insec = 0 }
+    { lastfnr = FNR }
+    /^## / { emit(FNR - 1); insec = ($0 ~ /수용 기준/); next }
+    !insec { next }
+    /^-[[:space:]]*\[[ x]\]/ { emit(FNR - 1); open = 1; ofile = FILENAME; ostart = FNR; odecl = 0 }
+    open && /판정:/ { odecl = 1 }
+    END {
+      emit(lastfnr)
+      printf "ITEMS %d\n", itemc
+      printf "DECLARED %d\n", declc
+      printf "COVERED %d\n", covc
+      for (i = 1; i <= missn; i++) printf "MISS %s\n", miss[i]
+    }
+  ' $acc_files)"
+fi
+
+items_total="$(printf '%s\n' "$acc_spans" | awk '$1=="ITEMS"{print $2}')"
+declared_count="$(printf '%s\n' "$acc_spans" | awk '$1=="DECLARED"{print $2}')"
+covered_count="$(printf '%s\n' "$acc_spans" | awk '$1=="COVERED"{print $2}')"
+g5_hits="$(printf '%s\n' "$acc_spans" | sed -n 's/^MISS //p')"
+
+# 추출 실패는 명시 실패다. 빈 추출은 declared=0 을 만들고 그것은 exit 2 로 새어
+# 무판정처럼 보인다 — 그 경로를 막는다 (RULE-06 §추출 실패 검출).
+if [ -z "$items_total" ] || [ -z "$declared_count" ] || [ -z "$covered_count" ]; then
+  printf 'check-acceptance-criteria: (P-A) 항목 도출 추출 실패 (root=%s) — 무판정 아님\n' "$ACC_ROOT" >&2
+  emit_advisory
+  exit 3
+fi
+
+if [ "$declared_count" -lt "$DECLARE_MIN" ]; then
+  printf 'check-acceptance-criteria: declared=%s < %s vacuous (root=%s) — 무판정\n' \
+    "$declared_count" "$DECLARE_MIN" "$ACC_ROOT" >&2
+  printf 'Hint: 선언 항목 도출이 공허하다. 공허 통과로 읽지 않는다.\n' >&2
+  emit_advisory
+  exit 2
+fi
+
+# 축 분리 — G-3·G-4 와 동일 술어. 사본 루트가 30.spec 명명을 보존하지 않으면
+# blue 도 green 으로 계수된다 (seam 주입은 잡혀야 하므로 의도된 동작).
+g5_blue_hits="$(printf '%s' "$g5_hits" | grep -E '^[^:]*/30\.spec/blue/' || true)"
+g5_green_hits="$(printf '%s' "$g5_hits" | grep -vE '^[^:]*/30\.spec/blue/' || true)"
+g5_blue_count="$(printf '%s' "$g5_blue_hits" | grep -c . || true)"
+g5_green_count="$(printf '%s' "$g5_green_hits" | grep -c . || true)"
+
+if [ "$g5_blue_count" -ne 0 ]; then
+  blue_advisory=$((blue_advisory + g5_blue_count))
+  blue_advisory_hits="${blue_advisory_hits}$(printf '%s' "$g5_blue_hits" | sed 's/^/  [G-5 blue 선언항목 미도출] /')
+"
+fi
+
+if [ "$g5_green_count" -ne 0 ]; then
+  printf 'G-5 VIOLATION: 판정을 선언한 항목이 도출에 귀속되지 않음 %s건 (green 귀속 · 기대 0)\n' "$g5_green_count" >&2
+  # 수치만 내면 어느 항목이 빠졌는지 관측되지 않는다 (spec §수용 기준 A-2).
+  printf '%s' "$g5_green_hits" | head -10 >&2
+  printf 'Hint: 판정 명령을 허용 접두(bash -c · npx · npm run · awk · test · grep -) 또는 코드 펜스로 표기한다.\n' >&2
+  green_violations=1
+fi
+
+# 세 수치는 **동시에** 발화된다 — 하나만 내면 어느 층에서 새는지 갈리지 않는다
+# (spec §공개 인터페이스). declared-items= · derived-covered= 토큰 문자열은
+# spec §수용 기준 (A-1) 판정 명령이 sed -nE 로 긁는 계약면이다.
+# 종료 경로 0/1 **양쪽**에서 낸다 — 위반 경로에서 침묵하면 (A-1) 판정이
+# 위반(1)을 `ack 라인 미발화` 무판정(2)으로 오독한다 (spec §수용 기준 A-3 구분).
+emit_items() {
+  printf 'check-acceptance-criteria: total-items=%s declared-items=%s derived-covered=%s declared-miss-green=%s declared-miss-blue=%s(ADVISORY) declare-min=%s (root=%s)\n' \
+    "$items_total" "$declared_count" "$covered_count" "$g5_green_count" "$g5_blue_count" "$DECLARE_MIN" "$ACC_ROOT"
+}
+
 # ── G-3: 판정 명령의 sed 주소 범위 재시작 ──────────────────────────────────
 g3_hits="$(printf '%s\n' "$cmds" | grep -E 'sed -n .{0,3}/[^/]*/,/[^/]*/p' || true)"
 # cmds 라인은 FILENAME:FNR: 접두를 가지므로 그 접두로 귀속을 가른다.
@@ -231,6 +348,7 @@ fi
 
 if [ "$green_violations" -ne 0 ]; then
   emit_advisory
+  emit_items
   printf 'check-acceptance-criteria: FAIL (green 귀속 위반 — blue 축은 rc 에 반영되지 않는다)\n' >&2
   exit 1
 fi
@@ -240,4 +358,5 @@ printf 'check-acceptance-criteria: G-1 blue deferred=%s(ADVISORY) / G-2 미체�
   "$g1_count" "$g2_green_count" "$g2_blue_count"
 printf 'check-acceptance-criteria: judgement-commands=%s range-restart=%s unexecutable-verb=%s forbidden-verbs=%s (root=%s)\n' \
   "$derived" "$g3_green_count" "$g4_green_count" "$forbidden_verbs" "$ACC_ROOT"
+emit_items
 exit 0
