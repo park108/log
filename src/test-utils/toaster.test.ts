@@ -9,6 +9,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import {
 	getToasterElement,
+	waitForToasterAbsent,
 	waitForToasterHidden,
 	waitForToasterVisible,
 } from './toaster';
@@ -58,8 +59,11 @@ describe('waitForToasterHidden', () => {
 		await expect(waitForToasterHidden('information', 'center')).resolves.toBeUndefined();
 	});
 
-	it('엘리먼트가 없으면 resolve (숨김으로 해석)', async () => {
-		await expect(waitForToasterHidden('information', 'center')).resolves.toBeUndefined();
+	// 부재는 숨김의 증거가 아니다 — 미마운트는 충족이 아니라 무판정이다 (FR-01·FR-03).
+	it('엘리먼트가 한 번도 관측되지 않으면 무판정(reject)', async () => {
+		await expect(
+			waitForToasterHidden('information', 'center', { timeout: 100 })
+		).rejects.toThrow(/Toaster never observed/);
 	});
 
 	it('data-show="1" → "0" 전환 후 resolve', async () => {
@@ -74,6 +78,26 @@ describe('waitForToasterHidden', () => {
 		await expect(
 			waitForToasterHidden('information', 'center', { timeout: 100 })
 		).rejects.toThrow(/Toaster still visible/);
+	});
+});
+
+describe('waitForToasterAbsent', () => {
+	it('표면은 떴으나 대상 조합이 끝내 없으면 resolve', async () => {
+		mountToaster({ type: 'information', position: 'center', show: '1' });
+		await expect(waitForToasterAbsent('error', 'center')).resolves.toBeUndefined();
+	});
+
+	it('대상이 마운트돼 있으면 reject (떴다가 사라진 것은 부재가 아니다)', async () => {
+		mountToaster({ type: 'error', position: 'bottom', show: '1' });
+		await expect(
+			waitForToasterAbsent('error', 'bottom')
+		).rejects.toThrow(/Toaster appeared/);
+	});
+
+	it('표면 자체가 도달하지 않으면 무판정(reject)', async () => {
+		await expect(
+			waitForToasterAbsent('error', 'bottom', { timeout: 100 })
+		).rejects.toThrow(/Toaster surface never observed/);
 	});
 });
 
