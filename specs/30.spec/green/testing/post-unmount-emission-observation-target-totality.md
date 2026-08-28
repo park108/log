@@ -1,10 +1,10 @@
 # post-unmount 발화 감사의 판정 대상 집합은 전수다 — Log · Monitor 의 비동기 완료 경로가 판정을 받는다
 
-> **위치**: `src/__tests__/post-unmount-emission-audit.test.ts` 의 `EMISSION_OBSERVATION_DEBT` (`:765-769`) · 죽은 부채 항목 차단 (`:1198-1202`) · 부채 차감 소비 지점 (`:1206`). 제품 귀속: `src/Log/LogItem.jsx` 의 `deleteMutation` 콜백 · `src/Log/LogItemInfo.jsx` 의 `handleDelete` abort 콜백 · `src/Monitor/Monitor.jsx` 의 admin 게이트 effect.
+> **위치**: `src/__tests__/post-unmount-emission-audit.test.ts` 의 `EMISSION_OBSERVATION_DEBT` (`:779`) · 죽은 부채 항목 차단 (`deadDebt` `:1288-1291`) · 부채 차감 소비 지점 (`:1298`) · 모집단 밖 관측기 계수 (`bearingOutsidePopulation` `:1202`, 단언 `:1274-1275`). 제품 귀속: `src/Log/LogItem.jsx` 의 `deleteMutation` 콜백 · `src/Log/LogItemInfo.jsx` 의 `handleDelete` abort 콜백 · `src/Monitor/Monitor.jsx` 의 admin 게이트 effect.
 > **관련 요구사항**: REQ-20260828-040
-> **최종 업데이트**: 2026-08-28 (by inspector — tick 239 최초 등록, 골격)
+> **최종 업데이트**: 2026-08-28 (by inspector — tick 240 drift reconcile: TSK-20260828-09 착지분 재측정 반영)
 
-> 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (`8189a07`).
+> 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (`ec82e08`).
 
 ## 역할
 
@@ -19,7 +19,7 @@ post-unmount 발화 감사가 판정하는 **대상 집합은 전수여야 한�
 ## 공개 인터페이스
 
 - 부채 집합: `EMISSION_OBSERVATION_DEBT` — **상한**이며 고정점이 아니다 (관측기가 붙어 부채가 갚아져도 실패하지 않는다).
-- 축소 대조 출력 토큰: `spy-bearing` · `short-circuit` · `judged` · `enumerated` 계수.
+- 축소 대조 출력 토큰: `spy-bearing` · `short-circuit` · `judged` · `enumerated` · `population` · `bearing-outside-population` 계수.
 - 죽은 부채 항목 차단: `deadDebt` 단언.
 
 ## 동작
@@ -35,7 +35,9 @@ post-unmount 발화 감사가 판정하는 **대상 집합은 전수여야 한�
 ### FR-03 — 축소 대조 모집단이 전수다 (Must)
 축소 대조는 **관측기 보유 파일 전수**를 모집단으로 삼거나, **모집단 밖 보유 파일 수 == 0** 을 게이트가 스스로 단언한다. 둘 중 어느 쪽이든 `src/App.test.jsx` 의 관측기 이탈이 검출돼야 한다.
 
-> 현행 병리: `src/App.test.jsx` 는 형제 `src/App.jsx` 에 발화 호출이 0이라 "발화 파일의 형제" 정의에 걸리지 않아 모집단 밖이다. 그래서 그 파일의 관측기가 목록 밖 이름으로 바뀌어도 `spy-bearing` 계수가 1 줄 뿐 **어떤 단언도 붉어지지 않는다**.
+> 등록 당시 병리: `src/App.test.jsx` 는 형제 `src/App.jsx` 에 발화 호출이 0이라 "발화 파일의 형제" 정의에 걸리지 않아 모집단 밖이었고, 그 파일의 관측기가 목록 밖 이름으로 바뀌어도 `spy-bearing` 계수가 1 줄 뿐 **어떤 단언도 붉어지지 않았다**.
+>
+> **해소 (HEAD `ec82e08`)**: 게이트가 `bearing-outside-population` 을 스스로 계수·단언한다 — 후자 형태(자기 단언)를 채택했다. 실측 `population: 25 (required 20 + baseline 5) / bearing-outside-population: 0`.
 
 ### FR-04 — 지우기만 하는 우회 경로는 막힌다 (Must)
 부채 해소는 **관측기 부착**으로 달성한다. 부채 항목을 목록에서 지우기만 해 통과시키는 경로는 금지하며, 그 경우 축 1~4 가 붉어지는 것으로 즉시 드러나야 한다.
@@ -44,7 +46,7 @@ post-unmount 발화 감사가 판정하는 **대상 집합은 전수여야 한�
 세 파일에 관측기를 붙인 결과 **실제 post-unmount 발화가 검출되면** 그 사실은 통과 처리하지 않고 발화한다. 본 계약은 "검출되면 발화한다" 까지만 요구하며 **"발화가 0" 을 요구하지 않는다**.
 
 ### FR-06 — 죽은 부채 항목 검사는 유지된다 (Should)
-`deadDebt` 단언(`:1198-1202`)은 부채가 공집합이 되어도 남아 장래 재추가를 감시한다.
+`deadDebt` 단언(`:1288-1291`)은 부채가 공집합이 되어도 남아 장래 재추가를 감시한다.
 
 ### 발화 채널 (RULE-07 §promote 조건 4)
 vitest 수집 경로 `src/__tests__/post-unmount-emission-audit.test.ts` — **현 HEAD 실재**. 별도 채널 부착 불요.
@@ -56,8 +58,8 @@ vitest 수집 경로 `src/__tests__/post-unmount-emission-audit.test.ts` — **�
 
 ## 테스트 현황
 - [x] 감사 게이트 자체는 실재하고 수집된다 (`src/__tests__/post-unmount-emission-audit.test.ts`).
-- [ ] 세 형제 테스트의 발화 관측기 — HEAD 부재 (부채로 단락 중).
-- [ ] 모집단 밖 관측기 보유 파일 수의 자기 단언 — HEAD 부재.
+- [x] 세 형제 테스트의 발화 관측기 — `src/Log/LogItem.test.jsx` · `src/Log/LogItemInfo.test.jsx` · `src/Monitor/Monitor.test.jsx` (TSK-20260828-09, `ec82e08`).
+- [x] 모집단 밖 관측기 보유 파일 수의 자기 단언 — `bearing-outside-population` 계수 (`ec82e08`).
 
 ## 수용 기준
 
@@ -65,15 +67,20 @@ vitest 수집 경로 `src/__tests__/post-unmount-emission-audit.test.ts` — **�
 >
 > **AC-2 는 결번이다.** req 원문의 AC-2("세 형제 테스트가 관측기 3/3 보유")는 AC-3 과 **동일한 판정을 다른 문면으로 요구**하므로 중복 게이트(`RULE-07 §반려 시그널`)로 보고 통합했다 — FR-01 의 판정은 AC-3 이 수행한다. 관측기 보유 여부를 이름 열거로 따로 재지 않는 것은 인접 blue `emission-observer-identification-deny-by-default` 가 그 술어를 소유하기 때문이기도 하다.
 
-- [ ] (Must, FR-02·AC-1) 부채 집합의 원소 수가 **0** 이다 — 판정: (펜스 — `bash -c "$(추출)"` 로 실행)
+- [x] (Must, FR-02·AC-1) 부채 집합의 원소 수가 **0** 이다 — 판정: (펜스 — `bash -c "$(추출)"` 로 실행)
   ```
   node -e 'const s=require("fs").readFileSync("src/__tests__/post-unmount-emission-audit.test.ts","utf8");const m=s.match(/EMISSION_OBSERVATION_DEBT = new Set\(\[([^\]]*)\]\)/);if(!m)process.exit(2);process.exit(m[1].replace(/\s|\/\/.*/g,"")===""?0:1)'
   ```
-  → **실측 2026-08-28 (HEAD `8189a07`): rc=1 → 미충족** (부채 3원소). 모집단 추출 실패는 `rc=2` 로 통과와 구분한다 — 추출기가 낡아 빈 문자열을 얻는 상태를 충족으로 읽지 않는다.
-- [ ] (Must, FR-01·FR-05·AC-3) 감사 테스트 단독 실행에서 `rc=0` 이고 세 파일이 단락 목록에 나타나지 않는다 — 판정: `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` (본 tick 미실행 — 아래 §미측정 참조).
-- [ ] (Must, FR-03·AC-4) 게이트 출력에 **모집단 밖 관측기 보유 파일 수 == 0** 이 명시된다.
-- [ ] (Should, FR-06·AC-6) `deadDebt` 단언이 잔존한다 — 부채가 공집합이 되어도 검사 자체는 남는다.
-- [ ] (Must, NFR-02·AC-7) 관측기 부착 전후로 `Log` · `Monitor` 스위트의 통과/실패 집합이 동일하다 (관측은 부작용이 없어야 한다).
+  → **실측 2026-08-28 (HEAD `ec82e08`, tick 240 재실행): rc=0 → 충족** (부채 공집합. 등록 시점 `8189a07` 에서는 rc=1 / 3원소였다). 모집단 추출 실패는 `rc=2` 로 통과와 구분한다 — 추출기가 낡아 빈 문자열을 얻는 상태를 충족으로 읽지 않는다.
+- [x] (Must, FR-01·FR-05·AC-3) 감사 테스트 단독 실행에서 `rc=0` 이고 세 파일이 단락 목록에 나타나지 않는다 — 판정: `npx vitest run src/__tests__/post-unmount-emission-audit.test.ts` → **실측 2026-08-28 (HEAD `ec82e08`): rc=0 / `Test Files 1 passed (1)` · `Tests 10 passed (10)`.** 세 파일은 부채 공집합(AC-1) 이후 면제 없이 축 1~4 를 통과했다 — 단락 면제로 초록이 된 것이 아니다.
+- [x] (Must, FR-03·AC-4) 게이트 출력에 **모집단 밖 관측기 보유 파일 수 == 0** 이 명시된다 — 판정: (펜스 — `bash -c "$(추출)"` 로 실행)
+  ```
+  npx vitest run src/__tests__/post-unmount-emission-audit.test.ts 2>&1 | grep -q 'bearing-outside-population: 0'
+  ```
+  → **실측 2026-08-28 (HEAD `ec82e08`): rc=0.** 실제 출력 라인 — `[G-F] spy-bearing: 25 / short-circuit: 47 / judged: 72 / enumerated: 73 (self 제외 1) / population: 25 (required 20 + baseline 5) / bearing-outside-population: 0`. 계수가 출력에만 있고 단언되지 않으면 이 항목은 충족이 아니다 — 단언처는 `src/__tests__/post-unmount-emission-audit.test.ts` 의 `bearingOutsidePopulation` 단언(`:1274-1275`)이며 출력 조립은 `:1216` 이다 — 계수와 단언이 같은 값을 쓴다.
+- [x] (Should, FR-06·AC-6) `deadDebt` 단언이 잔존한다 — 부채가 공집합이 되어도 검사 자체는 남는다. 판정: `grep -cE '^[[:space:]]*const deadDebt' src/__tests__/post-unmount-emission-audit.test.ts` → **실측 2026-08-28 (HEAD `ec82e08`): 1 (`:1288`), 단언은 `:1290-1291`.** 본문 선언 한정 패턴이며 주석 언급(`:766` · `:1279`)은 계수에서 빠진다 — 주석이 판정을 충족하는 부류를 차단한다.
+- [x] (Must, NFR-02·AC-7) 관측 부착이 형제 스위트를 깨지 않는다 — 판정: `npx vitest run src/Log src/Monitor` → **실측 2026-08-28 (HEAD `ec82e08`): rc=0 / `Test Files 19 passed (19)` · `Tests 164 passed (164)` / 13.0s.**
+  > **상대 대조에서 절대 기준으로 교체 (tick 240).** 원문 "부착 전후 통과/실패 집합이 동일" 은 부착이 이미 착지한 뒤에는 어느 HEAD 에서도 판정할 수 없다 (`RULE-07 §체크박스 부적격` 의 사건 의존 부류). 남는 검증 가능한 명제는 **현 HEAD 에서 두 스위트가 초록** 이며, 이것은 부작용이 있었다면 붉어졌을 표면이다. 대조는 민감도가 0 일 수 있으므로 절대 기준을 둔다.
 
 ## 참고
 
@@ -83,7 +90,7 @@ vitest 수집 경로 `src/__tests__/post-unmount-emission-audit.test.ts` — **�
 | | REQ-20260828-002 | 본 계약 (040) |
 |---|---|---|
 | 축 | 계수형 판정의 스코프·도달성·단조성 | 판정 **대상 집합의 전수성** |
-| 앵커 | `:653` · `:917` · `:919` | `:765-769` · `:1198-1202` · `:1206` |
+| 앵커 | `:653` · `:917` · `:919` | `:779` · `:1288-1291` · `:1298` |
 | 병리 | 세는 값이 겨냥한 사건을 재지 못함 | 대상이 집합에서 **빠져** 아예 안 재짐 |
 | 제품 귀속 | `src/File/FileItem` race fixture | `src/Log` · `src/Monitor` 비동기 완료 경로 |
 
@@ -96,7 +103,7 @@ blue 인접 계약과의 분리:
 ### 미측정·비판정 항목
 - **실제 post-unmount 발화의 존재 여부** — 관측기를 붙이기 전에는 알 수 없다. 검출되면 시정은 별도 요구로 분리한다.
 - **`EMISSION_OBSERVATION_DEBT` 재증가 금지의 영구 보장** — 미래 사건 대기 부류 (`RULE-07 §체크박스 부적격`). 목록이 상한인 구조는 유지하고 증가 시점의 판정은 그때의 리뷰에 맡긴다.
-- **AC-3 의 실행 시간** — 본 tick 미측정 (단일 명령 60초 상한 제약으로 감사 테스트를 실행하지 않았다). 상한을 넘으면 그 사실 자체가 별도 followup 감이다.
+- **AC-3 의 실행 시간** — tick 240 에서 실행했고 단일 명령 60초 상한 내였다. 상한 근접·초과는 별도 followup 감이며 체크박스로 두지 않는다 (미측정 NFR 부류).
 - **AC-5(모집단 밖 관측기 이탈 주입) · AC-6(부채 무단 제거 주입)** — **가정 주입 요구** 부류이므로 체크박스로 두지 않고 아래 §게이트 실효 검증 이관 으로 내린다. 검출 방향은 보존된다.
 
 ### 배경 실측 (HEAD `8189a07`, tick 239)
@@ -109,7 +116,7 @@ blue 인접 계약과의 분리:
 
 | 방향 | 위반 주입 | 기대 |
 |---|---|---|
-| Dir-1 (FR-03) | `src/App.test.jsx` 의 관측기를 목록 밖 이름으로 변경 | `rc≠0` + 파일명 지목. **현 HEAD 에서는 `rc=0` (미검출)** — 이것이 고쳐야 할 상태다. |
+| Dir-1 (FR-03) | `src/App.test.jsx` 의 관측기를 목록 밖 이름으로 변경 | `rc≠0` + 파일명 지목. **HEAD `ec82e08` 에서 검출 표면 부착 완료** (`bearing-outside-population` 자기 단언). 주입 왕복 자체는 미수행 — 이관처 DoD 로 남는다. |
 | Dir-2 (FR-04) | 부채 항목을 목록에서 제거하되 관측기 미부착 | `rc≠0` |
 
 이관처 task DoD 는 `injection: 2/2 detect` 를 요구한다. **이관처 task 가 발행되지 않으면 그 사실을 `10.followups/` 에 남긴다** — 이관처 없는 강등은 금지다.
@@ -118,3 +125,4 @@ blue 인접 계약과의 분리:
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-28 | inspector tick 239 | REQ-20260828-040 흡수 — 최초 등록 (골격). REQ-20260828-002 와 분리 보존 판정 | all |
+| 2026-08-28 | `ec82e08` (TSK-20260828-09) / inspector tick 240 | drift reconcile — AC-1·AC-3·AC-4·AC-6·AC-7 재측정 후 `[x]` 플립 (5/5 ack). AC-7 은 상대 대조 → 절대 rc 기준으로 교체 | 테스트 현황 · 수용 기준 · FR-03 · 게이트 실효 검증 |
