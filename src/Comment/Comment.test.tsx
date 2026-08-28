@@ -11,7 +11,7 @@ import { useMockServer } from '../test-utils/msw';
 import { firstCall } from '../test-utils/mockCalls';
 // TSK-20260827-11-b / REQ-20260827-034 — Toaster 표시/숨김 관찰은 `src/test-utils/toaster`
 // 헬퍼만 경유한다 (그 파일 헤더가 테스트 본문의 DOM 셀렉터 직접 호출을 금지한다).
-import { waitForToasterVisible, waitForToasterHidden, getToasterElement } from '../test-utils/toaster';
+import { waitForToasterVisible, waitForToasterAbsent, getToasterElement } from '../test-utils/toaster';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
@@ -622,8 +622,8 @@ describe('Comment GET 성공 시 조회 실패 표면 부재 (REQ-20260827-034 F
 			).not.toBeNull();
 		});
 
-		// 실패 표면 부재 (FR-05).
-		await waitForToasterHidden('error', 'bottom');
+		// 실패 표면 부재 (FR-05) — 부재 전용 경로. 숨김 경로는 "떴다가 사라짐" 이라 명제가 다르다.
+		await waitForToasterAbsent('error', 'bottom');
 		expect(getToasterElement('error', 'bottom')).toBeNull();
 		expect(screen.queryByText('Failed to load comments.')).toBeNull();
 		expect(screen.queryByText('Failed to load comments for network issue.')).toBeNull();
