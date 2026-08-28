@@ -35,7 +35,7 @@ seam: 모집단 게이트가 스캔 루트 환경변수를 노출하면(`${<NAME
 
 ## 동작
 
-- **(A-0) 현 HEAD 실측 (baseline · 시점 의존)**: `check:*` **27** 종 / 스크립트 경로 도출 **27**. 1차 모집단 **3**, 2차 모집단 **2**. blue 문서 80 · green 문서 6. blue 귀속 dangling 참조 **13**, green 귀속 **0**. ADVISORY 발화 보유 **1/2**, blue 모집단 수치 출력 **0/2**, 공집합 `exit 2` **1/2**, 근거 주석 보유 **1/2** (HEAD=`4708539` 측정). 이 수치는 트리와 함께 이동하므로 **체크박스가 아니라 baseline** 이다. 판정은 아래 (A-1)~(A-8) 의 구조 명제가 진다.
+- **(A-0) 현 HEAD 실측 (baseline · 시점 의존)**: `check:*` **27** 종 / 스크립트 경로 도출 **27**. 1차 모집단 **3**, 2차 모집단 **2**. blue 문서 81 · green 문서 5 (`files=86` `distinct=56` `blue-scanned=81`). blue 귀속 dangling 참조 **13**, green 귀속 **0**. ADVISORY 발화 보유 **2/2**, blue 모집단 수치 출력 **2/2**, 공집합 `exit 2` **2/2**, 근거 주석 보유 **2/2** (HEAD=`308ee6d` 재측정 — 최초 등록 시 `4708539` 에서는 각각 `1/2`·`0/2`·`1/2`·`1/2` 였다). 이 수치는 트리와 함께 이동하므로 **체크박스가 아니라 baseline** 이다. 판정은 아래 (A-1)~(A-8) 의 구조 명제가 진다.
 - **(A-1) 모집단은 도출된다**: 적용 대상은 `package.json` 의 `scripts.check:*` 키에서 도출한다. 게이트 이름·스크립트 경로의 하드코딩 열거는 금지이며, 불가피한 경우 목록 완전성 보조 단언을 함께 둔다.
 - **(A-2) 1차 술어 — 판정 모집단이 `30.spec` 트리에 걸린다**: 주석 절단 후 실행 라인이 `30.spec` 트리를 참조하는 게이트가 1차 모집단이다.
 - **(A-3) 2차 술어 — blue **본문** 귀속**: 1차 모집단 중, `30.spec` 트리(또는 그 트리로 초기화된 변수)를 **파일 시스템 탐색 명령(`find` · `grep -r*`)의 인자**로 삼는 게이트가 2차 모집단이다. 이것이 본 계약의 적용 대상이다.
@@ -70,12 +70,13 @@ seam: 모집단 게이트가 스캔 루트 환경변수를 노출하면(`${<NAME
 - [x] (Must · A-5) 2차 모집단 전원이 ADVISORY 계수를 **실행 라인에서** 발화한다 — `bash -c 'p1=""; for f in $(grep -oE "\"check:[A-Za-z0-9:-]+\": \"[^\"]*\"" package.json | grep -oE "scripts/[A-Za-z0-9._-]+\.sh" | sort -u); do sed -E "s/#.*//" "$f" | grep -qE "specs/30\.spec" && p1="$p1 $f"; done; n=0; m=0; for f in $p1; do t=$(sed -E "s/#.*//" "$f"); pat="specs/30\.spec"; for v in $(printf "%s\n" "$t" | grep -oE "^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=[^=]*specs/30\.spec" | grep -oE "[A-Za-z_][A-Za-z0-9_]*=" | tr -d "=" | sort -u); do pat="$pat|[\$]\{?$v"; done; printf "%s\n" "$t" | grep -E "(find |grep -[A-Za-z]*r[A-Za-z]*)" | grep -qE "($pat)" || continue; m=$((m+1)); printf "%s\n" "$t" | grep -qE "(printf|echo)[^;]*ADVISORY" && n=$((n+1)); done; echo "$n/$m"; [ "$m" -ge 2 ] || exit 2; [ "$n" = "$m" ]'` → HEAD=`308ee6d` 출력 `2/2` / rc=0 (전환 커밋 `c1a7f1f`). 주석 절단 후 판정하므로 주석에 적힌 `ADVISORY` 는 계수되지 않는다. 분모는 도출된 2차 모집단이며 `[ "$m" -ge 2 ] || exit 2` 가 앞서므로 모집단 붕괴는 충족이 아니라 무판정으로 갈린다 — `2/2` 는 공허 통과가 아니다.
 - [x] (Must · A-8) 2차 모집단 전원이 **스캔한 blue 모집단 수치**를 0 보다 큰 값으로 출력한다 — `bash -c 'p1=""; for f in $(grep -oE "\"check:[A-Za-z0-9:-]+\": \"[^\"]*\"" package.json | grep -oE "scripts/[A-Za-z0-9._-]+\.sh" | sort -u); do sed -E "s/#.*//" "$f" | grep -qE "specs/30\.spec" && p1="$p1 $f"; done; n=0; m=0; for f in $p1; do t=$(sed -E "s/#.*//" "$f"); pat="specs/30\.spec"; for v in $(printf "%s\n" "$t" | grep -oE "^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=[^=]*specs/30\.spec" | grep -oE "[A-Za-z_][A-Za-z0-9_]*=" | tr -d "=" | sort -u); do pat="$pat|[\$]\{?$v"; done; printf "%s\n" "$t" | grep -E "(find |grep -[A-Za-z]*r[A-Za-z]*)" | grep -qE "($pat)" || continue; m=$((m+1)); bash "$f" 2>&1 | grep -qE "blue[^0-9]{0,24}(scanned|files|docs|population|candidates)[= ]*[1-9]" && n=$((n+1)); done; echo "$n/$m"; [ "$m" -ge 2 ] || exit 2; [ "$n" = "$m" ]'` → HEAD=`308ee6d` 출력 `2/2` / rc=0 (전환 커밋 `c1a7f1f`·`308ee6d`). `blue(missing=13 suffix=11)` 은 **위반 계수**이지 스캔 모집단 수가 아니다 — 위반이 0 으로 떨어지면 그 수치는 모집단 제외와 구별되지 않으므로, 두 게이트는 `blue-scanned=81` 형태의 모집단 수치를 별도로 낸다. 정규식은 `blue[^0-9]{0,24}(scanned|files|docs|population|candidates)[= ]*[1-9]` 이므로 위반 계수 `blue(missing=13 …)` 만으로는 충족되지 않는다. §참고 §모집단 은닉 실험 참조.
 - [x] (Must · A-7) 2차 모집단 전원이 공집합 스캔 루트에서 `exit 2` 로 끝난다 — `bash -c 'd=$(mktemp -d); p1=""; for f in $(grep -oE "\"check:[A-Za-z0-9:-]+\": \"[^\"]*\"" package.json | grep -oE "scripts/[A-Za-z0-9._-]+\.sh" | sort -u); do sed -E "s/#.*//" "$f" | grep -qE "specs/30\.spec" && p1="$p1 $f"; done; n=0; m=0; for f in $p1; do t=$(sed -E "s/#.*//" "$f"); pat="specs/30\.spec"; for v in $(printf "%s\n" "$t" | grep -oE "^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=[^=]*specs/30\.spec" | grep -oE "[A-Za-z_][A-Za-z0-9_]*=" | tr -d "=" | sort -u); do pat="$pat|[\$]\{?$v"; done; printf "%s\n" "$t" | grep -E "(find |grep -[A-Za-z]*r[A-Za-z]*)" | grep -qE "($pat)" || continue; m=$((m+1)); s=$(printf "%s\n" "$t" | grep -oE "[\$]\{[A-Za-z_][A-Za-z0-9_]*:-specs/30\.spec" | grep -oE "[A-Za-z_][A-Za-z0-9_]*" | head -1); [ -n "$s" ] || continue; env "$s=$d" bash "$f" >/dev/null 2>&1; [ $? -eq 2 ] && n=$((n+1)); done; echo "$n/$m"; [ "$m" -ge 2 ] || exit 2; [ "$n" = "$m" ]'` → HEAD=`308ee6d` 출력 `2/2` / rc=0 (전환 커밋 `308ee6d` — 공집합을 비공허 하한 위반 `exit 1` 에서 무판정 `exit 2` 로 분리). 공집합을 `exit 1` 로 끝내면 그 등급은 "측정 못 함" 이 아니라 "위반" 이라 무판정과 구별되지 않는다. seam 이름은 `${<NAME>:-specs/30.spec}` 대입에서 도출하므로 환경변수 이름 하드코딩이 없다 — seam 을 노출하지 않는 게이트는 분모에서 빠지고, 분모가 2 미만이면 이 항 자체가 `exit 2` 무판정이 된다.
-- [ ] (Should · A-9) 2차 모집단 전원의 주석에 전환 근거와 정상 처리 경로가 박제돼 있다 — `bash -c 'p1=""; for f in $(grep -oE "\"check:[A-Za-z0-9:-]+\": \"[^\"]*\"" package.json | grep -oE "scripts/[A-Za-z0-9._-]+\.sh" | sort -u); do sed -E "s/#.*//" "$f" | grep -qE "specs/30\.spec" && p1="$p1 $f"; done; n=0; m=0; for f in $p1; do t=$(sed -E "s/#.*//" "$f"); pat="specs/30\.spec"; for v in $(printf "%s\n" "$t" | grep -oE "^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=[^=]*specs/30\.spec" | grep -oE "[A-Za-z_][A-Za-z0-9_]*=" | tr -d "=" | sort -u); do pat="$pat|[\$]\{?$v"; done; printf "%s\n" "$t" | grep -E "(find |grep -[A-Za-z]*r[A-Za-z]*)" | grep -qE "($pat)" || continue; m=$((m+1)); c=$(grep -cE "^[[:space:]]*#.*(RULE-01|writer)" "$f"); [ "$c" -ge 2 ] && n=$((n+1)); done; echo "$n/$m"; [ "$m" -ge 2 ] || exit 2; [ "$n" = "$m" ]'` → HEAD=`4708539` 출력 `1/2` / rc=1 — 미충족. 이 항은 주석을 **대상으로** 재므로 주석 절단을 적용하지 않는다 — (A-5) 와 정반대 표면이며 둘은 서로를 대체하지 않는다.
+- [x] (Should · A-9) 2차 모집단 전원의 주석에 전환 근거와 정상 처리 경로가 박제돼 있다 — `bash -c 'p1=""; for f in $(grep -oE "\"check:[A-Za-z0-9:-]+\": \"[^\"]*\"" package.json | grep -oE "scripts/[A-Za-z0-9._-]+\.sh" | sort -u); do sed -E "s/#.*//" "$f" | grep -qE "specs/30\.spec" && p1="$p1 $f"; done; n=0; m=0; for f in $p1; do t=$(sed -E "s/#.*//" "$f"); pat="specs/30\.spec"; for v in $(printf "%s\n" "$t" | grep -oE "^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=[^=]*specs/30\.spec" | grep -oE "[A-Za-z_][A-Za-z0-9_]*=" | tr -d "=" | sort -u); do pat="$pat|[\$]\{?$v"; done; printf "%s\n" "$t" | grep -E "(find |grep -[A-Za-z]*r[A-Za-z]*)" | grep -qE "($pat)" || continue; m=$((m+1)); c=$(grep -cE "^[[:space:]]*#.*(RULE-01|writer)" "$f"); [ "$c" -ge 2 ] && n=$((n+1)); done; echo "$n/$m"; [ "$m" -ge 2 ] || exit 2; [ "$n" = "$m" ]'` → HEAD=`308ee6d` 출력 `2/2` / rc=0 (전환 커밋 `c1a7f1f`). 이 항은 주석을 **대상으로** 재므로 주석 절단을 적용하지 않는다 — (A-5) 와 정반대 표면이며 둘은 서로를 대체하지 않는다.
 
 ## 변경 이력
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-28 | `c1a7f1f` | (A-9) 충족 확정 — 2차 모집단 전원의 주석에 ADVISORY 근거·정상 처리 경로 박제 (`2/2` rc=0 @`308ee6d`). (A-0) baseline 재측정 + §선례 구현 행 번호 → 앵커 문자열 | 동작, 수용 기준, 참고 |
 | 2026-08-28 | `308ee6d` | (A-7) 충족 확정 — 2차 모집단 전원이 공집합 스캔 루트에서 `exit 2` 무판정 (`2/2` rc=0 @`308ee6d`) | 수용 기준 |
 | 2026-08-28 | `c1a7f1f`·`308ee6d` | (A-8) 충족 확정 — 2차 모집단 전원이 `blue-scanned` 모집단 수치 출력 (`2/2` rc=0 @`308ee6d`). §참고 §모집단 은닉 실험 박제 | 수용 기준, 참고 |
 | 2026-08-28 | `c1a7f1f` | (A-5) 충족 확정 — 2차 모집단 전원이 실행 라인에서 ADVISORY 계수 발화 (`2/2` rc=0 @`308ee6d`) | 수용 기준 |
@@ -85,12 +86,12 @@ seam: 모집단 게이트가 스캔 루트 환경변수를 노출하면(`${<NAME
 
 ### 선례 구현 (본 계약이 확대하는 패턴)
 
-- `scripts/check-spec-coherence.sh:9-12` — 판정 스코프를 writer 매트릭스에 정합시켜 선언 (`src/**` hard-fail / green hard-fail / blue ADVISORY).
-- `scripts/check-spec-coherence.sh:14-22` — 전환 근거 박제. *"blue 가 ADVISORY 인 이유 (게으른 미완성이 아니다 — 올리지 말 것)"*.
-- `scripts/check-spec-coherence.sh:171-182` — green 축 즉시 집행 (하향 평준화 없음).
-- `scripts/check-spec-coherence.sh:184-195` — 비공허 하한.
-- `scripts/check-spec-coherence.sh:202-206` — ADVISORY 출력 형식.
-- 전환 대상: `scripts/check-acceptance-criteria.sh:47`(blue 루트) · `:59`(blue 스캔) · `:63`(위반 출력) · `:104`(`exit 1`) · `:120`(`exit 2` 무판정 선례 — 이미 (A-7) 을 충족하는 유일한 축).
+행 번호로 지칭하지 않는다 — 스크립트가 수정될 때마다 어긋나기 때문이다 (`RULE-06 §열거 고정 금지`). 아래는 `grep -n` 앵커 문자열이며 각각 현 HEAD 에서 hit ≥ 1 이다.
+
+- `scripts/check-spec-coherence.sh` — 판정 스코프를 writer 매트릭스에 정합시켜 주석으로 선언 (`src/**` hard-fail / green hard-fail / blue ADVISORY). 앵커 `판정 스코프 (RULE-01 writer 매트릭스 정합)`.
+- 같은 스크립트 — 전환 근거 박제. 앵커 `게으른 미완성이 아니다`.
+- 같은 스크립트 — green 축 즉시 집행(하향 평준화 없음) 앵커 `G4 VIOLATION` / 비공허·무판정 분리 앵커 `G5 NO-VERDICT` / ADVISORY 출력 형식 앵커 `ADVISORY (blue 는 RULE-01 상 편집 writer 부재`.
+- `scripts/check-acceptance-criteria.sh` — `c1a7f1f` 로 전환 완료 (전환 전에는 blue 귀속 위반이 `exit 1` 로 rc 집행됐다). 앵커 `ADVISORY` · `blue-scanned`.
 
 ### 모집단 은닉 실험 — `blue-scanned` 가 유일한 검출자다
 
