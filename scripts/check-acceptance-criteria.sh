@@ -35,6 +35,23 @@
 # 모집단 seam: ACC_SPEC_ROOT (기본 specs/30.spec). 저장소를 바꾸지 않고
 # 자기 민감도를 검증하기 위한 주입점이다 (spec §공개 인터페이스).
 #
+# 판정 스코프 (RULE-01 writer 매트릭스 정합):
+#   specs/30.spec/green/**  writer=inspector  -> rc 집행 (hard-fail 유지)
+#   specs/30.spec/blue/**   writer 부재        -> ADVISORY 계수·열거만 (rc 무영향)
+#
+# blue 가 ADVISORY 인 이유 (게으른 미완성이 아니다 — 올리지 말 것):
+#   RULE-01 writer 매트릭스상 blue 트리에는 create/edit writer 가 없다. inspector 는
+#   green 만, planner 는 mv 만, developer 는 src/·scripts/ 만 쓴다. 즉 blue 본문에
+#   귀속된 위반을 고칠 권한을 가진 에이전트가 파이프라인 안에 존재하지 않는다. 본
+#   스크립트는 .github/workflows/ci.yml 의 step 이므로 blue 를 hard-fail 로 두면
+#   rc≠0 을 0 으로 되돌릴 주체 없이 CI 가 영구 red 로 고착된다.
+#
+#   blue 귀속 미충족의 정상 처리 경로:
+#     10.followups -> discovery -> 20.req -> inspector 의 새 green 판본 -> 승격 mv
+#   blue 축 집행은 규약 변경(운영자 영역)이 선행 조건이다. 그 결정 전까지 본 게이트는
+#   숫자를 숨기지 않고 매 실행마다 건수·항목·스캔 모집단 수를 출력한다 — ADVISORY 는
+#   침묵이 아니며, blue 를 모집단에서 빼는 것은 이 계약의 위반이다(검출력 소멸).
+#
 # exit 0: 전 게이트 PASS (ack stdout)
 # exit 1: 위반 (stderr 상세 후 fail-fast)
 # exit 2: 무판정 — 판정 명령 도출이 공허(<100). 충족으로 읽지 않는다.
@@ -53,24 +70,49 @@ ACC_ROOT="${ACC_SPEC_ROOT:-specs/30.spec}"
 # 도출 비공허 하한. 추출기가 낡아 모집단이 비는 상태를 충족으로 읽지 않는다.
 DERIVE_MIN=100
 
-violations=0
+# 축 분리 — green 귀속만 rc 에 반영한다 (spec §동작 (A-4)(A-6)).
+# blue 축이 green 축을 이완시키지 않는다: 두 변수는 서로를 참조하지 않는다.
+green_violations=0
+blue_advisory=0
+blue_advisory_hits=""
 
-# ── G-1: blue 에 체크박스형 [deferred] 잔존 ─────────────────────────────────
+# 모집단 비삭감 수치 (spec §동작 (A-8)). **위반 계수가 아니라 스캔 문서 수**다.
+# 위반이 0 으로 떨어져도 이 값은 떨어지지 않으므로 "blue 를 모집단에서 뺐다" 와
+# 구별된다.
+blue_scanned="$(find "$BLUE" -name '*.md' -type f 2>/dev/null | wc -l | tr -d '[:space:]')"
+green_scanned="$(find "$GREEN" -name '*.md' -type f 2>/dev/null | wc -l | tr -d '[:space:]')"
+
+printf 'check-acceptance-criteria: blue-scanned=%s green-scanned=%s (blue 축 ADVISORY / green 축 rc 집행)\n' \
+  "$blue_scanned" "$green_scanned"
+
+# ADVISORY 발화는 실행 라인이 진다 (spec §동작 (A-5)) — 주석의 ADVISORY 는 아무것도
+# 출력하지 않는다. 종료 경로 0/1/2 전부에서 호출해 계수와 목록을 낸다.
+emit_advisory() {
+  printf 'check-acceptance-criteria: ADVISORY blue 귀속 미충족 %s건 / blue-scanned=%s (rc 미반영)\n' \
+    "$blue_advisory" "$blue_scanned"
+  if [ "$blue_advisory" -ne 0 ]; then
+    printf '%s' "$blue_advisory_hits" | head -20
+    printf '  처리 경로: 10.followups -> discovery -> 20.req -> 새 green 판본 -> 승격 mv\n'
+  fi
+}
+
+# ── G-1: blue 에 체크박스형 [deferred] 잔존 — 스캔 루트가 blue 이므로 전량
+#        blue 귀속이다. 계수·열거만 하고 rc 에 반영하지 않는다.
 g1_hits="$(grep -rnE '^[[:space:]]*-[[:space:]]*\[[ x]\].*\[deferred' "$BLUE" --include='*.md' 2>/dev/null || true)"
 g1_count="$(printf '%s' "$g1_hits" | grep -c . || true)"
 
 if [ "$g1_count" -ne 0 ]; then
-  printf 'G-1 VIOLATION: blue 에 체크박스형 [deferred] %s건 (기대 0)\n' "$g1_count" >&2
-  printf '%s\n' "$g1_hits" | head -10 >&2
-  printf 'Hint: [deferred] 는 green 전용. blue 승격 시 ## 참고 로 강등한다 (RULE-07 §promote).\n' >&2
-  violations=1
+  blue_advisory=$((blue_advisory + g1_count))
+  blue_advisory_hits="${blue_advisory_hits}$(printf '%s\n' "$g1_hits" | sed 's/^/  [G-1 blue deferred] /')
+"
 fi
 
 # ── G-2: §수용 기준 체크박스의 미래형 문장 ─────────────────────────────────
 # awk 로 §수용 기준 ~ 다음 `## ` 헤더 구간만 잘라 체크박스 라인을 검사한다.
 # 판정 불가 키워드는 RULE-07 §체크박스 부적격 부류에서 가져온다.
 future_re='차기|누적|대기|이벤트 후|발생 시|별 carve|추후|향후'
-g2_hits=""
+g2_green_hits=""
+g2_blue_hits=""
 
 for f in $(find "$GREEN" "$BLUE" -name '*.md' -type f 2>/dev/null | sort); do
   hits="$(awk '
@@ -80,27 +122,44 @@ for f in $(find "$GREEN" "$BLUE" -name '*.md' -type f 2>/dev/null | sort); do
   ' "$f" | grep -E "$future_re" || true)"
 
   if [ -n "$hits" ]; then
+    # 귀속은 hit 이 난 **파일의 위치**로 가른다 — 수리 주체는 문서를 쓴 쪽이다.
     while IFS= read -r line; do
       [ -z "$line" ] && continue
-      g2_hits="${g2_hits}${f}:${line}
+      case "$f" in
+        */30.spec/blue/*)
+          g2_blue_hits="${g2_blue_hits}${f}:${line}
 "
+          ;;
+        *)
+          g2_green_hits="${g2_green_hits}${f}:${line}
+"
+          ;;
+      esac
     done <<EOF
 $hits
 EOF
   fi
 done
 
-g2_count="$(printf '%s' "$g2_hits" | grep -c . || true)"
+g2_green_count="$(printf '%s' "$g2_green_hits" | grep -c . || true)"
+g2_blue_count="$(printf '%s' "$g2_blue_hits" | grep -c . || true)"
 
-if [ "$g2_count" -ne 0 ]; then
-  printf 'G-2 VIOLATION: §수용 기준 미체크 항목에 판정 불가(미래형) 문장 %s건 (기대 0)\n' "$g2_count" >&2
-  printf '%s' "$g2_hits" | head -10 >&2
-  printf 'Hint: 이 부류는 ## 참고 §미측정·비판정 항목 으로 강등한다 (RULE-07 §수용 기준 문장 규약).\n' >&2
-  violations=1
+if [ "$g2_blue_count" -ne 0 ]; then
+  blue_advisory=$((blue_advisory + g2_blue_count))
+  blue_advisory_hits="${blue_advisory_hits}$(printf '%s' "$g2_blue_hits" | sed 's/^/  [G-2 blue 미래형] /')
+"
 fi
 
-if [ "$violations" -ne 0 ]; then
-  printf 'check-acceptance-criteria: FAIL\n' >&2
+if [ "$g2_green_count" -ne 0 ]; then
+  printf 'G-2 VIOLATION: §수용 기준 미체크 항목에 판정 불가(미래형) 문장 %s건 (green 귀속 · 기대 0)\n' "$g2_green_count" >&2
+  printf '%s' "$g2_green_hits" | head -10 >&2
+  printf 'Hint: 이 부류는 ## 참고 §미측정·비판정 항목 으로 강등한다 (RULE-07 §수용 기준 문장 규약).\n' >&2
+  green_violations=1
+fi
+
+if [ "$green_violations" -ne 0 ]; then
+  emit_advisory
+  printf 'check-acceptance-criteria: FAIL (green 귀속 위반 — blue 축은 rc 에 반영되지 않는다)\n' >&2
   exit 1
 fi
 
@@ -117,18 +176,32 @@ if [ "$derived" -lt "$DERIVE_MIN" ]; then
   printf 'check-acceptance-criteria: derive=%s < %s vacuous (root=%s) — 무판정\n' \
     "$derived" "$DERIVE_MIN" "$ACC_ROOT" >&2
   printf 'Hint: 추출기가 낡았거나 모집단이 비었다. 공허 통과로 읽지 않는다.\n' >&2
+  emit_advisory
   exit 2
 fi
 
 # ── G-3: 판정 명령의 sed 주소 범위 재시작 ──────────────────────────────────
 g3_hits="$(printf '%s\n' "$cmds" | grep -E 'sed -n .{0,3}/[^/]*/,/[^/]*/p' || true)"
+# cmds 라인은 FILENAME:FNR: 접두를 가지므로 그 접두로 귀속을 가른다.
+# ACC_SPEC_ROOT 로 루트가 치환되면 blue 접두에 걸리지 않아 green 취급(=집행)이 된다.
+# 이는 의도다 — seam 은 자기 민감도 주입점이고 주입한 위반은 잡혀야 한다.
+g3_blue_hits="$(printf '%s' "$g3_hits" | grep -E '^[^:]*/30\.spec/blue/' || true)"
+g3_green_hits="$(printf '%s' "$g3_hits" | grep -vE '^[^:]*/30\.spec/blue/' || true)"
 g3_count="$(printf '%s' "$g3_hits" | grep -c . || true)"
+g3_blue_count="$(printf '%s' "$g3_blue_hits" | grep -c . || true)"
+g3_green_count="$(printf '%s' "$g3_green_hits" | grep -c . || true)"
 
-if [ "$g3_count" -ne 0 ]; then
-  printf 'G-3 VIOLATION: 판정 명령에 주소 범위 재시작 형태 %s건 (기대 0)\n' "$g3_count" >&2
-  printf '%s\n' "$g3_hits" | head -10 >&2
+if [ "$g3_blue_count" -ne 0 ]; then
+  blue_advisory=$((blue_advisory + g3_blue_count))
+  blue_advisory_hits="${blue_advisory_hits}$(printf '%s' "$g3_blue_hits" | sed 's/^/  [G-3 blue 범위재시작] /')
+"
+fi
+
+if [ "$g3_green_count" -ne 0 ]; then
+  printf 'G-3 VIOLATION: 판정 명령에 주소 범위 재시작 형태 %s건 (green 귀속 · 기대 0)\n' "$g3_green_count" >&2
+  printf '%s' "$g3_green_hits" | head -10 >&2
   printf 'Hint: 단발 범위(awk + exit)로 바꾼다 — 시작 패턴 재등장에도 재시작이 없다.\n' >&2
-  violations=1
+  green_violations=1
 fi
 
 # ── G-4: 판정 명령의 실행 금지어 ───────────────────────────────────────────
@@ -137,21 +210,34 @@ V="$(printf 'r''m -rf')|$(printf 'git re''set --hard')|$(printf 'git cl''ean -f'
 forbidden_verbs="$(printf '%s' "$V" | awk -F'|' '{ print NF }')"
 
 g4_hits="$(printf '%s\n' "$cmds" | grep -E "$V" || true)"
+g4_blue_hits="$(printf '%s' "$g4_hits" | grep -E '^[^:]*/30\.spec/blue/' || true)"
+g4_green_hits="$(printf '%s' "$g4_hits" | grep -vE '^[^:]*/30\.spec/blue/' || true)"
 g4_count="$(printf '%s' "$g4_hits" | grep -c . || true)"
+g4_blue_count="$(printf '%s' "$g4_blue_hits" | grep -c . || true)"
+g4_green_count="$(printf '%s' "$g4_green_hits" | grep -c . || true)"
 
-if [ "$g4_count" -ne 0 ]; then
-  printf 'G-4 VIOLATION: 판정 명령에 실행 금지어 %s건 (기대 0)\n' "$g4_count" >&2
-  printf '%s\n' "$g4_hits" | head -10 >&2
-  printf 'Hint: 금지어가 든 명령은 실행 불가라 promote 조건 2 를 영구 미충족으로 만든다.\n' >&2
-  violations=1
+if [ "$g4_blue_count" -ne 0 ]; then
+  blue_advisory=$((blue_advisory + g4_blue_count))
+  blue_advisory_hits="${blue_advisory_hits}$(printf '%s' "$g4_blue_hits" | sed 's/^/  [G-4 blue 금지어] /')
+"
 fi
 
-if [ "$violations" -ne 0 ]; then
-  printf 'check-acceptance-criteria: FAIL\n' >&2
+if [ "$g4_green_count" -ne 0 ]; then
+  printf 'G-4 VIOLATION: 판정 명령에 실행 금지어 %s건 (green 귀속 · 기대 0)\n' "$g4_green_count" >&2
+  printf '%s' "$g4_green_hits" | head -10 >&2
+  printf 'Hint: 금지어가 든 명령은 실행 불가라 promote 조건 2 를 영구 미충족으로 만든다.\n' >&2
+  green_violations=1
+fi
+
+if [ "$green_violations" -ne 0 ]; then
+  emit_advisory
+  printf 'check-acceptance-criteria: FAIL (green 귀속 위반 — blue 축은 rc 에 반영되지 않는다)\n' >&2
   exit 1
 fi
 
-printf 'check-acceptance-criteria: G-1 blue deferred=0 / G-2 미체크 미래형=0 (PASS)\n'
+emit_advisory
+printf 'check-acceptance-criteria: G-1 blue deferred=%s(ADVISORY) / G-2 미체크 미래형 green=%s blue=%s(ADVISORY) (PASS)\n' \
+  "$g1_count" "$g2_green_count" "$g2_blue_count"
 printf 'check-acceptance-criteria: judgement-commands=%s range-restart=%s unexecutable-verb=%s forbidden-verbs=%s (root=%s)\n' \
-  "$derived" "$g3_count" "$g4_count" "$forbidden_verbs" "$ACC_ROOT"
+  "$derived" "$g3_green_count" "$g4_green_count" "$forbidden_verbs" "$ACC_ROOT"
 exit 0
