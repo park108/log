@@ -50,7 +50,8 @@
     "pipeline:health": "bash scripts/pipeline-health.sh",
     "check:acceptance-criteria": "bash scripts/check-acceptance-criteria.sh",
     "check:telemetry-schema": "bash scripts/check-telemetry-schema.sh",
-    "check:output-parsing-color-independence": "bash scripts/check-output-parsing-color-independence.sh"
+    "check:output-parsing-color-independence": "bash scripts/check-output-parsing-color-independence.sh",
+    "check:task-precondition-scope": "bash scripts/check-task-precondition-scope.sh"
   },
   "engines": {
     "node": ">=24",

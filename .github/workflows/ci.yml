@@ -198,6 +198,20 @@ jobs:
       - name: Check measurement tree attribution
         run: npm run check:measurement-tree-attribution
 
+      # task 발행 조건 주장의 비공허성 + 격리 사유서 처방 소비
+      # (task-precondition-scope-nonvacuity-and-reason-consumption §동작 FR-01…FR-08).
+      # 확인 범위가 측정 대상을 담지 못하는데 결과가 초록으로 읽히는 형태를 닫는다. 같은
+      # 결합에서 이틀 연속 task 가 격리됐고 두 번째 격리는 첫 사유서가 앵커 문자열까지
+      # 처방을 이미 갖고 있는 상태에서 났다 — 손실의 원인은 정보 부족이 아니라 미소비다.
+      # 근거는 오류 비용의 비대칭이다: 범위가 좁으면 영 결과 -> 발행 -> 격리(세션 1개 소모),
+      # 넓으면 적중 -> 보류(비용 없음). 기본값이 고비용 쪽에 놓여 있었다.
+      # 판정 모집단은 픽스처다 — 실 대기열 두 곳이 .gitignore 대상이라 CI 체크아웃에
+      # 존재조차 하지 않는다. 실 트리 판정은 seam 주입으로만 하는 로컬 진단이다.
+      # 문서·마커는 하드코딩하지 않고 열거·조립으로 도출하며 (RULE-06 §열거 고정 금지)
+      # 모집단이 비면 통과(0)가 아니라 무판정(2)으로 실패시킨다.
+      - name: Check task precondition scope nonvacuity
+        run: npm run check:task-precondition-scope
+
       # api base URL 도출 총성 게이트 (api-base-url-assembly-totality §동작 (A-1)(A-3)(A-4)).
       # 미정의 base 가 `undefined + "?limit=10"` → 문자열 `"undefined?limit=10"` 이라는
       # **상대 URL** 로 조립돼 자기 origin 에 요청이 나가고, SPA 폴백이 index.html 을 200 으로

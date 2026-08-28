@@ -140,3 +140,18 @@ fi
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|\.husky/pre-commit$|scripts/)'; then
   bash scripts/check-gate-wiring.sh || exit 1
 fi
+
+# task 발행 조건 주장의 비공허성 + 격리 사유서 처방 소비 — TSK-20260828-08
+# spec: foundation/task-precondition-scope-nonvacuity-and-reason-consumption §동작 FR-01…FR-08
+# staged 변경에 게이트 자신 또는 판정 픽스처가 포함되면 검사.
+# npm script 동치: check:task-precondition-scope (package.json / ci.yml 과 같은 스크립트).
+# 확인 범위가 대상을 담지 못하는데 결과가 초록으로 읽히는 형태를 닫는다 — 같은 결합에서
+# 이틀 연속 task 가 격리됐고, 두 번째 격리는 첫 사유서가 앵커 문자열까지 처방을 갖고 있는
+# 상태에서 났다. 손실의 원인은 정보 부족이 아니라 미소비였다.
+# 판정 모집단은 픽스처다: 실 대기열 두 곳이 .gitignore 대상이라 신선한 클론에 존재조차
+# 하지 않고, 그것을 기본 모집단으로 삼으면 상시 채널이 항상 무판정으로 붉어진다.
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-task-precondition-scope\.sh$|scripts/fixtures/task-precondition/)'; then
+  bash scripts/check-task-precondition-scope.sh || exit 1
+fi
