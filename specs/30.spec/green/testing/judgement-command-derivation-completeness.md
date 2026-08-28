@@ -2,7 +2,7 @@
 
 > **위치**: 횡단 계약. 판정 대상은 `scripts/check-acceptance-criteria.sh` 의 판정 명령 모집단 도출부(`:113`)와 그 위에 서는 G-3·G-4(`:124` · `:139`).
 > **관련 요구사항**: REQ-20260826-028 (judgement-command-derivation-completeness)
-> **최종 업데이트**: 2026-08-26 (by inspector — tick 227 최초 등록)
+> **최종 업데이트**: 2026-08-28 (by inspector — tick 238 Phase 1: A-1 착지 반영)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (`61ce5ab`).
 
@@ -87,13 +87,13 @@ G-3·G-4 판정문을 스크립트에서 추출해 모집단 **밖** 스팬 2412
 - [x] 모집단 루트 seam 실재 — `ACC_SPEC_ROOT` 주입 시 도출 루트가 따라 움직임을 tick 227 이 사본 루트로 확인 (`derive=303` 동일).
 - [x] 비공허 하한 실재 — `DERIVE_MIN=100` · 빈 루트 주입 시 `exit 2`.
 - [x] G-3·G-4 민감도 — tick 227 이 사본 루트에 위반 1건씩 주입해 각각 `rc=1` + `파일:라인` 발화 확인, 원복 후 `shasum` 일치.
-- [ ] 상위 모집단 (P-A) 도출 — HEAD 부재. (A-1)(A-2) 의 부착 대상.
+- [x] 상위 모집단 (P-A) 도출 — `TSK-20260828-05`(`37f6285`) 착지. HEAD=`37f6285` `total-items=838 declared-items=75 derived-covered=75` 발화. 도출 귀속 관계(P-C)가 `declared-miss-green` / `declared-miss-blue` 로 축 분리돼 나온다.
 
 ## 수용 기준
 
-> 전 항목 **명령 1회로 rc 판정 가능** (`RULE-07 §수용 기준 문장 규약`). 명령은 `scripts/**` 와 게이트 산출만 참조하며 **어떤 spec 의 green/blue 경로 리터럴도 참조하지 않는다** (`§promote 조건 2`). **HEAD=`61ce5ab` (tick 227) 기준 4/5 + (A-1) 무판정.**
+> 전 항목 **명령 1회로 rc 판정 가능** (`RULE-07 §수용 기준 문장 규약`). 명령은 `scripts/**` 와 게이트 산출만 참조하며 **어떤 spec 의 green/blue 경로 리터럴도 참조하지 않는다** (`§promote 조건 2`). **HEAD=`37f6285` 기준 5/5 rc=0** (파일에서 추출해 실행 — 인용 아님). 착지 전 `61ce5ab` 기준은 4/5 + (A-1) 무판정이었다.
 
-- [ ] (Must, A-1) 선언 항목 전수가 도출에 귀속된다 — 판정: `bash -c 'out=$(npm run --silent check:acceptance-criteria 2>&1); d=$(echo "$out" | sed -nE "s/.*declared-items=([0-9]+).*/\1/p" | head -1); k=$(echo "$out" | sed -nE "s/.*derived-covered=([0-9]+).*/\1/p" | head -1); [ -n "$d" ] && [ -n "$k" ] || { echo "ack 라인 미발화" >&2; exit 2; }; [ "$d" -gt 0 ] || exit 2; [ "$d" = "$k" ]'` → **rc=0**. **HEAD=`61ce5ab` (tick 227) 실측 rc=2** — 두 수치가 아직 발화되지 않아 `ack 라인 미발화` 로 **무판정**이다. **무판정을 미충족으로 적지 않는다** — 둘은 다른 사건이며, 이 구분이 (A-3) 의 존재 이유다. 독립 probe 로 잰 실제 값은 tick 227 시점 `declared=71 covered=70`(미도출 1, blue 원본 1건)이므로 착지 직후 최초 발화는 **rc=1** 이 되고, 그 blue 원본이 green 재판본으로 승격 mv 되면 rc=0 이 된다.
+- [x] (Must, A-1) 선언 항목 전수가 도출에 귀속된다 — 판정: `bash -c 'out=$(npm run --silent check:acceptance-criteria 2>&1); d=$(echo "$out" | sed -nE "s/.*declared-items=([0-9]+).*/\1/p" | head -1); k=$(echo "$out" | sed -nE "s/.*derived-covered=([0-9]+).*/\1/p" | head -1); [ -n "$d" ] && [ -n "$k" ] || { echo "ack 라인 미발화" >&2; exit 2; }; [ "$d" -gt 0 ] || exit 2; [ "$d" = "$k" ]'` → **rc=0**. **HEAD=`37f6285` 실측 rc=0** — `TSK-20260828-05` 착지로 두 수치가 발화되고 일치한다 (`declared-items=75 derived-covered=75 declared-miss-green=0`). 착지 전 `61ce5ab` 는 `ack 라인 미발화` **rc=2**(무판정)였다 — **무판정을 미충족으로 적지 않는다**, 둘은 다른 사건이며 이 구분이 (A-3) 의 존재 이유다. tick 227 이 예고한 "착지 직후 최초 발화 rc=1"(blue 원본 1건 미승격)은 실현되지 않았다: 착지 시점에 그 blue 원본이 이미 승격돼 미도출이 0 이었다. **따라서 이 초록은 검출력의 증거가 아니다** — 검출력은 §참고 §검출 방향 실측 의 주입에서만 나온다.
 - [x] (Must, A-2) 미도출 항목이 **이름으로** 발화된다 — 판정: `bash -c 'e=$(npm run --silent check:acceptance-criteria 2>&1 1>/dev/null); [ -z "$e" ] || printf "%s" "$e" | grep -qE "specs/30\.spec/[^:]+\.md:[0-9]+"'` → **rc=0**. **HEAD=`61ce5ab` 실측 rc=0** (현 stderr 공란). 이 항목은 (A-1) 이 `rc=1` 을 내는 트리에서만 판정력을 갖는 **동반 조건**이다 — 단독으로는 "아직 아무것도 재지 않는다" 도 통과시킨다. 명시해 두지 않으면 이 초록이 수리 완료로 오독된다. 겨누는 것은 **수치만 내고 이름을 감추는 판본**이다: `declared-items=71 derived-covered=70` 만으로는 71 항목 중 어느 하나가 빠졌는지 관측되지 않는다.
 - [x] (Must, A-3) 무판정과 위반이 갈린다 — 판정: `bash -c 'ACC_SPEC_ROOT=$(mktemp -d) npm run --silent check:acceptance-criteria >/dev/null 2>&1; test $? -eq 2'` → **rc=0**. **HEAD=`61ce5ab` 실측 rc=0.** "위반이 있다"(1) 와 "잴 것이 없어졌다"(2) 를 합치면 도출기가 낡아 모집단이 빈 상태가 **위반으로도 충족으로도** 읽히며, 어느 쪽이든 오독이다.
 - [x] (Must, A-4) 기존 모집단이 줄지 않는다 — 판정: `bash -c 'npm run --silent check:acceptance-criteria 2>&1 | grep -qE "judgement-commands=[0-9]+ range-restart=0 unexecutable-verb=0"'` → **rc=0**. **HEAD=`61ce5ab` 실측 rc=0 / `judgement-commands=324`** (tick 227 착수 시점 동일 트리 `303` — 본 tick 편집이 도출을 **늘렸다**. 이 항목이 겨누는 것은 **감소**이며, 증가는 위반이 아니다). 본 계약은 모집단을 **넓히지도 좁히지도 않으며** 그 위에 층을 하나 얹을 뿐이다 — G-1·G-2 판정과 기존 4 수치는 보존된다.
@@ -109,6 +109,29 @@ G-3·G-4 판정문을 스크립트에서 추출해 모집단 **밖** 스팬 2412
 - **(Dir-2) 특이도** — 판정을 선언하지 **않는** 산문 항목을 1건 추가 → `rc=0` 유지. 산문의 "판정" 낱말이 항목을 상위 모집단에 넣으면 §동작 §자기 비봉쇄 위반이다.
 - **(Dir-3) 무판정 보존** — 빈 루트를 seam 으로 주입 → `rc=2` 가 `rc=1` 과 **구분**됨을 확인 → 원복.
 - **(Dir-4) 이름 발화 실효** — (Dir-1) 주입 상태에서 stderr 열거를 수치만 남기도록 축소하면 어느 항목이 빠졌는지 관측 불가함을 대조로 보인다. 열거가 있는 판본에서만 주입 항목의 `파일:라인` 이 나온다.
+- **(Dir-5) 축 분리 실효** — blue 문서에 (Dir-1) 과 **같은** 주입 → `rc=0` 유지 + ADVISORY 계수 `0 → 1` + 그 `파일:라인` 열거. green 주입이 `rc=1`, blue 주입이 `rc=0` 인 **대조쌍**이어야 축 분리가 실효다. 한쪽만 재면 "blue 를 아예 안 본다" 와 구별되지 않는다.
+
+> **이관 상태 (tick 238)** — (Dir-1) · (Dir-3) · (Dir-5) 는 본 tick 이 사본 루트에서 실측했고 결과를 §검출 방향 실측 에 박제했다. 실측했다는 사실이 이 항목들을 체크박스로 만들지는 않는다 — 주입은 게이트 도입·수정 시점의 1회 판정이지 반복 검증이 아니다 (`RULE-07 §처리`). (Dir-2) · (Dir-4) 는 아직 미실측이며 차기 게이트 수정 task 의 DoD 로 이관된 상태를 유지한다.
+
+### 검출 방향 실측 (HEAD=`37f6285`, tick 238) — 초록은 검출력의 증거가 아니다
+
+(A-1)~(A-5) 가 전수 `rc=0` 인 것은 **현 트리에 미도출이 0 이기 때문**이지 게이트가 무언가를 잡기 때문이 아니다. `RULE-06 §게이트 실효 검증` 이 기술한 대로 **특이도와 민감도는 독립**이며, 민감도는 주입에서만 관측된다. 아래는 저장소 트리를 건드리지 않고 `ACC_SPEC_ROOT` 사본 루트에 주입해 실측한 결과다. 사본 루트는 `30.spec` 명명을 보존해야 blue/green 축 분리 술어(`^[^:]*/30\.spec/blue/`)가 살아 있다 — 보존하지 않으면 blue 가 green 으로 계수된다.
+
+| 방향 | 주입 | rc | 발화 |
+|---|---|---|---|
+| (Dir-1) green 축 이탈 | 선언 항목 1건의 접두를 `bash -c` → `node -e` | **1** | `G-5 VIOLATION … 1건` + `declared-miss-green=1` + 그 `파일:라인` |
+| (Dir-5) blue 축 동일 이탈 | blue 문서 1건에 같은 주입 | **0** | ADVISORY `0건 → 1건` + `declared-miss-blue=1` (rc 미반영) |
+| (Dir-3) 무판정 보존 | 빈 루트를 seam 으로 주입 | **2** | `derive=0 < 100 vacuous` — `rc=1` 과 등급 분리 |
+
+세 방향 모두 주입 원복 후 `rc=0` 으로 복귀했다. 사본 루트 baseline 은 저장소와 동일 수치(`838 / 75 / 75`)를 재현했으므로 주입 전후 차이가 주입에 귀속된다.
+
+**(Dir-5) 가 `rc=0` 인 것은 이완이 아니라 축 분리다.** blue 는 `RULE-01` 상 writer 가 없어 green 편집으로 고칠 수 없다 — rc 로 집행하면 파이프라인이 영구 적색이 된다. 대신 계수·열거·처리 경로가 ADVISORY 로 전량 발화된다. 이 절충의 계약은 blue `foundation/blue-attributed-violation-advisory-accounting` 이 소유한다.
+
+**모집단 은닉 방어**: `blue-scanned` · `green-scanned` 는 **위반 계수가 아니라 스캔 문서 수**이며 seam 을 따르지 않고 저장소 고정 경로에서 센다. 그래서 빈 루트 주입(Dir-3)에서도 `blue-scanned=82` 가 불변이다. 이것이 의도다 — 위반을 0 으로 만드는 방법이 "고치기" 말고 "모집단에서 빼기" 로도 가능한데, 후자를 하면 이 수치가 떨어져 드러난다.
+
+**고정 하한은 두 층에서 산다**: 사본 루트에서 `판정:` 토큰만 무력화하니 `declared=0 < 20 vacuous` **rc=2** 가 났고, 이때 `DERIVE_MIN` 층은 **발화하지 않았다**(도출 모집단이 하한 위로 유지). 즉 `DERIVE_MIN=100`(하위 모집단 P-B)과 `DECLARE_MIN=20`(상위 모집단 P-A)은 서로를 대체하지 않는 별개 층이며, 각자 다른 붕괴를 무판정으로 잡는다. §역할 (ii) 가 상대화를 기각한 자리에 이 이중 하한이 서 있다.
+
+**토큰 재현 앵커** — `git archive 61ce5ab` 사본 루트에 현 게이트를 적용하면 `total-items=783 declared-items=69 derived-covered=67` 이 **정확히 재현**되고 rc=1 이며, 미도출 2건의 `파일:라인` 이 §동작 박제와 일치한다 (`green/testing/acceptance-command-measures-declared-subject.md:114` · `blue/testing/runtime-fetch-unmount-safety.md:191`). 게이트가 과거 판본에 대해서도 같은 수치를 낸다는 것은 도출기가 **트리의 함수**이지 실행 시점의 함수가 아님을 뜻한다.
 
 ### 미측정·비판정 항목
 
@@ -132,3 +155,4 @@ G-3·G-4 판정문을 스크립트에서 추출해 모집단 **밖** 스팬 2412
 |------|-----------|------|----------|
 | 2026-08-26 | REQ-20260826-028 (inspector tick 227) | 최초 등록. **req 수용 기준 6항을 그대로 쓰지 않았다**: (a) req 의 (A-5) "게이트 전체가 초록" 은 `npm test`·`check:*` 와 같은 **중복 게이트 부류**(위반 시 husky·CI 즉시 실패)라 `RULE-07 §반려 시그널` 에 따라 체크박스에서 제외하고 §참고 전제로 내렸다 — 남은 5항으로 재번호. (b) req (A-2) 를 **동반 조건**으로 명시했다: 현 트리 stderr 가 공란이라 단독 rc=0 은 판정력이 0 이며, 그 사실을 적지 않으면 초록이 수리 완료로 오독된다. (c) (A-1) 의 실측을 req 의 `declared=69 covered=67` 이 아니라 **tick 227 재측정값 `71/70`** 으로 박제했다 — 같은 tick 의 C-4·FR-08 교정이 모집단을 움직였기 때문이며, req 수치는 tick 227 착수 시점 트리에서 **독립 probe 로 재현해 783/69/226/67 정확 일치**를 확인했다 (받아쓰지 않았다). (d) §동작 에 **자기 비봉쇄** 절을 신설했다 — req NFR-03 이 문장으로만 있었고, `acceptance-command-measures-declared-subject` 가 검출 토큰 리터럴로 실제 자기봉쇄를 겪은 선례가 있다. (e) §동작 에 **"살아 있는 함정 유실 0"** 실측을 박제했다 — 이 구분을 지우면 본 계약이 존재하지 않는 손실을 근거로 삼게 된다. | all |
 - 2026-08-27 inspector: Phase 1 재실행 (HEAD `9cf62a4`) — (A-1) 명령 추출(len=324) 후 실행 → `ack 라인 미발화` rc=2 = **무판정** 지속으로 `[ ]` 유지 (미충족 아님, A-3 구분). (A-4) 게이트 재실행 rc=0, `judgement-commands=324 → 351` 증가로 모집단 비축소 유지. 증가분에는 본 tick 신설 spec `foundation/declared-gate-firing-channel-totality` 의 판정 명령 3건이 포함된다.
+- 2026-08-28 inspector tick 238: Phase 1 — **(A-1) 무판정(rc=2) → 충족(rc=0) 플립**. 근거 커밋 `37f6285`(`TSK-20260828-05`, `git merge-base --is-ancestor` 로 HEAD 조상 확인). §수용 기준 5항의 판정 명령을 **파일에서 추출**(len 324·152·110·132·161, 전부 비공란)해 실행 → **5/5 rc=0**. 게이트 산출 `total-items=838 declared-items=75 derived-covered=75 declared-miss-green=0 declared-miss-blue=0 judgement-commands=457`. §테스트 현황 (P-A) 도출 항목도 착지로 플립. **초록 자체는 검출력의 증거가 아니므로** §참고 에 §검출 방향 실측 을 신설해 사본 루트 주입 3방향(green rc=1 / blue rc=0 ADVISORY / 빈 루트 rc=2)과 이중 고정 하한(`DERIVE_MIN` · `DECLARE_MIN` 별개 층), `61ce5ab` 재현 앵커(`783/69/67` + 미도출 2건 파일:라인 일치)를 박제했다. (Dir-5) 를 이관 목록에 추가. **A-4 모집단 비감소 유지** — `324 → 351 → 457` 단조 증가.
