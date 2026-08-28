@@ -26,6 +26,14 @@
 #       금지어가 든 명령은 어떤 에이전트도 실행할 수 없으므로
 #       RULE-07 §promote 조건 2 를 영구히 만족시킬 수 없다 — 결과는 도달 불가와 같다.
 #
+#  P-D  §수용 기준 항목 중 **판정 명령을 보유한** 항목수(bearing)와 그중 `판정:` 로
+#       선언되지 않아 (P-C) 귀속 대조의 대상이 **아예 되지 않는** 항목수(undeclared-bearing).
+#       선언 판별이 리터럴 토큰이라 명령을 보유하고도 `판정 (펜스):` · `판정은 …` 로
+#       도입하면 선언으로 계수되지 않고, 그 항목은 derived-covered 에도 declared-miss 에도
+#       나타나지 않는다 — 접두 층 이탈과 같은 침묵이 한 층 위에서 난다. 이 층은 모집단을
+#       넓히지 않고 **세기만** 한다. rc 이빨은 항등식(bearing == derived-covered +
+#       undeclared-bearing)과 절대 하한(BEARING_MIN)이 진다.
+#
 #  G-5  §수용 기준에서 **판정을 선언한** 항목 전수가 판정 명령 도출에 귀속 == 항목수
 #       도출이 좁아 겨눈 표면의 일부를 애초에 보지 않는 상태를 rc=0 으로 덮지 않는다.
 #       judgement-commands= 는 단조 비감소라 누락이 생겨도 줄지 않고, DERIVE_MIN 은
@@ -60,7 +68,8 @@
 #
 # exit 0: 전 게이트 PASS (ack stdout)
 # exit 1: 위반 (stderr 상세 후 fail-fast)
-# exit 2: 무판정 — 판정 명령 도출이 공허(<100). 충족으로 읽지 않는다.
+# exit 2: 무판정 — 판정 명령 도출이 공허(<100) 또는 명령 보유 항목 모집단 붕괴
+#         (bearing < BEARING_MIN). 잴 것이 없어진 상태를 위반 부재로 읽지 않는다.
 # exit 3: 항목 도출 추출 실패 — 무판정(2)과 구별한다. 빈 추출이 declared=0 으로
 #         새어 무판정처럼 보이는 경로를 막는다.
 
@@ -77,6 +86,19 @@ ACC_ROOT="${ACC_SPEC_ROOT:-specs/30.spec}"
 
 # 도출 비공허 하한. 추출기가 낡아 모집단이 비는 상태를 충족으로 읽지 않는다.
 DERIVE_MIN=100
+
+# (P-D) 명령 보유 항목 비공허 하한. DERIVE_MIN · DECLARE_MIN 과 **같은 층의 고정
+# 상수**이며 직전 실측 대비 상대 기준이 아니다 (상대 하한은 상태 파일을 요구해
+# 무부작용 계약을 깬다). 붕괴는 충족이 아니라 무판정(exit 2)이다.
+BEARING_MIN=100
+
+# (P-D) 계수 상태. 조기 종료 경로(exit 2/3)에서도 ack 라인을 내야 하므로 여기서
+# 초기화한다 — set -u 하에서 미정의 참조가 되지 않는다.
+bearing_items=0
+undeclared_bearing=0
+pd_green_count=0
+pd_blue_count=0
+pd_green_hits=""
 
 # 축 분리 — green 귀속만 rc 에 반영한다 (spec §동작 (A-4)(A-6)).
 # blue 축이 green 축을 이완시키지 않는다: 두 변수는 서로를 참조하지 않는다.
@@ -98,9 +120,23 @@ printf 'check-acceptance-criteria: blue-scanned=%s green-scanned=%s (blue 축 AD
 emit_advisory() {
   printf 'check-acceptance-criteria: ADVISORY blue 귀속 미충족 %s건 / blue-scanned=%s (rc 미반영)\n' \
     "$blue_advisory" "$blue_scanned"
-  if [ "$blue_advisory" -ne 0 ]; then
+  if [ -n "$blue_advisory_hits" ]; then
     printf '%s' "$blue_advisory_hits" | head -20
     printf '  처리 경로: 10.followups -> discovery -> 20.req -> 새 green 판본 -> 승격 mv\n'
+  fi
+}
+
+# (P-D) 발화 — 종료 경로 0/1/2/3 **전부**에서 낸다. 수치만 내면 어느 항목이 층에서
+# 이탈했는지 관측되지 않으므로 green 귀속은 이름으로 열거한다 (blue 귀속은
+# blue_advisory_hits 채널이 진다). blue-scanned · green-scanned 를 **같은 라인에**
+# 실어 "모집단에서 빼서 0 을 만드는" 값싼 해소를 구별한다 (RULE-06 ADVISORY 모집단 단언).
+emit_bearing() {
+  printf 'check-acceptance-criteria: bearing-items=%s undeclared-bearing=%s undeclared-bearing-green=%s undeclared-bearing-blue=%s(ADVISORY) bearing-min=%s blue-scanned=%s green-scanned=%s (root=%s)\n' \
+    "$bearing_items" "$undeclared_bearing" "$pd_green_count" "$pd_blue_count" \
+    "$BEARING_MIN" "$blue_scanned" "$green_scanned" "$ACC_ROOT"
+  if [ -n "$pd_green_hits" ]; then
+    # 마지막 줄 개행 보장 — 열거가 후속 Hint 라인과 이어붙지 않는다.
+    printf '%s\n' "$pd_green_hits" | head -10 | sed 's/^/  [P-D green 선언토큰 이탈] /'
   fi
 }
 
@@ -167,6 +203,7 @@ fi
 
 if [ "$green_violations" -ne 0 ]; then
   emit_advisory
+  emit_bearing
   printf 'check-acceptance-criteria: FAIL (green 귀속 위반 — blue 축은 rc 에 반영되지 않는다)\n' >&2
   exit 1
 fi
@@ -185,6 +222,7 @@ if [ "$derived" -lt "$DERIVE_MIN" ]; then
     "$derived" "$DERIVE_MIN" "$ACC_ROOT" >&2
   printf 'Hint: 추출기가 낡았거나 모집단이 비었다. 공허 통과로 읽지 않는다.\n' >&2
   emit_advisory
+  emit_bearing
   exit 2
 fi
 
@@ -217,12 +255,13 @@ if [ -n "$acc_files" ]; then
     function emit(endl,   i, cov) {
       if (!open) return
       itemc++
+      cov = 0
+      for (i = ostart; i <= endl; i++) if ((ofile SUBSEP i) in cmd) { cov = 1; break }
+      if (cov) bearc++
       if (odecl) {
         declc++
-        cov = 0
-        for (i = ostart; i <= endl; i++) if ((ofile SUBSEP i) in cmd) { cov = 1; break }
         if (cov) covc++; else miss[++missn] = ofile ":" ostart
-      }
+      } else if (cov) ubear[++ubearn] = ofile ":" ostart
       open = 0
     }
     BEGIN {
@@ -240,7 +279,9 @@ if [ -n "$acc_files" ]; then
       printf "ITEMS %d\n", itemc
       printf "DECLARED %d\n", declc
       printf "COVERED %d\n", covc
+      printf "BEARING %d\n", bearc
       for (i = 1; i <= missn; i++) printf "MISS %s\n", miss[i]
+      for (i = 1; i <= ubearn; i++) printf "UBEAR %s\n", ubear[i]
     }
   ' $acc_files)"
 fi
@@ -248,13 +289,17 @@ fi
 items_total="$(printf '%s\n' "$acc_spans" | awk '$1=="ITEMS"{print $2}')"
 declared_count="$(printf '%s\n' "$acc_spans" | awk '$1=="DECLARED"{print $2}')"
 covered_count="$(printf '%s\n' "$acc_spans" | awk '$1=="COVERED"{print $2}')"
+bearing_items="$(printf '%s\n' "$acc_spans" | awk '$1=="BEARING"{print $2}')"
 g5_hits="$(printf '%s\n' "$acc_spans" | sed -n 's/^MISS //p')"
+pd_hits="$(printf '%s\n' "$acc_spans" | sed -n 's/^UBEAR //p')"
 
 # 추출 실패는 명시 실패다. 빈 추출은 declared=0 을 만들고 그것은 exit 2 로 새어
 # 무판정처럼 보인다 — 그 경로를 막는다 (RULE-06 §추출 실패 검출).
-if [ -z "$items_total" ] || [ -z "$declared_count" ] || [ -z "$covered_count" ]; then
+if [ -z "$items_total" ] || [ -z "$declared_count" ] || [ -z "$covered_count" ] || [ -z "$bearing_items" ]; then
+  bearing_items=0
   printf 'check-acceptance-criteria: (P-A) 항목 도출 추출 실패 (root=%s) — 무판정 아님\n' "$ACC_ROOT" >&2
   emit_advisory
+  emit_bearing
   exit 3
 fi
 
@@ -263,6 +308,7 @@ if [ "$declared_count" -lt "$DECLARE_MIN" ]; then
     "$declared_count" "$DECLARE_MIN" "$ACC_ROOT" >&2
   printf 'Hint: 선언 항목 도출이 공허하다. 공허 통과로 읽지 않는다.\n' >&2
   emit_advisory
+  emit_bearing
   exit 2
 fi
 
@@ -272,6 +318,22 @@ g5_blue_hits="$(printf '%s' "$g5_hits" | grep -E '^[^:]*/30\.spec/blue/' || true
 g5_green_hits="$(printf '%s' "$g5_hits" | grep -vE '^[^:]*/30\.spec/blue/' || true)"
 g5_blue_count="$(printf '%s' "$g5_blue_hits" | grep -c . || true)"
 g5_green_count="$(printf '%s' "$g5_green_hits" | grep -c . || true)"
+
+# (P-D) 축 분리 — g5_blue_hits / g5_green_hits 와 **동일 술어**를 쓴다. 술어를 새로
+# 쓰면 같은 사실의 두 번째 공급원이 된다.
+pd_blue_hits="$(printf '%s' "$pd_hits" | grep -E '^[^:]*/30\.spec/blue/' || true)"
+pd_green_hits="$(printf '%s' "$pd_hits" | grep -vE '^[^:]*/30\.spec/blue/' || true)"
+pd_blue_count="$(printf '%s' "$pd_blue_hits" | grep -c . || true)"
+pd_green_count="$(printf '%s' "$pd_green_hits" | grep -c . || true)"
+undeclared_bearing="$(printf '%s' "$pd_hits" | grep -c . || true)"
+
+# blue 귀속 열거는 기존 ADVISORY 채널이 진다. blue_advisory **계수는 올리지 않는다** —
+# 그 수치는 G-1~G-5 의 '귀속 미충족' 계수이고 (P-D) 는 층 이탈이라 부류가 다르다.
+# (P-D) 의 계수는 emit_bearing 의 undeclared-bearing-blue= 가 진다.
+if [ "$pd_blue_count" -ne 0 ]; then
+  blue_advisory_hits="${blue_advisory_hits}$(printf '%s\n' "$pd_blue_hits" | head -10 | sed 's/^/  [P-D blue 선언토큰 이탈] /')
+"
+fi
 
 if [ "$g5_blue_count" -ne 0 ]; then
   blue_advisory=$((blue_advisory + g5_blue_count))
@@ -349,8 +411,36 @@ fi
 if [ "$green_violations" -ne 0 ]; then
   emit_advisory
   emit_items
+  emit_bearing
   printf 'check-acceptance-criteria: FAIL (green 귀속 위반 — blue 축은 rc 에 반영되지 않는다)\n' >&2
   exit 1
+fi
+
+# ── (P-D) rc 이빨 1: 항등식 ────────────────────────────────────────────────
+# 명령 보유 항목은 '선언 + 보유'(derived-covered) 와 '미선언 + 보유'(undeclared-bearing)
+# 로 정확히 갈린다. 목록 산출이 죽어 undeclared-bearing 이 조용히 0 이 되면 bearing 은
+# 그대로이므로 이 항등식이 깨진다 — 이 층이 민감도 0 으로 굳는 회귀를 이것이 잡는다.
+if [ "$bearing_items" -ne "$((covered_count + undeclared_bearing))" ]; then
+  printf 'P-D VIOLATION: bearing=%s != derived-covered=%s + undeclared-bearing=%s (root=%s)\n' \
+    "$bearing_items" "$covered_count" "$undeclared_bearing" "$ACC_ROOT" >&2
+  printf 'Hint: 명령 보유 항목은 선언·미선언 두 갈래로 정확히 갈린다. 한쪽 산출이 죽었다.\n' >&2
+  emit_advisory
+  emit_items
+  emit_bearing
+  printf 'check-acceptance-criteria: FAIL ((P-D) 항등식 위반)\n' >&2
+  exit 1
+fi
+
+# ── (P-D) rc 이빨 2: 모집단 붕괴 ───────────────────────────────────────────
+# "잴 것이 없어졌다" 를 "위반이 없다" 로 읽지 않는다.
+if [ "$bearing_items" -lt "$BEARING_MIN" ]; then
+  printf 'check-acceptance-criteria: bearing=%s < %s vacuous (root=%s) — 무판정\n' \
+    "$bearing_items" "$BEARING_MIN" "$ACC_ROOT" >&2
+  printf 'Hint: 판정 명령 보유 항목 모집단이 붕괴했다. 공허 통과로 읽지 않는다.\n' >&2
+  emit_advisory
+  emit_items
+  emit_bearing
+  exit 2
 fi
 
 emit_advisory
@@ -359,4 +449,5 @@ printf 'check-acceptance-criteria: G-1 blue deferred=%s(ADVISORY) / G-2 미체�
 printf 'check-acceptance-criteria: judgement-commands=%s range-restart=%s unexecutable-verb=%s forbidden-verbs=%s (root=%s)\n' \
   "$derived" "$g3_green_count" "$g4_green_count" "$forbidden_verbs" "$ACC_ROOT"
 emit_items
+emit_bearing
 exit 0
