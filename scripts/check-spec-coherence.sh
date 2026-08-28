@@ -25,6 +25,7 @@
 # G2 (디스크 실재):    src 내 specs/30.spec/{blue,green}/...md 패턴 매칭 경로 -> 전원 test -e PASS.
 # G4 (spec-scope):     <SPEC_ROOT>/green/** 문서의 부재 참조 0 · 금지 suffix 표기 0.
 # G5 (비공허):         스캔 md 파일 수 >= SPEC_MIN_FILES, 추출 distinct 경로 수 >= SPEC_MIN_DISTINCT.
+#                      미달은 위반(exit 1)이 아니라 무판정(exit 2)이다.
 #                      추출·열거가 어긋나 0 을 내면 전 항목이 조용히 자동 통과하므로 하한을 둔다.
 #                      스캔 루트를 src 로 되돌리면 이 하한이 즉시 실패한다.
 #
@@ -38,7 +39,12 @@
 #   CI·훅은 기본값을 쓴다.
 #
 # exit 0: 전 게이트 PASS (ack 출력).
-# exit 1: G1·G2·G4·G5 중 1건 이상 위반 (stderr 상세).
+# exit 1: G1·G2·G4(green) 중 1건 이상 확정 위반 (stderr 상세).
+# exit 2: G5 비공허 미달 = 무판정 (모집단이 붕괴해 측정하지 못함 — 위반이 아니다).
+#   등급 우선순위: 확정 위반 > 무판정. exit 1 사유가 하나라도 있으면 그쪽이 이긴다.
+#   그러지 않으면 src 실위반이 무판정 뒤에 숨는다.
+#   빈 spec 트리가 정당한 상태는 이 모집단에 없으므로 공집합은 절대 0 이 아니다.
+#   exit 2 도 CI step 과 pre-commit 훅을 실패시킨다 — 등급만 갈리고 차단력은 같다.
 
 set -u
 
@@ -103,11 +109,16 @@ SPEC_REF_RE='specs/30\.spec/(blue|green)/[A-Za-z0-9_./-]+\.md'
 SPEC_SUFFIX_RE='specs/30\.spec/[^"`\ ]*-spec\.md'
 
 spec_md_files=0
+# blue-scanned: 위반 계수가 아니라 blue 스캔 **모집단** 수. 위반 계수가 0 으로
+#   떨어졌을 때 "깨끗해졌다" 와 "모집단에서 뺐다" 를 가르는 유일한 수치다.
+blue_scanned=0
 spec_refs=""
 spec_suffix_out=""
 
 if [ -d "$SPEC_ROOT" ]; then
   spec_md_files="$(find "$SPEC_ROOT" -type f -name '*.md' 2>/dev/null | wc -l | tr -d '[:space:]')"
+  # 경로는 seam($SPEC_ROOT)으로 조립한다. 제외 규칙은 위 스캔과 동일(-name '*.md').
+  blue_scanned="$(find "$SPEC_ROOT/blue" -type f -name '*.md' 2>/dev/null | wc -l | tr -d '[:space:]')"
   # -n: 파일:라인:매치 (소유 파일 판정용). sort -u: 동일 라인 중복 제거.
   spec_refs="$(grep -rnoE --include='*.md' "$SPEC_REF_RE" "$SPEC_ROOT" 2>/dev/null | sort -u)"
   spec_suffix_out="$(grep -rnE --include='*.md' "$SPEC_SUFFIX_RE" "$SPEC_ROOT" 2>/dev/null)"
@@ -182,26 +193,39 @@ if [ "$green_suffix" -gt 0 ]; then
 fi
 
 # G5 비공허 — 측정면 자체가 붕괴하면(스코프 회귀·열거 실패) 여기서 잡는다.
+# 이는 계약 위반이 아니라 "측정 못 함" 이므로 violations 를 올리지 않고 무판정으로 센다.
+undecided=0
+
 if [ "$spec_md_files" -lt "$SPEC_MIN_FILES" ]; then
-  printf 'G5 VIOLATION (vacuous): spec-scope md 파일 %s개 < 하한 %s (root=%s)\n' \
+  printf 'G5 NO-VERDICT (vacuous · 무판정): spec-scope md 파일 %s개 < 하한 %s (root=%s)\n' \
     "$spec_md_files" "$SPEC_MIN_FILES" "$SPEC_ROOT" >&2
-  violations=1
+  undecided=1
 fi
 
 if [ "$spec_distinct" -lt "$SPEC_MIN_DISTINCT" ]; then
-  printf 'G5 VIOLATION (vacuous): spec-scope 추출 distinct %s개 < 하한 %s (root=%s)\n' \
+  printf 'G5 NO-VERDICT (vacuous · 무판정): spec-scope 추출 distinct %s개 < 하한 %s (root=%s)\n' \
     "$spec_distinct" "$SPEC_MIN_DISTINCT" "$SPEC_ROOT" >&2
-  violations=1
+  undecided=1
 fi
 
+# 등급 우선순위: 확정 위반(exit 1) > 무판정(exit 2). 순서를 뒤집지 말 것 —
+# 뒤집으면 모집단이 붕괴한 실행에서 src 실위반이 무판정 뒤에 숨는다.
 if [ $violations -ne 0 ]; then
   exit 1
 fi
 
+if [ $undecided -ne 0 ]; then
+  # 접두사에 게이트 이름을 쓰지 않는다 — self-diag fixture 가 `<word>-spec` 토큰 수를
+  #   7 로 고정하고 있어 한 건만 늘어도 깨진다 (수정처는 이 파일 scope 밖).
+  printf 'G5 NO-VERDICT: 측정 모집단 붕괴로 판정하지 않았다 (root=%s). 위반 아님 · 통과도 아님.\n' \
+    "$SPEC_ROOT" >&2
+  exit 2
+fi
+
 printf 'check-spec-coherence: G1 0 hit / G2 0 MISSING (src/** ↔ specs/30.spec/**)\n'
-printf 'check-spec-coherence: spec-scope root=%s files=%s distinct=%s green(missing=%s suffix=%s) blue(missing=%s suffix=%s · ADVISORY)\n' \
-  "$SPEC_ROOT" "$spec_md_files" "$spec_distinct" \
+printf 'check-spec-coherence: spec-scope root=%s files=%s distinct=%s blue-scanned=%s green(missing=%s suffix=%s) blue(missing=%s suffix=%s · ADVISORY)\n' \
+  "$SPEC_ROOT" "$spec_md_files" "$spec_distinct" "$blue_scanned" \
   "$green_missing" "$green_suffix" "$blue_missing" "$blue_suffix"
-printf '  ADVISORY (blue 는 RULE-01 상 편집 writer 부재 — 집행은 규약 변경 선행): 부재 참조 %s / suffix %s line. rc 에 반영하지 않는다.\n' \
-  "$blue_missing" "$blue_suffix"
+printf '  ADVISORY (blue 는 RULE-01 상 편집 writer 부재 — 집행은 규약 변경 선행): 부재 참조 %s / suffix %s line (모집단 blue-scanned=%s). rc 에 반영하지 않는다.\n' \
+  "$blue_missing" "$blue_suffix" "$blue_scanned"
 exit 0
