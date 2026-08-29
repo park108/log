@@ -9,7 +9,10 @@
 	margin-bottom: 0.75em;
 }
 
-@media screen and (min-width: 399px) {
+/* 모바일 검색 토글 — utilities.css 의 hidden/show--width-400px 쌍과 같은
+ * 전환 축이다. 경계가 399px 로 어긋나 있어 400px 에서 데스크톱 입력은
+ * 아직 숨겨진 채(max-width:400px) 토글 버튼도 함께 사라졌다. 400px 로 통일. */
+@media screen and (min-width: 401px) {
 	.span--nav-searchbutton {
 		display: none;
 	}

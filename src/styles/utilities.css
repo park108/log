@@ -152,13 +152,18 @@
 	cursor: pointer;
 }
 
+/* 두 규칙은 상보여야 한다 — 한쪽이 보이면 다른 쪽은 숨는다.
+ * 경계가 1px 어긋나 있어 399px·400px 에서 **양쪽 다** 숨겨졌다.
+ * SearchInput 이 데스크톱 입력(hidden--)과 모바일 입력·버튼(show--)을
+ * 이 쌍으로 전환하므로, 그 2px 구간에서는 검색을 아예 할 수 없었다.
+ * 경계를 400px 로 통일한다: 400px 이하 = 모바일, 401px 이상 = 데스크톱. */
 @media screen and (max-width: 400px) {
 	.hidden--width-400px {
 		display: none;
 	}
 }
 
-@media screen and (min-width: 399px) {
+@media screen and (min-width: 401px) {
 	.show--width-400px {
 		display: none;
 	}
