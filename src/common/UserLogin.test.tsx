@@ -112,23 +112,33 @@ describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
     vi.restoreAllMocks();
   });
 
-  it('login 은 네이티브 button 이다', () => {
+  it('login 은 네이티브 button 이 아니다 — 눈에 띄지 않게 두는 것이 의도다', () => {
     setEnv(true, false);
 
     render(<UserLogin />);
     const el = screen.getByTestId('login-button');
 
-    // span[role=button] + activateOnKey 손조립을 네이티브 button 으로 바꿨다.
-    expect(el.tagName).toBe('BUTTON');
+    // 운영자 지시 (2026-08-29): 이 진입점은 푸터의 이름처럼 보여야 한다.
+    // 네이티브 button 은 브라우저 기본 테두리·배경을 드러내 그 의도를 깨뜨린다.
+    // 한 번 button 으로 바꿨다가 되돌린 이력이 있으므로 요소 자체를 못 박는다.
+    expect(el.tagName).not.toBe('BUTTON');
 
-    // 손조립 잔재 금지 — onKeyDown 이 남으면 Enter 에서 이중 발화한다.
-    expect(el).not.toHaveAttribute('role');
-    expect(el).not.toHaveAttribute('tabindex');
-    expect(el).toHaveAttribute('type', 'button');
+    // 다만 키보드 접근은 유지한다 — 손조립 패턴 B 3종을 갖춘다.
+    expect(el).toHaveAttribute('role', 'button');
+    expect(el).toHaveAttribute('tabIndex', '0');
 
-    // tabindex 없이 초점을 받는다.
     el.focus();
     expect(document.activeElement).toBe(el);
+  });
+
+  it('Enter 로 login 이 활성된다', () => {
+    setEnv(true, false);
+    vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
+
+    render(<UserLogin />);
+    fireEvent.keyDown(screen.getByTestId('login-button'), { key: 'Enter' });
+
+    expect(window.location.href).toContain('localhost:3000');
   });
 
   it('클릭으로 login 이 활성된다', () => {

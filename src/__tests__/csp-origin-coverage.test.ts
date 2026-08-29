@@ -51,6 +51,38 @@ const covers = (allowed: string, host: string): boolean => {
 	return host.endsWith(allowed.slice(1)) || host === allowed.slice(2);
 };
 
+/** CSP 문자열을 지시어별 허용 출처 맵으로 쪼갠다. */
+const parseDirectives = (csp: string): Map<string, string[]> => {
+	const map = new Map<string, string[]>();
+	for (const part of csp.split(";")) {
+		const tokens = part.trim().split(/\s+/).filter(Boolean);
+		if (tokens.length === 0) continue;
+		const name = tokens[0]!;
+		map.set(name, tokens.slice(1).flatMap((t) => {
+			const m = /^https:\/\/([a-zA-Z0-9.*-]+)$/.exec(t);
+			return m ? [m[1]!] : [];
+		}));
+	}
+	return map;
+};
+
+const readCsp = (): string => {
+	const html = readFileSync(PATH_INDEX_HTML, "utf8");
+	return /content="([^"]*)"/.exec(html.slice(html.indexOf("Content-Security-Policy")))?.[1] ?? "";
+};
+
+/** presigned 업로드가 향하는 S3 출처 — 도메인 fixture 가 그 응답을 모델링한다. */
+const presignedUploadOrigins = (): string[] => {
+	const hosts = new Set<string>();
+	for (const f of walk(SRC)) {
+		if (!/__fixtures__/.test(f)) continue;
+		for (const m of readFileSync(f, "utf8").matchAll(/https:\/\/([a-zA-Z0-9.-]+\.s3\.[a-zA-Z0-9.-]+)/g)) {
+			hosts.add(m[1]!);
+		}
+	}
+	return [...hosts];
+};
+
 describe("CSP 허용 목록 ↔ 실제 사용 출처", () => {
 
 	it("소스에 실재하는 외부 출처가 CSP 어딘가에 허용돼 있다", () => {
@@ -71,6 +103,53 @@ describe("CSP 허용 목록 ↔ 실제 사용 출처", () => {
 		expect(
 			missing,
 			`CSP 에 없는 출처를 소스가 사용한다 — 브라우저가 조용히 차단한다: ${missing.join(", ")}`,
+		).toEqual([]);
+	});
+
+	// 위 케이스는 "CSP **어딘가에** 있는가" 만 본다. 그것만으로는 부족하다 —
+	// 2026-08-29 에 S3 가 img-src 에는 있고 connect-src 에는 없어서 파일 업로드가
+	// 통째로 막혔는데 위 케이스는 초록이었다. 같은 출처가 표시 대상이면서 동시에
+	// 업로드 대상일 수 있으므로 **지시어별로** 판정한다.
+	it("presigned 업로드 대상 S3 출처가 connect-src 에 허용돼 있다", () => {
+
+		const csp = readCsp();
+		expect(csp, "CSP 문자열을 읽지 못했다 — 판정이 공허하다").not.toBe("");
+
+		// 업로드 흐름이 실재하는지 먼저 확인한다 — 없으면 이 판정은 공허하다.
+		const fileApi = readFileSync(join(SRC, "File", "api.ts"), "utf8");
+		expect(fileApi, "getPreSignedUrl 흐름이 없다 — 판정 전제가 사라졌다").toContain("getPreSignedUrl");
+		expect(fileApi, "PUT 업로드가 없다 — 판정 전제가 사라졌다").toContain('method: "PUT"');
+
+		const uploadHosts = presignedUploadOrigins();
+		expect(
+			uploadHosts.length,
+			"fixture 에서 S3 출처를 하나도 찾지 못했다 — 모집단이 비면 판정이 공허하다",
+		).toBeGreaterThanOrEqual(1);
+
+		const connect = parseDirectives(csp).get("connect-src") ?? [];
+		expect(connect.length, "connect-src 에서 허용 출처를 뽑지 못했다").toBeGreaterThanOrEqual(1);
+
+		const blocked = uploadHosts.filter((h) => !connect.some((a) => covers(a, h)));
+
+		expect(
+			blocked,
+			`업로드 대상이 connect-src 에 없다 — 업로드가 통째로 차단된다: ${blocked.join(", ")}`,
+		).toEqual([]);
+	});
+
+	it("이미지 출처가 img-src 에 허용돼 있다", () => {
+
+		const csp = readCsp();
+		const imgSrc = parseDirectives(csp).get("img-src") ?? [];
+		expect(imgSrc.length, "img-src 에서 허용 출처를 뽑지 못했다").toBeGreaterThanOrEqual(1);
+
+		const hosts = presignedUploadOrigins();
+		expect(hosts.length, "S3 출처 모집단이 비었다").toBeGreaterThanOrEqual(1);
+
+		const blocked = hosts.filter((h) => !imgSrc.some((a) => covers(a, h)));
+		expect(
+			blocked,
+			`이미지 출처가 img-src 에 없다 — 본문 이미지가 조용히 비어 보인다: ${blocked.join(", ")}`,
 		).toEqual([]);
 	});
 });

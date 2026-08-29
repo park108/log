@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { SyntheticEvent } from "react";
 import * as common from '../common/common';
+import { activateOnKey } from './a11y';
 import { isDev, isProd } from './env';
 import { reportError } from './errorReporter';
 
@@ -55,19 +56,26 @@ const UserLogin = () => {
 
 	return (
 		<>
-			<button
-				type="button"
+			{/* **네이티브 button 으로 바꾸지 않는다 (운영자 지시, 2026-08-29).**
+			    이 진입점은 눈에 띄지 않아야 한다 — 푸터의 이름처럼 보이게 두는 것이
+			    의도다. button 으로 바꾸면 브라우저 기본 테두리·배경이 드러나 그 의도가
+			    깨진다 (실제로 한 번 깨뜨렸다). 스타일 리셋으로 감출 수도 있으나,
+			    요소 선택 자체가 의도적이라는 지시를 받았으므로 span 을 유지한다.
+
+			    `aria-disabled` 가 `disabled` 가 아닌 것도 의도다 — `disabled` 는 초점
+			    대상에서 빼버려 실패 사실에 도달하지 못하게 한다. */}
+			<span
+				role="button"
 				data-testid="login-button"
+				tabIndex={0}
 				className="span span--login-text"
 				// 실패가 아닐 때는 속성 자체를 렌더하지 않는다 (`aria-disabled="false"` 상시 부여 금지).
-				//
-				// `disabled` 가 아니라 `aria-disabled` 인 것은 의도다 — `disabled` 는 초점
-				// 대상에서 빼버려 스크린리더 사용자가 실패 사실에 도달하지 못한다.
 				aria-disabled={entryFailure ? "true" : undefined}
 				onClick={(e: SyntheticEvent) => handleLoginClick(e)}
+				onKeyDown={activateOnKey(handleLoginClick)}
 			>
 				{ common.isLoggedIn() ? "👨‍💻 Jongkil Park" : "Jongkil Park" }
-			</button>
+			</span>
 			{ entryFailure && (
 				<span role="alert" className="span span--login-error">{ entryFailure }</span>
 			) }
