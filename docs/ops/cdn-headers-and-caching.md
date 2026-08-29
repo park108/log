@@ -99,9 +99,22 @@ meta CSP 의 나머지 지시어(`default-src` · `script-src` · `connect-src` 
 
 ---
 
-## 검증
+## 검증 — 완료 (2026-08-29)
 
-배포 후 실행한다. `customHttp.yml` 은 **다음 배포부터** 적용된다.
+배포 후 실측했다. **5종 전부 적용됐다.** `customHttp.yml` 이 읽힌다는 것은
+이 사이트가 **Amplify Hosting** 임을 확정한다 (추론이 아니라 관측).
+
+```
+$ curl -sI https://www.park108.net/ | grep -iE '...'
+strict-transport-security: max-age=31536000
+content-security-policy: frame-ancestors 'none'
+x-frame-options: DENY
+x-content-type-options: nosniff
+referrer-policy: strict-origin-when-cross-origin
+```
+
+아래는 회귀 확인용으로 남긴다. `customHttp.yml` 변경은 **다음 배포부터**
+적용된다.
 
 ```bash
 # 보안 헤더 5종이 실재한다
@@ -116,9 +129,8 @@ curl -sI https://www.park108.net/ \
 #   strict-transport-security: max-age=31536000
 ```
 
-**출력이 비면 Amplify Hosting 이 아닐 수 있다.** 그 경우 `customHttp.yml` 은
-읽히지 않으므로 CloudFront 응답 헤더 정책(Response headers policy)에 같은 5종을
-직접 등록해야 한다. 판정은 위 curl 한 줄로 끝난다 — 추측하지 말고 실행한다.
+**출력이 비면 회귀다.** 2026-08-29 시점에 5종 전부 적용됨을 확인했으므로,
+이후 빈 출력은 `customHttp.yml` 이 지워졌거나 호스팅 형태가 바뀐 것이다.
 
 ```bash
 # 배포 스큐 회귀 확인 — 라이브 index.html 이 가리키는 자산이 전부 살아 있는가
