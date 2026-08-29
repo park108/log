@@ -396,3 +396,76 @@ describe('ErrorBoundary integration (REQ-20260418-005 FR-06)', () => {
 		expect(title).toBeInTheDocument();
 	});
 });
+
+// App 자신의 라우팅·에러 배선은 지금까지 실행된 적이 없다.
+//
+// 기존 ErrorBoundary 케이스는 **별도의 최소 트리**를 만들어 검증한다 (그 주석이
+// 그렇게 밝힌다). ErrorBoundary 와 ErrorFallback 이 합쳐지는지는 보지만, **App 이
+// 그 둘을 쓰는지**는 보지 않는다. App.tsx 의 fallback prop 3곳(101·109·117)과
+// PageNotFound 라우트가 전부 미커버였다 — 배선을 끊어도 초록이었다.
+describe('App 자신의 라우팅·에러 배선', () => {
+
+	let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+	let stderrWriteSpy: ReturnType<typeof vi.spyOn>;
+	const originalPath = '/';
+
+	beforeAll(() => {
+		// 의도된 렌더 오류 소음 억제 — 위 describe 와 같은 이유·같은 범위 한정.
+		consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		stderrWriteSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+	});
+
+	afterAll(() => {
+		consoleErrorSpy.mockRestore();
+		stderrWriteSpy.mockRestore();
+	});
+
+	afterEach(() => {
+		window.history.pushState({}, '', originalPath);
+		vi.resetModules();
+	});
+
+	it('알 수 없는 경로에서 Page Not Found 를 그린다', async () => {
+
+		window.history.pushState({}, '', '/definitely-not-a-route');
+
+		render(<App />);
+
+		expect(await screen.findByText('Page Not Found.')).toBeInTheDocument();
+	});
+
+	// 같은 배선이 3곳(101·109·117)이다. 한 곳만 보면 나머지 둘을 끊어도 통과하므로
+	// 라우트별로 독립 판정한다.
+	const ROUTE_CASES = [
+		{ path: '/log', modulePath: './Log/Log' },
+		{ path: '/file', modulePath: './File/File' },
+		{ path: '/monitor', modulePath: './Monitor/Monitor' },
+	] as const;
+
+	const Boom = () => { throw new Error('route boom'); };
+
+	for (const { path, modulePath } of ROUTE_CASES) {
+		it(`${path} 라우트가 throw 하면 App 의 ErrorFallback 이 그 자리를 대신한다`, async () => {
+
+			// 라우트 모듈 자체를 터뜨려 App 의 ErrorBoundary 배선을 실제로 태운다.
+			// 별도 트리를 만들면 App 이 fallback 을 잘못 배선해도 통과한다.
+			vi.resetModules();
+			vi.doMock(modulePath, () => ({ default: Boom }));
+
+			const { default: FreshApp } = await import('./App');
+
+			window.history.pushState({}, '', path);
+
+			render(<FreshApp />);
+
+			expect(
+				await screen.findByText(/오류가 발생했습니다|연결을 확인하고/),
+			).toBeInTheDocument();
+
+			// 격리 확인 — 터진 라우트 자리만 대체되고 셸은 남는다.
+			expect(await screen.findByText('park108.net')).toBeInTheDocument();
+
+			vi.doUnmock(modulePath);
+		});
+	}
+});
