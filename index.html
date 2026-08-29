@@ -11,7 +11,7 @@
          클릭재킹 방어가 있는 것처럼 읽히지만 실제로는 없다. 이 지시어는 HTTP
          응답 헤더로만 유효하므로 CloudFront/S3 응답 헤더 정책에서 설정한다
          (저장소 밖 — CSP 헤더의 frame-ancestors 또는 X-Frame-Options: DENY). -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com; img-src 'self' data: https://d0.awsstatic.com; style-src 'self' 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com; img-src 'self' data: https://d0.awsstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self';">
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-icon-precomposed.png" />
