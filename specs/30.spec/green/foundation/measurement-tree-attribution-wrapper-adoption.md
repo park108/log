@@ -2,7 +2,7 @@
 
 > **위치**: 게이트 채택 표면 — `package.json` `scripts.check:*` 에서 도출되는 스크립트 집합. 래퍼는 `scripts/check-measurement-tree-attribution.sh`.
 > **관련 요구사항**: REQ-20260828-038 (measurement-tree-attribution-wrapper-adoption-completeness)
-> **최종 업데이트**: 2026-08-29 (by inspector — tick 242, REQ-20260829-046 흡수: 채택 술어를 **이름 포함**에서 **실행 경유**로 재정식화 + 모집단 도출에 간접 1단계 추적 도입)
+> **최종 업데이트**: 2026-08-29 (by inspector — tick 243, Phase 1 reconcile: `TSK-20260829-05` 착지로 (W-2) 충족 → 수용 기준 6/6)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (`559dde0`).
 > cross-ref 는 **slug 로만** 쓴다 — 전체 경로를 쓰면 참조 대상이 승격될 때 dangling 이 된다 (green `foundation/spec-reference-coherence` §역할 1).
@@ -81,7 +81,9 @@
 | 루프 본문 서브프로세스 호출 게이트 (A-POP) | **1** |
 | 미채택 잔여 (A-REST) | **1** — `check:coverage-attribution` |
 
-**채널은 있고 소비자가 없다.** followup 관측 시점(2026-08-26)의 `21종 중 1` 에서 게이트가 6종 늘어나는 동안 채택은 1 에 머물렀다. (A-POP) 이 현재 1 원소라는 것은 도출식이 **사고가 실제로 난 지점을 정확히, 그리고 그 지점만** 집는다는 뜻이다 — 이름을 적어 넣어서가 아니라 구조로 집는다 (§참고 §도출 실재 주입).
+**tick 243 갱신 (HEAD=`5a697f8`)** — `check:*` 키 **28** / (A-ROUTE) **1** (`check:coverage-attribution` — 소비자 1겹 경유) / (A-POP) **1** / (A-REST) **0**. 아래 문단은 tick 238 시점의 진술이며 채택 층은 해소됐다. 모집단이 1 로 불변인 채 잔여만 0 이 된 것이 요점이다.
+
+**(A-POP) 이 1 원소인 것은 도출식이 사고가 실제로 난 지점을 정확히, 그리고 그 지점만 집기 때문이다** — 이름을 적어 넣어서가 아니라 구조로 집는다 (§참고 §도출 실재 주입). 등록 시점에는 그 1 원소가 곧 미채택 잔여였다(채널은 있고 소비자가 없음).
 
 ## 의존성
 
@@ -93,7 +95,9 @@
 
 `package.json` `scripts.check:measurement-tree-attribution` → `scripts/check-measurement-tree-attribution.sh`. 현 HEAD 에서 실재하며 지문 모드 `rc=0`.
 
-**채택률을 재는 채널은 현 HEAD 에 없다.** `RULE-07 §promote 조건 4` 상 이는 promote 차단이 아니라 **채널 부착 task 발행을 선행 조건**으로 한다 — (W-2) 가 그 task 의 부착 대상이다.
+**래퍼 채택은 `c7ed263` 로 실현됐다** — `scripts.check:coverage-attribution` → `scripts/check-coverage-attribution-via-measurement-tree-attribution.sh` → 래퍼 → `scripts/check-coverage-attribution-monotonicity.sh`. 세 경로 모두 현 HEAD 에 실재하며 `check-gate-wiring` rc=0 으로 배선이 교차 확인된다.
+
+**그러나 채택률 자체를 재는 게이트는 여전히 현 HEAD 에 없다.** (W-1)(W-2) 의 도출 술어는 본 spec 의 수용 기준 명령으로만 존재하고 `check:*` 에 등재돼 있지 않다 — 지금은 채택이 1/1 이라 잔여가 0 이지만, 이후 루프 실행 게이트가 추가되면 그 미채택은 **어떤 자동 채널에서도 발화하지 않는다**. `RULE-07 §promote 조건 4` 상 이는 promote 차단이 아니라 **채널 부착 task 발행을 선행 조건**으로 한다.
 
 ## 테스트 현황
 
@@ -101,7 +105,8 @@
 - [x] 래퍼 rc 전파 — 감싼 명령 `exit 3` → `rc=3`.
 - [x] 래퍼 무판정 등급 — `--` 뒤 명령 부재 시 `rc=2` (fail-closed).
 - [x] 래퍼 드리프트 검출 — 측정 창 안 트리 변경 주입 시 `rc=1` + `category: measurement-tree-drift` + 지문 2개 (§참고 §검출 방향 실측).
-- [ ] 채택률 측정 채널 — HEAD 부재. (W-2) 의 부착 대상.
+- [x] 래퍼 채택 — `check:coverage-attribution` 이 소비자 1겹을 거쳐 래퍼를 실행 경유한다 (`c7ed263`).
+- [ ] 채택률 측정 채널 — HEAD 부재. 도출 술어가 `check:*` 에 등재돼 있지 않아 향후 유입되는 미채택이 자동 발화되지 않는다 (§발화 채널).
 
 ## 수용 기준
 
@@ -109,9 +114,9 @@
 >
 > **펜스 항목 실행 규약** — 펜스 본문을 추출해 `bash -c "$(추출)"` 로 실행한다. 펜스를 쓰는 이유는 명령이 정규식·따옴표를 중첩해 홑백틱 인라인 스팬에 담기지 않기 때문이다.
 >
-> **HEAD=`079a5a5` (tick 242) 기준 5/6** — 미충족 1건은 (W-2) 이며 이것이 본 계약의 판정량이다. tick 238 등록 이래 4 tick 연속 `rc=1` 이고 출력 문자열이 불변이다 (238 → 240 → 241 → 242).
+> **HEAD=`5a697f8` (tick 243) 기준 6/6** — 전 항목 `rc=0`. tick 238 등록 이래 4 tick 연속 `rc=1` 이던 (W-2) 가 `TSK-20260829-05` 착지로 닫혔다 (238 → 240 → 241 → 242 출력 문자열 불변 → 243 전이).
 >
-> **이 잔여는 green 편집으로 닫히지 않는다.** (W-2) 를 `rc=0` 으로 만드는 유일한 변경은 `package.json` 의 `scripts.check:coverage-attribution` 를 래퍼 경유 소비자로 바꾸고 그 소비자 스크립트를 `scripts/` 에 두는 것이며, 둘 다 `RULE-01` 상 inspector 의 writer 영역이 아니다. 수용 기준을 고쳐 닫는 길도 없다 — 잔여 이름을 발화하는 것이 계약의 판정량 자체이므로 (W-2) 를 약화시키면 계약이 소멸한다. **부착 task 발행이 유일한 경로이며 그 주체는 planner 다.** (W-6) 이 그 부착의 **형태를 실행 가능한 증인으로 고정**한다 — 부착 task 는 (W-6) 이 구성하는 트리를 저장소에 실현하면 된다.
+> **이 잔여가 green 편집으로 닫히지 않는다는 판정은 옳았다.** (W-2) 를 `rc=0` 으로 만든 변경은 정확히 예고된 형태였다 — `scripts.check:coverage-attribution` 값을 래퍼 경유 소비자로 바꾸고 그 소비자 스크립트를 `scripts/` 에 둔 것이며, 둘 다 `RULE-01` 상 inspector writer 영역 밖이라 부착 task 발행이 유일한 경로였다. (W-6) 이 고정한 **실행 가능한 증인**의 트리를 부착 task 가 저장소에 실현했다 — 증인과 실현물의 형태가 일치한다(§참고 §부착 실현 대조).
 
 - [x] (Must, W-1) 채택 모집단이 **도출**되고 이름 일치와 실행 경유가 **분리돼** 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
@@ -120,8 +125,8 @@
   t=$(printf '%s\n' "$o" | sed -nE 's/^total=([0-9]+).*/\1/p')
   [ -n "$t" ] && [ "$t" -ge 20 ] || exit 2
   ```
-  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=0 / `total=28 name-matched=1 exec-routed=0`.** 두 계수를 **분리해** 내는 것이 이 항목의 요지다: 이름 일치 1건은 래퍼 자신의 키(`check:measurement-tree-attribution`)이고 그 진입 스크립트는 래퍼를 **경유하지 않는다**(자기 자신이다). 즉 구 술어가 세던 유일한 "채택" 은 실행 경유가 0 이다. `name-matched − exec-routed` 의 간격이 곧 **이름 우연으로 채택으로 읽힐 수 있는 표면의 크기**다. (직전 `0e5b39e`: `total=28 wrapper-routed=1` — 구 술어는 이 둘을 구분하지 않았다.) 하한 `total ≥ 20` 은 "`scripts` 파싱이 깨져 아무것도 세지 않은" 상태를 `exit 2` **무판정**으로 가른다. **이 항목 단독으로는 판정력이 약하다** (수치가 나오기만 하면 통과). 판정량은 (W-2) 이며 이 항목은 그 **전건**이다.
-- [ ] (Must, W-2) **미채택 잔여가 0** 이고 잔여는 **이름으로** 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
+  → **rc=0**. **HEAD=`5a697f8` (tick 243) 실측 rc=0 / `total=28 name-matched=1 exec-routed=1`.** 두 계수를 **분리해** 내는 것이 이 항목의 요지다: 이름 일치 1건은 래퍼 자신의 키(`check:measurement-tree-attribution`)이고 그 진입 스크립트는 래퍼를 **경유하지 않는다**(자기 자신이다). 실행 경유 1건은 `check:coverage-attribution` 이며 **이름 일치 집합과 서로소**다 — 신규 소비자 `check-coverage-attribution-via-measurement-tree-attribution.sh` 는 이름에 `check-measurement-tree-attribution` 리터럴을 담지 않으므로(선행 `check-` 부재) 이름 표면을 늘리지 않고 실행 경유만 +1 시켰다. 이것이 §이름은 채널이 아니다 가 요구한 방향 그대로다. **두 계수의 산술 차(`1 − 1 = 0`)를 이름 우연 표면의 크기로 읽지 않는다** — 두 집합이 서로소이므로 대칭차는 2 이고, 산술 차는 우연 표면을 **과소보고**한다. 이 항목이 두 수치를 합치지 않고 분리해 내는 이유가 그것이다. (직전 `0e5b39e`: `total=28 wrapper-routed=1` — 구 술어는 이 둘을 구분하지 않았다.) 하한 `total ≥ 20` 은 "`scripts` 파싱이 깨져 아무것도 세지 않은" 상태를 `exit 2` **무판정**으로 가른다. **이 항목 단독으로는 판정력이 약하다** (수치가 나오기만 하면 통과). 판정량은 (W-2) 이며 이 항목은 그 **전건**이다.
+- [x] (Must, W-2) **미채택 잔여가 0** 이고 잔여는 **이름으로** 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
   node -e 'const fs=require("fs"),s=require(process.cwd()+"/package.json").scripts;
 const ks=Object.keys(s).filter(k=>k.startsWith("check:"));
@@ -140,7 +145,7 @@ if(pop.length<1){console.error("도출 모집단 공허");process.exit(2)}
 console.log("loop-exec-population="+pop.length+" unwrapped="+miss.length+" -> "+miss.join(","));
 process.exit(miss.length===0?0:1);'
   ```
-  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=1 / `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` → 미충족 (4cycle).** `559dde0`(238) · `ec82e08`(240) · `0e5b39e`(241) 실측과 **출력 문자열이 완전히 동일**하다. tick 242 에서 술어를 **이름 포함 → 실행 경유**로 재정식화하고 모집단 도출에 **간접 1단계 추적**을 넣었으나 현 HEAD 산출은 구 술어와 문자열까지 같다 — 재정식화가 **현 트리에서 아무것도 움직이지 않는다**는 것이 특이도의 증거다(구/신 술어 병렬 실행 대조, §참고 §후보 교차 실측). 갈리는 곳은 채택 변경이 들어온 트리이며 그것을 (W-5)(W-6) 이 잰다. 이 미충족은 **관측 실패가 아니라 부착 미발생**이다. 잔여를 **이름으로** 내는 것이 필수다 — `unwrapped=1` 만으로는 어느 게이트가 빠졌는지 관측되지 않고, 수리 주체가 대상을 특정할 수 없다. 모집단 공집합은 `exit 2` 무판정으로 가른다: 도출식이 낡아 아무것도 집지 못하는 상태와 전수 채택된 상태는 **둘 다 `unwrapped=0`** 이며, 구분하지 않으면 도출기 부패가 충족으로 새어 나간다.
+  → **rc=0**. **HEAD=`5a697f8` (tick 243) 실측 rc=0 / `loop-exec-population=1 unwrapped=0 -> ` → 충족.** 2회 재실행 동일(멱등). `559dde0`(238) · `ec82e08`(240) · `0e5b39e`(241) · `079a5a5`(242) 4 tick 연속 `unwrapped=1 -> check:coverage-attribution` 이던 출력이 `TSK-20260829-05`(`c7ed263`) 착지로 전이했다. **모집단은 1 로 불변이고 잔여만 1 → 0 으로 줄었다** — 채택률이 분모를 깎아서가 아니라 분자를 채워서 올랐음을 이 두 수치가 함께 보인다. tick 242 의 재정식화(이름 포함 → 실행 경유)가 현 트리에서 아무것도 움직이지 않았던 것은 특이도의 증거였고, 채택 변경이 실제로 들어온 이번 트리에서 술어가 움직였다 — **민감도가 delta 를 가진 tick 에서 관측됐다**. 잔여를 **이름으로** 내는 것이 필수다 — `unwrapped=1` 만으로는 어느 게이트가 빠졌는지 관측되지 않고, 수리 주체가 대상을 특정할 수 없다. 모집단 공집합은 `exit 2` 무판정으로 가른다: 도출식이 낡아 아무것도 집지 못하는 상태와 전수 채택된 상태는 **둘 다 `unwrapped=0`** 이며, 구분하지 않으면 도출기 부패가 충족으로 새어 나간다.
 - [x] (Must, W-3) 래퍼가 감싼 명령의 `rc` 를 **그대로 전파**하고 지문을 발화한다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
   out=$(bash scripts/check-measurement-tree-attribution.sh -- bash -c 'exit 3' 2>&1)
@@ -230,16 +235,15 @@ process.exit(miss.length===0?0:1);'
 
 ### 재실행 이력 (W-2)
 
-| tick | HEAD | 판정 표면 delta | 출력 | rc |
-|---|---|---|---|---|
-| 238 | `559dde0` | (등록) | `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` | 1 |
-| 240 | `ec82e08` | `package.json` `check:` 키 +1 | 동일 문자열 | 1 |
-| 241 | `0e5b39e` | 게이트 스크립트 2건 수정 | 동일 문자열 | 1 |
-| 242 | `079a5a5` | 판정 표면 delta **공집합** (술어 재정식화만) | 동일 문자열 | 1 |
+238(`559dde0`) 등록 이래 240·241·242 3 tick 재실행에서 출력 문자열이 `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` `rc=1` 로 완전 불변이었고, 243(`5a697f8`)에서 `unwrapped=0` `rc=0` 으로 전이했다. tick 별 delta·해설은 §변경 이력 이 진다.
 
-tick 242 는 `git diff 0e5b39e..079a5a5 -- src/ scripts/ package.json .husky/ .github/` 가 공집합이라 `RULE-03 §(S2)` 상 `reconcile: skipped (no delta)` 이며 `stale_cycles` 를 증가시키지 않는다. 그럼에도 **술어를 바꿨으므로** 신·구 술어를 같은 HEAD 에서 병렬 실행해 대조했고 출력 문자열·rc 가 동일했다 (특이도 무변화).
+**요점은 술어가 언제 움직였는가다.** 242 는 술어를 바꿨으나 판정 표면 delta 가 공집합이라 산출이 구 술어와 문자열까지 같았고(특이도), 243 은 술어를 그대로 둔 채 트리만 바뀌자 예고된 방향으로 전이했다(민감도). 4 tick 간의 정체는 도출기 부패가 아니라 **부착 대기**였음이 사후 확인됐다 — `RULE-03 §(S2)` 가 겨누는 트레드밀과 구분되는 부류다.
 
-delta 를 가진 tick 에서 두 번 재실행했고 두 번 다 불변이다. `RULE-03 §(S2)` 상 `stale_cycles` 는 이 재실행들에 대해 증가하며 현재 **3cycle** 이지만, (S2) 발동 조건은 **`reconcile` 전수 stale** 이고 같은 tick 들에서 다른 spec 의 ack 가 있었으므로(241: 17/17) 전수 stale 이 아니다. 자가 정지 대상이 아니라 **부착 대기**다.
+### 부착 실현 대조 (HEAD=`5a697f8`, tick 243)
+
+(W-6) 이 tick 242 에 고정한 **교차 도달 증인**(후보 B — 소비자 1겹을 두고 그 본문 실행 라인에서 래퍼 호출)의 형태를 `TSK-20260829-05` 가 저장소에 그대로 실현했다. 값은 `bash scripts/check-coverage-attribution-via-measurement-tree-attribution.sh` 로 FR-01 단일 형태를 유지하고, 그 본문 실행 라인은 `exec bash scripts/check-measurement-tree-attribution.sh -- bash scripts/check-coverage-attribution-monotonicity.sh "$@"` 다. 두 계약 동시 충족 실측 — `check-gate-wiring` rc=0 · (W-2) rc=0.
+
+**이름 표면은 늘지 않았다.** 소비자 파일명은 (W-1) 이 쓰는 이름 일치 리터럴 `check-measurement-tree-attribution` 에 선행 `check-` 가 없어 매치하지 않는다. 즉 `name-matched` 는 1(래퍼 자신)로 불변이고 `exec-routed` 만 0 → 1 이 됐다 — 이름을 바꿔 초록을 얻는 경로(위양성 D)와 실행 경유로 초록을 얻는 경로가 실제 트리에서 갈라졌음이 관측됐다.
 
 ### 검출 방향 실측 (HEAD=`559dde0`, tick 238)
 
@@ -288,6 +292,8 @@ req 가 요구한 FR-05 (*"완전성 붕괴(등급 4) 와 귀속 실패(무판�
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-29 | inspector tick 243 (Phase 2) | **분할 보류 — 대신 승계된 tick 별 서사 압축.** 본문이 312행으로 300행 임계를 넘겼으나 초과분은 **계약 성장이 아니라 reconcile 서사 누적**이다 (§역할·§공개 인터페이스·§동작 합 78행으로 등록 이래 스코프 불변). 6/6 충족 상태의 계약을 분할하면 green 이 4 → 5 로 늘어 `RULE-03 §Phase 1·2 예외` 가 분할을 면제에서 제외한 취지(green 증가 방향)와 역행하고 승격이 지연된다. 따라서 §참고 §재실행 이력 의 5행 표·2문단과 §동작 §도출 실측 의 승계 문단을 요약으로 압축했다 — 감사성은 본 표가 보존한다 | 참고 · 동작 |
+| 2026-08-29 | TSK-20260829-05 (`c7ed263`) · inspector tick 243 | **Phase 1 reconcile — (W-2) 충족 확정, 수용 기준 6/6.** `check:coverage-attribution` 진입점이 `scripts/check-coverage-attribution-via-measurement-tree-attribution.sh` 로 바뀌고 그 파일의 실행 라인이 `exec bash scripts/check-measurement-tree-attribution.sh -- bash scripts/check-coverage-attribution-monotonicity.sh "$@"` 로 래퍼를 경유한다 — tick 242 가 (W-6) 으로 고정한 증인 트리와 **형태가 일치**한다. 실측 (W-2) `loop-exec-population=1 unwrapped=0` rc=0 (2회 멱등) · (W-1) `total=28 name-matched=1 exec-routed=1` rc=0 · (W-3) `fingerprint=5d1cef12… tracked=441 untracked=0 stable — cmd rc=3` 전파 rc=3 · (W-4)(W-5)(W-6) rc=0 보존. (W-1) 해설 정정: 이름 일치 집합과 실행 경유 집합이 **서로소**가 되어 산술 차 `1−1=0` 이 우연 표면을 과소보고하므로, 간격을 표면 크기로 읽던 문장을 대칭차 기준으로 교체 | 최종 업데이트 · 수용 기준 머리말 · W-1 · W-2 · 참고 |
 | 2026-08-29 | REQ-20260829-046 (inspector tick 242) | **채택 술어 재정식화.** (A-ROUTE) 를 *"키 값 문자열이 래퍼 식별자를 포함"* 에서 **"진입 스크립트 실행 라인이 래퍼를 호출"** 로(FR-01), (A-POP) 을 진입 스크립트 단독에서 **도달 집합(간접 1단계)** 으로(FR-02) 바꿨다. 근거: 구 술어에서 `gate-wiring` FR-01 `VALUE_RE` 와 동시 초록이 되는 유일 변경이 **rename**(위양성)이었고 진짜 채택(소비자 간접)은 판정량을 `rc=1`→`rc=2` 로 소멸시켰다 — 4후보 교차 실측을 §참고 에 박제. §동작 에 **§이름은 채널이 아니다** 절 신설(5번 단계 근거). (W-1) 을 `name-matched`/`exec-routed` **분리 발화**로 교체 — HEAD 실측 `total=28 name-matched=1 exec-routed=0` 으로 구 술어가 세던 유일 채택이 실행 경유 0 임이 드러난다. (W-5) 위양성 배제 + 무판정 보존, (W-6) **교차 도달 가능성 증인**(FR-05) 신설 — 둘 다 `mktemp -d` probe root 구성이라 저장소 트리 무변경이고 매 판정마다 재현된다. 이로써 §참고 (Dir-4) 의 **이관처 없는 강등** 상태가 해소됐다. (W-2) 는 현 HEAD 에서 신·구 술어 산출이 문자열까지 동일 — 재정식화의 특이도 무변화 | 최종 업데이트 · 공개 인터페이스 · 동작 · 수용 기준 · 참고 |
 | 2026-08-29 | inspector tick 241 | (W-2) 재실행 — `rc=1` 출력 문자열 불변 (3cycle). (W-1) 재실측 `total=27 → 28` (분모만 증가, 분자 1 고정). 잔여가 green 편집으로 닫히지 않는 구조적 사유(`package.json` 은 inspector writer 영역 밖 · (W-2) 약화는 계약 소멸)를 §수용 기준 머리말에 박제하고 재실행 이력 표를 §참고 에 신설 | 수용 기준 머리말 · W-1 · W-2 · 참고 |
 | 2026-08-28 | REQ-20260828-038 (inspector tick 238) | 최초 등록. **req 수용 기준 6항을 그대로 쓰지 않았다**: (a) req 3항 *"`check:coverage-attribution` 값에 래퍼가 포함된다"* 는 **스크립트명 리터럴을 판정 입력으로 쓰므로** req 자신의 FR-01(`RULE-06 §열거 고정 금지`)과 충돌한다 — (W-2) 의 **도출 기반 잔여 계수**로 흡수하고, 현 유일 원소가 `check:coverage-attribution` 이라는 사실은 §동작 실측표에 **관측으로** 박제했다. (b) req 5항 *"`grep -nE '무관하게' <래퍼>`"* 는 **스크립트 본문 grep** 이라 주석 문구만으로 충족되는 공허 기준이다 — 관측 산출 기반 (W-3)(W-4) 로 교체했다. (c) req 6항 *"하드코딩 여부를 검사"* 는 판정 형태가 정의되지 않아 체크박스에서 내리고, 대신 **사본 `package.json` 합성 키 주입**으로 도출 실재를 §참고 (Dir-2) 에 실측 박제했다. (d) req 4항의 지문·rc 전파를 (W-3) 하나로 합쳤다. (e) **req NFR-01 을 반증했다** — 승계된 `0.1s 미만` 은 현 HEAD 실측 `5.0s` 와 두 자릿수 배 차이이며 §미측정·비판정 항목 에 정정 박제했다 (결론은 불변, 근거 수치는 교체). (f) **req 가 보지 못한 등급 충돌을 발견해 §참고 에 신설했다** — FR-05 는 `등급 4 vs 무판정` 만 봤으나 실제 충돌은 래퍼 드리프트 `exit 1` 과 채택 대상 단조성 위반 `exit 1` 사이에 있다. (g) §동작 에 **주석 배제** 절을 신설했다 — 주석 미절단 도출은 모집단을 1 → 3 으로 부풀리고 `Hint:` 문자열·`awk` 프로그램 텍스트를 실호출로 오계수한다 (실측). | all |
