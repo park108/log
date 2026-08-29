@@ -80,6 +80,14 @@ export const devServerNetworkError = setupServer(
 	networkErrorDeleteHandler,
 );
 
+// 부분 실패 — 첫 파일만 실패하고 마지막 파일은 성공한다. 결과를 마지막 파일
+// 하나로 판정하면 이 상황이 "Upload complete." 로 보고된다.
+export const devServerFirstFileFailsLastSucceeds = setupServer(
+	http.get(API_URL + "/test/key/testfile1.txt/type/text", async () => HttpResponse.json(ERROR_500)),
+	http.get(API_URL + "/test/key/testfile2.txt/type/text", async () => HttpResponse.json({ body: { UploadUrl: PRESIGNED_URL } })),
+	http.put(PRESIGNED_URL, async () => HttpResponse.json(OK_200)),
+);
+
 export const devServerPresignedUrlOkButUploadFailed = setupServer(
 	http.get(API_URL + "/test/key/testfile1.txt/type/text", async () => HttpResponse.json({ body: { UploadUrl: PRESIGNED_URL } })),
 	http.get(API_URL + "/test/key/testfile2.txt/type/text", async () => HttpResponse.json({ body: { UploadUrl: PRESIGNED_URL } })),

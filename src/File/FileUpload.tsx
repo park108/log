@@ -43,9 +43,7 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 		const cancelled = cancelledUploadRef;
 		cancelled.current = false;
 
-		const uploadFile = async (item: File, isLast: boolean): Promise<void> => {
-
-			setIsUploading("UPLOADING");
+		const uploadFile = async (item: File): Promise<boolean> => {
 
 			const name = item.name;
 			const type = encodeURIComponent(item.type);
@@ -58,7 +56,7 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 				const res = await getPreSignedUrl(name, type);
 				preSignedUrlData = await res.json() as PreSignedUrlResponse;
 
-				if(cancelled.current) return;
+				if(cancelled.current) return false;
 
 				if(!hasValue((preSignedUrlData as PreSignedUrlResponse).errorType)) {
 					log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
@@ -68,14 +66,14 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 				else {
 					log("[API GET] FAILED - Presigned URL", "ERROR");
 					reportError(preSignedUrlData);
-					if(isLast) setIsUploading("FAILED");
+					return false;
 				}
 			}
 			catch(err) {
-				if(cancelled.current) return;
+				if(cancelled.current) return false;
 				log("[API GET] FAILED - Presigned URL", "ERROR");
 				reportError(err);
-				if(isLast) setIsUploading("FAILED");
+				return false;
 			}
 
 			if(isSuccess) {
@@ -83,29 +81,41 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 				try {
 					const res = await putFile(uploadUrl, item.type, item);
 
-					if(cancelled.current) return;
+					if(cancelled.current) return false;
 
 					if(200 === res.status) {
 						log("[API PUT] OK - File: " + name, "SUCCESS");
-						if(isLast) setIsUploading("COMPLETE");
+						return true;
 					}
 					else {
 						log("[API PUT] FAILED - File: " + name, "ERROR");
 						reportError(res);
-						if(isLast) setIsUploading("FAILED");
+						return false;
 					}
 				}
 				catch(err) {
-					if(cancelled.current) return;
+					if(cancelled.current) return false;
 					log("[API PUT] FAILED - File: " + name, "ERROR");
 					reportError(err);
-					if(isLast) setIsUploading("FAILED");
+					return false;
 				}
 			}
+
+			return false;
 		}
 
-		for(let i = 0; i < files.length; i++) {
-			uploadFile(files[i] as File, i === files.length - 1);
+		// 결과는 **전 파일이 끝난 뒤 한 번** 판정한다. 예전에는 인덱스상 마지막
+		// 파일만 상태를 세팅해, 앞 파일이 실패해도 마지막이 성공하면 "Upload
+		// complete." 가 떴다 — 부분 실패가 성공으로 보고됐다. 게다가 업로드는
+		// 동시 실행이라(await 없는 루프) 완료 순서가 인덱스 순이 아니므로
+		// "마지막" 지정 자체가 타이밍상 신뢰할 수 없었다.
+		if(files.length > 0) {
+			setIsUploading("UPLOADING");
+			void (async () => {
+				const results = await Promise.all(files.map((f) => uploadFile(f)));
+				if(cancelled.current) return;
+				setIsUploading(results.every(Boolean) ? "COMPLETE" : "FAILED");
+			})();
 		}
 
 		return (): void => {

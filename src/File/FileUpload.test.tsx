@@ -122,6 +122,38 @@ describe('FileUpload upload ok on dev server', () => {
 	});
 });
 
+// 부분 실패가 성공으로 보고되던 회귀 방향. 결과를 인덱스상 마지막 파일 하나로
+// 판정하던 시절, 앞 파일이 실패해도 마지막이 성공하면 "Upload complete." 가 떴다.
+describe('FileUpload 부분 실패 — 앞 파일 실패 + 마지막 성공', () => {
+	useMockServer(() => mock.devServerFirstFileFailsLastSucceeds);
+
+	test('한 건이라도 실패하면 실패로 보고한다', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(<FileUpload callbackAfterUpload = {uploadedCallbackFunction} />);
+
+		const input = screen.getByLabelText('file-upload');
+
+		fireEvent.change(input, {
+			target: {
+				files: [
+					{ name: "testfile1.txt", type: "text" },
+					{ name: "testfile2.txt", type: "text" }
+				]
+			}
+		});
+
+		const toaster = await screen.findByText("Upload failed.");
+		expect(toaster).toBeInTheDocument();
+		expect(screen.queryByText("Upload complete.")).toBeNull();
+	});
+});
+
 describe('FileUpload presigned url ok but upload failed', () => {
 	useMockServer(() => mock.devServerPresignedUrlOkButUploadFailed);
 
