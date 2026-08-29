@@ -6,6 +6,37 @@ import { useSearchList } from './hooks/useSearchList';
 
 import styles from './Search.module.css';
 
+// 질의어 하이라이트.
+//
+// 이전 구현은 `contents.split(queryString)` 이었다. 두 가지가 조용히 어긋났다.
+// (1) 대소문자 — `github` 로 검색하면 본문의 `Github` 를 못 잡아 결과는 나오는데
+//     강조가 하나도 안 뜬다. (2) 원문 보존 — 매치 자리에 본문이 아니라 질의어를
+//     그려 넣어 원래 표기가 사라진다.
+//
+// 정규식으로 바꾸되 **메타문자 이스케이프가 필수**다. 이스케이프 없이
+// `new RegExp(queryString)` 을 만들면 `(` 하나만 검색해도 예외로 화면이 죽는다.
+// split 은 리터럴이라 그 위험이 없었으므로, 이 교체가 새 위험을 들여온다.
+const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const highlightKeyword = (
+	contents: string,
+	queryString: string,
+	keywordClassName: string,
+): React.ReactNode => {
+
+	// 빈 질의어로 split 하면 글자마다 조각이 생긴다.
+	if(!hasValue(queryString)) return contents;
+
+	const parts = contents.split(new RegExp("(" + escapeRegExp(queryString) + ")", "gi"));
+	const needle = queryString.toLowerCase();
+
+	return parts.map((part, index) => (
+		part.toLowerCase() === needle && "" !== part
+			? <span key={index} className={keywordClassName}>{part}</span>
+			: <span key={index}>{part}</span>
+	));
+};
+
 interface SearchItem {
 	timestamp: number;
 	contents: string;
@@ -149,7 +180,7 @@ const Search = (): React.ReactElement => {
 		return (
 			<section className="section section--log-list" role="list">
 				<div className={`div ${styles.divSearchResult}`}>
-					0 result for &quot;{ queryString }&quot;
+					0 result for &quot;<span className={`span ${styles.spanSearchQuerystring}`}>{ queryString }</span>&quot;
 					- { processingTime.toLocaleString() + " milliseconds" }
 				</div>
 				<h1 className="h1 h1--notification-result">
@@ -176,15 +207,7 @@ const Search = (): React.ReactElement => {
 						}}>
 							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
 							<div className="div--loglist-contents">{
-								data.contents.split(queryString).map((parsed: string, index: number, arr: string[]) => (
-									<span key={index}>
-										{parsed}
-										{ index == arr.length - 1
-											? ""
-											: <span className={`span ${styles.spanSearchKeyword}`}>{queryString}</span>
-										}
-									</span>
-								))
+								highlightKeyword(data.contents, queryString, `span ${styles.spanSearchKeyword}`)
 							}</div>
 						</Link>
 					</div>

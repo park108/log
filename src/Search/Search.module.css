@@ -74,12 +74,23 @@
 	display: none;
 }
 
+/* width:100% 에 margin:0 1em 이 겹쳐 가로로 2em 넘쳤다. left/right 로 폭을
+ * 잡고 안쪽 여백은 padding 으로 준다. 고정 위치라 아래 내용과 겹치므로
+ * 배경과 그림자로 층을 분리한다. */
 .div--search-mobile {
 	position: fixed;
 	display: flex;
-	width: 100%;
+	align-items: center;
+	gap: 8px;
 	left: 0;
-	margin: 0em 1em;
+	right: 0;
+	width: auto;
+	margin: 0;
+	padding: 8px 1em;
+	box-sizing: border-box;
+	background-color: var(--normal-background-color);
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+	z-index: 30;
 }
 
 /* 모바일 입력 — 데스크톱 알약과 같은 시각 언어를 쓴다. 두 벌 마크업이
@@ -87,7 +98,8 @@
 .input--search-mobile {
 	box-sizing: border-box;
 	height: 36px;
-	width: 80%;
+	flex: 1 1 auto;
+	min-width: 0;
 	font-size: 0.9em;
 	font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 	color: var(--normal-text-color);
@@ -112,7 +124,7 @@
 
 .button--search-submit {
 	flex: 0 0 auto;
-	margin-left: 0.5em;
+	margin-left: 0;
 	width: 36px;
 	height: 36px;
 	padding: 0;
@@ -129,21 +141,29 @@
 	background: var(--hover-background-color);
 }
 
+/* 결과 요약 줄. 아래 목록 항목이 padding 8px 10px 을 쓰므로 좌측을 거기에
+ * 맞춘다 — 이전에는 margin 0.5em 이라 목록과 줄이 어긋났다.
+ * `border: 1px solid transparent` 는 아무것도 그리지 않는 죽은 선언이었다. */
 .div--search-result {
 	color: var(--sub-text-color);
-
-	padding: 0.5em;
-	margin: 0.5em;
-	border: 1px solid transparent;
+	font-size: var(--sub-font-size);
+	font-variant-numeric: tabular-nums;
+	padding: 0 10px;
+	margin: 0 0 14px;
 }
 
+/* 밑줄은 링크로 오인하게 한다 — 이 span 은 링크가 아니라 질의어 반복이다. */
 .span--search-querystring {
 	color: var(--normal-text-color);
-	font-weight: bold;
-	text-decoration: underline;
+	font-weight: 600;
 }
 
+/* 순수 노랑 50% 는 나머지 배색과 겉돌고, 굵기까지 더하면 강조가 두 겹이다.
+ * 배경만으로 표시하고 굵기는 본문에 맡긴다. */
 .span--search-keyword {
-	font-weight: bold;
-	background-color: rgba(255, 255, 0, 0.5);
+	background-color: var(--warning-background-color);
+	border-radius: 3px;
+	padding: 0 2px;
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
 }
