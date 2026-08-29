@@ -165,9 +165,12 @@ it('clears the previous timeout when show transitions 1 -> 2', async () => {
 		completed={completed}
 	/>);
 
-	// Cleanup of show=1 effect plus the defensive clear at the top of the show=2 effect
-	// should both fire — so at least one extra clearTimeout call is observed.
-	expect(clearSpy.mock.calls.length).toBeGreaterThan(callsAfterShow1);
+	// 해제는 effect cleanup **단일 지점**이 진다. 본문 첫머리의 방어적 clear 는
+	// 도달 불가라 제거했다 — cleanup 이 항상 먼저 돌며 timerRef 를 null 로 만들기
+	// 때문이다. 따라서 show 전이 1회당 clearTimeout 은 정확히 1회 늘어난다.
+	// (기존 단언은 `> callsAfterShow1` 이라 해제가 두 곳에서 나도, 한 곳에서 나도
+	//  통과했다 — 어느 쪽인지 구별하지 못했다.)
+	expect(clearSpy.mock.calls.length).toBe(callsAfterShow1 + 1);
 
 	clearSpy.mockRestore();
 	await vi.runOnlyPendingTimersAsync();

@@ -46,11 +46,12 @@ const Toaster = (props: ToasterProps): React.ReactElement => {
 	const message = props.message;
 	const type = props.type;
 
+	// 본문 첫머리에 있던 방어적 clearTimeout 은 **도달 불가**였다 (2026-08-29).
+	// React 는 deps 변경 시 cleanup 을 먼저 실행하고, 그 cleanup 이 timerRef 를
+	// null 로 만든다 — 마운트 시에도 null 이므로 `if (timerRef.current)` 가 참이
+	// 되는 경로가 없다. 커버리지가 그 두 줄을 끝내 못 덮은 것이 그 증거다.
+	// 타이머 해제 책임은 아래 cleanup 단일 지점이 진다.
 	useEffect(() => {
-		if (timerRef.current) {
-			clearTimeout(timerRef.current);
-			timerRef.current = null;
-		}
 		if (1 === show) {
 			if ((duration as number) > 0) {
 				timerRef.current = setTimeout(props.completed as () => void, duration as number);

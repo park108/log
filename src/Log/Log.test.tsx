@@ -208,3 +208,88 @@ describe('Log render logs and getting next error', () => {
 		expect(errorMessage).toBeInTheDocument();
 	});
 });
+
+// Log 의 중첩 라우트 배선은 지금까지 `/` (LogList) 만 실행됐다. /search ·
+// /write · /:timestamp 는 한 번도 렌더된 적이 없어, 경로를 잘못 배선하거나
+// 지워도 어떤 테스트도 붉어지지 않았다 — 관리자가 글쓰기에 못 들어가는
+// 상태가 조용히 통과한다.
+//
+// 각 화면의 데이터 요구를 끌어들이지 않도록 lazy 모듈을 표식으로 대체하고
+// **경로 → 컴포넌트** 대응만 판정한다.
+describe('Log 중첩 라우트 배선', () => {
+
+	const MARKERS = {
+		'./LogList': 'route-loglist',
+		'../Search/Search': 'route-search',
+		'./LogSingle': 'route-logsingle',
+		'./Writer': 'route-writer',
+	} as const;
+
+	// `vi.resetModules()` 는 `../common/common` 도 새 인스턴스로 만든다 — 바깥에서
+	// 건 spy 는 그 인스턴스에 적용되지 않는다. isAdmin 은 doMock 으로 함께 넘긴다.
+	// (이걸 놓쳐 /write 케이스가 실패했고, 나머지는 기본값이 우연히 맞아 통과했다.)
+	const mountAt = async (pathname: string, admin: boolean) => {
+		vi.resetModules();
+		for (const [mod, testid] of Object.entries(MARKERS)) {
+			vi.doMock(mod, () => ({ default: () => <div data-testid={testid} /> }));
+		}
+		vi.doMock('../common/common', async () => ({
+			...(await vi.importActual<typeof common>('../common/common')),
+			isAdmin: () => admin,
+		}));
+		const { default: FreshLog } = await import('./Log');
+		return render(
+			<MemoryRouter initialEntries={[{ ...testEntry, pathname }]}>
+				<FreshLog />
+			</MemoryRouter>,
+		);
+	};
+
+	afterEach(() => {
+		for (const mod of Object.keys(MARKERS)) vi.doUnmock(mod);
+		vi.doUnmock('../common/common');
+		vi.resetModules();
+	});
+
+	// **라우트 표가 두 벌이다** — Log.tsx 는 isAdmin() 분기마다 <Routes> 를 따로
+	// 두고 `/` · `/search` · `/:timestamp` 3개가 중복 선언된다. 한 분기만 판정하면
+	// 다른 분기의 오배선이 보이지 않는다 (실측: 관리자 쪽 /search 를 LogList 로
+	// 바꿔도 비관리자만 보던 판정은 통과했다). 공유 경로는 양쪽 전수로 본다.
+	const SHARED = [
+		{ path: '/', marker: 'route-loglist' },
+		{ path: '/search', marker: 'route-search' },
+		{ path: '/1655302060414', marker: 'route-logsingle' },
+	] as const;
+
+	for (const { path, marker } of SHARED) {
+		for (const admin of [true, false] as const) {
+			it(`${path} 가 ${marker} 를 마운트한다 (${admin ? '관리자' : '비관리자'})`, async () => {
+
+				stubMode('development');
+
+				await mountAt(path, admin);
+
+				expect(await screen.findByTestId(marker)).toBeInTheDocument();
+			});
+		}
+	}
+
+	it('/write 가 Writer 를 마운트한다 (관리자 전용)', async () => {
+
+		stubMode('development');
+
+		await mountAt('/write', true);
+
+		expect(await screen.findByTestId('route-writer')).toBeInTheDocument();
+	});
+
+	it('비관리자에게는 /write 가 열리지 않는다', async () => {
+
+		stubMode('development');
+
+		await mountAt('/write', false);
+
+		// 대조 — 위 케이스가 "어떤 경로든 Writer" 로 통과하지 않게 한다.
+		expect(screen.queryByTestId('route-writer')).toBeNull();
+	});
+});
