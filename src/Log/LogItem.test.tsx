@@ -1,5 +1,5 @@
 import type React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import LogItem from './LogItem';
@@ -7,6 +7,7 @@ import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
 import { beforeAll } from 'vitest';
 import { createQueryTestWrapper } from '../test-utils/queryWrapper';
+import * as api from './api';
 
 // REQ-20260421-007 / TSK-20260421-51 — React 19 concurrent initial commit 의 async flush 에 대응해 delete-button 선택을 findBy* 로 전환 (Layer 1 옵션 A).
 
@@ -513,4 +514,69 @@ it('parse anchor tag correctly', () => {
 	expected.innerHTML = text;
 
 	expect(expected).toStrictEqual(html);
+});
+
+// 삭제 **진행 중** 시각 상태가 한 번도 관측되지 않았다.
+//
+// LogItem 은 deleteMutation.isPending 동안 article 에 `article--logitem-delete`
+// 를 붙여 항목을 물린다. 기존 삭제 케이스들은 응답이 이미 도착한 뒤를 보므로
+// isPending 이 참인 창을 지나친다 — 그 클래스를 지워도 아무 테스트가 붉어지지
+// 않았다. 응답을 붙잡아 그 창 안에서 관측한다 (useDeleteLog.test 의 이디엄).
+describe('LogItem 삭제 진행 중 표시', () => {
+	useMockServer(() => mock.devServerOk);
+
+	const markdownText = "## header test contents";
+	const item = {
+		logs: [
+			{ contents: markdownText, timestamp: 1655737033793 },
+			{ contents: "12345", timestamp: 1655736946977 },
+		],
+		summary: "123456",
+		sortKey: 1655736946977,
+		timestamp: 1655736946977,
+		author: "park108@gmail.com",
+	};
+	const testEntry = { pathname: "/log", search: "", hash: "", state: {}, key: "default" };
+
+	it('요청이 진행 중인 동안 삭제 표시 클래스가 붙고, 끝나면 걷힌다', async () => {
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		stubMode('production');
+
+		let resolveDelete!: (r: Response) => void;
+		const deleteSpy = vi.spyOn(api, 'deleteLog').mockReturnValueOnce(
+			new Promise<Response>((resolve) => { resolveDelete = resolve; }),
+		);
+
+		const { container } = render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogItem
+					author={"park108@gmail.com"}
+					timestamp={1655736946977}
+					contents={markdownText}
+					item={item}
+					showLink={true}
+				/>
+			</MemoryRouter>
+		));
+
+		window.confirm = vi.fn(() => true);
+
+		const article = container.querySelector('article') as HTMLElement;
+		expect(article).not.toHaveClass('article--logitem-delete');
+
+		fireEvent.click(await screen.findByTestId('delete-button'));
+
+		// 진행 중 창 — 응답을 아직 풀지 않았다.
+		await waitFor(() => expect(article).toHaveClass('article--logitem-delete'));
+		expect(deleteSpy).toHaveBeenCalledTimes(1);
+
+		await act(async () => {
+			resolveDelete(new Response(JSON.stringify({ statusCode: 200 }), { status: 200 }));
+		});
+
+		// 대조 — 끝나면 걷힌다. 없으면 "항상 붙어 있는" 구현도 통과한다.
+		await waitFor(() => expect(article).not.toHaveClass('article--logitem-delete'));
+	});
 });

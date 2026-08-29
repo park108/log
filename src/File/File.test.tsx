@@ -548,3 +548,91 @@ describe('File unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 		expect(screen.queryByText('Get more files failed for network issue.')).toBeNull();
 	});
 });
+
+// 목록 새로고침 콜백 2건이 한 번도 실행되지 않았다.
+//
+// File.tsx 는 업로드 완료(`callbackAfterUpload`)와 삭제 완료(`deleted`) 에 각각
+// `() => setIsGetData(true)` 를 넘겨 목록을 다시 읽는다. 그 화살표들이 미커버였고,
+// 기존 삭제 케이스는 주석으로 "refresh 자체 검증은 범위 밖" 이라 밝히고 있었다.
+// 게다가 그 케이스의 삭제 클릭은 `if (buttons.length > 1)` 조건부라, 버튼이 없으면
+// 조용히 건너뛰고 통과한다. 배선이 끊겨도 아무도 모른다.
+describe('목록 새로고침 배선', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	beforeEach(() => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+	});
+
+	it('삭제가 성공하면 목록을 다시 읽는다', async () => {
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const getFilesSpy = vi.spyOn(api, 'getFiles');
+
+		render(
+			<MemoryRouter initialEntries={[testEntry]}>
+				<File />
+			</MemoryRouter>,
+		);
+
+		await screen.findByText('20220606_log_CQRS.png');
+		const callsBeforeDelete = getFilesSpy.mock.calls.length;
+		expect(callsBeforeDelete).toBeGreaterThanOrEqual(1);
+
+		// 조건부 클릭을 쓰지 않는다 — 대상이 없으면 통과가 아니라 실패여야 한다.
+		const deleteButton = screen.getByRole('button', { name: 'Delete 20220606_log_CQRS.png' });
+		await act(async () => {
+			fireEvent.click(deleteButton);
+		});
+
+		// FileItem 은 삭제 성공 후 refreshTimeout(3000ms) 뒤에 부모 콜백을 부른다.
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(3000);
+		});
+
+		await waitFor(() =>
+			expect(getFilesSpy.mock.calls.length).toBeGreaterThan(callsBeforeDelete),
+		);
+	});
+});
+
+// 모바일 여부에 따라 업로드 UI 가 갈린다 (FileUpload ↔ FileDrop). 모바일 분기는
+// 한 번도 렌더된 적이 없어, 두 분기를 뒤바꿔도 어떤 테스트도 붉어지지 않았다.
+describe('업로드 UI 분기', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	beforeEach(() => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+	});
+
+	const renderFile = () => render(
+		<MemoryRouter initialEntries={[testEntry]}>
+			<File />
+		</MemoryRouter>,
+	);
+
+	it('데스크톱에서는 드롭존을 그린다', async () => {
+
+		vi.spyOn(common, 'isMobile').mockReturnValue(false);
+
+		renderFile();
+
+		expect(await screen.findByTestId('dropzone')).toBeInTheDocument();
+	});
+
+	it('모바일에서는 드롭존 대신 파일 선택 UI 를 그린다', async () => {
+
+		vi.spyOn(common, 'isMobile').mockReturnValue(true);
+
+		renderFile();
+
+		await screen.findByText('20220606_log_CQRS.png');
+
+		// 대조 — 위 케이스가 "언제나 드롭존" 으로 통과하지 않게 한다.
+		expect(screen.queryByTestId('dropzone')).toBeNull();
+	});
+});
