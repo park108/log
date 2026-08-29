@@ -81,8 +81,11 @@
   padding-right: 0.3em;
 }
 
+/* `fixed` 는 뷰포트에 고정돼 스크롤을 따라가지 않는다 — 포커스로 팝업을 띄운 뒤
+ * 스크롤하면 팝업만 화면에 남는다. 좌표가 `auto` 인 한 `absolute` 도 같은 **정적
+ * 위치**에 놓이므로 배치는 그대로이면서 스크롤을 따라간다. */
 .div--logitem-linkmessage {
-	position: fixed;
+	position: absolute;
 	display: block;
 	margin: 0;
 	padding: 8px;
@@ -95,7 +98,7 @@
 }
 
 .div--logitem-versionhistory {
-	position: fixed;
+	position: absolute;
 	margin: 0;
 	padding: 8px;
 	border-radius: 8px;
