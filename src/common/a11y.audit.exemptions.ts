@@ -23,12 +23,11 @@ export interface PatternBExemption {
 }
 
 export const PATTERN_B_EXEMPTIONS: readonly PatternBExemption[] = [
-	{
-		file: 'src/Log/LogItemInfo.tsx',
-		testId: 'edit-button',
-		rationale:
-			'M5 (REQ-033 FR-05): react-router <Link> 의 자식 <span>. 부모 anchor 가 Enter 활성 기본 제공 — 자식 tabIndex/onKeyDown 추가 시 포커스 중복/이중 활성 위험 (TSK-20260421-77 @3971a46 확정 면제).',
-	},
+	// edit-button 면제는 해소됐다 (2026-08-29). 면제 사유는 "부모 anchor 가 활성을
+	// 제공하므로 자식에 tabIndex/onKeyDown 을 넣지 말라" 였고 그 판단은 옳았다.
+	// 그런데 role="button" 은 남아 있었다 — anchor 의 link role 과 충돌해 보조기술에
+	// 두 겹으로 읽힌다. role 을 걷어 span 을 표기 래퍼로 되돌리자 위반 자체가 사라져
+	// 면제가 필요 없어졌다.
 ];
 
 export default PATTERN_B_EXEMPTIONS;

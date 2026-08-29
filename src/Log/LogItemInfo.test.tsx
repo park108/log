@@ -182,43 +182,48 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 		expect(copySpy).toHaveBeenCalledTimes(1);
 	});
 
-	it('M6: delete-button 에 role="button" + tabIndex=0 이 부여된다', () => {
+	it('M6: delete-button 은 네이티브 button 이다', () => {
 		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
 		renderInfo({ delete: vi.fn() });
 
 		const el = screen.getByTestId('delete-button');
 
-		expect(el).toHaveAttribute('role', 'button');
-		expect(el).toHaveAttribute('tabIndex', '0');
+		// span[role=button] + activateOnKey 손조립을 네이티브 button 으로 바꿨다.
+		expect(el.tagName).toBe('BUTTON');
+
+		// 손조립 잔재 금지 — onKeyDown 이 남으면 Enter 에서 이중 발화한다.
+		expect(el).not.toHaveAttribute('role');
+		expect(el).not.toHaveAttribute('tabindex');
+		expect(el).toHaveAttribute('type', 'button');
+
+		// tabindex 없이 초점을 받는다.
+		el.focus();
+		expect(document.activeElement).toBe(el);
 	});
 
-	it('M6: Enter 키로 delete 가 활성된다 (window.confirm 호출 → props.delete 실행)', () => {
+	it('M6: 클릭 → confirm 승인 시 delete 가 실행된다', () => {
 		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
 		const deleteFn = vi.fn();
 		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
 		renderInfo({ delete: deleteFn });
 
-		const el = screen.getByTestId('delete-button');
-		fireEvent.keyDown(el, { key: 'Enter' });
+		fireEvent.click(screen.getByTestId('delete-button'));
 
 		expect(confirmSpy).toHaveBeenCalledWith('Are you sure delete the log?');
 		expect(deleteFn).toHaveBeenCalledTimes(1);
 	});
 
-	it('M6: Space 키로 delete 가 활성된다 (preventDefault + window.confirm 호출)', () => {
+	it('M6: 클릭 → confirm 거절 시 abort 콜백이 발화한다', () => {
 		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
 		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
-		// 발화 관측기 (TSK-20260828-09 / FR-02) — `LogItemInfo.jsx` 의 abort 콜백은
-		// `log("Deleting aborted")` 를 발화한다. confirm 이 false 를 돌려주는 이 경로가
-		// 바로 그 콜백을 태우는 유일한 경로이며, 관측기가 없으면 이 파일은 감사에서
-		// 단락된다. 좁힘 없는 **양성** 인자 단정이다.
+		// 발화 관측기 (TSK-20260828-09 / FR-02) — abort 콜백은 log("Deleting aborted")
+		// 를 발화하며, confirm 이 false 를 돌려주는 이 경로가 그 콜백을 태우는
+		// **유일한 경로**다. 관측기가 없으면 이 파일이 감사에서 단락된다.
 		const emissionSpy = vi.spyOn(common, 'log');
 		renderInfo({ delete: vi.fn() });
 
-		const el = screen.getByTestId('delete-button');
-		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
+		fireEvent.click(screen.getByTestId('delete-button'));
 
-		expect(spaceEvent).toBe(false);
 		expect(confirmSpy).toHaveBeenCalledWith('Are you sure delete the log?');
 		expect(emissionSpy).toHaveBeenCalledWith('Deleting aborted');
 	});
@@ -237,13 +242,34 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03) — M4 versions-but
 		vi.restoreAllMocks();
 	});
 
-	it('M4: versions-button 에 role="button" + tabIndex=0 이 부여된다 (admin)', () => {
+	it('edit-button 은 anchor 안에서 role 을 중복 주장하지 않는다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		renderInfo({ delete: vi.fn() });
+
+		const el = screen.getByTestId('edit-button');
+
+		// 조작부는 anchor(Link) 자신이다. 자식 span 이 role="button" 을 달면
+		// anchor 의 link role 과 충돌해 보조기술에 두 겹으로 읽힌다.
+		expect(el).not.toHaveAttribute('role');
+		expect(el.closest('a')).not.toBeNull();
+
+		// 자식에 tabIndex 를 주면 anchor 와 포커스가 중복된다.
+		expect(el).not.toHaveAttribute('tabindex');
+	});
+
+	it('M4: versions-button 은 role 을 주장하지 않고 초점만 받는다 (admin)', () => {
 		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
 		renderInfo();
 
 		const el = screen.getByTestId('versions-button');
 
-		expect(el).toHaveAttribute('role', 'button');
+		// 이 요소에는 onClick 이 없다 — hover/focus 로 팝업을 여는 트리거일 뿐이다.
+		// role="button" 은 활성을 약속하므로, 스크린리더가 "버튼" 이라 읽고 Enter 를
+		// 눌러도 아무 일이 없는 상태가 된다. 이 파일의 기존 주석도 "activation 의미
+		// 부재" 라 적고 있었으나 role 은 남아 있었다.
+		expect(el).not.toHaveAttribute('role');
+
+		// 포커스로도 팝업이 떠야 하므로 tabIndex 는 남는다 (WCAG 1.4.13).
 		expect(el).toHaveAttribute('tabIndex', '0');
 	});
 

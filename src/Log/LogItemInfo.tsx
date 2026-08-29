@@ -87,9 +87,12 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 						<span className="span span--logitem-separator">|</span>
 					</span>
 					<span className="hidden--width-400px">
+						{/* 아래 versions 트리거에는 onClick 이 없다 — hover/focus 로 버전 팝업을
+						    여는 트리거일 뿐이다. role="button" 은 활성을 약속하므로, 스크린리더가
+						    "버튼" 이라 읽고 Enter 를 눌러도 아무 일이 없는 상태를 만든다. role 을
+						    걷되 tabIndex 는 남긴다 — 포커스로도 팝업이 떠야 한다 (WCAG 1.4.13). */}
 						{ item ?
 							<span
-								role="button"
 								tabIndex={0}
 								data-testid="versions-button"
 								className="span span--logitem-version"
@@ -118,9 +121,11 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 						}
 						<span className="span span--logitem-separator">|</span>
 					</span>
+					{/* 조작부는 anchor(Link) 자신이다. 자식 span 이 role="button" 을 달면
+					    anchor 의 link role 과 충돌해 보조기술에 두 겹으로 읽힌다 — span 은
+					    표기 래퍼로 둔다. */}
 					<Link to="/log/write" state={{from: item}}>
 						<span
-							role="button"
 							data-testid="edit-button"
 							className="span span--logitem-toolbarmenu"
 						>
@@ -128,16 +133,14 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 						</span>
 					</Link>
 					<span className="span span--logitem-separator">|</span>
-					<span
-						role="button"
-						tabIndex={0}
+					<button
+						type="button"
 						data-testid="delete-button"
 						className="span span--logitem-toolbarmenu"
 						onClick={handleDelete}
-						onKeyDown={activateOnKey(handleDelete)}
 					>
 						Delete
-					</span>
+					</button>
 				</div>
 			)}
 			<Suspense fallback={<div></div>}>
