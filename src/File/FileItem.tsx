@@ -113,12 +113,19 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 					{props.fileName}
 				</button>
 				<div className="div div--fileitem-statusbar">
-					<span className="span span--fileitem-modifieddate">
-						{getFormattedDate(props.lastModified as number)}
-					</span>
-					<span className="span span--fileitem-modifiedtime">
-						{getFormattedTime(props.lastModified as number)}
-					</span>
+					{/* `lastModified` 도 선택적 prop 이다. 없으면 Date(NaN) 이 되어
+					    `NaN-NaN-NaN` · `NaN:NaN:NaN` 이 화면에 그려진다 — size 와 같은
+					    부류의 조용한 오표기다. 유한한 수일 때만 그린다. */}
+					{Number.isFinite(props.lastModified) && (
+						<>
+							<span className="span span--fileitem-modifieddate">
+								{getFormattedDate(props.lastModified as number)}
+							</span>
+							<span className="span span--fileitem-modifiedtime">
+								{getFormattedTime(props.lastModified as number)}
+							</span>
+						</>
+					)}
 					{/* 원시 바이트 수는 읽기 어렵다 — 164,016,161 bytes 보다 164.02 MB 다.
 					    같은 저장소의 getFormattedSize 를 쓴다 (Monitor 가 이미 쓰는 것).
 					    정확한 값은 title 로 남겨 필요할 때 확인할 수 있게 한다.

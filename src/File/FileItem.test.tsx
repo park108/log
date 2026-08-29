@@ -450,3 +450,36 @@ describe('파일 크기 표기', () => {
 		expect(container.querySelector('.span--fileitem-size')).not.toBeNull();
 	});
 });
+
+// `lastModified` 도 선택적 prop 이다. 없으면 Date(NaN) 이 되어 화면에
+// `NaN-NaN-NaN` · `NaN:NaN:NaN` 이 그려진다 — size 와 같은 부류의 조용한 오표기.
+describe('수정 일시 표기', () => {
+
+	it('lastModified 가 없으면 날짜·시각 자리를 그리지 않는다', () => {
+
+		const props = { ...defaultProps };
+		delete (props as { lastModified?: number }).lastModified;
+
+		const { container } = render(<FileItem {...props} />);
+
+		expect(container.querySelector('.span--fileitem-modifieddate')).toBeNull();
+		expect(container.querySelector('.span--fileitem-modifiedtime')).toBeNull();
+		// 구 구현은 여기서 NaN-NaN-NaN 을 냈다.
+		expect(container.textContent).not.toContain('NaN');
+	});
+
+	it('lastModified 가 있으면 날짜와 시각을 함께 그린다', () => {
+
+		const { container } = render(<FileItem {...defaultProps} lastModified={1656034616036} />);
+
+		expect(container.querySelector('.span--fileitem-modifieddate')?.textContent).toContain('2022');
+		expect(container.querySelector('.span--fileitem-modifiedtime')?.textContent).toMatch(/\d{2}:\d{2}:\d{2}/);
+	});
+
+	it('타임스탬프 0 도 자리를 그린다 (없음과 구별한다)', () => {
+
+		// 대조 — truthy 검사로 가드하면 1970-01-01 이 통째로 사라진다.
+		const { container } = render(<FileItem {...defaultProps} lastModified={0} />);
+		expect(container.querySelector('.span--fileitem-modifieddate')).not.toBeNull();
+	});
+});
