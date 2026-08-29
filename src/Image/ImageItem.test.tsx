@@ -100,3 +100,63 @@ describe('ImageItem a11y 패턴 B — M10', () => {
 		expect(copyMarkdownString).toHaveBeenCalledTimes(1);
 	});
 });
+
+// 확대 상태에서 빠져나오는 길이 "이미지 재클릭" 뿐이면 닫기가 항상 복사를
+// 동반한다. 복사 없이 닫는 두 경로를 못 박는다 — 복사 호출 0건까지 함께
+// 단언해야 "닫히기만 하면 통과" 가 되지 않는다.
+describe('ImageItem 확대 해제 경로', () => {
+
+	const url = "https://park108-image-dev.s3.ap-northeast-2.amazonaws.com/thumbnail/x.png";
+
+	it('Escape 로 닫으면 마크다운을 복사하지 않는다', async () => {
+
+		const copyMarkdownString = vi.fn();
+		render(<ImageItem fileName="f" url={url} copyMarkdownString={copyMarkdownString} />);
+
+		const image = await screen.findByTestId("imageItem");
+		fireEvent.click(image);
+		expect(image.getAttribute("data-enlarged")).toBe("Y");
+
+		fireEvent.keyDown(document, { key: 'Escape' });
+
+		expect(image.getAttribute("data-enlarged")).toBe("N");
+		expect(copyMarkdownString).not.toHaveBeenCalled();
+	});
+
+	it('백드롭 클릭으로 닫으면 마크다운을 복사하지 않는다', async () => {
+
+		const copyMarkdownString = vi.fn();
+		render(<ImageItem fileName="f" url={url} copyMarkdownString={copyMarkdownString} />);
+
+		const image = await screen.findByTestId("imageItem");
+		expect(screen.queryByTestId("imageBackdrop")).toBeNull();
+
+		fireEvent.click(image);
+		const backdrop = screen.getByTestId("imageBackdrop");
+
+		fireEvent.click(backdrop);
+
+		expect(image.getAttribute("data-enlarged")).toBe("N");
+		expect(screen.queryByTestId("imageBackdrop")).toBeNull();
+		expect(copyMarkdownString).not.toHaveBeenCalled();
+	});
+
+	// 확대가 아닐 때 document 리스너가 남아 있으면 다른 화면의 Escape 를
+	// 가로챈다. 언마운트 후 Escape 가 아무 상태도 건드리지 않음을 본다.
+	it('언마운트 후 Escape 가 발화하지 않는다', async () => {
+
+		const copyMarkdownString = vi.fn();
+		const { unmount } = render(
+			<ImageItem fileName="f" url={url} copyMarkdownString={copyMarkdownString} />
+		);
+
+		const image = await screen.findByTestId("imageItem");
+		fireEvent.click(image);
+		expect(image.getAttribute("data-enlarged")).toBe("Y");
+
+		unmount();
+
+		expect(() => fireEvent.keyDown(document, { key: 'Escape' })).not.toThrow();
+		expect(copyMarkdownString).not.toHaveBeenCalled();
+	});
+});
