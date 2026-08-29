@@ -410,3 +410,43 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 		vi.restoreAllMocks();
 	});
 });
+
+// 파일 크기 표기.
+//
+// 구 구현은 원시 바이트 수를 그대로 냈다 — 164,016,161 bytes 는 읽기 어렵다.
+// 더 나쁜 것은 `size` 가 선택적 prop 인데 `(undefined) * 1` 로 NaN 을 만들어
+// **"NaN bytes"** 를 렌더했다는 점이다 (조용한 오표기).
+describe('파일 크기 표기', () => {
+
+	it('사람이 읽는 단위로 그린다', () => {
+
+		const { container } = render(<FileItem {...defaultProps} size={164016161} />);
+		const el = container.querySelector('.span--fileitem-size') as HTMLElement;
+
+		expect(el).toBeInTheDocument();
+		expect(el.textContent).toContain('MB');
+		expect(el.textContent).not.toContain('164,016,161');
+
+		// 정확한 값은 잃지 않는다 — title 로 남긴다.
+		expect(el).toHaveAttribute('title', '164,016,161 bytes');
+	});
+
+	it('size 가 없으면 크기 자리를 그리지 않는다', () => {
+
+		const props = { ...defaultProps };
+		delete (props as { size?: number }).size;
+
+		const { container } = render(<FileItem {...props} />);
+
+		// 구 구현은 여기서 "NaN bytes" 를 냈다.
+		expect(container.querySelector('.span--fileitem-size')).toBeNull();
+		expect(container.textContent).not.toContain('NaN');
+	});
+
+	it('0 바이트도 자리를 그린다 (없음과 구별한다)', () => {
+
+		// 대조 — 위 케이스가 "0 이면 falsy 라 안 그린다" 로 통과하지 않게 한다.
+		const { container } = render(<FileItem {...defaultProps} size={0} />);
+		expect(container.querySelector('.span--fileitem-size')).not.toBeNull();
+	});
+});

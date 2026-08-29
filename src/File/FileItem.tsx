@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Toaster from "../Toaster/Toaster";
-import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
+import { log, getFormattedDate, getFormattedTime, getFormattedSize, confirm, copyToClipboard } from '../common/common';
 import { reportError } from '../common/errorReporter';
 import { deleteFile } from './api';
 
@@ -119,9 +119,21 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 					<span className="span span--fileitem-modifiedtime">
 						{getFormattedTime(props.lastModified as number)}
 					</span>
-					<span className="span span--fileitem-size">
-						{((props.size as number) * 1).toLocaleString()} bytes
-					</span>
+					{/* 원시 바이트 수는 읽기 어렵다 — 164,016,161 bytes 보다 164.02 MB 다.
+					    같은 저장소의 getFormattedSize 를 쓴다 (Monitor 가 이미 쓰는 것).
+					    정확한 값은 title 로 남겨 필요할 때 확인할 수 있게 한다.
+
+					    `size` 는 선택적 prop 이다. 구 구현은 `(undefined) * 1` 로 NaN 을
+					    만들어 **"NaN bytes"** 를 렌더하고 있었다 — 조용한 오표기다.
+					    유한한 수일 때만 그린다. */}
+					{Number.isFinite(props.size) && (
+						<span
+							className="span span--fileitem-size"
+							title={(props.size as number).toLocaleString() + " bytes"}
+						>
+							{getFormattedSize(props.size as number)}
+						</span>
+					)}
 					<span className="span span--fileitem-toolbar">
 						<button
 							type="button"
