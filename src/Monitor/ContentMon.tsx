@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import PropTypes from 'prop-types';
+import type { ChartColor } from './Monitor';
 
 const ContentItem = lazy(() => import('./ContentItem'));
 
@@ -9,7 +9,11 @@ const CONTENT_LIST = [
 	{title: "Files", path: "file", unit: "capacity"},
 ];
 
-const ContentMon = (props) => {
+interface ContentMonProps {
+	stackPallet?: ChartColor[];
+}
+
+const ContentMon = (props: ContentMonProps) => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">
@@ -29,8 +33,5 @@ const ContentMon = (props) => {
 	);
 }
 
-ContentMon.propTypes = {
-	stackPallet: PropTypes.array,
-};
 
 export default ContentMon;

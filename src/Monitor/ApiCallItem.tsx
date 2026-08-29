@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import PropTypes from 'prop-types';
+import type { ChartColor } from './Monitor';
 import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getApiCallStats } from './api';
 
-const getSuccessRateIndex = (rate) => {
+const getSuccessRateIndex = (rate: number): number => {
 	return rate < 0.6 ? 0
 		: rate < 0.7 ? 1
 		: rate < 0.8 ? 2
@@ -16,17 +16,54 @@ const getSuccessRateIndex = (rate) => {
 		: 6;
 }
 
-const ApiCallItem = (props) => {
+// 서버 응답 항목 (JSON) — 소비하는 필드만 선언한다.
+interface RawApiCallItem {
+	timestamp: number;
+	total: number;
+	succeed: number;
+	failed: number;
+	date?: string;
+	time?: string;
+}
+
+interface ApiCallStat {
+	date: string;
+	count: string;
+	succeed: string;
+	failed: string;
+	valueRate: number;
+	successRate: number;
+}
+
+interface PillarProps extends ApiCallStat {
+	index: number;
+}
+
+const FALLBACK_COLOR: ChartColor = { color: "black", backgroundColor: "transparent" };
+
+// 팔레트 인덱스 접근은 noUncheckedIndexedAccess 하에서 undefined 를 낼 수 있다.
+// 색은 표시 전용이라 결손 시 중립색으로 떨어뜨린다 — 차트가 사라지는 것보다 낫다.
+// 모듈 수준 순수 함수로 두어 effect 의존성 목록에 들어가지 않게 한다.
+const palletAt = (pallet: ChartColor[] | undefined, i: number): ChartColor =>
+	pallet?.[i] ?? FALLBACK_COLOR;
+
+interface ApiCallItemProps {
+	stackPallet?: ChartColor[];
+	title?: string;
+	service: string;
+}
+
+const ApiCallItem = (props: ApiCallItemProps) => {
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [isMount, setIsMount] = useState(false);
 	const [isError, setIsError] = useState(false);
 
-	const [totalCount, setTotalCount] = useState("...");
-	const [countList, setCountList] = useState([]);
+	const [totalCount, setTotalCount] = useState<number | string>("...");
+	const [countList, setCountList] = useState<ApiCallStat[]>([]);
 
 	const [rate, setRate] = useState(0);
-	const [rateColor, setRateColor] = useState({});
+	const [rateColor, setRateColor] = useState<React.CSSProperties>({});
 
 	const title = props.title;
 	const service = props.service;
@@ -47,7 +84,7 @@ const ApiCallItem = (props) => {
 		const cancelled = cancelledFetchRef;
 		cancelled.current = false;
 
-		const fetchData = async (service) => {
+		const fetchData = async (service: string) => {
 	
 			setIsLoading(true);
 			setIsError(false);
@@ -71,12 +108,12 @@ const ApiCallItem = (props) => {
 					setTotalCount(data.body.totalCount);
 	
 					const periodData = data.body.Items;
-					const maxCount = Math.max.apply(Math, periodData.map(item => { return item.total; }));
+					const maxCount = Math.max.apply(Math, periodData.map((item: RawApiCallItem) => { return item.total; }));
 	
-					let statList = [];
+					const statList: ApiCallStat[] = [];
 					let successCount = 0;
 		
-					for(let item of periodData) {
+					for(const item of periodData as RawApiCallItem[]) {
 						item.date = getFormattedDate(item.timestamp);
 						item.time = getFormattedTime(item.timestamp);
 		
@@ -97,7 +134,7 @@ const ApiCallItem = (props) => {
 
 					const rate = Math.round(100 * (successCount / data.body.totalCount));
 					setRate(rate);
-					setRateColor({ color: stackPallet[getSuccessRateIndex(rate)].color });
+					setRateColor({ color: palletAt(stackPallet, getSuccessRateIndex(rate)).color });
 				}
 				else {
 					log("[API GET] FAILED - API call stats: " + service, "ERROR");
@@ -125,7 +162,7 @@ const ApiCallItem = (props) => {
 		};
 	}, [service, isMount, stackPallet]);
 
-	const Pillar = (attr) => {
+	const Pillar = (attr: PillarProps) => {
 
 		const index = attr.index;
 		const detailId = "api-call-item-" + service + "-" + attr.index;
@@ -138,19 +175,19 @@ const ApiCallItem = (props) => {
 			: ddWeek; // 15 (Sat)
 
 		const pillarHeight = 60;
-		const blankHeight = 0 === totalCount ? {height: "60px"} : {height: pillarHeight * (1 - attr.valueRate) + "px"};
+		const blankHeight = 0 === Number(totalCount) ? {height: "60px"} : {height: pillarHeight * (1 - attr.valueRate) + "px"};
 		const valueHeight = {height: "20px"}
 		const successRateColor = getSuccessRateIndex(attr.successRate);
 
 		const pillarStyle = {
 			height: pillarHeight * attr.valueRate + "px",
-			backgroundColor: stackPallet[successRateColor].backgroundColor
+			backgroundColor: palletAt(stackPallet, successRateColor).backgroundColor
 		};
 
 		const textColor = "0" === attr.count ? {
 			color: "black"
 		} : {
-			color: stackPallet[successRateColor].color
+			color: palletAt(stackPallet, successRateColor).color
 		}
 
 		// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
@@ -223,7 +260,7 @@ const ApiCallItem = (props) => {
 			<section className="section section--monitor-item">
 				<h3>
 					{title}: {totalCount.toLocaleString()} 
-					(<span style={rateColor}>{"..." === totalCount || 0 === totalCount ? 0 : rate}%</span>)
+					(<span style={rateColor}>{"..." === totalCount || 0 === Number(totalCount) ? 0 : rate}%</span>)
 				</h3>
 				<div className="div div--monitor-pillarchart">
 				{ countList.map((data, index) => (
@@ -244,10 +281,5 @@ const ApiCallItem = (props) => {
 	}
 }
 
-ApiCallItem.propTypes = {
-	stackPallet: PropTypes.array,
-	title: PropTypes.string,
-	service: PropTypes.string,
-};
 
 export default ApiCallItem;

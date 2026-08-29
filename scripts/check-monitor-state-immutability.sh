@@ -40,7 +40,7 @@
 #   제외가 전체 바인딩의 과반이면 공허 통과에 준하므로 exit 1 한다.
 #
 # 스캔 대상·검사 식별자는 **도출**한다 (RULE-06 §열거 고정 금지):
-#   파일   = find "$SCAN_ROOT" -name '*.jsx' ! -name '*.test.jsx'
+#   파일   = find "$SCAN_ROOT" \( -name '*.jsx' -o -name '*.tsx' \) ! -name '*.test.*'
 #   식별자 = 각 파일의 `const [<id>` 구조분해 첫 바인딩
 # 하드코딩된 목록은 이후 추가된 파일을 스캔 범위 밖에 숨긴다.
 #
@@ -115,7 +115,7 @@ VIOLATIONS="$TMP_DIR/violations"
 # `while` 루프는 파이프 서브셸에서 돌아 카운터 대입이 소실된다 — 집계는 파일로 한다.
 # `for f in $var` 형태의 비인용 변수 분할에 의존하지 않는다: zsh 는 분할하지 않아
 # 파일 목록 전체가 단일 인자로 넘어가고 판정이 조용히 0 을 낸다.
-find "$SCAN_ROOT" -name '*.jsx' ! -name '*.test.jsx' | sort > "$FILES"
+find "$SCAN_ROOT" \( -name '*.jsx' -o -name '*.tsx' \) ! -name '*.test.jsx' ! -name '*.test.tsx' | sort > "$FILES"
 
 file_count="$(wc -l < "$FILES" | tr -d ' ')"
 

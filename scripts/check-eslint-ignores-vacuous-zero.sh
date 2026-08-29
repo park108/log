@@ -9,7 +9,6 @@
 #   P-2 `coverage/**`      : `coverage` 디렉터리 cardinality ≥ 1.
 #   P-3 `node_modules/**`  : `node_modules` 디렉터리 cardinality ≥ 1.
 #   P-4 `**/__tests__/**`  : `__tests__` 디렉터리 cardinality ≥ 1 (node_modules / build / coverage 제외).
-#   P-5 `**/api.js`        : `src` 하위 `api.js` 파일 cardinality ≥ 1.
 #
 # exit 0: G-9.1 + G-9.2 모두 PASS (ack 1줄 stdout).
 # exit 1: 어느 게이트라도 위반 (stderr 상세 + 라벨).
@@ -60,12 +59,6 @@ if [ "$p4" = "0" ]; then
   exit 1
 fi
 
-p5="$(find ./src -type f -name "api.js" 2>/dev/null | wc -l | tr -d ' ')"
-if [ "$p5" = "0" ]; then
-  printf 'G-9.2 VIOLATION: P-5 **/api.js cardinality=0 (vacuous-zero violation)\n' >&2
-  exit 1
-fi
-
-printf 'check-eslint-ignores-vacuous-zero: G-9.1 PASS (1 array @line=%s) + G-9.2 PASS (P-1=%s P-2=%s P-3=%s P-4=%s P-5=%s)\n' \
-  "$g91_line" "$p1" "$p2" "$p3" "$p4" "$p5"
+printf 'check-eslint-ignores-vacuous-zero: G-9.1 PASS (1 array @line=%s) + G-9.2 PASS (P-1=%s P-2=%s P-3=%s P-4=%s)\n' \
+  "$g91_line" "$p1" "$p2" "$p3" "$p4"
 exit 0

@@ -39,7 +39,7 @@ const ENV_KEY: Record<string, string> = {
 	'../File/api.ts': 'VITE_FILE_API_BASE',
 	'../Image/api.ts': 'VITE_IMAGE_API_BASE',
 	'../Log/api.ts': 'VITE_LOG_API_BASE',
-	'../Monitor/api.js': 'VITE_MONITOR_API_BASE',
+	'../Monitor/api.ts': 'VITE_MONITOR_API_BASE',
 	'../Search/api.ts': 'VITE_SEARCH_API_BASE',
 };
 
@@ -49,7 +49,7 @@ const REPRESENTATIVE: Record<string, [string, unknown[]]> = {
 	'../File/api.ts': ['getFiles', []],
 	'../Image/api.ts': ['getImages', []],
 	'../Log/api.ts': ['getLogs', []],
-	'../Monitor/api.js': ['getWebVitals', ['LCP']],
+	'../Monitor/api.ts': ['getWebVitals', ['LCP']],
 	'../Search/api.ts': ['getSearchList', ['q']],
 };
 

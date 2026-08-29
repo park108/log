@@ -4,9 +4,28 @@ import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getWebVitals } from './api';
-import PropTypes from 'prop-types';
 
-const HEADER_STYLE = {
+export type WebVitalEvaluation = "GOOD" | "POOR" | "NEEDS IMPROVEMENT" | "None";
+
+interface WebVitalRawItem {
+	evaluation?: string;
+}
+
+interface EvaluationBucket {
+	count: number;
+	rate: string | number;
+	style: React.CSSProperties;
+}
+
+export interface EvaluationResult {
+	totalCount: number;
+	evaluation: WebVitalEvaluation;
+	good: EvaluationBucket;
+	needImprovement: EvaluationBucket;
+	poor: EvaluationBucket;
+}
+
+const HEADER_STYLE: Record<string, string> = {
 	"GOOD": "span span--monitor-evaluation span--monitor-evaluation-good",
 	"POOR": "span span--monitor-evaluation span--monitor-evaluation-poor",
 	"NEEDS IMPROVEMENT": "span span--monitor-evaluation span--monitor-evaluation-warn",
@@ -19,7 +38,7 @@ const HEADER_STYLE = {
 // in-place 변이는 갱신 경로가 잊은 필드(과거: `totalCount`)를 초기값으로 은폐해
 // 헤더가 영구 `(0)` 을 표시하는 결함을 만들었다. 매 호출 새 객체를 반환하며
 // 공유 상수 객체를 export 하지 않는다 (공유 참조 = 같은 부류의 문제).
-export const createInitialEvaluationResult = () => ({
+export const createInitialEvaluationResult = (): EvaluationResult => ({
 	totalCount: 0,
 	evaluation: "None",
 	good: { count: 0, rate: 0, style: {} },
@@ -28,7 +47,7 @@ export const createInitialEvaluationResult = () => ({
 });
 
 // 현행 표기 보존: count 가 0 이면 "" , 아니면 백분율 정수 문자열.
-const toRate = (count, totalCount) => 0 === count ? "" : (100 * count / totalCount).toFixed(0);
+const toRate = (count: number, totalCount: number): string => 0 === count ? "" : (100 * count / totalCount).toFixed(0);
 // 0 경계 가드 — `totalCount === 0` 이면 `0/0 → NaN` 이라 DOM 에 `width: "NaN%"` 가
 // 실린다. 0건은 예외가 아니라 설계된 정상 상태이므로(항목이 세 분류에 하나도 들지
 // 않으면 evaluation="None" 으로 명시 취급) 인정된 정상 입력이 무효 출력을 내지 않게
@@ -36,14 +55,14 @@ const toRate = (count, totalCount) => 0 === count ? "" : (100 * count / totalCou
 // 보유하고 스냅샷·시각 회귀·접근성 도구는 그것을 그대로 읽는다.
 // 분기 변수가 `toRate` 와 다른 것은 정상이다 — `toRate` 는 표기상 `count` 로 분기하지만
 // `NaN` 을 만드는 것은 **분모**다. 비-0 경로의 산술은 그대로 둔다 (반올림 도입 금지).
-const toStyle = (count, totalCount) => (
+const toStyle = (count: number, totalCount: number): React.CSSProperties => (
 	Number.isFinite(totalCount) && 0 !== totalCount
 		? { width: 100 * count / totalCount + "%" }
 		: { width: "0%" }
 );
 
 // 순수 함수 — 기존 state 를 읽지 않고 응답 Items(또는 falsy) 만으로 전 필드를 조립한다.
-export const buildEvaluationResult = (items) => {
+export const buildEvaluationResult = (items: WebVitalRawItem[] | null | undefined): EvaluationResult => {
 
 	let good = 0;
 	let poor = 0;
@@ -66,11 +85,12 @@ export const buildEvaluationResult = (items) => {
 	const poorRate = toRate(poor, totalCount);
 
 	// 분기 순서·경계는 현행 그대로 (문자열 rate 의 강제변환 의미 포함).
-	let evaluation;
-	if(75 <= goodRate) {
+	let evaluation: WebVitalEvaluation;
+	// 기존 동작 보존: rate 는 문자열이고 비교 시 강제변환된다 ("" -> 0).
+	if(75 <= Number(goodRate)) {
 		evaluation = "GOOD";
 	}
-	else if(25 < poorRate) {
+	else if(25 < Number(poorRate)) {
 		evaluation = "POOR";
 	}
 	else if(0 < totalCount) {
@@ -89,7 +109,12 @@ export const buildEvaluationResult = (items) => {
 	};
 };
 
-const WebVitalsItem = (props) => {
+interface WebVitalsItemProps {
+	description?: string;
+	name: string;
+}
+
+const WebVitalsItem = (props: WebVitalsItemProps) => {
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [isMount, setIsMount] = useState(false);
@@ -118,7 +143,7 @@ const WebVitalsItem = (props) => {
 		const cancelled = cancelledFetchRef;
 		cancelled.current = false;
 
-		const fetchData = async(name) => {
+		const fetchData = async(name: string) => {
 
 			setIsLoading(true);
 			setIsError(false);
@@ -237,9 +262,5 @@ const WebVitalsItem = (props) => {
 	}
 }
 
-WebVitalsItem.propTypes = {
-	description: PropTypes.string,
-	name: PropTypes.string,
-};
 
 export default WebVitalsItem;

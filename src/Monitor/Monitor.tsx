@@ -1,5 +1,4 @@
 import React, { Suspense, useEffect, lazy } from "react";
-import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { log, isAdmin, setFullscreen, setHtmlTitle } from '../common/common';
 
@@ -10,7 +9,17 @@ const ContentMon = lazy(() => import('./ContentMon'));
 const WebVitalsMon = lazy(() => import('./WebVitalsMon'));
 const ApiCallMon = lazy(() => import('./ApiCallMon'));
 
-const CHART_PALLETS = [
+export interface ChartColor {
+	color: string;
+	backgroundColor: string;
+}
+
+interface ChartPallet {
+	pallet: string;
+	colors: ChartColor[];
+}
+
+const CHART_PALLETS: ChartPallet[] = [
 	{
 		pallet: "Red to Green",
 		colors: [
@@ -37,7 +46,16 @@ const CHART_PALLETS = [
 	}
 ];
 
-const Monitor = (props) => {
+// 인덱스 접근은 noUncheckedIndexedAccess 하에서 undefined 를 만든다. 사용처가
+// 고정된 두 팔레트뿐이므로 이름을 붙여 결손 가능성을 구조적으로 제거한다.
+const PALLET_RED_TO_GREEN = CHART_PALLETS[0]?.colors ?? [];
+const PALLET_OLIVE = CHART_PALLETS[1]?.colors ?? [];
+
+interface MonitorProps {
+	contentHeight?: React.CSSProperties;
+}
+
+const Monitor = (props: MonitorProps) => {
 
 	const navigate = useNavigate();
 	
@@ -62,23 +80,20 @@ const Monitor = (props) => {
 	return (
 		<main className="main main--main-contents" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
-				<ContentMon stackPallet={CHART_PALLETS[1].colors} />
+				<ContentMon stackPallet={PALLET_OLIVE} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<ApiCallMon stackPallet={CHART_PALLETS[0].colors} />
+				<ApiCallMon stackPallet={PALLET_RED_TO_GREEN} />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
 				<WebVitalsMon />
 			</Suspense>
 			<Suspense fallback={<div></div>}>
-				<VisitorMon stackPallet={CHART_PALLETS[1].colors} />
+				<VisitorMon stackPallet={PALLET_OLIVE} />
 			</Suspense>
 		</main>
 	);
 }
 
-Monitor.propTypes = {
-	contentHeight: PropTypes.object,
-};
 
 export default Monitor;

@@ -1,26 +1,72 @@
 import React, { useEffect, useRef, useState } from "react";
-import PropTypes from 'prop-types';
+import type { ChartColor } from './Monitor';
 import { log, hasValue, getFormattedDate, getFormattedTime, getWeekday } from "../common/common";
 import { useHoverPopup } from "../common/useHoverPopup";
 import { activateOnKey } from "../common/a11y";
 import { reportError } from "../common/errorReporter";
 import { getVisitors } from "./api";
 
-const VisitorMon = (props) => {
+interface RawVisitorItem {
+	timestamp: number;
+	date?: string;
+	time?: string;
+	browser?: string;
+	os?: string;
+	renderingEngine?: string;
+}
+
+interface DailyCount {
+	date: string;
+	count: number;
+	valueRate: number;
+}
+
+interface EnvCount {
+	name: string;
+	count: number;
+}
+
+const FALLBACK_COLOR: ChartColor = { color: "black", backgroundColor: "transparent" };
+
+interface CountPillarProps extends DailyCount {
+	index: number;
+}
+
+interface EnvStackProps {
+	name: string;
+	count: number;
+	totalCount: number;
+	index: number;
+	legend: string;
+}
+
+interface EnvPillarProps {
+	legend: string;
+	length: number;
+	data: EnvCount[];
+}
+
+interface VisitorMonProps {
+	stackPallet?: ChartColor[];
+}
+
+const VisitorMon = (props: VisitorMonProps) => {
+
+	// 팔레트 인덱스 결손 시 중립색으로 떨어뜨린다.
+	const palletAt = (i: number): ChartColor => props.stackPallet?.[i] ?? FALLBACK_COLOR;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [isMount, setIsMount] = useState(false);
 	const [isError, setIsError] = useState(false);
 
-	const [totalCount, setTotalCount] = useState("...");
-	const [dailyCount, setDailyCount] = useState([]);
+	const [totalCount, setTotalCount] = useState<number | string>("...");
+	const [dailyCount, setDailyCount] = useState<DailyCount[]>([]);
 	const [envTotalCount, setEnvTotalCount] = useState(0);
 
-	const [browsers, setBrowsers] = useState([]);
-	const [os, setOs] = useState([]);
-	const [engines, setEngines] = useState([]);
+	const [browsers, setBrowsers] = useState<EnvCount[]>([]);
+	const [os, setOs] = useState<EnvCount[]>([]);
+	const [engines, setEngines] = useState<EnvCount[]>([]);
 
-	const stackPallet = props.stackPallet;
 
 	const handleRetry = () => { setIsMount(false); };
 
@@ -59,42 +105,48 @@ const VisitorMon = (props) => {
 
 					let periodData = data.body.periodData.Items;
 		
-					for(let item of periodData) {
+					for(const item of periodData as RawVisitorItem[]) {
 						item.date = getFormattedDate(item.timestamp);
 						item.time = getFormattedTime(item.timestamp);
 					}
 
-					let dailyCountList = [];
+					const dailyCountList: DailyCount[] = [];
 					let startTimestamp = 0;
 					let endTimestamp = 0;
 					let max = 0;
-		
+
+					// 버킷을 지역 변수로 조립한 뒤 push 한다 (push 후 인덱스 재접근 제거).
 					for(let i = 0; i < 7; i++) {
-		
+
 						startTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * i);
 						endTimestamp = fromTimestamp + (1000 * 60 * 60 * 24 * (i + 1));
-		
-						dailyCountList.push({"date": getFormattedDate(startTimestamp) + " (" + getWeekday(startTimestamp) +")", "count": 0});
-		
-						for(let item of periodData) {
+
+						const bucket: DailyCount = {
+							date: getFormattedDate(startTimestamp) + " (" + getWeekday(startTimestamp) +")",
+							count: 0,
+							valueRate: 0,
+						};
+
+						for(const item of periodData as RawVisitorItem[]) {
 							if(startTimestamp <= item.timestamp && item.timestamp < endTimestamp ) {
-								++dailyCountList[i].count;
-								if(max < dailyCountList[i].count) {
-									max = dailyCountList[i].count;
+								++bucket.count;
+								if(max < bucket.count) {
+									max = bucket.count;
 								}
 							}
 						}
+						dailyCountList.push(bucket);
 					}
-		
-					for(let item of dailyCountList) {
-						item.valueRate = item.count / max;
+
+					for(const item of dailyCountList) {
+						item.valueRate = 0 === max ? 0 : item.count / max;
 					}
 		
 					setDailyCount(dailyCountList);
 		
-					let browserList = [];
-					let osList = [];
-					let engineList = [];
+					const browserList: EnvCount[] = [];
+					const osList: EnvCount[] = [];
+					const engineList: EnvCount[] = [];
 		
 					let hasBrowser = false;
 					let hasOs = false
@@ -139,7 +191,7 @@ const VisitorMon = (props) => {
 						}
 					}
 		
-					const countSort = (a, b) => {
+					const countSort = (a: EnvCount, b: EnvCount) => {
 						const sortKeyA = a.count;
 						const sortKeyB = b.count;
 						const result
@@ -186,7 +238,7 @@ const VisitorMon = (props) => {
 		};
 	}, [isMount]);
 
-	const CountPillar = (attr) => {
+	const CountPillar = (attr: CountPillarProps) => {
 
 		const index = attr.index;
 		const mm = attr.date.substr(5, 2);
@@ -202,7 +254,7 @@ const VisitorMon = (props) => {
 		const valueHeight = {height: "20px"}
 		const pillarStyle = {
 			height: pillarHeight * attr.valueRate + "px",
-			backgroundColor: stackPallet[index].backgroundColor
+			backgroundColor: palletAt(index).backgroundColor
 		};
 
 		return (
@@ -215,14 +267,14 @@ const VisitorMon = (props) => {
 		);
 	}
 
-	const EnvStack = (attr) => {
+	const EnvStack = (attr: EnvStackProps) => {
 
 		const pillarHeight = 185;
 		const detailId = ("visitor-env-" + attr.legend + "-" + attr.index).replace(/\s/g, '');
 		const stackStyle = {
 			height: pillarHeight * (attr.count / envTotalCount) + "px",
-			color: stackPallet[attr.totalCount - attr.index - 1].color,
-			backgroundColor: stackPallet[attr.totalCount - attr.index - 1].backgroundColor
+			color: palletAt(attr.totalCount - attr.index - 1).color,
+			backgroundColor: palletAt(attr.totalCount - attr.index - 1).backgroundColor
 		};
 
 		const rate = (100 * (attr.count / envTotalCount)).toFixed(0);
@@ -255,14 +307,14 @@ const VisitorMon = (props) => {
 		);
 	}
 
-	const EnvPillar = (attr) => {
+	const EnvPillar = (attr: EnvPillarProps) => {
 
 		let index = 0;
 		let total = attr.data.length;
 
 		return (
 			<div className="div div--monitor-3pillars">
-				{attr.data.map(item => (
+				{attr.data.map((item: EnvCount) => (
 					<EnvStack
 						key={item.name}
 						name={item.name}
@@ -365,8 +417,5 @@ const VisitorMon = (props) => {
 	}
 }
 
-VisitorMon.propTypes = {
-	stackPallet: PropTypes.array
-};
 
 export default VisitorMon;

@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import PropTypes from 'prop-types';
+import type { ChartColor } from './Monitor';
 
 const ApiCallItem = lazy(() => import('./ApiCallItem'));
 
@@ -9,7 +9,11 @@ const SERVICE_LIST = [
 	{title: "analytics", service: "analytics"},
 ];
 
-const ApiCallMon = (props) => {
+interface ApiCallMonProps {
+	stackPallet?: ChartColor[];
+}
+
+const ApiCallMon = (props: ApiCallMonProps) => {
 
 	return (
 		<article className="article article--main-item article--monitor-item">
@@ -28,8 +32,5 @@ const ApiCallMon = (props) => {
 	);
 }
 
-ApiCallMon.propTypes = {
-	stackPallet: PropTypes.array,
-};
 
 export default ApiCallMon;

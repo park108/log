@@ -1,22 +1,55 @@
 import React, { useEffect, useRef, useState } from "react";
-import PropTypes from 'prop-types';
+import type { ChartColor } from './Monitor';
 import { log, hasValue, getFormattedDate, getFormattedSize } from '../common/common';
 import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getContentItemCount } from './api';
 
-const ContentItem = (props) => {
+interface RawContentItem {
+	timestamp: number;
+	size?: number;
+	sortKey?: number;
+}
+
+interface ContentBucket {
+	from: number;
+	to: number;
+	value: number;
+	count: number;
+	deleted: number;
+	valueRate: number;
+}
+
+const FALLBACK_COLOR: ChartColor = { color: "black", backgroundColor: "transparent" };
+
+interface ContentPillarProps {
+	valueRate: number;
+	value: string | number;
+	date: string;
+	index: number;
+}
+
+interface ContentItemProps {
+	stackPallet?: ChartColor[];
+	title?: string;
+	path: string;
+	unit?: string;
+}
+
+const ContentItem = (props: ContentItemProps) => {
+
+	// 팔레트 인덱스 결손 시 중립색으로 떨어뜨린다 (차트 소실보다 낫다).
+	const palletAt = (i: number): ChartColor => props.stackPallet?.[i] ?? FALLBACK_COLOR;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [isMount, setIsMount] = useState(false);
 	const [isError, setIsError] = useState(false);
 
-	const [totalCount, setTotalCount] = useState("...");
-	const [counts, setCounts] = useState([]);
+	const [totalCount, setTotalCount] = useState<number | string>("...");
+	const [counts, setCounts] = useState<ContentBucket[]>([]);
 
 	const title = props.title;
 	const path = props.path;
-	const stackPallet = props.stackPallet;
 
 	const handleRetry = () => { setIsMount(false); };
 
@@ -48,7 +81,7 @@ const ContentItem = (props) => {
 			(new Date(now.getFullYear(), now.getMonth(), 1)).getTime(),
 			to
 		];
-		const fetchData = async (path) => {
+		const fetchData = async (path: string) => {
 	
 			setIsLoading(true);
 			setIsError(false);
@@ -64,44 +97,53 @@ const ContentItem = (props) => {
 	
 					setTotalCount(data.body.Count);
 	
-					let periodData = data.body.Items;
+					const periodData: RawContentItem[] = data.body.Items;
 					let max = 0; // Max value in array to calculate value rate
-					let countList = [];
-	
+					const countList: ContentBucket[] = [];
+
+					// 버킷을 지역 변수로 조립한 뒤 push 한다. 예전에는 push 직후
+					// countList[i] 로 되짚어 갱신했는데, 인덱스 재접근은 경계 밖을
+					// 조용히 통과시킬 수 있다.
 					for(let i = 0; i < timeline.length - 1; i++) {
-	
-						countList.push({
-							"from": timeline[i],
-							"to": timeline[i+1],
-							"value": 0,
-							"count": 0,
-							"deleted": 0
-						});
-		
-						for(let item of periodData) {
-							if(timeline[i] <= item.timestamp && item.timestamp < timeline[i+1]) {
-								++countList[i].count;
+
+						const bucketFrom = timeline[i];
+						const bucketTo = timeline[i+1];
+						if(bucketFrom === undefined || bucketTo === undefined) continue;
+
+						const bucket: ContentBucket = {
+							from: bucketFrom,
+							to: bucketTo,
+							value: 0,
+							count: 0,
+							deleted: 0,
+							valueRate: 0,
+						};
+
+						for(const item of periodData) {
+							if(bucketFrom <= item.timestamp && item.timestamp < bucketTo) {
+								++bucket.count;
 								if(hasValue(item.size)) {
-									countList[i].value += item.size;
+									bucket.value += item.size ?? 0;
 								}
 								else {
-									++countList[i].value;
+									++bucket.value;
 								}
-								if(item.sortKey < 0) {
-									++countList[i].deleted;
+								if((item.sortKey ?? 0) < 0) {
+									++bucket.deleted;
 								}
 							}
 						}
-						
-						if(max < countList[i].value) {
-							max = countList[i].value;
+
+						if(max < bucket.value) {
+							max = bucket.value;
 						}
+						countList.push(bucket);
 					}
-	
-					for(let item of countList) {
-						item.valueRate = item.value / max;
+
+					for(const item of countList) {
+						item.valueRate = 0 === max ? 0 : item.value / max;
 					}
-	
+
 					setCounts(countList);
 				}
 				else {
@@ -130,7 +172,7 @@ const ContentItem = (props) => {
 		};
 	}, [path, isMount]);
 
-	const Pillar = (attr) => {
+	const Pillar = (attr: ContentPillarProps) => {
 
 		const index = attr.index;
 		const yy = attr.date.substr(2, 2);
@@ -141,11 +183,11 @@ const ContentItem = (props) => {
 			: mm; // 02
 
 		const pillarHeight = 60;
-		const blankHeight = 0 === totalCount ? {height: "60px"} : {height: pillarHeight * (1 - attr.valueRate) + "px"};
+		const blankHeight = 0 === Number(totalCount) ? {height: "60px"} : {height: pillarHeight * (1 - attr.valueRate) + "px"};
 		const valueHeight = {height: "20px"}
 		const pillarStyle = {
 			height: pillarHeight * attr.valueRate + "px",
-			backgroundColor: stackPallet[index].backgroundColor
+			backgroundColor: palletAt(index).backgroundColor
 		};
 
 		return (
@@ -215,11 +257,5 @@ const ContentItem = (props) => {
 	}
 }
 
-ContentItem.propTypes = {
-	stackPallet: PropTypes.array,
-	title: PropTypes.string,
-	path: PropTypes.string,
-	unit: PropTypes.string,
-};
 
 export default ContentItem;
