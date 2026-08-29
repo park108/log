@@ -1,0 +1,37 @@
+# AWS Amplify Hosting 커스텀 응답 헤더.
+#
+# 근거·검증 절차는 docs/ops/cdn-headers-and-caching.md.
+#
+# 이 파일이 필요한 이유 — CSP 의 frame-ancestors 는 <meta> 로 전달되면
+# 명세상 무시된다. index.html 에 적어도 클릭재킹 방어가 서지 않으므로
+# 헤더 계층에서만 가능하다.
+#
+# Cache-Control 은 의도적으로 건드리지 않는다. Amplify 기본값
+# (public, max-age=0, s-maxage=31536000) 은 배포마다 무효화되므로
+# 새 접속은 항상 정합하다 — 2026-08-29 실측으로 확인했다.
+
+customHeaders:
+  - pattern: '**'
+    headers:
+      # meta 로는 설 수 없는 지시어만 헤더로 보낸다. 나머지 지시어는
+      # index.html 의 meta CSP 가 계속 소유한다 (두 정책은 교집합으로
+      # 적용되므로 중복 선언은 서로를 약화시키지 않는다).
+      - key: 'Content-Security-Policy'
+        value: "frame-ancestors 'none'"
+
+      # frame-ancestors 의 구형 대체재. 둘 다 두어도 무해하다.
+      - key: 'X-Frame-Options'
+        value: 'DENY'
+
+      - key: 'X-Content-Type-Options'
+        value: 'nosniff'
+
+      - key: 'Referrer-Policy'
+        value: 'strict-origin-when-cross-origin'
+
+      # 1년 HTTPS 강제. includeSubDomains 와 preload 는 **의도적으로 뺐다** —
+      # 둘 다 되돌리기가 훨씬 어렵다. preload 는 목록 등재 후 제거에 수개월이
+      # 걸리고, includeSubDomains 는 HTTP 로만 뜨는 서브도메인이 생기면
+      # 그 즉시 접근 불가가 된다. 필요해지면 그때 별도 판단으로 올린다.
+      - key: 'Strict-Transport-Security'
+        value: 'max-age=31536000'
