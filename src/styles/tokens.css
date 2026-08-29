@@ -18,6 +18,13 @@
 	--inactive-text-color: #666666;
 
 	--sub-text-color: #666666;
+	/* 보조 텍스트보다 한 단 더 옅은 층. 목록의 날짜처럼 "있지만 주인공이
+	 * 아닌" 정보에 쓴다 — #666 은 본문과 대비가 부족해 위계가 생기지 않았다. */
+	--faint-text-color: #a3a39e;
+
+	/* 배경보다 한 단 눌린 면 — 호버 배경·빈 트랙처럼 "영역은 있으나
+	 * 주장하지 않는" 표면에 쓴다. */
+	--track-background-color: #f6f6f4;
 
 	--shadow-color: #aaaaaa;
 
