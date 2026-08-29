@@ -9,8 +9,9 @@
 1. **실행 라인 삭제 + 주석 잔존** — 게이트 호출이 훅에서 빠졌는데 문자열 `grep` 기반 배선 판정은 주석 한 줄로 초록을 유지한다.
 2. **게이트 스크립트 자체 회귀** — pre-commit 발화 조건이 `^scripts/` 를 포함하지 않아 정규식 오타·가드 제거가 로컬 커밋에서 무발화 통과한다.
 3. **훅 호출과 npm script 의 경로 분기** — 훅이 낡은 경로를 부르거나 이름이 어긋나도 양쪽을 개별로 보면 정상으로 보인다.
+4. **선언 파일 표기 변경에 의한 판정 정지** — `package.json` 의 직렬화 형태가 바뀌면 원문 교차 검증의 라인 계수가 0 이 되어 배선 판정 전체가 무판정으로 멈춘다. 배선이 실제로 깨졌는지 여부와 무관하게 **관측이 사라진다** (FR-06).
 
-세 부류 모두 기존 자동 게이트로 검출되지 않는다.
+네 부류 모두 기존 자동 게이트로 검출되지 않는다.
 
 ## 동작
 
@@ -40,6 +41,14 @@
 
 게이트 스크립트가 자신의 변경으로 발화할 때, 측정 대상 경로가 staged 가 아니어도 정상 판정한다. 게이트의 측정 대상은 staged diff 가 아니라 작업 트리다.
 
+### FR-06 — 선언 파일 교차 검증은 직렬화 형태에 비종속이다 (Must)
+
+회피 경로 차단을 위한 원문 교차 검증(파싱된 키 수 ↔ 선언 파일 원문의 키 계수)은 `package.json` 의 **직렬화 형태**에 종속되지 않는다. 들여쓰기 규약 변경이나 1줄 직렬화가 원문 계수를 0 으로 만들어 게이트를 **무판정**(`exit 2`)으로 떨어뜨려서는 안 된다.
+
+- 은닉 차단 목적은 유지한다 — 파싱 결과와 원문의 교차 검증 자체는 남는다. 바뀌는 것은 **계수 단위**이며, 라인 단위가 아니라 선언 토큰 단위여야 한다.
+- 현 구현은 `scripts/check-gate-wiring.sh` 의 `pkgRaw.split("\n") … /^\s*"check:[^"]*"\s*:/` (`:159-163`) 로 **라인 기반**이며, 불일치 시 `:178-182` 가 `NO-JUDGEMENT: key-count-incoherent` 를 낸다.
+- 방향은 fail-closed 라 조용한 초록은 아니다. 그러나 **표기 우연이 판정을 멈춘다** — 판정이 대상의 구조가 아니라 줄바꿈 위치에 걸려 있는 형태이며, 채택 술어 층의 이름 우연(`measurement-tree-attribution-wrapper-adoption` §이름은 채널이 아니다)과 같은 부류다.
+
 ### 발화 채널 (RULE-07 §promote 조건 4)
 
 본 계약의 Must 판정은 아래 실경로에서 발화한다.
@@ -57,6 +66,26 @@
 - [x] 배선 정합 게이트가 `package.json scripts.check:*` 에 등재되고 `.github/workflows/ci.yml` 에서 실행 라인으로 호출된다 — `node -e "const fs=require('fs');const K='check:gate-wiring';const s=require('./package.json').scripts;const a=typeof s[K]==='string'&&s[K].trim().length>0?1:0;const ci=fs.readFileSync('.github/workflows/ci.yml','utf8').split('\n').map(l=>l.replace(/#.*/,'')).filter(l=>/run:\s*npm run check:gate-wiring(\s|$)/.test(l)).length;console.log(a,ci?1:0);process.exit(a&&ci?0:1)"` → 출력 `1 1` / rc=0. ci 측 계수는 주석 절단 후 `run:` 실행 라인에 한정한다 — 단순 문자열 포함 계수는 `ci.yml` 주석에 적힌 게이트 이름을 배선으로 오인한다(FR-03). **실측 2026-08-28 (HEAD `dac5a60`): `1 1` rc=0 → 충족** (`scripts.check:gate-wiring` = `bash scripts/check-gate-wiring.sh`, `ci.yml:167`).
 - [x] 배선 정합 게이트가 `.husky/pre-commit` **실행 라인**에서 호출된다 (§발화 채널 3경로 중 훅) — `node -e "const fs=require('fs');const K='check-gate-wiring.sh';const n=fs.readFileSync('.husky/pre-commit','utf8').split('\n').map(l=>l.replace(/#.*/,'')).filter(l=>l.includes('scripts/'+K)).length;console.log(n?1:0);process.exit(n?0:1)"` → 출력 `1` / rc=0. 주석 절단 후 계수하므로 훅의 설명 주석(`# npm script 동치: check:gate-wiring`)은 배선을 충족시키지 않는다(FR-03). **실측 2026-08-28 (HEAD `dac5a60`): `1` rc=0 → 충족** (`.husky/pre-commit:141` 실행 라인; 주석 `:129`·`:131` 은 계수 제외). 음성 대조(인메모리, 트리 무변경): 해당 실행 라인을 주석으로 내린 변형에서 계수 0 → rc=1.
 - [x] 도출 명령이 공집합을 초록으로 읽지 않는다 — `node -e "const s=require('./package.json').scripts;const p=[...new Set(Object.entries(s).filter(([k])=>k.startsWith('check:')).flatMap(([,v])=>v.match(/scripts\/[A-Za-z0-9._\/-]+\.sh/g)||[]))];console.log(p.length>=1?1:0);process.exit(p.length?0:1)"` → 출력 `1` / rc=0 (RULE-06 §추출 실패 검출). 도출 개수 절대값은 고정하지 않는다.
+- [ ] (FR-06) `package.json` 을 1줄로 직렬화한 probe root 에서 배선 판정이 `key-count-incoherent` 무판정으로 멈추지 않는다 — 판정: (펜스)
+  ```
+  S=$(mktemp -d) || exit 2
+  [ -n "$S" ] || exit 2
+  cp -R scripts "$S/scripts" || exit 2
+  cp -R .husky "$S/.husky" || exit 2
+  node -e 'const fs=require("fs");fs.writeFileSync(process.argv[1]+"/package.json",JSON.stringify(JSON.parse(fs.readFileSync("package.json","utf8")))+"\n")' "$S" || exit 2
+  o=$(GATE_WIRING_SCAN_ROOT="$S" bash scripts/check-gate-wiring.sh 2>&1); r=$?
+  printf '%s\n' "$o" | grep -q 'key-count-incoherent' && exit 1
+  [ "$r" -eq 0 ] || exit 1
+  ```
+  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=1 → 미충족.** 산출 `NO-JUDGEMENT: key-count-incoherent — parsed=28 raw-lines=0` `rc=2` 를 재현한다 (`scripts/check-gate-wiring.sh:159-163` 의 라인 기반 원문 계수 · `:178-182` 발화). probe root 는 `mktemp -d` 아래에 구성되고 `scripts/` · `.husky/` 는 현 트리 사본이며 저장소 트리를 건드리지 않는다. 이 항목이 `rc=0` 이 되려면 원문 계수가 라인 단위가 아니라 **선언 토큰 단위**여야 한다 — 그 변경은 `scripts/**` 소관이므로 planner 의 task 발행이 선행 조건이다.
+- [x] (FR-06 음성 대조) 원문 교차 검증의 **은닉 차단 목적이 퇴행하지 않는다** — 현 HEAD 에서 배선 판정이 `rc=0` 이고 발화된 `check-keys` 가 `package.json` 파싱 키 수와 일치한다 — 판정: (펜스)
+  ```
+  o=$(bash scripts/check-gate-wiring.sh 2>&1) || exit 1
+  n=$(node -e 'console.log(Object.keys(require(process.cwd()+"/package.json").scripts).filter(k=>k.startsWith("check:")).length)')
+  [ -n "$n" ] && [ "$n" -ge 1 ] || exit 2
+  printf '%s\n' "$o" | grep -q "check-keys=$n " || exit 1
+  ```
+  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=0** (`check-keys=28 derived-paths=28 hook-paths=15 hook-comment-paths=0 (PASS)`, 파싱 키 수 28). 절대 종수를 고정하지 않고 **두 계수의 일치**를 요구한다 — FR-06 수리가 교차 검증을 느슨하게 해서 통과시키는 경로를 이 항목이 막는다. 위 항목이 민감도(형태 변경에서 멈추지 않는가), 이 항목이 특이도(정상 트리에서 계수가 여전히 맞는가)를 잰다.
 
 ## 참고
 
@@ -113,3 +142,4 @@
 - 2026-08-28 inspector: Phase 1 reconcile — 수용 기준 5항(발화 채널 실재) 재실행, `c8965a9` 착지로 출력 `0 0` rc=1 → `1 1` rc=0 전이 확인 후 `[x]` 확정. RULE-07 §promote 조건 4 의 채널 부착 선행 조건 해소.
 - 2026-08-28 inspector: §발화 채널이 선언한 3경로 중 미측정이던 `.husky/pre-commit` 실행 라인 항목을 수용 기준에 추가 — 주석 절단 후 계수 `1` rc=0, 인메모리 음성 대조 rc=1. 등재와 배선을 함께 요구한다(`declared-gate-firing-channel-totality`).
 - 2026-08-28 inspector: 수용 기준 1·2·3·6항 재실행 전수 rc=0 보존 확인 (`1 0` / `0` / `0` / `1`), 4항(FR-04) `1 4` rc=1 비악화 → `[ ]` 유지.
+- 2026-08-29 inspector: REQ-20260829-046 흡수 — FR-06(선언 파일 교차 검증의 직렬화 형태 비종속) 신설 + 방어 대상 4번 추가. 수용 기준 2항 추가: 1줄 직렬화 probe root 판정 `rc=1` 미충족(`key-count-incoherent parsed=28 raw-lines=0` 재현) · 음성 대조 현 HEAD `check-keys` = 파싱 키 수 `rc=0`. FR-01 `VALUE_RE`(`:136`)는 완화하지 않는다 — req Out-of-Scope 명시.

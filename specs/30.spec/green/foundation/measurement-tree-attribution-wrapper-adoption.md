@@ -2,7 +2,7 @@
 
 > **위치**: 게이트 채택 표면 — `package.json` `scripts.check:*` 에서 도출되는 스크립트 집합. 래퍼는 `scripts/check-measurement-tree-attribution.sh`.
 > **관련 요구사항**: REQ-20260828-038 (measurement-tree-attribution-wrapper-adoption-completeness)
-> **최종 업데이트**: 2026-08-29 (by inspector — tick 241 재실행, (W-2) 미충족 3cycle 유지)
+> **최종 업데이트**: 2026-08-29 (by inspector — tick 242, REQ-20260829-046 흡수: 채택 술어를 **이름 포함**에서 **실행 경유**로 재정식화 + 모집단 도출에 간접 1단계 추적 도입)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷 (`559dde0`).
 > cross-ref 는 **slug 로만** 쓴다 — 전체 경로를 쓰면 참조 대상이 승격될 때 dangling 이 된다 (green `foundation/spec-reference-coherence` §역할 1).
@@ -29,24 +29,35 @@
 
 본 계약은 공개 인터페이스를 갖지 않는다 (채택 계약). 관측 표면은 셋이다.
 
-- **(A-POP) 채택 모집단** — `package.json` `scripts.check:*` 각 키가 가리키는 스크립트 파일 중, **행 선두 주석을 절단한 실행 라인**에서 `for`/`while` 루프 **본문 안**에 `npx` · `vitest` 호출이 1회 이상 있는 것.
-- **(A-ROUTE) 채택 여부** — 그 키의 스크립트 문자열이 래퍼 식별자를 경유하는가.
+- **(A-POP) 채택 모집단** — `package.json` `scripts.check:*` 각 키의 **도달 집합** 중, **행 선두 주석을 절단한 실행 라인**에서 `for`/`while` 루프 **본문 안**에 `npx` · `vitest` 호출이 1회 이상 있는 것이 하나라도 있는 키. **도달 집합은 키가 가리키는 진입 스크립트 + 그 진입 스크립트가 실행 라인에서 호출하는 `scripts/*` 파일(간접 1단계)** 이다.
+- **(A-ROUTE) 채택 여부** — **진입 스크립트의 실행 라인이 래퍼를 실제로 호출하는가**. 판정 입력은 스크립트 **본문**이며, 키 값 문자열이나 파일 **이름**에 래퍼 식별자가 들어 있다는 사실은 채택을 성립시키지 않는다.
 - **(A-REST) 미채택 잔여** — (A-POP) ∖ (A-ROUTE). **이 수치가 계약의 판정량이다.**
 
 세 수치는 **동시에** 발화된다. 채택 수만 세면 이후 추가되는 게이트가 조용히 채택 밖에 남는다 — 현 상태가 정확히 그 형태다.
 
+**(A-POP) 이 간접 1단계를 따라가는 이유는 (A-ROUTE) 가 간접을 요구하기 때문이다.** 래핑은 정의상 진입점과 측정 사이에 한 겹을 넣는다. 도출이 진입 스크립트 본문만 보면 **채택 행위 자체가 대상을 모집단에서 탈락**시키고, 판정량은 위반(`rc=1`)에서 무판정(`rc=2`)으로 소멸한다 (§참고 §후보 교차 실측 B). 채택이 판정량을 지우는 계약은 채택을 관측하지 못한다.
+
 ## 동작
 
 1. `package.json` 의 `scripts` 에서 `check:` 접두 키를 **열거**한다. 게이트명 하드코딩을 판정 입력으로 쓰지 않는다 (`RULE-06 §열거 고정 금지`).
-2. 각 키의 명령 문자열에서 스크립트 경로를 추출하고, 실재하지 않으면 모집단에서 제외한다.
-3. 스크립트를 읽어 **행 선두 주석을 절단**한 뒤 루프 깊이를 세고, 깊이 > 0 인 라인의 `npx`/`vitest` 호출을 계수한다 → (A-POP).
-4. (A-POP) 원소 중 명령 문자열이 래퍼 식별자를 포함하지 않는 것을 (A-REST) 로 열거한다.
-5. (A-REST) ≠ 0 이면 그 키들을 **이름으로** 발화하고 위반으로 종료한다. 수치만 내면 어느 게이트가 빠졌는지 관측되지 않는다.
-6. `check:*` 키 수가 하한 미만이거나 (A-POP) 이 공집합이면 **무판정**(`exit 2`)이다. 공허를 충족으로 읽지 않는다.
+2. 각 키의 명령 문자열에서 진입 스크립트 경로를 추출하고, 실재하지 않으면 모집단에서 제외한다.
+3. 진입 스크립트의 **행 선두 주석을 절단한 실행 라인**에서 `scripts/*` 참조를 모아 **도달 집합**(진입 스크립트 + 간접 1단계)을 만든다. 실재하지 않는 경로는 도달 집합에서 제외한다.
+4. 도달 집합의 각 파일에서 루프 깊이를 세고, 깊이 > 0 인 라인의 `npx`/`vitest` 호출을 계수한다. 합이 1 이상이면 그 키는 (A-POP) 원소다.
+5. (A-POP) 원소 중 **진입 스크립트 실행 라인에 래퍼 호출이 없는** 것을 (A-REST) 로 열거한다. 래퍼 호출 판정은 경로 리터럴 `scripts/check-measurement-tree-attribution.sh` 가 **명령 토큰 경계**에서 나타나는가로 하며, 접미가 붙은 이름(`…-attribution-coverage.sh`)은 매치하지 않는다.
+6. (A-REST) ≠ 0 이면 그 키들을 **이름으로** 발화하고 위반으로 종료한다. 수치만 내면 어느 게이트가 빠졌는지 관측되지 않는다.
+7. `check:*` 키 수가 하한 미만이거나 (A-POP) 이 공집합이면 **무판정**(`exit 2`)이다. 공허를 충족으로 읽지 않는다. **단 이 무판정은 도출기 부패의 신호로만 남는다** — 올바른 채택 변경이 (A-POP) 을 공집합으로 만들어서는 안 된다 (3번의 간접 추적이 그것을 보장한다).
 
 ### 주석은 채널이 아니다 (3번 단계의 이유)
 
 주석을 절단하지 않으면 도출이 **틀린 대상**을 고른다. 현 HEAD 실측 — 주석 절단 없이 "실행 라인의 서브프로세스 호출 수 ≥ 2" 로 도출하면 `check:acceptance-criteria` 와 `check:output-parsing-color-independence` 가 모집단에 들어온다. 전자의 2 hit 은 **`Hint:` 문자열**(`:286`)과 **`awk` 프로그램 텍스트 안의 리터럴**(`:180`)이고 실제 서브프로세스 호출이 아니다. 루프 본문 한정 + 주석 절단 도출은 이 둘을 정확히 배제한다 (§동작 §도출 실측).
+
+### 이름은 채널이 아니다 (5번 단계의 이유)
+
+채택을 **키 값 문자열의 부분문자열**로 재면, 대상 스크립트의 **파일 이름을 바꾸는 것만으로** 채택이 성립한다. 그 트리에서 래퍼는 한 번도 실행되지 않는다.
+
+`gate-wiring-execution-surface-coherence` FR-01 이 `check:*` 값 형태를 `bash scripts/<name>.sh` **단일 형태**로 못 박고 있어 (`VALUE_RE`, `scripts/check-gate-wiring.sh:136` — 끝 앵커가 인자를 금지한다) 값이 가리키는 경로는 **정확히 1개**다. 따라서 부분문자열 술어 하에서 두 계약을 동시에 만족시키는 변경은 **rename 뿐**이고, 그것이 곧 위양성이다 (§참고 §후보 교차 실측 D). **도달 가능한 유일한 초록이 위양성인 상태는 계약 결함이다** — `RULE-06 §게이트 실효 검증` 이 겨누는 민감도 0 이 게이트 로직 층이 아니라 **판정 술어 층**에서 재현된 형태다.
+
+본 계약은 그래서 채택을 **실행 경유**로 관측한다. 술어의 입력은 값 문자열도 파일 이름도 아니고 **진입 스크립트 본문의 실행 라인**이다. 이 재정식화 하에서 두 계약을 동시에 만족시키면서 래퍼를 **실제로 실행하는** 변경이 존재한다 — 소비자 스크립트를 한 겹 두고 그 본문에서 래퍼를 호출하는 형태이며, (W-6) 이 그 증인을 매 판정마다 구성한다.
 
 ### 실현된 오보 — 이 계약이 없어서 실제로 난 사고
 
@@ -98,42 +109,38 @@
 >
 > **펜스 항목 실행 규약** — 펜스 본문을 추출해 `bash -c "$(추출)"` 로 실행한다. 펜스를 쓰는 이유는 명령이 정규식·따옴표를 중첩해 홑백틱 인라인 스팬에 담기지 않기 때문이다.
 >
-> **HEAD=`0e5b39e` (tick 241) 기준 3/4** — 미충족 1건은 (W-2) 이며 이것이 본 계약의 판정량이다. tick 238 등록 이래 3 tick 연속 동일하다 (238 → 240 → 241, 전부 재실행 후 `rc=1` · 출력 문자열 불변).
+> **HEAD=`079a5a5` (tick 242) 기준 5/6** — 미충족 1건은 (W-2) 이며 이것이 본 계약의 판정량이다. tick 238 등록 이래 4 tick 연속 `rc=1` 이고 출력 문자열이 불변이다 (238 → 240 → 241 → 242).
 >
-> **이 잔여는 green 편집으로 닫히지 않는다.** (W-2) 를 `rc=0` 으로 만드는 유일한 변경은 `package.json` 의 `scripts.check:coverage-attribution` 를 래퍼 경유로 바꾸는 것이며, `package.json` 은 `RULE-01` 상 inspector 의 writer 영역이 아니다. 수용 기준을 고쳐 닫는 길도 없다 — 잔여 이름을 발화하는 것이 계약의 판정량 자체이므로 (W-2) 를 약화시키면 계약이 소멸한다. **부착 task 발행이 유일한 경로이며 그 주체는 planner 다.**
+> **이 잔여는 green 편집으로 닫히지 않는다.** (W-2) 를 `rc=0` 으로 만드는 유일한 변경은 `package.json` 의 `scripts.check:coverage-attribution` 를 래퍼 경유 소비자로 바꾸고 그 소비자 스크립트를 `scripts/` 에 두는 것이며, 둘 다 `RULE-01` 상 inspector 의 writer 영역이 아니다. 수용 기준을 고쳐 닫는 길도 없다 — 잔여 이름을 발화하는 것이 계약의 판정량 자체이므로 (W-2) 를 약화시키면 계약이 소멸한다. **부착 task 발행이 유일한 경로이며 그 주체는 planner 다.** (W-6) 이 그 부착의 **형태를 실행 가능한 증인으로 고정**한다 — 부착 task 는 (W-6) 이 구성하는 트리를 저장소에 실현하면 된다.
 
-- [x] (Must, W-1) 채택 모집단이 **도출**되고 세 수치가 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
+- [x] (Must, W-1) 채택 모집단이 **도출**되고 이름 일치와 실행 경유가 **분리돼** 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
-  o=$(node -e 'const s=require(process.cwd()+"/package.json").scripts;const ks=Object.keys(s).filter(k=>k.startsWith("check:"));const w=ks.filter(k=>/check-measurement-tree-attribution/.test(s[k]));console.log("total="+ks.length+" wrapper-routed="+w.length);') || exit 2
-  printf '%s\n' "$o" | grep -qE '^total=[0-9]+ wrapper-routed=[0-9]+$' || exit 1
+  o=$(node -e 'const fs=require("fs"),s=require(process.cwd()+"/package.json").scripts;const ks=Object.keys(s).filter(k=>k.startsWith("check:"));const W=/(^|[^A-Za-z0-9._\/-])scripts\/check-measurement-tree-attribution\.sh([^A-Za-z0-9._-]|$)/;const R=/scripts\/[A-Za-z0-9._-]+\.(sh|mjs|js|cjs)/g;const nm=ks.filter(k=>/check-measurement-tree-attribution/.test(s[k]));const ex=ks.filter(k=>{const m=s[k].match(R);if(!m||!fs.existsSync(m[0]))return false;return fs.readFileSync(m[0],"utf8").split("\n").map(l=>l.replace(/^\s*#.*$/,"")).some(l=>W.test(l))});console.log("total="+ks.length+" name-matched="+nm.length+" exec-routed="+ex.length);') || exit 2
+  printf '%s\n' "$o" | grep -qE '^total=[0-9]+ name-matched=[0-9]+ exec-routed=[0-9]+$' || exit 1
   t=$(printf '%s\n' "$o" | sed -nE 's/^total=([0-9]+).*/\1/p')
   [ -n "$t" ] && [ "$t" -ge 20 ] || exit 2
   ```
-  → **rc=0**. **HEAD=`0e5b39e` (tick 241) 실측 rc=0 / `total=28 wrapper-routed=1`.** (직전 `559dde0`: `total=27 wrapper-routed=1`.) 분모가 27 → 28 로 늘고 분자는 1 로 고정이다 — 채택률은 게이트가 늘수록 **떨어지는 방향**이며, 그 사실이 `total` 을 함께 발화하는 이유다. 하한 `total ≥ 20` 은 "`scripts` 파싱이 깨져 아무것도 세지 않은" 상태를 `exit 2` **무판정**으로 가른다 — 그 상태에서 `wrapper-routed=0` 은 위반이 아니라 무의미다. **이 항목 단독으로는 판정력이 약하다** (수치가 나오기만 하면 통과). 판정량은 (W-2) 이며 이 항목은 그 **전건**이다.
+  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=0 / `total=28 name-matched=1 exec-routed=0`.** 두 계수를 **분리해** 내는 것이 이 항목의 요지다: 이름 일치 1건은 래퍼 자신의 키(`check:measurement-tree-attribution`)이고 그 진입 스크립트는 래퍼를 **경유하지 않는다**(자기 자신이다). 즉 구 술어가 세던 유일한 "채택" 은 실행 경유가 0 이다. `name-matched − exec-routed` 의 간격이 곧 **이름 우연으로 채택으로 읽힐 수 있는 표면의 크기**다. (직전 `0e5b39e`: `total=28 wrapper-routed=1` — 구 술어는 이 둘을 구분하지 않았다.) 하한 `total ≥ 20` 은 "`scripts` 파싱이 깨져 아무것도 세지 않은" 상태를 `exit 2` **무판정**으로 가른다. **이 항목 단독으로는 판정력이 약하다** (수치가 나오기만 하면 통과). 판정량은 (W-2) 이며 이 항목은 그 **전건**이다.
 - [ ] (Must, W-2) **미채택 잔여가 0** 이고 잔여는 **이름으로** 발화된다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
-  node -e '
-  const fs=require("fs");const s=require(process.cwd()+"/package.json").scripts;
-  const ks=Object.keys(s).filter(k=>k.startsWith("check:"));
-  if(ks.length<20){console.error("모집단 붕괴 total="+ks.length);process.exit(2);}
-  let pop=[],miss=[];
-  for(const k of ks){
-   const m=s[k].match(/scripts\/[A-Za-z0-9._-]+\.(sh|mjs|js|cjs)/);
-   if(!m||!fs.existsSync(m[0]))continue;
-   const lines=fs.readFileSync(m[0],"utf8").split("\n").map(l=>l.replace(/^\s*#.*$/,""));
-   let d=0,hit=0;
-   for(const l of lines){
-    if(/^\s*(for|while)\b.*\bdo\b/.test(l)||/^\s*do\s*$/.test(l))d++;
-    if(/^\s*done\b/.test(l))d=Math.max(0,d-1);
-    if(d>0&&/(^|[^a-zA-Z-])(npx|vitest)\s/.test(l))hit++;
-   }
-   if(hit>0){pop.push(k);if(!/check-measurement-tree-attribution/.test(s[k]))miss.push(k);}
-  }
-  if(pop.length<1){console.error("도출 모집단 공허");process.exit(2);}
-  console.log("loop-exec-population="+pop.length+" unwrapped="+miss.length+" -> "+miss.join(","));
-  process.exit(miss.length===0?0:1);'
+  node -e 'const fs=require("fs"),s=require(process.cwd()+"/package.json").scripts;
+const ks=Object.keys(s).filter(k=>k.startsWith("check:"));
+if(ks.length<20){console.error("모집단 붕괴 total="+ks.length);process.exit(2);}
+const W=/(^|[^A-Za-z0-9._\/-])scripts\/check-measurement-tree-attribution\.sh([^A-Za-z0-9._-]|$)/;
+const R=/scripts\/[A-Za-z0-9._-]+\.(sh|mjs|js|cjs)/g,cut=l=>l.replace(/^\s*#.*$/,"");
+const bd=f=>{try{return fs.readFileSync(f,"utf8").split("\n").map(cut)}catch(e){return null}};
+const lp=ls=>{let d=0,h=0;for(const l of ls){if(/^\s*(for|while)\b.*\bdo\b/.test(l)||/^\s*do\s*$/.test(l))d++;if(/^\s*done\b/.test(l))d=Math.max(0,d-1);if(d>0&&/(^|[^a-zA-Z-])(npx|vitest)\s/.test(l))h++}return h};
+let pop=[],miss=[];
+for(const k of ks){const m=s[k].match(R);if(!m||!fs.existsSync(m[0]))continue;
+ const e=bd(m[0]);if(!e)continue;const reach=[m[0]];
+ for(const l of e)for(const p of (l.match(R)||[]))if(!reach.includes(p)&&fs.existsSync(p))reach.push(p);
+ let h=0;for(const p of reach){const b=bd(p);if(b)h+=lp(b)}
+ if(h>0){pop.push(k);if(!e.some(l=>W.test(l)))miss.push(k)}}
+if(pop.length<1){console.error("도출 모집단 공허");process.exit(2)}
+console.log("loop-exec-population="+pop.length+" unwrapped="+miss.length+" -> "+miss.join(","));
+process.exit(miss.length===0?0:1);'
   ```
-  → **rc=0**. **HEAD=`0e5b39e` (tick 241) 실측 rc=1 / `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` → 미충족 (3cycle).** `559dde0`(tick 238) · `ec82e08`(tick 240) 실측과 **출력 문자열이 완전히 동일**하다. tick 240·241 은 게이트 스크립트에 delta 가 있는 상태에서 재실행했고(240: `check:` 키 1개 추가, 241: `check-acceptance-criteria.sh`·`check-task-precondition-scope.sh` 수정) 그럼에도 모집단·잔여가 불변이었다 — 신규·수정 게이트는 루프 내 `npx`/`vitest` 실행이 없어 모집단에 들지 않는다. 즉 이 미충족은 **관측 실패가 아니라 부착 미발생**이다. 이것이 계약의 **판정량**이다. 잔여를 **이름으로** 내는 것이 필수다 — `unwrapped=1` 만으로는 어느 게이트가 빠졌는지 관측되지 않고, 수리 주체가 대상을 특정할 수 없다. 모집단 공집합은 `exit 2` 무판정으로 가른다: 도출식이 낡아 아무것도 집지 못하는 상태와 전수 채택된 상태는 **둘 다 `unwrapped=0`** 이며, 구분하지 않으면 도출기 부패가 충족으로 새어 나간다.
+  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=1 / `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` → 미충족 (4cycle).** `559dde0`(238) · `ec82e08`(240) · `0e5b39e`(241) 실측과 **출력 문자열이 완전히 동일**하다. tick 242 에서 술어를 **이름 포함 → 실행 경유**로 재정식화하고 모집단 도출에 **간접 1단계 추적**을 넣었으나 현 HEAD 산출은 구 술어와 문자열까지 같다 — 재정식화가 **현 트리에서 아무것도 움직이지 않는다**는 것이 특이도의 증거다(구/신 술어 병렬 실행 대조, §참고 §후보 교차 실측). 갈리는 곳은 채택 변경이 들어온 트리이며 그것을 (W-5)(W-6) 이 잰다. 이 미충족은 **관측 실패가 아니라 부착 미발생**이다. 잔여를 **이름으로** 내는 것이 필수다 — `unwrapped=1` 만으로는 어느 게이트가 빠졌는지 관측되지 않고, 수리 주체가 대상을 특정할 수 없다. 모집단 공집합은 `exit 2` 무판정으로 가른다: 도출식이 낡아 아무것도 집지 못하는 상태와 전수 채택된 상태는 **둘 다 `unwrapped=0`** 이며, 구분하지 않으면 도출기 부패가 충족으로 새어 나간다.
 - [x] (Must, W-3) 래퍼가 감싼 명령의 `rc` 를 **그대로 전파**하고 지문을 발화한다 — 판정: (펜스 — 실행 규약은 본 절 머리말)
   ```
   out=$(bash scripts/check-measurement-tree-attribution.sh -- bash -c 'exit 3' 2>&1)
@@ -143,6 +150,81 @@
   ```
   → **rc=0**. **HEAD=`559dde0` 실측 rc=0** — 산출 `fingerprint=43830e28… tracked=421 untracked=0 stable — cmd rc=3`, 전파 `rc=3`. **채택이 기존 등급 계약을 삭감하지 않음**을 이 항목이 지킨다. `exit 3` 을 고른 이유는 채택 0순위 대상이 `0/1/2/3/4` 5등급을 선언하고 있어, 전파가 깨지면 그 등급 체계가 통째로 무너지기 때문이다. `rc` 를 **명령 치환 직후 `$?` 로** 잡는다 — 파이프 뒤에서 잡으면 마지막 명령의 `rc` 를 읽는다.
 - [x] (Must, W-4) **무판정 등급이 위반 등급과 구분돼 실재**한다 — 판정: `bash -c 'bash scripts/check-measurement-tree-attribution.sh -- >/dev/null 2>&1; test $? -eq 2'` → **rc=0**. **HEAD=`559dde0` 실측 rc=0** (`--` 뒤 명령 부재 → fail-closed `rc=2`). "위반"(1) 과 "이 측정을 믿을 수 없음"(2) 을 합치면 **드리프트가 트리 결함으로 오귀인되는** 바로 그 사고가 등급 층에서 재발한다. 래퍼가 3분할(`0` 유효 / `1` 드리프트·전파 / `2` fail-closed)을 **보유**함을 관측 산출로 확인한다 — 스크립트 본문 `grep` 으로 판정하지 않는다 (주석에 등급을 적어 두면 통과하는 공허 기준이 된다).
+- [x] (Must, W-5) **이름 우연은 채택이 아니고, 진짜 공집합의 무판정은 보존된다** — 판정: (펜스 — 실행 규약은 본 절 머리말)
+  ```
+  D=$(mktemp -d) || exit 2
+  [ -n "$D" ] || exit 2
+  cp -R scripts "$D/scripts" || exit 2
+  mv "$D/scripts/check-coverage-attribution-monotonicity.sh" "$D/scripts/check-measurement-tree-attribution-coverage.sh" || exit 2
+  node -e 'const fs=require("fs");const j=JSON.parse(fs.readFileSync("package.json","utf8"));j.scripts["check:coverage-attribution"]="bash scripts/check-measurement-tree-attribution-coverage.sh";fs.writeFileSync(process.argv[1]+"/package.json",JSON.stringify(j,null,2)+"\n")' "$D" || exit 2
+  ( cd "$D" && node -e 'const fs=require("fs"),s=require(process.cwd()+"/package.json").scripts;
+  const ks=Object.keys(s).filter(k=>k.startsWith("check:"));
+  if(ks.length<20){console.error("모집단 붕괴 total="+ks.length);process.exit(2);}
+  const W=/(^|[^A-Za-z0-9._\/-])scripts\/check-measurement-tree-attribution\.sh([^A-Za-z0-9._-]|$)/;
+  const R=/scripts\/[A-Za-z0-9._-]+\.(sh|mjs|js|cjs)/g,cut=l=>l.replace(/^\s*#.*$/,"");
+  const bd=f=>{try{return fs.readFileSync(f,"utf8").split("\n").map(cut)}catch(e){return null}};
+  const lp=ls=>{let d=0,h=0;for(const l of ls){if(/^\s*(for|while)\b.*\bdo\b/.test(l)||/^\s*do\s*$/.test(l))d++;if(/^\s*done\b/.test(l))d=Math.max(0,d-1);if(d>0&&/(^|[^a-zA-Z-])(npx|vitest)\s/.test(l))h++}return h};
+  let pop=[],miss=[];
+  for(const k of ks){const m=s[k].match(R);if(!m||!fs.existsSync(m[0]))continue;
+   const e=bd(m[0]);if(!e)continue;const reach=[m[0]];
+   for(const l of e)for(const p of (l.match(R)||[]))if(!reach.includes(p)&&fs.existsSync(p))reach.push(p);
+   let h=0;for(const p of reach){const b=bd(p);if(b)h+=lp(b)}
+   if(h>0){pop.push(k);if(!e.some(l=>W.test(l)))miss.push(k)}}
+  if(pop.length<1){console.error("도출 모집단 공허");process.exit(2)}
+  console.log("loop-exec-population="+pop.length+" unwrapped="+miss.length+" -> "+miss.join(","));
+  process.exit(miss.length===0?0:1);' >/dev/null 2>&1 ); [ $? -eq 1 ] || exit 1
+  E=$(mktemp -d) || exit 2
+  cp -R scripts "$E/scripts" || exit 2
+  cp package.json "$E/package.json" || exit 2
+  node -e 'const fs=require("fs");const f=process.argv[1]+"/scripts/check-coverage-attribution-monotonicity.sh";fs.writeFileSync(f,fs.readFileSync(f,"utf8").replace(/npx/g,"XX").replace(/vitest/g,"YY"))' "$E" || exit 2
+  o=$( cd "$E" && node -e 'const fs=require("fs"),s=require(process.cwd()+"/package.json").scripts;
+  const ks=Object.keys(s).filter(k=>k.startsWith("check:"));
+  if(ks.length<20){console.error("모집단 붕괴 total="+ks.length);process.exit(2);}
+  const W=/(^|[^A-Za-z0-9._\/-])scripts\/check-measurement-tree-attribution\.sh([^A-Za-z0-9._-]|$)/;
+  const R=/scripts\/[A-Za-z0-9._-]+\.(sh|mjs|js|cjs)/g,cut=l=>l.replace(/^\s*#.*$/,"");
+  const bd=f=>{try{return fs.readFileSync(f,"utf8").split("\n").map(cut)}catch(e){return null}};
+  const lp=ls=>{let d=0,h=0;for(const l of ls){if(/^\s*(for|while)\b.*\bdo\b/.test(l)||/^\s*do\s*$/.test(l))d++;if(/^\s*done\b/.test(l))d=Math.max(0,d-1);if(d>0&&/(^|[^a-zA-Z-])(npx|vitest)\s/.test(l))h++}return h};
+  let pop=[],miss=[];
+  for(const k of ks){const m=s[k].match(R);if(!m||!fs.existsSync(m[0]))continue;
+   const e=bd(m[0]);if(!e)continue;const reach=[m[0]];
+   for(const l of e)for(const p of (l.match(R)||[]))if(!reach.includes(p)&&fs.existsSync(p))reach.push(p);
+   let h=0;for(const p of reach){const b=bd(p);if(b)h+=lp(b)}
+   if(h>0){pop.push(k);if(!e.some(l=>W.test(l)))miss.push(k)}}
+  if(pop.length<1){console.error("도출 모집단 공허");process.exit(2)}
+  console.log("loop-exec-population="+pop.length+" unwrapped="+miss.length+" -> "+miss.join(","));
+  process.exit(miss.length===0?0:1);' 2>&1 ); [ $? -eq 2 ] || exit 1
+  printf '%s\n' "$o" | grep -q '도출 모집단 공허' || exit 1
+  ```
+  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=0.** 두 방향을 한 판정에 묶는다. (민감도) 대상 스크립트를 `check-measurement-tree-attribution-coverage.sh` 로 **이름만 바꾼** probe root 는 래퍼를 한 줄도 실행하지 않는다 — 구 술어에서 이 트리는 `unwrapped=0` **rc=0** 이었고(위양성), 재정식화 후 `unwrapped=1 -> check:coverage-attribution` **rc=1** 로 배제된다. (무판정 보존) 도달 집합의 루프 실행 토큰을 전부 지운 probe root 는 `도출 모집단 공허` **rc=2** 를 유지한다 — 재정식화가 무판정 등급을 삼키지 않았음을 같은 실행에서 확인한다(NFR-03). 두 probe 는 `mktemp -d` 아래에 구성되며 저장소 트리를 건드리지 않는다. 접미 이름이 매치하지 않는 것은 우연이 아니라 토큰 경계 요구의 결과다 (§동작 5).
+- [x] (Must, W-6) **교차 도달 가능성 — 두 계약을 동시에 만족하면서 래퍼를 실제로 실행하는 트리가 존재한다** — 판정: (펜스 — 실행 규약은 본 절 머리말)
+  ```
+  B=$(mktemp -d) || exit 2
+  [ -n "$B" ] || exit 2
+  cp -R scripts "$B/scripts" || exit 2
+  cp -R .husky "$B/.husky" || exit 2
+  printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'exec bash scripts/check-measurement-tree-attribution.sh -- bash scripts/check-coverage-attribution-monotonicity.sh "$@"' > "$B/scripts/check-coverage-attribution-via-measurement-tree-attribution.sh" || exit 2
+  node -e 'const fs=require("fs");const j=JSON.parse(fs.readFileSync("package.json","utf8"));j.scripts["check:coverage-attribution"]="bash scripts/check-coverage-attribution-via-measurement-tree-attribution.sh";fs.writeFileSync(process.argv[1]+"/package.json",JSON.stringify(j,null,2)+"\n")' "$B" || exit 2
+  o=$( cd "$B" && node -e 'const fs=require("fs"),s=require(process.cwd()+"/package.json").scripts;
+  const ks=Object.keys(s).filter(k=>k.startsWith("check:"));
+  if(ks.length<20){console.error("모집단 붕괴 total="+ks.length);process.exit(2);}
+  const W=/(^|[^A-Za-z0-9._\/-])scripts\/check-measurement-tree-attribution\.sh([^A-Za-z0-9._-]|$)/;
+  const R=/scripts\/[A-Za-z0-9._-]+\.(sh|mjs|js|cjs)/g,cut=l=>l.replace(/^\s*#.*$/,"");
+  const bd=f=>{try{return fs.readFileSync(f,"utf8").split("\n").map(cut)}catch(e){return null}};
+  const lp=ls=>{let d=0,h=0;for(const l of ls){if(/^\s*(for|while)\b.*\bdo\b/.test(l)||/^\s*do\s*$/.test(l))d++;if(/^\s*done\b/.test(l))d=Math.max(0,d-1);if(d>0&&/(^|[^a-zA-Z-])(npx|vitest)\s/.test(l))h++}return h};
+  let pop=[],miss=[];
+  for(const k of ks){const m=s[k].match(R);if(!m||!fs.existsSync(m[0]))continue;
+   const e=bd(m[0]);if(!e)continue;const reach=[m[0]];
+   for(const l of e)for(const p of (l.match(R)||[]))if(!reach.includes(p)&&fs.existsSync(p))reach.push(p);
+   let h=0;for(const p of reach){const b=bd(p);if(b)h+=lp(b)}
+   if(h>0){pop.push(k);if(!e.some(l=>W.test(l)))miss.push(k)}}
+  if(pop.length<1){console.error("도출 모집단 공허");process.exit(2)}
+  console.log("loop-exec-population="+pop.length+" unwrapped="+miss.length+" -> "+miss.join(","));
+  process.exit(miss.length===0?0:1);' 2>&1 ); r=$?
+  printf '%s\n' "$o" | grep -q '도출 모집단 공허' && exit 1
+  [ "$r" -eq 0 ] || exit 1
+  GATE_WIRING_SCAN_ROOT="$B" bash scripts/check-gate-wiring.sh >/dev/null 2>&1 || exit 1
+  ```
+  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=0.** 소비자 스크립트를 한 겹 두고 그 본문 실행 라인에서 래퍼를 호출하는 probe root 를 구성해, ① 채택 판정 `rc=0` (`loop-exec-population=1 unwrapped=0`), ② 출력에 `도출 모집단 공허` 부재, ③ 같은 트리에서 `check-gate-wiring` `rc=0` (`check-keys=28 derived-paths=28 hook-paths=15 hook-comment-paths=0`) 셋을 동시에 요구한다. 값 형태가 `bash scripts/<name>.sh` 단일 형태라 `gate-wiring` FR-01 의 `VALUE_RE` 를 만족한다. **구 술어에서 이 트리는 `rc=2` `도출 모집단 공허` 였다** — 진짜 채택이 판정량을 소멸시켰다는 뜻이고, 그것이 이 항목이 막는 형태다. 이 항목이 `rc≠0` 이 되는 것은 "두 계약의 동시 초록이 전부 위양성" 상태로의 회귀를 뜻하며, 그때 수리 대상은 트리가 아니라 **계약**이다.
 
 ## 참고
 
@@ -153,6 +235,9 @@
 | 238 | `559dde0` | (등록) | `loop-exec-population=1 unwrapped=1 -> check:coverage-attribution` | 1 |
 | 240 | `ec82e08` | `package.json` `check:` 키 +1 | 동일 문자열 | 1 |
 | 241 | `0e5b39e` | 게이트 스크립트 2건 수정 | 동일 문자열 | 1 |
+| 242 | `079a5a5` | 판정 표면 delta **공집합** (술어 재정식화만) | 동일 문자열 | 1 |
+
+tick 242 는 `git diff 0e5b39e..079a5a5 -- src/ scripts/ package.json .husky/ .github/` 가 공집합이라 `RULE-03 §(S2)` 상 `reconcile: skipped (no delta)` 이며 `stale_cycles` 를 증가시키지 않는다. 그럼에도 **술어를 바꿨으므로** 신·구 술어를 같은 HEAD 에서 병렬 실행해 대조했고 출력 문자열·rc 가 동일했다 (특이도 무변화).
 
 delta 를 가진 tick 에서 두 번 재실행했고 두 번 다 불변이다. `RULE-03 §(S2)` 상 `stale_cycles` 는 이 재실행들에 대해 증가하며 현재 **3cycle** 이지만, (S2) 발동 조건은 **`reconcile` 전수 stale** 이고 같은 tick 들에서 다른 spec 의 ack 가 있었으므로(241: 17/17) 전수 stale 이 아니다. 자가 정지 대상이 아니라 **부착 대기**다.
 
@@ -163,7 +248,20 @@ delta 를 가진 tick 에서 두 번 재실행했고 두 번 다 불변이다. `
 - **(Dir-1) 드리프트 민감도 — 실측 완료.** 측정 창 안에서 미추적 파일 1건을 생성해 감쌌다: 감싼 명령이 `exit 0` 임에도 래퍼가 **`rc=1`** 을 냈고 `MEASUREMENT TREE DRIFT … (category: measurement-tree-drift)` + `before=`/`after=` **지문 2개** + `drift: <경로>` 를 발화했다. **감싼 명령의 `rc` 와 독립**임이 관측으로 확정된다 (rc=0 을 감쌌는데 rc=1 이 나왔다). 프로브 파일은 즉시 제거했고 `git status` 는 공란으로 복귀했다.
 - **(Dir-2) 도출 실재 — 실측 완료.** `package.json` **사본**에 루프 실행 스크립트를 가리키는 합성 키 `check:__probe__` 를 추가하니 도출이 `loop-exec-population=1 unwrapped=1` → **`2 / 2`** 로 따라 올랐다 (`-> check:coverage-attribution,check:__probe__`). 즉 모집단은 **`package.json` 의 함수**이지 문서에 적힌 이름 목록이 아니다 — `RULE-06 §열거 고정 금지` 가 요구하는 성질을 **주장이 아니라 측정**으로 보인다. 저장소 `package.json` 은 건드리지 않았다.
 - **(Dir-3) 주석 배제 특이도 — 실측 완료.** 주석 절단 없이 "서브프로세스 호출 ≥ 2" 로 도출하면 모집단이 **3** 으로 부풀고 `check:acceptance-criteria`(`Hint:` 문자열 + `awk` 프로그램 텍스트) 와 `check:output-parsing-color-independence`(루프 밖 고정 2회 호출) 가 섞여 들어온다. 루프 본문 한정 + 주석 절단 도출은 **1** 을 낸다.
-- **(Dir-4) 미채택 잔여 민감도** — 채택이 완료돼 `unwrapped=0` 이 된 트리에서, 채택을 1건 되돌리면 `rc=1` + 그 키 이름이 발화되는가. **현 HEAD 에서는 주입 불가**다 (아직 채택이 0 이라 되돌릴 것이 없다). 이 방향은 `RULE-07 §처리` 에 따라 **채택 task 의 `## 검증/DoD` 로 이관**하며 developer 는 `RULE-04` notes 에 `injection: N/N detect` 를 박제한다. **이관처 task 발행 전까지 귀속처는 본 절의 명시적 지시다** (이관처 없는 강등 금지).
+- **(Dir-4) 미채택 잔여 민감도 — tick 242 에 주입 가능해졌다.** 구 판본은 *"채택이 0 이라 되돌릴 것이 없다"* 를 이유로 이 방향을 task DoD 로 이관했다. 그 전제가 틀렸다 — 되돌릴 채택이 없으면 **채택된 트리를 만들어서** 되돌리면 된다. (W-6) 이 채택 트리를 `mktemp -d` 아래에 구성하고 (W-5) 가 미채택 트리에서 `rc=1` + 키 이름 발화를 요구하므로, 두 항목이 합쳐 이 방향을 **매 판정마다** 재현한다. 이관은 유지하지 않는다 (이관처 없는 강등 상태가 해소됐다). 다만 저장소 트리 자체에 채택이 착지한 뒤의 **회귀 되돌림** 주입은 여전히 채택 task 의 `## 검증/DoD` 소관이며 developer 는 `RULE-04` notes 에 `injection: N/N detect` 를 박제한다.
+
+### 후보 교차 실측 (HEAD=`079a5a5`, tick 242 — 저장소 트리 무변경, probe 는 `mktemp -d`)
+
+같은 표면(`package.json` `scripts.check:*`)에 술어를 부과하는 두 계약을 4후보에 대해 교차 실행했다. `gate-wiring` 열은 `GATE_WIRING_SCAN_ROOT=<probe> bash scripts/check-gate-wiring.sh`.
+
+| 후보 | 값 | `gate-wiring` FR-01 | 구 술어 (이름 포함) | 신 술어 (실행 경유 + 간접 1단계) |
+|---|---|---|---|---|
+| A 래퍼가 대상을 인자로 | `bash scripts/check-measurement-tree-attribution.sh -- bash …` | **FAIL** (`VALUE_RE` 끝 앵커) | `rc=2` 모집단 공허 | (FR-01 위반이라 도달 불가) |
+| B 소비자 간접 1겹 | `bash scripts/check-coverage-attribution-via-measurement-tree-attribution.sh` | `rc=0` | **`rc=2` 도출 모집단 공허** | **`rc=0` `loop-exec-population=1 unwrapped=0`** |
+| C 대상 자가 re-exec | 값 불변 | `rc=0` | `rc=1` | `rc=1` (본문에 래퍼 호출이 실제로 있으면 `rc=0` — 그것은 진짜 경유다) |
+| D 대상 스크립트 rename | `bash scripts/check-measurement-tree-attribution-coverage.sh` | `rc=0` | **`rc=0` (위양성)** | **`rc=1` `unwrapped=1 -> check:coverage-attribution`** |
+
+구 술어에서 **도달 가능한 유일한 초록은 D** 였고 D 의 probe 스크립트 본문에는 래퍼 호출이 한 줄도 없다. 신 술어에서 초록은 **B** 로 옮겨가고 D 는 위반으로 떨어진다 — 초록의 도달 가능성이 위양성에서 실채택으로 이동했다. 이것이 REQ-20260829-046 FR-05 가 요구한 성질이며 (W-6) 이 그 증인을 판정으로 고정한다. 현 HEAD 트리에서는 신·구 술어가 **같은 문자열·같은 rc** 를 낸다 (특이도 무변화 — 재정식화가 정상 트리의 판정을 흔들지 않는다).
 
 ### 등급 충돌 — 채택 시 판별 채널은 `rc` 가 아니다 (tick 238 발견)
 
@@ -190,5 +288,6 @@ req 가 요구한 FR-05 (*"완전성 붕괴(등급 4) 와 귀속 실패(무판�
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-29 | REQ-20260829-046 (inspector tick 242) | **채택 술어 재정식화.** (A-ROUTE) 를 *"키 값 문자열이 래퍼 식별자를 포함"* 에서 **"진입 스크립트 실행 라인이 래퍼를 호출"** 로(FR-01), (A-POP) 을 진입 스크립트 단독에서 **도달 집합(간접 1단계)** 으로(FR-02) 바꿨다. 근거: 구 술어에서 `gate-wiring` FR-01 `VALUE_RE` 와 동시 초록이 되는 유일 변경이 **rename**(위양성)이었고 진짜 채택(소비자 간접)은 판정량을 `rc=1`→`rc=2` 로 소멸시켰다 — 4후보 교차 실측을 §참고 에 박제. §동작 에 **§이름은 채널이 아니다** 절 신설(5번 단계 근거). (W-1) 을 `name-matched`/`exec-routed` **분리 발화**로 교체 — HEAD 실측 `total=28 name-matched=1 exec-routed=0` 으로 구 술어가 세던 유일 채택이 실행 경유 0 임이 드러난다. (W-5) 위양성 배제 + 무판정 보존, (W-6) **교차 도달 가능성 증인**(FR-05) 신설 — 둘 다 `mktemp -d` probe root 구성이라 저장소 트리 무변경이고 매 판정마다 재현된다. 이로써 §참고 (Dir-4) 의 **이관처 없는 강등** 상태가 해소됐다. (W-2) 는 현 HEAD 에서 신·구 술어 산출이 문자열까지 동일 — 재정식화의 특이도 무변화 | 최종 업데이트 · 공개 인터페이스 · 동작 · 수용 기준 · 참고 |
 | 2026-08-29 | inspector tick 241 | (W-2) 재실행 — `rc=1` 출력 문자열 불변 (3cycle). (W-1) 재실측 `total=27 → 28` (분모만 증가, 분자 1 고정). 잔여가 green 편집으로 닫히지 않는 구조적 사유(`package.json` 은 inspector writer 영역 밖 · (W-2) 약화는 계약 소멸)를 §수용 기준 머리말에 박제하고 재실행 이력 표를 §참고 에 신설 | 수용 기준 머리말 · W-1 · W-2 · 참고 |
 | 2026-08-28 | REQ-20260828-038 (inspector tick 238) | 최초 등록. **req 수용 기준 6항을 그대로 쓰지 않았다**: (a) req 3항 *"`check:coverage-attribution` 값에 래퍼가 포함된다"* 는 **스크립트명 리터럴을 판정 입력으로 쓰므로** req 자신의 FR-01(`RULE-06 §열거 고정 금지`)과 충돌한다 — (W-2) 의 **도출 기반 잔여 계수**로 흡수하고, 현 유일 원소가 `check:coverage-attribution` 이라는 사실은 §동작 실측표에 **관측으로** 박제했다. (b) req 5항 *"`grep -nE '무관하게' <래퍼>`"* 는 **스크립트 본문 grep** 이라 주석 문구만으로 충족되는 공허 기준이다 — 관측 산출 기반 (W-3)(W-4) 로 교체했다. (c) req 6항 *"하드코딩 여부를 검사"* 는 판정 형태가 정의되지 않아 체크박스에서 내리고, 대신 **사본 `package.json` 합성 키 주입**으로 도출 실재를 §참고 (Dir-2) 에 실측 박제했다. (d) req 4항의 지문·rc 전파를 (W-3) 하나로 합쳤다. (e) **req NFR-01 을 반증했다** — 승계된 `0.1s 미만` 은 현 HEAD 실측 `5.0s` 와 두 자릿수 배 차이이며 §미측정·비판정 항목 에 정정 박제했다 (결론은 불변, 근거 수치는 교체). (f) **req 가 보지 못한 등급 충돌을 발견해 §참고 에 신설했다** — FR-05 는 `등급 4 vs 무판정` 만 봤으나 실제 충돌은 래퍼 드리프트 `exit 1` 과 채택 대상 단조성 위반 `exit 1` 사이에 있다. (g) §동작 에 **주석 배제** 절을 신설했다 — 주석 미절단 도출은 모집단을 1 → 3 으로 부풀리고 `Hint:` 문자열·`awk` 프로그램 텍스트를 실호출로 오계수한다 (실측). | all |
