@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { log, hasValue } from '../common/common';
+import { log, hasValue, getFormattedSize } from '../common/common';
 import { reportError } from '../common/errorReporter';
 import { getPreSignedUrl, putFile } from './api';
 
@@ -129,12 +129,28 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 		}
 	}, [isUploading, refreshFiles]);
 
+	// 업로드 중에는 "Uploading..." 만 떴다. 큰 파일(수백 MB)이면 몇 분 동안 그
+	// 한 줄만 보여, 올라가고 있는지 멈춘 것인지 구별할 수 없다. 무엇을 얼마나
+	// 올리는지 함께 적는다 — 시간이 걸리는 이유가 보인다.
+	//
+	// 진행률(%)은 fetch 로는 얻을 수 없다 (XMLHttpRequest 의 upload.onprogress 가
+	// 필요하다). 업로드 경로 전체를 바꾸는 일이라 별건으로 둔다.
+	const uploadingLabel = useMemo(() => {
+		if(0 === files.length) return "Uploading...";
+
+		const totalBytes = files.reduce((sum, f) => sum + (f.size ?? 0), 0);
+		const size = getFormattedSize(totalBytes);
+		const what = 1 === files.length ? files[0]!.name : files.length + " files";
+
+		return "Uploading " + what + " (" + size + ")...";
+	}, [files]);
+
 	const dropzoneText = useMemo(() => {
-		if("UPLOADING" === isUploading) return <span>Uploading...</span>;
+		if("UPLOADING" === isUploading) return <span>{ uploadingLabel }</span>;
 		if("COMPLETE" === isUploading) return <span>Upload complete.</span>;
 		if("FAILED" === isUploading) return <span>Upload failed.</span>;
 		return <span>Drop files here!</span>;
-	}, [isUploading]);
+	}, [isUploading, uploadingLabel]);
 
 	const dropzoneStyle = useMemo(() => {
 		const base = "div div--filedrop-dropzone";

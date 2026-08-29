@@ -472,3 +472,50 @@ describe('FileDrop unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 		expect(refreshSpy).not.toHaveBeenCalled();
 	});
 });
+
+// 업로드 중에는 "Uploading..." 만 떴다. 큰 파일이면 몇 분 동안 그 한 줄만
+// 보여 올라가는 중인지 멈춘 것인지 구별할 수 없다.
+describe('업로드 중 표시', () => {
+	useMockServer(() => mock.devServerOk);
+
+	const dropFiles = (files: Array<{ name: string; type: string; size: number }>) => {
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		const view = render(<FileDrop callbackAfterUpload={uploadedCallbackFunction} />);
+		fireEvent.drop(screen.getByTestId('dropzone'), { dataTransfer: { files } });
+		return view;
+	};
+
+	it('단일 파일이면 이름과 크기를 함께 적는다', () => {
+		const { container } = dropFiles([
+			{ name: '20230608_AA_development_guide.mp4', type: 'video/mp4', size: 164016161 },
+		]);
+
+		const text = container.textContent ?? '';
+		expect(text).toContain('20230608_AA_development_guide.mp4');
+		// 원시 바이트가 아니라 사람이 읽는 단위여야 시간이 걸리는 이유가 보인다.
+		expect(text).toContain('164.02 MB');
+		expect(text).not.toContain('164016161');
+	});
+
+	it('여러 파일이면 개수와 합계 크기를 적는다', () => {
+		const { container } = dropFiles([
+			{ name: 'a.png', type: 'image/png', size: 1000 },
+			{ name: 'b.png', type: 'image/png', size: 2000 },
+		]);
+
+		const text = container.textContent ?? '';
+		expect(text).toContain('2 files');
+		expect(text).toContain('3 KB');
+	});
+
+	it('대조 — 드롭 전에는 안내 문구를 유지한다', () => {
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		const { container } = render(<FileDrop callbackAfterUpload={uploadedCallbackFunction} />);
+
+		// 이 대조가 없으면 "언제나 Uploading" 구현도 통과한다.
+		expect(container.textContent).toContain('Drop files here!');
+		expect(container.textContent).not.toContain('Uploading');
+	});
+});
