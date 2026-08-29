@@ -81,6 +81,7 @@
 
 .main--main-contents {
 	overflow: auto;
+	flex: 1 0 auto;
 }
 
 .article--main-item {
@@ -101,6 +102,7 @@
 }
 
 .footer {
+  flex-shrink: 0;
   font-size: var(--sub-font-size);
   margin-top: 2em;
   margin-left: 1em;

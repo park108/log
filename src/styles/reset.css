@@ -40,4 +40,11 @@ img {
 div#root {
 	margin-left: auto;
 	margin-right: auto;
+	/* 뷰포트를 채우는 flex 컬럼. 이전에는 App 이 minHeight 를
+	 * (innerHeight - 57 - 80) 으로 계산했는데, 두 상수가 실제 헤더·푸터
+	 * 높이와 어긋나면 그 차이만큼 문서가 넘쳐 첫 화면에 스크롤이 생겼다.
+	 * 폰트 크기·줌·모바일 브라우저 크롬 변화에도 상수는 따라가지 못한다. */
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 }

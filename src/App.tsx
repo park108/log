@@ -32,9 +32,11 @@ const App = () => {
 		if(undefined !== e) {
 			e.preventDefault();
 		}
-		setContentHeight({
-			minHeight: (window.innerHeight - 57 - 80) + "px"
-		});
+		// 높이는 CSS 가 정한다 (reset.css: #root flex 컬럼 + utilities.css:
+		// .main--main-contents flex:1). 상수 뺄셈은 실제 헤더·푸터 높이와
+		// 어긋나 첫 화면 스크롤을 만들었다. 리스너 자체는 다른 축(fullscreen
+		// 전환 등)의 재계산 훅으로 남긴다.
+		setContentHeight(undefined);
 	}
 
 	useEffect(() => {
