@@ -1,21 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
 import Toaster from "../Toaster/Toaster";
+import type { ToasterShow } from "../Toaster/Toaster";
 import { getLogs, getNextLogs } from './api';
+import type { LogItemPayload } from './api';
 
-const LogList = (props) => {
+// 목록 항목은 최신 리비전이 평탄화돼 내려온다 — 서버가 Items[] 로 주는 형상.
+interface LogListEntry extends LogItemPayload {
+	contents?: string;
+}
+
+interface LogListProps {
+	isPostSuccess?: boolean;
+}
+
+const LogList = (props: LogListProps) => {
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGetData, setIsGetData] = useState(false);
 	const [isGetNextData, setIsGetNextData] = useState(false);
 	const [isError, setIsError] = useState(false);
 
-	const [logs, setLogs] = useState([]);
-	const [lastTimestamp, setLastTimestamp] = useState(undefined);
+	const [logs, setLogs] = useState<LogListEntry[]>([]);
+	const [lastTimestamp, setLastTimestamp] = useState<number | undefined>(undefined);
 
-	const [isShowToasterCenter, setIsShowToasterCenter] = useState(1);
+	const [isShowToasterCenter, setIsShowToasterCenter] = useState<ToasterShow>(1);
 
 	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c — unmount 후 발화 차단 가드.
 	// 두 async effect 의 deps 가 서로 다르므로(`[isGetData]` / `[isGetNextData, lastTimestamp]`)
@@ -39,12 +49,12 @@ const LogList = (props) => {
 	
 			if(hasValue(listInSession)) {
 				
-				setLogs(JSON.parse(listInSession));
+				setLogs(JSON.parse(listInSession ?? "[]"));
 	
 				const lastTimestampInSession = sessionStorage.getItem("logListLastTimestamp");
 	
 				if(hasValue(lastTimestampInSession)) {
-					setLastTimestamp(JSON.parse(lastTimestampInSession));
+					setLastTimestamp(JSON.parse(lastTimestampInSession ?? "null"));
 				}
 	
 				log("Get logs from session.");
@@ -79,7 +89,7 @@ const LogList = (props) => {
 			catch(err) {
 				if(cancelled.current) return;
 				log("[API GET] FAILED - Logs", "ERROR");
-				log(err, "ERROR");
+				log(String(err), "ERROR");
 				setIsError(true);
 			}
 
@@ -102,7 +112,7 @@ const LogList = (props) => {
 		const cancelled = cancelledNextFetchRef;
 		cancelled.current = false;
 
-		const fetchMore = async (timestamp) => {
+		const fetchMore = async (timestamp: number) => {
 
 			setIsLoading(true);
 			setIsError(false);
@@ -131,14 +141,16 @@ const LogList = (props) => {
 			catch(err) {
 				if(cancelled.current) return;
 				log("[API GET] FAILED - Next Logs", "ERROR");
-				log(err, "ERROR");
+				log(String(err), "ERROR");
 				setIsError(true);
 			}
 
 			setIsLoading(false);
 		}
 
-		if(isGetNextData) {
+		// 커서(lastTimestamp)가 없으면 더 가져올 페이지도 없다. 과거에는 undefined 가
+		// 그대로 쿼리스트링에 실려 "?lastTimestamp=undefined" 로 나갔다.
+		if(isGetNextData && lastTimestamp !== undefined) {
 			fetchMore(lastTimestamp);
 			setIsGetNextData(false);
 		}
@@ -242,8 +254,5 @@ const LogList = (props) => {
 	}
 }
 
-LogList.propTypes = {
-	isPostSuccess: PropTypes.bool,
-};
 
 export default LogList;

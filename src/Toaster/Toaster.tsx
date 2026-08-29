@@ -3,8 +3,8 @@ import React, { useEffect, useRef } from "react";
 import styles from './Toaster.module.css';
 
 type ToasterPosition = "center" | "bottom";
-type ToasterType = "information" | "success" | "warning" | "error";
-type ToasterShow = 0 | 1 | 2;
+export type ToasterType = "information" | "success" | "warning" | "error";
+export type ToasterShow = 0 | 1 | 2;
 
 interface ToasterProps {
 	duration?: number;

@@ -1,16 +1,25 @@
 import React, { useState, Suspense, lazy } from "react";
 import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, copyToClipboard, hasValue } from '../common/common';
+import { log, confirm, getUrl, getFormattedDate, getFormattedTime, isAdmin, copyToClipboard } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
 import LinkButton from '../static/link.svg?react';
+import type { LogItemPayload } from './api';
+import type { ToasterShow } from '../Toaster/Toaster';
 
 const Toaster = lazy(() => import('../Toaster/Toaster'));
 
-const LogItemInfo = (props) => {
+interface LogItemInfoProps {
+	item?: LogItemPayload;
+	timestamp: number;
+	temporary?: boolean;
+	showLink?: boolean;
+	delete?: () => void;
+}
 
-	const [isShowToaster, setIsShowToaster] = useState(0);
+const LogItemInfo = (props: LogItemInfoProps) => {
+
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShow>(0);
 
 	const item = props.item;
 	const timestamp = props.timestamp;
@@ -23,7 +32,7 @@ const LogItemInfo = (props) => {
 
 	// a11y-spec §패턴 B (REQ-20260421-033 FR-02/03) — M3 link-copy
 	// arrow 추출: onClick/onKeyDown 이 동일 핸들러 단일 참조를 공유하도록.
-	const copyLogLink = (e) => {
+	const copyLogLink = (e: { preventDefault: () => void }) => {
 		e.preventDefault();
 		copyToClipboard(getUrl() + "log/" + timestamp);
 		setIsShowToaster(1);
@@ -32,11 +41,15 @@ const LogItemInfo = (props) => {
 	// a11y-spec §패턴 B — M6 delete
 	// confirm(...) 팩토리 반환값 (confirmAction) 을 로컬 const 로 추출해
 	// onClick/onKeyDown 이 동일 참조를 공유하도록.
+	// `confirm` 은 onConfirm 이 함수가 아니면 undefined 를 낸다. 여기서는 항상
+	// 함수를 넘기므로 도달하지 않지만, 폴백을 두어 핸들러가 반드시 존재하게 한다 —
+	// 포커스는 받는데 키 활성화만 빠지면 키보드 사용자에게만 동작하지 않는
+	// 버튼이 된다 (a11y 패턴 B 위반).
 	const handleDelete = confirm(
 		"Are you sure delete the log?",
-		props.delete,
+		props.delete ?? (() => {}),
 		() => log("Deleting aborted")
-	);
+	) ?? (() => {});
 
 	return (
 		<section className="section section--logitem-info">
@@ -51,7 +64,7 @@ const LogItemInfo = (props) => {
 					data-testid="link-copy-button"
 					aria-label="Copy the log link"
 					onClick={copyLogLink}
-					onKeyDown={activateOnKey(copyLogLink)}
+					onKeyDown={activateOnKey<React.KeyboardEvent<HTMLSpanElement>>(copyLogLink)}
 					className="span span--logitem-toolbaricon"
 					{...linkPopup.triggerProps}
 				>
@@ -74,7 +87,7 @@ const LogItemInfo = (props) => {
 						<span className="span span--logitem-separator">|</span>
 					</span>
 					<span className="hidden--width-400px">
-						{ hasValue(item) ?
+						{ item ?
 							<span
 								role="button"
 								tabIndex={0}
@@ -140,13 +153,5 @@ const LogItemInfo = (props) => {
 		</section>
 	);
 }
-
-LogItemInfo.propTypes = {
-	item: PropTypes.object,
-	timestamp: PropTypes.number,
-	temporary: PropTypes.bool,
-	showLink: PropTypes.bool,
-	delete: PropTypes.func,
-};
 
 export default LogItemInfo;

@@ -1,11 +1,11 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import PropTypes from 'prop-types';
 import { hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '../common/common';
 import { useLog } from './hooks/useLog';
 import * as parser from '../common/markdownParser';
 import PageNotFound from "../common/PageNotFound";
 import Skeleton from "../common/Skeleton";
+import type { ToasterShow } from "../Toaster/Toaster";
 
 const LogItem = lazy(() => import('./LogItem'));
 const Toaster = lazy(() => import('../Toaster/Toaster'));
@@ -17,9 +17,9 @@ const LogSingle = () => {
 
 	const [itemLoadingStatus, setItemLoadingStatus] = useState("NOW_LOADING"); // DELETED 전이용 최소 유지
 
-	const [isShowToasterCenter, setIsShowToasterCenter] = useState(0);
+	const [isShowToasterCenter, setIsShowToasterCenter] = useState<ToasterShow>(0);
 	const [toasterMessage, setToasterMessage] = useState("");
-	const [isShowToasterBottom, setIsShowToasterBottom] = useState(0);
+	const [isShowToasterBottom, setIsShowToasterBottom] = useState<ToasterShow>(0);
 
 	const navigate = useNavigate();
 	const queryString = new URLSearchParams(useLocation().search);
@@ -46,7 +46,7 @@ const LogSingle = () => {
 		const contentsStartIndex = hasTitle ? contents.indexOf("\n") : 0;
 		const logTitle = hasTitle
 			? contents.substr(2, contentsStartIndex - 1)
-			: "log of " + getFormattedDate(logTimestamp * 1, "date mon year");
+			: "log of " + getFormattedDate(Number(logTimestamp), "date mon year");
 		setHtmlTitle(logTitle);
 
 		const contentsWithoutTitle = contents.substr(contentsStartIndex);
@@ -147,8 +147,5 @@ const LogSingle = () => {
 	);
 }
 
-LogSingle.propTypes = {
-	isPostSuccess: PropTypes.bool,
-};
 
 export default LogSingle;

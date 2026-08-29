@@ -24,7 +24,7 @@ export interface PatternBExemption {
 
 export const PATTERN_B_EXEMPTIONS: readonly PatternBExemption[] = [
 	{
-		file: 'src/Log/LogItemInfo.jsx',
+		file: 'src/Log/LogItemInfo.tsx',
 		testId: 'edit-button',
 		rationale:
 			'M5 (REQ-033 FR-05): react-router <Link> 의 자식 <span>. 부모 anchor 가 Enter 활성 기본 제공 — 자식 tabIndex/onKeyDown 추가 시 포커스 중복/이중 활성 위험 (TSK-20260421-77 @3971a46 확정 면제).',

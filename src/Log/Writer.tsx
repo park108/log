@@ -7,6 +7,8 @@ import { useUpdateLog } from './hooks/useUpdateLog';
 import * as parser from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
 import Toaster from "../Toaster/Toaster";
+import type { ToasterShow, ToasterType } from '../Toaster/Toaster';
+import type { LogItemPayload } from './api';
 import './Writer.css';
 
 const LogItem = lazy(() => import('./LogItem'));
@@ -17,6 +19,12 @@ const MARKDOWN_STRING_TEMPLATE = {
 	"a": "[LinkText](https://example.com/ \"TITLE\")",
 };
 
+// `auto-expand` textarea 는 최초 scrollHeight 를 엘리먼트에 캐시해 둔다 (기존 동작 유지).
+interface AutoExpandTextArea extends HTMLElement {
+	rows: number;
+	_baseScrollHeight?: number;
+}
+
 const Writer = () => {
 
 	const [isProcessing, setIsProcessing] = useState(false);
@@ -24,7 +32,7 @@ const Writer = () => {
 	const [isConvertedHTML, setIsConvertedHTML] = useState(false);
 	const [isNew, setIsNew] = useState(true);
 
-	const [historyData, setHistoryData] = useState(undefined);
+	const [historyData, setHistoryData] = useState<LogItemPayload | undefined>(undefined);
 
 	const [article, setArticle] = useState("");
 	const [isTemporary, setIsTemporary] = useState(false);
@@ -32,10 +40,10 @@ const Writer = () => {
 	const [convertedArticle, setConvertedArticle] = useState("");
 	const [convertedArticleStatus, setConvertedArticleStatus] = useState("");
 
-	const [rows, setRows] = useState("1");
+	const [rows, setRows] = useState<number>(1);
 
-	const [isShowToaster, setIsShowToaster] = useState(0);
-	const [toasterType, setToasterType] = useState("success");
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShow>(0);
+	const [toasterType, setToasterType] = useState<ToasterType>("success");
 	const [toasterMessage ,setToasterMessage] = useState("");
 	const [isShowImageSelector, setIsShowImageSelector] = useState(false);
 	
@@ -64,7 +72,7 @@ const Writer = () => {
 		},
 		onError: (err) => {
 			log("[API POST] FAILED - Log", "ERROR");
-			log(err, "ERROR");
+			log(String(err), "ERROR");
 
 			setToasterType("error");
 			setToasterMessage(
@@ -89,7 +97,7 @@ const Writer = () => {
 		},
 		onError: (err) => {
 			log("[API PUT] FAILED - Log", "ERROR");
-			log(err, "ERROR");
+			log(String(err), "ERROR");
 
 			setToasterType("error");
 			setToasterMessage(
@@ -142,20 +150,23 @@ const Writer = () => {
 	}, [location]);
 
 	useEffect(() => {
-		if(hasValue(historyData)) {
+		if(historyData) {
 
-			setArticle(historyData.logs[0].contents);
+			// logs[0] 이 최신 리비전. 비어 있으면 복원할 본문이 없다.
+			const latest = historyData.logs[0];
+			if(latest) setArticle(latest.contents);
 
 			if(hasValue(historyData.temporary)) {
-				setIsTemporary(historyData.temporary);
+				setIsTemporary(Boolean(historyData.temporary));
 			}
 		}
 	}, [historyData]);
 
 	useEffect(() => {
 
-		const setTextAreaRows = (e) => {
-			let minRows = e.getAttribute('data-min-rows') | 1, rows;
+		const setTextAreaRows = (e: AutoExpandTextArea) => {
+			const minRows = Number(e.getAttribute('data-min-rows')) || 1;
+			let rows: number;
 			if(!e._baseScrollHeight) e._baseScrollHeight = e.scrollHeight;
 	
 			setRows(minRows); // Restore minimum rows
@@ -163,8 +174,9 @@ const Writer = () => {
 			setRows(minRows + rows); // Set current rows
 		}
 
-		const setTextarealHeight = ({target: e}) => {
-			setTextAreaRows(e);
+		const setTextarealHeight = (event: Event) => {
+			const e = event.target as AutoExpandTextArea | null;
+			if(e) setTextAreaRows(e);
 		}
 
 		let html = parser.markdownToHtml(article);
@@ -173,8 +185,8 @@ const Writer = () => {
 		setArticleStatus("Markdown length = " + article.length);
 		window.addEventListener('input', setTextarealHeight);
 
-		let textArea = document.getElementById("textarea--writer-article");
-		if(2 > textArea.rows) {
+		const textArea = document.getElementById("textarea--writer-article") as AutoExpandTextArea | null;
+		if(textArea && 2 > textArea.rows) {
 			setTextAreaRows(textArea);
 		}
 
@@ -197,9 +209,16 @@ const Writer = () => {
 	
 		const editLog = () => {
 
+			// 편집 경로는 historyData 가 확정된 상태에서만 도달한다 (isNew === false).
+			// 확정을 가정만 하지 않고 실제로 검사한다.
+			if(!historyData) {
+				log("editLog: historyData 미확정 상태 진입", "ERROR");
+				return;
+			}
+
 			setIsProcessing(true);
 
-			let newItem = JSON.parse(JSON.stringify(historyData));
+			const newItem: LogItemPayload = JSON.parse(JSON.stringify(historyData));
 
 			const changedLogs = [{
 				contents: article,
@@ -215,7 +234,7 @@ const Writer = () => {
 
 			if(article.length < 5) {
 				alert("Please note at least 5 characters.");
-				document.getElementById("textarea--writer-article").focus();
+				document.getElementById("textarea--writer-article")?.focus();
 				return;
 			}
 
@@ -237,14 +256,14 @@ const Writer = () => {
 		setConvertedArticleStatus("HTML length = " + convertedArticle.length)
 	}, [convertedArticle]);
 
-	const handleChange = ({ target: { value } }) => setArticle(value);
+	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setArticle(e.target.value);
 
 	const toggleImageSelector = () => setIsShowImageSelector(!isShowImageSelector);
 	const toggleMode = () => setIsConvertedHTML(!isConvertedHTML);
 
-	const copyMarkdownString = async (e) => {
+	const copyMarkdownString = async (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.preventDefault();
-		const tag = e.target.value;
+		const tag = (e.target as HTMLButtonElement).value as keyof typeof MARKDOWN_STRING_TEMPLATE;
 
 		const markdownString = MARKDOWN_STRING_TEMPLATE[tag];
 
@@ -323,7 +342,6 @@ const Writer = () => {
 						id="textarea--writer-article"
 						data-testid="writer-text-area"
 						className="textarea textarea--writer-article auto-expand"
-						type="text"
 						name="article"
 						value={article}
 						onChange={handleChange}
@@ -389,14 +407,14 @@ const Writer = () => {
 				</button>
 			</form>
 
-			{hasValue(historyData) && (
+			{historyData && (
 				<div className="div div--writer-history" >
 					<h1 className="h1 h1--writer-historytitle">Change History</h1>
 					<Suspense fallback={<div></div>}>
 						{ historyData.logs.map((log) => (
 							<LogItem
 								key={log.timestamp}
-								author={historyData.author}
+								author={historyData.author ?? ""}
 								timestamp={log.timestamp}
 								contents={log.contents}
 								showComments={false}

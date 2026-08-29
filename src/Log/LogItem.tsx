@@ -1,21 +1,33 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import PropTypes from 'prop-types';
 import { log } from '../common/common';
 import { useDeleteLog } from './hooks/useDeleteLog';
 import * as parser from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
 import Toaster from "../Toaster/Toaster";
+import type { ToasterShow, ToasterType } from "../Toaster/Toaster";
+import type { LogItemPayload } from './api';
 
 const LogItemInfo = lazy(() => import('../Log/LogItemInfo'));
 const Comment = lazy(() => import('../Comment/Comment'));
 
-const LogItem = (props) => {
+interface LogItemProps {
+	item?: LogItemPayload;
+	author: string;
+	contents?: string;
+	timestamp: number;
+	temporary?: boolean;
+	showComments?: boolean;
+	showLink?: boolean;
+	deleted?: () => void;
+}
+
+const LogItem = (props: LogItemProps) => {
 
 	const [itemClass, setItemClass] = useState("article article--main-item");
 
-	const [isShowToaster, setIsShowToaster] = useState(0);
+	const [isShowToaster, setIsShowToaster] = useState<ToasterShow>(0);
 	const [toasterMessage, setToasterMessage] = useState("");
-	const [toasterType, setToasterType] = useState("error");
+	const [toasterType, setToasterType] = useState<ToasterType>("error");
 
 	// 알림 콜백은 훅 옵션으로 넘긴다 — `mutate(vars, { onSuccess })` 의 per-call 콜백은
 	// MutationObserver 가 구독자를 가진 동안에만 발화하고, 구독은 이 컴포넌트의 passive
@@ -24,11 +36,11 @@ const LogItem = (props) => {
 	const deleteMutation = useDeleteLog({
 		onSuccess: () => {
 			log("[API DELETE] OK - Log", "SUCCESS");
-			props.deleted();
+			props.deleted?.();
 		},
-		onError: (err) => {
+		onError: (err: Error) => {
 			log("[API DELETE] FAILED - Log", "ERROR");
-			log(err, "ERROR");
+			log(String(err), "ERROR");
 			setToasterMessage(
 				err && err.message && err.message.startsWith("DELETE /log failed")
 					? "Deleting log failed."
@@ -82,7 +94,7 @@ const LogItem = (props) => {
 			/>
 			<section
 				className="section section--logitem-contents"
-				dangerouslySetInnerHTML={{ __html: sanitizeHtml(parser.markdownToHtml(contents)) }}
+				dangerouslySetInnerHTML={{ __html: sanitizeHtml(parser.markdownToHtml(contents ?? "")) }}
 			/>
 			{ comments }
 			<Toaster
@@ -96,16 +108,5 @@ const LogItem = (props) => {
 		</article>
 	);
 }
-
-LogItem.propTypes = {
-	item: PropTypes.object,
-	author: PropTypes.string,
-	contents: PropTypes.string,
-	timestamp: PropTypes.number,
-	temporary: PropTypes.bool,
-	showComments: PropTypes.bool,
-	showLink: PropTypes.bool,
-	deleted: PropTypes.func,
-};
 
 export default LogItem;

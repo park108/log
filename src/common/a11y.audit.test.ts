@@ -21,7 +21,7 @@
  * auto-skip (onClick 부재):
  *  - `role="button"` + `tabIndex={0}` 만 부여된 요소 중 `onClick` 이 부재한 경우 activation
  *    의미가 부재 (예: hover/focus popup trigger) — audit 규칙이 onClick 을 전제로 동작하므로
- *    자동 제외. 관련 선례: M4 `src/Log/LogItemInfo.jsx:87` versions-button.
+ *    자동 제외. 관련 선례: M4 `src/Log/LogItemInfo.tsx:87` versions-button.
  */
 
 import { describe, it, expect } from 'vitest';

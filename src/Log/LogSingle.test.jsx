@@ -291,7 +291,7 @@ describe('LogSingle render "Page Not Found" on prod server (network error)', () 
 it('LogSingle source declares Skeleton variant="detail" as Suspense fallback (no empty <div>)', async () => {
 	const fs = await import('node:fs');
 	const path = await import('node:path');
-	const src = fs.readFileSync(path.resolve(__dirname, 'LogSingle.jsx'), 'utf-8');
+	const src = fs.readFileSync(path.resolve(__dirname, 'LogSingle.tsx'), 'utf-8');
 
 	// 두 Suspense 블록 모두 Skeleton detail fallback 을 사용해야 한다.
 	const skeletonMatches = src.match(/<Suspense fallback=\{<Skeleton variant="detail" \/>\}>/g);
