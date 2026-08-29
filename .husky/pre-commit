@@ -2,13 +2,17 @@ npx lint-staged
 
 # vite env boundary typing gate — TSK-20260517-08 / spec: foundation/vite-env-boundary-typing.md §G1·G2·G4
 # staged 변경에 src/** 또는 src/types/env.d.ts 포함 시 검사.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^src/'; then
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|scripts/check-vite-env-coherence\.sh$)'; then
   bash scripts/check-vite-env-coherence.sh || exit 1
 fi
 
 # deps coherence gate — TSK-20260518-26 / spec: foundation/node-modules-extraneous-coherence.md §G6
 # staged 변경에 package.json 또는 package-lock.json 포함 시 검사.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json|package-lock\.json)$'; then
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json|package-lock\.json|scripts/check-deps-coherence\.sh)$'; then
   bash scripts/check-deps-coherence.sh || exit 1
 fi
 
@@ -16,7 +20,9 @@ fi
 # staged 변경에 src/Monitor/** 포함 시 검사.
 # npm script 동치: check:monitor-state-immutability (package.json / ci.yml 과 같은 스크립트).
 # 기존 3 블록과 같이 npm 오버헤드 없이 bash 로 직접 호출한다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^src/Monitor/'; then
+# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
+# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/Monitor/|scripts/check-monitor-state-immutability\.sh$)'; then
   bash scripts/check-monitor-state-immutability.sh || exit 1
 fi
 
