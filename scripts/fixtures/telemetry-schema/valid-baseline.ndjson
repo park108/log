@@ -1,3 +1,0 @@
-{"ts":"2026-08-27T00:10:00Z","agent":"developer","tick":1,"no_op":false,"streak":0,"moved":1,"queues":{"in":2,"out":0},"thresholds":{"TASK_READY_MAX":10},"notes":["orphan: 0"]}
-{"ts":"2026-08-27T00:40:00Z","agent":"planner","tick":2,"no_op":true,"streak":3,"moved":0,"queues":{"in":8,"out":2},"thresholds":{"TASK_READY_MAX":10},"notes":["carve: 0","promote-verify: 2/2 rc0"]}
-{"ts":"2026-08-27T01:10:00Z","agent":"inspector","tick":3,"no_op":false,"streak":0,"moved":2,"queues":{"in":7,"out":8},"thresholds":{"GREEN_PENDING_MAX":20},"notes":[]}

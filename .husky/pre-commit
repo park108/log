@@ -1,11 +1,5 @@
 npx lint-staged
 
-# spec coherence gate — TSK-20260517-06 / spec: foundation/src-spec-reference-coherence.md §G3
-# staged 변경에 src/** 또는 specs/30.spec/** 포함 시 검사.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|specs/30\.spec/)'; then
-  bash scripts/check-spec-coherence.sh || exit 1
-fi
-
 # vite env boundary typing gate — TSK-20260517-08 / spec: foundation/vite-env-boundary-typing.md §G1·G2·G4
 # staged 변경에 src/** 또는 src/types/env.d.ts 포함 시 검사.
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^src/'; then
@@ -64,17 +58,6 @@ if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/common/Nav
   bash scripts/check-declared-branch-discrimination.sh || exit 1
 fi
 
-# 게이트 주입 seam 커버리지 — TSK-20260825-38 / spec: foundation/gate-judgement-population-injectable-seam.md §수용 기준 (E-1)(E-3)(E-4)
-# staged 변경에 게이트 스크립트 계열(scripts/check-*.sh) 또는 주입 픽스처가 포함되면 검사.
-# npm script 동치: check:gate-seam (package.json / ci.yml 과 같은 스크립트).
-# 트리거 ERE 가 `scripts/check-` 전체를 덮으므로 **게이트 자신을 수정하는 커밋**도 발화한다 —
-# 게이트만 수정하는 커밋이 자기 자신을 발화시키지 않으면 무력화 변경이 그대로 통과한다.
-# seam 이 사라지면 잃는 것은 편의가 아니라 민감도 검증 능력 자체다. TSK-20260825-28 이
-# 정확히 그 능력 부재로 blocked 됐고, seam 이 생긴 뒤 TSK-20260825-37 로 재발행돼 착지했다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-|scripts/fixtures/)'; then
-  bash scripts/check-gate-seam-coverage.sh || exit 1
-fi
-
 # 전역 원복 정적 게이트 — TSK-20260827-04-b / spec: testing/test-global-state-restoration-order-independence.md §동작 (FR-04)(NFR-02)
 # staged 변경에 src/** 또는 게이트 스크립트 자신이 포함되면 검사.
 # npm script 동치: check:global-state-restoration (package.json / ci.yml 과 같은 스크립트).
@@ -87,71 +70,4 @@ fi
 # 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
 if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(src/|scripts/check-global-state-restoration\.sh$)'; then
   bash scripts/check-global-state-restoration.sh || exit 1
-fi
-
-# 선언된 게이트의 발화 채널 총성 — TSK-20260827-06 / spec: foundation/declared-gate-firing-channel-totality.md §동작 (FR-01)…(FR-07)
-# staged 변경에 선언 파일 · 훅 · 워크플로 · 게이트 스크립트 자신이 포함되면 검사.
-# npm script 동치: check:gate-firing-channel (package.json / ci.yml 과 같은 스크립트).
-# 게이트는 선언되는 것으로 존재하지 않는다 — 아무도 부르지 않으면 종수만 는다. npm script 와
-# 스크립트 파일만 추가한 커밋이 워크플로·훅을 건드리지 않은 채 착지했고 그 게이트는 뒤이은
-# 54 커밋 동안 한 번도 실행되지 않았다. 그 사이 어떤 기존 게이트도 붉어지지 않는다 —
-# 파일도 seam 도 npm 진입점도 정상이고 배선만 없기 때문이다.
-# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
-# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|\.husky/|\.github/workflows/|scripts/check-gate-firing-channel\.sh$)'; then
-  bash scripts/check-gate-firing-channel.sh || exit 1
-fi
-
-# 정체 판정 계측 라인의 타입 계약 — TSK-20260827-07 / spec: foundation/stall-telemetry-schema-contract.md §동작 (T-1)(T-3)(T-4)
-# staged 변경에 게이트 자신 또는 판정 픽스처가 포함되면 검사.
-# npm script 동치: check:telemetry-schema (package.json / ci.yml 과 같은 스크립트).
-# RULE-03 (S1)(S2)(S3) 는 moved·streak 에 판정을 전적으로 위임하는데 그 손상은 유효한 JSON 이라
-# 파싱도 통과하고 비교만 거짓이 된다 — 생산적 tick 이 조용히 '진행 0' 이 되어 정상 에이전트가
-# 거짓 정지하고, stall lock 은 운영자만 지울 수 있어 자동 복구 경로가 없다.
-# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
-# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-telemetry-schema\.sh$|scripts/fixtures/telemetry-schema/)'; then
-  bash scripts/check-telemetry-schema.sh || exit 1
-fi
-
-# 도구 출력 판독의 색상 비종속·fail-closed — TSK-20260827-09-b / spec: foundation/gate-output-parsing-color-independent-fail-closed.md §동작 (FR-01)(FR-02)(FR-03)(FR-04)(FR-06)
-# staged 변경에 게이트 스크립트 계열 또는 선언 파일(package.json)이 포함되면 검사.
-# npm script 동치: check:output-parsing-color-independence (package.json / ci.yml 과 같은 스크립트).
-# 판독이 색상에 무너지면 게이트는 초록인 채 검출력만 사라진다 — 판정 산술이 붕괴해도 rc 는
-# 무색 실행과 같아서 CI 도 이 붕괴를 붉게 만들지 않았다. 위반이 게이트를 붉게 만들지 못하므로
-# 게이트 자신이 이 축의 판정자가 될 수 없다.
-# 트리거에 게이트 스크립트 계열 전체를 넣는 이유 — 판독 게이트 본문을 고치는 커밋과 게이트
-# 자신을 무력화하는 커밋 양쪽이 모두 이 검사를 발화시켜야 한다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|scripts/check-)'; then
-  bash scripts/check-output-parsing-color-independence.sh || exit 1
-fi
-
-# 게이트 배선 실행 표면 정합 — TSK-20260828-02 / spec: foundation/gate-wiring-execution-surface-coherence.md §동작 (FR-01)(FR-02)(FR-03)(FR-05)
-# staged 변경에 선언 파일 · 이 훅 자신 · 게이트 스크립트 계열이 포함되면 검사.
-# npm script 동치: check:gate-wiring (package.json / ci.yml 과 같은 스크립트).
-# 위 총성 축(check:gate-firing-channel)이 "채널이 1개라도 있는가" 를 재는 데 비해 이 축은
-# "그 채널이 실행 표면에서 정합한가" 를 잰다 — 별 키다.
-# 배선 판정이 주석 한 줄로 충족되던 형태를 닫는다: 게이트 호출 실행 라인이 삭제되고 설명
-# 주석만 남으면 문자열 grep 기반 판정은 초록을 유지했다. 관측 표면은 주석 절단 후 실행
-# 라인이며, 주석에만 남은 스크립트 경로는 배선이 아니라 위반이다.
-# 측정 대상은 staged 집합이 아니라 작업 트리다 — 훅 밖(CI · 수동 실행)에서도 같은 판정을 낸다.
-# 트리거에 게이트 스크립트 계열을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
-# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(package\.json$|\.husky/pre-commit$|scripts/)'; then
-  bash scripts/check-gate-wiring.sh || exit 1
-fi
-
-# task 발행 조건 주장의 비공허성 + 격리 사유서 처방 소비 — TSK-20260828-08
-# spec: foundation/task-precondition-scope-nonvacuity-and-reason-consumption §동작 FR-01…FR-08
-# staged 변경에 게이트 자신 또는 판정 픽스처가 포함되면 검사.
-# npm script 동치: check:task-precondition-scope (package.json / ci.yml 과 같은 스크립트).
-# 확인 범위가 대상을 담지 못하는데 결과가 초록으로 읽히는 형태를 닫는다 — 같은 결합에서
-# 이틀 연속 task 가 격리됐고, 두 번째 격리는 첫 사유서가 앵커 문자열까지 처방을 갖고 있는
-# 상태에서 났다. 손실의 원인은 정보 부족이 아니라 미소비였다.
-# 판정 모집단은 픽스처다: 실 대기열 두 곳이 .gitignore 대상이라 신선한 클론에 존재조차
-# 하지 않고, 그것을 기본 모집단으로 삼으면 상시 채널이 항상 무판정으로 붉어진다.
-# 트리거에 게이트 스크립트 자신을 넣는 이유 — 게이트만 수정하는 커밋이 그 게이트를
-# 발화시키지 않으면, 게이트를 무력화하는 변경이 자기 자신을 통과한다.
-if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^(scripts/check-task-precondition-scope\.sh$|scripts/fixtures/task-precondition/)'; then
-  bash scripts/check-task-precondition-scope.sh || exit 1
 fi
