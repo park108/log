@@ -103,12 +103,25 @@ describe('Footer 브랜드 아이콘 자산 가용성', () => {
 			expect(hits).toBe(0);
 		});
 
-		it('CSP img-src 외부 origin 집합이 실제 발화 origin 집합과 일치한다', () => {
+		// 이 판정의 목적은 **푸터 브랜드 자산 축의 권한 동기화**다 — 자산을
+		// 자체 호스팅으로 옮겼으면 그 출처 권한도 함께 걷어야 한다. 목록 전체가
+		// 영구 불변이라는 뜻이 아니다. 실제로 본문 이미지(S3)를 허용하면서
+		// 이 단언이 붉어졌는데, 그것은 다른 축이며 정당한 추가다.
+		//
+		// 그래서 "집합 동일" 이 아니라 **브랜드 축에 속한 출처만** 검사한다:
+		// d0.awsstatic.com 은 남아 있고, 이관된 brand.linkedin.com 은 없다.
+		it('브랜드 자산 축의 CSP 권한이 실제 발화와 일치한다', () => {
 			const html = readFileSync('index.html', 'utf8');
 			const directive = /img-src([^;]*);/.exec(html)?.[1] ?? '';
 			const allowed = directive.trim().split(/\s+/).filter(t => t.startsWith('http'));
 
-			expect(allowed).toEqual(['https://d0.awsstatic.com']);
+			// 공허 통과 차단 — 추출이 비면 아래 단언이 무조건 참이 된다.
+			expect(allowed.length, 'img-src 에서 외부 출처를 뽑지 못했다').toBeGreaterThanOrEqual(1);
+
+			expect(allowed, 'AWS 배지 출처가 사라졌다 — 자산은 여전히 외부에 있다')
+				.toContain('https://d0.awsstatic.com');
+			expect(allowed, '이관 완료된 brand.linkedin.com 권한이 남아 있다 — vacuous 권한')
+				.not.toContain('https://brand.linkedin.com');
 		});
 	});
 

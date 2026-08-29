@@ -48,7 +48,11 @@ const CSP_DIRECTIVE_TOKENS = [
 	"default-src 'self'",
 	"script-src 'self'",
 	"connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com",
-	"img-src 'self' data: https://d0.awsstatic.com",
+	// 본문 이미지는 S3 버킷에서 온다 (park108-{image,log}-{dev,prod}). 이 출처가
+	// 없어 글 본문의 이미지가 전부 차단되고 있었다 — 콘솔에 "Loading the image
+	// ... violates ... img-src" 가 이미지 수만큼 쌓였다. connect-src 가 이미
+	// execute-api 에 같은 와일드카드 방식을 쓰므로 표기를 맞춘다.
+	"img-src 'self' data: https://d0.awsstatic.com https://*.s3.ap-northeast-2.amazonaws.com",
 	// 본문 폰트(Pretendard)는 공식 jsdelivr CDN 에서 온다. 스타일시트와 폰트
 	// 파일이 같은 호스트라 style-src / font-src 모두 같은 출처를 허용한다.
 	// font-src 를 선언하지 않으면 default-src 'self' 로 폴백돼 폰트가 차단된다.
