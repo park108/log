@@ -47,6 +47,7 @@
 
 - 은닉 차단 목적은 유지한다 — 파싱 결과와 원문의 교차 검증 자체는 남는다. 바뀌는 것은 **계수 단위**이며, 라인 단위가 아니라 선언 토큰 단위여야 한다.
 - 현 구현은 `scripts/check-gate-wiring.sh` 의 `pkgRaw.split("\n") … /^\s*"check:[^"]*"\s*:/` (`:159-163`) 로 **라인 기반**이며, 불일치 시 `:178-182` 가 `NO-JUDGEMENT: key-count-incoherent` 를 낸다.
+- 계수 단위가 선언 토큰이면 **같은 행 중복 선언**도 관측된다. 한 줄에 같은 키가 두 번 선언되면 파싱 결과는 뒤가 앞을 가려 1건이지만 원문 선언 토큰은 2건이므로 교차 검증이 불일치를 낸다. 라인 계수는 이 부류를 원리적으로 보지 못한다 — 줄이 1개라 파싱 수와 우연히 일치하기 때문이다. 즉 토큰 단위는 무판정 회피(형태 비종속)뿐 아니라 **은닉 차단의 검출력 자체를 넓힌다**.
 - 방향은 fail-closed 라 조용한 초록은 아니다. 그러나 **표기 우연이 판정을 멈춘다** — 판정이 대상의 구조가 아니라 줄바꿈 위치에 걸려 있는 형태이며, 채택 술어 층의 이름 우연(`measurement-tree-attribution-wrapper-adoption` §이름은 채널이 아니다)과 같은 부류다.
 
 ### 발화 채널 (RULE-07 §promote 조건 4)
@@ -66,7 +67,7 @@
 - [x] 배선 정합 게이트가 `package.json scripts.check:*` 에 등재되고 `.github/workflows/ci.yml` 에서 실행 라인으로 호출된다 — `node -e "const fs=require('fs');const K='check:gate-wiring';const s=require('./package.json').scripts;const a=typeof s[K]==='string'&&s[K].trim().length>0?1:0;const ci=fs.readFileSync('.github/workflows/ci.yml','utf8').split('\n').map(l=>l.replace(/#.*/,'')).filter(l=>/run:\s*npm run check:gate-wiring(\s|$)/.test(l)).length;console.log(a,ci?1:0);process.exit(a&&ci?0:1)"` → 출력 `1 1` / rc=0. ci 측 계수는 주석 절단 후 `run:` 실행 라인에 한정한다 — 단순 문자열 포함 계수는 `ci.yml` 주석에 적힌 게이트 이름을 배선으로 오인한다(FR-03). **실측 2026-08-28 (HEAD `dac5a60`): `1 1` rc=0 → 충족** (`scripts.check:gate-wiring` = `bash scripts/check-gate-wiring.sh`, `ci.yml:167`).
 - [x] 배선 정합 게이트가 `.husky/pre-commit` **실행 라인**에서 호출된다 (§발화 채널 3경로 중 훅) — `node -e "const fs=require('fs');const K='check-gate-wiring.sh';const n=fs.readFileSync('.husky/pre-commit','utf8').split('\n').map(l=>l.replace(/#.*/,'')).filter(l=>l.includes('scripts/'+K)).length;console.log(n?1:0);process.exit(n?0:1)"` → 출력 `1` / rc=0. 주석 절단 후 계수하므로 훅의 설명 주석(`# npm script 동치: check:gate-wiring`)은 배선을 충족시키지 않는다(FR-03). **실측 2026-08-28 (HEAD `dac5a60`): `1` rc=0 → 충족** (`.husky/pre-commit:141` 실행 라인; 주석 `:129`·`:131` 은 계수 제외). 음성 대조(인메모리, 트리 무변경): 해당 실행 라인을 주석으로 내린 변형에서 계수 0 → rc=1.
 - [x] 도출 명령이 공집합을 초록으로 읽지 않는다 — `node -e "const s=require('./package.json').scripts;const p=[...new Set(Object.entries(s).filter(([k])=>k.startsWith('check:')).flatMap(([,v])=>v.match(/scripts\/[A-Za-z0-9._\/-]+\.sh/g)||[]))];console.log(p.length>=1?1:0);process.exit(p.length?0:1)"` → 출력 `1` / rc=0 (RULE-06 §추출 실패 검출). 도출 개수 절대값은 고정하지 않는다.
-- [ ] (FR-06) `package.json` 을 1줄로 직렬화한 probe root 에서 배선 판정이 `key-count-incoherent` 무판정으로 멈추지 않는다 — 판정: (펜스)
+- [x] (FR-06) `package.json` 을 1줄로 직렬화한 probe root 에서 배선 판정이 `key-count-incoherent` 무판정으로 멈추지 않는다 — 판정: (펜스)
   ```
   S=$(mktemp -d) || exit 2
   [ -n "$S" ] || exit 2
@@ -77,7 +78,7 @@
   printf '%s\n' "$o" | grep -q 'key-count-incoherent' && exit 1
   [ "$r" -eq 0 ] || exit 1
   ```
-  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=1 → 미충족.** 산출 `NO-JUDGEMENT: key-count-incoherent — parsed=28 raw-lines=0` `rc=2` 를 재현한다 (`scripts/check-gate-wiring.sh:159-163` 의 라인 기반 원문 계수 · `:178-182` 발화). probe root 는 `mktemp -d` 아래에 구성되고 `scripts/` · `.husky/` 는 현 트리 사본이며 저장소 트리를 건드리지 않는다. 이 항목이 `rc=0` 이 되려면 원문 계수가 라인 단위가 아니라 **선언 토큰 단위**여야 한다 — 그 변경은 `scripts/**` 소관이므로 planner 의 task 발행이 선행 조건이다.
+  → **rc=0**. **HEAD=`5a697f8` (tick 243) 실측 rc=0 → 충족.** 1줄 직렬화 probe root 산출이 정상 트리와 동일하다 (`check-keys=28 derived-paths=28 hook-paths=15 hook-comment-paths=0 (PASS)` rc=0, 2회 재실행 동일 — 멱등). `TSK-20260829-06` (`5a697f8`) 이 `scripts/check-gate-wiring.sh:159-163` 의 라인 계수 `pkgRaw.split("\n") … /^\s*"check:[^"]*"\s*:/` 를 전문 전역 토큰 계수 `(pkgRaw.match(/"check:[^"]*"\s*:/g) || []).length` 로 교체했고 수치명도 `raw-lines=` → `raw-decls=` 로 바뀌었다. probe root 는 `mktemp -d` 아래에 구성되고 `scripts/` · `.husky/` 는 현 트리 사본이며 저장소 트리를 건드리지 않는다.
 - [x] (FR-06 음성 대조) 원문 교차 검증의 **은닉 차단 목적이 퇴행하지 않는다** — 현 HEAD 에서 배선 판정이 `rc=0` 이고 발화된 `check-keys` 가 `package.json` 파싱 키 수와 일치한다 — 판정: (펜스)
   ```
   o=$(bash scripts/check-gate-wiring.sh 2>&1) || exit 1
@@ -85,7 +86,19 @@
   [ -n "$n" ] && [ "$n" -ge 1 ] || exit 2
   printf '%s\n' "$o" | grep -q "check-keys=$n " || exit 1
   ```
-  → **rc=0**. **HEAD=`079a5a5` (tick 242) 실측 rc=0** (`check-keys=28 derived-paths=28 hook-paths=15 hook-comment-paths=0 (PASS)`, 파싱 키 수 28). 절대 종수를 고정하지 않고 **두 계수의 일치**를 요구한다 — FR-06 수리가 교차 검증을 느슨하게 해서 통과시키는 경로를 이 항목이 막는다. 위 항목이 민감도(형태 변경에서 멈추지 않는가), 이 항목이 특이도(정상 트리에서 계수가 여전히 맞는가)를 잰다.
+  → **rc=0**. **HEAD=`5a697f8` (tick 243) 재실행 rc=0 — 보존** (`check-keys=28 derived-paths=28 hook-paths=15 hook-comment-paths=0 (PASS)`, 파싱 키 수 28). 절대 종수를 고정하지 않고 **두 계수의 일치**를 요구한다 — FR-06 수리가 교차 검증을 느슨하게 해서 통과시키는 경로를 이 항목이 막는다. 라인 계수 → 토큰 계수 교체가 이 일치를 깨지 않았음이 delta 를 가진 tick 에서 관측됐다. 이 항목이 특이도(정상 트리에서 계수가 여전히 맞는가)를 지고, 앞 항목이 무판정 회피(형태 변경에서 멈추지 않는가)를, 다음 항목이 민감도(은닉 주입에서 발화하는가)를 진다.
+- [x] (FR-06 민감도) 원문 교차 검증이 **같은 행 중복 선언**을 무판정으로 잡는다 — 판정: (펜스)
+  ```
+  S=$(mktemp -d) || exit 2
+  [ -n "$S" ] || exit 2
+  cp -R scripts "$S/scripts" || exit 2
+  cp -R .husky "$S/.husky" || exit 2
+  node -e 'const fs=require("fs");const S=process.argv[1];const j=JSON.parse(fs.readFileSync("package.json","utf8"));const k=Object.keys(j.scripts).filter(x=>x.startsWith("check:"))[0];if(!k)process.exit(2);let o=JSON.stringify(j,null,2);const L=o.split("\n").find(l=>l.trim().startsWith(JSON.stringify(k)+":"));if(!L)process.exit(2);o=o.replace(L,L.replace(/,\s*$/,"")+", "+L.trim());JSON.parse(o);fs.writeFileSync(S+"/package.json",o+"\n")' "$S" || exit 2
+  o=$(GATE_WIRING_SCAN_ROOT="$S" bash scripts/check-gate-wiring.sh 2>&1); r=$?
+  printf '%s\n' "$o" | grep -q 'key-count-incoherent' || exit 1
+  [ "$r" -ne 0 ] || exit 1
+  ```
+  → **rc=0**. **HEAD=`5a697f8` (tick 243) 실측 rc=0 → 충족.** 주입은 기존 `check:*` 키 1건을 같은 줄에 두 번 선언하는 형태이며 JSON 으로 유효하다(뒤가 앞을 가림). 파싱 키 수는 28 로 불변이고 원문 선언 토큰은 29 가 되어 `NO-JUDGEMENT: key-count-incoherent — parsed=28 raw-decls=29` `rc=2` 가 발화한다. 주입 키는 `check:*` 집합의 첫 원소로 도출하며 이름을 고정하지 않는다. 이 항목이 앞 두 항목과 함께 3방향을 이룬다 — 형태 변경에서 멈추지 않음(무판정 회피) · 정상 트리에서 계수 일치(특이도) · 은닉 주입에서 불일치 발화(민감도).
 
 ## 참고
 
@@ -120,6 +133,8 @@
 - `check:*` 종수는 req 작성 시점 15종에서 현재 21종으로 증가했다 — 수용 기준은 절대 종수를 고정하지 않는다.
 - 실측 (HEAD `9cf62a4`) — FR-01 위반 **0건**. 도출 키 **22종** 전부 `bash scripts/<name>.sh` 단일 형태이며 비-경로 형태 0건이다. `TSK-20260827-01` (`c084b28`) 이 `check:build-artifact` 의 인라인 셸 13행을 `scripts/check-build-artifact.sh` 로 추출해 마지막 위반이 해소됐다. 판정 명령 2회 재실행 rc=0 동일(멱등). 음성 대조(인메모리) — 비-경로 값 키 1건 주입 시 출력 `1 1 check:__probe` rc=1 로 검출된다.
 - 실측 (HEAD `dac5a60`) — `TSK-20260828-02` (`c8965a9`) 가 `check:gate-wiring` 을 신설·배선했다. 게이트 자체 실행 `npm run check:gate-wiring` → `check-keys=27 derived-paths=27 hook-paths=14 hook-comment-paths=0 (PASS)` rc=0. `check:*` 종수는 21 → 27 로 증가했고 수용 기준은 절대 종수를 고정하지 않는다. FR-04 위반 4건은 미해소이며 본 착지로 악화되지 않았다(`1 4` 불변).
+- 실측 (HEAD `5a697f8`) — `TSK-20260829-06` 착지로 FR-06 이 해소됐다. 1줄 직렬화 probe root 판정 `rc=1 → rc=0` 전이, 산출 4수치는 정상 트리와 동일(`28/28/15/0`)이라 라벨·fail-closed 방향·절대 종수 비고정이 모두 보존됐다.
+- 실측 (HEAD `5a697f8`) — 구·신 구현 교차 대조 (동일 probe root, 저장소 무변경). 같은 행 중복 선언 주입 시 **구 라인 계수 게이트는 `PASS` rc=0**(`check-keys=28 derived-paths=28 hook-paths=15 hook-comment-paths=0`), **신 토큰 계수 게이트는 `NO-JUDGEMENT: key-count-incoherent — parsed=28 raw-decls=29` rc=2**. 구 구현의 blind spot 은 라인이 1개라 파싱 수와 우연히 일치하는 데서 왔다 — `raw-lines=29` 류 불일치보다 강한 은닉이며 fail-closed 로도 걸러지지 않았다. 인접 관측은 `specs/10.followups/20260829-2140-gate-wiring-line-count-same-line-hiding.md` (discovery 소관).
 - 소비 followup 3건 병합: `20260825-0700-pre-commit-wiring-observation-surface` (FR-03) · `20260825-1105-precommit-gate-trigger-excludes-gate-script` (FR-04·05) · `20260824-2236-check-script-logic-inlined-in-package-json` (FR-01).
 
 ## 변경 이력
@@ -143,3 +158,5 @@
 - 2026-08-28 inspector: §발화 채널이 선언한 3경로 중 미측정이던 `.husky/pre-commit` 실행 라인 항목을 수용 기준에 추가 — 주석 절단 후 계수 `1` rc=0, 인메모리 음성 대조 rc=1. 등재와 배선을 함께 요구한다(`declared-gate-firing-channel-totality`).
 - 2026-08-28 inspector: 수용 기준 1·2·3·6항 재실행 전수 rc=0 보존 확인 (`1 0` / `0` / `0` / `1`), 4항(FR-04) `1 4` rc=1 비악화 → `[ ]` 유지.
 - 2026-08-29 inspector: REQ-20260829-046 흡수 — FR-06(선언 파일 교차 검증의 직렬화 형태 비종속) 신설 + 방어 대상 4번 추가. 수용 기준 2항 추가: 1줄 직렬화 probe root 판정 `rc=1` 미충족(`key-count-incoherent parsed=28 raw-lines=0` 재현) · 음성 대조 현 HEAD `check-keys` = 파싱 키 수 `rc=0`. FR-01 `VALUE_RE`(`:136`)는 완화하지 않는다 — req Out-of-Scope 명시.
+- 2026-08-29 inspector: Phase 1 reconcile — FR-06 항목 재실행, `5a697f8` 착지로 `rc=1 → rc=0` 전이 확인 후 `[x]` 확정. 음성 대조 항목 rc=0 보존. 수용 기준 1·2·3·6항 재실행 전수 rc=0 보존(`1 0` / `0` / `0` / `1`), 4항(FR-04) `1 4` rc=1 불변 → `[ ]` 유지.
+- 2026-08-29 inspector: FR-06 에 **같은 행 중복 선언** 부류를 명시하고 민감도 수용 기준 1항 신설 — 구 라인 계수 `rc=0` 위음성 / 신 토큰 계수 `rc=2` 검출을 동일 probe root 에서 대조 박제. 미충족은 FR-04 1건만 남는다.
