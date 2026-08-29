@@ -191,3 +191,68 @@ describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
 		expect(result).toContain("<ol>");
 	});
 });
+
+// 링크·이미지의 **제목 없는 표준 형식**이 렌더되지 않고 있었다 (2026-08-30 실측).
+//
+// 구 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해 제목이 있어야만
+// 매치했다. 그래서 `[텍스트](url)` 과 `![alt](url)` — 마크다운에서 가장 흔한
+// 형식 — 이 조용히 문자 그대로 남았다. Writer 의 삽입 템플릿이 제목 자리를
+// `OPTIONAL_TITLE` 이라 부르는 것과도 어긋났다.
+describe('링크·이미지 제목 선택', () => {
+
+	const cases = [
+		{
+			name: '링크 — 제목 없음 (표준)',
+			src: '[링크](https://example.com)',
+			has: ["<a href='https://example.com'", ">링크</a>"],
+			hasNot: ['title=', '[링크]'],
+		},
+		{
+			name: '링크 — 제목 있음',
+			src: '[링크](https://example.com "제목")',
+			has: ["<a href='https://example.com'", "title='제목'", ">링크</a>"],
+			hasNot: ['[링크]'],
+		},
+		{
+			name: '이미지 — 제목 없음 (표준)',
+			src: '![alt](https://example.com/a.png)',
+			has: ["<img src='https://example.com/a.png'", "alt='alt'"],
+			hasNot: ['title=', '![alt]'],
+		},
+		{
+			name: '이미지 — 제목 있음',
+			src: '![alt](https://example.com/a.png "제목")',
+			has: ["<img src='https://example.com/a.png'", "title='제목'"],
+			hasNot: ['![alt]'],
+		},
+		{
+			name: '문장 한가운데의 링크',
+			src: '앞 [링크](https://example.com) 뒤',
+			has: ['앞 ', "<a href='https://example.com'", ' 뒤'],
+			hasNot: ['[링크]'],
+		},
+	];
+
+	for (const c of cases) {
+		it(c.name, () => {
+			const out = parser.markdownToHtml(c.src);
+			for (const frag of c.has) expect(out).toContain(frag);
+			// 미변환 잔재가 없어야 한다 — 변환 여부만 보면 "문자 그대로 통과" 를 놓친다.
+			for (const frag of c.hasNot) expect(out).not.toContain(frag);
+		});
+	}
+
+	it('한 줄에 링크가 둘 이상이면 모두 변환한다', () => {
+		const out = parser.markdownToHtml('[A](https://a.test) 와 [B](https://b.test "t")');
+		expect(out).toContain(">A</a>");
+		expect(out).toContain(">B</a>");
+		expect(out).not.toContain('[A]');
+		expect(out).not.toContain('[B]');
+	});
+
+	it('코드 블록 안의 링크 표기는 변환하지 않는다', () => {
+		const out = parser.markdownToHtml(['```', '[링크](https://example.com)', '```'].join('\n'));
+		expect(out).toContain('[링크](https://example.com)');
+		expect(out).not.toContain('<a href=');
+	});
+});

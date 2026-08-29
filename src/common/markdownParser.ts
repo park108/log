@@ -248,78 +248,47 @@ export const markdownToHtml = (input: string): string => {
 	}
 
 	// image
-	for(let node of parsed) {
+	//
+	// 이전 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해, **제목이 있어야만**
+	// 매치했다. 그래서 표준 형식 `![alt](url)` 이 조용히 문자 그대로 남았다 (실측
+	// 2026-08-30). Writer 의 삽입 템플릿이 제목 자리를 `OPTIONAL_TITLE` 이라 부르는
+	// 것과도 어긋났다 — 실제로는 필수였다.
+	//
+	// 제목은 선택으로 두고, 있으면 title 속성을 붙이고 없으면 생략한다.
+	const IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g;
 
-		let searchIndex = 0;
-		let image1 = 0;
-		let image2 = 0;
-		let image3 = 0;
-		let image4 = 0;
-
+	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
-
-			while(image1 > -1) {
-
-				image1 = node.text.indexOf("![", searchIndex);
-				image2 = node.text.indexOf("](", searchIndex);
-				image3 = node.text.indexOf(" \"", searchIndex);
-				image4 = node.text.indexOf("\")", searchIndex);
-
-				if(-1 < image1 && image1 < image2 && image2 < image3 && image3 < image4) {
-
-					let searchedText = node.text.substring(image1, image4 + 2);
-					let alt = node.text.substring(image1 + 2, image2);
-					let url = node.text.substring(image2 + 2, image3);
-					let title = node.text.substring(image3 + 2, image4);
-
-					node.text = node.text.replace(searchedText,
-						"<img src='" + escapeHtmlAttr(url) + "' alt='" + escapeHtmlAttr(alt) +
-						"' title='" + escapeHtmlAttr(title) + "' />");
-					searchIndex = image4 + 20;
-				}
-				else {
-					image1 = image2 = image3 = image4 = -1;
-					searchIndex = 0;
-				}
-			}
+			node.text = node.text.replace(IMAGE_PATTERN, (_m, alt, url, title) =>
+				"<img src='" + escapeHtmlAttr(url) + "' alt='" + escapeHtmlAttr(alt) + "'"
+				+ (undefined === title ? "" : " title='" + escapeHtmlAttr(title) + "'")
+				+ " />"
+			);
 		}
 	}
 
 	// anchor
-	for(let node of parsed) {
+	//
+	// image 와 동일한 결함이 있었다 — 제목이 없으면 매치하지 않아 표준 형식
+	// `[텍스트](url)` 이 문자 그대로 남았다. 블로그 본문에서 가장 흔한 형식이다.
+	//
+	// `!` 선행은 negative lookbehind 로 배제한다. 다만 이 가드는 **현재 도달하지
+	// 않는다** — 두 패턴이 `!` 접두만 다르므로, 앵커가 매치할 자리는 앞선 image
+	// 패스가 이미 소비한다 (실측: lookbehind 를 빼도 출력이 같다). 남겨 두는 것은
+	// 그 등가성이 두 패턴이 같은 모양일 때만 성립하기 때문이다 — 예컨대 image 쪽만
+	// URL 조건을 좁히면 그 순간부터 이 가드가 실제로 필요해진다.
+	//
+	// 도달하지 않으므로 테스트로 덮지 않았다. 커버리지가 이 분기를 못 덮는 것은
+	// 결함이 아니라 위 사실의 반영이다.
+	const ANCHOR_PATTERN = /(?<!!)\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g;
 
-		let searchIndex = 0;
-		let a1 = 0;
-		let a2 = 0;
-		let a3 = 0;
-		let a4 = 0;
-
+	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
-
-			while(a1 > -1) {
-
-				a1 = node.text.indexOf("[", searchIndex);
-				a2 = node.text.indexOf("](", searchIndex);
-				a3 = node.text.indexOf(" \"", searchIndex);
-				a4 = node.text.indexOf("\")", searchIndex);
-
-				if(-1 < a1 && a1 < a2 && a2 < a3 && a3 < a4) {
-
-					let searchedText = node.text.substring(a1, a4 + 2);
-					let text = node.text.substring(a1 + 1, a2);
-					let url = node.text.substring(a2 + 2, a3);
-					let title = node.text.substring(a3 + 2, a4);
-
-					node.text = node.text.replace(searchedText,
-						"<a href='" + escapeHtmlAttr(url) + "' title='" + escapeHtmlAttr(title) +
-						"' target='_blank' rel='noreferrer'>" + text + "</a>");
-					searchIndex = a4 + 48;
-				}
-				else {
-					a1 = a2 = a3 = a4 = -1;
-					searchIndex = 0;
-				}
-			}
+			node.text = node.text.replace(ANCHOR_PATTERN, (_m, text, url, title) =>
+				"<a href='" + escapeHtmlAttr(url) + "'"
+				+ (undefined === title ? "" : " title='" + escapeHtmlAttr(title) + "'")
+				+ " target='_blank' rel='noreferrer'>" + text + "</a>"
+			);
 		}
 	}
 
