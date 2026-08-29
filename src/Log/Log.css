@@ -126,10 +126,19 @@
   text-decoration: underline;
 }
 
+/* 본문 이미지.
+ *
+ * 이전 규칙은 `width:100%; height:100%; object-fit:scale-down` 이었다.
+ * 부모 높이가 auto 라 `height:100%` 는 auto 로 계산돼 사실상 무효였고,
+ * 남는 `width:100%` 가 **작은 이미지까지 본문 너비로 확대**했다 — 80px
+ * 아이콘이 760px 로 늘어나 흐려진다. object-fit 도 박스가 이미 원본
+ * 비율이라 보이는 효과가 없었다.
+ *
+ * 표준 반응형 이디엄으로 바꾼다: 큰 이미지는 너비에 맞춰 줄고, 작은
+ * 이미지는 원본 크기 그대로 선명하게 남는다. */
 .section--logitem-contents img {
-  object-fit: scale-down;
-  width: 100%;
-  height: 100%;
+	max-width: 100%;
+	height: auto;
 }
 
 /* 목록 항목 — 경계는 선이 아니라 **여백**으로 만든다.
