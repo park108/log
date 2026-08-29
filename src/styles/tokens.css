@@ -26,6 +26,11 @@
 	 * 주장하지 않는" 표면에 쓴다. */
 	--track-background-color: #f6f6f4;
 
+	/* 인라인 코드 글자색. darkorange(#ff8c00) 는 흰 배경에서 대비가 2.3:1 로
+	 * WCAG AA(4.5:1) 에 크게 못 미쳤다. 색조는 유지하되 어둡게 내려 대비를
+	 * 확보한다. */
+	--code-text-color: #b1560f;
+
 	--shadow-color: #aaaaaa;
 
 	--success-text-color: black;

@@ -1,5 +1,17 @@
+/* 제목 — 위 여백만 주고 아래는 브라우저 기본값에 맡겨져 있었다. 기본값은
+ * 레벨마다 달라(h1 0.67em ~ h6 2.33em) 제목-본문 간격이 제각각이었다.
+ * 양쪽을 명시해 리듬을 고정한다. */
 h1, h2, h3, h4, h5, h6 {
-	margin-block-start: 1.8em;
+	margin-block-start: 1.9em;
+	margin-block-end: 0.55em;
+	line-height: 1.4;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+}
+
+/* 본문 첫 요소가 제목이면 위 여백을 걷는다 — 상단에 빈 공간이 생긴다. */
+.section--logitem-contents > :first-child {
+	margin-block-start: 0;
 }
 
 h1 {
@@ -7,7 +19,7 @@ h1 {
 }
 
 h2 {
-	font-size: 1.3rem;
+	font-size: 1.28rem;
 }
 
 h3 {
@@ -26,40 +38,72 @@ h6 {
 	font-size: 0.8rem;
 }
 
+/* 인용 — 3em Georgia 큰따옴표를 음수 마진으로 띄우던 방식은 서체가 바뀌면
+ * 글리프 크기·베이스라인이 달라져 위치가 틀어진다 (본문 서체를 Pretendard 로
+ * 바꾸면서 실제로 어긋났다). 좌측 선은 어떤 서체에서도 안정적이다. */
 blockquote {
-	background-color: var(--normal-background-color);
-	font-style: italic;
-	padding-left: 0.5em;
-	padding-right: 0.5em;
-	margin-inline-start: 0.5em;
-	margin-inline-end: 0.5em;
-}
-
-blockquote:before {
-	content: "\201C";
-	font-size: 3em;
-	font-family: Georgia;
+	background-color: transparent;
 	color: var(--sub-text-color);
-	float: left;
-	margin: -5px 10px 0px -10px;
+	font-style: normal;
+	border-left: 3px solid var(--normal-border-color);
+	margin: 0 0 1.3em;
+	padding: 0.15em 0 0.15em 1em;
+	line-height: 1.85;
 }
 
+/* 인라인 코드 — border-radius 만 있고 배경이 없어 반경이 그릴 것이 없었다.
+ * 주황 글자색만 남아 코드인지 단순 강조인지 구별되지 않았다. 칩으로 만든다. */
 code {
-	border-radius: 3px;
-	color: darkorange;
+	background-color: var(--track-background-color);
+	border: 1px solid var(--normal-border-color);
+	border-radius: 4px;
+	color: var(--code-text-color);
+	padding: 0.08em 0.34em;
+	font-size: 0.9em;
 }
 
 pre {
-	background-color: #eeeeee;
-	border-radius: 5px;
-	padding-left: 10px;
-	padding-right: 10px;
+	background-color: var(--track-background-color);
+	border: 1px solid var(--normal-border-color);
+	border-radius: 8px;
+	padding: 14px 16px;
+	margin: 0 0 1.3em;
+	line-height: 1.6;
 	word-wrap: break-word;
 	overflow-x: auto;
 }
 
+/* 코드 블록 안의 code 는 칩 스타일을 상속하지 않는다 — 회색 면 위에 또
+ * 하나의 칩이 겹쳐 이중 배경이 된다. */
+pre code {
+	background: none;
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+	color: inherit;
+	font-size: 0.88em;
+}
+
+/* 본문 — 2em 은 헐거워 문단이 흩어졌다. 1.85 로 조이고 문단 사이 여백을
+ * 명시한다. 이전에는 문단 구분이 줄 간격에만 의존했다. */
 .p {
-	line-height: 2em;
+	line-height: 1.85;
+}
+
+.section--logitem-contents p,
+.section--logitem-contents ul,
+.section--logitem-contents ol {
+	line-height: 1.85;
+	margin: 0 0 1.15em;
+}
+
+.section--logitem-contents ul,
+.section--logitem-contents ol {
+	padding-inline-start: 1.4em;
+}
+
+.section--logitem-contents li {
+	margin-bottom: 0.3em;
 }
 
 .p--offline-message {
@@ -68,5 +112,5 @@ pre {
 }
 
 .article {
-	line-height: 2em;
+	line-height: 1.85;
 }
