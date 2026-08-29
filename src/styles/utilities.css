@@ -1,3 +1,7 @@
+/* .button 기본 규칙은 제거했다 — buttons.css 의 시스템이 대체한다.
+ * 남겨두면 import 순서상 .button 이 뒤에 와서 같은 명시도로 .btn--* 의
+ * 색·너비를 덮는다. 실제로 primary 버튼이 검정 배경에 검정 글씨가 됐다. */
+
 .li {
 	display: inline-block;
 	cursor: pointer;
@@ -5,31 +9,6 @@
 	padding-bottom: 0.75em;
 	padding-left: 0.75em;
 	padding-right: 0.75em;
-}
-
-.button {
-	font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-	width: 100%;
-	color: var(--normal-text-color);
-	border: 1px;
-	border-style: solid;
-	border-color: var(--normal-border-color);
-	border-radius: 10px;
-	background-color: var(--normal-background-color);
-	font-size: 1em;
-	transition: 0.3s ease;
-}
-
-.button:hover {
-	border-color: var(--hover-border-color);
-	box-shadow: 0px 0px 10px var(--hover-border-color);
-	transition: 0.3s ease;
-}
-
-.button:active {
-	color: var(--active-text-color);
-	border-color: var(--active-border-color);
-	background-color: var(--active-background-color);
 }
 
 /* 내비게이션.

@@ -172,7 +172,7 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 			setSeeMoreButton(
 				<button
 					role="button"
-					className={`button btn btn--secondary ${styles.buttonImageSeemorebutton}`}
+					className={`btn btn--secondary ${styles.buttonImageSeemorebutton}`}
 					onClick={() => setIsGetNextData(true)}
 				>
 					See<br/>More

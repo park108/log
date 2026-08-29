@@ -196,7 +196,7 @@ const LogList = (props: LogListProps) => {
 				<div className="div div--message-description">
 					Try refreshing the page, or click Retry button.
 				</div>
-				<button className="button btn btn--ghost btn--sm" onClick={ () => {
+				<button className="btn btn--ghost btn--sm" onClick={ () => {
 					sessionStorage.removeItem("logList");
 					sessionStorage.removeItem("logListLastTimestamp");
 					setIsGetData(true);
@@ -210,7 +210,7 @@ const LogList = (props: LogListProps) => {
 
 		// button--loglist-seemoreloading 은 CSS 정의가 없는 죽은 클래스였다.
 		// 로딩 상태는 시스템의 :disabled 가 표현한다.
-		const seeMoreButtonClass = "button btn btn--secondary btn--block";
+		const seeMoreButtonClass = "btn btn--secondary btn--block";
 		const seeMoreButtonText = isLoading ? "Loading..." : "See more";
 		const seeMoreButton = hasValue(lastTimestamp)
 			? (

@@ -94,7 +94,7 @@ const LogSingle = () => {
 					Try refreshing the page, or click Retry button.
 				</div>
 				<button
-					className="button btn btn--ghost btn--sm"
+					className="btn btn--ghost btn--sm"
 					data-testid="log-single-retry-button"
 					onClick={() => refetch()}
 				>
@@ -138,12 +138,12 @@ const LogSingle = () => {
 			{!isLoading && (
 				isSearchResult
 					? (
-						<button className="button btn btn--secondary btn--block" onClick={() => navigate(-1)}>
+						<button className="btn btn--secondary btn--block" onClick={() => navigate(-1)}>
 							To search result
 						</button>
 					)
 					: (
-						<button className="button btn btn--secondary btn--block" onClick={() => navigate("/log")}>
+						<button className="btn btn--secondary btn--block" onClick={() => navigate("/log")}>
 							To list
 						</button>
 					)

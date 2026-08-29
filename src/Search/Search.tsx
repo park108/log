@@ -95,7 +95,7 @@ const Search = (): React.ReactElement => {
 	}, [isLoading]);
 
 	const toListButton = (
-		<button className="button btn btn--secondary btn--block" onClick={() => {
+		<button className="btn btn--secondary btn--block" onClick={() => {
 
 			const searchInput1 = document.getElementById("query-string-by-enter") as HTMLInputElement | null;
 			const searchInput2 = document.getElementById("query-string-by-button") as HTMLInputElement | null;
@@ -134,7 +134,7 @@ const Search = (): React.ReactElement => {
 					{ isError ? "Search failed for network issue." : "Search failed." }
 				</h1>
 				<button
-					className="button btn btn--secondary btn--block"
+					className="btn btn--secondary btn--block"
 					data-testid="search-retry-button"
 					onClick={() => refetch()}
 				>
