@@ -386,3 +386,40 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-05) — M5 Edit Link sp
 		expect(screen.queryByTestId('versions-button')).not.toBeInTheDocument();
 	});
 });
+
+// 변경 이력은 LogItem 을 그대로 재사용한다. 그 안의 툴바가 함께 그려져
+// **지난 판본에 Edit/Delete 가 붙어 나왔다** (운영자 지적). 이미 지나간
+// 판본을 편집·삭제한다는 것이 성립하지 않는다.
+describe('showActions — 지난 판본에는 조작부를 그리지 않는다', () => {
+
+	const toolbarText = (container: HTMLElement): string =>
+		(container.querySelector('.div--logitem-toolbar')?.textContent ?? '')
+			.replace(/\s+/g, ' ').trim();
+
+	it('기본(본문 화면)은 지금까지대로 Edit·Delete 를 그린다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		const { container } = renderInfo({ delete: vi.fn() });
+
+		// 대조 — 이 케이스가 없으면 "언제나 숨김" 구현도 통과한다.
+		expect(container.querySelector('[data-testid="edit-button"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="delete-button"]')).not.toBeNull();
+	});
+
+	it('showActions=false 면 조작부가 사라진다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		const { container } = renderInfo({ delete: vi.fn(), showActions: false });
+
+		expect(container.querySelector('[data-testid="edit-button"]')).toBeNull();
+		expect(container.querySelector('[data-testid="delete-button"]')).toBeNull();
+		expect(container.querySelector('[data-testid="versions-button"]')).toBeNull();
+	});
+
+	it('조작부를 끄면 시각은 남기되 구분선은 남기지 않는다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		const { container } = renderInfo({ delete: vi.fn(), showActions: false });
+
+		// "12:37:38 |" 처럼 아무것도 가르지 않는 선이 남으면 안 된다.
+		expect(toolbarText(container)).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+		expect(container.querySelector('.span--logitem-separator')).toBeNull();
+	});
+});

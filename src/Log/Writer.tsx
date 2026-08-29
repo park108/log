@@ -441,6 +441,7 @@ const Writer = () => {
 								)}
 								showComments={false}
 								showLink={false}
+								showActions={false}
 							/>
 						)) }
 					</Suspense>

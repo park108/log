@@ -14,6 +14,9 @@ interface LogItemInfoProps {
 	timestamp: number;
 	temporary?: boolean;
 	showLink?: boolean;
+	/** 편집·삭제 조작부를 그릴지. 변경 이력처럼 **지난 판본**을 보여줄 때는 끈다 —
+	 *  이미 지나간 판본을 편집·삭제한다는 것이 성립하지 않는다. 기본은 켬. */
+	showActions?: boolean;
 	delete?: () => void;
 }
 
@@ -23,6 +26,8 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 
 	const item = props.item;
 	const timestamp = props.timestamp;
+	// 기본은 켬 — 본문 화면은 지금까지대로 동작한다.
+	const showActions = props.showActions ?? true;
 
 	// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
 	// 기존 hoverPopup(event, 'click-to-clipboard-box') / 'version-history' 명령형 호출 대체.
@@ -91,8 +96,11 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 				<div className="div div--logitem-toolbar">
 					<span className="hidden--width-350px">
 						{ getFormattedTime(timestamp) }
-						<span className="span span--logitem-separator">|</span>
+						{/* 뒤따르는 조작부가 없으면 구분선도 그리지 않는다 — 남기면
+						    "12:37:38 |" 처럼 아무것도 가르지 않는 선이 남는다. */}
+						{ showActions && <span className="span span--logitem-separator">|</span> }
 					</span>
+					{ showActions && (<>
 					<span className="hidden--width-400px">
 						{/* 아래 versions 트리거에는 onClick 이 없다 — hover/focus 로 버전 팝업을
 						    여는 트리거일 뿐이다. role="button" 은 활성을 약속하므로, 스크린리더가
@@ -148,6 +156,7 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 					>
 						Delete
 					</button>
+					</>) }
 				</div>
 			)}
 			<Suspense fallback={<div></div>}>

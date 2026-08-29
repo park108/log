@@ -18,6 +18,8 @@ interface LogItemProps {
 	temporary?: boolean;
 	showComments?: boolean;
 	showLink?: boolean;
+	/** 편집·삭제 조작부를 그릴지. 변경 이력은 지난 판본이므로 끈다. */
+	showActions?: boolean;
 	deleted?: () => void;
 }
 
@@ -90,6 +92,7 @@ const LogItem = (props: LogItemProps) => {
 				timestamp={ props.timestamp }
 				temporary={ props.temporary }
 				showLink={ props.showLink }
+				showActions={ props.showActions }
 				delete={ deleteLogItem }
 			/>
 			<section
