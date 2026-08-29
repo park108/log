@@ -303,3 +303,73 @@ describe('autolink', () => {
 		expect(out).not.toContain('<a href=');
 	});
 });
+
+// inline code 는 리터럴이어야 하는데 강조 파서가 먼저 돌아 안쪽을 먹고 있었다.
+// `` `src/**/*.js` `` 가 `<code>src/<em></em>/*.js</code>` 로 뭉개졌다 —
+// 기술 글의 glob · 곱셈 · 포인터 표기가 그대로 깨진다 (실측 2026-08-30).
+describe('inline code 는 리터럴이다', () => {
+
+	const cases: Array<[string, string, string]> = [
+		['glob', '`src/**/*.js`', 'src/**/*.js'],
+		['별표 곱셈', '`2 * 3 * 4`', '2 * 3 * 4'],
+		['밑줄', '`my_var_name`', 'my_var_name'],
+		['취소선 표기', '`a~~b~~c`', 'a~~b~~c'],
+		['링크 표기', '`[a](b)`', '[a](b)'],
+	];
+
+	for (const [name, src, want] of cases) {
+		it(`${name} — 안쪽이 그대로 남는다`, () => {
+			const out = parser.markdownToHtml(src);
+			expect(out).toBe('<p><code>' + want + '</code></p>');
+			// 강조 태그가 새어 들어오면 안 된다.
+			expect(out).not.toContain('<em>');
+			expect(out).not.toContain('<strong>');
+		});
+	}
+
+	it('꺾쇠는 이스케이프해 살린다', () => {
+		// 이스케이프하지 않으면 sanitize 가 태그로 보고 지워 글자가 사라진다.
+		expect(parser.markdownToHtml('`List<String>`'))
+			.toBe('<p><code>List&lt;String&gt;</code></p>');
+	});
+
+	it('코드 밖 강조는 그대로 동작한다', () => {
+		// 대조 — 코드를 보호하느라 강조 자체를 죽이지 않았는지 본다.
+		const out = parser.markdownToHtml('**굵게** 와 `code` 와 *기울임*');
+		expect(out).toContain('<strong>굵게</strong>');
+		expect(out).toContain('<em>기울임</em>');
+		expect(out).toContain('<code>code</code>');
+	});
+
+	it('한 줄에 코드 스팬이 둘 이상이어도 각각 보호된다', () => {
+		expect(parser.markdownToHtml('`a*b` 와 `c*d`'))
+			.toBe('<p><code>a*b</code> 와 <code>c*d</code></p>');
+	});
+});
+
+// 코드 스팬 보호는 자리표시자 치환으로 구현된다. 그 자리표시자와 같은 문자가
+// **입력에 이미 있으면** 복원 단계가 사용자 글자를 코드로 오치환한다 (실측:
+// `\uE000c9\uE001` → `<code></code>` — 글자가 사라진다). private-use 영역은
+// 아이콘 폰트가 쓰므로 붙여넣기로 유입될 수 있다.
+describe('자리표시자 충돌 방어', () => {
+
+	const S0 = String.fromCharCode(0xE000);
+	const S1 = String.fromCharCode(0xE001);
+	const BT = String.fromCharCode(96);
+
+	it('입력에 섞인 자리표시자 문자가 코드 스팬을 가로채지 않는다', () => {
+		const out = parser.markdownToHtml(S0 + 'c0' + S1 + ' 와 ' + BT + 'real' + BT);
+		// 사용자가 쓴 c0 은 글자로 남고, 진짜 코드 스팬만 코드가 된다.
+		expect(out).toBe('<p>c0 와 <code>real</code></p>');
+	});
+
+	it('코드 스팬이 없는데 자리표시자만 있으면 글자가 사라지지 않는다', () => {
+		// 방어 전에는 `<code></code>` 가 되어 c9 가 소실됐다.
+		expect(parser.markdownToHtml(S0 + 'c9' + S1)).toBe('<p>c9</p>');
+	});
+
+	it('대조 — 자리표시자가 없는 평범한 c0 은 영향받지 않는다', () => {
+		expect(parser.markdownToHtml('c0 와 ' + BT + 'real' + BT))
+			.toBe('<p>c0 와 <code>real</code></p>');
+	});
+});

@@ -61,7 +61,13 @@ interface ParsedNode {
 	depth?: number;
 }
 
-export const markdownToHtml = (input: string): string => {
+export const markdownToHtml = (rawInput: string): string => {
+
+	// inline code 보호에 쓰는 자리표시자와 같은 문자가 입력에 있으면 복원 단계가
+	// 사용자 글자를 코드 스팬으로 오치환한다 (실측: `\uE000c9\uE001` → `<code></code>`).
+	// private-use 영역은 아이콘 폰트가 쓰므로 붙여넣기로 유입될 수 있다. 입력에서
+	// 먼저 걷어 충돌 가능성 자체를 없앤다 — 이 두 코드포인트는 본문에서 의미가 없다.
+	const input = rawInput.replace(/[\uE000\uE001]/g, "");
 
 	let parsed: ParsedNode[] = [];
 	let str = input;
@@ -264,6 +270,29 @@ export const markdownToHtml = (input: string): string => {
 		index++;
 	}
 
+	// inline code 는 **리터럴**이다 — 안의 `*` · `_` · `[](...)` 는 마크업이 아니다.
+	//
+	// 이전에는 code 패스가 인라인 처리의 **마지막**(강조 뒤)이었다. 그래서
+	// `` `src/**/*.js` `` 가 `<code>src/<em></em>/*.js</code>` 로 뭉개졌다 — 코드
+	// 안의 `**` 가 강조로 먹힌 것이다 (실측 2026-08-30). 기술 글에서 glob·곱셈·
+	// 포인터 표기가 그대로 깨진다.
+	//
+	// 코드 스팬을 가장 먼저 뽑아 자리표시자로 치환하고, 모든 인라인 처리가 끝난
+	// 뒤 되돌린다. 자리표시자는 사용자 문서에 나타나지 않는 private-use 문자로
+	// 감싼다 — 마크업 문자를 포함하지 않으므로 이후 어떤 인라인 패스에도 걸리지
+	// 않는다. NUL 은 쓰지 않는다: 정규식에 제어문자를 넣는 것을 lint 가 막는다
+	// (no-control-regex) 는 것을 게이트가 잡았다.
+	const codeSpans: string[] = [];
+
+	for(const node of parsed) {
+		if("value" === node.type && "pre" !== node.closure) {
+			node.text = node.text.replace(/`([^`]+)`/g, (_m, code: string) => {
+				codeSpans.push(code);
+				return "\uE000c" + (codeSpans.length - 1) + "\uE001";
+			});
+		}
+	}
+
 	// image
 	//
 	// 이전 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해, **제목이 있어야만**
@@ -332,7 +361,17 @@ export const markdownToHtml = (input: string): string => {
 	parsed = inlineParsing(parsed, "**", "strong"); // bold
 	parsed = inlineParsing(parsed, "~~", "del"); // stroke
 	parsed = inlineParsing(parsed, "*", "em"); // emphasis
-	parsed = inlineParsing(parsed, "`", "code"); // code
+
+	// 코드 스팬 복원. 내용은 이스케이프한다 — 코드는 보이는 그대로여야 하고,
+	// 이스케이프하지 않으면 `<String>` 같은 표기가 sanitize 에서 삭제돼 글자가
+	// 사라진다.
+	for(const node of parsed) {
+		if("value" === node.type && "pre" !== node.closure) {
+			node.text = node.text.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) =>
+				"<code>" + escapeHtmlText(codeSpans[Number(i)]) + "</code>"
+			);
+		}
+	}
 
 	for(let node of parsed) {
 		if("value" === node.type && "" === node.closure) {
