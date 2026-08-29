@@ -3,6 +3,71 @@ import { fireEvent } from '@testing-library/react';
 import ErrorFallback from './ErrorFallback';
 
 describe('ErrorFallback', () => {
+	// 청크 로드 실패 — 배포 직후 CDN 이 옛 index.html 을 주는 동안 실제로 발생한다
+	// (2026-08-29 댓글 열람 파열). reset() 은 이 부류를 복구하지 못한다: 죽은 청크
+	// URL 이 이미 로드된 진입 번들에 박혀 있어 다시 렌더해도 같은 URL 을 부른다.
+	describe('청크 로드 실패', () => {
+
+		// 세 엔진의 문면이 서로 다르다 — 하나만 잡으면 나머지 브라우저에서 샌다.
+		const MESSAGES = [
+			['Chrome', 'Failed to fetch dynamically imported module: https://x/assets/A-1.js'],
+			['Firefox', 'error loading dynamically imported module'],
+			['Safari', 'Importing a module script failed.'],
+		] as const;
+
+		it.each(MESSAGES)('%s 문면을 청크 실패로 판정한다', (_engine, message) => {
+
+			render(<ErrorFallback error={new Error(message)} reset={() => {}} />);
+
+			expect(screen.getByText(/새 버전이 배포되었습니다/)).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: '새로고침' })).toBeInTheDocument();
+		});
+
+		it('reset 이 없어도 복구 버튼을 낸다 — 복구 수단이 reset 이 아니다', () => {
+
+			render(<ErrorFallback error={new Error('Failed to fetch dynamically imported module: /a.js')} />);
+
+			expect(screen.getByRole('button', { name: '새로고침' })).toBeInTheDocument();
+		});
+
+		// 복원은 afterEach **등록**으로 한다. it 본문 끝의 직렬 호출은 케이스가
+		// 던지면 실행되지 않아 교체된 location 이 뒤 케이스로 누출된다.
+		const originalLocation = window.location;
+		afterEach(() => {
+			Object.defineProperty(window, 'location', {
+				configurable: true,
+				value: originalLocation,
+			});
+		});
+
+		it('버튼이 reset 이 아니라 새로고침을 호출한다', () => {
+
+			const reset = vi.fn();
+			const reload = vi.fn();
+			// jsdom 의 location.reload 는 기본적으로 호출 불가라 교체한다.
+			Object.defineProperty(window, 'location', {
+				configurable: true,
+				value: { ...originalLocation, reload },
+			});
+
+			render(<ErrorFallback error={new Error('Importing a module script failed.')} reset={reset} />);
+			fireEvent.click(screen.getByRole('button', { name: '새로고침' }));
+
+			expect(reload).toHaveBeenCalledTimes(1);
+			expect(reset, 'reset 은 이 부류를 복구하지 못하므로 호출되면 안 된다').not.toHaveBeenCalled();
+		});
+
+		it('일반 네트워크 오류는 여전히 다시 시도다 (음성 대조)', () => {
+
+			const error = new Error('failed to fetch');
+
+			render(<ErrorFallback error={error} reset={() => {}} />);
+
+			expect(screen.getByText(/연결을 확인하고 다시 시도하세요/)).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+		});
+	});
+
 	it('shows the network message when the error has name "NetworkError"', () => {
 		const error = new Error('dns failure');
 		error.name = 'NetworkError';
