@@ -191,9 +191,14 @@
 	transition: width 240ms ease;
 }
 
-.span--monitor-retrybutton {
+/* 네이티브 button 으로 전환했다 (span[role=button] + activateOnKey → button).
+ * 브라우저 기본 버튼 표기를 지우고 기존 모양을 유지한다. */
+.button--monitor-retrybutton {
 	display: inline-block;
 	padding: 5px 12px;
+	font-family: inherit;
+	color: inherit;
+	line-height: 1.4;
 	border: 1px solid var(--mon-border);
 	border-radius: var(--mon-radius-sm);
 	background: var(--mon-surface);
@@ -203,7 +208,7 @@
 	text-align: center;
 }
 
-.span--monitor-retrybutton:hover {
+.button--monitor-retrybutton:hover {
 	border-color: var(--hover-border-color);
 	background: var(--hover-background-color);
 }

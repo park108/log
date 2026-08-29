@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import * as mock from './api.mock'
 import VisitorMon from '../Monitor/VisitorMon';
 import * as api from './api';
@@ -97,78 +97,81 @@ describe('VisitorMon render on prod server (network error)', () => {
 	});
 });
 
+// 0건 배열에서 공허하게 참이 되지 않도록 기대 개수를 상수로 못 박는다.
+const RETRY_BUTTON_COUNT = 2;
+
 describe('VisitorMon retry keyboard activation (a11y pattern B)', () => {
 	useMockServer(() => mock.prodServerFailed);
 
-	it('retry spans are keyboard focusable with role=button (a11y pattern B)', async () => {
+	it('retry 는 네이티브 button 이다 — 키보드 활성이 플랫폼 보장이다', async () => {
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
 		render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
-		const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
-		expect(retryButtons).toHaveLength(2);
+		// VisitorMon 은 Retry 를 2개 낸다. `findAllBy*` 는 1개만 있어도 즉시 반환하므로
+		// 개수 도달 자체를 대기 술어로 삼는다 (blue multi-element-count-assertion-arrival-wait).
+		await waitFor(() =>
+			expect(screen.getAllByRole('button', { name: /Retry/ })).toHaveLength(RETRY_BUTTON_COUNT),
+		);
+		const retryButtons = screen.getAllByRole('button', { name: /Retry/ });
 
-		for (const el of retryButtons) {
-			expect(el).toHaveAttribute('tabindex', '0');
-			expect(el).toHaveAttribute('role', 'button');
-		}
+		// span[role=button] + activateOnKey 를 손으로 조립하던 것을 네이티브 button 으로
+		// 바꿨다. 손조립은 키 핸들러를 빠뜨리면 조용히 키보드 접근을 잃지만, 네이티브
+		// button 은 Enter·Space 활성이 브라우저 보장이다.
+		retryButtons.forEach((el) => expect(el.tagName).toBe('BUTTON'));
+
+		// 손조립 잔재가 남으면 안 된다 — role·tabIndex 를 다시 붙이면 중복 선언이고,
+		// onKeyDown 까지 남으면 Enter 에서 핸들러와 네이티브 click 이 이중 발화한다.
+		retryButtons.forEach((el) => {
+			expect(el).not.toHaveAttribute('role');
+			expect(el).not.toHaveAttribute('tabindex');
+		});
+
+		// form 안에 놓였을 때 암묵 제출을 일으키지 않는다.
+		retryButtons.forEach((el) => expect(el).toHaveAttribute('type', 'button'));
 	});
 
-	it('retry span activates on Enter key (a11y pattern B)', async () => {
+	it('retry 가 tabindex 없이 초점을 받는다', async () => {
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
 		render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
-		const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
+		// VisitorMon 은 Retry 를 2개 낸다. `findAllBy*` 는 1개만 있어도 즉시 반환하므로
+		// 개수 도달 자체를 대기 술어로 삼는다 (blue multi-element-count-assertion-arrival-wait).
+		await waitFor(() =>
+			expect(screen.getAllByRole('button', { name: /Retry/ })).toHaveLength(RETRY_BUTTON_COUNT),
+		);
+		const retryButtons = screen.getAllByRole('button', { name: /Retry/ });
 
-		// Enter triggers the same handler as onClick → component re-mounts and fires a new fetch.
-		// We verify by asserting the Retry buttons disappear (loading state) or are re-rendered.
-		fireEvent.keyDown(retryButtons[0]!, { key: 'Enter' });
-
-		// After Enter, the loading branch is rendered at least once → original Retry nodes detach.
-		// Re-query to confirm handler ran (new Retry buttons will reappear after the mock still fails).
-		const retryButtonsAfter = await screen.findAllByRole('button', { name: /Retry/ });
-		expect(retryButtonsAfter).toHaveLength(2);
+		// 네이티브 button 은 tabindex 없이도 초점 대상이다. 이 단언이 깨지면
+		// 키보드 사용자가 이 조작부에 도달하지 못한다.
+		retryButtons[0]!.focus();
+		expect(document.activeElement).toBe(retryButtons[0]);
 	});
 
-	it('retry span activates on Space key and prevents default scroll (a11y pattern B)', async () => {
+	it('retry 클릭이 재시도를 일으킨다', async () => {
 
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
 		render(<VisitorMon stackPallet={stackPallet.colors}/>);
 
-		const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
+		// VisitorMon 은 Retry 를 2개 낸다. `findAllBy*` 는 1개만 있어도 즉시 반환하므로
+		// 개수 도달 자체를 대기 술어로 삼는다 (blue multi-element-count-assertion-arrival-wait).
+		await waitFor(() =>
+			expect(screen.getAllByRole('button', { name: /Retry/ })).toHaveLength(RETRY_BUTTON_COUNT),
+		);
+		const retryButtons = screen.getAllByRole('button', { name: /Retry/ });
+		fireEvent.click(retryButtons[0]!);
 
-		const spaceEvent = fireEvent.keyDown(retryButtons[1]!, { key: ' ' });
-		// fireEvent.keyDown returns true when the event was NOT cancelled. Our handler calls
-		// preventDefault() for Space to block page scroll (accessibility-spec §2.2 pattern B).
-		expect(spaceEvent).toBe(false);
-
-		const retryButtonsAfter = await screen.findAllByRole('button', { name: /Retry/ });
-		expect(retryButtonsAfter).toHaveLength(2);
-	});
-
-	it('retry span ignores non-activation keys (a11y pattern B negative case)', async () => {
-
-		vi.stubEnv('PROD', true);
-		vi.stubEnv('DEV', false);
-
-		render(<VisitorMon stackPallet={stackPallet.colors}/>);
-
-		const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
-
-		// A non-activation key must NOT call preventDefault — event remains dispatchable (returns true).
-		const otherEvent = fireEvent.keyDown(retryButtons[0]!, { key: 'x' });
-		expect(otherEvent).toBe(true);
-
-		// The error UI is still rendered (no re-mount triggered).
-		const retryButtonsAfter = await screen.findAllByRole('button', { name: /Retry/ });
-		expect(retryButtonsAfter).toHaveLength(2);
+		// mock 이 계속 실패하므로 재시도 후 오류 표면이 다시 선다.
+		await waitFor(() =>
+			expect(screen.getAllByRole('button', { name: /Retry/ })).toHaveLength(RETRY_BUTTON_COUNT),
+		);
 	});
 });
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { ChartColor } from './Monitor';
 import { log, hasValue, getFormattedDate, getFormattedSize } from '../common/common';
-import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getContentItemCount } from './api';
 
@@ -215,15 +214,13 @@ const ContentItem = (props: ContentItemProps) => {
 			<section className="section section--monitor-item">
 				<h3>{title}</h3>
 				<div className="div div--monitor-processing">
-					<span
-						className="span span--monitor-retrybutton"
-						role="button"
-						tabIndex={0}
+					<button
+						type="button"
+						className="button button--monitor-retrybutton"
 						onClick={handleRetry}
-						onKeyDown={activateOnKey(handleRetry)}
 					>
 						Retry
-					</span>
+					</button>
 				</div>
 			</section>
 		);

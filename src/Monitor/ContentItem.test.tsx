@@ -109,10 +109,7 @@ describe('ContentItem render on dev server (network error)', () => {
 describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 	useMockServer(() => mock.devServerFailed);
 
-	it('retry span is keyboard focusable with role=button', async () => {
-
-		vi.useFakeTimers({ shouldAdvanceTime: true })
-			.setSystemTime(new Date(1643375805000));
+	it('retry 는 네이티브 button 이다 — 키보드 활성이 플랫폼 보장이다', async () => {
 
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
@@ -120,14 +117,22 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
-		expect(retryButton).toHaveAttribute('tabindex', '0');
-		expect(retryButton).toHaveAttribute('role', 'button');
+
+		// span[role=button] + activateOnKey 를 손으로 조립하던 것을 네이티브 button 으로
+		// 바꿨다. 손조립은 키 핸들러를 빠뜨리면 조용히 키보드 접근을 잃지만, 네이티브
+		// button 은 Enter·Space 활성이 브라우저 보장이다.
+		expect(retryButton.tagName).toBe('BUTTON');
+
+		// 손조립 잔재가 남으면 안 된다 — role·tabIndex 를 다시 붙이면 중복 선언이고,
+		// onKeyDown 까지 남으면 Enter 에서 핸들러와 네이티브 click 이 이중 발화한다.
+		expect(retryButton).not.toHaveAttribute('role');
+		expect(retryButton).not.toHaveAttribute('tabindex');
+
+		// form 안에 놓였을 때 암묵 제출을 일으키지 않는다.
+		expect(retryButton).toHaveAttribute('type', 'button');
 	});
 
-	it('retry span activates on Enter key', async () => {
-
-		vi.useFakeTimers({ shouldAdvanceTime: true })
-			.setSystemTime(new Date(1643375805000));
+	it('retry 가 tabindex 없이 초점을 받는다', async () => {
 
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
@@ -136,18 +141,13 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 
-		// Enter triggers the same handler as onClick → component re-mounts and fires a new fetch.
-		// Re-query confirms the error UI re-renders (mock still fails → Retry reappears).
-		fireEvent.keyDown(retryButton, { key: 'Enter' });
-
-		const retryAfter = await screen.findByRole('button', { name: /Retry/ });
-		expect(retryAfter).toBeInTheDocument();
+		// 네이티브 button 은 tabindex 없이도 초점 대상이다. 이 단언이 깨지면
+		// 키보드 사용자가 이 조작부에 도달하지 못한다.
+		retryButton.focus();
+		expect(document.activeElement).toBe(retryButton);
 	});
 
-	it('retry span activates on Space key and prevents default scroll', async () => {
-
-		vi.useFakeTimers({ shouldAdvanceTime: true })
-			.setSystemTime(new Date(1643375805000));
+	it('retry 클릭이 재시도를 일으킨다', async () => {
 
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
@@ -155,36 +155,10 @@ describe('ContentItem Retry keyboard activation (a11y pattern B)', () => {
 		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
 
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
+		fireEvent.click(retryButton);
 
-		// fireEvent.keyDown returns true when the event was NOT cancelled. Our handler calls
-		// preventDefault() for Space to block page scroll (accessibility-spec §2.2 pattern B).
-		const spaceEvent = fireEvent.keyDown(retryButton, { key: ' ' });
-		expect(spaceEvent).toBe(false);
-
-		const retryAfter = await screen.findByRole('button', { name: /Retry/ });
-		expect(retryAfter).toBeInTheDocument();
-	});
-
-	it('retry span ignores non-activation keys (negative case)', async () => {
-
-		vi.useFakeTimers({ shouldAdvanceTime: true })
-			.setSystemTime(new Date(1643375805000));
-
-		vi.stubEnv('DEV', true);
-		vi.stubEnv('PROD', false);
-
-		render( <ContentItem title="Logs" path="content/log" unit="count" stackPallet={ stackPallet.colors } /> );
-
-		const retryButton = await screen.findByRole('button', { name: /Retry/ });
-
-		// A non-activation key must NOT call preventDefault — event remains dispatchable (returns true).
-		const otherEvent = fireEvent.keyDown(retryButton, { key: 'x' });
-		expect(otherEvent).toBe(true);
-
-		// The error UI is still rendered (no re-mount triggered).
-		const retryAfter = await screen.findByRole('button', { name: /Retry/ });
-		expect(retryAfter).toBeInTheDocument();
-
+		// mock 이 계속 실패하므로 재시도 후 오류 표면이 다시 선다.
+		expect(await screen.findByRole('button', { name: /Retry/ })).toBeInTheDocument();
 	});
 });
 

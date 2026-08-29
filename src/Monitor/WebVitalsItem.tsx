@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { log, hasValue } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
-import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getWebVitals } from './api';
 
@@ -208,15 +207,13 @@ const WebVitalsItem = (props: WebVitalsItemProps) => {
 					<span className="span span--monitor-metric">{ description }</span>
 				</h3>
 				<div className="div div--monitor-processinglow">
-					<span
-						className="span span--monitor-retrybutton"
-						role="button"
-						tabIndex={0}
+					<button
+						type="button"
+						className="button button--monitor-retrybutton"
 						onClick={ () => { setIsMount(false) } }
-						onKeyDown={activateOnKey(() => setIsMount(false))}
 					>
 						Retry
-					</span>
+					</button>
 				</div>
 			</section>
 		);

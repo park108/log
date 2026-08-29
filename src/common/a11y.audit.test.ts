@@ -81,6 +81,41 @@ function collectProductionComponents(dir: string = SRC_ROOT, acc: string[] = [])
  *
  * @returns {string[]} 파일 절대경로 목록.
  */
+/**
+ * **조작부** 보유 파일 — `role="button"` 또는 네이티브 `<button` 을 가진 프로덕션 파일.
+ *
+ * 비공허 하한을 `role="button"` 보유 파일 수에 걸면, span[role=button] 을 네이티브
+ * button 으로 바꾸는 **개선**이 모집단 축소로 읽혀 게이트가 붉어진다 (2026-08-29 실제
+ * 발생 — Monitor 5곳 전환에서 12 → 8). 그것은 이 가드가 겨눈 실패가 아니다. 겨눈 것은
+ * 스캐너가 봐야 할 파일을 못 보게 되는 것이며(TS 이관 때 `.tsx` 가 통째로 빠진 사건),
+ * 그 검출은 아래 `missing` 전수 포함 단언이 담당한다.
+ *
+ * 조작부 총량은 전환으로 줄지 않고 **삭제로만 준다** — 비공허 하한의 올바른 바닥이다.
+ */
+function collectInteractiveCarriers(dir: string = SRC_ROOT, acc: string[] = []): string[] {
+	for (const entry of readdirSync(dir)) {
+		if (entry.startsWith('.')) continue;
+		const full = path.join(dir, entry);
+		const s = statSync(full);
+		if (s.isDirectory()) {
+			collectInteractiveCarriers(full, acc);
+			continue;
+		}
+		if (!s.isFile()) continue;
+		const base = path.basename(full);
+		if (base.includes('.test.') || base.includes('.audit.')) continue;
+		if (!/\.(jsx|tsx)$/.test(base)) continue;
+		let content: string;
+		try {
+			content = readFileSync(full, 'utf-8');
+		} catch {
+			continue;
+		}
+		if (content.includes('role="button"') || content.includes('<button')) acc.push(full);
+	}
+	return acc;
+}
+
 function collectRoleButtonCarriers(dir: string = SRC_ROOT, acc: string[] = []): string[] {
 	for (const entry of readdirSync(dir)) {
 		if (entry.startsWith('.')) continue;
@@ -272,11 +307,17 @@ describe('a11y 패턴 B audit — role="button" 전수 검증 (REQ-20260421-033 
 	it('role="button" 보유 프로덕션 파일이 감사 모집단에 전수 포함된다 (모집단 축소 감지)', () => {
 		const carriers = collectRoleButtonCarriers();
 
-		// 공허 통과 차단 — 도출이 비면 "누락 0건" 은 무조건 참이다. 2026-08-26 실측 13.
+		// 공허 통과 차단 — 도출이 비면 "누락 0건" 은 무조건 참이다.
+		//
+		// 하한은 `role="button"` 이 아니라 **조작부 총량**에 건다. 전자에 걸면
+		// 네이티브 button 전환이라는 개선이 축소로 읽혀 붉어진다 (2026-08-29 실측:
+		// Monitor 5곳 전환에서 12 → 8). 후자는 전환에 흔들리지 않고 삭제에만 반응한다.
+		// 2026-08-29 실측 20.
+		const interactiveCarriers = collectInteractiveCarriers();
 		expect(
-			carriers.length,
-			`role="button" 보유 프로덕션 파일 도출이 ${carriers.length} 건이다 — 하한 미만이면 대조가 공허하다`,
-		).toBeGreaterThanOrEqual(10);
+			interactiveCarriers.length,
+			`조작부(role="button" 또는 <button) 보유 파일이 ${interactiveCarriers.length} 건이다 — 하한 미만이면 대조가 공허하다`,
+		).toBeGreaterThanOrEqual(15);
 
 		// 모집단은 carriers 를 포함해야 하므로 크기도 그 이상이다.
 		expect(PROD_COMPONENT_FILES.length).toBeGreaterThanOrEqual(carriers.length);
