@@ -2,7 +2,7 @@ import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '../common/common';
 import { useLog } from './hooks/useLog';
-import * as parser from '../common/markdownParser';
+import { trimmedContents } from './api';
 import PageNotFound from "../common/PageNotFound";
 import Skeleton from "../common/Skeleton";
 import type { ToasterShow } from "../Toaster/Toaster";
@@ -50,11 +50,17 @@ const LogSingle = () => {
 		setHtmlTitle(logTitle);
 
 		const contentsWithoutTitle = contents.substr(contentsStartIndex);
-		const parsedContents = parser.markdownToHtml(contentsWithoutTitle).replace(/<[^>]*>?/gm, '');
+
+		// 태그를 공백 없이 지우면 문단·목록 경계가 사라져 "하나둘셋" 처럼 붙는다.
+		// 목록 요약에서 같은 결함을 고칠 때 만든 변환을 그대로 쓴다 (api.ts 단일 출처).
+		const parsedContents = trimmedContents(contentsWithoutTitle);
 		const summary = parsedContents.substr(0, SUMMARY_LENGTH);
-		const contentsLength = parsedContents.length;
-		const ellipsis = contentsLength > SUMMARY_LENGTH ? "..." : "";
-		setMetaDescription(summary + ellipsis);
+		const ellipsis = parsedContents.length > SUMMARY_LENGTH ? "..." : "";
+
+		// 빈 요약(예: 이미지만 있는 글)을 그대로 넘기면 meta description 이 빈 값이
+		// 된다 — 기본값은 인자가 undefined 일 때만 적용되기 때문이다. 사이트 기본
+		// 설명을 쓰도록 undefined 를 넘긴다.
+		setMetaDescription(0 === parsedContents.length ? undefined : summary + ellipsis);
 	}, [latestData, logTimestamp]);
 
 	useEffect(() => {

@@ -48,7 +48,10 @@ export const getLog = async(timestamp: number | string): Promise<Response> => {
 // 그대로 지운다. 마지막에 연속 공백을 하나로 접는다.
 const BLOCK_TAGS = 'h[1-6]|p|div|li|ul|ol|blockquote|pre|br|hr|tr|td|th';
 
-const trimmedContents = (contents: string): string => {
+// LogSingle 의 meta description 도 같은 변환을 쓴다 — 그쪽은 태그를 공백 없이
+// 지우고 있어 "하나둘셋" 처럼 붙어 나갔다. 규칙을 두 벌 두면 한쪽만 고쳐지므로
+// 여기서 내보내 단일 출처로 삼는다.
+export const trimmedContents = (contents: string): string => {
 	return markdownToHtml(contents)
 		.replace(new RegExp(`</?(?:${BLOCK_TAGS})(?:\\s[^>]*)?>`, 'gi'), ' ')
 		.replace(/(<([^>]+)>)/gi, '')
