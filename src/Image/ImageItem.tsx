@@ -23,6 +23,8 @@ const ImageItem = (props: ImageItemProps): React.ReactElement => {
 	const className = isEnlarged ? selectedClass : baseClass;
 	const src = isEnlarged ? fullsizeImageUrl : thumbnailImageUrl;
 
+	// `fileName` 은 선택적이라 없으면 `alt` 속성 자체가 사라진다 — 이 요소는
+	// role="button" 을 갖고도 이름 없는 상태가 되므로 폴백을 둔다.
 	const handleToggle = (e: React.SyntheticEvent<HTMLImageElement>): void => {
 		if (isEnlarged) {
 			props.copyMarkdownString(e);
@@ -67,7 +69,7 @@ const ImageItem = (props: ImageItemProps): React.ReactElement => {
 			role="button"
 			tabIndex={0}
 			src={src}
-			alt={props.fileName}
+			alt={props.fileName ?? "Untitled image"}
 			title={props.fileName}
 			{...customAttrs}
 			data-enlarged={isEnlarged ? "Y" : "N"}

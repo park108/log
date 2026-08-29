@@ -206,6 +206,17 @@ for (const abs of PROD_COMPONENT_FILES) {
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i] ?? '';
+		// 게이트가 재는 것은 JSX 속성이지 산문이 아니다. 패턴을 설명하는 주석에
+		// `role="button"` 이 등장하면 그 라인이 위반으로 잡혔다 — 실제로 발생했다
+		// (ImageItem.tsx 의 폴백 설명 주석). 온전히 주석인 라인만 건너뛴다:
+		// 코드 라인의 후행 주석은 여전히 스캔 대상이다.
+		const trimmed = line.trim();
+		const isCommentOnly =
+			trimmed.startsWith('//') ||
+			trimmed.startsWith('*') ||
+			trimmed.startsWith('/*') ||
+			trimmed.startsWith('{/*');
+		if (isCommentOnly) continue;
 		if (!/role="button"/.test(line)) continue;
 		const range = findOpeningTagRange(lines, i);
 		if (!range) {

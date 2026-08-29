@@ -18,8 +18,18 @@ const Log = (props: LogProps) => {
 	if(isAdmin()) {
 		return (
 			<main className="main main--main-contents" style={props.contentHeight} role="application">
-				<Link to="/log/write">
-					<button data-testid="newlog-button" role="button" className="btn btn--primary btn--fab button--log-newlog">+</button>
+				{/* `<a>` 안에 `<button>` 을 넣으면 인터랙티브 요소 중첩이라 유효하지 않은
+				    HTML 이고 보조기술에서 동작이 예측 불가다. 링크 하나로 합친다 —
+				    이 요소가 하는 일은 실제로 이동이므로 role 도 link 가 맞다.
+				    글리프 `+` 는 이름이 되지 못하므로 aria-label 로 이름을 준다. */}
+				<Link
+					to="/log/write"
+					data-testid="newlog-button"
+					className="btn btn--primary btn--fab button--log-newlog"
+					aria-label="Write a new log"
+					title="Write a new log"
+				>
+					<span aria-hidden="true">+</span>
 				</Link>
 				<Suspense fallback={<div></div>}>
 					<Routes>
