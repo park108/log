@@ -26,9 +26,13 @@
 	transition: 0.3s ease;
 }
 
+/* text-shadow 로 글자를 번지게 하던 호버는 서체가 뭉개져 가독성을
+ * 떨어뜨린다 — 내비게이션에서 같은 이유로 걷어냈고, 도메인마다
+ * 복제돼 있던 나머지도 밑줄로 통일한다. */
 .span--writer-statusbarbutton:hover {
 	color: var(--normal-text-color);
-	text-shadow: 0px 0px 3px var(--shadow-color);
+	text-decoration: underline;
+	text-underline-offset: 2px;
 }
 
 .div--writer-editbox {
