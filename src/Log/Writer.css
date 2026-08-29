@@ -170,6 +170,31 @@
 
 }
 
+/* HTML 원본 보기. 포매터가 넣은 개행·들여쓰기를 살리려면 공백을 보존해야
+ * 하고, 긴 속성이 있는 줄이 가로로 넘치지 않도록 줄바꿈도 허용한다. */
+.pre--writer-htmlsource {
+	margin: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.82rem;
+	line-height: 1.65;
+	white-space: pre-wrap;
+	word-break: break-word;
+	color: var(--normal-text-color);
+}
+
+/* HTML 원본 구문 강조.
+ *
+ * 외부 하이라이터를 쓰지 않는다 — CSP 가 script-src 'self' 라 CDN 이 막혀 있고,
+ * 대상이 마크다운 파서의 한정된 산출물이라 의존성을 더할 이유가 없다.
+ *
+ * 색은 넷만 쓴다. 더 늘리면 코드가 아니라 색이 먼저 보인다. 구두점은 흐리게
+ * 눌러 구조가 배경으로 물러나고 이름·값이 앞에 서게 한다. */
+.tok--punc { color: #b0b0aa; }
+.tok--tag { color: #1a6fb5; }
+.tok--attr { color: #8a5cd6; }
+.tok--value { color: #2a7a4f; }
+.tok--text { color: var(--normal-text-color); }
+
 .div--writer-converted a {
 	text-decoration: underline;
 }

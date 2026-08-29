@@ -217,3 +217,17 @@
 	margin-bottom: 5px;
 	padding-right: 1em;
 }
+
+/* 변경 이력에서 이전 판본과 달라진 줄. 배경만으로 표시한다 — 굵기나 색을
+ * 바꾸면 본문의 강조 표기와 섞여 어느 쪽이 저자의 의도인지 흐려진다. */
+.span--logitem-changed {
+	/* 인라인 배경만으로는 "이 줄이 바뀌었다" 가 잘 읽히지 않는다 — 본문에 섞여
+	 * 그냥 형광펜처럼 보인다. 줄 전체를 블록으로 세워 좌측 세로선을 함께 준다.
+	 * 세로선이 "변경 구간" 의 경계를, 배경이 그 범위를 말한다. */
+	display: block;
+	background-color: #fff6d9;
+	border-left: 3px solid #e0a800;
+	border-radius: 0 4px 4px 0;
+	padding: 2px 8px;
+	margin: 2px 0 2px -11px;
+}

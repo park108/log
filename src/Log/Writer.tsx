@@ -5,6 +5,9 @@ import { useCreateLog } from './hooks/useCreateLog';
 import { useUpdateLog } from './hooks/useUpdateLog';
 import * as parser from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
+import { formatHtml } from '../common/formatHtml';
+import { tokenizeHtmlSource } from '../common/tokenizeHtmlSource';
+import { markChangedLines } from './diffContents';
 import Toaster from "../Toaster/Toaster";
 import type { ToasterShow, ToasterType } from '../Toaster/Toaster';
 import type { LogItemPayload } from './api';
@@ -293,7 +296,14 @@ const Writer = () => {
 					id="div--writer-converted"
 					className="div div--writer-converted"
 				>
-					{ convertedArticle }
+					{/* 한 줄로 이어진 HTML 은 구조를 눈으로 좇을 수 없다. 표시용으로만
+					    개행·들여쓰기한다 — 저장·게시에는 convertedArticle 원본이 쓰인다.
+					    <pre> 로 감싸야 그 공백이 화면에 남는다. */}
+					<pre className="pre pre--writer-htmlsource">
+						{ tokenizeHtmlSource(formatHtml(convertedArticle)).map((token, index) => (
+							<span key={index} className={"tok tok--" + token.kind}>{ token.value }</span>
+						)) }
+					</pre>
 				</div>
 			);
 		}
@@ -414,12 +424,21 @@ const Writer = () => {
 				<div className="div div--writer-history" >
 					<h1 className="h1 h1--writer-historytitle">Change History</h1>
 					<Suspense fallback={<div></div>}>
-						{ historyData.logs.map((log) => (
+						{/* 이력은 각 판본을 그대로 그릴 뿐이라 무엇이 달라졌는지 눈으로 찾아야
+					    했다. 바로 아래(= 한 판본 이전)와 줄 단위로 비교해 바뀐 줄에 표식을
+					    넣는다. 표식은 contents 문자열에만 들어가므로 LogItem 은 그대로다.
+
+					    logs 는 최신이 앞이다 — index+1 이 이전 판본이고, 마지막 항목은
+					    비교 대상이 없어 원문 그대로 그린다. */}
+					{ historyData.logs.map((log, index) => (
 							<LogItem
 								key={log.timestamp}
 								author={historyData.author ?? ""}
 								timestamp={log.timestamp}
-								contents={log.contents}
+								contents={markChangedLines(
+									log.contents,
+									historyData.logs[index + 1]?.contents,
+								)}
 								showComments={false}
 								showLink={false}
 							/>
