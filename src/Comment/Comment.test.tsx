@@ -11,7 +11,7 @@ import { useMockServer } from '../test-utils/msw';
 import { firstCall } from '../test-utils/mockCalls';
 // TSK-20260827-11-b / REQ-20260827-034 — Toaster 표시/숨김 관찰은 `src/test-utils/toaster`
 // 헬퍼만 경유한다 (그 파일 헤더가 테스트 본문의 DOM 셀렉터 직접 호출을 금지한다).
-import { waitForToasterVisible, waitForToasterAbsent, getToasterElement } from '../test-utils/toaster';
+import { waitForToasterVisible, waitForToasterHidden, waitForToasterAbsent, getToasterElement } from '../test-utils/toaster';
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
@@ -131,6 +131,44 @@ describe('Comment render failed when internal error on dev server', () => {
 		await waitFor(() => {
 			expect(screen.getByTestId('comment-toggle-button')).toHaveTextContent('Add a comment');
 		});
+	});
+});
+
+// Toaster 자동 닫힘 — `completed={() => setIsShowToaster(2)}` (Comment.tsx:261).
+//
+// 이 콜백은 Toaster 가 duration(2000ms) 뒤에 부르는 실타이머 콜백이다. 지금까지
+// 이 줄의 커버리지는 **어떤 테스트도 의도하지 않은 우발적 발화**에 달려 있었다 —
+// 실타이머로 토스터를 띄운 테스트가 언마운트 전까지 2초를 넘기면 덮이고,
+// 아니면 안 덮인다. 그 결과 전수 커버리지가 실행 순서에 따라 statements ·
+// functions · lines 에서 각 1 씩 흔들렸다 (2026-08-29 실측: base 미덮임 /
+// shuffle 덮임, 갈린 슬롯은 이 줄 단 하나).
+//
+// 시간을 고정해 계약으로 세운다: 표시된 토스터는 duration 경과 후 스스로 닫힌다.
+describe('Comment Toaster 자동 닫힘', () => {
+	useMockServer(() => mock.devServerFailed);
+
+	test('duration 경과 후 토스터가 스스로 숨김으로 전이한다', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		// 렌더 **전에** 설치해야 Toaster 의 setTimeout 이 가짜 타이머로 잡힌다.
+		// 해제는 setupTests 의 전역 afterEach 가 담당한다.
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		render(<Comment />);
+
+		await screen.findByText('Failed to load comments.');
+		await waitForToasterVisible('error', 'bottom');
+
+		// Comment 가 선언한 duration 과 같은 값이다 — 임의 지연이 아니라 계약값.
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2000);
+		});
+
+		// waitForToasterHidden 은 도달을 관측하지 못하면 충족이 아니라 reject 한다
+		// (test-utils/toaster §극성) — "안 떴으니 숨겨진 것" 으로 읽히지 않는다.
+		await waitForToasterHidden('error', 'bottom');
 	});
 });
 
