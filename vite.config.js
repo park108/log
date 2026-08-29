@@ -66,7 +66,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'jsdom',
-		setupFiles: './src/setupTests.js',
+		setupFiles: './src/setupTests.ts',
 		css: true,
 		// REQ-20260421-042 FR-01 / TSK-20260421-88 — render-budget 상수 (it 3rd arg 로 전달되는
 		// ASYNC_ASSERTION_TIMEOUT_MS = 5000) 와 vitest 기본 testTimeout (5000) 간 양의 margin 확보.

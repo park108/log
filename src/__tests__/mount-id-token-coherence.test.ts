@@ -2,10 +2,10 @@
 // spec: specs/30.spec/blue/foundation/index-html-root-mount-id-token-coherence.md
 //       §동작 G-A~G-F + §수용 기준 FR-01~FR-06.
 //
-// 본 fixture 는 3 극 토큰 (H=index.html / R=src/index.jsx / C=src/common/common.ts)
+// 본 fixture 는 3 극 토큰 (H=index.html / R=src/index.tsx / C=src/common/common.ts)
 // 의 결정론 측정 채널을 박제한다:
 //   G-A / FR-01: index.html `id="root"` match count === 1
-//   G-B / FR-02: src/index.jsx `getElementById("root")` match count === 1
+//   G-B / FR-02: src/index.tsx `getElementById("root")` match count === 1
 //   G-C / FR-03: src/common/common.ts `getElementById("root")` match count === 1
 //   G-D / FR-04: 3 극 토큰 캡처 + byte-for-byte 동치 ("root" ≡ "root" ≡ "root")
 //   G-E / FR-05: src/** production scope (`*.test.*` 제외) 총합 === 2
@@ -29,7 +29,7 @@ import { measureBuildArtifacts } from "../test-utils/buildArtifactGate";
 const REPO_ROOT = resolve(__dirname, "..", "..");
 
 const PATH_INDEX_HTML = join(REPO_ROOT, "index.html");
-const PATH_INDEX_JSX = join(REPO_ROOT, "src", "index.jsx");
+const PATH_INDEX_JSX = join(REPO_ROOT, "src", "index.tsx");
 const PATH_COMMON_TS = join(REPO_ROOT, "src", "common", "common.ts");
 const PATH_BUILD_INDEX_HTML = join(REPO_ROOT, "build", "index.html");
 const PATH_SRC = join(REPO_ROOT, "src");
@@ -49,7 +49,7 @@ function countMatches(source: string, pattern: RegExp): number {
 
 /**
  * src/** production scope walk — `*.test.*` 파일 제외 + 4 확장자 (.ts/.tsx/.js/.jsx).
- * §spec FR-05 / G-E baseline = 2 (`src/index.jsx:1` + `src/common/common.ts:1`).
+ * §spec FR-05 / G-E baseline = 2 (`src/index.tsx:1` + `src/common/common.ts:1`).
  */
 function walkProductionMatchCount(root: string, pattern: RegExp): number {
 	let total = 0;
@@ -84,7 +84,7 @@ describe("mount-id-token-coherence (TSK-20260518-07)", () => {
 		expect(count).toBe(1);
 	});
 
-	it("G-B / FR-02: src/index.jsx `getElementById(\"root\")` match count === 1", () => {
+	it("G-B / FR-02: src/index.tsx `getElementById(\"root\")` match count === 1", () => {
 		const src = readFileSync(PATH_INDEX_JSX, "utf8");
 		const count = countMatches(src, RE_GEBI_ROOT);
 		expect(count).toBe(1);
@@ -106,7 +106,7 @@ describe("mount-id-token-coherence (TSK-20260518-07)", () => {
 		const cMatch = commonTs.match(RE_GEBI_ROOT_CAPTURE);
 
 		expect(hMatch, "index.html `<div id=\"…\">` 캡처 실패").not.toBeNull();
-		expect(rMatch, "src/index.jsx selector 인자 캡처 실패").not.toBeNull();
+		expect(rMatch, "src/index.tsx selector 인자 캡처 실패").not.toBeNull();
 		expect(cMatch, "src/common/common.ts selector 인자 캡처 실패").not.toBeNull();
 
 		const H = (hMatch as RegExpMatchArray)[1];

@@ -5,14 +5,16 @@ import * as commonMonitor from './Monitor/api';
 import { userAgentParser } from './common/common';
 import reportWebVitals from './reportWebVitals';
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const container = document.getElementById("root");
+if (!container) throw new Error("#root 엘리먼트 부재 — 마운트 지점을 찾을 수 없다");
+const root = ReactDOM.createRoot(container);
 root.render(
 	<React.StrictMode>
 		<App />
 	</React.StrictMode>
 );
 
-function sendToAnalytics(metric) {
+function sendToAnalytics(metric: unknown) {
 
   const body = JSON.stringify(metric);
   const url = commonMonitor.getAPI();

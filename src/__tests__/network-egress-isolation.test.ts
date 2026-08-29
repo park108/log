@@ -12,7 +12,7 @@
  * **"느린 실패"** 였고, 결과가 runner 의 resolver 응답 시간에 종속됐다.
  *
  * ── 왜 토큰 grep 으로 판정하지 않는가 (RULE-06 §관측 표면) ─────────────────
- * `src/setupTests.js` 는 착수 시점에도 `listen({ onUnhandledRequest: 'error' })`
+ * `src/setupTests.ts` 는 착수 시점에도 `listen({ onUnhandledRequest: 'error' })`
  * 라는 **이디엄 주석**을 갖고 있었다. 토큰 grep 판정은 장치가 전무한 상태에서
  * `rc=0` 을 냈다 (공허 기준의 실물). 그래서 본 채널은 **실제 요청 1건을 내고
  * 거부를 단정**한다. 차단이 "경고 후 통과"(fail-open) 로 바뀌면 — 이 축에서 가장
@@ -28,7 +28,7 @@ import { useMockServer } from "../test-utils/msw";
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SRC_ROOT = join(REPO_ROOT, "src");
-const SETUP_REL = "src/setupTests.js";
+const SETUP_REL = "src/setupTests.ts";
 
 /** 어떤 인터셉터도 등록하지 않은 호스트. RFC 2606 예약 TLD 라 해석되지 않는다. */
 const UNINTERCEPTED_URL = "https://egress-probe.test.invalid/unhandled";
@@ -115,8 +115,8 @@ describe("network-egress-isolation (REQ-20260825-004 / TSK-20260825-14)", () => 
 		const viteConfig = readFileSync(join(REPO_ROOT, "vite.config.js"), "utf8");
 		expect(
 			executableCode(viteConfig),
-			"vite.config.js 의 setupFiles 가 setupTests.js 를 가리키지 않는다 — 장치가 전역이 아니다",
-		).toMatch(/setupFiles\s*:\s*['"]\.\/src\/setupTests\.js['"]/);
+			"vite.config.js 의 setupFiles 가 setupTests.ts 를 가리키지 않는다 — 장치가 전역이 아니다",
+		).toMatch(/setupFiles\s*:\s*['"]\.\/src\/setupTests\.ts['"]/);
 	});
 
 	it("(N-1b) 인터셉터 미보유 컴포넌트 테스트가 전역 차단 아래에 있다 (열거는 glob 산출)", () => {

@@ -25,10 +25,10 @@ const queryClient = new QueryClient({
 
 const App = () => {
 
-	const [contentHeight, setContentHeight] = useState();
+	const [contentHeight, setContentHeight] = useState<React.CSSProperties | undefined>();
 	const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-	const handleOnresize = (e) => {
+	const handleOnresize = (e?: Event) => {
 		if(undefined !== e) {
 			e.preventDefault();
 		}

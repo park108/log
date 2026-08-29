@@ -89,7 +89,10 @@ import { afterEach, beforeEach, expect, vi } from 'vitest'
 export const __egressBlockedMarker = 'egress-blocked'
 
 export class TestEgressBlockedError extends Error {
-	constructor(url, method) {
+	url: string
+	method: string
+
+	constructor(url: string, method: string) {
 		super(
 			`[${__egressBlockedMarker}] ${method} ${url}\n` +
 				'테스트 프로세스 밖으로 나가는 요청은 차단된다 (network-egress-isolation §N-1).\n' +
@@ -103,16 +106,16 @@ export class TestEgressBlockedError extends Error {
 	}
 }
 
-function egressRequestUrl(input) {
+function egressRequestUrl(input: unknown): string {
 	if (typeof input === 'string') return input
 	if (input instanceof URL) return input.href
-	if (input && typeof input === 'object' && 'url' in input) return String(input.url)
+	if (input && typeof input === 'object' && 'url' in input) return String((input as { url: unknown }).url)
 	return String(input)
 }
 
-function egressRequestMethod(input, init) {
-	if (init && typeof init === 'object' && init.method) return String(init.method).toUpperCase()
-	if (input && typeof input === 'object' && 'method' in input) return String(input.method).toUpperCase()
+function egressRequestMethod(input: unknown, init?: unknown): string {
+	if (init && typeof init === 'object' && 'method' in init && init.method) return String(init.method).toUpperCase()
+	if (input && typeof input === 'object' && 'method' in input) return String((input as { method: unknown }).method).toUpperCase()
 	return 'GET'
 }
 
@@ -139,7 +142,7 @@ globalThis.fetch = function blockUninterceptedEgress(input, init) {
 // `restoreAllMocks` 가 매 테스트 종료 시 wrapper 를 해체하지만, 본 setup 의
 // `beforeEach` 가 매 테스트 시작 시점에 spy 를 재등록하므로 wrapper chain 안정.
 const RUNTIME_WARNING_PATTERN = /Failed prop type|Each child in a list should have a unique "key" prop|Cannot update a component .* while rendering a different component|React has detected a change in the order of Hooks/;
-let __consoleErrorSpy;
+let __consoleErrorSpy: ReturnType<typeof vi.spyOn> | undefined;
 beforeEach(() => {
 	__consoleErrorSpy = vi.spyOn(console, 'error');
 });

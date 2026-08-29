@@ -78,7 +78,7 @@ it('source code contains no deprecated v3 get*/onFID references', async () => {
 	const fs = await import('node:fs/promises');
 	const path = await import('node:path');
 	const source = await fs.readFile(
-		path.resolve(__dirname, 'reportWebVitals.js'),
+		path.resolve(__dirname, 'reportWebVitals.ts'),
 		'utf8',
 	);
 
