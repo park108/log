@@ -32,6 +32,12 @@
 	background-color: var(--active-background-color);
 }
 
+/* 내비게이션.
+ *
+ * 이전에는 사이트 이름과 메뉴가 같은 크기·굵기라 위계가 없었고, 선택 표시가
+ * 연한 1px 밑줄이라 어느 탭에 있는지 한눈에 안 보였다. 세 단으로 나눈다:
+ * 사이트 이름(진하게) > 선택 메뉴(진한 밑줄) > 비선택 메뉴(흐리게). */
+
 .nav--nav-bar {
 	padding-top: 1em;
 	margin-left: 1em;
@@ -44,15 +50,25 @@
 	padding: 0;
 	list-style: none;
 	display: flex;
+	align-items: center;
+	gap: 0.35em;
 }
 
 .ul--nav-tabs a {
 	text-decoration: none;
 }
 
+/* 사이트 이름 — 위계의 최상단. */
 .li--nav-title {
 	padding-left: 0;
-	margin-right: 1em;
+	margin-right: 1.4em;
+}
+
+.li--nav-title a {
+	font-weight: 600;
+	font-size: 1.02em;
+	letter-spacing: -0.01em;
+	color: var(--normal-text-color);
 }
 
 .li--nav-right {
@@ -61,22 +77,38 @@
 	margin-left: auto;
 }
 
+/* 선택 메뉴 — 밑줄을 2px 진한 색으로. 배경/테두리 상자를 쓰지 않는다.
+ * 연한 1px 밑줄은 비선택과 구별되지 않았다. */
 .li--nav-active {
-	color: var(--active-text-color);
-	background-color: var(--active-background-color);
-	border-color: var(--normal-border-color);
-	border-style: solid;
-	border-width: 0 0 1px 0;
+	position: relative;
+	background-color: transparent;
+	border: 0;
+}
+
+.li--nav-active a {
+	color: var(--normal-text-color);
+	font-weight: 600;
+	box-shadow: inset 0 -2px 0 0 var(--normal-text-color);
+	padding-bottom: 3px;
 }
 
 .li--nav-inactive a {
 	color: var(--inactive-text-color);
-	transition: 0.3s ease;
+	transition: color 0.18s ease, box-shadow 0.18s ease;
+	padding-bottom: 3px;
 }
 
+/* 호버는 밑줄을 옅게 미리 보여준다 — text-shadow 로 글자를 번지게 하던
+ * 방식은 서체가 뭉개져 가독성을 떨어뜨렸다. */
 .li--nav-inactive:hover a {
 	color: var(--normal-text-color);
-	text-shadow: 0px 0px 3px var(--shadow-color);
+	box-shadow: inset 0 -2px 0 0 var(--normal-border-color);
+}
+
+.ul--nav-tabs a:focus-visible {
+	outline: 2px solid var(--color-focus-ring, currentColor);
+	outline-offset: 3px;
+	border-radius: 2px;
 }
 
 .main--main-contents {

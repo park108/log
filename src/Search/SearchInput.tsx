@@ -70,17 +70,29 @@ const SearchInput = (): React.ReactElement => {
 		);
 	}, [isShowToaster])
 
+// 인라인 SVG — 외부 자산을 추가하지 않는다 (CSP 표면 유지). 장식이므로
+// 접근성 트리에서 숨긴다: 입력의 placeholder 가 이미 역할을 말한다.
+const SearchIcon = (): React.ReactElement => (
+	<svg className={styles.svgSearchIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+		<circle cx="11" cy="11" r="7" />
+		<path d="M20 20l-3.5-3.5" />
+	</svg>
+);
+
 	if(isAdmin()) {
 		return (
 			<li className={`li li--nav-right ${styles.liNavSearch}`}>
-				<input
-					id="query-string-by-enter"
-					className={`input ${styles.inputSearchString} hidden--width-400px`}
-					placeholder="Input search string..."
-					value={ queryString }
-					onKeyUp={ handleKeyUp }
-					onChange={ e => setQueryString(e.target.value) }
-				/>
+				<span className={`span ${styles.spanSearchField} hidden--width-400px`}>
+					<SearchIcon />
+					<input
+						id="query-string-by-enter"
+						className={`input ${styles.inputSearchString}`}
+						placeholder="Input search string..."
+						value={ queryString }
+						onKeyUp={ handleKeyUp }
+						onChange={ e => setQueryString(e.target.value) }
+					/>
+				</span>
 				<button
 					type="button"
 					className={`span ${styles.spanNavSearchbutton}`}
@@ -116,14 +128,17 @@ const SearchInput = (): React.ReactElement => {
 	else {
 		return (
 			<li className={`li li--nav-right ${styles.liNavSearch}`}>
-				<input
-					id="query-string-by-enter"
-					className={`input ${styles.inputSearchString}`}
-					placeholder="Input search string..."
-					value={ queryString }
-					onKeyUp={ handleKeyUp }
-					onChange={ e => setQueryString(e.target.value) }
-				/>
+				<span className={`span ${styles.spanSearchField}`}>
+					<SearchIcon />
+					<input
+						id="query-string-by-enter"
+						className={`input ${styles.inputSearchString}`}
+						placeholder="Input search string..."
+						value={ queryString }
+						onKeyUp={ handleKeyUp }
+						onChange={ e => setQueryString(e.target.value) }
+					/>
+				</span>
 				{ toaster }
 			</li>
 		);
