@@ -40,7 +40,7 @@ const PATH_SELF = join(REPO_ROOT, "src", "__tests__", "csp-meta-build-artifact-p
 // `?? []` 로 narrowing (§spec / DoD — `noUncheckedIndexedAccess` 정합).
 const RE_CSP_TOKEN = /Content-Security-Policy/g;
 
-// directive 보존 9 항목 baseline — `index.html:9` / `build/index.html:9` 실측.
+// directive 보존 9 항목 baseline (font-src 추가 · frame-ancestors 제거) — `index.html:9` / `build/index.html:9` 실측.
 // `vite build` 가 CSP directive 값 자체를 변형하지 않음을 byte-for-byte 박제.
 // §spec §동작 1 line 19 본문 "8 directive" 표기와 별개로 실측 9 항목 전수 박제
 // (작성 시점 HEAD 실측 정합 — §task 구현 지시 5 명시).
@@ -50,9 +50,14 @@ const CSP_DIRECTIVE_TOKENS = [
 	"connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com",
 	"img-src 'self' data: https://d0.awsstatic.com",
 	"style-src 'self' 'unsafe-inline'",
+	// 본문 폰트(Jeju Myeongjo)는 fonts.gstatic.com 에서 온다. font-src 를
+	// 선언하지 않으면 default-src 'self' 로 폴백돼 폰트가 차단됐고, 화면은
+	// fallback 서체로 렌더되고 있었다.
+	"font-src 'self' https://fonts.gstatic.com",
 	"object-src 'none'",
 	"base-uri 'self'",
-	"frame-ancestors 'none'",
+	// frame-ancestors 는 meta 전달 시 명세상 무시되므로 제거했다 (index.html
+	// 주석 참조). 헤더 계층에서 설정하며 이 파일은 산출물 보존만 판정한다.
 	"form-action 'self'",
 ] as const;
 
