@@ -155,11 +155,13 @@ try {
     if (!derived.includes(p)) derived.push(p);
   }
 
-  // §회피 경로 차단 — 선언 파일 원문의 키 라인 계수와 교차 검증한다.
-  const rawKeyLines = pkgRaw
-    .split("\n")
-    .map(cut)
-    .filter((l) => /^\s*"check:[^"]*"\s*:/.test(l)).length;
+  // §회피 경로 차단 — 선언 파일 원문의 키 **선언 토큰** 계수와 교차 검증한다.
+  // 라인 단위가 아니라 전문 전역 토큰 매치다 — 줄바꿈·들여쓰기·탭·CRLF 어느 것에도
+  // 의존하지 않는다 (1줄 직렬화·4-space 재직렬화 모두 동일 계수).
+  // 여는 따옴표에 바로 이어지는 `check:` + 콜론만 매치하므로 `"npm run check:deps"`
+  // 같은 값 문자열 안의 부분문자열은 매치하지 않는다. JSON 에 주석 문법이 없으므로
+  // 여기에는 `#` 절단(FR-03)을 적용하지 않는다 — 그것은 훅 원문 전용이다.
+  const rawKeyDecls = (pkgRaw.match(/"check:[^"]*"\s*:/g) || []).length;
 
   // §도출 (3) 훅 실행 구간 / 주석 구간의 스크립트 경로.
   const hookPath = path.join(root, hookRel);
@@ -175,10 +177,10 @@ try {
 
   // §도출 비공허 단언 (RULE-06 §추출 실패 검출) — 판정보다 앞이다.
   if (keys.length === 0) no("check-keys-empty", "root=" + root);
-  if (rawKeyLines !== keys.length) {
+  if (rawKeyDecls !== keys.length) {
     no(
       "key-count-incoherent",
-      "parsed=" + keys.length + " raw-lines=" + rawKeyLines + " (root=" + root + ")"
+      "parsed=" + keys.length + " raw-decls=" + rawKeyDecls + " (root=" + root + ")"
     );
   }
   if (derived.length === 0 && badForm.length === 0 && missing.length === 0) {
