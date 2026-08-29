@@ -138,7 +138,10 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 
 	const dropzoneStyle = useMemo(() => {
 		const base = "div div--filedrop-dropzone";
-		if("UPLOADING" === isUploading || "FAILED" === isUploading) return `${base} div--filedrop-uploading`;
+		// UPLOADING 과 FAILED 를 한 클래스로 묶으면 정상 업로드 중에도 에러 배색이
+		// 뜬다 — 진행을 실패처럼 보이게 하는 오표기라 상태를 분리한다.
+		if("UPLOADING" === isUploading) return `${base} div--filedrop-uploading`;
+		if("FAILED" === isUploading) return `${base} div--filedrop-failed`;
 		if("COMPLETE" === isUploading) return `${base} div--filedrop-complete`;
 		return `${base} div--filedrop-ready`;
 	}, [isUploading]);

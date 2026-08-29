@@ -108,6 +108,8 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 					className="div div--fileitem-filename"
 					role="button"
 					tabIndex={0}
+					aria-label={"Copy URL of " + props.fileName}
+					title="Click to copy URL"
 					onClick={copyFileUrl}
 					onKeyDown={activateOnKey(copyFileUrl)}
 				>
@@ -130,8 +132,10 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 							className="span span--fileitem-delete"
 							role="button"
 							tabIndex={0}
+							aria-label={"Delete " + props.fileName}
+							title={"Delete " + props.fileName}
 						>
-							✕
+							<span aria-hidden="true">✕</span>
 						</span>
 					</span>
 				</div>

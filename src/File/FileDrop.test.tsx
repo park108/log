@@ -176,6 +176,32 @@ describe('FileDrop presigned url ok but upload failed', () => {
 		const resultText = await screen.findByText("Upload failed.");
 		expect(resultText).toBeInTheDocument();
 	});
+
+	// 실패 상태가 진행 상태와 같은 클래스를 쓰면 정상 업로드 중에도 에러
+	// 배색이 뜬다. 두 상태가 **서로 다른** 클래스를 갖는지 못 박는다 —
+	// 한쪽만 확인하면 둘을 도로 합쳐도 통과한다.
+	test('failed state does not share the in-progress class', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(< FileDrop callbackAfterUpload = {uploadedCallbackFunction} />);
+
+		const dropZone = screen.getByTestId('dropzone');
+		expect(dropZone).toHaveClass('div--filedrop-ready');
+
+		fireEvent.drop(dropZone, {
+			dataTransfer: { files: [{ name: "testfile1.txt", type: "text" }] },
+		});
+
+		await screen.findByText("Upload failed.");
+
+		expect(dropZone).toHaveClass('div--filedrop-failed');
+		expect(dropZone).not.toHaveClass('div--filedrop-uploading');
+	});
 });
 
 describe('FileDrop presigned url ok but upload network error', () => {

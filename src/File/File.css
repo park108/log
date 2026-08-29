@@ -14,37 +14,60 @@
   margin-top: 1em;
 }
 
+/* 4em 패딩 + 3px 테두리 + 굵은 글씨는 화면에서 과했다. 두께를 줄이고
+ * radius 를 주되 드롭 타깃으로서의 크기는 남긴다. */
 .div--filedrop-dropzone {
   text-align: center;
-  font-weight: bold;
-  padding-top: 4em;
-  padding-bottom: 4em;
-  border-width: 3px;
-  width :100%;
+  font-weight: 500;
+  font-size: 0.92rem;
+  padding: 2.6em 1em;
+  border-width: 2px;
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .div--filedrop-ready {
-  color: var(--normal-text-color);
+  color: var(--sub-text-color);
   background-color: var(--normal-background-color);
   border-style: dashed;
+  border-color: #d8d8d3;
+}
+
+.div--filedrop-ready:hover {
+  color: var(--normal-text-color);
+  background-color: var(--track-background-color);
+  border-color: var(--sub-text-color);
 }
 
 .div--filedrop-dragenter {
   color: var(--warning-text-color);
   background-color: var(--warning-background-color);
   border-style: solid;
+  border-color: #e0b400;
 }
 
+/* 진행 중 — 실패가 아니므로 에러 배색을 쓰지 않는다. */
 .div--filedrop-uploading {
+  color: var(--normal-text-color);
+  background-color: var(--track-background-color);
+  border-style: solid;
+  border-color: var(--sub-text-color);
+}
+
+.div--filedrop-failed {
   color: var(--error-text-color);
   background-color: var(--error-background-color);
   border-style: solid;
+  border-color: #d97b77;
 }
 
 .div--filedrop-complete {
   color: var(--success-text-color);
   background-color: var(--success-background-color);
   border-style: solid;
+  border-color: #7d9c80;
 }
 
 .div--fileupload-input {
@@ -55,41 +78,71 @@
 }
 
 .div--files-list {
-  margin-top: 1em;
-  margin-bottom: 1em;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
 }
 
+/* 목록 항목은 Log 목록과 같은 언어를 쓴다 — 테두리 없이 여백으로 나누고,
+ * 호버에서만 배경이 뜬다. 테두리를 두면 radius 가 선 끝을 말아 올려
+ * 구분선이 지저분해진다 (Log 목록에서 두 차례 반려된 그 문제). */
 .div--fileitem {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
   background-color: var(--normal-background-color);
+  transition: background-color 0.18s ease, opacity 0.4s ease;
 }
 
+.div--fileitem:hover {
+  background-color: var(--track-background-color);
+}
+
+/* 파일명은 링크가 아니라 "누르면 URL 복사" 다. 상시 밑줄은 링크로 오인하게
+ * 하므로 호버에서만 긋는다. line-height 1em 은 긴 이름의 디센더를 잘라
+ * 먹었다 — 1.45 로 연다. */
 .div--fileitem-filename {
-  text-decoration: underline; 
   cursor: pointer;
-  word-wrap: break-word;
+  word-break: break-all;
   max-width: 100%;
-  line-height: 1em;
+  line-height: 1.45;
+  font-weight: 500;
+  border-radius: 4px;
 }
 
+.div--fileitem-filename:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.div--fileitem-filename:focus-visible {
+  outline: 2px solid var(--normal-text-color);
+  outline-offset: 2px;
+}
+
+/* float 대신 flex — 툴바는 margin-left:auto 로 민다. float 는 부모 높이
+ * 계산에서 빠져 다음 항목과 겹치는 원인이 된다. */
 .div--fileitem-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
   font-size: var(--sub-font-size);
-  /* --sub-text-color 와 같은 값인데 토큰을 우회해, 색 정책을 바꿀 때
-   * 이 한 곳만 남는다. */
   color: var(--sub-text-color);
-}
-
-.span--fileitem-modifieddate {
-  margin-right: 1em;
-}
-
-.span--fileitem-modifiedtime {
-  margin-right: 1em;
+  font-variant-numeric: tabular-nums;
 }
 
 .span--fileitem-toolbar {
-  float:right;
+  margin-left: auto;
   padding: 0;
-  margin: 0;
+}
+
+.span--fileitem-size {
+  margin-right: 0;
+}
+
+.span--fileitem-modifieddate,
+.span--fileitem-modifiedtime {
+  margin-right: 0;
 }
 
 .span--fileitem-separator {
@@ -98,33 +151,39 @@
   padding-right: 0.5em;
 }
 
+/* 삭제는 글리프 1자다. 밑줄은 한 글자에 그으면 의미가 없으므로 색과
+ * 배경으로 반응시킨다 (다른 도메인의 밑줄 통일은 텍스트 대상 한정). */
 .span--fileitem-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.3s ease;
+  line-height: 1;
+  transition: color 0.18s ease, background-color 0.18s ease;
 }
 
-/* text-shadow 로 글자를 번지게 하던 호버는 서체가 뭉개져 가독성을
- * 떨어뜨린다 — 내비게이션에서 같은 이유로 걷어냈고, 도메인마다
- * 복제돼 있던 나머지도 밑줄로 통일한다. */
 .span--fileitem-delete:hover {
-  color: var(--normal-text-color);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: var(--btn-danger-text);
+  background-color: var(--track-background-color);
+}
+
+.span--fileitem-delete:focus-visible {
+  outline: 2px solid var(--normal-text-color);
+  outline-offset: 2px;
 }
 
 .span--fileitem-copyurl {
   cursor: pointer;
 }
 
+/* 삭제 진행 표시. 구 구현은 글자색과 배경색을 같게 만들어 지웠는데,
+ * 호버 배경이 뜨면 글자가 도로 보인다. opacity 로 항목 전체를 물린다. */
 .div--fileitem-delete {
-  color: var(--normal-background-color);
-  background-color: var(--normal-background-color);
-  transition: color 0.5s ease;
-}
-
-.span--fileitem-size {
-  height: 1em;
-  margin-right: 1em;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 @media screen and (max-width: 360px) {
