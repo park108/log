@@ -83,8 +83,12 @@ describe('Search render failed', () => {
 
 		renderWithQueryRouter(<Search />);
 
-		const searchedItem = await screen.findByText("No search results.");
+		// 실패는 "결과 0건" 과 구별되어야 한다 — 같은 화면을 쓰면 사용자는 요청
+		// 실패를 검색어 부재로 읽는다.
+		const searchedItem = await screen.findByText("Search failed.");
 		expect(searchedItem).toBeInTheDocument();
+		expect(screen.queryByText("No search results.")).toBeNull();
+		expect(screen.getByTestId("search-retry-button")).toBeInTheDocument();
 	});
 });
 
@@ -98,8 +102,10 @@ describe('Search render network error', () => {
 
 		renderWithQueryRouter(<Search />);
 
-		const searchedItem = await screen.findByText("No search results.");
+		const searchedItem = await screen.findByText("Search failed for network issue.");
 		expect(searchedItem).toBeInTheDocument();
+		expect(screen.queryByText("No search results.")).toBeNull();
+		expect(screen.getByTestId("search-retry-button")).toBeInTheDocument();
 	});
 });
 
@@ -118,8 +124,8 @@ describe('Search reportError 채널 (REQ-20260421-039 FR-03)', () => {
 			renderWithQueryRouter(<Search />);
 
 			// errorType 분기 useEffect 는 data 수신 후 동기 side-effect.
-			// "No search results." 렌더 대기 = data 반영 완료 시점.
-			await screen.findByText("No search results.");
+			// 실패 표면 렌더 = data 반영 완료 시점.
+			await screen.findByText("Search failed.");
 
 			const calls = vi.mocked(errorReporter.reportError).mock.calls;
 			expect(calls.length).toBe(1);
@@ -138,7 +144,7 @@ describe('Search reportError 채널 (REQ-20260421-039 FR-03)', () => {
 
 			renderWithQueryRouter(<Search />);
 
-			await screen.findByText("No search results.");
+			await screen.findByText("Search failed for network issue.");
 
 			const calls = vi.mocked(errorReporter.reportError).mock.calls;
 			expect(calls.length).toBe(1);

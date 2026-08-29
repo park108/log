@@ -48,9 +48,15 @@ const Search = (): React.ReactElement => {
 		setHtmlTitle("search results for " + queryString);
 	}, [queryString]);
 
-	const { data, isLoading, isError, error } = useSearchList(queryString, {
+	const { data, isLoading, isError, error, refetch } = useSearchList(queryString, {
 		enabled: queryString.length > 0,
-	}) as { data: SearchListResponse | undefined; isLoading: boolean; isError: boolean; error: Error | null };
+	}) as {
+		data: SearchListResponse | undefined;
+		isLoading: boolean;
+		isError: boolean;
+		error: Error | null;
+		refetch: () => void;
+	};
 
 	const body = data?.body;
 	const searchedList: SearchItem[] = body?.Items ?? [];
@@ -114,6 +120,28 @@ const Search = (): React.ReactElement => {
 			<h1 className="h1 h1--notification-result">
 				Searching &quot;{ queryString }&quot; in logs<span id="loading">{ loadingDots }</span>
 			</h1>
+		);
+	}
+	// 조회 실패는 "결과 0건" 과 구별되어야 한다. 이 분기가 없던 동안 네트워크
+	// 실패와 서버 errorType 응답이 모두 "No search results." 로 표시돼, 사용자는
+	// 요청이 실패한 것을 검색어가 없는 것으로 읽었다. 실패는 내부적으로 관측되고
+	// 있었으나(reportError) 화면에는 도달하지 않았다.
+	else if(isError || hasValue(data?.errorType)) {
+
+		return (
+			<section className="section section--log-list" role="list">
+				<h1 className="h1 h1--notification-result">
+					{ isError ? "Search failed for network issue." : "Search failed." }
+				</h1>
+				<button
+					className="button button--loglist-seemore"
+					data-testid="search-retry-button"
+					onClick={() => refetch()}
+				>
+					Retry
+				</button>
+				{ toListButton }
+			</section>
 		);
 	}
 	else if(0 === totalCount) {
