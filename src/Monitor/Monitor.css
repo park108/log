@@ -1,52 +1,109 @@
 @import url(../styles/index.css);
 
+/* ─────────────────────────────────────────────────────────────────────────
+ * Monitor 대시보드 스타일
+ *
+ * 클래스 이름과 DOM 구조는 보존한다 — WebVitalsItem.test.jsx 가 슬롯 선택자와
+ * 선언 집합을, a11y.audit 이 focus 규칙을, Monitor.test.jsx 가 컨테이너
+ * 클래스를 각각 판정 입력으로 쓴다. 바뀌는 것은 시각 계층뿐이다.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.main--monitor-grid {
+	--mon-surface: #ffffff;
+	--mon-border: #e8e8e6;
+	--mon-track: #f2f2f0;
+	--mon-ink: #1a1a18;
+	--mon-ink-dim: #767672;
+	--mon-radius: 14px;
+	--mon-radius-sm: 6px;
+	--mon-gap: 20px;
+
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+	gap: var(--mon-gap);
+	align-items: start;
+	padding-bottom: var(--mon-gap);
+}
+
+/* ── 카드 ────────────────────────────────────────────────────────────── */
+
 .article--monitor-item {
 	box-sizing: border-box;
-	float: left;
-	width: 50%;
-	min-height: 485px;
 	margin: 0;
-	padding-bottom: 1em;
+	padding: 22px 24px 24px;
+	background: var(--mon-surface);
+	border: 1px solid var(--mon-border);
+	border-radius: var(--mon-radius);
+	box-shadow: 0 1px 2px rgba(17, 17, 15, 0.04);
 }
 
-@media screen and (max-width: 800px) {
-	.article--monitor-item {
-		float: none;
-		width: 100%;
-		min-height: 0px;
-	}
+.article--monitor-item h1 {
+	margin: 0 0 20px;
+	font-size: 0.95rem;
+	font-weight: 650;
+	letter-spacing: 0.01em;
+	color: var(--mon-ink);
 }
 
-.article--monitor-item h1, h2, h3, h4, h5, h6 {
+.article--monitor-item h2,
+.article--monitor-item h3,
+.article--monitor-item h4,
+.article--monitor-item h5,
+.article--monitor-item h6 {
 	margin-block-start: 0;
 	margin-block-end: 0;
 }
 
+/* ── 항목 ────────────────────────────────────────────────────────────── */
+
 .section--monitor-item {
-	margin-bottom: 0.5em;
+	margin: 0 0 22px;
+}
+
+.section--monitor-item:last-of-type {
+	margin-bottom: 0;
+}
+
+.section--monitor-item h3 {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 10px;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--mon-ink);
 }
 
 .span--monitor-metric {
-	font-size: var(--info-font-size);
-	margin-left: 1em;
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 0.75rem;
+	font-weight: 400;
+	color: var(--mon-ink-dim);
+	margin-left: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
-.div--monitor-statusbar {
-	font-size: 0.8em;
-}
-
-.span--monitor-bar {
-	display: inline-block;
-	text-align: center;
-}
+/* ── 평가 배지 ───────────────────────────────────────────────────────── */
 
 .span--monitor-evaluation {
-	float: right;
-	line-height: 1em;
-	margin-top: 0.7em;
-	font-size: var(--info-font-size);
+	flex: 0 0 auto;
+	float: none;
+	margin-top: 0;
+	padding: 3px 9px;
+	border-radius: 999px;
+	font-size: 0.65rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	line-height: 1.4;
 }
 
+/* 평가 헤더 전용 슬롯 — 상태 막대(.span--monitor-good|warn|poor)와 서로소인
+ * 네임스페이스다. 색은 대응 역할 규칙과 **같은 CSS 변수**를 참조해 시각적으로
+ * 불변이며, 선언 집합 동일성은 WebVitalsItem.test.jsx 가 이 파일에서 도출해
+ * 단언한다. 두 그룹의 선언을 항상 나란히 바꾼다. */
 .span--monitor-good {
 	color: var(--success-text-color);
 	background-color: var(--success-background-color);
@@ -63,13 +120,10 @@
 }
 
 .span--monitor-none {
-	background-color: var(--normal-background-color);
+	background-color: var(--mon-track);
+	color: var(--mon-ink-dim);
 }
 
-/* 평가 헤더 전용 슬롯 — 상태 막대(.span--monitor-good|warn|poor)와 서로소인
- * 네임스페이스다. 단독 슬롯 선택자가 역할을 결정적으로 지목하게 하려는 것이며,
- * 색은 대응 역할 규칙과 **같은 CSS 변수**를 참조해 시각적으로 불변이다.
- * 선언 집합 동일성은 WebVitalsItem.test.jsx 가 이 파일에서 도출해 단언한다. */
 .span--monitor-evaluation-good {
 	color: var(--success-text-color);
 	background-color: var(--success-background-color);
@@ -85,42 +139,75 @@
 	background-color: var(--error-background-color);
 }
 
+/* ── 상태 막대 (Web Vitals) ──────────────────────────────────────────── */
+
+.div--monitor-statusbar {
+	display: flex;
+	width: 100%;
+	height: 26px;
+	border-radius: var(--mon-radius-sm);
+	overflow: hidden;
+	background: var(--mon-track);
+	font-size: 0.68rem;
+	font-weight: 600;
+	cursor: default;
+}
+
+.span--monitor-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	overflow: hidden;
+	text-align: center;
+	transition: width 240ms ease;
+}
+
 .span--monitor-retrybutton {
 	display: inline-block;
+	padding: 5px 12px;
+	border: 1px solid var(--mon-border);
+	border-radius: var(--mon-radius-sm);
+	background: var(--mon-surface);
+	font-size: 0.72rem;
 	cursor: pointer;
-	text-decoration: underline;
+	text-decoration: none;
 	text-align: center;
 }
 
+.span--monitor-retrybutton:hover {
+	border-color: var(--hover-border-color);
+	background: var(--hover-background-color);
+}
+
+/* ── 막대 차트 ───────────────────────────────────────────────────────── */
+
 .div--monitor-pillarchart {
-	line-height: 1em;
-	min-height: 100px;
+	display: flex;
+	align-items: stretch;
+	gap: 6px;
+	min-height: 104px;
+	line-height: 1.2;
 }
 
 .div--monitor-stackchart {
-	min-height: 175px;
+	display: flex;
+	align-items: stretch;
+	gap: 12px;
+	min-height: 180px;
 }
 
-.div--monitor-7pillars {
-	font-size: 0.8em;
-	display: inline-block;
-	width: 14%;
-	text-align: center;
-}
-
+.div--monitor-7pillars,
+.div--monitor-6pillars,
 .div--monitor-3pillars {
-	font-size: 0.8em;
-	display: inline-block;
-	width: 33%;
-	text-align: center;
-}
-
-.div--monitor-6pillars {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	flex: 1 1 0;
+	min-width: 0;
 	margin: 0;
 	padding: 0;
-	font-size: 0.8em;
-	display: inline-block;
-	width: 16%;
+	font-size: 0.66rem;
 	text-align: center;
 }
 
@@ -130,73 +217,112 @@
 
 .div--monitor-value {
 	width: 100%;
-	line-height: 10px;
+	line-height: 1.3;
+	font-size: 0.66rem;
+	font-weight: 600;
+	color: var(--mon-ink-dim);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .div--monitor-pillar {
-	margin: 0 10%;
+	margin: 3px 0 0;
+	border-radius: 4px 4px 0 0;
+	transition: height 240ms ease;
 }
 
-/* REQ-20260420-021 (a11y) — Monitor 도메인 div 기반 popup trigger focus-visible 규칙 (WCAG 2.4.7) */
 .div--monitor-pillar:focus-visible,
 .div--monitor-statusbar:focus-visible {
 	outline: 2px solid var(--color-focus-ring, currentColor);
 	outline-offset: 2px;
 }
 
-.div--monitor-processing {
-	text-align: center;
-	width: 100%;
-	height: 100%;
-	padding-top: 40px;
+.div--monitor-pillarlegend {
+	margin: 6px 0 0;
+	line-height: 1.3;
+	font-size: 0.62rem;
+	color: var(--mon-ink-dim);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
-.div--monitor-processinglow {
-	text-align: center;
-	width: 100%;
-	height: 100%;
-	padding-top: 1px;
-}
-
+/* 스택 세그먼트 — 얇은 구간의 라벨이 이웃을 침범하지 않도록 잘라낸다.
+ * 개편 전에는 넘친 텍스트가 위 세그먼트와 겹쳐 읽을 수 없었다. */
 .div--monitor-stackvalue {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	width: 100%;
 	height: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	font-size: 0.62rem;
+	line-height: 1;
 }
 
-.div--monitor-pillarlegend {
-	margin: 4px 5px 0 5px;
-	line-height: 10px;	
+/* ── 로딩 / 팝업 ─────────────────────────────────────────────────────── */
+
+.div--monitor-processing {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 104px;
+	padding: 0;
+	font-size: 0.72rem;
+	color: var(--mon-ink-dim);
+}
+
+.div--monitor-processinglow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 26px;
+	padding: 0;
+	font-size: 0.72rem;
+	color: var(--mon-ink-dim);
 }
 
 .div--monitor-pillardetail {
-	font-size: 0.8rem;
-	line-height: 1em;;
 	display: block;
 	position: fixed;
-	background-color: rgba(240, 240, 240, 0.9);
-	border-radius: 5px;
-	text-align: left;
+	z-index: 20;
 	margin: 0;
 	padding: 0;
+	border: 1px solid var(--mon-border);
+	border-radius: 8px;
+	background-color: rgba(255, 255, 255, 0.97);
+	box-shadow: 0 6px 20px rgba(17, 17, 15, 0.12);
+	font-size: 0.7rem;
+	line-height: 1.5;
+	text-align: left;
 }
 
 .ul--monitor-detailpillaritem {
 	padding-inline-start: 0;
-	padding: 5px;
-	margin: 0;	
+	padding: 8px 10px;
+	margin: 0;
 }
 
 .li--monitor-detailpillaritem {
 	display: block;
 	padding: 0;
-	margin: 5px;
+	margin: 2px 0;
 }
 
 .a--monitor-referencelink {
-	font-size: var(--info-font-size);
 	display: inline-block;
-	line-height: 1em;
+	margin-top: 4px;
+	font-size: 0.68rem;
+	line-height: 1.5;
+	color: var(--mon-ink-dim);
+}
+
+@media screen and (max-width: 800px) {
+	.article--monitor-item {
+		padding: 18px 16px 20px;
+	}
 }

@@ -78,7 +78,7 @@ const Monitor = (props: MonitorProps) => {
 	}, []);
 
 	return (
-		<main className="main main--main-contents" style={props.contentHeight} role="application">
+		<main className="main main--main-contents main--monitor-grid" style={props.contentHeight} role="application">
 			<Suspense fallback={<div></div>}>
 				<ContentMon stackPallet={PALLET_OLIVE} />
 			</Suspense>
