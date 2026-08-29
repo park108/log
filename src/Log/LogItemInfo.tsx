@@ -57,6 +57,13 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 				{ !props.temporary ? "" : "✍️"  } {getFormattedDate(timestamp)}
 			</h1>
 			<span className="span span--logitem-toolbarblank"></span>
+			{/* 네이티브 button 으로 전환하지 않는다 (2026-08-29 판단). 이 트리거는 안에
+			    팝업 div 를 품는데 button 의 콘텐츠 모델은 phrasing content 라 어긋난다.
+			    팝업을 형제로 빼면 해결되지만, 팝업이 `position: fixed` 이면서 좌표를
+			    갖지 않아 **정적 위치**를 기준으로 배치된다 — 형제로 옮기는 순간 위치가
+			    밀린다. 얻는 것(네이티브 의미론)보다 잃을 위험(툴팁 오배치)이 크다.
+			    현 상태는 role + tabIndex + onClick + onKeyDown + 이름을 모두 갖춘
+			    온전한 손조립이며 a11y 감사 패턴 B 를 충족한다. */}
 			{ !props.showLink ? "" : (
 				<span
 					role="button"

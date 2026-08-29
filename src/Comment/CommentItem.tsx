@@ -67,6 +67,10 @@ const CommentItem = (props: CommentItemProps): React.ReactElement => {
 		? ""
 		: getFormattedDate(timestamp as number) + " " + getFormattedTime(timestamp as number);
 
+	// 네이티브 button 으로 전환하지 않는다 (2026-08-29 판단) — LogItemInfo 의
+	// link-copy-button 과 동일 구조다. 트리거가 팝업 div 를 품어 button 의 콘텐츠
+	// 모델에 어긋나고, 팝업이 `position: fixed` + 좌표 부재라 형제로 빼면 정적
+	// 위치가 바뀌어 오배치된다. 현 상태는 패턴 B 를 충족하는 온전한 손조립이다.
 	const replyButton = isHidden && !isAdmin() ? ""
 		: isReply ? ""
 		: <div
