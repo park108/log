@@ -1,3 +1,5 @@
+export type LogTimestamp = number | string | null | undefined;
+
 /**
  * 단건 로그 캐시 키의 **유일한 조립 지점** (REQ-20260825-015 (K-2)(K-3)(K-4)).
  *
@@ -20,12 +22,12 @@
  * @param {number | string | null | undefined} timestamp
  * @returns {(string | null | undefined)[]} 단건 queryKey
  */
-const normalizeDetailTimestamp = (timestamp) =>
+const normalizeDetailTimestamp = (timestamp: LogTimestamp): string | null | undefined =>
 	(timestamp === null || timestamp === undefined) ? timestamp : String(timestamp);
 
 // 배열 리터럴은 **의도적으로 한 줄**이다 — (K-4) 게이트는 행 단위 grep 이라 여러 줄로
 // 쪼개면 판정을 통과하는 게 아니라 측정에서 사라진다 (false-negative). 이 한 건이
 // 게이트가 허용하는 상한 1 이며, 다른 어떤 프로덕션 파일에도 이 리터럴은 없어야 한다.
-export const logDetailKey = (timestamp) => ['log', 'detail', normalizeDetailTimestamp(timestamp)];
+export const logDetailKey = (timestamp: LogTimestamp): (string | null | undefined)[] => ['log', 'detail', normalizeDetailTimestamp(timestamp)];
 
 export default logDetailKey;

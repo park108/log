@@ -5,9 +5,9 @@ import { logListFirst7, logListFirst7WithTemporary, logListNext3, logSingle, log
 
 const API_URL = import.meta.env.VITE_LOG_API_BASE;
 
-const firstParam = (request) => {
+const firstParam = (request: { url: string }): string => {
 	const qs = request.url.split("?")[1];
-	return qs ? qs.split("&")[0] : "";
+	return qs ? (qs.split("&")[0] ?? "") : "";
 }
 
 export const prodServerHasNoData = setupServer(

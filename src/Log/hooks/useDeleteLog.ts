@@ -1,6 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteLog } from '../api';
 import { logDetailKey } from './logQueryKeys';
+import type { MutationCallbacks } from './useCreateLog';
+
+export interface DeleteLogVars {
+	author: string;
+	timestamp: number;
+}
 
 /**
  * Log 삭제 변경 훅. spec `server-state-spec.md` §3.3.1.1 항목 3 참조.
@@ -32,10 +38,10 @@ import { logDetailKey } from './logQueryKeys';
  *   { author: string, timestamp: number }
  * >}
  */
-export const useDeleteLog = (callbacks = {}) => {
+export const useDeleteLog = (callbacks: MutationCallbacks<DeleteLogVars> = {}) => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async ({ author, timestamp }) => {
+		mutationFn: async ({ author, timestamp }: DeleteLogVars) => {
 			const res = await deleteLog(author, timestamp);
 			const status = await res.json();
 			if (status.statusCode !== 200) {

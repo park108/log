@@ -38,7 +38,7 @@ const ENV_KEY: Record<string, string> = {
 	'../Comment/api.ts': 'VITE_COMMENT_API_BASE',
 	'../File/api.ts': 'VITE_FILE_API_BASE',
 	'../Image/api.ts': 'VITE_IMAGE_API_BASE',
-	'../Log/api.js': 'VITE_LOG_API_BASE',
+	'../Log/api.ts': 'VITE_LOG_API_BASE',
 	'../Monitor/api.js': 'VITE_MONITOR_API_BASE',
 	'../Search/api.ts': 'VITE_SEARCH_API_BASE',
 };
@@ -48,7 +48,7 @@ const REPRESENTATIVE: Record<string, [string, unknown[]]> = {
 	'../Comment/api.ts': ['getComments', [1, false]],
 	'../File/api.ts': ['getFiles', []],
 	'../Image/api.ts': ['getImages', []],
-	'../Log/api.js': ['getLogs', []],
+	'../Log/api.ts': ['getLogs', []],
 	'../Monitor/api.js': ['getWebVitals', ['LCP']],
 	'../Search/api.ts': ['getSearchList', ['q']],
 };
