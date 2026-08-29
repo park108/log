@@ -85,59 +85,93 @@
 	color: var(--sub-text-color);
 }
 
+/* 댓글 입력 폼.
+ *
+ * 상호작용은 이미 "접힘 → 펼침" 이다 (Add a comment / N comments 토글).
+ * 표면만 그 구조에 맞춘다 — 펼쳐졌을 때 "지금 쓰는 중" 임을 좌측 선으로
+ * 표시하고, 입력들을 한 묶음으로 읽히게 한다. */
 .form--comment-input {
 	display: flex;
 	flex-direction: column;
+	gap: 8px;
+	border-left: 2px solid var(--normal-border-color);
+	padding-left: 14px;
+	margin: 10px 0 4px;
 }
 
-.input--comment-name {
-	font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-	font-size: 1em;
-	padding: 5px;
-	margin-bottom: 5px;
-	border: 1px var(--normal-border-color) solid;
+.input--comment-name,
+.textarea--comment-form {
+	box-sizing: border-box;
+	width: 100%;
+	font-family: inherit;
+	font-size: 0.92rem;
+	color: var(--normal-text-color);
+	background-color: var(--normal-background-color);
+	border: 1px solid var(--normal-border-color);
+	border-radius: 8px;
+	padding: 9px 11px;
+	outline: none;
+	transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.input--comment-name:disabled {
-	color: var(--sub-font-size);
+.input--comment-name::placeholder,
+.textarea--comment-form::placeholder {
+	color: var(--faint-text-color);
+}
+
+.input--comment-name:focus,
+.textarea--comment-form:focus {
+	border-color: var(--hover-border-color);
+	box-shadow: 0 0 0 3px rgba(26, 26, 24, 0.06);
+}
+
+/* 이전에는 color: var(--sub-font-size) 였다 — 크기 토큰을 색에 써서 값이
+ * 유효하지 않았고 선언이 통째로 무시됐다. 비활성 상태가 의도한 색으로
+ * 보이지 않았다. */
+.input--comment-name:disabled,
+.textarea--comment-form:disabled {
+	color: var(--sub-text-color);
 	background-color: var(--disabled-background-color);
 	font-style: italic;
+}
+
+/* width: calc(100% - 12px) 였다 — padding 5+5 + border 1+1 을 손으로 뺀
+ * 값이라 패딩을 바꾸는 순간 어긋난다. box-sizing 이 계산을 없앤다. */
+.textarea--comment-form {
+	height: 6.5em;
+	line-height: 1.65;
+	resize: vertical;
+	overflow: auto;
 }
 
 .div--comment-inputhidden {
 	display: flex;
-	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	margin: 2px 0 0;
 }
 
+/* transform: scale(1.5) 였다 — transform 은 레이아웃 상자를 바꾸지 않아
+ * 라벨과 세로 정렬이 틀어진다. 실제 크기로 지정한다. */
 .input--comment-hidden {
-	transform : scale(1.5);
-	margin-right: 1em;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	accent-color: #4a4a46;
+	cursor: pointer;
 }
 
 .label--comment-hidden {
-	margin-top: 1em;
-	margin-bottom: 1em;
-	font-size: 1em;
+	margin: 0;
+	font-size: 0.84rem;
+	color: var(--sub-text-color);
+	cursor: pointer;
+	user-select: none;
 }
 
-.textarea--comment-form {
-	width: calc(100% - 12px);
-	font-size: 1em;
-	height: 5em;
-	border-color: var(--normal-border-color);
-	border-width: 1px;
-	padding: 5px;
-	line-height: 1.5em;
-	overflow: auto;
-	resize: none;
-}
-
-.textarea--comment-form:disabled {
-	background-color: var(--disabled-background-color);
-	font-style: italic;
-}
-
+/* 표면은 btn--primary 가 담당한다. 여기서는 배치만 — 폼 전체 너비를
+ * 차지하면 시각 무게가 행위보다 커진다. */
 .button--comment-submit {
-	height: 3em;
-	margin: 10px 0;
+	align-self: flex-end;
+	margin: 4px 0 0;
 }

@@ -19,7 +19,7 @@ const Log = (props: LogProps) => {
 		return (
 			<main className="main main--main-contents" style={props.contentHeight} role="application">
 				<Link to="/log/write">
-					<button data-testid="newlog-button" role="button" className="button button--log-newlog">+</button>
+					<button data-testid="newlog-button" role="button" className="button btn btn--primary btn--fab button--log-newlog">+</button>
 				</Link>
 				<Suspense fallback={<div></div>}>
 					<Routes>

@@ -175,15 +175,6 @@
 	margin: 1em 0;
 }
 
-.button--message-retrybutton {
-	margin: 1em auto;
-	padding: 0.5em;
-	width: 10em;
-	display: block;
-	height: 3em;
-	cursor: pointer;
-}
-
 /* 두 규칙은 상보여야 한다 — 한쪽이 보이면 다른 쪽은 숨는다.
  * 경계가 1px 어긋나 있어 399px·400px 에서 **양쪽 다** 숨겨졌다.
  * SearchInput 이 데스크톱 입력(hidden--)과 모바일 입력·버튼(show--)을

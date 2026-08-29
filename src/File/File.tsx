@@ -199,9 +199,8 @@ const File = (props: FileProps): React.ReactElement => {
 		? <FileUpload callbackAfterUpload={() => setIsGetData(true)} />
 		: <FileDrop callbackAfterUpload={() => setIsGetData(true)} />;
 
-	const seeMoreButtonClass = isLoading
-		? "button button--file-seemore button--file-seemoreloading"
-		: "button button--file-seemore";
+	// button--file-seemoreloading 은 CSS 정의가 없는 죽은 클래스였다.
+	const seeMoreButtonClass = "button btn btn--secondary btn--block";
 	const seeMoreButtonText = isLoading ? "Loading..." : "See more";
 	const seeMoreButton = hasValue(lastTimestamp)
 		? (

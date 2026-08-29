@@ -383,7 +383,7 @@ const Writer = () => {
 					<button
 						role="button"
 						data-testid="img-button"
-						className="button button--writer-mdcopy"
+						className="button btn btn--secondary btn--sm"
 						value="img"
 						onClick={copyMarkdownString}
 					>
@@ -393,7 +393,7 @@ const Writer = () => {
 					<button
 						role="button"
 						data-testid="a-button"
-						className="button button--writer-mdcopy"
+						className="button btn btn--secondary btn--sm"
 						value="a"
 						onClick={copyMarkdownString}
 					>
@@ -404,7 +404,7 @@ const Writer = () => {
 				<button
 					role="button"
 					data-testid="submit-button"
-					className="button button--writer-submit"
+					className="button btn btn--primary"
 					type="submit"
 					disabled={ isProcessing }
 				>

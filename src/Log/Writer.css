@@ -128,15 +128,7 @@
   font-size: var(--info-font-size);
 }
   
-.button--writer-submit {
-	height: 3em;
-}
 
-.button--writer-mdcopy {
-  width: 10em;
-  margin-left: 1em;
-  font-size: var(--info-font-size);
-}
   
 .div--writer-history {
 	max-width: 800px;

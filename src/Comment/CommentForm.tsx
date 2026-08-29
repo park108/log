@@ -108,7 +108,7 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 					🥷 Hidden Message
 				</label>
 			</div>
-			<button type="submit" className={`button ${styles.buttonCommentSubmit}`}>
+			<button type="submit" className={`button btn btn--primary ${styles.buttonCommentSubmit}`}>
 				{hasValue(commentTimestamp) ? "Send Reply" : "Submit Comment"}
 			</button>
 		</form>
