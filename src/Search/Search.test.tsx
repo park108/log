@@ -327,3 +327,44 @@ describe('loading dots timer cleanup', () => {
 		expect(errSpy).not.toHaveBeenCalled();
 	});
 });
+
+// 결과 요약 문구의 복수형.
+//
+// 두 분기가 서로 다른 규칙을 쓰고 있었다 — N건 분기는 `result{s}` 로 복수를
+// 처리했지만 0건 분기는 "0 result" 로 고정이었고, 처리 시간은 양쪽 다
+// "1 milliseconds" 를 냈다. 한 헬퍼로 합쳤다.
+describe('결과 요약 문구 — 복수형', () => {
+
+	describe('0건', () => {
+		useMockServer(() => mock.prodServerNoData);
+
+		it('"0 results" 로 적는다', async () => {
+			// 요약 문구는 질의어가 <span> 으로 쪼개져 있어 텍스트 매처로는 못 잡는다.
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			const { container } = renderWithQueryRouter(<Search />);
+			await screen.findByText('No search results.');
+			expect(container.textContent).toContain('0 results');
+			// 구 구현은 여기서 "0 result" 였다.
+			expect(container.textContent).not.toMatch(/\b0 result\b(?!s)/);
+		});
+	});
+
+	describe('1건', () => {
+		useMockServer(() => mock.prodServerGetSingle);
+
+		it('"1 result" 로 적는다 (단수)', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			const { container } = renderWithQueryRouter(<Search />);
+			await screen.findByText('검색을 위해 추가');
+			// 대조 — 무조건 s 를 붙이는 구현이면 여기서 걸린다.
+			expect(container.textContent).toMatch(/\b1 result\b/);
+			expect(container.textContent).not.toContain('1 results');
+		});
+	});
+});

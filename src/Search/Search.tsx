@@ -16,6 +16,13 @@ import styles from './Search.module.css';
 // 정규식으로 바꾸되 **메타문자 이스케이프가 필수**다. 이스케이프 없이
 // `new RegExp(queryString)` 을 만들면 `(` 하나만 검색해도 예외로 화면이 죽는다.
 // split 은 리터럴이라 그 위험이 없었으므로, 이 교체가 새 위험을 들여온다.
+// 결과 요약 문구. 두 분기(0건 / N건)가 서로 다른 규칙을 쓰고 있었다 —
+// 성공 분기는 `result{s}` 로 복수를 처리하는데 0건 분기는 "0 result" 로
+// 고정이었고, 처리 시간은 양쪽 다 "1 milliseconds" 를 냈다. 한 곳에서 만든다.
+const plural = (n: number, word: string): string =>
+	// 천 단위 구분은 유지한다 — 처리 시간이 네 자리를 넘는 경우가 있다.
+	n.toLocaleString() + " " + word + (1 === n ? "" : "s");
+
 const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const highlightKeyword = (
@@ -180,8 +187,8 @@ const Search = (): React.ReactElement => {
 		return (
 			<section className="section section--log-list" role="list">
 				<div className={`div ${styles.divSearchResult}`}>
-					0 result for &quot;<span className={`span ${styles.spanSearchQuerystring}`}>{ queryString }</span>&quot;
-					- { processingTime.toLocaleString() + " milliseconds" }
+					{ plural(0, "result") } for &quot;<span className={`span ${styles.spanSearchQuerystring}`}>{ queryString }</span>&quot;
+					- { plural(processingTime, "millisecond") }
 				</div>
 				<h1 className="h1 h1--notification-result">
 					No search results.
@@ -195,8 +202,8 @@ const Search = (): React.ReactElement => {
 		return (
 			<section className="section section--log-list" role="list">
 				<div className={`div ${styles.divSearchResult}`}>
-					{ totalCount } result{ totalCount > 1 ? "s" : "" } for &quot;<span className={`span ${styles.spanSearchQuerystring}`}>{ queryString }</span>&quot;
-					- { processingTime.toLocaleString() + " milliseconds" }
+					{ plural(totalCount, "result") } for &quot;<span className={`span ${styles.spanSearchQuerystring}`}>{ queryString }</span>&quot;
+					- { plural(processingTime, "millisecond") }
 				</div>
 
 				{searchedList.map((data: SearchItem) => (
