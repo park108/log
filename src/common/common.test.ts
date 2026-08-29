@@ -16,7 +16,13 @@ const stubMode = (mode: string): void => {
 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
+// `common.log` 는 `Date.now()` 로 타임스탬프를 만든다 (common.ts:37 → getFormattedTime).
+// 시각을 고정하지 않으면 `ss < 10` 삼항(common.ts:229)의 커버 여부가 실행 시각의
+// 초 구간에 따라 갈려 branch 커버리지가 실행마다 138/139 로 진동한다 (실측:
+// b[38] 가 [21,1] ↔ [0,22]). setupTests 이디엄에 따라 해제는 전역 afterEach 담당.
 beforeEach(() => {
+	vi.useFakeTimers({ shouldAdvanceTime: true });
+	vi.setSystemTime(new Date('2021-10-10T06:28:52.000Z'));
 	vi.spyOn(console, 'log').mockImplementation(async () => true);
 	vi.spyOn(console, 'error').mockImplementation(async () => true);
 });
