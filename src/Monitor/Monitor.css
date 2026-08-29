@@ -154,6 +154,7 @@
 /* ── 상태 막대 (Web Vitals) ──────────────────────────────────────────── */
 
 .div--monitor-statusbar {
+	position: relative;
 	display: flex;
 	width: 100%;
 	height: 26px;
@@ -163,6 +164,21 @@
 	font-size: 0.72rem;
 	font-weight: 600;
 	cursor: default;
+}
+
+/* 데이터 0 상태 — 세 막대가 모두 0% 라 트랙이 텅 빈다. 그대로 두면 로딩
+ * 중이거나 고장난 것처럼 읽히므로, 빈 트랙 자체에 "측정값 없음" 이라는
+ * 의미를 준다. 막대 요소는 건드리지 않는다 (0% 폭 판정이 걸려 있다).
+ * 판정은 컴포넌트가 data-empty 로 명시한다 — 막대 style 을 CSS 선택자로
+ * 되짚는 방식은 렌더 형태에 결합돼 쉽게 어긋난다. */
+.div--monitor-statusbar[data-empty="true"] {
+	background: repeating-linear-gradient(
+		-45deg,
+		var(--mon-track),
+		var(--mon-track) 6px,
+		#ffffff 6px,
+		#ffffff 12px
+	);
 }
 
 .span--monitor-bar {

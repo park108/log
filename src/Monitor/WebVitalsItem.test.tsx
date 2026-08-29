@@ -444,6 +444,22 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 			}
 		});
 
+		it('(T-1b) 측정값 0 은 표시 계층에 명시된다 — 빈 트랙이 고장으로 읽히지 않게', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
+
+			await screen.findByText("None");
+
+			// 세 막대가 모두 0% 라 트랙이 텅 빈다. 그 상태를 CSS 가 구분할 수
+			// 있어야 로딩/고장과 다르게 그릴 수 있다. 막대 style 을 선택자로
+			// 되짚는 방식은 렌더 형태에 결합되므로 컴포넌트가 명시한다.
+			const bar = screen.getByTestId("status-bar-CLS");
+			expect(bar).toHaveAttribute("data-empty", "true");
+		});
+
 		it('(T-2) 막대 전 노드의 폭이 유효한 백분율이다 (열거 순회 + 노드 수 하한)', async () => {
 
 			vi.stubEnv('PROD', true);
@@ -499,6 +515,21 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 
 	describe('비-0 경로 — totalCount = 3', () => {
 		useMockServer(() => mock.prodServerOk);
+
+
+		it('(T-3b) 측정값이 있으면 data-empty 가 붙지 않는다 (음성 대조)', async () => {
+
+			vi.stubEnv('PROD', true);
+			vi.stubEnv('DEV', false);
+
+			render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
+
+			await screen.findByText("POOR");
+
+			// 속성이 상시 부여되면 0 상태 표시가 무의미해진다 — 판정은
+			// "0 일 때 붙는다" 와 "0 이 아닐 때 안 붙는다" 양쪽이 필요하다.
+			expect(screen.getByTestId("status-bar-CLS")).not.toHaveAttribute("data-empty");
+		});
 
 		it('(T-3) 세 막대의 폭이 리터럴 "33.333333333333336%" 다 — 반올림 도입 금지', async () => {
 

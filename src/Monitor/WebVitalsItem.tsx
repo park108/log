@@ -232,6 +232,8 @@ const WebVitalsItem = (props: WebVitalsItemProps) => {
 				<div
 					data-testid={"status-bar-" + name}
 					className="div div--monitor-statusbar"
+					// 측정값이 하나도 없는 상태를 표시 계층에 명시한다 (§CSS 참조).
+					data-empty={0 === evaluationResult.totalCount ? "true" : undefined}
 					tabIndex={0}
 					{...popup.triggerProps}
 				>
