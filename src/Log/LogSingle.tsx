@@ -25,7 +25,7 @@ const LogSingle = () => {
 	const queryString = new URLSearchParams(useLocation().search);
 	const logTimestamp = useParams()["timestamp"];
 
-	const { isLoading, isError, data: queryData } = useLog(logTimestamp);
+	const { isLoading, isError, data: queryData, refetch } = useLog(logTimestamp);
 
 	// `queryData` shape: `{ body: { Count, Items: [...] }, errorType? }` (useLog queryFn → res.json()).
 	const hasErrorType = queryData && hasValue(queryData.errorType);
@@ -79,7 +79,31 @@ const LogSingle = () => {
 			</h1>
 		);
 	}
-	else if (hasError || notFound) {
+	// 조회 실패와 "글 없음" 은 서로 다른 사실이다. 둘을 한 갈래로 묶어 두면
+	// 네트워크 실패가 "이 글은 존재하지 않는다" 로 표시돼 사용자는 링크가 죽은
+	// 것으로 판단하고 재시도하지 않는다. 목록 화면(LogList)은 같은 상황에서
+	// 재시도를 주는데 단건 화면만 이 표면이 없었다.
+	else if (hasError) {
+		logItem = (
+			<section className="section section--message-box">
+				<h2 className="h2 h2--message-error">
+					Whoops, something went wrong on our end.
+				</h2>
+				<hr />
+				<div className="div div--message-description">
+					Try refreshing the page, or click Retry button.
+				</div>
+				<button
+					className="button button--message-retrybutton"
+					data-testid="log-single-retry-button"
+					onClick={() => refetch()}
+				>
+					Retry
+				</button>
+			</section>
+		);
+	}
+	else if (notFound) {
 		logItem = <PageNotFound />;
 	}
 	else if (found && latestData) {

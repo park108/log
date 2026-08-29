@@ -231,10 +231,10 @@ describe('LogSingle get OK delete network error', () => {
 	});
 });
 
-describe('LogSingle render "Page Not Found" on prod server (failed)', () => {
+describe('LogSingle 조회 실패 표면 on prod server (failed)', () => {
 	useMockServer(() => mock.prodServerFailed);
 
-	it('render "Page Not Found" page if it cannot fetch', async () => {
+	it('조회 실패는 "글 없음" 이 아니라 실패로 표시한다', async () => {
 
 		stubMode('production');
 
@@ -244,8 +244,12 @@ describe('LogSingle render "Page Not Found" on prod server (failed)', () => {
 			</MemoryRouter>
 		));
 
-		const obj = await screen.findByText("Page Not Found.");
+		// 실패와 "글 없음" 은 서로 다른 사실이다 — 같은 화면을 쓰면 사용자는
+		// 링크가 죽은 것으로 판단하고 재시도하지 않는다.
+		const obj = await screen.findByText("Whoops, something went wrong on our end.");
 		expect(obj).toBeInTheDocument();
+		expect(screen.queryByText("Page Not Found.")).toBeNull();
+		expect(screen.getByTestId("log-single-retry-button")).toBeInTheDocument();
 	});
 });
 
@@ -267,10 +271,10 @@ describe('LogSingle render "Page Not Found" on prod server (no data)', () => {
 	});
 });
 
-describe('LogSingle render "Page Not Found" on prod server (network error)', () => {
+describe('LogSingle 조회 실패 표면 on prod server (network error)', () => {
 	useMockServer(() => mock.prodServerNetworkError);
 
-	it('render "Page Not Found" page if API is down', async () => {
+	it('네트워크 실패도 실패로 표시한다', async () => {
 
 		stubMode('production');
 
@@ -280,8 +284,10 @@ describe('LogSingle render "Page Not Found" on prod server (network error)', () 
 			</MemoryRouter>
 		));
 
-		const obj = await screen.findByText("Page Not Found.");
+		const obj = await screen.findByText("Whoops, something went wrong on our end.");
 		expect(obj).toBeInTheDocument();
+		expect(screen.queryByText("Page Not Found.")).toBeNull();
+		expect(screen.getByTestId("log-single-retry-button")).toBeInTheDocument();
 	});
 });
 
