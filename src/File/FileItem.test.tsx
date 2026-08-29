@@ -527,3 +527,47 @@ describe('URL 복사 — url 부재', () => {
 		});
 	});
 });
+
+// 저장된 S3 키는 이중 인코딩돼 있을 수 있다. 사람이 보는 자리에는 되돌린
+// 이름을, **API 에는 원본 키**를 써야 한다 — 표시용 이름으로 삭제를 걸면
+// 있지도 않은 키를 지우려 든다.
+describe('파일명 표시 — 되돌린 이름과 원본 키를 가른다', () => {
+
+	const ENCODED = '230608_AA%25E1%2584%2580%25E1%2585%25A2.pdf';
+	const READABLE = '230608_AA개.pdf';
+
+	it('화면에는 되돌린 이름을 그린다', () => {
+		const { container } = render(<FileItem {...defaultProps} fileName={ENCODED} />);
+		const el = container.querySelector('.button--fileitem-filename') as HTMLElement;
+
+		expect(el.textContent).toBe(READABLE);
+		expect(el.textContent).not.toContain('%25');
+		expect(el).toHaveAttribute('aria-label', 'Copy URL of ' + READABLE);
+	});
+
+	it('삭제는 원본 키로 호출한다', async () => {
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const deleteSpy = vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: async () => ({ statusCode: 200 }),
+		} as unknown as Response);
+
+		const { container } = render(<FileItem {...defaultProps} fileName={ENCODED} />);
+
+		await act(async () => {
+			fireEvent.click(container.querySelector('.button--fileitem-delete')!);
+		});
+
+		// 되돌린 이름으로 호출하면 존재하지 않는 키를 지우려 든다.
+		expect(deleteSpy).toHaveBeenCalledWith(ENCODED);
+		expect(deleteSpy).not.toHaveBeenCalledWith(READABLE);
+	});
+
+	it('삭제 확인 문구에는 읽을 수 있는 이름을 쓴다', () => {
+		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+		const { container } = render(<FileItem {...defaultProps} fileName={ENCODED} />);
+		fireEvent.click(container.querySelector('.button--fileitem-delete')!);
+
+		expect(confirmSpy).toHaveBeenCalledWith("Are you sure delete '" + READABLE + "'?");
+	});
+});

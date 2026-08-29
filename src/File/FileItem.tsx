@@ -3,6 +3,7 @@ import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, getFormattedSize, hasValue, confirm, copyToClipboard } from '../common/common';
 import { reportError } from '../common/errorReporter';
 import { deleteFile } from './api';
+import { decodeFileName } from './decodeFileName';
 
 interface FileItemProps {
 	deleted?: () => void;
@@ -21,6 +22,11 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(0);
 	const [toasterMessage, setToasterMessage] = useState<string>("");
 	const [toasterType, setToasterType] = useState<ToasterKind>("success");
+
+	// 저장된 S3 키는 이중 인코딩돼 있을 수 있다 (한글 이름 실측). 사람이 보는
+	// 자리에는 되돌린 이름을, **API 와 로그에는 원본 키**를 쓴다 — 표시용 이름으로
+	// 삭제를 걸면 있지도 않은 키를 지우려 든다.
+	const displayName = decodeFileName(props.fileName ?? "");
 
 	const refreshFiles = props.deleted;
 	const refreshTimeout = 3000;
@@ -85,7 +91,7 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 		// 들어가 **빈 값을 복사하고 true 를 돌려준다** — 사용자는 "URL copied" 를
 		// 보지만 클립보드는 비어 있다. 거짓 성공을 알리지 않도록 먼저 가른다.
 		if(!hasValue(props.url)) {
-			setToasterMessage("URL is not available for " + props.fileName + ".");
+			setToasterMessage("URL is not available for " + displayName + ".");
 			setToasterType("error");
 			setIsShowToaster(1);
 			return;
@@ -95,7 +101,7 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 		if(!isMounted.current) return;
 
 		if (ok) {
-			setToasterMessage(props.fileName + " URL copied.");
+			setToasterMessage(displayName + " URL copied.");
 			setToasterType("success");
 		} else {
 			setToasterMessage("Copy failed (permission denied or unavailable).");
@@ -105,7 +111,7 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 	}
 
 	const abort = () => log("Deleting aborted");
-	const confirmDelete = confirm("Are you sure delete '" + (props.fileName as string) + "'?", deleteFileItem, abort);
+	const confirmDelete = confirm("Are you sure delete '" + displayName + "'?", deleteFileItem, abort);
 
 	const className = isDeleting
 		? "div div--fileitem div--fileitem-delete"
@@ -117,11 +123,11 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 				<button
 					type="button"
 					className="button button--fileitem-filename"
-					aria-label={"Copy URL of " + props.fileName}
+					aria-label={"Copy URL of " + displayName}
 					title="Click to copy URL"
 					onClick={copyFileUrl}
 				>
-					{props.fileName}
+					{displayName}
 				</button>
 				<div className="div div--fileitem-statusbar">
 					{/* `lastModified` 도 선택적 prop 이다. 없으면 Date(NaN) 이 되어
@@ -157,8 +163,8 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 							type="button"
 							onClick={confirmDelete}
 							className="button button--fileitem-delete"
-							aria-label={"Delete " + props.fileName}
-							title={"Delete " + props.fileName}
+							aria-label={"Delete " + displayName}
+							title={"Delete " + displayName}
 						>
 							<span aria-hidden="true">✕</span>
 						</button>
