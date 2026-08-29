@@ -483,3 +483,47 @@ describe('수정 일시 표기', () => {
 		expect(container.querySelector('.span--fileitem-modifieddate')).not.toBeNull();
 	});
 });
+
+// `url` 은 선택적 prop 이다. 없으면 copyToClipboard 의 기본값(빈 문자열)이
+// 들어가 빈 값을 복사하고 true 를 돌려준다 — 사용자는 "URL copied" 를 보지만
+// 클립보드는 비어 있다. 거짓 성공이다.
+describe('URL 복사 — url 부재', () => {
+
+	it('URL 이 없으면 성공을 알리지 않는다', async () => {
+
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockResolvedValue(true);
+
+		const props = { ...defaultProps };
+		delete (props as { url?: string }).url;
+
+		const { container } = render(<FileItem {...props} />);
+
+		await act(async () => {
+			fireEvent.click(container.querySelector('.button--fileitem-filename')!);
+		});
+
+		// 클립보드에 손대지 않는다 — 이것을 안 보면 "빈 값을 복사하고 성공" 도 통과한다.
+		expect(copySpy).not.toHaveBeenCalled();
+
+		await waitFor(() => {
+			expect(container.textContent).toContain('URL is not available');
+		});
+		expect(container.textContent).not.toContain('URL copied');
+	});
+
+	it('대조 — URL 이 있으면 복사하고 성공을 알린다', async () => {
+
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockResolvedValue(true);
+
+		const { container } = render(<FileItem {...defaultProps} />);
+
+		await act(async () => {
+			fireEvent.click(container.querySelector('.button--fileitem-filename')!);
+		});
+
+		expect(copySpy).toHaveBeenCalledWith(defaultProps.url);
+		await waitFor(() => {
+			expect(container.textContent).toContain('URL copied');
+		});
+	});
+});

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Toaster from "../Toaster/Toaster";
-import { log, getFormattedDate, getFormattedTime, getFormattedSize, confirm, copyToClipboard } from '../common/common';
+import { log, getFormattedDate, getFormattedTime, getFormattedSize, hasValue, confirm, copyToClipboard } from '../common/common';
 import { reportError } from '../common/errorReporter';
 import { deleteFile } from './api';
 
@@ -80,6 +80,17 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 	}
 
 	const copyFileUrl = async () => {
+
+		// `url` 은 선택적 prop 이다. 없으면 copyToClipboard 의 기본값(빈 문자열)이
+		// 들어가 **빈 값을 복사하고 true 를 돌려준다** — 사용자는 "URL copied" 를
+		// 보지만 클립보드는 비어 있다. 거짓 성공을 알리지 않도록 먼저 가른다.
+		if(!hasValue(props.url)) {
+			setToasterMessage("URL is not available for " + props.fileName + ".");
+			setToasterType("error");
+			setIsShowToaster(1);
+			return;
+		}
+
 		const ok = await copyToClipboard(props.url as string);
 		if(!isMounted.current) return;
 
