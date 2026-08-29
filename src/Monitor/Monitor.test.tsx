@@ -177,8 +177,14 @@ it('mounts four panels in declared order (shell axis 3)', async () => {
 	// 대기 조건 == 단언 조건. `findAllBy*` 는 매치 1개에서 resolve 하므로
 	// 4 패널이 각자의 Suspense 경계에서 독립적으로 도착하는 이 화면에서는
 	// 대기(≥1)와 단언(=4)이 어긋난다. 개수 도달을 술어로 삼아 붙인다.
-	await waitFor(() =>
-		expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(PANEL_HEADINGS_IN_ORDER.length),
+	// 기본 1s 는 전체 스위트 병렬 부하에서 부족하다 — 4 패널이 각자 lazy Suspense
+	// 경계로 도착하므로 모듈 로드가 경합하면 1s 를 넘긴다 (격리 실행은 3/3 통과,
+	// 전체 실행에서 3/4 로 관측). 판정 술어는 그대로 두고 대기 여유만 늘린다 —
+	// 패널이 끝내 붙지 않으면 여전히 실패하며, 느려질 뿐 약해지지 않는다.
+	await waitFor(
+		() =>
+			expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(PANEL_HEADINGS_IN_ORDER.length),
+		{ timeout: 5000 },
 	);
 
 	// 순서 단언에 쓰는 스냅샷은 대기 이후 동기 조회로 다시 뜬다 —
