@@ -54,7 +54,7 @@ function countMatches(source: string, pattern: RegExp): number {
 function walkProductionMatchCount(root: string, pattern: RegExp): number {
 	let total = 0;
 	const stack: string[] = [root];
-	while (stack.length > 0) {
+	while (stack!.length > 0) {
 		const current = stack.pop() as string;
 		const entries = readdirSync(current);
 		for (const entry of entries) {

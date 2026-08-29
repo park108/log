@@ -14,7 +14,7 @@ import { logListFirst7, logListNext3 } from './__fixtures__/logs';
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
 // DEV=true 가 필수다 — `log()` 는 `isDev()` 분기 안에서만 `console.log` 로 나가므로
 // PROD stub 이면 unmount race 케이스의 콘솔 단정이 공허해진다.
-const stubMode = (mode) => {
+const stubMode = (mode: string) => {
 	vi.stubEnv('MODE', mode);
 	vi.stubEnv('DEV', mode === 'development');
 	vi.stubEnv('PROD', mode === 'production');
@@ -34,7 +34,7 @@ beforeEach(() => {
 	sessionStorage.removeItem("logListLastTimestamp");
 });
 
-const jsonResponse = (payload) => new Response(JSON.stringify(payload), {
+const jsonResponse = (payload: unknown) => new Response(JSON.stringify(payload), {
 	status: 200,
 	headers: { 'Content-Type': 'application/json' },
 });
@@ -130,8 +130,8 @@ describe('LogList unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 
 	it('pending getLogs 중 unmount → 응답 resolve 가 어떤 발화도 하지 않는다', async () => {
 
-		let resolveResp;
-		const pending = new Promise((resolve) => { resolveResp = resolve; });
+		let resolveResp!: (value: Response | PromiseLike<Response>) => void;
+		const pending = new Promise<Response>((resolve) => { resolveResp = resolve; });
 		const getLogsSpy = vi.spyOn(api, 'getLogs').mockReturnValue(pending);
 
 		const { unmount } = renderLogList();
@@ -155,8 +155,8 @@ describe('LogList unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 
 	it('pending getLogs 중 unmount 후 reject → catch 경로도 어떤 발화도 하지 않는다', async () => {
 
-		let rejectResp;
-		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		let rejectResp!: (reason?: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
 		const getLogsSpy = vi.spyOn(api, 'getLogs').mockReturnValue(pending);
 
 		const { unmount } = renderLogList();
@@ -182,8 +182,8 @@ describe('LogList unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 
 		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
 
-		let resolveNext;
-		const pendingNext = new Promise((resolve) => { resolveNext = resolve; });
+		let resolveNext!: (value: Response | PromiseLike<Response>) => void;
+		const pendingNext = new Promise<Response>((resolve) => { resolveNext = resolve; });
 		const getNextLogsSpy = vi.spyOn(api, 'getNextLogs').mockReturnValue(pendingNext);
 
 		const { unmount } = renderLogList();
@@ -211,8 +211,8 @@ describe('LogList unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 
 		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
 
-		let rejectNext;
-		const pendingNext = new Promise((_, reject) => { rejectNext = reject; });
+		let rejectNext!: (reason?: unknown) => void;
+		const pendingNext = new Promise<Response>((_, reject) => { rejectNext = reject; });
 		const getNextLogsSpy = vi.spyOn(api, 'getNextLogs').mockReturnValue(pendingNext);
 
 		const { unmount } = renderLogList();

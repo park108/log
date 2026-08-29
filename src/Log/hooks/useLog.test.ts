@@ -16,11 +16,11 @@ describe('useLog', () => {
 
 	it('resolves to single log payload on success', async () => {
 		const payload = { timestamp: 1655737033793, summary: 's', logs: [] };
-		api.getLog.mockResolvedValueOnce({
+		vi.mocked(api.getLog).mockResolvedValueOnce({
 			ok: true,
 			status: 200,
 			json: async () => payload,
-		});
+		} as unknown as Response);
 
 		const { Wrapper, queryClient } = createQueryTestWrapper();
 		const { result } = renderHook(() => useLog(1655737033793), { wrapper: Wrapper });
@@ -47,17 +47,17 @@ describe('useLog', () => {
 	});
 
 	it('surfaces error state when getLog returns a non-ok response', async () => {
-		api.getLog.mockResolvedValueOnce({
+		vi.mocked(api.getLog).mockResolvedValueOnce({
 			ok: false,
 			status: 500,
 			json: async () => ({}),
-		});
+		} as unknown as Response);
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useLog(1655737033793), { wrapper: Wrapper });
 
 		await waitFor(() => expect(result.current.isError).toBe(true));
-		expect(result.current.error).toBeInstanceOf(Error);
-		expect(result.current.error.message).toContain('500');
+		expect(result.current.error!).toBeInstanceOf(Error);
+		expect(result.current.error!.message).toContain('500');
 	});
 });

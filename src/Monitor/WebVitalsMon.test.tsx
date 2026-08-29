@@ -12,7 +12,7 @@ beforeEach(() => {
 // composition rendered by WebVitalsMon (name/description pairs), not the
 // item's fetch / evaluation behaviour (covered by WebVitalsItem.test.jsx).
 vi.mock('./WebVitalsItem', () => ({
-	default: ({ name, description }) => (
+	default: ({ name, description }: { name: string; description: string }) => (
 		<div data-testid={`web-vital-item-${name}`}>
 			<span>{name}</span>
 			<span>{description}</span>

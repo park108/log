@@ -101,7 +101,7 @@ describe('CommentItem rendering + hoverPopup migration', () => {
 
 		const describedBy = replyButton.getAttribute('aria-describedby');
 		expect(describedBy).toBeTruthy();
-		expect(popup.getAttribute('id')).toBe(describedBy);
+		expect(popup!.getAttribute('id')).toBe(describedBy);
 
 		await act(async () => {
 			fireEvent.blur(replyButton);

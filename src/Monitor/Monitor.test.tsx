@@ -1,3 +1,4 @@
+import type React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import Monitor from '../Monitor/Monitor';
@@ -24,16 +25,16 @@ import * as common from '../common/common';
 // `vi.hoisted` 안에 있어야 한다 (평범한 `const` 로 두면 `Cannot access … before
 // initialization` — 실측).
 const panelProps = vi.hoisted(() => {
-	const records = [];
+	const records: Array<{ name: string; props: Record<string, unknown> }> = [];
 	const state = { suspend: false };
 	// 영구 pending — 해소되지 않으므로 각 패널은 자기를 감싸는 Suspense 경계에
 	// 멈춘 채로 남는다. 경계 수 판정의 입력이다 (아래 §셸 축 4 주석).
 	const neverSettles = new Promise(() => {});
-	const record = (name) => async (importOriginal) => {
-		const actual = await importOriginal();
+	const record = (name: string) => async (importOriginal: () => Promise<unknown>) => {
+		const actual = (await importOriginal()) as typeof import('react') & { default: React.ComponentType<Record<string, unknown>> };
 		const { createElement } = await import('react');
 		const Real = actual.default;
-		const Recorder = (props) => {
+		const Recorder = (props: Record<string, unknown>) => {
 			records.push({ name, props });
 			if (state.suspend) throw neverSettles;
 			return createElement(Real, props);
@@ -81,14 +82,14 @@ const testEntry = {
 	, key: "default"
 };
 
-const asAdmin = (isAdmin) => {
+const asAdmin = (isAdmin: boolean) => {
 	vi.stubEnv('DEV', true);
 	vi.stubEnv('PROD', false);
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(isAdmin);
 };
 
-const renderMonitor = (contentHeight) =>
+const renderMonitor = (contentHeight?: React.CSSProperties) =>
 	render(
 		<MemoryRouter initialEntries={[testEntry]}>
 			<Monitor contentHeight={contentHeight} />
@@ -146,7 +147,7 @@ it('sets fullscreen on admin mount and clears it on unmount (shell axis 2)', asy
 
 	const { unmount } = renderMonitor();
 
-	await screen.findByText(PANEL_HEADINGS_IN_ORDER[0]);
+	await screen.findByText(PANEL_HEADINGS_IN_ORDER[0]!);
 
 	expect(setHtmlTitleSpy).toHaveBeenCalledWith("monitor");
 	expect(setFullscreenSpy).toHaveBeenCalledWith(true);
@@ -209,9 +210,9 @@ it('renders four independent suspense fallbacks while panels are pending (shell 
 
 	const main = container.querySelector('main');
 	expect(main).not.toBeNull();
-	expect(main.childElementCount).toBe(4);
+	expect(main!.childElementCount).toBe(4);
 
-	const fallbacks = [...main.children];
+	const fallbacks = [...main!.children];
 	expect(fallbacks.map((node) => node.tagName)).toEqual(['DIV', 'DIV', 'DIV', 'DIV']);
 	expect(fallbacks.every((node) => node.innerHTML === '')).toBe(true);
 });
@@ -223,21 +224,21 @@ it('injects chart pallets per panel (shell axis 5)', async () => {
 
 	renderMonitor();
 
-	await screen.findByText(PANEL_HEADINGS_IN_ORDER[0]);
-	await screen.findByText(PANEL_HEADINGS_IN_ORDER[3]);
+	await screen.findByText(PANEL_HEADINGS_IN_ORDER[0]!);
+	await screen.findByText(PANEL_HEADINGS_IN_ORDER[3]!);
 
 	// 공허 방지 — 기록이 비면 아래 조회가 전부 undefined 가 되고 단언이 무의미해진다.
 	expect(panelProps.records.length).toBeGreaterThanOrEqual(4);
 
-	const palletOf = (name) => {
+	const palletOf = (name: string) => {
 		const record = panelProps.records.find((r) => r.name === name);
 		expect(record, `패널 ${name} 이 렌더되지 않았다`).toBeDefined();
-		return record.props.stackPallet;
+		return record!.props.stackPallet as Array<{ backgroundColor: string; color: string }>;
 	};
 
-	expect(palletOf('ApiCallMon')[0].backgroundColor).toBe(RED_TO_GREEN_HEAD);
-	expect(palletOf('ContentMon')[0].backgroundColor).toBe(OLIVE_HEAD);
-	expect(palletOf('VisitorMon')[0].backgroundColor).toBe(OLIVE_HEAD);
+	expect(palletOf('ApiCallMon')[0]!.backgroundColor).toBe(RED_TO_GREEN_HEAD);
+	expect(palletOf('ContentMon')[0]!.backgroundColor).toBe(OLIVE_HEAD);
+	expect(palletOf('VisitorMon')[0]!.backgroundColor).toBe(OLIVE_HEAD);
 	// WebVitals 패널은 팔레트를 받지 않는다 — "전 패널에 무언가 넘어간다" 로 느슨해지면
 	// 주입 축이 사라진다.
 	expect(palletOf('WebVitalsMon')).toBeUndefined();
@@ -252,6 +253,6 @@ it('renders the main contents shell with injected height (shell axis 6)', () => 
 
 	const main = container.querySelector('main');
 	expect(main).not.toBeNull();
-	expect(main.className).toContain('main--main-contents');
-	expect(main.style.height).toBe('765px');
+	expect(main!.className).toContain('main--main-contents');
+	expect(main!.style.height).toBe('765px');
 });

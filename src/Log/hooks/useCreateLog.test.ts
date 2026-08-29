@@ -14,9 +14,9 @@ describe('useCreateLog', () => {
 	});
 
 	it('resolves on status 200 and invalidates [log, list]', async () => {
-		api.postLog.mockResolvedValueOnce({
+		vi.mocked(api.postLog).mockResolvedValueOnce({
 			json: async () => ({ statusCode: 200 }),
-		});
+		} as unknown as Response);
 
 		const { Wrapper, queryClient } = createQueryTestWrapper();
 		const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -33,9 +33,9 @@ describe('useCreateLog', () => {
 	});
 
 	it('throws (transitions to error) on non-200 statusCode', async () => {
-		api.postLog.mockResolvedValueOnce({
+		vi.mocked(api.postLog).mockResolvedValueOnce({
 			json: async () => ({ statusCode: 500 }),
-		});
+		} as unknown as Response);
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useCreateLog(), { wrapper: Wrapper });
@@ -47,12 +47,12 @@ describe('useCreateLog', () => {
 		});
 
 		await waitFor(() => expect(result.current.isError).toBe(true));
-		expect(result.current.error).toBeInstanceOf(Error);
-		expect(result.current.error.message).toMatch(/statusCode=500/);
+		expect(result.current.error!).toBeInstanceOf(Error);
+		expect(result.current.error!.message).toMatch(/statusCode=500/);
 	});
 
 	it('surfaces network-level rejection as mutation error', async () => {
-		api.postLog.mockRejectedValueOnce(new Error('network'));
+		vi.mocked(api.postLog).mockRejectedValueOnce(new Error('network'));
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useCreateLog(), { wrapper: Wrapper });
@@ -64,7 +64,7 @@ describe('useCreateLog', () => {
 		});
 
 		await waitFor(() => expect(result.current.isError).toBe(true));
-		expect(result.current.error.message).toMatch(/network/);
+		expect(result.current.error!.message).toMatch(/network/);
 	});
 	// REQ-20260825-014 (M-1)(M-2)(M-3) — 훅 옵션 콜백은 구독 성립 시점에 종속되지 않는다.
 	// per-call `mutate(vars, { onSuccess })` 는 MutationObserver 가 구독자를 보유할 때만
@@ -72,8 +72,8 @@ describe('useCreateLog', () => {
 	// `if (this.#mutateOptions && this.hasListeners())`). `unmount()` 로 그 조건을 결정적으로
 	// 재현한다. 호출처 표면(`Writer`) 판정은 `mutation-notification-subscription-order.test.jsx`.
 	it('구독자가 없는 창에서 응답이 도착해도 훅 옵션 onSuccess 가 발화한다', async () => {
-		let resolvePost;
-		api.postLog.mockReturnValueOnce(new Promise((resolve) => { resolvePost = resolve; }));
+		let resolvePost!: (value: Response | PromiseLike<Response>) => void;
+		vi.mocked(api.postLog).mockReturnValueOnce(new Promise<Response>((resolve) => { resolvePost = resolve; }));
 
 		const onSuccess = vi.fn();
 		const { Wrapper } = createQueryTestWrapper();
@@ -85,17 +85,17 @@ describe('useCreateLog', () => {
 		unmount();
 
 		await act(async () => {
-			resolvePost({ json: async () => ({ statusCode: 200 }) });
+			resolvePost({ json: async () => ({ statusCode: 200 } as unknown as Response) } as unknown as Response);
 		});
 
 		await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
-		expect(onSuccess.mock.calls[0][1]).toEqual(
+		expect(onSuccess.mock.calls[0]![1]).toEqual(
 			expect.objectContaining({ timestamp: 11 }));
 	});
 
 	it('구독자가 없는 창에서 실패해도 훅 옵션 onError 가 발화한다', async () => {
-		let rejectPost;
-		api.postLog.mockReturnValueOnce(new Promise((_resolve, reject) => { rejectPost = reject; }));
+		let rejectPost!: (reason?: unknown) => void;
+		vi.mocked(api.postLog).mockReturnValueOnce(new Promise<Response>((_resolve, reject) => { rejectPost = reject; }));
 
 		const onError = vi.fn();
 		const { Wrapper } = createQueryTestWrapper();
@@ -111,6 +111,6 @@ describe('useCreateLog', () => {
 		});
 
 		await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
-		expect(onError.mock.calls[0][0].message).toMatch(/network/);
+		expect(onError.mock.calls[0]![0].message).toMatch(/network/);
 	});
 });

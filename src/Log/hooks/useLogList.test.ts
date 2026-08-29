@@ -16,11 +16,11 @@ describe('useLogList', () => {
 
 	it('resolves to list payload on success', async () => {
 		const payload = { items: [{ timestamp: 1 }, { timestamp: 2 }], count: 2 };
-		api.getLogs.mockResolvedValueOnce({
+		vi.mocked(api.getLogs).mockResolvedValueOnce({
 			ok: true,
 			status: 200,
 			json: async () => payload,
-		});
+		} as unknown as Response);
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useLogList(), { wrapper: Wrapper });
@@ -31,27 +31,27 @@ describe('useLogList', () => {
 	});
 
 	it('surfaces error state when fetch returns non-ok response', async () => {
-		api.getLogs.mockResolvedValueOnce({
+		vi.mocked(api.getLogs).mockResolvedValueOnce({
 			ok: false,
 			status: 500,
 			json: async () => ({}),
-		});
+		} as unknown as Response);
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useLogList(), { wrapper: Wrapper });
 
 		await waitFor(() => expect(result.current.isError).toBe(true));
-		expect(result.current.error).toBeInstanceOf(Error);
-		expect(result.current.error.message).toContain('500');
+		expect(result.current.error!).toBeInstanceOf(Error);
+		expect(result.current.error!.message).toContain('500');
 	});
 
 	it('reflects custom limit parameter in queryKey and fetch call', async () => {
 		const payload = { items: [], count: 0 };
-		api.getLogs.mockResolvedValueOnce({
+		vi.mocked(api.getLogs).mockResolvedValueOnce({
 			ok: true,
 			status: 200,
 			json: async () => payload,
-		});
+		} as unknown as Response);
 
 		const { Wrapper, queryClient } = createQueryTestWrapper();
 		const { result } = renderHook(() => useLogList({ limit: 25 }), { wrapper: Wrapper });

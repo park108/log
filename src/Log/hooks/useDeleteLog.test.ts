@@ -14,9 +14,9 @@ describe('useDeleteLog', () => {
 	});
 
 	it('resolves on status 200, invalidates [log, list] and removes [log, detail, timestamp]', async () => {
-		api.deleteLog.mockResolvedValueOnce({
+		vi.mocked(api.deleteLog).mockResolvedValueOnce({
 			json: async () => ({ statusCode: 200 }),
-		});
+		} as unknown as Response);
 
 		const { Wrapper, queryClient } = createQueryTestWrapper();
 		const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -36,9 +36,9 @@ describe('useDeleteLog', () => {
 	});
 
 	it('throws (transitions to error) on non-200 statusCode', async () => {
-		api.deleteLog.mockResolvedValueOnce({
+		vi.mocked(api.deleteLog).mockResolvedValueOnce({
 			json: async () => ({ statusCode: 500 }),
-		});
+		} as unknown as Response);
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useDeleteLog(), { wrapper: Wrapper });
@@ -50,8 +50,8 @@ describe('useDeleteLog', () => {
 		});
 
 		await waitFor(() => expect(result.current.isError).toBe(true));
-		expect(result.current.error).toBeInstanceOf(Error);
-		expect(result.current.error.message).toMatch(/statusCode=500/);
+		expect(result.current.error!).toBeInstanceOf(Error);
+		expect(result.current.error!.message).toMatch(/statusCode=500/);
 	});
 
 	// 회귀 방지 (CI 간헐 red / LogSingle.test.jsx `waitFor("The log is deleted.")` 5000ms timeout):
@@ -61,8 +61,8 @@ describe('useDeleteLog', () => {
 	// 응답이 도착하면 성공 알림이 조용히 유실된다 — 서버에서는 지워졌는데 UI 는 침묵한다.
 	// 훅 옵션 콜백은 `Mutation.execute()` 가 구독 여부와 무관하게 호출하므로 그 창을 덮는다.
 	it('구독자가 없는 창에서 응답이 도착해도 훅 옵션 onSuccess 가 발화한다', async () => {
-		let resolveDelete;
-		api.deleteLog.mockReturnValueOnce(new Promise((resolve) => { resolveDelete = resolve; }));
+		let resolveDelete!: (value: Response | PromiseLike<Response>) => void;
+		vi.mocked(api.deleteLog).mockReturnValueOnce(new Promise<Response>((resolve) => { resolveDelete = resolve; }));
 
 		const onSuccess = vi.fn();
 		const { Wrapper } = createQueryTestWrapper();
@@ -76,7 +76,7 @@ describe('useDeleteLog', () => {
 		unmount();
 
 		await act(async () => {
-			resolveDelete({ json: async () => ({ statusCode: 200 }) });
+			resolveDelete({ json: async () => ({ statusCode: 200 } as unknown as Response) } as unknown as Response);
 		});
 
 		await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
@@ -87,8 +87,8 @@ describe('useDeleteLog', () => {
 	});
 
 	it('구독자가 없는 창에서 실패해도 훅 옵션 onError 가 발화한다', async () => {
-		let rejectDelete;
-		api.deleteLog.mockReturnValueOnce(new Promise((_resolve, reject) => { rejectDelete = reject; }));
+		let rejectDelete!: (reason?: unknown) => void;
+		vi.mocked(api.deleteLog).mockReturnValueOnce(new Promise<Response>((_resolve, reject) => { rejectDelete = reject; }));
 
 		const onError = vi.fn();
 		const { Wrapper } = createQueryTestWrapper();
@@ -104,11 +104,11 @@ describe('useDeleteLog', () => {
 		});
 
 		await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
-		expect(onError.mock.calls[0][0].message).toMatch(/network/);
+		expect(onError.mock.calls[0]![0].message).toMatch(/network/);
 	});
 
 	it('surfaces network-level rejection as mutation error', async () => {
-		api.deleteLog.mockRejectedValueOnce(new Error('network'));
+		vi.mocked(api.deleteLog).mockRejectedValueOnce(new Error('network'));
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useDeleteLog(), { wrapper: Wrapper });
@@ -120,6 +120,6 @@ describe('useDeleteLog', () => {
 		});
 
 		await waitFor(() => expect(result.current.isError).toBe(true));
-		expect(result.current.error.message).toMatch(/network/);
+		expect(result.current.error!.message).toMatch(/network/);
 	});
 });

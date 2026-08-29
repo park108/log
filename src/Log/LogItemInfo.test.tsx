@@ -6,7 +6,7 @@ import LogItemInfo from './LogItemInfo';
 
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
-const stubMode = (mode) => {
+const stubMode = (mode: string) => {
 	vi.stubEnv('MODE', mode);
 	vi.stubEnv('DEV', mode === 'development');
 	vi.stubEnv('PROD', mode === 'production');
@@ -84,7 +84,7 @@ describe('LogItemInfo hoverPopup migration', () => {
 
 		const describedBy = linkTrigger.getAttribute('aria-describedby');
 		expect(describedBy).toBeTruthy();
-		expect(popup.getAttribute('id')).toBe(describedBy);
+		expect(popup!.getAttribute('id')).toBe(describedBy);
 
 		await act(async () => {
 			fireEvent.blur(linkTrigger);
@@ -109,13 +109,13 @@ describe('LogItemInfo hoverPopup migration', () => {
 		// focus 후 aria-describedby 가 설정되고, 같은 id 의 tooltip 이 DOM 에 추가된다.
 		const describedBy = versionButton.getAttribute('aria-describedby');
 		expect(describedBy).toBeTruthy();
-		const popup = document.getElementById(describedBy);
+		const popup = document.getElementById(describedBy!);
 		expect(popup).not.toBeNull();
 		expect(popup).toHaveAttribute('role', 'tooltip');
 		expect(popup).toHaveAttribute('aria-hidden', 'false');
 		// 버전 히스토리 항목 텍스트 "v.2" / "v.1" 가 popup 내부에 렌더.
-		expect(popup.textContent).toMatch(/v\.2/);
-		expect(popup.textContent).toMatch(/v\.1/);
+		expect(popup!.textContent).toMatch(/v\.2/);
+		expect(popup!.textContent).toMatch(/v\.1/);
 	});
 
 	it('Escape key closes the popup immediately (dismissible, WCAG 2.1 SC 1.4.13)', () => {
@@ -158,7 +158,7 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 	});
 
 	it('M3: Enter 키로 link-copy 가 활성된다 (click 과 동일 핸들러 → copyToClipboard 호출)', () => {
-		const copySpy = vi.spyOn(common, 'copyToClipboard').mockImplementation(() => {});
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockImplementation(async () => true);
 		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
 		renderInfo();
 
@@ -170,7 +170,7 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 	});
 
 	it('M3: Space 키로 link-copy 가 활성된다 (preventDefault + copyToClipboard 호출)', () => {
-		const copySpy = vi.spyOn(common, 'copyToClipboard').mockImplementation(() => {});
+		const copySpy = vi.spyOn(common, 'copyToClipboard').mockImplementation(async () => true);
 		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
 		renderInfo();
 
@@ -253,16 +253,16 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-03) — M4 versions-but
 
 		const el = screen.getByTestId('versions-button');
 		// 초기: popup 미렌더.
-		expect(el.getAttribute('aria-describedby')).toBeNull();
+		expect(el!.getAttribute('aria-describedby')).toBeNull();
 
 		act(() => {
 			fireEvent.focus(el);
 		});
 
 		// focus → aria-describedby 설정 + 동일 id 의 tooltip 렌더.
-		const describedBy = el.getAttribute('aria-describedby');
+		const describedBy = el!.getAttribute('aria-describedby');
 		expect(describedBy).toBeTruthy();
-		const popup = document.getElementById(describedBy);
+		const popup = document.getElementById(describedBy!);
 		expect(popup).not.toBeNull();
 		expect(popup).toHaveAttribute('role', 'tooltip');
 	});
@@ -322,12 +322,12 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-05) — M5 Edit Link sp
 		const editSpan = screen.getByTestId('edit-button');
 		const anchor = editSpan.closest('a');
 		expect(anchor).not.toBeNull();
-		expect(anchor.getAttribute('href')).toBe('/log/write');
+		expect(anchor!.getAttribute('href')).toBe('/log/write');
 
 		// anchor 에 포커스 + Enter keyDown 후, 브라우저의 기본 활성 경로를 대신해 click 을 발화.
 		// (jsdom 은 anchor 의 Enter→click 기본 동작을 자동 매핑하지 않음.)
-		fireEvent.keyDown(anchor, { key: 'Enter' });
-		fireEvent.click(anchor);
+		fireEvent.keyDown(anchor!, { key: 'Enter' });
+		fireEvent.click(anchor!);
 
 		// Routes 가 /log/write 로 전환됨을 확인.
 		expect(screen.getByTestId('route-probe').textContent).toBe('/log/write');
@@ -341,8 +341,8 @@ describe('LogItemInfo a11y 패턴 B (REQ-20260421-033 FR-05) — M5 Edit Link sp
 		const el = screen.getByTestId('edit-button');
 
 		// §예외 확정: 자식 span 은 속성 부여 금지. getAttribute 는 미부여 시 null.
-		expect(el.getAttribute('tabIndex')).toBeNull();
-		expect(el.getAttribute('onkeydown')).toBeNull();
+		expect(el!.getAttribute('tabIndex')).toBeNull();
+		expect(el!.getAttribute('onkeydown')).toBeNull();
 	});
 
 	it('temporary=true 이면 제목에 임시 글 마커가 노출된다', () => {

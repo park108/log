@@ -1,3 +1,4 @@
+import type React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
@@ -11,7 +12,7 @@ import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
-const stubMode = (mode) => {
+const stubMode = (mode: string) => {
 	vi.stubEnv('MODE', mode);
 	vi.stubEnv('DEV', mode === 'development');
 	vi.stubEnv('PROD', mode === 'production');
@@ -29,7 +30,7 @@ beforeEach(() => {
 // component to mount; each call instantiates a fresh isolated client via the
 // single-source helper to avoid cache leakage (REQ-20260519-001 /
 // `createQueryTestWrapper`).
-const withQuery = (node) => {
+const withQuery = (node: React.ReactNode) => {
 	const { Wrapper } = createQueryTestWrapper();
 	return <Wrapper>{node}</Wrapper>;
 };
@@ -146,7 +147,7 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 		vi.spyOn(common, "isAdmin").mockReturnValue(false);
 	});
 
-	const baseItem = (contents) => ({
+	const baseItem = (contents: string) => ({
 		logs: [{ contents, timestamp: 1655736946977 }],
 		summary: "s",
 		sortKey: 1655736946977,
@@ -154,7 +155,7 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 		author: "park108@gmail.com",
 	});
 
-	const renderAt = (contents) => render(withQuery(
+	const renderAt = (contents: string) => render(withQuery(
 		<MemoryRouter initialEntries={[{ pathname: "/log", search: "", hash: "", state: {}, key: "d" }]}>
 			<LogItem
 				author={"park108@gmail.com"}
@@ -167,24 +168,24 @@ describe("LogItem sanitizes rendered markdown HTML", () => {
 	));
 
 	it("strips <script> tags from markdown HTML output", async () => {
-		const payload = "Hello <script>window.__xss=1</script> World";
+		const payload = "Hello <script>(window as unknown as Record<string, unknown>).__xss=1</script> World";
 		const { container } = renderAt(payload);
 		await screen.findByText(/Hello/);
 		expect(container.querySelector("script")).toBeNull();
 		// global side-effect not triggered
 		// @ts-ignore
-		expect(window.__xss).toBeUndefined();
+		expect((window as unknown as Record<string, unknown>).__xss).toBeUndefined();
 	});
 
 	it("strips on* event handler attributes from embedded html", async () => {
-		const payload = '<img src="x" onerror="window.__xss2=1" />';
+		const payload = '<img src="x" onerror="(window as unknown as Record<string, unknown>).__xss2=1" />';
 		const { container } = renderAt(payload);
-		const imgs = container.querySelectorAll("img");
+		const imgs = container.querySelectorAll<HTMLElement>("img");
 		imgs.forEach((img) => {
 			expect(img.getAttribute("onerror")).toBeNull();
 		});
 		// @ts-ignore
-		expect(window.__xss2).toBeUndefined();
+		expect((window as unknown as Record<string, unknown>).__xss2).toBeUndefined();
 	});
 });
 

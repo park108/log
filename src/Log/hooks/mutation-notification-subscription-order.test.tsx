@@ -8,7 +8,7 @@ import { createQueryTestWrapper } from '../../test-utils/queryWrapper';
 // `postLog` / `putLog` 만 수동 제어 가능한 스텁으로 바꾼다 (나머지 api 는 원본 유지 —
 // lazy 하위 `LogItem` / `ImageSelector` 가 같은 모듈을 공유한다).
 vi.mock('../api', async (importOriginal) => {
-	const actual = await importOriginal();
+	const actual = await importOriginal<typeof import('react') & { default: Record<string, unknown> }>();
 	return { ...actual, postLog: vi.fn(), putLog: vi.fn() };
 });
 
@@ -31,8 +31,8 @@ vi.mock('../api', async (importOriginal) => {
  * `common.log(...)` 호출로 관측한다 (`Writer.jsx` create/update 성공·실패 콜백 4곳 모두 동일).
  */
 
-const countLogCalls = (spy, message, level) =>
-	spy.mock.calls.filter(([m, l]) => m === message && l === level).length;
+const countLogCalls = (spy: { mock: { calls: unknown[][] } }, message: string, level: string) =>
+	spy.mock.calls.filter(([m, l]: unknown[]) => m === message && l === level).length;
 
 const CREATE_ENTRY = { pathname: '/log/write', state: null };
 
@@ -47,7 +47,7 @@ const EDIT_ENTRY = {
 	},
 };
 
-const renderWriter = (entry) => {
+const renderWriter = (entry: { pathname: string; state: unknown }) => {
 	const { Wrapper } = createQueryTestWrapper();
 	return render(
 		<Wrapper>
@@ -62,7 +62,7 @@ const renderWriter = (entry) => {
 
 describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않는다 (M-1)(M-2)', () => {
 
-	let logSpy;
+	let logSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -70,13 +70,13 @@ describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않
 		vi.spyOn(console, 'error').mockImplementation(() => {});
 		vi.spyOn(common, 'isLoggedIn').mockReturnValue(true);
 		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
-		vi.spyOn(common, 'setFullscreen').mockReturnValue(true);
+		vi.spyOn(common, 'setFullscreen').mockReturnValue(undefined);
 		logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
 	});
 
 	it('(M-1) 생성 — 구독자가 없는 창에서 200 이 도착해도 성공 알림이 1회 발화한다', async () => {
-		let resolvePost;
-		api.postLog.mockReturnValueOnce(new Promise((resolve) => { resolvePost = resolve; }));
+		let resolvePost!: (value: Response | PromiseLike<Response>) => void;
+		vi.mocked(api.postLog).mockReturnValueOnce(new Promise<Response>((resolve) => { resolvePost = resolve; }));
 
 		const { unmount } = renderWriter(CREATE_ENTRY);
 
@@ -90,7 +90,7 @@ describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않
 		unmount();
 
 		await act(async () => {
-			resolvePost({ json: async () => ({ statusCode: 200 }) });
+			resolvePost({ json: async () => ({ statusCode: 200 } as unknown as Response) } as unknown as Response);
 		});
 
 		await waitFor(() =>
@@ -98,8 +98,8 @@ describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않
 	});
 
 	it('(M-2) 생성 — 구독자가 없는 창에서 실패해도 실패 알림이 1회 발화한다', async () => {
-		let rejectPost;
-		api.postLog.mockReturnValueOnce(new Promise((_resolve, reject) => { rejectPost = reject; }));
+		let rejectPost!: (reason?: unknown) => void;
+		vi.mocked(api.postLog).mockReturnValueOnce(new Promise<Response>((_resolve, reject) => { rejectPost = reject; }));
 
 		const { unmount } = renderWriter(CREATE_ENTRY);
 
@@ -119,8 +119,8 @@ describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않
 	});
 
 	it('(M-1) 수정 — 구독자가 없는 창에서 200 이 도착해도 성공 알림이 1회 발화한다', async () => {
-		let resolvePut;
-		api.putLog.mockReturnValueOnce(new Promise((resolve) => { resolvePut = resolve; }));
+		let resolvePut!: (value: Response | PromiseLike<Response>) => void;
+		vi.mocked(api.putLog).mockReturnValueOnce(new Promise<Response>((resolve) => { resolvePut = resolve; }));
 
 		const { unmount } = renderWriter(EDIT_ENTRY);
 
@@ -130,7 +130,7 @@ describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않
 		unmount();
 
 		await act(async () => {
-			resolvePut({ json: async () => ({ statusCode: 200 }) });
+			resolvePut({ json: async () => ({ statusCode: 200 } as unknown as Response) } as unknown as Response);
 		});
 
 		await waitFor(() =>
@@ -138,8 +138,8 @@ describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않
 	});
 
 	it('(M-2) 수정 — 구독자가 없는 창에서 비-200 이 도착해도 실패 알림이 1회 발화한다', async () => {
-		let resolvePut;
-		api.putLog.mockReturnValueOnce(new Promise((resolve) => { resolvePut = resolve; }));
+		let resolvePut!: (value: Response | PromiseLike<Response>) => void;
+		vi.mocked(api.putLog).mockReturnValueOnce(new Promise<Response>((resolve) => { resolvePut = resolve; }));
 
 		const { unmount } = renderWriter(EDIT_ENTRY);
 
@@ -149,7 +149,7 @@ describe('뮤테이션 완료 알림은 구독 성립 시점에 종속되지 않
 		unmount();
 
 		await act(async () => {
-			resolvePut({ json: async () => ({ statusCode: 500 }) });
+			resolvePut({ json: async () => ({ statusCode: 500 } as unknown as Response) } as unknown as Response);
 		});
 
 		await waitFor(() =>

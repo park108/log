@@ -16,7 +16,7 @@ import FileItem from './FileItem';
 const setterRec = vi.hoisted(() => ({ calls: 0 }));
 
 vi.mock('react', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('react')>();
+	const actual = await importOriginal<typeof import('react') & { default: Record<string, unknown> }>();
 	const useState = (init?: unknown): [unknown, (next: unknown) => void] => {
 		const [value, setValue] = actual.useState(init as never);
 		const counted = (next: unknown): void => {
@@ -42,8 +42,8 @@ function deferred<T>(): { promise: Promise<T>; resolve: (v: T) => void; reject: 
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
 beforeEach(() => {
-	vi.spyOn(console, 'log').mockImplementation(() => {});
-	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(console, 'log').mockImplementation(async () => true);
+	vi.spyOn(console, 'error').mockImplementation(async () => true);
 });
 
 const defaultProps = {
@@ -287,7 +287,7 @@ describe('FileItem reportError 채널 (REQ-20260421-039 FR-03)', () => {
 		vi.spyOn(window, 'confirm').mockReturnValue(true);
 		vi.spyOn(api, 'deleteFile').mockRejectedValue(new Error('network down'));
 
-		const spy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+		const spy = vi.spyOn(errorReporter, 'reportError').mockImplementation(async () => true);
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
@@ -324,9 +324,9 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 		const pending = deferred<Response>();
 		vi.spyOn(api, 'deleteFile').mockReturnValue(pending.promise);
 
-		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
-		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
-		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(async () => true);
+		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(async () => true);
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(async () => true);
 
 		const { container, unmount } = render(<FileItem {...defaultProps} />);
 
@@ -366,8 +366,8 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 			json: () => jsonPending.promise,
 		} as unknown as Response);
 
-		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
-		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(async () => true);
+		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(async () => true);
 
 		const { container, unmount } = render(<FileItem {...defaultProps} />);
 
@@ -398,8 +398,8 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 		const pending = deferred<Response>();
 		vi.spyOn(api, 'deleteFile').mockReturnValue(pending.promise);
 
-		const logSpy = vi.spyOn(common, 'log').mockImplementation(() => {});
-		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+		const logSpy = vi.spyOn(common, 'log').mockImplementation(async () => true);
+		const reportSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(async () => true);
 
 		const { container, unmount } = render(<FileItem {...defaultProps} />);
 

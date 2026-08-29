@@ -42,7 +42,7 @@ export const webVitalsProdEmpty = {
 const FROM = 1643375805000; // 2022.01.28
 const DAY_MS = 1000 * 60 * 60 * 24;
 
-const buildApiCallItems = (succeed, failed, total) =>
+const buildApiCallItems = (succeed: number, failed: number, total: number) =>
 	Array.from({ length: 7 }, (_, i) => ({ timestamp: FROM + DAY_MS * i, succeed, failed, total }));
 
 export const apiCallStats700 = {
@@ -74,7 +74,7 @@ const FEB_1_2022 = 1643673600000;
 const PREV_DAY = 144000000;
 const CHROME_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36";
 
-const visitor = (browser, os, engine, originalText, offset) => ({
+const visitor = (browser: string, os: string, engine: string, originalText: string, offset: number) => ({
 	browser,
 	date: common.getFormattedDate(FEB_1_2022 - offset),
 	operatingSystem: os,

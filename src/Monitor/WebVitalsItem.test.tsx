@@ -25,7 +25,7 @@ describe('WebVitalsItem render on prod server (ok)', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+		render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 		const obj = await screen.findByText("POOR");
 		expect(obj).toBeInTheDocument();
@@ -36,21 +36,21 @@ describe('WebVitalsItem render on prod server (ok)', () => {
 		// react-render-patterns-spec §5.2 / REQ-20260420-001 FR-02
 		// popup 이관 검증: focus → role="tooltip" + aria-describedby 설정.
 		// 기존 mouseOver/mouseMove/mouseOut 어서트는 jsdom 한계로 focus 경로로 갱신.
-		expect(statusBar.getAttribute('aria-describedby')).toBeFalsy();
+		expect(statusBar!.getAttribute('aria-describedby')).toBeFalsy();
 
 		act(() => { fireEvent.focus(statusBar); });
 
-		const describedBy = statusBar.getAttribute('aria-describedby');
+		const describedBy = statusBar!.getAttribute('aria-describedby');
 		expect(describedBy).toBeTruthy();
-		const tooltip = document.getElementById(describedBy);
+		const tooltip = document.getElementById(describedBy!);
 		expect(tooltip).not.toBeNull();
 		expect(tooltip).toHaveAttribute('role', 'tooltip');
 		expect(tooltip).toHaveAttribute('aria-hidden', 'false');
 		// web-vitals-spec §7.2 FR-02 / REQ-20260420-020:
 		// description prop 이 전달되면 tooltip 첫 <li> 에 그 문자열이 렌더되어야 한다.
 		// 기존 counts 마커(🟢/🟡/🔴) 어서트는 보존 (회귀 금지).
-		expect(tooltip.textContent).toMatch(/Cumulative Layout Shift/);
-		expect(tooltip.textContent).toMatch(/🟢|🟡|🔴/);
+		expect(tooltip!.textContent).toMatch(/Cumulative Layout Shift/);
+		expect(tooltip!.textContent).toMatch(/🟢|🟡|🔴/);
 	});
 });
 
@@ -62,7 +62,7 @@ describe('WebVitalsItem render on prod server (failed)', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem name="CLS" />);
 
 		const retryButton = await screen.findByText("Retry");
 		expect(retryButton).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe('WebVitalsItem render on prod server (network error)', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem name="CLS" />);
 
 		const retryButton = await screen.findByText("Retry");
 		expect(retryButton).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe('WebVitalsItem evaluation branches', () => {
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			const label = await screen.findByText("GOOD");
 			expect(label).toBeInTheDocument();
@@ -111,7 +111,7 @@ describe('WebVitalsItem evaluation branches', () => {
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			const label = await screen.findByText("NEEDS IMPROVEMENT");
 			expect(label).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe('WebVitalsItem evaluation branches', () => {
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			const statusBar = await screen.findByTestId("status-bar-CLS");
 			expect(statusBar).toBeInTheDocument();
@@ -143,7 +143,7 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem name="CLS" />);
 
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 		expect(retryButton).toHaveAttribute('tabindex', '0');
@@ -155,7 +155,7 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem name="CLS" />);
 
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 
@@ -172,7 +172,7 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem name="CLS" />);
 
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 
@@ -190,7 +190,7 @@ describe('WebVitalsItem Retry keyboard activation', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" />);
+		render(<WebVitalsItem name="CLS" />);
 
 		const retryButton = await screen.findByRole('button', { name: /Retry/ });
 
@@ -217,15 +217,15 @@ describe('WebVitalsItem unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
-		let resolveResp;
-		const pending = new Promise((resolve) => { resolveResp = resolve; });
+		let resolveResp!: (value: Response | PromiseLike<Response>) => void;
+		const pending = new Promise<Response>((resolve) => { resolveResp = resolve; });
 		const apiSpy = vi.spyOn(api, 'getWebVitals').mockReturnValue(pending);
 
 		const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
-		const { unmount } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+		const { unmount } = render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 		expect(apiSpy).toHaveBeenCalledTimes(1);
 		await screen.findByText('Loading...');
@@ -254,15 +254,15 @@ describe('WebVitalsItem unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
-		let rejectResp;
-		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		let rejectResp!: (reason?: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
 		vi.spyOn(api, 'getWebVitals').mockReturnValue(pending);
 
 		const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 		const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
-		const { unmount } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+		const { unmount } = render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 		await screen.findByText('Loading...');
 
@@ -297,7 +297,7 @@ describe('WebVitalsItem header count (REQ-20260825-001 G-2)', () => {
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			// 기대값은 Items.length(4) 가 아니라 평가 항목 수(3) 다 — 두 수를 구분하는 픽스처.
 			const header = await screen.findByText("Cumulative Layout Shift (3)");
@@ -313,7 +313,7 @@ describe('WebVitalsItem header count (REQ-20260825-001 G-2)', () => {
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			const label = await screen.findByText("None");
 			expect(label).toBeInTheDocument();
@@ -338,7 +338,7 @@ describe('buildEvaluationResult 필드 완전성 (REQ-20260825-001 G-3)', () => 
 		expect(Object.keys(initial).length).toBeGreaterThan(0);
 		expect(Object.keys(built)).toEqual(expect.arrayContaining(Object.keys(initial)));
 
-		for(const key of NESTED) {
+		for(const key of NESTED as Array<'good' | 'needImprovement' | 'poor'>) {
 			expect(Object.keys(initial[key]).length).toBeGreaterThan(0);
 			expect(Object.keys(built[key])).toEqual(expect.arrayContaining(Object.keys(initial[key])));
 		}
@@ -387,7 +387,7 @@ describe('WebVitalsItem re-fetch 폭주 없음 (REQ-20260825-001 G-4)', () => {
 		// spyOn 은 기본적으로 원본을 호출한다 — msw 핸들러 경로를 유지한 채 계수만 한다.
 		const apiSpy = vi.spyOn(api, 'getWebVitals');
 
-		render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+		render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 		await screen.findByText("Cumulative Layout Shift (3)");
 
@@ -410,7 +410,7 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 	// 단정이다. 그래서 판정을 "유효한 백분율 표기인가" 로 뒤집는다 — 무효값이 버려져
 	// 빈 문자열이 된 상태도 이 패턴에서 탈락한다.
 	const VALID_WIDTH = /^\d+(\.\d+)?%$/;
-	const NAN_FREE = (w) => !String(w).includes('NaN');
+	const NAN_FREE = (w: unknown) => !String(w).includes('NaN');
 
 	// **역할별 서로소 네임스페이스** — 평가 헤더는 `span--monitor-evaluation-<슬롯>` 을,
 	// 상태 막대는 `span--monitor-<슬롯>` 을 쓴다. 두 집합이 겹치지 않으므로 **단독 슬롯
@@ -423,7 +423,7 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 	// 정적으로 세므로 여기서도 표기 자체를 쓰지 않는다. 마크업이 공유로 되돌아가면
 	// (T-5) 가 붉어진다.
 	const BAR_SLOTS = ['span--monitor-good', 'span--monitor-warn', 'span--monitor-poor'];
-	const BAR_SELECTOR = (slot) => `.${slot}`;
+	const BAR_SELECTOR = (slot: string) => `.${slot}`;
 
 	describe('0 경계 — totalCount = 0', () => {
 		useMockServer(() => mock.prodServerEmpty);
@@ -433,14 +433,14 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			const { container } = render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			await screen.findByText("None");
 
 			for(const cls of BAR_SLOTS) {
-				const bar = container.querySelector(BAR_SELECTOR(cls));
+				const bar = container.querySelector<HTMLElement>(BAR_SELECTOR(cls));
 				expect(bar, `막대 노드 ${BAR_SELECTOR(cls)} 가 없다 — 선택자가 렌더 구조와 어긋났다`).not.toBeNull();
-				expect(bar.style.width, `.${cls} 막대의 폭이 "0%" 가 아니다`).toBe('0%');
+				expect(bar!.style.width, `.${cls} 막대의 폭이 "0%" 가 아니다`).toBe('0%');
 			}
 		});
 
@@ -449,12 +449,12 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			const { container } = render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			await screen.findByText("None");
 
 			// 클래스 선택자 열거 — 목록 하드코딩이 아니라 렌더 결과에서 도출한다.
-			const bars = [...container.querySelectorAll('.span--monitor-bar')];
+			const bars = [...container.querySelectorAll<HTMLElement>('.span--monitor-bar')];
 
 			// 공허 통과 차단 — 대상 집합이 비면 "무효 0건" 은 무조건 참이다.
 			expect(bars.length, '막대 노드가 3 미만이다 — 순회 대상이 비어 판정이 공허해졌다').toBeGreaterThanOrEqual(3);
@@ -479,20 +479,20 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			const { container } = render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			await screen.findByText("None");
 
 			for(const cls of BAR_SLOTS) {
-				const el = container.querySelector(`.${cls}`);
+				const el = container.querySelector<HTMLElement>(`.${cls}`);
 				expect(el, `단독 선택자 .${cls} 가 아무 요소도 집지 못했다`).not.toBeNull();
 				// 막대만이 인라인 style 을 갖는다 — 평가 헤더를 집으면 style 속성이 없다.
 				expect(
-					el.getAttribute('style'),
+					el!.getAttribute('style'),
 					`단독 선택자 .${cls} 가 인라인 style 없는 요소를 집었다 — 평가 헤더와 슬롯이 다시 겹쳤다`,
 				).not.toBeNull();
-				expect(el.getAttribute('class'), `.${cls} 로 집힌 요소가 막대가 아니다`).toContain('span--monitor-bar');
-				expect(el.style.width, `.${cls} 로 집힌 막대의 폭이 "0%" 가 아니다`).toBe('0%');
+				expect(el!.getAttribute('class'), `.${cls} 로 집힌 요소가 막대가 아니다`).toContain('span--monitor-bar');
+				expect(el!.style.width, `.${cls} 로 집힌 막대의 폭이 "0%" 가 아니다`).toBe('0%');
 			}
 		});
 	});
@@ -505,16 +505,16 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			const { container } = render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			await screen.findByText("POOR");
 
 			// 기준값은 현행 산술의 출력 그대로다. toFixed/반올림을 도입하면 여기서 깨진다 —
 			// 그것은 계약 충족이 아니라 회귀다.
 			for(const cls of BAR_SLOTS) {
-				const bar = container.querySelector(BAR_SELECTOR(cls));
+				const bar = container.querySelector<HTMLElement>(BAR_SELECTOR(cls));
 				expect(bar, `막대 노드 ${BAR_SELECTOR(cls)} 가 없다`).not.toBeNull();
-				expect(bar.style.width, `.${cls} 막대의 폭 산술이 바뀌었다`).toBe('33.333333333333336%');
+				expect(bar!.style.width, `.${cls} 막대의 폭 산술이 바뀌었다`).toBe('33.333333333333336%');
 			}
 		});
 
@@ -526,21 +526,21 @@ describe('WebVitalsItem 막대 폭 유효성 (REQ-20260825-006 G-1·G-4·G-6)', 
 			vi.stubEnv('PROD', true);
 			vi.stubEnv('DEV', false);
 
-			const { container } = render(<WebVitalsItem title="Cumulative Layout Shift" name="CLS" description="Cumulative Layout Shift" />);
+			const { container } = render(<WebVitalsItem name="CLS" description="Cumulative Layout Shift" />);
 
 			await screen.findByText("POOR");
 
 			for(const cls of BAR_SLOTS) {
-				const el = container.querySelector(`.${cls}`);
+				const el = container.querySelector<HTMLElement>(`.${cls}`);
 				expect(el, `단독 선택자 .${cls} 가 아무 요소도 집지 못했다`).not.toBeNull();
 				// 헤더에는 인라인 style 이 없다. 오선택은 예외가 아니라 `""` 로 조용히 관측되므로
 				// style 속성의 **존재**를 직접 단언한다.
 				expect(
-					el.getAttribute('style'),
+					el!.getAttribute('style'),
 					`단독 선택자 .${cls} 가 인라인 style 없는 요소(= 평가 헤더)를 집었다 — 역할 네임스페이스가 다시 겹쳤다`,
 				).not.toBeNull();
-				expect(el.getAttribute('class'), `.${cls} 로 집힌 요소가 막대가 아니다`).toContain('span--monitor-bar');
-				expect(el.style.width, `.${cls} 로 집힌 막대의 폭이 유효한 백분율이 아니다`).toMatch(VALID_WIDTH);
+				expect(el!.getAttribute('class'), `.${cls} 로 집힌 요소가 막대가 아니다`).toContain('span--monitor-bar');
+				expect(el!.style.width, `.${cls} 로 집힌 막대의 폭이 유효한 백분율이 아니다`).toMatch(VALID_WIDTH);
 			}
 		});
 	});
@@ -573,21 +573,21 @@ describe('Monitor 슬롯 시각 불변 (REQ-20260825-009 Dir-4)', () => {
 	const EVAL_PREFIX = 'span--monitor-evaluation-';
 
 	// 주석을 먼저 걷어낸다 — 주석 본문의 `.span--monitor-…` 표기가 규칙으로 오계수된다.
-	const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+	const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 
 	// 규칙 파싱. 본문 패턴을 `[^{}]*` 로 둬 **블록 경계를 넘지 않게** 한다 —
 	// `[\s\S]*?` 는 경계를 존중하지 않아 인접 규칙까지 한 덩어리로 삼킨다.
-	const parseRules = (css) => {
-		const rules = new Map();
+	const parseRules = (css: string) => {
+		const rules = new Map<string, string[]>();
 		const RULE = /^\.([A-Za-z0-9_-]+)\s*\{([^{}]*)\}/gm;
 		let m;
 		while((m = RULE.exec(css)) !== null) {
-			const decls = m[2]
+			const decls = m[2]!
 				.split(';')
 				.map((d) => d.trim().replace(/\s+/g, ' '))
 				.filter((d) => d.length > 0)
 				.sort();
-			rules.set(m[1], decls);
+			rules.set(m[1]!, decls);
 		}
 		return rules;
 	};

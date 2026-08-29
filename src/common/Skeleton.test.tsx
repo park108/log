@@ -33,7 +33,7 @@ describe('Skeleton', () => {
 	it('renders at least three skeleton blocks as visual placeholders', () => {
 		const { container } = render(<Skeleton variant="page" />);
 
-		const blocks = container.querySelectorAll('.skeleton__block');
+		const blocks = container.querySelectorAll<HTMLElement>('.skeleton__block');
 		expect(blocks.length).toBeGreaterThanOrEqual(3);
 	});
 });

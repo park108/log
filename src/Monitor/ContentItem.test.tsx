@@ -221,8 +221,8 @@ describe('ContentItem unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
-		let resolveResp;
-		const pending = new Promise((resolve) => { resolveResp = resolve; });
+		let resolveResp!: (value: Response | PromiseLike<Response>) => void;
+		const pending = new Promise<Response>((resolve) => { resolveResp = resolve; });
 		const apiSpy = vi.spyOn(api, 'getContentItemCount').mockReturnValue(pending);
 
 		const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -258,8 +258,8 @@ describe('ContentItem unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
-		let rejectResp;
-		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		let rejectResp!: (reason?: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
 		vi.spyOn(api, 'getContentItemCount').mockReturnValue(pending);
 
 		const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -297,8 +297,8 @@ describe('ContentItem unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
-		let rejectResp;
-		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		let rejectResp!: (reason?: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
 		vi.spyOn(api, 'getContentItemCount').mockReturnValue(pending);
 
 		// `log()` 는 DEV 에서만 console 에 쓴다 — 발화 함수 자체를 관측한다.

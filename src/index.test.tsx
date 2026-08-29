@@ -52,7 +52,7 @@ vi.mock('./App', () => ({
 	},
 }));
 
-let originalSendBeaconDescriptor;
+let originalSendBeaconDescriptor: PropertyDescriptor | undefined;
 
 beforeAll(() => {
 	originalSendBeaconDescriptor = Object.getOwnPropertyDescriptor(
@@ -66,7 +66,7 @@ afterAll(() => {
 	if (originalSendBeaconDescriptor) {
 		Object.defineProperty(navigator, 'sendBeacon', originalSendBeaconDescriptor);
 	} else if (Object.prototype.hasOwnProperty.call(navigator, 'sendBeacon')) {
-		delete navigator.sendBeacon;
+		delete (navigator as { sendBeacon?: unknown }).sendBeacon;
 	}
 });
 
@@ -93,7 +93,7 @@ afterEach(() => {
 	if (originalSendBeaconDescriptor) {
 		Object.defineProperty(navigator, 'sendBeacon', originalSendBeaconDescriptor);
 	} else if (Object.prototype.hasOwnProperty.call(navigator, 'sendBeacon')) {
-		delete navigator.sendBeacon;
+		delete (navigator as { sendBeacon?: unknown }).sendBeacon;
 	}
 });
 
@@ -114,7 +114,7 @@ describe('src/index.jsx 부트 비콘 4 불변식 (REQ-094)', () => {
 
 		// reportWebVitals 콜백 추출 후 직접 발화 → sendToAnalytics URL/body 단언.
 		expect(reportWebVitalsMock).toHaveBeenCalledTimes(1);
-		const sendToAnalyticsCb = reportWebVitalsMock.mock.calls[0][0];
+		const sendToAnalyticsCb = reportWebVitalsMock.mock.calls[0]![0];
 		expect(typeof sendToAnalyticsCb).toBe('function');
 
 		const metric = { id: 'metric-1', value: 42 };
@@ -159,7 +159,7 @@ describe('src/index.jsx 부트 비콘 4 불변식 (REQ-094)', () => {
 
 		// reportWebVitals 등록은 가드와 무관 — 콜백 자체는 등록된다.
 		expect(reportWebVitalsMock).toHaveBeenCalledTimes(1);
-		const sendToAnalyticsCb = reportWebVitalsMock.mock.calls[0][0];
+		const sendToAnalyticsCb = reportWebVitalsMock.mock.calls[0]![0];
 		expect(typeof sendToAnalyticsCb).toBe('function');
 
 		// 콜백 직접 발화 — sendBeacon 가드 falsy 분기로 throw 없이 silent.

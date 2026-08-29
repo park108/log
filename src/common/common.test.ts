@@ -17,8 +17,8 @@ const stubMode = (mode: string): void => {
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
 beforeEach(() => {
-	vi.spyOn(console, 'log').mockImplementation(() => {});
-	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(console, 'log').mockImplementation(async () => true);
+	vi.spyOn(console, 'error').mockImplementation(async () => true);
 });
 
 describe('set HTML page title', () => {
@@ -90,7 +90,7 @@ describe('parseJwt input guards (REQ-20260418-032 FR-01, FR-03)', () => {
 	});
 
 	it('does not emit console.error for guarded inputs (FR-06)', () => {
-		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const errSpy = vi.spyOn(console, 'error').mockImplementation(async () => true);
 		const before = errSpy.mock.calls.length;
 		common.parseJwt(undefined);
 		common.parseJwt('ZZZ');

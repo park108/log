@@ -64,7 +64,7 @@ describe('단건 캐시 키는 생성 경로와 무관하게 동일 엔트리를
 
 	it('(K-2) 문자열 경로로 채운 엔트리를 숫자 timestamp 수정이 무효화한다 — 재마운트가 새 내용을 본다', async () => {
 		// 1) 읽기 경로(useParams 문자열)로 상세를 조회해 캐시를 채운다.
-		api.getLog.mockResolvedValueOnce({ ok: true, status: 200, json: async () => OLD_PAYLOAD });
+		vi.mocked(api.getLog).mockResolvedValueOnce({ ok: true, status: 200, json: async () => OLD_PAYLOAD } as unknown as Response);
 
 		const { Wrapper, queryClient } = prodLikeWrapper();
 		const read1 = renderHook(() => useLog(TS_STRING), { wrapper: Wrapper });
@@ -75,8 +75,8 @@ describe('단건 캐시 키는 생성 경로와 무관하게 동일 엔트리를
 		expect(queryClient.getQueryData(logDetailKey(TS_STRING))).toEqual(OLD_PAYLOAD);
 
 		// 2) 수정 저장 — 쓰기 경로는 숫자 timestamp 를 싣는다.
-		api.putLog.mockResolvedValueOnce({ json: async () => ({ statusCode: 200 }) });
-		api.getLog.mockResolvedValue({ ok: true, status: 200, json: async () => NEW_PAYLOAD });
+		vi.mocked(api.putLog).mockResolvedValueOnce({ json: async () => ({ statusCode: 200 }) } as unknown as Response);
+		vi.mocked(api.getLog).mockResolvedValue({ ok: true, status: 200, json: async () => NEW_PAYLOAD } as unknown as Response);
 
 		const update = renderHook(() => useUpdateLog(), { wrapper: Wrapper });
 		await act(async () => {
@@ -95,7 +95,7 @@ describe('단건 캐시 키는 생성 경로와 무관하게 동일 엔트리를
 	});
 
 	it('(K-3) 문자열 경로로 채운 엔트리를 숫자 timestamp 삭제가 제거한다', async () => {
-		api.getLog.mockResolvedValueOnce({ ok: true, status: 200, json: async () => OLD_PAYLOAD });
+		vi.mocked(api.getLog).mockResolvedValueOnce({ ok: true, status: 200, json: async () => OLD_PAYLOAD } as unknown as Response);
 
 		const { Wrapper, queryClient } = prodLikeWrapper();
 		const read = renderHook(() => useLog(TS_STRING), { wrapper: Wrapper });
@@ -103,7 +103,7 @@ describe('단건 캐시 키는 생성 경로와 무관하게 동일 엔트리를
 		read.unmount();
 		expect(queryClient.getQueryData(logDetailKey(TS_STRING))).toEqual(OLD_PAYLOAD);
 
-		api.deleteLog.mockResolvedValueOnce({ json: async () => ({ statusCode: 200 }) });
+		vi.mocked(api.deleteLog).mockResolvedValueOnce({ json: async () => ({ statusCode: 200 }) } as unknown as Response);
 		const remove = renderHook(() => useDeleteLog(), { wrapper: Wrapper });
 		await act(async () => {
 			await remove.result.current.mutateAsync({ author: 'a@b.com', timestamp: TS_NUMBER });

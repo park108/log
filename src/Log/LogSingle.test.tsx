@@ -1,3 +1,4 @@
+import type React from 'react';
 import { fireEvent, render, screen, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
@@ -10,7 +11,7 @@ import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
-const stubMode = (mode) => {
+const stubMode = (mode: string) => {
 	vi.stubEnv('MODE', mode);
 	vi.stubEnv('DEV', mode === 'development');
 	vi.stubEnv('PROD', mode === 'production');
@@ -29,7 +30,7 @@ beforeEach(() => {
 // mandatory for the component tree to mount; each call instantiates a fresh
 // isolated client via the single-source helper to avoid cache leakage between
 // tests (REQ-20260519-001 / `createQueryTestWrapper`).
-const withQuery = (node) => {
+const withQuery = (node: React.ReactNode) => {
 	const { Wrapper } = createQueryTestWrapper();
 	return <Wrapper>{node}</Wrapper>;
 };
@@ -59,7 +60,7 @@ describe('LogSingle render on prod server (ok)', () => {
 		const logFromServer = [
 			{"contents":"123456","author":"park108@gmail.com","timestamp":1655736946977}
 			,{"contents":"이노베이션 사이트의 연이은 인력 이탈, 무리한 사업 수주로 인한 외부 사업 투입, 강요된 거짓말, 실망스런 회사의 관리자들, 고객사에 들통나 버린 거짓말, 가시화되는 운영 조직의  ...","author":"park108@gmail.com","timestamp":1655302060414}
-			,{"contents":"const makeSummary = (contents) => {\tconst trimmedContents = markdownToHtml(contents).replace(/(]+)>) ...","author":"park108@gmail.com","timestamp":1654639495093}
+			,{"contents":"const makeSummary = (contents: string) => {\tconst trimmedContents = markdownToHtml(contents).replace(/(]+)>) ...","author":"park108@gmail.com","timestamp":1654639495093}
 			,{"contents":"Test over 50 characters.Is it make summary well???","author":"park108@gmail.com","timestamp":1654639469843}
 			,{"contents":"Test Now","author":"park108@gmail.com","timestamp":1654639443910}
 			,{"contents":"첫 화면을 목록 형태로 변경했다.이 블로그는 변경 이력을 모두 저장하도록 설계, 구현했다. 개별 건의 CRUD 뿐 만 아니라, 목록 조회를 할 때에도 동일한 테이블에서 쿼리를 했기 ...","author":"park108@gmail.com","timestamp":1654526208951}
@@ -296,7 +297,7 @@ it('LogSingle source declares Skeleton variant="detail" as Suspense fallback (no
 	// 두 Suspense 블록 모두 Skeleton detail fallback 을 사용해야 한다.
 	const skeletonMatches = src.match(/<Suspense fallback=\{<Skeleton variant="detail" \/>\}>/g);
 	expect(skeletonMatches).not.toBeNull();
-	expect(skeletonMatches.length).toBe(2);
+	expect(skeletonMatches!.length).toBe(2);
 
 	// 빈 div fallback 이 더 이상 존재하지 않아야 한다.
 	expect(src).not.toMatch(/<Suspense fallback=\{<div><\/div>\}>/);

@@ -118,7 +118,7 @@ type ScanEntry = { abs: string; rel: string };
 function collectFiles(root: string): ScanEntry[] {
 	const out: ScanEntry[] = [];
 	const stack: string[] = [root];
-	while (stack.length > 0) {
+	while (stack!.length > 0) {
 		const current = stack.pop();
 		if (current === undefined) continue;
 		for (const entry of readdirSync(current)) {

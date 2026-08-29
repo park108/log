@@ -7,11 +7,11 @@ const onLCP = vi.fn();
 const onTTFB = vi.fn();
 
 vi.mock('web-vitals', () => ({
-	onCLS: (cb) => onCLS(cb),
-	onINP: (cb) => onINP(cb),
-	onFCP: (cb) => onFCP(cb),
-	onLCP: (cb) => onLCP(cb),
-	onTTFB: (cb) => onTTFB(cb),
+	onCLS: (cb: unknown) => onCLS(cb),
+	onINP: (cb: unknown) => onINP(cb),
+	onFCP: (cb: unknown) => onFCP(cb),
+	onLCP: (cb: unknown) => onLCP(cb),
+	onTTFB: (cb: unknown) => onTTFB(cb),
 }));
 
 beforeEach(() => {
@@ -29,7 +29,7 @@ it('registers all 5 v5 web-vitals callbacks when a function is provided', async 
 	await reportWebVitals(cb);
 
 	// wait for dynamic import microtask to resolve
-	await new Promise((resolve) => setTimeout(resolve, 0));
+	await new Promise<Response>((resolve) => setTimeout(resolve, 0));
 
 	expect(onCLS).toHaveBeenCalledTimes(1);
 	expect(onINP).toHaveBeenCalledTimes(1);
@@ -46,12 +46,15 @@ it('registers all 5 v5 web-vitals callbacks when a function is provided', async 
 
 it('does nothing when argument is not a function', async () => {
 
+	// 의도적 오타입 주입 — 프로덕션 가드(`onPerfEntry instanceof Function`)가
+	// 함수가 아닌 입력을 삼키는지 본다. 타입 시스템으로는 표현할 수 없는 축이라
+	// 호출부에서 캐스트한다. 캐스트를 지우면 이 회귀 방향이 사라진다.
 	await reportWebVitals(undefined);
-	await reportWebVitals(null);
-	await reportWebVitals('not a function');
-	await reportWebVitals({});
+	await reportWebVitals(null as never);
+	await reportWebVitals('not a function' as never);
+	await reportWebVitals({} as never);
 
-	await new Promise((resolve) => setTimeout(resolve, 0));
+	await new Promise<Response>((resolve) => setTimeout(resolve, 0));
 
 	expect(onCLS).not.toHaveBeenCalled();
 	expect(onINP).not.toHaveBeenCalled();
@@ -68,7 +71,7 @@ it('invokes the performance callback when a web-vital handler fires', async () =
 	onINP.mockImplementation((fn) => fn(sampleMetric));
 
 	await reportWebVitals(cb);
-	await new Promise((resolve) => setTimeout(resolve, 0));
+	await new Promise<Response>((resolve) => setTimeout(resolve, 0));
 
 	expect(cb).toHaveBeenCalledWith(sampleMetric);
 });

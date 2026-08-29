@@ -15,7 +15,7 @@ import { setLocation, restoreLocation, mockUrlLocation } from './test-utils/loca
 // vitest 기본 MODE='test' 에서도 `<a href={common.getUrl()}>park108.net</a>` 의
 // 기대 동작이 안정적으로 유지되도록 MODE/DEV/PROD 를 명시 stub 한다.
 // 이디엄 정본: src/common/Navigation.test.jsx:13-26 승계.
-const stubMode = (mode) => {
+const stubMode = (mode: string) => {
 	vi.stubEnv('MODE', mode);
 	vi.stubEnv('DEV', mode === 'development');
 	vi.stubEnv('PROD', mode === 'production');
@@ -255,10 +255,10 @@ describe('render body has no direct side effects', () => {
 		common.deleteCookie('access_token');
 		common.deleteCookie('id_token');
 
-		const normalize = (raw) =>
+		const normalize = (raw: string) =>
 			raw
 				.split(';')
-				.map((c) => c.trim())
+				.map((c: string) => c.trim())
 				.filter(Boolean)
 				.sort()
 				.join('; ');
@@ -340,8 +340,8 @@ describe('App mounts cleanly with corrupted access_token (REQ-20260418-032 FR-05
 
 describe('ErrorBoundary integration (REQ-20260418-005 FR-06)', () => {
 
-	let consoleErrorSpy;
-	let stderrWriteSpy;
+	let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+	let stderrWriteSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeAll(() => {
 		// Describe-scope suppression of intentional render-error noise (REQ-20260419-032 FR-01).

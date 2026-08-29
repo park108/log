@@ -50,13 +50,13 @@ describe('VisitorMon render on prod server (ok)', () => {
 		const statusBar = await screen.findByTestId("visitor-env-Browser-1");
 		expect(statusBar).toBeInTheDocument();
 
-		expect(statusBar.getAttribute('aria-describedby')).toBeFalsy();
+		expect(statusBar!.getAttribute('aria-describedby')).toBeFalsy();
 
 		act(() => { fireEvent.focus(statusBar); });
 
-		const describedBy = statusBar.getAttribute('aria-describedby');
+		const describedBy = statusBar!.getAttribute('aria-describedby');
 		expect(describedBy).toBeTruthy();
-		const tooltip = document.getElementById(describedBy);
+		const tooltip = document.getElementById(describedBy!);
 		expect(tooltip).not.toBeNull();
 		expect(tooltip).toHaveAttribute('role', 'tooltip');
 		expect(tooltip).toHaveAttribute('aria-hidden', 'false');
@@ -76,7 +76,7 @@ describe('VisitorMon render on prod server (failed)', () => {
 		const retryButtons = await screen.findAllByText("Retry");
 		expect(retryButtons[0]).toBeInTheDocument();
 
-		fireEvent.click(retryButtons[0]);
+		fireEvent.click(retryButtons[0]!);
 	});
 });
 
@@ -93,7 +93,7 @@ describe('VisitorMon render on prod server (network error)', () => {
 		const retryButtons = await screen.findAllByText("Retry");
 		expect(retryButtons[0]).toBeInTheDocument();
 
-		fireEvent.click(retryButtons[1]);
+		fireEvent.click(retryButtons[1]!);
 	});
 });
 
@@ -127,7 +127,7 @@ describe('VisitorMon retry keyboard activation (a11y pattern B)', () => {
 
 		// Enter triggers the same handler as onClick → component re-mounts and fires a new fetch.
 		// We verify by asserting the Retry buttons disappear (loading state) or are re-rendered.
-		fireEvent.keyDown(retryButtons[0], { key: 'Enter' });
+		fireEvent.keyDown(retryButtons[0]!, { key: 'Enter' });
 
 		// After Enter, the loading branch is rendered at least once → original Retry nodes detach.
 		// Re-query to confirm handler ran (new Retry buttons will reappear after the mock still fails).
@@ -144,7 +144,7 @@ describe('VisitorMon retry keyboard activation (a11y pattern B)', () => {
 
 		const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
 
-		const spaceEvent = fireEvent.keyDown(retryButtons[1], { key: ' ' });
+		const spaceEvent = fireEvent.keyDown(retryButtons[1]!, { key: ' ' });
 		// fireEvent.keyDown returns true when the event was NOT cancelled. Our handler calls
 		// preventDefault() for Space to block page scroll (accessibility-spec §2.2 pattern B).
 		expect(spaceEvent).toBe(false);
@@ -163,7 +163,7 @@ describe('VisitorMon retry keyboard activation (a11y pattern B)', () => {
 		const retryButtons = await screen.findAllByRole('button', { name: /Retry/ });
 
 		// A non-activation key must NOT call preventDefault — event remains dispatchable (returns true).
-		const otherEvent = fireEvent.keyDown(retryButtons[0], { key: 'x' });
+		const otherEvent = fireEvent.keyDown(retryButtons[0]!, { key: 'x' });
 		expect(otherEvent).toBe(true);
 
 		// The error UI is still rendered (no re-mount triggered).
@@ -188,8 +188,8 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('DEV', false);
 
 		// pending fetch 제어 — 외부에서 resolve 호출 가능한 deferred Response.
-		let resolveResp;
-		const pending = new Promise((resolve) => { resolveResp = resolve; });
+		let resolveResp!: (value: Response | PromiseLike<Response>) => void;
+		const pending = new Promise<Response>((resolve) => { resolveResp = resolve; });
 
 		const getVisitorsSpy = vi.spyOn(api, 'getVisitors').mockReturnValue(pending);
 
@@ -233,8 +233,8 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		let rejectResp;
-		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		let rejectResp!: (reason?: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
 		vi.spyOn(api, 'getVisitors').mockReturnValue(pending);
 
 		const consoleErrorSpy = vi.spyOn(console, 'error');
@@ -268,8 +268,8 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 
-		let rejectResp;
-		const pending = new Promise((_, reject) => { rejectResp = reject; });
+		let rejectResp!: (reason?: unknown) => void;
+		const pending = new Promise<Response>((_, reject) => { rejectResp = reject; });
 		vi.spyOn(api, 'getVisitors').mockReturnValue(pending);
 
 		// `log()` 는 DEV 에서만 console 에 쓴다 — 콘솔 spy 로는 이 경계가 보이지 않는다.

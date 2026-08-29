@@ -23,7 +23,7 @@ describe('useSearchList', () => {
 			ok: true,
 			status: 200,
 			json: async () => payload,
-		} as Response);
+		} as unknown as Response as Response);
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useSearchList('foo'), { wrapper: Wrapper });
@@ -41,13 +41,13 @@ describe('useSearchList', () => {
 			ok: false,
 			status: 500,
 			json: async () => ({}),
-		} as Response);
+		} as unknown as Response as Response);
 
 		const { Wrapper } = createQueryTestWrapper();
 		const { result } = renderHook(() => useSearchList('foo'), { wrapper: Wrapper });
 
 		await waitFor(() => expect(result.current.isError).toBe(true));
-		expect(result.current.error).toBeInstanceOf(Error);
+		expect(result.current.error!).toBeInstanceOf(Error);
 		expect(result.current.error!.message).toContain('500');
 	});
 

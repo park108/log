@@ -12,6 +12,8 @@ export interface LogItemPayload {
 	timestamp: number;
 	summary?: string;
 	temporary?: boolean;
+	// 서버가 함께 내려주는 정렬 키. 앱은 쓰지 않지만 응답 형상의 일부다.
+	sortKey?: number;
 	logs: LogRevision[];
 }
 

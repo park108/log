@@ -1,3 +1,4 @@
+import type React from 'react';
 import { fireEvent, render, screen, act, waitFor } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
@@ -19,14 +20,14 @@ import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 const setterRecorder = vi.hoisted(() => ({ on: false, calls: 0 }));
 
 vi.mock('react', async (importOriginal) => {
-	const actual = await importOriginal();
+	const actual = await importOriginal<typeof import('react') & { default: Record<string, unknown> }>();
 	const wrapped = new Map();
-	const useState = (initial) => {
+	const useState = (initial?: unknown) => {
 		const [value, set] = actual.useState(initial);
 		if (!wrapped.has(set)) {
-			wrapped.set(set, (...args) => {
+			wrapped.set(set, (...args: unknown[]) => {
 				if (setterRecorder.on) setterRecorder.calls += 1;
-				return set(...args);
+				return (set as (...a: unknown[]) => unknown)(...args);
 			});
 		}
 		return [value, wrapped.get(set)];
@@ -36,7 +37,7 @@ vi.mock('react', async (importOriginal) => {
 
 // env-spec §5.2 / REQ-20260420-002 — `vi.stubEnv('MODE', ...)` + 짝맞춘 DEV/PROD.
 // 전역 `afterEach(vi.unstubAllEnvs)` 는 `src/setupTests.js` 에서 등록됨.
-const stubMode = (mode) => {
+const stubMode = (mode: string) => {
 	vi.stubEnv('MODE', mode);
 	vi.stubEnv('DEV', mode === 'development');
 	vi.stubEnv('PROD', mode === 'production');
@@ -47,7 +48,7 @@ const stubMode = (mode) => {
 // component to mount; each call instantiates a fresh isolated client via the
 // single-source helper to avoid cache leakage between tests (REQ-20260519-001 /
 // `createQueryTestWrapper`).
-const withQuery = (node) => {
+const withQuery = (node: React.ReactNode) => {
 	const { Wrapper } = createQueryTestWrapper();
 	return <Wrapper>{node}</Wrapper>;
 };
@@ -55,8 +56,8 @@ const withQuery = (node) => {
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
 beforeEach(() => {
-	vi.spyOn(console, 'log').mockImplementation(() => {});
-	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(console, 'log').mockImplementation(async () => true);
+	vi.spyOn(console, 'error').mockImplementation(async () => true);
 	Object.defineProperty(navigator, 'clipboard', {
 		value: { writeText: vi.fn().mockResolvedValue(undefined) },
 		configurable: true,
@@ -71,7 +72,7 @@ afterEach(() => {
 	if (originalClipboard) {
 		Object.defineProperty(navigator, 'clipboard', originalClipboard);
 	} else {
-		delete navigator.clipboard;
+		delete (navigator as { clipboard?: unknown }).clipboard;
 	}
 });
 
@@ -97,7 +98,7 @@ describe('Writer create log ok on prod server', () => {
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -144,7 +145,7 @@ describe('Writer create log failed on prod server', () => {
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -191,7 +192,7 @@ describe('Writer create log network error on prod server', () => {
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -238,7 +239,7 @@ describe('Writer edit log ok on dev server', () => {
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -287,7 +288,7 @@ describe('Writer edit log failed on dev server', () => {
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -336,7 +337,7 @@ describe('Writer edit log network error on dev server', () => {
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -381,7 +382,7 @@ describe("Writer preview sanitizes rendered markdown HTML", () => {
 	const renderWriter = () => {
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -401,27 +402,27 @@ describe("Writer preview sanitizes rendered markdown HTML", () => {
 		const { container } = renderWriter();
 
 		const textInput = await screen.findByTestId("writer-text-area");
-		fireEvent.change(textInput, { target: { value: "Hello <script>window.__xss=1</script> World" } });
+		fireEvent.change(textInput, { target: { value: "Hello <script>(window as unknown as Record<string, unknown>).__xss=1</script> World" } });
 
 		const preview = container.querySelector("#div--writer-converted");
 		expect(preview).not.toBeNull();
-		expect(preview.querySelector("script")).toBeNull();
+		expect(preview!.querySelector("script")).toBeNull();
 		// global side-effect not triggered
-		expect(window.__xss).toBeUndefined();
+		expect((window as unknown as Record<string, unknown>).__xss).toBeUndefined();
 	});
 
 	it("strips on* event handler attributes from embedded html in preview", async () => {
 		const { container } = renderWriter();
 
 		const textInput = await screen.findByTestId("writer-text-area");
-		fireEvent.change(textInput, { target: { value: '<img src="x" onerror="window.__xss2=1" />' } });
+		fireEvent.change(textInput, { target: { value: '<img src="x" onerror="(window as unknown as Record<string, unknown>).__xss2=1" />' } });
 
 		const preview = container.querySelector("#div--writer-converted");
 		expect(preview).not.toBeNull();
-		preview.querySelectorAll("img").forEach((img) => {
+		preview!.querySelectorAll("img").forEach((img) => {
 			expect(img.getAttribute("onerror")).toBeNull();
 		});
-		expect(window.__xss2).toBeUndefined();
+		expect((window as unknown as Record<string, unknown>).__xss2).toBeUndefined();
 	});
 });
 
@@ -433,7 +434,7 @@ test('event testing', async () => {
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 	const testEntry = {
 		pathname: "/log/write"
@@ -509,7 +510,7 @@ test('copyMarkdownString shows error Toaster when clipboard write rejects', asyn
 
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(true);
-	vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+	vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 	const testEntry = {
 		pathname: "/log/write",
@@ -539,7 +540,7 @@ describe('Writer a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 	const renderWriter = () => {
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockResolvedValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -597,9 +598,9 @@ describe('Writer a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 		const el = await screen.findByTestId('mode-button');
 
 		// 초기: Markdown Converted → Enter → HTML
-		expect(el.textContent).toContain('Markdown Converted');
+		expect(el!.textContent).toContain('Markdown Converted');
 		fireEvent.keyDown(el, { key: 'Enter' });
-		expect(el.textContent).toContain('HTML');
+		expect(el!.textContent).toContain('HTML');
 	});
 
 	it('HTML/Markdown toggle (M2) 이 Space 키로 활성된다 (preventDefault)', async () => {
@@ -609,7 +610,7 @@ describe('Writer a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
 		expect(spaceEvent).toBe(false);
 		// Space 가 click 과 동일 핸들러를 실행 → 텍스트 전환.
-		expect(el.textContent).toContain('HTML');
+		expect(el!.textContent).toContain('HTML');
 	});
 });
 
@@ -626,7 +627,7 @@ describe('Writer unmount-safety (REQ-20260517-093 (I1)(I2)) — 핸들러 경로
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
-		vi.spyOn(common, "setFullscreen").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockReturnValue(undefined);
 
 		const testEntry = {
 			pathname: "/log/write",
@@ -648,7 +649,7 @@ describe('Writer unmount-safety (REQ-20260517-093 (I1)(I2)) — 핸들러 경로
 		});
 	};
 
-	const raceAfterUnmount = async (unmount, settle) => {
+	const raceAfterUnmount = async (unmount: () => void, settle: () => void) => {
 		unmount();
 
 		const logSpy = vi.spyOn(console, 'log');
@@ -668,8 +669,8 @@ describe('Writer unmount-safety (REQ-20260517-093 (I1)(I2)) — 핸들러 경로
 
 	it('pending copyToClipboard 중 unmount → 성공 resolve 가 토스터 setter 를 호출하지 않는다', async () => {
 
-		let resolveCopy;
-		const pending = new Promise((resolve) => { resolveCopy = resolve; });
+		let resolveCopy!: (value: boolean | PromiseLike<boolean>) => void;
+		const pending = new Promise<boolean>((resolve) => { resolveCopy = resolve; });
 		const copySpy = vi.spyOn(common, 'copyToClipboard').mockReturnValue(pending);
 
 		const { unmount } = renderWriterForRace();
@@ -687,8 +688,8 @@ describe('Writer unmount-safety (REQ-20260517-093 (I1)(I2)) — 핸들러 경로
 
 	it('pending copyToClipboard 중 unmount → 실패 resolve 도 토스터 setter 를 호출하지 않는다', async () => {
 
-		let resolveCopy;
-		const pending = new Promise((resolve) => { resolveCopy = resolve; });
+		let resolveCopy!: (value: boolean | PromiseLike<boolean>) => void;
+		const pending = new Promise<boolean>((resolve) => { resolveCopy = resolve; });
 		const copySpy = vi.spyOn(common, 'copyToClipboard').mockReturnValue(pending);
 
 		const { unmount } = renderWriterForRace();
