@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy, type ReactNode } from "react";
 import { log, hasValue, isAdmin } from '../common/common';
-import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getComments, postComment } from './api';
 
@@ -238,16 +237,15 @@ const Comment = (props: CommentProps): React.ReactElement => {
 
 	return (
 		<section className={`section ${styles.sectionLogitemComment}`}>
-			<span
-				role="button"
-				tabIndex={0}
+			<button
+				type="button"
 				data-testid="comment-toggle-button"
 				className={`span ${styles.spanCommentTogglebutton}`}
+				aria-expanded={isShow}
 				onClick={toggleShow}
-				onKeyDown={activateOnKey(toggleShow)}
 			>
 				{ buttonText }
-			</span>
+			</button>
 
 			{ commentThread }
 			{ commentForm }

@@ -2,7 +2,6 @@ import { useState } from "react";
 import type { SyntheticEvent } from "react";
 import * as common from '../common/common';
 import { isDev, isProd } from './env';
-import { activateOnKey } from './a11y';
 import { reportError } from './errorReporter';
 
 export const getLoginUrl = (): string | undefined => {
@@ -24,9 +23,8 @@ const UserLogin = () => {
 	// 관측되므로 실패 사유를 상태로 세워 접근성 트리에 반영한다 (보고의 대체가 아니라 동반).
 	const [entryFailure, setEntryFailure] = useState<string | null>(null);
 
-	// activateOnKey 는 `{ key, preventDefault }` 만 요구하는 구조적 부분 타입 (a11y.ts) —
-	// React.SyntheticEvent (KeyboardEvent 포함) 또한 적합. handler 시그니처는 호출처 양쪽
-	// (onClick: SyntheticEvent / onKeyDown: KeyboardEvent) 호환을 위해 부분 타입으로 좁힌다.
+	// 핸들러 시그니처를 `{ preventDefault }` 부분 타입으로 좁혀 둔다 — 호출처가
+	// 넘기는 이벤트 형태에 묶이지 않는다.
 	const handleLoginClick = (e: { preventDefault: () => void }): void => {
 		e.preventDefault();
 
@@ -57,18 +55,19 @@ const UserLogin = () => {
 
 	return (
 		<>
-			<span
-				role="button"
+			<button
+				type="button"
 				data-testid="login-button"
-				tabIndex={0}
 				className="span span--login-text"
 				// 실패가 아닐 때는 속성 자체를 렌더하지 않는다 (`aria-disabled="false"` 상시 부여 금지).
+				//
+				// `disabled` 가 아니라 `aria-disabled` 인 것은 의도다 — `disabled` 는 초점
+				// 대상에서 빼버려 스크린리더 사용자가 실패 사실에 도달하지 못한다.
 				aria-disabled={entryFailure ? "true" : undefined}
 				onClick={(e: SyntheticEvent) => handleLoginClick(e)}
-				onKeyDown={activateOnKey(handleLoginClick)}
 			>
 				{ common.isLoggedIn() ? "👨‍💻 Jongkil Park" : "Jongkil Park" }
-			</span>
+			</button>
 			{ entryFailure && (
 				<span role="alert" className="span span--login-error">{ entryFailure }</span>
 			) }

@@ -380,45 +380,41 @@ describe('Comment a11y 패턴 B (REQ-20260421-033 FR-03) — M7 toggle', () => {
 		vi.restoreAllMocks();
 	});
 
-	it('comment-toggle-button 에 tabIndex=0 과 role="button" 이 부여된다', async () => {
+	it('comment-toggle-button 은 네이티브 button 이다', async () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
 		render(<Comment logTimestamp={1655302060414} />);
 
+		// span[role=button] + activateOnKey 손조립을 네이티브 button 으로 바꿨다.
+		// 손조립은 키 핸들러를 빠뜨리면 조용히 키보드 접근을 잃는다.
 		const el = await screen.findByTestId('comment-toggle-button');
-		expect(el).toHaveAttribute('role', 'button');
-		expect(el).toHaveAttribute('tabIndex', '0');
+		expect(el.tagName).toBe('BUTTON');
+
+		// 손조립 잔재 금지 — onKeyDown 이 남으면 Enter 에서 이중 발화한다.
+		expect(el).not.toHaveAttribute('role');
+		expect(el).not.toHaveAttribute('tabindex');
+		expect(el).toHaveAttribute('type', 'button');
+
+		// tabindex 없이 초점을 받는다.
+		el.focus();
+		expect(document.activeElement).toBe(el);
 	});
 
-	it('comment-toggle-button 이 Enter 키로 활성된다 (click 과 동일 핸들러)', async () => {
+	it('comment-toggle-button 이 펼침 상태를 접근성 트리에 알린다', async () => {
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
 
 		render(<Comment logTimestamp={1655302060414} />);
 
 		const el = await screen.findByTestId('comment-toggle-button');
-		// 초기: isShow=false → CommentForm 미렌더.
-		expect(screen.queryByPlaceholderText('Write your comment')).toBeNull();
+		// 토글의 현재 상태는 라벨 텍스트로만 있었다 — 접근성 트리에는 없었다.
+		expect(el).toHaveAttribute('aria-expanded', 'false');
 
-		fireEvent.keyDown(el, { key: 'Enter' });
+		fireEvent.click(el);
 
-		// Enter → toggleShow → isShow=true → CommentForm 렌더.
-		const textArea = await screen.findByPlaceholderText('Write your comment');
-		expect(textArea).toBeInTheDocument();
-	});
-
-	it('comment-toggle-button 이 Space 키로 활성된다 (preventDefault)', async () => {
-		vi.stubEnv('DEV', true);
-		vi.stubEnv('PROD', false);
-
-		render(<Comment logTimestamp={1655302060414} />);
-
-		const el = await screen.findByTestId('comment-toggle-button');
-
-		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
-		// activateOnKey 가 preventDefault 호출 → fireEvent 반환값이 false (cancelled).
-		expect(spaceEvent).toBe(false);
+		await screen.findByPlaceholderText('Write your comment');
+		expect(el).toHaveAttribute('aria-expanded', 'true');
 	});
 });
 

@@ -74,11 +74,14 @@ const CommentItem = (props: CommentItemProps): React.ReactElement => {
 			tabIndex={0}
 			data-testid="reply-toggle-button"
 			className={`div ${styles.divCommentReplybutton}`}
+			// 🪃 글리프는 이름이 되지 못한다 — 스크린리더가 "부메랑" 으로 읽는다.
+			// 아래 팝업은 `role="tooltip"` + `aria-describedby` 라 **설명**이지 이름이 아니다.
+			aria-label="Reply this message"
 			onClick={toggleReplyForm}
 			onKeyDown={activateOnKey(toggleReplyForm)}
 			{...replyPopup.triggerProps}
 		>
-			🪃
+			<span aria-hidden="true">🪃</span>
 
 			{ replyPopup.isVisible && (
 				<div

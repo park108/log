@@ -112,40 +112,51 @@ describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
     vi.restoreAllMocks();
   });
 
-  it('login span 에 tabIndex=0 과 role="button" 이 부여된다', () => {
+  it('login 은 네이티브 button 이다', () => {
     setEnv(true, false);
 
     render(<UserLogin />);
     const el = screen.getByTestId('login-button');
 
-    expect(el).toHaveAttribute('role', 'button');
-    expect(el).toHaveAttribute('tabIndex', '0');
+    // span[role=button] + activateOnKey 손조립을 네이티브 button 으로 바꿨다.
+    expect(el.tagName).toBe('BUTTON');
+
+    // 손조립 잔재 금지 — onKeyDown 이 남으면 Enter 에서 이중 발화한다.
+    expect(el).not.toHaveAttribute('role');
+    expect(el).not.toHaveAttribute('tabindex');
+    expect(el).toHaveAttribute('type', 'button');
+
+    // tabindex 없이 초점을 받는다.
+    el.focus();
+    expect(document.activeElement).toBe(el);
   });
 
-  it('Enter 키로 login 이 활성된다 (click 과 동일 핸들러)', () => {
+  it('클릭으로 login 이 활성된다', () => {
     setEnv(true, false);
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
 
     render(<UserLogin />);
-    const el = screen.getByTestId('login-button');
-
-    fireEvent.keyDown(el, { key: 'Enter' });
+    fireEvent.click(screen.getByTestId('login-button'));
 
     expect(window.location.href).toContain('localhost:3000');
   });
 
-  it('Space 키로 login 이 활성된다 (click 과 동일 핸들러 + preventDefault)', () => {
+  it('실패 상태에서도 초점 대상으로 남는다', () => {
     setEnv(true, false);
+    vi.stubEnv('VITE_COGNITO_LOGIN_URL_DEV', '');
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
+    vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
     render(<UserLogin />);
     const el = screen.getByTestId('login-button');
+    fireEvent.click(el);
 
-    const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
-
-    // activateOnKey 가 preventDefault 호출 → fireEvent 의 반환값이 false (cancelled)
-    expect(spaceEvent).toBe(false);
-    expect(window.location.href).toContain('localhost:3000');
+    // `disabled` 가 아니라 `aria-disabled` 인 것은 의도다 — `disabled` 는 초점
+    // 대상에서 빼버려 스크린리더 사용자가 실패 사실에 도달하지 못한다.
+    expect(el).toHaveAttribute('aria-disabled', 'true');
+    expect(el).not.toHaveAttribute('disabled');
+    el.focus();
+    expect(document.activeElement).toBe(el);
   });
 });
 
@@ -203,7 +214,7 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
-  it('키보드 활성(Enter) 경로도 공란이면 동일하게 발화한다', () => {
+  it('반복 활성에서도 공란이면 동일하게 발화한다', () => {
     setEnv(true, false);
     vi.stubEnv('VITE_COGNITO_LOGIN_URL_DEV', '');
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
@@ -211,7 +222,7 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
 
     render(<UserLogin />);
     const el = screen.getByTestId('login-button');
-    fireEvent.keyDown(el, { key: 'Enter' });
+    fireEvent.click(el);
 
     expect(window.location.href).toBe('');
     expect(reportErrorSpy).toHaveBeenCalledTimes(1);

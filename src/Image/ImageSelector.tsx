@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { log, hasValue, copyToClipboard } from '../common/common';
-import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { getImages, getNextImages } from './api';
 import ImageItem from "./ImageItem";
@@ -171,7 +170,7 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 		if(hasValue(lastTimestamp)) {
 			setSeeMoreButton(
 				<button
-					role="button"
+					type="button"
 					className={`btn btn--secondary ${styles.buttonImageSeemorebutton}`}
 					onClick={() => setIsGetNextData(true)}
 				>
@@ -200,12 +199,11 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 			return (
 				<div className={imageSelectorClass}>
 					<div className={`div ${styles.divImageLoading}`}>Failed getting images</div>
-					<span
-						tabIndex={0}
-						role="button"
+					<button
+						type="button"
+						className="btn btn--secondary btn--sm"
 						onClick={handleRetry}
-						onKeyDown={activateOnKey(handleRetry as () => void)}
-					>Retry</span>
+					>Retry</button>
 				</div>
 			);
 		}

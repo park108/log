@@ -152,12 +152,24 @@ describe('keyboard a11y (REQ-20260418-017 FR-07, REQ-20260418-029, accessibility
 
 		render(<ImageSelector show={true} />);
 
-		const retrySpan = await screen.findByText('Retry');
-		expect(retrySpan.getAttribute('tabindex')).toBe('0');
-		expect(retrySpan.getAttribute('role')).toBe('button');
+		// span[role=button] + activateOnKey 손조립을 네이티브 button 으로 바꿨다.
+		// 손조립은 키 핸들러를 빠뜨리면 조용히 키보드 접근을 잃지만, 네이티브
+		// button 은 Enter·Space 활성이 브라우저 보장이다.
+		const retryButton = await screen.findByRole('button', { name: 'Retry' });
+		expect(retryButton.tagName).toBe('BUTTON');
+
+		// 손조립 잔재가 남으면 안 된다 — onKeyDown 까지 남으면 Enter 에서
+		// 핸들러와 네이티브 click 이 이중 발화한다.
+		expect(retryButton).not.toHaveAttribute('role');
+		expect(retryButton).not.toHaveAttribute('tabindex');
+		expect(retryButton).toHaveAttribute('type', 'button');
+
+		// tabindex 없이 초점을 받는다 — 깨지면 키보드 사용자가 도달하지 못한다.
+		retryButton.focus();
+		expect(document.activeElement).toBe(retryButton);
 	});
 
-	it('Enter 키로 Retry 가 활성화되어 "Failed getting images" 가 사라진다', async () => {
+	it('Retry 클릭이 오류 표면을 걷어낸다', async () => {
 
 		vi.stubEnv('DEV', true);
 		vi.stubEnv('PROD', false);
@@ -167,26 +179,7 @@ describe('keyboard a11y (REQ-20260418-017 FR-07, REQ-20260418-029, accessibility
 		const failMessage = await screen.findByText('Failed getting images');
 		expect(failMessage).toBeDefined();
 
-		const retrySpan = await screen.findByText('Retry');
-		fireEvent.keyDown(retrySpan, { key: 'Enter' });
-
-		await waitFor(() => {
-			expect(screen.queryByText('Failed getting images')).toBeNull();
-		});
-	});
-
-	it('Space 키로 Retry 가 활성화되어 "Failed getting images" 가 사라진다', async () => {
-
-		vi.stubEnv('DEV', true);
-		vi.stubEnv('PROD', false);
-
-		render(<ImageSelector show={true} />);
-
-		const failMessage = await screen.findByText('Failed getting images');
-		expect(failMessage).toBeDefined();
-
-		const retrySpan = await screen.findByText('Retry');
-		fireEvent.keyDown(retrySpan, { key: ' ' });
+		fireEvent.click(await screen.findByRole('button', { name: 'Retry' }));
 
 		await waitFor(() => {
 			expect(screen.queryByText('Failed getting images')).toBeNull();

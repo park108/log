@@ -54,3 +54,30 @@ describe('이미지 항목 (ImageItem.tsx)', () => {
 		expect(screen.getByTestId('imageItem')).toHaveAttribute('alt', 'photo.png');
 	});
 });
+
+describe('댓글 답글 버튼 (CommentItem.tsx)', () => {
+
+	it('글리프 대신 접근 가능한 이름을 갖는다', async () => {
+
+		const { default: CommentItem } = await import('../Comment/CommentItem');
+
+		render(
+			<CommentItem
+				isHidden={false}
+				isAdminComment={false}
+				message="hello"
+				name="tester"
+				logTimestamp={1655302060414}
+				timestamp={1655302060500}
+				openReplyForm={vi.fn()}
+				reply={vi.fn()}
+			/>,
+		);
+
+		// 🪃 는 이름이 되지 못한다 — 스크린리더가 "부메랑" 으로 읽는다.
+		// 호버 팝업은 role="tooltip" + aria-describedby 라 **설명**이지 이름이 아니다.
+		const el = screen.getByTestId('reply-toggle-button');
+		expect(el).toHaveAttribute('aria-label', 'Reply this message');
+		expect(el.textContent).toContain('🪃');
+	});
+});
