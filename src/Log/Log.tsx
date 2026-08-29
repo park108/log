@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import { isAdmin } from '../common/common';
 
 import './Log.css';
@@ -15,12 +15,10 @@ interface LogProps {
 
 const Log = (props: LogProps) => {
 
-	const location = useLocation();
-
 	if(isAdmin()) {
 		return (
 			<main className="main main--main-contents" style={props.contentHeight} role="application">
-				<Link to="/log/write" state={{ from: location.pathname }}>
+				<Link to="/log/write">
 					<button data-testid="newlog-button" role="button" className="button button--log-newlog">+</button>
 				</Link>
 				<Suspense fallback={<div></div>}>

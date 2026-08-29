@@ -138,9 +138,14 @@ const Writer = () => {
 
 		setFullscreen(true);
 
-		if(hasValue(location.state)) {
+		// state 의 존재가 아니라 **형상**으로 판정한다. 두 진입점이 같은 `from`
+		// 키에 서로 다른 것을 담아 왔다 — 수정은 로그 객체를, 새 글 버튼은
+		// 경로 문자열을 넘겼다. 존재만 보면 새 글 쓰기가 수정 모드로 열리고
+		// historyData 가 문자열이 되어 logs 접근에서 터진다.
+		const from = (location.state as { from?: unknown } | null)?.from;
+		if(from && typeof from === "object" && Array.isArray((from as LogItemPayload).logs)) {
 			setIsNew(false);
-			setHistoryData(location.state.from);
+			setHistoryData(from as LogItemPayload);
 		}
 
 		return () => {setFullscreen(false)}

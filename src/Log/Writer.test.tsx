@@ -230,6 +230,42 @@ describe('Writer create log network error on prod server', () => {
 	});
 });
 
+// 두 진입점이 같은 `from` 키에 서로 다른 것을 담아 왔다 — 수정(LogItemInfo)은
+// 로그 객체를, 새 글 버튼(Log.tsx)은 경로 문자열을 넘겼다. state 의 존재만 보고
+// 수정 모드로 가면 새 글 쓰기가 수정 모드로 열리고 historyData 가 문자열이 되어
+// logs 접근에서 터진다.
+describe('Writer 진입 state 형상 판정', () => {
+
+	test('from 이 로그 형상이 아니면 새 글 모드로 연다', async () => {
+
+		stubMode('production');
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+
+		// 경로 문자열 — 로그가 아니다.
+		const testEntry = {
+			pathname: "/log/write",
+			state: { from: "/log" },
+		};
+
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
+
+		const textInput = await screen.findByTestId("writer-text-area");
+		// 수정 모드였다면 historyData 의 최신 리비전이 본문에 복원된다.
+		// 새 글 모드이므로 비어 있어야 한다.
+		expect(textInput).toHaveValue("");
+		// 변경 이력 섹션은 수정 모드에서만 렌더된다.
+		expect(screen.queryByText("Change History")).toBeNull();
+	});
+});
+
 describe('Writer edit log ok on dev server', () => {
 	useMockServer(() => mock.devServerOk);
 
