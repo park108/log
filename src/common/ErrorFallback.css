@@ -23,6 +23,10 @@
 }
 
 .error-fallback__reset {
+	/* 배경·테두리는 아래에서 직접 정하므로 의도적인 버튼 모양이다.
+	 * 다만 서체는 리셋하지 않으면 브라우저 기본 시스템 서체로 떨어진다. */
+	appearance: none;
+	font: inherit;
 	padding: 0.375rem 0.75rem;
 	background: var(--active-background-color, #ffffff);
 	color: var(--active-text-color, #000000);

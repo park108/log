@@ -42,7 +42,15 @@
   padding-left: 0.5em;
 }
 
+/* Edit(=Link 안의 span) 과 Delete(=네이티브 button) 가 같은 클래스를 쓴다.
+ * button 으로 전환하면서 기본 표기 리셋을 빠뜨려 Delete 만 테두리 있는
+ * 버튼으로 보였다 — 같은 줄에 놓인 조작부가 서로 다른 물건처럼 읽힌다.
+ * 요소가 무엇이든 같은 텍스트 표기로 맞춘다. */
 .span--logitem-toolbarmenu {
+  appearance: none;
+  background: none;
+  border: 0;
+  font: inherit;
   color: var(--sub-text-color);
   padding: 0;
   margin: 0;

@@ -33,6 +33,12 @@
  * 유지해야 하므로(네이티브 버튼으로 바꾸면 Enter 가 이중 발화한다)
  * 표기만 맞춘다. */
 .span--writer-statusbarbutton {
+	/* 네이티브 button 이다 — 기본 표기를 지우지 않으면 테두리 있는 버튼으로
+	 * 보여 옆의 텍스트 상태 표기와 다른 물건처럼 읽힌다. */
+	appearance: none;
+	background: none;
+	border: 0;
+	font-family: inherit;
 	display: inline-flex;
 	align-items: center;
 	float: none;
