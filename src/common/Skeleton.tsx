@@ -4,7 +4,7 @@ import './Skeleton.css';
 /*
  * Skeleton — lazy-loading placeholder UI.
  *
- * Props (prop-types intentionally omitted, TS migration pending):
+ * Props (TypeScript 인터페이스로 선언 — PropTypes 미사용):
  *   - variant?: 'page' | 'list' | 'detail'  (default: 'page'; invalid values fall back to 'page')
  */
 

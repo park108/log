@@ -8,6 +8,29 @@
 
 ---
 
+## 0. 후속 결과 (2026-08-29)
+
+**업그레이드 완료.** 아래 감사는 2026-04-18 시점 스냅샷이며, 지목한 차단
+요인은 전부 해소됐다.
+
+| 감사 시점 지적 | 2026-08-29 상태 |
+|---|---|
+| `prop-types` 21 파일 42 매칭 — "TypeScript spec 완료 후 전용 태스크" | **0건.** TS 전환으로 전 컴포넌트가 props 인터페이스를 갖게 되면서 PropTypes 블록이 함께 제거됐다. `package.json` 의 `prop-types` 의존도 제거 (import 0건 확인 후). |
+| `react` / `react-dom` `^18.2.0` — bump 필요 | **19.2.8** |
+| `@testing-library/react` `^13.4.0` — 16+ 필요 | **16.3.3** |
+| `@types/react` / `@types/react-dom` 18.x | **19.x** |
+| `forwardRef` · legacy ReactDOM API · `defaultProps` | 감사 시점과 동일하게 0건 유지 |
+
+**회귀 0건** — `tsc rc=0` / `lint rc=0` / `npm test` 703 tests · 72 files 전수
+통과 / `build rc=0` / `check:*` 16종 rc=0 / `npm audit` 0 vulnerabilities.
+
+strict mode effect double-invocation 은 별도 대응이 필요 없었다. 언마운트
+가드(`cancelled` ref) 이디엄이 이미 전 도메인에 적용돼 있었기 때문이다.
+
+번들 크기는 206KB → 256KB (gzip 68KB → 82KB) 로 증가했다.
+
+---
+
 ## 1. 요약
 
 | 영역 | 결과 | 후속 필요 |

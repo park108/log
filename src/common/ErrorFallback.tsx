@@ -3,7 +3,7 @@ import './ErrorFallback.css';
 /*
  * ErrorFallback — default fallback UI for <ErrorBoundary>.
  *
- * Props (prop-types intentionally omitted, TS migration pending):
+ * Props (TypeScript 인터페이스로 선언 — PropTypes 미사용):
  *   - error?: Error         — error object thrown in the wrapped tree
  *   - reset?: () => void    — optional retry callback; when present a button is rendered
  *
