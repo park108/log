@@ -180,3 +180,35 @@ describe("public-asset-reference-coherence (TSK-20260518-09)", () => {
 		expect(srcs).not.toContain("apple-icon-precomposed.png");
 	});
 });
+
+// G-K: index.html 의 모듈 진입점이 디스크에 실재한다.
+//
+// TS 전환 후에도 index.html 이 `/src/index.jsx` 를 가리키고 있었다. Vite 는
+// dev·build 양쪽에서 확장자를 보정해 해석하므로 빌드도 dev 서버도 통과했고,
+// 존재하지 않는 파일을 가리키는 참조가 조용히 남았다. 번들러의 관용에 기대지
+// 않고 선언과 디스크를 직접 대조한다.
+describe("index.html 모듈 진입점 실재 (entry-point-disk-coherence)", () => {
+
+	it("G-K: <script type=module src> 가 가리키는 파일이 디스크에 있다", () => {
+
+		const html = readFileSync(PATH_INDEX_HTML, "utf8");
+		const matches = [...html.matchAll(/<script[^>]*type="module"[^>]*src="([^"]+)"/g)];
+
+		// 공허 통과 차단 — 진입점 선언이 0건이면 "결손 0" 은 무조건 참이다.
+		expect(
+			matches.length,
+			"index.html 에 module script 진입점 선언이 없다 — 판정이 공허하다",
+		).toBeGreaterThanOrEqual(1);
+
+		const missing = matches
+			.map((m) => m[1] as string)
+			.filter((src) => src.startsWith("/"))
+			.filter((src) => !existsSync(join(REPO_ROOT, src.replace(/^\//, ""))));
+
+		expect(
+			missing,
+			`index.html 진입점이 디스크에 없다: ${missing.join(", ")}`,
+		).toEqual([]);
+	});
+});
+

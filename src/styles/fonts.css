@@ -1,11 +1,13 @@
-/* Nanum Myeongjo (Google Fonts).
+/* Pretendard (동적 서브셋).
  *
- * 이전에는 Jeju Myeongjo 를 //fonts.gstatic.com/ea/... 에서 직접 @font-face
- * 로 물었다. 그 경로(Early Access)는 폐지돼 전 파일이 404 이고, 현행 Google
- * Fonts 카탈로그에도 그 서체가 없다 (css2 API 가 "400: Font family not
- * found"). 즉 사이트는 오랫동안 fallback 서체로 렌더되고 있었다.
+ * 이전 이력:
+ *   - Jeju Myeongjo 를 //fonts.gstatic.com/ea/... 에서 직접 물었으나 그
+ *     경로(Early Access)는 폐지돼 전 파일 404 이고 현행 Google Fonts
+ *     카탈로그에도 없다. 사이트는 오랫동안 fallback 서체로 렌더됐다.
+ *   - Nanum Myeongjo 로 교체했으나 명조 계열은 모니터 가독성이 떨어진다.
  *
- * URL 을 직접 박제하지 않고 CSS API 를 물는다 — 한글 서브셋이 180개가 넘어
- * 손으로 유지할 수 없고, 해시 URL 은 Google 이 갱신하면 다시 404 가 된다.
- * 이 방식은 브라우저가 필요한 서브셋만 받는다. */
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&display=swap');
+ * Pretendard 는 Google Fonts 에 없어 공식 jsdelivr CDN 을 쓴다.
+ * 통짜 variable 파일은 2MB 라 첫 로딩에 부담이 크므로 **동적 서브셋**을
+ * 쓴다 — 92개 조각(각 30~45KB)으로 나뉘어 브라우저가 화면에 실제로 쓰인
+ * 유니코드 범위만 받는다. */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css');

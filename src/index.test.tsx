@@ -1,7 +1,7 @@
 // TSK-20260517-28 / REQ-20260517-094 — 루트 엔트리 부트 비콘 4 불변식 fixture.
 // spec: specs/30.spec/blue/components/app.md §동작 8 (B1~B4) + §수용 기준 (FR-01~FR-04).
 //
-// 본 fixture 는 `src/index.jsx` 부트 시점 2종 비콘 (sendToAnalytics reportWebVitals 콜백,
+// 본 fixture 는 `src/index.tsx` 부트 시점 2종 비콘 (sendToAnalytics reportWebVitals 콜백,
 // sendCounter 모듈 즉시 호출) 의 4 불변식을 단일 fixture 로 박제한다:
 //   B1/FR-01: sendToAnalytics URL/body 계약 (`getAPI()` URL + JSON.stringify(metric))
 //   B2/FR-02: sendCounter URL/body 계약 (`getAPI()` + "/useragent" URL + JSON.stringify(userAgentParser()))
@@ -11,7 +11,7 @@
 // 격리 전략 (NFR-01/02/03):
 //   • `vi.mock` 으로 `./Monitor/api` / `./common/common` / `./reportWebVitals` /
 //     `react-dom/client` / `./App` 차단 → 실 모듈 부수효과 0.
-//   • 각 케이스 도입부 `vi.resetModules()` → `await import('./index.jsx')` 로 모듈
+//   • 각 케이스 도입부 `vi.resetModules()` → `await import('./index')` 로 모듈
 //     캐시 격리 (케이스 간 1회 발화 카운트 누수 0).
 //   • beforeAll 에서 `navigator.sendBeacon` 원본 descriptor 캡쳐 → afterAll 에서
 //     `Object.defineProperty` 로 원복 (다른 test 누수 0).
@@ -45,7 +45,7 @@ vi.mock('react-dom/client', () => ({
 	createRoot: createRootMock,
 }));
 
-// `./App` 자체는 mock 격리 — index.jsx 가 import 만 하므로 어떤 컴포넌트든 가능.
+// `./App` 자체는 mock 격리 — index.tsx 가 import 만 하므로 어떤 컴포넌트든 가능.
 vi.mock('./App', () => ({
 	default: function MockApp() {
 		return null;
@@ -97,7 +97,7 @@ afterEach(() => {
 	}
 });
 
-describe('src/index.jsx 부트 비콘 4 불변식 (REQ-094)', () => {
+describe('src/index.tsx 부트 비콘 4 불변식 (REQ-094)', () => {
 
 	it('B1/FR-01: sendToAnalytics 콜백이 getAPI() URL + JSON.stringify(metric) 로 sendBeacon 을 호출한다', async () => {
 		const sendBeaconSpy = vi.fn(() => true);
@@ -107,7 +107,7 @@ describe('src/index.jsx 부트 비콘 4 불변식 (REQ-094)', () => {
 			writable: true,
 		});
 
-		await import('./index.jsx');
+		await import('./index');
 
 		// 모듈 즉시 발화: sendCounter 1회 → counter URL.
 		expect(sendBeaconSpy).toHaveBeenCalledTimes(1);
@@ -136,7 +136,7 @@ describe('src/index.jsx 부트 비콘 4 불변식 (REQ-094)', () => {
 			writable: true,
 		});
 
-		await import('./index.jsx');
+		await import('./index');
 
 		expect(sendBeaconSpy).toHaveBeenCalledTimes(1);
 		expect(sendBeaconSpy).toHaveBeenNthCalledWith(
@@ -155,7 +155,7 @@ describe('src/index.jsx 부트 비콘 4 불변식 (REQ-094)', () => {
 			writable: true,
 		});
 
-		await expect(import('./index.jsx')).resolves.toBeDefined();
+		await expect(import('./index')).resolves.toBeDefined();
 
 		// reportWebVitals 등록은 가드와 무관 — 콜백 자체는 등록된다.
 		expect(reportWebVitalsMock).toHaveBeenCalledTimes(1);
@@ -174,12 +174,12 @@ describe('src/index.jsx 부트 비콘 4 불변식 (REQ-094)', () => {
 			writable: true,
 		});
 
-		await import('./index.jsx');
+		await import('./index');
 		const firstCallCount = sendBeaconSpy.mock.calls.length;
 		const firstRwvCount = reportWebVitalsMock.mock.calls.length;
 
 		// 두 번째 import — 모듈 캐시 사용 → 즉시 발화 코드 재실행 없음.
-		await import('./index.jsx');
+		await import('./index');
 
 		expect(sendBeaconSpy.mock.calls.length).toBe(firstCallCount);
 		expect(reportWebVitalsMock.mock.calls.length).toBe(firstRwvCount);

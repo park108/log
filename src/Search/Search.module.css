@@ -22,12 +22,12 @@
 	margin-top: 6px;
 	padding-left: 5px;
 	width: calc(100% - 10px);
-	font-family: 'Nanum Myeongjo';
+	font-family: 'Pretendard Variable';
 }
 
 .input--search-string::placeholder {
 	color: var(--sub-text-color);
-	font-family: 'Nanum Myeongjo';
+	font-family: 'Pretendard Variable';
 }
 
 .div--search-mobilehide {
@@ -48,12 +48,12 @@
 	border: 1px solid var(--normal-border-color);
 	width: 80%;
 	color: var(--sub-text-color);
-	font-family: 'Nanum Myeongjo';
+	font-family: 'Pretendard Variable';
 }
 
 .input--search-mobile::placeholder {
 	color: var(--sub-text-color);
-	font-family: 'Nanum Myeongjo';
+	font-family: 'Pretendard Variable';
 	display: inline-block;
 }
 

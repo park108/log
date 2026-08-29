@@ -49,13 +49,11 @@ const CSP_DIRECTIVE_TOKENS = [
 	"script-src 'self'",
 	"connect-src 'self' https://*.execute-api.ap-northeast-2.amazonaws.com",
 	"img-src 'self' data: https://d0.awsstatic.com",
-	// 폰트 CSS API(fonts.googleapis.com)가 스타일시트를 내려주므로 style-src 에도
-	// 출처가 필요하다. 실제 폰트 파일은 fonts.gstatic.com 이라 font-src 와 다르다.
-	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-	// 본문 폰트(Nanum Myeongjo)는 fonts.gstatic.com 에서 온다. font-src 를
-	// 선언하지 않으면 default-src 'self' 로 폴백돼 폰트가 차단됐고, 화면은
-	// fallback 서체로 렌더되고 있었다.
-	"font-src 'self' https://fonts.gstatic.com",
+	// 본문 폰트(Pretendard)는 공식 jsdelivr CDN 에서 온다. 스타일시트와 폰트
+	// 파일이 같은 호스트라 style-src / font-src 모두 같은 출처를 허용한다.
+	// font-src 를 선언하지 않으면 default-src 'self' 로 폴백돼 폰트가 차단된다.
+	"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+	"font-src 'self' https://cdn.jsdelivr.net",
 	"object-src 'none'",
 	"base-uri 'self'",
 	// frame-ancestors 는 meta 전달 시 명세상 무시되므로 제거했다 (index.html
