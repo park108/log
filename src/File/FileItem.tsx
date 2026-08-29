@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Toaster from "../Toaster/Toaster";
 import { log, getFormattedDate, getFormattedTime, confirm, copyToClipboard } from '../common/common';
-import { activateOnKey } from '../common/a11y';
 import { reportError } from '../common/errorReporter';
 import { deleteFile } from './api';
 
@@ -104,17 +103,15 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 	return (
 		<div className={className} data-deleting={isDeleting ? 'Y' : 'N'} role="listitem">
 			<div className="div div--fileitem-fileinfo">
-				<div
-					className="div div--fileitem-filename"
-					role="button"
-					tabIndex={0}
+				<button
+					type="button"
+					className="button button--fileitem-filename"
 					aria-label={"Copy URL of " + props.fileName}
 					title="Click to copy URL"
 					onClick={copyFileUrl}
-					onKeyDown={activateOnKey(copyFileUrl)}
 				>
 					{props.fileName}
-				</div>
+				</button>
 				<div className="div div--fileitem-statusbar">
 					<span className="span span--fileitem-modifieddate">
 						{getFormattedDate(props.lastModified as number)}
@@ -126,17 +123,15 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 						{((props.size as number) * 1).toLocaleString()} bytes
 					</span>
 					<span className="span span--fileitem-toolbar">
-						<span
+						<button
+							type="button"
 							onClick={confirmDelete}
-							onKeyDown={activateOnKey(confirmDelete as () => void)}
-							className="span span--fileitem-delete"
-							role="button"
-							tabIndex={0}
+							className="button button--fileitem-delete"
 							aria-label={"Delete " + props.fileName}
 							title={"Delete " + props.fileName}
 						>
 							<span aria-hidden="true">✕</span>
-						</span>
+						</button>
 					</span>
 				</div>
 			</div>

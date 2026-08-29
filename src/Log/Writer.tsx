@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
-import { activateOnKey } from '../common/a11y';
 import { useCreateLog } from './hooks/useCreateLog';
 import { useUpdateLog } from './hooks/useUpdateLog';
 import * as parser from '../common/markdownParser';
@@ -320,16 +319,15 @@ const Writer = () => {
 				<span className="span span--writer-statusbaritem span--writer-statusbaritemright">
 					{convertedArticleStatus}
 				</span>
-				<span
-					role="button"
+				<button
+					type="button"
 					data-testid="img-selector-button"
-					tabIndex={0}
 					className="span span--writer-statusbarbutton"
+					aria-expanded={isShowImageSelector}
 					onClick={toggleImageSelector}
-					onKeyDown={activateOnKey(toggleImageSelector)}
 				>
 					[IMG]
-				</span>
+				</button>
 			</div>
 
 			<Suspense fallback={<div></div>}>
@@ -357,16 +355,14 @@ const Writer = () => {
 					/>
 					<div className="div div--writer-convertedbox">
 						<div className="div div--writer-convertedtag">
-							<span
-								role="button"
+							<button
+								type="button"
 								data-testid="mode-button"
-								tabIndex={0}
 								onClick={toggleMode}
-								onKeyDown={activateOnKey(toggleMode)}
 								className="span span--writer-statusbarbutton"
 							>
 								{isConvertedHTML ? "HTML" : "Markdown Converted"}
-							</span>
+							</button>
 						</div>
 						<Converted />
 					</div>
@@ -380,8 +376,11 @@ const Writer = () => {
 					/>
 					<label htmlFor="temporary">Temporary Save</label>
 
+					{/* form 안의 button 은 type 이 없으면 submit 이 기본이다. 지금은 핸들러의
+					    preventDefault 가 막고 있지만, 그 방어는 핸들러가 기억해야 성립한다 —
+					    type 으로 구조적으로 못 박는다. */}
 					<button
-						role="button"
+						type="button"
 						data-testid="img-button"
 						className="btn btn--secondary btn--sm"
 						value="img"
@@ -391,7 +390,7 @@ const Writer = () => {
 					</button>
 
 					<button
-						role="button"
+						type="button"
 						data-testid="a-button"
 						className="btn btn--secondary btn--sm"
 						value="a"
@@ -402,7 +401,6 @@ const Writer = () => {
 				</div>
 					
 				<button
-					role="button"
 					data-testid="submit-button"
 					className="btn btn--primary"
 					type="submit"

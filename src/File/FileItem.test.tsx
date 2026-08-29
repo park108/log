@@ -59,58 +59,35 @@ const defaultProps = {
 
 describe('FileItem keyboard activation (a11y pattern B) — filename div', () => {
 
-	it('filename div is keyboard focusable with role=button + tabindex=0', () => {
+	it('파일명이 네이티브 button 이다', () => {
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
-		const filenameDiv = container.querySelector('.div--fileitem-filename');
-		expect(filenameDiv).toBeInTheDocument();
-		expect(filenameDiv).toHaveAttribute('role', 'button');
-		expect(filenameDiv).toHaveAttribute('tabindex', '0');
+		// div[role=button] + activateOnKey 손조립을 네이티브 button 으로 바꿨다.
+		// 손조립은 키 핸들러를 빠뜨리면 조용히 키보드 접근을 잃는다.
+		const el = container.querySelector('.button--fileitem-filename') as HTMLElement;
+		expect(el).toBeInTheDocument();
+		expect(el.tagName).toBe('BUTTON');
+
+		// 손조립 잔재 금지 — onKeyDown 이 남으면 Enter 에서 이중 발화한다.
+		expect(el).not.toHaveAttribute('role');
+		expect(el).not.toHaveAttribute('tabindex');
+		expect(el).toHaveAttribute('type', 'button');
+
+		// tabindex 없이 초점을 받는다.
+		el.focus();
+		expect(document.activeElement).toBe(el);
 	});
 
-	it('filename div activates on Enter key → copyToClipboard called', async () => {
+	it('파일명 클릭이 URL 을 복사한다', async () => {
 
 		const spy = vi.spyOn(common, 'copyToClipboard').mockResolvedValue(true);
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
-		const filenameDiv = container.querySelector('.div--fileitem-filename');
-		fireEvent.keyDown(filenameDiv!, { key: 'Enter' });
+		fireEvent.click(container.querySelector('.button--fileitem-filename')!);
 
-		expect(spy).toHaveBeenCalledTimes(1);
-		expect(spy).toHaveBeenCalledWith(defaultProps.url);
-
-		spy.mockRestore();
-	});
-
-	it('filename div activates on Space key and prevents default scroll', () => {
-
-		const spy = vi.spyOn(common, 'copyToClipboard').mockResolvedValue(true);
-
-		const { container } = render(<FileItem {...defaultProps} />);
-
-		const filenameDiv = container.querySelector('.div--fileitem-filename');
-		// fireEvent.keyDown returns false when the event was cancelled (preventDefault called).
-		const spaceEvent = fireEvent.keyDown(filenameDiv!, { key: ' ' });
-		expect(spaceEvent).toBe(false);
-		expect(spy).toHaveBeenCalledTimes(1);
-
-		spy.mockRestore();
-	});
-
-	it('filename div ignores non-activation keys (negative case)', () => {
-
-		const spy = vi.spyOn(common, 'copyToClipboard').mockResolvedValue(true);
-
-		const { container } = render(<FileItem {...defaultProps} />);
-
-		const filenameDiv = container.querySelector('.div--fileitem-filename');
-		const otherEvent = fireEvent.keyDown(filenameDiv!, { key: 'x' });
-		expect(otherEvent).toBe(true);
-		expect(spy).not.toHaveBeenCalled();
-
-		spy.mockRestore();
+		await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
 	});
 
 	it('existing click path still triggers copyFileUrl (regression guard)', () => {
@@ -119,7 +96,7 @@ describe('FileItem keyboard activation (a11y pattern B) — filename div', () =>
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
-		const filenameDiv = container.querySelector('.div--fileitem-filename');
+		const filenameDiv = container.querySelector('.button--fileitem-filename');
 		fireEvent.click(filenameDiv!);
 
 		expect(spy).toHaveBeenCalledTimes(1);
@@ -131,61 +108,33 @@ describe('FileItem keyboard activation (a11y pattern B) — filename div', () =>
 
 describe('FileItem keyboard activation (a11y pattern B) — delete span', () => {
 
-	it('delete span is keyboard focusable with role=button + tabindex=0', () => {
+	it('삭제가 네이티브 button 이다', () => {
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		expect(deleteSpan).toBeInTheDocument();
-		expect(deleteSpan).toHaveAttribute('role', 'button');
-		expect(deleteSpan).toHaveAttribute('tabindex', '0');
+		const el = container.querySelector('.button--fileitem-delete') as HTMLElement;
+		expect(el).toBeInTheDocument();
+		expect(el.tagName).toBe('BUTTON');
+
+		expect(el).not.toHaveAttribute('role');
+		expect(el).not.toHaveAttribute('tabindex');
+		expect(el).toHaveAttribute('type', 'button');
+
+		// ✕ 글리프는 이름이 되지 못하므로 aria-label 이 이름을 진다.
+		expect(el).toHaveAttribute('aria-label', 'Delete ' + defaultProps.fileName);
+
+		el.focus();
+		expect(document.activeElement).toBe(el);
 	});
 
-	it('delete span activates on Enter key → confirmDelete handler invoked', () => {
+	it('삭제 클릭이 확인 절차를 탄다', () => {
 
-		const confirmAction = vi.fn();
-		vi.spyOn(common, 'confirm').mockReturnValue(confirmAction);
-
-		const { container } = render(<FileItem {...defaultProps} />);
-
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		fireEvent.keyDown(deleteSpan!, { key: 'Enter' });
-
-		expect(confirmAction).toHaveBeenCalledTimes(1);
-
-		vi.restoreAllMocks();
-	});
-
-	it('delete span activates on Space key and prevents default scroll', () => {
-
-		const confirmAction = vi.fn();
-		vi.spyOn(common, 'confirm').mockReturnValue(confirmAction);
+		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
 
 		const { container } = render(<FileItem {...defaultProps} />);
+		fireEvent.click(container.querySelector('.button--fileitem-delete')!);
 
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		const spaceEvent = fireEvent.keyDown(deleteSpan!, { key: ' ' });
-
-		expect(spaceEvent).toBe(false);
-		expect(confirmAction).toHaveBeenCalledTimes(1);
-
-		vi.restoreAllMocks();
-	});
-
-	it('delete span ignores non-activation keys (negative case)', () => {
-
-		const confirmAction = vi.fn();
-		vi.spyOn(common, 'confirm').mockReturnValue(confirmAction);
-
-		const { container } = render(<FileItem {...defaultProps} />);
-
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
-		const otherEvent = fireEvent.keyDown(deleteSpan!, { key: 'x' });
-
-		expect(otherEvent).toBe(true);
-		expect(confirmAction).not.toHaveBeenCalled();
-
-		vi.restoreAllMocks();
+		expect(confirmSpy).toHaveBeenCalledTimes(1);
 	});
 
 	it('existing click path still triggers confirmDelete (regression guard)', () => {
@@ -195,7 +144,7 @@ describe('FileItem keyboard activation (a11y pattern B) — delete span', () => 
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
+		const deleteSpan = container.querySelector('.button--fileitem-delete');
 		fireEvent.click(deleteSpan!);
 
 		expect(confirmAction).toHaveBeenCalledTimes(1);
@@ -233,7 +182,7 @@ describe('FileItem className transition (declarative pattern)', () => {
 		expect(root).toHaveAttribute('data-deleting', 'N');
 		expect(root).not.toHaveClass('div--fileitem-delete');
 
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
+		const deleteSpan = container.querySelector('.button--fileitem-delete');
 
 		await act(async () => {
 			fireEvent.click(deleteSpan!);
@@ -256,7 +205,7 @@ describe('FileItem className transition (declarative pattern)', () => {
 
 		const { container, rerender } = render(<FileItem {...defaultProps} />);
 
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
+		const deleteSpan = container.querySelector('.button--fileitem-delete');
 		await act(async () => {
 			fireEvent.click(deleteSpan!);
 		});
@@ -291,7 +240,7 @@ describe('FileItem reportError 채널 (REQ-20260421-039 FR-03)', () => {
 
 		const { container } = render(<FileItem {...defaultProps} />);
 
-		const deleteSpan = container.querySelector('.span--fileitem-delete');
+		const deleteSpan = container.querySelector('.button--fileitem-delete');
 
 		await act(async () => {
 			fireEvent.click(deleteSpan!);
@@ -331,7 +280,7 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 		const { container, unmount } = render(<FileItem {...defaultProps} />);
 
 		await act(async () => {
-			fireEvent.click(container.querySelector('.span--fileitem-delete')!);
+			fireEvent.click(container.querySelector('.button--fileitem-delete')!);
 		});
 
 		unmount();
@@ -374,7 +323,7 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 		// 이 시점에 첫 await 는 이미 통과했고 (컴포넌트는 아직 마운트 상태),
 		// 실행은 `await res.json()` 에서 멈춰 있다.
 		await act(async () => {
-			fireEvent.click(container.querySelector('.span--fileitem-delete')!);
+			fireEvent.click(container.querySelector('.button--fileitem-delete')!);
 		});
 
 		unmount();
@@ -404,7 +353,7 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 		const { container, unmount } = render(<FileItem {...defaultProps} />);
 
 		await act(async () => {
-			fireEvent.click(container.querySelector('.span--fileitem-delete')!);
+			fireEvent.click(container.querySelector('.button--fileitem-delete')!);
 		});
 
 		unmount();
@@ -429,7 +378,7 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 
 		const { container, unmount } = render(<FileItem {...defaultProps} />);
 
-		fireEvent.click(container.querySelector('.div--fileitem-filename')!);
+		fireEvent.click(container.querySelector('.button--fileitem-filename')!);
 
 		setterRec.calls = 0;
 		unmount();
@@ -452,11 +401,11 @@ describe('FileItem post-unmount 무발화 (race fixture)', () => {
 
 		setterRec.calls = 0;
 		await act(async () => {
-			fireEvent.click(container.querySelector('.div--fileitem-filename')!);
+			fireEvent.click(container.querySelector('.button--fileitem-filename')!);
 		});
 
 		expect(setterRec.calls).toBeGreaterThan(0);
-		expect(container.querySelector('.div--fileitem-filename')).toBeInTheDocument();
+		expect(container.querySelector('.button--fileitem-filename')).toBeInTheDocument();
 
 		vi.restoreAllMocks();
 	});

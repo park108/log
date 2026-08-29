@@ -592,61 +592,59 @@ describe('Writer a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
 		));
 	};
 
-	it('[IMG] toggle (M1) 에 tabIndex=0 과 role="button" 이 부여된다', async () => {
+	it('[IMG] · 모드 토글이 네이티브 button 이다', async () => {
+		renderWriter();
+
+		// span[role=button] + activateOnKey 손조립을 네이티브 button 으로 바꿨다.
+		// 손조립은 키 핸들러를 빠뜨리면 조용히 키보드 접근을 잃는다.
+		for (const id of ['img-selector-button', 'mode-button']) {
+			const el = await screen.findByTestId(id);
+			expect(el.tagName).toBe('BUTTON');
+
+			// 손조립 잔재 금지 — onKeyDown 이 남으면 Enter 에서 이중 발화한다.
+			expect(el).not.toHaveAttribute('role');
+			expect(el).not.toHaveAttribute('tabindex');
+
+			// form 밖/안을 가리지 않고 암묵 제출을 막는다.
+			expect(el).toHaveAttribute('type', 'button');
+
+			// tabindex 없이 초점을 받는다.
+			el.focus();
+			expect(document.activeElement).toBe(el);
+		}
+	});
+
+	it('[IMG] 토글이 펼침 상태를 접근성 트리에 알린다', async () => {
 		renderWriter();
 		const el = await screen.findByTestId('img-selector-button');
 
-		expect(el).toHaveAttribute('role', 'button');
-		expect(el).toHaveAttribute('tabIndex', '0');
+		// 이전에는 펼침 상태가 어디에도 노출되지 않았다.
+		expect(el).toHaveAttribute('aria-expanded', 'false');
+		fireEvent.click(el);
+		expect(el).toHaveAttribute('aria-expanded', 'true');
 	});
 
-	it('[IMG] toggle (M1) 이 Enter 키로 활성된다 (click 과 동일 핸들러)', async () => {
-		const { container } = renderWriter();
-		const el = await screen.findByTestId('img-selector-button');
-
-		// 최초 렌더: ImageSelector 는 show=false 로 전달됨.
-		// Enter → toggleImageSelector → show=true 로 전환 (state 변경 관찰은 click 과 동일한 효과).
-		fireEvent.keyDown(el, { key: 'Enter' });
-		// 재-클릭 대신 다시 Enter → 토글 복귀. 런타임 오류 없이 통과만 확인해도 충분.
-		fireEvent.keyDown(el, { key: 'Enter' });
-		expect(container).toBeDefined();
-	});
-
-	it('[IMG] toggle (M1) 이 Space 키로 활성된다 (preventDefault)', async () => {
-		renderWriter();
-		const el = await screen.findByTestId('img-selector-button');
-
-		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
-		// activateOnKey 가 preventDefault 호출 → fireEvent 반환값이 false (cancelled).
-		expect(spaceEvent).toBe(false);
-	});
-
-	it('HTML/Markdown toggle (M2) 에 tabIndex=0 과 role="button" 이 부여된다', async () => {
+	it('모드 토글 클릭이 표기를 전환한다', async () => {
 		renderWriter();
 		const el = await screen.findByTestId('mode-button');
 
-		expect(el).toHaveAttribute('role', 'button');
-		expect(el).toHaveAttribute('tabIndex', '0');
+		expect(el.textContent).toContain('Markdown Converted');
+		fireEvent.click(el);
+		expect(el.textContent).toContain('HTML');
 	});
 
-	it('HTML/Markdown toggle (M2) 이 Enter 키로 활성된다 (mode 텍스트 토글)', async () => {
+	// form 안의 button 은 type 이 없으면 submit 이 기본이다. 지금은 핸들러의
+	// preventDefault 가 막고 있지만 그 방어는 핸들러가 기억해야 성립한다 —
+	// 마크다운 보조 버튼이 글을 제출해 버리는 형상을 구조적으로 못 박는다.
+	it('마크다운 보조 버튼은 폼을 제출하지 않는다', async () => {
 		renderWriter();
-		const el = await screen.findByTestId('mode-button');
 
-		// 초기: Markdown Converted → Enter → HTML
-		expect(el!.textContent).toContain('Markdown Converted');
-		fireEvent.keyDown(el, { key: 'Enter' });
-		expect(el!.textContent).toContain('HTML');
-	});
+		for (const id of ['img-button', 'a-button']) {
+			expect(await screen.findByTestId(id)).toHaveAttribute('type', 'button');
+		}
 
-	it('HTML/Markdown toggle (M2) 이 Space 키로 활성된다 (preventDefault)', async () => {
-		renderWriter();
-		const el = await screen.findByTestId('mode-button');
-
-		const spaceEvent = fireEvent.keyDown(el, { key: ' ', cancelable: true });
-		expect(spaceEvent).toBe(false);
-		// Space 가 click 과 동일 핸들러를 실행 → 텍스트 전환.
-		expect(el!.textContent).toContain('HTML');
+		// 제출 버튼만 submit 이다.
+		expect(await screen.findByTestId('submit-button')).toHaveAttribute('type', 'submit');
 	});
 });
 

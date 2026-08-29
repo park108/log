@@ -100,7 +100,16 @@
 /* 파일명은 링크가 아니라 "누르면 URL 복사" 다. 상시 밑줄은 링크로 오인하게
  * 하므로 호버에서만 긋는다. line-height 1em 은 긴 이름의 디센더를 잘라
  * 먹었다 — 1.45 로 연다. */
-.div--fileitem-filename {
+.button--fileitem-filename {
+  /* 네이티브 button 으로 전환했다 — 브라우저 기본 표기를 지우고 기존 모양을 유지한다. */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
   word-break: break-all;
   max-width: 100%;
@@ -109,12 +118,12 @@
   border-radius: 4px;
 }
 
-.div--fileitem-filename:hover {
+.button--fileitem-filename:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.div--fileitem-filename:focus-visible {
+.button--fileitem-filename:focus-visible {
   outline: 2px solid var(--normal-text-color);
   outline-offset: 2px;
 }
@@ -153,7 +162,15 @@
 
 /* 삭제는 글리프 1자다. 밑줄은 한 글자에 그으면 의미가 없으므로 색과
  * 배경으로 반응시킨다 (다른 도메인의 밑줄 통일은 텍스트 대상 한정). */
-.span--fileitem-delete {
+.button--fileitem-delete {
+  /* 네이티브 button 으로 전환했다 — 브라우저 기본 표기를 지우고 기존 모양을 유지한다. */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -165,12 +182,12 @@
   transition: color 0.18s ease, background-color 0.18s ease;
 }
 
-.span--fileitem-delete:hover {
+.button--fileitem-delete:hover {
   color: var(--btn-danger-text);
   background-color: var(--track-background-color);
 }
 
-.span--fileitem-delete:focus-visible {
+.button--fileitem-delete:focus-visible {
   outline: 2px solid var(--normal-text-color);
   outline-offset: 2px;
 }
