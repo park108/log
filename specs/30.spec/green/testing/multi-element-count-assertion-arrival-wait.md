@@ -99,8 +99,14 @@ rc 채널은 두 층으로 나뉜다:
 > 아래 3항은 REQ-20260827-035 흡수분이다. 위 5항은 **전부 보존**되며 본 판본은 추가만 한다.
 > 펜스 항목은 본문을 추출해 `bash -c "$(추출)"` 로 실행한다.
 
-- [ ] (Must, 동작 2·2-a / Should, 동작 1 선례 보존) **증가 쌍 전수가 증가분 도착을 선행 관측한다** — 판정: (펜스 — `bash -c "$(추출)"` 로 실행)
+- [x] (Must, 동작 2·2-a / Should, 동작 1 선례 보존) **증가 쌍 전수가 증가분 도착을 선행 관측한다** — 판정: (펜스 — `bash -c "$(추출)"` 로 실행)
   ```
+    → **실측 2026-08-29 (HEAD `6503a78`): rc=0 / `count-increase-pairs=3 without-arrival-wait=0`.**
+    위반 1건은 `src/Image/ImageSelector.test.tsx` 였다 — See more 클릭 직후 도착
+    관측 없이 `toBe(6)` 을 단언했다. `findAllByTestId` 는 1개 이상이면 즉시
+    반환하므로 아직 4개인 상태로 통과할 수 있고, 깨져도 원인이 "6개가 아니다"
+    로만 보여 도착 미대기임이 드러나지 않는다. 증가분의 `title`(=`key`)을
+    `findByTitle` 로 먼저 기다리도록 고쳤다 (File.test · Log.test 와 같은 이디엄).
   T=0; B=0
   for f in $(find src -name "*.test.jsx" -o -name "*.test.tsx" | sort); do
     r=$(awk -v F="$f" '

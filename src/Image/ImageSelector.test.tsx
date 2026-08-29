@@ -41,6 +41,17 @@ describe('ImageSelector loading > loading more > and fail on prod server', () =>
 		expect(seeMoreButton).toBeDefined();
 
 		fireEvent.click(seeMoreButton);
+
+		// 증가분의 **도착을 먼저 관측**한다. findAllByTestId 는 1개 이상만 있으면
+		// 즉시 반환하므로, 이것 없이 곧장 개수를 단언하면 아직 4개인 상태로
+		// 통과할 수 있고 toBe(6) 이 경합에 따라 깨진다. 게다가 깨져도 원인이
+		// "6개가 아니다" 로만 보여 도착 미대기임이 드러나지 않는다.
+		// (File.test / Log.test 가 쓰는 것과 같은 이디엄이다.)
+		const added = await screen.findByTitle(
+			"thumbnail/20211212-676e3432-1e1b-4f10-8f29-afba42da9ce9.jpg"
+		);
+		expect(added).toBeInTheDocument();
+
 		const imageItems2 = await screen.findAllByTestId("imageItem");
 		expect(imageItems2.length).toBe(6);
 
