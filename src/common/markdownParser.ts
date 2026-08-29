@@ -14,6 +14,17 @@ const escapeHtmlAttr = (s: unknown): string => {
 		.replace(/'/g, '&#39;');
 };
 
+// 표시 텍스트용 이스케이프. 속성용(escapeHtmlAttr)은 따옴표까지 바꾸는데,
+// 그것을 본문 텍스트에 쓰면 URL 의 작은따옴표가 `&#39;` 로 보인다.
+// 텍스트 문맥에서 위험한 것은 `&` · `<` · `>` 뿐이다.
+const escapeHtmlText = (s: unknown): string => {
+	if(s === undefined || s === null) return '';
+	return String(s)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
+};
+
 // Compute indentation depth of a list item line.
 // - Leading tabs take precedence: 1 tab = depth+1.
 // - When no leading tabs are present, floor(leading spaces / 2) = depth.
@@ -114,13 +125,19 @@ export const markdownToHtml = (input: string): string => {
 		isPreStarted = false;
 	}
 	// hr
+	//
+	// 이전에는 정확히 3자인 `---` 만 인식했다. CommonMark 는 `-` · `*` · `_` 세 문자
+	// 모두를 **3개 이상** 반복하면 수평선으로 규정한다. 그래서 `***` 는 수평선이
+	// 되지 못한 채 emphasis 파서에 걸려 `<em></em>*` 라는 깨진 출력을 냈다
+	// (실측 2026-08-30). `___` 도 같은 부류였다.
+	const THEMATIC_BREAK_PATTERN = /^(-{3,}|\*{3,}|_{3,})$/;
+
 	index = 0;
-	for(let node of parsed) {
+	for(const node of parsed) {
 
 		if("value" === node.type
 			&& "" === node.closure
-			&& 3 === node.text.trim().length
-			&& "---" === node.text.trim().substr(0, 3)) {
+			&& THEMATIC_BREAK_PATTERN.test(node.text.trim())) {
 
 			parsed.splice(index, 1
 				, {type: "tag", text: "<hr />", closure: "hr"});
@@ -263,6 +280,26 @@ export const markdownToHtml = (input: string): string => {
 				"<img src='" + escapeHtmlAttr(url) + "' alt='" + escapeHtmlAttr(alt) + "'"
 				+ (undefined === title ? "" : " title='" + escapeHtmlAttr(title) + "'")
 				+ " />"
+			);
+		}
+	}
+
+	// autolink — `<https://example.com>` 형식.
+	//
+	// 지원하지 않으면 이 표기는 raw HTML 로 흘러가 sanitize 단계에서 **통째로
+	// 삭제된다**. 즉 사용자가 쓴 글자가 화면에서 사라진다 (실측 2026-08-30:
+	// `<https://example.com>` → `<p></p>`). CommonMark 는 이 형식을 링크로
+	// 규정하므로 표준에 맞춘다.
+	//
+	// 스킴을 http/https/mailto 로 한정한다 — sanitize 의 ALLOWED_URI_REGEXP 와
+	// 같은 정책이며, 여기서 넓히면 그쪽에서 잘려 다시 글자가 사라진다.
+	const AUTOLINK_PATTERN = /<((?:https?:\/\/|mailto:)[^\s<>]+)>/g;
+
+	for(const node of parsed) {
+		if("value" === node.type && "pre" !== node.closure) {
+			node.text = node.text.replace(AUTOLINK_PATTERN, (_m, url) =>
+				"<a href='" + escapeHtmlAttr(url) + "' target='_blank' rel='noreferrer'>"
+				+ escapeHtmlText(url) + "</a>"
 			);
 		}
 	}

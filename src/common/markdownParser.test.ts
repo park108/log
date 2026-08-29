@@ -256,3 +256,50 @@ describe('링크·이미지 제목 선택', () => {
 		expect(out).not.toContain('<a href=');
 	});
 });
+
+// 수평선은 `---` 만 인식했다. CommonMark 는 `-` · `*` · `_` 를 3개 이상 반복하면
+// 수평선으로 규정한다. `***` 는 수평선이 되지 못한 채 emphasis 파서에 걸려
+// `<em></em>*` 라는 깨진 출력을 냈다 (실측 2026-08-30).
+describe('수평선 — 세 문자 · 3개 이상', () => {
+
+	for (const src of ['---', '***', '___', '-----', '****']) {
+		it(`${src} 는 수평선이다`, () => {
+			expect(parser.markdownToHtml(src)).toBe('<hr />');
+		});
+	}
+
+	// 대조 — 3개 미만은 수평선이 아니다. 없으면 "무엇이든 hr" 구현도 통과한다.
+	for (const src of ['--', '**', '__']) {
+		it(`${src} 는 수평선이 아니다`, () => {
+			expect(parser.markdownToHtml(src)).not.toBe('<hr />');
+		});
+	}
+});
+
+// autolink 를 지원하지 않으면 `<https://...>` 가 raw HTML 로 흘러가 sanitize
+// 단계에서 통째로 삭제된다 — 사용자가 쓴 글자가 화면에서 사라진다.
+describe('autolink', () => {
+
+	it('<https://…> 가 링크가 된다', () => {
+		const out = parser.markdownToHtml('<https://example.com>');
+		expect(out).toContain("href='https://example.com'");
+		// 표시 텍스트도 남아야 한다 — 링크만 되고 글자가 비면 소실과 다를 바 없다.
+		expect(out).toContain('>https://example.com</a>');
+	});
+
+	it('<mailto:…> 도 링크가 된다', () => {
+		expect(parser.markdownToHtml('<mailto:a@b.com>')).toContain("href='mailto:a@b.com'");
+	});
+
+	it('허용 스킴 밖은 링크로 만들지 않는다', () => {
+		// sanitize 의 ALLOWED_URI_REGEXP 와 정책을 맞춘다 — 여기서 넓히면
+		// 그쪽에서 잘려 결국 글자가 사라진다.
+		const out = parser.markdownToHtml('<javascript:alert(1)>');
+		expect(out).not.toContain('<a href=');
+	});
+
+	it('코드 블록 안에서는 변환하지 않는다', () => {
+		const out = parser.markdownToHtml(['```', '<https://example.com>', '```'].join('\n'));
+		expect(out).not.toContain('<a href=');
+	});
+});
