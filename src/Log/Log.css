@@ -156,18 +156,29 @@
 	transition: 0.3s ease;
 }
 
+/* 한 줄 요약 — 오른쪽 끝을 그라디언트로 페이드시켜 "이어짐" 을 알린다.
+ * 표준 background-clip 을 함께 선언한다. -webkit- 접두사만 있으면 Firefox
+ * 에서는 페이드가 걸리지 않아 글자가 경계에서 그냥 끊긴다.
+ * 방향 표기도 다르다: -webkit-linear-gradient(left, ...) 의 표준 대응은
+ * linear-gradient(to right, ...) 다. */
 .div--loglist-contents {
 	background: -webkit-linear-gradient(left, var(--normal-text-color) 90%, transparent);
+	background: linear-gradient(to right, var(--normal-text-color) 90%, transparent);
 	-webkit-background-clip: text;
+	background-clip: text;
 	-webkit-text-fill-color: transparent;
+	color: transparent;
 	white-space: nowrap;
 	overflow: hidden;
 }
 
 .div--loglist-temporary {
 	background: -webkit-linear-gradient(left, var(--normal-text-color) 90%, transparent);
+	background: linear-gradient(to right, var(--normal-text-color) 90%, transparent);
 	-webkit-background-clip: text;
+	background-clip: text;
 	-webkit-text-fill-color: var(--shadow-color);
+	color: var(--shadow-color);
 	font-style: italic;
 	white-space: nowrap;
 	overflow: hidden;
