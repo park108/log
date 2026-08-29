@@ -405,11 +405,9 @@ const VisitorMon = (props: VisitorMonProps) => {
 				<section className="section section--monitor-item">
 					<h3>User Environment: {envTotalCount} cases</h3>
 					<div className="div div--monitor-stackchart">
-						<div>
-							<EnvPillar legend="Browser" length={envTotalCount} data={browsers} />
-							<EnvPillar legend="OS" length={envTotalCount} data={os} />
-							<EnvPillar legend="Rendering Engine" length={envTotalCount} data={engines} />
-						</div>
+						<EnvPillar legend="Browser" length={envTotalCount} data={browsers} />
+						<EnvPillar legend="OS" length={envTotalCount} data={os} />
+						<EnvPillar legend="Rendering Engine" length={envTotalCount} data={engines} />
 					</div>
 				</section>
 			</article>
