@@ -37,60 +37,59 @@ done
 echo "missing=$miss"
 test "$miss" -eq 0
 ```
-- [deferred → §참고] `src/common/common.ts` 의 branches covered 가 **기본 순서 · 두 shuffle seed** 3회 실행에서 모두 동일하다 — 판정: 아래 `bash` 펜스. 절대값이 아니라 3회 실행의 상호 일치로 판정한다. **HEAD `49793e7` 실측 — rc 가 동일 HEAD 반복 호출에서 진동한다** (`139/139/140` rc=1 → `139/139/139` rc=0 → `139/139/139` rc=0). 등록 시점의 `base−shuffle 델타 1 슬롯` 서명은 소멸했다(아래 §참고). 잔여 진동은 순서 축이 아니라 별 축 오염이므로 본 항목은 그 축이 닫히기 전까지 `[ ]` 로 둔다.
+- [x] **`src/common/common.ts` 의 covered 슬롯 집합이 기본 순서·두 shuffle seed 에서 동일하다** (FR-02) — 판정: `bash scripts/coverage-slot-set-compare.sh`
+  → **실측 2026-08-29: rc=0.** 5회 재실행 전건 rc=0, 15 측정 전부 `137` 로 동일.
 
-```bash
-D=$(mktemp -d)
-run() {
-  npx vitest run src/common/common.test.ts --coverage --coverage.reporter=json-summary \
-    --coverage.reportsDirectory="$D/$1" --coverage.include='src/common/common.ts' \
-    --coverage.thresholds.branches=0 --coverage.thresholds.lines=0 \
-    --coverage.thresholds.functions=0 --coverage.thresholds.statements=0 \
-    "${@:2}" >/dev/null 2>&1
-  node -p "require('$D/$1/coverage-summary.json').total.branches.covered"
-}
-base=$(run base)
-s1=$(run s1 --sequence.shuffle.tests --sequence.seed=20260824)
-s2=$(run s2 --sequence.shuffle.tests --sequence.seed=424242)
-echo "base=$base seed20260824=$s1 seed424242=$s2"
-test -n "$base" && test -n "$s1" && test -n "$s2" || { echo "[EXTRACT-FAIL] empty measure"; exit 2; }
-test "$base" = "$s1" && test "$base" = "$s2"
-```
+  §동작 2 가 선언한 것은 개수가 아니라 **슬롯 집합**이므로, 판정도 집합 비교로 한다.
+  `coverage-final.json` 의 `b`(hit 배열) + `branchMap` 에서 covered 슬롯을
+  `line:branchId.index` 로 열거해 base·seed1·seed2 를 `diff` 하며, 갈리면 rc=1 과 함께
+  **갈린 슬롯을 이름으로** 출력한다. 리포트 부재·대상 부재·빈 집합은 전부 `exit 2` 로
+  단언해 추출 실패가 통과로 읽히지 않게 한다 (`RULE-06 §추출 실패 검출`).
 
-- [deferred → §참고] 전수 커버리지 4축 수치가 기본 순서와 shuffle 실행에서 동일하다 (FR-03 전수 축). 위 명령의 파일 한정(`src/common/common.test.ts` · `--coverage.include`)을 전수로 확장해 판정한다.
+  검출력 검증 (`TSK-20260829-07`): `injection: 1/1 detect` — `userAgent` 복원 훅 1건을
+  제거하니 rc=1 과 함께 갈린 슬롯 `349:70.1` 을 지목했다 (해당 슬롯은
+  `uaText.indexOf("; MSIE ")` 분기 — UA 누수가 정확히 그 분기를 뒤집었다).
+  `control: 1/1 pass` — 정상 복원을 갖춘 UA 케이스를 추가한 변형에서 rc=0.
 
 ## 참고
 
 ### 미측정·비판정 항목
 
-- **수용 기준 2·3 강등 — 순서 축으로 닫히지 않음이 측정으로 확정됐다 (2026-08-29).**
-  판정 명령을 spec 에서 추출해 현 HEAD 에서 재실행했다.
+- **수용 기준 2 는 복귀했다 (2026-08-29).** 강등 사유는 "순서 축으로 닫히지 않는다" 였고
+  그 판정은 옳았다 — 그러나 원인은 순서가 아니라 **테스트의 벽시계 의존**이었다.
 
-  | 측정 | 결과 |
+  `common.log()` 가 `common.ts:37` 에서 현재 시각으로 타임스탬프를 만들고
+  `getFormattedTime` 의 `ss < 10` 삼항(`common.ts:229`)을 탄다. 실행이 초 00–09 구간에
+  걸치면 그 분기가 덮이고 아니면 안 덮인다 (≈1/6). 동일 트리 8회 연속 측정에서
+  r1–r3 이 `139`, r4–r8 이 `138` 이었고 집합 차이는 슬롯 `229:38.0` **단 1건**,
+  원본 hit 배열은 `[21,1] ↔ [0,22]` 였다 — 같은 22회 호출 중 참 분기 적중 수만 바뀌었다.
+
+  개수 비교로는 "1 차이" 까지만 보이던 것을 **슬롯 집합 비교가 이름으로 특정**했고,
+  그 이름이 곧바로 소스 라인을 가리켰다. `770ae37` 에서 테스트 시각을 고정해 제거했다
+  (setupTests 이디엄대로 `vi.useFakeTimers({shouldAdvanceTime:true})` + `setSystemTime`,
+  해제는 전역 `afterEach`). 고정 후 15 측정 전부 `137`.
+
+  진동이 상수가 아니라 결함이었으므로 강등의 전제가 소멸했다. 이관처
+  `TSK-20260829-07` 의 산출물(`scripts/coverage-slot-set-compare.sh`)을 판정 명령으로
+  삼아 복귀시킨다.
+
+- **수용 기준 3 (전수 4축) 은 강등을 유지한다 — 현재 거짓임을 실측했다 (2026-08-29).**
+
+  | 실행 | statements · branches · functions · lines |
   |---|---|
-  | 원 판정 (base + 2 seed) 1회차 | `base=139 seed20260824=139 seed424242=138` rc=1 |
-  | 원 판정 2회차 | `base=138 seed20260824=138 seed424242=138` rc=0 |
-  | **순서 미변경 기본 실행 5회** | `139 · 139 · 139 · 139 · 138` |
-  | 슬롯 집합 비교 8회 (reporter=json) | 전부 `138`, 집합 완전 일치 |
+  | base | `2458 · 1173 · 423 · 2293` |
+  | shuffle seed=20260824 | `2459 · 1173 · 424 · 2294` |
 
-  결정적 증거는 세 번째 줄이다 — **shuffle 을 전혀 쓰지 않은 기본 실행만으로도
-  값이 흔들린다.** 회차 간 `base` 자체가 139→138 로 이동했다. 즉 이 항목이
-  재는 것은 순서 독립성이 아니라 **다른 축의 간헐적 비결정성**이며, 순서 축을
-  아무리 고쳐도 "3회 상호 일치" 판정은 닫히지 않는다.
+  branches 는 일치하나 statements·functions·lines 가 각각 1 씩 다르다. 전수 축에는
+  `common.ts` 와 **별개의 비결정 채널**이 남아 있으며 본 계약이 닫은 축(UA 전역 원복)이
+  아니다. 원인 규명 전까지 체크박스로 두면 영구 미충족이 되어 promote 만 막는다
+  (`RULE-07 §수용 기준 문장 규약`). 이관처는 `10.followups/` 에 남긴다.
 
-  네 번째 줄은 진동이 상시가 아님을 보인다 — 8회 연속 안정이었다. 조건은
-  미규명이나 순서와 무관함은 위에서 확정됐다.
+  부가로 이 항목의 명령은 전수 커버리지 실행 2회(≈2분+)라, `RULE-07 §promote 조건 2`
+  가 요구하는 승격 시마다의 전건 재실행에 그 비용을 강제한다 — 같은 문서가
+  `npm test` 를 강등한 것과 동일한 논거다.
 
-  §동작 2 가 선언한 것은 "동일한 covered 슬롯 **집합**" 인데 판정 명령은
-  `total.branches.covered` 라는 **스칼라 개수**를 잰다 (§아래 측정 대상 불일치
-  항목). 개수는 집합의 성긴 대리물이라 순서와 무관한 슬롯 교체까지 흡수한다.
-  근본 해법은 명령을 슬롯 집합 비교로 바꾸는 것이며 그때 비로소 순서 축만
-  판정된다 — **후속 task 축**. 그 전까지 체크박스로 두면 영구 미충족이 되어
-  promote 를 막는 것 외에 아무 검출력이 없다 (`RULE-07 §수용 기준 문장 규약`).
-
-  이관처: 판정 명령 교정 task (슬롯 집합 비교 + 진동 원인 규명).
-
-- **전수 테스트 (`npm test`) rc** — 중복 게이트 부류 (RULE-07 §반려 시그널). 위반 시 `.husky/pre-push:3` (`npm test` 가 스크립트 마지막 행이므로 그 rc 가 훅 rc 이며 실패 시 push 차단) 과 `.github/workflows/ci.yml:84` (`- name: Test`) 가 즉시 실패하므로 체크박스가 더하는 검출력이 0 이다. §동작 6(회귀 없음)의 발화 채널은 그 두 실경로로 유지된다 (RULE-07 §promote 조건 4).
+- **전수 테스트 (`npm test`) rc** — 중복 게이트 부류 (RULE-07 §반려 시그널). 위반 시 `.husky/pre-push:3` (`npm test` 가 스크립트 마지막 행이므로 그 rc 가 훅 rc 이며 실패 시 push 차단) 과 `.github/workflows/ci.yml:70-71` (`- name: Test`) 가 즉시 실패하므로 체크박스가 더하는 검출력이 0 이다. §동작 6(회귀 없음)의 발화 채널은 그 두 실경로로 유지된다 (RULE-07 §promote 조건 4).
 - 순서 종속이 UA 외 다른 전역에도 존재하는지의 전수 확인 — 현 트리의 `Object.defineProperty(window…` 사용처는 UA 계열이 유일하며, 신규 도입분은 §동작 4 정적 검사가 담당한다.
 - §동작 4 게이트의 민감도(복원 등록 제거 주입 시 `rc≠0`)와 특이도(정상 변형에서 오탐 없음)는 '가정 주입 요구' 부류이므로 체크박스로 두지 않고 **해당 게이트 도입 task 의 DoD 로 이관**한다 (`RULE-06 §게이트 실효 검증`).
 - coverage provider 선택(`v8` ↔ `istanbul`) 은 본 축과 직교한다 — 양 provider 에서 동일 관측이다.
@@ -100,6 +99,7 @@ test "$base" = "$s1" && test "$base" = "$s2"
 - `src/common/common.ts` 의 branches covered **절대값**이 동일 플래그·동일 트리의 반복 호출에서 1 슬롯 이동하는 것이 본 계약 등록 시점에 관측됐다 (139 ↔ 138). 원인 미규명이며 §수용 기준은 절대값을 고정하지 않고 동일 세션 3회 실행의 상호 일치만 요구한다. 순서 축과 별개의 잔여 비결정성일 수 있으므로 원인 규명은 후속 과제다.
 
 ## 변경 이력
+- 2026-08-29 operator: **수용 기준 2 복귀** — 진동 원인이 순서가 아니라 테스트의 벽시계 의존(`common.ts:37` 로거 → `:229` `ss<10` 삼항)임을 슬롯 집합 비교로 특정하고 `770ae37` 에서 제거. 판정 명령을 `scripts/coverage-slot-set-compare.sh` (슬롯 **집합** 비교, `TSK-20260829-07` 산출)로 교체하고 `[x]`. 수용 기준 3(전수 4축)은 base 와 shuffle 이 statements·functions·lines 에서 각 1 씩 갈리는 것을 실측해 강등 유지 + §참고로 실제 이관 (마커만 단 채 수용 기준에 두지 않는다). 발화 채널 라인 번호 현 HEAD 로 갱신. promote-verify: 2/2 rc0.
 
 - 2026-08-26 — REQ-20260825-003 흡수, green 신규 등록 (inspector).
 - 2026-08-27 inspector: §수용 기준 1 `[x]` — HEAD `49793e7` 재실행 rc=0 (`missing=0`, 4 파일 4 프로퍼티 전수 복원 등록).
