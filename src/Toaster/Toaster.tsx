@@ -82,8 +82,17 @@ const Toaster = (props: ToasterProps): React.ReactElement => {
 		};
 		// `props.completed` 는 전 호출처가 인라인 화살표로 넘긴다 — deps 에 넣으면 부모가
 		// 리렌더할 때마다 타이머가 리셋돼 자동 닫힘이 영영 발화하지 않는다.
+		//
+		// `message` 는 넣는다. 알림이 연달아 뜰 때 호출처는 message 만 바꾸고 show 는
+		// 1 그대로 둔다 — deps 가 `[show]` 뿐이던 동안 두 번째 알림은 첫 알림의 남은
+		// 시간만 표시됐다 (실측: duration 2000ms 인데 600ms 만에 사라짐). 부모가
+		// 리렌더해도 message 가 같으면 타이머는 그대로다.
+		//
+		// 같은 문구가 연달아 뜨는 경우는 여전히 신호가 없다 — show 도 message 도
+		// 바뀌지 않기 때문이다. 그 구분이 필요해지면 호출처가 세대(generation) 값을
+		// 함께 넘겨야 한다.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [show]);
+	}, [show, message]);
 
 	return (
 		<div ref={divRef}
