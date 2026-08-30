@@ -6,6 +6,8 @@
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 박제 시점 스냅샷 (REQ-092 분 HEAD=`cac6fa2`, REQ-048 분 HEAD=`643be56`).
 
+> **측정 HEAD 주석**: 본 흡수 tick 중 외부 writer 가 `58d65a7` (업로드 절차 단일화 — `FileDrop.tsx` · `FileUpload.tsx` · 신규 `uploadFile.ts`) 를 커밋해 HEAD 가 `643be56` → `3398833` 로 이동했다. `git diff --stat 643be56..HEAD -- src/File/File.tsx src/File/File.test.tsx` 는 **공집합**이므로 REQ-048 분 수용 기준의 rc 는 그대로 유효하다. REQ-092 분 baseline 은 라인 번호만 이동해 위에 재실측을 병기했다. 다른 writer 의 변경은 읽기만 했다 (`RULE-02 §교차 작업 파괴`).
+
 ## 역할
 `/file` 페이지의 루트 셸. 관리자 전용 (`isAdmin()` 가 false 면 `/log` 로 `navigate`). 데스크탑에서는 `FileDrop` (드래그&드롭), 모바일(`isMobile()` true, 터치 환경) 에서는 `FileUpload` (파일 선택 input) 를 노출한다. S3 메타데이터(`api.getFiles` · `getNextFiles`) 를 커서 기반으로 페이지네이션하여 `FileItem` 목록으로 렌더하고, 업로드/삭제 성공 시 1차 목록을 다시 페치한다. 중앙 Toaster 로 로딩, 하단 Toaster 로 에러를 표시. `FileUpload` 의 `setTimeout` 기반 상태 전이 cleanup 불변식 (REQ-092) 박제 — unmount / effect 재실행 시 pending timer 누수 차단.
 
@@ -60,8 +62,8 @@
 - [x] `src/File/File.test.tsx` — admin/non-admin 분기, 1차/추가 페치, 에러 토스트, 모바일/데스크탑 업로드 UI 스위치.
 - [x] `FileItem.test.tsx`, `FileDrop.test.tsx`, `FileUpload.test.tsx` — 단위 테스트.
 - [x] `src/File/__fixtures__/` 샘플 응답 박제.
-- [x] (REQ-092, I1) `FileUpload` timer cleanup 등록 채널 1+ 박제 — `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (HEAD=`7b15126` 회복, §변경 이력 hook-ack 박제).
-- [x] (REQ-092, I2) `FileUpload.test.tsx` unmount race 시나리오 1+ 박제 — `grep -nE "unmount\s*\(\s*\)" src/File/FileUpload.test.tsx` → **2 hit** + `grep -nE "useFakeTimers|runAllTimers" src/File/FileUpload.test.tsx` → **8 hit** (HEAD=`7b15126` 회복, §변경 이력 hook-ack 박제).
+- [x] (REQ-092, I1) `FileUpload` timer cleanup 등록 채널 1+ 박제 — `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (HEAD=`7b15126` 회복 시점 박제. HEAD=`3398833` 재실측 **1 hit @line 100** — `58d65a7` 의 업로드 절차 단일화로 라인만 이동, 효능 불변).
+- [x] (REQ-092, I2) `FileUpload.test.tsx` unmount race 시나리오 1+ 박제 — `grep -nE "unmount\s*\(\s*\)" src/File/FileUpload.test.tsx` → **2 hit** + `grep -nE "useFakeTimers|runAllTimers" src/File/FileUpload.test.tsx` → **8 hit** (HEAD=`7b15126` 회복 시점 박제. HEAD=`3398833` 재실측 `unmount()` **8 hit** · fake-timer **8 hit** — 회복 방향 유지).
 
 - [x] (REQ-048, F1) 첫 조회 성공 시점 상태가 실재: `bash -c 'test "$(grep -c "hasListArrived" src/File/File.tsx)" -ge 2'` → HEAD=`643be56` 실측 rc=0 (2 hit — 선언 + 성공 갈래 세팅. 렌더 조건 참조 포함 시 `File.tsx:252`).
 - [x] (REQ-048, F1) 커밋 단위 관측 채널 실재: `bash -c 'grep -rlq "Profiler" src --include="*.test.tsx"'` → HEAD=`643be56` 실측 rc=0 (`src/File/File.test.tsx` · `src/Log/LogList.test.tsx`). `render()` 반환 후 한 점만 재는 단언은 이 축의 검출력이 0 이라 채널 자체가 요구다.
@@ -78,9 +80,9 @@
 - [x] (Should) `getFiles` / `getNextFiles` 에러 시 하단 Toaster (position=bottom, type=error, duration=2000) 표시.
 - [x] (Should) `FileItem.deleted()` · 업로드 성공 콜백은 1차 목록 리페치를 일으킨다.
 - [x] (NFR) `isMobile()` 판정은 마운트 1회에 박제 (`useMemo(..., [])`).
-- [x] (REQ-092, Must, FR-01) `FileUpload` 가 등록한 모든 `setTimeout` 핸들은 effect cleanup 또는 unmount 시 `clearTimeout` 으로 취소된다. HEAD=`7b15126` 회복: `grep -nE "setTimeout\s*\(" src/File/FileUpload.tsx` → **2 hit** @line 117, 131 (G1) + `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** @line 139 (G2 zero-point 회복). §변경 이력 hook-ack 박제.
+- [x] (REQ-092, Must, FR-01) `FileUpload` 가 등록한 모든 `setTimeout` 핸들은 effect cleanup 또는 unmount 시 `clearTimeout` 으로 취소된다. HEAD=`7b15126` 회복: `grep -nE "setTimeout\s*\(" src/File/FileUpload.tsx` → **2 hit** (G1) + `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (G2 zero-point 회복). HEAD=`3398833` 재실측 setTimeout @line 78, 92 · clearTimeout @line 100. §변경 이력 hook-ack 박제.
 - [x] (REQ-092, Must, FR-02) 컴포넌트 unmount 후 `REFRESH_TIMEOUT` 경과 시점에 `setIsUploading` · `refreshFiles` 가 호출되지 않는다. `vi.useFakeTimers()` + `unmount()` 후 `vi.runAllTimers()` 호출 시 `refreshFiles` mock 호출 0회. HEAD=`7b15126` 회복: `unmount()` 2 hit + `useFakeTimers|runAllTimers` 8 hit (FileUpload.test.tsx, TSK-25 fixture). §변경 이력 hook-ack 박제.
-- [x] (REQ-092, Should, FR-03) `isUploading` 이 `COMPLETE` 또는 `FAILED` 로 전이된 직후 다시 다른 상태로 전환되면, 이전 분기에서 등록한 timer 는 재발화되지 않는다 (effect 재실행 시 cleanup 패턴 회수). HEAD=`7b15126` 회복: effect cleanup return `() => clearTimeout(refreshHandle)` 패턴 (FileUpload.tsx:139) + test 시나리오 박제. §변경 이력 hook-ack 박제.
+- [x] (REQ-092, Should, FR-03) `isUploading` 이 `COMPLETE` 또는 `FAILED` 로 전이된 직후 다시 다른 상태로 전환되면, 이전 분기에서 등록한 timer 는 재발화되지 않는다 (effect 재실행 시 cleanup 패턴 회수). HEAD=`7b15126` 회복: effect cleanup return `() => clearTimeout(refreshHandle)` 패턴 (HEAD=`3398833` 재실측 `FileUpload.tsx:100`) + test 시나리오 박제. §변경 이력 hook-ack 박제.
 - [x] (REQ-092, NFR-01) 테스트 결정성 — `vi.useFakeTimers()` + `unmount()` + `vi.runAllTimers()` + `refreshFiles` mock 호출 0회 검증 패턴 (Must FR-02 회복 task DoD 게이트 박제).
 - [ ] (REQ-048, Must, FR-03·F2) `File` 의 첫 조회 실패는 하단 Toaster 의 `duration` 경과 후에도 화면에 남는 표면으로 관측된다. 판정: 위 §테스트 현황 (F2·F3) 명령 rc=0.
 - [ ] (REQ-048, Should, FR-05·F3) 그 표면은 다시 시도할 경로를 포함한다 (`LogList` · `ImageSelector` 선례). 판정: 동일 명령 rc=0 + `bash -c 'test "$(grep -cE "Retry|retry" src/File/File.tsx)" -ge 1'` → HEAD=`643be56` 실측 **rc=1 (미충족, 0 hit)**.

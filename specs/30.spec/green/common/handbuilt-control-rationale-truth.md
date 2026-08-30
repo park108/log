@@ -6,6 +6,8 @@
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`643be56`).
 
+> **측정 HEAD 주석**: 본 tick 중 외부 writer 가 `58d65a7` 을 커밋해 HEAD 가 `3398833` 로 이동했다. 그 커밋은 `src/File/**` 과 신규 `src/__tests__/upload-single-source.test.ts` 만 건드렸고, 본 spec 이 재는 경로(`src/Log` · `src/Comment` · `src/Image` · `src/common` · `src/__tests__/handbuilt-rationale-premise-truth.test.ts`)는 무변동이다. HEAD=`3398833` 에서 (I2-a) perl 도출과 게이트를 재실행해 동일 결과를 확인했다 (`files=4 quotes=3 unscoped=1` rc=1 · 게이트 3 tests rc=0).
+
 ## 역할
 
 네이티브 요소로 전환하지 **않는다**는 판단을 코드에 박제한 근거 주석은, 그것이 인용하는 CSS·DOM 사실이 현 HEAD 와 일치할 때만 남는다. 전제가 거짓이 되면 주석은 정정되거나 (근거가 사라졌으므로) 함께 사라진다.
