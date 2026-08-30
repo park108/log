@@ -149,6 +149,17 @@ const Writer = () => {
 			setIsNew(false);
 			setHistoryData(from as LogItemPayload);
 		}
+		else {
+			// **되돌리는 쪽도 있어야 한다.** 이 화면은 라우트가 같아서, 글을 수정하는
+			// 중에 "+"(새 글)를 눌러도 언마운트되지 않고 이 효과만 다시 돈다. 갈래가
+			// 한쪽뿐이던 동안에는 그때 수정 모드가 그대로 남았다 — 실측: 버튼은
+			// "Edit" 이고 본문도 기존 글이었다. 새 글을 쓴 줄 알고 저장하면 **기존
+			// 글을 덮어쓴다.**
+			setIsNew(true);
+			setHistoryData(undefined);
+			setArticle("");
+			setIsTemporary(false);
+		}
 
 		return () => {setFullscreen(false)}
 		// `location` 변경에만 반응하는 진입 효과. `navigate` 는 여기서 호출되지 않으며

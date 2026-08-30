@@ -2,7 +2,7 @@ import type React from 'react';
 import { fireEvent, render, screen, act, waitFor } from '@testing-library/react';
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
-import { Router, MemoryRouter } from 'react-router-dom';
+import { Router, MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import * as api from './api';
 import * as mock from './api.mock';
 import * as common from '../common/common';
@@ -1022,5 +1022,82 @@ describe('Writer 저장 실패 시 목록 캐시', () => {
 		await act(async () => { await vi.runAllTimersAsync(); });
 
 		expect(sessionStorage.getItem('logList')).not.toBeNull();
+	});
+});
+
+// 이 화면은 "새 글" 과 "수정" 이 **같은 라우트**다. 그래서 글을 수정하는 중에
+// "+"(새 글)를 눌러도 언마운트되지 않고 진입 효과만 다시 돈다. 그 효과가
+// 수정 모드로 **들어가는 갈래만** 갖고 있던 동안에는, 그때 편집 상태가 그대로
+// 남았다 — 실측: 버튼은 "Edit", 본문도 기존 글. 새 글을 쓴 줄 알고 저장하면
+// 기존 글을 덮어쓴다.
+describe('Writer 진입 모드는 주소를 따라간다', () => {
+
+	const EXISTING_CONTENTS = '# 기존 글\n\n기존 본문입니다';
+	const existingLog = {
+		timestamp: 1656034616036,
+		temporary: false,
+		logs: [{ timestamp: 1656034616036, contents: EXISTING_CONTENTS }],
+	};
+
+	const NavigateButton = ({ to, state }: { to: string; state?: unknown }) => {
+		const navigate = useNavigate();
+		return <button data-testid="go" onClick={() => navigate(to, state === undefined ? undefined : { state })}>go</button>;
+	};
+
+	const textarea = () => document.getElementById('textarea--writer-article') as HTMLTextAreaElement | null;
+	const submitLabel = () => (screen.getByTestId('submit-button') as HTMLElement).textContent;
+
+	const renderAt = (entry: { pathname: string; state: unknown; key: string }, nav: React.ReactNode) =>
+		render(withQuery(
+			<MemoryRouter initialEntries={[{ ...entry, search: '', hash: '' }]}>
+				{nav}
+				<Routes>
+					<Route path="/log/write" element={<Writer />} />
+				</Routes>
+			</MemoryRouter>
+		));
+
+	const settle = async () => {
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+	};
+
+	it('수정 중에 새 글로 이동하면 편집 상태가 남지 않는다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		renderAt(
+			{ pathname: '/log/write', state: { from: existingLog }, key: 'edit' },
+			<NavigateButton to="/log/write" />
+		);
+		await settle();
+
+		expect(submitLabel()).toBe('Edit');
+		expect(textarea()?.value).toBe(EXISTING_CONTENTS);
+
+		await act(async () => { fireEvent.click(screen.getByTestId('go')); });
+		await settle();
+
+		expect(submitLabel()).toBe('Post');
+		expect(textarea()?.value).toBe('');
+	});
+
+	// 반대 방향 — 수정으로 들어가면 계속 수정이어야 한다.
+	it('새 글에서 수정으로 이동하면 그 글이 실린다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		renderAt(
+			{ pathname: '/log/write', state: null, key: 'new' },
+			<NavigateButton to="/log/write" state={{ from: existingLog }} />
+		);
+		await settle();
+
+		expect(submitLabel()).toBe('Post');
+
+		await act(async () => { fireEvent.click(screen.getByTestId('go')); });
+		await settle();
+
+		expect(submitLabel()).toBe('Edit');
+		expect(textarea()?.value).toBe(EXISTING_CONTENTS);
 	});
 });
