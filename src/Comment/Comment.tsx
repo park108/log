@@ -65,7 +65,15 @@ const Comment = (props: CommentProps): React.ReactElement => {
 	const cancelledFetchRef = useRef<boolean>(false);
 	const cancelledPostRef = useRef<boolean>(false);
 
+	// 전송 중 재진입을 막는다. 제출 버튼은 `isPosting` 으로 비활성되지만 그것만으로는
+	// 부족하다 — 답글 폼에는 `isPosting` 이 내려가지 않고, 상태 반영은 한 틱 뒤다.
+	// 실측: 전송이 끝나기 전에 세 번 누르면 댓글이 세 건 올라갔다.
+	const isPostingRef = useRef<boolean>(false);
+
 	const postNewComment = async (comment: CommentPostPayload): Promise<void> => {
+
+		if(isPostingRef.current) return;
+		isPostingRef.current = true;
 
 		setIsPosting(true);
 
@@ -99,6 +107,9 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			setToasterMessage("The comment posted failed for network issue.");
 			setToasterType("error");
 			setIsShowToaster(1);
+		}
+		finally {
+			isPostingRef.current = false;
 		}
 
 		setIsPosting(false);

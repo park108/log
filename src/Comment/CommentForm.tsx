@@ -115,8 +115,16 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 					🥷 Hidden Message
 				</label>
 			</div>
-			<button type="submit" className={`btn btn--primary ${styles.buttonCommentSubmit}`}>
-				{hasValue(commentTimestamp) ? "Send Reply" : "Submit Comment"}
+			<button
+				type="submit"
+				className={`btn btn--primary ${styles.buttonCommentSubmit}`}
+				// 전송 중에는 누를 수 없다. 입력란만 잠기고 버튼은 살아 있어서,
+				// 응답을 기다리다 다시 누르면 같은 댓글이 한 건 더 올라갔다.
+				disabled={Boolean(props.isPosting)}
+			>
+				{props.isPosting
+					? (hasValue(commentTimestamp) ? "Sending..." : "Posting...")
+					: (hasValue(commentTimestamp) ? "Send Reply" : "Submit Comment")}
 			</button>
 		</form>
 	);

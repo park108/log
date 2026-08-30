@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import * as mock from './api.mock';
 import * as api from './api';
 import * as common from '../common/common';
@@ -764,5 +765,134 @@ describe('Comment 답글 폼이 여러 벌 열렸을 때 숨김 체크박스', (
 		fireEvent.click(labels[0]!);
 
 		expect(boxes.map((b) => b.checked)).toEqual([true, false]);
+	});
+});
+
+// 전송 중에도 제출 버튼이 살아 있었다. 응답을 기다리다 다시 누르면 같은 댓글이
+// 한 건 더 올라갔다 — 실측: 세 번 누르면 세 건.
+describe('Comment 전송 중 중복 제출', () => {
+	useMockServer(() => mock.devServerOk);
+
+	const fillAndSubmit = async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(false);
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+
+		let posts = 0;
+		let release: () => void = () => {};
+		const inFlight = new Promise<void>((resolve) => { release = resolve; });
+
+		mock.devServerOk.use(
+			http.post(import.meta.env.VITE_COMMENT_API_BASE + "/test", async () => {
+				posts += 1;
+				await inFlight;
+				return HttpResponse.json({ statusCode: 200 });
+			}),
+		);
+
+		render(<Comment />);
+		fireEvent.click(await screen.findByText(/comments/));
+
+		fireEvent.change(await screen.findByPlaceholderText('Type your name'),
+			{ target: { value: '홍길동' } });
+		fireEvent.change(await screen.findByPlaceholderText('Write your comment'),
+			{ target: { value: '안녕하세요 반갑습니다' } });
+
+		const submit = await screen.findByRole('button', { name: 'Submit Comment' });
+		fireEvent.click(submit);
+		await waitFor(() => expect(posts).toBe(1));
+
+		return { posts: () => posts, release, submit };
+	};
+
+	it('전송이 끝나기 전에 더 눌러도 한 건만 올라간다', async () => {
+
+		const { posts, release, submit } = await fillAndSubmit();
+
+		fireEvent.click(submit);
+		fireEvent.click(submit);
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		// 이전에는 3 이었다.
+		expect(posts()).toBe(1);
+		release();
+	});
+
+	it('전송 중에는 버튼이 잠기고 진행 중임을 적는다', async () => {
+
+		const { release, submit } = await fillAndSubmit();
+
+		await waitFor(() => expect((submit as HTMLButtonElement).disabled).toBe(true));
+		expect(submit.textContent).toBe('Posting...');
+		release();
+	});
+
+	// 대조 — 아무것도 보내지 않은 상태에서는 버튼이 살아 있어야 한다. 없으면
+	// "언제나 잠김" 구현도 통과한다.
+	it('보내기 전에는 버튼이 살아 있다', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(false);
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+
+		render(<Comment />);
+		fireEvent.click(await screen.findByText(/comments/));
+
+		const submit = await screen.findByRole('button', { name: 'Submit Comment' });
+		expect((submit as HTMLButtonElement).disabled).toBe(false);
+	});
+});
+
+// 답글 폼에는 `isPosting` 이 내려가지 않는다 — 버튼이 잠기지 않으므로 여기서는
+// 재진입 가드가 유일한 방어다.
+describe('Comment 답글 전송 중 중복 제출', () => {
+	useMockServer(() => mock.devServerOk);
+
+	it('전송이 끝나기 전에 더 눌러도 한 건만 올라간다', async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(false);
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+
+		let posts = 0;
+		let release: () => void = () => {};
+		const inFlight = new Promise<void>((resolve) => { release = resolve; });
+
+		mock.devServerOk.use(
+			http.post(import.meta.env.VITE_COMMENT_API_BASE + "/test", async () => {
+				posts += 1;
+				await inFlight;
+				return HttpResponse.json({ statusCode: 200 });
+			}),
+		);
+
+		render(<Comment />);
+		fireEvent.click(await screen.findByText(/comments/));
+
+		const replyButtons = await screen.findAllByTestId('reply-toggle-button');
+		fireEvent.click(replyButtons[0]!);
+
+		fireEvent.change(await screen.findByPlaceholderText('Type your name'),
+			{ target: { value: '홍길동' } });
+		fireEvent.change(await screen.findByPlaceholderText('Write your Reply'),
+			{ target: { value: '답글입니다 반갑습니다' } });
+
+		const send = await screen.findByRole('button', { name: 'Send Reply' });
+		expect((send as HTMLButtonElement).disabled).toBe(false);
+
+		fireEvent.click(send);
+		await waitFor(() => expect(posts).toBe(1));
+
+		fireEvent.click(send);
+		fireEvent.click(send);
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		// 가드가 없으면 3 이 된다.
+		expect(posts).toBe(1);
+		release();
 	});
 });
