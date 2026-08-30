@@ -1,11 +1,16 @@
 import type React from 'react';
 import { fireEvent, render, screen, act, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import * as useLogModule from './hooks/useLog';
 import * as logApi from './api';
 import LogSingle from '../Log/LogSingle';
+
+// 버튼이 **어디로 가는지**를 재기 위한 보조 표시. 이름만 재는 단언은
+// `navigate(-1)` 을 `navigate("/log")` 로 바꿔치기해도 통과한다.
+const WhereAmI = (): React.ReactElement =>
+	<div data-testid="where">{ useLocation().pathname }</div>;
 import { useMockServer } from '../test-utils/msw';
 import { ASYNC_ASSERTION_TIMEOUT_MS } from '../test-utils/timing';
 import { createQueryTestWrapper } from '../test-utils/queryWrapper';
@@ -127,30 +132,79 @@ describe('LogSingle render on prod server (ok)', () => {
 describe('LogSingle render on dev server (ok)', () => {
 	useMockServer(() => mock.devServerOk);
 
-	it('render LogSingle on dev server', async () => {
+	// 이 케이스는 `key: "default"` — 즉 **앱 안에서 이동해 온 것이 아닌** 진입을
+	// 만들어 놓고 "To search result" 를 기대했다. 그 상태에서 `navigate(-1)` 은
+	// 갈 곳이 없어 아무 일도 하지 않거나(새 탭) 사이트 밖으로 나간다(외부 유입).
+	// `?search=true` 가 붙은 주소는 공유되고 북마크되므로 실제로 도달하는 경로다.
+	// 두 갈래를 갈라 각각 옳은 버튼을 단언한다.
+	it('검색에서 이동해 왔으면 검색 결과로 돌아가는 버튼을 낸다', async () => {
 
 		stubMode('development');
 
 		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 		vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-		const testEntry = {
-			pathname: "/log/1656034616036?search=true"
-			, search: "search=true"
-			, hash: ""
-			, state: {}
-			, key: "default"
-		};
-
 		render(withQuery(
-			<MemoryRouter initialEntries={[ testEntry ]}>
+			<MemoryRouter initialEntries={[
+				{ pathname: "/search", search: "", hash: "", state: {}, key: "search-page" },
+				{ pathname: "/log/1656034616036", search: "search=true", hash: "", state: {}, key: "from-search" },
+			]} initialIndex={1}>
+				<WhereAmI />
 				<LogSingle />
 			</MemoryRouter>
 		));
 
 		const toSearchResultButton = await screen.findByText("To search result");
 		expect(toSearchResultButton).toBeInTheDocument();
+
 		fireEvent.click(toSearchResultButton);
+
+		// **어디로 갔는지까지 본다.** 이름만 재면 `navigate("/log")` 로 바꿔치기해도
+		// 통과한다 — 그 구현은 검색 결과의 스크롤 위치와 질의를 잃는다.
+		expect(await screen.findByTestId("where")).toHaveTextContent("/search");
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+
+	// 이동해 온 것만으로는 부족하다 — `?search=true` 가 없으면 목록에서 온 것이고,
+	// 그때 "검색 결과로" 를 내면 이름이 거짓이 된다. 이 케이스가 없으면 쿼리 조건을
+	// 통째로 지워도 게이트가 통과한다 (실측: 주입 5방향 중 이 한 방향이 새어 나갔다).
+	it('검색이 아닌 곳에서 이동해 왔으면 목록으로 보낸다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[
+				{ pathname: "/log", search: "", hash: "", state: {}, key: "log-list" },
+				{ pathname: "/log/1656034616036", search: "", hash: "", state: {}, key: "from-list" },
+			]} initialIndex={1}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		expect(await screen.findByText("To list")).toBeInTheDocument();
+		expect(screen.queryByText("To search result")).toBeNull();
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+
+	it('공유 링크로 직접 들어왔으면 목록으로 보낸다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[
+				// `key: "default"` — react-router 가 최초 진입 위치에 주는 값이다.
+				{ pathname: "/log/1656034616036", search: "search=true", hash: "", state: {}, key: "default" },
+			]}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		expect(await screen.findByText("To list")).toBeInTheDocument();
+		expect(screen.queryByText("To search result")).toBeNull();
 	}, ASYNC_ASSERTION_TIMEOUT_MS);
 });
 

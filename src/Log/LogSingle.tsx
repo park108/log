@@ -22,7 +22,8 @@ const LogSingle = () => {
 	const [isShowToasterBottom, setIsShowToasterBottom] = useState<ToasterShow>(0);
 
 	const navigate = useNavigate();
-	const queryString = new URLSearchParams(useLocation().search);
+	const routeLocation = useLocation();
+	const queryString = new URLSearchParams(routeLocation.search);
 	const logTimestamp = useParams()["timestamp"];
 
 	const { isLoading, isError, data: queryData, refetch } = useLog(logTimestamp);
@@ -33,7 +34,17 @@ const LogSingle = () => {
 	const found = !hasError && queryData?.body?.Count > 0;
 	const notFound = !hasError && queryData?.body?.Count === 0;
 	const latestData = found ? queryData.body.Items[0] : undefined;
-	const isSearchResult = queryString.get("search");
+	// **"검색 결과로" 는 검색 결과에서 왔을 때만 맞다.**
+	//
+	// 이 버튼은 `?search=true` 만 보고 `navigate(-1)` 했다. 그 주소는 공유되고
+	// 북마크된다 — 새 탭에서 그 링크를 열면 뒤로 갈 곳이 없어 버튼이 아무 일도
+	// 하지 않고, 다른 사이트에서 눌러 들어왔다면 그 사이트로 나가 버린다.
+	// 어느 쪽이든 버튼의 이름이 거짓이 된다.
+	//
+	// 앱 안에서 이동해 온 경우에만 뒤로 갈 곳이 있다. react-router 는 최초 진입
+	// 위치에 `key: "default"` 를 준다 — 그것이 "이 화면이 우리 이동의 결과가
+	// 아니다" 라는 신호다 (실측: 새 탭 `key=default`, 검색에서 이동 `key=yli79imq`).
+	const cameFromSearch = Boolean(queryString.get("search")) && "default" !== routeLocation.key;
 
 	useEffect(() => {
 		return () => { setMetaDescription(); }
@@ -165,7 +176,7 @@ const LogSingle = () => {
 
 			{/* REQ-20260419-024 FR-02: toListButton 인라인 조건부 (spec §3.2 선호 순 1, Search.jsx 1250e42 선례). */}
 			{!isLoading && (
-				isSearchResult
+				cameFromSearch
 					? (
 						<button className="btn btn--secondary btn--block" onClick={() => navigate(-1)}>
 							To search result
