@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as api from './api';
 import * as common from '../common/common';
@@ -36,6 +36,8 @@ const testEntry = {
 	, key: "default"
 };
 
+// 이 테스트는 render 만 하고 **아무것도 단언하지 않았다.** 관리자 게이트를
+// 통째로 지워도 초록이었다 — 이름이 주장하는 것을 재지 않고 있었다.
 test('redirect to log when user is not admin', async () => {
 
 	vi.stubEnv('DEV', true);
@@ -44,11 +46,16 @@ test('redirect to log when user is not admin', async () => {
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(false);
 
+	const Where = () => <div data-testid="where">{useLocation().pathname}</div>;
+
 	render(
         <MemoryRouter initialEntries={[testEntry]}>
+			<Where />
 			<File />
 		</MemoryRouter>
 	);
+
+	await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/log'));
 });
 
 describe('File render files but no data on prod server', () => {

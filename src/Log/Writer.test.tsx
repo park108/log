@@ -93,6 +93,8 @@ afterEach(() => {
 	}
 });
 
+// 이 테스트는 render 만 하고 **아무것도 단언하지 않았다.** 관리자 게이트를
+// 통째로 지워도 초록이었다 — 이름이 주장하는 것을 재지 않고 있었다.
 it('redirect if not admin', async () => {
 	vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
 	vi.spyOn(common, "isAdmin").mockReturnValue(false);
@@ -103,7 +105,14 @@ it('redirect if not admin', async () => {
 		<Router location={history.location} navigator={history}>
 			<Writer />
 		</Router>
-	))
+	));
+
+	// 이동이 실제로 일어난다.
+	//
+	// 화면에서 사라지는 것까지는 여기서 재지 않는다 — 이 하네스는 `Writer` 를
+	// 라우트 밖에서 직접 그리므로 이동해도 언마운트되지 않는다. 그것을 단언하면
+	// 제품이 아니라 하네스를 재게 된다 (실제로 그렇게 썼다가 붉어졌다).
+	await waitFor(() => expect(history.location.pathname).toBe("/log"));
 });
 
 describe('Writer create log ok on prod server', () => {

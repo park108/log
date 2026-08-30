@@ -186,24 +186,82 @@ describe('handling cookie correctly', () => {
   });
 });
 
-it('test auth', () => {
+// 이 테스트는 `auth()` 를 세 번 부르고 **아무것도 단언하지 않았다.** 토큰 파싱이
+// 통째로 깨져도, 쿠키를 하나도 세우지 않아도 초록이었다. `auth()` 가 하는 일은
+// URL 의 토큰을 쿠키로 옮기는 것이고 그 결과가 `isAdmin()` 의 입력이 된다.
+describe('auth — URL 의 토큰을 쿠키로 옮긴다', () => {
 
-	const currentLocation = window.location; // Backup current location
+	const savedLocation = window.location;
 
-	const mockLocation = mockUrlLocation("http://localhost:3000");
-	mockLocation.href += "?access_token=12345#id_token=67890";
-	setLocation(mockLocation);
+	const at = (href: string): void => {
+		const mockLocation = mockUrlLocation("http://localhost:3000");
+		mockLocation.href = href;
+		setLocation(mockLocation);
+	};
 
-	stubMode('development');
-	common.auth();
+	const cookieOf = (name: string): string | undefined => common.getCookie(name);
 
-	stubMode('production');
-	common.auth();
+	beforeEach(() => {
+		stubMode('development');
+		common.deleteCookie("access_token");
+		common.deleteCookie("id_token");
+	});
 
-	stubMode('');
-	common.auth();
+	afterEach(() => {
+		restoreLocation(savedLocation);
+		common.deleteCookie("access_token");
+		common.deleteCookie("id_token");
+	});
 
-	restoreLocation(currentLocation); // Rollback location
+	// Cognito Hosted UI 는 토큰을 hash fragment 에 실어 돌려준다.
+	it('hash fragment 의 두 토큰을 모두 쿠키로 옮긴다', () => {
+
+		at("http://localhost:3000/#access_token=AAA&id_token=BBB&token_type=Bearer");
+		common.auth();
+
+		expect(cookieOf("access_token")).toBe("AAA");
+		expect(cookieOf("id_token")).toBe("BBB");
+	});
+
+	it('query string 으로 와도 받는다', () => {
+
+		at("http://localhost:3000/?access_token=CCC&id_token=DDD");
+		common.auth();
+
+		expect(cookieOf("access_token")).toBe("CCC");
+		expect(cookieOf("id_token")).toBe("DDD");
+	});
+
+	// id_token 이 없을 때 전체 href 를 값으로 오인하던 회귀가 있었다.
+	it('id_token 이 없으면 그 쿠키는 세우지 않는다', () => {
+
+		at("http://localhost:3000/#access_token=EEE");
+		common.auth();
+
+		expect(cookieOf("access_token")).toBe("EEE");
+		expect(cookieOf("id_token")).toBeUndefined();
+	});
+
+	it('토큰이 없으면 아무 쿠키도 세우지 않는다', () => {
+
+		at("http://localhost:3000/log");
+		common.auth();
+
+		expect(cookieOf("access_token")).toBeUndefined();
+		expect(cookieOf("id_token")).toBeUndefined();
+	});
+
+	// 로그인 판정은 이 쿠키를 읽는다 — 두 함수가 실제로 이어져 있는지 본다.
+	it('access_token 이 서면 isLoggedIn 이 참이 된다', () => {
+
+		at("http://localhost:3000/log");
+		common.auth();
+		expect(common.isLoggedIn()).toBe(false);
+
+		at("http://localhost:3000/#access_token=FFF");
+		common.auth();
+		expect(common.isLoggedIn()).toBe(true);
+	});
 });
 
 describe('auth() URL parsing regression (REQ-20260418-031 FR-04, FR-05)', () => {
