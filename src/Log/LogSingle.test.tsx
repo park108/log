@@ -442,3 +442,46 @@ describe('LogSingle 제목 — `# ` 뒤가 빈 제목', () => {
 		expect(document.title).not.toBe("[DEV]  - park108.net");
 	}, ASYNC_ASSERTION_TIMEOUT_MS);
 });
+
+// meta description 은 100자에서 자른다. `substr` 은 UTF-16 코드 유닛을 세므로
+// 경계에 이모지가 걸리면 상위 서로게이트 하나만 남는다 — 크롤러와 링크
+// 미리보기에는 대체 문자로 보인다. 자르기 헬퍼 자체의 성질은
+// `src/common/truncateByGrapheme.test.ts` 가 재고, 여기서는 **이 화면이 그
+// 헬퍼를 실제로 쓰는지**를 못 박는다 (헬퍼만 고치고 호출처를 되돌려도
+// 붉어지지 않는 상태였다).
+describe('LogSingle meta description — 글자 경계', () => {
+	useMockServer(() => mock.devServerOk);
+	beforeEach(resetHead);
+
+	const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+	it('100자 경계의 이모지를 반으로 쪼개지 않는다', async () => {
+
+		stubMode('development');
+
+		// 제목 줄 다음의 본문이 정확히 99자 뒤에 이모지를 두게 만든다.
+		const body = 'ㄱ'.repeat(99) + '😀' + '뒤에 더 있는 글';
+		const useLogSpy = vi.spyOn(useLogModule, 'useLog').mockReturnValue({
+			isLoading: false,
+			isError: false,
+			data: { body: { Count: 1, Items: [{
+				timestamp: 1656034616036,
+				logs: [{ timestamp: 1656034616036, contents: body }],
+			}] } },
+			refetch: () => {},
+		} as unknown as ReturnType<typeof useLogModule.useLog>);
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		await waitFor(() => expect(metaDescription()).toContain('ㄱ'));
+
+		expect(metaDescription()).not.toMatch(LONE_SURROGATE);
+		expect(metaDescription()).toBe('ㄱ'.repeat(99) + '😀' + '...');
+
+		useLogSpy.mockRestore();
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+});

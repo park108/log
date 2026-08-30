@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Suspense, lazy } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { hasValue, setHtmlTitle, getFormattedDate, setMetaDescription } from '../common/common';
+import { hasValue, setHtmlTitle, getFormattedDate, setMetaDescription, truncateByGrapheme } from '../common/common';
 import { useLog } from './hooks/useLog';
 import { trimmedContents } from './api';
 import PageNotFound from "../common/PageNotFound";
@@ -68,8 +68,10 @@ const LogSingle = () => {
 		// 태그를 공백 없이 지우면 문단·목록 경계가 사라져 "하나둘셋" 처럼 붙는다.
 		// 목록 요약에서 같은 결함을 고칠 때 만든 변환을 그대로 쓴다 (api.ts 단일 출처).
 		const parsedContents = trimmedContents(contentsWithoutTitle);
-		const summary = parsedContents.substr(0, SUMMARY_LENGTH);
-		const ellipsis = parsedContents.length > SUMMARY_LENGTH ? "..." : "";
+		// 글자 경계로 자른다 — `substr` 은 이모지를 반으로 쪼개 고립 서로게이트를
+		// 남기고, 그것이 meta description 으로 나가면 대체 문자로 보인다.
+		const summary = truncateByGrapheme(parsedContents, SUMMARY_LENGTH);
+		const ellipsis = summary.length < parsedContents.length ? "..." : "";
 
 		// 빈 요약(예: 이미지만 있는 글)을 그대로 넘기면 meta description 이 빈 값이
 		// 된다 — 기본값은 인자가 undefined 일 때만 적용되기 때문이다. 사이트 기본

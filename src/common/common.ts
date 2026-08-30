@@ -271,6 +271,41 @@ export function getFormattedSize(size: number): string {
 	return scaled.toLocaleString() + " " + unit;
 }
 
+// 글자 수로 자르되 **글자를 반으로 쪼개지 않는다.**
+//
+// `substr(0, 100)` 은 UTF-16 코드 유닛을 센다. 100번째 자리에 이모지가 걸리면
+// 상위 서로게이트만 남아 `\uD83D` 하나가 잘려 나가고, 그것이 meta description
+// 으로 들어가면 크롤러와 링크 미리보기에는 대체 문자로 보인다. 실측:
+//
+//   "ㄱ"×99 + "😀"  →  substr(0, 100) 끝이 "ㄱ\ud83d"
+//
+// 가족 이모지(ZWJ 시퀀스)나 결합 문자도 같은 식으로 쪼개진다 — "👨‍👩‍👧" 이
+// "👨" 만 남는다.
+//
+// `Intl.Segmenter` 가 있으면 grapheme 경계로 센다 (ZWJ 시퀀스까지 온전하다).
+// 없는 환경에서는 `Array.from` 으로 코드 포인트 경계까지는 지킨다 — 고립
+// 서로게이트라는 본 결함은 그것으로 사라진다.
+export const truncateByGrapheme = (text: string, limit: number): string => {
+
+	if (limit <= 0) return "";
+
+	const SegmenterCtor = (Intl as { Segmenter?: new (locale?: string, options?: { granularity?: string }) => { segment: (input: string) => Iterable<{ segment: string }> } }).Segmenter;
+
+	if (SegmenterCtor) {
+		const segmenter = new SegmenterCtor(undefined, { granularity: "grapheme" });
+		let out = "";
+		let count = 0;
+		for (const { segment } of segmenter.segment(text)) {
+			if (count >= limit) break;
+			out += segment;
+			count++;
+		}
+		return out;
+	}
+
+	return Array.from(text).slice(0, limit).join("");
+};
+
 export function getWeekday(timestamp: number): string {
 
 	const time = new Date(timestamp);
