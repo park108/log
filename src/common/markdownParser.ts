@@ -299,6 +299,27 @@ export const markdownToHtml = (rawInput: string): string => {
 	// (no-control-regex) 는 것을 게이트가 잡았다.
 	const codeSpans: string[] = [];
 
+	// 링크·이미지가 만들어 낸 **태그 조각**도 자리표시자로 빼 둔다.
+	//
+	// 강조 패스는 노드의 text 를 문자열로 훑으므로, 앞선 패스가 이미 써 넣은
+	// 속성값 안까지 다시 쓴다. 실측 (2026-08-30):
+	//
+	//   [문서](https://example.com/a**b**c.html)
+	//     → href='https://example.com/a<strong>b</strong>c.html'
+	//
+	// 링크가 깨지고 마크업도 망가진다. `~~` 도 같다. 태그 조각을 빼 두면 강조
+	// 패스가 볼 수 있는 것은 사용자가 쓴 글자뿐이다.
+	//
+	// 빼는 단위는 **여는 태그까지**다. 앵커의 링크 텍스트는 강조를 받아야
+	// 하기 때문이다 (`[**굵게**](url)` → `<a ...><strong>굵게</strong></a>`).
+	// 이미지와 autolink 는 안쪽에 사용자 마크다운이 없으므로 통째로 뺀다
+	// (CommonMark 에서 autolink 의 텍스트는 문자 그대로다).
+	const tagChunks: string[] = [];
+	const stashTag = (html: string): string => {
+		tagChunks.push(html);
+		return "\uE000t" + (tagChunks.length - 1) + "\uE001";
+	};
+
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(/`([^`]+)`/g, (_m, code: string) => {
@@ -344,9 +365,11 @@ export const markdownToHtml = (rawInput: string): string => {
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(IMAGE_PATTERN, (_m, alt, url, title) =>
-				"<img src='" + escapeHtmlQuotes(url) + "' alt='" + escapeHtmlQuotes(alt) + "'"
-				+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
-				+ " />"
+				stashTag(
+					"<img src='" + escapeHtmlQuotes(url) + "' alt='" + escapeHtmlQuotes(alt) + "'"
+					+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
+					+ " />"
+				)
 			);
 		}
 	}
@@ -366,8 +389,10 @@ export const markdownToHtml = (rawInput: string): string => {
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(AUTOLINK_PATTERN, (_m, url) =>
-				"<a href='" + escapeHtmlQuotes(url) + "' target='_blank' rel='noreferrer'>"
-				+ url + "</a>"
+				stashTag(
+					"<a href='" + escapeHtmlQuotes(url) + "' target='_blank' rel='noreferrer'>"
+					+ url + "</a>"
+				)
 			);
 		}
 	}
@@ -390,9 +415,11 @@ export const markdownToHtml = (rawInput: string): string => {
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(ANCHOR_PATTERN, (_m, text, url, title) =>
-				"<a href='" + escapeHtmlQuotes(url) + "'"
-				+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
-				+ " target='_blank' rel='noreferrer'>" + text + "</a>"
+				stashTag(
+					"<a href='" + escapeHtmlQuotes(url) + "'"
+					+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
+					+ " target='_blank' rel='noreferrer'>"
+				) + text + "</a>"
 			);
 		}
 	}
@@ -411,6 +438,15 @@ export const markdownToHtml = (rawInput: string): string => {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) =>
 				"<code>" + escapeHtmlText(codeSpans[Number(i)]) + "</code>"
+			);
+
+			// 태그 조각 복원. 이미 escape 를 마친 상태로 들어갔으므로 그대로 돌려놓는다.
+			// 인덱스는 바로 위 stashTag 가 만든 것이라 항상 존재한다. `?? ""` 는
+			// noUncheckedIndexedAccess 를 만족시키기 위한 것이며, 도달하면
+			// 자리표시자(보이지 않는 private-use 문자)를 화면에 남기는 대신
+			// 아무것도 남기지 않는 쪽을 고른 것이다.
+			node.text = node.text.replace(/\uE000t(\d+)\uE001/g, (_m, i: string) =>
+				tagChunks[Number(i)] ?? ""
 			);
 
 			// 강조 표식 복원. escape 뒤에 되돌리므로 표식이 감싼 사용자 글자는
