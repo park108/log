@@ -35,6 +35,16 @@
 //     --overflow          뷰포트를 가로로 넘는 요소 나열
 //     --json              JSON 그대로 출력
 //
+// ## 재는 사람이 빠지는 함정 두 개 (둘 다 실제로 빠졌다)
+//
+//   1. 측정 대상 문서에 `<meta name="viewport">` 가 없으면, 좁은 폭에서 Chrome 이
+//      980px 레이아웃 뷰포트를 쓴다. 폭은 좁게 그려지는데 미디어 쿼리는 넓은
+//      폭으로 판정되므로 반응형 규칙 측정이 조용히 틀린다. 이 도구가 경고한다.
+//
+//   2. 박스와 글자는 다르다. `<button>` 은 inline-block 이라 line-height 여백을
+//      박스에 포함한다 — 같은 줄에 있는 `<span>` 과 박스 높이가 달라도 글자는
+//      정확히 같은 자리다. 박스만 보면 없는 결함을 만든다.
+//
 // 측정 대상 HTML 은 보통 손으로 만든다 — 컴포넌트를 jsdom 에서 렌더해
 // `container.innerHTML` 을 덤프하고, 실제 CSS(`src/**.css` + `build/assets/*.css`)를
 // 함께 실으면 실물과 같은 조건이 된다. CSS 모듈 클래스는 jsdom 과 빌드의 해시가
@@ -89,7 +99,8 @@ const expression = (selectors, wantOverflow) => `(() => {
 		return { top: round(r.top), bottom: round(r.bottom), text: node.textContent.trim().slice(0, 24) };
 	};
 	const vw = document.documentElement.clientWidth;
-	const out = { viewport: vw, docScrollWidth: document.documentElement.scrollWidth, nodes: [] };
+	const out = { viewport: vw, docScrollWidth: document.documentElement.scrollWidth,
+		hasViewportMeta: Boolean(document.querySelector('meta[name="viewport"]')), nodes: [] };
 
 	for (const sel of ${JSON.stringify(selectors)}) {
 		const el = document.querySelector(sel);
@@ -174,11 +185,23 @@ const measure = async (chrome, url, width, selectors, wantOverflow) => {
 		const r = await send('Runtime.evaluate', {
 			expression: expression(selectors, wantOverflow), returnByValue: true,
 		});
+
 		ws.close();
 		if (!r || !r.result || 'string' !== typeof r.result.value) {
 			throw new Error('측정식이 값을 내지 못했다: ' + JSON.stringify(r));
 		}
-		return JSON.parse(r.result.value);
+		const parsed = JSON.parse(r.result.value);
+
+		// 측정을 측정한다. viewport meta 가 없는 문서를 mobile 로 띄우면 Chrome 은
+		// 980px 레이아웃 뷰포트를 쓴다 — 폭은 좁게 그려지는데 미디어 쿼리는 넓은
+		// 폭으로 판정된다. 그 상태로 `.hidden--width-350px` 를 320px 에서 재면
+		// `display: inline` 이 나온다 (실측). 조용히 틀린 답이므로 알린다.
+		if (!parsed.hasViewportMeta && width < 500) {
+			console.error('경고: 문서에 <meta name="viewport"> 가 없다. 좁은 폭에서'
+				+ ' Chrome 이 980px 레이아웃 뷰포트를 쓰므로 미디어 쿼리가 넓은 폭으로'
+				+ ' 판정된다 — 반응형 규칙 측정은 이 상태에서 신뢰할 수 없다.');
+		}
+		return parsed;
 	}
 	finally {
 		proc.kill();
