@@ -457,8 +457,15 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 				else if(0 > start) {
 					// 여는 구분자 뒤에 공백이 오면 강조가 아니다
 					// (CommonMark left-flanking 중 이 글이 실제로 부딪힌 부분).
+					//
+					// 같은 구분자가 이어지면 그것은 **하나의 런**이지, 안에서 한 개를
+					// 떼어 쓸 수 있는 것이 아니다. 앞뒤 **양쪽** 을 봐야 한다 — 뒤만
+					// 보면 런의 마지막 하나가 여전히 열린다 (실측: `src/**/*.ts` 가
+					// `src//*.ts` → 뒤만 막았을 때 `src/*/.ts`).
 					const after = node.text.charAt(searchFrom + delimeterLength);
-					if(strictFlanking && ("" === after || /\s/.test(after))) {
+					const beforeOpen = node.text.charAt(searchFrom - 1);
+					if(strictFlanking && ("" === after || /\s/.test(after)
+						|| after === delimeter || beforeOpen === delimeter)) {
 						searchFrom += delimeterLength;
 						continue;
 					}
@@ -467,8 +474,11 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 				}
 				else {
 					// 닫는 구분자 앞에 공백이 오면 닫는 것이 아니다 (right-flanking).
+					// 런 안에서 떼어 오지 않는 것도 여는 쪽과 같다.
 					const before = node.text.charAt(searchFrom - 1);
-					if(strictFlanking && ("" === before || /\s/.test(before))) {
+					const afterClose = node.text.charAt(searchFrom + delimeterLength);
+					if(strictFlanking && ("" === before || /\s/.test(before)
+						|| before === delimeter || afterClose === delimeter)) {
 						searchFrom += delimeterLength;
 						continue;
 					}
