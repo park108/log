@@ -941,3 +941,86 @@ describe('Writer 공백만 입력', () => {
 		expect(postSpy.mock.calls[0]![1]).toBe(raw);
 	});
 });
+
+// 글을 쓰면 목록 캐시가 비어야 한다.
+//
+// LogList 는 React Query 를 소비하지 않는다 — 직접 fetch 하고 sessionStorage 에
+// 캐시한다. mutation 훅이 invalidate 하는 `['log','list']` 는 보는 쪽이 없어
+// (useLogList 훅의 소비처 0), 목록이 세션 내내 얼어붙었다. 실측: 글을 쓴 뒤
+// 목록을 다시 열어도 재조회 0회, 새 글 보이지 않음.
+describe('Writer 저장 후 목록 캐시', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	const postAndCheck = async () => {
+
+		stubMode('production');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+
+		sessionStorage.setItem('logList', JSON.stringify([{ contents: '옛 목록' }]));
+		sessionStorage.setItem('logListLastTimestamp', '1656034616036');
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[{ pathname: "/log/write", state: null }]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
+
+		fireEvent.change(await screen.findByTestId("writer-text-area"),
+			{ target: { value: '새로 쓴 글이다.' } });
+		await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+		fireEvent.click(await screen.findByTestId("submit-button"));
+		await act(async () => { await vi.runAllTimersAsync(); });
+	};
+
+	it('저장이 성공하면 목록 캐시를 비운다', async () => {
+
+		await postAndCheck();
+
+		expect(await screen.findByText("The log posted.")).toBeDefined();
+		// 이전에는 옛 목록이 그대로 남아 다음 목록 조회가 재조회 없이 그것을 썼다.
+		expect(sessionStorage.getItem('logList')).toBeNull();
+		expect(sessionStorage.getItem('logListLastTimestamp')).toBeNull();
+	});
+});
+
+// 대조 — 저장이 실패하면 캐시를 건드리지 않는다. 서버에 반영되지 않은 변경 때문에
+// 목록을 다시 받아올 이유가 없다.
+describe('Writer 저장 실패 시 목록 캐시', () => {
+	useMockServer(() => mock.prodServerFailed);
+
+	it('실패하면 캐시를 그대로 둔다', async () => {
+
+		stubMode('production');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+
+		sessionStorage.setItem('logList', JSON.stringify([{ contents: '옛 목록' }]));
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[{ pathname: "/log/write", state: null }]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
+
+		fireEvent.change(await screen.findByTestId("writer-text-area"),
+			{ target: { value: '새로 쓴 글이다.' } });
+		await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+		fireEvent.click(await screen.findByTestId("submit-button"));
+		await act(async () => { await vi.runAllTimersAsync(); });
+
+		expect(sessionStorage.getItem('logList')).not.toBeNull();
+	});
+});

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { removeSession } from '../../common/safeStorage';
 import { deleteLog } from '../api';
 import { logDetailKey } from './logQueryKeys';
 import type { MutationCallbacks } from './useCreateLog';
@@ -51,6 +52,14 @@ export const useDeleteLog = (callbacks: MutationCallbacks<DeleteLogVars> = {}) =
 		},
 		onSuccess: (data, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['log', 'list'] });
+			// LogList 는 React Query 를 소비하지 않는다 — 직접 fetch 하고
+			// sessionStorage 에 캐시한다. 위 invalidate 가 겨누는 `['log','list']` 는
+			// 실제로 보는 쪽이 없어(useLogList 훅의 소비처 0), 목록 캐시가 세션 내내
+			// 그대로 남았다. 실측: 글을 쓴 뒤 목록을 다시 열어도 재조회 0회, 새 글
+			// 보이지 않음. 캐시를 함께 비운다 — LogList 가 훅으로 옮겨가면 이 두 줄이
+			// 필요 없어진다.
+			removeSession("logList");
+			removeSession("logListLastTimestamp");
 			queryClient.removeQueries({ queryKey: logDetailKey(variables.timestamp) });
 			callbacks.onSuccess?.(data, variables);
 		},
