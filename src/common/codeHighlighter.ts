@@ -51,43 +51,74 @@ const SYNTAX_KOTLIN = {
 	]
 };
 
+// 한 줄을 한 번만 훑는다.
+//
+// 이전에는 `String.replace(문자열)` 을 키워드마다 돌렸다. 그 방식은 세 가지가
+// 어긋난다 (전부 실측):
+//   1. 단어 경계를 모른다 — `fun evaluate()` 에서 `e·val·uate` 의 `val` 이 강조됐다.
+//   2. 첫 하나만 바꾼다 — `val a = 1; val b = 2` 에서 뒤쪽 `val` 은 색이 없었다.
+//   3. 앞뒤 공백을 조건으로 흉내 내다 보니 줄 머리의 `if` 는 영영 강조되지 않았다.
+// 게다가 문자열 리터럴 안의 `return` 같은 단어까지 키워드로 칠했다.
+//
+// 훑기로 바꾸면 생성한 마크업을 다시 스캔하지 않는다 — 이전 방식은
+// `class='span …'` 의 `class` 를 키워드로 삼킬 위험을 rearSpace 로 겨우 피하고
+// 있었다.
+//
+// 이 함수에 들어오는 `code` 는 이미 escape 됐다 (`markdownParser` 가 강조기에
+// 넘기기 전에 처리한다). 따옴표는 그대로다.
+
+const RESERVED = new Set(SYNTAX_KOTLIN.reservedWords.map((w) => w.keyword));
+const ANNOTATIONS = new Set(SYNTAX_KOTLIN.annotations);
+
+const IDENTIFIER = /^[A-Za-z_$][\w$]*/;
+const ANNOTATION = /^@[A-Za-z_$][\w$]*/;
+
+const wrap = (kind: string, text: string): string =>
+	"<span class='span span--kotlin-" + kind + "'>" + text + "</span>";
+
 const highlighterKotlin = (code: string): string => {
 
-	code = code.replace("<", "&lt");
-	code = replaceLiteral(code);
+	let out = "";
+	let i = 0;
 
-	for(const keyword of SYNTAX_KOTLIN.reservedWords) {
-		code = replaceReservedWord(keyword.frontSpace, keyword.keyword, keyword.rearSpace, code);
-	}
+	while(i < code.length) {
 
-	for(const annotation of SYNTAX_KOTLIN.annotations) {
-		code = replaceAnnotation(annotation, code);
-	}
+		const rest = code.slice(i);
 
-	return code;
-}
-
-const replaceLiteral = (line: string): string => {
-	const start = line.indexOf("\"");
-	if(start > -1) {
-		const next = line.indexOf("\"", start + 1);
-
-		if(next > start) {
-			const front = line.substring(0, start);
-			const literal = line.substring(start, next + 1);
-			const rear = line.substring(next + 1);
-			line = front + "<span class='span span--kotlin-literal'>" + literal + "</span>" + rear;
+		// 문자열 리터럴. 닫는 따옴표가 없으면 리터럴이 아니다 (기존 계약).
+		if('"' === code.charAt(i)) {
+			const end = code.indexOf('"', i + 1);
+			if(end > i) {
+				out += wrap("literal", code.slice(i, end + 1));
+				i = end + 1;
+				continue;
+			}
 		}
+
+		// 애너테이션.
+		const annotation = ANNOTATION.exec(rest);
+		if(annotation && ANNOTATIONS.has(annotation[0])) {
+			out += wrap("annotation", annotation[0]);
+			i += annotation[0].length;
+			continue;
+		}
+
+		// 식별자. 통째로 집어 예약어인지 본다 — 그래야 단어 안쪽이 걸리지 않는다.
+		const identifier = IDENTIFIER.exec(rest);
+		if(identifier) {
+			const word = identifier[0];
+			out += RESERVED.has(word) ? wrap("reserved", word)
+				: ANNOTATIONS.has(word) ? wrap("annotation", word)
+				: word;
+			i += word.length;
+			continue;
+		}
+
+		out += code.charAt(i);
+		i += 1;
 	}
-	return line;
-}
 
-const replaceReservedWord = (frontSpace: string, keyword: string, rearSpace: string, line: string): string => {
-	return line.replace(frontSpace + keyword + rearSpace, frontSpace + "<span class='span span--kotlin-reserved'>" + keyword + "</span>" + rearSpace);
-}
-
-const replaceAnnotation = (keyword: string, line: string): string => {
-	return line.replace(keyword, "<span class='span span--kotlin-annotation'>" + keyword + "</span>");
+	return out;
 }
 
 const highlighterYaml = (code: string): string => {
