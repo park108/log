@@ -953,3 +953,81 @@ describe('isAdmin() group claim 부재 안전 기본값 (REQ-20260421-038 FR-02)
 		expect(common.isAdmin()).toBe(false);
 	});
 });
+// UA 판정은 순서가 곧 규칙이다. 위 스위트는 분기마다 합성 문자열을 하나씩
+// 넣어("Android Chrome/") 전 분기를 덮지만, **실제 브라우저가 보내는 조합**은
+// 하나도 재지 않는다. 그래서 아래 결함들이 커버리지 가득한 채로 살아 있었다:
+//
+//   Edge·Opera·Chromium·삼성  → 전부 "Chrome" 으로 집계 (Chrome 표식을 함께 단다)
+//   Chromium·Seamonkey 갈래   → 도달조차 하지 않음
+//   Chromium 계열 엔진        → 전부 "Webkit" (Blink 갈래 도달 안 함)
+//   iPad                      → "Mac OS X" ("iPhone OS" 가 없다)
+//
+// Monitor 의 사용자 환경 통계가 그만큼 왜곡돼 있었다.
+describe('userAgentParser — 실제 UA 문자열', () => {
+
+	const parse = (ua: string) => {
+		Object.defineProperty(window.navigator, 'userAgent', { value: ua, configurable: true });
+		return common.userAgentParser();
+	};
+
+	it.each([
+		['Chrome / Windows',
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+			'Chrome', 'Blink', 'Windows'],
+		['Edge / Windows',
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.2109.0',
+			'Edge', 'Blink', 'Windows'],
+		['Opera / Windows',
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 OPR/105.0.0.0',
+			'Opera', 'Blink', 'Windows'],
+		['Chromium / Linux',
+			'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chromium/119.0.0.0 Chrome/119.0.0.0 Safari/537.36',
+			'Chromium', 'Blink', 'Linux'],
+		['Samsung Internet / Android',
+			'Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36',
+			'Samsung Internet', 'Blink', 'Android'],
+		['Firefox / Mac',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:119.0) Gecko/20100101 Firefox/119.0',
+			'Firefox', 'Gecko', 'Mac OS X'],
+		['SeaMonkey / Mac',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:60.0) Gecko/20100101 Firefox/60.0 SeaMonkey/2.53.1',
+			'Seamonkey', 'Gecko', 'Mac OS X'],
+		['Safari / Mac',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+			'Safari', 'Webkit', 'Mac OS X'],
+		['Safari / iPhone',
+			'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+			'Safari', 'Webkit', 'iOS'],
+		['Safari / iPad',
+			'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+			'Safari', 'Webkit', 'iOS'],
+		['Chrome / iOS',
+			'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/119.0.6045.109 Mobile/15E148 Safari/604.1',
+			'Chrome', 'Webkit', 'iOS'],
+		['KakaoTalk 인앱 / Android',
+			'Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Mobile Safari/537.36 KAKAOTALK 10.3.5',
+			'Kakaotalk', 'Blink', 'Android'],
+		['Chrome / ChromeOS',
+			'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+			'Chrome', 'Blink', 'Chrome OS'],
+	])('%s', (_name, ua, browser, engine, os) => {
+		const r = parse(ua);
+		expect(r.browser).toBe(browser);
+		expect(r.renderingEngine).toBe(engine);
+		expect(r.operatingSystem).toBe(os);
+	});
+
+	// 대조 — 모르는 UA 는 Others 로 떨어져야 한다. 없으면 아무거나 집어내는
+	// 구현도 통과한다.
+	it('모르는 UA 는 Others 로 떨어진다', () => {
+		const r = parse('SomeUnknownAgent/1.0');
+		expect(r.browser).toBe('Others');
+		expect(r.renderingEngine).toBe('Others');
+		expect(r.operatingSystem).toBe('Others');
+	});
+
+	it('원문을 그대로 함께 보낸다', () => {
+		const ua = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/119.0.0.0';
+		expect(parse(ua).originalText).toBe(ua);
+	});
+});

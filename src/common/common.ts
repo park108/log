@@ -329,55 +329,84 @@ export const setFullscreen = (isFullscreen: boolean): void => {
 	}
 }
 
+// UA 판정은 **순서가 곧 규칙**이다. 아래로 갈수록 덜 구체적이다 — 위에 있는
+// 브라우저가 아래 것의 표식을 함께 달고 다니기 때문이다. 실제 UA 로 재보면
+// 그 포함 관계가 드러난다 (2026-08-30 실측):
+//
+//   Edge      ...Chrome/119...  Edg/119            → Chrome 보다 먼저
+//   Opera     ...Chrome/119...  OPR/105            → 〃
+//   삼성      ...SamsungBrowser/23  Chrome/115     → 〃
+//   Chromium  ...Chromium/119  Chrome/119          → 〃
+//   SeaMonkey ...Firefox/60  SeaMonkey/2.53        → Firefox 보다 먼저
+//
+// 순서가 어긋나 있던 동안 Edge·Opera·Chromium·삼성이 전부 "Chrome" 으로
+// 집계됐고, Chromium·Seamonkey 갈래는 도달조차 하지 않았다. Monitor 의
+// 사용자 환경 통계가 그만큼 조용히 왜곡돼 있었다.
+//
+// 기존 테스트는 분기마다 가짜 문자열을 하나씩 넣어("Android Chrome/") 전 분기를
+// 덮고 있었다. 그래서 커버리지는 가득 찼는데 실제 조합은 하나도 재지 않았다.
+const BROWSER_RULES: ReadonlyArray<readonly [RegExp, string]> = [
+	[/KAKAOTALK/, "Kakaotalk"],           // 인앱 브라우저 — Chrome 표식을 함께 단다
+	[/Edg(?:e|A|iOS)?\//, "Edge"],
+	[/OPR\/|Opera\//, "Opera"],
+	[/SamsungBrowser\//, "Samsung Internet"],
+	[/Whale\//, "Whale"],
+	[/Sea[Mm]onkey\//, "Seamonkey"],      // Firefox 표식을 함께 단다
+	[/Firefox\/|FxiOS\//, "Firefox"],
+	[/Chromium\//, "Chromium"],           // Chrome 표식을 함께 단다
+	[/Chrome\/|CriOS\//, "Chrome"],
+	[/Safari\//, "Safari"],
+	[/; MSIE |Trident\//, "Internet Explorer"],
+];
+
+// 엔진도 같은 이유로 순서가 있다. `AppleWebKit/` 을 먼저 보면 Chromium 계열이
+// 전부 "Webkit" 으로 집계된다 — 2013년 Blink 분기 이후로는 사실과 다르다.
+// 실측: Chrome·Edge·Opera·삼성 전부 Webkit 으로 나왔고 Blink 갈래는 도달하지
+// 않았다.
+const ENGINE_RULES: ReadonlyArray<readonly [RegExp, string]> = [
+	[/Trident\//, "Trident"],
+	[/Presto\/|Opera\//, "Presto"],      // 구 Opera 12 이하
+	[/Gecko\//, "Gecko"],                 // "like Gecko" 에는 슬래시가 없다
+	// `CriOS/` 는 넣지 않는다 — iOS 의 Chrome 은 Apple 정책상 WebKit 위에서 돈다.
+	// UA 도 `AppleWebKit/605...  CriOS/...` 형태라 아래 Webkit 갈래가 맞다.
+	// (이 사실은 기존 합성 테스트가 잡아냈다: "Symbian CriOS/" → Others 기대.)
+	[/Edg(?:e|A|iOS)?\/|Chrome\/|Chromium\//, "Blink"],
+	[/AppleWebKit\//, "Webkit"],
+];
+
+// iPad·iPod 의 UA 에는 "iPhone OS" 가 없고 "like Mac OS X" 만 있다. 그래서
+// iPad 가 Mac OS X 로 집계됐다 (실측).
+const OS_RULES: ReadonlyArray<readonly [RegExp, string]> = [
+	[/Android/, "Android"],                // "Linux" 를 함께 단다
+	[/iPhone OS|iPad|iPod|CPU OS \d/, "iOS"],
+	[/Windows/, "Windows"],
+	[/\(X11; CrOS/, "Chrome OS"],
+	[/Mac OS X|Macintosh/, "Mac OS X"],
+	[/X11|Linux/, "Linux"],
+	[/Symbian/, "Symbian"],
+];
+
+const firstMatch = (rules: ReadonlyArray<readonly [RegExp, string]>, text: string): string => {
+	for(const [pattern, label] of rules) {
+		if(pattern.test(text)) return label;
+	}
+	return "Others";
+};
+
 export const userAgentParser = () => {
 
-	let uaText = navigator.userAgent;
-  
 	// Parser reference
 	// 1. https://developer.mozilla.org/ko/docs/Web/HTTP/Browser_detection_using_the_user_agent
 	// 2. https://developers.whatismybrowser.com/useragents/explore
-	// Browser
-	let browser = uaText.indexOf("Firefox/") > -1 ? "Firefox"
-		: uaText.indexOf("Seamonkey/") > -1 ? "Seamonkey"
-		: uaText.indexOf("KAKAOTALK") > -1 ? "Kakaotalk"
-		: uaText.indexOf("Chrome/") > -1 ? "Chrome"
-		: uaText.indexOf("CriOS/") > -1 ? "Chrome"	  
-		: uaText.indexOf("Chromium/") > -1 ? "Chromium"
-		: uaText.indexOf("Safari/") > -1 ? "Safari"
-		: uaText.indexOf("OPR/") > -1 ? "Opera"
-		: uaText.indexOf("Opera/") > -1 ? "Opera"
-		: uaText.indexOf("; MSIE ") > -1 ? "Internet Explorer"
-		: "Others";
-  
-  
-	// Rendering engine
-	let renderingEngine = uaText.indexOf("Gecko/") > -1 ? "Gecko"
-		: uaText.indexOf("AppleWebKit/") > -1 ? "Webkit"
-		: uaText.indexOf("Opera/") > -1 ? "Presto"
-		: uaText.indexOf("Trident/") > -1 ? "Trident"
-		: uaText.indexOf("Chrome/") > -1 ? "Blink"
-		: "Others";
-  
-	// Operating system
-	let operatingSystem = uaText.indexOf("Android") > -1 ? "Android"
-		: uaText.indexOf("iPhone OS") > -1 ? "iOS"
-		: uaText.indexOf("Windows") > -1 ? "Windows"
-		: uaText.indexOf("Mac OS X") > -1 ? "Mac OS X"
-		: uaText.indexOf("(X11; CrOS") > -1 ? "Chrome OS"
-		: uaText.indexOf("X11") > -1 ? "Linux"
-		: uaText.indexOf("Symbian") > -1 ? "Symbian"
-		: "Others";
-  
-	// Make posting data
-	const userAgentInfo = {
+	const uaText = navigator.userAgent;
+
+	return {
 		url: getUrl(),
 		originalText: uaText,
-		browser: browser,
-		renderingEngine: renderingEngine,
-		operatingSystem: operatingSystem
-	}
-
-	return userAgentInfo;
+		browser: firstMatch(BROWSER_RULES, uaText),
+		renderingEngine: firstMatch(ENGINE_RULES, uaText),
+		operatingSystem: firstMatch(OS_RULES, uaText),
+	};
 }
 
 interface HoverPopupEventLike {
