@@ -1,4 +1,4 @@
-// sessionStorage 접근을 감싼다.
+// 브라우저 저장소 접근을 감싼다.
 //
 // 브라우저 저장소는 **없을 수 있다**. 사이트 데이터를 차단한 설정에서는
 // `sessionStorage` 접근 자체가 SecurityError 를 던지고, 용량이 차면 `setItem` 이
@@ -30,6 +30,38 @@ export const writeSession = (key: string, value: string): void => {
 export const removeSession = (key: string): void => {
 	try {
 		sessionStorage.removeItem(key);
+	}
+	catch {
+		// 지울 것이 없으면 지워진 것과 같다.
+	}
+};
+
+// localStorage 쪽 — 탭을 닫아도 남아야 하는 것 (글 초안) 이 여기 들어간다.
+// `sessionStorage` 는 탭과 함께 사라지므로 "실수로 탭을 닫았다" 를 못 구한다.
+// 실패 흡수 정책은 위와 같다 — 저장소가 없으면 안전망이 없을 뿐, 글쓰기 자체는
+// 막지 않는다.
+
+export const readLocal = (key: string): string | null => {
+	try {
+		return localStorage.getItem(key);
+	}
+	catch {
+		return null;
+	}
+};
+
+export const writeLocal = (key: string, value: string): void => {
+	try {
+		localStorage.setItem(key, value);
+	}
+	catch {
+		// 초안을 못 남기는 것은 정상 동작을 막지 않는다.
+	}
+};
+
+export const removeLocal = (key: string): void => {
+	try {
+		localStorage.removeItem(key);
 	}
 	catch {
 		// 지울 것이 없으면 지워진 것과 같다.

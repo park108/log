@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { log, isAdmin, setFullscreen, hasValue, copyToClipboard } from '../common/common';
+import { readDraft, saveDraft, clearDraft } from './draft';
 import { useCreateLog } from './hooks/useCreateLog';
 import { useUpdateLog } from './hooks/useUpdateLog';
 import * as parser from '../common/markdownParser';
@@ -64,6 +65,10 @@ const Writer = () => {
 	const createLogMutation = useCreateLog({
 		onSuccess: (_data, variables) => {
 			log("[API POST] OK - Log", "SUCCESS");
+
+			// 글이 저장됐으니 안전망은 걷는다. 남겨 두면 다음 "새 글" 에 방금 올린
+			// 글이 되살아난다.
+			clearDraft();
 
 			setToasterType("success");
 			setToasterMessage("The log posted.");
@@ -157,8 +162,17 @@ const Writer = () => {
 			// 글을 덮어쓴다.**
 			setIsNew(true);
 			setHistoryData(undefined);
-			setArticle("");
 			setIsTemporary(false);
+
+			// 쓰다 만 글이 있으면 되살린다. **말없이 하지 않는다** — 빈 줄 알았던
+			// 칸에 글자가 들어차 있으면 그것대로 놀란다.
+			const draft = readDraft();
+			setArticle(draft);
+			if("" !== draft) {
+				setToasterType("information");
+				setToasterMessage("Draft restored.");
+				setIsShowToaster(1);
+			}
 		}
 
 		return () => {setFullscreen(false)}
@@ -287,6 +301,14 @@ const Writer = () => {
 		// identity 가 매 렌더 바뀐다.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isSubmitted])
+
+	// 새 글의 본문은 타자마다 저장소에 남긴다. 기존 글 수정 경로는 건드리지 않는다 —
+	// 거기서 초안을 잘못 되살리면 남의 글을 덮어쓰는 사고가 되고, 그것은 지금 막으려는
+	// 사고보다 나쁘다.
+	useEffect(() => {
+		if(!isNew) return;
+		saveDraft(article);
+	}, [article, isNew]);
 
 	useEffect(() => {
 		setConvertedArticleStatus("HTML length = " + convertedArticle.length)

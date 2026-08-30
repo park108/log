@@ -74,6 +74,11 @@ const withQuery = (node: React.ReactNode) => {
 // REQ-20260421-036 FR-05 / TSK-20260421-73 — console spy 비파괴 이디엄.
 // 전역 `vi.restoreAllMocks()` (setupTests.js) 가 spy 를 원본으로 복원한다.
 beforeEach(() => {
+	// 새 글의 본문은 `localStorage` 에 초안으로 남는다 (`src/Log/draft`). 케이스마다
+	// 지우지 않으면 앞 케이스가 타자한 글이 다음 케이스의 빈 칸에 되살아난다 —
+	// 실제로 "새 글 모드는 비어 있다" 단언이 그렇게 붉어졌다. 제품 동작은 의도대로이고
+	// 격리해야 하는 쪽은 테스트다.
+	localStorage.clear();
 	vi.spyOn(console, 'log').mockImplementation(async () => true);
 	vi.spyOn(console, 'error').mockImplementation(async () => true);
 	Object.defineProperty(navigator, 'clipboard', {
@@ -87,6 +92,7 @@ beforeEach(() => {
 // 두 곳에서 재정의된다. jsdom 기본 navigator 에 own clipboard 는 없다.
 const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
 afterEach(() => {
+	localStorage.clear();
 	if (originalClipboard) {
 		Object.defineProperty(navigator, 'clipboard', originalClipboard);
 	} else {
