@@ -125,7 +125,7 @@ describe('Comment render failed when internal error on dev server', () => {
 		expect(alertEl).toHaveTextContent('Failed to load comments.');
 
 		// FR-06 — 작성 실패 문구를 재사용하지 않는다.
-		expect(screen.queryByText('The comment posted failed.')).toBeNull();
+		expect(screen.queryByText('Failed to post the comment.')).toBeNull();
 
 		// 토글 라벨은 "0건 성공" 과 동일하다 — 구별을 담당하는 것은 위 실패 표면이다.
 		// `findByTestId` 는 라벨 전이를 기다리지 않고 즉시 반환하므로 도달 조건을 명시한다.
@@ -194,7 +194,7 @@ describe('Comment render failed when network error on dev server', () => {
 		expect(alertEl).toHaveTextContent('Failed to load comments for network issue.');
 
 		// FR-06 — 작성 실패 문구를 재사용하지 않는다.
-		expect(screen.queryByText('The comment posted failed for network issue.')).toBeNull();
+		expect(screen.queryByText('Failed to post the comment for network issue.')).toBeNull();
 
 		// 라벨 전이 도달 조건 (위 케이스와 동일 사유).
 		await waitFor(() => {
@@ -283,7 +283,7 @@ describe('Comment render list and post on prod server (failed scenario — post 
 		expect(submitButton).toBeDefined();
 		fireEvent.click(submitButton);
 
-		const toasterMessage = await screen.findByText("The comment posted failed.");
+		const toasterMessage = await screen.findByText("Failed to post the comment.");
 
 		await act(async () => {
 			await vi.runAllTimersAsync();
@@ -325,7 +325,7 @@ describe('Comment render list and post on prod server (network-error scenario �
 		expect(submitButton5).toBeDefined();
 		fireEvent.click(submitButton5);
 
-		const toasterMessage2 = await screen.findByText("The comment posted failed for network issue.");
+		const toasterMessage2 = await screen.findByText("Failed to post the comment for network issue.");
 
 		await act(async () => {
 			await vi.runAllTimersAsync();
@@ -480,7 +480,7 @@ describe('Comment reportError 채널 (REQ-20260421-039 FR-03)', () => {
 				fireEvent.click(submitButton);
 
 				// POST 실패 토스터 렌더 → `:49` 분기 통과 보장.
-				await screen.findByText('The comment posted failed.');
+				await screen.findByText('Failed to post the comment.');
 
 				await act(async () => {
 					await vi.runAllTimersAsync();
@@ -635,7 +635,7 @@ describe('Comment unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 
 		expect(logSpy).not.toHaveBeenCalled();
 		expect(errorSpy).not.toHaveBeenCalled();
-		expect(screen.queryByText('The comment posted failed for network issue.')).toBeNull();
+		expect(screen.queryByText('Failed to post the comment for network issue.')).toBeNull();
 	});
 });
 

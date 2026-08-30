@@ -103,7 +103,10 @@ const Comment = (props: CommentProps): React.ReactElement => {
 				log("[API POST] FAILED - Comment", "ERROR");
 				reportError(res);
 
-				setToasterMessage("The comment posted failed.");
+				// 같은 파일이 조회 실패를 "Failed to load comments." 로 적는다. 전송
+				// 실패만 "The comment posted failed." 라는 다른 형태였고 그것은 문장이
+				// 아니다 — 실패를 알리는 자리라 읽히는 것이 특히 중요하다.
+				setToasterMessage("Failed to post the comment.");
 				setToasterType("error");
 				setIsShowToaster(1);
 			}
@@ -113,7 +116,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			log("[API POST] FAILED - Comment", "ERROR");
 			reportError(err);
 
-			setToasterMessage("The comment posted failed for network issue.");
+			setToasterMessage("Failed to post the comment for network issue.");
 			setToasterType("error");
 			setIsShowToaster(1);
 		}
