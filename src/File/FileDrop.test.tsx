@@ -519,3 +519,53 @@ describe('업로드 중 표시', () => {
 		expect(container.textContent).not.toContain('Uploading');
 	});
 });
+
+// `dragleave` 는 포인터가 **자식 위로 옮겨갈 때도** 발화한다. 드롭존 안에는
+// 안내 문구 `<span>` 이 있으므로, 사용자가 정확히 목표 위로 가는 순간 강조가
+// 꺼졌다 (실측: 진입 Y → 자식 위 N). 진입/이탈 깊이를 세어 0 이 될 때만 푼다.
+describe('드래그 강조는 자식 위에서도 유지된다', () => {
+
+	const zoneOf = () => document.querySelector('[data-testid="dropzone"]') as HTMLElement;
+	const stateOf = () => zoneOf().getAttribute('data-dragover');
+
+	it('안내 문구 위로 지나가도 강조가 꺼지지 않는다', () => {
+
+		render(<FileDrop callbackAfterUpload={() => {}} />);
+
+		const zone = zoneOf();
+		const child = zone.querySelector('span') as HTMLElement;
+
+		fireEvent.dragEnter(zone);
+		expect(stateOf()).toBe('Y');
+
+		// 브라우저는 부모에 dragleave, 자식에 dragenter 를 낸다 (둘 다 버블).
+		fireEvent.dragEnter(child);
+		fireEvent.dragLeave(zone);
+		expect(stateOf()).toBe('Y');
+
+		// 자식에서 바깥으로 완전히 나감
+		fireEvent.dragLeave(child);
+		expect(stateOf()).toBe('N');
+	});
+
+	it('드롭하면 깊이와 무관하게 강조가 풀린다', () => {
+
+		render(<FileDrop callbackAfterUpload={() => {}} />);
+
+		const zone = zoneOf();
+		const child = zone.querySelector('span') as HTMLElement;
+
+		fireEvent.dragEnter(zone);
+		fireEvent.dragEnter(child);
+		expect(stateOf()).toBe('Y');
+
+		fireEvent.drop(zone, { dataTransfer: { files: [] } });
+		expect(stateOf()).toBe('N');
+
+		// 드롭 뒤 다시 들어오면 한 번의 이탈로 풀려야 한다 (깊이가 남지 않는다).
+		fireEvent.dragEnter(zone);
+		expect(stateOf()).toBe('Y');
+		fireEvent.dragLeave(zone);
+		expect(stateOf()).toBe('N');
+	});
+});

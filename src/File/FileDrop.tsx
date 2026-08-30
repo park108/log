@@ -33,6 +33,12 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 	// 수단 = `cancelled` ref — 같은 도메인 선례 `FileUpload.tsx` 와 동일 이디엄.
 	const cancelledUploadRef = useRef<boolean>(false);
 
+	// 드래그 진입/이탈 **깊이**. `dragleave` 는 포인터가 자식 위로 옮겨갈 때도
+	// 발화한다 — 드롭존 안에 안내 문구 `<span>` 이 있으므로, 사용자가 정확히
+	// 목표 위로 가는 순간 강조가 꺼졌다 (실측: 진입 Y → 자식 위 N).
+	// 진입에서 늘리고 이탈에서 줄여, 0 이 될 때만 강조를 푼다.
+	const dragDepthRef = useRef<number>(0);
+
 	useEffect(() => {
 
 		const cancelled = cancelledUploadRef;
@@ -173,14 +179,17 @@ const FileDrop = (props: FileDropProps): React.ReactElement => {
 			onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
 			onDragEnter={(e: React.DragEvent<HTMLDivElement>) => {
 				e.preventDefault();
+				dragDepthRef.current += 1;
 				setIsDragOver(true);
 			}}
 			onDragLeave={(e: React.DragEvent<HTMLDivElement>) => {
 				e.preventDefault();
-				setIsDragOver(false);
+				dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+				if(0 === dragDepthRef.current) setIsDragOver(false);
 			}}
 			onDrop={(e: React.DragEvent<HTMLDivElement>) => {
 				e.preventDefault();
+				dragDepthRef.current = 0;
 				setIsDragOver(false);
 
 				const newFiles: File[] = [];
