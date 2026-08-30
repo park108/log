@@ -207,6 +207,12 @@ const File = (props: FileProps): React.ReactElement => {
 			<button
 				data-testid="seeMoreButton"
 				className={seeMoreButtonClass}
+				// 로딩 중에는 누를 수 없다. `isGetNextData` 플래그는 요청을 띄운
+				// **직후** 내려가므로(완료를 기다리지 않는다), 응답 전에 다시 누르면
+				// 같은 커서로 요청이 또 나갔다 — 실측: 세 번 누르면 호출 3회(인자
+				// 전부 같은 커서), 같은 페이지가 겹쳐 항목이 3개여야 할 자리에 5개가
+				// 됐고 React key 도 중복됐다. 목록 화면(`LogList`)과 같은 결함이다.
+				disabled={isLoading}
 				onClick={() => setIsGetNextData(true)}
 			>
 				{seeMoreButtonText}

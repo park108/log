@@ -639,3 +639,89 @@ describe('업로드 UI 분기', () => {
 		expect(screen.queryByTestId('dropzone')).toBeNull();
 	});
 });
+
+// "See more" 는 `isGetNextData` 플래그로 효과를 깨우는데, 그 플래그는 요청을
+// 띄운 **직후** 내려간다 (완료를 기다리지 않는다). 그래서 응답이 오기 전에 다시
+// 누르면 같은 커서로 요청이 또 나갔다 — 실측: 세 번 누르면 호출 3회(인자 전부
+// 같은 커서), 항목이 3개여야 할 자리에 5개가 됐다. 목록 화면과 같은 결함이다.
+describe('File 다음 페이지 재진입', () => {
+
+	const seeMore = () => screen.queryByTestId('seeMoreButton') as HTMLButtonElement | null;
+	const items = () => document.querySelectorAll('[role="listitem"]').length;
+
+	const filePage = (names: string[], next?: number) => new Response(JSON.stringify({
+		body: {
+			Items: names.map((name, index) => ({
+				key: name,
+				url: 'https://example.com/' + name,
+				lastModified: 1700000000000 + index,
+				size: 100,
+			})),
+			...(next === undefined ? {} : { LastEvaluatedKey: { timestamp: next } }),
+		},
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	it('응답 전에 여러 번 눌러도 요청은 한 번이고 페이지가 겹치지 않는다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(common, 'isMobile').mockReturnValue(false);
+		vi.spyOn(api, 'getFiles').mockResolvedValue(filePage(['a.txt', 'b.txt'], 99));
+
+		const releases: ((value: Response) => void)[] = [];
+		const cursors: (string | number)[] = [];
+		const getNextSpy = vi.spyOn(api, 'getNextFiles').mockImplementation((timestamp: string | number) => {
+			cursors.push(timestamp);
+			return new Promise<Response>(resolve => { releases.push(resolve); });
+		});
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+
+		const before = items();
+		expect(before).toBe(2);
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+
+		expect(seeMore()).toBeDisabled();
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+
+		expect(getNextSpy).toHaveBeenCalledTimes(1);
+		expect(cursors).toEqual([99]);
+
+		await act(async () => {
+			for(const release of releases) release(filePage(['c.txt'], 98));
+			await new Promise(resolve => setTimeout(resolve, 30));
+		});
+
+		expect(items()).toBe(before + 1);
+	});
+
+	// 한 페이지를 가져온 뒤 다음 페이지를 여전히 가져올 수 있어야 한다.
+	it('연달아 두 페이지를 가져올 수 있다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(common, 'isMobile').mockReturnValue(false);
+		vi.spyOn(api, 'getFiles').mockResolvedValue(filePage(['a.txt', 'b.txt'], 99));
+
+		const cursors: (string | number)[] = [];
+		vi.spyOn(api, 'getNextFiles').mockImplementation((timestamp: string | number) => {
+			cursors.push(timestamp);
+			return Promise.resolve(filePage(['p' + cursors.length + '.txt'], 99 - cursors.length));
+		});
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+		expect(items()).toBe(3);
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+		expect(items()).toBe(4);
+
+		expect(cursors).toEqual([99, 98]);
+	});
+});
