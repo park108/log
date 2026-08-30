@@ -69,11 +69,15 @@ describe('ImageSelector loading > loading more > and fail on prod server', () =>
 		expect(seeMoreButton2).toBeDefined();
 
 		fireEvent.click(seeMoreButton2);
-		const failMessage = await screen.findByText("Failed getting images");
-		expect(failMessage).toBeDefined();
 
-		// Retry after fetch error
-		const retryButton = await screen.findByText("Retry");
+		// 이 단언은 "다음 페이지가 실패하면 전면 오류 화면" 을 못 박고 있었다.
+		// 그 동작은 보고 있던 썸네일을 통째로 지운다 (실측: 6 → 0). 글을 쓰며
+		// 고르는 화면이라 보던 자리를 잃는 것이 그대로 손해다. 전면 오류는
+		// 보여줄 것이 없을 때만 내고, 여기서는 그 자리에서 다시 시도한다.
+		const retryButton = await screen.findByTestId("imageSeeMoreRetryButton");
+		expect(screen.queryByText("Failed getting images")).toBeNull();
+		expect((await screen.findAllByTestId("imageItem")).length).toBe(6);
+
 		fireEvent.click(retryButton);
 	});
 });
@@ -107,8 +111,12 @@ describe('ImageSelector loading > loading more > and network error on dev server
 		expect(seeMoreButton3).toBeDefined();
 
 		fireEvent.click(seeMoreButton3);
-		const failMessage2 = await screen.findByText("Failed getting images");
-		expect(failMessage2).toBeDefined();
+
+		// 위와 같은 이유로 계약을 고쳐 적는다 — 보고 있던 썸네일은 남고, 실패는
+		// 그 자리에서 알린다.
+		expect(await screen.findByTestId("imageSeeMoreRetryButton")).toBeInTheDocument();
+		expect(screen.queryByText("Failed getting images")).toBeNull();
+		expect(screen.getAllByTestId("imageItem").length).toBe(6);
 	});
 });
 
@@ -467,5 +475,63 @@ describe('ImageSelector unmount-safety (REQ-20260517-093 FR-01)', () => {
 
 		expect(logSpy).toHaveBeenCalledWith('[API GET] FAILED - Next Images', 'ERROR');
 		expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+	});
+});
+
+// 전면 로딩·오류 화면은 **보여줄 것이 없을 때만** 맞다. 상태만 보고 갈랐던
+// 동안에는 "See More" 를 누르는 순간 보고 있던 썸네일이 전부 사라지고
+// "Loading..." 이 그 자리를 차지했고 (실측: 2 → 0 → 3), 실패하면
+// "Failed getting images" 만 남았다 (2 → 0).
+describe('ImageSelector 갤러리 보존', () => {
+
+	const page = (keys: string[], next?: number) => new Response(JSON.stringify({
+		body: {
+			Items: keys.map(key => ({ key, url: 'https://example.com/thumbnail/' + key })),
+			...(next === undefined ? {} : { LastEvaluatedKey: { timestamp: next } }),
+		},
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	const shots = () => document.querySelectorAll('[data-testid="imageItem"]').length;
+	const settle = async () => {
+		for(let i = 0; i < 6; i++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+	};
+
+	it('다음 페이지를 받는 동안에도 썸네일이 남는다', async () => {
+
+		vi.spyOn(api, 'getImages').mockImplementation(async () => page(['a.png', 'b.png'], 99));
+
+		let release: ((value: Response) => void) | null = null;
+		vi.spyOn(api, 'getNextImages').mockImplementation(() =>
+			new Promise<Response>(resolve => { release = resolve; })
+		);
+
+		render(<ImageSelector show={true} />);
+		await settle();
+		expect(shots()).toBe(2);
+
+		await act(async () => { fireEvent.click(screen.getByTestId('imageSeeMoreButton')); });
+
+		expect(shots()).toBe(2);
+		expect(screen.getByTestId('imageSeeMoreButton')).toBeDisabled();
+
+		await act(async () => {
+			(release as unknown as (value: Response) => void)(page(['c.png']));
+			await new Promise(resolve => setTimeout(resolve, 20));
+		});
+
+		expect(shots()).toBe(3);
+	});
+
+	// 반대 방향 — 보여줄 것이 없으면 전면 화면이 맞다.
+	it('첫 로드가 실패하면 전면 오류 화면을 보여준다', async () => {
+
+		vi.spyOn(api, 'getImages').mockRejectedValue(new Error('down'));
+		vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		render(<ImageSelector show={true} />);
+		await settle();
+
+		expect(screen.getByText('Failed getting images')).toBeInTheDocument();
+		expect(shots()).toBe(0);
 	});
 });

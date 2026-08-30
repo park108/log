@@ -46,7 +46,6 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 	const [images, setImages] = useState<S3ImageItemData[]>([]);
 	const [imageSelectorClass, setImageSelectorClass] = useState<string>(`div ${styles.divImageSelectorhide}`);
 	const [lastTimestamp, setLastTimestamp] = useState<number | undefined>(undefined);
-	const [seeMoreButton, setSeeMoreButton] = useState<React.ReactElement | undefined>(undefined);
 
 	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(0);
 	const [toasterMessage, setToasterMessage] = useState<string>("");
@@ -166,24 +165,29 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 		};
 	}, [isGetNextData, lastTimestamp]);
 
-	useEffect(() => {
-		if(hasValue(lastTimestamp)) {
-			setSeeMoreButton(
-				<button
-					type="button"
-					className={`btn btn--secondary ${styles.buttonImageSeemorebutton}`}
-					onClick={() => setIsGetNextData(true)}
-				>
-					See<br/>More
-				</button>
-			)
-		}
-		else {
-			setSeeMoreButton(undefined);
-		}
-	}, [lastTimestamp]);
+	// 버튼은 `lastTimestamp` 에서 곧바로 나오는 값이다 — state 에 담아 두면 한
+	// 렌더 늦고, 로딩 여부 같은 다른 상태를 반영하지 못한다.
+	const seeMoreButton = hasValue(lastTimestamp)
+		? (
+			<button
+				type="button"
+				data-testid="imageSeeMoreButton"
+				className={`btn btn--secondary ${styles.buttonImageSeemorebutton}`}
+				// 로딩 중에는 누를 수 없다 — 같은 커서로 요청이 겹치는 것을 막는다.
+				disabled={isLoading}
+				onClick={() => setIsGetNextData(true)}
+			>
+				{ isLoading ? "..." : <>See<br/>More</> }
+			</button>
+		)
+		: undefined;
 
-	if(isLoading) {
+	// 전면 로딩·오류 화면은 **보여줄 것이 없을 때만** 맞다. 예전에는 상태만 보고
+	// 갈라서, "See More" 를 누르는 순간 이미 보고 있던 썸네일이 전부 사라지고
+	// "Loading..." 이 그 자리를 차지했다 (실측: 2 → 0 → 3). 실패하면 아예
+	// "Failed getting images" 만 남았다 (2 → 0). 글을 쓰며 고르는 화면이라
+	// 보던 자리를 잃는 것이 그대로 손해다.
+	if(isLoading && 0 === images.length) {
 		return (
 			<div className={imageSelectorClass}>
 				<div className={`div ${styles.divImageLoading}`}>Loading...</div>
@@ -191,7 +195,7 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 		);
 	}
 	else {
-		if(isError) {
+		if(isError && 0 === images.length) {
 			const handleRetry = (e: React.SyntheticEvent): void => {
 				e.preventDefault();
 				setIsError(false);
@@ -232,7 +236,23 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 						/>
 					) }
 
-					{ seeMoreButton }
+					{/* 다음 페이지가 실패했으면 그 자리에서 알리고 그 자리에서 다시
+					    시도한다 — 보고 있던 썸네일은 그대로 둔다. */}
+					{ isError
+						? (
+							<button
+								type="button"
+								data-testid="imageSeeMoreRetryButton"
+								className={`btn btn--secondary ${styles.buttonImageSeemorebutton}`}
+								onClick={() => {
+									setIsError(false);
+									setIsGetNextData(true);
+								}}
+							>
+								Retry
+							</button>
+						)
+						: seeMoreButton }
 
 					<Toaster
 						show={isShowToaster}
