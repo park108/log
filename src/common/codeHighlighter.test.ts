@@ -33,8 +33,12 @@ describe('highlight YAML code correctly', () => {
 		expect(result2).toBe("<span class='span--yml-key'>key</span>:");
 
 		// Dash
+		//
+		// 이 단정은 "-<span …> Dashed</span>" 를 박고 있었다 — 키 강조가 대시
+		// 다음 칸(공백)부터 시작하던 어긋남을 고정한 것이었다. 항목 내용은
+		// 대시에서 두 칸 뒤다.
 		const result3 = codeHighlighter.codeHighlighter("yaml", "- Dashed: value");
-		expect(result3).toBe("-<span class='span--yml-key'> Dashed</span>: value");
+		expect(result3).toBe("- <span class='span--yml-key'>Dashed</span>: value");
 	});
 	it("test COMMENT highlighter", () => {
 		// Fail comment
@@ -139,5 +143,40 @@ describe('codeHighlighter Kotlin 단어 경계', () => {
 		expect(marked('@Service')).toEqual(['@Service']);
 		expect(marked('class Foo')).toEqual(['class']);
 		expect(marked('"literal"')).toEqual(['"literal"']);
+	});
+});
+
+describe('codeHighlighter YAML 경계', () => {
+
+	const marked = (code: string): string[] => {
+		const el = document.createElement('div');
+		el.innerHTML = codeHighlighter.codeHighlighter('yaml', code);
+		return Array.from(el.querySelectorAll('span')).map((n) => n.textContent ?? '');
+	};
+
+	it('내용 없는 줄은 감싸지 않는다', () => {
+		// 이전: start 도 sharp 도 -1 이라 `start === sharp` 가 참이 되어
+		// 빈 줄이 주석 span 으로 감싸였다.
+		expect(marked('')).toEqual([]);
+		expect(marked('   ')).toEqual([]);
+		expect(codeHighlighter.codeHighlighter('yaml', '   ')).toBe('   ');
+	});
+
+	it('목록 항목의 키는 공백을 물지 않는다', () => {
+		// 이전: [" key"] — 대시 다음 칸(공백)부터 감쌌다.
+		expect(marked('  - key: value')).toEqual(['key']);
+		expect(marked('  - a: 1')).toEqual(['a']);
+	});
+
+	// 대조 — 평범한 키와 주석은 그대로 칠해야 한다.
+	it('키와 주석은 그대로 칠한다', () => {
+		expect(marked('key: value')).toEqual(['key']);
+		expect(marked('  nested: value')).toEqual(['nested']);
+		expect(marked('# 주석')).toEqual(['# 주석']);
+		expect(marked('key:')).toEqual(['key']);
+	});
+
+	it('키가 없는 줄은 칠하지 않는다', () => {
+		expect(marked('- item')).toEqual([]);
 	});
 });

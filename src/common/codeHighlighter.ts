@@ -141,8 +141,15 @@ const highlighterYaml = (code: string): string => {
 		}
 	}
 
+	// 내용이 없는 줄은 분류 대상이 아니다. 빈 줄이면 `start` 도 `sharp` 도 -1 이라
+	// 아래 `start === sharp` 가 참이 되어 빈 줄이 주석으로 감싸였다 (실측).
+	if(start < 0) return code;
+
 	if(":" === lastChar) colon = code.length - 1;
-	if(start === dash && dash < colon) start = dash + 1;
+
+	// `indexOf("- ")` 는 대시 위치를 준다 — 항목 내용은 그 **두 칸** 뒤다.
+	// +1 은 공백을 가리켜 키 강조가 한 칸 앞에서 시작했다 (실측: " key").
+	if(start === dash && dash < colon) start = dash + 2;
 
 	if(start === sharp) {
 		code = "<span class='span--yml-comment'>" + code + "</span>";
