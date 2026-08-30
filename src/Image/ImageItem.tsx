@@ -24,8 +24,9 @@ const ImageItem = (props: ImageItemProps): React.ReactElement => {
 	const src = isEnlarged ? fullsizeImageUrl : thumbnailImageUrl;
 
 	// 네이티브 button 으로 전환하지 않는다 (2026-08-29 판단) — 조작부가 `<img>`
-	// 자신이다. button 으로 감싸면 확대 상태의 `position: fixed` 배치가 래퍼를
-	// 거치게 되고, 썸네일 grid 셀의 aspect-ratio 도 래퍼로 옮겨야 한다. 현 상태는
+	// 자신이다. button 으로 감싸면 확대 상태 이미지 자신(`.img--image-selected`,
+	// `styles.imgImageSelected`) 의 `position: fixed` 배치가 래퍼를 거치게 되고,
+	// 썸네일 grid 셀의 aspect-ratio 도 래퍼로 옮겨야 한다. 현 상태는
 	// role + tabIndex + onClick + onKeyDown + alt 를 갖춘 온전한 손조립이다.
 	//
 	// `fileName` 은 선택적이라 없으면 `alt` 속성 자체가 사라진다 — 이 요소는
