@@ -157,7 +157,49 @@ export function auth(): void {
 			});
 		}
 	}
+
+	// **토큰을 쿠키로 옮겼으면 주소에서 지운다.**
+	//
+	// implicit flow 는 토큰을 주소에 실어 돌려준다. 그것을 그대로 두면
+	// `https://www.park108.net/#access_token=eyJ…&id_token=eyJ…` 가 주소창에
+	// 남고 방문기록에 박히고 화면 공유에 찍힌다. 로그인 직후는 주소를 복사해
+	// 남에게 보내기 쉬운 순간이기도 하다 — 그러면 살아 있는 토큰을 함께 보낸다.
+	//
+	// 쿠키에 옮긴 뒤에는 주소에 있을 이유가 없다. 토큰 파라미터가 실제로 있을
+	// 때만 손대고, 같은 자리의 다른 값(질의 문자열·앵커)은 그대로 둔다.
+	stripAuthParamsFromUrl(u);
 }
+
+// implicit flow 가 주소에 싣는 파라미터. 쿠키로 옮긴 뒤에는 남길 이유가 없다.
+const AUTH_URL_PARAMS = [
+	"access_token", "id_token", "refresh_token",
+	"expires_in", "token_type",
+] as const;
+
+const stripAuthParamsFromUrl = (url: URL): void => {
+
+	const hashParams = new URLSearchParams(
+		url.hash.startsWith('#') ? url.hash.slice(1) : url.hash,
+	);
+
+	let touched = false;
+	for (const key of AUTH_URL_PARAMS) {
+		if (hashParams.has(key)) { hashParams.delete(key); touched = true; }
+		if (url.searchParams.has(key)) { url.searchParams.delete(key); touched = true; }
+	}
+
+	// 토큰이 애초에 없던 평범한 이동은 건드리지 않는다 — 그때 replaceState 를
+	// 부르면 아무 이유 없이 방문기록 항목을 덮어쓴다.
+	if (!touched) return;
+
+	// 앵커나 다른 fragment 값은 살린다. 남은 것이 없으면 `#` 자체를 지운다.
+	const remainingHash = hashParams.toString();
+	const cleaned = url.pathname + url.search + (remainingHash ? "#" + remainingHash : "");
+
+	if (typeof window.history?.replaceState === 'function') {
+		window.history.replaceState(null, '', cleaned);
+	}
+};
 
 export function isLoggedIn(): boolean {
 	return hasValue(getCookie("access_token"));
