@@ -487,6 +487,11 @@ describe('수정 일시 표기', () => {
 // `url` 은 선택적 prop 이다. 없으면 copyToClipboard 의 기본값(빈 문자열)이
 // 들어가 빈 값을 복사하고 true 를 돌려준다 — 사용자는 "URL copied" 를 보지만
 // 클립보드는 비어 있다. 거짓 성공이다.
+// 알림 문구는 `container` 밖에 있다 — 바닥 토스터는 겹침을 막으려 문서 하나의
+// 쌓임 상자로 포털된다 (`src/__tests__/bottom-toasters-do-not-overlap`). 사용자가
+// 읽는 자리는 문서이지 이 컴포넌트의 렌더 컨테이너가 아니다.
+const shown = (): string => document.body.textContent ?? '';
+
 describe('URL 복사 — url 부재', () => {
 
 	it('URL 이 없으면 성공을 알리지 않는다', async () => {
@@ -506,9 +511,9 @@ describe('URL 복사 — url 부재', () => {
 		expect(copySpy).not.toHaveBeenCalled();
 
 		await waitFor(() => {
-			expect(container.textContent).toContain('URL is not available');
+			expect(shown()).toContain('URL is not available');
 		});
-		expect(container.textContent).not.toContain('URL copied');
+		expect(shown()).not.toContain('URL copied');
 	});
 
 	it('대조 — URL 이 있으면 복사하고 성공을 알린다', async () => {
@@ -523,7 +528,7 @@ describe('URL 복사 — url 부재', () => {
 
 		expect(copySpy).toHaveBeenCalledWith(defaultProps.url);
 		await waitFor(() => {
-			expect(container.textContent).toContain('URL copied');
+			expect(shown()).toContain('URL copied');
 		});
 	});
 });
@@ -631,8 +636,8 @@ describe('FileItem 삭제 실패 후 상태', () => {
 		await clickDelete(container);
 
 		// 이전에는 삭제 실패에 "Upload file failed." 라고 적었다.
-		await waitFor(() => expect(container.textContent).toContain('Delete'));
-		expect(container.textContent).not.toContain('Upload file failed');
+		await waitFor(() => expect(shown()).toContain('Delete file failed'));
+		expect(shown()).not.toContain('Upload file failed');
 
 		vi.restoreAllMocks();
 	});

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import styles from './Toaster.module.css';
 
@@ -44,10 +45,53 @@ const SHOW_STYLE: ReadonlyArray<string | undefined> = [
 	styles.divToasterFadeout // 2: fadeout
 ];
 
+// 바닥 토스터는 전부 하나의 쌓임 상자 안에 들어간다.
+//
+// 각자 `position: fixed; bottom: 0; width: 100%` 이던 동안, 동시에 뜬 둘은 완전히
+// 같은 사각형을 차지했다 (실측 375px, 실제 CSS: 둘 다 `x=0 y=1352 w=407 h=48`).
+// 같은 z-index 이므로 DOM 뒤쪽 형제가 앞쪽을 덮는다 — 그리고 이 컴포넌트는 항목마다
+// 하나씩 있다 (`FileItem` · `LogItem` 은 목록의 항목 수만큼 마운트된다). 목록에서
+// **아래 항목을 먼저** 누르고 위 항목을 누르면, 방금 누른 항목의 문구가 앞선
+// 항목의 문구에 가려진다. 사용자는 자기가 건드리지도 않은 파일 이름을 본다.
+//
+// 상자는 첫 바닥 토스터가 만들고 마지막이 걷는다. 문서가 통째로 갈리는 경우
+// (테스트 cleanup) 를 위해 붙어 있는지도 함께 본다 — 참조만 믿으면 떨어져 나간
+// 노드에 계속 그리게 된다.
+let bottomStackHost: HTMLDivElement | null = null;
+let bottomStackUsers = 0;
+
+const acquireBottomStack = (): HTMLDivElement => {
+
+	if(!bottomStackHost || !bottomStackHost.isConnected) {
+		bottomStackHost = document.createElement('div');
+		if(styles.divToasterBottomStack) {
+			bottomStackHost.className = styles.divToasterBottomStack;
+		}
+		bottomStackHost.setAttribute('data-toaster-stack', 'bottom');
+		bottomStackUsers = 0;
+		document.body.appendChild(bottomStackHost);
+	}
+
+	bottomStackUsers += 1;
+	return bottomStackHost;
+};
+
+const releaseBottomStack = (): void => {
+
+	bottomStackUsers -= 1;
+
+	if(bottomStackUsers <= 0) {
+		bottomStackUsers = 0;
+		bottomStackHost?.remove();
+		bottomStackHost = null;
+	}
+};
+
 const Toaster = (props: ToasterProps): React.ReactElement => {
 
 	const divRef = useRef<HTMLDivElement | null>(null);
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [stackHost, setStackHost] = useState<HTMLElement | null>(null);
 
 	const duration = props.duration;
 	const show = props.show;
@@ -94,7 +138,22 @@ const Toaster = (props: ToasterProps): React.ReactElement => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [show, message]);
 
-	return (
+	const isBottom = "bottom" === position;
+
+	useEffect(() => {
+
+		if(!isBottom) return;
+
+		setStackHost(acquireBottomStack());
+
+		// 여기서 `setStackHost(null)` 을 부르지 않는다 — 이 cleanup 이 도는 시점은
+		// 언마운트이고, 사라지는 컴포넌트에 state 를 쓰는 것은 아무 일도 하지
+		// 않으면서 "언마운트 후 무발화" 를 재는 계측만 어지럽힌다 (실측:
+		// `FileItem` 의 setter 호출 0 단언이 이 한 줄 때문에 1 이 됐다).
+		return () => { releaseBottomStack(); };
+	}, [isBottom]);
+
+	const node = (
 		<div ref={divRef}
 			className={ [POSITION_STYLE[position as string], TYPE_STYLE[type as string], SHOW_STYLE[show as number]].filter(Boolean).join(' ') }
 			role="alert"
@@ -105,6 +164,11 @@ const Toaster = (props: ToasterProps): React.ReactElement => {
 			{message}
 		</div>
 	);
+
+	if(!isBottom) return node;
+
+	// 상자는 effect 에서 붙는다 — 그 전 한 번의 렌더에는 그릴 곳이 없다.
+	return stackHost ? createPortal(node, stackHost) : <></>;
 }
 
 export default Toaster;

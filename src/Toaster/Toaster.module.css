@@ -53,10 +53,27 @@
 	box-shadow: 0px 0px 10px var(--hover-border-color);
 }
 
-.div--toaster-bottom {
+/* 바닥 토스터들이 함께 들어가는 단일 쌓임 상자.
+   개별 토스터가 각자 `position: fixed; bottom: 0` 이던 동안, 동시에 뜬 둘은
+   **완전히 같은 사각형**을 차지했다 (실측 375px: 둘 다 x=0 y=1352 w=407 h=48).
+   DOM 뒤쪽 형제가 위를 덮으므로, 목록에서 아래 항목을 먼저 누르고 위 항목을
+   누른 사용자는 **방금 누르지 않은 쪽**의 문구를 본다. 열을 이루게 해서
+   둘 다 보이게 한다. */
+.div--toaster-bottom-stack {
 	position: fixed;
 	left: 0;
 	bottom: 0;
+	width: 100%;
+
+	display: flex;
+	flex-direction: column;
+
+	z-index: 10000;
+	/* 토스터는 누르는 물건이 아니다. 빈 상자가 화면 아래를 가로막지 않게 한다. */
+	pointer-events: none;
+}
+
+.div--toaster-bottom {
 	/* 높이를 1em 으로 못 박고 `overflow: hidden` 을 두면 두 줄이 된 문구의 둘째
 	   줄이 조용히 잘린다. 실측 (Chrome, 375px, 실제 CSS): 파일명이 든 문구
 	   `"<긴 파일명>.pdf URL copied."` 가 48px 박스에 64px 분량으로 들어갔다.
@@ -67,6 +84,9 @@
 	   막는다 — 긴 토큰은 `overflow-wrap` 이 접는다. */
 	min-height: 1em;
 	width: 100%;
+	/* `width: 100%` 에 좌우 `1em` 패딩이 더해져 박스가 뷰포트를 넘었다
+	   (실측 375px: w=407). 패딩을 폭 안으로 넣는다. */
+	box-sizing: border-box;
 	overflow-x: hidden;
 	overflow-wrap: break-word;
 	line-height: 1em;
