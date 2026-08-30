@@ -239,7 +239,12 @@ const Writer = () => {
 
 		if(isSubmitted) {
 
+			// 플래그를 내리고 나간다. 이것이 없으면 `isSubmitted` 가 true 로 남고,
+			// 다음 제출의 `setIsSubmitted(true)` 는 같은 값이라 React 가 리렌더를
+			// 건너뛴다 — deps 가 그대로라 이 효과도 다시 돌지 않는다. 한 번 짧게
+			// 눌렀다는 이유로 Post 가 죽어, 글을 제대로 채워도 저장되지 않았다.
 			if(article.length < 5) {
+				setIsSubmitted(false);
 				alert("Please note at least 5 characters.");
 				document.getElementById("textarea--writer-article")?.focus();
 				return;

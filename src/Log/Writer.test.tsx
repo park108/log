@@ -739,3 +739,53 @@ describe('Writer unmount-safety (REQ-20260517-093 (I1)(I2)) — 핸들러 경로
 		expect(screen.queryByText(/Copy failed \(permission denied or unavailable\)/)).toBeNull();
 	});
 });
+
+// 5자 미만으로 한 번 제출하면 그 뒤로 Post 가 죽는다.
+//
+// 제출 핸들러는 `setIsSubmitted(true)` 만 하고, 실제 저장은 `[isSubmitted]` 효과가
+// 한다. 그 효과가 짧은 글에서 alert 을 띄우고 `setIsSubmitted(false)` 없이 return
+// 하면 플래그가 true 로 남는다. 다시 누르면 `setIsSubmitted(true)` 는 같은 값이라
+// React 가 리렌더를 건너뛰고, deps 가 그대로라 효과도 다시 돌지 않는다 —
+// 글을 제대로 채워도 저장이 일어나지 않는다.
+describe('Writer 짧은 글로 한 번 막힌 뒤', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	test('제대로 채워 다시 누르면 저장된다', async () => {
+
+		stubMode('production');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+		const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[{ pathname: "/log/write", state: null }]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
+
+		const textInput = await screen.findByTestId("writer-text-area");
+		const submitButton = await screen.findByTestId("submit-button");
+
+		// 너무 짧게 한 번 제출 → 거절된다.
+		fireEvent.change(textInput, { target: { value: '짧다' } });
+		await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+		fireEvent.click(submitButton);
+		await act(async () => { await vi.runAllTimersAsync(); });
+		expect(alertSpy).toHaveBeenCalledWith("Please note at least 5 characters.");
+
+		// 제대로 채워 다시 제출.
+		fireEvent.change(textInput, { target: { value: '이번에는 충분히 긴 글이다.' } });
+		await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+		fireEvent.click(submitButton);
+		await act(async () => { await vi.runAllTimersAsync(); });
+
+		const resultMessage = await screen.findByText("The log posted.");
+		expect(resultMessage).toBeDefined();
+	});
+});
