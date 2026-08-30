@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Toaster from "../Toaster/Toaster";
-import { log, hasValue } from '../common/common';
-import { reportError } from '../common/errorReporter';
-import { getPreSignedUrl, putFile } from './api';
+import { uploadFile } from './uploadFile';
 
 const REFRESH_TIMEOUT = 3000;
 
@@ -13,13 +11,6 @@ interface FileUploadProps {
 type UploadState = "READY" | "UPLOADING" | "COMPLETE" | "FAILED";
 type ToasterShowState = 0 | 1 | 2;
 type ToasterKind = "information" | "success" | "warning" | "error";
-
-interface PreSignedUrlResponse {
-	errorType?: string;
-	body?: {
-		UploadUrl?: string;
-	};
-}
 
 const FileUpload = (props: FileUploadProps): React.ReactElement => {
 
@@ -43,66 +34,7 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 		const cancelled = cancelledUploadRef;
 		cancelled.current = false;
 
-		const uploadFile = async (item: File): Promise<boolean> => {
-
-			const name = item.name;
-			const type = encodeURIComponent(item.type);
-
-			let preSignedUrlData: PreSignedUrlResponse | string = "";
-			let uploadUrl = "";
-			let isSuccess = false;
-
-			try {
-				const res = await getPreSignedUrl(name, type);
-				preSignedUrlData = await res.json() as PreSignedUrlResponse;
-
-				if(cancelled.current) return false;
-
-				if(!hasValue((preSignedUrlData as PreSignedUrlResponse).errorType)) {
-					log("[API GET] OK - Presigned URL: " + uploadUrl, "SUCCESS");
-					uploadUrl = (preSignedUrlData as PreSignedUrlResponse).body!.UploadUrl as string;
-					isSuccess = true;
-				}
-				else {
-					log("[API GET] FAILED - Presigned URL", "ERROR");
-					reportError(preSignedUrlData);
-					return false;
-				}
-			}
-			catch(err) {
-				if(cancelled.current) return false;
-				log("[API GET] FAILED - Presigned URL", "ERROR");
-				reportError(err);
-				return false;
-			}
-
-			if(isSuccess) {
-
-				try {
-					const res = await putFile(uploadUrl, item.type, item);
-
-					if(cancelled.current) return false;
-
-					if(200 === res.status) {
-						log("[API PUT] OK - File: " + name, "SUCCESS");
-						return true;
-					}
-					else {
-						log("[API PUT] FAILED - File: " + name, "ERROR");
-						reportError(res);
-						return false;
-					}
-				}
-				catch(err) {
-					if(cancelled.current) return false;
-					log("[API PUT] FAILED - File: " + name, "ERROR");
-					reportError(err);
-					return false;
-				}
-			}
-
-			return false;
-		}
+		const uploadOne = (f: File): Promise<boolean> => uploadFile(f, () => cancelled.current);
 
 		// 결과는 **전 파일이 끝난 뒤 한 번** 판정한다. 예전에는 인덱스상 마지막
 		// 파일만 상태를 세팅해, 앞 파일이 실패해도 마지막이 성공하면 "Upload
@@ -112,7 +44,7 @@ const FileUpload = (props: FileUploadProps): React.ReactElement => {
 		if(files.length > 0) {
 			setIsUploading("UPLOADING");
 			void (async () => {
-				const results = await Promise.all(files.map((f) => uploadFile(f)));
+				const results = await Promise.all(files.map(uploadOne));
 				if(cancelled.current) return;
 				setIsUploading(results.every(Boolean) ? "COMPLETE" : "FAILED");
 			})();
