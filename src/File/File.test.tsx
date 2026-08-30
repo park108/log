@@ -359,7 +359,9 @@ describe('File render files and get next files failed on dev server', () => {
 
 		fireEvent.click(firstDeleteButton);
 
-		const toasterErrorText = await screen.findByText("Upload file failed.");
+		// 삭제 실패 문구다. 이 단정은 "Upload file failed." 를 박고 있었는데,
+		// 그것은 삭제 갈래에 업로드 문구가 남아 있던 결함을 고정한 것이었다.
+		const toasterErrorText = await screen.findByText("Delete file failed.");
 		expect(toasterErrorText).toBeInTheDocument();
 
 		// Switch handlers to network-error responses (mirrors devServerNetworkError)
@@ -383,7 +385,8 @@ describe('File render files and get next files failed on dev server', () => {
 
 		fireEvent.click(firstDeleteButton2);
 
-		const toasterErrorText2 = await screen.findByText("Upload file failed for network issue.");
+		// 위와 같은 이유 — 삭제 네트워크 실패 갈래에도 업로드 문구가 남아 있었다.
+		const toasterErrorText2 = await screen.findByText("Delete file failed for network issue.");
 		expect(toasterErrorText2).toBeInTheDocument();
 	});
 });

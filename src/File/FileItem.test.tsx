@@ -571,3 +571,87 @@ describe('파일명 표시 — 되돌린 이름과 원본 키를 가른다', () 
 		expect(confirmSpy).toHaveBeenCalledWith("Are you sure delete '" + READABLE + "'?");
 	});
 });
+
+// 삭제가 실패하면 항목이 영영 죽는다.
+//
+// `setIsDeleting(true)` 는 눌린 즉시 켜지는데, 실패 갈래에서 되돌리지 않는다.
+// 그 클래스는 `opacity: 0.35; pointer-events: none` 이라 항목이 흐려진 채
+// 아무 조작도 받지 않는다 — 다시 삭제할 수도, URL 을 복사할 수도 없다.
+// 파일은 그대로 남아 있는데 화면에서만 지워진 것처럼 보인다.
+describe('FileItem 삭제 실패 후 상태', () => {
+
+	const clickDelete = async (container: HTMLElement) => {
+		await act(async () => {
+			fireEvent.click(container.querySelector('.button--fileitem-delete')!);
+		});
+	};
+
+	it('서버가 실패를 돌려주면 항목이 되살아난다', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: async () => ({ statusCode: 500 }),
+		} as unknown as Response);
+		vi.spyOn(errorReporter, 'reportError').mockImplementation(async () => true);
+
+		const { container } = render(<FileItem {...defaultProps} />);
+		await clickDelete(container);
+
+		const item = container.querySelector('[role="listitem"]') as HTMLElement;
+		await waitFor(() => expect(item.getAttribute('data-deleting')).toBe('N'));
+		expect(item.className).not.toContain('div--fileitem-delete');
+
+		vi.restoreAllMocks();
+	});
+
+	it('네트워크가 끊겨도 항목이 되살아난다', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		vi.spyOn(api, 'deleteFile').mockRejectedValue(new Error('network down'));
+		vi.spyOn(errorReporter, 'reportError').mockImplementation(async () => true);
+
+		const { container } = render(<FileItem {...defaultProps} />);
+		await clickDelete(container);
+
+		const item = container.querySelector('[role="listitem"]') as HTMLElement;
+		await waitFor(() => expect(item.getAttribute('data-deleting')).toBe('N'));
+
+		vi.restoreAllMocks();
+	});
+
+	it('삭제 실패는 삭제 실패라고 적는다', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: async () => ({ statusCode: 500 }),
+		} as unknown as Response);
+		vi.spyOn(errorReporter, 'reportError').mockImplementation(async () => true);
+
+		const { container } = render(<FileItem {...defaultProps} />);
+		await clickDelete(container);
+
+		// 이전에는 삭제 실패에 "Upload file failed." 라고 적었다.
+		await waitFor(() => expect(container.textContent).toContain('Delete'));
+		expect(container.textContent).not.toContain('Upload file failed');
+
+		vi.restoreAllMocks();
+	});
+
+	// 대조 — 성공 갈래는 흐린 상태를 유지해야 한다. 목록이 새로고침되며 사라질
+	// 항목이 잠깐 되살아나면 깜빡인다.
+	it('성공하면 흐린 상태를 유지한다', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: async () => ({ statusCode: 200 }),
+		} as unknown as Response);
+
+		const { container } = render(<FileItem {...defaultProps} />);
+		await clickDelete(container);
+
+		const item = container.querySelector('[role="listitem"]') as HTMLElement;
+		expect(item.getAttribute('data-deleting')).toBe('Y');
+
+		vi.restoreAllMocks();
+	});
+});

@@ -68,7 +68,11 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 			}
 			else {
 				log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
-				setToasterMessage("Upload file failed.");
+				// 흐린 상태를 되돌린다. 그 클래스는 `pointer-events: none` 이라
+				// 그대로 두면 항목이 조작을 받지 못한다 — 다시 삭제할 수도, URL 을
+				// 복사할 수도 없다. 파일은 남아 있는데 화면에서만 지워진 꼴이다.
+				setIsDeleting(false);
+				setToasterMessage("Delete file failed.");
 				setToasterType("error");
 				setIsShowToaster(1);
 				reportError(res);
@@ -78,7 +82,8 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 			if(!isMounted.current) return;
 
 			log("[API DELETE] FAILED - File: " + props.fileName, "ERROR");
-			setToasterMessage("Upload file failed for network issue.");
+			setIsDeleting(false);
+			setToasterMessage("Delete file failed for network issue.");
 			setToasterType("error");
 			setIsShowToaster(1);
 			reportError(err);
