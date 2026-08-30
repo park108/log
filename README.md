@@ -17,6 +17,23 @@ VITE_COGNITO_LOGOUT_URL_PROD
 VITE_COGNITO_LOGOUT_URL_DEV
 ```
 
+## Measuring layout
+
+jsdom does not lay out, so questions like "where does this popup land",
+"does this overflow on mobile", or "do these two controls sit on the same
+line" cannot be answered by the test suite. `scripts/measure-layout.mjs`
+drives the Chrome already installed on the machine over CDP and reports the
+real geometry. It adds no dependency and is **not** part of CI — it is the
+tool you reach for when deciding a layout contract, not when guarding one.
+
+```
+node scripts/measure-layout.mjs <file-or-url> --width 375,900 --overflow
+node scripts/measure-layout.mjs <file-or-url> --select '.a,.b'
+```
+
+It reports the glyph position alongside the box: a `<button>` and a `<span>`
+can have different box heights while their text sits on exactly the same
+line, and only the glyph tells you which one a reader would notice.
 
 ## On AWS with Serverless Architecture
 This application is running on AWS.
