@@ -167,3 +167,65 @@ describe('CommentForm reply variant', () => {
 		}));
 	});
 });
+
+// 공백만 넣은 것은 안 넣은 것이다. 길이를 날것으로 재던 동안 이름 "   " 과
+// 본문 "     " 이 검증을 통과해, 이름도 본문도 비어 보이는 댓글이 올라갔다.
+describe('CommentForm 공백만 입력', () => {
+
+	const setup = () => {
+		const post = vi.fn();
+		const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		render(<CommentForm post={post} />);
+		return { post, alertSpy };
+	};
+
+	it('이름이 공백뿐이면 보내지 않는다', () => {
+
+		const { post, alertSpy } = setup();
+
+		fireEvent.change(screen.getByPlaceholderText('Type your name'), { target: { value: '   ' } });
+		fireEvent.change(screen.getByPlaceholderText('Write your comment'), { target: { value: '안녕하세요 반갑습니다' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Submit Comment' }));
+
+		expect(post).not.toHaveBeenCalled();
+		expect(alertSpy).toHaveBeenCalledWith('Please input your name.');
+	});
+
+	it('본문이 공백뿐이면 보내지 않는다', () => {
+
+		const { post, alertSpy } = setup();
+
+		fireEvent.change(screen.getByPlaceholderText('Type your name'), { target: { value: '홍길동' } });
+		fireEvent.change(screen.getByPlaceholderText('Write your comment'), { target: { value: '       ' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Submit Comment' }));
+
+		expect(post).not.toHaveBeenCalled();
+		expect(alertSpy).toHaveBeenCalledWith('Please comment at least 5 characters.');
+	});
+
+	it('앞뒤 공백을 걷어내고 보낸다', () => {
+
+		const { post } = setup();
+
+		fireEvent.change(screen.getByPlaceholderText('Type your name'), { target: { value: '  홍길동  ' } });
+		fireEvent.change(screen.getByPlaceholderText('Write your comment'), { target: { value: '\n  안녕하세요 반갑습니다  \n' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Submit Comment' }));
+
+		expect(post).toHaveBeenCalledTimes(1);
+		expect(post.mock.calls[0]![0]).toMatchObject({ name: '홍길동', message: '안녕하세요 반갑습니다' });
+	});
+
+	// 대조 — 정상 입력은 그대로 통과해야 한다. 없으면 "언제나 거부" 구현도 통과한다.
+	it('정상 입력은 그대로 보낸다', () => {
+
+		const { post, alertSpy } = setup();
+
+		fireEvent.change(screen.getByPlaceholderText('Type your name'), { target: { value: '홍길동' } });
+		fireEvent.change(screen.getByPlaceholderText('Write your comment'), { target: { value: '잘 읽었습니다' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Submit Comment' }));
+
+		expect(alertSpy).not.toHaveBeenCalled();
+		expect(post).toHaveBeenCalledTimes(1);
+	});
+});

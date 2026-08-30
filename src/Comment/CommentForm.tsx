@@ -44,13 +44,18 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 
 		e.preventDefault();
 
-		if(0 === userName.length) {
+		// 공백만 넣은 것은 안 넣은 것이다. 길이를 날것으로 재던 동안 이름 "   " 과
+		// 본문 "     " 이 검증을 통과해, 이름도 본문도 비어 보이는 댓글이 올라갔다.
+		const trimmedName = userName.trim();
+		const trimmedMessage = message.trim();
+
+		if(0 === trimmedName.length) {
 			alert("Please input your name.");
 			userNameRef.current?.focus();
 			return;
 		}
 
-		if(message.length < 5) {
+		if(trimmedMessage.length < 5) {
 			alert("Please comment at least 5 characters.");
 			messageRef.current?.focus();
 			return;
@@ -59,8 +64,8 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 		const comment: CommentSubmitPayload = {
 			logTimestamp: logTimestamp,
 			isAdminComment: isAdmin(),
-			message: message,
-			name: userName,
+			message: trimmedMessage,
+			name: trimmedName,
 			commentTimestamp: commentTimestamp,
 			isHidden: isHidden,
 		}
