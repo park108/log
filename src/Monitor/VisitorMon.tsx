@@ -293,7 +293,11 @@ const VisitorMon = (props: VisitorMonProps) => {
 			>
 				<div className="div div--monitor-stackvalue">
 					<span>{attr.name}, </span>
-					<span>{rate}</span>
+					{/* `rate` 는 백분율이다. 단위를 빼면 옆 제목의 "N cases" 와 섞여
+					    건수로 읽힌다 — 바로 아래 팝업은 "85(62%)" 로 붙여 쓴다.
+					    좁은 막대라 넘칠까 실측했다: 가장 긴 이름("Samsung Internet")을
+					    375px 에서 재도 컨테이너 안에 3.2px 여유로 들어간다. */}
+					<span>{rate}%</span>
 				</div>
 				{ popup.isVisible && (
 					<div className="div div--monitor-pillardetail" {...popup.contentProps}>

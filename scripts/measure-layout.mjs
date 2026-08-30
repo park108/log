@@ -106,8 +106,13 @@ const expression = (selectors, wantOverflow) => `(() => {
 		const el = document.querySelector(sel);
 		if (!el) { out.nodes.push({ selector: sel, found: false }); continue; }
 		const c = getComputedStyle(el);
+		// 잘림 판정. 박스는 클립 상자라 내용이 넘쳐도 크기가 그대로다 —
+		// overflow hidden 인 라벨에서 글자가 잘리는지는 이 둘을 비교해야 안다.
+		// (이 주석은 템플릿 리터럴 안이라 백틱을 쓰지 않는다 — 쓰면 리터럴이 끊긴다.)
+		const clipped = el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
 		out.nodes.push({ selector: sel, found: true, tag: el.tagName.toLowerCase(),
 			box: box(el), glyph: glyph(el),
+			content: { scrollW: el.scrollWidth, clientW: el.clientWidth, clipped },
 			style: { display: c.display, position: c.position, lineHeight: c.lineHeight,
 				verticalAlign: c.verticalAlign, fontSize: c.fontSize, fontWeight: c.fontWeight,
 				color: c.color, backgroundColor: c.backgroundColor,
@@ -219,6 +224,8 @@ const report = (width, data) => {
 		console.log('   ' + n.selector + '  <' + n.tag + '>');
 		console.log('      박스 x=' + n.box.x + ' y=' + n.box.y + ' w=' + n.box.w + ' h=' + n.box.h);
 		if (n.glyph) console.log('      글자 top=' + n.glyph.top + ' bottom=' + n.glyph.bottom + '  ' + JSON.stringify(n.glyph.text));
+		if (n.content) console.log('      내용 scrollW=' + n.content.scrollW + ' clientW=' + n.content.clientW
+			+ (n.content.clipped ? '  ← 잘림' : ''));
 		console.log('      ' + n.style.display + ' / ' + n.style.position + ' / line-height ' + n.style.lineHeight
 			+ ' / ' + n.style.fontSize + ' ' + n.style.fontWeight);
 		console.log('      color ' + n.style.color + '  bg ' + n.style.backgroundColor

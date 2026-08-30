@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import * as mock from './api.mock'
 import VisitorMon from '../Monitor/VisitorMon';
 import * as api from './api';
@@ -296,5 +297,64 @@ describe('VisitorMon unmount safety (REQ-20260517-093 FR-03)', () => {
 
 		expect(logSpy).toHaveBeenCalledWith('[API GET] FAILED - Visitor information', 'ERROR');
 		expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+	});
+});
+
+// 막대 라벨의 숫자는 백분율이다. 단위가 없으면 옆 제목의 "N cases" 와 섞여
+// 건수로 읽힌다 — 바로 아래 팝업은 같은 값을 "85(62%)" 로 붙여 쓴다.
+describe('VisitorMon 막대 라벨 단위', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	const API = import.meta.env.VITE_MONITOR_API_BASE;
+
+	const renderWith = async (browsers: string[]) => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		const base = new Date(2026, 7, 25).getTime();
+		const Items = browsers.map((browser, i) => ({
+			timestamp: base + i * 3600000,
+			browser,
+			operatingSystem: 'Windows',
+			renderingEngine: 'Blink',
+		}));
+
+		mock.prodServerOk.use(http.get(API + '/prod/useragent', async () => HttpResponse.json({
+			statusCode: 200,
+			body: { totalCount: Items.length, periodData: { Items } },
+		})));
+
+		const view = render(<VisitorMon stackPallet={stackPallet.colors} />);
+		await act(async () => { await new Promise((resolve) => setTimeout(resolve, 400)); });
+		return view;
+	};
+
+	it('막대 라벨이 백분율임을 표시한다', async () => {
+
+		// Chrome 3 / Safari 1 → 75% / 25%
+		const { container } = await renderWith(['Chrome', 'Chrome', 'Chrome', 'Safari']);
+
+		const labels = Array.from(container.querySelectorAll('.div--monitor-stackvalue'))
+			.map((n) => (n.textContent ?? '').trim());
+
+		expect(labels.length, '막대 라벨이 없다 — 판정이 공허하다').toBeGreaterThan(0);
+		// 이전에는 "Chrome, 75" 였다 — 75건으로 읽힌다.
+		expect(labels).toContain('Chrome, 75%');
+		expect(labels).toContain('Safari, 25%');
+	});
+
+	// 대조 — 팝업은 건수와 백분율을 함께 적는다. 라벨과 뜻이 어긋나면 안 된다.
+	it('팝업은 건수와 백분율을 함께 적는다', async () => {
+
+		const { container } = await renderWith(['Chrome', 'Chrome', 'Chrome', 'Safari']);
+
+		const bar = container.querySelector('[data-testid^="visitor-env-Browser"]');
+		expect(bar).not.toBeNull();
+		fireEvent.focus(bar!);
+
+		await waitFor(() => expect(container.querySelector('[role="tooltip"]')).not.toBeNull());
+		const detail = (container.querySelector('[role="tooltip"]')?.textContent ?? '').replace(/\s+/g, ' ');
+		expect(detail).toMatch(/\d+\(\d+%\)/);
 	});
 });
