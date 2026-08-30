@@ -13,12 +13,15 @@ import { resolve, join, dirname, basename } from 'node:path';
 //
 // ── 검출 경계 (과신 금지) ────────────────────────────────────────────────────
 //
-// 1. **어느 클래스를 가리킨 인용인지** 는 주석이 클래스를 명시했을 때만 좁혀 본다.
+// 1. **인용은 대조 대상 클래스를 지목해야 한다 — 폴백은 없다 (fail-closed).**
 //    주석이 백틱으로 `` `.kebab-class` `` 또는 `styles.ident` 를 적으면 그 클래스의
-//    규칙과 대조하고, 아무 클래스도 적지 않으면 **그 파일이 렌더하는 클래스 중
-//    최소 1개**가 그 값을 선언하는지만 본다. 후자는 한 파일이 여러 position 값을
-//    쓰면 오인의 여지가 있다 (실측: 확대 이미지 지점은 팝업 배경과 확대 이미지가
-//    둘 다 `fixed` 다 — 어느 쪽을 가리킨 인용인지 이 게이트는 구분하지 못한다).
+//    규칙과 대조한다. 지목이 하나도 없거나, 지목한 이름을 그 파일이 렌더하지 않으면
+//    **위반**이다. 종전에는 지목이 없으면 렌더 클래스 중 아무거나 하나가 값을 맞추면
+//    통과했고(OR), 지목이 렌더 집합 밖이면 조용히 그 폴백으로 강등됐다. 형제 클래스가
+//    같은 값을 쓰는 지점 — 확대 이미지 지점은 이미지 자신과 배경 오버레이가 둘 다
+//    `fixed` 다 — 에서 전자는 한쪽만의 회귀를 통과시켰고, 후자는 지목의 오타·rename 을
+//    검출 소실로 만들었다. 두 사각 모두 정상 트리에서는 rc=0 이라 dry-run 으로 보이지
+//    않는다 — 민감도의 판정은 소유 spec §참고 §주입 이관 Dir-1~4 의 주입이 전담한다.
 // 2. 주석의 **의미** 는 재지 않는다 — 근거가 그 지점에 고유한지(I1), 전제가 바뀐
 //    뒤 결론이 함께 정정됐는지(I3) 는 명령으로 rc 판정되지 않는다. 소유 spec 의
 //    §참고 §미측정·비판정 항목이 그 방향을 사람 리뷰로 이관해 두었다.
@@ -136,7 +139,10 @@ const namedClasses = (block: string, idents: Map<string, string>): Set<string> =
 interface Quote {
 	file: string;
 	value: string;
+	/** 주석이 지목한 클래스 **전체**. 렌더 여부로 거르지 않는다 — 거르면 오타가 지목 부재로 둔갑한다. */
 	scoped: string[];
+	/** 지목 중 그 파일이 렌더하지 않는 것 (차집합). 비어있지 않으면 그 자체가 위반이다. */
+	unrendered: string[];
 	rendered: string[];
 }
 
@@ -149,8 +155,9 @@ const quotes = (): Quote[] => {
 		for (const block of commentBlocks(text)) {
 			const values = [...block.matchAll(/position:\s*([A-Za-z-]+)/g)].map((m) => m[1]!);
 			if (values.length === 0) continue;
-			const named = [...namedClasses(block, idents)].filter((c) => rendered.includes(c));
-			for (const value of values) out.push({ file, value, scoped: named, rendered });
+			const named = [...namedClasses(block, idents)];
+			const unrendered = named.filter((c) => !rendered.includes(c));
+			for (const value of values) out.push({ file, value, scoped: named, unrendered, rendered });
 		}
 	}
 	return out;
@@ -199,18 +206,44 @@ describe('손조립 근거 주석의 CSS 인용은 현 HEAD 에서 참이다', (
 		const failures: string[] = [];
 
 		for (const q of quotes()) {
-			// 주석이 클래스를 지목했으면 그 클래스로 좁힌다. 아니면 렌더 클래스 전체.
-			const targets = q.scoped.length > 0 ? q.scoped : q.rendered;
+
+			// (a) 지목 부재 — 무엇과 대조할지 정할 수 없다. 렌더 클래스 전체로 강등하지 않는다.
+			if (q.scoped.length === 0) {
+				failures.push(
+					rel(q.file) + ': `position: ' + q.value + '` 인용이 대조 대상 클래스를'
+						+ ' **지목하지 않았다** — 이 파일이 렌더하는 클래스는 [' + q.rendered.join(', ')
+						+ '] 이고 그중 어느 것을 가리킨 인용인지 판정할 수 없다. 인용과 같은 주석'
+						+ ' 블록 안에 `` `.kebab-class` `` 또는 `styles.ident` 로 지목한다',
+				);
+				continue;
+			}
+
+			// (b) 지목 미렌더 — 오타·rename 이 검출 소실이 되지 않도록 위반으로 발화한다.
+			//     남은 지목이 값을 맞추더라도 위반이다.
+			if (q.unrendered.length > 0) {
+				failures.push(
+					rel(q.file) + ': `position: ' + q.value + '` 인용이 지목한 ['
+						+ q.unrendered.map((c) => '.' + c).join(', ') + '] 를 이 파일이 **렌더하지 않는다**'
+						+ ' — 렌더 집합은 [' + q.rendered.map((c) => '.' + c).join(', ') + '] 다.'
+						+ ' 지목이 오타이거나 클래스 rename 이 주석에 반영되지 않았다',
+				);
+				continue;
+			}
+
+			// 대조 대상은 지목한 클래스뿐이다.
+			const targets = q.scoped;
 			const declared = new Map<string, string[]>();
 			for (const cls of targets) {
 				const rule = rulesFor(css, cls);
 				if (rule !== '') declared.set(cls, positionsIn(rule));
 			}
 
+			// (c) 대조 공허 — 지목은 렌더되는데 CSS 에 규칙이 없다.
 			if (declared.size === 0) {
 				failures.push(
-					rel(q.file) + ': `position: ' + q.value + '` 인용의 대조 대상 클래스 규칙을'
-						+ ' 하나도 찾지 못했다 (대상: ' + targets.join(', ') + ') — 판정이 공허하다',
+					rel(q.file) + ': `position: ' + q.value + '` 인용이 지목한 클래스의 **CSS 규칙을'
+						+ ' 하나도 찾지 못했다** (지목: ' + targets.map((c) => '.' + c).join(', ')
+						+ ') — 대조할 선언이 없어 판정이 공허하다',
 				);
 				continue;
 			}
@@ -221,8 +254,8 @@ describe('손조립 근거 주석의 CSS 인용은 현 HEAD 에서 참이다', (
 					.map(([cls, values]) => '.' + cls + ' → ' + (values.length ? values.join('/') : '(position 선언 없음)'))
 					.join(', ');
 				failures.push(
-					rel(q.file) + ': 주석이 `position: ' + q.value + '` 를 인용하나 실제 CSS 는 ['
-						+ detail + '] 다 — 근거의 전제가 거짓이다',
+					rel(q.file) + ': 주석이 `position: ' + q.value + '` 를 인용하나 **지목한 클래스의**'
+						+ ' 실제 CSS 는 [' + detail + '] 다 — 근거의 전제가 거짓이다',
 				);
 			}
 		}
