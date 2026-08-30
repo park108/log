@@ -330,7 +330,15 @@ const Writer = () => {
 		/>
 	)), [historyData]);
 
-	const Converted = () => {
+	// **컴포넌트로 만들지 않는다.** 렌더 본문 안에서 정의한 컴포넌트는 매 렌더
+	// 새 함수 identity 를 갖고, React 는 그것을 다른 컴포넌트로 보아 서브트리를
+	// 통째로 언마운트·재마운트한다. 실측: 타자 한 번마다 미리보기 DOM 노드가
+	// 교체되고 스크롤이 0 으로 돌아갔다 (120 → 0). 긴 글에서 미리보기를 보며
+	// 고치는 일이 불가능해진다.
+	//
+	// 엘리먼트로 계산해 두면 React 가 같은 자리의 같은 타입으로 보아 제자리
+	// 갱신한다 — 바로 위 `historyItems` 와 같은 이디엄이다.
+	const converted = (() => {
 
 		if(isConvertedHTML) {
 			return (
@@ -359,7 +367,7 @@ const Writer = () => {
 				</div>
 			);
 		}
-	}
+	})();
 
 	return (
 		<div className="div div--writer">
@@ -418,7 +426,7 @@ const Writer = () => {
 								{isConvertedHTML ? "HTML" : "Markdown Converted"}
 							</button>
 						</div>
-						<Converted />
+						{ converted }
 					</div>
 				</div>
 				<div className="div div--writer-toolbar">

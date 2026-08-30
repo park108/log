@@ -1101,3 +1101,62 @@ describe('Writer 진입 모드는 주소를 따라간다', () => {
 		expect(textarea()?.value).toBe(EXISTING_CONTENTS);
 	});
 });
+
+// 렌더 본문 안에서 정의한 컴포넌트는 매 렌더 새 함수 identity 를 갖고, React 는
+// 그것을 다른 컴포넌트로 보아 서브트리를 통째로 언마운트·재마운트한다. 미리보기가
+// 그렇게 정의돼 있어 **타자 한 번마다 DOM 노드가 교체되고 스크롤이 0 으로
+// 돌아갔다** (실측: 120 → 0). 긴 글에서 미리보기를 보며 고치는 일이 불가능해진다.
+describe('Writer 미리보기는 타자마다 새로 만들어지지 않는다', () => {
+
+	const preview = () => document.getElementById('div--writer-converted');
+	const area = () => document.getElementById('textarea--writer-article') as HTMLTextAreaElement;
+
+	const renderWriter = () => render(withQuery(
+		<MemoryRouter initialEntries={[{ pathname: '/log/write', state: null, key: 'preview', search: '', hash: '' }]}>
+			<Writer />
+		</MemoryRouter>
+	));
+
+	const settle = async () => {
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+	};
+
+	it('타자를 쳐도 같은 DOM 노드가 유지되고 스크롤이 남는다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		renderWriter();
+		await settle();
+
+		await act(async () => { fireEvent.change(area(), { target: { value: '첫 줄' } }); });
+
+		const before = preview();
+		expect(before).not.toBeNull();
+
+		// 사용자가 미리보기를 스크롤해 둔 상태
+		(before as HTMLElement).scrollTop = 120;
+
+		await act(async () => { fireEvent.change(area(), { target: { value: '첫 줄 다' } }); });
+
+		expect(preview()).toBe(before);
+		expect(preview()?.scrollTop).toBe(120);
+	});
+
+	// 모드 전환은 **바뀌어야** 한다 — 위 성질이 전환까지 얼려버리면 안 된다.
+	it('Markdown ↔ HTML 전환은 화면을 실제로 바꾼다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		renderWriter();
+		await settle();
+
+		await act(async () => { fireEvent.change(area(), { target: { value: '# 제목' } }); });
+
+		expect(preview()?.querySelector('h1')).not.toBeNull();
+		expect(preview()?.querySelector('pre')).toBeNull();
+
+		await act(async () => { fireEvent.click(screen.getByTestId('mode-button')); });
+
+		expect(preview()?.querySelector('pre')).not.toBeNull();
+	});
+});
