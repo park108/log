@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from "react";
+import React, { useState, useEffect, useRef, useId, type FormEvent, type ChangeEvent } from "react";
 import { hasValue, isAdmin } from '../common/common';
 
 import styles from './Comment.module.css';
@@ -29,6 +29,13 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 
 	const logTimestamp = props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
+
+	// 이 폼은 한 화면에 여러 벌 뜬다 — 답글 버튼은 댓글마다 있고, 하나를 열어도
+	// 다른 것이 닫히지 않는다 (실측: 답글 폼 2개 동시 열림). `id="hidden"` 이
+	// 하드코딩돼 있어 그때 같은 id 가 둘이 되고, `label[for]` 은 문서에서 처음
+	// 만나는 것에 붙는다. 두 번째 폼의 "🥷 Hidden Message" 를 눌렀는데 첫 번째
+	// 폼의 체크박스가 켜졌다 — 숨김으로 표시했다고 믿은 답글이 공개로 올라간다.
+	const hiddenCheckboxId = useId();
 
 	const userNameRef = useRef<HTMLInputElement | null>(null);
 	const messageRef = useRef<HTMLTextAreaElement | null>(null);
@@ -100,11 +107,11 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 			<div className={`div ${styles.divCommentInputhidden}`}>
 				<input
 					type="checkbox"
-					id="hidden"
+					id={hiddenCheckboxId}
 					className={`input ${styles.inputCommentHidden}`}
 					onChange={ ({ target: { checked } }: ChangeEvent<HTMLInputElement>) => setIsHidden(checked) }
 				/>
-				<label htmlFor="hidden" className={`label ${styles.labelCommentHidden}`}>
+				<label htmlFor={hiddenCheckboxId} className={`label ${styles.labelCommentHidden}`}>
 					🥷 Hidden Message
 				</label>
 			</div>

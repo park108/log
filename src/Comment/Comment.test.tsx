@@ -695,3 +695,74 @@ describe('Comment GET 성공 시 조회 실패 표면 부재 (REQ-20260827-034 F
 		await expectNoGetFailureSurface();
 	});
 });
+
+// 답글 폼은 한 화면에 여러 벌 뜬다 — 답글 버튼은 댓글마다 있고, 하나를 열어도
+// 다른 것이 닫히지 않는다. `id="hidden"` 이 하드코딩돼 있던 동안 같은 id 가 둘이
+// 됐고, `label[for]` 은 문서에서 처음 만나는 것에 붙었다. 두 번째 폼의
+// "🥷 Hidden Message" 를 눌렀는데 첫 번째 폼의 체크박스가 켜졌다 — 숨김으로
+// 표시했다고 믿은 답글이 공개로 올라간다.
+describe('Comment 답글 폼이 여러 벌 열렸을 때 숨김 체크박스', () => {
+	useMockServer(() => mock.devServerOk);
+
+	const openTwoReplyForms = async () => {
+
+		vi.stubEnv('DEV', true);
+		vi.stubEnv('PROD', false);
+		vi.spyOn(common, "isAdmin").mockReturnValue(false);
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+
+		render(<Comment />);
+		fireEvent.click(await screen.findByText(/comments/));
+
+		const replyButtons = await screen.findAllByTestId('reply-toggle-button');
+		expect(replyButtons.length).toBeGreaterThan(1);
+		fireEvent.click(replyButtons[0]!);
+		fireEvent.click(replyButtons[1]!);
+
+		await waitFor(() =>
+			expect(screen.queryAllByPlaceholderText('Write your Reply').length).toBe(2));
+	};
+
+	it('폼마다 서로 다른 id 를 쓴다', async () => {
+
+		await openTwoReplyForms();
+
+		const boxes = Array.from(
+			document.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+		expect(boxes.length).toBe(2);
+		expect(boxes[0]!.id).not.toBe(boxes[1]!.id);
+		expect(boxes.every((b) => "" !== b.id)).toBe(true);
+	});
+
+	it('라벨은 자기 폼의 체크박스를 켠다', async () => {
+
+		await openTwoReplyForms();
+
+		const boxes = Array.from(
+			document.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+		const labels = Array.from(
+			document.querySelectorAll('label')).filter((l) => l.textContent?.includes('Hidden Message'));
+		expect(labels.length).toBe(2);
+
+		fireEvent.click(labels[1]!);
+
+		// 이전에는 [true, false] — 남의 폼이 켜졌다.
+		expect(boxes.map((b) => b.checked)).toEqual([false, true]);
+	});
+
+	// 대조 — 첫 번째 라벨은 원래도 자기 것을 켰다. 이 항목이 붉어지면 수정이
+	// 멀쩡하던 쪽을 망가뜨린 것이다.
+	it('첫 번째 라벨도 자기 폼의 체크박스를 켠다', async () => {
+
+		await openTwoReplyForms();
+
+		const boxes = Array.from(
+			document.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+		const labels = Array.from(
+			document.querySelectorAll('label')).filter((l) => l.textContent?.includes('Hidden Message'));
+
+		fireEvent.click(labels[0]!);
+
+		expect(boxes.map((b) => b.checked)).toEqual([true, false]);
+	});
+});
