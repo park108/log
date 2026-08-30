@@ -142,6 +142,13 @@ const LogSingle = () => {
 					deleted={() => {
 						setToasterMessage("The log is deleted.");
 						setIsShowToasterBottom(1);
+						// **여기서 곧바로 전이한다.** 예전에는 아래 토스터의 `completed`
+						// (2초 뒤)에서 전이했고, 그 2초 동안 지워진 글이 Edit·Delete 와
+						// 함께 그대로 남아 있었다. 실측: 그 창에서 Delete 를 다시 누르면
+						// 이미 없는 글에 DELETE 가 한 번 더 나가고(호출 2회) 그 실패가
+						// "Deleting log failed." 로 떠, 방금 본 "The log is deleted." 를
+						// 뒤집는다. Edit 을 누르면 지워진 글이 편집기에 실린다.
+						setItemLoadingStatus("DELETED");
 					}}
 				/>
 			</Suspense>
@@ -182,10 +189,7 @@ const LogSingle = () => {
 					position="bottom"
 					type="success"
 					duration={ 2000 }
-					completed={() => {
-						setIsShowToasterBottom(2);
-						setItemLoadingStatus("DELETED");
-					}}
+					completed={() => setIsShowToasterBottom(2)}
 				/>
 			</Suspense>
 

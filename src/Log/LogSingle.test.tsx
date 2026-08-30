@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import * as useLogModule from './hooks/useLog';
+import * as logApi from './api';
 import LogSingle from '../Log/LogSingle';
 import { useMockServer } from '../test-utils/msw';
 import { ASYNC_ASSERTION_TIMEOUT_MS } from '../test-utils/timing';
@@ -481,6 +482,76 @@ describe('LogSingle meta description — 글자 경계', () => {
 
 		expect(metaDescription()).not.toMatch(LONE_SURROGATE);
 		expect(metaDescription()).toBe('ㄱ'.repeat(99) + '😀' + '...');
+
+		useLogSpy.mockRestore();
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+});
+
+// 삭제가 성공하면 **곧바로** 지워진 상태로 전이해야 한다. 예전에는 아래쪽
+// 토스터의 `completed`(2초 뒤)에서 전이했고, 그 2초 동안 지워진 글이 Edit ·
+// Delete 와 함께 그대로 남아 있었다. 실측: 그 창에서 Delete 를 다시 누르면
+// 이미 없는 글에 DELETE 가 한 번 더 나갔고(호출 2회), 그 실패가
+// "Deleting log failed." 로 떠 방금 본 "The log is deleted." 를 뒤집는다.
+describe('LogSingle 삭제 직후', () => {
+	useMockServer(() => mock.devServerOk);
+	beforeEach(resetHead);
+
+	const okResponse = () => new Response(JSON.stringify({ statusCode: 200 }), {
+		status: 200,
+		headers: { 'Content-Type': 'application/json' },
+	});
+
+	const settle = async (times = 10) => {
+		for(let i = 0; i < times; i++) {
+			await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+		}
+	};
+
+	it('삭제가 성공하면 곧바로 본문과 조작부가 사라진다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(common, 'isLoggedIn').mockReturnValue(true);
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+		const deleteSpy = vi.spyOn(logApi, 'deleteLog').mockResolvedValue(okResponse());
+
+		const useLogSpy = vi.spyOn(useLogModule, 'useLog').mockReturnValue({
+			isLoading: false,
+			isError: false,
+			refetch: () => {},
+			data: { body: { Count: 1, Items: [{
+				author: 'park108@gmail.com',
+				timestamp: 1656034616036,
+				temporary: false,
+				logs: [{ timestamp: 1656034616036, contents: '# 제목\n\n지워질 본문' }],
+			}] } },
+		} as unknown as ReturnType<typeof useLogModule.useLog>);
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		const deleteButton = await screen.findByTestId('delete-button');
+		expect(screen.getByText('지워질 본문')).toBeInTheDocument();
+
+		await act(async () => { fireEvent.click(deleteButton); });
+		await settle();
+
+		// 토스터가 끝나기 훨씬 전이다.
+		expect(screen.queryByTestId('delete-button')).toBeNull();
+		expect(screen.queryByTestId('edit-button')).toBeNull();
+		expect(screen.queryByText('지워질 본문')).toBeNull();
+		expect(screen.getByText('Deleted')).toBeInTheDocument();
+		expect(deleteSpy).toHaveBeenCalledTimes(1);
+
+		// 곁들여 — 알림도 실제로 떠 있어야 한다. 문구는 다른 테스트가 못 박고
+		// 있으므로 여기서는 **보이는지** 만 본다 (`Toaster` 는 숨김 상태에서도
+		// 문구를 DOM 에 남기므로 `getByText` 로는 표시 여부를 알 수 없다).
+		expect(document.querySelector('[data-position="bottom"]')).toHaveAttribute('data-show', '1');
 
 		useLogSpy.mockRestore();
 	}, ASYNC_ASSERTION_TIMEOUT_MS);
