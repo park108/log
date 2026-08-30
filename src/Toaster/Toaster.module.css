@@ -57,9 +57,18 @@
 	position: fixed;
 	left: 0;
 	bottom: 0;
-	height: 1em;
+	/* 높이를 1em 으로 못 박고 `overflow: hidden` 을 두면 두 줄이 된 문구의 둘째
+	   줄이 조용히 잘린다. 실측 (Chrome, 375px, 실제 CSS): 파일명이 든 문구
+	   `"<긴 파일명>.pdf URL copied."` 가 48px 박스에 64px 분량으로 들어갔다.
+	   이 자리에는 사용자 파일명이 그대로 실린다 (`FileItem`) — 이름이 길면
+	   "URL copied" 라는 결과 자체가 화면에서 사라진다.
+
+	   기본 한 줄 높이는 유지하되 필요하면 늘어나게 한다. 가로 넘침은 여전히
+	   막는다 — 긴 토큰은 `overflow-wrap` 이 접는다. */
+	min-height: 1em;
 	width: 100%;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-wrap: break-word;
 	line-height: 1em;
 
 	box-shadow: -20px 0px 20px var(--shadow-color);
