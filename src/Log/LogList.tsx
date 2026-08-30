@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from 'react-router-dom';
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
+import { readSession, writeSession, removeSession } from '../common/safeStorage';
 import Toaster from "../Toaster/Toaster";
 import type { ToasterShow } from "../Toaster/Toaster";
 import { getLogs, getNextLogs } from './api';
@@ -45,13 +46,13 @@ const LogList = (props: LogListProps) => {
 
 		const fetchFirst = async () => {
 	
-			const listInSession = sessionStorage.getItem("logList");
+			const listInSession = readSession("logList");
 	
 			if(hasValue(listInSession)) {
 				
 				setLogs(JSON.parse(listInSession ?? "[]"));
 	
-				const lastTimestampInSession = sessionStorage.getItem("logListLastTimestamp");
+				const lastTimestampInSession = readSession("logListLastTimestamp");
 	
 				if(hasValue(lastTimestampInSession)) {
 					setLastTimestamp(JSON.parse(lastTimestampInSession ?? "null"));
@@ -176,13 +177,13 @@ const LogList = (props: LogListProps) => {
 
 	useEffect(() => {
 		if(logs.length > 0) {
-			sessionStorage.setItem("logList", JSON.stringify(logs));
+			writeSession("logList", JSON.stringify(logs));
 		}
 	}, [logs]);
 
 	useEffect(() => {
 		if(hasValue(lastTimestamp)) {
-			sessionStorage.setItem("logListLastTimestamp", JSON.stringify(lastTimestamp));
+			writeSession("logListLastTimestamp", JSON.stringify(lastTimestamp));
 		}
 	}, [lastTimestamp]);
 
@@ -197,8 +198,8 @@ const LogList = (props: LogListProps) => {
 					Try refreshing the page, or click Retry button.
 				</div>
 				<button className="btn btn--ghost btn--sm" onClick={ () => {
-					sessionStorage.removeItem("logList");
-					sessionStorage.removeItem("logListLastTimestamp");
+					removeSession("logList");
+					removeSession("logListLastTimestamp");
 					setIsGetData(true);
 				} } >
 					Retry

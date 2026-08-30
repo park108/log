@@ -236,3 +236,52 @@ describe('LogList unmount-safety (REQ-20260517-093 (I1)(I2))', () => {
 		expect(screen.queryByText("Whoops, something went wrong on our end.")).toBeNull();
 	});
 });
+
+// 브라우저 저장소는 없을 수 있다. 사이트 데이터를 차단하면 접근 자체가
+// SecurityError 를 던지고, 용량이 차면 setItem 이 QuotaExceededError 를 던진다.
+// 감싸이지 않은 그 예외가 async fetch 를 중간에 끊어 setIsLoading(false) 에
+// 닿지 못했고, 홈 화면이 "Loading logs..." 에서 영원히 멈췄다
+// (실측: 저장소 차단 시 목록 0건 · 정상일 때 7건).
+describe('LogList 저장소가 막혀 있을 때', () => {
+
+	const blockStorage = () => {
+		const denied = () => { throw new DOMException('Access denied.', 'SecurityError'); };
+		vi.spyOn(Storage.prototype, 'getItem').mockImplementation(denied);
+		vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(denied);
+		vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+			throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+		});
+	};
+
+	it('목록을 서버에서 받아 그린다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+		blockStorage();
+
+		renderLogList();
+
+		// 이전에는 0건인 채 "Loading logs..." 에서 멈췄다.
+		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
+
+		// 그리고 **계속** 있어야 한다. 캐시 쓰기는 목록이 그려진 뒤 effect 에서
+		// 일어나므로, 그때 예외가 나면 경계 없는 트리가 통째로 무너진다 —
+		// 실측: 쓰기 보호를 빼면 여기서 항목이 0 이 된다. 단언을 그 시점 앞에
+		// 두면 이 결함을 놓친다 (실제로 놓쳤다).
+		await flushAfterResponse();
+		expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0);
+	});
+
+	// 대조 — 저장소가 정상이면 캐시에 남겨야 한다. 없으면 "캐시를 아예 쓰지
+	// 않는" 구현도 통과한다.
+	it('저장소가 정상이면 캐시에 남긴다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+
+		renderLogList();
+
+		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
+		await waitFor(() => expect(sessionStorage.getItem('logList')).not.toBeNull());
+	});
+});
