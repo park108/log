@@ -2,6 +2,7 @@ import React from 'react';
 import { render, act, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import SearchInput from './SearchInput';
+import * as common from '../common/common';
 
 beforeEach(() => {
 	vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -49,7 +50,26 @@ const pressEnter = async () => {
 	await act(async () => { fireEvent.keyUp(box(), { keyCode: 13 }); });
 };
 
-describe('검색 상자는 주소를 따라간다', () => {
+// **관리자 여부를 목한다.** 이 파일은 처음에 `isAdmin` 을 목하지 않았다. 그러면
+// `SearchInput` 이 어느 갈래를 그리는지가 **앞선 테스트 파일이 남긴 쿠키 상태**에
+// 달린다 — `isAdmin()` 은 `access_token` 쿠키를 읽기 때문이다.
+//
+// 단언은 어느 쪽이든 통과한다. `query-string-by-enter` 라는 같은 id 가 두 갈래에
+// 모두 있어서다. 그래서 이 비결정성은 붉은 테스트로 드러나지 않는다 — 달라지는
+// 것은 **어느 갈래의 핸들러가 실행됐는가** 뿐이고 그것은 커버리지에만 보인다.
+//
+// 두 갈래를 모두 돈다. 상자가 주소를 따라간다는 성질은 관리자와 방문자 모두에게
+// 성립해야 하므로 이것은 커버리지 배관이 아니라 실제 계약이다 — 관리자 화면은
+// 모바일 검색창을 하나 더 갖는데, 그쪽 갈래를 아무도 결정적으로 돌지 않고 있었다.
+describe.each([
+	['관리자', true],
+	['방문자', false],
+])('검색 상자는 주소를 따라간다 (%s)', (_who, isAdmin) => {
+
+	beforeEach(() => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(isAdmin);
+	});
+
 
 	// 구 구현은 `Search.tsx` 에서 `getElementById(...).value = ""` 로 DOM 만 지웠다.
 	// controlled input 이라 React 상태에는 옛 검색어가 남았고, 실측 결과 빈 상자에서
@@ -97,6 +117,20 @@ describe('검색 상자는 주소를 따라간다', () => {
 
 		expect(where()).toBe('/log/search');
 		expect(box().value).toBe('지난 검색어');
+	});
+
+	// Enter 가 아닌 키는 검색을 걸지 않는다. 이 갈래(`13 === e.keyCode` 의 거짓
+	// 쪽)를 아무도 결정적으로 돌지 않아 실행 순서에 따라 덮이거나 말거나 했다.
+	it('Enter 가 아닌 키로는 검색하지 않는다', async () => {
+
+		renderInput();
+
+		await type('아직 입력 중');
+		await act(async () => { fireEvent.keyUp(box(), { keyCode: 65 }); });
+
+		expect(where()).toBe('/log');
+		expect(routedQuery()).toBe('null');
+		expect(box().value).toBe('아직 입력 중');
 	});
 
 	// 주소가 그대로인 동안에는 끼어들지 않는다.
