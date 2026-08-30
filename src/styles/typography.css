@@ -97,6 +97,23 @@ pre code {
 	margin: 0 0 1.15em;
 }
 
+/* 끊을 자리가 없는 긴 토큰(URL · 라틴 식별자)은 줄바꿈 기회가 없어 본문 폭을
+   밀어낸다. 실측(Chrome, 375px):
+
+     긴 URL       main scrollWidth 785 / clientWidth 375
+     긴 라틴 단어   772 / 375
+     긴 링크       716 / 375
+
+   `.main--main-contents` 가 `overflow: auto` 라 문서 자체는 넘치지 않지만,
+   본문 영역이 통째로 가로로 밀려 휴대폰에서 글을 읽을 수 없다. 한글은 어디서나
+   끊기므로 원래 375 로 들어맞았다 — 라틴 토큰만의 문제다.
+
+   `anywhere` 가 아니라 `break-word` 를 쓴다. 들어갈 자리가 없을 때만 끊으므로
+   평소 줄바꿈은 그대로다. 기술 글에 긴 URL 은 흔하다. */
+.section--logitem-contents {
+	overflow-wrap: break-word;
+}
+
 .section--logitem-contents ul,
 .section--logitem-contents ol {
 	padding-inline-start: 1.4em;

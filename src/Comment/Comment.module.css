@@ -40,6 +40,11 @@
 	display: inline-block;
 	max-width: calc(100% - 25px);
 	border-radius: 10px;
+	/* 끊을 자리가 없는 긴 토큰(URL 등)은 줄바꿈 기회가 없어 말풍선을 밀어낸다.
+	   실측(Chrome, 375px): 긴 URL 이 든 댓글에서 scrollWidth 666 / clientWidth 359.
+	   댓글은 방문자가 쓰는 자리라 URL 이 특히 흔하다. 본문(`.section--logitem-contents`)
+	   과 같은 처리를 둔다. */
+	overflow-wrap: break-word;
 }
 .div--comment-message p {
 	margin: 10px;
