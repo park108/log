@@ -2,7 +2,7 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import * as api from './api';
 import LogList from './LogList';
-import { logListFirst7, logListNext3 } from './__fixtures__/logs';
+import { logListFirst7, logListFirst7WithTemporary, logListNext3 } from './__fixtures__/logs';
 
 // TSK-20260824-07-c — 저장소에 `LogList` 를 **직접 렌더하는** 테스트가 0건이었다
 // (`useHoverPopup.test.tsx` / `hooks/useLogList.test.js` 2건은 컴포넌트를 렌더하지 않는다).
@@ -283,5 +283,35 @@ describe('LogList 저장소가 막혀 있을 때', () => {
 
 		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
 		await waitFor(() => expect(sessionStorage.getItem('logList')).not.toBeNull());
+	});
+});
+
+// 임시 저장 표식은 글리프 하나다. 낭독기는 "writing hand" 로 읽고 임시 저장이라는
+// 뜻은 어디에도 없었다. 보이는 쪽에도 단서가 없어 title 을 함께 둔다.
+describe('LogList 임시 저장 표식', () => {
+
+	it('이름을 갖는다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7WithTemporary }));
+
+		renderLogList();
+
+		const marker = await screen.findByRole('img', { name: 'Temporary save' });
+		expect(marker).toBeInTheDocument();
+		expect(marker.getAttribute('title')).toBe('Temporary save');
+	});
+
+	// 대조 — 임시 저장이 아닌 글에는 표식이 없어야 한다. 없으면 "언제나 표식"
+	// 구현도 통과한다.
+	it('임시 저장이 아니면 표식이 없다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+
+		renderLogList();
+
+		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
+		expect(screen.queryByRole('img', { name: 'Temporary save' })).toBeNull();
 	});
 });

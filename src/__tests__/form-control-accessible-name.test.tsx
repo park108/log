@@ -81,3 +81,17 @@ describe('입력 칸의 접근 이름', () => {
 		expect(unnamed, '접근 이름 없는 입력 칸: ' + unnamed.join(', ')).toEqual([]);
 	});
 });
+
+// 문서 언어. 글도 댓글도 한국어인데 `lang="en"` 이면 화면 낭독기가 한국어 본문을
+// 영어 음성으로 읽는다. UI 문구 일부는 영어지만 분량은 본문이 압도한다.
+describe('문서 언어 선언', () => {
+
+	it('index.html 이 한국어를 선언한다', () => {
+
+		const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8');
+		const lang = /<html[^>]*\slang="([^"]*)"/.exec(html)?.[1];
+
+		expect(lang, 'index.html 에서 <html lang> 을 읽지 못했다 — 판정이 공허하다').toBeDefined();
+		expect(lang).toBe('ko');
+	});
+});

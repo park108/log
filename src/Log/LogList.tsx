@@ -232,7 +232,17 @@ const LogList = (props: LogListProps) => {
 						<Link to={{ pathname: "/log/" + data.timestamp }}>
 							<div className="div--loglist-date">
 								{getFormattedDate(data.timestamp)}
-								{ true === data.temporary ? <span className="span--loglist-temporary">✍️</span> : "" }
+								{ true === data.temporary
+										// 글리프는 이름이 되지 못한다 — 낭독기가 "writing hand" 로
+										// 읽고 임시 저장이라는 뜻은 어디에도 없다. 보이는 쪽에도
+										// 단서가 없어 title 을 함께 둔다.
+										? <span
+											className="span--loglist-temporary"
+											role="img"
+											aria-label="Temporary save"
+											title="Temporary save"
+										>✍️</span>
+										: "" }
 							</div>
 							{
 								true === data.temporary
