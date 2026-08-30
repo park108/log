@@ -3,6 +3,7 @@ import { fireEvent, render, screen, act, waitFor } from '@testing-library/react'
 import { createMemoryHistory } from 'history'
 import Writer from '../Log/Writer';
 import { Router, MemoryRouter } from 'react-router-dom';
+import * as api from './api';
 import * as mock from './api.mock';
 import * as common from '../common/common';
 import { useMockServer } from '../test-utils/msw';
@@ -856,5 +857,87 @@ describe('Writer 이력 재계산', () => {
 
 		// 이전에는 타자마다 판본 수만큼 늘었다.
 		expect(diffRecorder.calls).toBe(afterFirstRender);
+	});
+});
+
+// 공백만 넣은 것은 안 넣은 것이다. 길이를 날것으로 재던 동안 공백 다섯 칸이
+// 검증을 통과했고, 그 글은 요약이 빈 문자열이라 목록에 빈 항목으로 남았다.
+describe('Writer 공백만 입력', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	const renderWriter = () => render(withQuery(
+		<div id="root" className="div fullscreen">
+			<MemoryRouter initialEntries={[{ pathname: "/log/write", state: null }]}>
+				<Writer />
+			</MemoryRouter>
+		</div>
+	));
+
+	it('공백뿐이면 저장하지 않는다', async () => {
+
+		stubMode('production');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+		const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		renderWriter();
+
+		fireEvent.change(await screen.findByTestId("writer-text-area"), { target: { value: '       ' } });
+		await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+		fireEvent.click(await screen.findByTestId("submit-button"));
+		await act(async () => { await vi.runAllTimersAsync(); });
+
+		expect(alertSpy).toHaveBeenCalledWith("Please note at least 5 characters.");
+		expect(screen.queryByText("The log posted.")).toBeNull();
+	});
+
+	// 대조 — 정상 본문은 그대로 저장돼야 한다. 없으면 "언제나 거부" 구현도 통과한다.
+	it('정상 본문은 저장한다', async () => {
+
+		stubMode('production');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+		const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		renderWriter();
+
+		fireEvent.change(await screen.findByTestId("writer-text-area"), { target: { value: '  충분히 긴 본문이다.  ' } });
+		await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+		fireEvent.click(await screen.findByTestId("submit-button"));
+		await act(async () => { await vi.runAllTimersAsync(); });
+
+		expect(alertSpy).not.toHaveBeenCalled();
+		expect(await screen.findByText("The log posted.")).toBeDefined();
+	});
+
+	// 저장은 원문 그대로다. 판정만 trim 하고 본문은 건드리지 않는다 —
+	// 마크다운의 줄 끝 두 칸은 줄바꿈이라 의미가 있다.
+	it('앞뒤 공백을 지운 채 저장하지 않는다', async () => {
+
+		stubMode('production');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+		vi.spyOn(window, 'alert').mockImplementation(() => {});
+		const postSpy = vi.spyOn(api, 'postLog');
+
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		renderWriter();
+
+		const raw = '  줄 끝 두 칸이 있는 본문이다.  ';
+		fireEvent.change(await screen.findByTestId("writer-text-area"), { target: { value: raw } });
+		await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+		fireEvent.click(await screen.findByTestId("submit-button"));
+		await act(async () => { await vi.runAllTimersAsync(); });
+
+		expect(postSpy).toHaveBeenCalledTimes(1);
+		expect(postSpy.mock.calls[0]![1]).toBe(raw);
 	});
 });

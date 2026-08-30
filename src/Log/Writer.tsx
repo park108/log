@@ -243,7 +243,11 @@ const Writer = () => {
 			// 다음 제출의 `setIsSubmitted(true)` 는 같은 값이라 React 가 리렌더를
 			// 건너뛴다 — deps 가 그대로라 이 효과도 다시 돌지 않는다. 한 번 짧게
 			// 눌렀다는 이유로 Post 가 죽어, 글을 제대로 채워도 저장되지 않았다.
-			if(article.length < 5) {
+			// 공백만 넣은 것은 안 넣은 것이다. 길이를 날것으로 재던 동안 공백 다섯 칸이
+			// 검증을 통과했고, 그 글은 요약이 빈 문자열이라 목록에 빈 항목으로 남았다.
+			// 판정만 trim 하고 저장은 원문 그대로 한다 — 마크다운의 줄 끝 두 칸은
+			// 의미가 있으므로 본문을 건드리지 않는다.
+			if(article.trim().length < 5) {
 				setIsSubmitted(false);
 				alert("Please note at least 5 characters.");
 				document.getElementById("textarea--writer-article")?.focus();
