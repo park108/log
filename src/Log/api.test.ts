@@ -110,3 +110,27 @@ describe('trimmedContents — 블록 경계 보존', () => {
 		expect(trimmedContents('![alt](https://x/a.png)')).toBe('');
 	});
 });
+
+// 요약은 HTML 이 아니라 평문이다. `markdownToHtml` 이 본문을 escape 하므로
+// 태그를 걷어낸 뒤에는 엔티티가 남는데, 그대로 저장하면 목록과 검색 미리보기에
+// `List&lt;String&gt;` 이 글자 그대로 보인다.
+describe('trimmedContents 엔티티', () => {
+
+	it('꺾쇠를 글자로 되돌린다', () => {
+		expect(trimmedContents('제네릭은 List<String> 이다')).toBe('제네릭은 List<String> 이다');
+	});
+
+	it('앰퍼샌드를 글자로 되돌린다', () => {
+		expect(trimmedContents('AT&T 와 R&D')).toBe('AT&T 와 R&D');
+	});
+
+	it('사용자가 쓴 엔티티 표기는 왜곡하지 않는다', () => {
+		// `&amp;lt;` 를 먼저 풀면 `<` 가 되어 사용자가 쓴 문자열이 바뀐다.
+		expect(trimmedContents('엔티티는 &lt; 이렇게 쓴다')).toBe('엔티티는 &lt; 이렇게 쓴다');
+	});
+
+	// 대조 — 평범한 본문은 그대로여야 한다.
+	it('평범한 본문은 그대로', () => {
+		expect(trimmedContents('# 제목\n\n본문이다.')).toBe('제목 본문이다.');
+	});
+});

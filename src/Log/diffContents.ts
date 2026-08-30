@@ -1,3 +1,4 @@
+import { HIGHLIGHT_OPEN, HIGHLIGHT_CLOSE, HIGHLIGHT_CLASS } from '../common/markdownParser';
 // 변경 이력에서 **바뀐 줄**을 표시용으로 표식한다.
 //
 // 이력은 각 판본을 그대로 렌더할 뿐이라, 무엇이 달라졌는지 눈으로 찾아야 했다.
@@ -10,7 +11,8 @@
 // **줄 단위로 감싸는 이유** — span 은 문단 경계를 넘지 못한다. 여러 줄을 한
 // 번에 감싸면 첫 줄만 표식되고 나머지가 빠진다 (실측).
 
-export const CHANGED_CLASS = 'span--logitem-changed';
+// 클래스 이름의 단일 출처는 파서다 — 표식을 태그로 되돌리는 쪽이 거기다.
+export const CHANGED_CLASS = HIGHLIGHT_CLASS;
 
 /** 줄 앞의 마크다운 표기(제목·목록·인용)와 본문을 가른다. 표기 안쪽만 감싼다. */
 const LINE_PREFIX = /^(\s*(?:#{1,6}\s+|[-*+]\s+|\d+\.\s+|>\s*)?)([\s\S]*)$/;
@@ -43,10 +45,17 @@ const commonLineSet = (a: string[], b: string[]): Set<number> => {
  */
 export const markChangedLines = (contents: string, previous?: string): string => {
 
-	if (undefined === previous) return contents;
+	// 사용자가 붙여넣기로 표식 문자를 들여올 수 있다 (private-use 영역은 아이콘
+	// 폰트가 쓴다). 먼저 걷어 우리 표식과 섞이지 않게 한다 — 파서가 코드 스팬
+	// 자리표시자에 대해 하는 것과 같은 방어다.
+	const strip = (s: string): string =>
+		s.replace(new RegExp('[' + HIGHLIGHT_OPEN + HIGHLIGHT_CLOSE + ']', 'g'), '');
 
-	const lines = contents.split('\n');
-	const kept = commonLineSet(lines, previous.split('\n'));
+
+	if (undefined === previous) return strip(contents);
+
+	const lines = strip(contents).split('\n');
+	const kept = commonLineSet(lines, strip(previous).split('\n'));
 
 	let inFence = false;
 
@@ -65,7 +74,10 @@ export const markChangedLines = (contents: string, previous?: string): string =>
 		const [, prefix, body] = m;
 		if ('' === (body ?? '').trim()) return line;
 
-		return prefix + '<span class="' + CHANGED_CLASS + '">' + body + '</span>';
+		// 태그를 직접 끼우지 않는다 — `markdownToHtml` 이 본문을 escape 하므로
+		// 꺾쇠가 글자로 보인다 (실제로 그렇게 깨졌다). 마크업 문자를 쓰지 않는
+		// 표식을 두고 파서가 태그로 되돌린다.
+		return prefix + HIGHLIGHT_OPEN + body + HIGHLIGHT_CLOSE;
 	}).join('\n');
 };
 

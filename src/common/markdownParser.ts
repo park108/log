@@ -57,6 +57,12 @@ interface ParsedNode {
 	depth?: number;
 }
 
+// 강조 구간 표식 — 호출처(`Log/diffContents`)가 끼우고 이 파서가 태그로 되돌린다.
+// 마크업 문자를 쓰지 않으므로 본문 escape 를 통과한다.
+export const HIGHLIGHT_OPEN = "\uE002";
+export const HIGHLIGHT_CLOSE = "\uE003";
+export const HIGHLIGHT_CLASS = "span--logitem-changed";
+
 export const markdownToHtml = (rawInput: string): string => {
 
 	// inline code 보호에 쓰는 자리표시자와 같은 문자가 입력에 있으면 복원 단계가
@@ -64,6 +70,16 @@ export const markdownToHtml = (rawInput: string): string => {
 	// private-use 영역은 아이콘 폰트가 쓰므로 붙여넣기로 유입될 수 있다. 입력에서
 	// 먼저 걷어 충돌 가능성 자체를 없앤다 — 이 두 코드포인트는 본문에서 의미가 없다.
 	const input = rawInput.replace(/[\uE000\uE001]/g, "");
+
+	// 강조 구간 표식. 호출처가 "이 범위를 강조해 달라" 고 표시하는 유일한 수단이다.
+	//
+	// 본문 escape 가 생기면서 호출처가 `<span>` 을 직접 끼워 넣던 방법이 막혔다 —
+	// 그 꺾쇠도 사용자 글자와 구별되지 않으므로 escape 된다 (Change History 의
+	// 변경 줄 강조가 실제로 그렇게 글자로 보였다). 마크업 문자를 쓰지 않는
+	// 표식이라야 escape 를 통과한다. 코드 스팬 자리표시자와 같은 원리다.
+	//
+	// 짝: `src/Log/diffContents.ts` 가 이 두 문자를 끼우고, 아래 복원 단계가
+	// 태그로 되돌린다. 클래스 이름은 그쪽 CSS 와 같은 문자열이다.
 
 	let parsed: ParsedNode[] = [];
 	let str = input;
@@ -396,6 +412,12 @@ export const markdownToHtml = (rawInput: string): string => {
 			node.text = node.text.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) =>
 				"<code>" + escapeHtmlText(codeSpans[Number(i)]) + "</code>"
 			);
+
+			// 강조 표식 복원. escape 뒤에 되돌리므로 표식이 감싼 사용자 글자는
+			// 이미 안전하다.
+			node.text = node.text
+				.replace(/\uE002/g, "<span class=\"" + HIGHLIGHT_CLASS + "\">")
+				.replace(/\uE003/g, "</span>");
 		}
 	}
 

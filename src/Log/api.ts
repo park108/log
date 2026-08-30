@@ -51,10 +51,25 @@ const BLOCK_TAGS = 'h[1-6]|p|div|li|ul|ol|blockquote|pre|br|hr|tr|td|th';
 // LogSingle 의 meta description 도 같은 변환을 쓴다 — 그쪽은 태그를 공백 없이
 // 지우고 있어 "하나둘셋" 처럼 붙어 나갔다. 규칙을 두 벌 두면 한쪽만 고쳐지므로
 // 여기서 내보내 단일 출처로 삼는다.
+// 요약은 HTML 이 아니라 평문이다. `markdownToHtml` 이 본문을 escape 하므로
+// 태그를 걷어낸 뒤에는 `&lt;` 같은 엔티티가 남는데, 그대로 저장하면 목록과
+// 검색 미리보기에 `List&lt;String&gt;` 이 글자 그대로 보인다.
+//
+// `&amp;` 를 **마지막에** 되돌린다 — 먼저 풀면 `&amp;lt;` 가 `<` 가 되어
+// 사용자가 실제로 쓴 문자열을 왜곡한다.
+const decodeEntities = (s: string): string => s
+	.replace(/&lt;/g, '<')
+	.replace(/&gt;/g, '>')
+	.replace(/&quot;/g, '"')
+	.replace(/&#39;/g, "'")
+	.replace(/&amp;/g, '&');
+
 export const trimmedContents = (contents: string): string => {
-	return markdownToHtml(contents)
-		.replace(new RegExp(`</?(?:${BLOCK_TAGS})(?:\\s[^>]*)?>`, 'gi'), ' ')
-		.replace(/(<([^>]+)>)/gi, '')
+	return decodeEntities(
+		markdownToHtml(contents)
+			.replace(new RegExp(`</?(?:${BLOCK_TAGS})(?:\\s[^>]*)?>`, 'gi'), ' ')
+			.replace(/(<([^>]+)>)/gi, '')
+	)
 		.replace(/\s+/g, ' ')
 		.trim();
 }
