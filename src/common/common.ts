@@ -204,7 +204,10 @@ export function getFormattedDate(timestamp: number, format: string = "yyyy-mm-dd
 
 	if("date mon year" === format) {
 		const month = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-		return dd + " " + month[mm] + " '" + (yyyy % 100);
+		// 두 자리로 채운다. `yyyy % 100` 을 그대로 쓰면 2005 가 `'5`, 2000 이
+		// `'0` 이 된다 — 연도로 읽히지 않는다.
+		const shortYear = String(yyyy % 100).padStart(2, "0");
+		return dd + " " + month[mm] + " '" + shortYear;
 	}
 	else {
 	
@@ -236,11 +239,12 @@ export function getFormattedSize(size: number): string {
 	let unit = "";
 	let scaled: number = size;
 
-	if(0 === scaled) {
-		unit = "";
-	}
-	else if(1000 > scaled) {
-		unit = "bytes";
+	// 0 도 크기다. 예전에는 단위를 비워 `"0 "` 이 나왔고, 화면에는 단위 없는
+	// "0" 이 떴다 — 같은 항목의 title 은 "0 bytes" 라고 적고 있었다. 빈 파일은
+	// 실제로 올릴 수 있다.
+	if(1000 > scaled) {
+		// `1 bytes` 는 문장이 아니다.
+		unit = 1 === scaled ? "byte" : "bytes";
 	}
 
 	if(1000 <= scaled) {

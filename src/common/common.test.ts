@@ -559,9 +559,18 @@ describe('Date formatting test', () => {
 
 describe('Size formatting test', () => {
 
+	// 이 단언은 `"0 "` 을 계약으로 못 박고 있었다 — 단위가 빠진 값이다. 화면에는
+	// 단위 없는 "0" 이 떴고, 같은 항목의 title 은 "0 bytes" 라고 적고 있었다.
+	// 빈 파일은 실제로 올릴 수 있으므로 도달하는 상태다.
 	it('test zero', () => {
 		const result = common.getFormattedSize(0);
-		expect(result).toBe("0 ");
+		expect(result).toBe("0 bytes");
+	});
+
+	// `1 bytes` 는 문장이 아니다.
+	it('한 바이트는 단수로 적는다', () => {
+		expect(common.getFormattedSize(1)).toBe("1 byte");
+		expect(common.getFormattedSize(2)).toBe("2 bytes");
 	});
 
 	it('test bytes', () => {
@@ -1029,5 +1038,24 @@ describe('userAgentParser — 실제 UA 문자열', () => {
 	it('원문을 그대로 함께 보낸다', () => {
 		const ua = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/119.0.0.0';
 		expect(parse(ua).originalText).toBe(ua);
+	});
+});
+
+// `date mon year` 표기의 연도는 두 자리다. `yyyy % 100` 을 그대로 쓰면 2005 가
+// `'5`, 2000 이 `'0` 이 되어 연도로 읽히지 않는다.
+describe('getFormattedDate — date mon year 연도 표기', () => {
+
+	const shortYearOf = (year: number) =>
+		common.getFormattedDate(new Date(year, 0, 15).getTime(), 'date mon year');
+
+	it.each([
+		[2000, "15 Jan '00"],
+		[2005, "15 Jan '05"],
+		[2009, "15 Jan '09"],
+		[2010, "15 Jan '10"],
+		[2026, "15 Jan '26"],
+		[1999, "15 Jan '99"],
+	])('%i 년은 두 자리로 적는다', (year, expected) => {
+		expect(shortYearOf(year)).toBe(expected);
 	});
 });
