@@ -57,6 +57,18 @@ const Comment = (props: CommentProps): React.ReactElement => {
 	const [commentThread, setCommentThread] = useState<ReactNode>("");
 	const [commentForm, setCommentForm] = useState<ReactNode>("");
 
+	// 조회가 실패했다는 사실은 토스터보다 오래 살아야 한다.
+	//
+	// 이 컴포넌트의 테스트는 "토글 라벨은 0건 성공과 동일하다 — 구별을 담당하는
+	// 것은 실패 표면이다" 라고 적어 두었는데, 그 실패 표면이 `duration=2000` 인
+	// 하단 토스터였다. 2초가 지나면 구별할 것이 아무것도 남지 않는다. 남는 것은
+	// **"Add a comment"** 라고 적힌 토글 버튼뿐이고, 그것은 댓글이 0건이라는 뜻이다.
+	// 방문자는 이 글에 댓글이 없다고 읽는다 — 실제로는 몇 건인지 모르는 상태다.
+	//
+	// 라벨을 바꾸지 않고 표면이 남게 한다. 그러면 위 문장이 비로소 참이 된다.
+	// `File` · `LogList` · `ImageSelector` 가 같은 형태(지속 표면 + Retry)를 쓴다.
+	const [isError, setIsError] = useState<boolean>(false);
+
 	const [isShowToaster, setIsShowToaster] = useState<ToasterShow>(0);
 	const [toasterMessage, setToasterMessage] = useState<string>("");
 	const [toasterType, setToasterType] = useState<ToasterType>("success");
@@ -159,6 +171,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 					});
 
 					setComments(newData.body.Items);
+					setIsError(false);
 				}
 				else {
 					log("[API GET] FAILED - Comments", "ERROR");
@@ -167,6 +180,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 					setToasterMessage("Failed to load comments.");
 					setToasterType("error");
 					setIsShowToaster(1);
+					setIsError(true);
 				}
 			}
 			catch(err) {
@@ -177,6 +191,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 				setToasterMessage("Failed to load comments for network issue.");
 				setToasterType("error");
 				setIsShowToaster(1);
+				setIsError(true);
 			}
 
 			setIsLoading(false);
@@ -271,6 +286,33 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			>
 				{ buttonText }
 			</button>
+
+			{/* 전면 오류는 **보여줄 것이 없을 때만** 맞다 — 이미 받은 댓글이 있으면
+			    그 목록을 오류 화면으로 덮지 않는다 (`File` 이 같은 이유로
+			    `0 === files.length` 를 함께 본다). 접힌 상태에서도 낸다 — 펼치지
+			    않은 독자에게 남는 유일한 글자가 "Add a comment" 이기 때문이다. */}
+			{ (isError && 0 === comments.length) && (
+				<section className="section section--message-box" data-testid="commentListError">
+					<h2 className="h2 h2--message-error">
+						Couldn&apos;t load the comments.
+					</h2>
+					<hr />
+					<div className="div div--message-description">
+						They never arrived. Click Retry to ask again.
+					</div>
+					<button
+						type="button"
+						className="btn btn--ghost btn--sm"
+						onClick={ (e: React.SyntheticEvent): void => {
+							e.preventDefault();
+							setIsError(false);
+							setReload(true);
+						} }
+					>
+						Retry
+					</button>
+				</section>
+			) }
 
 			{ commentThread }
 			{ commentForm }
