@@ -46,13 +46,13 @@
 - [ ] (I2) 번호 되감김 대조가 게이트로 실재하고 초록이다: `bash -c 'grep -qF "번호가 되감기지 않는다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "번호가 되감기지 않는다" >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 **rc=1 (미충족)**. **이 대조가 없으면 `<ol>` 을 두 번 여는 구현도 (I1) 을 통과한다** — 현 산출이 정확히 그렇다.
 - [x] (I6 대조 현행 PASS) 목록 밖의 들여쓴 줄은 문단이다: `bash -c 'grep -qF "does not treat a non-marker indented line as a list item" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "does not treat a non-marker indented line as a list item" >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (`markdownParser.test.ts:130`). 구현 후에도 rc=0 이어야 한다.
 - [x] (원인 실재) 인용 패스가 줄 머리만 본다: `bash -c 'grep -qE "'\''>'\'' === node\.text\.charAt\(0\)" src/common/markdownParser.ts'` → HEAD=`b1cbf5c` 실측 rc=0 (`markdownParser.ts:187`). (I3) 미충족의 직접 원인이며, 이 항목은 **원인의 실재**를 재는 것이지 계약을 재는 것이 아니다.
-- [x] (I7·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (**66 it**). 구현 후에도 rc=0 이어야 한다.
+- [x] (I7·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (**80 tests**). 구현 후에도 rc=0 이어야 한다.
 
 ## 수용 기준
 - [ ] (Must, FR-01·FR-03) 위 §테스트 현황 (I1·I3·I4·I5) 명령 → rc=0.
 - [ ] (Must, FR-02) 위 §테스트 현황 (I2) 명령 → rc=0.
 - [x] (Must, NFR-02 대조 보존) 위 §테스트 현황 (I6) 명령 → rc=0. HEAD=`b1cbf5c` 실측 rc=0. 구현 후에도 rc=0 — **이 대조를 지우거나 완화하는 방식의 해결은 불가**하다.
-- [x] (Must, NFR-03 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`b1cbf5c` 실측 rc=0 (66 it). 특히 기존 게이트 `:120`(평탄 UL) · `:126`(평탄 OL — `<li> item1</li>` 선행 공백 포함) · `:130`(목록 밖 들여쓴 줄) · `:185`(혼합 중첩 범위 밖) 네 건이 그대로 통과해야 한다.
+- [x] (Must, NFR-03 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`b1cbf5c` 실측 rc=0 (80 tests). 특히 기존 게이트 `:120`(평탄 UL) · `:126`(평탄 OL — `<li> item1</li>` 선행 공백 포함) · `:130`(목록 밖 들여쓴 줄) · `:185`(혼합 중첩 범위 밖) 네 건이 그대로 통과해야 한다.
 - [x] (Must, NFR-01 중첩 알고리즘 보존) 중첩 게이트가 실재한다: `bash -c 'grep -qF "does NOT nest ol child inside ul parent" src/common/markdownParser.test.ts'` → HEAD=`b1cbf5c` 실측 rc=0 (`:185`). 중첩 산출은 §스코프 규칙 baseline 표의 보존 행과 동일하게 유지된다.
 - [x] (Must, 범위 제한) 혼합 중첩 · 항목 안 코드 펜스 · `<li>` 선행 공백 · loose/tight 구분은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
@@ -62,6 +62,8 @@
   - `grep -cF "목록 항목에 이어지는 줄" src/common/markdownParser.test.ts` → **0**. `grep -cF "번호가 되감기지 않는다" …` → **0**. 두 계약 이름 모두 미존재 — 신설 대상이다.
   - `grep -nE "'\''>'\'' === node\.text\.charAt\(0\)" src/common/markdownParser.ts` → 1 hit `:187`. 들여쓴 인용이 인용이 아닌 직접 원인.
   - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **66**. 그중 목록 항목의 **이어지는 줄**을 다루는 것은 0건이고, 덮여 있는 것은 중첩(`describe` `:137`)과 비-마커 들여쓴 줄(`:130`)뿐이다. 제외 규칙: `it(` 로 시작하는 줄만 계수.
+
+  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **66** 을 세지만 `npx vitest run` 은 **80 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `66` 은 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 80** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
   - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경):
     | 입력 (`\n` 구분) | 현 산출 | 판정 |
     |---|---|---|
@@ -79,7 +81,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
-| 2026-08-31 | inspector (Phase 3, REQ-20260831-053 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — 목록 항목 이어짐 7 축 (I1~I7). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며, 본 축은 그 spec 의 `bindListItem` 알고리즘을 대체하지 않고 **입력을 넓힌다** ((I7) 이 경계). baseline: 계약 이름 2건 0 hit / 66 it 중 이어짐 0건 / 인용 줄 머리 판정 `:187` 1 hit / 현 산출 9행 격리 사본 실측 (위반 6 · 보존 3). unchecked 2 · checked 4. | all |
+| 2026-08-31 | inspector (Phase 3, REQ-20260831-053 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — 목록 항목 이어짐 7 축 (I1~I7). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며, 본 축은 그 spec 의 `bindListItem` 알고리즘을 대체하지 않고 **입력을 넓힌다** ((I7) 이 경계). baseline: 계약 이름 2건 0 hit / 선언 66 it(실행 80 tests) 중 이어짐 0건 / 인용 줄 머리 판정 `:187` 1 hit / 현 산출 9행 격리 사본 실측 (위반 6 · 보존 3). unchecked 2 · checked 4. | all |
 
 ## 참고
 

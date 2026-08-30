@@ -50,14 +50,14 @@ CommonMark 는 강조 구분자로 `*` 와 `_` 를 **대등하게** 규정한다
 - [ ] (I3) intraword 억제 대조가 게이트로 실재하고 초록이다: `bash -c 'grep -qF "단어 안의 밑줄은 강조가 아니다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "단어 안의 밑줄은 강조가 아니다" >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 **rc=1 (미충족)**. **이 대조가 없으면 `foo_bar_baz` 를 깨뜨리는 구현도 (I1) 을 통과한다.**
 - [ ] (I1·I2 정적 zero-point) 밑줄 구분자가 인라인 패스에 등록돼 있다: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"_+\"" src/common/markdownParser.ts)" -ge 1'` → HEAD=`b1cbf5c` 실측 **rc=1 (0 hit)**. 현 등록은 셋뿐이며 전부 `*`·`~` 계열이다 (`:513` `"**"` · `:514` `"~~"` · `:518` `"*"`). **등록 형태가 달라지면(예: 구분자 표를 순회) 이 항목은 그 형태에 맞춰 재작성한다** — 수단을 지정하지 않는다.
 - [x] (I4 보호 축 게이트 실재) 세 보호 축이 이미 게이트로 잠겨 있다: `bash -c 'grep -qE "for \(const src of \[.---., .\*\*\*., .___." src/common/markdownParser.test.ts && grep -qF "my_var_name" src/common/markdownParser.test.ts'` → HEAD=`b1cbf5c` 실측 rc=0 (`:266` 루프가 `___` 포함, `:273` 이 `__` 대조, `:316` 이 코드 스팬).
-- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (**66 it**). 구현 후에도 rc=0 이어야 한다.
+- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (**80 tests**). 구현 후에도 rc=0 이어야 한다.
 
 ## 수용 기준
 - [ ] (Must, FR-01·FR-02·FR-05) 위 §테스트 현황 (I1·I2·I5) 명령 → rc=0.
 - [ ] (Must, FR-03) 위 §테스트 현황 (I3) 명령 → rc=0.
 - [ ] (Must, FR-01·FR-02 정적) 위 §테스트 현황 정적 zero-point 명령 → rc=0.
 - [x] (Must, FR-04 보호 축 실재) 위 §테스트 현황 (I4) 명령 → rc=0. HEAD=`b1cbf5c` 실측 rc=0.
-- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`b1cbf5c` 실측 rc=0 (66 it). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`b1cbf5c` 실측 rc=0 (80 tests). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
 - [x] (Must, NFR-03 sanitize 무변경) 산출 태그가 이미 허용돼 있다: `bash -c 'grep -qE "'\''em'\''" src/common/sanitizeHtml.ts && grep -qE "'\''strong'\''" src/common/sanitizeHtml.ts'` → HEAD=`b1cbf5c` 실측 rc=0. 본 축은 `ALLOWED_TAGS` 변경을 요구하지 않는다.
 - [x] (Must, 범위 제한) `*` 계열의 현 동작과 `***`/`___` 3중 구분자는 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
@@ -67,6 +67,8 @@ CommonMark 는 강조 구분자로 `*` 와 `_` 를 **대등하게** 규정한다
   - `grep -nE "inlineParsing\(parsed" src/common/markdownParser.ts` → 3 hits in 1 file: `:513` (`"**"`, strong) · `:514` (`"~~"`, del) · `:518` (`"*"`, em, `strictFlanking=true`). 밑줄 구분자 등록 **0 hit**.
   - `grep -cF "밑줄 강조" src/common/markdownParser.test.ts` → **0**. `grep -cF "단어 안의 밑줄은 강조가 아니다" …` → **0**. 두 계약 이름 모두 미존재 — 신설 대상이다.
   - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **66**. 제외 규칙: `it(` 로 시작하는 줄만 계수하며 `describe`·주석·중첩 표기는 세지 않는다. 이 66건 중 밑줄 강조를 다루는 것은 0건이고, `_` 가 등장하는 곳은 전부 §동작 (I4) 의 보호 축이다.
+
+  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **66** 을 세지만 `npx vitest run` 은 **80 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `66` 은 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 80** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
   - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경):
     | 입력 | 현 산출 | 계약 |
     |---|---|---|
@@ -84,7 +86,7 @@ CommonMark 는 강조 구분자로 `*` 와 `_` 를 **대등하게** 규정한다
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
-| 2026-08-31 | inspector (Phase 3, REQ-20260831-051 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — 강조 구분자 대등성 6 축 (I1~I6). 신규 spec 으로 세운 근거: `markdownParser.md` 는 §역할 에서 "markdownParser 의 다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 명시적 범위 밖으로 선언하며, 강조 구분자 축 언급이 0건이다. baseline: 등록 3 hit 전부 `*`·`~` 계열 / `_` 등록 0 hit / 계약 이름 2건 0 hit / 66 it 중 밑줄 강조 0건 / 현 산출·보존 축 9건 격리 사본 실측. unchecked 3 · checked 4. | all |
+| 2026-08-31 | inspector (Phase 3, REQ-20260831-051 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — 강조 구분자 대등성 6 축 (I1~I6). 신규 spec 으로 세운 근거: `markdownParser.md` 는 §역할 에서 "markdownParser 의 다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 명시적 범위 밖으로 선언하며, 강조 구분자 축 언급이 0건이다. baseline: 등록 3 hit 전부 `*`·`~` 계열 / `_` 등록 0 hit / 계약 이름 2건 0 hit / 선언 66 it(실행 80 tests) 중 밑줄 강조 0건 / 현 산출·보존 축 9건 격리 사본 실측. unchecked 3 · checked 4. | all |
 
 ## 참고
 

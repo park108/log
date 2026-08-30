@@ -44,12 +44,12 @@ ATX 제목을 `## 제목 ##` 처럼 양쪽에 `#` 을 두어 쓸 때, 닫는 `#`
 - [ ] (I1·I2·I4) 닫는 시퀀스 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "제목의 닫는 # 은 제목 글자가 아니다" >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 **rc=1 (미충족)**. `grep -cF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts` → **0**.
 - [ ] (I3) 내용인 `#` 대조가 게이트로 실재하고 초록이다: `bash -c 'grep -qF "앞에 공백이 없는 줄 끝 # 은 내용이다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "앞에 공백이 없는 줄 끝 # 은 내용이다" >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 **rc=1 (미충족)**. **이 대조가 없으면 줄 끝 `#` 을 무조건 지우는 구현도 (I1) 을 통과하며, 그 구현은 `C#`·`F#` 을 잘라 낸다.**
 - [x] (원인 실재) 제목 패스가 줄 끝까지 통째로 담는다: `bash -c 'grep -qF "text: node.text.substring(i + 1), closure: \"header\"" src/common/markdownParser.ts'` → HEAD=`b1cbf5c` 실측 rc=0 (`markdownParser.ts:306`). 닫는 시퀀스가 제목에 남는 직접 원인이며, 이 항목은 **원인의 실재**를 재는 것이지 계약을 재는 것이 아니다.
-- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (**66 it**). 구현 후에도 rc=0 이어야 한다.
+- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (**80 tests**). 구현 후에도 rc=0 이어야 한다.
 
 ## 수용 기준
 - [ ] (Must, FR-01·FR-02·FR-04) 위 §테스트 현황 (I1·I2·I4) 명령 → rc=0.
 - [ ] (Must, FR-03) 위 §테스트 현황 (I3) 명령 → rc=0.
-- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`b1cbf5c` 실측 rc=0 (66 it). 특히 기존 유일 제목 게이트 `markdownParser.test.ts:11` (`"# Header"` → `<h1>Header</h1>`) 이 그대로 통과해야 한다 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`b1cbf5c` 실측 rc=0 (80 tests). 특히 기존 유일 제목 게이트 `markdownParser.test.ts:11` (`"# Header"` → `<h1>Header</h1>`) 이 그대로 통과해야 한다 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
 - [x] (Must, 기존 게이트 실재) 제목 단언이 실재한다: `bash -c 'grep -qF "<h1>Header</h1>" src/common/markdownParser.test.ts'` → HEAD=`b1cbf5c` 실측 rc=0 (`:11`).
 - [x] (Must, 범위 제한) 여는 `#` 앞 들여쓰기 · 빈 제목 · setext · 제목 스타일·앵커는 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
@@ -59,6 +59,8 @@ ATX 제목을 `## 제목 ##` 처럼 양쪽에 `#` 을 두어 쓸 때, 닫는 `#`
   - `grep -cF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts` → **0**. `grep -cF "앞에 공백이 없는 줄 끝 # 은 내용이다" …` → **0**. 두 계약 이름 모두 미존재 — 신설 대상이다.
   - `grep -nF "text: node.text.substring(i + 1), closure: \"header\"" src/common/markdownParser.ts` → 1 hit `:306`. 닫는 시퀀스가 제목에 남는 직접 원인.
   - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **66**. 그중 제목 단언은 `:11` **하나**뿐이며 닫는 시퀀스를 다루는 것은 0건이다. 제외 규칙: `it(` 로 시작하는 줄만 계수.
+
+  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **66** 을 세지만 `npx vitest run` 은 **80 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `66` 은 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 80** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
   - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경):
     | 입력 | 현 산출 | 판정 |
     |---|---|---|
@@ -74,7 +76,7 @@ ATX 제목을 `## 제목 ##` 처럼 양쪽에 `#` 을 두어 쓸 때, 닫는 `#`
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
-| 2026-08-31 | inspector (Phase 3, REQ-20260831-054 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — ATX 제목 닫는 시퀀스 6 축 (I1~I6). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며 제목 축 언급이 0건이다. 테스트 이름은 req 의 `샵` 우회 표기 대신 `#` 을 그대로 쓰는 형태로 확정 — 격리 사본 실측으로 `grep -qF`·`-t` 양쪽 정상 동작 확인 (§스코프 규칙 §테스트 이름 확정 근거). baseline: 계약 이름 2건 0 hit / 66 it 중 제목 단언 `:11` 하나 / 원인 `:306` 1 hit / 현 산출 6행 격리 사본 실측 (위반 3 · 보존 3). unchecked 2 · checked 3. | all |
+| 2026-08-31 | inspector (Phase 3, REQ-20260831-054 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — ATX 제목 닫는 시퀀스 6 축 (I1~I6). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며 제목 축 언급이 0건이다. 테스트 이름은 req 의 `샵` 우회 표기 대신 `#` 을 그대로 쓰는 형태로 확정 — 격리 사본 실측으로 `grep -qF`·`-t` 양쪽 정상 동작 확인 (§스코프 규칙 §테스트 이름 확정 근거). baseline: 계약 이름 2건 0 hit / 선언 66 it(실행 80 tests) 중 제목 단언 `:11` 하나 / 원인 `:306` 1 hit / 현 산출 6행 격리 사본 실측 (위반 3 · 보존 3). unchecked 2 · checked 3. | all |
 
 ## 참고
 
