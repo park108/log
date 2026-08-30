@@ -18,6 +18,15 @@ interface CommentFormProps {
 	post: (comment: CommentSubmitPayload) => void;
 	isPosting?: boolean;
 	isReply?: boolean;
+	/**
+	 * **성공한 전송의 세대 번호.** 부모가 성공했을 때만 올린다.
+	 *
+	 * 이 폼은 전송 결과를 모른다. 그래서 `isPosting` 이 내려가는 것을 완료
+	 * 신호로 쓰고 있었는데, 그 신호는 **실패해도 내려간다** — 실측: 전송이
+	 * 실패하면 공들여 쓴 댓글이 `""` 가 됐고 사용자는 처음부터 다시 써야 했다.
+	 * 성공만 가리키는 신호를 따로 받는다.
+	 */
+	postedGeneration?: number;
 }
 
 const CommentForm = (props: CommentFormProps): React.ReactElement => {
@@ -25,7 +34,6 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 	const [message, setMessage] = useState<string>("");
 	const [userName, setUserName] = useState<string>("");
 	const [isHidden, setIsHidden] = useState<boolean>(false);
-	const [messageDisabled, setMessageDisabled] = useState<string>("");
 
 	const logTimestamp = props.logTimestamp;
 	const commentTimestamp = props.commentTimestamp;
@@ -79,15 +87,16 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 		}
 	}, []);
 
+	// 성공했을 때만 비운다. 실패는 사용자가 쓴 것을 지울 이유가 되지 못한다.
+	//
+	// 숨김 체크도 함께 되돌린다. 체크박스가 uncontrolled 라 상태와 DOM 이 각자
+	// 남아 있었고, 한 번 숨김으로 올린 뒤에는 **다음 댓글도 숨김으로 나갔다**
+	// (실측: 두 번째 전송의 isHidden 이 true). 체크한 적이 없는 사람은 자기 글이
+	// 안 보이는 이유를 알 수 없다.
 	useEffect(() => {
-		if(props.isPosting) {
-			setMessageDisabled("disabled");
-		}
-		else {
-			setMessageDisabled("");
-			setMessage("");
-		}
-	}, [props.isPosting]);
+		setMessage("");
+		setIsHidden(false);
+	}, [props.postedGeneration]);
 
 	return (
 		<form onSubmit={postComment} className={`form ${styles.formCommentInput}`}>
@@ -111,7 +120,7 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 				placeholder={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
 				aria-label={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
 				value={message}
-				disabled={messageDisabled === "disabled"}
+				disabled={Boolean(props.isPosting)}
 				onChange={ ({ target: { value } }: ChangeEvent<HTMLTextAreaElement>) => setMessage(value) }
 			/>
 			<div className={`div ${styles.divCommentInputhidden}`}>
@@ -119,6 +128,7 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 					type="checkbox"
 					id={hiddenCheckboxId}
 					className={`input ${styles.inputCommentHidden}`}
+					checked={isHidden}
 					onChange={ ({ target: { checked } }: ChangeEvent<HTMLInputElement>) => setIsHidden(checked) }
 				/>
 				<label htmlFor={hiddenCheckboxId} className={`label ${styles.labelCommentHidden}`}>

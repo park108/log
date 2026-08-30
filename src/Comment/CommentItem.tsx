@@ -1,4 +1,4 @@
-import React, { useState, lazy } from "react";
+import React, { useState, useEffect, lazy } from "react";
 import { hasValue, getFormattedDate, getFormattedTime, isAdmin } from '../common/common';
 import { useHoverPopup } from '../common/useHoverPopup';
 import { activateOnKey } from '../common/a11y';
@@ -26,6 +26,8 @@ interface CommentItemProps {
 	timestamp: number;
 	openReplyForm: (isOpened: boolean) => void;
 	reply: (comment: CommentReplyPayload) => void;
+	/** 성공한 전송의 세대 번호 — 성공했을 때만 올라간다 (`Comment.tsx`). */
+	postedGeneration?: number;
 }
 
 const CommentItem = (props: CommentItemProps): React.ReactElement => {
@@ -49,10 +51,21 @@ const CommentItem = (props: CommentItemProps): React.ReactElement => {
 		props.openReplyForm(!isShowReplyForm);
 	}
 
+	// 보내기만 하고 닫지 않는다. 구 구현은 곧바로 닫아, 전송이 실패하면 사용자가
+	// 쓴 답글이 결과를 보기도 전에 사라졌다 (`props.reply` 는 비동기이고 결과를
+	// 돌려주지 않는다). 닫는 것은 성공 신호가 왔을 때다 (아래 effect).
 	const postReply = (comment: CommentReplyPayload): void => {
 		props.reply(comment);
-		setIsShowReplyForm(false);
 	}
+
+	const postedGeneration = props.postedGeneration;
+	const openReplyForm = props.openReplyForm;
+	useEffect(() => {
+		setIsShowReplyForm(false);
+		openReplyForm(false);
+		// 세대가 오를 때만 닫는다 — 최초 렌더의 0 도 함께 지나가지만 그때는 이미 닫혀 있다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [postedGeneration]);
 
 	const isReply = hasValue(commentTimestamp);
 

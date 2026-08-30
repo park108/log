@@ -111,25 +111,93 @@ describe('CommentForm admin branch', () => {
 
 describe('CommentForm posting state', () => {
 
-	it('disables the inputs while posting and clears the message once posting ends', () => {
+	// 이 테스트는 "전송이 끝나면 본문을 비운다" 를 못 박고 있었다. 그런데 이 폼은
+	// 전송 **결과**를 모른다 — `isPosting` 은 실패해도 내려간다. 그래서 전송이
+	// 실패하면 공들여 쓴 댓글이 사라졌다 (실측: 실패 후 본문 ""). 비우는 신호를
+	// 성공 전용(`postedGeneration`)으로 옮겼으므로 계약을 사실에 맞게 고쳐 적는다.
+	it('disables the inputs while posting and re-enables them without clearing', () => {
 		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
 		const post = vi.fn();
 
-		const { rerender } = render(<CommentForm logTimestamp={1655302060414} post={post} isPosting={false} />);
+		const { rerender } = render(<CommentForm logTimestamp={1655302060414} post={post} isPosting={false} postedGeneration={0} />);
 
 		fireEvent.change(screen.getByPlaceholderText('Type your name'), { target: { value: 'Tester' } });
 		fireEvent.change(screen.getByPlaceholderText('Write your comment'), { target: { value: 'Hello there' } });
 		expect(screen.getByPlaceholderText('Write your comment')).toHaveValue('Hello there');
 
-		rerender(<CommentForm logTimestamp={1655302060414} post={post} isPosting={true} />);
+		rerender(<CommentForm logTimestamp={1655302060414} post={post} isPosting={true} postedGeneration={0} />);
 
 		expect(screen.getByPlaceholderText('Write your comment')).toBeDisabled();
 		expect(screen.getByPlaceholderText('Type your name')).toBeDisabled();
 
-		rerender(<CommentForm logTimestamp={1655302060414} post={post} isPosting={false} />);
+		rerender(<CommentForm logTimestamp={1655302060414} post={post} isPosting={false} postedGeneration={0} />);
 
 		expect(screen.getByPlaceholderText('Write your comment')).toBeEnabled();
-		expect(screen.getByPlaceholderText('Write your comment')).toHaveValue('');
+		expect(screen.getByPlaceholderText('Write your comment')).toHaveValue('Hello there');
+	});
+});
+
+// 이 폼은 전송 결과를 모른다. `isPosting` 이 내려가는 것을 완료 신호로 쓰면
+// **실패해도** 비워진다 — 실측: 전송 실패 후 본문이 "" 가 됐고 사용자는 처음부터
+// 다시 써야 했다. 성공만 가리키는 신호(`postedGeneration`)를 따로 받는다.
+describe('CommentForm 성공 신호', () => {
+
+	const nameBox = () => screen.getByPlaceholderText('Type your name');
+	const bodyBox = () => screen.getByPlaceholderText('Write your comment');
+	const hiddenBox = () => document.querySelector('input[type="checkbox"]') as HTMLInputElement;
+
+	const fill = () => {
+		fireEvent.change(nameBox(), { target: { value: '홍길동' } });
+		fireEvent.change(bodyBox(), { target: { value: '공들여 쓴 긴 댓글입니다' } });
+		fireEvent.click(hiddenBox());
+	};
+
+	it('실패하면 쓴 글과 숨김 선택이 남는다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+
+		const { rerender } = render(<CommentForm logTimestamp={1} post={vi.fn()} isPosting={false} postedGeneration={3} />);
+		fill();
+
+		// 전송 중 → 실패 (세대는 그대로)
+		rerender(<CommentForm logTimestamp={1} post={vi.fn()} isPosting={true} postedGeneration={3} />);
+		rerender(<CommentForm logTimestamp={1} post={vi.fn()} isPosting={false} postedGeneration={3} />);
+
+		expect(bodyBox()).toHaveValue('공들여 쓴 긴 댓글입니다');
+		expect(hiddenBox().checked).toBe(true);
+	});
+
+	it('성공하면 쓴 글과 숨김 선택이 모두 비워진다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+
+		const { rerender } = render(<CommentForm logTimestamp={1} post={vi.fn()} isPosting={false} postedGeneration={3} />);
+		fill();
+
+		// 전송 중 → 성공 (세대가 오른다)
+		rerender(<CommentForm logTimestamp={1} post={vi.fn()} isPosting={true} postedGeneration={3} />);
+		rerender(<CommentForm logTimestamp={1} post={vi.fn()} isPosting={false} postedGeneration={4} />);
+
+		expect(bodyBox()).toHaveValue('');
+		expect(hiddenBox().checked).toBe(false);
+	});
+
+	// 숨김 체크박스가 uncontrolled 이던 동안, 한 번 숨김으로 올린 뒤에는 **다음
+	// 댓글도 숨김으로 나갔다** (실측: 두 번째 전송의 isHidden 이 true). 체크한
+	// 적이 없는 사람은 자기 글이 안 보이는 이유를 알 수 없다.
+	it('성공 뒤 다음 댓글은 숨김으로 나가지 않는다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		const post = vi.fn();
+
+		const { rerender } = render(<CommentForm logTimestamp={1} post={post} isPosting={false} postedGeneration={0} />);
+		fill();
+		fireEvent.submit(bodyBox().closest('form') as HTMLFormElement);
+		expect(post).toHaveBeenLastCalledWith(expect.objectContaining({ isHidden: true }));
+
+		rerender(<CommentForm logTimestamp={1} post={post} isPosting={false} postedGeneration={1} />);
+
+		fireEvent.change(bodyBox(), { target: { value: '두 번째 댓글입니다' } });
+		fireEvent.submit(bodyBox().closest('form') as HTMLFormElement);
+
+		expect(post).toHaveBeenLastCalledWith(expect.objectContaining({ isHidden: false }));
 	});
 });
 

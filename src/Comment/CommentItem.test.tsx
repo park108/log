@@ -194,3 +194,59 @@ describe('CommentItem a11y 패턴 B (REQ-20260421-033 FR-03) — M8 reply-toggle
 		expect(spaceEvent).toBe(false);
 	});
 });
+
+// 답글 폼은 `props.reply(comment)` 를 부르고 **곧바로 닫혔다**. 그 함수는
+// 비동기이고 결과를 돌려주지 않으므로, 전송이 실패하면 사용자가 쓴 답글이
+// 결과를 보기도 전에 사라졌다. 닫는 것은 성공 신호(`postedGeneration`)가
+// 올랐을 때다.
+describe('CommentItem 답글 폼은 성공에만 닫힌다', () => {
+
+	const baseProps = {
+		isHidden: false,
+		isAdminComment: false,
+		message: '원 댓글',
+		name: '작성자',
+		logTimestamp: 1,
+		timestamp: 2,
+		openReplyForm: () => {},
+		reply: () => {},
+	};
+
+	const replyToggle = () => screen.getByTestId('reply-toggle-button');
+	const replyBody = () => document.querySelector('textarea');
+
+	const openReply = async () => {
+		await act(async () => { fireEvent.click(replyToggle()); });
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+	};
+
+	it('전송해도 세대가 오르지 않으면 폼이 열려 있다', async () => {
+
+		const { rerender } = render(<CommentItem {...baseProps} postedGeneration={5} />);
+
+		await openReply();
+		expect(replyBody()).not.toBeNull();
+
+		fireEvent.change(replyBody() as HTMLTextAreaElement, { target: { value: '공들여 쓴 답글입니다' } });
+		fireEvent.change(document.querySelector('input[type="text"]') as HTMLInputElement, { target: { value: '홍길동' } });
+		await act(async () => { fireEvent.submit((replyBody() as HTMLTextAreaElement).closest('form') as HTMLFormElement); });
+
+		// 실패 — 세대 그대로
+		rerender(<CommentItem {...baseProps} postedGeneration={5} />);
+
+		expect(replyBody()).not.toBeNull();
+		expect(replyBody()).toHaveValue('공들여 쓴 답글입니다');
+	});
+
+	it('세대가 오르면 폼이 닫힌다', async () => {
+
+		const { rerender } = render(<CommentItem {...baseProps} postedGeneration={5} />);
+
+		await openReply();
+		expect(replyBody()).not.toBeNull();
+
+		rerender(<CommentItem {...baseProps} postedGeneration={6} />);
+
+		expect(replyBody()).toBeNull();
+	});
+});

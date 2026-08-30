@@ -44,6 +44,14 @@ const Comment = (props: CommentProps): React.ReactElement => {
 	const [isOpenReplyForm, setIsOpenReplyForm] = useState<boolean>(false);
 	const [isPosting, setIsPosting] = useState<boolean>(false);
 
+	// **성공한 전송의 세대 번호.** 성공했을 때만 올린다.
+	//
+	// 폼과 답글 폼은 전송 결과를 모른다. 그래서 `isPosting` 이 내려가는 것을
+	// 완료 신호로 쓰고 있었는데 그 신호는 실패해도 내려간다 — 실측: 전송이
+	// 실패하면 본문이 비워졌고(`""`), 답글 폼은 결과를 보기도 전에 닫혔다.
+	// 성공만 가리키는 신호를 하나 두어 두 곳이 함께 쓴다.
+	const [postedGeneration, setPostedGeneration] = useState<number>(0);
+
 	const [comments, setComments] = useState<CommentItemData[]>([]);
 	const [buttonText, setButtonText] = useState<string>("... comments");
 	const [commentThread, setCommentThread] = useState<ReactNode>("");
@@ -85,6 +93,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 
 			if(200 === status.statusCode) {
 				log("[API POST] OK - Comment", "SUCCESS");
+				setPostedGeneration(previous => previous + 1);
 				setReload(true);
 				setToasterMessage("The comment posted.");
 				setToasterType("success");
@@ -210,6 +219,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 								commentTimestamp={data.commentTimestamp}
 								timestamp={data.timestamp}
 								isHidden={data.isHidden}
+								postedGeneration={postedGeneration}
 								openReplyForm={(isOpened: boolean) => {
 									setIsOpenReplyForm(isOpened);
 								}}
@@ -224,7 +234,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 			setCommentThread("");
 		}
 
-	}, [isShow, comments, logTimestamp]);
+	}, [isShow, comments, logTimestamp, postedGeneration]);
 
 	useEffect(() => {
 
@@ -235,6 +245,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 						logTimestamp={logTimestamp}
 						post={postNewComment as (comment: { logTimestamp?: number; isAdminComment: boolean; message: string; name: string; commentTimestamp?: number; isHidden: boolean }) => void}
 						isPosting={isPosting}
+						postedGeneration={postedGeneration}
 					/>
 				</Suspense>
 			);
@@ -242,7 +253,7 @@ const Comment = (props: CommentProps): React.ReactElement => {
 		else {
 			setCommentForm("");
 		}
-	}, [isShow, isOpenReplyForm, isPosting, logTimestamp]);
+	}, [isShow, isOpenReplyForm, isPosting, logTimestamp, postedGeneration]);
 
 	const toggleShow = (): void => setIsShow(!isShow);
 
