@@ -423,3 +423,47 @@ describe('showActions — 지난 판본에는 조작부를 그리지 않는다',
 		expect(container.querySelector('.span--logitem-separator')).toBeNull();
 	});
 });
+
+// Edit 는 `state.from` 으로 글 전체를 넘기고, Writer 는 그 형상으로 수정/새 글을
+// 가른다. `item` 이 없으면 `from` 도 undefined 라 Writer 가 새 글 모드로 열리고,
+// 그대로 저장하면 수정이 아니라 중복 글이 된다 (실측: from=undefined).
+describe('LogItemInfo 수정 링크의 대상', () => {
+
+	const withItem = {
+		author: 'park108@gmail.com',
+		timestamp: 1656034616036,
+		logs: [{ contents: '본문', timestamp: 1656034616036 }],
+	};
+
+	const renderInfo = (item: unknown) => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(common, 'isLoggedIn').mockReturnValue(true);
+		return render(
+			<MemoryRouter>
+				<LogItemInfo item={item as never} timestamp={1656034616036} showLink={true} delete={() => {}} />
+			</MemoryRouter>
+		);
+	};
+
+	it('대상이 없으면 수정 링크를 내지 않는다', () => {
+
+		const { container } = renderInfo(undefined);
+
+		expect(screen.queryByTestId('edit-button')).toBeNull();
+		// 아무것도 가르지 않는 구분선이 남으면 안 된다. 시각과 Delete 사이의 선
+		// 하나는 정당하다 — 겨누는 것은 **연달아 붙은** 선이다.
+		const toolbar = container.querySelector('.div--logitem-toolbar');
+		expect((toolbar?.textContent ?? '').replace(/\s/g, '')).not.toContain('||');
+	});
+
+	// 대조 — 대상이 있으면 링크가 그 글을 싣는다. 없으면 "언제나 숨김" 구현도 통과한다.
+	it('대상이 있으면 그 글을 실어 보낸다', () => {
+
+		renderInfo(withItem);
+
+		const edit = screen.getByTestId('edit-button');
+		expect(edit).toBeInTheDocument();
+		// Link 는 anchor 로 렌더된다 — 수정 경로를 가리켜야 한다.
+		expect(edit.closest('a')?.getAttribute('href')).toBe('/log/write');
+	});
+});

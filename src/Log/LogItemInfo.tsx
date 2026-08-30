@@ -134,20 +134,33 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 								) }
 							</span> : ""
 						}
-						<span className="span span--logitem-separator">|</span>
+						{/* 이 구분선은 versions 트리거의 것이다 — 트리거가 없으면 함께
+						    감춘다. 남기면 아무것도 가르지 않는 선이 남는다 (실측:
+						    `item` 없을 때 "10:36:56||Delete"). */}
+						{ item && <span className="span span--logitem-separator">|</span> }
 					</span>
 					{/* 조작부는 anchor(Link) 자신이다. 자식 span 이 role="button" 을 달면
 					    anchor 의 link role 과 충돌해 보조기술에 두 겹으로 읽힌다 — span 은
 					    표기 래퍼로 둔다. */}
-					<Link to="/log/write" state={{from: item}}>
-						<span
-							data-testid="edit-button"
-							className="span span--logitem-toolbarmenu"
-						>
-							Edit
-						</span>
-					</Link>
-					<span className="span span--logitem-separator">|</span>
+					{/* `item` 이 없으면 수정할 대상이 없다.
+					    이 링크는 `state.from` 으로 글 전체를 넘기고, Writer 는 그 형상으로
+					    수정/새 글을 가른다. `item` 이 undefined 면 `from` 도 undefined 라
+					    Writer 가 **새 글 모드**로 열리고, 그대로 저장하면 수정이 아니라
+					    중복 글이 된다 (실측: from=undefined logs=없음).
+					    바로 위 versions 트리거가 이미 같은 가드를 쓴다 — 맞춘다.
+					    뒤따르는 구분선도 함께 감춘다. 남기면 아무것도 가르지 않는
+					    선이 Delete 앞에 남는다. */}
+					{ item && (<>
+						<Link to="/log/write" state={{from: item}}>
+							<span
+								data-testid="edit-button"
+								className="span span--logitem-toolbarmenu"
+							>
+								Edit
+							</span>
+						</Link>
+						<span className="span span--logitem-separator">|</span>
+					</>) }
 					<button
 						type="button"
 						data-testid="delete-button"
