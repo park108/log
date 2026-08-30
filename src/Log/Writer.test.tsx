@@ -19,6 +19,22 @@ import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 // recorder 가 off 인 동안 동작·setter identity 는 원본과 동일하다 (identity 는 Map 으로 고정).
 const setterRecorder = vi.hoisted(() => ({ on: false, calls: 0 }));
 
+// 이력 재계산 계수기. `markChangedLines` 는 이력 블록에서만 쓰이므로, 타자마다
+// 이력이 다시 계산되는지를 이 호출 수로 직접 잰다. 실제 구현을 그대로 감싸므로
+// 동작은 원본과 같다.
+const diffRecorder = vi.hoisted(() => ({ calls: 0 }));
+
+vi.mock('./diffContents', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('./diffContents')>();
+	return {
+		...actual,
+		markChangedLines: (...args: Parameters<typeof actual.markChangedLines>) => {
+			diffRecorder.calls += 1;
+			return actual.markChangedLines(...args);
+		},
+	};
+});
+
 vi.mock('react', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('react') & { default: Record<string, unknown> }>();
 	const wrapped = new Map();
@@ -787,5 +803,58 @@ describe('Writer 짧은 글로 한 번 막힌 뒤', () => {
 
 		const resultMessage = await screen.findByText("The log posted.");
 		expect(resultMessage).toBeDefined();
+	});
+});
+
+// 이력은 historyData 에만 의존하는데 타자 한 번마다 판본 전부를 다시
+// diff → 파싱 → sanitize 했다. 실측(jsdom): 판본 5개 36ms · 15개 103ms ·
+// 30개 265ms — 한 글자 칠 때마다다. 판본이 쌓인 글은 편집기가 눈에 띄게 밀린다.
+describe('Writer 이력 재계산', () => {
+	useMockServer(() => mock.devServerOk);
+
+	it('타자를 쳐도 이력을 다시 계산하지 않는다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
+		vi.spyOn(common, "isAdmin").mockReturnValue(true);
+		vi.spyOn(common, "setFullscreen").mockResolvedValue(undefined);
+
+		const testEntry = {
+			pathname: "/log/write",
+			state: {
+				from: {
+					author: "park108@gmail.com",
+					timestamp: 1234567890,
+					temporary: false,
+					logs: [
+						{ contents: "세 번째 판본이다.", timestamp: 1655737033793 },
+						{ contents: "두 번째 판본이다.", timestamp: 1655736946977 },
+						{ contents: "첫 번째 판본이다.", timestamp: 1655736900000 },
+					],
+				},
+			},
+		};
+
+		render(withQuery(
+			<div id="root" className="div fullscreen">
+				<MemoryRouter initialEntries={[testEntry]}>
+					<Writer />
+				</MemoryRouter>
+			</div>
+		));
+
+		const textInput = await screen.findByTestId("writer-text-area");
+		await waitFor(() => expect(diffRecorder.calls).toBeGreaterThan(0));
+
+		const afterFirstRender = diffRecorder.calls;
+
+		for (const value of ["가", "가나", "가나다", "가나다라"]) {
+			fireEvent.change(textInput, { target: { value } });
+		}
+		await waitFor(() => expect((textInput as HTMLTextAreaElement).value).toBe("가나다라"));
+
+		// 이전에는 타자마다 판본 수만큼 늘었다.
+		expect(diffRecorder.calls).toBe(afterFirstRender);
 	});
 });
