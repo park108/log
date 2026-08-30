@@ -48,16 +48,55 @@ describe('set HTML page title', () => {
 		common.setHtmlTitle("test");
 		expect(document.title).toBe("test - park108.net");
 	});
+
+	// 개발도 운영도 아닌 모드(테스트 실행 환경이 그렇다)에서는 제목을 건드리지
+	// 않는다. 이 갈래를 아무도 결정적으로 덮지 않아, 실행 순서에 따라 우연히
+	// 덮이거나 말거나 했다 — `coverage-order-independence-full` 이 그 진동을
+	// `common.ts:7` 로 특정했다.
+	it("개발도 운영도 아니면 제목을 건드리지 않는다", () => {
+		stubMode('test');
+		document.title = "그대로 두어야 한다";
+		common.setHtmlTitle("무시되어야 한다");
+		expect(document.title).toBe("그대로 두어야 한다");
+	});
 });
 
 describe('set HTML page meta description', () => {
 
-	const mockingMetaTags = document.createElement('meta');
-    mockingMetaTags.setAttribute('name', 'description');
-    document.head.appendChild(mockingMetaTags); 
-  
-	it("render meta description", () => {
-		common.setMetaDescription("Test Descsription");
+	const META_SELECTOR = 'meta[name="description"]';
+
+	// 예전에는 파일 최상위에서 meta 를 한 번 붙였다. 그러면 "meta 가 없는 경우" 를
+	// 이 파일에서는 영영 덮을 수 없고, 다른 파일이 우연히 먼저 돌 때만 덮인다 —
+	// `coverage-order-independence-full` 이 그 진동을 `common.ts:18` 로 특정했다.
+	// 매 케이스마다 상태를 세우고 훅에서 되돈다.
+	const addMeta = (): HTMLMetaElement => {
+		const meta = document.createElement('meta');
+		meta.setAttribute('name', 'description');
+		document.head.appendChild(meta);
+		return meta;
+	};
+
+	afterEach(() => {
+		document.querySelector(META_SELECTOR)?.remove();
+	});
+
+	// 구 테스트는 함수를 부르기만 하고 아무것도 단언하지 않았다.
+	it("meta 요소가 있으면 내용을 채운다", () => {
+		const meta = addMeta();
+		common.setMetaDescription("Test Description");
+		expect(meta.content).toBe("Test Description");
+	});
+
+	it("인자가 없으면 사이트 기본 설명을 쓴다", () => {
+		const meta = addMeta();
+		common.setMetaDescription();
+		expect(meta.content).toContain("personal journal");
+	});
+
+	it("meta 요소가 없으면 아무것도 하지 않는다", () => {
+		expect(document.querySelector(META_SELECTOR)).toBeNull();
+		expect(() => common.setMetaDescription("무시")).not.toThrow();
+		expect(document.querySelector(META_SELECTOR)).toBeNull();
 	});
 });
 
