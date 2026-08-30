@@ -96,6 +96,10 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 				type="text"
 				className={`input ${styles.inputCommentName}`}
 				placeholder="Type your name"
+				// placeholder 는 접근 이름이 되지 못한다 — 실측: 이 칸의 접근 이름이 "" 였다.
+				// 낭독기는 무엇을 넣는 칸인지 알리지 못하고, 입력이 시작되면 화면에서도 사라진다.
+				// 이름은 보이는 문구와 같게 둔다 (WCAG 2.5.3 Label in Name).
+				aria-label="Type your name"
 				onChange={ ({ target: { value } }: ChangeEvent<HTMLInputElement>) => setUserName(value) }
 				value={userName}
 				disabled={ Boolean(isAdmin() || props.isPosting) }
@@ -105,6 +109,7 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 				ref={messageRef}
 				className={`textarea ${styles.textareaCommentForm}`}
 				placeholder={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
+				aria-label={hasValue(commentTimestamp) ? "Write your Reply" : "Write your comment"}
 				value={message}
 				disabled={messageDisabled === "disabled"}
 				onChange={ ({ target: { value } }: ChangeEvent<HTMLTextAreaElement>) => setMessage(value) }

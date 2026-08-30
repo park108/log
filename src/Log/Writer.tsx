@@ -390,6 +390,8 @@ const Writer = () => {
 						value={article}
 						onChange={handleChange}
 						placeholder="Take your note in markdown"
+						// placeholder 만으로는 접근 이름이 서지 않는다 (실측 "").
+						aria-label="Take your note in markdown"
 						rows={rows}
 						data-min-rows="1"
 						disabled={ isProcessing }

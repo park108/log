@@ -229,3 +229,26 @@ describe('CommentForm 공백만 입력', () => {
 		expect(post).toHaveBeenCalledTimes(1);
 	});
 });
+
+// 정적 게이트(`__tests__/form-control-accessible-name`)는 속성이 있는지만 본다.
+// 실제로 이름이 계산되는지는 접근성 트리에서 확인한다 — 실측으로 이 두 칸의
+// 접근 이름이 "" 였다.
+describe('CommentForm 접근 이름', () => {
+
+	it('이름 칸과 본문 칸이 접근 이름을 갖는다', () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		render(<CommentForm post={() => {}} />);
+
+		expect(screen.getByRole('textbox', { name: 'Type your name' })).toBeInTheDocument();
+		expect(screen.getByRole('textbox', { name: 'Write your comment' })).toBeInTheDocument();
+	});
+
+	it('답글일 때는 답글 문구로 이름이 선다', () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+		render(<CommentForm post={() => {}} isReply={true} commentTimestamp={1656034616036} />);
+
+		expect(screen.getByRole('textbox', { name: 'Write your Reply' })).toBeInTheDocument();
+	});
+});

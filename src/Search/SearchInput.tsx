@@ -88,6 +88,7 @@ const SearchIcon = (): React.ReactElement => (
 						id="query-string-by-enter"
 						className={`input ${styles.inputSearchString}`}
 						placeholder="Input search string..."
+						aria-label="Input search string..."
 						value={ queryString }
 						onKeyUp={ handleKeyUp }
 						onChange={ e => setQueryString(e.target.value) }
@@ -110,6 +111,7 @@ const SearchIcon = (): React.ReactElement => (
 						id="query-string-by-button"
 						className={`input ${styles.inputSearchMobile} show--width-400px`}
 						placeholder="Input search string..."
+						aria-label="Input search string..."
 						value={ queryString }
 						onKeyUp={ handleKeyUp }
 						onChange={ e => setQueryString(e.target.value) }
@@ -134,6 +136,7 @@ const SearchIcon = (): React.ReactElement => (
 						id="query-string-by-enter"
 						className={`input ${styles.inputSearchString}`}
 						placeholder="Input search string..."
+						aria-label="Input search string..."
 						value={ queryString }
 						onKeyUp={ handleKeyUp }
 						onChange={ e => setQueryString(e.target.value) }
