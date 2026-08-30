@@ -2,11 +2,11 @@
 
 > **위치**: `src/File/` (File.tsx, FileItem.tsx, FileDrop.tsx, FileUpload.tsx, api.ts, api.mock.ts, File.css)
 > **관련 요구사항**: REQ-20260517-092 (FileUpload setTimeout cleanup 불변식) · REQ-20260831-048 FR-03·FR-05·NFR-01 (첫 조회 실패의 관측 표면과 재시도 경로 — 부분 흡수, §참고 §REQ-048 부분 흡수 판정).
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-048 부분 흡수 / blue→green 복사 후 §동작 8 추가).
+> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile, HEAD=`b1cbf5c`).
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 박제 시점 스냅샷 (REQ-092 분 HEAD=`cac6fa2`, REQ-048 분 HEAD=`643be56`).
 
-> **측정 HEAD 주석**: 본 흡수 tick 중 외부 writer 가 `58d65a7` (업로드 절차 단일화 — `FileDrop.tsx` · `FileUpload.tsx` · 신규 `uploadFile.ts`) 를 커밋해 HEAD 가 `643be56` → `3398833` 로 이동했다. `git diff --stat 643be56..HEAD -- src/File/File.tsx src/File/File.test.tsx` 는 **공집합**이므로 REQ-048 분 수용 기준의 rc 는 그대로 유효하다. REQ-092 분 baseline 은 라인 번호만 이동해 위에 재실측을 병기했다. 다른 writer 의 변경은 읽기만 했다 (`RULE-02 §교차 작업 파괴`).
+> **측정 기준**: 본 문서의 REQ-048 분 rc 는 전부 HEAD=`b1cbf5c` 에서 재실행한 결과다 (`8b95ae5` = `TSK-20260831-03` 이후). REQ-092 분은 `7b15126` 회복 시점 박제에 HEAD=`b1cbf5c` 재실측을 병기했다.
 
 ## 역할
 `/file` 페이지의 루트 셸. 관리자 전용 (`isAdmin()` 가 false 면 `/log` 로 `navigate`). 데스크탑에서는 `FileDrop` (드래그&드롭), 모바일(`isMobile()` true, 터치 환경) 에서는 `FileUpload` (파일 선택 input) 를 노출한다. S3 메타데이터(`api.getFiles` · `getNextFiles`) 를 커서 기반으로 페이지네이션하여 `FileItem` 목록으로 렌더하고, 업로드/삭제 성공 시 1차 목록을 다시 페치한다. 중앙 Toaster 로 로딩, 하단 Toaster 로 에러를 표시. `FileUpload` 의 `setTimeout` 기반 상태 전이 cleanup 불변식 (REQ-092) 박제 — unmount / effect 재실행 시 pending timer 누수 차단.
@@ -62,13 +62,13 @@
 - [x] `src/File/File.test.tsx` — admin/non-admin 분기, 1차/추가 페치, 에러 토스트, 모바일/데스크탑 업로드 UI 스위치.
 - [x] `FileItem.test.tsx`, `FileDrop.test.tsx`, `FileUpload.test.tsx` — 단위 테스트.
 - [x] `src/File/__fixtures__/` 샘플 응답 박제.
-- [x] (REQ-092, I1) `FileUpload` timer cleanup 등록 채널 1+ 박제 — `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (HEAD=`7b15126` 회복 시점 박제. HEAD=`3398833` 재실측 **1 hit @line 100** — `58d65a7` 의 업로드 절차 단일화로 라인만 이동, 효능 불변).
-- [x] (REQ-092, I2) `FileUpload.test.tsx` unmount race 시나리오 1+ 박제 — `grep -nE "unmount\s*\(\s*\)" src/File/FileUpload.test.tsx` → **2 hit** + `grep -nE "useFakeTimers|runAllTimers" src/File/FileUpload.test.tsx` → **8 hit** (HEAD=`7b15126` 회복 시점 박제. HEAD=`3398833` 재실측 `unmount()` **8 hit** · fake-timer **8 hit** — 회복 방향 유지).
+- [x] (REQ-092, I1) `FileUpload` timer cleanup 등록 채널 1+ 박제 — `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (HEAD=`7b15126` 회복 시점 박제. HEAD=`b1cbf5c` 재실측 **1 hit @line 100** — 효능 불변).
+- [x] (REQ-092, I2) `FileUpload.test.tsx` unmount race 시나리오 1+ 박제 — `grep -nE "unmount\s*\(\s*\)" src/File/FileUpload.test.tsx` → **2 hit** + `grep -nE "useFakeTimers|runAllTimers" src/File/FileUpload.test.tsx` → **8 hit** (HEAD=`7b15126` 회복 시점 박제. HEAD=`b1cbf5c` 재실측 `unmount()` **8 hit** · fake-timer **8 hit** — 회복 방향 유지).
 
-- [x] (REQ-048, F1) 첫 조회 성공 시점 상태가 실재: `bash -c 'test "$(grep -c "hasListArrived" src/File/File.tsx)" -ge 2'` → HEAD=`643be56` 실측 rc=0 (2 hit — 선언 + 성공 갈래 세팅. 렌더 조건 참조 포함 시 `File.tsx:252`).
-- [x] (REQ-048, F1) 커밋 단위 관측 채널 실재: `bash -c 'grep -rlq "Profiler" src --include="*.test.tsx"'` → HEAD=`643be56` 실측 rc=0 (`src/File/File.test.tsx` · `src/Log/LogList.test.tsx`). `render()` 반환 후 한 점만 재는 단언은 이 축의 검출력이 0 이라 채널 자체가 요구다.
-- [ ] (REQ-048, F2·F3) 실패 지속 표면 + 재시도: `bash -c 'grep -qF "조회에 실패하면 다시 시도할 길을 남긴다" src/File/File.test.tsx && npx vitest run src/File/File.test.tsx >/dev/null 2>&1'` → HEAD=`643be56` 실측 **rc=1 (미충족)**. 현 `File.tsx` 의 재시도 표면 0 hit (`grep -cE "Retry|retry" src/File/File.tsx` → **0**).
-- [ ] (REQ-048, F5) 두 실패 갈래 모두 전이: `bash -c 'grep -qF "errorType 갈래도 같은 실패 표면을 낸다" src/File/File.test.tsx && npx vitest run src/File/File.test.tsx >/dev/null 2>&1'` → HEAD=`643be56` 실측 **rc=1 (미충족)**. 현 실패 테스트는 `mockRejectedValue` 로 `catch` 갈래만 태운다 (`File.test.tsx:860`).
+- [x] (REQ-048, F1) 첫 조회 성공 시점 상태가 실재: `bash -c 'test "$(grep -c "hasListArrived" src/File/File.tsx)" -ge 2'` → HEAD=`b1cbf5c` 재실측 rc=0 (2 hit — 선언 `File.tsx:70` + 렌더 조건 `File.tsx:290`).
+- [x] (REQ-048, F1) 커밋 단위 관측 채널 실재: `bash -c 'grep -rlq "Profiler" src --include="*.test.tsx"'` → HEAD=`b1cbf5c` 재실측 rc=0 (`src/File/File.test.tsx` · `src/Log/LogList.test.tsx`). `render()` 반환 후 한 점만 재는 단언은 이 축의 검출력이 0 이라 채널 자체가 요구다.
+- [x] (REQ-048, F2·F3) 실패 지속 표면 + 재시도: `bash -c 'grep -qF "조회에 실패하면 다시 시도할 길을 남긴다" src/File/File.test.tsx && npx vitest run src/File/File.test.tsx >/dev/null 2>&1'` → HEAD=`b1cbf5c` 재실측 **rc=0** (26 tests). `8b95ae5` (TSK-20260831-03) 가 `isError` 지속 표면 + `Retry` 를 세웠다. 재시도 표면 `grep -cE "Retry|retry" src/File/File.tsx` → **3 hit** (직전 0). 직전 측정(HEAD=`643be56`)은 rc=1 이었다.
+- [x] (REQ-048, F5) 두 실패 갈래 모두 전이: `bash -c 'grep -qF "errorType 갈래도 같은 실패 표면을 낸다" src/File/File.test.tsx && npx vitest run src/File/File.test.tsx >/dev/null 2>&1'` → HEAD=`b1cbf5c` 재실측 **rc=0**. `8b95ae5` 가 `errorType` 갈래 전용 케이스를 신설했다 — 종전에는 `mockRejectedValue` 로 `catch` 갈래만 태워 이 방향의 검출력이 0 이었다.
 
 > 테스트 이름 문자열은 본 spec 이 확정한 계약면이다. `vitest run -t "<name>"` 은 이름 미매치 시 실패가 아니라 전건 skip + rc=0 이라 테스트 소멸에 민감도가 0 이므로, 위 판정은 `grep -qF <이름>` 과의 **논리곱** 형태를 유지한다.
 
@@ -80,15 +80,15 @@
 - [x] (Should) `getFiles` / `getNextFiles` 에러 시 하단 Toaster (position=bottom, type=error, duration=2000) 표시.
 - [x] (Should) `FileItem.deleted()` · 업로드 성공 콜백은 1차 목록 리페치를 일으킨다.
 - [x] (NFR) `isMobile()` 판정은 마운트 1회에 박제 (`useMemo(..., [])`).
-- [x] (REQ-092, Must, FR-01) `FileUpload` 가 등록한 모든 `setTimeout` 핸들은 effect cleanup 또는 unmount 시 `clearTimeout` 으로 취소된다. HEAD=`7b15126` 회복: `grep -nE "setTimeout\s*\(" src/File/FileUpload.tsx` → **2 hit** (G1) + `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (G2 zero-point 회복). HEAD=`3398833` 재실측 setTimeout @line 78, 92 · clearTimeout @line 100. §변경 이력 hook-ack 박제.
+- [x] (REQ-092, Must, FR-01) `FileUpload` 가 등록한 모든 `setTimeout` 핸들은 effect cleanup 또는 unmount 시 `clearTimeout` 으로 취소된다. HEAD=`7b15126` 회복: `grep -nE "setTimeout\s*\(" src/File/FileUpload.tsx` → **2 hit** (G1) + `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (G2 zero-point 회복). HEAD=`b1cbf5c` 재실측 setTimeout @line 78, 92 · clearTimeout @line 100. §변경 이력 hook-ack 박제.
 - [x] (REQ-092, Must, FR-02) 컴포넌트 unmount 후 `REFRESH_TIMEOUT` 경과 시점에 `setIsUploading` · `refreshFiles` 가 호출되지 않는다. `vi.useFakeTimers()` + `unmount()` 후 `vi.runAllTimers()` 호출 시 `refreshFiles` mock 호출 0회. HEAD=`7b15126` 회복: `unmount()` 2 hit + `useFakeTimers|runAllTimers` 8 hit (FileUpload.test.tsx, TSK-25 fixture). §변경 이력 hook-ack 박제.
-- [x] (REQ-092, Should, FR-03) `isUploading` 이 `COMPLETE` 또는 `FAILED` 로 전이된 직후 다시 다른 상태로 전환되면, 이전 분기에서 등록한 timer 는 재발화되지 않는다 (effect 재실행 시 cleanup 패턴 회수). HEAD=`7b15126` 회복: effect cleanup return `() => clearTimeout(refreshHandle)` 패턴 (HEAD=`3398833` 재실측 `FileUpload.tsx:100`) + test 시나리오 박제. §변경 이력 hook-ack 박제.
+- [x] (REQ-092, Should, FR-03) `isUploading` 이 `COMPLETE` 또는 `FAILED` 로 전이된 직후 다시 다른 상태로 전환되면, 이전 분기에서 등록한 timer 는 재발화되지 않는다 (effect 재실행 시 cleanup 패턴 회수). HEAD=`7b15126` 회복: effect cleanup return `() => clearTimeout(refreshHandle)` 패턴 (HEAD=`b1cbf5c` 재실측 `FileUpload.tsx:100`) + test 시나리오 박제. §변경 이력 hook-ack 박제.
 - [x] (REQ-092, NFR-01) 테스트 결정성 — `vi.useFakeTimers()` + `unmount()` + `vi.runAllTimers()` + `refreshFiles` mock 호출 0회 검증 패턴 (Must FR-02 회복 task DoD 게이트 박제).
-- [ ] (REQ-048, Must, FR-03·F2) `File` 의 첫 조회 실패는 하단 Toaster 의 `duration` 경과 후에도 화면에 남는 표면으로 관측된다. 판정: 위 §테스트 현황 (F2·F3) 명령 rc=0.
-- [ ] (REQ-048, Should, FR-05·F3) 그 표면은 다시 시도할 경로를 포함한다 (`LogList` · `ImageSelector` 선례). 판정: 동일 명령 rc=0 + `bash -c 'test "$(grep -cE "Retry|retry" src/File/File.tsx)" -ge 1'` → HEAD=`643be56` 실측 **rc=1 (미충족, 0 hit)**.
-- [ ] (REQ-048, Must, F5) 실패 갈래 둘(`errorType` · `catch`) 모두 같은 표면으로 전이한다. 판정: 위 §테스트 현황 (F5) 명령 rc=0.
-- [x] (REQ-048, Must, NFR-02 비퇴행) 세 목록 화면 스위트가 초록이다: `bash -c 'npx vitest run src/Log/LogList.test.tsx src/File/File.test.tsx src/Image/ImageSelector.test.tsx >/dev/null 2>&1'` → HEAD=`643be56` 실측 rc=0. 구현 후에도 rc=0 이어야 한다 — **안내를 없애는 방식의 해결은 불가**하며 기존 `'파일이 하나도 없으면 그렇다고 알린다'` 는 그대로 통과해야 한다.
-- [x] (REQ-048, Must, F1 현행 충족) 빈 안내의 선결 조건은 현 HEAD 에서 참이다: `bash -c 'grep -qF "조회가 실패하면 없다고 말하지 않는다" src/File/File.test.tsx && grep -qF "조회에 착수하기 전에는 없다고 말하지 않는다" src/File/File.test.tsx'` → HEAD=`643be56` 실측 rc=0. 이 항목은 **게이트의 실재**를 재는 것이지 명제를 다시 재는 것이 아니다 (§참고 §REQ-048 부분 흡수 판정).
+- [x] (REQ-048, Must, FR-03·F2) `File` 의 첫 조회 실패는 하단 Toaster 의 `duration` 경과 후에도 화면에 남는 표면으로 관측된다. 판정: 위 §테스트 현황 (F2·F3) 명령 rc=0. HEAD=`b1cbf5c` 재실측 rc=0 — `8b95ae5`.
+- [x] (REQ-048, Should, FR-05·F3) 그 표면은 다시 시도할 경로를 포함한다 (`LogList` · `ImageSelector` 선례). 판정: 동일 명령 rc=0 + `bash -c 'test "$(grep -cE "Retry|retry" src/File/File.tsx)" -ge 1'` → HEAD=`b1cbf5c` 재실측 **rc=0 (3 hit)**.
+- [x] (REQ-048, Must, F5) 실패 갈래 둘(`errorType` · `catch`) 모두 같은 표면으로 전이한다. 판정: 위 §테스트 현황 (F5) 명령 rc=0. HEAD=`b1cbf5c` 재실측 rc=0 — `8b95ae5` 의 Dir-3 주입이 `1 failed | 25 passed` 로 이 비대칭을 실제로 잡음을 보였다.
+- [x] (REQ-048, Must, NFR-02 비퇴행) 세 목록 화면 스위트가 초록이다: `bash -c 'npx vitest run src/Log/LogList.test.tsx src/File/File.test.tsx src/Image/ImageSelector.test.tsx >/dev/null 2>&1'` → HEAD=`b1cbf5c` 재실측 rc=0 (3 files / 70 tests). 구현 후에도 rc=0 이어야 한다 — **안내를 없애는 방식의 해결은 불가**하며 기존 `'파일이 하나도 없으면 그렇다고 알린다'` 는 그대로 통과해야 한다.
+- [x] (REQ-048, Must, F1 현행 충족) 빈 안내의 선결 조건은 현 HEAD 에서 참이다: `bash -c 'grep -qF "조회가 실패하면 없다고 말하지 않는다" src/File/File.test.tsx && grep -qF "조회에 착수하기 전에는 없다고 말하지 않는다" src/File/File.test.tsx'` → HEAD=`b1cbf5c` 재실측 rc=0. 이 항목은 **게이트의 실재**를 재는 것이지 명제를 다시 재는 것이 아니다 (§참고 §REQ-048 부분 흡수 판정).
 - [x] (REQ-092, NFR-02) 정적 검증 — 본 §회귀 중점 "(REQ-092) `FileUpload` timer cleanup" 절 + §스코프 규칙 G2 baseline (`grep -nE "setTimeout\s*\("` 모든 hit 의 cleanup 회수 흐름 포함 박제). 본 spec 본문 박제 자체로 회복 task 의 정적 검증 grep 채널 안내 surface 박제.
 
 > **RULE-07 자기 검증 재실측 (HEAD=`cac6fa2`)**: G4 시점 비의존 0 hit PASS. G5 수단 라벨 1 hit @line 5 (`default export` — React 표준 API 식별자, 수단 선호 라벨 0 — 면제 grep -vE 박제, 정합 PASS surface 유지).
@@ -107,6 +107,7 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-048 **부분** 흡수) / pending (HEAD=`643be56`) | blue→green 복사 + §동작 8 (첫 조회 세 결과의 구별 · 실패의 지속 표면 · 재시도 경로 · 접근성 · 갈래 대칭 F1~F5) 추가. req 의 FR-01·02·04·06·07 은 `f8f9592` 로 이미 참이 됐고 그 커밋이 함께 부착한 게이트가 지키므로 **중복 게이트로 반려**(RULE-07 §반려 시그널) — 흡수분은 FR-03·FR-05·NFR-01 뿐이다. 근거는 §참고 §REQ-048 부분 흡수 판정. 신규 unchecked 3 (F2·F3·F5), 신규 checked 3 (F1 게이트 실재 · 커밋 관측 채널 · 회귀 baseline). | 동작·회귀 중점·테스트 현황·수용 기준·참고 |
+| 2026-08-31 | inspector (Phase 1 reconcile) / `8b95ae5` @ HEAD=`b1cbf5c` | 마커 플립 5 — REQ-048 분 §테스트 현황 (F2·F3)·(F5) 와 §수용 기준 (FR-03·F2)·(FR-05·F3)·(F5). `TSK-20260831-03` 이 `isError` 지속 표면 + `Retry` + `errorType` 갈래 케이스를 세웠다 (`Retry|retry` 0→3 hit, `File.test.tsx` 26 tests rc=0, 세 목록 스위트 70 tests rc=0). **REQ-048 흡수분 3/3 `[x]` → 본 spec 수용 기준 전수 `[x]`** (promote 후보). 동기화: §REQ-048 부분 흡수 판정 의 `Retry` 0 hit 서술을 해소 사실로 정정, §주입 이관 을 이관처 완료 결과표로 교체하고 **Ctrl-2 미통과의 원인(판정 명령 입도)과 그 followup 라우팅을 박제**, REQ-092 분 재실측 스탬프 갱신. | 테스트 현황·수용 기준·참고 |
 | 2026-05-17 | inspector (Phase 1 hook-ack, TSK-20260517-25 회수 commit `7b15126`) / pending | REQ-092 5 marker 전수 PASS 플립 — (I1) `clearTimeout` 1 hit @FileUpload.tsx:139 (G2 zero-point → 1+ 회복) + (I2) `unmount()` 2 hit @FileUpload.test.tsx:235,280 + `useFakeTimers|runAllTimers` 8 hit (G3 zero-point → 1+ 회복) + (Must FR-01) effect cleanup return 패턴 박제 + (Must FR-02) `vi.useFakeTimers + unmount + runAllTimersAsync + refreshFiles mock 0회` fixture 박제 + (Should FR-03) effect 재실행 시 cleanup 회수 평서 박제. baseline 박제 시점 g-bullet G1=2/G2=0/G3=0 → 회복 시점 G1=2/G2=1/G3=10 (unmount 2 + useFakeTimers/runAllTimers 8). hook-ack 근거: `7b15126` HEAD 의 조상 정합 + commit 메시지 "fix: FileUpload setTimeout cleanup 불변식 회복 — effect cleanup + unmount race fixture" + 후행 planner self-commit `52efc66` (HEAD=`7b15126` 진입 시점 baseline 정정 박제) 정합. RULE-07 자기 검증 — 5 marker 모두 평서·반복 검증 가능 (grep G1/G2/G3 단일 명령 + vi.useFakeTimers 결정적 검증). RULE-01 inspector writer 영역만 (`30.spec/green/components/file.md` marker 플립만, src/ 영역 0 touch). | 테스트 현황·수용 기준·변경 이력 |
 | 2026-05-17 | inspector (Phase 2, REQ-20260517-092 흡수) / pending (HEAD=`cac6fa2`) | blue→green 복사 + `FileUpload` setTimeout cleanup 불변식 흡수. 박제 추가: §동작 7 (timer cleanup 효능 평서) + §회귀 중점 4번째 bullet (`grep -nE "setTimeout\s*\("` 모든 hit cleanup 회수 흐름 포함 박제) + §의존성 §직교 (REQ-088 + REQ-091 채널 cross-ref) + §carve-precondition (P1)(P2)(P3) + §테스트 현황 (I1)(I2) 2 marker + §수용 기준 (Must FR-01)(Must FR-02)(Should FR-03)(NFR-01)(NFR-02) 5 marker + §스코프 규칙 5 gate (G1~G5) 실측 baseline. 본 spec 분리 결정 근거: (a) blue 직접 편집 inspector writer 영역 외 (RULE-01) — blue→green 복사 후 흡수 경로 (req §수용 기준 마지막 항목 명시). (b) 신규 spec carve 부적합 — `FileUpload` 는 `File` 컴포넌트 하위 구조 — 별 spec 분리 시 spec 본문 양식 분산 + REQ-091 (testing/) / REQ-088 (foundation/) 와 달리 components/ 영역 단일 spec 단위 (`file.md`) 흡수 정합. (c) `30.spec/green/foundation/island-proptypes-zero.md` 흡수 부적합 — 본 spec 의 effect cleanup 불변식은 React lifecycle 채널 (도메인) — selector / runtime 채널 (REQ-088/REQ-091) 과 직교. consumed req: `specs/20.req/20260517-fileupload-settimeout-cleanup.md` (REQ-092) → `60.done/2026/05/17/req/` mv. RULE-07 자기검증 — (FR-01)(FR-02)(FR-03)(NFR-01)(NFR-02) 모두 평서형·반복 검증 가능 (`grep -nE` G1/G2/G3 단일 명령 + `vi.useFakeTimers()` + `runAllTimers()` 결정적 검증)·시점 비의존 (G4 0 hit — 본문에 절대 라인 / 상수 값 박제 0)·incident 귀속 부재 (REQ-092 §배경 의 baseline audit 는 §변경 이력 / §스코프 규칙 한정 박제)·수단 중립 (G5 0 hit — cleanup 수단 후보 라벨 0). RULE-06 §스코프 규칙 5 gate (G1~G5) 실측 박제 + `expansion` `허용` (`FileUpload.tsx` + `FileUpload.test.tsx` 2 파일 동시 박제 + helper hook 추가 시 `src/common/` 진입 가능 — scope 확장 허용). RULE-01 inspector writer 영역만 (`30.spec/green/components/file.md` create — blue→green 복사 후 흡수, blue 영역 0 touch). spec-carve-precondition 자기 적용 — §carve-precondition 절 (P1)(P2)(P3) 3 차원 평서 박제 (`spec-carve-precondition.md` REQ-085 메타 효능 정합). | all |
 | 2026-04-20 | operator / — | 최초 등록 (as-is 서술 spec) | all |
@@ -127,17 +128,21 @@ REQ-20260831-048 이 세운 명제는 하나다 — "'비어 있다' 는 첫 조
 
 반려한 항목들은 위반 시 기존 게이트가 즉시 실패한다 — 그 게이트는 이름만 겨누고 아무것도 재지 않던 종전 단언과 달리, `React.Profiler` 로 **커밋마다** 안내 노드를 관측하고 `expect(seen.length).toBeGreaterThan(0)` 로 공허 통과까지 막는다. 여기에 체크박스를 다시 다는 것은 검출을 늘리지 않고 promote 조건만 늘린다.
 
-**흡수분이 남는 이유**는 `f8f9592` 가 (D2) 를 절반만 닫았기 때문이다. 거짓말(`No files yet.`)은 사라졌으나 그 자리에 **아무것도 들어서지 않았다** — 하단 Toaster 는 `duration=2000` 뒤 fadeout 되고, 그 뒤 관리자가 보는 것은 이유도 재시도 경로도 없는 빈 목록 영역이다. `LogList` 와 `ImageSelector` 는 같은 상황에서 전면 오류 + `Retry` 를 낸다. 현 HEAD 실측 `grep -cE "Retry|retry" src/File/File.tsx` → **0**.
+**흡수분이 남았던 이유**는 `f8f9592` 가 (D2) 를 절반만 닫았기 때문이다. 거짓말(`No files yet.`)은 사라졌으나 그 자리에 **아무것도 들어서지 않았다** — 하단 Toaster 는 `duration=2000` 뒤 fadeout 되고, 그 뒤 관리자가 보는 것은 이유도 재시도 경로도 없는 빈 목록 영역이었다. `LogList` 와 `ImageSelector` 는 같은 상황에서 전면 오류 + `Retry` 를 낸다. 흡수 시점(HEAD=`643be56`) 실측 `grep -cE "Retry|retry" src/File/File.tsx` → **0**. **HEAD=`b1cbf5c` 에서는 3 hit** — `8b95ae5` (TSK-20260831-03) 가 `isError` 지속 표면(`File.tsx:271`)과 `Retry`(`:282`)를 세워 이 축을 닫았다. 위 표의 반려 판정은 그대로 유효하다.
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 구현 task DoD 로)
 
-`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다.
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관했다. **이관처는 `TSK-20260831-03` 이며 수행이 끝났다** (`8b95ae5` — `injection: 3/3 detect` · `control: 2/3 pass`). 아래는 그 왕복의 결과 박제다.
 
-- **Dir-1 (민감도, F2)** — 실패 표면을 하단 Toaster 하나로 되돌린다 (지속 표면 제거) → `rc≠0`.
-- **Dir-2 (민감도, F3)** — 지속 표면은 두되 재시도 경로만 제거한다 → `rc≠0`. Dir-1 과 분리해야 "알리기만 하고 빠져나갈 길이 없는" 상태가 통과하지 않는다.
-- **Dir-3 (민감도, F5)** — `errorType` 갈래에서만 전이를 제거한다 (`catch` 갈래 유지) → `rc≠0`. `mockRejectedValue` 한 갈래만 태우는 테스트는 이 방향에서 검출력이 0 이다.
-- **Ctrl-1 (특이도)** — 성공·0건 시나리오에서 빈 안내가 정상적으로 나오고 실패 표면은 나오지 않음 → `rc=0`. **본 계약의 핵심이 정확히 이 구별이므로 생략 불가** — 이 대조가 없으면 "안내를 아예 지운다" 와 "상시 오류 배너" 가 둘 다 형식 통과한다.
-- **Ctrl-2 (특이도)** — 범위 밖 축을 건드리는 정상 변형: 안내·오류 **문구** 변경 또는 다음 페이지(`getNextFiles`) 실패 경로 수정 → `rc=0`. 게이트가 반응하면 과잉 특정이다.
+| 방향 | 요지 | 결과 |
+|---|---|---|
+| **Dir-1** (F2) | 실패 표면을 하단 Toaster 하나로 되돌린다 (지속 표면 제거) | rc=1 — 신설 2 케이스 동시 실패 |
+| **Dir-2** (F3) | 지속 표면은 두되 재시도 경로만 제거 | rc=1 — `role=button` / 이름 `/retry/i` 미발견. Dir-1 과 분리됨을 잔존 hit 로 박제 |
+| **Dir-3** (F5) | `errorType` 갈래에서만 전이 제거 (`catch` 갈래 유지) | rc=1 — **`1 failed / 25 passed`**. `mockRejectedValue` 케이스는 초록으로 남고 신설 케이스만 붉어져 이 축의 비대칭이 실증됐다 |
+| **Ctrl-1** (특이도) | 빈 안내 노드에 `aria-live="polite"` 추가 (접근성 = 범위 밖 축) | **rc=0** — 성공·0건 과 실패의 구별 유지 |
+| **Ctrl-2** (특이도) | 범위 밖 축의 문구 재서술 | **rc≠0 — 아래 주** |
+
+> **Ctrl-2 는 통과하지 못했고, 원인은 본 spec 의 판정 명령 입도다.** developer 가 두 축으로 분해 재측정한 결과: 첫 조회 실패 표면(본 계약의 표면)의 문구만 재서술하면 rc=0 이고(Ctrl-2a), 다음 페이지(`getNextFiles`) 실패 문구를 재서술하면 rc=1 이다(Ctrl-2b). Ctrl-2b 에서도 **본 계약의 신설 2 케이스는 통과한다** — rc=1 을 만든 것은 `File.test.tsx:310`·`:351`·`:382` 의 선행 테스트가 토스터 문구 리터럴을 `findByText` 로 잡기 때문이다. 즉 과잉 특정된 것은 신설 게이트가 아니라 **판정 명령이 `File.test.tsx` 파일 전체를 도는 입도**이며, 그 결합은 `specs/10.followups/20260831-0155-file-test-judging-command-couples-out-of-scope-wording.md` 로 라우팅됐다. `RULE-06 §음성 대조` 의 처분("좁힐 수 없으면 격리")은 "대조 실패 = 그 task 의 게이트가 과잉 특정" 이라는 전제 위에 서 있는데 위 분해가 그 전제를 반증하므로 격리하지 않았다. **본 spec 이 승계할 것**: 위 §테스트 현황 (F2·F3)·(F5) 의 판정 명령은 `vitest -t` 로 좁히면 이름 미매치 시 전건 skip + rc=0 이 되어 민감도가 0 이 되므로, 좁히는 방향은 따로 판정돼야 한다. 그때까지 이 결합은 알려진 한계로 남는다.
 
 ### 미측정·비판정 항목
 

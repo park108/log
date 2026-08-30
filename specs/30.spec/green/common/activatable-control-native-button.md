@@ -2,9 +2,9 @@
 
 > **위치**: `src/Log/LogItemInfo.tsx` (`link-copy-button`) · `src/Comment/CommentItem.tsx` (`reply-toggle-button`). 게이트: `src/common/a11y.audit.test.ts` · `src/common/a11y.audit.exemptions.ts` · `src/__tests__/hover-popup-anchoring.test.tsx`.
 > **관련 요구사항**: REQ-20260830-047 FR-01·FR-02·FR-03·FR-04·FR-06·FR-07
-> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile, HEAD=`643be56`)
+> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile, HEAD=`b1cbf5c`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`643be56`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`b1cbf5c`).
 
 ## 역할
 
@@ -21,7 +21,7 @@
 
 1. **(I1) 활성 조작부의 요소 선택**: `onClick` 을 보유한 조작부는 네이티브 `<button>` 으로 표현한다. `role="button"` 손조립은 (I2) 의 예외 조건을 만족할 때만 허용된다.
 2. **(I2) 예외의 조건**: 예외는 그 지점에 고유한 근거 주석을 요구하며, 그 근거는 현 HEAD 에서 참이어야 한다. 현 예외 2건:
-   - `src/Image/ImageItem.tsx` (`imageItem`) — 조작부가 `<img>` 자신이고, `button` 으로 감싸면 확대 상태의 `position: fixed` 배치와 썸네일 grid 셀의 `aspect-ratio` 가 래퍼로 옮겨간다 (`ImageItem.tsx:26-29`).
+   - `src/Image/ImageItem.tsx` (`imageItem`) — 조작부가 `<img>` 자신이고, `button` 으로 감싸면 확대 상태의 `position: fixed` 배치와 썸네일 grid 셀의 `aspect-ratio` 가 래퍼로 옮겨간다 (`ImageItem.tsx:26-30`).
    - `src/common/UserLogin.tsx` (`login-button`) — 운영자 지시. 푸터의 이름처럼 보여야 하는 진입점이라 UA 기본 테두리·배경이 의도를 깬다 (`UserLogin.tsx:59-66`).
 3. **(I3) 팝업 포함은 더 이상 예외 근거가 아니다**: `button` 의 콘텐츠 모델(phrasing content)이 팝업 `div` 를 품지 못하는 것은 사실이나, 팝업을 트리거의 **형제**로 두면 해소된다. 팝업은 `position: absolute` + 명시 좌표(`top: 100%; left: 0`) + `width: max-content` 를 가지므로 정적 위치에 의존하지 않는다 (`520f906`). 형제 이동 후 기준점은 팝업을 감싸는 위치 지정 조상이 **명시적으로** 갖는다.
 4. **(I4) 기준점 목록의 동반 갱신**: 전환으로 팝업의 기준점이 바뀌면 `src/__tests__/hover-popup-anchoring.test.tsx` 의 `HOSTS` 도 함께 바뀐다. 게이트를 느슨하게 만들어 통과시키지 않는다 — 이 게이트의 요지는 "팝업을 얹으면 기준점을 함께 선언하라" 이다.
@@ -42,34 +42,34 @@
 - 직교: `specs/30.spec/blue/common/accessibility.md` (§동작 (I6) 이 native interactive element 의 focus 표시를 명시적으로 범위 밖에 둔다).
 
 ## 테스트 현황
-- [ ] (I1) 두 지점의 손조립 소멸: `bash -c '! grep -rnE "^[[:space:]]*role=\"button\"" src/Log/LogItemInfo.tsx src/Comment/CommentItem.tsx'` → HEAD=`643be56` 재실측 **rc=1 (FAIL)** — 2 hit (`LogItemInfo.tsx:85` · `CommentItem.tsx:92`). 전환 미착수 (`8772f0d` 는 주석만 고쳤다 — 별 축).
-- [ ] (I1) `link-copy-button` 이 `<button>`: `bash -c 'perl -0777 -ne '\''exit(1) unless /<button[^>]*data-testid="link-copy-button"/'\'' src/Log/LogItemInfo.tsx'` → HEAD=`643be56` 재실측 **rc=1 (FAIL)**.
-- [ ] (I1) `reply-toggle-button` 이 `<button>`: `bash -c 'perl -0777 -ne '\''exit(1) unless /<button[^>]*data-testid="reply-toggle-button"/'\'' src/Comment/CommentItem.tsx'` → HEAD=`643be56` 재실측 **rc=1 (FAIL)**.
-- [x] (I2) 예외 2 지점 보존: `bash -c 'grep -qE "^[[:space:]]*role=\"button\"" src/Image/ImageItem.tsx && grep -qE "^[[:space:]]*role=\"button\"" src/common/UserLogin.tsx'` → HEAD=`643be56` 재실측 rc=0.
-- [x] (I4) 기준점 게이트 현행 PASS: `npx vitest run src/__tests__/hover-popup-anchoring.test.tsx` → HEAD=`643be56` 재실측 rc=0 (**6 it** — `68775f7` 이 런타임 DOM 조상 축 3 it 을 더하며 파일을 `.ts` → `.tsx` 로 옮겼다).
-- [x] (I5) 계약면 현행 PASS: `npx vitest run src/Log/LogItemInfo.test.tsx src/Log/LogItem.test.tsx src/Comment/CommentItem.test.tsx src/Comment/Comment.test.tsx` → HEAD=`643be56` 재실측 rc=0 (72 tests). 이 72개가 전환의 회귀 그물이다.
-- [x] (I1 보조) 감사 게이트 현행 PASS: `npx vitest run src/common/a11y.audit.test.ts src/common/a11y.focus-visible.test.ts` → HEAD=`643be56` 재실측 rc=0 (8 tests). **이 rc=0 이 손조립 2건을 허용하고 있다는 점이 본 spec 의 계기다** — 패턴 B 충족은 네이티브 button 을 대신하지 못한다.
-- [x] (I7) 면제 공집합: `bash -c 'perl -0777 -ne '\''exit(1) unless /PATTERN_B_EXEMPTIONS[^=]*=\s*\[\s*(?:\/\/[^\n]*\n\s*)*\]/'\'' src/common/a11y.audit.exemptions.ts'` → HEAD=`643be56` 재실측 rc=0.
+- [ ] (I1) 두 지점의 손조립 소멸: `bash -c '! grep -rnE "^[[:space:]]*role=\"button\"" src/Log/LogItemInfo.tsx src/Comment/CommentItem.tsx'` → HEAD=`b1cbf5c` 재실측 **rc=1 (FAIL)** — 2 hit (`LogItemInfo.tsx:85` · `CommentItem.tsx:92`). 전환 미착수. 그 사이 발행된 `8772f0d`·`130b81d`·`b42d1f0` 는 전부 근거 주석 진실성 축(별 spec)이며 요소 선택을 건드리지 않았다.
+- [ ] (I1) `link-copy-button` 이 `<button>`: `bash -c 'perl -0777 -ne '\''exit(1) unless /<button[^>]*data-testid="link-copy-button"/'\'' src/Log/LogItemInfo.tsx'` → HEAD=`b1cbf5c` 재실측 **rc=1 (FAIL)**.
+- [ ] (I1) `reply-toggle-button` 이 `<button>`: `bash -c 'perl -0777 -ne '\''exit(1) unless /<button[^>]*data-testid="reply-toggle-button"/'\'' src/Comment/CommentItem.tsx'` → HEAD=`b1cbf5c` 재실측 **rc=1 (FAIL)**.
+- [x] (I2) 예외 2 지점 보존: `bash -c 'grep -qE "^[[:space:]]*role=\"button\"" src/Image/ImageItem.tsx && grep -qE "^[[:space:]]*role=\"button\"" src/common/UserLogin.tsx'` → HEAD=`b1cbf5c` 재실측 rc=0.
+- [x] (I4) 기준점 게이트 현행 PASS: `npx vitest run src/__tests__/hover-popup-anchoring.test.tsx` → HEAD=`b1cbf5c` 재실측 rc=0 (**6 it** — `68775f7` 이 런타임 DOM 조상 축 3 it 을 더하며 파일을 `.ts` → `.tsx` 로 옮겼다).
+- [x] (I5) 계약면 현행 PASS: `npx vitest run src/Log/LogItemInfo.test.tsx src/Log/LogItem.test.tsx src/Comment/CommentItem.test.tsx src/Comment/Comment.test.tsx` → HEAD=`b1cbf5c` 재실측 rc=0 (72 tests). 이 72개가 전환의 회귀 그물이다.
+- [x] (I1 보조) 감사 게이트 현행 PASS: `npx vitest run src/common/a11y.audit.test.ts src/common/a11y.focus-visible.test.ts` → HEAD=`b1cbf5c` 재실측 rc=0 (8 tests). **이 rc=0 이 손조립 2건을 허용하고 있다는 점이 본 spec 의 계기다** — 패턴 B 충족은 네이티브 button 을 대신하지 못한다.
+- [x] (I7) 면제 공집합: `bash -c 'perl -0777 -ne '\''exit(1) unless /PATTERN_B_EXEMPTIONS[^=]*=\s*\[\s*(?:\/\/[^\n]*\n\s*)*\]/'\'' src/common/a11y.audit.exemptions.ts'` → HEAD=`b1cbf5c` 재실측 rc=0.
 - (I6) 배치 동일성 — **체크박스 부적격** (미측정 NFR: 헤드리스 브라우저가 의존성에 없어 현 HEAD 에서 명령 1회로 rc 판정 불가). §참고 §미측정·비판정 항목 으로 강등하고 구현 task DoD 로 이관한다 (RULE-07 §수용 기준 문장 규약).
 
 ## 수용 기준
 - [ ] (Must, FR-01) `bash -c '! grep -rnE "^[[:space:]]*role=\"button\"" src/Log/LogItemInfo.tsx src/Comment/CommentItem.tsx'` → rc=0.
 - [ ] (Must, FR-01) `bash -c 'perl -0777 -ne '\''exit(1) unless /<button[^>]*data-testid="link-copy-button"/'\'' src/Log/LogItemInfo.tsx'` → rc=0.
 - [ ] (Must, FR-01) `bash -c 'perl -0777 -ne '\''exit(1) unless /<button[^>]*data-testid="reply-toggle-button"/'\'' src/Comment/CommentItem.tsx'` → rc=0.
-- [x] (Must, FR-02·FR-06) `npx vitest run src/__tests__/hover-popup-anchoring.test.tsx` → rc=0. HEAD=`643be56` 재실측 rc=0 (6 it). 현행 PASS 이며 전환이 이를 깨지 않는 것이 요구다 — promote 시 재실행 대상 (RULE-07 §promote 조건 2).
-- [x] (Must, FR-04·NFR-03) `npx vitest run src/Log/LogItemInfo.test.tsx src/Log/LogItem.test.tsx src/Comment/CommentItem.test.tsx src/Comment/Comment.test.tsx` → rc=0. HEAD=`643be56` 재실측 rc=0 (4 files / 72 tests). 동일 — 전환 후 재실행이 (I5) 계약면 보존의 판정이다.
-- [x] (Must, NFR-01) `npx vitest run src/common/a11y.audit.test.ts src/common/a11y.focus-visible.test.ts` → rc=0. HEAD=`643be56` 재실측 rc=0 (2 files / 8 tests). 동일 — 손조립이 패턴 B 로 통과하던 상태를 전환이 유지하는지를 따진다.
+- [x] (Must, FR-02·FR-06) `npx vitest run src/__tests__/hover-popup-anchoring.test.tsx` → rc=0. HEAD=`b1cbf5c` 재실측 rc=0 (6 it). 현행 PASS 이며 전환이 이를 깨지 않는 것이 요구다 — promote 시 재실행 대상 (RULE-07 §promote 조건 2).
+- [x] (Must, FR-04·NFR-03) `npx vitest run src/Log/LogItemInfo.test.tsx src/Log/LogItem.test.tsx src/Comment/CommentItem.test.tsx src/Comment/Comment.test.tsx` → rc=0. HEAD=`b1cbf5c` 재실측 rc=0 (4 files / 72 tests). 동일 — 전환 후 재실행이 (I5) 계약면 보존의 판정이다.
+- [x] (Must, NFR-01) `npx vitest run src/common/a11y.audit.test.ts src/common/a11y.focus-visible.test.ts` → rc=0. HEAD=`b1cbf5c` 재실측 rc=0 (2 files / 8 tests). 동일 — 손조립이 패턴 B 로 통과하던 상태를 전환이 유지하는지를 따진다.
 - [x] (Should, FR-07) `PATTERN_B_EXEMPTIONS` 공집합: 위 (I7) 명령 rc=0.
 - [x] (Must, 범위 제한) 예외 2 지점 보존: 위 (I2) 명령 rc=0.
 
 ## 스코프 규칙
 - **expansion**: 불허 — 전환 대상은 `src/Log/LogItemInfo.tsx` · `src/Comment/CommentItem.tsx` 2 파일과 그 팝업 기준점 CSS(`src/Log/Log.css` · `src/Comment/Comment.module.css`), 그리고 `HOSTS` 목록(`src/__tests__/hover-popup-anchoring.test.tsx`) 뿐이다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
-- **grep-baseline** (HEAD=`643be56`, 2026-08-31 재실측):
+- **grep-baseline** (HEAD=`b1cbf5c`, 2026-08-31 재실측):
   - `grep -rnE "^[[:space:]]*role=\"button\"" src --include="*.tsx" | grep -v "\.test\."` → 4 hits in 4 files:
     - `src/Comment/CommentItem.tsx:92` (전환 대상), `src/Log/LogItemInfo.tsx:85` (전환 대상)
-    - `src/Image/ImageItem.tsx:74` (예외 — 보존), `src/common/UserLogin.tsx:68` (예외 — 보존)
+    - `src/Image/ImageItem.tsx:75` (예외 — 보존), `src/common/UserLogin.tsx:68` (예외 — 보존)
     - 제외 규칙: JSX 속성 라인 한정(`^[[:space:]]*role=`)이라 주석 본문의 `role="button"` 언급 3건은 계수하지 않는다. `.test.` 파일 제외.
-  - `grep -cE "<button" src/Log/LogItemInfo.tsx src/Comment/CommentItem.tsx` → `LogItemInfo.tsx:1` · `CommentItem.tsx:0` (HEAD=`643be56` 재실측 동일). **LogItemInfo 의 1 hit 은 `link-copy-button` 이 아닌 별개 button 이다** — 그래서 §수용 기준은 `<button` 존재 여부가 아니라 `data-testid` 결합을 `perl -0777` 로 잰다.
+  - `grep -cE "<button" src/Log/LogItemInfo.tsx src/Comment/CommentItem.tsx` → `LogItemInfo.tsx:1` · `CommentItem.tsx:0` (HEAD=`b1cbf5c` 재실측 동일). **LogItemInfo 의 1 hit 은 `link-copy-button` 이 아닌 별개 button 이다** — 그래서 §수용 기준은 `<button` 존재 여부가 아니라 `data-testid` 결합을 `perl -0777` 로 잰다.
 - **rationale**: 두 전환 대상은 팝업을 품는 유일한 손조립이고, 그 팝업 3종의 기준점은 `HOSTS` 3행과 1:1 대응한다. 따라서 baseline 은 4 hit 열거로 닫힌다.
 
 ## 변경 이력
@@ -77,6 +77,7 @@
 |------|-----------|------|----------|
 | 2026-08-31 | inspector (Phase 3, REQ-20260830-047 흡수) / pending | 최초 박제 — 활성 조작부 요소 선택 7 축 (I1~I7). REQ 의 FR-01·02·03·04·06·07 흡수, FR-05 는 별 spec 으로 분리 (§참고 §축 분리 근거). baseline: 손조립 4 hit 실측(2 전환 대상 + 2 예외), 게이트 3종 현행 rc=0. | all |
 | 2026-08-31 | inspector (Phase 1 reconcile) / `68775f7` @ HEAD=`643be56` | 마커 플립 0 — (I1) 3 게이트 재실행 **rc=1 유지** (전환 미착수). 동기화만: `hover-popup-anchoring.test.ts` → `.tsx` 경로 drift 8곳, 3 it → 6 it, baseline 라인 번호 갱신, §참고 의 "팝업의 DOM 부모를 검사하지 않는다" 공백이 `68775f7` 로 닫힌 사실 반영. | 위치·동작·테스트 현황·수용 기준·스코프 규칙·참고 |
+| 2026-08-31 | inspector (Phase 1 reconcile) / `130b81d`+`b42d1f0` @ HEAD=`b1cbf5c` | 마커 플립 0 — (I1) 3 게이트 재실행 **rc=1 유지** (전환 미착수). 다른 5 게이트도 재실행 rc=0 유지 (6 it · 72 tests · 8 tests · 예외 2지점 · 면제 공집합). 동기화만: 예외 지점 라인 drift (`ImageItem.tsx` 주석 26-29→26-30, `role="button"` :74→:75 — `130b81d` 의 지목 3줄), HEAD 스탬프 갱신. | 테스트 현황·수용 기준·스코프 규칙·동작 |
 
 ## 참고
 
