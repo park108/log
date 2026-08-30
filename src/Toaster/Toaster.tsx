@@ -6,14 +6,23 @@ type ToasterPosition = "center" | "bottom";
 export type ToasterType = "information" | "success" | "warning" | "error";
 export type ToasterShow = 0 | 1 | 2;
 
-interface ToasterProps {
-	duration?: number;
+interface ToasterBaseProps {
 	show?: ToasterShow;
 	position?: ToasterPosition;
 	message?: string;
 	type?: ToasterType;
-	completed?: () => void;
 }
+
+// `duration` 과 `completed` 는 짝이다 — 타이머가 부를 대상이 `completed` 다.
+// 둘을 각각 선택 속성으로 두면 `duration` 만 넘긴 조합이 타입을 통과하고,
+// 그때 `setTimeout(undefined, ms)` 가 던진다 (실측: "Callback must be provided
+// to timer calls"). 라우트가 ErrorBoundary 로 감싸여 있으므로 페이지 전체가
+// 오류 화면이 된다. 현 호출처 13곳은 모두 둘 다 넘기거나 둘 다 안 넘긴다 —
+// 그 사실을 타입으로 못 박아 조합 자체를 만들 수 없게 한다.
+type ToasterProps = ToasterBaseProps & (
+	{ duration?: undefined; completed?: undefined }
+	| { duration: number; completed: () => void }
+);
 
 const POSITION_STYLE: Record<string, string | undefined> = {
 	"center": styles.divToasterCenter,
@@ -53,8 +62,10 @@ const Toaster = (props: ToasterProps): React.ReactElement => {
 	// 타이머 해제 책임은 아래 cleanup 단일 지점이 진다.
 	useEffect(() => {
 		if (1 === show) {
-			if ((duration as number) > 0) {
-				timerRef.current = setTimeout(props.completed as () => void, duration as number);
+			// 캐스트를 쓰지 않는다 — 타입이 짝을 보장하더라도, 실제 검사를 두어야
+			// 계약이 바뀌었을 때 조용히 통과하지 않는다.
+			if (undefined !== duration && duration > 0 && props.completed) {
+				timerRef.current = setTimeout(props.completed, duration);
 			}
 		} else if (2 === show) {
 			timerRef.current = setTimeout(() => {

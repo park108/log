@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { render, screen } from '@testing-library/react';
 import Toaster from './Toaster';
 import styles from './Toaster.module.css';
@@ -203,4 +204,42 @@ it('does not call document.getElementById', async () => {
 	unmount();
 	getByIdSpy.mockRestore();
 	await vi.runOnlyPendingTimersAsync();
+});
+
+// `duration` 과 `completed` 는 짝이다. 타입이 그 조합을 막지만, 런타임에도
+// 던지지 않아야 한다 — 라우트가 ErrorBoundary 로 감싸여 있어 예외 하나가
+// 페이지 전체를 오류 화면으로 바꾼다.
+// 실측(수정 전): setTimeout(undefined, ms) → "Callback must be provided to timer calls".
+describe('Toaster duration·completed 짝', () => {
+
+	it('completed 없이 duration 만 와도 던지지 않는다', () => {
+
+		vi.useFakeTimers();
+
+		// 타입이 막는 조합이라 테스트에서만 우회한다 — 런타임 견고성을 재는 것이 목적이다.
+		const props = { show: 1, message: '테스트', duration: 1000 } as unknown as ComponentProps<typeof Toaster>;
+
+		expect(() => {
+			render(<Toaster {...props} />);
+			vi.advanceTimersByTime(1500);
+		}).not.toThrow();
+
+		vi.useRealTimers();
+	});
+
+	// 대조 — 짝이 갖춰지면 실제로 불려야 한다. 없으면 "타이머를 아예 안 거는"
+	// 구현도 통과한다.
+	it('짝이 갖춰지면 duration 뒤에 completed 가 불린다', () => {
+
+		vi.useFakeTimers();
+
+		const completed = vi.fn();
+		render(<Toaster show={1} message="테스트" duration={1000} completed={completed} />);
+
+		expect(completed).not.toHaveBeenCalled();
+		vi.advanceTimersByTime(1500);
+		expect(completed).toHaveBeenCalledTimes(1);
+
+		vi.useRealTimers();
+	});
 });
