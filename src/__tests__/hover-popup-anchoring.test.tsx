@@ -1,5 +1,12 @@
+import React from 'react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import LogItemInfo from '../Log/LogItemInfo';
+import CommentItem from '../Comment/CommentItem';
+import * as common from '../common/common';
+import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 import { describe, it, expect } from 'vitest';
 
 // 호버 팝업은 **기준점이 있어야** 한다.
@@ -102,5 +109,109 @@ describe('호버 팝업 기준점', () => {
 		const declared = HOSTS.map((h) => h.file + ' → ' + h.popup).sort();
 		// 새 사용처가 생기면 여기서 걸린다 — 기준점을 정하라는 뜻이다.
 		expect(seen.sort(), '팝업 사용처가 늘거나 줄었다. HOSTS 목록에 기준점을 함께 적어야 한다').toEqual(declared);
+	});
+});
+
+// ── 실제 DOM 조상 (2026-08-31 추가) ──────────────────────────────────────────
+//
+// 위 세 검사는 **CSS 규칙** 과 **파일 목록** 만 본다. 팝업의 실제 DOM 부모가 그
+// 기준점인지는 아무도 검증하지 않았다 — 팝업을 다른 래퍼 밑으로 옮겨도 세 검사가
+// 모두 통과한다. 그런데 이 게이트가 막으려는 사고가 정확히 그 이동이다
+// (`top: 100%` 는 위치 지정 조상이 없으면 뷰포트를 기준으로 잡는다).
+//
+// 파이프라인의 inspector 가 이 공백을 지적했다 (2026-08-31, REQ-20260830-047 흡수
+// 중). 지적이 옳아 런타임 축을 더한다 — CSS 는 정적으로, 조상 관계는 실제 렌더로.
+//
+// jsdom 은 레이아웃을 계산하지 않으므로 **좌표** 는 여전히 못 잰다. 여기서 재는
+// 것은 "팝업이 기준점의 자손인가" 라는 구조 명제다. 좌표 동일성은 브라우저
+// 측정(`scripts/measure-layout.mjs`)의 몫이고 CI 에 없다.
+
+const anchorsOf = (popupClass: string): string[] =>
+	HOSTS.filter(host => host.popup === popupClass).map(host => host.anchor);
+
+/**
+ * `element` 의 조상 중 `className` 을 가진 것이 있는가.
+ *
+ * CSS 모듈 클래스는 DOM 에서 해시된 이름으로 나온다 (`_div--comment-replybutton_x1y2`).
+ * 원래 이름이 그 안에 남으므로 부분 일치로 본다 — 전역 클래스는 정확히 일치한다.
+ */
+const hasAncestorWithClass = (element: Element, className: string): boolean => {
+	let current: Element | null = element.parentElement;
+	while (current) {
+		for (const cls of Array.from(current.classList)) {
+			if (cls === className || cls.includes(className)) return true;
+		}
+		current = current.parentElement;
+	}
+	return false;
+};
+
+describe('팝업은 선언된 기준점의 자손이다', () => {
+
+	beforeEach(() => {
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+	});
+
+	const openAndCheck = async (
+		ui: React.ReactElement,
+		triggerTestId: string,
+		popupClass: string,
+	): Promise<void> => {
+
+		const { Wrapper } = createQueryTestWrapper();
+		render(<Wrapper><MemoryRouter>{ui}</MemoryRouter></Wrapper>);
+
+		const trigger = await screen.findByTestId(triggerTestId);
+		await act(async () => { fireEvent.focus(trigger); });
+
+		const popup = document.querySelector('.' + popupClass);
+		expect(popup, popupClass + ' 이 뜨지 않았다 — 판정이 공허하다').not.toBeNull();
+
+		const anchors = anchorsOf(popupClass);
+		expect(anchors.length, popupClass + ' 의 기준점이 HOSTS 에 없다').toBeGreaterThan(0);
+
+		const anchored = anchors.some(anchor => hasAncestorWithClass(popup as Element, anchor));
+		expect(
+			anchored,
+			popupClass + ' 이 선언된 기준점(' + anchors.join(' | ') + ') 의 자손이 아니다'
+				+ ' — 옮겨진 팝업은 위치 지정 조상을 잃고 뷰포트 기준으로 잡힌다',
+		).toBe(true);
+	};
+
+	it('링크 복사 팝업', async () => {
+		await openAndCheck(
+			<LogItemInfo timestamp={1700000000000} showLink={true} />,
+			'link-copy-button',
+			'div--logitem-linkmessage',
+		);
+	});
+
+	it('판본 이력 팝업', async () => {
+		await openAndCheck(
+			<LogItemInfo
+				timestamp={1700000000000}
+				item={{ timestamp: 1700000000000, author: 'a', logs: [{ timestamp: 1, contents: 'c' }] } as never}
+			/>,
+			'versions-button',
+			'div--logitem-versionhistory',
+		);
+	});
+
+	it('답글 팝업', async () => {
+		await openAndCheck(
+			<CommentItem
+				isHidden={false}
+				isAdminComment={false}
+				message="메시지"
+				name="이름"
+				timestamp={1700000000000}
+				openReplyForm={() => {}}
+				reply={() => {}}
+			/>,
+			'reply-toggle-button',
+			'div--logitem-linkmessage',
+		);
 	});
 });
