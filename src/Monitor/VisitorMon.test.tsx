@@ -358,3 +358,53 @@ describe('VisitorMon 막대 라벨 단위', () => {
 		expect(detail).toMatch(/\d+\(\d+%\)/);
 	});
 });
+
+// 방문자 항목의 브라우저·OS·엔진은 선택적 필드다 — 옛 기록이나 서버 변경으로
+// 빠질 수 있다. 그대로 담으면 차트에 "undefined" 라는 항목이 생긴다.
+describe('VisitorMon 필드가 빠진 기록', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	const API = import.meta.env.VITE_MONITOR_API_BASE;
+
+	const labelsFor = async (Items: unknown[]): Promise<string[]> => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		mock.prodServerOk.use(http.get(API + '/prod/useragent', async () => HttpResponse.json({
+			statusCode: 200,
+			body: { totalCount: Items.length, periodData: { Items } },
+		})));
+
+		const { container } = render(<VisitorMon stackPallet={stackPallet.colors} />);
+		await act(async () => { await new Promise((resolve) => setTimeout(resolve, 400)); });
+		return Array.from(container.querySelectorAll('.div--monitor-stackvalue'))
+			.map((n) => (n.textContent ?? '').trim());
+	};
+
+	it('빠진 필드를 undefined 로 적지 않는다', async () => {
+
+		const base = new Date(2026, 7, 25).getTime();
+		const labels = await labelsFor([
+			{ timestamp: base, browser: 'Chrome', operatingSystem: 'Windows', renderingEngine: 'Blink' },
+			{ timestamp: base + 1000 },                       // 세 필드 모두 없음
+			{ timestamp: base + 2000, browser: 'Safari' },    // OS·엔진 없음
+		]);
+
+		expect(labels.length, '막대가 없다 — 판정이 공허하다').toBeGreaterThan(0);
+		expect(labels.join(' ')).not.toContain('undefined');
+		expect(labels.join(' ')).toContain('Others');
+	});
+
+	// 대조 — 필드가 다 있으면 그 값을 그대로 쓴다.
+	it('필드가 있으면 그 값을 쓴다', async () => {
+
+		const base = new Date(2026, 7, 25).getTime();
+		const labels = await labelsFor([
+			{ timestamp: base, browser: 'Chrome', operatingSystem: 'Windows', renderingEngine: 'Blink' },
+		]);
+
+		expect(labels.join(' ')).toContain('Chrome');
+		expect(labels.join(' ')).not.toContain('Others');
+	});
+});

@@ -10,7 +10,11 @@ interface RawVisitorItem {
 	date?: string;
 	time?: string;
 	browser?: string;
-	os?: string;
+	// 서버가 보내는 이름은 `operatingSystem` 이다 (캡처된 픽스처 기준). 이 선언이
+	// `os` 였던 동안 아래 집계 루프는 타입이 없어 통과했다 — 선언은 없는 필드를
+	// 가리키고 실제 필드는 선언되지 않은 상태였다. 루프에 타입을 붙여 그 어긋남이
+	// 조용히 지나가지 않게 한다.
+	operatingSystem?: string;
 	renderingEngine?: string;
 }
 
@@ -104,6 +108,11 @@ const VisitorMon = (props: VisitorMonProps) => {
 
 					let periodData = data.body.periodData.Items;
 		
+					// 세 필드는 선택적이다 — 옛 기록이나 서버 변경으로 빠질 수 있다.
+					// 그대로 담으면 차트에 `undefined` 라는 항목이 생긴다. UA 파서가
+					// 모르는 값에 쓰는 것과 같은 이름으로 접는다.
+					const named = (value: string | undefined): string => value ?? "Others";
+
 					for(const item of periodData as RawVisitorItem[]) {
 						item.date = getFormattedDate(item.timestamp);
 						item.time = getFormattedTime(item.timestamp);
@@ -151,42 +160,42 @@ const VisitorMon = (props: VisitorMonProps) => {
 					let hasOs = false
 					let hasEngine = false;
 		
-					for(let item of periodData) {
+					for(const item of periodData as RawVisitorItem[]) {
 		
 						hasBrowser = false;
 						for(let browser of browserList) {
-							if(browser["name"] === item.browser) {
+							if(browser["name"] === named(item.browser)) {
 								++browser.count;
 								hasBrowser = true;
 								break;
 							}
 						}
 						if(!hasBrowser) {
-							browserList.push({"name": item.browser, "count": 1});
+							browserList.push({"name": named(item.browser), "count": 1});
 						}
 		
 						hasOs = false;
 						for(let os of osList) {
-							if(os["name"] === item.operatingSystem) {
+							if(os["name"] === named(item.operatingSystem)) {
 								++os.count;
 								hasOs = true;
 								break;
 							}
 						}
 						if(!hasOs) {
-							osList.push({"name": item.operatingSystem, "count": 1});
+							osList.push({"name": named(item.operatingSystem), "count": 1});
 						}
 		
 						hasEngine = false;
 						for(let engine of engineList) {
-							if(engine["name"] === item.renderingEngine) {
+							if(engine["name"] === named(item.renderingEngine)) {
 								++engine.count;
 								hasEngine = true;
 								break;
 							}
 						}
 						if(!hasEngine) {
-							engineList.push({"name": item.renderingEngine, "count": 1});
+							engineList.push({"name": named(item.renderingEngine), "count": 1});
 						}
 					}
 		
