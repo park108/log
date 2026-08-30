@@ -301,7 +301,12 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 것과도 어긋났다 — 실제로는 필수였다.
 	//
 	// 제목은 선택으로 두고, 있으면 title 속성을 붙이고 없으면 생략한다.
-	const IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g;
+	// URL 안의 균형 잡힌 괄호를 한 겹 허용한다. `[^)\s]+` 는 첫 `)` 에서 끊겨,
+	// `[wiki](https://example.com/wiki/C_(프로그래밍_언어))` 가
+	// href='...C_(프로그래밍_언어' 로 잘리고 남은 `)` 가 본문에 샜다 (실측).
+	// (주석의 호스트도 csp-origin-coverage 게이트의 스캔 대상이라 example.com 을 쓴다.)
+	// 위키·MSDN 처럼 괄호가 든 주소는 흔하다.
+	const IMAGE_PATTERN = /!\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/g;
 
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
@@ -346,7 +351,7 @@ export const markdownToHtml = (rawInput: string): string => {
 	//
 	// 도달하지 않으므로 테스트로 덮지 않았다. 커버리지가 이 분기를 못 덮는 것은
 	// 결함이 아니라 위 사실의 반영이다.
-	const ANCHOR_PATTERN = /(?<!!)\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g;
+	const ANCHOR_PATTERN = /(?<!!)\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/g;
 
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
@@ -360,7 +365,10 @@ export const markdownToHtml = (rawInput: string): string => {
 
 	parsed = inlineParsing(parsed, "**", "strong"); // bold
 	parsed = inlineParsing(parsed, "~~", "del"); // stroke
-	parsed = inlineParsing(parsed, "*", "em"); // emphasis
+	// 홑 `*` 만 공백 규칙을 켠다. `2 * 3 * 4 = 24` 가 `2 <em> 3 </em> 4 = 24` 로
+	// 렌더되던 것을 막는다 — 기술 글에서 곱셈 표기가 통째로 기울어졌다.
+	// `**` · `~~` 는 공백을 끼워 써도 의도가 분명하므로 그대로 둔다 (`** 굵게 **`).
+	parsed = inlineParsing(parsed, "*", "em", true); // emphasis
 
 	// 코드 스팬 복원. 내용은 이스케이프한다 — 코드는 보이는 그대로여야 하고,
 	// 이스케이프하지 않으면 `<String>` 같은 표기가 sanitize 에서 삭제돼 글자가
@@ -384,7 +392,7 @@ export const markdownToHtml = (rawInput: string): string => {
 	return str;
 }
 
-const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string): ParsedNode[] => {
+const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string, strictFlanking = false): ParsedNode[] => {
 
 	let searchFrom = 0;
 	let start = -1;
@@ -407,10 +415,23 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string)
 					continue;
 				}
 				else if(0 > start) {
+					// 여는 구분자 뒤에 공백이 오면 강조가 아니다
+					// (CommonMark left-flanking 중 이 글이 실제로 부딪힌 부분).
+					const after = node.text.charAt(searchFrom + delimeterLength);
+					if(strictFlanking && ("" === after || /\s/.test(after))) {
+						searchFrom += delimeterLength;
+						continue;
+					}
 					start = searchFrom;
 					searchFrom += delimeterLength;
 				}
 				else {
+					// 닫는 구분자 앞에 공백이 오면 닫는 것이 아니다 (right-flanking).
+					const before = node.text.charAt(searchFrom - 1);
+					if(strictFlanking && ("" === before || /\s/.test(before))) {
+						searchFrom += delimeterLength;
+						continue;
+					}
 					end = searchFrom;
 					currentText = node.text.substring(start + delimeterLength, end);
 					searchedText = delimeter + currentText + delimeter;

@@ -373,3 +373,61 @@ describe('자리표시자 충돌 방어', () => {
 			.toBe('<p>c0 와 <code>real</code></p>');
 	});
 });
+
+// 공백에 둘러싸인 홑 별표는 곱셈이지 강조가 아니다.
+// 이전에는 `2 * 3 * 4 = 24` 가 `2 <em> 3 </em> 4 = 24` 로 렌더돼, 기술 글에서
+// 곱셈 표기가 통째로 기울어졌다.
+describe('강조 — 공백에 둘러싸인 홑 별표', () => {
+
+	it('곱셈을 기울이지 않는다', () => {
+		expect(parser.markdownToHtml("2 * 3 * 4 = 24")).toBe("<p>2 * 3 * 4 = 24</p>");
+	});
+
+	it('별표 하나만 있어도 그대로 둔다', () => {
+		expect(parser.markdownToHtml("가격 * 세금 별도")).toBe("<p>가격 * 세금 별도</p>");
+	});
+
+	// 대조 — 붙여 쓴 강조는 그대로 동작해야 한다. 없으면 "별표는 절대 강조 아님"
+	// 구현도 통과한다.
+	it('붙여 쓴 강조는 그대로 기울인다', () => {
+		expect(parser.markdownToHtml("이건 *기울임* 이다")).toBe("<p>이건 <em>기울임</em> 이다</p>");
+	});
+
+	// 대조 — `**` 는 공백을 끼워도 의도가 분명하므로 규칙 밖이다.
+	it('굵게는 공백을 끼워도 그대로 굵게', () => {
+		expect(parser.markdownToHtml("** 굵게 **")).toBe("<p><strong> 굵게 </strong></p>");
+	});
+
+	it('중첩 강조는 그대로', () => {
+		expect(parser.markdownToHtml("**굵고 *기울고* 굵다**"))
+			.toBe("<p><strong>굵고 <em>기울고</em> 굵다</strong></p>");
+	});
+});
+
+// URL 안의 균형 잡힌 괄호. 위키·MSDN 처럼 괄호가 든 주소는 흔한데, 첫 `)` 에서
+// (호스트는 example.com 을 쓴다 — csp-origin-coverage 게이트가 소스의 실 호스트를
+//  CSP 허용 목록과 대조하므로, 픽스처가 없는 출처를 들여오면 안 된다.)
+// 끊겨 href 가 잘리고 남은 `)` 가 본문에 샜다.
+describe('링크 — URL 안의 괄호', () => {
+
+	it('괄호가 든 주소를 끝까지 가져간다', () => {
+		expect(parser.markdownToHtml("[wiki](https://example.com/wiki/C_(프로그래밍_언어))"))
+			.toBe("<p><a href='https://example.com/wiki/C_(프로그래밍_언어)' target='_blank' rel='noreferrer'>wiki</a></p>");
+	});
+
+	it('이미지 주소도 같다', () => {
+		expect(parser.markdownToHtml("![도표](https://example.com/a_(1).png)"))
+			.toBe("<p><img src='https://example.com/a_(1).png' alt='도표' /></p>");
+	});
+
+	// 대조 — 괄호가 없는 평범한 주소와 제목 있는 링크는 그대로여야 한다.
+	it('평범한 주소는 그대로', () => {
+		expect(parser.markdownToHtml("[e](https://example.com/a?b=1&c=2)"))
+			.toBe("<p><a href='https://example.com/a?b=1&amp;c=2' target='_blank' rel='noreferrer'>e</a></p>");
+	});
+
+	it('제목 있는 링크는 그대로', () => {
+		expect(parser.markdownToHtml('[e](https://example.com "제목")'))
+			.toBe("<p><a href='https://example.com' title='제목' target='_blank' rel='noreferrer'>e</a></p>");
+	});
+});
