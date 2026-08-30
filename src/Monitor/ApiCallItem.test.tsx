@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import * as mock from './api.mock'
 import ApiCallItem from './ApiCallItem';
 import * as api from './api';
@@ -298,5 +299,77 @@ describe('ApiCallItem unmount safety (REQ-20260517-093 FR-03)', () => {
 
 		expect(logSpy).toHaveBeenCalledWith('[API GET] FAILED - API call stats: log', 'ERROR');
 		expect(reportErrorSpy).toHaveBeenCalledTimes(1);
+	});
+});
+
+// 종합 성공률의 색이 성공률을 따라야 한다.
+//
+// 색 판정 함수의 임계값은 비율(0.6·0.7·…)인데 호출부가 백분율 정수를 넘기고
+// 있었다. 그래서 1% 이상이면 무엇이든 마지막 색으로 떨어졌다 — 실측: 성공률
+// 10% 인 구간의 막대는 붉은데 종합 수치만 초록이었다. 경고해야 할 신호가
+// 영영 뜨지 않았다.
+describe('ApiCallItem 종합 성공률 색', () => {
+	useMockServer(() => mock.prodServerOk);
+
+	const API = import.meta.env.VITE_MONITOR_API_BASE;
+
+	// 이 스위트는 **색이 성공률을 따르는가** 를 잰다. 파일 상단 팔레트는
+	// `color` 가 전부 black 이고 backgroundColor 만 달라 판별이 안 된다.
+	// 실제 앱이 쓰는 Red-to-Green 처럼 색이 갈리는 팔레트를 따로 둔다.
+	// jsdom 은 유효하지 않은 CSS 색을 버리므로 실제 색만 쓴다 (실측: 가짜
+	// 이름을 쓰면 style 이 비어 측정이 조용히 틀린다).
+	const gradedPallet = Array.from({ length: 7 }, (_v, i) => ({
+		color: 'rgb(' + (i + 1) + ', 0, 0)',
+		backgroundColor: 'rgb(' + (i + 1) + ', 0, 0)',
+	}));
+
+	const colorsFor = async (total: number, succeed: number): Promise<string[]> => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		mock.prodServerOk.use(http.get(API + '/prod/api/log', async () => HttpResponse.json({
+			statusCode: 200,
+			body: {
+				totalCount: total,
+				ProcessingTime: 1,
+				Items: [{ timestamp: 1643673600000, total, succeed, failed: total - succeed }],
+			},
+		})));
+
+		const { container, unmount } = render(
+			<ApiCallItem title="log" service="log" stackPallet={gradedPallet} />);
+		await act(async () => { await new Promise((resolve) => setTimeout(resolve, 300)); });
+		const found = (container.innerHTML.match(/color: [^;"]+/g) ?? []);
+		unmount();
+		return found;
+	};
+
+	it('실패가 많으면 종합 수치도 경고 색을 쓴다', async () => {
+
+		const good = await colorsFor(100, 100);
+		const bad = await colorsFor(100, 10);
+
+		expect(good.length, '색이 하나도 잡히지 않았다 — 판정이 공허하다').toBeGreaterThan(0);
+		// 이전에는 첫 색(종합 수치)이 두 경우 모두 같았다.
+		expect(bad[0]).not.toBe(good[0]);
+	});
+
+	// 대조 — 성공률이 높으면 막대와 종합 수치가 같은 색이어야 한다.
+	it('전부 성공이면 종합 수치와 막대가 같은 색이다', async () => {
+
+		const good = await colorsFor(100, 100);
+
+		expect(good.length).toBeGreaterThan(1);
+		expect(new Set(good).size, '전부 성공인데 색이 갈렸다').toBe(1);
+	});
+
+	// 대조 — 호출이 없으면 실패도 없다. 없는 실패에 경고 색을 씌우지 않는다.
+	it('호출이 0건이면 경고 색을 쓰지 않는다', async () => {
+
+		const none = await colorsFor(0, 0);
+		const good = await colorsFor(100, 100);
+
+		expect(none[0]).toBe(good[0]);
 	});
 });

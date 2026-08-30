@@ -5,7 +5,11 @@ import { useHoverPopup } from '../common/useHoverPopup';
 import { reportError } from '../common/errorReporter';
 import { getApiCallStats } from './api';
 
-const getSuccessRateIndex = (rate: number): number => {
+// 인자는 **비율**이다 (0~1). 백분율 정수를 넘기면 0% 를 뺀 전 구간이 마지막
+// 색으로 떨어진다 — 실측: 10% 도 100% 와 같은 색이었다. 그래서 이름과 주석에
+// 단위를 못 박는다.
+const getSuccessRateIndex = (successRateFraction: number): number => {
+	const rate = successRateFraction;
 	return rate < 0.6 ? 0
 		: rate < 0.7 ? 1
 		: rate < 0.8 ? 2
@@ -131,9 +135,21 @@ const ApiCallItem = (props: ApiCallItemProps) => {
 					}
 					setCountList(statList);
 
-					const rate = Math.round(100 * (successCount / data.body.totalCount));
-					setRate(rate);
-					setRateColor({ color: palletAt(stackPallet, getSuccessRateIndex(rate)).color });
+					// 종합 성공률. 색 판정에는 **비율**을, 표시에는 백분율을 쓴다.
+					//
+					// 백분율을 색 판정에 넘기고 있었다. 임계값이 0.6·0.7·… 이라
+					// 1% 이상이면 무엇이든 마지막 색으로 떨어졌다 — 실측: 성공률
+					// 10% 인 구간의 **막대는 붉은데 종합 수치만 초록**이었다.
+					// 경고해야 할 신호가 영영 뜨지 않았다.
+					const total = Number(data.body.totalCount);
+					const hasCalls = Number.isFinite(total) && 0 < total;
+					const successRate = hasCalls ? successCount / total : 0;
+
+					setRate(hasCalls ? Math.round(100 * successRate) : 0);
+					// 호출이 없으면 실패도 없다 — 없는 실패에 경고 색을 씌우지 않는다.
+					setRateColor({
+						color: palletAt(stackPallet, getSuccessRateIndex(hasCalls ? successRate : 1)).color,
+					});
 				}
 				else {
 					log("[API GET] FAILED - API call stats: " + service, "ERROR");
