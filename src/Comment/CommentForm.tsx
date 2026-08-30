@@ -87,6 +87,26 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 		}
 	}, []);
 
+	// **답글 폼일 때만 포커스를 옮긴다.**
+	//
+	// 예전에는 이름 칸에 `autoFocus` 가 붙어 있었다. 이 폼은 댓글을 **펼치는 순간**
+	// 함께 렌더되므로, 읽으려고 "N comments" 를 누른 사람의 포커스가 입력칸으로
+	// 끌려갔다 (실측: `body` → `input[Type your name]`). 그 입력칸은 댓글 목록
+	// **아래** 에 있어, 방금 보려던 댓글들을 지나쳐 스크롤된다.
+	//
+	// 그리고 관리자에게는 그 `autoFocus` 가 애초에 무효였다 — 같은 칸이
+	// `disabled` 라 브라우저가 무시한다 (실측: 답글을 열어도 포커스가 트리거에
+	// 그대로 남았다). 그래서 **실제로 활성인 칸** 을 고른다.
+	//
+	// `isReply` 는 선언되고 전달되면서 아무도 읽지 않던 prop 이다. 의도가 이미
+	// 배선돼 있었다.
+	const isReplyForm = Boolean(props.isReply);
+	useEffect(() => {
+		if(!isReplyForm) return;
+		const target = isAdmin() ? messageRef.current : userNameRef.current;
+		target?.focus();
+	}, [isReplyForm]);
+
 	// 성공했을 때만 비운다. 실패는 사용자가 쓴 것을 지울 이유가 되지 못한다.
 	//
 	// 숨김 체크도 함께 되돌린다. 체크박스가 uncontrolled 라 상태와 DOM 이 각자
@@ -112,7 +132,6 @@ const CommentForm = (props: CommentFormProps): React.ReactElement => {
 				onChange={ ({ target: { value } }: ChangeEvent<HTMLInputElement>) => setUserName(value) }
 				value={userName}
 				disabled={ Boolean(isAdmin() || props.isPosting) }
-				autoFocus
 			/>
 			<textarea
 				ref={messageRef}

@@ -320,3 +320,47 @@ describe('CommentForm 접근 이름', () => {
 		expect(screen.getByRole('textbox', { name: 'Write your Reply' })).toBeInTheDocument();
 	});
 });
+
+// 포커스는 **답글 폼일 때만** 옮긴다.
+//
+// 예전에는 이름 칸에 `autoFocus` 가 붙어 있었다. 이 폼은 댓글을 **펼치는 순간**
+// 함께 렌더되므로, 읽으려고 "N comments" 를 누른 사람의 포커스가 입력칸으로
+// 끌려갔다 (실측: `body` → `input[Type your name]`). 그 칸은 댓글 목록 아래에
+// 있어 방금 보려던 댓글들을 지나쳐 스크롤된다.
+//
+// 관리자에게는 그 `autoFocus` 가 애초에 무효였다 — 같은 칸이 `disabled` 라
+// 브라우저가 무시한다 (실측: 답글을 열어도 포커스가 트리거에 남았다).
+describe('CommentForm 포커스', () => {
+
+	const activeTag = () => {
+		const el = document.activeElement as HTMLElement | null;
+		return !el || el === document.body ? 'body' : el.tagName.toLowerCase();
+	};
+
+	it('일반 댓글 폼은 포커스를 가져가지 않는다', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+
+		render(<CommentForm logTimestamp={1} post={vi.fn()} />);
+
+		expect(activeTag()).toBe('body');
+	});
+
+	// 반대 방향 — 답글은 사용자가 쓰려고 연 것이므로 옮겨야 한다.
+	it('답글 폼은 첫 활성 칸으로 옮긴다 (방문자)', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(false);
+
+		render(<CommentForm logTimestamp={1} commentTimestamp={2} isReply={true} post={vi.fn()} />);
+
+		expect(document.activeElement).toBe(screen.getByPlaceholderText('Type your name'));
+	});
+
+	// 관리자는 이름 칸이 비활성이라 그쪽으로 옮기면 아무 일도 일어나지 않는다.
+	it('답글 폼은 첫 활성 칸으로 옮긴다 (관리자)', () => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		render(<CommentForm logTimestamp={1} commentTimestamp={2} isReply={true} post={vi.fn()} />);
+
+		expect(screen.getByPlaceholderText('Type your name')).toBeDisabled();
+		expect(document.activeElement).toBe(screen.getByPlaceholderText('Write your Reply'));
+	});
+});
