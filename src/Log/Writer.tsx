@@ -192,9 +192,19 @@ const Writer = () => {
 			setRows(minRows + rows); // Set current rows
 		}
 
+		const textArea = document.getElementById("textarea--writer-article") as AutoExpandTextArea | null;
+
+		// 리스너는 `window` 에 달려 있어 **페이지의 모든 입력**에 반응했다. 이 화면
+		// 상단에는 검색창이 있고, 거기에 타자를 치면 그 요소의 scrollHeight 로
+		// 글쓰기 칸의 rows 가 다시 계산됐다. 실측:
+		//
+		//   글쓰기 칸 rows = 6  →  다른 입력창에 타자  →  rows = 1
+		//
+		// 편집 중이던 칸이 한 줄로 접힌다. 남의 요소에 `_baseScrollHeight` 를
+		// 심기까지 했다. 자기 textarea 에서 온 것만 받는다.
 		const setTextarealHeight = (event: Event) => {
 			const e = event.target as AutoExpandTextArea | null;
-			if(e) setTextAreaRows(e);
+			if(e && e === textArea) setTextAreaRows(e);
 		}
 
 		let html = parser.markdownToHtml(article);
@@ -203,7 +213,6 @@ const Writer = () => {
 		setArticleStatus("Markdown length = " + article.length);
 		window.addEventListener('input', setTextarealHeight);
 
-		const textArea = document.getElementById("textarea--writer-article") as AutoExpandTextArea | null;
 		if(textArea && 2 > textArea.rows) {
 			setTextAreaRows(textArea);
 		}

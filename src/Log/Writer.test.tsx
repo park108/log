@@ -1025,6 +1025,26 @@ describe('Writer 저장 실패 시 목록 캐시', () => {
 	});
 });
 
+// jsdom 은 레이아웃을 계산하지 않아 `scrollHeight` 가 항상 0 이다. 자동 확장은
+// 그 값만으로 rows 를 정하므로 재정의해 가린다.
+//
+// 가린 자리는 **훅 등록**으로 되돌린다 (`check-global-state-restoration` NFR-02).
+// `it` 본문에서 되돌리면 케이스가 중간에 던졌을 때 실행되지 않고, shuffle 로 뒤
+// 케이스가 앞에 오면 가려진 값을 그대로 본다.
+const shadowedScrollHeights: HTMLElement[] = [];
+
+const stubScrollHeight = (element: HTMLElement, value: number): void => {
+	Object.defineProperty(element, 'scrollHeight', { value, configurable: true });
+	shadowedScrollHeights.push(element);
+};
+
+afterEach(() => {
+	for(const element of shadowedScrollHeights) {
+		delete (element as unknown as { scrollHeight?: number }).scrollHeight;
+	}
+	shadowedScrollHeights.length = 0;
+});
+
 // 이 화면은 "새 글" 과 "수정" 이 **같은 라우트**다. 그래서 글을 수정하는 중에
 // "+"(새 글)를 눌러도 언마운트되지 않고 진입 효과만 다시 돈다. 그 효과가
 // 수정 모드로 **들어가는 갈래만** 갖고 있던 동안에는, 그때 편집 상태가 그대로
@@ -1158,5 +1178,87 @@ describe('Writer 미리보기는 타자마다 새로 만들어지지 않는다',
 		await act(async () => { fireEvent.click(screen.getByTestId('mode-button')); });
 
 		expect(preview()?.querySelector('pre')).not.toBeNull();
+	});
+});
+
+// 자동 확장 리스너는 `window` 에 달려 있어 **페이지의 모든 입력**에 반응했다.
+// 이 화면 상단에는 검색창이 있고, 거기에 타자를 치면 그 요소의 scrollHeight 로
+// 글쓰기 칸의 rows 가 다시 계산돼 편집 중이던 칸이 한 줄로 접혔다 (실측 6 → 1).
+// 남의 요소에 `_baseScrollHeight` 를 심기까지 했다.
+describe('Writer 자동 확장은 자기 입력에만 반응한다', () => {
+
+	const area = () => document.getElementById('textarea--writer-article') as HTMLTextAreaElement;
+
+	const renderWriter = () => render(withQuery(
+		<MemoryRouter initialEntries={[{ pathname: '/log/write', state: null, key: 'expand', search: '', hash: '' }]}>
+			<Writer />
+		</MemoryRouter>
+	));
+
+	const settle = async () => {
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+	};
+
+	// jsdom 은 레이아웃을 계산하지 않으므로 scrollHeight 를 명시 주입해 여러 줄
+	// 상태를 만든다. 이 값이 rows 계산의 유일한 입력이다 (32px 한 줄).
+	const growTextArea = async () => {
+		stubScrollHeight(area(), 32);
+		await act(async () => { fireEvent.input(area(), { target: { value: '한 줄' } }); });
+		stubScrollHeight(area(), 32 * 6);
+		await act(async () => { fireEvent.input(area(), { target: { value: '한 줄\n두 줄\n세 줄\n네 줄\n다섯' } }); });
+	};
+
+	it('다른 입력창의 타자가 글쓰기 칸을 접지 않는다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		const other = document.createElement('input');
+		other.id = 'other-input-for-test';
+		document.body.appendChild(other);
+
+		try {
+			renderWriter();
+			await settle();
+			await growTextArea();
+
+			const grown = area().rows;
+			expect(grown).toBeGreaterThan(1);
+
+			stubScrollHeight(other, 500);
+			await act(async () => { fireEvent.input(other, { target: { value: '검색어' } }); });
+
+			expect(area().rows).toBe(grown);
+			// 남의 요소에 계측용 속성을 심지 않는다.
+			expect('_baseScrollHeight' in other).toBe(false);
+		}
+		finally {
+			document.body.removeChild(other);
+		}
+	});
+
+	// 반대 방향 — 자기 입력에는 여전히 반응해야 한다.
+	//
+	// rows 가 1 인 동안에는 효과 꼬리(`2 > textArea.rows`)가 대신 키워 주므로
+	// 그 구간만 재면 리스너를 통째로 죽여도 통과한다 (주입으로 확인). 이미
+	// 여러 줄이 된 뒤의 성장은 **리스너만** 할 수 있다.
+	it('이미 여러 줄인 칸도 자기 입력으로 더 늘어난다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+
+		renderWriter();
+		await settle();
+
+		const initial = area().rows;
+		await growTextArea();
+
+		const grown = area().rows;
+		expect(grown).toBeGreaterThan(initial);
+		expect(grown).toBeGreaterThan(1);
+
+		// 여기서부터는 효과 꼬리가 관여하지 않는다.
+		stubScrollHeight(area(), 32 * 10);
+		await act(async () => { fireEvent.input(area(), { target: { value: '한 줄\n두 줄\n세 줄\n네 줄\n다섯\n여섯\n일곱\n여덟\n아홉' } }); });
+
+		expect(area().rows).toBeGreaterThan(grown);
 	});
 });
