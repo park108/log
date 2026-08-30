@@ -46,6 +46,20 @@ const File = (props: FileProps): React.ReactElement => {
 	const [isGetNextData, setIsGetNextData] = useState<boolean>(false);
 
 	const [files, setFiles] = useState<S3FileItemData[]>([]);
+
+	// **"비어 있다" 는 목록을 실제로 받아 본 뒤에만 말할 수 있다.**
+	//
+	// 예전 조건은 `!isLoading && 0 === files.length` 였고 두 방향으로 틀렸다 (실측):
+	//
+	//   조회 착수 전   커밋별 안내 [true, true, false, false]
+	//                 `isLoading` 은 두 번째 passive-effect flush 에서야 올라간다
+	//   조회 실패 후   "No files yet." + 재시도 버튼 없음
+	//                 이 화면에는 `isError` 상태가 **아예 없어** `files` 가 [] 인 채
+	//                 조건이 참이 된다. 토스터가 2초 뒤 사라지면 화면에 남는 유일한
+	//                 문장이 "No files yet." 이고, 관리자는 파일이 지워졌다고 읽는다.
+	//
+	// 목록을 성공적으로 받은 시점에만 세운다 — 실패는 "없음" 의 근거가 아니다.
+	const [hasListArrived, setHasListArrived] = useState<boolean>(false);
 	const [lastTimestamp, setLastTimestamp] = useState<number | undefined>(undefined);
 
 	const [isShowToaster, setIsShowToaster] = useState<ToasterShowState>(1);
@@ -101,6 +115,7 @@ const File = (props: FileProps): React.ReactElement => {
 					const lastEvaluatedKey = newData.body?.LastEvaluatedKey;
 
 					setFiles(hasValue(newFiles) ? (newFiles as S3FileItemData[]) : []);
+					setHasListArrived(true);
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
@@ -234,7 +249,7 @@ const File = (props: FileProps): React.ReactElement => {
 				<div className="div div--files-list" role="list">
 					{/* 목록이 비었다는 것과 무언가 잘못됐다는 것은 구별되어야 한다.
 					    검색 화면이 같은 이유로 "No search results." 를 낸다. */}
-					{ (!isLoading && 0 === files.length) && (
+					{ (hasListArrived && !isLoading && 0 === files.length) && (
 						<h1 className="h1 h1--notification-result" data-testid="fileListEmpty">
 							No files yet.
 						</h1>

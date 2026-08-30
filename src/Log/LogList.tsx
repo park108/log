@@ -29,6 +29,23 @@ const LogList = (props: LogListProps) => {
 	// 첫 조회가 끝났는지. 커서 삭제 판정에만 쓴다 (위 effect 주석 참조).
 	const hasLoaded = useRef<boolean>(false);
 
+	// **"비어 있다" 는 목록을 실제로 받아 본 뒤에만 말할 수 있다.**
+	//
+	// 예전 조건은 `!isLoading && 0 === logs.length` 였다. 그 명제는 **조회에 착수하기
+	// 전에도 참** 이다 — `isLoading` 은 두 번째 passive-effect flush 에서야 올라간다
+	// (마운트 효과가 `isGetData` 를 세우고, 그것을 deps 로 받는 효과가 비로소 조회한다).
+	// React.Profiler 로 커밋마다 잰 결과 (실측):
+	//
+	//   조회 대기        커밋별 안내 [true, true, false, false]
+	//   세션 캐시 복원    [true, true, false]   ← getLogs 호출 0회인 재방문 경로
+	//
+	// 두 번째가 특히 나쁘다. 네트워크를 한 번도 타지 않는데 캐시된 글이 그려지기 전
+	// 두 커밋 동안 "No logs yet." 이 보인다 — 지연 원인이 서버가 아니라 렌더 순서다.
+	//
+	// `hasLoaded` 는 ref 라 리렌더를 일으키지 않고 캐시 경로에서 서지도 않아 이
+	// 판정에 쓸 수 없다. 성공적으로 목록을 얻은 시점을 상태로 따로 세운다.
+	const [hasListArrived, setHasListArrived] = useState<boolean>(false);
+
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState<ToasterShow>(1);
 
 	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c — unmount 후 발화 차단 가드.
@@ -61,6 +78,7 @@ const LogList = (props: LogListProps) => {
 				}
 	
 				log("Get logs from session.");
+				setHasListArrived(true);
 	
 				return;
 			}
@@ -82,6 +100,7 @@ const LogList = (props: LogListProps) => {
 		
 					setLogs(newLogs);
 					hasLoaded.current = true;
+					setHasListArrived(true);
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 				}
 				else {
@@ -307,7 +326,7 @@ const LogList = (props: LogListProps) => {
 		// 한다. 안내가 없으면 빈 화면 하나로 두 상태가 겹쳐 보인다 — 검색 화면은
 		// 같은 이유로 "No search results." 를, 댓글은 "Add a comment" 를 이미 낸다.
 		// 다섯 화면 중 셋만 이 표면이 없었다.
-		const emptyNotice = (!isLoading && 0 === logs.length)
+		const emptyNotice = (hasListArrived && !isLoading && 0 === logs.length)
 			? (
 				<h1 className="h1 h1--notification-result" data-testid="logListEmpty">
 					No logs yet.

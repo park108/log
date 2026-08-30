@@ -1,3 +1,4 @@
+import { Profiler } from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as api from './api';
@@ -583,17 +584,36 @@ describe('LogList 빈 목록', () => {
 	});
 
 	// 불러오는 중에는 "없다" 고 말하지 않는다 — 아직 모르는 것이다.
-	it('불러오는 중에는 없다고 말하지 않는다', async () => {
+	//
+	// **커밋마다 본다.** 구 버전은 `render` 뒤 10ms 를 기다리고 한 번만 단언해
+	// 창을 통째로 놓쳤다. 문제의 구간은 마운트 직후 두 커밋이고 그 안에서 이미
+	// 끝난다 — 10ms 뒤에는 아무것도 남아 있지 않다. 이름은 이 명제를 겨누면서
+	// 실제로는 아무것도 재지 않던 테스트였다 (파이프라인 discovery 가 지적).
+	const commitTrace = (): { seen: boolean[]; onRender: () => void } => {
+		const seen: boolean[] = [];
+		return { seen, onRender: () => { seen.push(Boolean(empty())); } };
+	};
+
+	it('조회에 착수하기 전에는 없다고 말하지 않는다', async () => {
 
 		stubMode('development');
 		let release: ((value: Response) => void) | null = null;
 		vi.spyOn(api, 'getLogs').mockImplementation(() =>
 			new Promise<Response>(resolve => { release = resolve; }));
 
-		renderLogList();
-		await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+		const trace = commitTrace();
+		render(
+			<Profiler id="loglist" onRender={trace.onRender}>
+				<MemoryRouter initialEntries={[{ pathname: "/log", search: "", hash: "", state: {}, key: "default" }]}>
+					<LogList />
+				</MemoryRouter>
+			</Profiler>
+		);
+		await flushAfterResponse();
 
-		expect(empty()).toBeNull();
+		// 어느 커밋에서도 뜨지 않아야 한다.
+		expect(trace.seen.length, '커밋이 한 번도 없었다 — 판정이 공허하다').toBeGreaterThan(0);
+		expect(trace.seen).not.toContain(true);
 
 		await act(async () => {
 			(release as unknown as (value: Response) => void)(jsonResponse({ body: { Items: [] } }));
@@ -601,5 +621,34 @@ describe('LogList 빈 목록', () => {
 		});
 
 		expect(empty()).toBeInTheDocument();
+	});
+
+	// 네트워크를 한 번도 타지 않는 재방문 경로. 캐시된 글이 그려지기 전 두 커밋
+	// 동안 "없다" 가 보였다 — 지연 원인이 서버가 아니라 렌더 순서였다.
+	it('세션 캐시에서 복원할 때도 없다고 말하지 않는다', async () => {
+
+		stubMode('development');
+		sessionStorage.setItem('logList', JSON.stringify(
+			Array.from({ length: 7 }, (_, index) => ({
+				timestamp: 100 - index, contents: 'c' + index, temporary: false,
+			}))));
+
+		const getLogsSpy = vi.spyOn(api, 'getLogs').mockImplementation(async () =>
+			jsonResponse({ body: { Items: [] } }));
+
+		const trace = commitTrace();
+		render(
+			<Profiler id="loglist-cache" onRender={trace.onRender}>
+				<MemoryRouter initialEntries={[{ pathname: "/log", search: "", hash: "", state: {}, key: "default" }]}>
+					<LogList />
+				</MemoryRouter>
+			</Profiler>
+		);
+		await flushAfterResponse();
+
+		expect(getLogsSpy, '캐시 경로인데 네트워크를 탔다 — 다른 것을 재고 있다').not.toHaveBeenCalled();
+		expect(trace.seen.length).toBeGreaterThan(0);
+		expect(trace.seen).not.toContain(true);
+		expect(document.querySelectorAll('[role="listitem"]').length).toBe(7);
 	});
 });

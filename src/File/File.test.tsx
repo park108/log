@@ -1,3 +1,4 @@
+import { Profiler } from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import * as mock from './api.mock';
@@ -824,6 +825,48 @@ describe('File 빈 목록', () => {
 		await settle();
 
 		expect(empty()).toBeInTheDocument();
+	});
+
+	// **커밋마다 본다.** 문제의 구간은 마운트 직후 두 커밋이고 그 안에서 끝난다 —
+	// 나중에 한 번만 단언하면 창을 통째로 놓친다.
+	it('조회에 착수하기 전에는 없다고 말하지 않는다', async () => {
+
+		let release: ((value: Response) => void) | null = null;
+		vi.spyOn(api, 'getFiles').mockImplementation(() =>
+			new Promise<Response>(resolve => { release = resolve; }));
+
+		const seen: boolean[] = [];
+		render(
+			<Profiler id="file" onRender={() => { seen.push(Boolean(empty())); }}>
+				<MemoryRouter><File /></MemoryRouter>
+			</Profiler>
+		);
+		await settle();
+
+		expect(seen.length, '커밋이 한 번도 없었다 — 판정이 공허하다').toBeGreaterThan(0);
+		expect(seen).not.toContain(true);
+
+		await act(async () => {
+			(release as unknown as (value: Response) => void)(filePage([]));
+			await new Promise(resolve => setTimeout(resolve, 10));
+		});
+
+		expect(empty()).toBeInTheDocument();
+	});
+
+	// 이 화면에는 `isError` 상태가 없다. 실패해도 토스터만 세우고 진행하므로
+	// 목록이 빈 채 안내가 떴고, 토스터가 2초 뒤 사라지면 화면에 남는 유일한
+	// 문장이 "No files yet." 이었다 — 관리자는 파일이 지워졌다고 읽는다.
+	it('조회가 실패하면 없다고 말하지 않는다', async () => {
+
+		vi.spyOn(api, 'getFiles').mockRejectedValue(new Error('down'));
+		vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await settle();
+		await settle();
+
+		expect(empty()).toBeNull();
 	});
 
 	it('파일이 있으면 그 안내를 내지 않는다', async () => {
