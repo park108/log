@@ -1,5 +1,5 @@
 import { Profiler } from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import * as mock from './api.mock';
 import * as api from './api';
@@ -878,5 +878,86 @@ describe('File 빈 목록', () => {
 
 		expect(document.querySelectorAll('[role="listitem"]').length).toBe(1);
 		expect(empty()).toBeNull();
+	});
+});
+
+// 첫 조회 실패는 **토스터보다 오래 사는 표면**과 **빠져나갈 길**을 남겨야 한다.
+// spec: specs/30.spec/green/components/file.md §동작 8 (F2)(F3)(F5)
+describe('File 첫 조회 실패 표면', () => {
+
+	const settle = async () => {
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+	};
+
+	const filePage = (names: string[]) => new Response(JSON.stringify({
+		body: { Items: names.map((name, index) => ({
+			key: name, url: 'https://example.com/' + name,
+			lastModified: 1700000000000 + index, size: 100,
+		})) },
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	// 비-2xx 본문 갈래 — 200 응답에 `errorType` 이 실려 온다. `mockRejectedValue` 로는
+	// 이 갈래에 닿지 못한다 (그쪽은 `catch` 로 빠진다).
+	const errorTypePage = () => new Response(JSON.stringify({
+		errorType: 'InternalServerError',
+		errorMessage: 'files table unavailable',
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	beforeEach(() => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(common, 'isMobile').mockReturnValue(false);
+		vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
+	});
+
+	// **토스터가 물러난 뒤에 단언한다.** 하단 토스터는 `duration=2000` 이 지나면
+	// `data-show="2"` 로 전이해 시야에서 사라진다. 그 창 안에서만 재면 "토스터가
+	// 유일한 실패 표면" 인 종전 상태도 그대로 통과하므로, 이 방향의 검출력이 0 이
+	// 된다. `waitForToasterHidden` 은 도달을 관측하지 못하면 통과가 아니라 reject 라
+	// (test-utils/toaster.ts) 실패 경로가 실제로 탔다는 전제까지 함께 진다.
+	it('조회에 실패하면 다시 시도할 길을 남긴다', async () => {
+
+		const spy = vi.spyOn(api, 'getFiles').mockRejectedValue(new Error('down'));
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await settle();
+
+		await waitForToasterHidden('error', 'bottom');
+
+		// (F2) 토스터가 물러난 뒤에도 실패를 말하는 표면이 남아 있다.
+		const surface = screen.getByTestId('fileListError');
+		expect(surface).toBeInTheDocument();
+
+		// (F3) 그 표면 안에 다시 시도할 조작부가 있다.
+		const retry = within(surface).getByRole('button', { name: /retry/i });
+
+		// 그 조작부는 장식이 아니라 실제로 1차 조회를 다시 태운다.
+		const callsBefore = spy.mock.calls.length;
+		spy.mockImplementation(async () => filePage(['a.txt']));
+		await act(async () => { fireEvent.click(retry); });
+		await settle();
+
+		expect(spy.mock.calls.length).toBeGreaterThan(callsBefore);
+		expect(screen.queryByTestId('fileListError')).toBeNull();
+		expect(document.querySelectorAll('[role="listitem"]').length).toBe(1);
+	});
+
+	// 첫 조회 실패는 갈래가 둘이고 (F5) 는 **양쪽 모두**에 성립한다. 한쪽만 전이하면
+	// 나머지 한쪽이 정확히 종전 상태로 남는데, `mockRejectedValue` 만 쓰는 테스트는
+	// 그것을 통과시킨다 — 그래서 이 케이스는 `errorType` 본문 갈래를 태운다.
+	it('errorType 갈래도 같은 실패 표면을 낸다', async () => {
+
+		vi.spyOn(api, 'getFiles').mockImplementation(async () => errorTypePage());
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await settle();
+
+		await waitForToasterHidden('error', 'bottom');
+
+		const surface = screen.getByTestId('fileListError');
+		expect(surface).toBeInTheDocument();
+		expect(within(surface).getByRole('button', { name: /retry/i })).toBeInTheDocument();
+
+		// 실패는 "없음" 의 근거가 아니다 — 빈 안내와 겹치지 않는다 (F1 비퇴행).
+		expect(screen.queryByTestId('fileListEmpty')).toBeNull();
 	});
 });

@@ -47,6 +47,14 @@ const File = (props: FileProps): React.ReactElement => {
 
 	const [files, setFiles] = useState<S3FileItemData[]>([]);
 
+	// 첫 조회가 실패했다는 사실은 토스터보다 오래 살아야 한다.
+	//
+	// 하단 토스터는 `duration=2000` 뒤 물러나고, 그 뒤 화면에는 목록도 안내도 없는
+	// 빈 영역만 남는다 — 관리자는 왜 비었는지도, 어떻게 다시 시도하는지도 알 수 없다.
+	// 다른 목록 화면 둘은 같은 상황에서 지속 표면 + Retry 를 낸다 (`LogList` ·
+	// `ImageSelector`). `File` 만 이 축에서 빠져 있었다.
+	const [isError, setIsError] = useState<boolean>(false);
+
 	// **"비어 있다" 는 목록을 실제로 받아 본 뒤에만 말할 수 있다.**
 	//
 	// 예전 조건은 `!isLoading && 0 === files.length` 였고 두 방향으로 틀렸다 (실측):
@@ -116,12 +124,14 @@ const File = (props: FileProps): React.ReactElement => {
 
 					setFiles(hasValue(newFiles) ? (newFiles as S3FileItemData[]) : []);
 					setHasListArrived(true);
+					setIsError(false);
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
 					log("[API GET] FAILED - Files", "ERROR");
 					setToasterMessage("Get files failed.");
 					setIsShowToasterBottom(1);
+					setIsError(true);
 					reportError(newData);
 				}
 			}
@@ -130,6 +140,7 @@ const File = (props: FileProps): React.ReactElement => {
 				log("[API GET] FAILED - Files", "ERROR");
 				setToasterMessage("Get files failed.");
 				setIsShowToasterBottom(1);
+				setIsError(true);
 				reportError(err);
 			}
 	
@@ -245,6 +256,33 @@ const File = (props: FileProps): React.ReactElement => {
 			<article className="article article--main-item">
 
 				{ fileUploadUI }
+
+				{/* 전면 오류는 **보여줄 것이 없을 때만** 맞다 — 이미 받은 목록이 있으면
+				    그 목록을 오류 화면으로 덮지 않는다 (`LogList` 가 같은 이유로
+				    `0 === logs.length` 를 함께 본다). 이 표면은 토스터의 `duration` 과
+				    무관하게 남는다. */}
+				{ (isError && 0 === files.length) && (
+					<section className="section section--message-box" data-testid="fileListError">
+						<h2 className="h2 h2--message-error">
+							Couldn&apos;t load your file list.
+						</h2>
+						<hr />
+						<div className="div div--message-description">
+							The list never arrived. Click Retry to ask again.
+						</div>
+						<button
+							type="button"
+							className="btn btn--ghost btn--sm"
+							onClick={ (e: React.SyntheticEvent): void => {
+								e.preventDefault();
+								setIsError(false);
+								setIsGetData(true);
+							} }
+						>
+							Retry
+						</button>
+					</section>
+				) }
 
 				<div className="div div--files-list" role="list">
 					{/* 목록이 비었다는 것과 무언가 잘못됐다는 것은 구별되어야 한다.
