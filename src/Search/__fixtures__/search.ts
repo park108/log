@@ -40,3 +40,18 @@ export const searchResultsNoData: SearchListPayload = {
 	ProcessingTime: 1472,
 	Items: [],
 };
+
+// 캡처된 실제 응답의 모양 — 서버 요약이 마크다운을 이미 걷어낸 뒤라
+// 줄바꿈 없는 긴 한 덩어리이고, 찾는 말은 끝에 있다. 실측 1019자 / 매치 1010.
+export const searchResultsLateMatch: SearchListPayload = {
+	QueryString: "테스트",
+	TotalCount: 1,
+	ProcessingTime: 12,
+	Items: [
+		{
+			timestamp: 1657811580999,
+			contents: "오늘은 날씨가 좋았다. ".repeat(40) + "그래서 테스트 를 붙였다.",
+			author: "park108@gmail.com",
+		},
+	],
+};

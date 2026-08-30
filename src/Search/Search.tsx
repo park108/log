@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common';
 import { reportError } from '../common/errorReporter';
 import { useSearchList } from './hooks/useSearchList';
+import { buildExcerpt } from './excerpt';
 
 import styles from './Search.module.css';
 
@@ -214,7 +215,11 @@ const Search = (): React.ReactElement => {
 						}}>
 							<div className="div--loglist-date">{getFormattedDate(data.timestamp)}</div>
 							<div className="div--loglist-contents">{
-								highlightKeyword(data.contents, queryString, `span ${styles.spanSearchKeyword}`)
+								highlightKeyword(
+									buildExcerpt(data.contents, queryString),
+									queryString,
+									`span ${styles.spanSearchKeyword}`,
+								)
 							}</div>
 						</Link>
 					</div>

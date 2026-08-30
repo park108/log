@@ -368,3 +368,75 @@ describe('결과 요약 문구 — 복수형', () => {
 		});
 	});
 });
+
+// 미리보기 한 줄은 `white-space: nowrap; overflow: hidden` 이라 앞부분만 보인다.
+// 본문을 통째로 그리던 동안 매치는 그 밖에 있었다 — 캡처된 실제 응답 한 건이
+// 1019자이고 매치 위치가 1010 이다. 결과는 나오는데 왜 걸렸는지가 화면에 없었다.
+describe('Search 결과 미리보기', () => {
+	useMockServer(() => mock.prodServerLateMatch);
+
+	const previewText = async () => {
+		const item = await screen.findByRole('listitem');
+		const preview = item.querySelector('.div--loglist-contents') as HTMLElement;
+		expect(preview).not.toBeNull();
+		return preview.textContent ?? "";
+	};
+
+	it('뒤쪽에 있는 매치를 미리보기 앞으로 끌어온다', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		renderWithQueryRouter(<Search />);
+
+		const text = await previewText();
+		// 매치가 보이는 자리에 있어야 한다. 잘라내기 전에는 500 을 넘었다.
+		expect(text.indexOf('테스트')).toBeGreaterThanOrEqual(0);
+		expect(text.indexOf('테스트')).toBeLessThan(30);
+	});
+
+	it('강조 span 이 실제 매치 글자를 감싼다', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		renderWithQueryRouter(<Search />);
+
+		const item = await screen.findByRole('listitem');
+		const marks = Array.from(item.querySelectorAll('span[class*="search-keyword"]'));
+		expect(marks.length).toBeGreaterThan(0);
+		expect(marks.map((m) => m.textContent)).toContain('테스트');
+	});
+
+	it('잘라낸 미리보기는 생략 부호로 시작한다', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		renderWithQueryRouter(<Search />);
+
+		const text = await previewText();
+		expect(text.startsWith('…')).toBe(true);
+	});
+});
+
+// 대조 — 자르기가 조건 없이 발동하면 이 스위트가 붉어진다. 매치가 이미 앞에
+// 있는 본문까지 `…` 를 붙여 잘라내는 구현을 배제한다.
+describe('Search 결과 미리보기 — 매치가 앞에 있는 본문', () => {
+	useMockServer(() => mock.prodServerGetSingle);
+
+	it('잘라내지 않고 그대로 보여준다', async () => {
+
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+
+		renderWithQueryRouter(<Search />);
+
+		const item = await screen.findByRole('listitem');
+		const preview = item.querySelector('.div--loglist-contents') as HTMLElement;
+		const text = preview.textContent ?? "";
+
+		expect(text.startsWith('…')).toBe(false);
+		expect(text.startsWith('검색을 위해 추가')).toBe(true);
+	});
+});

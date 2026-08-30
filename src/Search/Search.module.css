@@ -161,6 +161,13 @@
 /* 순수 노랑 50% 는 나머지 배색과 겉돌고, 굵기까지 더하면 강조가 두 겹이다.
  * 배경만으로 표시하고 굵기는 본문에 맡긴다. */
 .span--search-keyword {
+	/* 색을 스스로 정한다. 이 span 이 놓이는 `.div--loglist-contents` 는
+	 * 끝을 흐리게 하려고 `background-clip: text` + `-webkit-text-fill-color:
+	 * transparent` 를 쓰는데, 둘 다 상속되는 성질이라 자식 글자도 투명해진다.
+	 * 그 위에 이 span 의 불투명한 배경이 덮이면 강조된 단어만 글자가 사라진
+	 * 노란 덩어리로 남는다 — 정확히 읽혀야 할 단어가. */
+	color: var(--normal-text-color);
+	-webkit-text-fill-color: var(--normal-text-color);
 	background-color: var(--warning-background-color);
 	border-radius: 3px;
 	padding: 0 2px;
