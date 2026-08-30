@@ -3,12 +3,23 @@ export const codeHighlighter = (lang: string, code: string): string => {
 	const language = lang.toLowerCase().trim();
 
 	if("kt" === language || "kotlin" === language) {
-		code = highlighterKotlin(code);
-	}
-	else { // yml or yaml
-		code = highlighterYaml(code);
+		return highlighterKotlin(code);
 	}
 
+	if("yml" === language || "yaml" === language) {
+		return highlighterYaml(code);
+	}
+
+	// 아는 언어가 아니면 손대지 않는다.
+	//
+	// 이전에는 else 가 전부 YAML 로 떨어졌다 — 주석은 "yml or yaml" 이라 적혀
+	// 있었지만 실제로는 폴백이었다. 그래서 다른 언어와 **언어를 안 적은 블록**까지
+	// YAML 규칙을 맞았다 (실측):
+	//   ```ts     `const m: Map<string, number>` → "const m" 이 YAML 키로 강조
+	//   ```python `def f(x):`                    → 키로 강조
+	//   ```(없음) `plain text: with colon`       → "plain text" 가 키로 강조
+	// 콜론이 든 줄이면 무엇이든 키처럼 칠해졌다. 모르는 언어는 칠하지 않는 것이
+	// 틀리게 칠하는 것보다 낫다.
 	return code;
 }
 
