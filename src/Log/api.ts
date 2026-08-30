@@ -25,13 +25,23 @@ const getApiUrl = (): string => {
 }
 
 const DEFAULT_ITEM_PER_PAGE = 10;
+
+// 목록 조회는 **모든 페이지가 같은 신분으로** 나가야 한다.
+//
+// 첫 페이지만 `&admin=true` 를 실었고 "See more" 는 아무것도 싣지 않았다. 같은
+// 사용자가 같은 목록을 훑는 동안 1페이지와 2페이지가 서로 다른 신분으로 요청된
+// 것이다. 이 파라미터가 임시 저장 글의 노출을 가르므로, 방향은 하나뿐이다 —
+// 관리자가 자기 글을 첫 페이지에서는 보고 그 아래에서는 못 본다.
+//
+// 방문자에게는 어느 쪽도 `isAdmin()` 이 거짓이라 요청이 한 글자도 달라지지 않는다.
+const adminParam = (): string => isAdmin() ? "&admin=true" : "";
+
 export const getLogs = async(limit: number = DEFAULT_ITEM_PER_PAGE): Promise<Response> => {
-	const admin = isAdmin() ? "&admin=true" : "";
-	return await fetch(getApiUrl() + "?limit=" + limit + admin);
+	return await fetch(getApiUrl() + "?limit=" + limit + adminParam());
 }
 
 export const getNextLogs = async(timestamp: number | string, limit: number = DEFAULT_ITEM_PER_PAGE): Promise<Response> => {
-	return await fetch(getApiUrl() + "?lastTimestamp=" + timestamp + "&limit=" + limit);
+	return await fetch(getApiUrl() + "?lastTimestamp=" + timestamp + "&limit=" + limit + adminParam());
 }
 
 export const getLog = async(timestamp: number | string): Promise<Response> => {
