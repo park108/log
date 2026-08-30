@@ -303,9 +303,22 @@ const LogList = (props: LogListProps) => {
 			)
 			: null;
 
+		// 목록이 비었다는 것과 무언가 잘못됐다는 것은 사용자가 구별할 수 있어야
+		// 한다. 안내가 없으면 빈 화면 하나로 두 상태가 겹쳐 보인다 — 검색 화면은
+		// 같은 이유로 "No search results." 를, 댓글은 "Add a comment" 를 이미 낸다.
+		// 다섯 화면 중 셋만 이 표면이 없었다.
+		const emptyNotice = (!isLoading && 0 === logs.length)
+			? (
+				<h1 className="h1 h1--notification-result" data-testid="logListEmpty">
+					No logs yet.
+				</h1>
+			)
+			: null;
+
 		return (
 			<section className="section section--log-list" role="list">
 				{logItems}
+				{emptyNotice}
 
 				<Toaster 
 					show={isShowToasterCenter}

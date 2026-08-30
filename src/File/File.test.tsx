@@ -794,3 +794,46 @@ describe('File 다음 페이지 병합', () => {
 		expect(items()).toBe(3);
 	});
 });
+
+// 목록이 비었다는 것과 무언가 잘못됐다는 것은 구별되어야 한다 (LogList 와 동일).
+describe('File 빈 목록', () => {
+
+	const empty = () => screen.queryByTestId('fileListEmpty');
+
+	const settle = async () => {
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+	};
+
+	const filePage = (names: string[]) => new Response(JSON.stringify({
+		body: { Items: names.map((name, index) => ({
+			key: name, url: 'https://example.com/' + name,
+			lastModified: 1700000000000 + index, size: 100,
+		})) },
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	beforeEach(() => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(common, 'isMobile').mockReturnValue(false);
+	});
+
+	it('파일이 하나도 없으면 그렇다고 알린다', async () => {
+
+		vi.spyOn(api, 'getFiles').mockImplementation(async () => filePage([]));
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await settle();
+
+		expect(empty()).toBeInTheDocument();
+	});
+
+	it('파일이 있으면 그 안내를 내지 않는다', async () => {
+
+		vi.spyOn(api, 'getFiles').mockImplementation(async () => filePage(['a.txt']));
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await settle();
+
+		expect(document.querySelectorAll('[role="listitem"]').length).toBe(1);
+		expect(empty()).toBeNull();
+	});
+});

@@ -547,3 +547,59 @@ describe('LogList 다음 페이지 실패', () => {
 		expect(items()).toBe(0);
 	});
 });
+
+// 목록이 비었다는 것과 무언가 잘못됐다는 것은 사용자가 구별할 수 있어야 한다.
+// 안내가 없으면 빈 화면 하나로 두 상태가 겹쳐 보인다. 검색 화면은 같은 이유로
+// "No search results." 를, 댓글은 "Add a comment" 를 이미 내고 있었다.
+describe('LogList 빈 목록', () => {
+
+	const empty = () => screen.queryByTestId('logListEmpty');
+
+	it('글이 하나도 없으면 그렇다고 알린다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockImplementation(async () =>
+			jsonResponse({ body: { Items: [] } }));
+
+		renderLogList();
+		await flushAfterResponse();
+
+		expect(empty()).toBeInTheDocument();
+		expect(document.querySelectorAll('[role="listitem"]').length).toBe(0);
+	});
+
+	// 반대 방향 — 글이 있으면 나오지 않는다.
+	it('글이 있으면 그 안내를 내지 않는다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockImplementation(async () =>
+			jsonResponse({ body: logListFirst7 }));
+
+		renderLogList();
+		await flushAfterResponse();
+
+		expect(document.querySelectorAll('[role="listitem"]').length).toBeGreaterThan(0);
+		expect(empty()).toBeNull();
+	});
+
+	// 불러오는 중에는 "없다" 고 말하지 않는다 — 아직 모르는 것이다.
+	it('불러오는 중에는 없다고 말하지 않는다', async () => {
+
+		stubMode('development');
+		let release: ((value: Response) => void) | null = null;
+		vi.spyOn(api, 'getLogs').mockImplementation(() =>
+			new Promise<Response>(resolve => { release = resolve; }));
+
+		renderLogList();
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+
+		expect(empty()).toBeNull();
+
+		await act(async () => {
+			(release as unknown as (value: Response) => void)(jsonResponse({ body: { Items: [] } }));
+			await new Promise(resolve => setTimeout(resolve, 10));
+		});
+
+		expect(empty()).toBeInTheDocument();
+	});
+});

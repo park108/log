@@ -232,6 +232,13 @@ const File = (props: FileProps): React.ReactElement => {
 				{ fileUploadUI }
 
 				<div className="div div--files-list" role="list">
+					{/* 목록이 비었다는 것과 무언가 잘못됐다는 것은 구별되어야 한다.
+					    검색 화면이 같은 이유로 "No search results." 를 낸다. */}
+					{ (!isLoading && 0 === files.length) && (
+						<h1 className="h1 h1--notification-result" data-testid="fileListEmpty">
+							No files yet.
+						</h1>
+					) }
 					{ files.map( data => (				
 						<FileItem
 							key={data.key}

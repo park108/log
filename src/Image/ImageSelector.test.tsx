@@ -590,3 +590,38 @@ describe('ImageSelector 다음 페이지 병합', () => {
 		expect(shots()).toBe(3);
 	});
 });
+
+// 비어 있음과 고장이 같은 빈 화면으로 겹치지 않게 한다 (LogList · File 과 동일).
+describe('ImageSelector 빈 갤러리', () => {
+
+	const empty = () => screen.queryByTestId('imageListEmpty');
+
+	const settle = async () => {
+		for(let i = 0; i < 6; i++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+	};
+
+	const imagePage = (keys: string[]) => new Response(JSON.stringify({
+		body: { Items: keys.map(key => ({ key, url: 'https://example.com/thumbnail/' + key })) },
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	it('이미지가 하나도 없으면 그렇다고 알린다', async () => {
+
+		vi.spyOn(api, 'getImages').mockImplementation(async () => imagePage([]));
+
+		render(<ImageSelector show={true} />);
+		await settle();
+
+		expect(empty()).toBeInTheDocument();
+	});
+
+	it('이미지가 있으면 그 안내를 내지 않는다', async () => {
+
+		vi.spyOn(api, 'getImages').mockImplementation(async () => imagePage(['a.png']));
+
+		render(<ImageSelector show={true} />);
+		await settle();
+
+		expect(document.querySelectorAll('[data-testid="imageItem"]').length).toBe(1);
+		expect(empty()).toBeNull();
+	});
+});

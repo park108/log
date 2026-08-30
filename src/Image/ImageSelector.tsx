@@ -218,6 +218,12 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 		else {
 			return (
 				<div className={imageSelectorClass} role="list">
+					{/* 비어 있음과 고장이 같은 빈 화면으로 겹치지 않게 한다. */}
+					{ (!isLoading && 0 === images.length) && (
+						<div className={`div ${styles.divImageLoading}`} data-testid="imageListEmpty">
+							No images yet.
+						</div>
+					) }
 					{ images.map( data =>
 						<ImageItem
 							key={data.key}
