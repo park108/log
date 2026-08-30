@@ -231,7 +231,19 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 							url={data.url}
 							copyMarkdownString={async (e: React.SyntheticEvent<HTMLImageElement>) => {
 								const url = (e.target as HTMLImageElement).getAttribute("imageurl");
-								const imageForMarkdown = "![ALT_TEXT](" + url + " \"OPTIONAL_TITLE\")";
+
+								// **제목 자리표시자를 넣지 않는다.**
+								//
+								// 예전에는 `![ALT_TEXT](url "OPTIONAL_TITLE")` 를 복사했다.
+								// 제목은 선택 항목인데 자리표시자를 채워 두면, 글쓴이가
+								// 지우는 것을 잊는 순간 그 글자가 **발행된 글에 그대로**
+								// 실린다 — `title` 은 독자가 마우스를 올리면 보이는
+								// 툴팁이다 (실측: `<img … title="OPTIONAL_TITLE">`).
+								//
+								// `ALT_TEXT` 는 남긴다. 대체 텍스트는 선택 항목이 아니고,
+								// 자리표시자가 눈에 띄어야 채워 넣게 된다 — 파일 이름을
+								// 채워 두면 그럴듯해 보여 영영 고쳐지지 않는다.
+								const imageForMarkdown = "![ALT_TEXT](" + url + ")";
 
 								const ok = await copyToClipboard(imageForMarkdown);
 								if (ok) {
