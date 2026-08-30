@@ -384,13 +384,28 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 스킴을 http/https/mailto 로 한정한다 — sanitize 의 ALLOWED_URI_REGEXP 와
 	// 같은 정책이며, 여기서 넓히면 그쪽에서 잘려 다시 글자가 사라진다.
 	// 본문이 이미 escape 됐으므로 꺾쇠는 `&lt;` · `&gt;` 로 들어온다.
+	// 새 탭은 **사이트 밖으로 나갈 때만** 연다.
+	//
+	// 이전에는 모든 링크에 `target='_blank'` 를 붙였다. 그래서 `[지난 글](/log/…)`
+	// 처럼 이 사이트 안을 가리키는 링크도 새 탭을 열어 앱이 처음부터 다시 뜨고,
+	// 뒤로 가기가 원래 탭에 남는다. `[맨 위로](#top)` 은 같은 문서 안을 가리키는데
+	// 새 탭을 열었다 — 제자리 이동이어야 할 것이 전체 재적재가 됐다.
+	//
+	// 스킴 없는 주소(`/a` · `./a` · `a/b` · `#a`)는 전부 이 사이트 안이다.
+	// 프로토콜 상대(`//host`)는 밖이므로 함께 잡는다.
+	const isExternalUrl = (url: string): boolean =>
+		/^(?:https?:)?\/\//i.test(url) || /^mailto:/i.test(url);
+
+	const linkTarget = (url: string): string =>
+		isExternalUrl(url) ? " target='_blank' rel='noreferrer'" : "";
+
 	const AUTOLINK_PATTERN = /&lt;((?:https?:\/\/|mailto:)[^\s]+?)&gt;/g;
 
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(AUTOLINK_PATTERN, (_m, url) =>
 				stashTag(
-					"<a href='" + escapeHtmlQuotes(url) + "' target='_blank' rel='noreferrer'>"
+					"<a href='" + escapeHtmlQuotes(url) + "'" + linkTarget(url) + ">"
 					+ url + "</a>"
 				)
 			);
@@ -418,7 +433,7 @@ export const markdownToHtml = (rawInput: string): string => {
 				stashTag(
 					"<a href='" + escapeHtmlQuotes(url) + "'"
 					+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
-					+ " target='_blank' rel='noreferrer'>"
+					+ linkTarget(url) + ">"
 				) + text + "</a>"
 			);
 		}
