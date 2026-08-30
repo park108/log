@@ -487,3 +487,63 @@ describe('LogList 다음 페이지 재진입', () => {
 		expect(cursors[0]).not.toBe(cursors[1]);
 	});
 });
+
+// 전체 화면 오류는 **보여줄 것이 없을 때만** 맞다. `isError` 하나로 갈라 두면
+// "더보기" 가 한 번 실패했을 때 이미 읽고 있던 목록이 통째로 사라진다 (실측:
+// 항목 2 → 0). 게다가 그 화면의 Retry 는 캐시를 비우고 첫 페이지부터 다시
+// 받으므로 읽던 자리도 잃는다.
+describe('LogList 다음 페이지 실패', () => {
+
+	const seeMore = () => screen.queryByTestId('seeMoreButton') as HTMLButtonElement | null;
+	const retryNext = () => screen.queryByTestId('seeMoreRetryButton') as HTMLButtonElement | null;
+	const items = () => document.querySelectorAll('[role="listitem"]').length;
+
+	it('다음 페이지가 실패해도 읽던 목록이 남고 그 자리에서 다시 시도한다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(api, 'getLogs').mockImplementation(async () => jsonResponse({ body: logListFirst7 }));
+
+		const getNextSpy = vi.spyOn(api, 'getNextLogs')
+			.mockRejectedValueOnce(new Error('network down'))
+			.mockImplementation(async () => jsonResponse({ body: logListNext3 }));
+
+		renderLogList();
+		await flushAfterResponse();
+
+		const before = items();
+		expect(before).toBeGreaterThan(0);
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+		await flushAfterResponse();
+
+		// 목록은 그대로다.
+		expect(items()).toBe(before);
+		// 실패를 알리기는 한다 — 문구 자체는 이 게이트가 겨누는 것이 아니므로
+		// 역할로만 확인한다 (문구를 박으면 정상적인 문구 수정이 깨진다).
+		expect(document.querySelector('[role="alert"]')).not.toBeNull();
+		// 첫 페이지부터 다시 받는 전체 오류 화면이 아니다.
+		expect(screen.queryByText('Whoops, something went wrong on our end.')).toBeNull();
+
+		// 그 자리에서 다시 시도하면 이어진다.
+		await act(async () => { fireEvent.click(retryNext() as HTMLElement); });
+		await flushAfterResponse();
+
+		expect(items()).toBe(before + logListNext3.Items.length);
+		expect(getNextSpy).toHaveBeenCalledTimes(2);
+	});
+
+	// 반대 방향 — 보여줄 것이 없으면 전체 화면 오류가 맞다.
+	it('첫 페이지가 실패하면 전체 화면 오류를 보여준다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(api, 'getLogs').mockRejectedValue(new Error('network down'));
+
+		renderLogList();
+		await flushAfterResponse();
+
+		expect(screen.getByText('Whoops, something went wrong on our end.')).toBeInTheDocument();
+		expect(items()).toBe(0);
+	});
+});

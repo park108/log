@@ -202,7 +202,13 @@ const LogList = (props: LogListProps) => {
 		}
 	}, [lastTimestamp]);
 
-	if(isError) {
+	// 전체 화면 오류는 **보여줄 것이 없을 때만** 맞다.
+	//
+	// 예전에는 `isError` 하나로 갈라서, "더보기" 가 한 번 실패하면 이미 읽고 있던
+	// 목록이 통째로 사라지고 오류 화면이 그 자리를 차지했다 (실측: 항목 2 → 0).
+	// Retry 는 캐시를 비우고 첫 페이지부터 다시 받으므로 읽던 자리도 잃는다.
+	// 다음 페이지가 실패한 것은 다음 페이지의 문제다 — 앞 페이지는 멀쩡하다.
+	if(isError && 0 === logs.length) {
 		return (
 			<section className="section section--message-box">
 				<h2 className="h2 h2--message-error">
@@ -228,6 +234,57 @@ const LogList = (props: LogListProps) => {
 		// 로딩 상태는 시스템의 :disabled 가 표현한다.
 		const seeMoreButtonClass = "btn btn--secondary btn--block";
 		const seeMoreButtonText = isLoading ? "Loading..." : "See more";
+		// 항목 렌더는 한 곳에서만 만든다 — 아래 두 갈래(다음 페이지 실패 / 정상)가
+		// 같은 목록을 그려야 하기 때문이다.
+		const logItems = logs.map(data => (
+			<div className="div--loglist-item" key={data.timestamp} role="listitem">
+				<Link to={{ pathname: "/log/" + data.timestamp }}>
+					<div className="div--loglist-date">
+						{getFormattedDate(data.timestamp)}
+						{ true === data.temporary
+								// 글리프는 이름이 되지 못한다 — 낭독기가 "writing hand" 로
+								// 읽고 임시 저장이라는 뜻은 어디에도 없다. 보이는 쪽에도
+								// 단서가 없어 title 을 함께 둔다.
+								? <span
+									className="span--loglist-temporary"
+									role="img"
+									aria-label="Temporary save"
+									title="Temporary save"
+								>✍️</span>
+								: "" }
+					</div>
+					{
+						true === data.temporary
+							? <div className="div--loglist-temporary">{data.contents}</div>
+							: <div className="div--loglist-contents">{data.contents}</div>
+					}
+				</Link>
+			</div>
+		));
+
+		// 다음 페이지가 실패했으면 그 자리에서 알리고 그 자리에서 다시 시도한다.
+		// 목록은 그대로 둔다.
+		if(isError) {
+			return (
+				<section className="section section--log-list" role="list">
+					{logItems}
+					<div className="div div--message-description" role="alert">
+						Loading more logs failed.
+					</div>
+					<button
+						data-testid="seeMoreRetryButton"
+						className="btn btn--secondary btn--block"
+						onClick={() => {
+							setIsError(false);
+							setIsGetNextData(true);
+						}}
+					>
+						Retry
+					</button>
+				</section>
+			);
+		}
+
 		const seeMoreButton = hasValue(lastTimestamp)
 			? (
 				<button
@@ -248,31 +305,7 @@ const LogList = (props: LogListProps) => {
 
 		return (
 			<section className="section section--log-list" role="list">
-				{logs.map(data => (
-					<div className="div--loglist-item" key={data.timestamp} role="listitem">
-						<Link to={{ pathname: "/log/" + data.timestamp }}>
-							<div className="div--loglist-date">
-								{getFormattedDate(data.timestamp)}
-								{ true === data.temporary
-										// 글리프는 이름이 되지 못한다 — 낭독기가 "writing hand" 로
-										// 읽고 임시 저장이라는 뜻은 어디에도 없다. 보이는 쪽에도
-										// 단서가 없어 title 을 함께 둔다.
-										? <span
-											className="span--loglist-temporary"
-											role="img"
-											aria-label="Temporary save"
-											title="Temporary save"
-										>✍️</span>
-										: "" }
-							</div>
-							{
-								true === data.temporary
-									? <div className="div--loglist-temporary">{data.contents}</div>
-									: <div className="div--loglist-contents">{data.contents}</div>
-							}
-						</Link>
-					</div>
-				))}
+				{logItems}
 
 				<Toaster 
 					show={isShowToasterCenter}

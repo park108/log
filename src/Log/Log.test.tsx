@@ -175,8 +175,14 @@ describe('Log render logs and getting next failed', () => {
 		expect(seeMoreButton).toBeDefined();
 		fireEvent.click(seeMoreButton);
 
-		const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
-		expect(errorMessage).toBeInTheDocument();
+		// 이 두 테스트는 "다음 페이지가 실패하면 전체 오류 화면" 을 못 박고 있었다.
+		// 그 동작은 **이미 읽고 있던 목록을 통째로 지운다** (실측: 항목 7 → 0) —
+		// 다음 페이지가 실패한 것은 다음 페이지의 문제이지 앞 페이지의 문제가
+		// 아니다. 계약을 사실에 맞게 고쳐 적는다.
+		const retry = await screen.findByTestId("seeMoreRetryButton");
+		expect(retry).toBeInTheDocument();
+		expect(screen.getAllByRole("listitem").length).toBe(7);
+		expect(screen.queryByText("Whoops, something went wrong on our end.")).toBeNull();
 	});
 });
 
@@ -204,8 +210,14 @@ describe('Log render logs and getting next error', () => {
 		expect(seeMoreButton).toBeDefined();
 		fireEvent.click(seeMoreButton);
 
-		const errorMessage = await screen.findByText("Whoops, something went wrong on our end.");
-		expect(errorMessage).toBeInTheDocument();
+		// 이 두 테스트는 "다음 페이지가 실패하면 전체 오류 화면" 을 못 박고 있었다.
+		// 그 동작은 **이미 읽고 있던 목록을 통째로 지운다** (실측: 항목 7 → 0) —
+		// 다음 페이지가 실패한 것은 다음 페이지의 문제이지 앞 페이지의 문제가
+		// 아니다. 계약을 사실에 맞게 고쳐 적는다.
+		const retry = await screen.findByTestId("seeMoreRetryButton");
+		expect(retry).toBeInTheDocument();
+		expect(screen.getAllByRole("listitem").length).toBe(7);
+		expect(screen.queryByText("Whoops, something went wrong on our end.")).toBeNull();
 	});
 });
 
