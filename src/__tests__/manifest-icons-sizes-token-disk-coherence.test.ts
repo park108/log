@@ -9,8 +9,10 @@
 //   G-B / FR-04: icons[i].sizes 공백 split → 집합 D 추출 baseline (D[0]=4 토큰 / D[1]=2 토큰)
 //   G-C / FR-02: public/favicon.ico ICONDIR 헤더 파싱 → A[0] = {16x16, 32x32, 48x48, 64x64}
 //   G-D / FR-03: public/logo192.png IHDR 헤더 파싱 → A[1] = {192x192}
-//   G-E / FR-01: D = A 양방향 부분집합 비교 baseline 위반 상태 박제
-//                (icons[0] 양방향 위반 D-A={24x24}+A-D={48x48} / icons[1] 단방향 위반 D-A={512x512})
+//   G-E / FR-01: D = A 양방향 부분집합 비교 — **일치 요구**.
+//                예전에는 위반 상태를 baseline 으로 박제하고 있었다
+//                (icons[0] D-A={24x24}+A-D={48x48} / icons[1] D-A={512x512}) —
+//                게이트는 초록인데 매니페스트는 없는 크기를 알리고 있는 상태였다.
 //
 // 멱등성 (§spec NFR-02): read-only — fs.readFileSync (binary + utf8) + JSON.parse +
 // Buffer.readUInt16LE/UInt32BE 만 사용, 어떤 production 파일도 수정하지 않는다.
@@ -92,7 +94,7 @@ describe("manifest-icons-sizes-token-disk-coherence (TSK-20260518-11)", () => {
 		expect(i1.type).toBe("image/png");
 	});
 
-	it("G-B / FR-04: icons[i].sizes 공백 split → 집합 D 추출 baseline 박제 (D[0]=4 토큰 / D[1]=2 토큰)", () => {
+	it("G-B / FR-04: icons[i].sizes 공백 split → 집합 D 추출 (D[0]=4 토큰 / D[1]=1 토큰)", () => {
 		const raw = readFileSync(PATH_MANIFEST, "utf8");
 		const manifest = JSON.parse(raw) as Manifest;
 
@@ -102,10 +104,10 @@ describe("manifest-icons-sizes-token-disk-coherence (TSK-20260518-11)", () => {
 		const d0 = i0.sizes.split(/\s+/).filter(Boolean).sort();
 		const d1 = i1.sizes.split(/\s+/).filter(Boolean).sort();
 
-		// D[0] = {16x16, 24x24, 32x32, 64x64} (4 토큰, lexically sorted).
-		expect(d0).toEqual(["16x16", "24x24", "32x32", "64x64"]);
-		// D[1] = {192x192, 512x512} (2 토큰, lexically sorted).
-		expect(d1).toEqual(["192x192", "512x512"]);
+		// D[0] = {16x16, 32x32, 48x48, 64x64} (4 토큰, lexically sorted).
+		expect(d0).toEqual(["16x16", "32x32", "48x48", "64x64"]);
+		// D[1] = {192x192} (1 토큰).
+		expect(d1).toEqual(["192x192"]);
 
 		// 각 토큰 <W>x<H> 정수 쌍 규약 정합.
 		for (const tok of d0) {
@@ -165,7 +167,7 @@ describe("manifest-icons-sizes-token-disk-coherence (TSK-20260518-11)", () => {
 		expect(a1).toEqual(["192x192"]);
 	});
 
-	it("G-E / FR-01: D = A 양방향 부분집합 비교 baseline 위반 상태 박제 (icons[0] 양방향 위반 + icons[1] 단방향 위반)", () => {
+	it("G-E / FR-01: D = A 양방향 부분집합 비교 — 선언과 디스크가 일치한다", () => {
 		// G-B 산출 D 집합 재계산.
 		const raw = readFileSync(PATH_MANIFEST, "utf8");
 		const manifest = JSON.parse(raw) as Manifest;
@@ -193,16 +195,19 @@ describe("manifest-icons-sizes-token-disk-coherence (TSK-20260518-11)", () => {
 		const pngH = pngBuf.readUInt32BE(20);
 		const a1 = new Set<string>([`${pngW}x${pngH}`]);
 
-		// icons[0] favicon.ico: D-A={24x24} + A-D={48x48} (양방향 위반).
+		// 이 단언들은 **위반 상태를 baseline 으로 박제** 하고 있었다 —
+		//   icons[0] D-A={24x24} · A-D={48x48}  (없는 24 를 알리고, 있는 48 을 숨김)
+		//   icons[1] D-A={512x512}              (192 짜리 파일을 512 라고 알림)
+		// 그래서 게이트는 초록인데 매니페스트는 거짓을 말하고 있었다. 선언을 실재에
+		// 맞췄으므로 이제 **일치** 를 요구한다. 앞으로 없는 크기를 알리면 붉어진다.
 		const d0MinusA0 = Array.from(setDiff(d0, a0)).sort();
 		const a0MinusD0 = Array.from(setDiff(a0, d0)).sort();
-		expect(d0MinusA0).toEqual(["24x24"]);
-		expect(a0MinusD0).toEqual(["48x48"]);
+		expect(d0MinusA0).toEqual([]);
+		expect(a0MinusD0).toEqual([]);
 
-		// icons[1] logo192.png: D-A={512x512} + A-D={} (단방향 위반).
 		const d1MinusA1 = Array.from(setDiff(d1, a1)).sort();
-		const a1MinusD1 = setDiff(a1, d1);
-		expect(d1MinusA1).toEqual(["512x512"]);
-		expect(a1MinusD1.size).toBe(0);
+		const a1MinusD1 = Array.from(setDiff(a1, d1)).sort();
+		expect(d1MinusA1).toEqual([]);
+		expect(a1MinusD1).toEqual([]);
 	});
 });
