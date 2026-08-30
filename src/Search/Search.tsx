@@ -4,6 +4,7 @@ import { log, getFormattedDate, hasValue, setHtmlTitle } from '../common/common'
 import { reportError } from '../common/errorReporter';
 import { useSearchList } from './hooks/useSearchList';
 import { buildExcerpt } from './excerpt';
+import { QUERY_PARAM } from './SearchInput';
 
 import styles from './Search.module.css';
 
@@ -63,10 +64,6 @@ interface SearchListResponse {
 	body?: SearchListBody;
 }
 
-interface SearchLocationState {
-	queryString: string;
-}
-
 const Search = (): React.ReactElement => {
 
 	const [queryString, setQueryString] = useState<string>("");
@@ -75,13 +72,14 @@ const Search = (): React.ReactElement => {
 	const location = useLocation();
 	const navigate = useNavigate();
 
+	// 검색어의 출처는 **주소** 하나다 (`SearchInput` 이 거기에 싣는다).
+	// `history.state` 를 쓰던 동안에는 새로고침·북마크·공유가 전부 질의를 잃었다.
 	useEffect(() => {
-		if(hasValue(location.state)) {
-			setQueryString((location.state as SearchLocationState).queryString);
-		}
-		// `location.state` 를 deps 에 둔다 — 검색 결과 페이지에서 재검색하면 SearchInput 이
-		// 같은 경로로 새 state 를 실어 navigate 하므로, 마운트 1회로는 질의가 갱신되지 않는다.
-	}, [location.state]);
+		setQueryString(new URLSearchParams(location.search).get(QUERY_PARAM) ?? "");
+		// `location.search` 를 deps 에 둔다 — 검색 결과 페이지에서 재검색하면
+		// SearchInput 이 같은 경로로 새 질의를 실어 navigate 하므로, 마운트 1회로는
+		// 갱신되지 않는다.
+	}, [location.search]);
 
 	useEffect(() => {
 		// 질의어가 없으면 "search results for " 로 끝나 제목이 잘린 것처럼 보인다.

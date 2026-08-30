@@ -13,13 +13,15 @@ beforeEach(() => {
 const Probe = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
-	const routed = (location.state as { queryString?: string } | null)?.queryString ?? null;
+	// 검색어의 출처는 **주소** 다. `history.state` 를 쓰던 동안에는 새로고침·
+	// 북마크·공유가 전부 질의를 잃었다.
+	const routed = new URLSearchParams(location.search).get('q');
 	return (
 		<>
 			<div data-testid="where">{location.pathname}</div>
 			<div data-testid="routed-query">{JSON.stringify(routed)}</div>
 			<button data-testid="to-list" onClick={() => navigate("/log")}>To list</button>
-			<button data-testid="to-search" onClick={() => navigate("/log/search", { state: { queryString: "지난 검색어" } })}>
+			<button data-testid="to-search" onClick={() => navigate("/log/search?q=" + encodeURIComponent("지난 검색어"))}>
 				To search
 			</button>
 		</>

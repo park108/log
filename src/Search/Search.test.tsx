@@ -15,11 +15,13 @@ beforeEach(() => {
 	vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 });
 
+// 검색어의 출처는 **주소** 다 (`SearchInput.QUERY_PARAM`). `history.state` 를
+// 쓰던 동안에는 새로고침·북마크·공유가 전부 질의를 잃었다.
 const testEntry = {
 	pathname: "/log/search"
-	, search: ""
+	, search: "?q=%ED%85%8C%EC%8A%A4%ED%8A%B8"
 	, hash: ""
-	, state: { queryString: "테스트" }
+	, state: null
 	, key: "default"
 };
 
@@ -166,7 +168,7 @@ describe('Search render with no query string', () => {
 			pathname: "/log/search"
 			, search: ""
 			, hash: ""
-			, state: { queryString: "" }
+			, state: null
 			, key: "default"
 		};
 
@@ -454,13 +456,16 @@ describe('Search 결과 미리보기 — 매치가 앞에 있는 본문', () => 
 describe('Search 질의어 없이 들어온 경우', () => {
 	useMockServer(() => mock.prodServerGetList);
 
-	const renderAt = (state: unknown) => {
+	const renderAt = (query: { queryString: string } | null) => {
 		vi.stubEnv('PROD', true);
 		vi.stubEnv('DEV', false);
 		const { Wrapper: QueryWrapper } = createQueryTestWrapper();
+		// `null` 은 "주소에 질의가 없다" — 새로고침·북마크로 직접 들어온 경우다.
+		const queryString = query?.queryString ?? "";
+		const search = "" === queryString ? "" : "?q=" + encodeURIComponent(queryString);
 		return render(
 			<QueryWrapper>
-				<MemoryRouter initialEntries={[{ pathname: '/log/search', search: '', hash: '', state, key: 'k' }]}>
+				<MemoryRouter initialEntries={[{ pathname: '/log/search', search, hash: '', state: null, key: 'k' }]}>
 					<Search />
 				</MemoryRouter>
 			</QueryWrapper>

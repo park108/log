@@ -159,7 +159,9 @@ const LocationProbe = () => {
 		<div
 			data-testid="probe"
 			data-path={location.pathname}
-			data-query={(location.state as { queryString?: string } | null)?.queryString ?? ''}
+			// 검색어의 출처는 **주소** 다. `history.state` 를 쓰던 동안에는
+			// 새로고침·북마크·공유가 전부 질의를 잃었다.
+			data-query={new URLSearchParams(location.search).get('q') ?? ''}
 		/>
 	);
 };

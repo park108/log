@@ -8,6 +8,16 @@ const Toaster = lazy(() => import('../Toaster/Toaster'));
 
 type ToasterShowState = 0 | 1 | 2;
 
+// 검색어는 **주소에 실린다.**
+//
+// 예전에는 `navigate(..., { state })` 로만 넘겼다. `history.state` 는 새로고침으로
+// 살아남지 못하고 링크에도 담기지 않는다 — 검색 결과 화면을 새로 고치거나 그
+// 주소를 공유하면 "Type a keyword to search." 가 뜬다. 방금 한 검색이 사라진다.
+//
+// 주소에 실으면 새로고침·북마크·공유가 모두 성립하고, 검색 상자와 결과 화면이
+// 같은 한 곳을 읽게 된다.
+export const QUERY_PARAM = "q";
+
 const SearchInput = (): React.ReactElement => {
 
 	const [isGetData, setIsGetData] = useState<boolean>(false);
@@ -31,9 +41,9 @@ const SearchInput = (): React.ReactElement => {
 	// 검색됐고, (2) 아무 리렌더에나 옛 검색어가 상자로 되돌아왔다.
 	const navigationKey = location.key;
 	useEffect(() => {
-		const routedQuery = (location.state as { queryString?: string } | null)?.queryString;
+		const routedQuery = new URLSearchParams(location.search).get(QUERY_PARAM);
 		setQueryString(
-			location.pathname.startsWith("/log/search") && "string" === typeof routedQuery
+			location.pathname.startsWith("/log/search") && null !== routedQuery
 				? routedQuery
 				: ""
 		);
@@ -58,11 +68,7 @@ const SearchInput = (): React.ReactElement => {
 			}
 			else {
 				setIsMobileSearchOpen(false);
-				navigate("/log/search", {
-					state: {
-						queryString: queryString
-					}
-				});
+				navigate("/log/search?" + QUERY_PARAM + "=" + encodeURIComponent(queryString));
 			}
 		}
 
