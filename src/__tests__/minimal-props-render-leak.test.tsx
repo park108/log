@@ -11,6 +11,7 @@ import LogItemInfo from '../Log/LogItemInfo';
 import Toaster from '../Toaster/Toaster';
 import Skeleton from '../common/Skeleton';
 import ErrorFallback from '../common/ErrorFallback';
+import * as common from '../common/common';
 
 // **선택적 prop 이 오지 않았을 때 화면에 무엇이 남는가.**
 //
@@ -38,7 +39,22 @@ const CASES: Array<[string, React.ReactElement]> = [
 	['ErrorFallback', <ErrorFallback error={new Error('boom')} />],
 ];
 
-describe('최소 props 렌더 — 빠진 값이 화면으로 새지 않는다', () => {
+// **관리자 여부를 목한다.** `CommentItem` · `CommentForm` · `LogItemInfo` 는
+// 렌더 경로에서 `isAdmin()` 을 부르고, 그 함수는 `access_token` 쿠키를 읽는다.
+// 목하지 않으면 어느 마크업을 검사하는지가 앞선 테스트 파일이 남긴 쿠키 상태에
+// 달린다 — 게이트가 실행마다 다른 것을 재게 된다.
+//
+// 두 값을 모두 돈다. "빠진 값이 화면으로 새지 않는다" 는 관리자 화면에서도
+// 방문자 화면에서도 성립해야 하므로, 이것은 결정성 확보인 동시에 검사 범위의
+// 확장이다 (숨긴 댓글 표기·이름 자동 채움 등은 관리자 갈래에만 있다).
+describe.each([
+	['관리자', true],
+	['방문자', false],
+])('최소 props 렌더 — 빠진 값이 화면으로 새지 않는다 (%s)', (_who, isAdmin) => {
+
+	beforeEach(() => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(isAdmin);
+	});
 
 	it.each(CASES)('%s', (_name, element) => {
 
