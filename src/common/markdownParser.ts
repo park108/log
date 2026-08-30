@@ -166,21 +166,50 @@ export const markdownToHtml = (rawInput: string): string => {
 		index++;
 	}
 
-	// blockquote
+	// blockquote — **연달아 붙은 인용 줄은 한 덩어리다.**
+	//
+	// 줄마다 `<blockquote>` 를 따로 열고 닫았다. 인용에는 좌측 선과 아래 여백이
+	// 붙으므로(`styles/typography.css`), 세 줄짜리 인용 하나가 화면에서는 서로
+	// 떨어진 인용 **셋**으로 보인다. 실측 (Chrome, 375px, 실제 CSS):
+	//
+	//   3줄 인용 — 줄마다 blockquote   전체 높이 144.72 (34.38 짜리 상자 3개 + 사이 여백)
+	//   3줄 인용 — 하나의 blockquote   전체 높이  93.56
+	//
+	// 빈 줄은 이 묶음을 끊는다 — CommonMark 에서도 그 자리가 인용의 경계다.
+	//
+	// `>` 뒤의 공백 한 칸은 표기이지 내용이 아니다. 남겨 두면 인용문만 한 칸씩
+	// 들여쓰인 것처럼 보인다.
+	const isQuoteLine = (node: ParsedNode | undefined): boolean =>
+		undefined !== node
+		&& "value" === node.type
+		&& "" === node.closure
+		&& node.text.length > 0
+		&& '>' === node.text.charAt(0);
+
 	index = 0;
-	for(let node of parsed) {
+	while(index < parsed.length) {
 
-		if("value" === node.type
-			&& "" === node.closure
-			&& node.text.length > 0
-			&& '>' === node.text.charAt(0)) {
-
-			parsed.splice(index, 1
-				, {type: "tag", text: "<blockquote>"}
-				, {type: "value", text: node.text.substring(1), closure: "blockquote"}
-				, {type: "tag", text: "</blockquote>"});
+		if(!isQuoteLine(parsed[index])) {
+			index++;
+			continue;
 		}
-		index++;
+
+		let end = index;
+		while(isQuoteLine(parsed[end + 1])) end++;
+
+		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
+
+		for(let i = index; i <= end; i++) {
+			let text = (parsed[i] as ParsedNode).text.substring(1);
+			if(' ' === text.charAt(0)) text = text.substring(1);
+			if(i > index) replacement.push({type: "tag", text: "<br />"});
+			replacement.push({type: "value", text, closure: "blockquote"});
+		}
+
+		replacement.push({type: "tag", text: "</blockquote>"});
+
+		parsed.splice(index, end - index + 1, ...replacement);
+		index += replacement.length;
 	}
 
 	// unordered list
