@@ -28,6 +28,9 @@ const App = () => {
 	const [contentHeight, setContentHeight] = useState<React.CSSProperties | undefined>();
 	const [isOnline, setIsOnline] = useState(navigator.onLine);
 
+	// 한 번이라도 온라인이었으면 앱 트리를 유지한다 (아래 §오프라인 알림 참조).
+	const [hasMountedApp, setHasMountedApp] = useState(navigator.onLine);
+
 	const handleOnresize = (e?: Event) => {
 		if(undefined !== e) {
 			e.preventDefault();
@@ -54,6 +57,9 @@ const App = () => {
 
 		const handleStatusChange = () => {
 			setIsOnline(navigator.onLine);
+			if(navigator.onLine) {
+				setHasMountedApp(true);
+			}
 		}
 
 		window.addEventListener("online", handleStatusChange);
@@ -72,7 +78,17 @@ const App = () => {
 		</main>
 	);
 
-	const content = !isOnline ? (
+	// 오프라인 알림은 앱 트리를 **교체하지 않는다**. 구 구현은 삼항으로 라우터를
+	// 통째로 갈아끼워, 네트워크가 한 번 깜빡이면 그 아래의 모든 상태가 언마운트와
+	// 함께 사라졌다 — 실측: 글쓰기 화면에 입력한 원고가 offline 이벤트 한 번에
+	// 빈 문자열이 됐고 복귀해도 돌아오지 않았다. 대신 알림을 **위에 덮고** 앱은
+	// `hidden` 으로 감춘 채 마운트를 유지한다 (`hidden` 은 접근성 트리에서도
+	// 제외되므로 보조기술에 이중 노출되지 않는다).
+	//
+	// 다만 **찬 시작**(처음부터 오프라인)에서는 앱을 마운트하지 않는다. 마운트하면
+	// 곧바로 실패할 fetch 가 나가고 그 실패 알림이 복귀 시점에 쌓여 보인다.
+	// 구 동작(오프라인 화면만 보여주고, 온라인이 되면 새로 마운트)이 이 경우엔 맞다.
+	const offlineNotice = (
 		<div className="div div--offline-contents">
 			<nav className="nav nav--nav-bar">
 				<ul className="ul ul--nav-tabs">
@@ -90,7 +106,9 @@ const App = () => {
 				</p>
 			</main>
 		</div>
-	) : (
+	);
+
+	const app = (
 		<BrowserRouter>
 			<Suspense fallback={<Skeleton variant="page" />}>
 				<Navigation />
@@ -125,6 +143,17 @@ const App = () => {
 				<Footer />
 			</Suspense>
 		</BrowserRouter>
+	);
+
+	const content = (
+		<>
+			{ !isOnline && offlineNotice }
+			{ hasMountedApp && (
+				<div className="div div--app-shell" hidden={!isOnline}>
+					{app}
+				</div>
+			) }
+		</>
 	);
 
 	return (

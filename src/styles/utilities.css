@@ -176,3 +176,18 @@
 		display: none;
 	}
 }
+
+/* 앱 트리를 오프라인 알림 뒤에서 살려두기 위한 래퍼 (App.tsx §오프라인 알림).
+   평범한 블록으로 두면 `#root` 의 flex 컬럼이 끊겨 `.main--main-contents` 의
+   `flex: 1 0 auto` 가 무력화된다 — 실측(375px): 짧은 본문에서 footer 가
+   y=1276.81 → 120.80 으로 올라와 화면 중간에 떴다. `display: contents` 는
+   래퍼를 박스 트리에서 빼므로 nav·main·footer 가 그대로 `#root` 의 flex
+   항목으로 남는다 (같은 실측에서 래퍼 없는 경우와 수치 일치).
+   `[hidden]` 은 UA 의 `display: none` 이 저자 선언에 지므로 여기서 다시 준다. */
+.div--app-shell {
+	display: contents;
+}
+
+.div--app-shell[hidden] {
+	display: none;
+}
