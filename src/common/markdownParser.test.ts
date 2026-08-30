@@ -1,4 +1,5 @@
 import * as parser from './markdownParser';
+import sanitizeHtml from './sanitizeHtml';
 
 describe('MD parsing test', () => {
 
@@ -429,5 +430,61 @@ describe('링크 — URL 안의 괄호', () => {
 	it('제목 있는 링크는 그대로', () => {
 		expect(parser.markdownToHtml('[e](https://example.com "제목")'))
 			.toBe("<p><a href='https://example.com' title='제목' target='_blank' rel='noreferrer'>e</a></p>");
+	});
+});
+
+// 본문의 꺾쇠는 사용자 글자다. escape 하지 않던 동안 브라우저가 `<String>` 을
+// 태그로 읽고 sanitize 가 미지의 태그를 지워, 글자가 조용히 사라졌다.
+// 이 수리는 저장된 원문을 읽을 때마다 적용되므로 이미 올라간 글에도 반영된다.
+describe('본문의 꺾쇠', () => {
+
+	const rendered = (md: string): string => {
+		const el = document.createElement('div');
+		el.innerHTML = sanitizeHtml(parser.markdownToHtml(md));
+		return el.textContent ?? '';
+	};
+
+	it('제네릭 표기가 살아남는다', () => {
+		// 이전: "제네릭은 List 이다"
+		expect(rendered('제네릭은 List<String> 이다')).toBe('제네릭은 List<String> 이다');
+	});
+
+	it('부등호가 살아남는다', () => {
+		// 이전: "조건은 ad 이다"
+		expect(rendered('조건은 a<b 이고 c>d 이다')).toBe('조건은 a<b 이고 c>d 이다');
+	});
+
+	it('태그 이름을 본문에 써도 살아남는다', () => {
+		expect(rendered('React 에서 <div> 를 쓴다')).toBe('React 에서 <div> 를 쓴다');
+	});
+
+	it('코드 블록 안에서도 살아남는다', () => {
+		// 이전: "List"
+		expect(rendered('```\nList<String>\n```')).toContain('List<String>');
+	});
+
+	it('강조 안에서도 살아남는다', () => {
+		expect(rendered('**굵은 <div> 안**')).toBe('굵은 <div> 안');
+	});
+
+	it('앰퍼샌드가 두 번 escape 되지 않는다', () => {
+		expect(rendered('AT&T 와 R&D')).toBe('AT&T 와 R&D');
+	});
+
+	// 대조 — escape 는 표시를 위한 것이지 실행 허용이 아니다. 스크립트는
+	// 글자로 보이되 실행 가능한 태그로 남지 않아야 한다.
+	it('스크립트는 글자로 보이되 태그가 되지 않는다', () => {
+		const html = sanitizeHtml(parser.markdownToHtml('<script>alert(1)</script> 를 조심하라'));
+		expect(rendered('<script>alert(1)</script> 를 조심하라'))
+			.toBe('<script>alert(1)</script> 를 조심하라');
+		expect(html.toLowerCase()).not.toContain('<script');
+	});
+
+	// 대조 — 마크다운 문법 자체는 그대로 동작해야 한다.
+	it('링크·자동링크는 그대로 동작한다', () => {
+		expect(parser.markdownToHtml('[문구](https://example.com)'))
+			.toBe("<p><a href='https://example.com' target='_blank' rel='noreferrer'>문구</a></p>");
+		expect(parser.markdownToHtml('<https://example.com>'))
+			.toBe("<p><a href='https://example.com' target='_blank' rel='noreferrer'>https://example.com</a></p>");
 	});
 });

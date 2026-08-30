@@ -1,28 +1,24 @@
 import { codeHighlighter } from './codeHighlighter';
 
-// Escape the five characters that would let a user-controlled value break
-// out of a single-quoted HTML attribute context (or an attribute name).
-// Used by the <img> and <a> emitters below as a defense-in-depth layer
-// on top of sanitizeHtml at render time (REQ-20260418-001 FR-07).
-const escapeHtmlAttr = (s: unknown): string => {
-	if(s === undefined || s === null) return '';
-	return String(s)
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
-};
-
-// 표시 텍스트용 이스케이프. 속성용(escapeHtmlAttr)은 따옴표까지 바꾸는데,
-// 그것을 본문 텍스트에 쓰면 URL 의 작은따옴표가 `&#39;` 로 보인다.
-// 텍스트 문맥에서 위험한 것은 `&` · `<` · `>` 뿐이다.
+// 표시 텍스트 escape. 본문 전체가 이 함수를 지나므로, 속성값에 넣을 때는
+// 따옴표만 추가로 처리한다 (`escapeHtmlQuotes`) — 두 번 escape 하지 않기 위해서다.
+// 이전에는 속성 전용 `escapeHtmlAttr` 이 `& < > " '` 를 한꺼번에 처리했는데,
+// 본문 escape 가 생기면서 `&amp;` → `&amp;amp;` 가 되어 역할을 나눴다.
 const escapeHtmlText = (s: unknown): string => {
 	if(s === undefined || s === null) return '';
 	return String(s)
 		.replace(/&/g, '&amp;')
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;');
+};
+
+// 이미 `& < >` 가 처리된 문자열을 속성값에 넣을 때 쓴다. `escapeHtmlAttr` 을
+// 그대로 쓰면 `&amp;` 가 `&amp;amp;` 로 두 번 escape 된다.
+const escapeHtmlQuotes = (s: unknown): string => {
+	if(s === undefined || s === null) return '';
+	return String(s)
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
 };
 
 // Compute indentation depth of a list item line.
@@ -117,7 +113,10 @@ export const markdownToHtml = (rawInput: string): string => {
 		}
 		else if(isPreStarted) {
 
-			node.text = codeHighlighter(language, node.text);
+			// 코드 블록도 사용자 글자다. escape 하지 않으면 `List<String>` 이
+			// sanitize 단계에서 미지의 태그로 삭제돼 `List` 만 남았다 (실측).
+			// 강조기가 <span> 을 넣으므로 **넘기기 전에** escape 한다.
+			node.text = codeHighlighter(language, escapeHtmlText(node.text));
 
 			parsed.splice(index, 1
 				, {type: "value", text: node.text + "<br />", closure: "pre"});
@@ -293,6 +292,24 @@ export const markdownToHtml = (rawInput: string): string => {
 		}
 	}
 
+	// 본문 escape.
+	//
+	// 여기까지 value 노드의 text 는 순수 사용자 글자다 (블록 마크업은 별도 tag
+	// 노드이고, 코드 스팬은 방금 자리표시자로 빠졌다). 이 지점을 지나면 인라인
+	// 패스가 태그를 섞기 시작하므로, 지금 escape 하지 않으면 사용자가 쓴 꺾쇠를
+	// 나중에 구별할 수 없다.
+	//
+	// escape 하지 않던 동안 글자가 조용히 사라졌다 (실측):
+	//   "제네릭은 List<String> 이다"  → "제네릭은 List 이다"
+	//   "조건은 a<b 이고 c>d 이다"    → "조건은 ad 이다"
+	// 브라우저가 `<String>` 을 태그로 읽고 sanitize 가 미지의 태그를 지운 결과다.
+	// 이 수리는 저장된 원문을 읽을 때마다 적용되므로 **이미 올라간 글에도 반영된다.**
+	for(const node of parsed) {
+		if("value" === node.type && "pre" !== node.closure) {
+			node.text = escapeHtmlText(node.text);
+		}
+	}
+
 	// image
 	//
 	// 이전 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해, **제목이 있어야만**
@@ -311,8 +328,8 @@ export const markdownToHtml = (rawInput: string): string => {
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(IMAGE_PATTERN, (_m, alt, url, title) =>
-				"<img src='" + escapeHtmlAttr(url) + "' alt='" + escapeHtmlAttr(alt) + "'"
-				+ (undefined === title ? "" : " title='" + escapeHtmlAttr(title) + "'")
+				"<img src='" + escapeHtmlQuotes(url) + "' alt='" + escapeHtmlQuotes(alt) + "'"
+				+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
 				+ " />"
 			);
 		}
@@ -327,13 +344,14 @@ export const markdownToHtml = (rawInput: string): string => {
 	//
 	// 스킴을 http/https/mailto 로 한정한다 — sanitize 의 ALLOWED_URI_REGEXP 와
 	// 같은 정책이며, 여기서 넓히면 그쪽에서 잘려 다시 글자가 사라진다.
-	const AUTOLINK_PATTERN = /<((?:https?:\/\/|mailto:)[^\s<>]+)>/g;
+	// 본문이 이미 escape 됐으므로 꺾쇠는 `&lt;` · `&gt;` 로 들어온다.
+	const AUTOLINK_PATTERN = /&lt;((?:https?:\/\/|mailto:)[^\s]+?)&gt;/g;
 
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(AUTOLINK_PATTERN, (_m, url) =>
-				"<a href='" + escapeHtmlAttr(url) + "' target='_blank' rel='noreferrer'>"
-				+ escapeHtmlText(url) + "</a>"
+				"<a href='" + escapeHtmlQuotes(url) + "' target='_blank' rel='noreferrer'>"
+				+ url + "</a>"
 			);
 		}
 	}
@@ -356,8 +374,8 @@ export const markdownToHtml = (rawInput: string): string => {
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(ANCHOR_PATTERN, (_m, text, url, title) =>
-				"<a href='" + escapeHtmlAttr(url) + "'"
-				+ (undefined === title ? "" : " title='" + escapeHtmlAttr(title) + "'")
+				"<a href='" + escapeHtmlQuotes(url) + "'"
+				+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
 				+ " target='_blank' rel='noreferrer'>" + text + "</a>"
 			);
 		}
