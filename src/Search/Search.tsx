@@ -134,20 +134,12 @@ const Search = (): React.ReactElement => {
 		return () => clearInterval(id);
 	}, [isLoading]);
 
+	// 검색 상자를 여기서 지우지 않는다. controlled input 에 DOM 으로 쓰면 React
+	// 상태가 남아 상자만 비어 보였고, 그 상태로 Enter 를 치면 보이지 않는 옛
+	// 검색어로 검색됐다 (실측). 상자는 주소를 따라간다 — `SearchInput` 이
+	// `location` 에서 값을 얻으므로 이 이동만으로 비워진다.
 	const toListButton = (
 		<button className="btn btn--secondary btn--block" onClick={() => {
-
-			const searchInput1 = document.getElementById("query-string-by-enter") as HTMLInputElement | null;
-			const searchInput2 = document.getElementById("query-string-by-button") as HTMLInputElement | null;
-
-			if(hasValue(searchInput1)) {
-				(searchInput1 as HTMLInputElement).value = "";
-			}
-
-			if(hasValue(searchInput2)) {
-				(searchInput2 as HTMLInputElement).value = "";
-			}
-
 			navigate("/log");
 		}}>
 			To list

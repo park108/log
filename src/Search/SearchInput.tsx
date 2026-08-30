@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { isAdmin } from '../common/common';
 
 import styles from './Search.module.css';
@@ -19,6 +19,27 @@ const SearchInput = (): React.ReactElement => {
 	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState<boolean>(false);
 
 	const navigate = useNavigate();
+	const location = useLocation();
+
+	// 검색 상자가 보여주는 것은 **지금 무엇을 검색 중인가** 다. 그래서 값의
+	// 출처를 주소 하나로 둔다 — 검색 결과 화면이면 그 화면이 쓰는 검색어를,
+	// 아니면 빈 값을.
+	//
+	// 이전에는 `Search.tsx` 의 "To list" 가 `getElementById(...).value = ""` 로
+	// DOM 을 직접 지웠다. controlled input 이라 React 상태는 그대로 남아 두 가지가
+	// 관측됐다 (실측): (1) 빈 상자에서 Enter 를 치면 **보이지 않는 옛 검색어**로
+	// 검색됐고, (2) 아무 리렌더에나 옛 검색어가 상자로 되돌아왔다.
+	const navigationKey = location.key;
+	useEffect(() => {
+		const routedQuery = (location.state as { queryString?: string } | null)?.queryString;
+		setQueryString(
+			location.pathname.startsWith("/log/search") && "string" === typeof routedQuery
+				? routedQuery
+				: ""
+		);
+		// 주소가 바뀐 순간에만 맞춘다 — 타이핑 중에 끼어들지 않기 위해서다.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [navigationKey]);
 
 	const handleKeyUp = async (e: React.KeyboardEvent<HTMLInputElement>): Promise<void> => {
 		e.preventDefault();
