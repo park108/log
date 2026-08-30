@@ -84,7 +84,8 @@ const Search = (): React.ReactElement => {
 	}, [location.state]);
 
 	useEffect(() => {
-		setHtmlTitle("search results for " + queryString);
+		// 질의어가 없으면 "search results for " 로 끝나 제목이 잘린 것처럼 보인다.
+		setHtmlTitle(hasValue(queryString) ? "search results for " + queryString : "search");
 	}, [queryString]);
 
 	const { data, isLoading, isError, error, refetch } = useSearchList(queryString, {
@@ -153,7 +154,27 @@ const Search = (): React.ReactElement => {
 		</button>
 	);
 
-	if(isLoading) {
+	// 질의어가 없는 상태는 **결과 0건이 아니다.**
+	//
+	// 이 경로에 새로고침·북마크·새 탭으로 직접 들어오면 `location.state` 가 없어
+	// 질의어가 빈 문자열이 된다. 그때 아래 "0건" 분기로 떨어지면 화면이
+	// `0 results for "" — No search results.` 를 낸다 — 하지도 않은 검색이 실패한
+	// 것처럼 읽힌다 (실측).
+	//
+	// 조회 실패와 결과 0건을 가른 것과 같은 이유다: 서로 다른 사실은 서로 다르게
+	// 보여야 한다.
+	if(!hasValue(queryString)) {
+
+		return (
+			<section className="section section--log-list" role="list">
+				<h1 className="h1 h1--notification-result">
+					Type a keyword to search.
+				</h1>
+				{ toListButton }
+			</section>
+		);
+	}
+	else if(isLoading) {
 
 		return (
 			<h1 className="h1 h1--notification-result">

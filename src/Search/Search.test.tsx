@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import * as mock from './api.mock';
 import Search from './Search';
@@ -172,8 +172,12 @@ describe('Search render with no query string', () => {
 
 		renderWithQueryRouter(<Search />, { entries: [noQueryString] });
 
-		const searchedItem = await screen.findByText("No search results.");
-		expect(searchedItem).toBeInTheDocument();
+		// 이 단정은 "No search results." 를 박고 있었다 — 질의어가 없는 상태를
+		// 결과 0건과 같은 화면으로 취급한 것이다. 하지도 않은 검색이 실패한 것처럼
+		// 읽히므로 안내문으로 가른다. 저장소가 이미 지키는 원칙과 같다:
+		// 조회 실패와 결과 0건은 서로 다르게 보여야 한다.
+		const prompt = await screen.findByText("Type a keyword to search.");
+		expect(prompt).toBeInTheDocument();
 	});
 });
 
@@ -438,5 +442,68 @@ describe('Search 결과 미리보기 — 매치가 앞에 있는 본문', () => 
 
 		expect(text.startsWith('…')).toBe(false);
 		expect(text.startsWith('검색을 위해 추가')).toBe(true);
+	});
+});
+
+// 질의어가 없는 상태는 결과 0건이 아니다.
+//
+// 이 경로에 새로고침·북마크·새 탭으로 직접 들어오면 location.state 가 없어
+// 질의어가 빈 문자열이 된다. 그때 "0건" 분기로 떨어지면 화면이
+// `0 results for "" — No search results.` 를 냈다 — 하지도 않은 검색이 실패한
+// 것처럼 읽힌다.
+describe('Search 질의어 없이 들어온 경우', () => {
+	useMockServer(() => mock.prodServerGetList);
+
+	const renderAt = (state: unknown) => {
+		vi.stubEnv('PROD', true);
+		vi.stubEnv('DEV', false);
+		const { Wrapper: QueryWrapper } = createQueryTestWrapper();
+		return render(
+			<QueryWrapper>
+				<MemoryRouter initialEntries={[{ pathname: '/log/search', search: '', hash: '', state, key: 'k' }]}>
+					<Search />
+				</MemoryRouter>
+			</QueryWrapper>
+		);
+	};
+
+	it('결과 0건이라고 말하지 않는다', async () => {
+
+		const { container } = renderAt(null);
+		const text = await waitFor(() => {
+			const t = container.textContent ?? '';
+			expect(t.length).toBeGreaterThan(0);
+			return t;
+		});
+
+		// 이전에는 `0 results for "" ... No search results.` 였다.
+		expect(text).not.toContain('0 results');
+		expect(text).not.toContain('No search results');
+		expect(text).toContain('Type a keyword to search.');
+	});
+
+	it('제목이 빈 질의어로 끝나지 않는다', async () => {
+
+		renderAt(null);
+		await waitFor(() => expect(document.title).toContain('park108.net'));
+
+		// 이전에는 "search results for  - park108.net" 이었다.
+		expect(document.title).not.toContain('results for ');
+	});
+
+	it('목록으로 돌아갈 길을 남긴다', async () => {
+
+		const { container } = renderAt(null);
+		await waitFor(() => expect(container.textContent).toContain('To list'));
+	});
+
+	// 대조 — 질의어가 있으면 결과를 그대로 보여준다. 없으면 "언제나 안내문"
+	// 구현도 통과한다.
+	it('질의어가 있으면 결과를 보여준다', async () => {
+
+		const { container } = renderAt({ queryString: '테스트' });
+		await waitFor(() => expect(container.textContent).toContain('results for'));
+
+		expect(container.textContent).not.toContain('Type a keyword to search.');
 	});
 });
