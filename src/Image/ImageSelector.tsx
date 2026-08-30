@@ -135,7 +135,11 @@ const ImageSelector = (props: ImageSelectorProps): React.ReactElement => {
 					const lastEvaluatedKey = nextData.body?.LastEvaluatedKey;
 
 					// functional update — 클로저가 캡처한 stale `images` 대신 직전 상태를 받는다.
-					setImages(prev => hasValue(nextData.body?.Items) ? prev.concat(nextData.body?.Items ?? []) : []);
+					//
+					// 항목이 없으면 **그대로 둔다.** 빈 배열로 갈아치우면 다음 페이지에
+					// 항목이 없다는 이유로 이미 받아 둔 썸네일이 통째로 사라진다
+					// (실측: 2 → 0). 새로 알게 된 것이 없을 때의 답은 "그대로" 다.
+					setImages(prev => prev.concat(nextData.body?.Items ?? []));
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {

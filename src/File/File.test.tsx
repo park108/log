@@ -725,3 +725,65 @@ describe('File 다음 페이지 재진입', () => {
 		expect(cursors).toEqual([99, 98]);
 	});
 });
+
+// 다음 페이지의 병합은 **더하기** 다. 예전에는 항목이 없는 응답에서 빈 배열로
+// 갈아치워, 다음 페이지에 항목이 없다는 이유로 이미 받아 둔 목록이 통째로
+// 사라졌다 (실측: 2 → 0). 새로 알게 된 것이 없을 때의 답은 "그대로" 다.
+//
+// 이 응답 형태를 실제 API 에서 만들어 보이지는 못했다 — 합성 입력이다. 그럼에도
+// 이 갈래는 어떤 입력에서도 옳을 수 없어 못 박는다.
+describe('File 다음 페이지 병합', () => {
+
+	const items = () => document.querySelectorAll('[role="listitem"]').length;
+
+	const filePage = (names: string[], next?: number) => new Response(JSON.stringify({
+		body: {
+			Items: names.map((name, index) => ({
+				key: name, url: 'https://example.com/' + name,
+				lastModified: 1700000000000 + index, size: 100,
+			})),
+			...(next === undefined ? {} : { LastEvaluatedKey: { timestamp: next } }),
+		},
+	}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+	const settle = async () => {
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+	};
+
+	beforeEach(() => {
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(common, 'isMobile').mockReturnValue(false);
+		vi.spyOn(api, 'getFiles').mockImplementation(async () => filePage(['a.txt', 'b.txt'], 99));
+	});
+
+	it('항목이 없는 다음 페이지가 이미 받은 목록을 지우지 않는다', async () => {
+
+		vi.spyOn(api, 'getNextFiles').mockImplementation(async () => new Response(
+			JSON.stringify({ body: { LastEvaluatedKey: { timestamp: 98 } } }),
+			{ status: 200, headers: { 'Content-Type': 'application/json' } },
+		));
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await settle();
+		expect(items()).toBe(2);
+
+		await act(async () => { fireEvent.click(screen.getByTestId('seeMoreButton')); });
+		await settle();
+
+		expect(items()).toBe(2);
+	});
+
+	// 반대 방향 — 항목이 있으면 더해져야 한다.
+	it('항목이 있는 다음 페이지는 더해진다', async () => {
+
+		vi.spyOn(api, 'getNextFiles').mockImplementation(async () => filePage(['c.txt'], 98));
+
+		render(<MemoryRouter><File /></MemoryRouter>);
+		await settle();
+
+		await act(async () => { fireEvent.click(screen.getByTestId('seeMoreButton')); });
+		await settle();
+
+		expect(items()).toBe(3);
+	});
+});

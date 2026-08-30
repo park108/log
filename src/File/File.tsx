@@ -153,7 +153,12 @@ const File = (props: FileProps): React.ReactElement => {
 					const lastEvaluatedKey = nextData.body?.LastEvaluatedKey;
 
 					// functional update — 클로저가 캡처한 stale `files` 대신 직전 상태를 받는다.
-					setFiles(prev => hasValue(nextData.body?.Items) ? prev.concat(nextData.body?.Items ?? []) : []);
+					//
+					// 항목이 없으면 **그대로 둔다.** 예전에는 빈 배열로 갈아치웠는데,
+					// 그러면 다음 페이지에 항목이 없다는 이유로 이미 받아 둔 목록이
+					// 통째로 사라진다 (실측: 2 → 0). 새로 알게 된 것이 없을 때의
+					// 답은 "그대로" 이지 "비움" 이 아니다.
+					setFiles(prev => prev.concat(nextData.body?.Items ?? []));
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey!.timestamp : undefined);
 				}
 				else {
