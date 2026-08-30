@@ -345,3 +345,100 @@ describe('LogSingle useLog hook integration', () => {
 		useLogSpy.mockRestore();
 	});
 });
+
+// 제목은 `# ` 로 시작하는 첫 줄이다. 그 줄을 잘라내는 계산이 어긋나 있었다 —
+// 줄바꿈이 아예 없는 글에서는 `indexOf` 가 -1 을 주는 바람에 제목이 비고 본문이
+// 마지막 한 글자가 됐다.
+//
+// 길이를 한 글자 더 세어 제목 끝에 줄바꿈이 딸려 오던 것도 함께 고쳤지만, 그쪽은
+// 화면에 도달한 적이 없다 — `document.title` 게터가 공백을 접어 없앤다 (실측:
+// `"제목,\n - park108.net"` 을 넣으면 `"제목, - park108.net"` 이 읽힌다).
+// 아래 첫 테스트는 그 구분을 못 한다. 제목 문자열 자체를 박는 회귀 핀이다.
+const metaDescription = (): string =>
+	(document.querySelector('meta[name="description"]') as HTMLMetaElement | null)?.content ?? "";
+
+// jsdom 문서에는 `<meta name="description">` 도, 비어 있는 `document.title` 도 없다.
+// 앞선 테스트가 남긴 제목을 그대로 두면 `toContain` 이 즉시 통과해 아무것도 재지
+// 못한다 — 실제로 그렇게 통과했다.
+const resetHead = (): void => {
+	document.title = "";
+	document.querySelector('meta[name="description"]')?.remove();
+	const meta = document.createElement("meta");
+	meta.setAttribute("name", "description");
+	document.head.appendChild(meta);
+};
+
+describe('LogSingle 제목 — 제목 + 본문', () => {
+	useMockServer(() => mock.devServerTitled);
+	beforeEach(resetHead);
+
+	it('제목 줄을 그대로 탭 이름으로 쓴다', async () => {
+
+		stubMode('development');
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		await waitFor(() => expect(document.title).toContain("Lorem ipsum"));
+		expect(document.title).toBe("[DEV] Lorem ipsum dolor sit amet, - park108.net");
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+});
+
+describe('LogSingle 제목 — 제목만 있고 줄바꿈이 없는 글', () => {
+	useMockServer(() => mock.devServerTitleOnly);
+	beforeEach(resetHead);
+
+	it('제목을 그대로 쓴다', async () => {
+
+		stubMode('development');
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		await waitFor(() => expect(document.title).not.toBe(""));
+		expect(document.title).toBe("[DEV] 제목만 있는 글 - park108.net");
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+
+	it('본문이 없으면 meta description 은 사이트 기본 설명이다', async () => {
+
+		stubMode('development');
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		await waitFor(() => expect(document.title).not.toBe(""));
+		// 이전에는 본문 대신 마지막 한 글자("글")가 설명으로 들어갔다.
+		expect(metaDescription()).toContain("personal journal");
+		expect(metaDescription()).not.toBe("글");
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+});
+
+describe('LogSingle 제목 — `# ` 뒤가 빈 제목', () => {
+	useMockServer(() => mock.devServerEmptyTitle);
+	beforeEach(resetHead);
+
+	it('날짜 제목으로 떨어진다', async () => {
+
+		stubMode('development');
+
+		render(withQuery(
+			<MemoryRouter initialEntries={[ testEntry ]}>
+				<LogSingle />
+			</MemoryRouter>
+		));
+
+		await waitFor(() => expect(document.title).not.toBe(""));
+		// 이전에는 "[DEV]  - park108.net" 이라 탭에 이름이 없었다.
+		expect(document.title).toContain("log of ");
+		expect(document.title).not.toBe("[DEV]  - park108.net");
+	}, ASYNC_ASSERTION_TIMEOUT_MS);
+});

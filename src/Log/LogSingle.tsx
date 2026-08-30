@@ -43,9 +43,23 @@ const LogSingle = () => {
 		if (!latestData) return;
 		const contents = latestData.logs[0].contents;
 		const hasTitle = contents.indexOf("# ") === 0;
-		const contentsStartIndex = hasTitle ? contents.indexOf("\n") : 0;
-		const logTitle = hasTitle
-			? contents.substr(2, contentsStartIndex - 1)
+
+		// 제목 줄의 끝. 제목만 있고 줄바꿈이 없는 글이면 `indexOf` 가 -1 을 주는데,
+		// 그대로 쓰면 `substr(2, -2)` 가 빈 제목을, `substr(-1)` 이 본문 대신
+		// **마지막 한 글자**를 낸다 — 탭에는 " - park108.net" 만 남고 meta
+		// description 은 글자 하나가 됐다. 줄바꿈이 없으면 글 끝이 제목 끝이다.
+		const newlineIndex = contents.indexOf("\n");
+		const titleEndIndex = newlineIndex < 0 ? contents.length : newlineIndex;
+		const contentsStartIndex = hasTitle ? titleEndIndex : 0;
+
+		// `slice(2, titleEndIndex)`. 이전 `substr(2, contentsStartIndex - 1)` 은
+		// 길이를 한 글자 더 세어 제목 끝에 줄바꿈이 딸려 왔고, 그대로
+		// `document.title` 에 들어가 " - park108.net" 앞에 빈칸이 하나 더 생겼다.
+		const parsedTitle = hasTitle ? contents.slice(2, titleEndIndex).trim() : "";
+
+		// `# ` 뒤가 비어 있는 글도 이름은 있어야 한다. 날짜 제목으로 떨어진다.
+		const logTitle = "" !== parsedTitle
+			? parsedTitle
 			: "log of " + getFormattedDate(Number(logTimestamp), "date mon year");
 		setHtmlTitle(logTitle);
 

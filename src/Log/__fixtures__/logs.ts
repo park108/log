@@ -52,3 +52,24 @@ export const logSingleLorem = {
 		}],
 	}],
 };
+
+// 제목만 있고 줄바꿈이 없는 글. 드물지만 실제로 쓸 수 있는 모양이고,
+// 여기서 제목 추출이 무너졌다 — `indexOf("\n")` 가 -1 을 준다.
+export const logSingleTitleOnly = {
+	Count: 1,
+	Items: [{
+		author: "park108@gmail.com",
+		timestamp: 1656034616036,
+		logs: [{ contents: "# 제목만 있는 글", timestamp: 1656034616036 }],
+	}],
+};
+
+// `# ` 뒤가 빈 제목 줄. 초안을 쓰다 만 모양이고, 이때 탭 이름이 통째로 비었다.
+export const logSingleEmptyTitle = {
+	Count: 1,
+	Items: [{
+		author: "park108@gmail.com",
+		timestamp: 1656034616036,
+		logs: [{ contents: "# \n본문만 있다.", timestamp: 1656034616036 }],
+	}],
+};

@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { ERROR_500, OK_200 } from '../__fixtures__/common'
-import { logListFirst7, logListFirst7WithTemporary, logListNext3, logSingle, logSingleLorem } from './__fixtures__/logs'
+import { logListFirst7, logListFirst7WithTemporary, logListNext3, logSingle, logSingleLorem, logSingleTitleOnly, logSingleEmptyTitle } from './__fixtures__/logs'
 
 const API_URL = import.meta.env.VITE_LOG_API_BASE;
 
@@ -65,6 +65,21 @@ export const devServerOk = setupServer(
 export const devServerGetOkDeleteFailed = setupServer(
 	http.get(API_URL + "/test/timestamp/1656034616036", async () => HttpResponse.json({ body: logSingleLorem })),
 	http.delete(API_URL + "/test/timestamp/1656034616036", async () => HttpResponse.json(ERROR_500)),
+);
+
+// 제목 줄만 있고 본문이 없는 글 — 탭 제목과 meta description 을 재는 데 쓴다.
+export const devServerTitleOnly = setupServer(
+	http.get(API_URL + "/test/timestamp/1656034616036", async () => HttpResponse.json({ body: logSingleTitleOnly })),
+);
+
+// 제목 + 본문 — 제목 끝에 줄바꿈이 딸려 오지 않는지 재는 데 쓴다.
+export const devServerTitled = setupServer(
+	http.get(API_URL + "/test/timestamp/1656034616036", async () => HttpResponse.json({ body: logSingleLorem })),
+);
+
+// `# ` 뒤가 빈 제목 — 날짜 제목으로 떨어지는지 재는 데 쓴다.
+export const devServerEmptyTitle = setupServer(
+	http.get(API_URL + "/test/timestamp/1656034616036", async () => HttpResponse.json({ body: logSingleEmptyTitle })),
 );
 
 export const devServerFailed = setupServer(
