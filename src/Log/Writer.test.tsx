@@ -6,6 +6,7 @@ import { Router, MemoryRouter, Routes, Route, useNavigate } from 'react-router-d
 import * as api from './api';
 import * as mock from './api.mock';
 import * as common from '../common/common';
+import * as sanitizeModule from '../common/sanitizeHtml';
 import { useMockServer } from '../test-utils/msw';
 import { createQueryTestWrapper } from '../test-utils/queryWrapper';
 
@@ -1269,5 +1270,53 @@ describe('Writer 자동 확장은 자기 입력에만 반응한다', () => {
 		await act(async () => { fireEvent.input(area(), { target: { value: '한 줄\n두 줄\n세 줄\n네 줄\n다섯\n여섯\n일곱\n여덟\n아홉' } }); });
 
 		expect(area().rows).toBeGreaterThan(grown);
+	});
+});
+
+// 미리보기는 `convertedArticle` 과 표시 모드에만 의존한다. 그런데 이 컴포넌트는
+// 타자마다, 그리고 본문과 무관한 상태(임시저장 체크·행 수·토스터)가 바뀔 때마다
+// 다시 그려진다. memo 가 없으면 그때마다 정제·포맷을 처음부터 다시 한다 (실측:
+// 타자 1회에 3회, 본문과 무관한 체크 한 번에도 1회).
+describe('Writer 미리보기 재계산 횟수', () => {
+
+	const area = () => document.getElementById('textarea--writer-article') as HTMLTextAreaElement;
+
+	const renderWriter = () => render(withQuery(
+		<MemoryRouter initialEntries={[{ pathname: '/log/write', state: null, key: 'cost', search: '', hash: '' }]}>
+			<Writer />
+		</MemoryRouter>
+	));
+
+	const settle = async () => {
+		await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
+	};
+
+	it('타자 한 번에 한 번만 정제한다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		const sanitize = vi.spyOn(sanitizeModule, 'default');
+
+		renderWriter();
+		await settle();
+
+		sanitize.mockClear();
+		await act(async () => { fireEvent.change(area(), { target: { value: '첫 글자' } }); });
+
+		expect(sanitize).toHaveBeenCalledTimes(1);
+	});
+
+	it('본문과 무관한 상태가 바뀌면 다시 계산하지 않는다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		const sanitize = vi.spyOn(sanitizeModule, 'default');
+
+		renderWriter();
+		await settle();
+		await act(async () => { fireEvent.change(area(), { target: { value: '본문' } }); });
+
+		sanitize.mockClear();
+		await act(async () => { fireEvent.click(document.getElementById('temporary') as HTMLElement); });
+
+		expect(sanitize).not.toHaveBeenCalled();
 	});
 });

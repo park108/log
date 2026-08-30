@@ -347,7 +347,16 @@ const Writer = () => {
 	//
 	// 엘리먼트로 계산해 두면 React 가 같은 자리의 같은 타입으로 보아 제자리
 	// 갱신한다 — 바로 위 `historyItems` 와 같은 이디엄이다.
-	const converted = (() => {
+	// 미리보기는 `convertedArticle` 과 표시 모드에만 의존한다. 그런데 이 컴포넌트는
+	// 타자마다, 그리고 본문과 무관한 상태(임시저장 체크·행 수·토스터)가 바뀔 때마다
+	// 다시 그려지고 그때마다 정제·포맷을 처음부터 다시 했다. 실측:
+	//
+	//   markdown 모드 · 타자 1회   sanitize 3회
+	//   HTML 모드    · 타자 1회   formatHtml 3회
+	//   임시저장 체크              formatHtml 1회   ← 본문이 안 바뀌었는데
+	//
+	// `historyItems` 와 같은 이디엄으로 묶는다.
+	const converted = React.useMemo(() => {
 
 		if(isConvertedHTML) {
 			return (
@@ -376,7 +385,7 @@ const Writer = () => {
 				</div>
 			);
 		}
-	})();
+	}, [isConvertedHTML, convertedArticle]);
 
 	return (
 		<div className="div div--writer">
