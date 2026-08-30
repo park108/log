@@ -18,6 +18,14 @@ interface LogItemInfoProps {
 	 *  이미 지나간 판본을 편집·삭제한다는 것이 성립하지 않는다. 기본은 켬. */
 	showActions?: boolean;
 	delete?: () => void;
+	/**
+	 * 삭제 요청이 진행 중인가. 진행 중에는 삭제 조작부를 잠근다.
+	 *
+	 * 잠그지 않던 동안에는 같은 글에 DELETE 가 여러 번 나갔다 (실측: 세 번 누르면
+	 * 요청 3건, 인자 전부 동일). 첫 요청이 성사된 뒤 도착한 두 번째 응답은 실패로
+	 * 오므로, **글은 지워졌는데 화면에는 "Deleting log failed." 가 떴다.**
+	 */
+	isDeleting?: boolean;
 }
 
 const LogItemInfo = (props: LogItemInfoProps) => {
@@ -165,6 +173,7 @@ const LogItemInfo = (props: LogItemInfoProps) => {
 						type="button"
 						data-testid="delete-button"
 						className="span span--logitem-toolbarmenu"
+						disabled={Boolean(props.isDeleting)}
 						onClick={handleDelete}
 					>
 						Delete

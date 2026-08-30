@@ -580,3 +580,84 @@ describe('LogItem 삭제 진행 중 표시', () => {
 		await waitFor(() => expect(article).not.toHaveClass('article--logitem-delete'));
 	});
 });
+
+// 삭제는 되돌릴 수 없는 조작인데, 요청이 도는 동안에도 버튼이 살아 있었다.
+// 실측: 세 번 누르면 같은 글에 DELETE 가 3건 나갔다. 첫 요청이 성사된 뒤 도착한
+// 두 번째 응답은 실패로 오므로 **글은 지워졌는데 "Deleting log failed." 가 떴다.**
+//
+// 버튼 비활성만으로는 부족하다 — `isPending` 이 화면에 반영되는 것은 한 틱 뒤이고,
+// 그 틈에 들어온 확인이 요청을 하나 더 낸다 (비활성만 두면 3건 → 2건). 재진입
+// 차단 ref 까지 두어야 1건이다.
+describe('LogItem 삭제 재진입', () => {
+
+	const deleteButton = () => screen.queryByTestId('delete-button') as HTMLButtonElement | null;
+
+	const okResponse = () => new Response(JSON.stringify({ statusCode: 200 }), {
+		status: 200,
+		headers: { 'Content-Type': 'application/json' },
+	});
+
+	it('응답 전에 여러 번 눌러도 DELETE 는 한 번만 나간다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+		const releases: ((value: Response) => void)[] = [];
+		const deleteSpy = vi.spyOn(api, 'deleteLog').mockImplementation(() =>
+			new Promise<Response>(resolve => { releases.push(resolve); })
+		);
+
+		render(withQuery(
+			<MemoryRouter>
+				<LogItem author="park108@gmail.com" timestamp={1700000000000} contents="본문" showActions={true} />
+			</MemoryRouter>
+		));
+
+		const button = await screen.findByTestId('delete-button');
+
+		// 세 번 누른다. 첫 클릭 직후에는 `isPending` 이 아직 화면에 반영되지 않아
+		// 버튼이 살아 있다 — 요청을 한 건으로 묶는 것은 비활성이 아니라 ref 다.
+		await act(async () => { fireEvent.click(button); });
+		await act(async () => { fireEvent.click(deleteButton() as HTMLElement); });
+		await act(async () => { fireEvent.click(deleteButton() as HTMLElement); });
+
+		expect(deleteSpy).toHaveBeenCalledTimes(1);
+
+		// 반영이 끝나면 버튼도 잠긴다.
+		await waitFor(() => expect(deleteButton()).toBeDisabled());
+
+		await act(async () => {
+			for(const release of releases) release(okResponse());
+			await new Promise(resolve => setTimeout(resolve, 0));
+		});
+	});
+
+	// 반대 방향 — 실패한 뒤에는 다시 지울 수 있어야 한다. 차단이 풀리지 않으면
+	// 한 번 실패한 글은 영영 지울 수 없다.
+	it('실패한 뒤에는 다시 삭제할 수 있다', async () => {
+
+		vi.spyOn(common, 'isAdmin').mockReturnValue(true);
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+		const deleteSpy = vi.spyOn(api, 'deleteLog')
+			.mockResolvedValueOnce(new Response(JSON.stringify({ statusCode: 500 }), {
+				status: 200, headers: { 'Content-Type': 'application/json' },
+			}))
+			.mockResolvedValueOnce(okResponse());
+
+		render(withQuery(
+			<MemoryRouter>
+				<LogItem author="park108@gmail.com" timestamp={1700000000001} contents="본문" showActions={true} />
+			</MemoryRouter>
+		));
+
+		const button = await screen.findByTestId('delete-button');
+
+		await act(async () => { fireEvent.click(button); });
+		await waitFor(() => expect(deleteButton()).toBeEnabled());
+
+		await act(async () => { fireEvent.click(deleteButton() as HTMLElement); });
+
+		await waitFor(() => expect(deleteSpy).toHaveBeenCalledTimes(2));
+	});
+});
