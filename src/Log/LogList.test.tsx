@@ -394,3 +394,96 @@ describe('LogList 마지막 페이지 뒤 커서', () => {
 		expect(container.querySelector('[data-testid="seeMoreButton"]')).not.toBeNull();
 	});
 });
+
+// "See more" 는 `isGetNextData` 플래그로 효과를 깨우는데, 그 플래그는 요청을
+// 띄운 **직후** false 로 내려간다 (완료를 기다리지 않는다). 그래서 응답이 오기
+// 전에 다시 누르면 같은 커서로 요청이 또 나갔다 — 실측: 세 번 누르면 호출 3회
+// (인자 전부 같은 커서), 목록에 같은 페이지가 세 번 붙어 항목이 8개가 되고
+// React key 도 중복됐다.
+describe('LogList 다음 페이지 재진입', () => {
+
+	const seeMore = () => screen.queryByTestId('seeMoreButton') as HTMLButtonElement | null;
+
+	it('응답 전에 여러 번 눌러도 요청은 한 번이고 페이지가 겹치지 않는다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+
+		const releases: ((value: Response) => void)[] = [];
+		const cursors: (string | number)[] = [];
+		const getNextSpy = vi.spyOn(api, 'getNextLogs').mockImplementation((timestamp: string | number) => {
+			cursors.push(timestamp);
+			return new Promise<Response>(resolve => { releases.push(resolve); });
+		});
+
+		renderLogList();
+		await flushAfterResponse();
+
+		const before = document.querySelectorAll('[role="listitem"]').length;
+		expect(before).toBeGreaterThan(0);
+
+		// 같은 태스크 안에서 연달아 눌린 경우 — 이 사이에는 리렌더가 없으므로
+		// `disabled` 가 아직 걸리지 않는다 (더블클릭·프로그램적 클릭 경로).
+		await act(async () => {
+			const button = seeMore() as HTMLElement;
+			fireEvent.click(button);
+			fireEvent.click(button);
+			fireEvent.click(button);
+		});
+
+		// 리렌더 뒤에는 버튼이 눌리지 않는다.
+		expect(seeMore()).toBeDisabled();
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+
+		expect(getNextSpy).toHaveBeenCalledTimes(1);
+		expect(cursors).toEqual([logListFirst7.LastEvaluatedKey.timestamp]);
+
+		await act(async () => {
+			for(const release of releases) release(jsonResponse({ body: logListNext3 }));
+			await new Promise(resolve => setTimeout(resolve, 0));
+		});
+
+		const after = document.querySelectorAll('[role="listitem"]').length;
+		expect(after).toBe(before + logListNext3.Items.length);
+
+		// key 중복이 없다 = timestamp 가 유일하다.
+		const dates = Array.from(document.querySelectorAll('[role="listitem"]')).map(el => el.textContent);
+		expect(new Set(dates).size).toBe(dates.length);
+	});
+
+	// 재진입 가드는 요청이 끝나면 **반드시 풀려야** 한다. 풀지 않으면 첫
+	// "See more" 뒤로 다음 페이지를 영영 가져올 수 없다.
+	it('한 페이지를 가져온 뒤 다음 페이지를 다시 가져올 수 있다', async () => {
+
+		stubMode('development');
+
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+
+		const cursors: (string | number)[] = [];
+		vi.spyOn(api, 'getNextLogs').mockImplementation((timestamp: string | number) => {
+			cursors.push(timestamp);
+			return Promise.resolve(jsonResponse({ body: {
+				Items: [{ timestamp: 1000 - cursors.length, contents: 'p' + cursors.length, temporary: false }],
+				LastEvaluatedKey: { author: "park108@gmail.com", timestamp: 1000 - cursors.length },
+			} }));
+		});
+
+		renderLogList();
+		await flushAfterResponse();
+
+		const before = document.querySelectorAll('[role="listitem"]').length;
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+		await flushAfterResponse();
+		expect(document.querySelectorAll('[role="listitem"]').length).toBe(before + 1);
+
+		await act(async () => { fireEvent.click(seeMore() as HTMLElement); });
+		await flushAfterResponse();
+		expect(document.querySelectorAll('[role="listitem"]').length).toBe(before + 2);
+
+		expect(cursors).toHaveLength(2);
+		expect(cursors[0]).not.toBe(cursors[1]);
+	});
+});
