@@ -70,7 +70,14 @@
 	max-width: 100%;
 }
 
+/* 답글 팝업(`.div--logitem-linkmessage`)의 기준점.
+ *
+ * 그 규칙이 `top: 100%; left: 0` 을 쓰므로 호스트가 위치 지정돼 있어야 한다 —
+ * 없으면 뷰포트 높이를 기준으로 잡아 팝업이 화면 밖으로 밀린다 (실측 y=1298).
+ * 배치 자체는 이전과 같다: 이 요소가 이미 `inline-block`(블록 컨테이너)이라
+ * 정적 위치가 `top:100%; left:0` 과 일치했다. */
 .div--comment-replybutton {
+	position: relative;
 	display: inline-block;
 	cursor: pointer;
 	padding: 12px 0px 5px 5px;

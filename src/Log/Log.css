@@ -89,11 +89,37 @@
   padding-right: 0.3em;
 }
 
-/* `fixed` 는 뷰포트에 고정돼 스크롤을 따라가지 않는다 — 포커스로 팝업을 띄운 뒤
- * 스크롤하면 팝업만 화면에 남는다. 좌표가 `auto` 인 한 `absolute` 도 같은 **정적
- * 위치**에 놓이므로 배치는 그대로이면서 스크롤을 따라간다. */
+/* 호버 팝업 배치.
+ *
+ * `fixed` 는 뷰포트에 고정돼 스크롤을 따라가지 않았다 — 포커스로 띄운 뒤
+ * 스크롤하면 팝업만 화면에 남았다. `absolute` 로 바꿔 그것을 먼저 고쳤다.
+ *
+ * 그러나 좌표가 `auto` 인 동안 배치는 **정적 위치**, 즉 DOM 상 그 자리에 있었을
+ * 위치에 의존했다. 그래서 배치가 마크업 구조와 트리거의 `display` 에 딸려 있었다 —
+ * link 트리거는 `inline-block`(블록 컨테이너)이라 팝업이 트리거에 붙고, version
+ * 트리거는 순수 inline 이라 팝업이 바깥 툴바 왼쪽에 붙는다. 그 차이는 어디에도
+ * 적혀 있지 않았고, 트리거의 `display` 한 줄이면 팝업이 말없이 옮겨간다.
+ *
+ * 좌표를 명시하고 기준을 declare 한다. 실제 브라우저로 잰 결과 280·320·375·414·
+ * 768·900·1200·1440px 여덟 폭에서 세 팝업 모두 이전과 픽셀 단위로 같다.
+ *
+ * `width: max-content` 가 필요하다 — 기준을 트리거로 좁히면 shrink-to-fit 의
+ * 가용 폭도 트리거 폭이 되어 글자가 세로로 접힌다 (실측: version 팝업 높이
+ * 77 → 194). 이 선언이 그 축을 분리한다.
+ *
+ * 이 규칙을 쓰는 팝업의 호스트는 반드시 위치 지정돼 있어야 한다. `top: 100%` 는
+ * 위치 지정 조상이 없으면 **뷰포트 높이**를 기준으로 잡아 팝업이 화면 밖으로
+ * 밀린다 (실측 y=1298). `__tests__/hover-popup-anchoring` 가 이를 지킨다. */
+.span--logitem-toolbaricon,
+.div--logitem-toolbar {
+	position: relative;
+}
+
 .div--logitem-linkmessage {
 	position: absolute;
+	top: 100%;
+	left: 0;
+	width: max-content;
 	display: block;
 	margin: 0;
 	padding: 8px;
@@ -105,8 +131,13 @@
 	font-weight: bold;
 }
 
+/* version 팝업의 기준은 트리거가 아니라 툴바다 — 현행 배치가 그렇고, 트리거에
+ * 붙이면 좁은 화면에서 오른쪽으로 넘친다 (실측 375px: x=247 + w=169 = 416 > 375). */
 .div--logitem-versionhistory {
 	position: absolute;
+	top: 100%;
+	left: 0;
+	width: max-content;
 	margin: 0;
 	padding: 8px;
 	border-radius: 8px;
