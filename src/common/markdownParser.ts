@@ -349,12 +349,54 @@ export const markdownToHtml = (rawInput: string): string => {
 		return "\uE000t" + (tagChunks.length - 1) + "\uE001";
 	};
 
+
+	// 백슬래시 이스케이프 (CommonMark §6.1).
+	//
+	// `\*` 는 "별표를 글자로 보여 달라" 는 뜻이다. 그런데 이 파서는 백슬래시를
+	// 글자로 남기고 별표는 별표대로 강조에 썼다 — 뜻이 정확히 뒤집혔다 (실측):
+	//
+	//   `\*별표\*`   →  <p>\<em>별표\</em></p>     기대: <p>*별표*</p>
+	//   `\_밑줄\_`   →  <p>\_밑줄\_</p>           기대: <p>_밑줄_</p>
+	//
+	// 두 경우 모두 독자가 백슬래시를 본다. 글쓴이가 화면에 내보내려던 적이 없는
+	// 글자다. 별표를 글자로 쓰는 유일한 방법이 코드 스팬뿐이었다.
+	//
+	// 코드 스팬과 같은 수를 쓴다 — 이스케이프된 글자를 자리표시자로 빼 두면
+	// 이후의 블록·링크·강조 패스가 그 자리를 마크업으로 읽을 수 없다. `#` 을
+	// 이스케이프한 줄이 제목이 되지 않는 것도 이 때문이다.
+	//
+	// 본문 escape **전에** 뺀다. 원래 글자를 그대로 보관했다가 복원 시점에
+	// escape 하므로 `\<` 같은 표기도 `&lt;` 로 안전하게 돌아온다.
+	// 이스케이프와 코드 스팬은 **한 번의 스캔**으로 함께 처리한다.
+	//
+	// 따로 돌리면 순서가 어느 쪽이든 틀린다. 코드 스팬이 먼저면 `\`` 가 스팬을
+	// 열어 버리고 (실측: `\`코드 아님\`` → `\<code>코드 아님\</code>`),
+	// 이스케이프가 먼저면 코드 스팬 **안쪽**의 백슬래시까지 걷어 간다 — 코드는
+	// 보이는 그대로여야 하므로 그것도 틀리다.
+	//
+	// 왼쪽에서 오른쪽으로 한 번 훑으면 우선순위가 저절로 맞는다. `\X` 를 만나면
+	// 그 자리에서 글자로 소비하므로 그 백틱은 스팬을 열 수 없고, 스팬이 열리면
+	// 그 안쪽은 통째로 보관되므로 이스케이프가 손대지 않는다.
+	const ESCAPABLE = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+	const escapedChars: string[] = [];
+
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
-			node.text = node.text.replace(/`([^`]+)`/g, (_m, code: string) => {
-				codeSpans.push(code);
-				return "\uE000c" + (codeSpans.length - 1) + "\uE001";
-			});
+			node.text = node.text.replace(
+				/\\([\s\S])|`([^`]+)`/g,
+				(whole: string, escaped: string | undefined, code: string | undefined): string => {
+
+					if(undefined !== escaped) {
+						// 구두점이 아니면 백슬래시는 그냥 글자다 (`C:\Users`, `\d+`).
+						if(!ESCAPABLE.includes(escaped)) return whole;
+						escapedChars.push(escaped);
+						return "\uE000e" + (escapedChars.length - 1) + "\uE001";
+					}
+
+					codeSpans.push(code ?? "");
+					return "\uE000c" + (codeSpans.length - 1) + "\uE001";
+				}
+			);
 		}
 	}
 
@@ -482,6 +524,12 @@ export const markdownToHtml = (rawInput: string): string => {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) =>
 				"<code>" + escapeHtmlText(codeSpans[Number(i)]) + "</code>"
+			);
+
+			// 이스케이프된 글자 복원. 마크업 패스가 전부 지나간 뒤이므로 이 글자는
+			// 어떤 문법에도 참여하지 않았다. 여기서 escape 해 화면에 글자로 남긴다.
+			node.text = node.text.replace(/\uE000e(\d+)\uE001/g, (_m, i: string) =>
+				escapeHtmlText(escapedChars[Number(i)])
 			);
 
 			// 태그 조각 복원. 이미 escape 를 마친 상태로 들어갔으므로 그대로 돌려놓는다.
