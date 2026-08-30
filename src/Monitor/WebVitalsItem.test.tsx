@@ -643,3 +643,53 @@ describe('Monitor 슬롯 시각 불변 (REQ-20260825-009 Dir-4)', () => {
 		).toHaveLength(0);
 	});
 });
+
+// 판정이 **표시용 반올림 문자열** 을 읽고 있었다. `rate` 는 `toFixed(0)` 를 거친
+// 값이라 반올림이 경계를 옮겼다 (실측):
+//
+//   good 74.60%  →  표기 "75"  →  GOOD              (75% 기준이니 아니어야 한다)
+//   poor 25.40%  →  표기 "25"  →  NEEDS IMPROVEMENT (25% 초과이니 POOR 여야 한다)
+//
+// 이 화면이 하는 일이 정확한 보고이므로 표시와 판단을 가른다 — 표기는 그대로
+// 반올림하고, 판정만 원래 비율을 본다.
+describe('WebVitalsItem 판정 경계는 반올림에 흔들리지 않는다', () => {
+
+	const items = (good: number, needsImprovement: number, poor: number) => [
+		...Array.from({ length: good }, () => ({ evaluation: 'GOOD' })),
+		...Array.from({ length: needsImprovement }, () => ({ evaluation: 'NEEDS IMPROVEMENT' })),
+		...Array.from({ length: poor }, () => ({ evaluation: 'POOR' })),
+	];
+
+	it.each([
+		['정확히 75% good', 75, 25, 0, 'GOOD'],
+		['74.6% good — 표기는 75 지만 GOOD 이 아니다', 746, 254, 0, 'NEEDS IMPROVEMENT'],
+		['74.0% good', 740, 260, 0, 'NEEDS IMPROVEMENT'],
+		['정확히 25% poor — 초과가 아니므로 POOR 가 아니다', 0, 750, 250, 'NEEDS IMPROVEMENT'],
+		['25.4% poor — 표기는 25 지만 POOR 다', 0, 746, 254, 'POOR'],
+		['25.6% poor', 0, 744, 256, 'POOR'],
+	])('%s', (_name, good, needsImprovement, poor, expected) => {
+
+		const result = buildEvaluationResult(items(good, needsImprovement, poor));
+
+		expect(result.evaluation).toBe(expected);
+	});
+
+	// 표기는 그대로 반올림한다 — 판정만 바뀌었지 화면 숫자는 그대로다.
+	it('표기는 반올림된 정수 문자열 그대로다', () => {
+
+		const result = buildEvaluationResult(items(746, 254, 0));
+
+		expect(result.good.rate).toBe('75');
+		expect(result.needImprovement.rate).toBe('25');
+	});
+
+	// 항목이 없으면 나눗셈이 없다.
+	it('항목이 없으면 None 이고 비율은 빈 문자열이다', () => {
+
+		const result = buildEvaluationResult([]);
+
+		expect(result.evaluation).toBe('None');
+		expect(result.good.rate).toBe('');
+		expect(result.totalCount).toBe(0);
+	});
+});

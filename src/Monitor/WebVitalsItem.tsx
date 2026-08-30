@@ -83,13 +83,24 @@ export const buildEvaluationResult = (items: WebVitalRawItem[] | null | undefine
 	const needImprovementRate = toRate(needImprovement, totalCount);
 	const poorRate = toRate(poor, totalCount);
 
-	// 분기 순서·경계는 현행 그대로 (문자열 rate 의 강제변환 의미 포함).
+	// **판정은 표시용 문자열이 아니라 실제 비율로 한다.**
+	//
+	// 예전에는 `Number(goodRate)` 를 비교했는데 `goodRate` 는 `toFixed(0)` 를 거친
+	// **표시용** 값이다. 그래서 반올림이 경계를 옮겼다 (실측):
+	//
+	//   good 74.60%  →  표기 "75"  →  GOOD              (75% 기준이니 아니어야 한다)
+	//   poor 25.40%  →  표기 "25"  →  NEEDS IMPROVEMENT (25% 초과이니 POOR 여야 한다)
+	//
+	// 이 화면이 하는 일이 정확한 보고이므로 표시와 판단을 가른다 — 표기는 그대로
+	// 반올림하고, 판정만 원래 비율을 본다.
+	const goodRatio = 0 === totalCount ? 0 : 100 * good / totalCount;
+	const poorRatio = 0 === totalCount ? 0 : 100 * poor / totalCount;
+
 	let evaluation: WebVitalEvaluation;
-	// 기존 동작 보존: rate 는 문자열이고 비교 시 강제변환된다 ("" -> 0).
-	if(75 <= Number(goodRate)) {
+	if(75 <= goodRatio) {
 		evaluation = "GOOD";
 	}
-	else if(25 < Number(poorRate)) {
+	else if(25 < poorRatio) {
 		evaluation = "POOR";
 	}
 	else if(0 < totalCount) {
