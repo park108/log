@@ -655,3 +655,54 @@ describe('FileItem 삭제 실패 후 상태', () => {
 		vi.restoreAllMocks();
 	});
 });
+
+// 삭제는 이름이 가리키는 대상에 나간다. 이름이 없으면 지울 것도 없는데,
+// 캐스트가 그것을 가리고 있었다 — undefined 가 그대로 경로에 실려
+// `key/undefined` 로 나갔고 확인 문구는 "Are you sure delete ''?" 였다.
+describe('FileItem 이름 없는 항목', () => {
+
+	const renderItem = (fileName?: string) => render(
+		<FileItem fileName={fileName} url="https://example.com/a" lastModified={1656034616036} size={1024} />);
+
+	it('이름이 없으면 삭제 조작부를 내지 않는다', () => {
+
+		const { container } = renderItem(undefined);
+
+		expect(container.querySelector('.button--fileitem-delete')).toBeNull();
+	});
+
+	it('이름이 없으면 확인 절차 자체가 없다', () => {
+
+		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const deleteSpy = vi.spyOn(api, 'deleteFile');
+
+		const { container } = renderItem(undefined);
+		const button = container.querySelector('.button--fileitem-delete');
+		if (button) fireEvent.click(button);
+
+		// 이전에는 "Are you sure delete ''?" 를 묻고 deleteFile(undefined) 를 보냈다.
+		expect(confirmSpy).not.toHaveBeenCalled();
+		expect(deleteSpy).not.toHaveBeenCalled();
+
+		vi.restoreAllMocks();
+	});
+
+	// 대조 — 이름이 있으면 그 이름으로 묻고 그 이름을 보낸다. 없으면 "언제나 숨김"
+	// 구현도 통과한다.
+	it('이름이 있으면 그 이름으로 삭제한다', async () => {
+
+		vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const deleteSpy = vi.spyOn(api, 'deleteFile').mockResolvedValue({
+			json: async () => ({ statusCode: 200 }),
+		} as unknown as Response);
+
+		const { container } = renderItem('notes/report.pdf');
+		await act(async () => {
+			fireEvent.click(container.querySelector('.button--fileitem-delete')!);
+		});
+
+		expect(deleteSpy).toHaveBeenCalledWith('notes/report.pdf');
+
+		vi.restoreAllMocks();
+	});
+});

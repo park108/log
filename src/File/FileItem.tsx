@@ -53,10 +53,20 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 
 	const deleteFileItem = async () => {
 
+		// 대상이 없으면 지울 것도 없다. 캐스트가 그것을 가리고 있었다 — undefined 가
+		// 그대로 경로에 실려 `key/undefined` 로 나갔다 (실측). 아래 렌더 가드가
+		// 조작부를 내지 않지만, 계약이 바뀌었을 때 조용히 통과하지 않도록 여기서도
+		// 실제로 검사한다.
+		const fileName = props.fileName;
+		if(!hasValue(fileName)) {
+			log("deleteFileItem: fileName 미확정 상태 진입", "ERROR");
+			return;
+		}
+
 		setIsDeleting(true);
 
 		try {
-			const res = await deleteFile(props.fileName as string);
+			const res = await deleteFile(fileName as string);
 			if(!isMounted.current) return;
 
 			const status = await res.json();
@@ -163,6 +173,11 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 							{getFormattedSize(props.size as number)}
 						</span>
 					)}
+					{/* 이름이 없으면 삭제 조작부를 내지 않는다. 지울 대상을 가리키는
+					    것이 이름이고, 없으면 확인 문구부터 "Are you sure delete ''?" 가
+					    된다 (실측). 현 호출처는 항상 서버 key 를 넘기므로 발현되지
+					    않지만, 다음 호출처가 생길 때를 막는다. */}
+					{ hasValue(props.fileName) && (
 					<span className="span span--fileitem-toolbar">
 						<button
 							type="button"
@@ -174,6 +189,7 @@ const FileItem = (props: FileItemProps): React.ReactElement => {
 							<span aria-hidden="true">✕</span>
 						</button>
 					</span>
+					) }
 				</div>
 			</div>
 			<Toaster 
