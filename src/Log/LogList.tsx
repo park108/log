@@ -26,6 +26,9 @@ const LogList = (props: LogListProps) => {
 	const [logs, setLogs] = useState<LogListEntry[]>([]);
 	const [lastTimestamp, setLastTimestamp] = useState<number | undefined>(undefined);
 
+	// 첫 조회가 끝났는지. 커서 삭제 판정에만 쓴다 (위 effect 주석 참조).
+	const hasLoaded = useRef<boolean>(false);
+
 	const [isShowToasterCenter, setIsShowToasterCenter] = useState<ToasterShow>(1);
 
 	// REQ-20260517-093 (I1)(I2) / REQ-20260824-002 / TSK-20260824-07-c — unmount 후 발화 차단 가드.
@@ -79,6 +82,7 @@ const LogList = (props: LogListProps) => {
 					const lastEvaluatedKey = fetchedData.body.LastEvaluatedKey;
 		
 					setLogs(newLogs);
+					hasLoaded.current = true;
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 				}
 				else {
@@ -131,6 +135,7 @@ const LogList = (props: LogListProps) => {
 		
 					// functional update — 클로저가 캡처한 stale `logs` 대신 직전 상태를 받는다.
 					setLogs(prev => prev.concat(fetchedData.body.Items));
+					hasLoaded.current = true;
 					setLastTimestamp(hasValue(lastEvaluatedKey) ? lastEvaluatedKey.timestamp : undefined);
 				}
 				else {
@@ -181,9 +186,20 @@ const LogList = (props: LogListProps) => {
 		}
 	}, [logs]);
 
+	// 커서는 상태와 저장소에 **함께** 반영한다.
+	//
+	// 이전에는 값이 있을 때만 저장하고 없어질 때는 두었다. 마지막 페이지에
+	// 닿으면 커서가 undefined 가 되는데 저장소에는 옛 값이 남아, 다음 방문에서
+	// 그것이 복원돼 "See more" 가 되살아났다 — 눌러도 더 나올 것이 없는 버튼이다
+	// (실측: 끝까지 넘긴 뒤 See more 사라짐 → 재방문 시 다시 나타남).
 	useEffect(() => {
 		if(hasValue(lastTimestamp)) {
 			writeSession("logListLastTimestamp", JSON.stringify(lastTimestamp));
+		}
+		else if(hasLoaded.current) {
+			// 마운트 직후의 undefined 는 "더 없음" 이 아니라 "아직 모름" 이다 —
+			// 그때 지우면 캐시에서 복원할 커서를 스스로 없앤다.
+			removeSession("logListLastTimestamp");
 		}
 	}, [lastTimestamp]);
 

@@ -315,3 +315,82 @@ describe('LogList 임시 저장 표식', () => {
 		expect(screen.queryByRole('img', { name: 'Temporary save' })).toBeNull();
 	});
 });
+
+// 마지막 페이지에 닿으면 커서도 함께 지워야 한다.
+//
+// 이전에는 커서가 있을 때만 저장하고 없어질 때는 두었다. 그래서 저장소에 옛
+// 값이 남아 다음 방문에서 복원됐고, 눌러도 더 나올 것이 없는 "See more" 가
+// 되살아났다 (실측: 끝까지 넘긴 뒤 사라짐 → 재방문 시 다시 나타남).
+describe('LogList 마지막 페이지 뒤 커서', () => {
+
+	it('끝까지 넘기면 커서를 지운다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+		// 마지막 페이지 — LastEvaluatedKey 없음
+		vi.spyOn(api, 'getNextLogs').mockResolvedValue(jsonResponse({ body: { Items: logListNext3.Items } }));
+
+		const { container } = renderLogList();
+		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
+		expect(sessionStorage.getItem('logListLastTimestamp')).not.toBeNull();
+
+		fireEvent.click(await screen.findByTestId('seeMoreButton'));
+		await flushAfterResponse();
+
+		expect(container.querySelector('[data-testid="seeMoreButton"]')).toBeNull();
+		// 이전에는 여기 옛 커서가 남아 다음 방문에서 죽은 버튼을 되살렸다.
+		expect(sessionStorage.getItem('logListLastTimestamp')).toBeNull();
+	});
+
+	it('다시 열어도 죽은 See more 가 없다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+		vi.spyOn(api, 'getNextLogs').mockResolvedValue(jsonResponse({ body: { Items: logListNext3.Items } }));
+
+		const first = renderLogList();
+		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
+		fireEvent.click(await screen.findByTestId('seeMoreButton'));
+		await flushAfterResponse();
+		first.unmount();
+
+		const second = renderLogList();
+		await flushAfterResponse();
+		expect(second.container.querySelector('[data-testid="seeMoreButton"]')).toBeNull();
+	});
+
+	// 대조 — 캐시에서 복원할 때 커서를 지우면 안 된다. 마운트 직후의 undefined 는
+	// "더 없음" 이 아니라 "아직 모름" 이다.
+	it('캐시에 커서가 있으면 복원해 이어보기를 남긴다', async () => {
+
+		stubMode('development');
+		// 이전 방문에서 남긴 상태를 흉내 낸다 — 목록과 커서가 함께 있다.
+		sessionStorage.setItem('logList', JSON.stringify(logListFirst7.Items));
+		sessionStorage.setItem('logListLastTimestamp', '1654520402200');
+
+		const getLogsSpy = vi.spyOn(api, 'getLogs');
+
+		const { container } = renderLogList();
+		await flushAfterResponse();
+
+		// 캐시를 썼으므로 재조회하지 않는다.
+		expect(getLogsSpy).not.toHaveBeenCalled();
+		// 커서가 살아 있어야 이어보기가 뜬다.
+		expect(sessionStorage.getItem('logListLastTimestamp')).not.toBeNull();
+		expect(container.querySelector('[data-testid="seeMoreButton"]')).not.toBeNull();
+	});
+
+	// 대조 — 더 가져올 페이지가 남아 있으면 커서를 지우면 안 된다. 지우면
+	// 재방문 시 이어보기가 사라진다.
+	it('더 남아 있으면 커서를 지키다', async () => {
+
+		stubMode('development');
+		vi.spyOn(api, 'getLogs').mockResolvedValue(jsonResponse({ body: logListFirst7 }));
+
+		const { container } = renderLogList();
+		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
+
+		expect(sessionStorage.getItem('logListLastTimestamp')).not.toBeNull();
+		expect(container.querySelector('[data-testid="seeMoreButton"]')).not.toBeNull();
+	});
+});
