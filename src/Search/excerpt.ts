@@ -36,5 +36,22 @@ export const buildExcerpt = (text: string, queryString: string): string => {
 	const space = text.indexOf(" ", cut);
 	if(space >= 0 && space < at) cut = space + 1;
 
+	// **글자를 반으로 쪼개지 않는다.**
+	//
+	// `cut` 은 UTF-16 코드 유닛 인덱스다. 매치 앞 12칸에 이모지가 걸려 있고 그
+	// 사이에 공백이 없으면(공백까지 미는 위 규칙이 발동하지 않으면) 자를 자리가
+	// 서로게이트 쌍 한가운데에 떨어진다. 남는 것은 짝 잃은 반쪽이고 화면에는
+	// 대체 문자로 보인다. 실측:
+	//
+	//   "a🎉bbbbbbbbbbb테스트" 에서 "테스트" 검색  →  "…\udf89bbbbbbbbbbb테스트"
+	//
+	// 뒤쪽 반쪽 위에 떨어졌으면 한 칸 민다. 같은 결함의 반대 방향(앞에서부터
+	// 세어 자르기)은 `common.truncateByGrapheme` 이 맡는다.
+	//
+	// ZWJ 시퀀스(가족 이모지)가 중간에서 갈리는 것은 여기서 막지 않는다 — 그쪽은
+	// 구성 이모지로 온전히 그려지므로 깨진 글자가 아니다.
+	const CUT_CODE = text.charCodeAt(cut);
+	if(CUT_CODE >= 0xDC00 && CUT_CODE <= 0xDFFF) cut += 1;
+
 	return ELLIPSIS + text.slice(cut);
 };

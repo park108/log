@@ -49,3 +49,48 @@ describe('buildExcerpt', () => {
 		expect(out.indexOf('needle')).toBeLessThan(20);
 	});
 });
+
+// 발췌는 UTF-16 코드 유닛 인덱스로 자른다. 매치 앞 12칸에 이모지가 걸려 있고
+// 그 사이에 공백이 없으면 자를 자리가 서로게이트 쌍 한가운데에 떨어진다. 남는
+// 것은 짝 잃은 반쪽이고 화면에는 대체 문자(`\uFFFD`) 로 보인다. 실측:
+//
+//   "a🎉bbbbbbbbbbb테스트" 에서 "테스트" 검색  →  "…\udf89bbbbbbbbbbb테스트"
+//
+// 검색 결과 미리보기는 방문자가 검색할 때마다 보는 자리다.
+describe('발췌는 글자를 반으로 쪼개지 않는다', () => {
+
+	// 짝 잃은 서로게이트가 하나라도 있는가.
+	const hasLoneSurrogate = (s: string): boolean =>
+		/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(s);
+
+	// 앞 글자 수를 0~8 로 흔들어도 이모지가 매치 13칸 앞에 놓이도록 만든 입력들.
+	// 한 자리만 재면 우연히 경계에 맞아떨어진 것을 통과시킨다.
+	it.each([0, 1, 2, 3, 4, 5, 6, 7, 8])('앞 글자 %i개일 때도 온전하다', (lead) => {
+
+		const text = 'a'.repeat(lead) + '🎉' + 'b'.repeat(11) + '테스트';
+
+		const excerpt = buildExcerpt(text, '테스트');
+
+		expect(hasLoneSurrogate(excerpt), JSON.stringify(excerpt)).toBe(false);
+		// 자른 목적 자체는 유지된다 — 매치가 발췌 안에 있어야 한다.
+		expect(excerpt).toContain('테스트');
+	});
+
+	it('이모지가 온전히 남거나 통째로 빠진다', () => {
+
+		const excerpt = buildExcerpt('a🎉' + 'b'.repeat(11) + '테스트', '테스트');
+
+		// 반쪽이 남는 대신 한 칸 밀린다.
+		expect(excerpt.includes('\uD83C')).toBe(false);
+		expect(excerpt.includes('\uDF89')).toBe(false);
+	});
+
+	// 대조 — 쪼갤 일이 없는 입력은 예전 그대로다.
+	it.each([
+		['공백이 있으면 공백까지 민다', '🎉🎉🎉🎉🎉🎉 그리고 여기 테스트', '…그리고 여기 테스트'],
+		['매치가 앞에 있으면 자르지 않는다', '앞쪽 테스트 뒤쪽', '앞쪽 테스트 뒤쪽'],
+	])('%s', (_label, text, expected) => {
+
+		expect(buildExcerpt(text, '테스트')).toBe(expected);
+	});
+});
