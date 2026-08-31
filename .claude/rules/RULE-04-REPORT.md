@@ -45,6 +45,7 @@
 - `grep dry-run: N/N match` | `grep dry-run: K/N match (drift fixed)` — planner.
 - `reconcile: N/M ack` | `reconcile: N/M ack (K stale ≥3cycle)` | `reconcile: skipped (no delta)` — inspector Phase 1 매 세션 필수. 마지막 형태는 `git diff` 가 공집합이라 게이트 재실행을 생략한 tick 에 쓰며 `stale_cycles` 를 증가시키지 않는다 (RULE-03 §(S2)).
 - `promote-verify: N/N rc0` — planner 승격 시 필수 (RULE-07 §promote).
+- `diagnostics: M run, K failed` — planner 승격 시 필수 (RULE-07 §promote 조건 2-bis). §수용 기준 이 참조하지 않는 §테스트 현황 판정 명령의 실행 결과. **실패는 승격을 막지 않으나 침묵은 금지**다.
 - `injection: N/N detect` — 게이트 신설·수정 task 의 developer 필수 (RULE-06 §게이트 실효 검증).
 - `control: M/M pass` | `control: n/a (<사유>)` — 위와 같은 task 에서 `injection` 과 **나란히** 필수 (RULE-06 §음성 대조). 주입은 민감도, 대조는 정상 변형에서의 특이도를 잰다.
 - `stall: <agent> K=<n>` — RULE-03 (S1)(S2) 발화 시.
