@@ -147,20 +147,30 @@ CORPUS_N="$(grep -c . "$CORPUS")"
 # ── (I3 실효) 무판정 경로 자가 확인 ──────────────────────────────────────────
 # 공집합 판정을 **0 을 넣어 실제로 돌려 본다.** 살아 있으면 rc=2 여야 한다. 이 확인이
 # 없으면 `exit 2` 라는 **글자만** 남기고 경로를 들어내도 정적 게이트가 초록이다.
-population_verdict() {
+# **판정은 한 곳에서만 내린다.** 자가 확인이 판정의 *사본*을 재면 사본 둘이 갈라져,
+# 실제 경로를 들어내도 자가 확인은 초록이다. 그래서 아래 함수가 유일한 공집합 판정이고
+# 자가 확인과 실제 판정이 **같은 함수를 부른다**.
+population_verdict() {   # rc 2 = 무판정(공집합) · rc 0 = 판정 가능
 	if [ "$1" -lt 1 ]; then
-		exit 2
+		return 2
 	fi
-	exit 0
+	return 0
 }
-( population_verdict 0 ) >/dev/null 2>&1
+
+population_verdict 0
 if [ "$?" -ne 2 ]; then
-	echo "check-summary-drift: 무판정 — 공집합 무판정 경로가 살아 있지 않다" >&2
+	echo "check-summary-drift: 무판정 — 공집합 무판정 경로가 살아 있지 않다 (0 을 넣었는데 통과했다)" >&2
+	exit 2
+fi
+population_verdict 1
+if [ "$?" -ne 0 ]; then
+	echo "check-summary-drift: 무판정 — 공집합 판정이 과잉이다 (1 을 넣었는데 막았다)" >&2
 	exit 2
 fi
 
 # ── (I3) 모집단 비공허 단언 — 공집합은 통과가 아니라 무판정이다 ───────────────
-if [ "$CORPUS_N" -lt 1 ]; then
+population_verdict "$CORPUS_N"
+if [ "$?" -ne 0 ]; then
 	echo "check-summary-drift: 무판정 — 입력 도출이 공집합이다 (base=$BASE_SHA head=$HEAD_SHA)" >&2
 	echo "  도출 원천: src/__tests__/markdown-no-character-loss.test.ts (PLAIN_PROSE) · src/Log/__fixtures__/logs.ts (contents)" >&2
 	exit 2
