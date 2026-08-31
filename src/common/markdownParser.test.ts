@@ -435,6 +435,35 @@ describe('MD parsing — blockquote block recursion', () => {
 	});
 });
 
+// 밑줄식 제목(setext) 축의 위험은 과소 인식이 아니라 **과잉 인식**이다.
+// `---` 를 만나면 앞줄을 제목으로 올리는 순진한 구현은 손상 축 게이트를 전부
+// 통과하면서 **기존 글의 가로줄을 통째로 제목으로 바꾼다.** 글쓴이는 화면이
+// 그럴듯해 보이므로 알아챌 수 없다.
+//
+// 그래서 다섯 대조를 **한 게이트 안에** 모은다. 나눠 두면 순진한 구현이 일부만
+// 통과시키며 부분 초록을 만든다. 다섯 전부 밑줄식 제목 계약이 착지한 뒤에도
+// **무변경**이어야 한다.
+describe('MD parsing — thematic break preservation (setext contrast)', () => {
+
+	it("밑줄식 제목은 가로줄을 가로채지 않는다", () => {
+
+		// 앞 문단이 없는 밑줄은 가로줄이다.
+		expect(parser.markdownToHtml("---")).toBe("<hr />");
+
+		// 빈 줄이 갈랐으면 앞 문단을 붙잡지 않는다.
+		expect(parser.markdownToHtml("문단\n\n---")).toBe("<p>문단</p><p></p><hr />");
+
+		// `*` 와 `_` 는 setext 밑줄이 아니다 (CommonMark 는 `-`·`=` 만 인정한다).
+		expect(parser.markdownToHtml("제목\n***")).toBe("<p>제목</p><hr />");
+		expect(parser.markdownToHtml("제목\n___")).toBe("<p>제목</p><hr />");
+
+		// 밑줄이 목록을 가로채지 않는다. `<li>` 본문 표기는 다른 계약 소유이므로
+		// 판정에 넣지 않는다 — 그 축의 정상 변경에서 이 게이트가 붉어지면 안 된다.
+		expect(parser.markdownToHtml("- 항목\n---"))
+			.toMatch(/^<ul><li>[^<]*항목[^<]*<\/li><\/ul><hr \/>$/);
+	});
+});
+
 // 링크·이미지의 **제목 없는 표준 형식**이 렌더되지 않고 있었다 (2026-08-30 실측).
 //
 // 구 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해 제목이 있어야만
