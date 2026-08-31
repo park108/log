@@ -82,6 +82,10 @@ beforeEach(() => {
 	// 호출 카운트 격리 — 각 케이스 진입 시점 0.
 	reportWebVitalsMock.mockClear();
 	getAPIMock.mockClear();
+	// **구현도 되돌린다.** `mockClear` 는 호출 기록만 지우고 `mockImplementation`
+	// 은 남긴다 — "던지는 getAPI" 를 세운 케이스의 구현이 다음 케이스로 새어
+	// 나갔다 (실측: B4 가 그렇게 붉어졌다).
+	getAPIMock.mockImplementation(() => MOCK_API_URL);
 	userAgentParserMock.mockClear();
 	createRootMock.mockClear();
 });
@@ -164,6 +168,52 @@ describe('src/index.tsx 부트 비콘 4 불변식 (REQ-094)', () => {
 
 		// 콜백 직접 발화 — sendBeacon 가드 falsy 분기로 throw 없이 silent.
 		expect(() => sendToAnalyticsCb({ id: 'metric-x', value: 1 })).not.toThrow();
+	});
+
+	// **계측 실패가 부팅을 막지 않는다.**
+	//
+	// `getAPI()` 는 계측 주소가 정의돼 있지 않으면 던진다. `sendCounter()` 는 모듈
+	// 최상위에서 실행되므로 그 예외가 부팅 경로 한가운데로 올라온다 — 방문자 수를
+	// 세지 못하는 것과 앱이 뜨지 못하는 것은 비교할 일이 아니다.
+	it('계측 주소가 없어 getAPI 가 던져도 모듈 로드가 실패하지 않는다', async () => {
+		const sendBeaconSpy = vi.fn(() => true);
+		Object.defineProperty(navigator, 'sendBeacon', {
+			value: sendBeaconSpy,
+			configurable: true,
+			writable: true,
+		});
+
+		getAPIMock.mockImplementation(() => {
+			throw new Error('VITE_MONITOR_API_BASE 미정의 — base URL 도출 불가');
+		});
+
+		await expect(import('./index')).resolves.toBeDefined();
+
+		// 보낼 곳을 모르므로 보내지 않는다 — 조용히 넘어가는 것이 맞다.
+		expect(sendBeaconSpy).not.toHaveBeenCalled();
+
+		// 앱은 그대로 마운트된다 — 계측이 부팅을 막지 않았다는 뜻이다.
+		expect(createRootMock).toHaveBeenCalled();
+	});
+
+	it('던지는 상태에서 web-vitals 콜백이 와도 던지지 않는다', async () => {
+		const sendBeaconSpy = vi.fn(() => true);
+		Object.defineProperty(navigator, 'sendBeacon', {
+			value: sendBeaconSpy,
+			configurable: true,
+			writable: true,
+		});
+
+		getAPIMock.mockImplementation(() => {
+			throw new Error('VITE_MONITOR_API_BASE 미정의 — base URL 도출 불가');
+		});
+
+		await import('./index');
+
+		const sendToAnalyticsCb = reportWebVitalsMock.mock.calls[0]![0] as (m: unknown) => void;
+
+		expect(() => sendToAnalyticsCb({ id: 'metric-1', value: 42 })).not.toThrow();
+		expect(sendBeaconSpy).not.toHaveBeenCalled();
 	});
 
 	it('B4/FR-04: 모듈 로드 1회 발화 카운트 — 두 번째 import 는 캐시 사용으로 추가 호출 0 + reportWebVitals 1회 등록', async () => {

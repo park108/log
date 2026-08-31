@@ -33,14 +33,30 @@ root.render(
 	</React.StrictMode>
 );
 
+// **계측 실패가 제품을 막지 않는다.**
+//
+// `commonMonitor.getAPI()` 는 계측 주소가 정의돼 있지 않으면 던진다. 그런데
+// `sendCounter()` 는 모듈 최상위에서 실행되므로 그 예외가 **부팅 경로 한가운데로**
+// 올라온다 — 방문자 수를 세지 못하는 것과 앱이 뜨지 못하는 것은 비교할 일이 아니다.
+// `safeStorage` 가 저장소 실패를 "캐시 없음" 으로 흡수하는 것과 같은 원칙이다.
+//
+// 호출 순서는 바꾸지 않는다 (주소 도출 → `sendBeacon` 유무 확인). 기존 계약
+// fixture 가 그 순서를 관측한다 (`index.test.tsx` B1~B4).
+const sendBeaconSafely = (deriveUrl: () => string, body: string): void => {
+  try {
+    const url = deriveUrl();
+    if(navigator.sendBeacon) {
+      navigator.sendBeacon(url, body);
+    }
+  }
+  catch {
+    // 계측은 없어도 되는 것이다. 던지면 그때부터 없어도 되는 것이 아니게 된다.
+  }
+}
+
 function sendToAnalytics(metric: unknown) {
 
-  const body = JSON.stringify(metric);
-  const url = commonMonitor.getAPI();
-
-  if(navigator.sendBeacon) {
-    navigator.sendBeacon(url, body);
-  }
+  sendBeaconSafely(() => commonMonitor.getAPI(), JSON.stringify(metric));
 }
 
 // If you want to start measuring performance in your app, pass a function
@@ -51,12 +67,7 @@ reportWebVitals(sendToAnalytics);
 // Send visitor info to analytics endpoint.
 function sendCounter() {
 
-  const body = JSON.stringify(userAgentParser());
-  const url = commonMonitor.getAPI() + "/useragent";
-
-  if(navigator.sendBeacon) {
-    navigator.sendBeacon(url, body);
-  }
+  sendBeaconSafely(() => commonMonitor.getAPI() + "/useragent", JSON.stringify(userAgentParser()));
 }
 
 sendCounter();
