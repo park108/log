@@ -1,10 +1,10 @@
 # 빈 줄 술어는 공백·탭만 있는 줄을 포함한다 — 그리고 그 술어는 패스마다 갈려 있다
 
-> **위치**: `src/common/markdownParser.ts` — `isBlankLine` (`:871-872`, 정의 1건 · 호출 2곳), 목록 연속성 패스 (`:879` · `:967`), 문단 패스 (빈 줄 술어를 **쓰지 않는다** — §동작 (I4)). 게이트: `src/common/markdownParser.test.ts` + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
-> **관련 요구사항**: REQ-20260831-061 FR-01~FR-06 · NFR-01~NFR-04 (출처: developer followup `20260831-1303`, `TSK-20260831-09-b` 산출)
-> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 reconcile 8 플립, HEAD=`7fc39ba`)
+> **위치**: `src/common/markdownParser.ts` — `isBlankLine` (`:965-966`, 정의 1건 · 호출 2곳), 목록 연속성 패스 (`:973` · `:1097`), 문단 패스 (빈 줄 술어를 **쓰지 않는다** — §동작 (I4)). 게이트: `src/common/markdownParser.test.ts` + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
+> **관련 요구사항**: REQ-20260831-061 FR-01~FR-06 · NFR-01~NFR-04 · **REQ-20260831-076 FR-01~FR-05 · NFR-01~NFR-04** (출처: developer followup `20260831-1303`·`20260831-1030`)
+> **최종 업데이트**: 2026-09-01 (by inspector 257차 tick — (I8) 실행 창 확인 2 · 상호참조 도출형, HEAD=`8fa6117`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`ed64fb3`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`86ede5c` — `isBlankLine` 정의 `:965`, 호출 `:973`·`:1097`. 종전 문면 `:871`/`:879`/`:967` 은 `TSK-20260831-15`~`21-b` 착지로 전건 밀렸다).
 
 ## 역할
 
@@ -19,7 +19,7 @@
 의도적으로 하지 않는 것: **문단 패스의 현행을 바꾸는 것** (`<p>  </p>` → `<p></p>` 정규화는 별 축이다 — 소유 계약의 (I7) 이 `\n\n` 쪽 현행을 이미 보존으로 잠갔고, 본 계약은 공백만 있는 줄 쪽 현행을 같은 방향으로 잠근다), 저장 원문 변경, `ALLOWED_TAGS`·`ALLOWED_ATTR` 확장, loose 목록의 `<p>` 래핑, 목록 **구조** 계약 자체 (소유 계약이 갖는다).
 
 ## 공개 인터페이스
-- 변경 없음. `markdownToHtml(rawInput: string): string` (`markdownParser.ts:134`). 계약면은 **산출 HTML** 이다. `isBlankLine` 은 module-private 이며 본 계약은 그 이름의 존재와 유일성만 말한다 (I5).
+- 변경 없음. `markdownToHtml(rawInput: string): string` (`markdownParser.ts:134`). 계약면은 **산출 HTML** 이다. `isBlankLine` 은 module-private 이며 **이름은 계약이 아니다** — 본 계약이 말하는 것은 **빈 줄 술어의 유일성**이다 (I5, REQ-076 FR-04 로 문면 이동). 정의·호출을 함께 바꾸는 정합적 개명은 정당한 리팩터이며 통과해야 한다 (I8 Ctrl-1).
 
 ## 동작
 
@@ -35,55 +35,70 @@
 
 4. **(I4) 술어는 패스마다 갈려 있고, 그 비대칭은 현행 그대로 유지된다**: 목록 연속성 패스는 `isBlankLine` 을 거쳐 공백만 있는 줄을 흡수하지만, **문단 패스는 빈 줄 술어를 쓰지 않고 원문을 그대로 흘린다.** 따라서 목록 밖에서는 공백만 있는 줄이 `<p>  </p>` 로 남고 진짜 빈 줄만 `<p></p>` 가 된다 — `첫\n  \n둘` → `<p>첫</p><p>  </p><p>둘</p>`. **이 비대칭은 결함이 아니라 판정된 현행이다**: 렌더 결과는 공백이 접혀 육안으로 같고, 정규화하는 방향은 소유 계약 (I7) 이 `\n\n` 쪽에서 보존으로 잠근 축을 건드리므로 별 req 가 필요하다. 여기 적는 이유는 **판정하지 않으면 다음 사람이 (I2) 의 등식을 문단 축까지 참이라고 읽기 때문**이다.
 
-5. **(I5) 목록 축의 빈 줄 술어는 정의가 하나뿐이다**: `isBlankLine` 정의는 1건이며 목록 연속성 패스가 그것을 공유한다. 술어 사본이 둘이 되면 한쪽만 고쳐진다 — (I4) 가 기록하는 비대칭이 정확히 "술어를 공유하지 않는 패스가 있을 때 무엇이 생기는가" 의 실례다.
+5. **(I5) 목록 축의 빈 줄 술어는 하나뿐이다 — 이름이 아니라 술어가 유일하다** (REQ-076 FR-01·FR-04 로 문면 이동): 줄이 비었는지를 판정하는 술어는 파서 안에 **하나**이며 목록 연속성 패스가 그것을 공유한다. 술어 사본이 둘이 되면 한쪽만 고쳐진다 — (I4) 가 기록하는 비대칭이 정확히 "술어를 공유하지 않는 패스가 있을 때 무엇이 생기는가" 의 실례다.
 
-6. **(I6) 소유 계약의 `\n\n` 판은 그대로다**: `1. 첫째\n\n2. 둘째\n\n3. 셋째` = `1. 첫째\n2. 둘째\n3. 셋째` 등 소유 계약의 등식과 대조가 `ed64fb3` 산출 그대로 유지된다. 본 계약은 그 등식의 **입력 부류를 넓힐 뿐** 판정을 고치지 않는다.
+   > **종전 문면은 `isBlankLine` 이라는 *이름* 의 존재와 유일성을 말했고, 게이트는 그 이름을 셌다.** REQ-076 이 그 어긋남을 실측했다 — **다른 이름의 살아 있는 사본**(`const isEmptyLine = …` 을 정의하고 목록 연속성 패스에서 실제로 호출)을 주입하면 (I5) 게이트 · `tsc` · `eslint` · 파서 스위트 **전 채널이 rc=0** 이다. 이름을 재는 동안 결함은 의미로 들어온다. 반대로 정의·호출을 함께 바꾸는 **정합적 개명은 종전 게이트에서 rc=1** 이었다 — 정당한 리팩터가 붉었다. 민감해야 할 방향에 둔감하고 둔감해야 할 방향에 민감했다.
 
-7. **(I7) 빈 줄의 다른 블록 경계 의미는 바뀌지 않는다**: 인용은 빈 줄에서 끊기고(`blockquote-is-one-block.test.ts:35`), 목록 밖 문단 사이 빈 줄은 `<p></p>` 를 그대로 낸다. 본 계약이 넓히는 것은 **열린 목록이 있고 다음 블록이 같은 종류의 목록일 때**로 한정된다.
+6. **(I8) 술어 유일성은 이름과 무관한 표면에서 판정된다** (REQ-076 FR-01·FR-02·FR-03·FR-05, **신설**): 위 (I5) 명제의 판정 채널은 식별자 이름에 의존하지 않는다. **살아 있는 두 번째 빈 줄 술어가 있으면 발화하고, 정합적 개명에서는 발화하지 않는다.** 술어가 사라지는 방향(정의 제거 · 호출 0)은 계속 검출된다. 판정 대상 파일은 열거가 아니라 도출한다 — 술어가 다른 파일로 옮겨가는 방향이 종전 게이트의 또 다른 사각이었다.
+
+   > **수단은 지정하지 않는다** (패턴 · AST · 호출 그래프 · 술어 등록부 어느 쪽이든 된다). 다만 **텍스트 패턴을 고르면 그 패턴 자신이 대리 표면이 된다** — 예컨대 `trim() === ""` 를 세는 계수기는 `!text.trim()` 이나 `/^\s*$/.test(text)` 라는 **의미가 같은 재작성**에서 붉는다. 그 방향은 아래 (I8 Ctrl-2) 가 배터리 원소로 잡는다 (`REQ-20260831-077` 이 세운 효력면 축과 같은 부류이며, 여기서는 그 축이 **이 계약 자신의 게이트에** 적용된다).
+
+7. **(I6) 소유 계약의 `\n\n` 판은 그대로다**: `1. 첫째\n\n2. 둘째\n\n3. 셋째` = `1. 첫째\n2. 둘째\n3. 셋째` 등 소유 계약의 등식과 대조가 `ed64fb3` 산출 그대로 유지된다. 본 계약은 그 등식의 **입력 부류를 넓힐 뿐** 판정을 고치지 않는다.
+
+8. **(I7) 빈 줄의 다른 블록 경계 의미는 바뀌지 않는다**: 인용은 빈 줄에서 끊기고(`blockquote-is-one-block.test.ts:35`), 목록 밖 문단 사이 빈 줄은 `<p></p>` 를 그대로 낸다. 본 계약이 넓히는 것은 **열린 목록이 있고 다음 블록이 같은 종류의 목록일 때**로 한정된다.
 
 ### 회귀 중점
 - **술어를 `text === ""` 로 좁히는 방향이 이 축의 대표 실패다.** 다섯 등식이 전부 깨지는데 현 게이트는 전부 초록이다 — 그것이 이 계약의 존재 이유다.
 - **등식 대신 리터럴로 잠그는 방향은 (I2) 를 약하게 만든다.** 오른쪽 항을 문자열로 박으면 `ul` 만 고치고 `ol` 이 어긋나도 보이지 않는다.
 - **중첩을 빼고 재는 방향은 (I3) 을 놓친다.** 목록 개수만 고치고 `depthStack` 을 놓친 구현이 그 자리에서만 갈린다.
 - **(I4) 를 적지 않고 (I2) 만 넓히는 방향은 계약을 거짓으로 만든다.** 문단 축에서는 등식이 성립하지 않으므로, 범위를 적지 않은 등식은 읽는 사람에게 참이 아닌 것을 약속한다.
+- **이름을 좁혀 (I8) 을 만족시키려는 방향은 아무것도 얻지 못한다.** 출처 followup 이 제안한 `\b` 경계 좁히기를 REQ-076 이 실제로 만들어 사본 주입에 걸어봤고 `rc=0` 이었다 — 좁히기는 **같은 표면에서 더 정밀해질 뿐** 표면 자체를 옮기지 못한다.
+- **컴파일되지 않는 트리를 잡으려는 방향은 중복 게이트다.** 정의만 개명하고 호출을 두면 `tsc --noEmit` 이 `TS2552` 로 rc=2 를 낸다 (REQ-076 §배경 (3) 실측). `RULE-07 §반려 시그널` 이 말하는 부류이므로 (I8) 은 이 방향을 겨누지 않는다.
 - **문단 패스를 정규화해 (I4) 를 "해소" 하는 방향은 범위를 넘는다.** 그것은 소유 계약 (I7) 이 잠근 축이며 별 req 가 필요하다.
 
 ## 의존성
 - 내부: `src/common/markdownParser.ts` (단일 대상 — `isBlankLine` 술어), `src/common/markdownParser.test.ts` (게이트 1 파일).
 - **교차 게이트 (비퇴행 모집단)**: `markdownToHtml` 을 소비하는 `src/__tests__/**`. 모집단은 열거가 아니라 `bash -c 'grep -rl "markdownToHtml" src/__tests__/'` 로 **도출**한다 (`RULE-06 §열거 고정 금지`) — HEAD=`ed64fb3` 실측 **8 파일 / 106 tests**.
 - 외부: 없음 (순수 함수).
-- 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log 본문 · Comment 본문 · 검색 미리보기).
-- 직교: `specs/30.spec/blue/common/markdown-blank-line-list-continuity.md` — **소유 계약**이며 본 spec 은 그 등식의 입력 부류를 넓힌다. 그 spec §참고 §미측정 이 이 축을 *"계약면을 넓힐지는 별 축이다"* 로 **자기 이름이 아닌 별 축으로 지목**해 두었고 본 spec 이 그 별 축이다 (§변경 이력의 소유처 판정). `specs/30.spec/blue/common/markdown-list-item-continuation.md` · `specs/30.spec/green/common/markdown-list-item-content-start.md` (목록 항목 **내용** 축 — 본 계약은 항목 내용을 건드리지 않는다), `specs/30.spec/blue/common/markdownParser.md` (블록 패스 알고리즘).
+- **역의존 (사용처) — 열거하지 않고 도출한다**: `bash -c 'grep -rn "markdownToHtml(" src --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -v "common/markdownParser\.ts"'` → HEAD=`86ede5c` 실측 **4 hit**. 실제 호출 **3**건: `src/Log/Writer.tsx` (작성 미리보기 — 글쓴이가 저장 전 결과를 보는 유일한 화면) · `src/Log/LogItem.tsx` (본문 렌더, `sanitizeHtml` 경유) · `src/Log/api.ts` (요약 `trimmedContents`). **제외 규칙**: 나머지 1건 `src/Log/__fixtures__/logs.ts` 는 fixture 본문 안의 **글자열이지 호출이 아니다**. **Comment 는 이 파서를 쓰지 않는다** — `bash -c '! grep -rq "markdownToHtml\|markdownParser\|dangerouslySetInnerHTML" src/Comment'` → rc=0 (0 hit). 댓글 본문은 평문 렌더다 (`CommentItem.tsx` 가 `message.split("\n")` 을 `<p>` 로 그린다). **라인 번호는 인용하지 않는다** — 오늘 하루 파서 12+커밋이 이 파일들의 좌표를 전건 밀었다 (`spec-dependency-reverse-derivation` (I4)).
+- 직교: `common/markdown-blank-line-list-continuity` — **소유 계약**이며 본 spec 은 그 등식의 입력 부류를 넓힌다. 그 spec §참고 §미측정 이 이 축을 *"계약면을 넓힐지는 별 축이다"* 로 **자기 이름이 아닌 별 축으로 지목**해 두었고 본 spec 이 그 별 축이다 (§변경 이력의 소유처 판정). `common/markdown-list-item-continuation` · `common/markdown-list-item-content-start` (목록 항목 **내용** 축 — 본 계약은 항목 내용을 건드리지 않는다), `common/markdownParser` (블록 패스 알고리즘).
 
 ## 테스트 현황
 
 > 각 명령은 HEAD=`ed64fb3` 에서 **파일에서 추출해** 격리 사본(`git archive HEAD` + `node_modules` 심볼릭 링크)에서 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있으므로 이 축의 측정은 언제나 격리 사본에서 한다 (`RULE-02 §교차 작업 파괴`).
 
-- [x] (I1·I2 목록 등식 채널) 공백만 있는 줄의 등식이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "1. 첫째\n   \n2. 둘째" "$f" && npx vitest run "$f" -t "빈 줄 술어는 공백만 있는 줄을 포함한다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit. **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
-- [x] (I3 탭·중첩) 탭 줄과 중첩 보존이 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "- 첫째\n\t\n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **이 명령은 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다. **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
-- [x] (I4 패스 간 비대칭) 문단 패스의 현행이 게이트로 판정돼 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "첫\n  \n둘" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **비대칭은 리터럴로 못 박는다** — 등식으로 쓸 수 없다 (그 자리에서 두 항이 다른 것이 요점이므로). **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
-- [x] (I1~I4 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다. **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
-- [x] (I5 술어 단일 정의) `isBlankLine` 정의가 하나뿐이다: `bash -c 'test "$(grep -cE "const isBlankLine" src/common/markdownParser.ts)" -eq 1 && test "$(grep -cE "isBlankLine\(" src/common/markdownParser.ts)" -ge 2'` → HEAD=`ed64fb3` 실측 rc=0 (정의 1 · 출현 2). 뒤쪽 하한이 **정의만 남고 호출이 사라진 상태**를 막는다. 구현 후에도 rc=0 이어야 한다.
-- [x] (I6 소유 계약 비퇴행) 소유 계약의 `\n\n` 게이트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄은 같은 종류의 목록을 끊지 않는다" "$f" && npx vitest run "$f" -t "빈 줄은 같은 종류의 목록을 끊지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0. 구현 후에도 rc=0 이어야 한다.
-- [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0 (**122 tests**). **기존 게이트를 완화하는 방식의 해결은 불가**하다.
-- [x] (NFR-02 교차 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0, 출력 `cross-gate-files=8` (106 tests). **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단).
-- [x] (NFR-03 특이도) 빈 줄이 인용을 끊는 축이 초록이다: `bash -c 'npx vitest run src/__tests__/blockquote-is-one-block.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0. 빈 줄을 전역적으로 버리는 방향이 이 축에서 갈린다.
+- [x] (I1·I2 목록 등식 채널) 공백만 있는 줄의 등식이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "1. 첫째\n   \n2. 둘째" "$f" && npx vitest run "$f" -t "빈 줄 술어는 공백만 있는 줄을 포함한다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit. **HEAD=`86ede5c` 254차 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지). **실행 창 확인**: `-t` 창 `markdownParser.test.ts` `describe('빈 줄 술어는 공백만 있는 줄을 포함한다')` 안에 이 방향의 입력이 실재한다 — 공백만 있는 줄(`- 첫째\n  \n- 둘째`) · 번호 목록판(`1. 첫째\n   \n2. 둘째`) · **탭만 있는 줄**(`- 첫째\n\t\n- 둘째`) · 공백 줄 2연속. 창 안에 방향의 입력이 없으면 `-t` 는 통과해도 아무것도 재지 않는다 (`foundation/gate-effective-surface-and-variant-battery` (I8)).
+- [x] (I3 탭·중첩) 탭 줄과 중첩 보존이 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "- 첫째\n\t\n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **이 명령은 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다. **HEAD=`86ede5c` 254차 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
+- [x] (I4 패스 간 비대칭) 문단 패스의 현행이 게이트로 판정돼 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "첫\n  \n둘" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **비대칭은 리터럴로 못 박는다** — 등식으로 쓸 수 없다 (그 자리에서 두 항이 다른 것이 요점이므로). **HEAD=`86ede5c` 254차 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
+- [x] (I1~I4 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다. **HEAD=`86ede5c` 254차 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
+- [x] (I8 의미 표면 단일 출처) 술어 유일성이 **이름과 무관한 표면**에서 판정된다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄 술어는 파서 안에 하나뿐이다" "$f" && npx vitest run "$f" -t "빈 줄 술어는 파서 안에 하나뿐이다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`86ede5c` 254차 실측 **rc=1 (미충족)**. 계약 이름 0 hit. **계약 이름은 본 spec 이 확정한 식별자이며 어느 파일에 두는지는 수단이다** — 게이트 파일을 못 박지 않는 다른 축(`summary-block-boundary-tag-derivation` (I2))과 달리 여기서는 파서 스위트가 유일한 소비처라 파일을 적었다. → **257차 tick**: **실행 창 미확인** — 이 이름의 `describe`/`it` 가 현 HEAD 에 없어(`grep -rn "빈 줄 술어는 파서 안에 하나뿐이다" src` → 0 hit) 창 자체가 부재다. **부재는 확인이 아니라 무판정이다** ((I8) `unconfirmed` 에 남는다). 착지 전까지 토큰을 달지 않는다 — 다는 순간 `-t` 미매치 rc=0 이 확인으로 오독된다. → **HEAD=`eb62529` 258차 재실측 rc=0** — 게이트가 `d7e6c8a`(진리표 기반 술어 식별 + 디렉터리 도출 모집단 + 살아 있음 하한) · `4f3fcf4`(도출이 `export` 접두·`function` 선언을 받게 함)로 착지했다. 두 해시 모두 HEAD 조상이고 CI run `33430256977` success (`60.done/2026/09/01/task/blank-line-predicate-uniqueness-gate/result.md`). **실행 창 확인**: `-t` 창 `it('빈 줄 술어는 파서 안에 하나뿐이다')` (`src/common/markdownParser.test.ts:1829`) 안에 네 방향 입력이 실재한다 — 도출 모집단 하한(`files.length >= 5`) · 진리표 식별(`matchesTruthTable`) · 살아 있음 하한(`live.length >= 1`) · 유일성(`toBe(1)`). 창을 직접 열어 확인했고 **부재가 아니라 실재를 확인한 것이다**.
+- [x] (I8 도출 모집단 비공허) 판정 대상 파일이 **열거가 아니라 도출**되고 도출이 비면 무판정이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄 술어는 파서 안에 하나뿐이다" "$f" || exit 2; grep -qE "readdirSync|globSync|import\.meta\.glob|readFileSync\(.*markdownParser" "$f"'` → HEAD=`86ede5c` 254차 실측 **rc=2 (무판정 — 게이트 부재)**. **`exit 2` 로 닫는 이유**: 게이트가 없는 상태를 "도출 없음 = 통과" 로 읽으면 FR-05 가 조용히 빠진다. 술어가 `markdownParser.ts` 밖으로 옮겨가는 방향은 파일을 손으로 못 박은 게이트에 보이지 않는다. → **HEAD=`eb62529` 258차 재실측 rc=0** — `readdirSync` 도출이 `4f3fcf4` 로 착지했다 (`derivedSources()` — `src/common` 디렉터리 열거 후 `.test.`·`.d.ts` 제외). **무판정 닫기가 게이트 자신 안에도 있다**: `expect(files.length, '모집단 도출이 비었다 (측정 0 은 위반 0 이 아니다)').toBeGreaterThanOrEqual(5)` 가 도출 공집합을 통과가 아니라 실패로 닫는다 — 이 항목이 요구한 형태 그대로다.
+- [x] (I6 소유 계약 비퇴행) 소유 계약의 `\n\n` 게이트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄은 같은 종류의 목록을 끊지 않는다" "$f" && npx vitest run "$f" -t "빈 줄은 같은 종류의 목록을 끊지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`86ede5c` 254차 재실측 rc=0. 구현 후에도 rc=0 이어야 한다. **실행 창 확인**: `-t` 창 `describe('빈 줄은 같은 종류의 목록을 끊지 않는다')` 안에 `\n\n` 로 띄운 번호 목록 · 글머리 목록 · 빈 줄 2연속 · **중첩 보존** 입력이 실재한다.
+- [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`86ede5c` 254차 재실측 rc=0 (**162 tests** — 흡수 시점 122 에서 오늘 파서 12+커밋으로 늘었다). **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (NFR-02 교차 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`86ede5c` 254차 재실측 rc=0, 출력 `cross-gate-files=8` (**109 tests**; 흡수 시점 106). **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단).
+- [x] (NFR-03 특이도) 빈 줄이 인용을 끊는 축이 초록이다: `bash -c 'npx vitest run src/__tests__/blockquote-is-one-block.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`86ede5c` 254차 재실측 rc=0. 빈 줄을 전역적으로 버리는 방향이 이 축에서 갈린다.
 
 ## 수용 기준
 - [x] (Must, FR-01·FR-02) 위 §테스트 현황 (I1·I2 목록 등식 채널) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
 - [x] (Must, FR-03·FR-04) 위 §테스트 현황 (I3 탭·중첩) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
 - [x] (Must, FR-05 비대칭 판정) 위 §테스트 현황 (I4 패스 간 비대칭) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
 - [x] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1~I4 접속) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
-- [x] (Must, NFR-04 단일 모듈) 위 §테스트 현황 (I5 술어 단일 정의) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0.
-- [x] (Must, 범위 제한) 위 §테스트 현황 (I6 소유 계약 비퇴행) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0.
-- [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0 (122 tests).
-- [x] (Must, NFR-02 교차 비퇴행) 위 §테스트 현황 (NFR-02) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0 (`cross-gate-files=8`).
-- [x] (Must, NFR-03 특이도) 위 §테스트 현황 (NFR-03) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0.
+- [x] (Must, REQ-076 FR-01·FR-02·FR-04) 위 §테스트 현황 (I8 의미 표면 단일 출처) 명령 → rc=0. HEAD=`eb62529` 258차 실측 rc=0.
+- [x] (Must, REQ-076 FR-05) 위 §테스트 현황 (I8 도출 모집단 비공허) 명령 → rc=0. HEAD=`eb62529` 258차 실측 rc=0.
+- [x] (Must, 범위 제한) 위 §테스트 현황 (I6 소유 계약 비퇴행) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0.
+- [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0 (162 tests).
+- [x] (Must, NFR-02 교차 비퇴행) 위 §테스트 현황 (NFR-02) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0 (`cross-gate-files=8`, 109 tests).
+- [x] (Must, NFR-03 특이도) 위 §테스트 현황 (NFR-03) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0.
 
 ## 스코프 규칙
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` · `src/common/markdownParser.test.ts` **2 파일**이다. 게이트 위반이 이 밖에서 나오면 격리 대상이다. `src/common/sanitizeHtml.ts` 는 **읽기 대상**이며 본 축은 그것을 바꾸지 않는다.
 - **grep-baseline** (HEAD=`ed64fb3`, 2026-08-31 흡수 시점 격리 사본 실측):
-  - `grep -cE "const isBlankLine" src/common/markdownParser.ts` → **1** (`:871`). `grep -cE "isBlankLine\(" src/common/markdownParser.ts` → **2** (`:879` · `:967`). (I5) 의 기준값이다.
+  - `grep -cE "const isBlankLine" src/common/markdownParser.ts` → **1** (HEAD=`86ede5c` 재도출: `:965`; 흡수 시점 `:871`). `grep -cE "isBlankLine\(" src/common/markdownParser.ts` → **2** (`:973` · `:1097`; 흡수 시점 `:879`·`:967`). (I5) 의 기준값이며 **이름을 세는 값이라 (I8) 의 판정면이 아니다**.
+  - **(I8 신설 축 baseline — HEAD=`86ede5c`, 격리 사본 재도출)**:
+    - `grep -cF "빈 줄 술어는 파서 안에 하나뿐이다" src/common/markdownParser.test.ts` → **0** (신설 대상).
+    - 의미 핵 계수 `grep -cE "trim\(\) === \"\"" src/common/markdownParser.ts` → **1** (`:966` — `isBlankLine` 본문). REQ-076 §배경 (6) 값과 일치하며 사본 주입 트리에서는 **2** 였다. **이 수치는 형태 예시이지 요구가 아니다** — 아래 Ctrl-2 가 그 이유다.
+    - 이름과 무관한 다른 빈 줄 판정 후보(`trim().length` 비교)는 `:199`·`:211`·`:394` 세 곳에 있으나 **전부 다른 명제**다 (수평선 3자 이상 판정 2건 + 마커 뒤 내용 유무 1건). 술어 사본이 아니며, (I8) 게이트가 이 셋을 위반으로 세면 **양성 모집단을 위반으로 계수하는** 부류다 (`markdown-pipe-table` (I10) 이 그 실물이었다).
+  - **REQ-076 재실측 (본 흡수가 승계)**: 다른 이름의 살아 있는 사본(`const isEmptyLine` 정의 + 목록 연속성 패스에서 실제 호출)을 주입했을 때 (I5) 게이트 · 좁힌 `\b` 패턴 게이트 · `tsc --noEmit` · `eslint` · 파서 스위트 **전 채널 rc=0**. 정합적 개명(정의·호출 동시)에서는 (I5) 게이트가 **rc=1** — 하한 절 `isBlankLine\(` 이 `isBlankLineX(` 에 매치되지 않아서다.
   - 계약 이름·예시 전수 0 hit — 전부 신설 대상이다. `grep -cF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" src/common/markdownParser.test.ts` → **0** · `"- 첫째\n  \n- 둘째"` → **0** · `"1. 첫째\n   \n2. 둘째"` → **0** · `"- 첫째\n\t\n- 둘째"` → **0** · `"- 하나\n  \n  - 중첩"` → **0** · `"첫\n  \n둘"` → **0** · `"<p>첫</p><p>  </p><p>둘</p>"` → **0**.
   - 소유 계약의 `\n\n` 예시는 이미 있다: `"1. 첫째\n\n2. 둘째\n\n3. 셋째"` → **1** · `"- 하나\n\n  - 중첩"` → **2**. 본 계약의 예시가 그것과 **글자 하나 차이**(빈 줄에 공백이 들어간 것)라는 점이 baseline 의 요지다.
   - **패턴 주의 — 본 흡수가 실제로 밟은 함정**: 위 예시는 대부분 `-` 로 시작하므로 **`-e` 로 넘기지 않으면 `grep` 이 패턴을 옵션으로 읽는다**. 1차 측정이 정확히 그렇게 실패했고 `rc=2`(무판정)를 냈는데, `grep -c` 출력이 비어 있어 **0 hit 처럼 보였다.** `-e` 를 붙여 재측정한 값이 위 표다. 또 대화형 zsh 에서 `grep` 은 **`ugrep` 로 가로채여** 같은 입력에 다른 오류를 낸다 — `bash -c` 안에서는 `/usr/bin/grep` (BSD grep 2.6.0, GNU 호환) 이다. **두 이유 모두 `RULE-06` 이 `bash -c` 감싸기를 요구하는 근거이며, 여기서는 그것만으로 부족하고 `-e` 가 함께 필요했다.**
@@ -110,10 +125,68 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-09-01 | inspector 258차 tick (Phase 3, REQ-20260901-088 흡수 — **적용분**) / — @ HEAD=`eb62529` | **(I5) 이름 채널 은퇴 — §테스트 현황 1 + §수용 기준 1 을 §참고 로 강등.** 251차부터 예고해 온 강등이며 조건은 (I8) 동작 판정면의 착지였고 본 tick 에 착지했다 (`d7e6c8a`·`4f3fcf4`). **삭제가 아니라 이동이다** — 두 항의 원문을 검출 방향 보존해 §참고 에 박제했다. **공존이 안 되는 이유**: 두 판정면이 같은 조건에 걸리면 정합적 개명에서 서로 반대 rc 를 낸다 ((I8) rc=0 · 이름 계수 rc=1). **blue 쪽 같은 항은 남는다** — `RULE-01` 상 inspector writer 영역이 아니므로 본 green 승격이 blue 를 갈아끼울 때 해소되며, **그때까지의 미해소를 문면 주석이 아니라 게이트가 들고 있게 했다**: `foundation/judgement-surface-uniqueness-and-no-judgement-status` (I5) 가 `docs=2 name-counting-judgement-items=1` 로 rc=1 을 낸다. 주석은 승격 시 아무도 다시 읽지 않지만 rc=1 은 읽힌다. §수용 기준 10/10. | §테스트 현황 (I5 삭제) · §수용 기준 (NFR-04 삭제) · §참고 (강등분 신설) · 본 이력 |
+| 2026-09-01 | inspector 258차 tick (Phase 1 reconcile) / — @ HEAD=`eb62529` | **§테스트 현황 2 + §수용 기준 2 = 4 마커 플립** — `TSK-20260901-07` 이 `d7e6c8a`(진리표 기반 술어 식별 + 디렉터리 도출 모집단 + 살아 있음 하한) · `4f3fcf4`(도출이 `export` 접두·`function` 선언을 받게 함) 두 커밋으로 착지했다. 두 해시 모두 HEAD 조상이고 CI run `33430256977` success. (I8) 두 항이 rc=1/rc=2 → **rc=0** 으로 뒤집혔고, 그 착지로 **`-t` 실행 창이 처음 생겨** 창을 열어 네 방향 입력을 확인하고 `실행 창 확인` 토큰을 달았다 — 이것이 `gate-effective-surface-and-variant-battery` (I8) 을 `unconfirmed=1 → 0` 으로 닫아 그 항을 최초로 `[x]` 로 만들었다 (**교차 문서 연쇄**). **(I5) 이름 채널의 §참고 강등은 본 tick REQ-20260901-088 흡수분에서 수행한다** — 그것이 이 tick 의 별 단위다. | §테스트 현황 (I8 × 2) · §수용 기준 × 2 · 본 이력 |
+| 2026-09-01 | inspector 257차 tick (Phase 1·2) / — @ HEAD=`8fa6117` | **(I8) `실행 창 확인` 토큰 2건 + 미확인 1건 사유 박제 + 산문 상호참조 도출형 전환 4건.** 두 `-t` 창(`빈 줄 술어는 공백만 있는 줄을 포함한다` · `빈 줄은 같은 종류의 목록을 끊지 않는다`)을 열어 그 안에 방향의 입력(공백만·탭만 있는 줄 · `\n\n` 목록 · 중첩)이 실재함을 확인했다. **(I5 교체 대상) 창은 확인하지 않았다** — 그 이름이 현 HEAD 에 0 hit 이라 창 자체가 부재이며, **부재를 확인으로 적으면 `-t` 미매치 rc=0 이 확인으로 오독된다.** 상호참조는 `markdown-list-item-content-start` 승격으로 이미 깨져 있었다(`7240666`). | 테스트 현황 · 의존성 · 변경 이력 |
+| 2026-08-31 | inspector 254차 tick (**blue 재개봉** — Phase 3, REQ-20260831-076 흡수) / — @ HEAD=`86ede5c` | **(I5) 문면을 이름에서 술어로 옮기고 (I8) 신설.** 재개봉한 근거: REQ-076 FR-04 가 **문면 이동**을 요구하고 `30.spec/blue/**` 는 어떤 에이전트의 편집 영역도 아니다 (`RULE-01`). 게이트만 바꾸고 문면을 두면 계약면과 측정면이 다시 어긋나며, 그 어긋남이 이 흡수의 대상 자체다. **재개봉 비용 실측**: 157줄 · §수용 기준 9/9 `[x]` · 판정 명령 9건 격리 사본 전수 재실행 **rc≠0 0건** · rc=2 무판정 rot 0 — 다른 축의 미해결 부채를 함께 떠안지 않는다. **이 흡수는 현행 동작을 뒤집는다** (REQ-076 FR-02): 정합적 개명이 종전 (I5) 게이트에서 `rc=1` 인데 통과해야 한다. `RULE-06 §계약을 뒤집는 task` 에 따라 §참고 §계약을 뒤집는 지점 에 충돌을 명시했고 (I5) 항목 자신에 교체 예고를 박았다 — 예고가 문면에 없으면 developer 가 완료 불능에 걸린다 (`markdown-list-item-content-start:76` 선례). **판정 명령 11건 재실행**: 9 rc=0 · (I8) 2건 rc=1·rc=2(신설 대상). 라인 스냅샷 전면 재도출(`:871`→`:965` 등) · 스위트 122→**162** · 교차 게이트 106→**109 tests**(파일 8 불변). | 역할 · 공개 인터페이스 · 동작 · 회귀 중점 · 테스트 현황 · 수용 기준 · 스코프 규칙 · 참고 · 변경 이력 |
 | 2026-08-31 | inspector 251차 tick (Phase 3, REQ-20260831-061 흡수) / pending @ HEAD=`ed64fb3` | 최초 박제 — 빈 줄 술어 7 축 (I1~I7). **소유처 판정 (req 는 선택을 inspector 에 남겼다)**: req 는 blue `markdown-blank-line-list-continuity` 재개봉과 신규 spec 을 비용과 함께 제시했다. **신규로 세웠다** — (1) 그 spec 은 §수용 기준 10/10 승격 완료본이고 재개봉하면 promote 가 되돌아간다, (2) 본 축은 목록 연속성보다 **넓다** — (I4) 의 패스 간 비대칭은 문단 패스에 걸쳐 있어 목록 계약의 명제가 아니다, (3) **그 spec 자신이 §참고 §미측정 에서 이 축을 "계약면을 넓힐지는 별 축이다" 로 지목**했으므로 별 spec 이 소유처 판정에 어긋나지 않는다. 재개봉 대신 **입력 부류를 넓히는 방식**을 택해 소유 계약의 등식·대조를 (I6) 으로 비퇴행 잠금만 했다. **(I4) 를 계약 축으로 세운 것이 이 흡수의 판단**이다 — req FR-05 는 "판정된다" 만 요구했고 방향을 열어 두었는데, 문단 패스 정규화는 소유 계약 (I7) 이 잠근 축이라 **현행 보존**으로 확정하고 리터럴로 못 박았다 (등식으로 쓸 수 없다 — 두 항이 다른 것이 요점이므로). **자기 결함 1건 자체 발견·정정**: 1차 baseline 측정이 `-` 로 시작하는 패턴을 `-e` 없이 넘겨 `grep` 이 옵션으로 읽었고 `rc=2` 인데 출력이 비어 **0 hit 으로 오독**됐다 (대화형 zsh 에서는 `ugrep` 이 가로채 또 다른 오류를 냈다). `-e` 를 붙여 전건 재측정했다. baseline: 계약 이름·예시 7건 전수 0 hit / `isBlankLine` 정의 1 · 출현 2 / 소유 계약 `\n\n` 예시 1·2 hit / 결함 열 5행 · 비대칭 4행 격리 사본 실측. unchecked 4 · checked 5. | all |
 | 2026-08-31 | inspector 252차 tick (Phase 1 reconcile) / `1a887f5` | **§테스트 현황 4 + §수용 기준 4 = 8 마커 플립** — `TSK-20260831-14`(빈 줄 술어 게이트) 착지로 (I1·I2)·(I3)·(I4)·(접속) 이 전건 rc=0 이 됐다. 판정 명령 9건을 **파일에서 추출해** 격리 사본에서 전수 재실행했고 rc 를 박제한다 (손 전사 0). 본 tick 은 developer 커밋이 inspector 커밋 사이에 끼어들어 HEAD 가 두 번 움직였고, 두 번째 delta(`markdownParser.test.ts`)에 대해 green 8건 전수를 재측정해 이 spec 만 플립됨을 확인했다. 교차 게이트 `cross-gate-files=8` 유지. §수용 기준 **9/9 — promote 후보**. | 테스트 현황, 수용 기준 |
 
 ## 참고
+
+### (I5) 이름 채널 은퇴 — 258차, REQ-20260901-088 FR-07 (한 조건의 판정면은 하나다)
+
+`TSK-20260901-07` 이 (I8) 동작 기반 판정면을 착지시켰으므로 (`d7e6c8a`·`4f3fcf4`), 같은 조건을 **이름 계수**로 재던 종전 (I5) 항을 §테스트 현황·§수용 기준 에서 내린다. 강등은 이 문서가 251차부터 예고해 온 것이며 착지가 그 조건이었다.
+
+**왜 공존이 안 되는가**: 두 판정면이 같은 조건에 걸리면 **정합적 개명에서 서로 반대의 rc 를 낸다.** (I8) 은 진리표로 술어를 식별하므로 `isBlankLine` 을 일관 개명해도 rc=0 이지만, 이름 계수는 `const isBlankLine` 을 찾지 못해 rc=1 이 된다. 그 상태에서는 REQ-076 FR-02(*"정합적 개명이 통과해야 한다"*)가 저장소 수준에서 미충족이다.
+
+**남는 것은 blue 쪽이다.** 같은 이름 계수 판정 항이 `blue/common/markdown-blank-line-predicate.md` 에도 있고 거기에는 은퇴 예고가 없이 rc=0 을 요구한다. blue 는 inspector writer 영역이 아니므로(`RULE-01`) **본 green 이 승격되어 blue 를 갈아끼울 때 해소된다.** 그때까지 저장소 수준 미충족은 계속되며, 그 상태 자체는 `foundation/judgement-surface-uniqueness-and-no-judgement-status` (I5) 가 판정면으로 잰다 — **미해소를 문면 주석이 아니라 게이트가 들고 있게 한 것이 이 강등의 조건이다.**
+
+강등한 두 항의 원문 (검출 방향 보존 — 삭제가 아니라 이동이다):
+
+- (I5 술어 단일 정의 — **현행 채널, 교체 대상**) `isBlankLine` 정의가 하나뿐이다: `bash -c 'test "$(grep -cE "const isBlankLine" src/common/markdownParser.ts)" -eq 1 && test "$(grep -cE "isBlankLine\(" src/common/markdownParser.ts)" -ge 2'` → HEAD=`86ede5c` 254차 재실측 rc=0 (정의 1 `:965` · 출현 2 `:973`·`:1097`). 뒤쪽 하한이 **정의만 남고 호출이 사라진 상태**를 막는다 — 그 방향은 (I8) 이 이어받는다 (FR-03). **이 항목은 (I8) 착지와 함께 §참고 로 내린다** — 이름을 재는 채널이 남아 있으면 정합적 개명이 계속 붉기 때문이다 (FR-02 는 그것이 **통과해야 한다**고 요구한다). §참고 §계약을 뒤집는 지점 참조.
+- (Must, NFR-04 단일 모듈) 위 §테스트 현황 (I5 술어 단일 정의) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0. **(I8) 착지와 함께 §참고 로 내린다** — §참고 §계약을 뒤집는 지점.
+
+
+### 계약을 뒤집는 지점 (`RULE-06 §계약을 뒤집는 task`)
+
+**이 계약의 착지는 현행 게이트 1건을 거짓으로 만든다.** 예고를 여기 박는 이유는, 예고가 없으면 구현 task 가 *"기존 단언을 깨뜨리지 않는다"* 와 *"정합적 개명이 통과해야 한다"* 사이에서 완료 불능에 걸리기 때문이다 (직전에 `markdown-list-item-content-start.md:76` 이 정확히 그 예고를 했는데 task 로 전파되지 않아 그 일이 실제로 일어났다).
+
+| 자리 | 현행 | 착지 후 |
+|---|---|---|
+| §테스트 현황 (I5 술어 단일 정의) | 이름 계수 (`const isBlankLine` 1 · `isBlankLine(` ≥2). 정합적 개명에서 **rc=1** | **§참고 로 강등**. 이름은 계약이 아니므로 판정 채널에서 내린다 |
+| §수용 기준 (Must, NFR-04 단일 모듈) | 위 명령을 판정 채널로 지목 | (I8) 로 지목 교체 |
+| §공개 인터페이스 *"그 이름의 존재와 유일성"* | — | **이미 이 재개봉본에서 교체됨** (술어의 유일성) |
+
+- (I5) 게이트를 **지우는 것이 아니라 강등**한다. 그 게이트가 지키던 방향(정의 제거 · 호출 소거)은 (I8) 이 FR-03 으로 이어받으므로, **(I8) 이 착지하기 전에 (I5) 를 내리면 그 방향이 무측정으로 남는다.** 순서는 (I8) 착지 → (I5) 강등이며 한 task 안에서 한다.
+- 강등 후 이 문서에 이름 계수 명령이 남아 있으면 안 된다 — 남으면 정합적 개명이 계속 붉고 FR-02 가 거짓이 된다.
+
+### 주입 이관 (`RULE-06 §게이트 실효 검증` · §음성 대조 — 구현 task DoD 로)
+
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. **검출 방향 4 · 음성 대조 배터리 4 원소이며 이관처 task 는 아직 발행되지 않았다** — 발행 전까지 이 절이 그 박제다.
+
+**민감도 (주입 → `rc≠0`)**
+
+- **Dir-1 (다른 이름의 살아 있는 사본)**: `const isEmptyLine = (n) => n.text.trim() === ""` 를 정의하고 목록 연속성 패스에서 **실제로 호출**한다 (기존 정의·호출은 그대로 둔다 — 새 코드가 자기 사본을 들고 들어오는 실제 표류 형상). **이 방향이 이 흡수의 판정 전부다** — REQ-076 이 현 HEAD 에서 전 채널 통과를 실측했다.
+- **Dir-2 (정의 제거)**: 술어 정의를 지우고 호출부에 인라인한다.
+- **Dir-3 (호출 소거)**: 정의는 두고 호출을 0으로 만든다 — 종전 (I5) 하한 절이 지키던 방향이며 (I8) 이 잃으면 안 된다 (FR-03).
+- **Dir-4 (파일 이동)**: 술어 사본을 `markdownParser.ts` 밖(예: `src/common/`의 새 모듈)에 두고 호출한다 — 대상 파일을 손으로 못 박은 게이트의 사각 (FR-05).
+
+**특이도 — 정상 변형 배터리 (각각 `rc=0`, `RULE-06 §음성 대조` 2026-08-31 개정: 배터리는 게이트가 재는 대상의 **구조 클래스**를 덮는다. 범위 밖 축은 원소일 수는 있으나 배터리를 대신하지 않는다)**
+
+| 원소 | 구조 클래스 | 변형 |
+|---|---|---|
+| **Ctrl-1** | 식별자 표기 | 정합적 개명 — `isBlankLine` → `isBlank` 를 정의·호출 전부 (**현행 (I5) 게이트는 여기서 rc=1 이다. 그것이 FR-02 가 뒤집는 지점이며 정상 변형 쪽을 바꿔 맞추지 않는다.**) |
+| **Ctrl-2** | 술어 본문의 등가 재작성 | `n.text.trim() === ""` → `!n.text.trim()` (또는 `/^\s*$/.test(n.text)`). **의미는 같고 텍스트는 다르다** — 텍스트 패턴으로 만든 게이트는 여기서 붉는다 (`REQ-20260831-077` 의 효력면 축이 이 계약 자신의 게이트에 적용되는 자리) |
+| **Ctrl-3** | 호출 지점 증가 | 같은 술어를 새 패스에서 한 번 더 호출 (정의는 여전히 1건). 사본이 아니라 **재사용**이며 이 계약이 권장하는 방향이다 |
+| **Ctrl-4** | 술어 무관 파서 변경 | 술어를 건드리지 않는 파서 변경 — 오늘만 `TSK-20260831-15`·`18`·`20-b`·`21-b` 네 건이 그랬다. 그중 `21-b` 는 `markdownParser.ts` 를 78줄 고치면서 술어를 건드리지 않았다 |
+
+> **Ctrl-2 가 배터리의 핵심이다.** Ctrl-1 만 두면 "이름 계수를 의미 계수로 바꿨다" 는 구현이 통과하는데, 그 구현은 여전히 텍스트를 읽는다. 배터리가 구조 클래스를 덮으라는 것이 정확히 이 자리를 가리킨다 — Ctrl-1(표기) 과 Ctrl-2(표현) 는 **다른 클래스**이며 하나가 다른 하나를 대신하지 않는다.
+
+### 미측정·비판정 항목 (REQ-076 관련)
+
+- **`tsc` 가 잡는 방향**(정의만 개명하고 호출을 두는 것)은 본 계약이 겨누지 않는다 — `RULE-07 §반려 시그널` 의 중복 게이트다. REQ-076 §목표 가 명시적으로 범위 밖에 두었고 실측(`TS2552` rc=2)이 그 근거다.
+- **출처 followup 이 보고한 방향**(접두 일치로 정합적 개명 미검출)은 **재실측에서 성립하지 않았다**. 그럼에도 이 축이 열린 이유는 문제 인식(이름을 재는 게이트가 의미 명제를 지킨다)이 옳았고 실제 사각이 인접해 있었기 때문이다. 신고가 지목한 자리와 결함이 있는 자리는 달랐다.
 
 ### 실측 — 되돌리면 결함이 살아나는데 게이트는 전부 초록이다 (본 tick, 격리 사본)
 
@@ -155,3 +228,27 @@
 - **`\r\n` 줄바꿈과 유니코드 공백(U+00A0 등)의 취급은 재지 않았다.** `trim()` 은 유니코드 공백도 걷어내므로 U+00A0 만 있는 줄이 빈 줄로 판정될 수 있으나, 그 입력이 실제로 도달하는 경로를 확인하지 못했다. (I1) 은 CommonMark 정의를 따라 **공백(U+0020)·탭(U+0009)** 만 말한다.
 - **원 req**: `specs/60.done/2026/08/31/req/20260831-blank-line-predicate-whitespace-only-line.md` (REQ-20260831-061). 출처 followup: `20260831-1303-blank-line-predicate-includes-whitespace-only-line.md` (developer, `TSK-20260831-09-b` 산출). 선행 축: REQ-057 · 구현 커밋 `c64c946` 이 `isBlankLine` 을 도입했다.
 - **외부 근거**: CommonMark 0.31.2 §2.1 *Characters and lines* — blank line 정의. §5.3 *Lists* Ex.306 — 항목 사이 빈 줄의 개수는 목록을 나누지 않는다.
+
+### 승격 검증 기록 — planner 384차 tick (`RULE-07 §promote 조건 2 · 2-bis`)
+
+HEAD=`5a12a0b` 격리 사본(`git clone --local --no-hardlinks` + `node_modules` 심볼릭 링크, **실 `src`**)에서 **spec 파일에서 추출해** 실행했다 (손 전사 0). 메인 워킹트리 무접촉.
+
+- **§수용 기준 참조 명령 10/10 rc=0.** 열 항 전부 §테스트 현황 의 명령을 지목하므로 그 열 개를 실행했다.
+- **진단 명령 11 run, 0 failed** (`RULE-07 2-bis`): §테스트 현황 산문 1 (`grep -rn "빈 줄 술어는 파서 안에 하나뿐이다" src` → **1 hit**; 257차 문면의 `0 hit` 은 착지 전 값이다) · §스코프 규칙 5 (`const isBlankLine` → **1** · `isBlankLine\(` → **2** · 계약 이름 → **2**·**1**; 뒤 둘의 문면 `0` 은 *신설 대상* 이라 적힌 착지 전 baseline 이다 · `trim() === ""` → **1**) · §의존성 3 (교차 게이트 파일 **8** · `markdownToHtml(` 사용처 **4 hit** — 실호출 3 + fixture 글자열 1, 문면과 일치 · `src/Comment` 비사용 rc=0) · §참고 2 (은퇴한 이름 계수 항 rc=0 · 파서 스위트 rc=0).
+  - 추출기가 함께 집은 `grep -c` · `grep -F` 두 조각은 **명령이 아니라 산문 속 플래그 언급**이라 계수에서 뺐다 (피연산자·기대값 없음).
+- **flip-check (I8 민감도)** — REQ-076 이 세운 방향: 다른 이름의 **살아 있는** 사본을 주입했다. 사본은 `n.text.trim() === ""` 이 아니라 **의미가 같은 재작성** `!n.text.trim()` 으로 썼다 — 종전 텍스트 패턴 게이트가 놓치던 형태다. 결과 `rc=0 → 1`, 게이트 출력 `["…:isBlankLine","…:isEmptyLine"] expected 2 to be 1`. 원복 후 `rc=0`. **수치가 함께 움직였다** (`RULE-06 §주입이 판정 창 안에 떨어졌는지`).
+- **control (음성 대조)** — 정합적 개명(`isBlankLine` → `isVacantLine`, 정의 1 + 호출 2 동시): `rc=0`, 파서 스위트 **185 passed**. **REQ-076 FR-02 가 요구한 뒤집기가 저장소 수준에서 확인된다** — 종전 (I5) 이름 계수에서 `rc=1` 이던 정당한 리팩터다.
+- **목격자** (`RULE-06 §수치가 움직이지 않는 변형`): 개명 대조를 **유지한 채** 사본 1건을 얹어 `rc=1` 을 받고, **목격자만** 걷어내 `rc=0` 을 확인했다. 개명 상태에서도 판정 창이 그 자리를 보고 있음이 이것으로 보증된다 — 대조의 `rc=0` 은 침묵이 아니다.
+- **교차 문서 효과 (승격 자신이 해소하는 것)**: `foundation/judgement-surface-uniqueness-and-no-judgement-status` (I5) 가 승격 직전 `docs=2 name-counting-judgement-items=1` 로 **rc=1** 이었다 (blue 사본 `:66` 의 이름 계수 판정 항). 본 승격이 blue 를 갈아끼우면 `docs=1 name-counting-judgement-items=0` **rc=0** 이 된다. 그 문서가 예고한 선행 조건이 이 승격이다.
+
+### 승격 시점 미해소 — 술어 좌표 스냅샷 낡음 (planner 384차 재도출)
+
+헤더와 §스코프 규칙 이 `HEAD=86ede5c` 스냅샷으로 박은 좌표가 현 HEAD 에서 전건 `+256` 밀렸다.
+
+| 문면 (`86ede5c`) | 실측 (`5a12a0b`) | 대상 |
+|---|---|---|
+| `:965-966` | `:1221-1222` | `const isBlankLine` 정의 |
+| `:973` | `:1229` | 목록 연속성 패스 호출 |
+| `:1097` | `:1353` | 목록 연속성 패스 호출 |
+
+문서가 스스로 *"참조 코드는 식별자 우선, 라인 번호는 스냅샷"* 이라 선언하고 스냅샷 HEAD 를 함께 적어 두었으므로 **오류가 아니라 낡음**이다. 식별자·계수(`1` 정의 / `2` 호출)는 실측 일치이며, (I8) 판정면은 애초에 좌표에 의존하지 않는다.
