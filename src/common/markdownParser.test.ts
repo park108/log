@@ -293,23 +293,33 @@ describe('MD parsing — mixed-type nested lists', () => {
 
 	it("종류가 달라도 깊게 들여쓴 목록은 중첩된다", () => {
 
+		// **`<li>` 본문 앞 공백 표기는 이 계약의 판정면이 아니다** — 그 축은
+		// `markdown-list-item-content-start` 소유다 (출처 spec §역할). 그래서
+		// 산출 전체를 리터럴로 못 박지 않고 항목 본문 자리를 `[^<]*` 로 열어 둔 채
+		// **중첩 구조 전체**를 잰다. 앞뒤를 `^`·`$` 로 닫으므로 리터럴만큼 조인다.
+		//
+		// 리터럴로 못 박았더니 범위 밖 축의 정상 변경(내용 시작 표기 되돌리기)에서
+		// 이 게이트가 붉어졌다 — RULE-06 §음성 대조 Ctrl-3 실측. 과잉 특정이었다.
+
 		// ul 이 바깥
 		const ulOuter = parser.markdownToHtml("- 준비\n  1. 설치\n  2. 설정\n- 실행");
-		expect(ulOuter).toBe(
-			"<ul><li>준비<ol><li>설치</li><li>설정</li></ol></li><li>실행</li></ul>"
+		expect(ulOuter).toMatch(
+			/^<ul><li>[^<]*준비[^<]*<ol><li>[^<]*설치[^<]*<\/li><li>[^<]*설정[^<]*<\/li><\/ol><\/li><li>[^<]*실행[^<]*<\/li><\/ul>$/
 		);
 		expect(ulOuter).toMatch(/<li>[^<]*<ol>/);
 
 		// ol 이 바깥 — **양방향**이다. 한쪽만 고치면 대칭 회귀가 남는다.
 		const olOuter = parser.markdownToHtml("1. 준비\n   - 설치\n   - 설정\n2. 실행");
-		expect(olOuter).toBe(
-			"<ol><li>준비<ul><li>설치</li><li>설정</li></ul></li><li>실행</li></ol>"
+		expect(olOuter).toMatch(
+			/^<ol><li>[^<]*준비[^<]*<ul><li>[^<]*설치[^<]*<\/li><li>[^<]*설정[^<]*<\/li><\/ul><\/li><li>[^<]*실행[^<]*<\/li><\/ol>$/
 		);
 		expect(olOuter).toMatch(/<li>[^<]*<ul>/);
 
 		// 탭 들여쓰기도 같다.
 		const tabbed = parser.markdownToHtml("- a\n\t1. b");
-		expect(tabbed).toBe("<ul><li>a<ol><li>b</li></ol></li></ul>");
+		expect(tabbed).toMatch(
+			/^<ul><li>[^<]*a[^<]*<ol><li>[^<]*b[^<]*<\/li><\/ol><\/li><\/ul>$/
+		);
 		expect(tabbed).toMatch(/<li>[^<]*<ol>/);
 	});
 
