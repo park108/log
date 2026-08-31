@@ -81,10 +81,10 @@ REQ-072 는 양방향 주입을 요구한다. 실측하니 **두 방향의 현�
 
 ## 테스트 현황
 
-- [ ] (I1 두 목록 참조 실재) 정합을 참조하는 테스트가 실재한다: `bash -c 'test "$(grep -rl "BLOCK_TAGS\|ALLOWED_TAGS" src --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d " ")" -ge 1'` → HEAD=`8d030ce` 본 tick 실측 **rc=1 (0 파일)**. **이 0 이 손 유지의 직접 증거다.**
-- [ ] (I2 인접 제목 경계) 계약이 게이트로 실재하고 초록이다: `bash -c 'set -- $(grep -rl "인접한 두 제목은 요약에서 붙지 않는다" src 2>/dev/null); test "$#" -ge 1 || exit 2; npx vitest run "$@" -t "인접한 두 제목은 요약에서 붙지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=2 (무판정 — 게이트 부재, 0 파일)**. **`exit 2` 로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내므로, 파일 도출을 선행 조건으로 두지 않으면 "게이트가 없다" 가 "통과" 로 읽힌다. 계약 이름은 본 spec 이 확정한 식별자이며 **어느 파일에 두는지는 수단이다**.
-- [ ] (I3 인라인 대조) 과잉 방향 대조가 게이트로 실재한다: `bash -c 'set -- $(grep -rl "인라인 태그는 요약에 공백을 넣지 않는다" src 2>/dev/null); test "$#" -ge 1 || exit 2; npx vitest run "$@" -t "인라인 태그는 요약에 공백을 넣지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=2 (무판정 — 게이트 부재)**.
-- [ ] (I4·I5 도출과 동작) 게이트가 모집단을 `ALLOWED_TAGS` 에서 도출하고 경계 공급을 동작으로 잰다: `bash -c 'set -- $(grep -rl "요약 경계 태그는 허용 목록에서 도출된다" src 2>/dev/null); test "$#" -ge 1 || exit 2; grep -qF "ALLOWED_TAGS" "$@" || exit 2; npx vitest run "$@" -t "요약 경계 태그는 허용 목록에서 도출된다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=2 (무판정 — 게이트 부재)**. **`grep -qF "ALLOWED_TAGS"` 를 선행 조건에 둔 것이 (I4) 의 판정면이다** — 태그를 재열거한 게이트는 이 단계에서 탈락한다. 도출이 불가한 구현을 택하면 목록 완전성 보조 단언으로 대체할 수 있으나, 그때도 `ALLOWED_TAGS` 를 읽어야 한다.
+- [x] (I1 두 목록 참조 실재) 정합을 참조하는 테스트가 실재한다: `bash -c 'test "$(grep -rl "BLOCK_TAGS\|ALLOWED_TAGS" src --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d " ")" -ge 1'` → HEAD=`8d030ce` 본 tick 실측 **rc=1 (0 파일)**. **이 0 이 손 유지의 직접 증거다.** → HEAD=`5420677` 255차 재실측 **rc=0** (`TSK-20260831-24` / `d19127a` 착지).
+- [x] (I2 인접 제목 경계) 계약이 게이트로 실재하고 초록이다: `bash -c 'set -- $(grep -rl "인접한 두 제목은 요약에서 붙지 않는다" src 2>/dev/null); test "$#" -ge 1 || exit 2; npx vitest run "$@" -t "인접한 두 제목은 요약에서 붙지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=2 (무판정 — 게이트 부재, 0 파일)**. **`exit 2` 로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내므로, 파일 도출을 선행 조건으로 두지 않으면 "게이트가 없다" 가 "통과" 로 읽힌다. 계약 이름은 본 spec 이 확정한 식별자이며 **어느 파일에 두는지는 수단이다**. → HEAD=`5420677` 255차 재실측 **rc=0** (도출 파일 `src/Log/summaryBoundary.test.ts`).
+- [x] (I3 인라인 대조) 과잉 방향 대조가 게이트로 실재한다: `bash -c 'set -- $(grep -rl "인라인 태그는 요약에 공백을 넣지 않는다" src 2>/dev/null); test "$#" -ge 1 || exit 2; npx vitest run "$@" -t "인라인 태그는 요약에 공백을 넣지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=2 (무판정 — 게이트 부재)**. → HEAD=`5420677` 255차 재실측 **rc=0**.
+- [x] (I4·I5 도출과 동작) 게이트가 모집단을 `ALLOWED_TAGS` 에서 도출하고 경계 공급을 동작으로 잰다: `bash -c 'set -- $(grep -rl "요약 경계 태그는 허용 목록에서 도출된다" src 2>/dev/null); test "$#" -ge 1 || exit 2; grep -qF "ALLOWED_TAGS" "$@" || exit 2; npx vitest run "$@" -t "요약 경계 태그는 허용 목록에서 도출된다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=2 (무판정 — 게이트 부재)**. **`grep -qF "ALLOWED_TAGS"` 를 선행 조건에 둔 것이 (I4) 의 판정면이다** — 태그를 재열거한 게이트는 이 단계에서 탈락한다. 도출이 불가한 구현을 택하면 목록 완전성 보조 단언으로 대체할 수 있으나, 그때도 `ALLOWED_TAGS` 를 읽어야 한다. → HEAD=`5420677` 255차 재실측 **rc=0**.
 - [ ] (I1·I2·I3·I4 접속) 네 축이 **동시에** 성립하고 요약 스위트가 초록이다: `bash -c 'test "$(grep -rl "BLOCK_TAGS\|ALLOWED_TAGS" src --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d " ")" -ge 1 || exit 1; for n in "인접한 두 제목은 요약에서 붙지 않는다" "인라인 태그는 요약에 공백을 넣지 않는다" "요약 경계 태그는 허용 목록에서 도출된다"; do grep -rq "$n" src || exit 1; done; npx vitest run src/Log/api.test.ts src/Log/LogSingle.test.tsx src/Log/Log.test.tsx --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=1 (계약 이름 0 hit 으로 탈락)**. **접속으로 닫는 이유**: 손상 축(제거 방향)만 재는 게이트는 인라인 과잉을 통과시키고, 목록 참조만 재는 게이트는 동작을 재지 않는다. 세 축은 서로를 대체하지 않는다.
 - [x] (현행 요약 스위트 baseline) 요약 관련 3 스위트가 초록이다: `bash -c 'npx vitest run src/Log/api.test.ts src/Log/LogSingle.test.tsx src/Log/Log.test.tsx --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 rc=0 (**45 tests**). 구현 후에도 rc=0 — **기존 단언을 완화하는 방식의 해결은 불가**하다.
 - [x] (원인 실재 — 손 유지) 두 목록이 정의만 있고 서로를 참조하지 않는다: `bash -c 'test "$(grep -rn "BLOCK_TAGS\|ALLOWED_TAGS" src | wc -l | tr -d " ")" -eq 4 && grep -qE "^const BLOCK_TAGS" src/Log/api.ts && grep -qE "^const ALLOWED_TAGS" src/common/sanitizeHtml.ts'` → HEAD=`8d030ce` 실측 rc=0 (4 hit: `sanitizeHtml.ts:7,56` · `api.ts:59,80` — 전부 정의·사용처이며 정합 참조는 0). **착지 후 이 명령의 rc 는 바뀌어야 정상이다** — 게이트가 두 목록을 참조하면 4 를 넘는다. 이 항목은 **현 결함의 실재**를 재는 것이며 계약 명제가 아니다 (§참고 §미측정 에 착지 후 처리 박제).
@@ -92,10 +92,10 @@ REQ-072 는 양방향 주입을 요구한다. 실측하니 **두 방향의 현�
 
 ## 수용 기준
 
-- [ ] (Must, FR-01) 위 §테스트 현황 (I1 두 목록 참조 실재) 명령 → rc=0.
-- [ ] (Must, FR-04) 위 §테스트 현황 (I2 인접 제목 경계) 명령 → rc=0.
-- [ ] (Must, FR-02) 위 §테스트 현황 (I3 인라인 대조) 명령 → rc=0.
-- [ ] (Must, FR-01·FR-03·FR-06·NFR-03) 위 §테스트 현황 (I4·I5 도출과 동작) 명령 → rc=0.
+- [x] (Must, FR-01) 위 §테스트 현황 (I1 두 목록 참조 실재) 명령 → rc=0. HEAD=`5420677` 실측 rc=0.
+- [x] (Must, FR-04) 위 §테스트 현황 (I2 인접 제목 경계) 명령 → rc=0. HEAD=`5420677` 실측 rc=0.
+- [x] (Must, FR-02) 위 §테스트 현황 (I3 인라인 대조) 명령 → rc=0. HEAD=`5420677` 실측 rc=0.
+- [x] (Must, FR-01·FR-03·FR-06·NFR-03) 위 §테스트 현황 (I4·I5 도출과 동작) 명령 → rc=0. HEAD=`5420677` 실측 rc=0.
 - [ ] (Must, FR-01~FR-04 접속) 위 §테스트 현황 (I1·I2·I3·I4 접속) 명령 → rc=0.
 - [x] (Must, 비퇴행) 위 §테스트 현황 (현행 요약 스위트 baseline) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0 (45 tests).
 - [x] (Must, FR-05 분류 출처) 인라인/블록 분류의 판단 주체는 본 계약이며 모집단의 출처는 `ALLOWED_TAGS` 다 — §역할 · §동작 (I4). 새 태그가 어느 쪽인지는 본 spec 의 §동작 이 정하고, `sanitizeHtml` 은 목록만 소유한다.
@@ -130,6 +130,7 @@ REQ-072 는 양방향 주입을 요구한다. 실측하니 **두 방향의 현�
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-09-01 | inspector 255차 tick (Phase 1 drift reconcile) / `d19127a` @ HEAD=`5420677` | **마커 플립 8** — (I1)(I2)(I3)(I4·I5) 4 게이트 + 대응 §수용 기준 4 항이 `TSK-20260831-24` 착지로 rc=0. **(I1·I2·I3·I4 접속)(`:88`)과 그 §수용 기준 항(`:99`)은 플립하지 않았다** — 명령이 도출한 파일(`src/Log/summaryBoundary.test.ts`)을 실행 인자에 넣지 않아 민감도 0 이며, 격리 사본 주입(`BLOCK_TAGS` 에서 `h[1-6]\|` 제거)에서 접속 항 rc=0 / 도출 파일 rc=1 로 재현했다. 정정은 같은 tick REQ-20260831-080 흡수 단위가 진다. | §테스트 현황 · §수용 기준 |
 | 2026-08-31 | inspector 253차 tick (Phase 3, REQ-20260831-072 흡수) / pending @ HEAD=`8d030ce` | 최초 박제 — 요약 블록 경계 태그 도출 6 축 (I1~I6). **정합 축이지만 흡수한 근거 (`RULE-07 §주제 우선순위`)**: 증상이 **사용자 관측 가능한 텍스트**(목록 요약·검색 미리보기에서 낱말이 붙어 나옴)이고, `RULE-07 §반려 시그널` 의 *"현재 이미 참이면서 위반 시 기존 자동 게이트가 즉시 실패하는 보존 명제"* 에 **해당하지 않는다** — 본 tick 이 독립 실측으로 그 판정을 뒤집었다: `h[1-6]` 제거 시 요약 산출이 `\"하나 둘\"` → `\"하나둘\"` 로 바뀌는데 **관련 45 tests 가 전수 통과한다**(rc=0). 중복 게이트가 아니라 **검출력 0 인 자리**다. **req 보다 좁은 상을 실측으로 세운 것이 이 흡수의 판단이다**: REQ-072 는 양방향 주입을 요구하나, 과잉 방향(`strong` 추가)은 **이미 검출된다**(1 failed — `\"굵게한\"` → `\"굵게 한\"`). 진짜 구멍은 제거 방향 하나이며, 양방향을 대등하게 적으면 없는 결함을 고치는 task 가 나간다. 게이트 신설의 무게를 제거 방향에 두고 과잉 방향은 대조로 배치했다. **(I5) 를 동작 기준으로 못 박은 것이 두 번째 판단이다**: 목록 비교 게이트는 현 HEAD 에서 **이미 초록**이므로 신설 즉시 통과하고 겨눈 구멍은 그대로 남는다 — `RULE-06 §게이트 실효 검증` 이 겨눈 \"검출력 0 인데 정상 트리에서 초록\" 의 전형이다. **표기 단위 함정 1건 박제**: `ALLOWED_TAGS` 21항목 vs `BLOCK_TAGS` 12교대항은 **직접 비교하면 안 된다** — `h[1-6]` 한 항이 6종을 덮으므로 태그 종 수로는 17 이다. 도출 게이트가 이 변환을 다루지 않으면 정합이 맞는데도 붉어진다. baseline: 계약 이름 3건 0 hit · 테스트의 두 목록 참조 0 파일 · src 전체 참조 4 hit · 블록 14/인라인 7 분류 실측 · 3열 동작 표 격리 사본 실측 · 요약 3스위트 45 tests. unchecked 5 · checked 4. | all |
 
 ## 참고
