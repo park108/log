@@ -76,12 +76,23 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 
 	// 대조 2 — sanitizer 가 실제로 일하고 있는가. 아무것도 안 지우는 sanitizer 면
 	// 위 단정이 자동으로 참이 되어 게이트가 공허해진다.
+	//
+	// **예시 태그는 "앞으로도 허용되지 않을 것" 중에서 고른다.** 여기에는 원래
+	// `<table>` 이 박혀 있었는데, 이 파일의 머리말이 바로 그 태그를 "파서에 더할
+	// 때 허용 목록도 함께 고쳐야 할 것" 의 예로 들고 있다. 한 파일 안에서 두
+	// 전제가 어긋났고, 실제로 표를 허용 목록에 넣는 작업이 이 대조에 막혔다
+	// (`TSK-20260831-05-a` 격리). 같은 이유로 `<input>`(체크박스) 도 피한다.
+	//
+	// 임베딩·스크립팅 태그는 마크다운 렌더 결과에 들어올 이유가 없다 — 정책이
+	// 바뀔 축이 아니므로 대조로 안전하다. 검출력은 그대로다: "지우는가" 를 재는
+	// 데에 어떤 태그를 쓰는지는 상관없고, 두 개를 두는 이유는 한 종류(script)만
+	// 특별 취급하는 구현을 거르기 위해서다.
 	it('sanitizer 는 허용 밖 태그를 실제로 지운다', () => {
 
-		const dirty = '<p>본문</p><table><tr><td>표</td></tr></table><script>alert(1)</script>';
+		const dirty = '<p>본문</p><iframe src="https://example.com"></iframe><script>alert(1)</script>';
 		const clean = sanitizeHtml(dirty);
 
-		expect(clean.toLowerCase()).not.toContain('<table');
+		expect(clean.toLowerCase()).not.toContain('<iframe');
 		expect(clean.toLowerCase()).not.toContain('<script');
 		expect(clean).toContain('본문');
 	});
