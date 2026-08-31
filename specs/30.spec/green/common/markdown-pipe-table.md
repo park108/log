@@ -1,8 +1,8 @@
 # 파이프 표는 표로 렌더된다 — 파이프가 문단으로 새지 않는다
 
 > **위치**: `src/common/markdownParser.ts` — 블록 패스 `pre`(`:170`) · `hr`(`:216`) · `blockquote`(`:235`) · **이어짐**(`:281`) · `ul`(`:367`) · `ol`(`:394`) · `headers`(`:440`), 이스케이프·코드 스팬 추출 (`:532`~`:552`), 패스 순서 근거 주석 (`:519-531`). `src/common/sanitizeHtml.ts` — `ALLOWED_TAGS`(`:7-15`) · `ALLOWED_ATTR`(`:17`). `src/styles/typography.css` — 블록 요소 규칙. 게이트: `src/common/markdownParser.test.ts` · `src/common/sanitizeHtml.test.ts`.
-> **관련 요구사항**: REQ-20260831-052 FR-01~FR-06 · NFR-01~NFR-04
-> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile, 라인 동기화만, HEAD=`7b43fa8`)
+> **관련 요구사항**: REQ-20260831-052 FR-01~FR-06 · NFR-01~NFR-04 · REQ-20260831-067 FR-01~FR-06 · NFR-01~NFR-03 (출처: developer followup `source_task: TSK-20260831-13-a` + `TSK-20260831-05-a` 격리 사유서)
+> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-067 흡수: 정합 corpus 도출 + 대조 축 잠금, HEAD=`2e1a68d`)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`7b43fa8`).
 
@@ -15,6 +15,10 @@
 **방어 대상 (사용자 관측 표면)**: 표 하나가 **줄 수만큼의 문단**으로 쪼개져 파이프 문자와 구분선(`|---|---|`)까지 그대로 독자에게 보이는 상태. 표는 기술 글에서 가장 흔한 블록 구조 중 하나이며, 이 저장소의 spec·req 문서 자체가 표로 쓰여 있다.
 
 **이 축은 한 모듈로 닫히지 않는다.** 파서가 표를 emit 해도 `sanitizeHtml` 의 `ALLOWED_TAGS` 에 표 태그가 하나도 없으면 DOM 주입 직전 정제에서 구조가 통째로 사라진다 — 실측상 머리 셀의 글자마저 남지 않는다 (§스코프 규칙 baseline). 즉 파서만 고치면 결과는 지금과 **다른 방식으로 여전히 틀리다**. 스타일 채널도 마찬가지다: 태그가 통과해도 규칙이 없으면 테두리 없는 맨 텍스트로 보여 §역할 첫 문단의 문제가 형태만 바꿔 남는다.
+
+**그리고 이 축을 실제로 막고 있던 것은 파서도 정제도 아니라 게이트였다.** `src/__tests__/parser-sanitizer-coherence.test.ts` 는 *"파서가 내는 것을 sanitizer 가 지우면 글자가 사라진다"* 를 재는 자리이고 머리말이 그 예로 **표를 명시**한다. 그런데 그 게이트의 모집단은 두 개의 하드코딩된 열거 위에 서 있다 — corpus **13행**(표 입력 0행)과 기대 태그 **17개**(`table` 없음). **자기 머리말이 지목한 축을 자기 모집단이 담고 있지 않다.** 파서가 표를 emit 하기 시작해도 그 축에서는 아무것도 재지 않는다 (`RULE-06 §열거 고정 금지`).
+
+**같은 파일의 음성 대조는 한 번 이 축을 실제로 막았다.** 대조의 예시 태그가 `<table>` 이었고, 표를 허용 목록에 넣는 작업(`TSK-20260831-05-a`)이 *"sanitizer 는 허용 밖 태그를 지운다"* 를 깨뜨려 격리됐다. 한 파일 안에서 머리말과 대조가 서로 반대를 전제하고 있었다. `a13de9a` 가 예시 태그를 `<iframe>`·`<script>` 로 옮겨 해소했고 **본 계약은 그 정정이 되돌려지지 않게 잠근다** — 음성 대조의 예시 태그는 **정책이 바뀔 축에서 고르지 않는다**.
 
 **이 계약의 또 다른 절반은 표가 아닌 것을 표로 만들지 않는 것이다.** 파이프는 산문에도 흔하다 (셸 파이프라인, 논리합, 표기 구분). GFM 이 표를 **머리 행 + 구분선 행**의 쌍으로 규정하는 이유가 이것이며, 구분선 행을 요구하지 않는 구현은 파이프가 든 모든 문단을 표로 만든다.
 
@@ -34,15 +38,26 @@
 7. **(I7) 스타일 채널이 존재한다**: `src/styles/` 에 표 요소 규칙이 1건 이상 있다. `blockquote`(`typography.css:44`) · `pre`(`:65`) 처럼 블록 요소마다 규칙을 두는 이 저장소의 관례와 같다.
 8. **(I8) 정책은 단일 출처를 지킨다 (범위 제한)**: 표 태그 등재는 `src/common/sanitizeHtml.ts` **안에서만** 이뤄진다. `blue/common/sanitizeHtml.md` (I1) 단일 모듈 정책을 깨지 않으며, 파서 쪽이나 호출처에서 표 태그를 따로 허용하는 형태는 정책 분기다. 속성 표면도 넓히지 않는다 — `style` 속성 허용은 (I3) 계열 정책 확장이라 별 축이다.
 
+9. **(I9) 정합 게이트의 모집단은 파서 산출을 덮는다**: `parser-sanitizer-coherence` 의 corpus 와 기대 태그 목록은 **파서가 emit 하는 블록 문법에서 도출**된다. 도출이 불가능하면 **목록 완전성 보조 단언**을 함께 둔다 (`RULE-06 §열거 고정 금지`). 최소 결합으로 표현하면 — **표 태그가 `ALLOWED_TAGS` 에 오르면 corpus 에 표 입력이 1행 이상 있어야 한다.** 지금은 표 태그가 0이라 이 명제가 공허하게 참이며, **표 패스가 착지하는 순간 구속력을 얻는다.**
+
+    > **이 결합이 없으면 (I2) 가 통과하면서 정합 게이트는 표를 재지 않는다.** 허용 목록에 6 태그를 넣어 (I2) 를 초록으로 만들어도, corpus 에 표 입력이 없으면 "파서 산출이 정제를 통과하는가" 는 표 축에서 **한 번도 측정되지 않는다.** 두 게이트가 각자 초록인데 축은 비어 있는 상태다.
+
+10. **(I10) 음성 대조의 예시 태그는 정책이 바뀔 축에서 고르지 않는다**: `parser-sanitizer-coherence` 의 *"허용 밖 태그를 실제로 지운다"* 대조는 **앞으로도 허용되지 않을 태그**로 구성한다. `<table>`·`<input>` 은 부적격이고 `<iframe>`·`<script>` 는 적격이다 — 임베딩·스크립팅 태그는 마크다운 렌더 결과에 들어올 이유가 없다. **검출력은 태그 선택과 무관하다** ("지우는가" 를 재는 데 어떤 태그를 쓰는지는 상관없다). 예시는 **2개 이상** 둔다 — 한 종류만 특별 취급하는 구현을 거르기 위해서다.
+
+    > **이것은 `RULE-06 §음성 대조` 가 말하는 과잉 특정의 실물이다.** 대조가 정책 축 위에 서면 **정당한 정책 확장이 대조를 붉힌다.** 그때 고쳐야 할 것은 정책이 아니라 대조인데, 격리 사유서가 그 판단에 도달하기까지 task 한 건이 통째로 격리됐다.
+
 ### 회귀 중점
 - **(I1) 만 만족시키고 (I2) 를 빠뜨리는 구현**이 이 축의 대표 실패다 — 파싱은 되는데 화면에 닿지 않는다. 두 축을 분리해 재지 않으면 "표를 emit 하지만 sanitize 가 지우는" 상태가 통과한다. 그 상태는 지금보다 나쁠 수 있다: 현재는 최소한 셀 글자가 문단으로라도 보이지만, 그때는 머리 셀 글자마저 사라진다 (§스코프 규칙 baseline 실측).
 - **(I3) 를 빠뜨리면 파이프가 든 모든 문단이 표가 된다.** 산문 속 파이프는 흔하므로 피해 범위가 표 표기를 쓴 글보다 넓다.
 - 표 패스를 이스케이프 패스 **뒤**로 옮겨 (I4) 를 해결하려는 방향은 범위 밖이다. 코드 스팬·이스케이프의 현 계약이 그 순서에 기대고 있으며 `markdownParser.ts:370-379` 가 그 근거를 박제한다. 표 패스가 `\|` 를 스스로 처리하는 쪽을 택한다.
 - `ALLOWED_TAGS` 에 표 태그를 넣으면서 회귀 fixture 를 갱신하지 않으면 `sanitizeHtml.md` (I6) "정책 변경 단일 진입점" 위반이다.
 - (I7) 을 만족시키려고 인라인 `style` 속성을 쓰면 (I8) 위반 — 속성 표면 확장이다.
+- **`ALLOWED_TAGS` 에 표 6 태그만 넣고 corpus 를 그대로 두는 방향은 (I9) 를 깬다.** (I2) 는 초록이 되지만 정합 게이트는 표 축을 **여전히 재지 않는다**. 두 게이트가 각자 초록인 채로 축이 비는 것이 이 부류의 대표 실패다.
+- **음성 대조를 `<table>` 로 되돌리는 방향은 (I10) 을 깨고 (I2) 와 동시 참이 불가능해진다.** `a13de9a` 이전 상태이며, 그 상태에서 표를 허용하는 작업은 반드시 격리된다.
+- **corpus·기대 태그를 손으로 늘려 (I9) 를 만족시키는 방향은 다음 문법에서 되풀이된다.** 열거를 늘리는 것은 이번 축만 덮으며, 완전성 보조 단언이 없으면 다음에 추가되는 블록 문법이 같은 자리에 숨는다.
 
 ## 의존성
-- 내부: `src/common/markdownParser.ts` (표 블록 패스), `src/common/sanitizeHtml.ts` (허용 태그), `src/styles/` (표 규칙), `src/common/markdownParser.test.ts` · `src/common/sanitizeHtml.test.ts` (게이트).
+- 내부: `src/common/markdownParser.ts` (표 블록 패스), `src/common/sanitizeHtml.ts` (허용 태그), `src/styles/` (표 규칙), `src/common/markdownParser.test.ts` · `src/common/sanitizeHtml.test.ts` · **`src/__tests__/parser-sanitizer-coherence.test.ts` (정합 게이트 — (I9)(I10) 의 대상)** (게이트).
 - 외부: `dompurify` (sanitize 구현 — 버전 정합은 `dependency-bump-gate.md` 영역).
 - 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log · Comment 본문 렌더).
 - 직교: `specs/30.spec/green/common/sanitizeHtml.md` — 그 spec 의 **(I12)** 가 본 축의 (I2) 를 정책 쪽에서 받으며, (I1) 단일 모듈 정책과 (I6) 정책 변경 단일 진입점이 본 축의 (I2)(I8) 을 규율한다. 본 spec 은 **무엇이 허용돼야 하는가** 를 요구하고, 그 spec 은 **어디서 어떻게 바꾸는가** 를 규율한다. `specs/30.spec/blue/common/markdownParser.md` (`bindListItem` + 속성 escape 축 — 본 축과 무관).
@@ -52,6 +67,8 @@
 - [ ] (I3·I4) 대조 게이트가 실재하고 초록이다 — 구분선 없는 산문 파이프와 이스케이프된 파이프: `bash -c 'grep -qF "구분선 행이 없으면 표가 아니다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "구분선 행이 없으면 표가 아니다" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=1 (미충족)**. **이 대조가 없으면 파이프가 든 모든 문단을 표로 만드는 구현도 (I1) 을 통과한다.**
 - [ ] (I2 정적 zero-point) sanitize 허용 태그에 표 태그가 등재돼 있다: `bash -c 'f=src/common/sanitizeHtml.ts; grep -q "ALLOWED_TAGS" "$f" || exit 2; n=$(grep -oE "'\''(table|thead|tbody|tr|th|td)'\''" "$f" | wc -l | tr -d " "); echo "table-tag-entries=$n"; [ "$n" -ge 6 ]'` → HEAD=`7b43fa8` 재실측 **rc=1**, 출력 `table-tag-entries=0`. 파일에 `ALLOWED_TAGS` 가 없으면 `exit 2` 로 무판정 처리한다 (공허 통과 차단).
 - [ ] (I7) 표 스타일 규칙이 실재한다: `bash -c 'n=$(grep -rhcE "^[[:space:]]*(table|thead|tbody|th|td)[[:space:],{]" src/styles/ | awk "{s+=\$0} END {print s+0}"); echo "table-style-rules=$n"; [ "$n" -ge 1 ]'` → HEAD=`7b43fa8` 재실측 **rc=1**, 출력 `table-style-rules=0`.
+- [x] (I9 corpus-정책 결합) 표 태그가 허용되면 정합 게이트 corpus 에 표 입력이 있다 — **결합 명제이며 모집단은 도출한다**: `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; g=src/common/sanitizeHtml.ts; test -f "$f" -a -f "$g" || exit 2; q=$(printf "\047"); n=$(grep -oE "$q(table|thead|tbody|tr|th|td)$q" "$g" | wc -l | tr -d " "); r=$(awk "/^const corpus/{k=1;next} /^\];/{k=0} k" "$f" | grep -c "^[[:space:]]*\["); test "$r" -ge 5 || exit 2; c=$(awk "/^const corpus/{k=1;next} /^\];/{k=0} k" "$f" | grep -cF "|---"); echo "allowed-table-tags=$n corpus-rows=$r corpus-table-rows=$c"; test "$n" -eq 0 -o "$c" -ge 1'` → HEAD=`2e1a68d` 본 tick 독립 실측 rc=0, 출력 `allowed-table-tags=0 corpus-rows=13 corpus-table-rows=0`. **지금은 공허하게 참이고 표 패스가 착지하는 순간 구속력을 얻는다** — 허용 목록에 6 태그를 넣으면서 corpus 를 그대로 두면 즉시 붉어진다. `corpus-rows >= 5` 는 **모집단 하한**이며 corpus 를 비워 통과시키는 경로를 막는다 (`exit 2` 무판정 실패). **이 명제를 위반해도 현 HEAD 의 어느 자동 게이트도 붉어지지 않는다** — 중복 게이트가 아닌 근거다.
+- [x] (I10 대조 축 잠금) 음성 대조가 정책 축 밖 태그로 서 있다: `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; test -f "$f" || exit 2; b=$(grep -vE "^[[:space:]]*(//|\*)" "$f"); n=$(printf "%s" "$b" | grep -oE "<(table|thead|tbody|tr|th|td|input)[ >]" | wc -l | tr -d " "); m=$(printf "%s" "$b" | grep -oE "<(iframe|script)[ >]" | wc -l | tr -d " "); echo "policy-axis-tags-in-code=$n control-tags=$m"; test "$n" -eq 0 -a "$m" -ge 2'` → HEAD=`2e1a68d` 본 tick 독립 실측 rc=0, 출력 `policy-axis-tags-in-code=0 control-tags=2`. 주석·머리말의 `<table>` 언급 3곳은 **계수 대상이 아니다** (줄 머리 `//`·`*` 제외 — 그 3곳이 정확히 이 정정의 이력 기록이다). `control-tags >= 2` 는 대조 자체를 지워 통과시키는 경로를 막으며, 파일 주석이 두 개를 두는 이유를 명시하고 있다. **본 tick 왕복 실측**: 대조에 `<table>` 을 되돌려 주입 → `policy-axis-tags-in-code=3`·**rc=1** · 원복 → rc=0 (민감도 1/1). 정상 변형 2건(대조 URL 변경 · corpus 정상 행 1개 추가) → 전건 rc=0 (특이도 2/2).
 - [x] (I8 정책 단일 출처 현행 PASS) `bash -c 'test "$(grep -rlE "ALLOWED_TAGS" src | grep -vcE "^src/common/sanitizeHtml\.(ts|test\.ts)$")" -eq 0'` → HEAD=`7b43fa8` 재실측 rc=0. 구현 후에도 rc=0 이어야 한다.
 - [x] (비퇴행 baseline) 두 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts src/common/sanitizeHtml.test.ts >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 rc=0. 구현 후에도 rc=0 이어야 한다.
 
@@ -60,19 +77,24 @@
 - [ ] (Must, FR-03·FR-04) 위 §테스트 현황 (I3·I4) 명령 → rc=0.
 - [ ] (Must, FR-02) 위 §테스트 현황 (I2) 명령 → rc=0 (`table-tag-entries` ≥ 6).
 - [ ] (Should, NFR-03) 위 §테스트 현황 (I7) 명령 → rc=0 (`table-style-rules` ≥ 1).
+- [x] (Must, REQ-067 FR-01·FR-02 모집단 결합) 위 §테스트 현황 (I9 corpus-정책 결합) 명령 → rc=0. HEAD=`2e1a68d` 실측 rc=0 (`allowed-table-tags=0 corpus-rows=13 corpus-table-rows=0` — 현재 공허 참).
+- [x] (Must, REQ-067 FR-03 대조 축) 위 §테스트 현황 (I10 대조 축 잠금) 명령 → rc=0. HEAD=`2e1a68d` 실측 rc=0 (`policy-axis-tags-in-code=0 control-tags=2`).
 - [x] (Must, NFR-01 정책 단일 출처) 위 §테스트 현황 (I8) 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0.
 - [x] (Must, NFR-04 비퇴행) 위 §테스트 현황 비퇴행 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
 - [x] (Must, NFR-02 속성 표면 무확장) 허용 속성이 7 항목으로 유지된다: `bash -c 'test "$(grep -oE "'\''(href|src|alt|title|target|rel|class)'\''" src/common/sanitizeHtml.ts | wc -l | tr -d " ")" -ge 7 && ! grep -qE "ALLOWED_ATTR[^]]*'\''style'\''" src/common/sanitizeHtml.ts'` → HEAD=`7b43fa8` 재실측 rc=0. 정렬을 표현하더라도 `class` 안에서 한다.
 - [x] (Must, 범위 제한) 셀 안 블록 요소 · `colspan` · 중첩 표 · 캡션 · 테두리 디자인 값은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
-- **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` · `src/common/sanitizeHtml.ts` · `src/styles/` · 두 테스트 파일이다. 세 모듈 모두 본 축이 동시에 요구하는 대상이므로 baseline 도 셋 다 박제한다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
+- **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` · `src/common/sanitizeHtml.ts` · `src/styles/` · **세** 테스트 파일(`markdownParser.test.ts` · `sanitizeHtml.test.ts` · **`src/__tests__/parser-sanitizer-coherence.test.ts`**)이다. **세 번째가 빠지면 `TSK-20260831-05-a` 가 격리된 것과 같은 지점에서 같은 결론이 난다** — 격리 사유서가 *"지금 문면(3 경로 불허)으로는 재시도해도 같은 지점에서 같은 결론이 나온다"* 고 판정했고, 그 파일을 손댈 수 없으면 (I9)(I10) 을 충족시킬 방법이 없다 (REQ-067 FR-05). 세 모듈 모두 본 축이 동시에 요구하는 대상이므로 baseline 도 셋 다 박제한다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
 - **grep-baseline** (HEAD=`7b43fa8`, 2026-08-31 Phase 1 재실측):
   - 블록 패스 열거 (HEAD=`7b43fa8` 재실측): `pre`(`:170`) · `hr`(`:216`) · `blockquote`(`:235`) · `이어짐`(`:281`) · `ul`(`:367`) · `ol`(`:394`) · `headers`(`:440`) **일곱**이며 표 패스는 여전히 **0건**이다. 흡수 시점(`b1cbf5c`)에는 여섯이었고, `f885730` 이 이어짐 패스를 더했다. **표 패스가 어디에 들어가야 하는지를 이 순서가 규정하므로**(§동작 (I4) 가 이스케이프 패스보다 앞임을 요구) 계수와 위치는 이 baseline 의 일부다.
   - `grep -cF "파이프 표" src/common/markdownParser.test.ts` → **0**. `grep -cF "구분선 행이 없으면 표가 아니다" src/common/markdownParser.test.ts` → **0**. 두 계약 이름 모두 미존재 — 신설 대상이다.
   - `grep -oE "'\''(table|thead|tbody|tr|th|td)'\''" src/common/sanitizeHtml.ts | wc -l` → **0**. `ALLOWED_TAGS`(`:7-15`) 는 **21 항목**이며 표 태그는 하나도 없다: `p` `br` `hr` `strong` `em` `del` `code` `pre` `blockquote` `h1` `h2` `h3` `h4` `h5` `h6` `ul` `ol` `li` `a` `img` `span`.
   - `grep -rhcE "^[[:space:]]*(table|thead|tbody|th|td)[[:space:],{]" src/styles/` 합 → **0**. 대조로 같은 형태의 기존 블록 규칙은 `typography.css:44`(`blockquote`) · `:65`(`pre`) · `:78`(`pre code`) 다. 제외 규칙: 줄 머리 선택자만 계수하며 결합자·중첩 표기는 세지 않는다.
   - `grep -rlE "ALLOWED_TAGS" src | grep -vE "^src/common/sanitizeHtml\.(ts|test\.ts)$"` → **0 hit**. 정책 단일 출처 현행 PASS.
+  - **(REQ-067 재측정, HEAD=`2e1a68d`, 격리 사본)** 정합 게이트 `src/__tests__/parser-sanitizer-coherence.test.ts`: corpus **13행**(표 입력 **0**) · 기대 태그 **하드코딩 17개**(`p` `h1` `h6` `ul` `ol` `li` `blockquote` `pre` `code` `a` `img` `strong` `em` `del` `span` `hr` `br` — `table` 없음) · 음성 대조 예시 태그 `<iframe>`·`<script>` **2** · 코드에 표·체크박스 태그 **0**. **제외 규칙**: 줄 머리 `//`·`*` 로 시작하는 주석 줄은 계수하지 않는다 — `<table>` 언급 3곳(`:10` 머리말 · `:81`·`:84` 이력 주석)이 전부 그 부류이며, 그 3곳이 정정의 근거 기록이라 지우지 않는다.
+  - **충돌 해소 실증 (`a13de9a`)**: 음성 대조의 `dirty` 상수에 표 태그 **0건**. 격리 사유서가 제시한 선택지 (A)(예시 태그를 아직 허용 밖인 것으로 교체)가 이미 실행된 상태다. **05-a 를 막던 사유는 현 HEAD 에 존재하지 않는다.**
+  - **`ALLOWED_ATTR` 7 항목 · `style` 부재** (`href` `src` `alt` `title` `target` `rel` `class`) — 표 허용 후에도 무변경이 (NFR-02) 이며 그 게이트가 이미 있다.
   - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경):
     | 입력 | 현 산출 | 판정 |
     |---|---|---|
@@ -86,6 +108,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-31 | inspector 252차 tick (Phase 3, REQ-20260831-067 흡수) / pending @ HEAD=`2e1a68d` | **(I9)(I10) 신설 · 스코프 2 → 3 테스트 파일 · 05-a 충돌 해소 실증.** 이 축을 막고 있던 것은 파서도 정제도 아니라 **정합 게이트**였다. `parser-sanitizer-coherence` 의 머리말은 표를 *"파서에 더할 때 허용 목록도 함께 고쳐야 할 것"* 의 예로 들면서, 같은 파일의 음성 대조가 `<table>` 을 *"앞으로도 허용되지 않을 태그"* 로 쓰고 있었다 — **한 파일 안에서 두 전제가 반대**였고 `TSK-20260831-05-a` 가 정확히 그 대조에 걸려 격리됐다. `a13de9a` 가 예시 태그를 `<iframe>`·`<script>` 로 옮겨 해소한 것을 본 tick 이 독립 실증했다 (코드의 표 태그 0건 · 주석 3곳은 이력 기록). **(I10) 은 그 정정을 잠근다** — 계약면을 "대조 예시는 정책이 바뀔 축에서 고르지 않는다" 로 세워 태그 이름이 아니라 **선택 기준**을 못 박았다. **(I9) 를 결합 명제로 세운 것이 이 흡수의 판단**이다: "corpus 를 도출로 바꾼다" 는 지금 rc 판정이 되지 않고 "corpus 에 표를 넣는다" 는 표 패스 착지 전에는 거짓이다. **"표 태그가 허용되면 corpus 에 표 입력이 있다"** 는 현재 공허하게 참이면서 착지 순간 구속력을 얻고, **위반해도 현 HEAD 의 어느 자동 게이트도 붉어지지 않는다** (중복 게이트가 아닌 근거 — `RULE-07 §반려 시그널`). 두 게이트가 각자 초록인데 표 축은 한 번도 측정되지 않는 상태가 이 결합이 겨눈 것이다. 하한은 전부 **모집단**에 걸었다 (`corpus-rows >= 5` · `control-tags >= 2`). **왕복 실측**: (I10) 주입 1/1 검출(`<table>` 되돌림 → rc=1) · 대조 2/2 통과(대조 URL 변경 · corpus 정상 행 추가). baseline: corpus 13행(표 0) · 기대 태그 하드코딩 17 · 대조 태그 2 · 코드 내 정책축 태그 0 · `ALLOWED_TAGS` 21 항목 중 표 0 · `ALLOWED_ATTR` 7 · `style` 부재. | 역할 · 동작 · 회귀 중점 · 의존성 · 테스트 현황 · 수용 기준 · 스코프 규칙 · 참고 |
 | 2026-08-31 | inspector (Phase 1 drift reconcile) / — @ HEAD=`7b43fa8` | 마커 플립 0 — 4 게이트 재실행 **rc=1 유지** (표 축 미착수). 재실측: `table-tag-entries=0` · `table-style-rules=0` · 계약 이름 2건 여전히 0 hit. **라인 drift 8건 동기화** — 같은 tick 의 `f885730`·`0868650` 이 `markdownParser.ts` 에 이어짐 패스와 닫는 시퀀스 헬퍼를 넣어 블록 패스 전체가 밀렸다 (`pre :102`→`:170` · `hr :148`→`:216` · `blockquote :169`→`:235` · `ul :215`→`:367` · `ol :242`→`:394` · `headers :288`→`:440` · 추출 `:383`→`:532`~`:552` · 순서 주석 `:370-379`→`:519-531`). 블록 패스는 6개에서 **7개**가 됐다 (이어짐 `:281` 신규) — 표 패스가 들어갈 자리를 이 목록이 가리키므로 계수가 중요하다. `sanitizeHtml.ts` 측 refs 는 drift 0. | 위치 · 변경 이력 |
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-052 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — 파이프 표 렌더 8 축 (I1~I8). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며 표 축 언급이 0건이고, 본 축은 파서·sanitize·styles **세 모듈의 공동 계약**이라 어느 한 모듈 spec 에도 온전히 들어가지 않는다. 같은 tick 에 `sanitizeHtml.md` 를 blue→green 으로 내려 (I12) 표 태그 축과 `ALLOWED_TAGS` 항목 수 drift(18→21)를 함께 정정했다. baseline: 블록 패스 6개 중 표 0 / 계약 이름 2건 0 hit / 표 태그 등재 0 / 표 스타일 규칙 0 / 정책 단일 출처 PASS / 현 산출 4행 + sanitize 통과 실측(`"1"`) 격리 사본 측정. unchecked 4 · checked 4. | all |
 
@@ -93,13 +116,16 @@
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 구현 task DoD 로)
 
-`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다. 검출 방향 3 · 음성 대조 2.
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다. 검출 방향 5 · 음성 대조 3.
 
 - **Dir-1 (민감도, I1)** — 표 블록 패스를 제거한다 → `rc≠0`.
 - **Dir-2 (민감도, I2)** — `ALLOWED_TAGS` 에서 표 태그를 뺀다 (파서는 그대로) → `rc≠0`. **Dir-1 과 분리해야 "파싱은 되는데 화면에 닿지 않는" 상태가 통과하지 않는다.**
 - **Dir-3 (민감도, I3)** — 구분선 행 요구를 없앤다 (파이프만 보면 표) → `rc≠0`.
+- **Dir-4 (민감도, I9 결합)** — `ALLOWED_TAGS` 에 표 6 태그를 넣되 corpus 는 그대로 둔다 → `rc≠0`. **Dir-2 와 반대 방향이다**: Dir-2 는 허용하지 않은 쪽, Dir-4 는 허용했는데 **재지 않는** 쪽을 잡는다. 이 방향이 붉지 않으면 정합 게이트가 표 축에서 공허하다.
+- **Dir-5 (민감도, I10 되돌림)** — 음성 대조의 예시 태그를 `<table>` 로 되돌린다 → `rc≠0`. `a13de9a` 이전 상태이며 본 tick 이 격리 사본에서 이미 왕복 실측했다 (주입 시 `policy-axis-tags-in-code=3` · rc=1 → 원복 rc=0).
 - **Ctrl-1 (특이도)** — 산문 속 파이프 문장의 문구를 바꾼다 → `rc=0`.
 - **Ctrl-2 (특이도)** — 본 spec 이 범위 밖으로 선언한 축 (셀 안 블록 요소 · `colspan` · 표 테두리 색) 의 정상 변경 → `rc=0`.
+- **Ctrl-3 (특이도, I9·I10)** — 정합 게이트의 **정책 축 밖** 정상 변경 (음성 대조의 URL 문자열 변경 · corpus 에 표가 아닌 블록 문법 1행 가산) → `rc=0`. 본 tick 격리 사본에서 2/2 통과를 실측했다. 이 대조가 붉으면 (I9)(I10) 이 과잉 특정된 것이며, **정상 변형 쪽을 바꿔 맞추지 않는다** (`RULE-06 §음성 대조`).
 
 ### 미측정·비판정 항목
 
@@ -107,5 +133,7 @@
 - **표 테두리·여백의 구체 값은 계약이 아니다.** (I7) 이 요구하는 것은 규칙의 **존재**이며, 어떤 값이어야 하는지는 정하지 않는다.
 - **게시된 글에서 표 표기의 빈도는 세지 않았다.** 저장소에 글 코퍼스가 없다. 근거는 빈도가 아니라 **표기가 표준이고 산출이 구조를 잃는다**는 것이다.
 - **패스 순서를 뒤집는 방향은 범위 밖이다** (REQ-052 (C-1)). 블록 패스는 `:170`~`:465`, 백슬래시 이스케이프·코드 스팬 추출은 `:532`~`:552` 이며, 코드 스팬·이스케이프의 현 계약이 이 순서에 기대고 있다 (`markdownParser.ts:519-531` 이 그 근거 주석).
-- **원 req**: `specs/60.done/2026/08/31/req/20260831-pipe-table-rendering.md`.
+- **기대 태그 목록의 도출을 계약이 강제하지 않는다.** (I9) 가 요구하는 것은 **결합**(표 태그가 허용되면 corpus 에 표가 있다)이지 구현 수단이 아니다. 완전한 도출(파서 산출 표면에서 기대 태그를 산출)은 `RULE-06 §열거 고정 금지` 가 권하는 방향이고 §역할 이 그것을 서술하지만, 현 HEAD 에서 명령 1회로 rc 판정이 되지 않아 체크박스로 두지 않는다 (`RULE-07 §수용 기준 문장 규약`). 하드코딩 17개는 **본 tick 시점의 사실**이며 §스코프 규칙 baseline 에 박제했다.
+- **`TSK-20260831-05-b` 의 `depends_on` 충족 판정은 본 계약의 대상이 아니다** — 규약 문면 사안이며 운영자가 `2e1a68d`(*"depends_on 충족은 60.done/task/ 착지로만 판정한다"*)로 처리했다. 본 spec 은 그 사실을 배경으로만 적는다.
+- **원 req**: `specs/60.done/2026/08/31/req/20260831-pipe-table-rendering.md` · `20260831-parser-sanitizer-corpus-derivation-and-table-unblock.md` (REQ-067). 출처 followup: `20260831-1750-tsk-05-b-dependency-closed-not-done.md` (developer) + `TSK-20260831-05-a` 격리 사유서.
 - **외부 근거**: GitHub Flavored Markdown Spec §4.10 *Tables (extension)* — 머리 행 + 구분선 행(delimiter row) 쌍, 셀 안 `\|` 이스케이프, 정렬 표기 `:--`/`--:`/`:-:`.
