@@ -92,3 +92,40 @@ it('source code contains no deprecated v3 get*/onFID references', async () => {
 	expect(source).toMatch(/onLCP/);
 	expect(source).toMatch(/onTTFB/);
 });
+
+// `import('web-vitals')` 는 별도 청크다. 배포 직후 CDN 이 옛 `index.html` 을 주는
+// 동안 그 주소가 이미 사라져 있을 수 있고, 오프라인이면 아예 오지 않는다. `.catch`
+// 가 없으면 그 실패가 **처리되지 않은 거부**가 된다 — 성능 수치를 못 재는 것과
+// 앱이 오류를 뿜는 것은 비교할 일이 아니다.
+describe('청크가 오지 않아도 던지지 않는다', () => {
+
+	it('동적 import 실패를 삼킨다', async () => {
+
+		vi.resetModules();
+		vi.doMock('web-vitals', () => {
+			throw new Error('Failed to fetch dynamically imported module: /assets/web-vitals.js');
+		});
+
+		// **`window` 의 `unhandledrejection` 로는 못 잡는다.** jsdom 은 Node 의 프라미스
+		// 거부를 그 이벤트로 다시 쏘지 않는다 — 실측: `.catch` 를 지워도 이 리스너에
+		// 아무것도 들어오지 않았고, 그때 붉힌 것은 vitest 의 전역 처리였다.
+		// 판정을 남의 전역 동작에 기대지 않도록 프로세스 수준에서 직접 받는다.
+		const rejections: unknown[] = [];
+		const onRejection = (reason: unknown): void => { rejections.push(reason); };
+		process.on('unhandledRejection', onRejection);
+
+		const mod = await import('./reportWebVitals');
+
+		expect(() => mod.default(vi.fn())).not.toThrow();
+
+		// 마이크로태스크가 다 돌고 **거부가 처리되지 않았다고 판정될 때까지** 기다린다.
+		// Node 는 그 판정을 다음 틱으로 미룬다 — 즉시 재면 아직 조용하다.
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(rejections).toEqual([]);
+
+		process.off('unhandledRejection', onRejection);
+		vi.doUnmock('web-vitals');
+		vi.resetModules();
+	});
+});
