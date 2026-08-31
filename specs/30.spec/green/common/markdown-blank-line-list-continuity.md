@@ -1,10 +1,10 @@
 # 항목 사이의 빈 줄은 목록을 끊지 않는다
 
-> **위치**: `src/common/markdownParser.ts` — 줄 분해 (`:156`), 이어짐 패스 (`:281`~`:365`), `ul` 검출 (`:367`) · `ol` 검출 (`:394`) · `bindListItem` (`:833`, `depthStack` `:836` · `flushAll` `:853` · "Starting a fresh list" `:881` · "Non-list node terminates" `:924`), 문단 감싸기 (`:720-724`). `src/common/sanitizeHtml.ts` — `ALLOWED_ATTR` (`:17`, 경계). 게이트: `src/common/markdownParser.test.ts` + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
+> **위치**: `src/common/markdownParser.ts` — 줄 분해 (`:156`), 이어짐 패스 (`:281`~`:365`), `ul` 검출 (`:367`) · `ol` 검출 (`:394`) · `bindListItem` (`:833`, `depthStack` `:836` · `flushAll` `:853` · `isBlankLine` `:867` · `blankRunLeadsToSameTypeItem` `:872` · "Starting a fresh list" `:904` · "Non-list node terminates" `:969`), 문단 감싸기 (`:720-724`). `src/common/sanitizeHtml.ts` — `ALLOWED_ATTR` (`:17`, 경계). 게이트: `src/common/markdownParser.test.ts` + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
 > **관련 요구사항**: REQ-20260831-057 FR-01~FR-07 · NFR-01~NFR-05 (출처: 운영자 결함 신고)
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-057 흡수, HEAD=`0aa049e`)
+> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile, HEAD=`c64c946`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`0aa049e`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`c64c946`).
 
 ## 역할
 
@@ -57,28 +57,28 @@
 
 ## 테스트 현황
 
-> 각 명령은 HEAD=`0aa049e` 에서 **파일에서 추출해** 격리 사본(`git archive HEAD` + `node_modules` 심볼릭 링크)에서 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있으므로 이 축의 측정은 언제나 격리 사본에서 한다 (`RULE-02 §교차 작업 파괴`).
+> 각 명령은 HEAD=`c64c946` 에서 (흡수 시점 측정은 HEAD=`0aa049e`) **파일에서 추출해** 격리 사본(`git archive HEAD` + `node_modules` 심볼릭 링크)에서 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있으므로 이 축의 측정은 언제나 격리 사본에서 한다 (`RULE-02 §교차 작업 파괴`).
 
-- [ ] (I1·I2·I3) 빈 줄 투과 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄은 같은 종류의 목록을 끊지 않는다" "$f" && grep -qF "1. 첫째\n\n2. 둘째\n\n3. 셋째" "$f" && grep -qF -e "- 첫째\n\n- 둘째" "$f" && grep -qF "1. 첫째\n\n\n2. 둘째" "$f" && npx vitest run "$f" -t "빈 줄은 같은 종류의 목록을 끊지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 3건 0 hit.
-- [ ] (I5·I6) 대조 두 방향이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄이 목록을 끝내는 자리" "$f" && grep -qF "1. 첫째\n\n본문" "$f" && grep -qF "1. 첫째\n\n- 둘째" "$f" && npx vitest run "$f" -t "빈 줄이 목록을 끝내는 자리" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 실측 **rc=1 (미충족)**. **이 대조가 없으면 `flushAll()` 을 무조건 늦추는 구현이 (I1) 을 통과한다.**
-- [ ] (I4 중첩) 중첩 보존 대조가 게이트에 실재한다: `bash -c 'grep -qF -e "- 하나\n\n  - 중첩" src/common/markdownParser.test.ts'` → HEAD=`0aa049e` 실측 **rc=1 (0 hit)**. 계약 산출은 빈 줄 없는 `- 하나\n  - 중첩` 의 산출과 같은 `<ul><li>하나<ul><li>중첩</li></ul></li></ul>` 이다.
-- [ ] (I9 접속) 네 방향 예시가 **실재하면서 동시에** 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "1. 첫째\n\n2. 둘째\n\n3. 셋째" "$f" && grep -qF -e "- 하나\n\n  - 중첩" "$f" && grep -qF "1. 첫째\n\n본문" "$f" && grep -qF "1. 첫째\n\n- 둘째" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이고, `-t` 는 이름 미매치 시 단독으로 rc=0 을 낸다. 둘 다 공허 통과 경로다.
-- [ ] (I1 정적 zero-point) 파서 단위 게이트에 빈 줄 입력이 실재한다: `bash -c 'test "$(grep -cF "\n\n" src/common/markdownParser.test.ts)" -ge 1'` → HEAD=`0aa049e` 실측 **rc=1 (0 hit)**. 선언 `it(` **95** 건 전체에 빈 줄이 든 입력이 한 건도 없다 — **이 결함이 스위트가 초록인 채로 존재하는 이유가 이 0 이다.**
-- [x] (I7 특이도 — 인용) 빈 줄이 인용을 끊는 축이 게이트로 잠겨 있고 초록이다: `bash -c 'f=src/__tests__/blockquote-is-one-block.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄은 인용을 끊는다" "$f" && npx vitest run "$f" -t "빈 줄은 인용을 끊는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 실측 rc=0 (`:35`). **구현 후에도 rc=0 이어야 한다 — 빈 줄을 전역적으로 투명하게 만드는 구현은 정확히 여기서 붉어진다.**
-- [x] (I8 정책 경계) `ALLOWED_ATTR` 이 7항목이고 `start` 가 없다: `bash -c 'test "$(perl -0777 -ne "print \$1 if /const ALLOWED_ATTR\s*=\s*\[(.*?)\]/s" src/common/sanitizeHtml.ts | grep -oE "'\''[a-z]+'\''" | wc -l | tr -d " ")" -eq 7 && ! grep -qE "'\''start'\''" src/common/sanitizeHtml.ts'` → HEAD=`0aa049e` 실측 rc=0. 구현 후에도 rc=0 이어야 한다.
-- [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 실측 rc=0 (**109 tests**). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
-- [x] (NFR-02 교차 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 실측 rc=0, 출력 `cross-gate-files=8`. **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단).
+- [x] (I1·I2·I3) 빈 줄 투과 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄은 같은 종류의 목록을 끊지 않는다" "$f" && grep -qF "1. 첫째\n\n2. 둘째\n\n3. 셋째" "$f" && grep -qF -e "- 첫째\n\n- 둘째" "$f" && grep -qF "1. 첫째\n\n\n2. 둘째" "$f" && npx vitest run "$f" -t "빈 줄은 같은 종류의 목록을 끊지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=0**. `TSK-20260831-09-b` (`c64c946`) 로 충족 — 흡수 시점 HEAD=`0aa049e` 는 rc=1 (계약 이름 0 hit · 예시 3건 0 hit).
+- [x] (I5·I6) 대조 두 방향이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄이 목록을 끝내는 자리" "$f" && grep -qF "1. 첫째\n\n본문" "$f" && grep -qF "1. 첫째\n\n- 둘째" "$f" && npx vitest run "$f" -t "빈 줄이 목록을 끝내는 자리" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=0**. `TSK-20260831-09-a` (`d762727`) 로 충족 — 흡수 시점 rc=1. **이 대조가 없으면 `flushAll()` 을 무조건 늦추는 구현이 (I1) 을 통과한다.**
+- [x] (I4 중첩) 중첩 보존 대조가 게이트에 실재한다: `bash -c 'grep -qF -e "- 하나\n\n  - 중첩" src/common/markdownParser.test.ts'` → HEAD=`c64c946` 실측 **rc=0** (`09-b`, `c64c946`) — 흡수 시점 rc=1 (0 hit). 계약 산출은 빈 줄 없는 `- 하나\n  - 중첩` 의 산출과 같은 `<ul><li>하나<ul><li>중첩</li></ul></li></ul>` 이다.
+- [x] (I9 접속) 네 방향 예시가 **실재하면서 동시에** 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "1. 첫째\n\n2. 둘째\n\n3. 셋째" "$f" && grep -qF -e "- 하나\n\n  - 중첩" "$f" && grep -qF "1. 첫째\n\n본문" "$f" && grep -qF "1. 첫째\n\n- 둘째" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=0** (09-a 예시 2건 + 09-b 예시 2건이 동시 실재하고 파서 스위트 115 tests 초록) — 흡수 시점 rc=1 (grep 단계 탈락). **접속으로 닫는 이유**: 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이고, `-t` 는 이름 미매치 시 단독으로 rc=0 을 낸다. 둘 다 공허 통과 경로다.
+- [x] (I1 정적 zero-point) 파서 단위 게이트에 빈 줄 입력이 실재한다: `bash -c 'test "$(grep -cF "\n\n" src/common/markdownParser.test.ts)" -ge 1'` → HEAD=`c64c946` 실측 **rc=0** (`\n\n` 9 hit · 선언 `it(` **101**). 흡수 시점 HEAD=`0aa049e` 는 **rc=1 (0 hit)** 이었고 선언 95 건 전체에 빈 줄 입력이 없었다 — **이 0 이 결함을 스위트가 초록인 채로 유지시킨 원인이다.**
+- [x] (I7 특이도 — 인용) 빈 줄이 인용을 끊는 축이 게이트로 잠겨 있고 초록이다: `bash -c 'f=src/__tests__/blockquote-is-one-block.test.ts; test -f "$f" || exit 2; grep -qF "빈 줄은 인용을 끊는다" "$f" && npx vitest run "$f" -t "빈 줄은 인용을 끊는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 rc=0 (`:35`) — 구현 후 재실행 유지 (09-b Dir-3 주입 시 rc=1 로 검출됨). **구현 후에도 rc=0 이어야 한다 — 빈 줄을 전역적으로 투명하게 만드는 구현은 정확히 여기서 붉어진다.**
+- [x] (I8 정책 경계) `ALLOWED_ATTR` 이 7항목이고 `start` 가 없다: `bash -c 'test "$(perl -0777 -ne "print \$1 if /const ALLOWED_ATTR\s*=\s*\[(.*?)\]/s" src/common/sanitizeHtml.ts | grep -oE "'\''[a-z]+'\''" | wc -l | tr -d " ")" -eq 7 && ! grep -qE "'\''start'\''" src/common/sanitizeHtml.ts'` → HEAD=`c64c946` 실측 rc=0 (구현 후 재실행 유지). 구현 후에도 rc=0 이어야 한다.
+- [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 rc=0 (**115 tests**; 흡수 시점 109). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (NFR-02 교차 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 rc=0, 출력 `cross-gate-files=8` (105 tests 불변). **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단).
 
 ## 수용 기준
-- [ ] (Must, FR-01·FR-02·FR-03·FR-04) 위 §테스트 현황 (I1·I2·I3) 명령 → rc=0.
-- [ ] (Must, FR-05·FR-06) 위 §테스트 현황 (I5·I6) 명령 → rc=0.
-- [ ] (Should, FR-07) 위 §테스트 현황 (I4 중첩) 명령 → rc=0.
-- [ ] (Must, FR-01~FR-07 접속) 위 §테스트 현황 (I9 접속) 명령 → rc=0.
-- [ ] (Must, 정적 zero-point) 위 §테스트 현황 (I1 정적) 명령 → rc=0.
-- [x] (Must, NFR-02 특이도) 위 §테스트 현황 (I7 특이도) 명령 → rc=0. HEAD=`0aa049e` 실측 rc=0.
-- [x] (Must, NFR-04 정책 경계) 위 §테스트 현황 (I8) 명령 → rc=0. HEAD=`0aa049e` 실측 rc=0.
-- [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`0aa049e` 실측 rc=0 (109 tests).
-- [x] (Must, NFR-02 교차 비퇴행) 위 §테스트 현황 (NFR-02) 명령 → rc=0. HEAD=`0aa049e` 실측 rc=0 (`cross-gate-files=8`).
+- [x] (Must, FR-01·FR-02·FR-03·FR-04) 위 §테스트 현황 (I1·I2·I3) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
+- [x] (Must, FR-05·FR-06) 위 §테스트 현황 (I5·I6) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
+- [x] (Should, FR-07) 위 §테스트 현황 (I4 중첩) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
+- [x] (Must, FR-01~FR-07 접속) 위 §테스트 현황 (I9 접속) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
+- [x] (Must, 정적 zero-point) 위 §테스트 현황 (I1 정적) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
+- [x] (Must, NFR-02 특이도) 위 §테스트 현황 (I7 특이도) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
+- [x] (Must, NFR-04 정책 경계) 위 §테스트 현황 (I8) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
+- [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0 (115 tests).
+- [x] (Must, NFR-02 교차 비퇴행) 위 §테스트 현황 (NFR-02) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0 (`cross-gate-files=8`, 105 tests).
 - [x] (Must, 범위 제한) loose 목록의 `<p>` 래핑 · 목록 밖 `<p></p>` · 글머리 문자 변경 규칙 · `1)` 계열은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
@@ -89,8 +89,8 @@
   - 계약 이름·예시 전수 0 hit — 전부 신설 대상이다. `grep -cF "빈 줄은 같은 종류의 목록을 끊지 않는다" src/common/markdownParser.test.ts` → **0** · `grep -cF "빈 줄이 목록을 끝내는 자리" src/common/markdownParser.test.ts` → **0**. **패턴이 `-` 로 시작하면 `-e` 로 넘긴다** — `grep -qF "- 첫째…"` 는 패턴을 옵션으로 읽어 `rc=2` 를 내며, 접속(`&&`) 안에서는 앞 항이 통과한 뒤에야 그 자리에 닿으므로 **게이트가 생긴 순간부터 영구히 rc≠0 이 된다** (흡수 시점 자기검증에서 실제로 잡았다). **계수 명령은 파일 인자를 매번 적는다** — 인자를 빼면 `grep` 이 stdin 을 읽어 매달리고, 줄임표로 줄이면 그것을 파일 이름으로 읽어 `rc=2` 를 낸다 (`RULE-06 §추출 실패 검출`).
   - 교차 게이트 8 파일의 빈 줄 입력 분포: `blockquote-is-one-block` **1** · `markdown-render-invariants` **1** · `parser-sanitizer-coherence` **2** · 나머지 5 파일 **0**. 목록 마커와 빈 줄이 같은 입력에 함께 나타난 것은 **9 파일 전체에서 0건** (`perl -0777` 동시 매치 도출).
   - `grep -nE "ALLOWED_ATTR" src/common/sanitizeHtml.ts` → `:17` (7항목: `href`·`src`·`alt`·`title`·`target`·`rel`·`class`) · `:57` (전달). `grep -cE "'start'" src/common/sanitizeHtml.ts` → **0**. `<ol start="2">` 우회가 막혀 있다는 (I8) 의 근거다 — 격리 사본 실측으로 `IN <ol start="2"><li>둘째</li></ol>` → `SAN <ol><li>둘째</li></ol>`.
-  - 현 산출 실측 (격리 사본, repo 트리 무변경). 왼쪽 열이 결함이고 오른쪽 열이 계약이다 — **계약 열은 세 번째 열의 실측값과 문자열로 같다**:
-    | 입력 (`\n` 구분) | 현 산출 (`0aa049e`) | 빈 줄 없는 같은 입력의 산출 = 계약 |
+  - 흡수 시점(`0aa049e`) 산출 실측 (격리 사본, repo 트리 무변경). **이 표의 왼쪽 열은 `c64c946` 이후 더 이상 재현되지 않는다** — 구현 후 산출은 오른쪽 열과 일치하며 `TSK-20260831-09-b` result.md 가 10행 전건 재측정을 박제한다. 왼쪽 열이 결함이고 오른쪽 열이 계약이다 — **계약 열은 세 번째 열의 실측값과 문자열로 같다**:
+    | 입력 (`\n` 구분) | 흡수 시점 산출 (`0aa049e`, 결함) | 빈 줄 없는 같은 입력의 산출 = 계약 |
     |---|---|---|
     | `1. 첫째` `` `2. 둘째` `` `3. 셋째` | `<ol><li> 첫째</li></ol><p></p><ol><li> 둘째</li></ol><p></p><ol><li> 셋째</li></ol>` | `<ol><li> 첫째</li><li> 둘째</li><li> 셋째</li></ol>` |
     | `- 첫째` `` `- 둘째` | `<ul><li>첫째</li></ul><p></p><ul><li>둘째</li></ul>` | `<ul><li>첫째</li><li>둘째</li></ul>` |
@@ -98,7 +98,7 @@
     | `1. 첫째` `` `` `2. 둘째` (빈 줄 2) | `<ol><li> 첫째</li></ol><p></p><p></p><ol><li> 둘째</li></ol>` | `<ol><li> 첫째</li><li> 둘째</li></ol>` (빈 줄 1 과 동일 — I2) |
     | `1. 첫째` `   이어짐` `` `2. 둘째` | `<ol><li> 첫째<br />이어짐</li></ol><p></p><ol><li> 둘째</li></ol>` | `<ol><li> 첫째<br />이어짐</li><li> 둘째</li></ol>` |
     | `- 하나` `` `  - 중첩` | `<ul><li>하나</li></ul><p></p><ul><li>중첩</li></ul>` (**중첩도 잃는다**) | `<ul><li>하나<ul><li>중첩</li></ul></li></ul>` |
-  - 대조 축 현 산출 — **이 넷은 바뀌지 않는 것이 계약이다**:
+  - 대조 축 산출 (`0aa049e` · `c64c946` 동일) — **이 넷은 바뀌지 않는 것이 계약이다**:
     | 입력 | 현 산출 = 계약 | 축 |
     |---|---|---|
     | `1. 첫째` `` `본문` | `<ol><li> 첫째</li></ol><p></p><p>본문</p>` | (I5) |
@@ -111,12 +111,13 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-057 흡수) / pending @ HEAD=`0aa049e` | 최초 박제 — 빈 줄 목록 연속성 9 축 (I1~I9). **신규 spec 으로 세운 근거**: 소유 후보였던 `markdown-list-item-continuation.md` 가 §역할 · §참고 §미측정 에서 이 축을 명시적 범위 밖("별 축")으로 선언했고, 그 spec 은 `9dcd80e` 로 blue 승격돼 inspector 의 쓰기 대상이 아니다. 그 선언은 여전히 참이므로 blue 를 되받아 고칠 이유도 없다. **(I1) 을 등식으로 세운 것이 이 흡수의 판단**이다 — req 가 지목한 "`<ol>` 개수만 재면 항목을 잃은 구현이 통과한다" 를 개수 두 개를 나란히 재는 대신 오른쪽 항(빈 줄 없는 같은 입력)으로 닫았다. baseline: 계약 이름 2건 0 hit / 빈 줄 입력 파서 스위트 0건 / 선언 95 it(실행 109 tests) / 결함 축 6행 · 대조 축 4행 격리 사본 실측 / `ALLOWED_ATTR` 7항목에 `start` 0 hit. unchecked 5 · checked 5. | all |
+| 2026-08-31 | inspector (Phase 1 drift reconcile) / `d762727`·`c64c946` @ HEAD=`c64c946` | **unchecked 5 → 0 · §수용 기준 10/10 `[x]`** — 판정 명령 9건을 spec 파일에서 추출해 격리 사본(HEAD=`c64c946`)에서 전수 재실행, 전건 rc=0. 플립: (I1·I2·I3) · (I5·I6) · (I4 중첩) · (I9 접속) · (I1 정적 zero-point). 근거 커밋 둘 다 HEAD 조상 — `d762727` (TSK-09-a 대조 net) · `c64c946` (TSK-09-b 등식 구현). 라인 drift 2: "Starting a fresh list" `:881`→`:904` · "Non-list node terminates" `:924`→`:969` (두 hunk 가 `:863` 이후라 `:156`·`:281~:365`·`:367`·`:394`·`:720-724`·`:833`·`:836`·`:853` 및 test 파일 `:120`·`:125`·`blockquote:35` 는 전부 불변). 신규 식별자 `isBlankLine` `:867` · `blankRunLeadsToSameTypeItem` `:872` 를 §위치 에 추가. 계수 drift: 선언 `it(` 95→**101** · 파서 실행 109→**115** tests · `\n\n` 정적 hit **0→9** · 교차 게이트 8 파일 105 tests 불변. §스코프 규칙 결함 표를 "현 산출"→"흡수 시점 산출(결함)" 로 재라벨 — 왼쪽 열은 `c64c946` 이후 재현되지 않는다. 주입 이관 4방향·대조 2건 **전건 이관 완료**. | 테스트 현황 · 수용 기준 · 위치 · 스코프 규칙 · 참고 |
 
 ## 참고
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 구현 task DoD 로)
 
-`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다. **검출 방향 4 · 음성 대조 2.**
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. **검출 방향 4 · 음성 대조 2.** **이관 완료 (HEAD=`c64c946`)** — `TSK-20260831-09-a` (`d762727`) 가 Dir-2 · Ctrl-1 을, `TSK-20260831-09-b` (`c64c946`) 가 Dir-1 · Dir-3 · Dir-4 · Ctrl-2 를 왕복 판정했다 (`injection: 1/1 detect` + `3/3 detect` = 4/4 · `control: 1/1 pass` ×2 = 2/2). 각 방향의 주입 명령·실패 출력·원복 후 rc 는 두 task 의 `result.md` 에 박제돼 있다. 아래 방향 목록은 게이트 설계 근거로 남긴다.
 
 - **Dir-1 (민감도, I1·I2·I3)** — 빈 줄 투과를 끈다 (빈 줄 앞에서 목록을 다시 닫는다) → `rc≠0`. 이 방향이 붉지 않으면 계약이 게이트에 닿지 않은 것이다.
 - **Dir-2 (민감도, I5·I6 — 과잉 방향)** — 빈 줄 뒤 블록의 종류 판정을 없애고 **무조건** 목록을 잇는다 (`flushAll()` 을 조건 없이 늦춘다) → `rc≠0`. **Dir-1 과 반대 방향이다**: Dir-1 은 잇지 못하는 쪽, Dir-2 는 끊어야 할 자리까지 잇는 쪽을 잡는다.
@@ -133,6 +134,7 @@
 - **접근성 트리 노출은 명령으로 재지 않는다** (REQ-057 NFR-03). 산출이 `<ul>`/`<ol>` 하나이면 list semantics 는 HTML 표준이 보장하므로 (I1) 의 등식이 이 명제를 함의한다. 별도 측정 채널을 만들지 않는다.
 - **실제 게시글에서 띄어 쓴 목록의 빈도는 세지 않았다.** 저장소에 글 코퍼스가 없다. 근거는 빈도가 아니라 **표기가 CommonMark 표준이고 결과가 틀리다는 것**이며, 이 신고가 운영자에게서 직접 왔다는 사실이다 (RULE-05 §결함 신고).
 - **구현 수단은 지정하지 않는다.** 빈 줄을 검출 전에 걷을지, `bindListItem` 의 비-list 분기에서 앞뒤를 볼지, 별 패스를 둘지는 developer 영역이다. (I1) 의 등식과 (I5)(I6)(I7) 의 대조가 판정한다 — 단 NFR-05 대로 `bindListItem` 의 중첩 스택 알고리즘을 **대체하지 않고 입력을 넓히는** 쪽이며, 이는 이어짐 축(`f885730`)이 택한 것과 같은 방향이다.
+- **빈 줄 술어의 공백만 있는 줄 포함 여부는 이 계약이 명시하지 않는다.** 계약 문면은 `\n\n` 만 말한다. 구현(`isBlankLine` `:867`)은 `text.trim() === ""` 라 `- a\n  \n- b` 도 투과시키며 이는 CommonMark 의 blank line 정의와 같으나, **본 spec 이 요구한 바는 아니다** — 계약면을 넓힐지는 별 축이다. `TSK-20260831-09-b` §관찰 이슈 2 가 후속 스텁 `specs/10.followups/20260831-1303-blank-line-predicate-includes-whitespace-only-line.md` 로 남겼고 discovery 소관이다.
 - **저장 원문은 바뀌지 않는다.** 수리는 읽을 때 적용되므로 이미 게시된 글에도 파서 변경만으로 반영된다 (`markdownParser.ts:566` 이 같은 원칙을 박제한다).
 - **원 req**: `specs/60.done/2026/08/31/req/20260831-blank-line-between-list-items-does-not-split-the-list.md` (REQ-057). 출처 결함 신고: `specs/10.followups/20260831-1110-blank-line-between-list-items-restarts-numbering.md`.
 - **외부 근거**: CommonMark 0.31.2 §5.3 *Lists* — Ex.306 ("There can be any number of blank lines between items") · Ex.311 (`1. a` / `` / `2. b` / `` / `3. c` → `<ol>` 하나) · Ex.314 (loose 여도 목록은 하나) · Ex.308 ("To separate consecutive lists of the same type … you can insert a blank HTML comment" — 같은 종류의 목록을 **나누려면 빈 줄로는 부족하다**는 반대편 증거) · Ex.301·302 (글머리 문자 변경 — 본 계약이 범위 밖으로 둔 축).
