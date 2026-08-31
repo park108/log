@@ -39,7 +39,7 @@
 - 내부: `src/common/markdownParser.ts` (단일 대상), `src/common/markdownParser.test.ts` (게이트).
 - 외부: 없음 (순수 함수).
 - 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log · Comment 본문 렌더).
-- 직교: `specs/30.spec/green/common/markdownParser.md` — (I1)~(I7) `bindListItem` 중첩 알고리즘. 본 계약은 그 알고리즘의 **입력을 넓히는** 축이며 알고리즘 자체와 직교한다 ((I7) 이 그 경계다). `specs/30.spec/blue/common/sanitizeHtml.md` — 산출 태그 `ul`·`ol`·`li`·`blockquote` 는 `ALLOWED_TAGS` 에 이미 있어 sanitize 변경을 요구하지 않는다.
+- 직교: `specs/30.spec/blue/common/markdownParser.md` — (I1)~(I7) `bindListItem` 중첩 알고리즘. 본 계약은 그 알고리즘의 **입력을 넓히는** 축이며 알고리즘 자체와 직교한다 ((I7) 이 그 경계다). `specs/30.spec/green/common/sanitizeHtml.md` — 산출 태그 `ul`·`ol`·`li`·`blockquote` 는 `ALLOWED_TAGS` 에 이미 있어 sanitize 변경을 요구하지 않는다.
 
 ## 테스트 현황
 - [x] (I1·I3·I4·I5) 이어짐 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "목록 항목에 이어지는 줄" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "목록 항목에 이어지는 줄" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=0** (`markdownParser.test.ts:496` describe). `grep -cF "목록 항목에 이어지는 줄" src/common/markdownParser.test.ts` → **1** (흡수 시점 0).

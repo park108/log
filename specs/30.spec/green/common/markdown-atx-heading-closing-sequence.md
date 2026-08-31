@@ -38,7 +38,7 @@ ATX 제목을 `## 제목 ##` 처럼 양쪽에 `#` 을 두어 쓸 때, 닫는 `#`
 - 내부: `src/common/markdownParser.ts` (단일 대상), `src/common/markdownParser.test.ts` (게이트).
 - 외부: 없음 (순수 함수).
 - 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log · Comment 본문 렌더).
-- 직교: `specs/30.spec/blue/common/sanitizeHtml.md` — 산출 태그 `h1`~`h6` 은 `ALLOWED_TAGS` 에 이미 있어 sanitize 변경을 요구하지 않는다. `specs/30.spec/green/common/markdownParser.md` (`bindListItem` + 속성 escape 축 — 본 축과 무관).
+- 직교: `specs/30.spec/green/common/sanitizeHtml.md` — 산출 태그 `h1`~`h6` 은 `ALLOWED_TAGS` 에 이미 있어 sanitize 변경을 요구하지 않는다. `specs/30.spec/blue/common/markdownParser.md` (`bindListItem` + 속성 escape 축 — 본 축과 무관).
 
 ## 테스트 현황
 - [x] (I1·I2·I4) 닫는 시퀀스 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "제목의 닫는 # 은 제목 글자가 아니다" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=0** (`markdownParser.test.ts:565` describe). `grep -cF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts` → **1** (흡수 시점 0).

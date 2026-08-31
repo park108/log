@@ -45,7 +45,7 @@
 - 내부: `src/common/markdownParser.ts` (표 블록 패스), `src/common/sanitizeHtml.ts` (허용 태그), `src/styles/` (표 규칙), `src/common/markdownParser.test.ts` · `src/common/sanitizeHtml.test.ts` (게이트).
 - 외부: `dompurify` (sanitize 구현 — 버전 정합은 `dependency-bump-gate.md` 영역).
 - 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log · Comment 본문 렌더).
-- 직교: `specs/30.spec/green/common/sanitizeHtml.md` — 그 spec 의 **(I12)** 가 본 축의 (I2) 를 정책 쪽에서 받으며, (I1) 단일 모듈 정책과 (I6) 정책 변경 단일 진입점이 본 축의 (I2)(I8) 을 규율한다. 본 spec 은 **무엇이 허용돼야 하는가** 를 요구하고, 그 spec 은 **어디서 어떻게 바꾸는가** 를 규율한다. `specs/30.spec/green/common/markdownParser.md` (`bindListItem` + 속성 escape 축 — 본 축과 무관).
+- 직교: `specs/30.spec/green/common/sanitizeHtml.md` — 그 spec 의 **(I12)** 가 본 축의 (I2) 를 정책 쪽에서 받으며, (I1) 단일 모듈 정책과 (I6) 정책 변경 단일 진입점이 본 축의 (I2)(I8) 을 규율한다. 본 spec 은 **무엇이 허용돼야 하는가** 를 요구하고, 그 spec 은 **어디서 어떻게 바꾸는가** 를 규율한다. `specs/30.spec/blue/common/markdownParser.md` (`bindListItem` + 속성 escape 축 — 본 축과 무관).
 
 ## 테스트 현황
 - [ ] (I1·I5·I6) 표 렌더 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "파이프 표" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "파이프 표" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=1 (미충족)**. `grep -cF "파이프 표" src/common/markdownParser.test.ts` → **0**.
