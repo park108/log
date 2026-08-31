@@ -1,16 +1,16 @@
 # 제목의 닫는 `#` 은 표기이지 제목 글자가 아니다
 
-> **위치**: `src/common/markdownParser.ts` — 제목 패스 (`:288`~`:315`), 여는 시퀀스 판정 (`:302`), 제목 내용 추출 (`:306`). 게이트: `src/common/markdownParser.test.ts` (`:11` 이 유일한 제목 단언).
+> **위치**: `src/common/markdownParser.ts` — 제목 패스 (`:440`~`:465`), 여는 시퀀스 판정 (`:454`), 제목 내용 추출 + 닫는 시퀀스 제거 (`:458`), `stripHeadingClosingSequence` (`:94`). 게이트: `src/common/markdownParser.test.ts` — `:11` (기존 제목 단언) · `:565` (닫는 시퀀스 계약) · `:600` (내용인 `#` 대조).
 > **관련 요구사항**: REQ-20260831-054 FR-01~FR-04 · NFR-01~NFR-03
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-054 흡수, HEAD=`b1cbf5c`)
+> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile, 계약 전 축 충족, HEAD=`7b43fa8`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`b1cbf5c`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`7b43fa8`).
 
 ## 역할
 
 ATX 제목을 `## 제목 ##` 처럼 양쪽에 `#` 을 두어 쓸 때, 닫는 `#` 시퀀스는 **표기이지 내용이 아니다** (CommonMark 0.31.2 §4.2 — "The optional closing sequence of #s must be preceded by spaces or tabs and may be followed by spaces or tabs only").
 
-**방어 대상 (사용자 관측 표면)**: 독자가 `제목 ##` 을 보는 상태 — 글쓴이가 화면에 내보내려던 적이 없는 글자다. 원인은 제목 패스가 **여는 쪽만** 본다는 것이다. `:302` 가 `#`~`######` 접두만 판정하고 `:306` 이 `node.text.substring(i + 1)` 로 **줄 끝까지 통째로** 제목 내용에 넣는다. 닫는 쪽 처리는 0건이다.
+**방어 대상 (사용자 관측 표면)**: 독자가 `제목 ##` 을 보는 상태 — 글쓴이가 화면에 내보내려던 적이 없는 글자다. 원인은 제목 패스가 **여는 쪽만** 보는 것이었다 — `:454` 가 `#`~`######` 접두만 판정하고 제목 내용 추출이 `node.text.substring(i + 1)` 로 **줄 끝까지 통째로** 담았다. 현 HEAD 는 그 추출을 `stripHeadingClosingSequence` (`:94`) 로 감싸 닫는 쪽을 처리한다 (`0868650`). 계약은 그 상태를 **유지**하는 명제다.
 
 **이 계약의 절반은 내용인 `#` 을 지키는 것이다.** CommonMark 가 닫는 시퀀스를 "앞에 공백이 있는 줄 끝 `#` 런" 으로만 인정하는 이유가 이것이다. `## C# 과 F#` 은 지금도 정확하며 수리 후에도 같아야 한다 — "줄 끝 `#` 을 지운다" 로 구현하면 `C#`·`F#` 이 잘려 나간다. 두 축은 함께 성립해야 한다.
 
@@ -41,53 +41,54 @@ ATX 제목을 `## 제목 ##` 처럼 양쪽에 `#` 을 두어 쓸 때, 닫는 `#`
 - 직교: `specs/30.spec/blue/common/sanitizeHtml.md` — 산출 태그 `h1`~`h6` 은 `ALLOWED_TAGS` 에 이미 있어 sanitize 변경을 요구하지 않는다. `specs/30.spec/green/common/markdownParser.md` (`bindListItem` + 속성 escape 축 — 본 축과 무관).
 
 ## 테스트 현황
-- [ ] (I1·I2·I4) 닫는 시퀀스 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "제목의 닫는 # 은 제목 글자가 아니다" >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 **rc=1 (미충족)**. `grep -cF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts` → **0**.
-- [ ] (I3) 내용인 `#` 대조가 게이트로 실재하고 초록이다: `bash -c 'grep -qF "앞에 공백이 없는 줄 끝 # 은 내용이다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "앞에 공백이 없는 줄 끝 # 은 내용이다" >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 **rc=1 (미충족)**. **이 대조가 없으면 줄 끝 `#` 을 무조건 지우는 구현도 (I1) 을 통과하며, 그 구현은 `C#`·`F#` 을 잘라 낸다.**
-- [x] (원인 실재) 제목 패스가 줄 끝까지 통째로 담는다: `bash -c 'grep -qF "text: node.text.substring(i + 1), closure: \"header\"" src/common/markdownParser.ts'` → HEAD=`b1cbf5c` 실측 rc=0 (`markdownParser.ts:306`). 닫는 시퀀스가 제목에 남는 직접 원인이며, 이 항목은 **원인의 실재**를 재는 것이지 계약을 재는 것이 아니다.
-- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`b1cbf5c` 실측 rc=0 (**80 tests**). 구현 후에도 rc=0 이어야 한다.
+- [x] (I1·I2·I4) 닫는 시퀀스 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "제목의 닫는 # 은 제목 글자가 아니다" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=0** (`markdownParser.test.ts:565` describe). `grep -cF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts` → **1** (흡수 시점 0).
+- [x] (I3) 내용인 `#` 대조가 게이트로 실재하고 초록이다: `bash -c 'grep -qF "앞에 공백이 없는 줄 끝 # 은 내용이다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "앞에 공백이 없는 줄 끝 # 은 내용이다" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=0** (`:600` describe). **이 대조가 없으면 줄 끝 `#` 을 무조건 지우는 구현도 (I1) 을 통과하며, 그 구현은 `C#`·`F#` 을 잘라 낸다.**
+- [x] (구조 실재) 제목 내용 추출이 닫는 시퀀스 제거를 **거친다**: `bash -c 'grep -qF "text: stripHeadingClosingSequence(node.text.substring(i + 1)), closure: \"header\"" src/common/markdownParser.ts'` → HEAD=`7b43fa8` 실측 rc=0 (`markdownParser.ts:458`). **이 항목은 흡수 시점에 정반대를 재고 있었다** — 당시 문면은 `text: node.text.substring(i + 1), closure: "header"` 를 **원인의 실재**로 재는 명제였고 rc=0 이었다. `0868650` 이 그 원인을 제거해 옛 명령은 현 HEAD 에서 rc=1 이 된다. 원인이 사라진 뒤에도 원인 실재를 `[x]` 로 두면 거짓 명제가 남으므로, 같은 지점을 **계약 방향**으로 뒤집어 박제한다.
+- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 rc=0 (**96 tests**; 흡수 시점 80 → TSK-06 이 +9, TSK-07 이 +7).
 
 ## 수용 기준
-- [ ] (Must, FR-01·FR-02·FR-04) 위 §테스트 현황 (I1·I2·I4) 명령 → rc=0.
-- [ ] (Must, FR-03) 위 §테스트 현황 (I3) 명령 → rc=0.
-- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`b1cbf5c` 실측 rc=0 (80 tests). 특히 기존 유일 제목 게이트 `markdownParser.test.ts:11` (`"# Header"` → `<h1>Header</h1>`) 이 그대로 통과해야 한다 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
-- [x] (Must, 기존 게이트 실재) 제목 단언이 실재한다: `bash -c 'grep -qF "<h1>Header</h1>" src/common/markdownParser.test.ts'` → HEAD=`b1cbf5c` 실측 rc=0 (`:11`).
+- [x] (Must, FR-01·FR-02·FR-04) 위 §테스트 현황 (I1·I2·I4) 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0 (`TSK-20260831-07` / `0868650`).
+- [x] (Must, FR-03) 위 §테스트 현황 (I3) 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0 (동 커밋).
+- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`7b43fa8` 재실측 rc=0 (96 tests). 특히 기존 제목 게이트 `markdownParser.test.ts:11` (`"# Header"` → `<h1>Header</h1>`) 이 그대로 통과해야 한다 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (Must, 기존 게이트 실재) 제목 단언이 실재한다: `bash -c 'grep -qF "<h1>Header</h1>" src/common/markdownParser.test.ts'` → HEAD=`7b43fa8` 재실측 rc=0 (`:11`, 구현 전후 동일 라인).
 - [x] (Must, 범위 제한) 여는 `#` 앞 들여쓰기 · 빈 제목 · setext · 제목 스타일·앵커는 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` 와 `src/common/markdownParser.test.ts` 2 파일이다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
-- **grep-baseline** (HEAD=`b1cbf5c`, 2026-08-31 실측):
-  - `grep -cF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts` → **0**. `grep -cF "앞에 공백이 없는 줄 끝 # 은 내용이다" …` → **0**. 두 계약 이름 모두 미존재 — 신설 대상이다.
-  - `grep -nF "text: node.text.substring(i + 1), closure: \"header\"" src/common/markdownParser.ts` → 1 hit `:306`. 닫는 시퀀스가 제목에 남는 직접 원인.
-  - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **66**. 그중 제목 단언은 `:11` **하나**뿐이며 닫는 시퀀스를 다루는 것은 0건이다. 제외 규칙: `it(` 로 시작하는 줄만 계수.
+- **grep-baseline** (HEAD=`7b43fa8`, 2026-08-31 Phase 1 재실측 — 괄호 안은 흡수 시점 `b1cbf5c` 값):
+  - `grep -cF "제목의 닫는 # 은 제목 글자가 아니다" src/common/markdownParser.test.ts` → **1** (0). `grep -cF "앞에 공백이 없는 줄 끝 # 은 내용이다" …` → **1** (0). 두 계약 이름 모두 `TSK-20260831-07` 이 신설했다 (`:565` · `:600` describe).
+  - `grep -nF "text: stripHeadingClosingSequence(node.text.substring(i + 1)), closure: \"header\"" src/common/markdownParser.ts` → 1 hit `:458`. **흡수 시점에는 이 자리가 `stripHeadingClosingSequence` 없이 `node.text.substring(i + 1)` 이었고 그것이 원인이었다.** 헬퍼 정의는 `:94`.
+  - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **82** (66). 그중 제목 관련은 `:11` (기존) + 신설 2 describe 하위이며, 닫는 시퀀스를 다루는 것은 흡수 시점 0건이었다. 제외 규칙: `it(` 로 시작하는 줄만 계수.
 
-  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **66** 을 세지만 `npx vitest run` 은 **80 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `66` 은 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 80** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
-  - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경):
-    | 입력 | 현 산출 | 판정 |
-    |---|---|---|
-    | `## 제목 ##` | `<h2>제목 ##</h2>` | (I1) 위반 |
-    | `# 제목 #` | `<h1>제목 #</h1>` | (I1)(I2) 위반 |
-    | `## 제목 ##   ` (뒤 공백) | `<h2>제목 ##   </h2>` | (I1)(I4) 위반 |
-    | `## C# 과 F#` | `<h2>C# 과 F#</h2>` | **정상 — 보존 (I3)** |
-    | `####### 일곱` | `<p>####### 일곱</p>` | **정상 — 보존 (I6)** |
-    | `##제목` | `<p>##제목</p>` | **정상 — 보존 (I6)** |
+  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **82** 를 세지만 `npx vitest run` 은 **96 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `82` 는 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 96** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
+  - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경). **흡수 시점(`b1cbf5c`) 산출을 함께 둔다** — 위반 3행이 어떻게 닫혔는지가 이 spec 의 감사 이력이다:
+    | 입력 | 흡수 시점 산출 (`b1cbf5c`) | 현 산출 (`7b43fa8`) | 판정 |
+    |---|---|---|---|
+    | `## 제목 ##` | `<h2>제목 ##</h2>` | `<h2>제목</h2>` | (I1) 충족 |
+    | `# 제목 #` | `<h1>제목 #</h1>` | `<h1>제목</h1>` | (I1)(I2) 충족 |
+    | `## 제목 ##   ` (뒤 공백) | `<h2>제목 ##   </h2>` | `<h2>제목</h2>` | (I1)(I4) 충족 |
+    | `## C# 과 F#` | `<h2>C# 과 F#</h2>` | `<h2>C# 과 F#</h2>` | **보존 (I3)** |
+    | `####### 일곱` | `<p>####### 일곱</p>` | `<p>####### 일곱</p>` | **보존 (I6)** |
+    | `##제목` | `<p>##제목</p>` | `<p>##제목</p>` | **보존 (I6)** |
 - **테스트 이름 확정 근거**: 원 req 는 `#` 이 `-t` 패턴·셸 인용과 얽힐 것을 우려해 `샵` 표기를 후보로 제시했다. 본 tick 이 격리 사본에서 직접 확인한 결과 **`#` 을 포함한 이름은 `grep -qF` 와 `-t` 양쪽에서 정상 동작한다** (매치 시 rc=0 / 미매치 시 논리곱이 rc=1). `#` 은 큰따옴표 안에서 주석을 열지 않고 `-t` 의 정규식 메타문자도 아니다. 따라서 우회 표기를 쓰지 않고 자연스러운 이름을 확정한다. 위 두 이름이 본 spec 이 확정한 계약면이다.
-- **rationale**: 위반 3행과 보존 3행을 한 표에 둔 이유는, 이 축의 실패가 "닫는 `#` 이 남는다" 하나가 아니라 **"지우다가 내용인 `#` 을 자른다"** 쪽이기 때문이다. 보존 3행 중 `C#` 행은 현재 **어떤 게이트도 잠그고 있지 않다** — 제목 단언이 `:11` 하나뿐이므로, (I3) 대조는 신설이 아니면 존재하지 않는다.
+- **rationale**: 위반 3행과 보존 3행을 한 표에 둔 이유는, 이 축의 실패가 "닫는 `#` 이 남는다" 하나가 아니라 **"지우다가 내용인 `#` 을 자른다"** 쪽이기 때문이다. 흡수 시점에 `C#` 행은 **어떤 게이트도 잠그고 있지 않았다**. `TSK-20260831-07` 의 Dir-2 주입(판정에서 "앞에 공백" 조건 제거)이 정확히 그 방향을 겨눴고 **G1 은 통과하고 G2 만 붉어졌다** — 두 대조를 분리한 설계가 실측으로 값을 했다.
 
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
-| 2026-08-31 | inspector (Phase 3, REQ-20260831-054 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — ATX 제목 닫는 시퀀스 6 축 (I1~I6). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며 제목 축 언급이 0건이다. 테스트 이름은 req 의 `샵` 우회 표기 대신 `#` 을 그대로 쓰는 형태로 확정 — 격리 사본 실측으로 `grep -qF`·`-t` 양쪽 정상 동작 확인 (§스코프 규칙 §테스트 이름 확정 근거). baseline: 계약 이름 2건 0 hit / 선언 66 it(실행 80 tests) 중 제목 단언 `:11` 하나 / 원인 `:306` 1 hit / 현 산출 6행 격리 사본 실측 (위반 3 · 보존 3). unchecked 2 · checked 3. | all |
+| 2026-08-31 | inspector (Phase 1 drift reconcile) / `0868650` (`TSK-20260831-07`) @ HEAD=`7b43fa8` | **계약 전 축 충족 — unchecked 0.** (I1·I2·I4)(I3) 게이트 2건이 신설되고 초록이라 §테스트 현황·§수용 기준 4 마커를 `[x]` 로 플립했다. 게이트 재실행 근거: 두 명령 모두 HEAD 에서 rc=0, 커밋 `0868650` 은 HEAD 의 조상, `result.md` 가 `injection: 2/2 detect` · `control: 2/2 pass` 를 박제. 함께 정정: (원인 실재) 항목이 **원인 제거로 rc=1 이 됐다** — 같은 지점을 계약 방향(`stripHeadingClosingSequence` 경유)으로 뒤집어 (구조 실재) 로 재박제. 라인 drift 6건(`:302`→`:454` · `:306`→`:458` · 헬퍼 `:94` 신규 · 테스트 `:565`·`:600` 신규), 계수 drift 2건(선언 66→82 · 실행 80→96), baseline 산출 표를 흡수 시점·현 HEAD 2열로 확장. | 테스트 현황 · 수용 기준 · 위치 · 역할 · 스코프 규칙 · 참고 |
+| 2026-08-31 | inspector (Phase 3, REQ-20260831-054 흡수) / `b1cbf5c` 시점 | 최초 박제 — ATX 제목 닫는 시퀀스 6 축 (I1~I6). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며 제목 축 언급이 0건이다. 테스트 이름은 req 의 `샵` 우회 표기 대신 `#` 을 그대로 쓰는 형태로 확정 — 격리 사본 실측으로 `grep -qF`·`-t` 양쪽 정상 동작 확인 (§스코프 규칙 §테스트 이름 확정 근거). baseline: 계약 이름 2건 0 hit / 선언 66 it(실행 80 tests) 중 제목 단언 `:11` 하나 / 원인 `:306` 1 hit / 현 산출 6행 격리 사본 실측 (위반 3 · 보존 3). unchecked 2 · checked 3. | all |
 
 ## 참고
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 구현 task DoD 로)
 
-`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다. 검출 방향 2 · 음성 대조 2.
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관했다. 검출 방향 2 · 음성 대조 2. **이관처 `TSK-20260831-07` 이 완료됐고 왕복 실측이 `result.md` 에 박제됐다** (`injection: 2/2 detect` · `control: 2/2 pass`, 격리 사본 `git archive` + `node_modules` 심볼릭 링크).
 
-- **Dir-1 (민감도, I1)** — 닫는 시퀀스 제거를 되돌린다 → `rc≠0`.
-- **Dir-2 (민감도, I3)** — 닫는 시퀀스 판정에서 "앞에 공백" 조건을 없앤다 (줄 끝 `#` 무조건 제거) → `rc≠0`. **Dir-1 과 분리해야 `C#` 을 자르는 구현이 통과하지 않는다.**
-- **Ctrl-1 (특이도)** — 기존 제목 게이트(`:11`)의 입력 문자열을 다른 정상 제목으로 바꾼다 → `rc=0`.
-- **Ctrl-2 (특이도)** — 본 spec 이 범위 밖으로 선언한 축 (여는 `#` 앞 들여쓰기 · 빈 제목 · setext) 의 정상 변경 → `rc=0`.
+- **Dir-1 (민감도, I1)** — 닫는 시퀀스 제거를 되돌린다 → `rc≠0`. **실측 rc=1** (`stripHeadingClosingSequence` 호출 제거 — G1·G2 동시 붉음).
+- **Dir-2 (민감도, I3)** — 닫는 시퀀스 판정에서 "앞에 공백" 조건을 없앤다 (줄 끝 `#` 무조건 제거) → `rc≠0`. **실측 rc=1, 단 G2 만 붉고 G1 은 rc=0.** 두 대조를 분리하지 않았다면 `C#` 을 자르는 구현이 통과했을 것이다 — 분리 설계의 값이 여기서 확인됐다.
+- **Ctrl-1 (특이도)** — 기존 제목 게이트(`:11`)의 입력 문자열을 다른 정상 제목으로 바꾼다 → `rc=0`. **⚠ 이 문면은 같은 task 의 DoD (G3 `grep -qF "<h1>Header</h1>"`) 와 함께 참이 될 수 없다.** 입력을 `# Title` 로 **교체**하면 G3 가 정의상 rc=1 이다 (실측: 신설 게이트 G1·G2·G4 는 rc=0, G3 만 rc=1). developer 가 **가산형 Ctrl-1'**(핀 문자열 보존 + `# Title` 단언 추가)으로 재실행해 전 게이트 rc=0 을 얻었다. 즉 `control: 2/2 pass` 는 **신설 게이트 기준**이며, 정적 문자열 핀과 "입력 교체형 대조" 의 상충은 `specs/10.followups/20260831-1005-dod-static-string-pin-contradicts-its-own-control.md` 로 넘겼다. **차기 이 spec 계열의 Ctrl 문면은 교체형이 아니라 가산형으로 쓴다.**
+- **Ctrl-2 (특이도)** — 본 spec 이 범위 밖으로 선언한 축 (여는 `#` 앞 들여쓰기 · 빈 제목 · setext) 의 정상 변경 → `rc=0`. **실측 rc=0** (3건 추가).
 
 ### 미측정·비판정 항목
 
