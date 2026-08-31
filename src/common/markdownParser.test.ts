@@ -1538,4 +1538,53 @@ describe('빈 줄 술어는 공백만 있는 줄을 포함한다', () => {
 		expect(parser.markdownToHtml('끝~~ . 그리고 ~~취소~~ 다').trim())
 			.toBe('<p>끝~~ . 그리고 <del>취소</del> 다</p>');
 	});
+
+	// (I1) 여는 쪽 조건 2 — CommonMark left-flanking 은 두 조건의 곱이 아니라
+	// `(1) 뒤가 공백 아님` 그리고 `(2a 뒤가 문장부호 아님 또는 2b 뒤가 문장부호이면서
+	// 앞이 공백·문장부호)` 다. 조건 1 만 있던 동안 낱말에 붙은 구분자가 문장부호를
+	// 만나도 강조를 **열었고**, 그래서 글쓴이가 늘임표기 `대박~~.` 과 취소선
+	// `~~취소~~` 를 따로 쓴 문장이 통째로 어긋났다. 요약 경로는 태그를 벗기므로
+	// 화면에서는 물결 네 글자가 그냥 **사라진다.**
+	//
+	// **닫는 쪽과 반드시 다른 이름이어야 한다** — 한 이름으로 합치면 대칭 예시
+	// 하나로 둘 다 붉어져 한 방향이 죽은 것을 못 본다.
+	it('구분자 뒤에 문장부호가 오면 강조를 열지 않는다', () => {
+		expect(parser.markdownToHtml('끝*. 다음 *기울임* 다').trim())
+			.toBe('<p>끝*. 다음 <em>기울임</em> 다</p>');
+		expect(parser.markdownToHtml('끝_. 다음 _기울임_ 다').trim())
+			.toBe('<p>끝_. 다음 <em>기울임</em> 다</p>');
+		expect(parser.markdownToHtml('대박~~. 그리고 ~~취소~~ 다').trim())
+			.toBe('<p>대박~~. 그리고 <del>취소</del> 다</p>');
+		expect(parser.markdownToHtml('끝**. 다음 **굵게** 다').trim())
+			.toBe('<p>끝**. 다음 <strong>굵게</strong> 다</p>');
+		expect(parser.markdownToHtml('끝__. 다음 __굵게__ 다').trim())
+			.toBe('<p>끝__. 다음 <strong>굵게</strong> 다</p>');
+		expect(parser.markdownToHtml('진짜~~, 그리고 ~~취소~~ 다').trim())
+			.toBe('<p>진짜~~, 그리고 <del>취소</del> 다</p>');
+		expect(parser.markdownToHtml('진짜~~? 그리고 ~~취소~~ 다').trim())
+			.toBe('<p>진짜~~? 그리고 <del>취소</del> 다</p>');
+		expect(parser.markdownToHtml('대박~~. 진짜~~. 좋다').trim())
+			.toBe('<p>대박~~. 진짜~~. 좋다</p>');
+		// 9 칸 대조 표에서 이 계약이 고치는 유일한 칸(W_P). 나머지 여덟 칸은
+		// `문장부호에 인접한 정상 강조는 그대로다` 가 불변으로 잡고 있다.
+		expect(parser.markdownToHtml('가**. 나 **굵게** 다').trim())
+			.toBe('<p>가**. 나 <strong>굵게</strong> 다</p>');
+	});
+
+	// (I2) 닫는 쪽 조건 2 — 대칭 조항이고 손상 실측도 5/5 로 대칭이다.
+	// **이 방향의 기대 산출은 구분자가 글자로 남는 것**이다. 그 run 은 2a·2b 를
+	// 둘 다 실패해 닫을 자격이 없고, 여는 자격만 남아 짝이 없다. 여는 쪽만
+	// 고치면 이 다섯 행이 `<em>가.</em>나 다` 꼴로 그대로 남는다.
+	it('구분자 앞에 문장부호가 오면 강조를 닫지 않는다', () => {
+		expect(parser.markdownToHtml('*가.*나 다').trim())
+			.toBe('<p>*가.*나 다</p>');
+		expect(parser.markdownToHtml('**가.**나 다').trim())
+			.toBe('<p>**가.**나 다</p>');
+		expect(parser.markdownToHtml('~~가.~~나 다').trim())
+			.toBe('<p>~~가.~~나 다</p>');
+		expect(parser.markdownToHtml('_가._나 다').trim())
+			.toBe('<p>_가._나 다</p>');
+		expect(parser.markdownToHtml('__가.__나 다').trim())
+			.toBe('<p>__가.__나 다</p>');
+	});
 });

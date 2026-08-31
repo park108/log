@@ -994,6 +994,18 @@ export const markdownToHtml = (rawInput: string): string => {
 // 않는다.
 const WORD_CHARACTER_PATTERN = /[\p{L}\p{N}]/u;
 
+// CommonMark left-flanking 조건 2 의 판정면은 유니코드 `P`(punctuation) + `S`
+// (symbol) 카테고리다 (§2.1). ASCII 문장부호 열거로 좁히면 한국어 본문에 오는
+// `…` · `·` · `？` 가 그 열거 밖에서 조용히 갈린다 — 바로 위 낱말 술어가
+// `[A-Za-z0-9]` 로 좁았을 때와 **같은 실패 형태**다.
+const PUNCTUATION_CHARACTER_PATTERN = /[\p{P}\p{S}]/u;
+
+// 줄의 시작·끝은 공백으로 센다. `charAt` 은 범위 밖에서 `""` 를 내므로 그
+// 빈 문자열을 공백과 같이 다루지 않으면 줄 첫머리의 구분자가 조건 2 에서
+// 앞을 낱말로 오인당한다. 여는 쪽·닫는 쪽 두 관문이 이 술어 하나를 공유한다.
+const isBlankBoundary = (character: string): boolean =>
+	"" === character || /\s/.test(character);
+
 // 억제는 구분자의 앞뒤가 **둘 다** 단어 글자일 때만 발동한다. "어느 한쪽" 으로
 // 보면 여는 구분자의 뒤는 정의상 언제나 강조하려는 낱말의 첫 글자이므로 모든
 // 강조가 죽는다 — 낱말 안쪽을 지키려다 강조 자체를 없애는 방향이다.
@@ -1042,6 +1054,18 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 						searchFrom += delimeterLength;
 						continue;
 					}
+
+					// CommonMark left-flanking **조건 2**. 뒤가 문장부호이면 앞이
+					// 공백이거나 문장부호일 때만 연다(2b). 두 조건은 곱이 아니라
+					// `(1) 그리고 (2a 또는 2b)` 이므로 조건 1 자리에 합치지 않고
+					// **뒤에 붙인다** — 앞을 보지 않는 단순화는 `**"굵게"**` 를
+					// 깨뜨리는데 손상 축만 보는 게이트에는 그 파손이 안 보인다.
+					if(strictFlanking && PUNCTUATION_CHARACTER_PATTERN.test(after)
+						&& !isBlankBoundary(beforeOpen)
+						&& !PUNCTUATION_CHARACTER_PATTERN.test(beforeOpen)) {
+						searchFrom += delimeterLength;
+						continue;
+					}
 					// 낱말 안쪽이면 열지 않는다 (`foo_bar_baz`).
 					if(intrawordSuppression && isIntraword(beforeOpen, after)) {
 						searchFrom += delimeterLength;
@@ -1057,6 +1081,18 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 					const afterClose = node.text.charAt(searchFrom + delimeterLength);
 					if(strictFlanking && ("" === before || /\s/.test(before)
 						|| before === runCharacter || afterClose === runCharacter)) {
+						searchFrom += delimeterLength;
+						continue;
+					}
+
+					// 조건 2 의 닫는 쪽 대칭. 앞이 문장부호이면 뒤가 공백이거나
+					// 문장부호일 때만 닫는다. **이 방향의 기대 산출은 구분자가
+					// 글자로 남는 것**이다 — 그 run 은 2a·2b 를 둘 다 실패해 닫을
+					// 자격이 없고 여는 자격만 남아 짝이 없다. 여는 쪽만 고치면
+					// `*가.*나 다` 가 `<em>가.</em>나 다` 로 남는다 (실측 5/5 대칭).
+					if(strictFlanking && PUNCTUATION_CHARACTER_PATTERN.test(before)
+						&& !isBlankBoundary(afterClose)
+						&& !PUNCTUATION_CHARACTER_PATTERN.test(afterClose)) {
 						searchFrom += delimeterLength;
 						continue;
 					}
