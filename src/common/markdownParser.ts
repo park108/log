@@ -102,6 +102,11 @@ const headingMarkerLevel = (text: string): number => {
 // 박힌 예시 값). 판정은 규칙을 아는 쪽이 한다.
 export const THEMATIC_BREAK_PATTERN = /^(-{3,}|\*{3,}|_{3,})$/;
 
+// 밑줄식 제목의 밑줄. 가로줄과 **하한이 다르다** — setext 밑줄은 1개 이상이고
+// (CommonMark 0.31.2 §4.3) 가로줄은 3개 이상이다. 그리고 `*` 와 `_` 는 밑줄이
+// **아니다**. 같은 자리에 두 규칙을 나란히 두는 이유가 이 차이다.
+export const SETEXT_UNDERLINE_PATTERN = /^(-+|=+)$/;
+
 // 제목의 닫는 `#` 시퀀스는 표기이지 제목 글자가 아니다 (CommonMark 0.31.2 §4.2).
 //
 // 제목 패스가 여는 쪽만 보던 동안 `## 제목 ##` 은 `제목 ##` 을 화면에 남겼다 —
@@ -234,6 +239,57 @@ export const markdownToHtml = (rawInput: string): string => {
 
 		isPreStarted = false;
 	}
+	// 밑줄식(setext) 제목. 문단 바로 밑에 `-` 또는 `=` 만으로 이뤄진 줄이 오면
+	// 그 문단이 제목이다 (CommonMark 0.31.2 §4.3).
+	//
+	// 이것이 없을 때 `제목\n---` 은 `<p>제목</p><hr />` 이었다 — 화면에는 글자와 그
+	// 아래 선이 나타나 글쓴이가 의도한 것과 비슷해 보이므로 **아무도 신고하지 않은 채**
+	// 목차·스크린리더·검색엔진에서 제목만 조용히 사라진다. `===` 는 어느 패스도
+	// 인식하지 않아 독자가 `===` 를 글자로 봤다.
+	//
+	// 위험한 쪽은 과소 인식이 아니라 **과잉 인식**이다. 앞 줄을 보지 않고 밑줄만 보면
+	// 기존 글의 가로줄이 전부 제목이 된다. 그래서 앞 줄 조건을 좁게 든다 — 빈 줄이
+	// 아니고 · 목록 마커가 아니고 · 그 자체가 가로줄이나 제목이 아닌 **문단 줄**.
+	// (`밑줄식 제목은 가로줄을 가로채지 않는다` 게이트가 그 다섯 자리를 지킨다.)
+	//
+	// 밑줄은 **1개 이상**이다. 가로줄의 하한(3개)을 밑줄에 그대로 재사용하면
+	// `제목\n--` 이 남아 독자가 `--` 를 본다.
+	//
+	// 가로줄 판정보다 **먼저** 돈다 — 뒤에 돌면 `---` 이 이미 `<hr />` 이라 앞 줄을
+	// 볼 기회가 없다.
+	index = 0;
+	while(index < parsed.length) {
+
+		const underline = parsed[index];
+		const heading = parsed[index - 1];
+
+		if(index > 0
+			&& undefined !== underline
+			&& undefined !== heading
+			&& "value" === underline.type
+			&& "" === underline.closure
+			&& SETEXT_UNDERLINE_PATTERN.test(underline.text.trim())
+			&& "value" === heading.type
+			&& "" === heading.closure
+			&& heading.text.trim().length > 0
+			&& null === listMarkerDepth(heading.text)
+			&& 0 === headingMarkerLevel(heading.text)
+			&& !THEMATIC_BREAK_PATTERN.test(heading.text.trim())) {
+
+			const level = ('=' === underline.text.trim().charAt(0)) ? 1 : 2;
+
+			parsed.splice(index - 1, 2
+				, {type: "tag", text: "<h" + level + ">"}
+				, {type: "value", text: heading.text, closure: "header"}
+				, {type: "tag", text: "</h" + level + ">"});
+
+			index += 2;
+			continue;
+		}
+
+		index++;
+	}
+
 	// hr
 	//
 	// 이전에는 정확히 3자인 `---` 만 인식했다. CommonMark 는 `-` · `*` · `_` 세 문자

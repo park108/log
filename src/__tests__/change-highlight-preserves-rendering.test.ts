@@ -71,11 +71,16 @@ describe('강조는 렌더 결과를 바꾸지 않는다', () => {
 	});
 
 	// 줄 전체가 표기인 것에는 감쌀 내용이 없다 — 감싸면 그 문법이 죽는다.
-	it('수평선에는 강조를 넣지 않는다', () => {
+	//
+	// 입력은 그대로 두고 기대값만 갱신했다 (TSK-20260831-22-b). `a` 밑의 `---` 은
+	// 이제 밑줄식 제목이라 `<hr>` 이 아니라 `<h2>` 를 낸다. **이 it 의 본래 주제는
+	// 아래 `not.toContain` 이다** — 줄 전체가 표기인 것에 강조를 감싸지 않는다는
+	// 명제는 계약과 직교하며 여전히 참이므로 그대로 둔다.
+	it('줄 전체가 표기인 것에는 강조를 넣지 않는다', () => {
 
 		const out = highlighted('a\n---\nb', 'a\n***\nb');
 
-		expect(out).toContain('<hr>');
+		expect(out).toContain('<h2>a</h2>');
 		expect(out).not.toContain('class="span--logitem-changed"');
 	});
 });

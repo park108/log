@@ -464,6 +464,40 @@ describe('MD parsing — thematic break preservation (setext contrast)', () => {
 	});
 });
 
+// `제목` 밑에 `---` 을 쓰면 **제목이 사라지고 가로줄이 생겼다.** 화면에는 글자와
+// 그 아래 선이 나타나 글쓴이가 의도한 것과 비슷해 보이므로 아무도 신고하지 않은 채
+// 목차·스크린리더·검색엔진에서 제목만 조용히 사라진다.
+//
+// 판정면은 **제목이 생겼다**와 **가로줄이 남지 않았다**를 함께 재는 것이다.
+// 앞의 것만 재면 밑줄이 산출에 남은 구현이 통과한다.
+describe('MD parsing — setext heading underline', () => {
+
+	it("밑줄식 제목은 제목이다", () => {
+
+		// 밑줄 길이는 판정면이 아니다 — 1개 이상이면 제목이다 (CommonMark §4.3).
+		for (const underline of ["---", "----", "--"]) {
+
+			const out = parser.markdownToHtml("제목\n" + underline);
+
+			expect(out).toContain("<h2>제목</h2>");
+			expect(out).not.toContain("<hr />");
+			// 밑줄 줄이 산출에 글자로 남지 않는다.
+			expect(out).not.toContain("--");
+		}
+	});
+
+	it("등호 밑줄은 큰 제목이다", () => {
+
+		const out = parser.markdownToHtml("제목\n===");
+
+		expect(out).toContain("<h1>제목</h1>");
+		expect(out).not.toContain("===");
+
+		// 표기가 달라도 같은 제목이다 — ATX 와 같은 태그, 같은 escape 규칙.
+		expect(out).toBe(parser.markdownToHtml("# 제목"));
+	});
+});
+
 // 링크·이미지의 **제목 없는 표준 형식**이 렌더되지 않고 있었다 (2026-08-30 실측).
 //
 // 구 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해 제목이 있어야만
