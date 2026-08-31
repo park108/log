@@ -11,7 +11,8 @@
 //   G-D / FR-04: 3 발화점 토큰 H (index.html description) ≡ O (og:description)
 //                ≡ D (DEFAULT_META_DESCRIPTION) 동치 + 길이 단위 분리 측정
 //   G-E / FR-05: src/common/common.ts `DEFAULT_META_DESCRIPTION` 분포 === 2 (정의 1 + 사용 1)
-//   G-F / FR-06: index.html `name="description"\s+content="..."` double quote ASCII literal form === 1
+//   G-F / FR-06: index.html `name="description"\s+content="..."` double quote literal form === 1
+//   G-G:         요약문의 문자 체계 ≡ `<html lang>` primary subtag (동작 8)
 //
 // 멱등성 (§spec NFR-02): read-only — fs.readFileSync 만 사용, 어떤 production
 // 파일도 수정하지 않는다. build artifact 강제 생성하지 않음 (수단 영역).
@@ -65,6 +66,12 @@ const RE_HTML_OG_DESCRIPTION_CAPTURE = /property="og:description"\s+content="([^
 const EXPECTED_TOKEN = "park108.net 은 개발자 박종길의 개인 기록장입니다";
 const EXPECTED_BYTE_LENGTH = 64;
 const EXPECTED_CODE_UNIT_LENGTH = 32;
+
+// G-G 캡처 — `<html lang="…">` 선언. 문서가 자기 언어를 말하는 곳.
+const RE_HTML_LANG = /<html\s+lang="([^"]*)"/;
+
+// 한글 자모 + 음절 블록. "요약문에 한글이 있는가" 만 판정하면 되므로 범위는 이것으로 충분.
+const RE_HANGUL = /[\u3131-\u318E\uAC00-\uD7A3]/;
 
 function countMatches(source: string, pattern: RegExp): number {
 	const matches = source.match(pattern);
@@ -122,6 +129,36 @@ describe("meta-description-token-coherence (TSK-20260518-08)", () => {
 		expect(Buffer.byteLength(D, "utf8")).toBe(EXPECTED_BYTE_LENGTH);
 		expect(H.length).toBe(EXPECTED_CODE_UNIT_LENGTH);
 		expect(D.length).toBe(EXPECTED_CODE_UNIT_LENGTH);
+	});
+
+	// 문서가 자기 언어를 두 곳에서 다르게 말하지 않는다 (소유 spec 동작 8).
+	// 기대 토큰 리터럴만으로는 이 명제를 지키지 못한다 — 문장을 영어로 되돌리면서
+	// 리터럴도 함께 고치면 게이트는 통과하고 `lang` 선언만 홀로 남는다.
+	it("G-G: 요약문의 문자 체계가 `<html lang>` 선언과 일치한다", () => {
+		const html = readFileSync(PATH_INDEX_HTML, "utf8");
+		const commonTs = readFileSync(PATH_COMMON_TS, "utf8");
+
+		const langMatch = html.match(RE_HTML_LANG);
+		expect(langMatch, "index.html `<html lang=\"…\">` 캡처 실패 — 판정이 공허하다").not.toBeNull();
+		// BCP 47 primary subtag — `ko-KR` 도 `ko` 로 읽는다.
+		const primarySubtag = ((langMatch as RegExpMatchArray)[1] as string).split("-")[0]?.toLowerCase();
+
+		const hMatch = html.match(RE_HTML_DESCRIPTION_CAPTURE);
+		const dMatch = commonTs.match(RE_TS_DEFAULT_CAPTURE);
+		expect(hMatch).not.toBeNull();
+		expect(dMatch).not.toBeNull();
+		const H = (hMatch as RegExpMatchArray)[1] as string;
+		const D = (dMatch as RegExpMatchArray)[1] as string;
+
+		const expectHangul = primarySubtag === "ko";
+		expect(
+			RE_HANGUL.test(H),
+			`\`lang="${primarySubtag}"\` 인데 요약문의 문자 체계가 어긋난다 — H="${H}"`,
+		).toBe(expectHangul);
+		expect(
+			RE_HANGUL.test(D),
+			`\`lang="${primarySubtag}"\` 인데 기본 요약문의 문자 체계가 어긋난다 — D="${D}"`,
+		).toBe(expectHangul);
 	});
 
 	it("G-E / FR-05: src/common/common.ts `DEFAULT_META_DESCRIPTION` 분포 === 2 (정의 1 + 사용 1)", () => {
