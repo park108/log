@@ -284,6 +284,52 @@ describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
 	});
 });
 
+// `- 준비` 아래 들여쓴 `1. 설치` 는 그 항목 **안에** 들어가야 하는데, 종전에는 바깥
+// 목록을 끊고 형제 목록을 만들었다. 번호 목록이 바깥이면 독자는 `1.` 을 두 번 본다.
+//
+// 두 축을 **나눠 세운다**: 중첩 여부만 재는 게이트는 바깥이 쪼개진 채로도 초록이고,
+// 개수만 재는 게이트는 중첩 없이 한 덩어리로 뭉갠 구현을 통과시킨다.
+describe('MD parsing — mixed-type nested lists', () => {
+
+	it("종류가 달라도 깊게 들여쓴 목록은 중첩된다", () => {
+
+		// ul 이 바깥
+		const ulOuter = parser.markdownToHtml("- 준비\n  1. 설치\n  2. 설정\n- 실행");
+		expect(ulOuter).toBe(
+			"<ul><li>준비<ol><li>설치</li><li>설정</li></ol></li><li>실행</li></ul>"
+		);
+		expect(ulOuter).toMatch(/<li>[^<]*<ol>/);
+
+		// ol 이 바깥 — **양방향**이다. 한쪽만 고치면 대칭 회귀가 남는다.
+		const olOuter = parser.markdownToHtml("1. 준비\n   - 설치\n   - 설정\n2. 실행");
+		expect(olOuter).toBe(
+			"<ol><li>준비<ul><li>설치</li><li>설정</li></ul></li><li>실행</li></ol>"
+		);
+		expect(olOuter).toMatch(/<li>[^<]*<ul>/);
+
+		// 탭 들여쓰기도 같다.
+		const tabbed = parser.markdownToHtml("- a\n\t1. b");
+		expect(tabbed).toBe("<ul><li>a<ol><li>b</li></ol></li></ul>");
+		expect(tabbed).toMatch(/<li>[^<]*<ol>/);
+	});
+
+	it("종류가 바뀌어도 바깥 목록은 하나다", () => {
+
+		// 바깥 여는 태그는 1개다. 구조(<li> 안쪽)와 개수를 **함께** 잰다 —
+		// 중첩만 재면 바깥이 쪼개진 채로, 개수만 재면 중첩 없이 뭉갠 채로 초록이 된다.
+		const ulOuter = parser.markdownToHtml("- 준비\n  1. 설치\n  2. 설정\n- 실행");
+		expect(ulOuter.match(/<ul>/g)?.length).toBe(1);
+		expect(ulOuter.match(/<ol>/g)?.length).toBe(1);
+		expect(ulOuter).toMatch(/<li>[^<]*<ol>/);
+
+		// 번호 목록이 바깥이면 쪼개짐은 곧 **번호 되감김**이다 (`1.` 을 두 번 본다).
+		const olOuter = parser.markdownToHtml("1. 준비\n   - 설치\n   - 설정\n2. 실행");
+		expect(olOuter.match(/<ol>/g)?.length).toBe(1);
+		expect(olOuter.match(/<ul>/g)?.length).toBe(1);
+		expect(olOuter).toMatch(/<li>[^<]*<ul>/);
+	});
+});
+
 // 링크·이미지의 **제목 없는 표준 형식**이 렌더되지 않고 있었다 (2026-08-30 실측).
 //
 // 구 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해 제목이 있어야만

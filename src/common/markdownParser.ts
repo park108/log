@@ -393,8 +393,6 @@ export const markdownToHtml = (rawInput: string): string => {
 		index++;
 	}
 
-	parsed = bindListItem(parsed, "ul");
-
 	// ordered list
 	index = 0;
 	let isDot = false;
@@ -443,6 +441,10 @@ export const markdownToHtml = (rawInput: string): string => {
 		isDot = false;
 	}
 
+	// 두 종류의 항목이 **모두 검출된 뒤에** 결합한다. 한 종류를 먼저 결합해 버리면
+	// 다른 종류의 줄이 그 패스에서 아직 평범한 값 노드라 `flushAll()` 에 걸리고,
+	// 열린 목록이 그 자리에서 닫힌다 — 바깥 목록이 쪼개지는 직접 원인이다.
+	parsed = bindListItem(parsed, "ul");
 	parsed = bindListItem(parsed, "ol");
 		
 	// headers
@@ -863,6 +865,12 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 	const depthStack: number[] = [];
 	let pendingCloseLi: ParsedNode | null = null; // {type,text,itemOf,depth} waiting to be flushed
 
+	// 다른 종류의 중첩 목록을 바깥 항목 **안에** 들이려고 미뤄 둔 `</li>`.
+	// 그 목록이 끝나는 자리(같은 종류 항목이 같거나 얕은 깊이로 돌아오는 자리 ·
+	// 입력 끝)에서 갚는다. 이 패스에는 다른 종류의 여닫는 태그가 아직 없으므로
+	// 그 태그는 상대 패스의 `flushAll()` 이 이 `</li>` 앞에 끼워 넣는다.
+	let owedCloseLi: ParsedNode | null = null;
+
 	const openTag = "<" + tagName + ">";
 	const closeTag = "</" + tagName + ">";
 
@@ -876,12 +884,31 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 		}
 	};
 
+	const flushOwedCloseLi = () => {
+		if(owedCloseLi) {
+			output.push(owedCloseLi);
+			owedCloseLi = null;
+		}
+	};
+
+	// 여닫는 태그에도 깊이를 박제한다 — 상대 종류 패스가 "이 목록이 내 항목보다
+	// 깊은가" 를 판정하는 유일한 단서다.
+	const openList = (d: number) => {
+		output.push({type: "tag", text: openTag, itemOf: tagName, depth: d});
+		depthStack.push(d);
+	};
+
+	const closeTopList = () => {
+		const d = depthStack.pop();
+		output.push({type: "tag", text: closeTag, itemOf: tagName, depth: d});
+	};
+
 	// Close every currently open list. Used on non-list nodes and at EOF.
 	const flushAll = () => {
+		flushOwedCloseLi();
 		flushPendingCloseLi();
 		while(depthStack.length > 0) {
-			output.push({type: "tag", text: closeTag, itemOf: tagName});
-			depthStack.pop();
+			closeTopList();
 			if(depthStack.length > 0) {
 				// The enclosing <li> that held the just-closed inner list
 				// is still open; close it before moving further out.
@@ -916,6 +943,8 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 		const node = parsed[i]!;
 
 		const isListNode = node.itemOf === tagName;
+		const isOtherListNode = !isListNode
+			&& ("ul" === node.itemOf || "ol" === node.itemOf);
 		const isOpenLi = isListNode
 			&& node.type === "tag"
 			&& node.text === "<li>";
@@ -929,34 +958,43 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 
 			if(depthStack.length === 0) {
 				// Starting a fresh list.
-				output.push({type: "tag", text: openTag, itemOf: tagName});
-				depthStack.push(d);
+				flushOwedCloseLi();
+				openList(d);
 			}
 			else if(d > top()) {
-				// Nest deeper: keep the previous item's </li> suppressed so
-				// the new <tagName> lives inside that still-open <li>.
-				pendingCloseLi = null;
-				output.push({type: "tag", text: openTag, itemOf: tagName});
-				depthStack.push(d);
+				if(owedCloseLi) {
+					// 다른 종류 중첩이 진행 중인 자리에서 같은 종류가 **더 깊이**
+					// 들어오는 3단계 교대 중첩은 어느 계약도 소유하지 않는다
+					// (범위 밖). 빚을 갚고 평탄하게 분기해 균형만 지킨다.
+					flushAll();
+					openList(d);
+				}
+				else {
+					// Nest deeper: keep the previous item's </li> suppressed so
+					// the new <tagName> lives inside that still-open <li>.
+					pendingCloseLi = null;
+					openList(d);
+				}
 			}
 			else if(d === top()) {
 				// Sibling at the same depth — flush the previous </li>.
+				// 다른 종류 중첩이 끝난 자리이므로 미뤄 둔 `</li>` 를 먼저 갚는다.
+				flushOwedCloseLi();
 				flushPendingCloseLi();
 			}
 			else {
 				// d < top(): close inner lists until depths line up.
+				flushOwedCloseLi();
 				flushPendingCloseLi();
 				while(depthStack.length > 0 && d < top()) {
-					output.push({type: "tag", text: closeTag, itemOf: tagName});
-					depthStack.pop();
+					closeTopList();
 					if(depthStack.length > 0) {
 						output.push({type: "tag", text: "</li>", itemOf: tagName});
 					}
 				}
 				if(depthStack.length === 0) {
 					// Fell below the outermost: begin a new top-level list.
-					output.push({type: "tag", text: openTag, itemOf: tagName});
-					depthStack.push(d);
+					openList(d);
 				}
 			}
 
@@ -969,6 +1007,31 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 		else if(isListNode) {
 			// value node inside the current list item — pass through.
 			output.push(node);
+		}
+		else if(isOtherListNode) {
+
+			// 종류가 다른 목록 노드. **깊이가 판정면이다.**
+			//
+			// 바깥 항목보다 깊으면 그 항목 **안에** 들어가야 하므로 투명하게
+			// 흘려보내고, 그 항목의 `</li>` 는 미뤄 둔다(빚). 종전에는 이 노드가
+			// 비-list 로 취급돼 `flushAll()` 에 걸렸고, 그래서 바깥 목록이
+			// 그 자리에서 닫혀 **번호가 되감겼다**.
+			//
+			// 같거나 얕으면 형제이므로 경계다 — 열린 목록을 닫고 흘려보낸다.
+			const d = (typeof node.depth === "number") ? node.depth : null;
+
+			if(depthStack.length > 0 && null !== d && d > top()) {
+
+				if(pendingCloseLi) {
+					owedCloseLi = pendingCloseLi;
+					pendingCloseLi = null;
+				}
+				output.push(node);
+			}
+			else {
+				flushAll();
+				output.push(node);
+			}
 		}
 		else {
 			// 빈 줄은 **같은 종류의 목록 사이에서만** 투명하다.
