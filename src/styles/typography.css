@@ -84,6 +84,45 @@ pre code {
 	font-size: 0.88em;
 }
 
+/* 표 — 태그가 sanitize 를 통과해도 규칙이 없으면 **테두리 없는 맨 텍스트**로
+ * 보인다. 셀 경계가 없으면 어느 값이 어느 열인지 읽을 수 없으므로, 파이프 표를
+ * 쓴 글은 문단으로 쪼개져 보이던 때와 형태만 다른 같은 문제를 겪는다.
+ *
+ * 인용(blockquote)·코드 블록(pre)과 같은 자리에 같은 형태로 둔다 — 이 저장소는
+ * 블록 요소마다 규칙을 두고 색·테두리는 토큰에서 가져온다. 표만 그 관례 밖에
+ * 있었다.
+ *
+ * 좁은 화면에서는 열이 많은 표가 넘친다. `pre` 와 같은 방식으로 가로 스크롤을
+ * 허용해 글자가 잘리지 않게 한다. */
+table {
+	/* 넘칠 때만 스크롤한다 — 표 자체는 내용 너비로 두고 그릇을 넘지 않게 막는다.
+	 * `width: 100%` 로 늘리면 두 칸짜리 표까지 화면 폭으로 벌어져 셀 사이가
+	 * 휑해지고, 반대로 아무 제한이 없으면 열이 많은 표가 문서 전체에 가로
+	 * 스크롤을 만든다. */
+	display: block;
+	width: max-content;
+	max-width: 100%;
+	overflow-x: auto;
+	border-collapse: collapse;
+	margin: 0 0 1.3em;
+	line-height: 1.6;
+}
+
+th,
+td {
+	border: 1px solid var(--normal-border-color);
+	padding: 0.4em 0.7em;
+	text-align: left;
+	vertical-align: top;
+}
+
+/* 머리 행은 본문 셀과 구별돼야 한다 — 굵기만으로는 스캔할 때 눈에 잡히지
+ * 않는다. 코드 블록과 같은 면 색을 써 새 색을 만들지 않는다. */
+thead th {
+	background-color: var(--track-background-color);
+	font-weight: 600;
+}
+
 /* 본문 — 2em 은 헐거워 문단이 흩어졌다. 1.85 로 조이고 문단 사이 여백을
  * 명시한다. 이전에는 문단 구분이 줄 간격에만 의존했다. */
 .p {
