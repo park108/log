@@ -668,10 +668,14 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 렌더되던 것을 막는다 — 기술 글에서 곱셈 표기가 통째로 기울어졌다.
 	// `**` · `~~` 는 공백을 끼워 써도 의도가 분명하므로 그대로 둔다 (`** 굵게 **`).
 	parsed = inlineParsing(parsed, "*", "em", true); // emphasis
-	// 밑줄 강조. `*` 와 같은 `<em>` 을 내되 **낱말 안쪽 억제**를 함께 켠다 —
+	// 밑줄 강조. 겹은 `**` 와 같은 `<strong>` 을, 홑은 `*` 와 같은 `<em>` 을
+	// 내되 **낱말 안쪽 억제**를 함께 켠다 —
 	// `_` 는 `*` 와 달리 식별자에 흔히 쓰이므로(`foo_bar_baz` · `snake_case`)
 	// 억제 없이 등록하면 기술 글이 깨진다. CommonMark 가 두 구분자를 가르는
 	// 유일한 지점이 이것이라 억제는 `_` 계열에만 건다.
+	// 겹 구분자를 홑보다 **먼저** 처리해야 `__bold__` 가 `<em>_bold_</em>` 로
+	// 잘리지 않는다 — `"**"` 를 `"*"` 앞에 두는 것과 같은 이유다.
+	parsed = inlineParsing(parsed, "__", "strong", true, true); // bold (underscore)
 	parsed = inlineParsing(parsed, "_", "em", true, true); // emphasis (underscore)
 
 	// 코드 스팬 복원. 내용은 이스케이프한다 — 코드는 보이는 그대로여야 하고,
@@ -744,6 +748,11 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 	let currentText = "";
 	let searchedText = "";
 	let delimeterLength = delimeter.length;
+	// 구분자 런 판정은 **한 글자 단위**다. `charAt` 산출은 언제나 한 글자인데
+	// 겹 구분자(`"__"`)와 통째로 비교하면 그 비교가 결코 참이 되지 않아, 런
+	// 가드가 겹 구분자에서 통째로 죽는다. 구분자는 같은 글자의 런이므로 첫
+	// 글자가 곧 그 런의 글자다.
+	let runCharacter = delimeter.charAt(0);
 	let openTag = "<" + tagName + ">";
 	let closeTag = "</" + tagName + ">";
 
@@ -769,7 +778,7 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 					const after = node.text.charAt(searchFrom + delimeterLength);
 					const beforeOpen = node.text.charAt(searchFrom - 1);
 					if(strictFlanking && ("" === after || /\s/.test(after)
-						|| after === delimeter || beforeOpen === delimeter)) {
+						|| after === runCharacter || beforeOpen === runCharacter)) {
 						searchFrom += delimeterLength;
 						continue;
 					}
@@ -787,7 +796,7 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 					const before = node.text.charAt(searchFrom - 1);
 					const afterClose = node.text.charAt(searchFrom + delimeterLength);
 					if(strictFlanking && ("" === before || /\s/.test(before)
-						|| before === delimeter || afterClose === delimeter)) {
+						|| before === runCharacter || afterClose === runCharacter)) {
 						searchFrom += delimeterLength;
 						continue;
 					}
