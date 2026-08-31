@@ -1478,4 +1478,64 @@ describe('빈 줄 술어는 공백만 있는 줄을 포함한다', () => {
 		expect(parser.markdownToHtml('첫\n\n둘'))
 			.toBe('<p>첫</p><p></p><p>둘</p>');
 	});
+
+	// (I6)(I7) 대조 배터리 — `TSK-20260901-01-b` 가 얹을 flanking 조건 2 가
+	// **건드리면 안 되는 자리**를 먼저 못 박는다. 조건 2 는 곱이 아니라
+	// `(1) 그리고 (2a 또는 2b)` 이고, 2b 를 삼킨 구현("뒤가 문장부호면 무조건
+	// 열지 않는다")은 손상 축 13 행을 전부 고치면서 `**"굵게"**` · `(**굵게**)`
+	// · `~~"취소"~~` 를 깨뜨린다. 손상 축만 보는 게이트에는 그 파손이 보이지
+	// 않으므로 정상 쪽을 여기서 잠근다. 본 블록은 산출을 바꾸지 않는다 —
+	// 19 행 전부가 현행 구현에서 이미 아래 산출을 낸다.
+	//
+	// 범위 밖(여기에 넣지 않는 것): 구분자 앞이 공백/문장부호인 두 셀은
+	// 조건 2b 로 정당하게 left-flanking 이라 열 자격이 남고, 잔여 어긋남은
+	// *가장 가까운 여는 구분자와 짝짓는* 별 축이다. 낱말문자 뒤 문장부호 셀은
+	// 01-b 가 고치는 자리라 현 산출을 박으면 01-b 가 선행 게이트를 깨야 한다.
+	it('문장부호에 인접한 정상 강조는 그대로다', () => {
+
+		// 9 칸 표 중 6 칸 — 구분자 앞/뒤 × {공백 S, 문장부호 P, 낱말문자 W}.
+		expect(parser.markdownToHtml('가 ** 나 ** 다').trim())
+			.toBe('<p>가 ** 나 ** 다</p>');                       // S_S
+		expect(parser.markdownToHtml('가 **굵게** 다').trim())
+			.toBe('<p>가 <strong>굵게</strong> 다</p>');            // S_W
+		expect(parser.markdownToHtml('가.** 나 ** 다').trim())
+			.toBe('<p>가.** 나 ** 다</p>');                       // P_S
+		expect(parser.markdownToHtml('(**굵게**) 다').trim())
+			.toBe('<p>(<strong>굵게</strong>) 다</p>');             // P_W
+		expect(parser.markdownToHtml('가** 나 ** 다').trim())
+			.toBe('<p>가** 나 ** 다</p>');                        // W_S
+		expect(parser.markdownToHtml('가**나** 다').trim())
+			.toBe('<p>가<strong>나</strong> 다</p>');               // W_W
+
+		// 정상 강조 11 행 — 문장부호가 강조에 인접하지만 열고 닫는 것이 맞다.
+		expect(parser.markdownToHtml('**"굵게"** 다').trim())
+			.toBe('<p><strong>"굵게"</strong> 다</p>');
+		expect(parser.markdownToHtml('(*기울임*) 다').trim())
+			.toBe('<p>(<em>기울임</em>) 다</p>');
+		expect(parser.markdownToHtml('정말 **굵게**? 그렇다').trim())
+			.toBe('<p>정말 <strong>굵게</strong>? 그렇다</p>');
+		expect(parser.markdownToHtml('그리고 (**굵게**) 다').trim())
+			.toBe('<p>그리고 (<strong>굵게</strong>) 다</p>');
+		expect(parser.markdownToHtml('~~"취소"~~ 다').trim())
+			.toBe('<p><del>"취소"</del> 다</p>');
+		expect(parser.markdownToHtml('앞 -**굵게**- 뒤').trim())
+			.toBe('<p>앞 -<strong>굵게</strong>- 뒤</p>');
+		expect(parser.markdownToHtml('정말! **굵게** 다').trim())
+			.toBe('<p>정말! <strong>굵게</strong> 다</p>');
+		expect(parser.markdownToHtml('2 ** 10 은 1024 이고 2 ** 20 은 1048576 이다').trim())
+			.toBe('<p>2 ** 10 은 1024 이고 2 ** 20 은 1048576 이다</p>');
+		expect(parser.markdownToHtml('와~~ 좋다 정말 대박~~').trim())
+			.toBe('<p>와~~ 좋다 정말 대박~~</p>');
+		expect(parser.markdownToHtml('foo*bar*baz').trim())
+			.toBe('<p>foo<em>bar</em>baz</p>');
+		expect(parser.markdownToHtml('no emphasis: foo_bar_baz').trim())
+			.toBe('<p>no emphasis: foo_bar_baz</p>');
+
+		// 조건 1 대조 2 행 — 구분자 뒤가 공백이면 지금도 열지 않는다.
+		// 조건 2 가 붙어도 이 판정은 조건 1 이 그대로 지배한다.
+		expect(parser.markdownToHtml('끝** . 다음 **굵게** 다').trim())
+			.toBe('<p>끝** . 다음 <strong>굵게</strong> 다</p>');
+		expect(parser.markdownToHtml('끝~~ . 그리고 ~~취소~~ 다').trim())
+			.toBe('<p>끝~~ . 그리고 <del>취소</del> 다</p>');
+	});
 });
