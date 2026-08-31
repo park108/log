@@ -1,10 +1,10 @@
 # 목록 항목의 내용은 마커 뒤부터 시작한다 — 표기는 내용이 아니다
 
-> **위치**: `src/common/markdownParser.ts` — `ul` 내용 절단 (`:384` `stripped.substring(2)`) · `ol` 내용 절단 (`:424` `stripped.substring(i)`) · `ol` 마커 판정 루프 (`:410`~`:420`) · `listMarkerDepth` (`:55`) · `ul` 검출 (`:367`) · `ol` 검출 (`:394`) · `bindListItem` (`:833`, 호출 `:392`·`:438`). 게이트: `src/common/markdownParser.test.ts` (`:39`·`:127`·`:154`·`:549`·`:733`·`:738` 정정 대상 · `:503-509` 글머리 목록 쪽 원칙 선언) + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
-> **관련 요구사항**: REQ-20260831-059 FR-01~FR-07 · NFR-01~NFR-03 (출처: developer followup, `source_task: TSK-20260831-08-b`)
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-059 흡수, HEAD=`c64c946`)
+> **위치**: `src/common/markdownParser.ts` — `ul` 내용 절단 (`stripped.substring(2)`) · **`ol` 내용 절단 (`stripped.substring(i)` — 단일 정정 지점)** · `ol` 마커 판정 루프 · `listMarkerDepth` · `ul`/`ol` 검출 · `bindListItem`. 게이트: `src/common/markdownParser.test.ts` (리터럴 기대값) · **`src/Log/LogItem.test.tsx` (DOM 조립 기대값)** + 교차 게이트 `src/__tests__/**` (§의존성). **줄 번호는 적지 않는다** — 한 tick 안에서 6곳 중 3곳이 밀린 실측이 있다 (§참고 §계수는 도출이다).
+> **관련 요구사항**: REQ-20260831-059 FR-01~FR-07 · NFR-01~NFR-03 · REQ-20260831-066 FR-01~FR-09 · NFR-01~NFR-04 (출처: developer followup `source_task: TSK-20260831-08-b` + 운영자 측정 보고 + `TSK-20260831-11` 격리 사유서)
+> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-066 흡수: 계수 모집단 도출, HEAD=`2e1a68d`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`c64c946`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`2e1a68d`) 이며 게이트의 판정 근거가 아니다.
 
 ## 역할
 
@@ -37,7 +37,11 @@
 
 5. **(I5) 글머리 목록의 현 동작은 그대로다 (대조)**: `- 하나\n  이어짐\n- 둘` → `<ul><li>하나<br />이어짐</li><li>둘</li></ul>` 무변경. 이 축을 함께 움직이는 구현은 등식 (I2) 를 만족시키면서도 두 표기를 **같이 틀리게** 만든 것이다.
 
-6. **(I6) 주입 방향에 관측 채널이 생긴다**: 번호 목록 항목의 내용이 마커 뒤 공백을 포함하지 않음을 재는 단언이 존재하며, 그때 저장소의 테스트 기대값에 `<li> ` 표기가 **한 곳도 남지 않는다**. 글머리 목록 쪽 `들여쓰기 공백이 본문에 남지 않는다` (`:504`) 와 대칭인 채널이며, 없으면 축적(현 12곳)이 계속된다. 이것은 게이트 표현에 대한 계약이지 구현 수단 지정이 아니다.
+6. **(I6) 주입 방향에 관측 채널이 생기고, 그 채널은 굳음을 표기와 무관하게 센다**: 번호 목록 항목의 내용이 마커 뒤 공백을 포함하지 않음을 재는 단언이 존재하며, 그때 저장소의 테스트 기대값에 선행 공백을 정답으로 굳힌 자국이 **한 곳도 남지 않는다**. 글머리 목록 쪽 `들여쓰기 공백이 본문에 남지 않는다` 와 대칭인 채널이며, 없으면 축적이 계속된다. **계수 모집단은 도출하고 표기 형태를 열거하지 않는다** — 굳음은 최소 두 형태로 나타난다: 단언 안의 **문자열 리터럴**(`toBe("…<li> …")`)과 **DOM 조립**(`expectedChild.innerHTML = " " + contents`). 뒤쪽 형태에는 `<li>` 라는 글자가 없고 단언도 `toStrictEqual` 이라, 리터럴만 세는 계수기는 그것을 **구조적으로 보지 못한다** (`RULE-06 §열거 고정 금지`). 이것은 게이트 표현에 대한 계약이지 구현 수단 지정이 아니다.
+
+   > **이 사각이 실제로 task 를 격리시켰다.** `TSK-20260831-11` 은 구현에 성공했고 grep 게이트 8건·lint·build 를 전부 통과했으나 `src/Log/LogItem.test.tsx` 1건이 붉어졌고, 그 파일이 §스코프 규칙 의 2 파일 밖이라 `50.blocked/task/` 로 갔다. **격리 판정 자체는 옳다** — 틀린 것은 스코프이며, 그 스코프가 틀린 이유는 계수기가 3번째 파일을 보지 못했기 때문이다.
+
+9. **(I9) 결함을 규범으로 서술한 주석은 계약과 함께 뒤집힌다**: `markdownParser.test.ts` 는 `<li>` 본문 앞 한 칸 공백을 *"현행이며"* 유지 대상으로 적은 주석을 갖고 있다. 그 문면과 본 계약은 **동시에 참일 수 없다**. (I8) 이 blue spec 의 뒤집힌 선언에 대해 요구하는 것과 같은 것을 **코드 주석**에 대해 요구한다 — 남겨 두면 다음 사람이 계약이 아니라 주석을 읽는다.
 
 7. **(I7) 절단 위치를 고치는 것이지 잘린 결과를 손질하는 것이 아니다**: 마커를 건너뛰는 규칙은 각 검출 패스에 한 벌씩만 둔다. `ol` 쪽에 보정용 `trimStart`/`replace` 를 덧대지 않는다 — 사후 손질은 원문의 유의미한 선행 공백까지 함께 먹으며, 손질 지점과 절단 지점이 갈라지면 이후 한쪽만 고쳐진다.
 
@@ -47,7 +51,9 @@
 - **`ol` 절단만 고치고 판정 루프를 함께 건드리는 방향은 (I3) 을 깬다.** `:420` 의 `i` 는 판정("점 뒤가 공백인가")과 절단(내용 시작 위치)에 **동시에** 쓰인다. 판정 쪽을 옮기면 `1.Has Not Space After Dot` 이 목록이 된다.
 - **사후 `trimStart` 방향은 (I7) 을 깬다.** 산출은 같아 보이지만 원문이 의도한 선행 공백까지 먹는다. 현 HEAD 에 `trimStart` 는 0건이다.
 - **`ul` 쪽을 `ol` 에 맞추는 방향은 (I2) 를 만족시키면서 (I5) 를 깬다.** 등식만 재고 대조를 놓치면 두 표기가 함께 틀린 상태가 통과한다.
-- **기대값 12곳을 고치지 않고 구현만 바꾸는 방향은 스위트를 붉힌다** — 그것이 정상이다. 반대로 **구현 없이 기대값만 고치는 방향**도 붉는다. (I6) 의 계수 0 은 두 방향이 함께 착지했을 때만 성립한다.
+- **기대값을 고치지 않고 구현만 바꾸는 방향은 스위트를 붉힌다** — 그것이 정상이다. 반대로 **구현 없이 기대값만 고치는 방향**도 붉는다. (I6) 의 계수 0 은 두 방향이 함께 착지했을 때만 성립한다.
+- **계수기를 리터럴 표기 하나에 맞추는 방향은 (I6) 을 깬다.** 그 형태는 현 HEAD 에서 `12` 를 내고 `rc=0` 을 낼 수 있는데, 그 `0` 은 **13곳 중 12곳만 덮은 0** 이다. 게이트가 겨눈 것을 못 보면서 초록인 상태가 정확히 이 축의 대표 실패다.
+- **계수 대상을 파일·줄 번호 열거로 고정하는 방향은 재발행 시점에 이미 낡는다.** 한 tick 안에서 단언 6곳 중 3곳의 줄 번호가 밀린 실측이 있다 (§참고 §계수는 도출이다). 줄 번호는 baseline 의 스냅샷이지 판정 근거가 아니다.
 - **§동작 (I5) 문면과 baseline 표를 가진 `markdown-blank-line-list-continuity` (green, 18곳) 가 함께 움직인다.** 그 spec 의 grep 게이트는 **입력 리터럴**만 보므로 붉어지지 않는다 — 즉 **게이트가 이 drift 를 잡지 못한다.** 문면 동기화는 inspector Phase 1 의 몫이며 (I8) 이 그것을 요구하는 것은 blue `markdown-list-item-continuation` 에 한정된다 (§의존성).
 
 ## 의존성
@@ -65,8 +71,8 @@
 
 - [ ] (I1 내용 시작) 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "번호 목록 항목의 내용은 마커 뒤부터 시작한다" "$f" && npx vitest run "$f" -t "번호 목록 항목의 내용은 마커 뒤부터 시작한다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (미충족)**. 계약 이름 0 hit.
 - [ ] (I2 등식) 두 표기의 항목 내용 등식이 게이트에 실재한다: `bash -c 'grep -qF "1. X" src/common/markdownParser.test.ts && grep -qF -e "- X" src/common/markdownParser.test.ts'` → HEAD=`c64c946` 실측 **rc=1 (0 hit)**. `<li>` 와 `</li>` 사이 문자열을 두 표기에서 뽑아 비교하는 형태이며, 리터럴 기대값 대신 등식이 이 축의 판정면이다.
-- [ ] (I6 주입 채널) 저장소 테스트 기대값에 `<li> ` 표기가 남아 있지 않다: `bash -c 'test "$(grep -rhE "(toBe|toContain|toMatch)\(.*<li> " src --include="*.test.ts" --include="*.test.tsx" | grep -o "<li> " | wc -l | tr -d " ")" -eq 0'` → HEAD=`c64c946` 실측 **rc=1 (12곳)**. 계수 규칙은 §스코프 규칙 참조.
-- [ ] (I1·I2·I3·I6 접속) 계약과 대조가 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "번호 목록 항목의 내용은 마커 뒤부터 시작한다" "$f" && grep -qF "1.Has Not Space After Dot" "$f" && grep -qF "들여쓰기 공백이 본문에 남지 않는다" "$f" && test "$(grep -rhE "(toBe|toContain|toMatch)\(.*<li> " src --include="*.test.ts" --include="*.test.tsx" | grep -o "<li> " | wc -l | tr -d " ")" -eq 0 && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 기대값 계수만으로는 "단언을 지우기만 한" 구현도 통과한다. 둘 다 공허 통과 경로다.
+- [ ] (I6 굳음 계수) 저장소 테스트 기대값에 선행 공백을 정답으로 굳힌 자국이 없다 — **모집단은 도출하고 표기 형태에 무관하다**: `bash -c 'p=$(find src -name "*.test.ts" -o -name "*.test.tsx" | wc -l | tr -d " "); test "$p" -ge 80 || exit 2; a=$(grep -rhE "(toBe|toContain|toMatch|toEqual|toStrictEqual)\(.*<li> " src --include="*.test.ts" --include="*.test.tsx" | grep -o "<li> " | wc -l | tr -d " "); b=$(grep -rhoE "= *\" \" *\+" src --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d " "); echo "test-files=$p literal=$a dom-assembly=$b hardened=$((a+b))"; test "$((a+b))" -eq 0'` → HEAD=`2e1a68d` 본 tick 독립 실측 **rc=1**, 출력 `test-files=116 literal=12 dom-assembly=1 hardened=13`. **두 항을 더하는 것이 이 게이트의 요점이다** — 리터럴만 세는 구 형태는 `12` 를 내고 `src/Log/LogItem.test.tsx` 의 DOM 조립 굳음을 **구조적으로 보지 못했다** (그 줄에는 `<li>` 라는 글자가 없고 단언도 `toStrictEqual` 이다). 앞의 `test-files >= 80` 은 **모집단 하한**이며 산출에 건 하한이 아니다 — 테스트 트리가 사라지면 `exit 2` 로 무판정 실패한다. 계수 규칙·제외 3곳은 §스코프 규칙 참조.
+- [ ] (I1·I2·I3·I6 접속) 계약과 대조가 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; p=$(find src -name "*.test.ts" -o -name "*.test.tsx" | wc -l | tr -d " "); test "$p" -ge 80 || exit 2; a=$(grep -rhE "(toBe|toContain|toMatch|toEqual|toStrictEqual)\(.*<li> " src --include="*.test.ts" --include="*.test.tsx" | grep -o "<li> " | wc -l | tr -d " "); b=$(grep -rhoE "= *\" \" *\+" src --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d " "); grep -qF "번호 목록 항목의 내용은 마커 뒤부터 시작한다" "$f" && grep -qF "1.Has Not Space After Dot" "$f" && grep -qF "들여쓰기 공백이 본문에 남지 않는다" "$f" && test "$((a+b))" -eq 0 && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`2e1a68d` 실측 **rc=1 (계약 이름 0 hit 으로 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 계수만으로는 "단언을 지우기만 한" 구현도 통과한다. 둘 다 공허 통과 경로다. 계수 항은 (I6) 과 **같은 두 항 합**이며, 한쪽만 접속에 넣으면 나머지 표기가 다시 사각으로 들어간다 (REQ-066 FR-05). **계수 대입은 `&&` 사슬 앞에 둔다** — 사슬 안에 두면 앞 항이 탈락할 때 대입이 실행되지 않아 `test "$p"` 가 빈 문자열을 받고 `rc=2`(무판정)를 낸다. 본 tick 초안이 실제로 그랬고 추출·실행으로 잡았다 (`spec-judgement-command-evaluability` (I3) 이 겨눈 부류 — 위반이 무판정으로 위장된다).
 - [x] (I3 마커 판정 대조 실재) 목록이 아닌 네 표기가 이미 게이트에 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "1.Has Not Space After Dot" "$f" && grep -qF "123Common Text" "$f"'` → HEAD=`c64c946` 실측 rc=0 (`:39`·`:127`). 구현 후에도 rc=0 이어야 한다 — 이 단언들의 **기대 문자열은 바뀌지만 입력은 그대로**다.
 - [x] (I5 글머리 목록 대조 실재) 글머리 목록 쪽 원칙 단언이 게이트로 잠겨 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "들여쓰기 공백이 본문에 남지 않는다" "$f" && npx vitest run "$f" -t "들여쓰기 공백이 본문에 남지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 rc=0 (`:504`). **구현 후에도 rc=0 이어야 한다 — `ul` 쪽을 `ol` 에 맞추는 방향이 정확히 여기서 붉어진다.**
 - [x] (I7 단일 출처) 사후 손질이 없다: `bash -c 'test "$(grep -cF "trimStart" src/common/markdownParser.ts)" -eq 0'` → HEAD=`c64c946` 실측 rc=0 (0건). **구현 후에도 rc=0 이어야 한다** — 절단 위치를 고치는 대신 잘린 결과를 손질하면 붉어진다.
@@ -87,9 +93,14 @@
 - [x] (Must, 범위 제한) 글머리 목록의 현 동작 · 마커 판정 규칙 · 중첩/이어짐/빈 줄 연속성의 구조 계약 · `<li>` CSS 표현 · 주입 방향 게이트의 일반화는 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
-- **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` 와 `src/common/markdownParser.test.ts` **2 파일**이다. `src/Log/api.ts` · `src/Log/diffContents.ts` · `src/styles/**` 는 **읽기 대상**이며 본 축은 그것을 바꾸지 않는다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
+- **expansion**: 불허 — 대상은 **3 파일**이다: `src/common/markdownParser.ts`(구현 · 단일 정정 지점) · `src/common/markdownParser.test.ts`(리터럴 기대값 + `(I9)` 주석) · **`src/Log/LogItem.test.tsx`(DOM 조립 기대값 — `innerHTML = " " + contents` 에서 선행 공백을 뺀다. 그 파일의 다른 단언은 대상이 아니다)**. `src/Log/api.ts` · `src/Log/diffContents.ts` · `src/styles/**` 는 **읽기 대상**이며 본 축은 그것을 바꾸지 않는다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
+  > **세 번째 파일이 빠지면 재발행된 task 가 같은 이유로 다시 격리된다.** `TSK-20260831-11` 이 그렇게 격리됐다 — 2 파일 스코프 + `expansion: 불허` 아래에서 `LogItem.test.tsx` 가 붉어졌고 developer 는 규약대로 손대지 않고 격리했다.
 - **grep-baseline** (HEAD=`c64c946`, 2026-08-31 흡수 시점 격리 사본 실측):
   - `grep -rhE "(toBe|toContain|toMatch)\(.*<li> " src --include="*.test.ts" --include="*.test.tsx" | grep -o "<li> " | wc -l` → **12**. **제외 규칙**: 단언 호출(`toBe`·`toContain`·`toMatch`) 안에 나타난 `<li> ` 만 계수하며 주석·산문·입력 문자열은 세지 않는다. 파일 분포는 `src/common/markdownParser.test.ts` **단독 12** — 교차 게이트 8 파일과 `src/__tests__/**` 전체에 **0건**이다. 단언 6곳: `:39`(3) · `:127`(3) · `:154`(2) · `:549`(2) · `:733`(1) · `:738`(1). **전부 `<ol>` 이고 `<ul>` 쪽은 0곳** — 표기법이 아니라 결함의 자국이라는 근거다.
+  - **(REQ-066 재측정, HEAD=`2e1a68d`, 격리 사본)** 두 표기 합 **13** / **2 파일**. 리터럴 **12**(`src/common/markdownParser.test.ts` 단독 · 단언 6줄) + DOM 조립 **1**(`src/Log/LogItem.test.tsx` — `expectedChild.innerHTML = " " + contents`). 스캔 모집단 `find src -name "*.test.ts" -o -name "*.test.tsx"` → **116 파일**.
+    - **제외 규칙 (음성 대조 근거)**: 주석·평서문의 `<li> ` **3곳**은 세지 않는다 — 상계 `grep -rn "<li> " src --include="*.test.ts" --include="*.test.tsx"` 는 9줄이고 그중 3줄(`Monitor/WebVitalsItem.test.tsx` tooltip 주석 · `markdownParser.test.ts` 의 중첩 평서문 · `markdownParser.test.ts` 의 `(I9)` 주석)이 단언 밖이다. 본 tick 왕복 실측: 단언 쪽을 걷어내도 그 3곳은 그대로 남고 계수에는 들어오지 않았다.
+    - **DOM 조립 항의 패턴을 `innerHTML` 로 고정하지 않은 이유**: 속성 이름을 열거하면 `textContent` 형태가 다음 사각이 된다. `= *" " *\+`(선행 공백 한 칸을 이어 붙이는 대입)로 잡으며 현 HEAD 실측 **1 hit** 로 넓혀도 오탐이 늘지 않는다.
+    - **줄 번호는 스냅샷이다** — 본 tick 실측 단언 6줄은 `:39`·`:129`·`:156`·`:704`·`:888`·`:893`, DOM 조립은 `LogItem.test.tsx:464`. 격리된 `TSK-20260831-11` 은 `:39`·`:127`·`:154`·`:549`·`:733`·`:738` 로 박제했다 — **6곳 중 5곳이 이미 밀렸다**.
   - **축적 실측**: 같은 계수가 `2f34d24` 에서 **10**, `d762727` 이후 **12** 다. 늘어난 2곳(`:733`·`:738`)은 빈 줄 목록 연속성 축의 **대조 게이트**를 새로 쓰면서 현 산출을 옮겨 적은 것이다. req 를 작성하는 한 tick 안에서 두 번 복사됐다.
   - `grep -cF "trimStart" src/common/markdownParser.ts` → **0**. (I7) 의 기준값이며 구현 후에도 0 이다.
   - 계약 이름 0 hit — 신설 대상이다. `grep -cF "번호 목록 항목의 내용은 마커 뒤부터 시작한다" src/common/markdownParser.test.ts` → **0**. 등식 예시도 0 hit: `grep -cF "1. X" src/common/markdownParser.test.ts` → **0**.
@@ -120,20 +131,37 @@
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-059 흡수) / pending @ HEAD=`c64c946` | 최초 박제 — 목록 항목 내용 시작 위치 8 축 (I1~I8). **신규 spec 으로 세운 근거**: 소유 후보 두 문서(`markdown-list-item-continuation` · `markdown-blank-line-list-continuity`)는 목록 **구조**를 다루고 항목 **내용의 시작 위치**를 명제로 갖지 않는다. 전자는 `:105` 에서 이 축을 "고치지 않는다" 고 **명시적으로 배제**했다. **(I2) 를 등식으로 세운 것이 이 흡수의 판단**이다 — req 의 FR-02 를 리터럴 기대값 대신 `ul` 산출을 오른쪽 항으로 삼는 등식으로 닫아, `ol` 만 고치고 `ul` 이 뒤에 어긋나는 방향까지 함께 잠갔다. **순환 논거를 끊은 것이 이 흡수의 요지다**: blue `:105` 는 수정 거부의 근거로 `markdownParser.test.ts:127` 를 들었고 그 기대값은 결함 산출을 옮겨 적은 것이었다 — 같은 tick 에 blue 사본을 green 으로 받아 그 선언을 뒤집었다. baseline: 계약 이름·등식 예시 0 hit / `<li> ` 단언 기대값 12곳 (단언 6곳 · 전부 `<ol>` · `<ul>` 0곳) / 축적 `2f34d24` 10 → `d762727` 12 / `trimStart` 0건 / 결함 축 4행 · 대조 축 6행 격리 사본 실측 / spec 문서 굳음 31곳. unchecked 4 · checked 7. | all |
 | 2026-08-31 | inspector 251차 tick (Phase 1 reconcile) / — @ HEAD=`ed64fb3` | 플립 0. 판정 명령 9건 추출 후 격리 사본 전수 재실행 — (I1)(I2)(I6)·접속 4항 rc=1 유지 (`TSK-20260831-11` 이 `50.blocked/task/` 에 격리돼 있어 미착수), 나머지 rc=0. **라인 drift 정정 2**: 순환 논거의 인용 `markdownParser.test.ts:125` → `:127` (§역할 · §변경 이력) — `0ff9787` 의 `+2` 로 밀렸다. 인용 대상 `it("still produces flat OL HTML when items are not indented (regression)")` 는 불변이므로 논거 자체는 그대로 선다. 계수 drift: 파서 스위트 `NFR-01` 실행분 115 → **122 tests** · 교차 게이트 105 → **106 tests** (rc=0 불변). | 역할 · 변경 이력 |
 
+| 2026-08-31 | inspector 252차 tick (Phase 3, REQ-20260831-066 흡수) / pending @ HEAD=`2e1a68d` | **(I6) 계수기를 표기 열거에서 도출로 교체 + (I9) 신설 + 스코프 2 → 3 파일.** 구 (I6) 은 단언 안의 **문자열 리터럴 `<li> `** 만 셌고 현 HEAD 에서 `12` 를 낸다. 진짜 모집단은 **13 / 2 파일**이다 — `src/Log/LogItem.test.tsx` 의 `expectedChild.innerHTML = " " + contents` 가 패턴 시야 밖이었다 (그 줄에는 `<li>` 라는 글자가 없고 단언도 `toStrictEqual`). **잡으라는 것을 구조적으로 못 보는 게이트**이며, 그 사각이 `TSK-20260831-11` 을 격리시켰다 (구현은 성공, 막힌 것은 스코프). 새 계수기는 리터럴 항과 DOM 조립 항을 **더하고**, 모집단을 `find` 로 도출하며(116 파일), 하한을 **모집단**에 건다(`test-files >= 80`) — 산출에 걸지 않는다. **DOM 조립 항의 패턴을 `innerHTML` 로 고정하지 않은 것이 이 흡수의 판단**이다: 속성 이름을 열거하면 `textContent` 가 다음 사각이 되므로 `= *" " *\+` 로 넓혔고, 넓혀도 오탐이 늘지 않음을 실측했다(1 hit 불변). **접속 게이트의 자기 결함 1건을 초안 단계에서 자체 발견·정정**했다 — 계수 대입을 `&&` 사슬 안에 두어 앞 항 탈락 시 `$p` 가 빈 문자열이 되고 `rc=2`(무판정)를 냈다. 추출·실행으로 잡았고 대입을 사슬 앞으로 옮겨 `rc=1`(정상 위반)로 고쳤다 — 위반이 무판정으로 위장되는 부류이며 `spec-judgement-command-evaluability` (I3) 이 겨눈 자리다. **특이도 왕복**: 단언 쪽 굳음을 걷어내도 주석·평서문 3곳은 계수에 들어오지 않았다. baseline: 리터럴 12 · DOM 조립 1 · 합 13 · 모집단 116 파일 · 상계 9줄 · 제외 3곳. | 위치 · 동작 · 회귀 중점 · 테스트 현황 · 수용 기준 · 스코프 규칙 · 참고 |
 ## 참고
+
+### 계수는 도출이다 — 한 tick 안에서 줄 번호가 밀린 실측
+
+격리된 `TSK-20260831-11` 의 §스코프 규칙 은 단언 6곳을 `:39`·`:127`·`:154`·`:549`·`:733`·`:738` 로 박제했다. 본 tick 실측은 `:39`·`:129`·`:156`·`:704`·`:888`·`:893` 이다 — **6곳 중 5곳이 밀렸다.** 그 사이 `src` 변경은 `markdownParser.test.ts` 한 파일의 증분뿐이다.
+
+| 시점 | 리터럴 occurrence | DOM 조립 | 단언 줄 번호 |
+|---|---|---|---|
+| task 발행 시점 | 12 | (보지 못함) | `:39` `:127` `:154` `:549` `:733` `:738` |
+| 본 tick (`2e1a68d`) | 12 | 1 (`LogItem.test.tsx:464`) | `:39` `:129` `:156` `:704` `:888` `:893` |
+
+**수치는 불변이고 줄 번호만 움직였다.** 도출식 계수는 이 이동에 영향받지 않는다. 줄 번호를 게이트의 판정 근거로 쓰면 게이트는 트리가 움직일 때마다 거짓이 되고, 그 거짓이 `[x]` 아래에 숨는다.
+
+**고치면 붉어지는 케이스 수는 계약이 고정하지 않는다.** 운영자가 `0ff9787` 에서 `substring(i)` → `substring(i + 1)` 만 바꿔 잰 결과는 2 파일 / 7 케이스였다. 그 수는 시점 의존이며, 계약이 두는 것은 그 수가 아니라 **착수 시점에 다시 잰다**는 계수법이다 (REQ-066 FR-09).
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 구현 task DoD 로)
 
-`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다. **검출 방향 4 · 음성 대조 2.**
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다. **검출 방향 5 · 음성 대조 2.**
 
 - **Dir-1 (민감도, I1·I2)** — 절단 위치를 되돌린다 (`ol` 내용이 다시 공백으로 시작) → `rc≠0`. 구현 전 동작이며 이 방향이 붉지 않으면 계약이 게이트에 닿지 않은 것이다.
 - **Dir-2 (민감도, I3 과잉 방향)** — 절단과 함께 **판정**을 옮긴다 (`:420` 의 `i` 를 판정 쪽에서도 밀어 `1.Has Not Space After Dot` 이 목록이 되게) → `rc≠0`. **Dir-1 과 반대 방향이다**: Dir-1 은 고치지 못한 쪽, Dir-2 는 고치면서 판정까지 옮긴 쪽을 잡는다.
 - **Dir-3 (민감도, I5 과잉 방향)** — `ol` 대신 `ul` 을 `ol` 에 맞춘다 (`ul` 내용이 공백으로 시작) → `rc≠0`. 등식 (I2) 는 **만족한 채로** 두 표기가 함께 틀리는 방향이며, 등식만 재는 게이트에는 **보이지 않는다**.
-- **Dir-4 (민감도, I6 채널)** — 기대값 한 곳을 `<li> ` 로 되돌린다 → `rc≠0`. 계수 채널 자체의 실재를 재는 방향이다.
+- **Dir-4 (민감도, I6 채널 — 리터럴 표기)** — 단언 기대값 한 곳을 `<li> ` 로 되돌린다 → `rc≠0`. 계수 채널의 리터럴 방향을 재며, 구 형태의 계수기도 이 방향만은 잡는다.
+- **Dir-5 (민감도, I6 채널 — DOM 조립 표기)** — `LogItem.test.tsx` 의 기대값 조립에 선행 공백을 되돌린다 (`innerHTML = " " + contents`) → `rc≠0`. **Dir-4 와 표기 형태가 다르며, 구 계수기는 이 방향에서 `rc=0` 을 낸다** (실측: 리터럴만 세면 12, 두 형태 합은 13). 표기 형태마다 1건씩 주입하라는 것이 REQ-066 FR-04 이며, 이 방향이 본 흡수의 존재 이유다.
 - **Ctrl-1 (특이도)** — 본 spec 이 범위 밖으로 선언한 축 (`<li>` CSS 표현 · loose 목록 `<p>` 래핑 · 인용 마커 절단) 의 정상 가산 변경 → `rc=0`. **가산형으로 수행한다** (기존 단언에 추가; 문자열 교체 금지) — `TSK-20260831-07` 에서 교체형 Ctrl 이 같은 task 의 정적 문자열 핀 DoD 와 상충해 `rc=1` 을 낸 실측이 있다.
 - **Ctrl-2 (특이도)** — 목록 **구조** 축(중첩 깊이 · 이어짐 · 빈 줄 연속성)의 정상 가산 변경 → `rc=0`. 구조 계약이 살아 있는 채로 표기만 바뀌는 것이 본 계약이므로, 구조 쪽 정당한 추가가 본 게이트를 붉히면 과잉 특정이다.
 
-> **Dir-3 이 이 spec 의 값어치다.** 등식 (I2) 는 두 표기를 서로에게 묶지만, **둘 다 틀린 상태도 등식을 만족한다.** (I5) 의 글머리 목록 대조가 그 방향의 유일한 관측 채널이며, `ul` 쪽 기대값에 `<li> ` 가 0곳이라는 baseline 이 그 대조의 근거다.
+> **Dir-5 가 본 흡수의 값어치다.** 구 계수기는 Dir-1~Dir-4 를 전부 통과하면서 `LogItem.test.tsx` 의 굳음이 남아 있어도 `0` 을 낸다 — `RULE-06 §게이트 실효 검증` 이 말하는 *"주입 왕복을 `N/N detect` 로 통과한 검출력 0 게이트"* 와 같은 자리다. 방향 수는 spec 의 검출 선언에서 계수하므로, 표기 형태를 둘 선언한 이상 주입도 둘이다.
+
+> **Dir-3 이 원 계약의 값어치다.** 등식 (I2) 는 두 표기를 서로에게 묶지만, **둘 다 틀린 상태도 등식을 만족한다.** (I5) 의 글머리 목록 대조가 그 방향의 유일한 관측 채널이며, `ul` 쪽 기대값에 `<li> ` 가 0곳이라는 baseline 이 그 대조의 근거다.
 
 ### 미측정·비판정 항목
 
