@@ -1,8 +1,8 @@
 # 게이트는 대리 표면이 아니라 효력면을 잰다 — 검출력은 한 점이 아니라 변형 배터리로 잰다
 
 > **위치**: `specs/30.spec/{blue,green}/**` 의 `## 테스트 현황` · `## 수용 기준` 판정 항목 · 도출/계수로 모집단을 만드는 게이트 전반. 실물 1호: `src/__tests__/parser-sanitizer-coherence.test.ts` (소유는 `common/sanitizeHtml` (I13)(I14)).
-> **관련 요구사항**: REQ-20260831-077 FR-01·FR-03·FR-04·FR-06 · NFR-01~NFR-04 (FR-02 는 `common/sanitizeHtml` (I14) 가, FR-05 는 §참고 §이관·유보 참조)
-> **최종 업데이트**: 2026-08-31 (by inspector 254차 tick — 최초 박제, HEAD=`4cdf474`)
+> **관련 요구사항**: REQ-20260831-077 FR-01·FR-03·FR-04·FR-06 · NFR-01~NFR-04 (FR-02 는 `common/sanitizeHtml` (I14) 가, FR-05 는 §참고 §이관·유보 참조) · REQ-20260831-080 FR-01·FR-02·FR-03·FR-05 (FR-04 는 (I4) 확장 — §참고 §계수 항)
+> **최종 업데이트**: 2026-09-01 (by inspector 255차 tick — (I6) 이름-실행 정합 추가, HEAD=`5420677`)
 
 > 참조 코드는 **식별자 우선, 라인 번호 보조**. 라인 번호는 스냅샷이다.
 
@@ -22,7 +22,7 @@
 
 ## 공개 인터페이스
 
-- spec 문서의 판정 항목 문면 규약 1건(정적 불변식 선언 토큰)과 그것을 재는 채널. **`rules/` 는 건드리지 않는다.**
+- spec 문서의 판정 항목 문면 규약 1건(정적 불변식 선언 토큰)과 그것을 재는 채널, 그리고 판정 항목의 **이름-실행 정합** 판정면 1건 ((I6)). **`rules/` 는 건드리지 않는다.**
 
 ## 동작
 
@@ -36,9 +36,19 @@
 
 4. **(I4) 분류 근거 박제** (FR-06): 정적 명령을 유지하는 판정 항목은 그 불변식이 **정적임을 문면에 밝힌다**. 선언 토큰은 **`정적 불변식`** 이다. 밝히지 않으면 결함(행위 불변식에 정적 명령)과 정상(정적 불변식에 정적 명령)이 구별되지 않는다.
 
+   **계수 항은 정적 불변식의 하위 부류다** (REQ-20260831-080 FR-04). 판정 명령의 단언이 *"행 수 ≥ N"* · *"hit 수 ≥ N"* 처럼 **수치 비교뿐**인 항목은 그 수치가 **무엇을 통과시키는지**를 문면에 함께 밝힌다. 크기는 집합이 옳음을 함의하지 않는다 — `common/sanitizeHtml` 이 `-eq 27` 등가 pin 을 `-ge 20` 하한으로 바꾸면서 판정면을 (I14) 로 옮긴 것이 같은 판단이다.
+
    > **정적 명령이 곧 결함인 것이 아니다.** *"패턴 hit 0"* · *"파일이 실재한다"* 같은 정적 불변식에는 정적 명령이 **정확한** 측정면이다. 판정에 필요한 것은 명령의 종류가 아니라 **불변식의 종류가 문면에 있는가**이며, 그것이 없으면 사람이 매번 각 항목을 읽어 분류해야 한다 — req 가 상계 75건을 내면서 *"이 75 는 결함 수가 아니다"* 라고 적어야 했던 이유가 그것이다.
 
 5. **(I5) 도입은 green 한정으로 차단한다**: 차단 모집단은 `30.spec/green/**` 이고 blue 는 등급 보고다. **고칠 writer 가 있는 곳만 차단한다** — `foundation/spec-dependency-reverse-derivation` (I6) 과 같은 판정이며 근거도 같다.
+
+6. **(I6) 이름-실행 정합** (REQ-20260831-080 FR-01·FR-02·FR-03·FR-05): 판정 명령이 `grep` 으로 **행위 이름의 실재를 확인**하고 `npx vitest run` 으로 스위트를 실행한다면, **그 이름이 사는 파일이 실행 인자에 있어야 한다.** 없으면 두 단언(이름 실재 · 스위트 초록)이 각각 참이면서 **그 이름이 지키는 명제는 평가되지 않는다.**
+
+   정합을 얻는 방향은 **실행 인자를 이름에서 도출해 넓히는 것**이지 이름 확인을 빼는 것이 아니다 (`set -- $(grep -rl "<이름>" src); npx vitest run "$@" <기존 스위트들>`). 도출형은 구조적으로 정합하므로 불일치 계수에서 면제되며, **면제분도 모집단에는 남는다** — 면제를 모집단에서 빼면 정상화가 진행될수록 모집단이 줄어 마지막에 `무판정 실패` 로 닫힌다.
+
+   **모집단은 도출한다** (`RULE-06 §열거 고정 금지`). 도출이 공집합이면 `rc=2` 무판정 실패다 — 빈 목록을 돌고 rc=0 을 내는 채널은 검출력이 0 이다.
+
+   > **(I3) 과 (I6) 은 반대 방향을 덮는다.** (I6) 은 *"실행하는데 엉뚱한 파일을 실행한다"*, (I3)·(I4) 는 *"실행하지 않으면서 정적임을 밝히지도 않는다"*(= `static-undeclared`). 한쪽만으로는 이름-전용 판정 항과 이름-엉뚱실행 판정 항 중 하나가 항상 무측정으로 남는다.
 
 ## 회귀 중점
 
@@ -47,19 +57,22 @@
 - **대조를 1건으로 유지하는 방향은 구조 클래스를 덮지 못한다.** 오늘 3건이 전부 대조 1건이었다.
 - **정적 명령을 전부 실행 명령으로 바꾸는 방향은 과잉이다.** 정적 불변식에는 정적 명령이 옳다 — (I4) 가 요구하는 것은 교체가 아니라 **분류의 명시**다.
 - **blue 를 차단 모집단에 넣는 방향은 파이프라인을 세운다** (green 110 항목 중 66이 미선언인데 blue 는 349 항목이다).
+- **접속(JOIN) 항은 이 축의 최대 위험 자리다.** 접속 항은 여러 축의 이름을 한 번에 `grep` 하고 스위트를 한 번에 돌리므로 **이름과 실행이 갈라지기 가장 쉽고**, 동시에 `## 수용 기준` 의 Must 한 줄이 그것을 통째로 지목한다. 민감도 0 인 접속 항은 `RULE-07 §promote 조건 2` 를 **언제나** 만족시킨다.
+- **불일치를 이름 확인 삭제로 닫는 방향은 완화다.** `-t` 는 이름 미매치 시 단독으로 rc=0 이므로 실재 확인이 앞에 있어야 한다 — 정정은 실행 인자를 넓히는 방향 하나뿐이다.
 
 ## 의존성
 
 - 내부: `specs/30.spec/green/**` (차단 모집단 — read-only 판정) · `specs/30.spec/blue/**` (등급 보고).
 - 외부: 없음.
-- **역의존 (사용처) — 열거하지 않고 도출한다**: `bash -c 'grep -rln "정적 불변식" specs/30.spec/green --include="*.md"'` → HEAD=`4cdf474` 실측 **4 hit** (`foundation/measure-tool-overflow-label-support` · `foundation/spec-dependency-reverse-derivation` · `common/stored-summary-parser-drift-measurement` · 본 문서 — 전부 254차 신규). **제외 규칙**: 본 문서 자신의 토큰 정의 언급은 §동작 구획이라 판정 구획 계수에 들어가지 않는다. **선언 토큰을 쓰는 문서가 4건뿐(green 12 중)이라는 것이 (I4) 의 현행 baseline 이다.**
+- **역의존 (사용처) — 열거하지 않고 도출한다**: `bash -c 'grep -rln "정적 불변식" specs/30.spec/green --include="*.md"'` → HEAD=`4cdf474` 실측 **4 hit** (`foundation/measure-tool-overflow-label-support` · `foundation/spec-dependency-reverse-derivation` · `common/stored-summary-parser-drift-measurement` · 본 문서 — 전부 254차 신규). **제외 규칙**: 본 문서 자신의 토큰 정의 언급은 §동작 구획이라 판정 구획 계수에 들어가지 않는다. **선언 토큰을 쓰는 문서가 4건뿐(green 12 중)이라는 것이 (I4) 의 현행 baseline 이다.** → HEAD=`5420677` 255차 재도출 **4 hit 불변** (green 12 → 12; 255차 신규 3 문서에는 정적 명령 판정 항이 없어 토큰이 필요하지 않다).
 - 직교: `foundation/spec-judgement-command-evaluability` (명령의 **평가 가능성** — 겹치지 않음, §참고) · `common/sanitizeHtml` (I14) (본 계약의 FR-02 적용처) · `foundation/spec-dependency-reverse-derivation` (같은 tick — **목록**의 도출, 본 계약은 **게이트**의 도출).
 
 ## 테스트 현황
 
 > 각 명령은 HEAD=`4cdf474` 에서 **파일에서 추출해** 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 판정 대상이 `specs/**` 문서라 저장소 루트에서 read-only 로 실행한다.
 
-- [ ] (I3·I4 분류 전수) green 판정 항목 중 **정적 명령인데 정적 불변식 선언이 없는 것이 0** 이다: `bash -c 'set -- $(find specs/30.spec/green -name "*.md"); test "$#" -ge 1 || exit 2; R=$(perl -ne '"'"'if(/^## (테스트 현황|수용 기준)\s*$/){$k=1;next} if(/^## /){$k=0;next} print if $k; if(eof){$k=0}'"'"' "$@" | perl -ne '"'"'my $b=chr(96); next unless /^- \[[ x]\]/; my $line=$_; my $cmd=q(); while(/$b([^$b]+)$b/g){ my $c=$1; if($c=~/^(bash -c|npx|node|perl|grep|test )/){ $cmd=$c; last } } next unless length $cmd; my $exec = ($cmd=~/npx vitest|npm run|npx tsc|npx eslint|node |eval /) ? 1 : 0; my $dec = ($line=~/정적 불변식/) ? 1 : 0; print(($exec? qq(E) : ($dec? qq(S) : qq(X))), qq(\n))'"'"'); tot=$(printf "%s\n" "$R" | grep -c "."); test "$tot" -ge 50 || exit 2; e=$(printf "%s\n" "$R" | grep -c "^E"); s=$(printf "%s\n" "$R" | grep -c "^S"); x=$(printf "%s\n" "$R" | grep -c "^X"); echo "judgement-items=$tot exec=$e static-declared=$s static-undeclared=$x"; test "$x" -eq 0'` → HEAD=`4cdf474` 실측 **rc=1**, 출력 `judgement-items=110 exec=37 static-declared=7 static-undeclared=66`. **하한을 모집단(`tot >= 50`)에 걸고 산출(`x`)을 0으로 닫는다** — 산출에 하한을 걸면 정상화가 진행될수록 붉어진다. **`static-undeclared` 는 결함 수가 아니라 미분류 수다**: 그중 몇이 행위 불변식에 정적 명령을 단 실제 결함인지는 분류가 끝나야 안다. 그것이 이 항목의 요지다 — **분류되지 않은 상태에서는 결함과 정상이 같은 수에 섞여 있다.**
+- [ ] (I3·I4 분류 전수) green 판정 항목 중 **정적 명령인데 정적 불변식 선언이 없는 것이 0** 이다: `bash -c 'set -- $(find specs/30.spec/green -name "*.md"); test "$#" -ge 1 || exit 2; R=$(perl -ne '"'"'if(/^## (테스트 현황|수용 기준)\s*$/){$k=1;next} if(/^## /){$k=0;next} print if $k; if(eof){$k=0}'"'"' "$@" | perl -ne '"'"'my $b=chr(96); next unless /^- \[[ x]\]/; my $line=$_; my $cmd=q(); while(/$b([^$b]+)$b/g){ my $c=$1; if($c=~/^(bash -c|npx|node|perl|grep|test )/){ $cmd=$c; last } } next unless length $cmd; my $exec = ($cmd=~/npx vitest|npm run|npx tsc|npx eslint|node |eval /) ? 1 : 0; my $dec = ($line=~/정적 불변식/) ? 1 : 0; print(($exec? qq(E) : ($dec? qq(S) : qq(X))), qq(\n))'"'"'); tot=$(printf "%s\n" "$R" | grep -c "."); test "$tot" -ge 50 || exit 2; e=$(printf "%s\n" "$R" | grep -c "^E"); s=$(printf "%s\n" "$R" | grep -c "^S"); x=$(printf "%s\n" "$R" | grep -c "^X"); echo "judgement-items=$tot exec=$e static-declared=$s static-undeclared=$x"; test "$x" -eq 0'` → HEAD=`4cdf474` 실측 **rc=1**, 출력 `judgement-items=110 exec=37 static-declared=7 static-undeclared=66`. **하한을 모집단(`tot >= 50`)에 걸고 산출(`x`)을 0으로 닫는다** — 산출에 하한을 걸면 정상화가 진행될수록 붉어진다. **`static-undeclared` 는 결함 수가 아니라 미분류 수다**: 그중 몇이 행위 불변식에 정적 명령을 단 실제 결함인지는 분류가 끝나야 안다. 그것이 이 항목의 요지다 — **분류되지 않은 상태에서는 결함과 정상이 같은 수에 섞여 있다.** → HEAD=`5420677` 255차 재실측 **rc=1 (불변)**, 출력 `judgement-items=111 exec=38 static-declared=7 static-undeclared=66`. 모집단이 110 → 111 로 는 것은 본 tick 신설 (I6) 항목 1개이며 그 항목은 실행으로 분류됐다(`exec` 37 → 38). **미분류 66 은 불변** — 255차는 이 축을 진전시키지 않았다.
+- [x] (I6 이름-실행 정합) green 판정 항목 중 **실재를 확인한 행위 이름이 사는 파일을 실행 인자에 넣지 않은 것이 0** 이다: `bash -c 'set -- $(find specs/30.spec/green -name "*.md"); test "$#" -ge 1 || exit 2; R=$(perl -ne '"'"'BEGIN{$B=chr(96);$T=0;$D=0} if(/^## (테스트 현황|수용 기준)\s*$/){$k=1;next} if(/^## /){$k=0;next} if($k && /^- \[[ x]\]/){ while(/$B([^$B]+)$B/g){ my $c=$1; next if $c=~/name-exec-mismatch/; next unless $c=~/npx vitest run/; next unless $c=~/grep/; $T++; if($c=~/"\$\@"/){ $D++; next } my %p=map{($_,1)} ($c=~m{(src/[A-Za-z0-9_./-]+\.(?:test|spec)\.[a-z]+)}g); for my $n ($c=~/"([^"]*)"/g){ next if $n=~m{^src/}; next unless $n=~/[\x80-\xFF]/; my @h=split /\n/, qx{grep -rl -- "$n" src 2>/dev/null}; next unless @h; my $ok=0; for my $x (@h){ $ok=1 if $p{$x} } print "M $ARGV:$.\n" unless $ok } } } if(eof){close ARGV} END{print "T $T D $D\n"}'"'"' "$@"); pop=$(printf "%s\n" "$R" | sed -n "s/^T \([0-9]*\) D .*/\1/p"); der=$(printf "%s\n" "$R" | sed -n "s/^T [0-9]* D //p"); m=$(printf "%s\n" "$R" | grep -c "^M "); echo "name-exec-items=$pop derived=$der name-exec-mismatch=$m"; test "$pop" -ge 1 || exit 2; test "$m" -eq 0'` → HEAD=`5420677` **255차 정정 전** 실측 **rc=1**, 출력 `name-exec-items=23 derived=6 name-exec-mismatch=3` (전건 `common/summary-block-boundary-tag-derivation.md:88` 한 항 / 이름 3). **정정 후** 실측 **rc=0**, 출력 `name-exec-items=23 derived=7 name-exec-mismatch=0`. **모집단은 도출이고 하한은 모집단에 건다** — 도출형 면제분(`derived`)을 모집단에서 빼면 정상화가 끝나는 순간 `pop=0` 으로 무판정 실패한다. **제외 규칙 3**: (a) 본 항목 자신(명령에 `name-exec-mismatch` 를 포함하는 span — 자기 텍스트가 모집단에 드는 자기참조 차단), (b) 실행 인자를 `"$@"` 로 도출하는 span(구조적으로 정합 — 계수 면제, 모집단 잔존), (c) `grep -rl` 이 `src` 에서 찾지 못하는 이름(그 축은 항목 자신의 이름 실재 선행 조건이 잡는다 — §참고 §미측정).
 - [x] (I1 효력면 적용처 실재) 효력면 계약이 실물 게이트에 귀속돼 있다: `bash -c 'f=specs/30.spec/green/common/sanitizeHtml.md; test -f "$f" || exit 2; grep -qF "(I14) 판정 모집단은 정책의" "$f" && grep -qF "부모 문맥" "$f"'` → HEAD=`4cdf474` 실측 **rc=0**. **본 계약은 일반 명제를 지고 적용은 소유 spec 이 진다** — 게이트 하나마다 여기 항목을 늘리면 이 문서가 게이트 목록이 된다.
 - [x] (I2 배터리 클래스 커버리지 실재) 실물 배터리가 **구조 클래스 4종**으로 박제돼 있다: `bash -c 'f=specs/30.spec/green/common/sanitizeHtml.md; test -f "$f" || exit 2; n=0; for v in "배열의 분해" "주석 잔존" "의미 단위 분해" "상수 소멸"; do grep -qF "$v" "$f" && n=$((n+1)); done; echo "battery-classes=$n"; test "$n" -ge 4'` → HEAD=`4cdf474` 실측 **rc=0**, 출력 `battery-classes=4`. **클래스 이름을 세는 것이지 변형 코드를 세는 것이 아니다** — 변형 실물은 게이트 파일 소관이고 (`sanitizeHtml` (I14 변형 배터리 박제)) 여기서는 **클래스가 열거됐는가**만 잰다.
 - [x] (I5 모집단 분리) 차단 모집단과 등급 모집단이 갈려 있고 둘 다 비지 않았다: `bash -c 'g=$(find specs/30.spec/green -name "*.md" | wc -l | tr -d " "); b=$(find specs/30.spec/blue -name "*.md" | wc -l | tr -d " "); echo "green=$g blue=$b"; test "$g" -ge 1 -a "$b" -ge 1 -a "$b" -gt "$g"'` → HEAD=`4cdf474` 실측 **rc=0**, 출력 `green=12 blue=73`. **정적 불변식이다** — 판정면이 두 모집단의 실재와 분리이므로 정적 명령이 정확한 측정면이다.
@@ -68,6 +81,7 @@
 ## 수용 기준
 
 - [ ] (Must, FR-04·FR-06) 위 §테스트 현황 (I3·I4 분류 전수) 명령 → rc=0 (`static-undeclared` = 0).
+- [x] (Must, REQ-20260831-080 FR-01·FR-02·FR-03·FR-05) 위 §테스트 현황 (I6 이름-실행 정합) 명령 → rc=0 (`name-exec-mismatch` = 0). HEAD=`5420677` 정정 후 실측 rc=0.
 - [x] (Must, FR-01 적용) 위 §테스트 현황 (I1 효력면 적용처 실재) 명령 → rc=0. HEAD=`4cdf474` 실측 rc=0.
 - [x] (Must, FR-03 배터리) 위 §테스트 현황 (I2 배터리 클래스 커버리지 실재) 명령 → rc=0. HEAD=`4cdf474` 실측 rc=0 (`battery-classes=4`).
 - [x] (Must, 도입 경로) 위 §테스트 현황 (I5 모집단 분리) 명령 → rc=0. HEAD=`4cdf474` 실측 rc=0 (`green=12 blue=73`).
@@ -80,6 +94,8 @@
   - green 판정 항목 **110** (명령 span 을 가진 `- [ ]`/`- [x]` 줄). 실행 채널 포함 **37** · 정적이며 선언 있음 **7** · 정적이며 **미선언 66**. **본 tick 신설·재개봉 5 문서가 이 모집단을 105 → 110 으로 늘렸고 선언은 2 → 7 로 늘었다** — 신규 문서에 선언을 달면서 세운 값이다.
   - blue 판정 항목 **349** · 정적 미선언 **249** (등급 보고 모집단, 차단하지 않는다).
   - 선언 토큰 `정적 불변식` 을 쓰는 green 문서 **4** / 12 (전부 254차 신설·재개봉분).
+  - **(I6) baseline** (HEAD=`5420677`, 저장소 루트 read-only 실측): green `name-exec-items=23` (도출형 면제 **7** · 하드코딩 16) · 불일치 **정정 전 3 / 정정 후 0**. blue `name-exec-items=35` (도출형 6) · 불일치 **0** — 등급 보고이며 차단하지 않는다. **blue 0 이라는 것이 이 축의 요점**이다: 결함은 낡은 문서가 아니라 **당일 작성된 신규 접속 항**에서 났다.
+  - **(I6) 주입 왕복 실측** (specs+src 전량 격리 사본 — `git archive` 아닌 `cp -R`, 판정 대상이 gitignored 아닌 `30.spec` 이라 사본으로 족하다): 방향 (a) 도출형 실행 인자를 하드코딩으로 되돌림 → **rc=1** (`name-exec-mismatch=3`), 원복 → **rc=0**. 방향 (b) 실행 채널을 지우고 이름 확인만 남김 → **(I6) rc=0** (설계상 범위 밖) 이고 **(I3·I4) 가 잡는다** — `exec` 37 → 36 · `static-undeclared` 66 → 67. 두 항이 반대 방향을 나눠 진다.
   - **효력면 실측 3점** (`common/sanitizeHtml` §참고 §효력면 실측 에 전문): V0 실효 27 / 게이트 rc=0 · **V2** 실효 27(불변) / 게이트 **rc=1** · **V9** 실효 **28** / 게이트 **rc=0**. 격리 사본, 메인 트리 `src` 쓰기 0.
   - 실행 채널 판정 규칙: 명령 문자열이 `npx vitest` · `npm run` · `npx tsc` · `npx eslint` · `node ` · `eval ` 중 하나를 포함하면 실행으로 센다. **제외**: 산문에만 있는 언급은 세지 않는다 (계수는 인라인 span 에서 뽑은 **명령 문자열**에 대해서만 한다) — 초안이 줄 전체에 정규식을 걸어 이 구분을 놓쳤고 같은 tick 에 정정했다.
 - **rationale**: 모집단(105 / 349)과 분류 결과가 정수로 닫히고 효력면 실측이 3점으로 열거되므로 baseline 은 열거로 닫힌다. `static-undeclared` 를 **미분류 수**로 부른 이유는 그것이 결함 수가 아니기 때문이며, 그 구분 자체가 (I4) 의 존재 이유다.
@@ -88,6 +104,7 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-09-01 | inspector 255차 tick (Phase 3, REQ-20260831-080 흡수) / — @ HEAD=`5420677` | **(I6) 이름-실행 정합 신설 + (I4) 계수 항 하위 부류 명시 + 현 위반 1건 정정.** **신설 계약을 세우지 않은 것이 이 흡수의 판단이다** — req 가 지목한 명제는 이미 (I3) 이 선언하고 있었고, 새 문서를 세우면 같은 명제를 두 문서가 나눠 갖는다 (`RULE-07 §반려 시그널`). 없던 것은 명제가 아니라 **모집단·집행·계수**였고 그것을 (I6) 으로 붙였다. **(I3) 과 (I6) 이 반대 방향을 덮는다**: (I6) 은 *"실행하는데 엉뚱한 파일"*, (I3)·(I4) 는 *"실행하지 않고 정적임도 안 밝힘"*. 주입 왕복으로 그 분담을 실측했다 — 방향 (b) 에서 (I6) 은 rc=0 이고 (I3·I4) 의 `exec` 가 37 → 36 으로 움직인다. **모집단에서 도출형 면제분을 빼지 않은 것이 두 번째 판단이다**: 빼면 정상화가 끝나는 순간 `pop=0` 으로 무판정 실패한다 — 산출이 아니라 모집단에 하한을 거는 (I3·I4) 와 같은 형태다. **자기참조를 제외 규칙으로 닫았다**: 이 항목의 명령 자신이 `npx vitest run` 문자열을 담고 있어 자기 모집단에 든다. 정정 1건: `common/summary-block-boundary-tag-derivation.md:88` (FR-03). baseline: green `name-exec-items=23`(도출형 7) 불일치 3 → **0** · blue 35(도출형 6) 불일치 **0** · `judgement-items` 110 → 111 (`exec` 37 → 38 · `static-undeclared` **66 불변**). unchecked 1 · checked 6. | §동작 · §회귀 중점 · §테스트 현황 · §수용 기준 · §스코프 규칙 · §참고 |
 | 2026-08-31 | inspector 254차 tick (Phase 3, REQ-20260831-077 흡수) / pending @ HEAD=`4cdf474` | 최초 박제 — 효력면·배터리·라벨 민감도 5 축 (I1~I5). **중복 게이트 판정을 먼저 했다** (`RULE-07 §반려 시그널`): `RULE-06 §관측 표면` 이 같은 것을 말하지만 그것은 **작성 규약**이지 자동 게이트가 아니고, 반려 시그널이 요구하는 *"위반 시 기존 자동 게이트가 즉시 실패한다"* 가 **실측으로 거짓**이다 — V9 변형에서 실효 정책이 넓어졌는데 게이트가 17/17 초록이었다. 중복이 아니라 **검출력 0 인 자리**다. **일반 명제만 지고 적용은 소유 spec 에 남긴 것이 이 흡수의 판단이다**: FR-02 는 `common/sanitizeHtml` (I14) 로 재개봉해 넣었고 여기에는 그 귀속의 **실재**만 잰다. 게이트 하나마다 항목을 늘리면 이 문서가 게이트 목록이 되고, 그때 이 문서 자신이 열거 고정이 된다. **`static-undeclared` 를 결함 수로 부르지 않은 것이 두 번째 판단이다** — 66 중 몇이 실제 결함인지는 분류가 끝나야 알며, req 가 상계 75를 내면서 *"이 75 는 결함 수가 아니다"* 라고 적어야 했던 자리를 게이트 문면으로 옮겼다. **FR-05 는 유보했다** (§참고 §이관·유보). baseline: green 판정 **110**(실행 37 / 정적 선언 7 / 정적 미선언 **66**) · blue 349(정적 미선언 249) · 선언 토큰 사용 **4** 문서 / 12 · 효력면 3점. unchecked 1 · checked 4. | all |
 
 ## 참고
@@ -115,10 +132,21 @@ blue 349 항목(정적 미선언 249)은 등급 보고이며 차단하지 않는
 - **다만 무측정 위험이 남는다**: `:87` 수용 기준이 (I3) 항목을 `Must, FR-03 마커 판정 불변` 의 판정 채널로 **지목**하고 있어, 접속 게이트가 없어지면 그 Must 는 초록인 채 무측정이 된다. 이 조건부 위험이 유보의 비용이며 여기 박제한다.
 - 착수 시점: `markdown-list-item-content-start` 가 다른 사유로 재개봉될 때 함께 처리한다. **이관처가 없는 강등이 아니다** — 강등한 것이 아니라 적용을 유보했고, 일반 명제는 (I3)(I4) 로 이미 세워져 있어 그 문서가 green 으로 들어오는 순간 차단 모집단에 포함된다.
 
+### 계수 항 (REQ-20260831-080 FR-04)
+
+**계수 항에 별도 게이트를 세우지 않았다.** 계수 항은 정적 명령이므로 (I3·I4) 의 분류 전수에 이미 모집단으로 들어 있고, `정적 불변식` 선언이 없으면 `static-undeclared` 로 계수된다. 별도 판정면을 세우면 같은 항목을 두 게이트가 세고 **둘 중 하나가 낡을 때 어느 쪽이 참인지 알 수 없게 된다.**
+
+req 가 인용한 두 사례(`TSK-20260831-20-b` (I2) 이름 실재 전용 · `TSK-20260831-23-a` (I9) corpus 행 수 ≥ 13)는 **본 tick 에 재측정하지 않았다** — 발행된 `40.task/**` 의 명령은 감사 기록이며 재실행 대상이 아니다 (`RULE-01` rewrite 금지). 그 축이 green 문면에 남아 있는지는 (I3·I4)·(I6) 의 green 전수 스캔이 답하며, 현 실측에서 (I6) 불일치는 0 이다.
+
+(I4) 가 요구하는 것은 계수 항의 **금지**가 아니라 **그 수치가 무엇을 통과시키는지의 명시**다. 하한 자체는 정당한 판정면일 수 있다 — `common/sanitizeHtml` 의 `-ge 20` 이 그렇고, 그 문서는 하한이 집합의 옳음을 함의하지 않는다는 사실을 (I14) 로 따로 진다.
+
 ### 미측정·비판정 항목 (`RULE-07 §수용 기준 문장 규약`)
 
 - **`static-undeclared` 66 중 실제 결함 수**는 측정되지 않았다. 분류가 곧 측정이며 그것이 (I4) 가 요구하는 일이다.
 - **배터리의 충분성**(구조 클래스를 다 덮었는가)은 판정 채널이 없다. 클래스 열거는 사람이 고르며, 본 계약이 재는 것은 **열거의 존재**이지 완전성이 아니다. 완전성을 재려면 클래스의 전체 집합을 알아야 하는데 그것은 게이트마다 다르다.
+- **(I6) 의 도출형 면제는 구조 근거이지 측정이 아니다.** `npx vitest run "$@"` 형태는 실행 인자가 `grep -rl` 산출이므로 정합이 구조적으로 보장된다고 **가정**한다. 한 span 이 A 라는 이름을 `grep` 하고 B 라는 다른 이름에서 도출한 `"$@"` 를 넘기는 형태는 이 면제를 통과한다. 현 green 23 항 중 도출형 7 을 눈으로 확인했을 때 그런 형태는 없었으나, **눈으로 확인한 것은 측정이 아니다.**
+- **`grep -rl` 이 `src` 에서 이름을 못 찾는 항목은 (I6) 이 건너뛴다.** 그 축은 각 항목 자신의 이름 실재 선행 조건(`exit 1`/`exit 2`)이 잡는다. 측정 중에 이 건너뜀이 **false-negative 로 실제 발화했다**: 격리 사본에서 `src` 를 심볼릭 링크로 두었더니 BSD `grep -r` 이 최상위 심볼릭 링크를 따라가지 않아 전 이름의 home 이 공집합이 됐고, **주입한 위반이 rc=0 으로 통과했다.** `cp -R` 실사본으로 바꿔 재측정했다. 게이트의 결함이 아니라 측정 트리 구성의 결함이지만, **공집합이 조용히 통과로 읽히는 경로가 여기에도 있다**는 것이 요점이다.
+- **방향 (b) 는 현재 깨끗한 rc 뒤집힘이 아니다.** (I3·I4) 가 이미 `static-undeclared=66` 으로 붉으므로 실행 채널을 지우면 66 → 67 로 **수치만** 움직인다. 이 방향이 rc 로 닫히려면 미분류 66 의 정상화가 끝나야 한다 — 그때까지 방향 (b) 의 검출은 **계수 관측**이지 게이트 발화가 아니다.
 - **채널 부착**: 본 계약의 (I3·I4) 게이트는 `check:*` 없이도 판정 가능하지만(문서만 읽는다) 자동 발화 채널은 없다. `foundation/spec-dependency-reverse-derivation` · `check:blue-judgement` 와 **같은 스캐너에 구획만 더하는** 형태가 자연스럽다.
 
 ### 관련
