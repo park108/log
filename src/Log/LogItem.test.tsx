@@ -461,7 +461,8 @@ it('parse ordered list tag correctly', () => {
 
 	const expected = document.createElement("ol");
 	const expectedChild = document.createElement("li");
-	expectedChild.innerHTML = " " + contents;
+	// 항목 내용은 마커 뒤부터 시작한다 — 선행 공백은 표기이지 내용이 아니다.
+	expectedChild.innerHTML = contents;
 	expected.appendChild(expectedChild);
 
 	expect(expected).toStrictEqual(html);

@@ -425,7 +425,11 @@ export const markdownToHtml = (rawInput: string): string => {
 
 						parsed.splice(index, 1,
 							{type: "tag", text: "<li>", itemOf: "ol", depth: depth}
-							, {type: "value", text: stripped.substring(i), itemOf: "ol", closure: "li", depth: depth}
+							// `i` 는 마커 뒤 공백의 자리다. 그 공백은 **표기이지 내용이 아니므로**
+							// 건너뛴다 — `substring(i)` 로 두면 원문에 없는 공백 한 칸이 항목
+							// 본문 앞에 생긴다 (`1. 하나` → `<li> 하나`). 글머리 목록은 위
+							// `substring(2)` 로 이미 마커와 공백을 함께 건너뛰고 있다.
+							, {type: "value", text: stripped.substring(i + 1), itemOf: "ol", closure: "li", depth: depth}
 							, {type: "tag", text: "</li>", itemOf: "ol", depth: depth});
 						break;
 					}
