@@ -1,10 +1,10 @@
 # 강조의 의미는 구분자에 의존하지 않는다 — 밑줄(`_` · `__`) 강조
 
-> **위치**: `src/common/markdownParser.ts` — 인라인 패스 등록 (`:665`·`:666`·`:670`), `inlineParsing` 정의 (`:722`), `strictFlanking` 판정 (`:754-755` 여는 쪽 · `:767-768` 닫는 쪽), `ESCAPABLE` (`:532`), `THEMATIC_BREAK_PATTERN` (`:82`), 코드 스팬 선추출 (`:548`), `stashTag` (`:499`). 게이트: `src/common/markdownParser.test.ts` + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
+> **위치**: `src/common/markdownParser.ts` — 인라인 패스 등록 (`:665` `**` · `:666` `~~` · `:670` `*` · `:678` `__` · `:679` `_`), `inlineParsing` 정의 (`:743`), 런 글자 `runCharacter` (`:755`), `strictFlanking` 판정 (`:778-781` 여는 쪽 · `:796-799` 닫는 쪽), 낱말 안쪽 억제 `WORD_CHARACTER_PATTERN`·`isIntraword` (`:735`·`:740`, 호출 `:786`·`:804`), `ESCAPABLE` (`:532`), `THEMATIC_BREAK_PATTERN` (`:82`), 코드 스팬 선추출 (`:548`), `stashTag` (`:499`). 게이트: `src/common/markdownParser.test.ts` + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
 > **관련 요구사항**: REQ-20260831-051 FR-01~FR-05 · NFR-01~NFR-03 · **REQ-20260831-055 FR-01~FR-05 · NFR-01~NFR-04** ((I3) 판정 규칙 정정 + (I7) 런 일치 승격)
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-055 흡수: (I3) 결함 문면 정정 + (I7) 신설, HEAD=`7b43fa8`)
+> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile: 8 축 전수 충족, HEAD=`0aa049e`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`7b43fa8`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`0aa049e`).
 
 ## 역할
 
@@ -34,76 +34,84 @@ CommonMark 는 강조 구분자로 `*` 와 `_` 를 **대등하게** 규정한다
    - `__` 는 수평선이 아니다 (대조).
 5. **(I5) 구분자 혼용**: 밑줄 강조와 별표 강조는 한 문장 안에서 함께 동작한다 — `*별표* 와 _밑줄_` 의 양쪽 모두 `<em>` 이 된다.
 6. **(I6) 별표 축 불변 (범위 제한)**: `*`·`**`·`~~` 의 현 동작은 바뀌지 않는다. 본 계약은 `_` 계열을 **더하는** 것이지 기존 구분자의 판정을 옮기는 것이 아니다.
-7. **(I7) 구분자 런은 쪼개 쓰지 않는다**: 여는·닫는 구분자 **바로 바깥**에 같은 구분자 글자가 이어지면 그 자리는 열지도 닫지도 않는다. `___둘다___` 는 현 산출 `<p>___둘다___</p>` 를 유지한다. **판정은 구분자 문자열 전체가 아니라 한 글자 단위여야 한다** — 현 런 가드(`:755` `after === delimeter`, `:768` `before === delimeter`)는 `charAt` 산출(한 글자)을 `delimeter`(겹 구분자에서는 `"__"`, 두 글자)와 비교하므로 **겹 구분자에서 결코 참이 되지 않는다**. 이 항목은 흡수 시점 §참고 §미측정 의 평서문("구현이 이 입력의 동작을 바꾸지 않는 것이 기본")이었고, 판정 대상이 아니라 지켜지지 않았다 — REQ-20260831-055 가 §동작 으로 승격했다.
+7. **(I7) 구분자 런은 쪼개 쓰지 않는다**: 여는·닫는 구분자 **바로 바깥**에 같은 구분자 글자가 이어지면 그 자리는 열지도 닫지도 않는다. `___둘다___` 는 현 산출 `<p>___둘다___</p>` 를 유지한다. **판정은 구분자 문자열 전체가 아니라 런의 한 글자 단위여야 한다** (`runCharacter` `:755` = `delimeter.charAt(0)`) — 겹 구분자(`"__"`, 두 글자)와 `charAt` 산출(한 글자)을 통째로 비교하면 그 비교가 결코 참이 되지 않아 가드가 겹 구분자에서 통째로 죽는다. 이 항목은 흡수 시점 §참고 §미측정 의 평서문("구현이 이 입력의 동작을 바꾸지 않는 것이 기본")이었고, 판정 대상이 아니라 지켜지지 않았다 — REQ-20260831-055 가 §동작 으로 승격했고, `0aa049e` 가 한 글자 비교로 정정했다.
 8. **(I8) 계약 게이트는 비한글 예시를 포함한다**: (I1)(I2)(I3) 을 재는 게이트의 예시에 **비한글 입력이 1건 이상** 있어야 한다. 한글 예시만으로는 (I3) 을 ASCII 로 좁힌 구현이 전부 초록으로 통과한다 — 이것은 게이트 표현에 대한 계약이지 구현 수단 지정이 아니다.
 
 ### 회귀 중점
-- **(I1)(I2) 만 만족시키고 (I3) 를 빠뜨리는 구현**이 이 축의 대표 실패다. `_` 를 기존 `inlineParsing` 에 그대로 등록하면 `foo_bar_baz` 가 `foo<em>bar</em>baz` 가 된다 — 현재 정상인 것을 깨뜨리는 방향이다. 현 `strictFlanking` (`:754-755`·`:767-768`) 은 **공백과 같은 구분자의 연속**만 보고 단어 글자 인접은 보지 않으므로, 그 상태로의 등록이 정확히 이 회귀다.
-- (I3) 만 만족시키고 (I1)(I2) 가 없으면 아무것도 달라지지 않는다 — 현 HEAD 가 그 상태다.
+- **(I1)(I2) 만 만족시키고 (I3) 를 빠뜨리는 구현**이 이 축의 대표 실패다. `_` 를 기존 `inlineParsing` 에 그대로 등록하면 `foo_bar_baz` 가 `foo<em>bar</em>baz` 가 된다 — 현재 정상인 것을 깨뜨리는 방향이다. `strictFlanking` (`:778-781`·`:796-799`) 은 **공백과 같은 구분자의 연속**만 보고 단어 글자 인접은 보지 않으므로, 그 상태로의 등록이 정확히 이 회귀다 — 낱말 안쪽 억제(`isIntraword` `:740`)가 별 인자로 함께 걸려야 한다.
+- (I3) 만 만족시키고 (I1)(I2) 가 없으면 아무것도 달라지지 않는다.
 - `___` 을 수평선에서 강조로 넘기면 (I4) 위반. 수평선 판정은 인라인 패스보다 앞(블록 패스)에 있으므로, 인라인 쪽 변경이 이 순서를 뒤집지 않아야 한다.
 - 코드 스팬·이스케이프·링크 URL 의 보호는 **인라인 패스보다 앞선 선추출**에 기대고 있다. `_` 등록을 그 선추출보다 앞으로 옮기면 세 축이 동시에 깨진다.
 - **(I3) 을 ASCII 로 좁히는 방향은 게이트에 보이지 않는다.** 억제 조건을 고쳤더라도 문자 클래스가 `[A-Za-z0-9]` 면 `한글_강조_표기` 가 `한글<em>강조</em>표기` 가 된다. (I8) 이 이 방향의 유일한 관측 채널이다.
-- **(I7) 은 억제 조건을 고치는 것만으로는 성립하지 않는다.** 런 가드가 겹 구분자에서 죽어 있으므로(`:755`·`:768` 의 한 글자 대 두 글자 비교), "양쪽 다" 로만 고치면 `___둘다___` 가 `<strong><em>둘다</strong></em>` — **겹침이 어긋난 태그**로 나온다. sanitize 가 이를 `<strong><em>둘다</em></strong>` 로 교정하므로 **독자 화면에서는 밑줄 여섯 개가 조용히 사라진다**. §미측정 이 "바꾸지 않는 것이 기본" 이라 못 박은 축이 바로 그렇게 바뀐다.
+- **(I7) 은 억제 조건을 고치는 것만으로는 성립하지 않는다.** 런 가드가 구분자 문자열과 통째로 비교되면 겹 구분자에서 죽으므로, "양쪽 다" 로만 고치면 `___둘다___` 가 `<strong><em>둘다</strong></em>` — **겹침이 어긋난 태그**로 나온다. sanitize 가 이를 `<strong><em>둘다</em></strong>` 로 교정하므로 **독자 화면에서는 밑줄 여섯 개가 조용히 사라진다**. §미측정 이 "바꾸지 않는 것이 기본" 이라 못 박은 축이 바로 그렇게 바뀐다.
 
 ## 의존성
 - 내부: `src/common/markdownParser.ts` (단일 대상), `src/common/markdownParser.test.ts` (게이트).
-- **교차 게이트 (비퇴행 모집단)**: `markdownToHtml` 을 소비하는 `src/__tests__/**`. 모집단은 열거가 아니라 `bash -c 'grep -rl "markdownToHtml" src/__tests__/'` 로 **도출**한다 (`RULE-06 §열거 고정 금지`) — HEAD=`7b43fa8` 실측 **8 파일** (`backslash-escape` · `blockquote-is-one-block` · `change-highlight-preserves-rendering` · `link-target-scope` · `markdown-attribute-integrity` · `markdown-no-character-loss` · `markdown-render-invariants` · `parser-sanitizer-coherence`). **REQ-20260831-055 NFR-02 는 이 모집단을 7 로 적었으나 흡수 시점에 8 이다** — `7b43fa8` 이 `change-highlight-preserves-rendering.test.ts` 를 더했다. 그 게이트는 "강조 표식만 걷어낸 것이 평소 렌더와 같다" 를 재므로 **`_` 등록의 영향을 직접 받는다**: 변경 이력이 바뀐 줄을 `<span>` 으로 감싸므로 구분자 바로 앞뒤에 태그 경계·자리표시자 문자가 놓인다. 그 문자들이 "단어 글자" 로 판정되면 강조가 열리지 않아 강조본과 평소 렌더가 갈린다.
+- **교차 게이트 (비퇴행 모집단)**: `markdownToHtml` 을 소비하는 `src/__tests__/**`. 모집단은 열거가 아니라 `bash -c 'grep -rl "markdownToHtml" src/__tests__/'` 로 **도출**한다 (`RULE-06 §열거 고정 금지`) — HEAD=`0aa049e` 재도출 **8 파일** (모집단 불변) (`backslash-escape` · `blockquote-is-one-block` · `change-highlight-preserves-rendering` · `link-target-scope` · `markdown-attribute-integrity` · `markdown-no-character-loss` · `markdown-render-invariants` · `parser-sanitizer-coherence`). **REQ-20260831-055 NFR-02 는 이 모집단을 7 로 적었으나 흡수 시점에 8 이다** — `7b43fa8` 이 `change-highlight-preserves-rendering.test.ts` 를 더했다. 그 게이트는 "강조 표식만 걷어낸 것이 평소 렌더와 같다" 를 재므로 **`_` 등록의 영향을 직접 받는다**: 변경 이력이 바뀐 줄을 `<span>` 으로 감싸므로 구분자 바로 앞뒤에 태그 경계·자리표시자 문자가 놓인다. 그 문자들이 "단어 글자" 로 판정되면 강조가 열리지 않아 강조본과 평소 렌더가 갈린다.
 - 외부: 없음 (순수 함수).
 - 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log · Comment 본문 렌더).
-- 직교: `specs/30.spec/green/common/sanitizeHtml.md` — 산출 태그 `em` · `strong` 은 `ALLOWED_TAGS` 에 이미 있으므로 본 축은 sanitize 정책 변경을 요구하지 않는다 (REQ-051 NFR-03 · REQ-055 NFR-03, HEAD=`7b43fa8` 재실측 확인 — `sanitizeHtml.ts:8`). `specs/30.spec/blue/common/markdownParser.md` (`bindListItem` 알고리즘 + 속성 escape 축 — 본 축과 무관. 흡수 시점 green 이었고 `5361f55` 로 blue 승격됐다).
+- 직교: `specs/30.spec/green/common/sanitizeHtml.md` — 산출 태그 `em` · `strong` 은 `ALLOWED_TAGS` 에 이미 있으므로 본 축은 sanitize 정책 변경을 요구하지 않는다 (REQ-051 NFR-03 · REQ-055 NFR-03, HEAD=`0aa049e` 재실측 확인 — `sanitizeHtml.ts:8`). `specs/30.spec/blue/common/markdownParser.md` (`bindListItem` 알고리즘 + 속성 escape 축 — 본 축과 무관. 흡수 시점 green 이었고 `5361f55` 로 blue 승격됐다).
 
 ## 테스트 현황
 
-> 각 명령은 HEAD=`7b43fa8` 에서 **파일에서 추출해** 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 파일 부재는 `exit 2` 로 무판정 처리한다.
+> 각 명령은 HEAD=`0aa049e` 에서 **파일에서 추출해** 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 파일 부재는 `exit 2` 로 무판정 처리한다.
 
-- [ ] (I1·I2·I5) 밑줄 강조 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄 강조" "$f" && npx vitest run "$f" -t "밑줄 강조" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`7b43fa8` 실측 **rc=1 (미충족)**. `grep -cF "밑줄 강조" src/common/markdownParser.test.ts` → **0**.
-- [ ] (I3·I8) intraword 억제 대조가 게이트로 실재하고 **비한글 예시를 포함하며** 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "단어 안의 밑줄은 강조가 아니다" "$f" && grep -qF "_italic_" "$f" && grep -qF "__bold__" "$f" && npx vitest run "$f" -t "단어 안의 밑줄은 강조가 아니다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`7b43fa8` 실측 **rc=1 (미충족)**. **이 대조가 없으면 `foo_bar_baz` 를 깨뜨리는 구현도 (I1) 을 통과한다.** 비한글 예시 결합이 (I8) 을 재는 자리다 — 한글 예시만 있으면 억제를 ASCII 로 좁힌 구현이 초록으로 통과한다.
-- [ ] (I3 유니코드 대조) 한글 단어 안 밑줄 대조가 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "한글_강조_표기" "$f"'` → HEAD=`7b43fa8` 실측 **rc=1 (0 hit)**. 이 입력의 계약 산출은 `<p>한글_강조_표기</p>` (현 산출과 동일 — 보존 축이다).
-- [ ] (I7 런 대조) 3중 구분자 무변경 대조가 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "___둘다___" "$f"'` → HEAD=`7b43fa8` 실측 **rc=1 (0 hit)**. 계약 산출은 `<p>___둘다___</p>` (현 산출 유지).
-- [ ] (I1~I8 접속) 네 예시가 **실재하면서 동시에** 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "_italic_" "$f" && grep -qF "__bold__" "$f" && grep -qF "한글_강조_표기" "$f" && grep -qF "___둘다___" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`7b43fa8` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이고, `-t` 는 이름 미매치 시 단독으로 rc=0 을 낸다. 둘 다 공허 통과 경로다.
-- [ ] (I1·I2 정적 zero-point) 밑줄 구분자가 인라인 패스에 등록돼 있다: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"_+\"" src/common/markdownParser.ts)" -ge 1'` → HEAD=`7b43fa8` 실측 **rc=1 (0 hit)**. 현 등록은 셋뿐이며 전부 `*`·`~` 계열이다 (`:665` `"**"` · `:666` `"~~"` · `:670` `"*"`). **등록 형태가 달라지면(예: 구분자 표를 순회) 이 항목은 그 형태에 맞춰 재작성한다** — 수단을 지정하지 않는다.
-- [x] (I4 보호 축 게이트 실재) 세 보호 축이 이미 게이트로 잠겨 있다: `bash -c 'grep -qE "for \(const src of \[.---., .\*\*\*., .___." src/common/markdownParser.test.ts && grep -qF "my_var_name" src/common/markdownParser.test.ts'` → HEAD=`7b43fa8` 재실측 rc=0 (`:266` 루프가 `___` 포함, `:273` 이 `__` 대조, `:316` 이 코드 스팬).
-- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 rc=0 (**96 tests**; 흡수 시점 80 → 같은 날 TSK-06 이 +9, TSK-07 이 +7). 구현 후에도 rc=0 이어야 한다.
-- [x] (교차 게이트 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`7b43fa8` 실측 rc=0, 출력 `cross-gate-files=8`. **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단). 구현 후에도 rc=0 이어야 한다.
+- [x] (I1·I2·I5) 밑줄 강조 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄 강조" "$f" && npx vitest run "$f" -t "밑줄 강조" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 재실측 **rc=0** (`aa595f4`). `grep -cF "밑줄 강조" src/common/markdownParser.test.ts` → **1** (`:618` describe).
+- [x] (I3·I8) intraword 억제 대조가 게이트로 실재하고 **비한글 예시를 포함하며** 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "단어 안의 밑줄은 강조가 아니다" "$f" && grep -qF "_italic_" "$f" && grep -qF "__bold__" "$f" && npx vitest run "$f" -t "단어 안의 밑줄은 강조가 아니다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 재실측 **rc=0** (`aa595f4` — `:650` describe · `:623` `_italic_` · `:632` `__bold__`). **이 대조가 없으면 `foo_bar_baz` 를 깨뜨리는 구현도 (I1) 을 통과한다.** 비한글 예시 결합이 (I8) 을 재는 자리다 — 한글 예시만 있으면 억제를 ASCII 로 좁힌 구현이 초록으로 통과한다.
+- [x] (I3 유니코드 대조) 한글 단어 안 밑줄 대조가 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "한글_강조_표기" "$f"'` → HEAD=`0aa049e` 재실측 **rc=0** (`:661`). 이 입력의 계약 산출은 `<p>한글_강조_표기</p>` (현 산출과 동일 — 보존 축이다).
+- [x] (I7 런 대조) 3중 구분자 무변경 대조가 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "___둘다___" "$f"'` → HEAD=`0aa049e` 재실측 **rc=0** (`:693` it · `:694` 단언, `0aa049e`). 계약 산출은 `<p>___둘다___</p>` (현 산출 유지).
+- [x] (I1~I8 접속) 네 예시가 **실재하면서 동시에** 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "_italic_" "$f" && grep -qF "__bold__" "$f" && grep -qF "한글_강조_표기" "$f" && grep -qF "___둘다___" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 재실측 **rc=0** (예시 4건 전수 실재 + 스위트 109 tests 초록). **접속으로 닫는 이유**: 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이고, `-t` 는 이름 미매치 시 단독으로 rc=0 을 낸다. 둘 다 공허 통과 경로다.
+- [x] (I1·I2 정적 zero-point) 밑줄 구분자가 인라인 패스에 등록돼 있다: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"_+\"" src/common/markdownParser.ts)" -ge 1'` → HEAD=`0aa049e` 재실측 **rc=0** (계수 **2** — `:678` `"__"` · `:679` `"_"`; 등록 전체는 5 hit 이며 앞 셋은 `*`·`~` 계열 `:665`·`:666`·`:670`). 겹을 홑보다 **먼저** 등록해야 `__bold__` 가 `<em>_bold_</em>` 로 잘리지 않는다 (`"**"` 를 `"*"` 앞에 두는 것과 같은 이유). **등록 형태가 달라지면(예: 구분자 표를 순회) 이 항목은 그 형태에 맞춰 재작성한다** — 수단을 지정하지 않는다.
+- [x] (I4 보호 축 게이트 실재) 세 보호 축이 이미 게이트로 잠겨 있다: `bash -c 'grep -qE "for \(const src of \[.---., .\*\*\*., .___." src/common/markdownParser.test.ts && grep -qF "my_var_name" src/common/markdownParser.test.ts'` → HEAD=`0aa049e` 재실측 rc=0 (`:266` 루프가 `___` 포함, `:273` 이 `__` 대조, `:316` 이 코드 스팬 — 라인 drift 0).
+- [x] (I6·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`0aa049e` 재실측 rc=0 (**109 tests**; 96 → TSK-08-a 가 +7, TSK-08-b 가 +6). 구현 후에도 rc=0 이어야 한다.
+- [x] (교차 게이트 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0aa049e` 재실측 rc=0, 출력 `cross-gate-files=8` (도출 재실행 — 모집단 불변). **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단). 구현 후에도 rc=0 이어야 한다.
 
 ## 수용 기준
-- [ ] (Must, FR-01·FR-02·FR-05 / REQ-055 FR-01) 위 §테스트 현황 (I1·I2·I5) 명령 → rc=0.
-- [ ] (Must, FR-03 / REQ-055 FR-01·FR-05) 위 §테스트 현황 (I3·I8) 명령 → rc=0.
-- [ ] (Must, REQ-055 FR-02) 위 §테스트 현황 (I3 유니코드 대조) 명령 → rc=0.
-- [ ] (Must, REQ-055 FR-03) 위 §테스트 현황 (I7 런 대조) 명령 → rc=0.
-- [ ] (Must, REQ-055 FR-01~FR-03 실행) 위 §테스트 현황 (I1~I8 접속) 명령 → rc=0.
-- [ ] (Must, FR-01·FR-02 정적) 위 §테스트 현황 정적 zero-point 명령 → rc=0.
-- [x] (Must, FR-04 보호 축 실재) 위 §테스트 현황 (I4) 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0.
-- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`7b43fa8` 재실측 rc=0 (96 tests). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
-- [x] (Must, REQ-055 NFR-02 교차 비퇴행) 위 §테스트 현황 (교차 게이트) 명령 → rc=0. HEAD=`7b43fa8` 실측 rc=0 (`cross-gate-files=8`).
-- [x] (Must, NFR-03 sanitize 무변경) 산출 태그가 이미 허용돼 있다: `bash -c 'grep -qE "'\''em'\''" src/common/sanitizeHtml.ts && grep -qE "'\''strong'\''" src/common/sanitizeHtml.ts'` → HEAD=`7b43fa8` 재실측 rc=0 (`sanitizeHtml.ts:8`). 본 축은 `ALLOWED_TAGS` 변경을 요구하지 않는다.
+- [x] (Must, FR-01·FR-02·FR-05 / REQ-055 FR-01) 위 §테스트 현황 (I1·I2·I5) 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0.
+- [x] (Must, FR-03 / REQ-055 FR-01·FR-05) 위 §테스트 현황 (I3·I8) 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0.
+- [x] (Must, REQ-055 FR-02) 위 §테스트 현황 (I3 유니코드 대조) 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0.
+- [x] (Must, REQ-055 FR-03) 위 §테스트 현황 (I7 런 대조) 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0.
+- [x] (Must, REQ-055 FR-01~FR-03 실행) 위 §테스트 현황 (I1~I8 접속) 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0.
+- [x] (Must, FR-01·FR-02 정적) 위 §테스트 현황 정적 zero-point 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0 (계수 2).
+- [x] (Must, FR-04 보호 축 실재) 위 §테스트 현황 (I4) 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0.
+- [x] (Must, NFR-01 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`0aa049e` 재실측 rc=0 (109 tests). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (Must, REQ-055 NFR-02 교차 비퇴행) 위 §테스트 현황 (교차 게이트) 명령 → rc=0. HEAD=`0aa049e` 재실측 rc=0 (`cross-gate-files=8`).
+- [x] (Must, NFR-03 sanitize 무변경) 산출 태그가 이미 허용돼 있다: `bash -c 'grep -qE "'\''em'\''" src/common/sanitizeHtml.ts && grep -qE "'\''strong'\''" src/common/sanitizeHtml.ts'` → HEAD=`0aa049e` 재실측 rc=0 (`sanitizeHtml.ts:8`). 본 축은 `ALLOWED_TAGS` 변경을 요구하지 않는다.
 - [x] (Must, 범위 제한) `*` 계열의 현 동작과 **3중 구분자의 중첩 강조 계약 확정**은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정. (I7) 이 요구하는 것은 "현 산출을 바꾸지 않는다" 이지 "CommonMark 대로 `<em><strong>` 을 낸다" 가 아니다.
 
 ## 스코프 규칙
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` 와 `src/common/markdownParser.test.ts` 2 파일이다. sanitize 정책(`src/common/sanitizeHtml.ts`)은 **읽기 대상**이며 본 축은 그것을 바꾸지 않는다 (NFR-03). 게이트 위반이 이 밖에서 나오면 격리 대상이다.
-- **grep-baseline** (HEAD=`7b43fa8`, 2026-08-31 REQ-055 흡수 시점 실측 — 괄호 안은 REQ-051 흡수 시점 `b1cbf5c` 값):
-  - `grep -nE "inlineParsing\(parsed" src/common/markdownParser.ts` → 3 hits in 1 file: `:665` (`"**"`, strong) · `:666` (`"~~"`, del) · `:670` (`"*"`, em, `strictFlanking=true`). 밑줄 구분자 등록 **0 hit**. (`:513`·`:514`·`:518`)
-  - `grep -cF "밑줄 강조" src/common/markdownParser.test.ts` → **0**. `grep -cF "단어 안의 밑줄은 강조가 아니다" …` → **0**. `grep -cF "_italic_" …` → **0**. `grep -cF "__bold__" …` → **0**. `grep -cF "한글_강조_표기" …` → **0**. `grep -cF "___둘다___" …` → **0**. 계약 이름 2건과 예시 4건 모두 미존재 — 전부 신설 대상이다.
-  - **런 가드 결함 실재** (I7 의 근거): `bash -c 'grep -cE "after === delimeter|before === delimeter" src/common/markdownParser.ts'` → **2** (`:755` · `:768`). 두 자리 모두 `charAt` 산출(한 글자)을 `delimeter` 와 비교하므로 **겹 구분자(`"__"`, 두 글자)에서는 결코 참이 되지 않는다.** 이 항목은 계약이 아니라 **현 결함의 실재**를 재므로 체크박스로 두지 않는다 — 구현이 이 자리를 어떻게 고치든(한 글자 비교로 바꾸든, 판정을 옮기든) 계약 판정은 (I7) 의 동작 게이트가 한다.
-  - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **82** (66). 제외 규칙: `it(` 로 시작하는 줄만 계수하며 `describe`·주석·중첩 표기는 세지 않는다. 이 82건 중 밑줄 강조를 다루는 것은 0건이고, `_` 가 등장하는 곳은 전부 §동작 (I4) 의 보호 축이다.
+- **grep-baseline** (HEAD=`0aa049e`, 2026-08-31 Phase 1 reconcile 재실측 — 괄호 안은 REQ-055 흡수 시점 `7b43fa8` 값):
+  - `grep -nE "inlineParsing\(parsed" src/common/markdownParser.ts` → **5 hits** in 1 file (3): `:665` (`"**"`, strong) · `:666` (`"~~"`, del) · `:670` (`"*"`, em, `strictFlanking=true`) · `:678` (`"__"`, strong, `strictFlanking`+`intrawordSuppression`) · `:679` (`"_"`, em, 같음). 밑줄 구분자 등록 **2 hit** (0) — 겹이 홑보다 **앞**이다.
+  - 계약 이름 2건 · 예시 4건 전수 실재 (흡수 시점 전부 0). 대상 파일은 `src/common/markdownParser.test.ts` 이며 **계수 명령은 파일 인자를 매번 적는다**:
+    - `grep -cF "밑줄 강조" src/common/markdownParser.test.ts` → **1** (`:618` describe)
+    - `grep -cF "단어 안의 밑줄은 강조가 아니다" src/common/markdownParser.test.ts` → **1** (`:650` describe)
+    - `grep -cF "_italic_" src/common/markdownParser.test.ts` → **1** (`:623`)
+    - `grep -cF "__bold__" src/common/markdownParser.test.ts` → **1** (`:632`)
+    - `grep -cF "한글_강조_표기" src/common/markdownParser.test.ts` → **1** (`:661`)
+    - `grep -cF "___둘다___" src/common/markdownParser.test.ts` → **3** (`:684` 주석 · `:693` it 이름 · `:694` 단언)
 
-  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **82** 를 세지만 `npx vitest run` 은 **96 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `82` 는 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 96** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
-  - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경). **REQ-055 가 더한 3행(`_italic_` · `한글_강조_표기` · `___둘다___`)이 이 표의 핵심이다** — 앞의 둘은 옛 (I3) 문면으로는 낼 수 없는 산출을 요구하고, 셋째는 억제 조건만 고쳤을 때 조용히 깨지는 축이다:
-    | 입력 | 현 산출 (`7b43fa8`) | 계약 |
-    |---|---|---|
-    | `_italic_` | `<p>_italic_</p>` | `<p><em>italic</em></p>` |
-    | `__bold__` | `<p>__bold__</p>` | `<p><strong>bold</strong></p>` |
-    | `_기울임_` | `<p>_기울임_</p>` | `<p><em>기울임</em></p>` |
-    | `__굵게__` | `<p>__굵게__</p>` | `<p><strong>굵게</strong></p>` |
-    | `*별표* 와 _밑줄_` | `<p><em>별표</em> 와 _밑줄_</p>` | 양쪽 모두 `<em>` |
-    | `foo_bar_baz` | `<p>foo_bar_baz</p>` | **동일 (보존)** |
-    | `a__b__c` | `<p>a__b__c</p>` | **동일 (보존)** |
-    | `한글_강조_표기` | `<p>한글_강조_표기</p>` | **동일 (보존 — I3 유니코드)** |
-    | `___둘다___` | `<p>___둘다___</p>` | **동일 (보존 — I7 런 일치)** |
-    | `` `my_var_name` `` | `<p><code>my_var_name</code></p>` | **동일 (보존)** |
-    | `\_밑줄아님\_` | `<p>_밑줄아님_</p>` | **동일 (보존)** |
-    | `___` | `<hr />` | **동일 (보존)** |
-    | `__` | `<p>__</p>` | **동일 (보존)** |
+    > **파일 인자를 `…` 로 줄이지 않는 이유**: 줄임표는 추출 실행에서 파일 이름으로 읽혀 `rc=2` 를 내고 (tick 248·249 실측), 인자를 아예 빼면 `grep` 이 **stdin 을 읽어 매달린다** — 명령을 파이프로 먹이는 추출 실행기에서는 뒤따르는 명령 목록까지 통째로 삼킨다. 둘 다 판정이 아니라 판정 실패이며, 후자는 rc 조차 남지 않는다. (`RULE-06 §추출 실패 검출`)
+  - **런 가드 구조** (I7 의 정적 근거 — 방향 전환): `bash -c 'grep -cE "after === delimeter|before === delimeter" src/common/markdownParser.ts'` → **0** (2). 결함 문자열이 사라졌으므로 이 명령은 이제 **rc=1** 이고, 그대로 두면 "결함이 없다" 를 rc=1 로 읽는 뒤집힌 게이트가 된다. 따라서 **결함의 실재를 재던 자리를 구조의 실재를 재는 자리로 바꾼다**: `bash -c 'grep -cE "runCharacter" src/common/markdownParser.ts'` → **3** (`:755` 정의 `delimeter.charAt(0)` · `:781` 여는 쪽 · `:799` 닫는 쪽 비교), `bash -c 'grep -cE "isIntraword\(" src/common/markdownParser.ts'` → **2** (`:786` 여는 쪽 · `:804` 닫는 쪽, 정의는 `:740`), `bash -c 'grep -nE "^const WORD_CHARACTER_PATTERN" src/common/markdownParser.ts'` → `:735` `/[\p{L}\p{N}]/u`. 셋 다 계약이 아니라 **구조의 실재**를 재므로 체크박스로 두지 않는다 — 계약 판정은 (I7)(I3) 의 동작 게이트가 한다. 구현이 이 자리를 다시 옮기면 이 baseline 을 그 형태에 맞춰 재작성한다.
+  - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **95** (82). 제외 규칙: `it(` 로 시작하는 줄만 계수하며 `describe`·주석·중첩 표기는 세지 않는다. 늘어난 13 은 `밑줄 강조`(`:618`)·`단어 안의 밑줄은 강조가 아니다`(`:650`)·런 대조(`:693`) 세 축이다.
+
+  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **95** 를 세지만 `npx vitest run` 은 **109 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `95` 는 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 109** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
+  - 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경 — 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있어 이 축의 측정은 언제나 격리 사본에서 한다). **13행 전수 계약 일치** — 흡수 시점 `7b43fa8` 열이 실패이던 5행이 `aa595f4`·`0aa049e` 로 닫혔고, 보존 8행은 그대로다:
+    | 입력 | 산출 (`0aa049e` 실측) | 계약 | 흡수 시점 (`7b43fa8`) |
+    |---|---|---|---|
+    | `_italic_` | `<p><em>italic</em></p>` | `<p><em>italic</em></p>` ✓ | `<p>_italic_</p>` ✗ |
+    | `__bold__` | `<p><strong>bold</strong></p>` | `<p><strong>bold</strong></p>` ✓ | `<p>__bold__</p>` ✗ |
+    | `_기울임_` | `<p><em>기울임</em></p>` | `<p><em>기울임</em></p>` ✓ | `<p>_기울임_</p>` ✗ |
+    | `__굵게__` | `<p><strong>굵게</strong></p>` | `<p><strong>굵게</strong></p>` ✓ | `<p>__굵게__</p>` ✗ |
+    | `*별표* 와 _밑줄_` | `<p><em>별표</em> 와 <em>밑줄</em></p>` | 양쪽 모두 `<em>` ✓ | 한쪽만 `<em>` ✗ |
+    | `foo_bar_baz` | `<p>foo_bar_baz</p>` | **동일 (보존)** ✓ | 동일 |
+    | `a__b__c` | `<p>a__b__c</p>` | **동일 (보존)** ✓ | 동일 |
+    | `한글_강조_표기` | `<p>한글_강조_표기</p>` | **동일 (보존 — I3 유니코드)** ✓ | 동일 |
+    | `___둘다___` | `<p>___둘다___</p>` | **동일 (보존 — I7 런 일치)** ✓ | 동일 |
+    | `` `my_var_name` `` | `<p><code>my_var_name</code></p>` | **동일 (보존)** ✓ | 동일 |
+    | `\_밑줄아님\_` | `<p>_밑줄아님_</p>` | **동일 (보존)** ✓ | 동일 |
+    | `___` | `<hr />` | **동일 (보존)** ✓ | 동일 |
+    | `__` | `<p>__</p>` | **동일 (보존)** ✓ | 동일 |
 
   > **억제 조건 4가지의 대조 실측** (원 req REQ-055 (B1), 격리 사본에서 `_`·`__` 를 등록하고 억제 조건만 갈아 끼워 렌더). 계약 전수를 만족하는 것은 **(d) 하나뿐**이다:
   >
@@ -114,12 +122,13 @@ CommonMark 는 강조 구분자로 `*` 와 `_` 를 **대등하게** 규정한다
   > | `한글_강조_표기` | ✓ 보존 | ✗ | ✗ | ✓ 보존 |
   > | `___둘다___` | ✓ 보존 | ✗ | ✗ | ✓ 보존 |
   >
-  > **(b) 가 가장 위험하다** — 옛 spec 이 선언한 게이트 예시가 전부 한글이라 (b) 구현은 전부 초록이다. (I8) 과 위 baseline 의 `_italic_`·`__bold__` 행이 그 구멍을 닫는다. (d) 구현으로 격리 사본 전체 스위트를 돌린 결과 충돌 0건 (`Test Files 116 passed / Tests 1277 passed | 12 skipped`) — 단 그 측정은 REQ-055 작성 시점(`0868650`)이며, 그 뒤 `7b43fa8` 이 교차 게이트를 1건 더했다 (§의존성).
-- **rationale**: 등록 지점이 3 hit 으로 닫히고 계약 이름·예시 6건이 0 hit 이므로 baseline 은 열거로 닫힌다. 보존 축 8건을 같은 표에 둔 이유는, 이 축의 실패가 "동작하지 않는다" 가 아니라 **"동작시키다가 보존 축을 깨뜨린다"** 쪽이기 때문이다 — 그리고 REQ-055 가 보인 대로, 그 깨짐의 두 방향(ASCII 축소 · 런 불일치)은 **원래 선언돼 있던 게이트로는 전혀 보이지 않았다**.
+  > **(b) 가 가장 위험하다** — 옛 spec 이 선언한 게이트 예시가 전부 한글이라 (b) 구현은 전부 초록이다. (I8) 과 위 baseline 의 `_italic_`·`__bold__` 행이 그 구멍을 닫는다. **착지한 구현이 (d) 다** (`aa595f4` — `WORD_CHARACTER_PATTERN = /[\p{L}\p{N}]/u` `:735`, `isIntraword` 가 `&&` `:740`; `0aa049e` — 런 글자 비교 `:755`). 그리고 (a)~(c) 세 방향은 각각 주입 왕복으로 붉어지는 것이 확인됐다 (§주입 이관 Dir-3·Dir-4·Dir-5) — 대조표가 게이트에 닿았다는 뜻이다.
+- **rationale**: 등록 지점이 5 hit 으로 닫히고 계약 이름·예시 6건이 전수 실재하므로 baseline 은 열거로 닫힌다. 보존 축 8건을 같은 표에 둔 이유는, 이 축의 실패가 "동작하지 않는다" 가 아니라 **"동작시키다가 보존 축을 깨뜨린다"** 쪽이기 때문이다 — 그리고 REQ-055 가 보인 대로, 그 깨짐의 두 방향(ASCII 축소 · 런 불일치)은 **원래 선언돼 있던 게이트로는 전혀 보이지 않았다**.
 
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-31 | inspector (Phase 1 drift reconcile) / `aa595f4` · `0aa049e` @ HEAD=`0aa049e` | **8 축 전수 충족 — 미충족 12 항목 전부 `[x]`.** `TSK-20260831-08-a`(`aa595f4`, `_`→`em` + `WORD_CHARACTER_PATTERN`·`isIntraword` 신설)·`-b`(`0aa049e`, `__`→`strong` + 런 글자 비교 정정) 두 커밋이 HEAD 조상이며, 판정 명령 20건을 격리 사본(`git archive HEAD`)에서 전수 재실행해 **20 rc=0** 을 확인했다. **(런 가드 결함 실재) baseline 은 방향을 뒤집어 재박제** — `after === delimeter|before === delimeter` 계수가 2→**0** 이 되어 그 명령이 rc=1 을 내므로, 결함의 실재 대신 `runCharacter`(3)·`isIntraword(`(2)·`WORD_CHARACTER_PATTERN`(`:735`) 의 **구조 실재**를 재도록 바꿨다 (tick 248 에서 `markdown-atx-heading-closing-sequence` 가 겪은 것과 같은 부류). 산출 표를 13행 전수 재측정해 **계약 일치**로 갱신하고 흡수 시점 열을 나란히 남겼다. 라인 drift 동기화: `inlineParsing` 정의 `:722`→`:743` · `strictFlanking` `:754-755`→`:778-781`(여는) · `:767-768`→`:796-799`(닫는) · 등록 `:678`·`:679` 신규 · `runCharacter` `:755` · `isIntraword` `:735`·`:740`(호출 `:786`·`:804`). 계수 `it(` 82→**95** / 실행 96→**109** / 등록 3→**5** / 교차 게이트 8 불변. §수용 기준 11/11 · §테스트 현황 9/9 — **promote 후보**. | §위치 · 동작 (I7) · 회귀 중점 · 의존성 · 테스트 현황 · 수용 기준 · 스코프 규칙 · 참고 |
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-055 흡수) / — @ HEAD=`7b43fa8` | **(I3) 결함 문면 정정 + (I7)(I8) 신설 — 6 축 → 8 축.** (I3) 은 흡수 시점부터 틀린 규칙이었다: 억제를 "앞뒤 중 한쪽만 단어 글자여도" 로 적어 (I1)(I2)(I5) 와 **동시에 참이 될 수 없었다** (여는 구분자의 뒤는 정의상 언제나 단어 글자다). 정정 문면은 **양쪽 다 · 유니코드 문자·숫자**다. (I7) 은 §참고 §미측정 의 평서문이던 3중 구분자 무변경을 §동작 으로 승격 — 런 가드 `:755`·`:768` 이 한 글자 대 두 글자 비교라 겹 구분자에서 죽어 있고, 억제 조건만 고치면 `___둘다___` 가 겹침 어긋난 태그로 나와 sanitize 교정 후 밑줄 여섯 개가 소멸한다. (I8) 은 게이트 예시에 비한글 1건 이상을 요구 — 옛 예시가 전부 한글이라 ASCII 로 좁힌 구현이 전수 초록으로 통과했다. **축 번호는 (I1)~(I6) 을 보존하고 뒤에 붙였다** (외부 참조 파괴 방지). §수용 기준 6 → 11 (unchecked 3 → 6). 교차 게이트 모집단을 열거에서 `grep -rl` 도출로 바꾸고 **7 → 8 정정** (`7b43fa8` 이 `change-highlight-preserves-rendering.test.ts` 추가 — 강조 표식이 구분자 인접 문자를 바꾸므로 이 축의 직접 영향권이다). 라인 drift 10건 동기화. 판정 명령 11건 추출 실행: 6 rc=1 · 5 rc=0. | all |
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-051 흡수) / pending @ HEAD=`b1cbf5c` | 최초 박제 — 강조 구분자 대등성 6 축 (I1~I6). 신규 spec 으로 세운 근거: `markdownParser.md` 는 §역할 에서 "markdownParser 의 다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 명시적 범위 밖으로 선언하며, 강조 구분자 축 언급이 0건이다. baseline: 등록 3 hit 전부 `*`·`~` 계열 / `_` 등록 0 hit / 계약 이름 2건 0 hit / 선언 66 it(실행 80 tests) 중 밑줄 강조 0건 / 현 산출·보존 축 9건 격리 사본 실측. unchecked 3 · checked 4. | all |
 
@@ -127,7 +136,7 @@ CommonMark 는 강조 구분자로 `*` 와 `_` 를 **대등하게** 규정한다
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 구현 task DoD 로)
 
-`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. 이관처 task 가 발행되지 않으면 이 절이 곧 미이관 상태의 박제다. **REQ-055 흡수로 검출 방향 3 → 5 · 음성 대조 2.**
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. **REQ-055 흡수로 검출 방향 3 → 6 · 음성 대조 2. 이관처가 발행돼 착지했다** — `TSK-20260831-08-a` (`aa595f4`) 가 Dir-1·3·4·5 와 Ctrl-1·2 를, `-b` (`0aa049e`) 가 Dir-2·6 을 맡았다. 08-a `result.md` 에 6 방향 왕복이 박제돼 있고 (`60.done/2026/08/31/task/TSK-20260831-08-a-…/result.md`), **`-b` 의 `result.md` 는 tick 249 관측 시점에 아직 없다** — 그 커밋의 주입 왕복은 이 spec 이 인용할 수 있는 증거가 아직 아니다. 아래 방향 선언은 계약의 일부로 남긴다 (차기 게이트 수정 task 가 같은 방향을 다시 왕복해야 한다).
 
 - **Dir-1 (민감도, I1)** — `_` 등록을 제거한다 → `rc≠0`.
 - **Dir-2 (민감도, I2)** — `__` 등록을 제거한다 → `rc≠0`.
