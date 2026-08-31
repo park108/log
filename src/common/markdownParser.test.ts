@@ -558,3 +558,55 @@ describe('번호가 되감기지 않는다', () => {
 		expect(out).toContain('<blockquote>인용</blockquote>');
 	});
 });
+
+// `## 제목 ##` 처럼 양쪽에 `#` 을 두어 쓰면 독자가 `제목 ##` 을 봤다 — 글쓴이가
+// 화면에 내보내려던 적이 없는 글자다. 제목 패스가 여는 쪽만 보고 나머지를 줄 끝까지
+// 통째로 제목 내용에 넣었기 때문이다.
+describe('제목의 닫는 # 은 제목 글자가 아니다', () => {
+
+	it('양쪽에 #을 둔 제목은 닫는 쪽을 내용에서 뺀다', () => {
+		expect(parser.markdownToHtml('## 제목 ##')).toBe('<h2>제목</h2>');
+		expect(parser.markdownToHtml('# 제목 #')).toBe('<h1>제목</h1>');
+	});
+
+	// 닫는 개수는 여는 쪽과 같을 필요가 없다 (CommonMark 0.31.2 §4.2).
+	it('닫는 #의 개수는 여는 쪽과 무관하다', () => {
+		expect(parser.markdownToHtml('## 제목 ######')).toBe('<h2>제목</h2>');
+		expect(parser.markdownToHtml('### 제목 #')).toBe('<h3>제목</h3>');
+	});
+
+	// 줄 끝 공백도 제목 내용이 아니다 — 닫는 시퀀스 뒤든, 닫는 시퀀스가 없든.
+	it('줄 끝 공백은 제목 내용이 아니다', () => {
+		expect(parser.markdownToHtml('## 제목 ##   ')).toBe('<h2>제목</h2>');
+		expect(parser.markdownToHtml('## 제목   ')).toBe('<h2>제목</h2>');
+	});
+
+	// 닫는 시퀀스 제거는 블록 패스 안에서 끝난다 — 제목 안의 인라인 마크업은
+	// 종전대로 동작해야 한다.
+	it('제목 안의 인라인 마크업은 그대로 동작한다', () => {
+		expect(parser.markdownToHtml('## **굵게** ##')).toBe('<h2><strong>굵게</strong></h2>');
+		expect(parser.markdownToHtml('## `code` ##')).toBe('<h2><code>code</code></h2>');
+	});
+
+	// 대조 — 제목이 아닌 것은 여전히 제목이 아니다. 여는 쪽 판정은 건드리지 않았다.
+	it('제목이 아닌 줄은 여전히 문단이다', () => {
+		expect(parser.markdownToHtml('####### 일곱')).toBe('<p>####### 일곱</p>');
+		expect(parser.markdownToHtml('##제목')).toBe('<p>##제목</p>');
+	});
+});
+
+// 닫는 시퀀스를 "줄 끝 #을 지운다" 로 구현하면 언어 이름이 잘려 나간다. 판정
+// 기준은 # 런의 바로 앞 문자이며, 그것이 공백·탭이 아니면 내용이다.
+describe('앞에 공백이 없는 줄 끝 # 은 내용이다', () => {
+
+	it('C#과 F#은 잘리지 않는다', () => {
+		expect(parser.markdownToHtml('## C# 과 F#')).toBe('<h2>C# 과 F#</h2>');
+		expect(parser.markdownToHtml('## C#')).toBe('<h2>C#</h2>');
+	});
+
+	it('글자에 붙은 #은 남고 공백을 둔 #만 표기다', () => {
+		expect(parser.markdownToHtml('## 제목#')).toBe('<h2>제목#</h2>');
+		// 마지막 런만 닫는 시퀀스다 — 가운데 #은 내용으로 남는다.
+		expect(parser.markdownToHtml('# a # b #')).toBe('<h1>a # b</h1>');
+	});
+});

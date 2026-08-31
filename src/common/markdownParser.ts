@@ -73,6 +73,31 @@ const listMarkerDepth = (text: string): number | null => {
 	return null;
 }
 
+// 제목의 닫는 `#` 시퀀스는 표기이지 제목 글자가 아니다 (CommonMark 0.31.2 §4.2).
+//
+// 제목 패스가 여는 쪽만 보던 동안 `## 제목 ##` 은 `제목 ##` 을 화면에 남겼다 —
+// 글쓴이가 내보내려던 적 없는 글자다.
+//
+// **판정 기준은 `#` 런의 바로 앞 문자다.** 그 자리가 공백·탭이면 표기이고, 아니면
+// 내용이다. "줄 끝 `#` 을 지운다" 로 구현하면 `## C# 과 F#` 의 언어 이름이 잘려
+// 나간다 — 지금 맞는 것을 깨는 방향이며, 두 축은 함께 성립해야 한다.
+//
+// 닫는 개수는 여는 쪽과 무관하다 (`## 제목 #` 도 `## 제목 ######` 도 표기다).
+const stripHeadingClosingSequence = (content: string): string => {
+
+	// 줄 끝 공백도 제목 내용이 아니다. 닫는 시퀀스 뒤에 붙은 공백을 먼저 걷어야
+	// 런이 줄 끝에 닿는다.
+	let text = content.replace(/[ \t]+$/, "");
+
+	const closing = /(?:^|[ \t])#+$/.exec(text);
+
+	if(null !== closing) {
+		text = text.substring(0, closing.index).replace(/[ \t]+$/, "");
+	}
+
+	return text;
+}
+
 interface ParsedNode {
 	type: string;
 	text: string;
@@ -424,7 +449,7 @@ export const markdownToHtml = (rawInput: string): string => {
 	
 					parsed.splice(index, 1, 
 						{type: "tag", text: "<h" + i + ">"}
-						, {type: "value", text: node.text.substring(i + 1), closure: "header"}
+						, {type: "value", text: stripHeadingClosingSequence(node.text.substring(i + 1)), closure: "header"}
 						, {type: "tag", text: "</h" + i + ">"});
 
 					break;
