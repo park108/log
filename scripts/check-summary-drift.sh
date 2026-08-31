@@ -57,6 +57,40 @@ for pair in "base:$BASE_SHA" "head:$HEAD_SHA"; do
 	ln -s "$REPO_ROOT/node_modules" "$TMP_DIR/$name/node_modules" 2>/dev/null || true
 done
 
+# ── (I1 실효) 리비전 충실성 자가 확인 ────────────────────────────────────────
+# **소스 텍스트에 `git archive` 가 있다는 것은 그것이 실제로 돈다는 뜻이 아니다.**
+# 주석 한 줄이 정적 게이트를 초록으로 유지하는 동안 두 트리가 같은 내용으로 채워지면
+# 이 채널은 항진명제가 된다 — 갈리는 리비전쌍에서도 늘 `영향 0` 을 낸다 (실측).
+# 그래서 꺼낸 트리의 파일이 `git show <sha>:<path>` 와 **바이트 단위로 같은지** 매 실행마다
+# 확인한다. 한 건도 확인하지 못하면 그것도 무판정이다.
+verify_tree_fidelity() {
+	local tree="$1" sha="$2" verified=0 path content_hash tree_hash
+	for path in src/Log/api.ts src/common/markdownParser.ts src/__tests__/markdown-no-character-loss.test.ts; do
+		git show "$sha:$path" > "$TMP_DIR/expect.tmp" 2>/dev/null || continue
+		[ -f "$tree/$path" ] || continue
+		content_hash="$(shasum -a 256 < "$TMP_DIR/expect.tmp" | cut -d' ' -f1)"
+		tree_hash="$(shasum -a 256 < "$tree/$path" | cut -d' ' -f1)"
+		if [ "$content_hash" != "$tree_hash" ]; then
+			echo "check-summary-drift: 무판정 — 꺼낸 트리가 $sha 의 내용이 아니다 ($path)" >&2
+			echo "  두 리비전 비교가 실효 상태가 아니면 이 채널은 항진명제다." >&2
+			exit 2
+		fi
+		verified=$((verified + 1))
+	done
+	if [ "$verified" -lt 1 ]; then
+		echo "check-summary-drift: 무판정 — $sha 의 어떤 경로도 대조하지 못했다" >&2
+		exit 2
+	fi
+}
+
+verify_tree_fidelity "$TMP_DIR/base" "$BASE_SHA"
+verify_tree_fidelity "$TMP_DIR/head" "$HEAD_SHA"
+
+if [ "$BASE_SHA" = "$HEAD_SHA" ]; then
+	echo "check-summary-drift: 무판정 — 같은 리비전끼리는 잴 것이 없다 (항진명제)" >&2
+	exit 2
+fi
+
 # ── 입력 도출 (I2) — 열거하지 않는다 ──────────────────────────────────────────
 # 원천 1: 글자 소실 채널의 `PLAIN_PROSE` (마크다운 표기가 든 산문 코퍼스)
 # 원천 2: 목록/단건 픽스처의 `contents` (실제 저장된 글의 본문 형상)
@@ -109,6 +143,21 @@ derive_from_tree "$TMP_DIR/head"
 
 sort -u "$CORPUS" -o "$CORPUS"
 CORPUS_N="$(grep -c . "$CORPUS")"
+
+# ── (I3 실효) 무판정 경로 자가 확인 ──────────────────────────────────────────
+# 공집합 판정을 **0 을 넣어 실제로 돌려 본다.** 살아 있으면 rc=2 여야 한다. 이 확인이
+# 없으면 `exit 2` 라는 **글자만** 남기고 경로를 들어내도 정적 게이트가 초록이다.
+population_verdict() {
+	if [ "$1" -lt 1 ]; then
+		exit 2
+	fi
+	exit 0
+}
+( population_verdict 0 ) >/dev/null 2>&1
+if [ "$?" -ne 2 ]; then
+	echo "check-summary-drift: 무판정 — 공집합 무판정 경로가 살아 있지 않다" >&2
+	exit 2
+fi
 
 # ── (I3) 모집단 비공허 단언 — 공집합은 통과가 아니라 무판정이다 ───────────────
 if [ "$CORPUS_N" -lt 1 ]; then
