@@ -12,6 +12,7 @@ const ALLOWED_TAGS = [
 	'ul', 'ol', 'li',
 	'a', 'img',
 	'span',
+	'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ];
 
 const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'target', 'rel', 'class'];

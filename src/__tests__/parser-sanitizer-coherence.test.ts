@@ -32,6 +32,18 @@ const corpus: Array<[string, string]> = [
 	['변경 강조', markChangedLines('바뀐 줄이다', '예전 줄이다')],
 ];
 
+// 파서가 **아직** 내지 못하는 구조는 마크다운 corpus 로 통과시켜 볼 수 없다.
+// 파이프 표 블록 패스가 그 상태이고 (`| a | b |` 는 현재 문단으로 렌더된다),
+// 그럼에도 표 태그는 정책에 등재돼 있어야 한다 — 등재가 없으면 파서 쪽 계약이
+// 착지하는 순간 표가 통째로 사라지기 때문이다 (실측: 표 HTML → `"1"`).
+//
+// (I13) 이 요구하는 것은 *"그 태그를 담은 입력"* 이지 *"마크다운 입력"* 이 아니므로,
+// 이런 구조는 **HTML 직접 입력**으로 통과시켜 본다. 파서가 표를 내게 되면 그때
+// 마크다운 corpus 행이 이 자리를 이어받는다.
+const directFixtures: Array<[string, string]> = [
+	['표', '<table><thead><tr><th>머리</th></tr></thead><tbody><tr><td>값</td></tr></tbody></table>'],
+];
+
 const shapeOf = (html: string) => {
 	const tags = new Set<string>();
 	const attrs = new Set<string>();
@@ -99,6 +111,22 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 		expect(clean).toContain('본문');
 	});
 
+	// 표는 파서 계약이 착지하기 전에도 정책에 등재돼 있어야 한다 — 등재가 없으면
+	// sanitize 가 표 트리를 통째로 지우고 **머리 셀 글자마저 남지 않는다**
+	// (등재 전 실측: 아래 입력이 `"1"` 하나로 줄었다).
+	it('sanitizer 는 표 트리를 보존한다', () => {
+
+		const clean = sanitizeHtml(
+			'<table><thead><tr><th>머리</th></tr></thead><tbody><tr><td>값</td></tr></tbody></table>');
+
+		for (const tag of ['table', 'thead', 'tbody', 'tr', 'th', 'td']) {
+			expect(clean, '<' + tag + '> 가 지워졌다 — 표가 빈 자리가 된다').toContain('<' + tag + '>');
+		}
+		// 글자가 살아남는 것이 사용자가 겪는 사실이다.
+		expect(clean).toContain('머리');
+		expect(clean).toContain('값');
+	});
+
 	// 대조 3 — **정책이 넓어졌는데 corpus 가 따라오지 않는** 방향.
 	//
 	// 위 corpus 행들은 "파서가 낸 것이 살아남는가" 를 재고, 그 반대 방향인
@@ -137,14 +165,31 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 		return out;
 	};
 
-	// 그 이름이 태그로서 sanitize 를 통과하는가 — 정책 표면을 동작으로 읽는다.
+	// 그 이름이 **태그 역할**인가 **속성 역할**인가를 동작으로 읽는다.
+	//
+	// 처음에는 "원소가 전부 태그로 살아남는가" 하나로 갈랐는데, 그 판별자는
+	// **문맥 의존 태그에서 무너진다** — `<td>probe</td>` 를 홀로 파싱하면 표 밖의
+	// `td` 는 HTML 파서 단계에서 사라지므로, 정책이 허용해도 "살아남지 않는" 것으로
+	// 읽힌다 (실측: thead·tbody·tr·th·td 전부 홀로는 소멸). 표 6 태그가 등재되는
+	// 순간 그 배열은 "전원 통과" 를 잃고 후보에서 탈락해 도출이 공집합이 됐다.
+	//
+	// 그래서 절대 기준 대신 **역할 비교**로 바꾼다. 태그 목록은 태그 자리에서
+	// 일부라도 살아남고 속성 자리에서는 전무하며, 속성 목록은 정확히 그 반대다.
+	// 문맥 의존 태그가 몇 개 섞여도 이 비교는 흔들리지 않는다.
 	const survivesAsTag = (tag: string): boolean =>
 		sanitizeHtml('<' + tag + '>probe</' + tag + '>').toLowerCase().includes('<' + tag);
+
+	const survivesAsAttr = (attr: string): boolean =>
+		sanitizeHtml('<a ' + attr + '="x">y</a>').toLowerCase().includes(attr.toLowerCase() + '=');
+
+	const countBy = (items: string[], f: (x: string) => boolean): number =>
+		items.filter(f).length;
 
 	it('허용 목록의 모든 태그가 sanitize 를 통과한다', () => {
 
 		const candidates = stringArrayConstants(policySource())
-			.filter((items) => items.every(survivesAsTag));
+			.filter((items) => countBy(items, survivesAsTag) > countBy(items, survivesAsAttr)
+				&& countBy(items, survivesAsTag) > 0);
 
 		// 도출이 비거나 여럿이면 **통과가 아니라 무판정 실패**다. 공집합을 통과로
 		// 읽으면 "위반 0" 과 "측정 0" 이 구별되지 않는다.
@@ -162,6 +207,9 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 		const exercised = new Set<string>();
 		for (const [, markdown] of corpus) {
 			for (const t of shapeOf(sanitizeHtml(markdownToHtml(markdown))).tags) exercised.add(t);
+		}
+		for (const [, html] of directFixtures) {
+			for (const t of shapeOf(sanitizeHtml(html)).tags) exercised.add(t);
 		}
 
 		expect(missing(new Set(policyTags), exercised),
