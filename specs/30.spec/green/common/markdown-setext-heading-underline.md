@@ -61,10 +61,10 @@
 
 ## 테스트 현황
 
-- [ ] (I1 밑줄식 h2) 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄식 제목은 제목이다" "$f" && npx vitest run "$f" -t "밑줄식 제목은 제목이다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 본 tick 실측 **rc=1 (미충족)**. 계약 이름 0 hit.
-- [ ] (I2 등호 밑줄 h1) 계약이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "등호 밑줄은 큰 제목이다" "$f"'` → HEAD=`8d030ce` 실측 **rc=1 (0 hit)**.
-- [ ] (I3·I4·I5 대조 신설) 가로줄 보존 대조가 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄식 제목은 가로줄을 가로채지 않는다" "$f"'` → HEAD=`8d030ce` 실측 **rc=1 (0 hit)**. **이 게이트가 이 계약의 절반이다** — `---` 단독 · 빈 줄로 갈린 `---` · `***` · `___` · `- 항목\n---` 다섯 입력을 한 자리에 모은다 (§스코프 규칙 baseline 표).
-- [ ] (I1·I2·I3 접속) 세 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄식 제목은 제목이다" "$f" && grep -qF "등호 밑줄은 큰 제목이다" "$f" && grep -qF "밑줄식 제목은 가로줄을 가로채지 않는다" "$f" && grep -qF "test parsing HR" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=1 (계약 이름 0 hit 으로 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 손상 축만 재면 가로줄을 전부 제목으로 바꾼 구현이 통과한다. 기존 가로줄 게이트(`test parsing HR`)의 **실재**를 접속에 함께 넣은 것이 요점이다 — 그 게이트를 지우는 것이 이 축에서 가장 쉬운 우회다.
+- [x] (I1 밑줄식 h2) 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄식 제목은 제목이다" "$f" && npx vitest run "$f" -t "밑줄식 제목은 제목이다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0974e46` 254차 재실측 **rc=0** (`TSK-20260831-22-a`/`af42803` · `22-b`/`0974e46`). 산출 실측 `markdownToHtml("제목\n---")` → `<h2>제목</h2>`.
+- [x] (I2 등호 밑줄 h1) 계약이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "등호 밑줄은 큰 제목이다" "$f"'` → HEAD=`0974e46` 254차 재실측 **rc=0**. 산출 실측 `markdownToHtml("큰 제목\n===")` → `<h1>큰 제목</h1>`.
+- [x] (I3·I4·I5 대조 신설) 가로줄 보존 대조가 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄식 제목은 가로줄을 가로채지 않는다" "$f"'` → HEAD=`0974e46` 254차 재실측 **rc=0**. **가로줄 5입력 전건 보존 실측**: `---` → `<hr />` · `앞\n\n---` → `<p>앞</p><p></p><hr />` · `***` → `<hr />` · `___` → `<hr />` · `- 항목\n---` → `<ul><li>항목</li></ul><hr />`. **이 게이트가 이 계약의 절반이다** — `---` 단독 · 빈 줄로 갈린 `---` · `***` · `___` · `- 항목\n---` 다섯 입력을 한 자리에 모은다 (§스코프 규칙 baseline 표).
+- [x] (I1·I2·I3 접속) 세 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "밑줄식 제목은 제목이다" "$f" && grep -qF "등호 밑줄은 큰 제목이다" "$f" && grep -qF "밑줄식 제목은 가로줄을 가로채지 않는다" "$f" && grep -qF "test parsing HR" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`0974e46` 254차 재실측 **rc=0** — 계약 이름 3건 + 기존 `test parsing HR` 실재 + 파서 스위트 **165 tests** 전수 통과. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 손상 축만 재면 가로줄을 전부 제목으로 바꾼 구현이 통과한다. 기존 가로줄 게이트(`test parsing HR`)의 **실재**를 접속에 함께 넣은 것이 요점이다 — 그 게이트를 지우는 것이 이 축에서 가장 쉬운 우회다.
 - [x] (I3 가로줄 현행 PASS) `---` 단독이 가로줄이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "test parsing HR" "$f" && npx vitest run "$f" -t "test parsing HR" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 rc=0 (`:27`, `"---"` → `"<hr />"`). **구현 후에도 rc=0 이어야 한다** — 이 게이트는 이미 저장소에 있고, 순진한 setext 구현이 가장 먼저 깨뜨리는 자리다. **지우거나 완화하는 방식의 해결은 불가하다.**
 - [x] (I6 ATX 산출 기준선) ATX 제목 게이트가 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "<h1>Header</h1>" "$f" && npx vitest run "$f" -t "test parsing HEADER" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`25f6013` 재실측 rc=0 (`:13`). setext h1 의 산출이 맞춰야 할 기준이며, 소유 계약은 `markdown-atx-heading-closing-sequence` 다 — 본 항목은 그 게이트의 **실재와 초록**만 잰다 (게이트 사본 방지).
 - [x] (원인 실재) 가로줄 판정이 앞 줄 문맥을 보지 않는다: `bash -c 'f=src/common/markdownParser.ts; test -f "$f" || exit 2; grep -qE "THEMATIC_BREAK_PATTERN[[:space:]]*=[[:space:]]*/\^" "$f" && grep -qE "THEMATIC_BREAK_PATTERN\.test\(" "$f"'` → HEAD=`8d030ce` 실측 rc=0 (`:82` 정의 · `:227` 판정). **이 항목은 현재 결함의 원인이 그 자리에 있다는 것을 잰다.** 구현 후 이 명령의 rc 는 **바뀌지 않아도 된다** — 패턴을 남긴 채 문맥 판정을 더하는 것이 §공개 인터페이스 가 허용한 방향이기 때문이다. 착지 후 이 항목의 의미는 "패턴 좌표가 여전히 유효하다" 로 읽는다.
@@ -72,10 +72,10 @@
 
 ## 수용 기준
 
-- [ ] (Must, FR-01) 위 §테스트 현황 (I1 밑줄식 h2) 명령 → rc=0.
-- [ ] (Must, FR-02) 위 §테스트 현황 (I2 등호 밑줄 h1) 명령 → rc=0.
-- [ ] (Must, FR-03·FR-04·FR-05) 위 §테스트 현황 (I3·I4·I5 대조 신설) 명령 → rc=0.
-- [ ] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3 접속) 명령 → rc=0.
+- [x] (Must, FR-01) 위 §테스트 현황 (I1 밑줄식 h2) 명령 → rc=0. HEAD=`0974e46` 254차 재실측 rc=0.
+- [x] (Must, FR-02) 위 §테스트 현황 (I2 등호 밑줄 h1) 명령 → rc=0. HEAD=`0974e46` 254차 재실측 rc=0.
+- [x] (Must, FR-03·FR-04·FR-05) 위 §테스트 현황 (I3·I4·I5 대조 신설) 명령 → rc=0. HEAD=`0974e46` 254차 재실측 rc=0.
+- [x] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3 접속) 명령 → rc=0. HEAD=`0974e46` 254차 재실측 rc=0 (파서 스위트 **165 tests**).
 - [x] (Must, FR-03 현행 보존) 위 §테스트 현황 (I3 가로줄 현행 PASS) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0. 구현 후에도 rc=0 — **이 게이트를 지우거나 완화하는 방식의 해결은 불가**하다.
 - [x] (Should, FR-06) 위 §테스트 현황 (I6 ATX 산출 기준선) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0.
 - [x] (Must, NFR-03 비퇴행) 위 §테스트 현황 (NFR-03 비퇴행 baseline) 명령 → rc=0. HEAD=`25f6013` 재실측 rc=0 (155 tests).
@@ -113,6 +113,7 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-31 | inspector 254차 tick (Phase 1 drift reconcile — 본 tick 4차 재실행) / `TSK-20260831-22-a`(`af42803`) · `22-b`(`0974e46`) @ HEAD=`0974e46` | **마커 플립 8** (§테스트 현황 4 + §수용 기준 4) — §수용 기준 **8/8 promote 후보**. 판정 명령 8건 전수 rc=0. **대조가 손상 축보다 먼저 착지했고 착지 후에도 무손상이다** — 흡수 시점에 *"이 게이트가 이 계약의 절반"* 이라 적은 가로줄 5입력이 전건 `<hr />` 로 보존됐다 (`---` · 빈 줄로 갈린 `---` · `***` · `___` · `- 항목\n---`). **밑줄식 제목을 도입하면서 가로줄을 가로채지 않았다**는 것이 이 계약의 판정면이고 그것이 실측으로 닫혔다. 파서 스위트 162 → **165**. **ATX 계약을 재개봉하지 않은 253차 판정이 유지됐다** — 그 문서 판정 명령 4건은 이 착지 후에도 rc=0 이고 setext 의존 0건이라 승격된 계약이 거짓이 되지 않았다 (`markdownParser.md` 와 갈린 지점: 그쪽은 fixture 가 반대 방향을 잠갔었다). | 테스트 현황 · 수용 기준 · 변경 이력 |
 | 2026-08-31 | inspector 253차 tick (Phase 3, REQ-20260831-071 흡수) / pending @ HEAD=`8d030ce` | 최초 박제 — 밑줄식 제목 6 축 (I1~I6). **신규 spec 으로 세운 근거**: ATX 계약(`markdown-atx-heading-closing-sequence`)이 `:54` 에서 setext 를 범위 밖으로 **명시 선언**했고, 그 선언은 본 계약이 착지해도 참으로 남는다 (setext 를 다른 계약이 소유하게 될 뿐이다). **그 spec 을 재개봉하지 않는다는 판정을 실측으로 뒷받침했다** — 그 문서의 판정 명령 4건을 격리 사본에서 전수 재실행해 **전건 rc=0**, 그리고 **네 명령 중 setext 에 의존하는 것은 0건**이다. 즉 본 계약 착지가 승격된 그 계약을 거짓으로 만들지 않는다 (REQ-069 의 `markdownParser.md` 사례와 갈리는 지점이며, 그쪽은 fixture 가 반대 방향을 **잠그고** 있어 재개봉이 필요했다). **(I3·I4·I5) 를 하나의 대조 게이트로 묶은 것이 이 흡수의 판단이다**: 다섯 입력이 전부 "가로줄로 남아야 한다" 는 한 명제의 사례이고, 나눠 두면 순진한 구현이 일부만 통과시키며 부분 초록을 만든다. **접속에 기존 게이트 `test parsing HR` 의 실재를 넣은 것이 두 번째 판단이다** — 그 게이트를 지우는 것이 이 축에서 가장 쉬운 우회이며, 대조 게이트를 새로 쓰기만 하면 그 우회는 보이지 않는다. **req 의 영향면 주장 1건을 재실측해 정정**: `THEMATIC_BREAK_PATTERN` 을 인용하는 살아 있는 spec 은 **0건**이다 — 인용하던 `markdown-emphasis-delimiter-parity` 가 본 tick 창에서 planner 에 의해 `50.blocked/spec/` 로 격리됐다(`32cbcd1`). **자기 결함 1건 자체 발견·정정**: §의존성 의 인용면 명령이 `specs/30.spec` 전체를 훑어 **자기 본문을 계수했다** — 문서가 저장되는 순간 `0` 이 `1` 이 되어 rc=1 이 된다. 추출·실행으로 잡았고 자기 제외를 넣어 고쳤다. spec 본문이 자기 판정 명령의 입력이 되는 부류이며, `RULE-07 §promote 조건 2` 가 금지한 "자기 green/blue 경로 참조" 의 변종이다 (경로가 아니라 **본문 문자열**로 자기를 참조했다). baseline: 계약 이름 3건 0 hit · `test parsing HR` 1 hit · `<h1>Header</h1>` 1 hit · 패턴 2 hit · spec 인용 0 (자기 제외) · 손상 4행/대조 5행/기준선 1행 격리 사본 실측 · 파서 스위트 155 tests (HEAD=`25f6013` 재도출). unchecked 4 · checked 4. | all |
 
 ## 참고

@@ -74,7 +74,7 @@
 - 내부: `src/common/sanitizeHtml.ts` (단일 진입점), `src/common/markdownParser.ts` (입력), `src/common/sanitizeHtml.test.ts` (회귀 fixture).
 - **소유 게이트 (REQ-056 흡수로 확정)**: `src/__tests__/parser-sanitizer-coherence.test.ts` — 파서 산출과 sanitize 정책의 정합을 재는 교차 게이트다. 흡수 전까지 **어떤 spec 에도 소유되지 않았다** (`grep -rln "parser-sanitizer-coherence" specs/30.spec/` → 0 hit). 소유자가 없으면 그 게이트의 하드코딩 열거·검출력 0 을 아무도 재지 않으므로 본 spec 이 (I13) 과 함께 소유를 진다. 다만 **(I13) 의 게이트를 이 파일에 두어야 한다는 뜻은 아니다** — 배치는 수단이다.
 - 외부: `dompurify` (devDep / dep — `runtime-dep-version-coherence.md` 영역).
-- 역의존 (사용처): markdownParser 결과를 DOM 에 주입하는 모든 caller (Log / Comment 등 도메인 모듈 — caller 측은 sanitize 호출 의무).
+- **역의존 (사용처) — 열거하지 않고 도출한다** (254차 재개봉 시 정정): `bash -c 'grep -rn "sanitizeHtml" src --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -v "common/sanitizeHtml\.ts" | grep -v "__fixtures__"'` → HEAD=`0974e46` 실측 **4 hit / 2 파일**: `src/Log/Writer.tsx`(작성 미리보기 — import + `dangerouslySetInnerHTML`) · `src/Log/LogItem.tsx`(본문 렌더 — import + `markdownToHtml` 경유). **Comment 는 이 모듈을 쓰지 않는다** — `bash -c '! grep -rq "sanitizeHtml\|dangerouslySetInnerHTML" src/Comment'` → rc=0 (0 hit). 댓글 본문은 평문 렌더다. **종전 문면은 *'Log / Comment 등 도메인 모듈'* 이라고 적었고 `Comment` 는 거짓, 작성 미리보기 `Writer.tsx` 는 누락이었다** — `foundation/spec-dependency-reverse-derivation` (I2) 가 겨누는 양방향 오류의 실물이며, 이 spec 의 판정 명령 16건이 전부 rc=0 인 채 blue 에 승격돼 있었다.
 - 직교: `markdownParser.md` (파싱 알고리즘 영역), `runtime-dep-version-coherence.md` (dompurify 버전 정합).
 
 ## 테스트 현황
