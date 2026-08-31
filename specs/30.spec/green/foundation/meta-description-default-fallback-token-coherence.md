@@ -45,11 +45,11 @@ SPA 초기 진입 시 `<meta name="description">` 의 정적 HTML baseline 과 r
 - 자매 spec: `foundation/index-html-public-asset-reference-coherence.md` (green, REQ-099) — `index.html` 정적 자원 참조 4-axis. OOS 박제 line 75 "`<meta name="description">` 의 description 텍스트 자체 정합 (SEO 정책 — 별 axis)" 명시 — 본 spec 이 그 별 axis 박제. `foundation/csp-meta-dev-strip-prod-preserve.md` (green, REQ-098) — `index.html:8` CSP meta dev/prod 비대칭 axis. 부수 조건 평서 (description meta 보존) 만 박제, content 토큰 자체 동치는 미박제 → 본 spec 과 직교. `components/common.md` (blue) — `setHtmlTitle(title)` / `setMetaDescription(desc)` API 부작용 박제. API signature 한정, default fallback 값 자체의 양면 동치는 미박제 → 본 spec 이 그 default 값 axis 박제. `foundation/meta-robots-robotstxt-policy-semantic-coherence.md` (green, REQ-20260518-001) — `<meta name="robots">` ↔ `public/robots.txt` 양면 의미 동치. `<meta name="robots">` element 영역 → 본 spec (description) 과 직교.
 
 ## 테스트 현황
-- [x] (G-A) `grep -cE 'name="description"' index.html` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `index.html:7` `<meta name="description" content="...">`).
-- [x] (G-B) `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:12`).
-- [x] (G-C) `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:14`).
+- [x] (G-A) `grep -cE 'name="description"' index.html` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `index.html:7` `<meta name="description" content="...">`). **정적 불변식이다** — 판정면이 소스 문면의 등록 계수이므로 정적 명령이 정확한 측정면이다.
+- [x] (G-B) `grep -cE 'const DEFAULT_META_DESCRIPTION\s*=' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:12`). **정적 불변식이다** — 판정면이 소스 문면의 등록 계수이므로 정적 명령이 정확한 측정면이다.
+- [x] (G-C) `grep -cE 'setMetaDescription\s*=\s*\([^)]*=\s*DEFAULT_META_DESCRIPTION' src/common/common.ts` → **1 + rc=0** (baseline 1 hit 박제, HEAD `a932c8a` 실측 — `src/common/common.ts:14`). **정적 불변식이다** — 판정면이 소스 문면의 등록 계수이므로 정적 명령이 정확한 측정면이다.
 - [x] (G-D) (H) content 속성 값 ↔ (D) 상수 literal 값 byte-for-byte 동치 비교 → 양면 모두 63 code unit == 63 UTF-8 byte 리터럴 (현 baseline 이 ASCII 라 두 수가 우연히 같다) `"park108.net is a personal journal of Jongkil Park the developer"` 동치 PASS.
-- [x] (G-E) `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **2** (정의 1 + default 인자 사용 1) (baseline 분포 박제).
+- [x] (G-E) `grep -cE 'DEFAULT_META_DESCRIPTION' src/common/common.ts` → **2** (정의 1 + default 인자 사용 1) (baseline 분포 박제). **정적 불변식이다** — 판정면이 소스 문면의 등록 계수이므로 정적 명령이 정확한 측정면이다.
 - [x] (G-F) content 속성 형태 (`name="description"\s+content="([^"]*)"` regex) baseline 1 match — double quote 리터럴 형태 박제 (문자 집합 무관).
 - [x] (G-G) 발화 채널 존재 — grep + content 속성 추출 + 상수 literal 추출 + byte-for-byte 동치 비교 fixture (또는 동등) 채널 rc=0/1 결정론. 발화 시점 채널 (pre-commit / pre-push / CI / 신규 `check:meta-description-coherence` script) 부착 미박제 (수단 위임). — **측정**: `src/__tests__/meta-description-token-coherence.test.ts`, CI `Test` step 발화.
 
