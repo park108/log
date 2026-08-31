@@ -252,7 +252,7 @@ const File = (props: FileProps): React.ReactElement => {
 		: null;
 
 	return (
-		<main className="main main--main-contents" style={props.contentHeight} role="application">
+		<main className="main main--main-contents" style={props.contentHeight}>
 			<article className="article article--main-item">
 
 				{ fileUploadUI }
