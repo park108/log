@@ -278,8 +278,11 @@ export const markdownToHtml = (rawInput: string): string => {
 		index += replacement.length;
 	}
 
-	// 목록 항목에 이어지는 들여쓴 줄은 **그 항목의 내용**이다 (CommonMark 0.31.2
-	// §5.2 continuation line).
+	// 목록 항목에 이어지는 마커 없는 줄은 **그 항목의 내용**이다 (CommonMark 0.31.2
+	// §5.2 continuation line). **들여쓰기는 조건이 아니다** — 같은 절의 lazy
+	// continuation 이 문단 계속에 한해 들여쓰기 요구를 면제한다. 목록을 쓰다 줄이
+	// 길어져 그냥 엔터를 친 표기가 그것이며, 들여쓰기를 요구하면 그 줄이 목록을
+	// 쪼개고 번호 목록은 `<ol>` 이 다시 열려 **독자가 `1.` 을 두 번 본다**.
 	//
 	// 넓히는 것은 검출 패스의 **입력**이다. 이어짐을 검출 뒤에 처리하면 이미
 	// `bindListItem` 의 `flushAll()` 이 목록을 닫은 뒤라 늦다 — 마커 없는 줄은
@@ -288,16 +291,19 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 목록이 끊길 이유 자체가 없어진다 — 번호 목록의 `<ol>` 이 다시 열리지 않는 것도
 	// 같은 이유다 (그렇지 않으면 독자가 `1.` 을 두 번 본다).
 	//
-	// 들여쓰기는 표기이지 내용이 아니므로 걷어낸다. 판정 기준은 `computeDepth` 로,
-	// 공백으로 쓰든 탭으로 쓰든 같은 결과가 나온다.
+	// 들여쓰기는 표기이지 내용이 아니므로 걷어낸다 (`computeDepth` — 공백으로 쓰든
+	// 탭으로 쓰든 같은 결과). 걷어내기만 할 뿐 **판정에는 쓰지 않는다**.
 	//
-	// **열린 항목이 있을 때만** 성립한다. 앞선 마커 줄이 없는 들여쓴 줄은 그대로
-	// 문단이다 (`markdownToHtml("  hello")` → `<p>  hello</p>`). 들여쓰기만 보고
-	// 항목으로 삼으면 그 대조가 깨진다.
+	// 남는 판정 조건은 둘뿐이다.
+	//   - **열린 항목이 있을 것.** 앞선 마커 줄이 없는 줄은 그대로 문단이다
+	//     (`markdownToHtml("  hello")` → `<p>  hello</p>`). 들여쓰기를 빼면서 이
+	//     조건까지 빼면 그 대조가 깨진다.
+	//   - **줄이 비어 있지 않을 것.** 빈 줄은 이어짐이 아니라 목록의 경계다
+	//     (`1. 하나` / 빈 줄 / `문단` 은 한 항목이 아니다). lazy continuation 의
+	//     면제는 문단 계속에 한하며 빈 줄에는 적용되지 않는다.
 	{
 		const merged: ParsedNode[] = [];
 		let openItem: ParsedNode | null = null;
-		let openItemDepth = 0;
 		let isQuoteOpen = false;
 
 		// 인용은 블록이라 열면 닫아야 한다. 이어짐이 끝나는 자리는 네 곳이다 —
@@ -325,16 +331,14 @@ export const markdownToHtml = (rawInput: string): string => {
 			if(null !== markerDepth) {
 				closeQuote();
 				openItem = node;
-				openItemDepth = markerDepth;
 				merged.push(node);
 				continue;
 			}
 
-			const { depth, prefixLength } = computeDepth(node.text);
+			const { prefixLength } = computeDepth(node.text);
 			const stripped = node.text.substring(prefixLength);
 			const item = openItem;
 			const isContinuation = null !== item
-				&& depth > openItemDepth
 				&& stripped.trim().length > 0;
 
 			if(!isContinuation) {

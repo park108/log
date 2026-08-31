@@ -36,12 +36,19 @@ describe('MD parsing test', () => {
 
 	it("test parsing OL", () => {
 		const result = parser.markdownToHtml("1. item1\n2. item2\n11. item11\n123Common Text\n1.Has Not Space After Dot");
-		expect(result).toBe("<ol><li> item1</li><li> item2</li><li> item11</li></ol><p>123Common Text</p><p>1.Has Not Space After Dot</p>");
+		// 마지막 두 줄은 마커가 아니므로 앞 항목의 **이어짐**이다 (lazy continuation).
+		// 목록이 아니라는 판정은 그대로이고 귀속만 바뀐다 — 두 줄 다 `<li>` 가 되지 않는다.
+		expect(result).toBe("<ol><li> item1</li><li> item2</li><li> item11<br />123Common Text<br />1.Has Not Space After Dot</li></ol>");
+		// 세 항목은 여전히 평탄한 하나의 <ol> 이다 (중첩이 생기지 않는다).
+		expect(result.match(/<ol>/g)).toHaveLength(1);
+		expect(result.match(/<li>/g)).toHaveLength(3);
 	});
 
 	it("test parsing UL and Text", () => {
 		const result = parser.markdownToHtml("- item1\n- item2\nCommon Text");
-		expect(result).toBe("<ul><li>item1</li><li>item2</li></ul><p>Common Text</p>");
+		// `Common Text` 는 마커가 없으므로 `item2` 의 이어짐이다 (lazy continuation).
+		expect(result).toBe("<ul><li>item1</li><li>item2<br />Common Text</li></ul>");
+		expect(result.match(/<ul>/g)).toHaveLength(1);
 	});
 
 	it("test parsing IMG", () => {
@@ -121,12 +128,21 @@ describe('MD parsing — indented list detection (regression + nesting scan)', (
 
 	it("still produces flat UL HTML when items are not indented (regression)", () => {
 		const result = parser.markdownToHtml("- a\n- b\nCommon Text");
-		expect(result).toBe("<ul><li>a</li><li>b</li></ul><p>Common Text</p>");
+		// `Common Text` 는 `b` 의 이어짐이다. 이 게이트가 지키는 명제는 **평탄함**이며
+		// 그것은 그대로다 — 중첩 <ul> 이 생기지 않고 항목은 둘이다.
+		expect(result).toBe("<ul><li>a</li><li>b<br />Common Text</li></ul>");
+		expect(result.match(/<ul>/g)).toHaveLength(1);
+		expect(result.match(/<li>/g)).toHaveLength(2);
 	});
 
 	it("still produces flat OL HTML when items are not indented (regression)", () => {
 		const result = parser.markdownToHtml("1. item1\n2. item2\n11. item11\n123Common Text\n1.Has Not Space After Dot");
-		expect(result).toBe("<ol><li> item1</li><li> item2</li><li> item11</li></ol><p>123Common Text</p><p>1.Has Not Space After Dot</p>");
+		// 마지막 두 줄은 마커가 아니므로 앞 항목의 **이어짐**이다 (lazy continuation).
+		// 목록이 아니라는 판정은 그대로이고 귀속만 바뀐다 — 두 줄 다 `<li>` 가 되지 않는다.
+		expect(result).toBe("<ol><li> item1</li><li> item2</li><li> item11<br />123Common Text<br />1.Has Not Space After Dot</li></ol>");
+		// 세 항목은 여전히 평탄한 하나의 <ol> 이다 (중첩이 생기지 않는다).
+		expect(result.match(/<ol>/g)).toHaveLength(1);
+		expect(result.match(/<li>/g)).toHaveLength(3);
 	});
 
 	it("does not treat a non-marker indented line as a list item", () => {
@@ -158,8 +174,16 @@ describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
 
 	it("closes all nested lists before a trailing paragraph", () => {
 		// TSK-20260418-10 §7 case 4
+		// 들여쓰지 않은 `Text` 는 이제 가장 가까운 열린 항목 `b` 의 이어짐이다
+		// (lazy continuation). 문단으로 떨어져 나오지 않는다.
 		const result = parser.markdownToHtml("- a\n\t- b\nText");
-		expect(result).toBe("<ul><li>a<ul><li>b</li></ul></li></ul><p>Text</p>");
+		expect(result).toBe("<ul><li>a<ul><li>b<br />Text</li></ul></li></ul>");
+
+		// 이 게이트가 지키는 명제(중첩 목록이 뒤따르는 문단 앞에서 전부 닫힌다)는
+		// **빈 줄**로 문단을 연 표기가 그대로 보존한다 — 명제를 잃지 않도록 함께 잠근다.
+		const separated = parser.markdownToHtml("- a\n\t- b\n\nText");
+		expect(separated).toContain("</ul></li></ul>");
+		expect(separated).toContain("<p>Text</p>");
 	});
 
 	it("treats two leading spaces as equivalent to one tab for UL nesting", () => {
@@ -711,6 +735,104 @@ describe('번호가 되감기지 않는다', () => {
 		const out = parser.markdownToHtml('1. 하나\n   > 인용\n2. 둘');
 		expect(out.match(/<ol>/g)).toHaveLength(1);
 		expect(out).toContain('<blockquote>인용</blockquote>');
+	});
+});
+
+// 목록을 쓰다 줄이 길어져 **그냥 엔터를 친** 표기가 목록을 쪼갰다. 이어짐 판정이
+// 들여쓰기를 요구했기 때문이다 — 들여쓰지 않은 줄은 `depth === 0 > openItemDepth === 0`
+// 이 거짓이라 흡수되지 않고 비-list 노드로 `bindListItem` 에 도착해 `flushAll()` 이
+// 열린 목록을 전부 닫았다. CommonMark 0.31.2 §5.2 의 lazy continuation 은 문단 계속에
+// 한해 그 들여쓰기 요구를 면제한다.
+//
+// **판정면은 `<ol>`/`<ul>` 개수다.** `<p>` 가 사라졌는지만 재면 번호 축을 놓친다 —
+// 문단이 없어져도 `<ol>` 이 둘이면 독자는 여전히 `1.` 을 두 번 본다. 그래서 단언마다
+// 산출 문자열 등식과 목록 태그 개수를 **함께** 잠근다.
+describe('들여쓰지 않은 이어짐 줄도 항목에 속한다', () => {
+
+	// 독자가 겪은 손상 그대로 — 글쓴이가 `2.` 라고 쓴 것이 화면에 `1.` 로 나왔다.
+	it('ol — 들여쓰지 않은 이어짐이 있어도 <ol> 은 하나다 (번호가 되감기지 않는다)', () => {
+		const out = parser.markdownToHtml('1. 첫째 항목\n설명이 이어진다\n2. 둘째 항목');
+		expect(out).toBe('<ol><li> 첫째 항목<br />설명이 이어진다</li><li> 둘째 항목</li></ol>');
+		// 쪼개졌다면 `<ol>` 이 둘이고 두 번째가 1 부터 다시 센다.
+		expect(out.match(/<ol>/g)).toHaveLength(1);
+		expect(out.match(/<li>/g)).toHaveLength(2);
+		// 이어짐이 목록 밖으로 새지 않는다.
+		expect(out).not.toContain('<p>');
+	});
+
+	// 번호가 없어 눈에 덜 띄지만 보조기술에는 "항목 1개짜리 목록" 둘로 읽힌다.
+	it('ul — 들여쓰지 않은 이어짐이 있어도 <ul> 은 하나다', () => {
+		const out = parser.markdownToHtml('- 첫째 항목\n설명이 이어진다\n- 둘째 항목');
+		expect(out).toBe('<ul><li>첫째 항목<br />설명이 이어진다</li><li>둘째 항목</li></ul>');
+		expect(out.match(/<ul>/g)).toHaveLength(1);
+		expect(out.match(/<li>/g)).toHaveLength(2);
+		expect(out).not.toContain('<p>');
+	});
+
+	// 가장 흔한 표기 — 한 항목을 쓰다 줄이 길어져 넘긴 두 줄짜리.
+	it('ul — 두 줄로 넘긴 한 항목은 하나의 항목이다', () => {
+		const out = parser.markdownToHtml('- 문장이 길어서\n다음 줄로 넘겼다');
+		expect(out).toBe('<ul><li>문장이 길어서<br />다음 줄로 넘겼다</li></ul>');
+		expect(out.match(/<ul>/g)).toHaveLength(1);
+		expect(out.match(/<li>/g)).toHaveLength(1);
+		expect(out).not.toContain('<p>');
+	});
+
+	// ul 만 고치고 ol 을 두는 방향(또는 그 반대)은 계약을 반쪽만 만족시킨다.
+	it('ol — 두 줄로 넘긴 한 항목은 하나의 항목이다', () => {
+		const out = parser.markdownToHtml('1. 문장이 길어서\n다음 줄로 넘겼다');
+		expect(out).toBe('<ol><li> 문장이 길어서<br />다음 줄로 넘겼다</li></ol>');
+		expect(out.match(/<ol>/g)).toHaveLength(1);
+		expect(out.match(/<li>/g)).toHaveLength(1);
+		expect(out).not.toContain('<p>');
+	});
+
+	it('여러 줄이 차례로 들여쓰기 없이 이어진다', () => {
+		const out = parser.markdownToHtml('- 하나\n줄1\n줄2\n- 둘');
+		expect(out).toBe('<ul><li>하나<br />줄1<br />줄2</li><li>둘</li></ul>');
+		expect(out.match(/<ul>/g)).toHaveLength(1);
+	});
+
+	// ── 보존 축 — 들여쓰기를 빼면서 함께 삼키면 안 되는 자리들 ──────────────
+
+	// 들여쓴 이어짐은 그대로다. 두 표기가 다른 산출을 내면 글쓴이가 구별할 수 없는
+	// 차이가 화면에 나타난다.
+	it('들여쓴 이어짐은 그대로다 (<ol> 하나)', () => {
+		const out = parser.markdownToHtml('1. 하나\n   이어짐\n2. 둘');
+		expect(out).toBe('<ol><li> 하나<br />이어짐</li><li> 둘</li></ol>');
+		expect(out.match(/<ol>/g)).toHaveLength(1);
+	});
+
+	// 들여쓴 표기와 들여쓰지 않은 표기가 같은 연결 표기를 낸다.
+	it('들여쓴 표기와 들여쓰지 않은 표기가 같은 산출을 낸다', () => {
+		expect(parser.markdownToHtml('- 하나\n이어짐\n- 둘'))
+			.toBe(parser.markdownToHtml('- 하나\n  이어짐\n- 둘'));
+	});
+
+	// **빈 줄은 여전히 목록을 끊는다.** 들여쓰기 조건을 빼면서 빈 줄까지 삼키는
+	// 방향이 이 축의 과잉이며, 이어짐 축만 재는 단언에는 초록으로 보인다.
+	it('빈 줄은 이어짐이 아니다 — 목록은 거기서 끝난다', () => {
+		const ol = parser.markdownToHtml('1. 하나\n\n문단');
+		expect(ol).toBe('<ol><li> 하나</li></ol><p></p><p>문단</p>');
+		expect(ol.match(/<ol>/g)).toHaveLength(1);
+		expect(ol).toContain('<p>문단</p>');
+
+		const ul = parser.markdownToHtml('- 하나\n\n문단');
+		expect(ul).toBe('<ul><li>하나</li></ul><p></p><p>문단</p>');
+		expect(ul).toContain('<p>문단</p>');
+	});
+
+	// 앞선 마커 줄이 없으면 이어짐이 아니다 — 열린 항목의 존재가 남은 조건이다.
+	it('앞선 항목이 없는 줄은 그대로 문단이다', () => {
+		expect(parser.markdownToHtml('  hello')).toBe('<p>  hello</p>');
+		expect(parser.markdownToHtml('a\nb')).toBe('<p>a</p><p>b</p>');
+	});
+
+	// 이어짐은 가장 가까운 열린 항목에 붙는다 — 중첩 구조는 보존된다.
+	it('중첩 항목에 들여쓰기 없이 이어지는 줄은 그 안쪽 항목의 내용이다', () => {
+		const out = parser.markdownToHtml('- 하나\n  - 안쪽\n안쪽 이어짐\n- 둘');
+		expect(out).toBe('<ul><li>하나<ul><li>안쪽<br />안쪽 이어짐</li></ul></li><li>둘</li></ul>');
+		expect(out.match(/<ul>/g)).toHaveLength(2);
 	});
 });
 
