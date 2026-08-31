@@ -51,7 +51,7 @@
 - **교차 게이트 (비퇴행 모집단)**: `markdownToHtml` 을 소비하는 `src/__tests__/**`. 모집단은 열거가 아니라 `bash -c 'grep -rl "markdownToHtml" src/__tests__/'` 로 **도출**한다 (`RULE-06 §열거 고정 금지`) — HEAD=`ed64fb3` 실측 **8 파일 / 106 tests**.
 - 외부: 없음 (순수 함수).
 - 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log 본문 · Comment 본문 · 목록 요약 `src/Log/api.ts:77` · 검색 미리보기).
-- 직교: `specs/30.spec/green/common/markdown-star-emphasis-space-flanking.md` — **공백 판정 단일 출처 (I7) 의 소유처**이며, 본 계약의 도착에 맞춰 그 spec 의 (I8) 이 `~~` 를 "산출을 못 박는 범위 밖" 에서 **"소유하지 않는 이웃 축"** 으로 좁혀졌다 (§변경 이력). `specs/30.spec/blue/common/markdown-emphasis-delimiter-parity.md` (구분자 대등성 축 — (I5) 의 인접 계약), `specs/30.spec/blue/common/markdownParser.md` (`inlineParsing` 알고리즘 — 본 계약은 그것을 대체하지 않고 등록 인자를 채운다), `specs/30.spec/green/common/sanitizeHtml.md` (`del` 태그 허용 정책 — 본 계약은 태그 정책을 건드리지 않는다).
+- 직교: `specs/30.spec/blue/common/markdown-star-emphasis-space-flanking.md` — **공백 판정 단일 출처 (I7) 의 소유처**이며, 본 계약의 도착에 맞춰 그 spec 의 (I8) 이 `~~` 를 "산출을 못 박는 범위 밖" 에서 **"소유하지 않는 이웃 축"** 으로 좁혀졌다 (§변경 이력). `specs/30.spec/blue/common/markdown-emphasis-delimiter-parity.md` (구분자 대등성 축 — (I5) 의 인접 계약), `specs/30.spec/blue/common/markdownParser.md` (`inlineParsing` 알고리즘 — 본 계약은 그것을 대체하지 않고 등록 인자를 채운다), `specs/30.spec/green/common/sanitizeHtml.md` (`del` 태그 허용 정책 — 본 계약은 태그 정책을 건드리지 않는다).
 
 ## 테스트 현황
 
