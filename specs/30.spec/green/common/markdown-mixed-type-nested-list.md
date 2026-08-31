@@ -44,7 +44,7 @@
 - 내부: `src/common/markdownParser.ts` (단일 대상) · `src/common/markdownParser.test.ts` (게이트).
 - 외부: 없음 (순수 함수).
 - **역의존 (사용처) — 열거하지 않고 도출한다**: `bash -c 'grep -rn "markdownToHtml(" src --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -v "common/markdownParser\.ts"'` → HEAD=`8d030ce` 실측 **4 hit**. 그중 실제 호출 3건은 `src/Log/Writer.tsx:224` (작성 미리보기) · `src/Log/LogItem.tsx:94` (본문 렌더, `sanitizeHtml` 경유) · `src/Log/api.ts:79` (요약 `trimmedContents`). 나머지 1건 `src/Log/__fixtures__/logs.ts:5` 는 **fixture 본문 안의 글자열이지 호출이 아니다**. **Comment 는 이 파서를 쓰지 않는다** — `bash -c '! grep -rq "markdownToHtml" src/Comment'` → rc=0 (0 hit). 사용처를 산문으로 적으면 틀린다: 실제로 다른 spec 이 `Comment 본문` 을 사용처로 적고 승격됐고 판정 명령 10건은 전부 rc=0 이었다.
-- 직교: `specs/30.spec/green/common/markdownParser.md` — `bindListItem` 의 same-type 중첩 알고리즘. **본 계약은 그 알고리즘이 "범위 밖·미정의" 로 비워 둔 자리를 정의한다** (§참고 §계약 인계).
+- 직교: `common/markdownParser` (승격 상태와 무관하게 같은 계약이므로 `30.spec/{blue,green}/` 접두를 붙이지 않는다 — 253차에 그 접두 때문에 배경 명령 1건이 파일 부재로 조용히 `0` 을 내는 drift 가 실제로 있었다) — `bindListItem` 의 same-type 중첩 알고리즘. **본 계약은 그 알고리즘이 "범위 밖·미정의" 로 비워 둔 자리를 정의한다** (§참고 §계약 인계).
 - 소비: 산출 태그 `ul`·`ol`·`li` 는 `ALLOWED_TAGS` 에 이미 있어 sanitize 변경을 요구하지 않는다.
 
 ## 회귀 중점
