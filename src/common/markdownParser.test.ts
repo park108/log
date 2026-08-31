@@ -360,6 +360,11 @@ describe('MD parsing — blockquote contrast axes', () => {
 		expect(bold).toContain("<strong>굵게</strong>");
 		expect(bold.match(/<strong>/g)?.length).toBe(1);
 		expect(bold).not.toContain("<strong><strong>");
+		// 이웃한 실패 방향: 인용 본문을 먼저 HTML 로 렌더해 **값 노드**에 넣으면
+		// 이중 처리가 아니라 **이스케이프 사멸**이 된다 — 독자는 `<strong>` 글자를
+		// 그대로 본다. 주입 왕복에서 실제로 그 산출을 만들었고 개수 단언만으로는
+		// 잡히지 않았다. 입력에 `<` 가 없으므로 `&lt;` 는 곧 사멸의 증거다.
+		expect(bold).not.toContain("&lt;");
 
 		// 코드 스팬도 같은 부류다 — 두 번 태우면 <code><code> 가 된다.
 		const code = parser.markdownToHtml("> `코드`");
@@ -367,6 +372,7 @@ describe('MD parsing — blockquote contrast axes', () => {
 		expect(code).toContain("<code>코드</code>");
 		expect(code.match(/<code>/g)?.length).toBe(1);
 		expect(code).not.toContain("<code><code>");
+		expect(code).not.toContain("&lt;");
 	});
 
 	it("블록이 없는 여러 줄 인용은 한 덩어리다", () => {
