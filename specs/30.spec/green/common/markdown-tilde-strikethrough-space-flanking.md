@@ -2,7 +2,7 @@
 
 > **위치**: `src/common/markdownParser.ts` — 인라인 패스 등록 (`:666` `~~` — **4번째 인자 없음**), `inlineParsing` 정의 (`:747`), `strictFlanking` 판정 (`:784` 여는 쪽 · `:802` 닫는 쪽), `runCharacter` (`:759`). 게이트: `src/common/markdownParser.test.ts` + `src/__tests__/markdown-no-character-loss.test.ts` (`:17` `PLAIN_PROSE`) + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
 > **관련 요구사항**: REQ-20260831-064 FR-01~FR-05 · NFR-01~NFR-04 (출처: 운영자 재현 + developer followup `20260831-1442`)
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-064 흡수, HEAD=`ed64fb3`)
+> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 reconcile 12 플립, HEAD=`2e1a68d`)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`ed64fb3`).
 
@@ -57,24 +57,24 @@
 
 > 각 명령은 HEAD=`ed64fb3` 에서 **파일에서 추출해** 격리 사본(`git archive HEAD` + `node_modules` 심볼릭 링크)에서 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있으므로 이 축의 측정은 언제나 격리 사본에서 한다 (`RULE-02 §교차 작업 파괴`).
 
-- [ ] (I1 여는 쪽) 여는 자리 공백 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "물결 취소선은 공백을 사이에 두면 취소선이 아니다" "$f" && grep -qF "와~~ 좋다 정말 대박~~" "$f" && grep -qF "~~ 취소~~" "$f" && npx vitest run "$f" -t "물결 취소선은 공백을 사이에 두면 취소선이 아니다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit.
-- [ ] (I2 닫는 쪽) 닫는 자리 공백의 비대칭 예시가 게이트에 실재한다: `bash -c 'grep -qF "~~취소 ~~" src/common/markdownParser.test.ts'` → HEAD=`ed64fb3` 실측 **rc=1 (0 hit)**. 계약 산출은 `<p>~~취소 ~~</p>` 이며, 이 예시가 없으면 여는 쪽만 막은 구현이 (I1) 을 통과한다. **이 명령은 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다 (§참고 §게이트 감도 행렬).
-- [ ] (I3 대조 보존) 붙여 쓴 물결과 낱말 안쪽 물결의 현 동작이 게이트로 잠겨 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "~~취소~~ 와 ~~또취소~~" "$f" && grep -qF "앞a~~b~~c뒤" "$f" && grep -qF "아~~~ 그렇구나" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (3건 전수 0 hit)**. `앞a~~b~~c뒤` 가 **낱말 안쪽 억제를 함께 켜는 과잉 구현**의 유일한 관측 채널이다. **이 명령도 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다.
-- [ ] (I4 산문 채널) `PLAIN_PROSE` 에 늘임표기 산문 항목이 있다: `bash -c 'test "$(grep -cE "~~ .*~~" src/__tests__/markdown-no-character-loss.test.ts)" -ge 1'` → HEAD=`ed64fb3` 실측 **rc=1 (0 hit)**. 계수 규칙은 §스코프 규칙 참조 — 여는 `~~` 뒤에 공백이 오고 같은 줄 뒤쪽에 `~~` 가 또 나오는 항목만 센다. **이 명령은 corpus 항목의 실재만 잰다** — 그 항목이 실제로 통과하는지는 (NFR-02) 가 닫는다 (`markdown-no-character-loss.test.ts` 는 교차 모집단 8 파일에 든다). (접속) 은 파서 스위트만 돌리므로 이 축을 보지 못한다.
-- [ ] (I5 대등성) 공백 판정이 꺼진 인라인 구분자 등록이 없다 — **모집단은 도출한다**: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"[^\"]+\", \"[^\"]+\"\)" src/common/markdownParser.ts)" -eq 0 && test "$(grep -cE "inlineParsing\(parsed, \"" src/common/markdownParser.ts)" -ge 5'` → HEAD=`ed64fb3` 실측 **rc=1** (3인자 형태 **1건** = `:666` `~~`, 등록 총 5건). 뒤쪽 하한이 **모집단 공동화를 막는다** — 등록을 전부 지워도 앞 조건만으로는 rc=0 이 된다.
-- [ ] (I1·I2·I3·I5 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "물결 취소선은 공백을 사이에 두면 취소선이 아니다" "$f" && grep -qF "~~취소 ~~" "$f" && grep -qF "앞a~~b~~c뒤" "$f" && test "$(grep -cE "inlineParsing\(parsed, \"[^\"]+\", \"[^\"]+\"\)" src/common/markdownParser.ts)" -eq 0 && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다.
+- [x] (I1 여는 쪽) 여는 자리 공백 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "물결 취소선은 공백을 사이에 두면 취소선이 아니다" "$f" && grep -qF "와~~ 좋다 정말 대박~~" "$f" && grep -qF "~~ 취소~~" "$f" && npx vitest run "$f" -t "물결 취소선은 공백을 사이에 두면 취소선이 아니다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit. **HEAD=`2e1a68d` 재실측 rc=0** (`TSK-20260831-13-a`/`22cce18` + `13-b`/`854541a` 착지).
+- [x] (I2 닫는 쪽) 닫는 자리 공백의 비대칭 예시가 게이트에 실재한다: `bash -c 'grep -qF "~~취소 ~~" src/common/markdownParser.test.ts'` → HEAD=`ed64fb3` 실측 **rc=1 (0 hit)**. 계약 산출은 `<p>~~취소 ~~</p>` 이며, 이 예시가 없으면 여는 쪽만 막은 구현이 (I1) 을 통과한다. **이 명령은 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다 (§참고 §게이트 감도 행렬). **HEAD=`2e1a68d` 재실측 rc=0** (`TSK-20260831-13-a`/`22cce18` + `13-b`/`854541a` 착지).
+- [x] (I3 대조 보존) 붙여 쓴 물결과 낱말 안쪽 물결의 현 동작이 게이트로 잠겨 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "~~취소~~ 와 ~~또취소~~" "$f" && grep -qF "앞a~~b~~c뒤" "$f" && grep -qF "아~~~ 그렇구나" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (3건 전수 0 hit)**. `앞a~~b~~c뒤` 가 **낱말 안쪽 억제를 함께 켜는 과잉 구현**의 유일한 관측 채널이다. **이 명령도 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다. **HEAD=`2e1a68d` 재실측 rc=0** (`TSK-20260831-13-a`/`22cce18` + `13-b`/`854541a` 착지).
+- [x] (I4 산문 채널) `PLAIN_PROSE` 에 늘임표기 산문 항목이 있다: `bash -c 'test "$(grep -cE "~~ .*~~" src/__tests__/markdown-no-character-loss.test.ts)" -ge 1'` → HEAD=`ed64fb3` 실측 **rc=1 (0 hit)**. 계수 규칙은 §스코프 규칙 참조 — 여는 `~~` 뒤에 공백이 오고 같은 줄 뒤쪽에 `~~` 가 또 나오는 항목만 센다. **이 명령은 corpus 항목의 실재만 잰다** — 그 항목이 실제로 통과하는지는 (NFR-02) 가 닫는다 (`markdown-no-character-loss.test.ts` 는 교차 모집단 8 파일에 든다). (접속) 은 파서 스위트만 돌리므로 이 축을 보지 못한다. **HEAD=`2e1a68d` 재실측 rc=0** (`TSK-20260831-13-a`/`22cce18` + `13-b`/`854541a` 착지).
+- [x] (I5 대등성) 공백 판정이 꺼진 인라인 구분자 등록이 없다 — **모집단은 도출한다**: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"[^\"]+\", \"[^\"]+\"\)" src/common/markdownParser.ts)" -eq 0 && test "$(grep -cE "inlineParsing\(parsed, \"" src/common/markdownParser.ts)" -ge 5'` → HEAD=`ed64fb3` 실측 **rc=1** (3인자 형태 **1건** = `:666` `~~`, 등록 총 5건). 뒤쪽 하한이 **모집단 공동화를 막는다** — 등록을 전부 지워도 앞 조건만으로는 rc=0 이 된다. **HEAD=`2e1a68d` 재실측 rc=0** (`TSK-20260831-13-a`/`22cce18` + `13-b`/`854541a` 착지).
+- [x] (I1·I2·I3·I5 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "물결 취소선은 공백을 사이에 두면 취소선이 아니다" "$f" && grep -qF "~~취소 ~~" "$f" && grep -qF "앞a~~b~~c뒤" "$f" && test "$(grep -cE "inlineParsing\(parsed, \"[^\"]+\", \"[^\"]+\"\)" src/common/markdownParser.ts)" -eq 0 && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다. **HEAD=`2e1a68d` 재실측 rc=0** (`TSK-20260831-13-a`/`22cce18` + `13-b`/`854541a` 착지).
 - [x] (I6 등록 단일) `~~` 등록이 정확히 1건이다: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"~~\", \"del\"" src/common/markdownParser.ts)" -eq 1'` → HEAD=`ed64fb3` 실측 rc=0. **닫는 괄호를 패턴에 넣지 않은 것이 요점**이다 — 인자가 늘어도 이 명제는 그대로여야 한다. 구현 후에도 rc=0 이어야 한다.
 - [x] (I7 다른 구분자 비퇴행) 별표·밑줄 계약 게이트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; npx vitest run "$f" -t "강조" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0. 구현 후에도 rc=0 이어야 한다.
 - [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0 (**122 tests**). **기존 게이트를 완화하는 방식의 해결은 불가**하다.
 - [x] (NFR-02 교차 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0, 출력 `cross-gate-files=8` (106 tests). **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단).
 
 ## 수용 기준
-- [ ] (Must, FR-01) 위 §테스트 현황 (I1 여는 쪽) 명령 → rc=0.
-- [ ] (Must, FR-02) 위 §테스트 현황 (I2 닫는 쪽) 명령 → rc=0.
-- [ ] (Must, FR-03) 위 §테스트 현황 (I3 대조 보존) 명령 → rc=0.
-- [ ] (Must, FR-01 산문 채널) 위 §테스트 현황 (I4 산문 채널) 명령 → rc=0.
-- [ ] (Must, FR-04·NFR-04 대등성) 위 §테스트 현황 (I5 대등성) 명령 → rc=0.
-- [ ] (Must, FR-01~FR-04 접속) 위 §테스트 현황 (I1·I2·I3·I5 접속) 명령 → rc=0.
+- [x] (Must, FR-01) 위 §테스트 현황 (I1 여는 쪽) 명령 → rc=0. HEAD=`2e1a68d` 재실측 rc=0.
+- [x] (Must, FR-02) 위 §테스트 현황 (I2 닫는 쪽) 명령 → rc=0. HEAD=`2e1a68d` 재실측 rc=0.
+- [x] (Must, FR-03) 위 §테스트 현황 (I3 대조 보존) 명령 → rc=0. HEAD=`2e1a68d` 재실측 rc=0.
+- [x] (Must, FR-01 산문 채널) 위 §테스트 현황 (I4 산문 채널) 명령 → rc=0. HEAD=`2e1a68d` 재실측 rc=0.
+- [x] (Must, FR-04·NFR-04 대등성) 위 §테스트 현황 (I5 대등성) 명령 → rc=0. HEAD=`2e1a68d` 재실측 rc=0.
+- [x] (Must, FR-01~FR-04 접속) 위 §테스트 현황 (I1·I2·I3·I5 접속) 명령 → rc=0. HEAD=`2e1a68d` 재실측 rc=0.
 - [x] (Must, NFR-03 단일 등록) 위 §테스트 현황 (I6 등록 단일) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0.
 - [x] (Must, 범위 제한) 위 §테스트 현황 (I7 다른 구분자 비퇴행) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0.
 - [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0 (122 tests).
@@ -118,6 +118,7 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-31 | inspector 251차 tick (Phase 3, REQ-20260831-064 흡수) / pending @ HEAD=`ed64fb3` | 최초 박제 — 물결 취소선 공백 flanking 7 축 (I1~I7). **신규 spec 으로 세운 근거 (req 의 권고와 다르다)**: req 는 소유 후보 `markdown-star-emphasis-space-flanking` 에 구분자 하나를 더 받는 쪽을 권했다. 그러나 그 spec 은 같은 tick Phase 1 에서 **§수용 기준 11/11 전건 `[x]` 가 되어 promote 후보**가 됐고 (`d83baec`·`0ff9787` 착지), 물결 축을 접으면 **이미 착지한 `**` 계약이 물결 구현이 끝날 때까지 blue 로 못 간다**. 제목·§역할·방어 대상 서술이 전부 `**` 에 한정돼 있다는 점도 같다 — 이는 지난 tick 에 이 spec 자신이 `markdown-emphasis-delimiter-parity` 에서 갈라져 나온 것과 **같은 기준**이다. 대신 **충돌만 정확히 해소**했다: 그 spec 의 (I8) 이 물결의 현 산출을 "유지된다" 로 못 박고 게이트가 3인자 등록(`…"del"\)`)을 고정하고 있었으므로, 등록 arity 를 빼고 **등록 1건**만 재도록 좁혀 두 계약이 동시에 참이 되게 했다 (그 spec §변경 이력에 대응 기록). **(I5) 를 도출로 세운 것이 이 흡수의 판단**이다 — req 의 NFR-04 를 구분자 이름 열거 대신 "3인자 등록 형태 0건 + 등록 총수 ≥ 5" 로 닫아, 여섯 번째 구분자가 같은 예외로 들어오는 방향까지 함께 막고 모집단 공동화도 차단했다. **(I3) 에 `앞a~~b~~c뒤` 를 넣은 것이 두 번째 판단**이다 — req 에 없던 축이며, `intrawordSuppression`(5번째 인자)까지 함께 켜는 과잉 구현의 유일한 관측 채널이다 (실측: 전환 전후 모두 `앞a<del>b</del>c뒤`). baseline: 계약 이름·예시 7건 전수 0 hit / 3인자 등록 1건 / 등록 총 5건 / corpus 늘임표기 0건 (겹 별표 쪽은 1건) / 저장소 `~~` 사용 10곳 전건 tight / 결함 축 6행 · 대조 축 8행 격리 사본 실측. unchecked 6 · checked 4. | all |
+| 2026-08-31 | inspector 252차 tick (Phase 1 reconcile) / `22cce18` + `854541a` | **§테스트 현황 6 + §수용 기준 6 = 12 마커 플립** — `TSK-20260831-13-a`(대조 게이트) · `13-b`(공백 flanking 구현) 착지로 (I1)~(I5)·(접속) 이 전건 rc=0 이 됐다. 판정 명령 10건을 **파일에서 추출해** 격리 사본에서 전수 재실행했고 rc 를 박제한다 (손 전사 0). 파서 스위트 122 → **134 tests** · 교차 게이트 `cross-gate-files=8` 유지. §수용 기준 **10/10** — promote 후보. | 테스트 현황, 수용 기준 |
 
 ## 참고
 
