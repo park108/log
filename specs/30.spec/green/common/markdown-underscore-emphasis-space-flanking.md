@@ -1,17 +1,19 @@
 # 밑줄 강조(`_` · `__`)는 별표와 대등하다 — 의미 · 낱말 안쪽 억제 · 공백 flanking
 
-> **위치 — 좌표는 도출한다** (`RULE-06 §열거 고정 금지`, REQ-081 FR-07). 아래 앵커 명령이 정본이고 줄 번호는 HEAD=`c82c629` 스냅샷 보조다.
+> **위치 — 좌표는 도출한다** (`RULE-06 §열거 고정 금지`, REQ-081 FR-07). 아래 앵커 명령이 정본이고 줄 번호는 HEAD=`a1ed6c3` 스냅샷 보조다.
 >
-> | 앵커 | 명령 | `c82c629` 실측 |
+> | 앵커 | 명령 | `a1ed6c3` 실측 |
 > |---|---|---|
-> | 인라인 등록 5 | `grep -nE 'inlineParsing\(parsed, "' src/common/markdownParser.ts` | `:906` `**` · `:907` `~~` · `:930` `*` · `:938` `__` · `:939` `_` |
-> | 밑줄 등록 2 | `grep -nE 'inlineParsing\(parsed, "_+"' src/common/markdownParser.ts` | `:938` · `:939` (겹이 홑보다 **앞**) |
-> | 공백 판정 (조건 1) | `grep -nE 'runCharacter' src/common/markdownParser.ts` | `:1027` 정의 (`delimeter.charAt(0)`) · `:1053` 여는 · `:1083` 닫는 |
-> | 낱말 안쪽 억제 | `grep -nE 'WORD_CHARACTER_PATTERN\|isIntraword\(' src/common/markdownParser.ts` | `:995` 패턴 · `:1013` 정의 · `:1070`·`:1100` 호출 |
-> | 게이트 파일 | `grep -rl "밑줄 강조" src` | `src/common/markdownParser.test.ts` (`:1241` describe) |
+> | 인라인 등록 5 | `grep -nE 'inlineParsing\(parsed, "' src/common/markdownParser.ts` | `:939` `**` · `:940` `~~` · `:963` `*` · `:971` `__` · `:972` `_` |
+> | 밑줄 등록 2 | `grep -nE 'inlineParsing\(parsed, "_+"' src/common/markdownParser.ts` | `:971` · `:972` (겹이 홑보다 **앞**) |
+> | 공백 판정 (조건 1) | `grep -nE 'runCharacter' src/common/markdownParser.ts` | `:1060` 정의 (`delimeter.charAt(0)`) · `:1086` 여는 · `:1116` 닫는 |
+> | 낱말 안쪽 억제 | `grep -nE 'WORD_CHARACTER_PATTERN|isIntraword\(' src/common/markdownParser.ts` | `:1028` 패턴 · `:1046` 정의 · `:1103`·`:1133` 호출 |
+> | 게이트 파일 | `grep -rl "밑줄 강조" src` | `src/common/markdownParser.test.ts` (`:1292` describe) · 부수 2 (`markdownParser.ts` 주석 · `markdown-no-character-loss.test.ts`) |
 > | 교차 게이트 모집단 | `grep -rl "markdownToHtml" src/__tests__/` | **8 파일** |
 >
-> **줄 번호를 계약으로 쓰지 않는 이유**: 이 파일은 본 tick 하루 안에 992 → 1350 줄이 됐고 원본 spec 의 §위치 좌표 **17/17 전건**이 밀렸다 (`fd62f3a` 한 커밋으로 `inlineParsing` 정의가 다시 +12). 좌표를 계약으로 쓰면 계약이 아니라 스냅샷이 낡는다.
+> **줄 번호를 계약으로 쓰지 않는 이유**: 이 파일은 하루 안에 992 → **1383 줄**이 됐고 원본 spec 의 §위치 좌표 **17/17 전건**이 밀렸다. **본 tick 안에서만 두 번 더 밀렸다** — 최초 박제(`c82c629`)의 스냅샷 열이 `bd59452`·`d93506d` 착지로 전건 어긋나 같은 tick 에 재측정해 갈아 끼웠다. 좌표를 계약으로 쓰면 계약이 아니라 스냅샷이 낡는다.
+>
+> **낱말 안쪽 억제 행의 `|` 는 ERE 교대다.** 최초 박제는 `\|` 로 적었고 그것은 **BSD ERE 에서 리터럴 파이프**라 `rc=1 · 0 hit` 이었다 (같은 tick 에 자체 검출 — `foundation/spec-judgement-command-evaluability` (I12) 가 재는 바로 그 부류이며 그 계수가 5 → 6 으로 움직여 드러났다).
 
 > **관련 요구사항**: REQ-20260901-081 FR-01~FR-08 · NFR-01~NFR-05 (원본 축 REQ-20260831-051 · 055 · 058 승계)
 > **원본**: `specs/50.blocked/spec/common/markdown-emphasis-delimiter-parity.md` — 되찾기 대상. (I6) 은 되찾지 않는다 (§역할 §되찾지 않은 축).
@@ -153,6 +155,7 @@ CommonMark 는 강조 구분자로 `*` 와 `_` 를 **대등하게** 규정한다
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-09-01 | inspector 256차 tick (같은 tick 자체 정정) / 측정 HEAD=`a1ed6c3` | **§위치 앵커 1건의 ERE 오표기 정정 + 스냅샷 좌표 전건 갱신.** 낱말 안쪽 억제 앵커를 `\|` 로 적었고 그것은 **BSD ERE 에서 리터럴 파이프**라 `rc=1 · 0 hit` 이었다 — 교대로 고쳐 4 hit rc=0. `foundation/spec-judgement-command-evaluability` (I12) 가 재는 부류이며(본 문서의 그 span 은 §위치 구획이라 (I12) 모집단 밖이다) 같은 tick 재측정에서 자체 검출했다. **스냅샷 좌표는 최초 박제(`c82c629`) 이후 `bd59452`·`d93506d` 착지로 전건 어긋났고**(파일 1350 → 1383 줄) `a1ed6c3` 값으로 갈아 끼웠다 — 앵커 명령이 정본이라는 §위치 선언이 같은 tick 안에서 실측으로 확인된 셈이다. **판정 15 건 전건 재실행**: 되찾은 축 8 + NFR 3 = **rc=0 불변**, 신설 축 5 = **rc=2 불변**. | §위치 · §변경 이력 |
 | 2026-09-01 | inspector 256차 tick (Phase 3, REQ-20260901-081 흡수 — `50.blocked/spec` 되찾기) / pending @ HEAD=`c82c629` | **최초 박제 — 11 축.** 원본 `markdown-emphasis-delimiter-parity` 의 (I1)(I2)(I3)(I4)(I5)(I7)(I8) 을 **번호 보존**으로 되찾고 (I6) 은 **되찾지 않았다** (자기 소유 밖 구분자의 동작 불변 선언 — 원본 격리의 직접 사유). 신설 (I9)(I10)(I11)(I12) 가 조건 1 소유와 **효력면 대등성**을 세운다. 되찾은 축 8 게이트를 격리 사본에서 전수 재실행해 **8 rc=0** (원본이 `c64c946` 에서 남긴 값과 일치), 신설 축 5 게이트 **전건 rc=2 (부재 무판정)**. 값 뒤집기 주입으로 arity 게이트 무감(rc=0 불변)과 산출 9행 붕괴를 직접 재현했고, 그 주입에서 붉어지는 기존 5 테스트에 **공백 flanking 입력이 0건**임을 확인했다. 좌표는 §위치 도출 앵커로 전환 (원본 17 좌표 전건 밀림). | all |
 
 ## 참고
