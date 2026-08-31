@@ -48,6 +48,19 @@
 #   대상 집합이 비면 "위반 0건" 은 무조건 참이 되어 게이트가 검출력 0 인 채로
 #   영구히 초록을 낸다.
 #
+# (I9) 활성 출현 확인 — 이 게이트의 판정 패턴 중 5 방향(D-a·D-b·D-d·D-e·D-f)은
+#   행 선두 앵커(`^[[:space:]]*`)로 시작하므로 `//` 로 시작하는 주석 줄은 구조적으로
+#   매치할 수 없다. 즉 금지 토큰을 주석에 적는 것만으로는 위반이 되지 않는다.
+#   앵커가 없는 D-c(`free`)만은 예외다 — 주석 안의 `Object.assign(state,` 를 잡는다.
+#   그 사실을 감추지 않고 여기 적는다. 두 성질 모두 주입 왕복으로 확인했다
+#   (주석 1줄 추가 → rc 0 유지 · 실코드 1줄 추가 → rc 1).
+# (I10) 효력면 한쪽 고정 — 라벨 집합끼리의 텍스트 비교는 양쪽이 텍스트라 라벨을
+#   남긴 채 정규식만 도달 불가로 바꾸면 통과한다 (실측: `delete` →
+#   `deleteZZZUNREACHABLE` 로 바꿔도 rc 0 · `directions=6`). 그래서 정합 단언의
+#   한쪽을 **효력면**으로 고정한다: 방향마다 위반 표본 1줄·정상 표본 1줄을 두고
+#   실판정과 **같은 함수**(`direction_hits`)로 돌려 위반 hit=1 · 정상 hit=0 을
+#   확인한다. 자가 확인을 통과한 방향만 `directions=N` 에 계수되므로 이 수치는
+#   "표의 행 수" 가 아니라 "효력이 확인된 방향 수" 다.
 # exit 0: PASS (ack 1 줄에 root/files/bindings/shadowed/directions 수치 출력).
 # exit 1: 위반 검출 · 공허 통과 · 섀도잉 과반 · 선언↔구현 불일치 (stderr 상세).
 
@@ -71,6 +84,28 @@ DIRECTIONS="$(printf '%s\n' \
 "D-d	^[[:space:]]*((\+\+|--)[[:space:]]*@ID@(\.[A-Za-z0-9_\$]+)+|@ID@(\.[A-Za-z0-9_\$]+)+[[:space:]]*(\+\+|--))	anchored" \
 "D-e	^[[:space:]]*@ID@(\.[A-Za-z0-9_\$]+)*\.(push|pop|shift|unshift|splice|sort|reverse|fill|copyWithin)\(	anchored" \
 "D-f	^[[:space:]]*delete[[:space:]]+@ID@(\.[A-Za-z0-9_\$]+)+	anchored")"
+
+# `@ID@` 치환과 판정을 한 곳에 둔다. **자가 확인과 실판정은 이 함수의 서로 다른
+# 호출일 뿐 사본이 아니다** — 사본 둘을 두면 사본이 갈라지고, 실판정 경로를
+# 들어내도 자가 확인만 초록으로 남는다 (참조 구현:
+# `scripts/check-summary-drift.sh` 의 `population_verdict`).
+direction_hits() {   # $1=템플릿 $2=식별자 $3=파일 → stdout: `행번호:행` (grep -nE)
+  re="$(printf '%s' "$1" | sed "s/@ID@/${2}/g")"
+  grep -nE "$re" "$3"
+}
+
+# --- 방향별 효력 표본 표 ------------------------------------------------------
+# 1열 라벨 · 2열 **그 방향의 위반 1줄** · 3열 **잡히면 안 되는 정상 1줄**.
+# 정상 표본은 같은 표면을 건드리는 near-miss 로 고른다 (비교 `===` · 새 객체 조립 ·
+# 비변이 배열 메서드 · 구조분해 제외) — 과잉 특정과 과소 특정을 함께 잰다.
+PROBE_ID="probeState"
+SAMPLES="$(printf '%s\n' \
+"D-a	  @ID@.count = 1;	  @ID@.count === 1;" \
+"D-b	  @ID@[\"k\"] = 1;	  @ID@[\"k\"] === 1;" \
+"D-c	  const next = Object.assign(@ID@, { k: 1 });	  const next = Object.assign({}, @ID@, { k: 1 });" \
+"D-d	  @ID@.count++;	  const n = @ID@.count + 1;" \
+"D-e	  @ID@.list.push(1);	  const next = @ID@.list.concat(1);" \
+"D-f	  delete @ID@.k;	  const { k, ...rest } = @ID@;")"
 
 # --- 선언·구현 정합 단언 ------------------------------------------------------
 # 이번 확대의 근인은 "헤더가 (D-a) 를 점 표기 대입이라 선언하는데 구현은 `+=` 를
@@ -111,6 +146,60 @@ BINDINGS="$TMP_DIR/bindings"
 VIOLATIONS="$TMP_DIR/violations"
 : > "$BINDINGS"
 : > "$VIOLATIONS"
+
+# --- 효력면 자가 확인 (I10) ---------------------------------------------------
+# 라벨 집합 비교의 한쪽을 효력면으로 고정한다. 표의 각 방향에 대해 실판정과 같은
+# 함수를 돌려 **위반 표본 1 hit · 정상 표본 0 hit** 를 확인한다. 하나라도 깨지면
+# 어느 라벨인지 지목하고 exit 1 한다 — 라벨만 남고 정규식이 도달 불가가 된 상태는
+# 여기서 죽는다. 표본이 비면 그 자체가 공허이므로 먼저 막는다.
+SAMPLE_V="$TMP_DIR/sample-violation"
+SAMPLE_C="$TMP_DIR/sample-clean"
+verified_count=0
+
+sample_label_count="$(printf '%s\n' "$SAMPLES" | cut -f1 | grep -c '^D-[a-z]$' || true)"
+if [ "${sample_label_count:-0}" -ne "$impl_count" ]; then
+  printf 'check-monitor-state-immutability: 효력 표본 누락 (samples=%s impl=%s)\n' \
+    "${sample_label_count:-0}" "$impl_count" >&2
+  printf '  표본 없는 방향은 효력이 확인되지 않은 방향이다 — directions 계수가 공허해진다.\n' >&2
+  exit 1
+fi
+
+while IFS="$(printf '\t')" read -r label tmpl kind; do
+  [ -n "$label" ] || continue
+  s_row="$(printf '%s\n' "$SAMPLES" | grep "^${label}$(printf '\t')" || true)"
+  if [ -z "$s_row" ]; then
+    printf 'check-monitor-state-immutability: 효력 미확인 방향 %s — 표본 행이 없다\n' "$label" >&2
+    exit 1
+  fi
+  v_line="$(printf '%s' "$s_row" | cut -f2 | sed "s/@ID@/${PROBE_ID}/g")"
+  c_line="$(printf '%s' "$s_row" | cut -f3 | sed "s/@ID@/${PROBE_ID}/g")"
+  if [ -z "$v_line" ] || [ -z "$c_line" ]; then
+    printf 'check-monitor-state-immutability: 효력 미확인 방향 %s — 표본이 비었다\n' "$label" >&2
+    exit 1
+  fi
+  printf '%s\n' "$v_line" > "$SAMPLE_V"
+  printf '%s\n' "$c_line" > "$SAMPLE_C"
+
+  v_hit="$(direction_hits "$tmpl" "$PROBE_ID" "$SAMPLE_V" | grep -c . || true)"
+  c_hit="$(direction_hits "$tmpl" "$PROBE_ID" "$SAMPLE_C" | grep -c . || true)"
+  if [ "${v_hit:-0}" -ne 1 ] || [ "${c_hit:-0}" -ne 0 ]; then
+    printf 'check-monitor-state-immutability: 효력 미확인 방향 %s (위반표본 hit=%s 기대 1 · 정상표본 hit=%s 기대 0)\n' \
+      "$label" "${v_hit:-0}" "${c_hit:-0}" >&2
+    printf '  위반 표본: %s\n' "$v_line" >&2
+    printf '  정상 표본: %s\n' "$c_line" >&2
+    printf '  라벨이 남아 있어도 정규식이 자기 방향을 잡지 못하면 그 방향은 판정되지 않는다.\n' >&2
+    exit 1
+  fi
+  verified_count=$((verified_count + 1))
+done <<EOF
+$DIRECTIONS
+EOF
+
+if [ "$verified_count" -ne "$impl_count" ]; then
+  printf 'check-monitor-state-immutability: 효력 확인 방향 수 불일치 (verified=%s impl=%s)\n' \
+    "$verified_count" "$impl_count" >&2
+  exit 1
+fi
 
 # `while` 루프는 파이프 서브셸에서 돌아 카운터 대입이 소실된다 — 집계는 파일로 한다.
 # `for f in $var` 형태의 비인용 변수 분할에 의존하지 않는다: zsh 는 분할하지 않아
@@ -168,8 +257,7 @@ while IFS="$TAB" read -r f id; do
   while IFS="$TAB" read -r label tmpl kind; do
     [ -n "$label" ] || continue
     [ "$is_shadowed" -eq 1 ] && [ "$kind" = "anchored" ] && continue
-    re="$(printf '%s' "$tmpl" | sed "s/@ID@/${id}/g")"
-    grep -nE "$re" "$f" | sed "s|^|${label}${TAB}${f}:|" >> "$VIOLATIONS"
+    direction_hits "$tmpl" "$id" "$f" | sed "s|^|${label}${TAB}${f}:|" >> "$VIOLATIONS"
   done <<EOF
 $DIRECTIONS
 EOF
@@ -191,7 +279,7 @@ violation_count="${violation_count:-0}"
 
 if [ "$violation_count" -ne 0 ]; then
   printf 'check-monitor-state-immutability: G-1 VIOLATION %s hit (root=%s files=%s bindings=%s shadowed=%s directions=%s)\n' \
-    "$violation_count" "$SCAN_ROOT" "$file_count" "$binding_count" "$shadowed_count" "$impl_count" >&2
+    "$violation_count" "$SCAN_ROOT" "$file_count" "$binding_count" "$shadowed_count" "$verified_count" >&2
   printf '  파생 state 는 in-place 변이 대신 새 객체 조립 → 교체로 갱신한다.\n' >&2
   while IFS= read -r line; do
     printf '  %s\n' "$line" >&2
@@ -200,5 +288,5 @@ if [ "$violation_count" -ne 0 ]; then
 fi
 
 printf 'check-monitor-state-immutability: G-1 0 hit (root=%s files=%s bindings=%s shadowed=%s directions=%s)\n' \
-  "$SCAN_ROOT" "$file_count" "$binding_count" "$shadowed_count" "$impl_count"
+  "$SCAN_ROOT" "$file_count" "$binding_count" "$shadowed_count" "$verified_count"
 exit 0
