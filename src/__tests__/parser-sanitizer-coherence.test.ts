@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { markdownToHtml } from '../common/markdownParser';
 import sanitizeHtml from '../common/sanitizeHtml';
 import { markChangedLines } from '../Log/diffContents';
@@ -95,5 +97,74 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 		expect(clean.toLowerCase()).not.toContain('<iframe');
 		expect(clean.toLowerCase()).not.toContain('<script');
 		expect(clean).toContain('본문');
+	});
+
+	// 대조 3 — **정책이 넓어졌는데 corpus 가 따라오지 않는** 방향.
+	//
+	// 위 corpus 행들은 "파서가 낸 것이 살아남는가" 를 재고, 그 반대 방향인
+	// "정책이 허용하는 것을 corpus 가 실제로 통과시켜 보는가" 는 어디서도 재지
+	// 않았다. 그 결과 허용 목록에 태그를 6건 더해도 저장소 전체 스위트가 전수
+	// 초록이었다 (실측). 정책 표면이 넓어진 만큼 무측정 영역이 넓어진 것이고,
+	// 무측정이 감추는 회귀의 결과는 **글자 소실**이다.
+	//
+	// 판정 대상 목록을 손으로 적으면 정책이 넓어질 때 그 목록이 따라오지 않아
+	// 다시 무측정이 된다. 그래서 **정책 모듈 소스에서 도출**한다.
+	//
+	// 도출이 상수를 **이름으로 부르지 않는 이유**: 이 spec 의 (I1) 이 정책 모듈
+	// 밖에서의 정책 토큰 정의·소비를 0 으로 막고 있고, 이 파일은 그 밖이다.
+	// 이름 대신 **구조와 동작**으로 찾는다 — 소스에서 문자열 배열 상수를 전부
+	// 뽑은 뒤, 원소가 전부 *태그로서* sanitize 를 통과하는 배열을 고른다.
+	// 속성 목록은 태그로 넣으면 한 건도 살아남지 않으므로 이 판정으로 갈린다.
+	// 이름이 바뀌어도 따라가고, 상수를 옮기거나 지우면 도출이 비어 실패한다.
+
+	const policySource = (): string => {
+		const path = resolve(process.cwd(), 'src/common/sanitizeHtml.ts');
+		const src = readFileSync(path, 'utf8');
+		// 도출의 입력이 비면 그 뒤 단언은 전부 공허하다 — 여기서 끊는다.
+		expect(src.length, '정책 모듈 소스를 읽지 못했다: ' + path).toBeGreaterThan(0);
+		return src;
+	};
+
+	// 소스의 `const 이름 = [ '문자열', … ]` 배열을 전부 뽑는다 (이름은 보지 않는다).
+	const stringArrayConstants = (src: string): string[][] => {
+		const out: string[][] = [];
+		for (const m of src.matchAll(/const\s+[A-Za-z_$][\w$]*\s*=\s*\[([^\]]*)\]/g)) {
+			const items = [...(m[1] ?? '').matchAll(/'([^']*)'|"([^"]*)"/g)]
+				.map((q) => (q[1] ?? q[2] ?? ''))
+				.filter((x) => x.length > 0);
+			if (items.length > 0) out.push(items);
+		}
+		return out;
+	};
+
+	// 그 이름이 태그로서 sanitize 를 통과하는가 — 정책 표면을 동작으로 읽는다.
+	const survivesAsTag = (tag: string): boolean =>
+		sanitizeHtml('<' + tag + '>probe</' + tag + '>').toLowerCase().includes('<' + tag);
+
+	it('허용 목록의 모든 태그가 sanitize 를 통과한다', () => {
+
+		const candidates = stringArrayConstants(policySource())
+			.filter((items) => items.every(survivesAsTag));
+
+		// 도출이 비거나 여럿이면 **통과가 아니라 무판정 실패**다. 공집합을 통과로
+		// 읽으면 "위반 0" 과 "측정 0" 이 구별되지 않는다.
+		expect(candidates.length,
+			'정책 태그 목록 도출이 유일하게 확정되지 않았다 (0 이면 도출 붕괴)').toBe(1);
+
+		const policyTags = candidates[0]!;
+
+		// 하한 — 도출이 한두 건으로 쪼그라드는 방향도 무판정이다.
+		expect(policyTags.length,
+			'도출된 정책 태그 수가 하한 미만이다').toBeGreaterThanOrEqual(10);
+		expect(new Set(policyTags).size, '도출 결과에 중복이 있다').toBe(policyTags.length);
+
+		// corpus 가 실제로 통과시켜 본 태그 — 파서 산출을 sanitize 에 태운 뒤 남은 것.
+		const exercised = new Set<string>();
+		for (const [, markdown] of corpus) {
+			for (const t of shapeOf(sanitizeHtml(markdownToHtml(markdown))).tags) exercised.add(t);
+		}
+
+		expect(missing(new Set(policyTags), exercised),
+			'정책에 등재됐으나 corpus 가 한 번도 통과시켜 보지 않는 태그 — 그 태그를 쓰는 글은 무측정이다').toEqual([]);
 	});
 });
