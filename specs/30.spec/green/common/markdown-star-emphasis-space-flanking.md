@@ -1,10 +1,10 @@
 # 겹 별표 `**` 는 공백을 사이에 둔 자리에서 강조를 열지 않는다
 
-> **위치**: `src/common/markdownParser.ts` — 인라인 패스 등록 (`:665` `**` · `:666` `~~` · `:670` `*` · `:678` `__` · `:679` `_`), `inlineParsing` 정의 (`:743`), `runCharacter` (`:755`), `strictFlanking` 판정 (`:780-781` 여는 쪽 · `:798-799` 닫는 쪽), `isIntraword` (`:740`). 게이트: `src/common/markdownParser.test.ts` (`:378-406` 별표 공백 축) + `src/__tests__/markdown-no-character-loss.test.ts` (`:17-54` `PLAIN_PROSE`) + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
+> **위치**: `src/common/markdownParser.ts` — 인라인 패스 등록 (`:665` `**` · `:666` `~~` · `:674` `*` · `:682` `__` · `:683` `_`), `inlineParsing` 정의 (`:747`), `runCharacter` (`:759`), `strictFlanking` 판정 (`:784` 여는 쪽 · `:802` 닫는 쪽), `isIntraword` (`:744`). 게이트: `src/common/markdownParser.test.ts` (`:422-460` 별표 공백 축) + `src/__tests__/markdown-no-character-loss.test.ts` (`:17-54` `PLAIN_PROSE`) + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
 > **관련 요구사항**: REQ-20260831-058 FR-01~FR-06 · NFR-01~NFR-03 (출처: 운영자 결함 신고 + developer followup 2건 병합)
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-058 흡수, HEAD=`c64c946`)
+> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-064 흡수 + Phase 1 reconcile, HEAD=`ed64fb3`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`c64c946`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`ed64fb3`).
 
 ## 역할
 
@@ -12,14 +12,14 @@
 
 **방어 대상 (사용자 관측 표면)**: 기술 산문에서 짝수 개의 `**` 가 나오기만 하면 그 사이가 통째로 굵어지고 구분자 네 글자가 소실되는 상태. 손상은 **세 표면에서 동시에** 나타난다 — 로그 본문 렌더, 목록 요약(`src/Log/api.ts:78` `trimmedContents` 는 `"2 10 은 1024 …"` 를 낸다), 검색 미리보기. 글쓴이는 자기 원문에서 잘못을 찾을 수 없다.
 
-**이 계약은 저장소의 명시적 판단을 뒤집는다.** `markdownParser.ts:667-669` 주석이 *"`**` · `~~` 는 공백을 끼워 써도 의도가 분명하므로 그대로 둔다 (`** 굵게 **`)"* 라고 적고 있고, `markdownParser.test.ts:398` `it('굵게는 공백을 끼워도 그대로 굵게')` 가 그 판단을 못 박고 있다. 그 판단이 겨눈 사용례와 본 계약이 겨누는 손상이 **같은 코드 한 줄을 공유한다.** 따라서 이것은 회귀 수정이 아니라 **계약 전환**이며, 뒤집힌다는 사실이 문서와 게이트에 남아야 한다 — 조용히 바꾸면 `RULE-06 §음성 대조` 가 겨눈 "정상 변형 쪽을 바꿔 맞추는" 처리가 된다.
+**이 계약은 저장소의 명시적 판단을 뒤집는다.** `markdownParser.ts:667-669` 주석이 *"`**` · `~~` 는 공백을 끼워 써도 의도가 분명하므로 그대로 둔다 (`** 굵게 **`)"* 라고 적고 있고, `markdownParser.test.ts:398` `it('굵게는 공백을 끼워도 그대로 굵게')` 가 그 판단을 못 박고 있었다. 그 판단이 겨눈 사용례와 본 계약이 겨누는 손상이 **같은 코드 한 줄을 공유한다.** 따라서 이것은 회귀 수정이 아니라 **계약 전환**이며, 뒤집힌다는 사실이 문서와 게이트에 남아야 한다 — 조용히 바꾸면 `RULE-06 §음성 대조` 가 겨눈 "정상 변형 쪽을 바꿔 맞추는" 처리가 된다.
 
 **대가는 감수하는 것이지 없는 것이 아니다.** `** 굵게 **` 처럼 공백을 넣어 굵게 쓰던 글이 있으면 그 글은 별표가 글자로 보이게 된다. CommonMark 0.31.2 §6.2 기준으로는 그것이 옳으나, 저장소에 글 코퍼스가 없어 그런 표기가 실제로 쓰였는지 확인할 수 없다 (§참고 §미측정).
 
 의도적으로 하지 않는 것: **`~~` 축** (같은 결함이 실측되나 산문 손상 사례가 없어 별 축 — §참고 §미측정), `* 기울임 *` 이 글머리 목록으로 잡히는 것 (블록 패스가 인라인 패스보다 앞서기 때문 — 다른 코드 지점), `***셋***` 3중 구분자의 중첩 조합 (`markdown-emphasis-delimiter-parity` §참고 §미측정 소유), `_`·`__`·`*` 의 현 계약 변경, 강조의 CSS 표현 (계약면은 산출 태그다).
 
 ## 공개 인터페이스
-- 변경 없음. `markdownToHtml(rawInput: string): string` (`markdownParser.ts:134`) 의 시그니처와 `inlineParsing` (`:743`) 의 module-private 성격은 그대로다. 계약면은 **산출 HTML** 이다.
+- 변경 없음. `markdownToHtml(rawInput: string): string` (`markdownParser.ts:134`) 의 시그니처와 `inlineParsing` (`:747`) 의 module-private 성격은 그대로다. 계약면은 **산출 HTML** 이다.
 
 ## 동작
 
@@ -31,13 +31,13 @@
 
 3. **(I3) 낱말에 붙은 `**` 의 현 동작은 그대로다**: `**굵게**` → `<strong>굵게</strong>`, `**굵게** 와 **또굵게**` → 쌍 둘 모두 강조, `**굵고 *기울고* 굵다**` → 중첩 강조 유지, `경로는 src/**/*.ts 이다` → 평문 유지 (짝 없는 런 — 런 가드 소관). 이 대조가 없으면 "`**` 는 절대 강조 아님" 구현이 (I1)(I2) 를 통과한다.
 
-4. **(I4) 이 축에는 산문 관측 채널이 있다**: `PLAIN_PROSE` corpus (`markdown-no-character-loss.test.ts:17`) 는 **짝이 맞는 `**` 가 공백을 사이에 두고 두 번 이상 나오는 산문 항목**을 1건 이상 담는다. 홑 별표 축에는 그 대조가 이미 있고 (`:31` `수식 2 * 3 * 4 = 24 이다`) 겹 별표 축에는 **없다** — 결함이 게이트의 사각에 정확히 들어앉아 있는 이유가 그것이다. 이것은 게이트 표현에 대한 계약이지 구현 수단 지정이 아니다.
+4. **(I4) 이 축에는 산문 관측 채널이 있다**: `PLAIN_PROSE` corpus (`markdown-no-character-loss.test.ts:17`, 항목 `:36`) 는 **짝이 맞는 `**` 가 공백을 사이에 두고 두 번 이상 나오는 산문 항목**을 1건 이상 담는다. 홑 별표 축에는 그 대조가 이미 있고 (`:31` `수식 2 * 3 * 4 = 24 이다`) 겹 별표 축에는 **없다** — 결함이 게이트의 사각에 정확히 들어앉아 있는 이유가 그것이다. 이것은 게이트 표현에 대한 계약이지 구현 수단 지정이 아니다.
 
-5. **(I5) 뒤집힌 단언은 남지 않는다**: `굵게는 공백을 끼워도 그대로 굵게` (`markdownParser.test.ts:398`) 와 그 위 `:397` 주석은 본 계약과 **동시에 참일 수 없다**. 그 단언은 삭제가 아니라 **새 계약으로 교체**되며, 교체 자리에 전환 사실이 주석으로 남는다. 산출을 바꾸면서 그것을 못 박은 단언을 조용히 지우는 것은 이 저장소가 `RULE-06 §음성 대조` 로 금지한 처리다.
+5. **(I5) 뒤집힌 단언은 남지 않는다**: `굵게는 공백을 끼워도 그대로 굵게` (`c64c946` 기준 `markdownParser.test.ts:398` — HEAD=`ed64fb3` 에서 **교체 완료**) 와 그 위 `:397` 주석은 본 계약과 **동시에 참일 수 없다**. 그 단언은 삭제가 아니라 **새 계약으로 교체**되며, 교체 자리에 전환 사실이 주석으로 남는다. 산출을 바꾸면서 그것을 못 박은 단언을 조용히 지우는 것은 이 저장소가 `RULE-06 §음성 대조` 로 금지한 처리다.
 
-6. **(I6) 나머지 구분자의 판정은 바뀌지 않는다**: `_`·`__`·`*` 의 공백·낱말 안쪽 판정은 그대로다 — `_기울임_` · `__굵게__` · `*기울임*` · `snake_case_name` · `a__b__c` · `___둘다___` · `2 * 3 * 4 = 24 이다` 의 산출이 `c64c946` 과 동일하다. 본 계약은 `**` 를 **그들과 같은 판정으로 옮기는 것**이지 판정 자체를 고치는 것이 아니다.
+6. **(I6) 나머지 구분자의 판정은 바뀌지 않는다**: `_`·`__`·`*` 의 공백·낱말 안쪽 판정은 그대로다 — `_기울임_` · `__굵게__` · `*기울임*` · `snake_case_name` · `a__b__c` · `___둘다___` · `2 * 3 * 4 = 24 이다` 의 산출이 `c64c946` 과 동일하다 (HEAD=`ed64fb3` 재확인). 본 계약은 `**` 를 **그들과 같은 판정으로 옮기는 것**이지 판정 자체를 고치는 것이 아니다.
 
-7. **(I7) 공백 판정은 한 벌뿐이다**: 공백 판정은 `inlineParsing` 안의 `strictFlanking` 분기 **두 곳**(여는 `:780-781` · 닫는 `:798-799`)에만 존재한다. `**` 전용 분기를 새로 만들지 않는다 — 사본 둘은 갈라진다. 새 알고리즘이 필요하지 않다는 것이 이 축의 성질이다: 등록 인자 하나의 값이 다르다.
+7. **(I7) 공백 판정은 한 벌뿐이다**: 공백 판정은 `inlineParsing` 안의 `strictFlanking` 분기 **두 곳**(여는 `:784` · 닫는 `:802`)에만 존재한다. `**` 전용 분기를 새로 만들지 않는다 — 사본 둘은 갈라진다. 새 알고리즘이 필요하지 않다는 것이 이 축의 성질이다: 등록 인자 하나의 값이 다르다.
 
 8. **(I8) `~~` 는 이 계약 밖이다 (범위 제한)**: `~~ 취소 ~~` → `<p><del> 취소 </del></p>` 는 `c64c946` 산출 그대로 유지된다. 같은 부류의 어긋남이나 산문 손상 근거가 없어 본 계약이 요구하지 않는다. 이 축을 함께 바꾸는 구현은 요구 범위를 넘은 것이며, 대조로 그것을 관측한다.
 
@@ -50,49 +50,49 @@
 
 ## 의존성
 - 내부: `src/common/markdownParser.ts` (단일 대상), `src/common/markdownParser.test.ts` · `src/__tests__/markdown-no-character-loss.test.ts` (게이트 2 파일).
-- **교차 게이트 (비퇴행 모집단)**: `markdownToHtml` 을 소비하는 `src/__tests__/**`. 모집단은 열거가 아니라 `bash -c 'grep -rl "markdownToHtml" src/__tests__/'` 로 **도출**한다 (`RULE-06 §열거 고정 금지`) — HEAD=`c64c946` 실측 **8 파일 / 105 tests**.
+- **교차 게이트 (비퇴행 모집단)**: `markdownToHtml` 을 소비하는 `src/__tests__/**`. 모집단은 열거가 아니라 `bash -c 'grep -rl "markdownToHtml" src/__tests__/'` 로 **도출**한다 (`RULE-06 §열거 고정 금지`) — HEAD=`ed64fb3` 실측 **8 파일 / 106 tests**.
 - 외부: 없음 (순수 함수).
 - 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log 본문 · Comment 본문 · 목록 요약 `src/Log/api.ts:78` · 검색 미리보기).
 - 직교: `specs/30.spec/green/common/markdown-emphasis-delimiter-parity.md` — 그 spec 의 **(I6) 별표 축 범위 제한**이 본 계약의 도착과 **동시에 참일 수 없어**, 본 흡수가 같은 tick 에 blue 사본을 green 으로 받아 (I6) 을 좁혔다. 좁힌 문면이 본 spec 을 인수처로 지목한다 (§변경 이력). `specs/30.spec/blue/common/markdownParser.md` (`inlineParsing` 알고리즘 — 본 계약은 그것을 대체하지 않고 등록 인자를 옮긴다).
 
 ## 테스트 현황
 
-> 각 명령은 HEAD=`c64c946` 에서 **파일에서 추출해** 격리 사본(`git archive HEAD` + `node_modules` 심볼릭 링크)에서 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있으므로 이 축의 측정은 언제나 격리 사본에서 한다 (`RULE-02 §교차 작업 파괴`).
+> 각 명령은 HEAD=`ed64fb3` 에서 **파일에서 추출해** 격리 사본(`git archive HEAD` + `node_modules` 심볼릭 링크)에서 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있으므로 이 축의 측정은 언제나 격리 사본에서 한다 (`RULE-02 §교차 작업 파괴`).
 
-- [ ] (I1 여는 쪽) 여는 자리 공백 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "겹 별표는 공백을 사이에 두면 굵게가 아니다" "$f" && grep -qF "2 ** 10 은 1024 이고 2 ** 20 은 1048576 이다" "$f" && grep -qF "** 굵게**" "$f" && npx vitest run "$f" -t "겹 별표는 공백을 사이에 두면 굵게가 아니다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit.
-- [ ] (I2 닫는 쪽) 닫는 자리 공백의 비대칭 예시가 게이트에 실재한다: `bash -c 'grep -qF "**굵게 **" src/common/markdownParser.test.ts'` → HEAD=`c64c946` 실측 **rc=1 (0 hit)**. 계약 산출은 `<p>**굵게 **</p>` 이며, 이 예시가 없으면 여는 쪽만 막은 구현이 (I1) 을 통과한다.
-- [ ] (I3 대조 보존) 붙여 쓴 겹 별표의 현 동작이 게이트로 잠겨 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "**굵게** 와 **또굵게**" "$f" && grep -qF "**굵고 *기울고* 굵다**" "$f"'` → HEAD=`c64c946` 실측 **rc=1**. `**굵고 *기울고* 굵다**` 는 `:404` 에 이미 있고 `**굵게** 와 **또굵게**` 가 0 hit 이다.
-- [ ] (I4 산문 채널) `PLAIN_PROSE` 에 짝맞는 겹 별표 산문 항목이 있다: `bash -c 'test "$(grep -cE " \*\* .* \*\* " src/__tests__/markdown-no-character-loss.test.ts)" -ge 1'` → HEAD=`c64c946` 실측 **rc=1 (0 hit)**. 계수 규칙은 §스코프 규칙 참조 — 한 줄 안에 ` ** ` 가 **두 번 이상** 나오는 corpus 항목만 센다.
-- [ ] (I5 전환 박제) 뒤집힌 단언이 남아 있지 않다: `bash -c 'test "$(grep -cF "굵게는 공백을 끼워도 그대로 굵게" src/common/markdownParser.test.ts)" -eq 0'` → HEAD=`c64c946` 실측 **rc=1 (1 hit — `:398`)**. **교체 사실은 (I1) 의 계약 이름 실재로 함께 확인된다** — 이 항목 단독으로는 "지우기만 한" 구현도 통과하므로 (I1) 과 접속해서만 의미가 있다.
-- [ ] (I1·I2·I3·I5 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "겹 별표는 공백을 사이에 두면 굵게가 아니다" "$f" && grep -qF "**굵게 **" "$f" && grep -qF "**굵게** 와 **또굵게**" "$f" && test "$(grep -cF "굵게는 공백을 끼워도 그대로 굵게" "$f")" -eq 0 && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다.
-- [x] (I7 단일 출처) 공백 판정 분기가 두 곳뿐이다: `bash -c 'test "$(grep -cE "strictFlanking &&" src/common/markdownParser.ts)" -eq 2'` → HEAD=`c64c946` 실측 rc=0 (`:780` 여는 쪽 · `:798` 닫는 쪽). **구현 후에도 rc=0 이어야 한다** — `**` 전용 분기를 더하면 3 이 되어 붉어진다.
-- [x] (I6 나머지 구분자 비퇴행) 밑줄·홑 별표 계약 게이트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; npx vitest run "$f" -t "강조" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 rc=0. 구현 후에도 rc=0 이어야 한다.
-- [x] (I8 범위 제한 대조) 물결 취소선의 현 동작이 유지된다: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"~~\", \"del\"\)" src/common/markdownParser.ts)" -eq 1'` → HEAD=`c64c946` 실측 rc=0. `~~` 등록에 `strictFlanking` 인자가 붙지 않은 상태를 못 박는다 — 구현 후에도 rc=0 이어야 한다.
-- [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 rc=0 (**115 tests**). (I5) 의 교체분을 뺀 뒤 재계수한다 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
-- [x] (NFR-02 교차 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 rc=0, 출력 `cross-gate-files=8` (105 tests). **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단).
+- [x] (I1 여는 쪽) 여는 자리 공백 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "겹 별표는 공백을 사이에 두면 굵게가 아니다" "$f" && grep -qF "2 ** 10 은 1024 이고 2 ** 20 은 1048576 이다" "$f" && grep -qF "** 굵게**" "$f" && npx vitest run "$f" -t "겹 별표는 공백을 사이에 두면 굵게가 아니다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit. **HEAD=`ed64fb3` 재실측 rc=0** (`d83baec`·`0ff9787` 착지 — describe `markdownParser.test.ts:422`).
+- [x] (I2 닫는 쪽) 닫는 자리 공백의 비대칭 예시가 게이트에 실재한다: `bash -c 'grep -qF "**굵게 **" src/common/markdownParser.test.ts'` → HEAD=`c64c946` 실측 **rc=1 (0 hit)**. 계약 산출은 `<p>**굵게 **</p>` 이며, 이 예시가 없으면 여는 쪽만 막은 구현이 (I1) 을 통과한다. **HEAD=`ed64fb3` 재실측 rc=0** (`:431` `**굵게 **` → `<p>**굵게 **</p>`).
+- [x] (I3 대조 보존) 붙여 쓴 겹 별표의 현 동작이 게이트로 잠겨 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "**굵게** 와 **또굵게**" "$f" && grep -qF "**굵고 *기울고* 굵다**" "$f"'` → HEAD=`c64c946` 실측 **rc=1**. `**굵고 *기울고* 굵다**` 는 `:458` 에 있고 `**굵게** 와 **또굵게**` 가 0 hit 이다. **HEAD=`ed64fb3` 재실측 rc=0** (`:453` · `:458`).
+- [x] (I4 산문 채널) `PLAIN_PROSE` 에 짝맞는 겹 별표 산문 항목이 있다: `bash -c 'test "$(grep -cE " \*\* .* \*\* " src/__tests__/markdown-no-character-loss.test.ts)" -ge 1'` → HEAD=`c64c946` 실측 **rc=1 (0 hit)**. 계수 규칙은 §스코프 규칙 참조 — 한 줄 안에 ` ** ` 가 **두 번 이상** 나오는 corpus 항목만 센다. **HEAD=`ed64fb3` 재실측 rc=0** (corpus `:36` `거듭제곱은 2 ** 10 은 1024 이고 2 ** 20 은 1048576 이다` 1 hit).
+- [x] (I5 전환 박제) 뒤집힌 단언이 남아 있지 않다: `bash -c 'test "$(grep -cF "굵게는 공백을 끼워도 그대로 굵게" src/common/markdownParser.test.ts)" -eq 0'` → HEAD=`c64c946` 실측 **rc=1 (1 hit — `:398`)**. **교체 사실은 (I1) 의 계약 이름 실재로 함께 확인된다** — 이 항목 단독으로는 "지우기만 한" 구현도 통과하므로 (I1) 과 접속해서만 의미가 있다. **HEAD=`ed64fb3` 재실측 rc=0** (0 hit — 뒤집힌 단언 교체됨).
+- [x] (I1·I2·I3·I5 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "겹 별표는 공백을 사이에 두면 굵게가 아니다" "$f" && grep -qF "**굵게 **" "$f" && grep -qF "**굵게** 와 **또굵게**" "$f" && test "$(grep -cF "굵게는 공백을 끼워도 그대로 굵게" "$f")" -eq 0 && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다. **HEAD=`ed64fb3` 재실측 rc=0** (스위트 122 tests).
+- [x] (I7 단일 출처) 공백 판정 분기가 두 곳뿐이다: `bash -c 'test "$(grep -cE "strictFlanking &&" src/common/markdownParser.ts)" -eq 2'` → HEAD=`ed64fb3` 재실측 rc=0 (`:784` 여는 쪽 · `:802` 닫는 쪽). **구현 후에도 rc=0 이어야 한다** — `**` 전용 분기를 더하면 3 이 되어 붉어진다.
+- [x] (I6 나머지 구분자 비퇴행) 밑줄·홑 별표 계약 게이트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; npx vitest run "$f" -t "강조" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 재실측 rc=0. 구현 후에도 rc=0 이어야 한다.
+- [x] (I8 범위 제한 대조) 물결 취소선의 현 동작이 유지된다: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"~~\", \"del\"\)" src/common/markdownParser.ts)" -eq 1'` → HEAD=`ed64fb3` 재실측 rc=0. `~~` 등록에 `strictFlanking` 인자가 붙지 않은 상태를 못 박는다 — 구현 후에도 rc=0 이어야 한다.
+- [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 재실측 rc=0 → HEAD=`ed64fb3` **122 tests**. (I5) 의 교체분을 뺀 뒤 재계수한다 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (NFR-02 교차 비퇴행 baseline) `markdownToHtml` 소비 게이트 전수가 초록이다 — **모집단은 도출한다**: `bash -c 'set -- $(grep -rl "markdownToHtml" src/__tests__/ | sort); test "$#" -ge 8 || exit 2; echo "cross-gate-files=$#"; npx vitest run "$@" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 재실측 rc=0, 출력 `cross-gate-files=8` (HEAD=`ed64fb3` 106 tests). **도출이 8 미만이면 `exit 2` 로 무판정 실패**한다 (공허 통과 차단).
 
 ## 수용 기준
-- [ ] (Must, FR-01) 위 §테스트 현황 (I1 여는 쪽) 명령 → rc=0.
-- [ ] (Must, FR-02) 위 §테스트 현황 (I2 닫는 쪽) 명령 → rc=0.
-- [ ] (Must, FR-03) 위 §테스트 현황 (I3 대조 보존) 명령 → rc=0.
-- [ ] (Must, FR-04) 위 §테스트 현황 (I4 산문 채널) 명령 → rc=0.
-- [ ] (Must, FR-05) 위 §테스트 현황 (I5 전환 박제) 명령 → rc=0.
-- [ ] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3·I5 접속) 명령 → rc=0.
-- [x] (Must, NFR-03 단일 출처) 위 §테스트 현황 (I7 단일 출처) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
-- [x] (Must, FR-06 나머지 구분자) 위 §테스트 현황 (I6 나머지 구분자) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
-- [x] (Must, 범위 제한) 위 §테스트 현황 (I8 범위 제한 대조) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
-- [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0 (115 tests).
-- [x] (Must, NFR-02 교차 비퇴행) 위 §테스트 현황 (NFR-02) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0 (`cross-gate-files=8`).
+- [x] (Must, FR-01) 위 §테스트 현황 (I1 여는 쪽) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, FR-02) 위 §테스트 현황 (I2 닫는 쪽) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, FR-03) 위 §테스트 현황 (I3 대조 보존) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, FR-04) 위 §테스트 현황 (I4 산문 채널) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, FR-05) 위 §테스트 현황 (I5 전환 박제) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3·I5 접속) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, NFR-03 단일 출처) 위 §테스트 현황 (I7 단일 출처) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, FR-06 나머지 구분자) 위 §테스트 현황 (I6 나머지 구분자) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, 범위 제한) 위 §테스트 현황 (I8 범위 제한 대조) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0.
+- [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`ed64fb3` 재실측 rc=0 → HEAD=`ed64fb3` **122 tests**.
+- [x] (Must, NFR-02 교차 비퇴행) 위 §테스트 현황 (NFR-02) 명령 → rc=0. HEAD=`ed64fb3` 재재실측 rc=0 (`cross-gate-files=8` / 106 tests).
 
 ## 스코프 규칙
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` · `src/common/markdownParser.test.ts` · `src/__tests__/markdown-no-character-loss.test.ts` **3 파일**이다. 게이트 위반이 이 밖에서 나오면 격리 대상이다. `src/Log/api.ts` 는 **읽기 대상**이며 본 축은 그것을 바꾸지 않는다 (요약 손상은 파서 산출을 물려받은 것이라 파서에서 고쳐진다).
 - **grep-baseline** (HEAD=`c64c946`, 2026-08-31 흡수 시점 격리 사본 실측):
-  - `grep -cE "strictFlanking &&" src/common/markdownParser.ts` → **2** (`:780` 여는 쪽 · `:798` 닫는 쪽). (I7) 의 기준값이다.
+  - `grep -cE "strictFlanking &&" src/common/markdownParser.ts` → **2** (`:784` 여는 쪽 · `:802` 닫는 쪽). (I7) 의 기준값이다.
   - `grep -cE "inlineParsing\(parsed, \"\*\*\", \"strong\"\)" src/common/markdownParser.ts` → **1** — 인자 3개짜리 현 등록. 구현 후 이 형태는 0 이 되고 `strictFlanking` 인자가 붙은 형태로 바뀐다. **본 spec 은 이 수치를 게이트로 세우지 않는다** — 등록 형태는 구현 수단이고 계약면은 산출 HTML 이다.
   - `grep -cE "inlineParsing\(parsed, \"~~\", \"del\"\)" src/common/markdownParser.ts` → **1**. (I8) 의 기준값.
   - `grep -cF "굵게는 공백을 끼워도 그대로 굵게" src/common/markdownParser.test.ts` → **1** (`:398`). 구현 후 **0** 이 목표다.
   - 계약 이름·비대칭 예시 전수 0 hit — 전부 신설 대상이다. `grep -cF "겹 별표는 공백을 사이에 두면 굵게가 아니다" src/common/markdownParser.test.ts` → **0** · `grep -cF "**굵게 **" src/common/markdownParser.test.ts` → **0** · `grep -cF "**굵게** 와 **또굵게**" src/common/markdownParser.test.ts` → **0**. 이미 있는 것은 `**굵고 *기울고* 굵다**` (`:404`) 하나다.
-  - `PLAIN_PROSE` 계수 — **제외 규칙**: 한 줄 안에 앞뒤가 공백인 겹 별표 ` ** ` 가 **두 번 이상** 나오는 corpus 항목만 센다. 짝 없는 런(`:31` `경로는 src/**/*.ts 이다` — `**` 가 한 번, 공백 flanking 아님)은 런 가드가 이미 지키는 별 축이라 제외한다. 현 실측 **0**. 홑 별표 쪽 대조는 `:30` `수식 2 * 3 * 4 = 24 이다` 로 **1** 이 있다 — `*` 축에 있는 것이 `**` 축에 없다는 것이 이 baseline 의 요지다.
+  - `PLAIN_PROSE` 계수 — **제외 규칙**: 한 줄 안에 앞뒤가 공백인 겹 별표 ` ** ` 가 **두 번 이상** 나오는 corpus 항목만 센다. 짝 없는 런(`:31` `경로는 src/**/*.ts 이다` — `**` 가 한 번, 공백 flanking 아님)은 런 가드가 이미 지키는 별 축이라 제외한다. 현 실측 **0**. 홑 별표 쪽 대조는 `:31` `수식 2 * 3 * 4 = 24 이다` 로 **1** 이 있다 — `*` 축에 있는 것이 `**` 축에 없다는 것이 이 baseline 의 요지다.
   - **자기검증에서 잡은 함정 (게이트 도달성)**: (I4) 의 최초 초안은 따옴표를 `[^\x27]` 로 배제했는데, **`bash -c` 아래의 BSD `grep -E` 는 `\x27` 을 따옴표로 읽지 않아 이 패턴은 어떤 입력에도 매치하지 않는다**. 원본에서 rc=1 이 나와 선언한 마커(`0 hit`)와 우연히 일치했으나, 짝맞는 겹 별표 항목을 주입해도 rc=1 이었다 — **영구히 붉은 게이트**였다. 대화형 zsh 에서 같은 패턴을 직접 실행하면 매치해 `grep -n` 과 `grep -c` 가 어긋나 보인다 (`RULE-06` 이 `bash -c` 감싸기를 요구하는 이유). 확정 패턴은 ` \*\* .* \*\* ` 이며 **주입 왕복으로 도달성을 확인**했다 — 원본 0 hit rc=1 · 주입 후 1 hit rc=0.
   - **패턴 주의**: 겹 별표 패턴은 `-E` 에서 `\*\*` 로 이스케이프한다. `grep -F` 를 쓸 때는 별표가 리터럴이라 이스케이프하지 않는다 — 두 형태를 섞으면 조용히 0 hit 이 난다. 패턴이 `-` 로 시작하면 `-e` 로 넘긴다. **계수 명령은 파일 인자를 매번 적는다** — 인자를 빼면 `grep` 이 stdin 을 기다려 매달린다 (`RULE-06 §추출 실패 검출`).
   - 현 산출 실측 (격리 사본, repo 트리 무변경). 왼쪽 열이 결함이고 오른쪽 열이 계약이다:
@@ -122,6 +122,7 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-058 흡수) / pending @ HEAD=`c64c946` | 최초 박제 — 겹 별표 공백 flanking 8 축 (I1~I8). **신규 spec 으로 세운 근거**: 소유 후보였던 `markdown-emphasis-delimiter-parity.md` 는 제목·§역할·§변경 이력 이 **밑줄(`_`·`__`) 축**으로 자기를 한정하고 (I6) 으로 별표 축을 명시적 범위 밖에 두었다. 그 (I6) 은 본 계약이 도착하면 거짓이 되므로 **같은 tick 에 blue 사본을 green 으로 받아 (I6) 을 좁히고 본 spec 을 인수처로 지목**했다 — 조용히 양립시키면 승격된 두 계약이 서로를 부정한다 (REQ-058 §참고 요구). **두 방향을 따로 세운 것이 이 흡수의 판단**이다: req 는 FR-01·FR-02 로 여닫이를 나눴으나 게이트 예시는 `** 굵게 **` 하나로도 둘 다 통과할 수 있어, 비대칭 예시 `** 굵게**`·`**굵게 **` 를 격리 사본에서 실측해 각 방향의 단독 관측 채널로 박제했다. baseline: 계약 이름 0 hit / 비대칭 예시 2건 0 hit / 뒤집을 단언 1 hit (`:398`) / corpus 짝맞는 겹 별표 0건 (홑 별표 쪽은 1건) / `strictFlanking &&` 2곳 / 결함 축 6행 · 대조 축 8행 격리 사본 실측. unchecked 6 · checked 5. | all |
+| 2026-08-31 | inspector 251차 tick (Phase 1 reconcile) / `d83baec`·`0ff9787` @ HEAD=`ed64fb3` | **마커 플립 12 — 이 계약이 착지했다.** `TSK-20260831-10-a`(`d83baec` 대조 선행) · `-b`(`0ff9787` 구현) 둘 다 HEAD 조상이며, §테스트 현황 11 · §수용 기준 11 판정 명령을 **파일에서 추출해** 격리 사본에서 전수 재실행해 **전건 rc=0** 을 확인했다 (종전 rc=1 이던 (I1)(I2)(I3)(I4)(I5)·접속 6항 + §수용 기준 대응 6항 = 12 플립). 산출 실측: `2 ** 10 은 1024 이고 2 ** 20 은 1048576 이다` → `<p>2 ** 10 은 …</p>` · `** 굵게 **` → `<p>** 굵게 **</p>` · `**굵게**` → `<p><strong>굵게</strong></p>` (대조 유지). 계수 drift: 파서 스위트 115 → **122 tests** · 교차 게이트 8 파일 105 → **106 tests**. 라인 drift 9: 등록 `*` `:670`→`:674` · `__` `:678`→`:682` · `_` `:679`→`:683` · `inlineParsing` `:743`→`:747` · `runCharacter` `:755`→`:759` · `strictFlanking` `:780-781`→`:784` · `:798-799`→`:802` · `isIntraword` `:740`→`:744` · 게이트 축 `:378-406`→`:422-460` (`~~` 등록 `:666` 은 불변 — hunk 가 `:667` 이후라서다). | 테스트 현황 · 수용 기준 · 위치 · 동작 |
 
 ## 참고
 
