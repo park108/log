@@ -90,7 +90,7 @@ describe('set HTML page meta description', () => {
 	it("인자가 없으면 사이트 기본 설명을 쓴다", () => {
 		const meta = addMeta();
 		common.setMetaDescription();
-		expect(meta.content).toContain("personal journal");
+		expect(meta.content).toContain("개인 기록장");
 	});
 
 	it("meta 요소가 없으면 아무것도 하지 않는다", () => {

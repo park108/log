@@ -472,7 +472,7 @@ describe('LogSingle 제목 — 제목만 있고 줄바꿈이 없는 글', () => 
 
 		await waitFor(() => expect(document.title).not.toBe(""));
 		// 이전에는 본문 대신 마지막 한 글자("글")가 설명으로 들어갔다.
-		expect(metaDescription()).toContain("personal journal");
+		expect(metaDescription()).toContain("개인 기록장");
 		expect(metaDescription()).not.toBe("글");
 	}, ASYNC_ASSERTION_TIMEOUT_MS);
 });

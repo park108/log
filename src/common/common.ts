@@ -9,7 +9,7 @@ export const setHtmlTitle = (title: string): void => {
 	}
 }
 
-const DEFAULT_META_DESCRIPTION = "park108.net is a personal journal of Jongkil Park the developer";
+const DEFAULT_META_DESCRIPTION = "park108.net 은 개발자 박종길의 개인 기록장입니다";
 
 export const setMetaDescription = (desc: string = DEFAULT_META_DESCRIPTION): void => {
 	// `document.getElementsByTagName('meta')` 는 HTMLCollection 이지만, jsdom/legacy 코드 호환을 위해
