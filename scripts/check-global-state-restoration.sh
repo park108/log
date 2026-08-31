@@ -230,10 +230,13 @@ while IFS= read -r f; do
       "'" "$p" "'" > "$SC_COMMENT"
     [ "$(restore_hit "$p" "$SC_COMMENT")" = "0" ] || selfcheck_fail "$f/$p 주석 표본이 복원으로 계수됐다"
 
-    # 경계 표본: 한 줄 완결 훅 뒤, **훅 밖** 에 복원 텍스트 → hit=0 (종전 병 (2))
-    printf 'afterEach(() => vi.unstubAllEnvs());\n\n// Object.defineProperty(navigator, %s%s%s, { value: true });\nconst probe = 1;\nafterAll(() => {\n\tnoop();\n});\n' \
-      "'" "$p" "'" > "$SC_BOUNDARY"
-    [ "$(restore_hit "$p" "$SC_BOUNDARY")" = "0" ] || selfcheck_fail "$f/$p 훅 밖 텍스트가 창에 들어왔다"
+    # 경계 표본: 한 줄 완결 훅 뒤, **it 본문**(훅 아님)의 활성 복원 → hit=0 (종전 병 (2))
+    # 주석이 아니라 **활성 호출**을 쓰는 것이 핵심이다. 주석으로 두면 충족 판정 쪽이
+    # 독립적으로 걸러내므로 이 표본이 훅 창 회귀에 둔감해진다 — 실측으로 확인했다
+    # (창만 종전 범위 패턴으로 되돌렸을 때 주석 표본 버전은 rc=0 을 냈다).
+    printf 'afterEach(() => vi.unstubAllEnvs());\n\nit(%stest%s, () => {\n\tObject.defineProperty(navigator, %s%s%s, { value: true });\n});\n' \
+      "'" "'" "'" "$p" "'" > "$SC_BOUNDARY"
+    [ "$(restore_hit "$p" "$SC_BOUNDARY")" = "0" ] || selfcheck_fail "$f/$p 훅 밖(it 본문) 호출이 창에 들어왔다"
 
     selfcheck_n=$((selfcheck_n + 3))
 
