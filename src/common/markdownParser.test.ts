@@ -488,3 +488,73 @@ describe('본문의 꺾쇠', () => {
 			.toBe("<p><a href='https://example.com' target='_blank' rel='noreferrer'>https://example.com</a></p>");
 	});
 });
+
+// 하나로 쓴 목록이 둘로 쪼개졌다. 마커 없는 들여쓴 줄이 비-list 노드로 도착해
+// 열린 목록을 전부 닫았기 때문이다 (`bindListItem` 의 `flushAll`). 번호 목록에서는
+// 피해가 눈에 보인다 — `<ol>` 이 새로 열리고 HTML 은 start 없는 `<ol>` 을 1 부터
+// 매기므로 독자가 `1.` 을 두 번 본다.
+describe('목록 항목에 이어지는 줄', () => {
+
+	it('들여쓴 줄은 그 항목의 내용이고 목록을 끊지 않는다', () => {
+		expect(parser.markdownToHtml('- 하나\n  이어지는 줄\n- 둘'))
+			.toBe('<ul><li>하나<br />이어지는 줄</li><li>둘</li></ul>');
+	});
+
+	// 들여쓰기는 표기이지 내용이 아니다 — 본문 앞에 남으면 그 항목만 밀려 보인다.
+	it('들여쓰기 공백이 본문에 남지 않는다', () => {
+		const out = parser.markdownToHtml('- 하나\n  이어지는 줄');
+		expect(out).toContain('<br />이어지는 줄');
+		expect(out).not.toContain('  이어지는');
+	});
+
+	it('이어지는 인용은 항목 안에서 인용이다 (꺾쇠가 글자로 남지 않는다)', () => {
+		const out = parser.markdownToHtml('- 하나\n  > 인용\n- 둘');
+		expect(out).toBe('<ul><li>하나<blockquote>인용</blockquote></li><li>둘</li></ul>');
+		expect(out).not.toContain('&gt;');
+	});
+
+	// 연달아 붙은 인용 줄은 한 덩어리다 — 줄 머리 인용과 같은 규칙이다.
+	it('연달아 붙은 이어짐 인용은 한 덩어리다', () => {
+		expect(parser.markdownToHtml('- 하나\n  > 인용1\n  > 인용2\n- 둘'))
+			.toBe('<ul><li>하나<blockquote>인용1<br />인용2</blockquote></li><li>둘</li></ul>');
+	});
+
+	// 표기 수단에 따라 결과가 갈리지 않는다 (computeDepth 의 현 규칙).
+	it('4칸 들여쓰기와 탭 들여쓰기가 같은 결과를 낸다', () => {
+		const spaces = parser.markdownToHtml('- 하나\n    이어지는 줄');
+		const tab = parser.markdownToHtml('- 하나\n\t이어지는 줄');
+		expect(spaces).toBe('<ul><li>하나<br />이어지는 줄</li></ul>');
+		expect(tab).toBe(spaces);
+	});
+
+	it('여러 줄이 차례로 이어진다', () => {
+		expect(parser.markdownToHtml('- 하나\n  줄1\n  줄2\n- 둘'))
+			.toBe('<ul><li>하나<br />줄1<br />줄2</li><li>둘</li></ul>');
+	});
+
+	// 중첩 항목에도 같은 규칙이 적용된다 — 이어짐은 가장 가까운 열린 항목에 붙는다.
+	it('중첩 항목에 이어지는 줄은 그 안쪽 항목의 내용이다', () => {
+		expect(parser.markdownToHtml('- 하나\n  - 안쪽\n    안쪽 이어짐\n- 둘'))
+			.toBe('<ul><li>하나<ul><li>안쪽<br />안쪽 이어짐</li></ul></li><li>둘</li></ul>');
+	});
+});
+
+// (I1) 만 만족시키고 이것을 빠뜨리는 구현이 이 축의 대표 실패다 — 줄은 이어지는데
+// `<ol>` 이 다시 열려 번호가 1 로 되감긴다. 이 대조가 없으면 아무것도 달라지지
+// 않은 구현도 위 describe 를 통과한다.
+describe('번호가 되감기지 않는다', () => {
+
+	it('이어짐이 있어도 <ol> 은 하나로 유지된다', () => {
+		const out = parser.markdownToHtml('1. 하나\n   이어지는 줄\n2. 둘');
+		expect(out).toBe('<ol><li> 하나<br />이어지는 줄</li><li> 둘</li></ol>');
+		// 목록이 쪼개졌다면 `<ol>` 이 둘이고 독자는 `1.` 을 두 번 본다.
+		expect(out.match(/<ol>/g)).toHaveLength(1);
+		expect(out.match(/<li>/g)).toHaveLength(2);
+	});
+
+	it('이어짐이 인용이어도 <ol> 은 하나로 유지된다', () => {
+		const out = parser.markdownToHtml('1. 하나\n   > 인용\n2. 둘');
+		expect(out.match(/<ol>/g)).toHaveLength(1);
+		expect(out).toContain('<blockquote>인용</blockquote>');
+	});
+});

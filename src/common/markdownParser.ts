@@ -49,6 +49,30 @@ export const computeDepth = (line: unknown): { depth: number; prefixLength: numb
 	return { depth: Math.floor(spaces / 2), prefixLength: spaces };
 }
 
+// 목록 항목의 마커 판정. 검출 패스(`ul` · `ol`)가 쓰는 규칙과 **같은 규칙**이어야
+// 한다 — 여기서 마커로 보지 않는 줄을 검출 패스가 마커로 보면 그 줄이 이어짐으로
+// 흡수돼 항목이 사라진다. 마커면 그 줄의 깊이를, 아니면 null 을 돌려준다.
+const listMarkerDepth = (text: string): number | null => {
+
+	const { depth, prefixLength } = computeDepth(text);
+	const stripped = text.substring(prefixLength);
+
+	// `- ` · `* ` (ul 검출 `:215` 와 같은 조건)
+	if(stripped.length > 1
+		&& ('*' === stripped.charAt(0) || '-' === stripped.charAt(0))
+		&& ' ' === stripped.charAt(1)) {
+		return depth;
+	}
+
+	// `1. ` (ol 검출 `:242` 와 같은 조건 — 숫자 뒤 점, 그 뒤에 공백 한 칸.
+	// 점 뒤에 공백이 없는 `1.5 초` 는 마커가 아니다.)
+	if(stripped.length > 2 && /^[0-9]+\. /.test(stripped)) {
+		return depth;
+	}
+
+	return null;
+}
+
 interface ParsedNode {
 	type: string;
 	text: string;
@@ -63,13 +87,24 @@ export const HIGHLIGHT_OPEN = "\uE002";
 export const HIGHLIGHT_CLOSE = "\uE003";
 export const HIGHLIGHT_CLASS = "span--logitem-changed";
 
+// 목록 항목에 이어지는 줄의 구조 표식.
+//
+// 이어짐은 **줄이 아니라 항목의 내용**이 돼야 하므로 검출 패스에 닿기 전에 마커
+// 줄로 흡수된다 (그래야 `bindListItem` 이 비-list 노드를 보고 목록을 닫지 않는다).
+// 흡수된 자리에 태그를 바로 쓸 수는 없다 — 본문 escape 가 그 꺾쇠를 글자로 만든다.
+// 코드 스팬·강조 표식과 같은 수를 쓴다: 마크업 문자가 아닌 private-use 문자로
+// 표시했다가 모든 인라인 패스가 끝난 뒤 태그로 되돌린다.
+const ITEM_BREAK = "\uE004";
+const ITEM_QUOTE_OPEN = "\uE005";
+const ITEM_QUOTE_CLOSE = "\uE006";
+
 export const markdownToHtml = (rawInput: string): string => {
 
 	// inline code 보호에 쓰는 자리표시자와 같은 문자가 입력에 있으면 복원 단계가
 	// 사용자 글자를 코드 스팬으로 오치환한다 (실측: `\uE000c9\uE001` → `<code></code>`).
 	// private-use 영역은 아이콘 폰트가 쓰므로 붙여넣기로 유입될 수 있다. 입력에서
 	// 먼저 걷어 충돌 가능성 자체를 없앤다 — 이 두 코드포인트는 본문에서 의미가 없다.
-	const input = rawInput.replace(/[\uE000\uE001]/g, "");
+	const input = rawInput.replace(/[\uE000\uE001\uE004\uE005\uE006]/g, "");
 
 	// 강조 구간 표식. 호출처가 "이 범위를 강조해 달라" 고 표시하는 유일한 수단이다.
 	//
@@ -210,6 +245,92 @@ export const markdownToHtml = (rawInput: string): string => {
 
 		parsed.splice(index, end - index + 1, ...replacement);
 		index += replacement.length;
+	}
+
+	// 목록 항목에 이어지는 들여쓴 줄은 **그 항목의 내용**이다 (CommonMark 0.31.2
+	// §5.2 continuation line).
+	//
+	// 넓히는 것은 검출 패스의 **입력**이다. 이어짐을 검출 뒤에 처리하면 이미
+	// `bindListItem` 의 `flushAll()` 이 목록을 닫은 뒤라 늦다 — 마커 없는 줄은
+	// 비-list 노드로 도착하고, 그것이 열린 목록을 전부 닫는 것이 이 결함의 원인이다.
+	// 그래서 검출 전에 앞선 마커 줄로 흡수한다. 흡수되면 그 줄은 배열에서 사라지므로
+	// 목록이 끊길 이유 자체가 없어진다 — 번호 목록의 `<ol>` 이 다시 열리지 않는 것도
+	// 같은 이유다 (그렇지 않으면 독자가 `1.` 을 두 번 본다).
+	//
+	// 들여쓰기는 표기이지 내용이 아니므로 걷어낸다. 판정 기준은 `computeDepth` 로,
+	// 공백으로 쓰든 탭으로 쓰든 같은 결과가 나온다.
+	//
+	// **열린 항목이 있을 때만** 성립한다. 앞선 마커 줄이 없는 들여쓴 줄은 그대로
+	// 문단이다 (`markdownToHtml("  hello")` → `<p>  hello</p>`). 들여쓰기만 보고
+	// 항목으로 삼으면 그 대조가 깨진다.
+	{
+		const merged: ParsedNode[] = [];
+		let openItem: ParsedNode | null = null;
+		let openItemDepth = 0;
+		let isQuoteOpen = false;
+
+		// 인용은 블록이라 열면 닫아야 한다. 이어짐이 끝나는 자리는 네 곳이다 —
+		// 인용 아닌 이어짐 · 다음 마커 줄 · 이어짐이 아닌 줄 · 입력의 끝.
+		const closeQuote = (): void => {
+			if(isQuoteOpen && null !== openItem) {
+				openItem.text += ITEM_QUOTE_CLOSE;
+			}
+			isQuoteOpen = false;
+		};
+
+		for(const node of parsed) {
+
+			// 이미 다른 패스가 가져간 줄(코드 블록 · 수평선 · 줄 머리 인용)은
+			// 이어짐의 대상도 시작점도 아니다.
+			if("value" !== node.type || "" !== node.closure) {
+				closeQuote();
+				openItem = null;
+				merged.push(node);
+				continue;
+			}
+
+			const markerDepth = listMarkerDepth(node.text);
+
+			if(null !== markerDepth) {
+				closeQuote();
+				openItem = node;
+				openItemDepth = markerDepth;
+				merged.push(node);
+				continue;
+			}
+
+			const { depth, prefixLength } = computeDepth(node.text);
+			const stripped = node.text.substring(prefixLength);
+			const item = openItem;
+			const isContinuation = null !== item
+				&& depth > openItemDepth
+				&& stripped.trim().length > 0;
+
+			if(!isContinuation) {
+				closeQuote();
+				openItem = null;
+				merged.push(node);
+				continue;
+			}
+
+			if('>' === stripped.charAt(0)) {
+
+				// `>` 뒤 공백 한 칸은 표기다 — 줄 머리 인용 패스와 같은 규칙.
+				let quoted = stripped.substring(1);
+				if(' ' === quoted.charAt(0)) quoted = quoted.substring(1);
+
+				// 연달아 붙은 인용 줄은 한 덩어리다 (줄 머리 인용과 같다).
+				item.text += isQuoteOpen ? ITEM_BREAK + quoted : ITEM_QUOTE_OPEN + quoted;
+				isQuoteOpen = true;
+			}
+			else {
+				closeQuote();
+				item.text += ITEM_BREAK + stripped;
+			}
+		}
+
+		closeQuote();
+		parsed = merged;
 	}
 
 	// unordered list
@@ -546,6 +667,13 @@ export const markdownToHtml = (rawInput: string): string => {
 			node.text = node.text
 				.replace(/\uE002/g, "<span class=\"" + HIGHLIGHT_CLASS + "\">")
 				.replace(/\uE003/g, "</span>");
+
+			// 이어짐 표식 복원. 인라인 패스가 전부 지난 뒤라 이 태그는 어떤 문법에도
+			// 참여하지 않는다. `br` · `blockquote` 는 sanitize 허용 목록에 이미 있다.
+			node.text = node.text
+				.replace(/\uE004/g, "<br />")
+				.replace(/\uE005/g, "<blockquote>")
+				.replace(/\uE006/g, "</blockquote>");
 		}
 	}
 
