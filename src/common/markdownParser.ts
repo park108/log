@@ -107,6 +107,51 @@ export const THEMATIC_BREAK_PATTERN = /^(-{3,}|\*{3,}|_{3,})$/;
 // **아니다**. 같은 자리에 두 규칙을 나란히 두는 이유가 이 차이다.
 export const SETEXT_UNDERLINE_PATTERN = /^(-+|=+)$/;
 
+// 밑줄식 제목 판정 본체. **최상위와 인용 내용이 이 함수 하나를 공유한다.**
+//
+// 인용 패스는 이 판정보다 **뒤에** 돌기 때문에, 인용 줄이 평탄한 값 노드로
+// 확정되고 나면 그 안의 밑줄을 볼 기회가 이미 지나 있다. 그래서 인용 패스가
+// 자기 내용에 대해 같은 함수를 한 번 더 부른다 — 규칙을 다시 쓰는 것이 아니라
+// 같은 함수를 부르는 것이다 (`opensBlock` 이 목록·제목 규칙을 다시 쓰지 않는
+// 것과 같은 원리).
+const applySetextHeading = (nodes: ParsedNode[]): ParsedNode[] => {
+
+	let index = 0;
+	while(index < nodes.length) {
+
+		const underline = nodes[index];
+		const heading = nodes[index - 1];
+
+		if(index > 0
+			&& undefined !== underline
+			&& undefined !== heading
+			&& "value" === underline.type
+			&& "" === underline.closure
+			&& SETEXT_UNDERLINE_PATTERN.test(underline.text.trim())
+			&& "value" === heading.type
+			&& "" === heading.closure
+			&& heading.text.trim().length > 0
+			&& null === listMarkerDepth(heading.text)
+			&& 0 === headingMarkerLevel(heading.text)
+			&& !THEMATIC_BREAK_PATTERN.test(heading.text.trim())) {
+
+			const level = ('=' === underline.text.trim().charAt(0)) ? 1 : 2;
+
+			nodes.splice(index - 1, 2
+				, {type: "tag", text: "<h" + level + ">"}
+				, {type: "value", text: heading.text, closure: "header"}
+				, {type: "tag", text: "</h" + level + ">"});
+
+			index += 2;
+			continue;
+		}
+
+		index++;
+	}
+
+	return nodes;
+};
+
 // 제목의 닫는 `#` 시퀀스는 표기이지 제목 글자가 아니다 (CommonMark 0.31.2 §4.2).
 //
 // 제목 패스가 여는 쪽만 보던 동안 `## 제목 ##` 은 `제목 ##` 을 화면에 남겼다 —
@@ -257,38 +302,11 @@ export const markdownToHtml = (rawInput: string): string => {
 	//
 	// 가로줄 판정보다 **먼저** 돈다 — 뒤에 돌면 `---` 이 이미 `<hr />` 이라 앞 줄을
 	// 볼 기회가 없다.
-	index = 0;
-	while(index < parsed.length) {
-
-		const underline = parsed[index];
-		const heading = parsed[index - 1];
-
-		if(index > 0
-			&& undefined !== underline
-			&& undefined !== heading
-			&& "value" === underline.type
-			&& "" === underline.closure
-			&& SETEXT_UNDERLINE_PATTERN.test(underline.text.trim())
-			&& "value" === heading.type
-			&& "" === heading.closure
-			&& heading.text.trim().length > 0
-			&& null === listMarkerDepth(heading.text)
-			&& 0 === headingMarkerLevel(heading.text)
-			&& !THEMATIC_BREAK_PATTERN.test(heading.text.trim())) {
-
-			const level = ('=' === underline.text.trim().charAt(0)) ? 1 : 2;
-
-			parsed.splice(index - 1, 2
-				, {type: "tag", text: "<h" + level + ">"}
-				, {type: "value", text: heading.text, closure: "header"}
-				, {type: "tag", text: "</h" + level + ">"});
-
-			index += 2;
-			continue;
-		}
-
-		index++;
-	}
+	//
+	// 판정을 **노드 배열 하나에 대한 함수**로 둔다. 최상위 줄들과 인용 내용이
+	// 같은 함수를 부르므로 같은 표기가 인용 안팎에서 같게 동작한다 — 인용 안에서만
+	// 도는 축소판 판정을 만들면 그 둘이 조용히 갈린다.
+	parsed = applySetextHeading(parsed);
 
 	// hr
 	//
@@ -354,26 +372,41 @@ export const markdownToHtml = (rawInput: string): string => {
 		let end = index;
 		while(isQuoteLine(parsed[end + 1])) end++;
 
-		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
-		let previousWasPlain = false;
-
+		// 인용 내용을 먼저 **평범한 줄들로** 세운 뒤 밑줄식 제목 판정을 그 배열에
+		// 적용한다. 이 패스는 최상위 setext 판정보다 뒤에 돌므로, 여기서 부르지
+		// 않으면 인용 안의 밑줄은 볼 기회가 이미 지나 있다 — 실제로 `> 제목`
+		// 아래 `> ---` 이 **글자 세 개로 독자에게 보였다.** ATX 제목(`> # 제목`)은
+		// 되던 자리라 표기에 따라 제목이 되기도 안 되기도 했다.
+		const inner: ParsedNode[] = [];
 		for(let i = index; i <= end; i++) {
 			let text = (parsed[i] as ParsedNode).text.substring(1);
 			if(' ' === text.charAt(0)) text = text.substring(1);
+			inner.push({type: "value", text, closure: ""});
+		}
 
-			if(opensBlock(text)) {
+		applySetextHeading(inner);
+
+		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
+		let previousWasPlain = false;
+
+		for(const node of inner) {
+
+			if("value" === node.type && "" === node.closure && !opensBlock(node.text)) {
+				// 블록이 없는 줄들은 종전대로 한 덩어리 안에서 `<br />` 로 이어진다.
+				// **이 자리가 (I5) 다** — 줄마다 블록 판정을 붙이는 구현이 정확히
+				// 여기서 평탄 인용을 쪼갠다.
+				if(previousWasPlain) replacement.push({type: "tag", text: "<br />"});
+				replacement.push({type: "value", text: node.text, closure: "blockquote"});
+				previousWasPlain = true;
+			}
+			else {
 				// 블록을 여는 줄은 **평범한 줄로 되돌려** 뒤따르는 최상위 패스
 				// (`ul` · `ol` · `bindListItem` · headers · 이 인용 패스 자신) 가
 				// 처리하게 한다. 인용 안에서만 도는 축소판 파서를 만들면 같은 표기가
-				// 인용 안팎에서 다르게 동작한다.
-				replacement.push({type: "value", text, closure: ""});
+				// 인용 안팎에서 다르게 동작한다. 밑줄식 제목이 만들어 낸 태그 노드도
+				// 이 갈래로 그대로 실린다.
+				replacement.push(node);
 				previousWasPlain = false;
-			}
-			else {
-				// 블록이 없는 줄들은 종전대로 한 덩어리 안에서 `<br />` 로 이어진다.
-				if(previousWasPlain) replacement.push({type: "tag", text: "<br />"});
-				replacement.push({type: "value", text, closure: "blockquote"});
-				previousWasPlain = true;
 			}
 		}
 

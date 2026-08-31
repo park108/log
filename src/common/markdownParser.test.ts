@@ -433,6 +433,31 @@ describe('MD parsing — blockquote block recursion', () => {
 		expect(nested).toContain("바깥");
 		expect(nested).toContain("안쪽");
 	});
+
+	// (I7) 표기에 따라 제목이 되기도 안 되기도 하면 안 된다. ATX(`> # 제목`)는
+	// 되는데 밑줄식(`> 제목\n> ---`)은 안 되던 자리이며, **밑줄이 글자로 샜다** —
+	// 독자는 원문에 없는 대시 세 개를 봤다.
+	//
+	// 최상위 계약의 **상속**이지 재정의가 아니다. 밑줄 개수 하한 · `*`·`_` 는
+	// 밑줄이 아님 · 앞에 내용이 없으면 밑줄이 아님 은 최상위 setext 계약이 정한
+	// 것을 그대로 쓴다 (구현도 같은 함수를 부른다).
+	//
+	// `-` 축과 `=` 축을 한 블록에서 둘 다 잠근다 — 한쪽만 잠그면 다른 쪽이
+	// 조용히 갈린다. 밑줄 줄이 산출에 **남지 않는 것**도 함께 잰다.
+	it('인용 안에서도 밑줄식 제목은 제목이다', () => {
+
+		const dash = parser.markdownToHtml('> 제목\n> ---');
+		expect(dash).toBe('<blockquote><h2>제목</h2></blockquote>');
+		expect(dash).not.toContain('---');
+
+		const equal = parser.markdownToHtml('> 제목\n> ===');
+		expect(equal).toBe('<blockquote><h1>제목</h1></blockquote>');
+		expect(equal).not.toContain('===');
+
+		// 표기가 달라도 같은 제목이다 — 인용 안에서도 ATX 와 같은 태그다.
+		expect(dash).toBe(parser.markdownToHtml('> ## 제목'));
+		expect(equal).toBe(parser.markdownToHtml('> # 제목'));
+	});
 });
 
 // 밑줄식 제목(setext) 축의 위험은 과소 인식이 아니라 **과잉 인식**이다.
