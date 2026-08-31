@@ -863,7 +863,30 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 		}
 	};
 
-	for(const node of parsed) {
+	// 빈 줄 노드 — 코드 블록 안의 줄(`closure: "pre"`)은 사용자 글자이므로 제외한다.
+	const isBlankLine = (n: ParsedNode): boolean =>
+		n.type === "value" && n.closure === "" && n.text.trim() === "";
+
+	// 빈 줄(들) **다음의 첫 유의미 노드가 같은 종류의 목록 항목인가.**
+	// `from` 은 빈 줄 노드의 위치다.
+	const blankRunLeadsToSameTypeItem = (from: number): boolean => {
+
+		let j = from;
+		while(j < parsed.length && isBlankLine(parsed[j]!)) {
+			j++;
+		}
+		if(j >= parsed.length) {
+			return false;
+		}
+		const next = parsed[j]!;
+		return next.itemOf === tagName
+			&& next.type === "tag"
+			&& next.text === "<li>";
+	};
+
+	for(let i = 0; i < parsed.length; i++) {
+
+		const node = parsed[i]!;
 
 		const isListNode = node.itemOf === tagName;
 		const isOpenLi = isListNode
@@ -921,6 +944,28 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 			output.push(node);
 		}
 		else {
+			// 빈 줄은 **같은 종류의 목록 사이에서만** 투명하다.
+			//
+			// 항목 사이를 빈 줄로 띄우는 것은 CommonMark 표준 표기인데(§5.3 Ex.306),
+			// 그 빈 줄이 비-list 노드로 도착해 `flushAll()` 을 부르면 목록이 항목 수만큼
+			// 쪼개진다. 쪼개진 자리마다 `<ol>` 이 새로 열리므로 **독자는 `1.` 을 여러 번
+			// 본다** — 글쓴이는 표준 표기를 썼으니 자기 원문에서 잘못을 찾을 수 없다.
+			//
+			// 그렇다고 빈 줄을 무조건 건너뛰면 정확히 반대 방향으로 무너진다: 문단이나
+			// 다른 종류 목록 앞에서도 목록이 이어져 `1. 첫째\n\n본문` 의 `<p></p>` 가
+			// 사라진다. 그래서 조건은 셋이 모두 참일 때로 한정한다 — 열린 목록이 있고 ·
+			// 빈 줄 뒤 첫 유의미 노드가 목록 항목이며 · 그 항목이 같은 종류다.
+			// (`빈 줄이 목록을 끝내는 자리` 게이트가 그 반대 방향을 지킨다.)
+			//
+			// 건너뛴 빈 줄은 `output` 에 넣지 않는다 — 남기면 뒤 문단 패스가 그것을
+			// `<p></p>` 로 감싸 목록 **안**에 빈 문단이 끼어든다.
+			if(depthStack.length > 0
+				&& isBlankLine(node)
+				&& blankRunLeadsToSameTypeItem(i)) {
+
+				continue;
+			}
+
 			// Non-list node terminates any open lists.
 			flushAll();
 			output.push(node);
