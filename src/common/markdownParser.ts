@@ -662,11 +662,15 @@ export const markdownToHtml = (rawInput: string): string => {
 		}
 	}
 
-	parsed = inlineParsing(parsed, "**", "strong"); // bold
+	parsed = inlineParsing(parsed, "**", "strong", true); // bold
 	parsed = inlineParsing(parsed, "~~", "del"); // stroke
-	// 홑 `*` 만 공백 규칙을 켠다. `2 * 3 * 4 = 24` 가 `2 <em> 3 </em> 4 = 24` 로
-	// 렌더되던 것을 막는다 — 기술 글에서 곱셈 표기가 통째로 기울어졌다.
-	// `**` · `~~` 는 공백을 끼워 써도 의도가 분명하므로 그대로 둔다 (`** 굵게 **`).
+	// 겹 `**` 도 홑 `*` 와 같은 공백 규칙 아래 둔다. 이전에는 `**` 가 규칙 밖이었고
+	// (`** 굵게 **` 를 굵게로 읽었다) 그 대가로 `2 ** 10 은 1024 이고 2 ** 20 은
+	// 1048576 이다` 가 문장 한가운데부터 통째로 굵어지며 구분자 네 글자가 사라졌다.
+	// 손상은 본문 · 목록 요약 · 검색 미리보기 세 표면에서 동시에 났다.
+	// 뒤집는 대가는 있다 — `** 굵게 **` 처럼 공백을 끼워 굵게 쓴 기존 글은 이제
+	// 별표가 글자로 보인다. CommonMark 가 그렇게 읽으므로 그 쪽을 택했다.
+	// `~~` 는 산문 손상 근거가 없어 그대로 둔다 (별 req).
 	parsed = inlineParsing(parsed, "*", "em", true); // emphasis
 	// 밑줄 강조. 겹은 `**` 와 같은 `<strong>` 을, 홑은 `*` 와 같은 `<em>` 을
 	// 내되 **낱말 안쪽 억제**를 함께 켠다 —
