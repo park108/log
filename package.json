@@ -37,6 +37,7 @@
     "check:env-api-base": "bash scripts/check-env-api-base-presence.sh",
     "check:global-state-restoration": "bash scripts/check-global-state-restoration.sh",
     "check:blue-judgement": "bash scripts/check-blue-judgement-evaluable.sh",
+    "check:summary-drift": "bash scripts/check-summary-drift.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "pipeline:health": "bash scripts/pipeline-health.sh"
