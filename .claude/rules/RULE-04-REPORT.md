@@ -46,6 +46,6 @@
 - `reconcile: N/M ack` | `reconcile: N/M ack (K stale ≥3cycle)` | `reconcile: skipped (no delta)` — inspector Phase 1 매 세션 필수. 마지막 형태는 `git diff` 가 공집합이라 게이트 재실행을 생략한 tick 에 쓰며 `stale_cycles` 를 증가시키지 않는다 (RULE-03 §(S2)).
 - `promote-verify: N/N rc0` — planner 승격 시 필수 (RULE-07 §promote).
 - `diagnostics: M run, K failed` — planner 승격 시 필수 (RULE-07 §promote 조건 2-bis). §수용 기준 이 참조하지 않는 §테스트 현황 판정 명령의 실행 결과. **실패는 승격을 막지 않으나 침묵은 금지**다.
-- `injection: N/N detect` — 게이트 신설·수정 task 의 developer 필수 (RULE-06 §게이트 실효 검증).
+- `injection: N/N detect` — 게이트 신설·수정 task 의 developer 필수 (RULE-06 §게이트 실효 검증). **기대 rc 가 0 인 방향은 여기 세지 않는다** — 그것은 민감도가 아니라 특이도이므로 `control` 로 센다. spec 이 그것을 "검출 방향" 으로 선언했더라도 마찬가지다. 세면 민감도 주장이 부풀고, 읽는 사람은 N 건 전부가 위반을 잡았다고 읽는다 (2026-09-01 developer 자진 지적).
 - `control: M/M pass` | `control: n/a (<사유>)` — 위와 같은 task 에서 `injection` 과 **나란히** 필수 (RULE-06 §음성 대조). 주입은 민감도, 대조는 정상 변형에서의 특이도를 잰다.
 - `stall: <agent> K=<n>` — RULE-03 (S1)(S2) 발화 시.
