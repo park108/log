@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import * as parser from './markdownParser';
 import sanitizeHtml from './sanitizeHtml';
 
@@ -1717,5 +1719,126 @@ describe('다섯 구분자의 공백 판정은 산출로 대등하다', () => {
 	it('물결은 공백을 사이에 두면 취소선이 되지 않는다', () => {
 		expect(parser.markdownToHtml('값은 a ~~ b ~~ c 이다').trim())
 			.toBe('<p>값은 a ~~ b ~~ c 이다</p>');
+	});
+});
+
+// (I8) **빈 줄 술어는 파서 안에 하나뿐이다** — 이름이 아니라 **동작**으로 판정한다.
+//
+// 종전 채널은 식별자 이름을 셌고(정의 계수 == 1 · 호출 계수 >= 2) 세 방향으로 틀렸다:
+//
+//   (1) 살아 있는 두 번째 술어를 못 본다 — 다른 이름의 사본을 주입해도 전 채널 rc=0.
+//   (2) 정합적 개명을 거짓으로 붉힌다 — 정의·호출을 함께 바꾸는 정당한 리팩터가 rc=1.
+//   (3) 술어가 다른 파일로 옮겨가는 방향을 못 본다 — 대상 파일이 손으로 못 박혀 있다.
+//
+// **이름을 좁히는 방향은 아무것도 얻지 못한다.** `\b` 경계로 좁힌 패턴도 사본 주입에
+// rc=0 이었다 — 좁히기는 같은 표면에서 더 정밀해질 뿐 **표면 자체를 옮기지 못한다.**
+//
+// 그래서 판정면을 옮긴다: 모집단은 **디렉터리에서 도출**하고, 술어는 **진리표로 식별**한다.
+// 이름·주석·표기는 판정에 관여하지 않는다 — 라벨을 남기고 알맹이를 비우는 무력화가
+// 통하지 않는 이유다.
+describe('빈 줄 술어 유일성', () => {
+
+	// 모집단은 열거하지 않고 도출한다 (RULE-06 §열거 고정 금지).
+	const parserSourceDir = resolve(process.cwd(), 'src/common');
+
+	const derivedSources = (): string[] =>
+		readdirSync(parserSourceDir)
+			.filter((f) => f.endsWith('.ts') && !f.includes('.test.') && !f.endsWith('.d.ts'))
+			.map((f) => join(parserSourceDir, f))
+			.sort();
+
+	// 소스에서 **한 인자 함수 정의**를 뽑는다. 이름은 보지 않는다.
+	// 본문이 바깥 상태를 참조하면 평가에서 던지고, 그 후보는 조용히 탈락한다 —
+	// 그것이 순수 술어가 아니라는 뜻이므로 탈락이 맞다.
+	type Candidate = { file: string; name: string; param: string; body: string; block: boolean };
+
+	const candidateFunctions = (file: string, src: string): Candidate[] => {
+		const out: Candidate[] = [];
+		const re = /(?:^|\n)[ \t]*(?:const|let|var)[ \t]+([A-Za-z_$][\w$]*)[ \t]*=[ \t]*\(([^)]*)\)[ \t]*(?::[^=]*?)?=>[ \t]*/g;
+		let m: RegExpExecArray | null;
+		while ((m = re.exec(src)) !== null) {
+			const name = m[1]!;
+			const param = (m[2] ?? '').split(':')[0]!.trim();
+			if (param === '' || param.includes(',')) continue;
+			const rest = src.slice(re.lastIndex);
+			let body = '';
+			let block = false;
+			if (rest.startsWith('{')) {
+				let depth = 0;
+				for (let i = 0; i < rest.length; i++) {
+					if (rest[i] === '{') depth++;
+					else if (rest[i] === '}') {
+						depth--;
+						if (depth === 0) { body = rest.slice(1, i); block = true; break; }
+					}
+				}
+			} else {
+				const end = rest.search(/;[ \t]*\r?\n/);
+				if (end > 0) body = rest.slice(0, end);
+			}
+			if (body.trim().length > 0) out.push({ file, name, param, body, block });
+		}
+		return out;
+	};
+
+	// **진리표** — 빈 줄 술어가 무엇인지를 이름이 아니라 이것으로 정의한다.
+	// 코드 블록 안의 줄(`closure: "pre"`)은 사용자 글자이므로 빈 줄이 아니다.
+	const TRUTH_TABLE: Array<[Record<string, string>, boolean]> = [
+		[{ type: 'value', closure: '', text: '' }, true],
+		[{ type: 'value', closure: '', text: '  ' }, true],
+		[{ type: 'value', closure: '', text: '\t' }, true],
+		[{ type: 'value', closure: '', text: 'a' }, false],
+		[{ type: 'value', closure: 'pre', text: '  ' }, false],
+		[{ type: 'element', closure: '', text: '  ' }, false],
+	];
+
+	const matchesTruthTable = (c: Candidate): boolean => {
+		let fn: (x: unknown) => unknown;
+		try {
+			// eslint-disable-next-line no-new-func
+			fn = new Function(c.param, c.block ? c.body : 'return (' + c.body + ');') as (x: unknown) => unknown;
+		} catch {
+			return false;
+		}
+		for (const [probe, expected] of TRUTH_TABLE) {
+			let got: unknown;
+			try { got = fn(probe); } catch { return false; }
+			if (got !== expected) return false;
+		}
+		return true;
+	};
+
+	// **살아 있는가** — 정의만 있고 호출이 0 인 술어는 유일성 계수의 대상이 아니다.
+	// 정의가 사라지거나 호출이 0 이 되는 방향은 이 하한이 계속 검출한다.
+	const callCount = (src: string, name: string): number =>
+		(src.match(new RegExp('(?<![\\w$])' + name + '[ \\t]*\\(', 'g')) ?? []).length;
+
+	it('빈 줄 술어는 파서 안에 하나뿐이다', () => {
+
+		const files = derivedSources();
+
+		// 도출이 비면 통과가 아니라 **무판정 실패**다 — "위반 0" 과 "측정 0" 은 다르다.
+		expect(files.length,
+			'모집단 도출이 비었다 (측정 0 은 위반 0 이 아니다)').toBeGreaterThanOrEqual(5);
+
+		const live: Candidate[] = [];
+		for (const file of files) {
+			const src = readFileSync(file, 'utf8');
+			for (const c of candidateFunctions(file, src)) {
+				if (!matchesTruthTable(c)) continue;
+				if (callCount(src, c.name) < 1) continue;
+				live.push(c);
+			}
+		}
+
+		const where = live.map((c) => c.file.replace(process.cwd() + '/', '') + ':' + c.name).sort();
+
+		// 하한 — 술어가 사라지거나 호출이 0 이 되면 여기서 붉다 (FR-03).
+		expect(live.length,
+			'빈 줄 술어를 하나도 찾지 못했다 — 정의가 사라졌거나 호출이 0 이다: ' + JSON.stringify(where)).toBeGreaterThanOrEqual(1);
+
+		// 유일성 — 이름이 달라도, 다른 파일에 있어도 진리표가 같으면 같은 술어다.
+		expect(live.length,
+			'빈 줄 술어가 둘 이상이다 — 같은 명제가 두 곳에서 정의됐다: ' + JSON.stringify(where)).toBe(1);
 	});
 });
