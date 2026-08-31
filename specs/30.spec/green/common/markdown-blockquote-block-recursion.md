@@ -64,11 +64,11 @@
 
 ## 테스트 현황
 
-- [ ] (I1 인용 안 목록) 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안에서도 목록은 목록이다" "$f" && npx vitest run "$f" -t "인용 안에서도 목록은 목록이다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 본 tick 실측 **rc=1 (미충족)**. 계약 이름 0 hit.
-- [ ] (I2 인용 안 제목) 계약이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안에서도 제목은 제목이다" "$f"'` → HEAD=`8d030ce` 실측 **rc=1 (0 hit)**.
-- [ ] (I3 중첩 인용) 계약이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용은 인용 안에서 다시 열린다" "$f"'` → HEAD=`8d030ce` 실측 **rc=1 (0 hit)**.
-- [ ] (I4·I5 대조 신설) 인라인 이중 처리 부재와 여러 줄 묶음 보존이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안 인라인은 한 번만 처리된다" "$f" && grep -qF "블록이 없는 여러 줄 인용은 한 덩어리다" "$f"'` → HEAD=`8d030ce` 실측 **rc=1 (2건 전수 0 hit)**. **두 대조는 신설 대상이다** — 현 스위트의 인용 게이트(`test parsing BLOCKQUOTE`)는 `>BLOCKQUOTE` 한 줄만 재므로 이중 처리도 줄 단위 쪼개짐도 보지 못한다.
-- [ ] (I1·I2·I3·I4·I5 접속) 다섯 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안에서도 목록은 목록이다" "$f" && grep -qF "인용 안에서도 제목은 제목이다" "$f" && grep -qF "인용은 인용 안에서 다시 열린다" "$f" && grep -qF "인용 안 인라인은 한 번만 처리된다" "$f" && grep -qF "블록이 없는 여러 줄 인용은 한 덩어리다" "$f" && grep -qF "연달아 붙은 이어짐 인용은 한 덩어리다" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=1 (계약 이름 0 hit 으로 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 손상 축 3건만 재는 게이트는 대조 2건을 깨뜨린 구현에도 초록이다. 대조를 접속에 **함께** 넣은 것이 요점이며, 이 축에서 구현 선택을 가르는 것이 바로 그 둘이다.
+- [x] (I1 인용 안 목록) 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안에서도 목록은 목록이다" "$f" && npx vitest run "$f" -t "인용 안에서도 목록은 목록이다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`86ede5c` 254차 재실측 **rc=0** (`TSK-20260831-21-b` / `86ede5c`). 산출 실측 `markdownToHtml("> - 하나\n> - 둘")` → `<blockquote><ul><li>하나</li><li>둘</li></ul></blockquote>`.
+- [x] (I2 인용 안 제목) 계약이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안에서도 제목은 제목이다" "$f"'` → HEAD=`86ede5c` 254차 재실측 **rc=0**. 산출 실측 `markdownToHtml("> ## 제목")` → `<blockquote><h2>제목</h2></blockquote>`.
+- [x] (I3 중첩 인용) 계약이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용은 인용 안에서 다시 열린다" "$f"'` → HEAD=`86ede5c` 254차 재실측 **rc=0**. 산출 실측 `markdownToHtml("> > 안쪽")` → `<blockquote><blockquote>안쪽</blockquote></blockquote>`.
+- [x] (I4·I5 대조 신설) 인라인 이중 처리 부재와 여러 줄 묶음 보존이 게이트로 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안 인라인은 한 번만 처리된다" "$f" && grep -qF "블록이 없는 여러 줄 인용은 한 덩어리다" "$f"'` → HEAD=`7644090` 254차 재실측 **rc=0** — `TSK-20260831-21-a`(`ba5ab87`·`7644090`) 가 두 대조를 세웠고 **산출은 무변경**이다 (`markdownParser.ts` 미변경, 테스트 +47줄). 흡수 시점(`8d030ce`)에는 2건 전수 0 hit 으로 rc=1 이었고, 그때의 인용 게이트(`test parsing BLOCKQUOTE`)는 `>BLOCKQUOTE` 한 줄만 재서 이중 처리도 줄 단위 쪼개짐도 보지 못했다. **착지분이 이 계약의 예고를 넘어선 축을 하나 더 실었다** — 이중 처리의 *이웃한 실패 방향*인 **이스케이프 사멸**(인용 본문을 먼저 HTML 로 렌더해 값 노드에 넣으면 독자가 `<strong>` 글자를 그대로 본다)을 `not.toContain("&lt;")` 로 잡는다. 주입 왕복에서 개수 단언만으로는 잡히지 않는 산출이 실제로 만들어졌다는 것이 그 근거이며, 본 계약 (I4) 문면이 "한 번만 처리된다"만 적고 그 방향을 적지 않았다 (§참고 §미측정 에 이관).
+- [x] (I1·I2·I3·I4·I5 접속) 다섯 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안에서도 목록은 목록이다" "$f" && grep -qF "인용 안에서도 제목은 제목이다" "$f" && grep -qF "인용은 인용 안에서 다시 열린다" "$f" && grep -qF "인용 안 인라인은 한 번만 처리된다" "$f" && grep -qF "블록이 없는 여러 줄 인용은 한 덩어리다" "$f" && grep -qF "연달아 붙은 이어짐 인용은 한 덩어리다" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`86ede5c` 254차 재실측 **rc=0** — 여섯 계약 이름 전건 실재 + 파서 스위트 **162 tests** 전수 통과. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 손상 축 3건만 재는 게이트는 대조 2건을 깨뜨린 구현에도 초록이다. 대조를 접속에 **함께** 넣은 것이 요점이며, 이 축에서 구현 선택을 가르는 것이 바로 그 둘이다.
 - [x] (I6 sanitize 통과 baseline) 인용에서 나올 태그가 `ALLOWED_TAGS` 에 전건 등재돼 있다: `bash -c 'f=src/common/sanitizeHtml.ts; grep -q "ALLOWED_TAGS" "$f" || exit 2; for t in blockquote ul ol li h1 h2 h3 h4 h5 h6; do grep -qE "'\''$t'\''" "$f" || exit 1; done'` → HEAD=`8d030ce` 실측 rc=0 (10/10 등재). **현재 공허 참이며 착지 순간 구속력이 생긴다** — 인용이 새 태그를 내기 시작하는데 정책이 따라오지 않으면 여기서 붉어진다. 파일에 `ALLOWED_TAGS` 가 없으면 `exit 2` 로 무판정 처리한다 (공허 통과 차단).
 - [x] (I5 높이 근거 실재 baseline) 여러 줄 묶음의 근거가 코드에 박제돼 있다: `bash -c 'f=src/common/markdownParser.ts; test -f "$f" || exit 2; grep -qF "연달아 붙은 인용 줄은 한 덩어리다" "$f" && grep -qF "93.56" "$f"'` → HEAD=`8d030ce` 실측 rc=0 (`:235`·`:242`). **이 항목은 근거 주석의 실재만 잰다** — 산출 판정은 (I4·I5 대조 신설) 과 (접속) 이 닫는다. 근거가 지워지면 다음 구현자가 같은 회귀를 반복한다.
 - [x] (이어짐 인용 대조 현행 PASS) 항목 안 이어짐 인용 게이트가 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "연달아 붙은 이어짐 인용은 한 덩어리다" "$f" && npx vitest run "$f" -t "연달아 붙은 이어짐 인용은 한 덩어리다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`25f6013` 재실측 rc=0 (`:742`). 소유 계약은 `markdown-list-item-continuation` 이며 본 항목은 그 게이트의 **실재와 초록**만 잰다 (게이트 사본 방지). 구현 후에도 rc=0 이어야 한다.
@@ -76,11 +76,11 @@
 
 ## 수용 기준
 
-- [ ] (Must, FR-01) 위 §테스트 현황 (I1 인용 안 목록) 명령 → rc=0.
-- [ ] (Must, FR-02) 위 §테스트 현황 (I2 인용 안 제목) 명령 → rc=0.
-- [ ] (Must, FR-03) 위 §테스트 현황 (I3 중첩 인용) 명령 → rc=0.
-- [ ] (Must, FR-04·FR-05) 위 §테스트 현황 (I4·I5 대조 신설) 명령 → rc=0.
-- [ ] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3·I4·I5 접속) 명령 → rc=0.
+- [x] (Must, FR-01) 위 §테스트 현황 (I1 인용 안 목록) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0.
+- [x] (Must, FR-02) 위 §테스트 현황 (I2 인용 안 제목) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0.
+- [x] (Must, FR-03) 위 §테스트 현황 (I3 중첩 인용) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0.
+- [x] (Must, FR-04·FR-05) 위 §테스트 현황 (I4·I5 대조 신설) 명령 → rc=0. HEAD=`7644090` 254차 재실측 rc=0 (`TSK-20260831-21-a` / `ba5ab87`·`7644090`).
+- [x] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3·I4·I5 접속) 명령 → rc=0. HEAD=`86ede5c` 254차 재실측 rc=0 (파서 스위트 **162 tests**).
 - [x] (Should, FR-06) 위 §테스트 현황 (I6 sanitize 통과 baseline) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0.
 - [x] (Must, FR-05 근거 보존) 위 §테스트 현황 (I5 높이 근거 실재 baseline) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0.
 - [x] (Must, NFR-03 비퇴행) 위 §테스트 현황 (NFR-03 비퇴행 baseline) 명령 → rc=0. HEAD=`25f6013` 재실측 rc=0 (155 tests).
@@ -115,11 +115,15 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-31 | inspector 254차 tick (Phase 1 drift reconcile — **한 tick 안에 2회 수행**) / `TSK-20260831-21-a`(`ba5ab87`·`7644090`) · `TSK-20260831-21-b`(`86ede5c`) @ HEAD=`86ede5c` | **마커 플립 10** (§테스트 현황 5 + §수용 기준 5) — §수용 기준 **9/9 promote 후보**. 판정 명령 9건 전수 rc=0. **tick 중 HEAD 가 두 번 움직여 재실행도 두 번 했다**: 1차(`7644090`)에 대조 2축만 rc=0 이 됐고(플립 2), 2차(`86ede5c`)에 손상 3축과 접속이 뒤따랐다(플립 8). 1차 시점의 부분 판정을 최종으로 적었다면 이 문서는 4/9 로 남았을 것이다. **대조가 손상 축보다 먼저 착지한 것이 이 축의 설계대로다** — 흡수 시점에 *"이 둘이 구현 선택(재귀 적용 / 패스 순서 이동)을 가르는 유일한 계약면"* 이라 적었고, 실제로 `21-a` 는 `markdownParser.ts` 를 건드리지 않은 채(**산출 무변경**, 테스트 +47줄) 그 판정면을 먼저 세웠다. 파서 스위트 157 → **159**. **착지분이 예고를 넘어선 축을 하나 실었다**: 이중 처리의 이웃 실패 방향인 **이스케이프 사멸** — 본 계약 (I4) 문면은 "한 번만 처리된다" 만 적었고 그 방향을 적지 않았다. 개수 단언(`match(/<strong>/g).length === 1`)만으로는 통과하는 산출이 주입 왕복에서 실제로 만들어졌다. 문면을 그 방향까지 넓히지 않고 §미측정 에 관측으로 남긴다 — 계약을 넓히는 판정은 `21-b` 착지 후 산출을 보고 한다. **착지 산출 실측** (격리 사본 `git archive 86ede5c`): `> - 하나\n> - 둘` → `<blockquote><ul><li>하나</li><li>둘</li></ul></blockquote>` · `> ## 제목` → `<blockquote><h2>제목</h2></blockquote>` · `> > 안쪽` → `<blockquote><blockquote>안쪽</blockquote></blockquote>` · `> 첫 줄\n> 둘째 줄` → `<blockquote>첫 줄<br />둘째 줄</blockquote>` (한 덩어리 유지 — (I5) 특이도). 파서 스위트 157 → 159 → **162**. | 테스트 현황 · 수용 기준 · 참고 · 변경 이력 |
 | 2026-08-31 | inspector 253차 tick (Phase 3, REQ-20260831-070 흡수) / pending @ HEAD=`8d030ce` | 최초 박제 — 인용 안 블록 재귀 6 축 (I1~I6). **신규 spec 으로 세운 근거**: 손상 표면(인용 내용)과 대조 축(인라인 이중 처리 · 여러 줄 묶음)이 형제 축들과 전혀 다르고 독립 carve 가 가능하다. 신고서는 REQ-069·070 의 공통 뿌리를 *"블록 파싱이 최상위에서 한 번만 돌고 재귀하지 않는 것"* 으로 진단했고 discovery 가 나눠 등록했는데, **본 tick 도 나눈 채 흡수한다** — 한 계약으로 묶으면 인용 축의 두 대조(이중 처리 · 줄 쪼개짐)가 목록 축의 대조와 섞여 어느 주입이 어느 방향을 재는지 흐려진다. **(I4)(I5) 를 신설 대조로 세운 것이 이 흡수의 판단이다**: 현 스위트의 인용 커버리지는 `test parsing BLOCKQUOTE` 의 `>BLOCKQUOTE` 한 줄뿐이라 이중 처리도 줄 쪼개짐도 **관측 채널이 없다**. 그 둘이 이 축에서 구현 선택(재귀 적용 / 패스 순서 이동)을 가르는 유일한 계약면이므로 접속에 함께 넣었다. **(I5) 에 무게를 실은 근거는 실측 회귀 이력이다** — `:235-244` 주석이 줄마다 인용을 열던 구현의 화면 높이를 93.56 → 144.72 로 박제하고 있고, 블록 재귀는 그 회귀를 되살리기 쉬운 변경이다. baseline: 계약 이름 5건 0 hit · 이어짐 인용 대조 1 hit · 높이 근거 2 hit · 값 노드 확정 1 hit · 손상 4행/대조 3행 격리 사본 실측 · 파서 스위트 155 tests (HEAD=`25f6013` 재도출). unchecked 5 · checked 4. | all |
 
 ## 참고
 
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
+
+- **빈 줄로 갈린 인용 사이의 빈 문단** (254차 관측, 범위 밖): `> 한\n> 둘\n\n> 셋` → `<blockquote>한<br />둘</blockquote><p></p><blockquote>셋</blockquote>`. 가운데 `<p></p>` 는 (I5) 경계 판정이 만든 것이 아니라 **빈 줄 일반의 산출**이다 — `문단1\n\n문단2` → `<p>문단1</p><p></p><p>문단2</p>` 로 `TSK-20260831-21-b` 착지 **전후 동일**하다 (양 사본 실측). 본 계약이 소유하지 않으며 어느 계약도 소유하지 않는다. 독자에게는 여백으로 보이므로 결함 여부 판정에는 렌더 표면 측정이 필요하다.
+- **이스케이프 사멸 방향** (`TSK-20260831-21-a` 착지분 관측, 254차): 인용 본문을 먼저 HTML 로 렌더해 값 노드에 넣는 구현은 이중 처리가 아니라 **이스케이프 사멸**을 낸다 — 독자는 `<strong>` 을 글자로 본다. 착지한 게이트가 `not.toContain("&lt;")` 로 이 방향을 잡는다 (입력에 `<` 가 없으므로 `&lt;` 는 곧 사멸의 증거다). **본 계약 (I4) 문면은 이 방향을 선언하지 않았다.** 게이트가 계약보다 넓은 상태이며, 넓히는 판정은 `TSK-20260831-21-b` 착지 산출을 보고 한다 — 지금 문면을 넓히면 구현이 없는 상태에서 기대 산출을 발명하게 된다.
 
 - **인용 안 코드 펜스·표**의 기대 산출은 확정되지 않았다. 표는 파서에 아직 없고(`markdown-pipe-table` 미착지), 코드 펜스는 인용과의 상호작용이 실측되지 않았다.
 - **지연 인용**(`> 하나\n둘`)은 CommonMark 가 인정하는 표기이나 본 계약은 요구하지 않는다. 최상위 lazy continuation 과 규칙이 겹쳐 별 축으로 다뤄야 한다.
