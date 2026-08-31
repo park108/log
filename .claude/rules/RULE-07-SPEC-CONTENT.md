@@ -53,8 +53,10 @@
    - 수용 기준의 측정 명령이 **어떤 spec 의 green/blue 경로도 하드코딩하면 안 된다** — 자기 것이든 남의 것이든 promote 는 `mv` 이므로 경로가 바뀌는 순간 명령이 깨진다. **slug 로 도출한다**:
 
      ```
-     f=$(find specs/30.spec/blue specs/30.spec/green -name '<slug>.md' | head -1); test -n "$f" || exit 2
+     f=$(find specs/30.spec/green specs/30.spec/blue -name '<slug>.md' | head -1); test -n "$f" || exit 2
      ```
+
+     > **green 을 먼저 찾는다 (2026-09-01 정정).** 재개봉(`blue → green` 사본) 중에는 **같은 slug 가 두 브랜치에 동시에 있다.** blue 를 먼저 집으면 **승격 이전 baseline** 을 읽는다 — inspector 가 표준형 초판(`blue` 선행)을 적용하자 통과하던 두 항이 `rc=1` 로 뒤집혔다. 재개봉 중 권위 있는 사본은 편집 중인 green 쪽이다.
 
      > **2026-09-01 신설 — 구 문면은 자기 참조만 막았다.** `markdown-pipe-table` 이 승격되자 그것을 green 경로로 가리키던 `gate-effective-surface-and-variant-battery` 의 `(I7)` 판정 명령이 `rc=2` 가 됐고, 그 항이 Must `[x]` 라 **그 spec 의 향후 promote 를 차단했다.** 자기 참조와 **같은 취약성인데 문면 밖에 있었다.** 운영자 실측: 깨진 상호참조가 `30.spec/**` 에 **28건**(판정 명령 + 산문 합산, green 프리픽스 21 · blue 프리픽스 7). **격리(`50.blocked/` 이동)도 같은 결과를 낸다** — 운영자가 `activatable-control-native-button` 을 격리하며 만든 dangling 참조가 그중 하나다.
 
