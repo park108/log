@@ -498,6 +498,73 @@ describe('MD parsing — setext heading underline', () => {
 	});
 });
 
+// `| 이름 | 값 |` 로 쓴 표가 **줄 수만큼의 문단**으로 쪼개져 파이프 문자와
+// 구분선까지 독자에게 보였다.
+//
+// 셀 자리를 `<th[^>]*>` 로 열어 두는 이유: 정렬 표기의 시각 반영은 Should 이고,
+// 하더라도 `class` 안에서 한다. 속성이 붙는 것은 이 계약이 금지하지 않으므로
+// 게이트가 그것을 막으면 과잉 특정이다.
+describe('MD parsing — pipe table', () => {
+
+	it("파이프 표", () => {
+
+		// (I1) 머리 행 + 구분선 행이면 표다.
+		const basic = parser.markdownToHtml("| a | b |\n|---|---|\n| 1 | 2 |");
+		expect(basic).toMatch(
+			/^<table><thead><tr><th(?:\s[^>]*)?>a<\/th><th(?:\s[^>]*)?>b<\/th><\/tr><\/thead><tbody><tr><td(?:\s[^>]*)?>1<\/td><td(?:\s[^>]*)?>2<\/td><\/tr><\/tbody><\/table>$/
+		);
+		expect(basic).not.toContain("<p>");
+		expect(basic).not.toContain("|");
+
+		// (I5) 정렬 표기도 구분선 행이다.
+		for (const delimiter of ["|:--|--:|", "|:-:|:-:|", "| :--- | ---: |"]) {
+
+			const aligned = parser.markdownToHtml("| a | b |\n" + delimiter + "\n| 1 | 2 |");
+
+			expect(aligned).toContain("<table>");
+			// `<th[^>]*>` 는 **`<thead>` 에도 매치된다** — 처음 그렇게 썼다가 계수가
+			// 3 이 나왔다. 이름 뒤에 `>` 또는 공백을 요구해 태그 경계를 못 박는다.
+			expect(aligned.match(/<th(?:\s[^>]*)?>/g)?.length).toBe(2);
+			expect(aligned.match(/<td(?:\s[^>]*)?>/g)?.length).toBe(2);
+			expect(aligned).not.toContain("<p>");
+		}
+
+		// (I6) 셀 안의 인라인 마크업은 종전대로 동작한다.
+		const inline = parser.markdownToHtml(
+			"| **굵게** | `코드` |\n|---|---|\n| [링크](https://example.com) | *기울임* |");
+
+		expect(inline).toContain("<strong>굵게</strong>");
+		expect(inline).toContain("<code>코드</code>");
+		expect(inline).toContain("<em>기울임</em>");
+		expect(inline).toContain(">링크</a>");
+	});
+
+	it("구분선 행이 없으면 표가 아니다", () => {
+
+		// (I3) 산문 속 파이프는 흔하다. 이 대조가 없으면 파이프가 든 **모든**
+		// 문단을 표로 만드는 구현도 위 게이트를 통과한다 — 피해 범위가 표 표기를
+		// 쓴 글보다 넓다.
+		for (const prose of [
+			"명령은 a | b 이다",
+			"| a | b |\n| 1 | 2 |",
+			"| a | b |\n|---|\n| 1 | 2 |",
+		]) {
+
+			const out = parser.markdownToHtml(prose);
+
+			expect(out).not.toContain("<table>");
+			expect(out).toContain("<p>");
+			expect(out).toContain("|");
+		}
+
+		// (I4) 셀 안의 `\|` 는 파이프 글자이며 셀을 가르지 않는다.
+		const escaped = parser.markdownToHtml("| a | b |\n|---|---|\n| x \\| y | 2 |");
+
+		expect(escaped.match(/<td(?:\s[^>]*)?>/g)?.length).toBe(2);
+		expect(escaped).toMatch(/<td(?:\s[^>]*)?>x \| y<\/td>/);
+	});
+});
+
 // 링크·이미지의 **제목 없는 표준 형식**이 렌더되지 않고 있었다 (2026-08-30 실측).
 //
 // 구 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해 제목이 있어야만

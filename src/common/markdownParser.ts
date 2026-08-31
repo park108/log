@@ -386,6 +386,137 @@ export const markdownToHtml = (rawInput: string): string => {
 		index += 1;
 	}
 
+	// 파이프 표.
+	//
+	// `| 이름 | 값 |` 로 쓴 표가 **줄 수만큼의 문단**으로 쪼개져 파이프 문자와
+	// 구분선(`|---|---|`) 까지 독자에게 보였다.
+	//
+	// **구분선 행 요구가 이 축의 절반이다.** 파이프가 든 문단을 전부 표로 만들면
+	// 피해 범위가 표 표기를 쓴 글보다 **넓다** — 산문 속 파이프(`명령은 a | b 이다`)
+	// 는 흔하다. 그래서 머리 행 **바로 다음 줄**이 구분선 행이고 **셀 수가 같을 때만**
+	// 표로 읽는다.
+	//
+	// 셀 안의 `\|` 는 셀을 가르지 않는다. 백슬래시 이스케이프 패스는 이보다 **뒤에**
+	// 돌므로 이 패스는 자리표시자가 아니라 **날것의 `\|`** 를 본다 — 표기를 그대로
+	// 넘겨 그쪽이 글자로 되돌리게 한다. 표 패스를 이스케이프 뒤로 옮기는 방향은
+	// 코드 스팬·이스케이프의 현 계약이 기대는 순서를 깬다.
+	//
+	// 셀 본문은 값 노드로 남긴다 — 뒤따르는 인라인 패스가 강조·코드 스팬·링크를
+	// 종전대로 처리한다. 축소판 인라인 파서를 여기에 두지 않는다.
+	const splitTableCells = (line: string): string[] => {
+
+		const cells: string[] = [];
+		let current = "";
+
+		for(let i = 0; i < line.length; i++) {
+
+			const character = line.charAt(i);
+
+			if('\\' === character && '|' === line.charAt(i + 1)) {
+				current += "\\|";
+				i++;
+				continue;
+			}
+
+			if('|' === character) {
+				cells.push(current);
+				current = "";
+				continue;
+			}
+
+			current += character;
+		}
+
+		cells.push(current);
+
+		// 줄 양끝의 파이프가 만드는 빈 칸은 표기이지 셀이 아니다.
+		if(cells.length > 0 && 0 === (cells[0] as string).trim().length) cells.shift();
+		if(cells.length > 0 && 0 === (cells[cells.length - 1] as string).trim().length) cells.pop();
+
+		return cells.map((cell) => cell.trim());
+	};
+
+	// 구분선 셀. 정렬 표기(`:--` · `--:` · `:-:`) 도 구분선이다.
+	const DELIMITER_CELL_PATTERN = /^:?-+:?$/;
+
+	const isTableLine = (node: ParsedNode | undefined): boolean =>
+		undefined !== node
+		&& "value" === node.type
+		&& "" === node.closure
+		&& node.text.includes("|");
+
+	const isDelimiterRow = (node: ParsedNode | undefined, cellCount: number): boolean => {
+
+		if(!isTableLine(node)) return false;
+
+		const cells = splitTableCells((node as ParsedNode).text);
+
+		return cells.length === cellCount
+			&& cells.length > 0
+			&& cells.every((cell) => DELIMITER_CELL_PATTERN.test(cell));
+	};
+
+	index = 0;
+	while(index < parsed.length) {
+
+		const header = parsed[index];
+
+		if(!isTableLine(header)) {
+			index++;
+			continue;
+		}
+
+		const headerCells = splitTableCells((header as ParsedNode).text);
+
+		if(0 === headerCells.length || !isDelimiterRow(parsed[index + 1], headerCells.length)) {
+			index++;
+			continue;
+		}
+
+		let end = index + 1;
+		while(isTableLine(parsed[end + 1])) end++;
+
+		const replacement: ParsedNode[] = [
+			{type: "tag", text: "<table>"}
+			, {type: "tag", text: "<thead>"}
+			, {type: "tag", text: "<tr>"}
+		];
+
+		for(const cell of headerCells) {
+			replacement.push({type: "tag", text: "<th>"});
+			replacement.push({type: "value", text: cell, closure: "cell"});
+			replacement.push({type: "tag", text: "</th>"});
+		}
+
+		replacement.push({type: "tag", text: "</tr>"});
+		replacement.push({type: "tag", text: "</thead>"});
+
+		if(end > index + 1) {
+
+			replacement.push({type: "tag", text: "<tbody>"});
+
+			for(let i = index + 2; i <= end; i++) {
+
+				replacement.push({type: "tag", text: "<tr>"});
+
+				for(const cell of splitTableCells((parsed[i] as ParsedNode).text)) {
+					replacement.push({type: "tag", text: "<td>"});
+					replacement.push({type: "value", text: cell, closure: "cell"});
+					replacement.push({type: "tag", text: "</td>"});
+				}
+
+				replacement.push({type: "tag", text: "</tr>"});
+			}
+
+			replacement.push({type: "tag", text: "</tbody>"});
+		}
+
+		replacement.push({type: "tag", text: "</table>"});
+
+		parsed.splice(index, end - index + 1, ...replacement);
+		index += replacement.length;
+	}
+
 	// 목록 항목에 이어지는 마커 없는 줄은 **그 항목의 내용**이다 (CommonMark 0.31.2
 	// §5.2 continuation line). **들여쓰기는 조건이 아니다** — 같은 절의 lazy
 	// continuation 이 문단 계속에 한해 들여쓰기 요구를 면제한다. 목록을 쓰다 줄이

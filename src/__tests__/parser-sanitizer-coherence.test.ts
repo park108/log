@@ -30,19 +30,20 @@ const corpus: Array<[string, string]> = [
 	['코드펜스 kotlin', '```kotlin\nprivate val a = "x"\n@Service\n```'],
 	['코드펜스 yaml', '```yaml\nkey: value\n# 주석\n```'],
 	['변경 강조', markChangedLines('바뀐 줄이다', '예전 줄이다')],
+	['파이프 표', '| 이름 | 값 |\n|---|---|\n| a | 1 |'],
 ];
 
-// 파서가 **아직** 내지 못하는 구조는 마크다운 corpus 로 통과시켜 볼 수 없다.
-// 파이프 표 블록 패스가 그 상태이고 (`| a | b |` 는 현재 문단으로 렌더된다),
-// 그럼에도 표 태그는 정책에 등재돼 있어야 한다 — 등재가 없으면 파서 쪽 계약이
-// 착지하는 순간 표가 통째로 사라지기 때문이다 (실측: 표 HTML → `"1"`).
+// **HTML 직접 입력 대역은 철거했다** (TSK-20260831-23-a). 이 자리는 "파서가 아직
+// 내지 못하는 구조" 를 위한 임시 대역이었고 표가 유일한 입주자였는데, 파이프 표
+// 블록 패스가 착지해 위 corpus 의 `파이프 표` 행이 그 자리를 이어받았다 — 이 파일이
+// 예고한 그대로다.
 //
-// (I13) 이 요구하는 것은 *"그 태그를 담은 입력"* 이지 *"마크다운 입력"* 이 아니므로,
-// 이런 구조는 **HTML 직접 입력**으로 통과시켜 본다. 파서가 표를 내게 되면 그때
-// 마크다운 corpus 행이 이 자리를 이어받는다.
-const directFixtures: Array<[string, string]> = [
-	['표', '<table><thead><tr><th>머리</th></tr></thead><tbody><tr><td>값</td></tr></tbody></table>'],
-];
+// 남겨 두면 **아래 도출 단언이 그 대역으로 충족돼 corpus 의 표 행이 빠져도 초록이
+// 된다.** 실제로 그 상태를 만들어 확인했다 (주입 Dir-4). 대역이 없어야 "정책이
+// 허용하는 것을 corpus 가 통과시켜 보는가" 를 corpus 만으로 재게 된다.
+//
+// 다음에 같은 상황(파서가 아직 못 내는 구조)이 오면 이 주석을 근거로 다시 세우되,
+// 착지와 함께 철거하는 것까지 한 묶음이다.
 
 const shapeOf = (html: string) => {
 	const tags = new Set<string>();
@@ -208,10 +209,6 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 		for (const [, markdown] of corpus) {
 			for (const t of shapeOf(sanitizeHtml(markdownToHtml(markdown))).tags) exercised.add(t);
 		}
-		for (const [, html] of directFixtures) {
-			for (const t of shapeOf(sanitizeHtml(html)).tags) exercised.add(t);
-		}
-
 		expect(missing(new Set(policyTags), exercised),
 			'정책에 등재됐으나 corpus 가 한 번도 통과시켜 보지 않는 태그 — 그 태그를 쓰는 글은 무측정이다').toEqual([]);
 	});
