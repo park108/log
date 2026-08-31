@@ -50,7 +50,15 @@
 
 1. **`## 수용 기준` 의 체크박스가 전수 `[x]`.** 카운트 대상은 §수용 기준 한정이며, `[deferred]` 항목은 카운트 전에 `## 참고` 로 강등한다. (planner.md §절차 5 와 동일 문장)
 2. **명령 재실행 전수 `rc=0`** — promote 직전 green 상태에서 §수용 기준의 모든 측정 명령을 실제로 실행한다. 명령 부재·실행 불가가 1건이라도 있으면 promote 거부. `RULE-04` notes 에 `promote-verify: N/N rc0` 박제.
-   - 수용 기준의 측정 명령이 **spec 자신의 green/blue 경로를 참조하면 안 된다** — promote 로 경로가 바뀌는 순간 명령이 깨진다.
+   - 수용 기준의 측정 명령이 **어떤 spec 의 green/blue 경로도 하드코딩하면 안 된다** — 자기 것이든 남의 것이든 promote 는 `mv` 이므로 경로가 바뀌는 순간 명령이 깨진다. **slug 로 도출한다**:
+
+     ```
+     f=$(find specs/30.spec/blue specs/30.spec/green -name '<slug>.md' | head -1); test -n "$f" || exit 2
+     ```
+
+     > **2026-09-01 신설 — 구 문면은 자기 참조만 막았다.** `markdown-pipe-table` 이 승격되자 그것을 green 경로로 가리키던 `gate-effective-surface-and-variant-battery` 의 `(I7)` 판정 명령이 `rc=2` 가 됐고, 그 항이 Must `[x]` 라 **그 spec 의 향후 promote 를 차단했다.** 자기 참조와 **같은 취약성인데 문면 밖에 있었다.** 운영자 실측: 깨진 상호참조가 `30.spec/**` 에 **28건**(판정 명령 + 산문 합산, green 프리픽스 21 · blue 프리픽스 7). **격리(`50.blocked/` 이동)도 같은 결과를 낸다** — 운영자가 `activatable-control-native-button` 을 격리하며 만든 dangling 참조가 그중 하나다.
+
+     산문 상호참조도 같은 이유로 낡는다. 판정 명령만큼 급하지 않으나(rc 를 내지 않는다) **읽는 사람이 없는 파일을 찾게 되므로** 갱신 시 함께 도출형으로 바꾼다.
 3. **체크박스 0개 spec** 은 `## 동작` 에 repo 실존 테스트 파일 또는 `check:*` 식별자를 박제하고 planner 가 grep 으로 실존을 확인한 경우에만 promote 가능.
 4. **Must 측정 게이트를 선언한 spec** 은 발화 채널 실경로(`package.json scripts.check:*` / `.husky/*` / `ci.yml` step / vitest 수집 경로) ≥1 을 본문에 박제하고, 그 경로가 현 HEAD 에서 실재해야 한다. 채널 부재는 promote 차단이 아니라 **"채널 부착 task 발행"을 선행 조건**으로 한다.
 
