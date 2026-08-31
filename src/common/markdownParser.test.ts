@@ -1752,32 +1752,45 @@ describe('빈 줄 술어 유일성', () => {
 	// 그것이 순수 술어가 아니라는 뜻이므로 탈락이 맞다.
 	type Candidate = { file: string; name: string; param: string; body: string; block: boolean };
 
+	const balancedBlock = (rest: string): string => {
+		let depth = 0;
+		for (let i = 0; i < rest.length; i++) {
+			if (rest[i] === '{') depth++;
+			else if (rest[i] === '}') {
+				depth--;
+				if (depth === 0) return rest.slice(1, i);
+			}
+		}
+		return '';
+	};
+
+	// `export` 접두와 `function` 선언을 함께 받는다. **이주 방향(Dir-3)은 술어를
+	// 반드시 export 하므로**, `export` 를 빠뜨리면 그 방향이 조용히 통과한다
+	// (실측: 첫 구현이 `export const` 를 못 봐 이주 주입에 rc=0 이었다).
 	const candidateFunctions = (file: string, src: string): Candidate[] => {
 		const out: Candidate[] = [];
-		const re = /(?:^|\n)[ \t]*(?:const|let|var)[ \t]+([A-Za-z_$][\w$]*)[ \t]*=[ \t]*\(([^)]*)\)[ \t]*(?::[^=]*?)?=>[ \t]*/g;
-		let m: RegExpExecArray | null;
-		while ((m = re.exec(src)) !== null) {
-			const name = m[1]!;
-			const param = (m[2] ?? '').split(':')[0]!.trim();
-			if (param === '' || param.includes(',')) continue;
-			const rest = src.slice(re.lastIndex);
+		const push = (name: string, rawParam: string, rest: string) => {
+			const param = rawParam.split(':')[0]!.trim();
+			if (param === '' || param.includes(',')) return;
 			let body = '';
 			let block = false;
 			if (rest.startsWith('{')) {
-				let depth = 0;
-				for (let i = 0; i < rest.length; i++) {
-					if (rest[i] === '{') depth++;
-					else if (rest[i] === '}') {
-						depth--;
-						if (depth === 0) { body = rest.slice(1, i); block = true; break; }
-					}
-				}
+				body = balancedBlock(rest);
+				block = true;
 			} else {
 				const end = rest.search(/;[ \t]*\r?\n/);
 				if (end > 0) body = rest.slice(0, end);
 			}
 			if (body.trim().length > 0) out.push({ file, name, param, body, block });
-		}
+		};
+
+		const arrow = /(?:^|\n)[ \t]*(?:export[ \t]+)?(?:default[ \t]+)?(?:const|let|var)[ \t]+([A-Za-z_$][\w$]*)[ \t]*=[ \t]*\(([^)]*)\)[ \t]*(?::[^=]*?)?=>[ \t]*/g;
+		let m: RegExpExecArray | null;
+		while ((m = arrow.exec(src)) !== null) push(m[1]!, m[2] ?? '', src.slice(arrow.lastIndex));
+
+		const decl = /(?:^|\n)[ \t]*(?:export[ \t]+)?(?:default[ \t]+)?function[ \t]+([A-Za-z_$][\w$]*)[ \t]*\(([^)]*)\)[ \t]*(?::[^{]*?)?(?=\{)/g;
+		while ((m = decl.exec(src)) !== null) push(m[1]!, m[2] ?? '', src.slice(decl.lastIndex));
+
 		return out;
 	};
 
