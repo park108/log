@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 크롤러 진입점. URL 집합은 라우트에서 도출한다 (src/App.tsx 최상위 Route +
+     src/Log/Log.tsx 비인증 분기의 중첩 경로). 리디렉트 전용 경로(/)·404(*)·
+     동적 경로(/log/:timestamp)·인증 분기에만 있는 경로(/log/write)는 제외한다.
+     src/__tests__/sitemap-route-coherence.test.ts 가 이 도출과 대조한다. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<url>
+		<loc>https://www.park108.net/file</loc>
+	</url>
+	<url>
+		<loc>https://www.park108.net/log</loc>
+	</url>
+	<url>
+		<loc>https://www.park108.net/log/search</loc>
+	</url>
+	<url>
+		<loc>https://www.park108.net/monitor</loc>
+	</url>
+</urlset>

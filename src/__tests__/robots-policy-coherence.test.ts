@@ -1,13 +1,13 @@
 // TSK-20260518-12 / REQ-20260518-001 — `<meta name="robots">` ↔ `public/robots.txt`
 // 양면 색인 정책 의미 동치 fixture.
-// spec: specs/30.spec/blue/foundation/meta-robots-robotstxt-policy-semantic-coherence.md
-//       §동작 G-A~G-F + §수용 기준 FR-01~FR-06.
+// spec: specs/30.spec/green/common/document-head.md §동작 3~4
+//       (구 foundation/meta-robots-robotstxt-policy-semantic-coherence — 2026-09-01 통합).
 //
 // 본 fixture 는 채널 A (HTML 페이지-수준 `<meta name="robots">`) 와 채널 B
 // (HTTP path 수준 `public/robots.txt`) 의 결정론 측정 + 의미 매핑 (M_A / M_B)
 // 양면 동치 비교를 박제한다:
 //   G-A / FR-01: index.html `<meta name="robots">` match count === 1
-//   G-B / FR-02: public/robots.txt 실재 + byte === 67 + `\n` split line === 3
+//   G-B / FR-02: public/robots.txt 실재 + byte === 112 + `\n` split line === 4
 //   G-C / FR-03: 채널 A 토큰 → M_A === { index: "allow", follow: "allow" }
 //   G-D / FR-04: 채널 B `User-agent: *` group `Disallow:` value === "" → M_B
 //                === { path: "allow-all", crawl: "allow" }
@@ -28,10 +28,9 @@
 // path 한정 (`index.html` / `public/robots.txt` / `build/index.html` /
 // `build/robots.txt`).
 //
-// 실측 vs spec 본문 박제 (§task 구현 지시 2, 범위 밖 4):
-//   spec 본문 박제 "3 행" ↔ `wc -l` 실측 "2" 격차는 trailing newline 부재 기인 —
-//   inspector writer 영역 후속 정정 신호로 본 fixture scope 외. fixture 는
-//   `\n` split line 수 === 3 + byte === 67 동시 단언으로 회피 측정.
+// 행 수 세는 법 (trailing newline 부재 baseline):
+//   `wc -l` 은 개행 문자 수를 세므로 마지막 행에 개행이 없으면 한 행 적게 나온다.
+//   fixture 는 `\n` split line 수 + byte 길이를 동시 단언해 이 함정을 피한다.
 
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
@@ -54,9 +53,11 @@ const RE_HTML_META_ROBOTS = /<meta\s+name="robots"/g;
 // G-C 캡처 — `<meta name="robots" content="...">` content attribute 값.
 const RE_HTML_META_ROBOTS_CAPTURE = /<meta\s+name="robots"\s+content="([^"]*)"/;
 
-// G-B baseline — HEAD `f888586` 실측: 67 byte, `\n` split 후 3 행.
-const EXPECTED_ROBOTS_BYTE = 67;
-const EXPECTED_ROBOTS_SPLIT_LINES = 3;
+// G-B baseline — TSK-20260901-18 실측: 112 byte, `\n` split 후 4 행.
+// (`Sitemap:` 선언 1 행 추가 — 67 byte/3 행에서 갱신. 선언 추가는 색인 의도를
+//  바꾸지 않는다: 채널 A/B 의 permissive baseline 은 그대로다.)
+const EXPECTED_ROBOTS_BYTE = 112;
+const EXPECTED_ROBOTS_SPLIT_LINES = 4;
 
 // G-C baseline — 채널 A content === "index, follow" (permissive).
 const EXPECTED_META_CONTENT = "index, follow";
@@ -203,15 +204,15 @@ describe("robots-policy-coherence (TSK-20260518-12)", () => {
 		expect(count).toBe(1);
 	});
 
-	it("G-B / FR-02: public/robots.txt 실재 + byte === 67 + `\\n` split 후 line === 3", () => {
+	it("G-B / FR-02: public/robots.txt 실재 + byte === 112 + `\\n` split 후 line === 4", () => {
 		expect(existsSync(PATH_PUBLIC_ROBOTS)).toBe(true);
 		const body = readFileSync(PATH_PUBLIC_ROBOTS, "utf8");
 		// byte 측정 — fixture 는 utf8 read 후 Buffer.byteLength 로 byte 길이 비교
 		// (baseline ASCII-only — UTF-8 BOM 부재 baseline).
 		const byteLength = Buffer.byteLength(body, "utf8");
 		expect(byteLength).toBe(EXPECTED_ROBOTS_BYTE);
-		// 본문 `\n` split — trailing newline 부재 baseline → line 수 === 3
-		// ("# 주석" + "User-agent: *" + "Disallow:").
+		// 본문 `\n` split — trailing newline 부재 baseline → line 수 === 4
+		// ("# 주석" + "User-agent: *" + "Disallow:" + "Sitemap:").
 		const lines = body.split("\n");
 		expect(lines.length).toBe(EXPECTED_ROBOTS_SPLIT_LINES);
 	});
