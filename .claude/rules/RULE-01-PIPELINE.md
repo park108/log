@@ -23,7 +23,7 @@ specs/
 ## 쓰기 권한
 | writer | create/edit | mv |
 |---|---|---|
-| developer | `10.followups/`, `src/`, `scripts/` | `40.task/*` → `60.done/task/{slug}/` 또는 `50.blocked/task/` |
+| developer | `10.followups/`, `src/`, `scripts/`, `public/`, `index.html` | `40.task/*` → `60.done/task/{slug}/` 또는 `50.blocked/task/` |
 | discovery | `20.req/` | `10.followups/*` → `60.done/followups/` |
 | inspector | `30.spec/green/**` | `20.req/*` → `60.done/req/` 또는 `50.blocked/req/` |
 | planner | `40.task/` | `30.spec/green/F` → `30.spec/blue/F`, `30.spec/**` → `50.blocked/spec/` |
