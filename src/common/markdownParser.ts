@@ -73,6 +73,14 @@ const listMarkerDepth = (text: string): number | null => {
 	return null;
 }
 
+// 수평선. `-`·`*`·`_` 중 하나를 **3개 이상** 반복한 줄이다.
+//
+// 함수 안에 있던 것을 모듈 스코프로 올려 내보낸다 — 변경 이력 강조(`Log/diffContents`)
+// 가 "이 줄에 강조할 내용이 있는가" 를 물어야 하는데, 규칙을 그쪽에 다시 적으면
+// 사본 둘이 갈라진다. 오늘 같은 부류를 두 번 봤다 (업로드 절차 사본, 게이트에
+// 박힌 예시 값). 판정은 규칙을 아는 쪽이 한다.
+export const THEMATIC_BREAK_PATTERN = /^(-{3,}|\*{3,}|_{3,})$/;
+
 // 제목의 닫는 `#` 시퀀스는 표기이지 제목 글자가 아니다 (CommonMark 0.31.2 §4.2).
 //
 // 제목 패스가 여는 쪽만 보던 동안 `## 제목 ##` 은 `제목 ##` 을 화면에 남겼다 —
@@ -83,7 +91,7 @@ const listMarkerDepth = (text: string): number | null => {
 // 나간다 — 지금 맞는 것을 깨는 방향이며, 두 축은 함께 성립해야 한다.
 //
 // 닫는 개수는 여는 쪽과 무관하다 (`## 제목 #` 도 `## 제목 ######` 도 표기다).
-const stripHeadingClosingSequence = (content: string): string => {
+export const stripHeadingClosingSequence = (content: string): string => {
 
 	// 줄 끝 공백도 제목 내용이 아니다. 닫는 시퀀스 뒤에 붙은 공백을 먼저 걷어야
 	// 런이 줄 끝에 닿는다.
@@ -211,8 +219,6 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 모두를 **3개 이상** 반복하면 수평선으로 규정한다. 그래서 `***` 는 수평선이
 	// 되지 못한 채 emphasis 파서에 걸려 `<em></em>*` 라는 깨진 출력을 냈다
 	// (실측 2026-08-30). `___` 도 같은 부류였다.
-	const THEMATIC_BREAK_PATTERN = /^(-{3,}|\*{3,}|_{3,})$/;
-
 	index = 0;
 	for(const node of parsed) {
 

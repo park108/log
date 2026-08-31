@@ -1,4 +1,5 @@
-import { HIGHLIGHT_OPEN, HIGHLIGHT_CLOSE, HIGHLIGHT_CLASS } from '../common/markdownParser';
+import { HIGHLIGHT_OPEN, HIGHLIGHT_CLOSE, HIGHLIGHT_CLASS,
+	THEMATIC_BREAK_PATTERN, stripHeadingClosingSequence } from '../common/markdownParser';
 // 변경 이력에서 **바뀐 줄**을 표시용으로 표식한다.
 //
 // 이력은 각 판본을 그대로 렌더할 뿐이라, 무엇이 달라졌는지 눈으로 찾아야 했다.
@@ -68,6 +69,13 @@ export const markChangedLines = (contents: string, previous?: string): string =>
 		if (kept.has(index)) return line;
 		if ('' === line.trim()) return line;
 
+		// **줄 전체가 표기인 것에는 강조할 내용이 없다.**
+		//
+		// 수평선을 표식으로 감싸면 파서가 더 이상 수평선으로 읽지 못한다 — 변경
+		// 이력에서만 선이 사라지고 `---` 라는 글자가 나온다 (실측). 규칙은 파서에서
+		// 가져온다. 여기 다시 적으면 사본 둘이 갈라진다.
+		if (THEMATIC_BREAK_PATTERN.test(line.trim())) return line;
+
 		const m = LINE_PREFIX.exec(line);
 		if (!m) return line;
 
@@ -77,7 +85,15 @@ export const markChangedLines = (contents: string, previous?: string): string =>
 		// 태그를 직접 끼우지 않는다 — `markdownToHtml` 이 본문을 escape 하므로
 		// 꺾쇠가 글자로 보인다 (실제로 그렇게 깨졌다). 마크업 문자를 쓰지 않는
 		// 표식을 두고 파서가 태그로 되돌린다.
-		return prefix + HIGHLIGHT_OPEN + body + HIGHLIGHT_CLOSE;
+		// 제목의 닫는 `#` 시퀀스도 표기이지 내용이 아니다. 표식 안에 넣으면 줄
+		// 끝이 `#` 이 아니게 되어 파서의 닫는 시퀀스 규칙이 매치하지 못하고,
+		// 변경 이력에서만 `## 제목 ##` 이 `제목 ##` 으로 보인다 (실측).
+		// 판정은 그 규칙을 아는 쪽(파서)에 맡기고 여기서는 자리만 가른다.
+		const isHeading = /^\s*#{1,6}\s+$/.test(prefix ?? '');
+		const content = isHeading ? stripHeadingClosingSequence(body ?? '') : (body ?? '');
+		const trailing = (body ?? '').slice(content.length);
+
+		return prefix + HIGHLIGHT_OPEN + content + HIGHLIGHT_CLOSE + trailing;
 	}).join('\n');
 };
 
