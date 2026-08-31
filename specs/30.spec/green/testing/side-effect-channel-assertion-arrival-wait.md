@@ -43,6 +43,7 @@
 ## 의존성
 - 내부: `src/**` 테스트 소스 (도출 모집단) · `scripts/` (발화 채널) · `package.json` (`check:*` 등록).
 - 실물 표본: `06425e7` (*test: 커서 단언이 목록 렌더가 아니라 커서 쓰기를 기다린다*) — 그 **부모 트리**가 이 축의 유일한 양성 표본이며 `git show 06425e7^:src/Log/LogList.test.tsx` 로 언제나 재현 가능하다.
+- **역의존 (사용처) — 열거하지 않고 도출한다**: `bash -c 'n=$(grep -rln "side-effect-channel-assertion-arrival-wait" specs/30.spec --include="*.md" | wc -l | tr -d " "); echo "revdep-docs=$n"; test "$n" -ge 1'` → HEAD=`8fa6117` 실측 **2 hit**: 본 문서 자신(§의존성 의 이 명령)과 `foundation/gate-effective-surface-and-variant-battery` (I3·I4) 항의 분류 서술. **제외 규칙**: 자기 언급 1건을 빼면 외부 사용처는 **1**이다. **하드코딩 열거였다면 이 1건이 보이지 않았을 것이다** — 도출은 참조가 늘 때 자동으로 따라간다. **정적 불변식이다.**
 - 직교/경계: `blue/testing/absence-assertion-arrival-precondition` · `blue/testing/multi-element-count-assertion-arrival-wait` (**같은 명제의 DOM 판본**) · `blue/testing/post-await-guard-individual-observability` (가드 분해능 — 채널 일치 축이 아니다).
 
 ## 테스트 현황
@@ -110,6 +111,7 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-09-01 | inspector 257차 tick (Phase 2) / — @ HEAD=`8fa6117` | **§역의존 도출 항 신설.** `foundation/spec-dependency-reverse-derivation` (I1) 의 모집단은 `§의존성` 의 `역의존` 줄이므로 **줄이 없는 문서는 모집단에서 통째로 빠진다** — 본 문서가 그 상태였고 (I1) 은 rc=0 을 유지했다. 과소 표집이며 (I8) 과 같은 형태다. 도출값은 **2 hit**(자기 언급 1 + `foundation/gate-effective-surface-and-variant-battery` 1) 이고, 하드코딩 열거였다면 그 1건이 보이지 않았을 것이다. | 의존성 · 변경 이력 |
 | 2026-09-01 | inspector 256차 tick (Phase 3, REQ-20260901-082 흡수) / pending @ HEAD=`c82c629` | **최초 박제 — 6 축.** 도달-대기 가족의 비-DOM 채널 판본. 모집단을 괄호 균형 도출로 직접 재산출해 **15 자리 / 9 파일**을 재현했고, 분류에서 **자체 오분류 1건을 검출·정정**했다 — 식별자 부분 문자열 매치가 `get` ↔ `getByTestId` 로 붙어 `same=12` 를 냈고 낱말 경계로 고쳐 `same=11` (discovery 산정과 일치). 판정값을 `storage-mismatch` 로 좁힌 것이 핵심 판단: 정적 패턴 계수는 11/15 오탐이고, spy 불일치 4건은 인과 함의라 **주입으로만 판정 가능**하다. 양성 표본은 `06425e7^` 블롭에서 **2 자리** 도출로 실증했고 현 HEAD 는 **0** 이다. 채널(`scripts/check-side-effect-wait-channel.sh`)은 부재이며 `RULE-07 §promote 조건 4` 에 따라 **채널 부착 task 발행이 선행 조건**이다. | all |
 
 ## 참고
