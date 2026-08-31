@@ -71,8 +71,8 @@
 - [ ] (I1·I2·I3·I4·I5 접속) 다섯 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "인용 안에서도 목록은 목록이다" "$f" && grep -qF "인용 안에서도 제목은 제목이다" "$f" && grep -qF "인용은 인용 안에서 다시 열린다" "$f" && grep -qF "인용 안 인라인은 한 번만 처리된다" "$f" && grep -qF "블록이 없는 여러 줄 인용은 한 덩어리다" "$f" && grep -qF "연달아 붙은 이어짐 인용은 한 덩어리다" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=1 (계약 이름 0 hit 으로 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 손상 축 3건만 재는 게이트는 대조 2건을 깨뜨린 구현에도 초록이다. 대조를 접속에 **함께** 넣은 것이 요점이며, 이 축에서 구현 선택을 가르는 것이 바로 그 둘이다.
 - [x] (I6 sanitize 통과 baseline) 인용에서 나올 태그가 `ALLOWED_TAGS` 에 전건 등재돼 있다: `bash -c 'f=src/common/sanitizeHtml.ts; grep -q "ALLOWED_TAGS" "$f" || exit 2; for t in blockquote ul ol li h1 h2 h3 h4 h5 h6; do grep -qE "'\''$t'\''" "$f" || exit 1; done'` → HEAD=`8d030ce` 실측 rc=0 (10/10 등재). **현재 공허 참이며 착지 순간 구속력이 생긴다** — 인용이 새 태그를 내기 시작하는데 정책이 따라오지 않으면 여기서 붉어진다. 파일에 `ALLOWED_TAGS` 가 없으면 `exit 2` 로 무판정 처리한다 (공허 통과 차단).
 - [x] (I5 높이 근거 실재 baseline) 여러 줄 묶음의 근거가 코드에 박제돼 있다: `bash -c 'f=src/common/markdownParser.ts; test -f "$f" || exit 2; grep -qF "연달아 붙은 인용 줄은 한 덩어리다" "$f" && grep -qF "93.56" "$f"'` → HEAD=`8d030ce` 실측 rc=0 (`:235`·`:242`). **이 항목은 근거 주석의 실재만 잰다** — 산출 판정은 (I4·I5 대조 신설) 과 (접속) 이 닫는다. 근거가 지워지면 다음 구현자가 같은 회귀를 반복한다.
-- [x] (이어짐 인용 대조 현행 PASS) 항목 안 이어짐 인용 게이트가 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "연달아 붙은 이어짐 인용은 한 덩어리다" "$f" && npx vitest run "$f" -t "연달아 붙은 이어짐 인용은 한 덩어리다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 rc=0 (`:696`). 소유 계약은 `markdown-list-item-continuation` 이며 본 항목은 그 게이트의 **실재와 초록**만 잰다 (게이트 사본 방지). 구현 후에도 rc=0 이어야 한다.
-- [x] (NFR-03 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 rc=0 (**150 tests**). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
+- [x] (이어짐 인용 대조 현행 PASS) 항목 안 이어짐 인용 게이트가 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "연달아 붙은 이어짐 인용은 한 덩어리다" "$f" && npx vitest run "$f" -t "연달아 붙은 이어짐 인용은 한 덩어리다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`25f6013` 재실측 rc=0 (`:742`). 소유 계약은 `markdown-list-item-continuation` 이며 본 항목은 그 게이트의 **실재와 초록**만 잰다 (게이트 사본 방지). 구현 후에도 rc=0 이어야 한다.
+- [x] (NFR-03 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`25f6013` 재실측 rc=0 (**155 tests**). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다.
 
 ## 수용 기준
 
@@ -83,7 +83,7 @@
 - [ ] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3·I4·I5 접속) 명령 → rc=0.
 - [x] (Should, FR-06) 위 §테스트 현황 (I6 sanitize 통과 baseline) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0.
 - [x] (Must, FR-05 근거 보존) 위 §테스트 현황 (I5 높이 근거 실재 baseline) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0.
-- [x] (Must, NFR-03 비퇴행) 위 §테스트 현황 (NFR-03 비퇴행 baseline) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0 (150 tests).
+- [x] (Must, NFR-03 비퇴행) 위 §테스트 현황 (NFR-03 비퇴행 baseline) 명령 → rc=0. HEAD=`25f6013` 재실측 rc=0 (155 tests).
 - [x] (Must, 범위 제한) 인용 안 코드 펜스·표 · 지연 인용 · `>` 앞 들여쓰기 · 인용 내부 목록 경계 세부 규칙은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
@@ -91,7 +91,7 @@
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` 와 `src/common/markdownParser.test.ts` 2 파일이다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
 - **grep-baseline** (HEAD=`8d030ce`, `git archive` 격리 사본 실측):
   - 계약 이름 5건 전수 **0 hit** (신설 대상): `인용 안에서도 목록은 목록이다` · `인용 안에서도 제목은 제목이다` · `인용은 인용 안에서 다시 열린다` · `인용 안 인라인은 한 번만 처리된다` · `블록이 없는 여러 줄 인용은 한 덩어리다`.
-  - `grep -cF "연달아 붙은 이어짐 인용은 한 덩어리다" src/common/markdownParser.test.ts` → **1** (`:696`) — 소유 계약은 `markdown-list-item-continuation`.
+  - `grep -cF "연달아 붙은 이어짐 인용은 한 덩어리다" src/common/markdownParser.test.ts` → **1** (`:742`) — 소유 계약은 `markdown-list-item-continuation`.
   - `grep -cF "test parsing BLOCKQUOTE" src/common/markdownParser.test.ts` → **1** (`:32`). **이 게이트는 `>BLOCKQUOTE` 한 줄만 잰다** — 인용 축의 현행 커버리지가 그것뿐이라는 것이 (I4)(I5) 를 신설하는 근거다.
   - `grep -cF "93.56" src/common/markdownParser.ts` → **1** (`:242`) · `grep -cF "연달아 붙은 인용 줄은 한 덩어리다" …` → **1** (`:235`).
   - `grep -cE "closure: \"blockquote\"" src/common/markdownParser.ts` → **1** (`:272`) — 값 노드 확정 지점이며 이 축의 원인이다.
@@ -115,7 +115,7 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
-| 2026-08-31 | inspector 253차 tick (Phase 3, REQ-20260831-070 흡수) / pending @ HEAD=`8d030ce` | 최초 박제 — 인용 안 블록 재귀 6 축 (I1~I6). **신규 spec 으로 세운 근거**: 손상 표면(인용 내용)과 대조 축(인라인 이중 처리 · 여러 줄 묶음)이 형제 축들과 전혀 다르고 독립 carve 가 가능하다. 신고서는 REQ-069·070 의 공통 뿌리를 *"블록 파싱이 최상위에서 한 번만 돌고 재귀하지 않는 것"* 으로 진단했고 discovery 가 나눠 등록했는데, **본 tick 도 나눈 채 흡수한다** — 한 계약으로 묶으면 인용 축의 두 대조(이중 처리 · 줄 쪼개짐)가 목록 축의 대조와 섞여 어느 주입이 어느 방향을 재는지 흐려진다. **(I4)(I5) 를 신설 대조로 세운 것이 이 흡수의 판단이다**: 현 스위트의 인용 커버리지는 `test parsing BLOCKQUOTE` 의 `>BLOCKQUOTE` 한 줄뿐이라 이중 처리도 줄 쪼개짐도 **관측 채널이 없다**. 그 둘이 이 축에서 구현 선택(재귀 적용 / 패스 순서 이동)을 가르는 유일한 계약면이므로 접속에 함께 넣었다. **(I5) 에 무게를 실은 근거는 실측 회귀 이력이다** — `:235-244` 주석이 줄마다 인용을 열던 구현의 화면 높이를 93.56 → 144.72 로 박제하고 있고, 블록 재귀는 그 회귀를 되살리기 쉬운 변경이다. baseline: 계약 이름 5건 0 hit · 이어짐 인용 대조 1 hit · 높이 근거 2 hit · 값 노드 확정 1 hit · 손상 4행/대조 3행 격리 사본 실측 · 파서 스위트 150 tests. unchecked 5 · checked 4. | all |
+| 2026-08-31 | inspector 253차 tick (Phase 3, REQ-20260831-070 흡수) / pending @ HEAD=`8d030ce` | 최초 박제 — 인용 안 블록 재귀 6 축 (I1~I6). **신규 spec 으로 세운 근거**: 손상 표면(인용 내용)과 대조 축(인라인 이중 처리 · 여러 줄 묶음)이 형제 축들과 전혀 다르고 독립 carve 가 가능하다. 신고서는 REQ-069·070 의 공통 뿌리를 *"블록 파싱이 최상위에서 한 번만 돌고 재귀하지 않는 것"* 으로 진단했고 discovery 가 나눠 등록했는데, **본 tick 도 나눈 채 흡수한다** — 한 계약으로 묶으면 인용 축의 두 대조(이중 처리 · 줄 쪼개짐)가 목록 축의 대조와 섞여 어느 주입이 어느 방향을 재는지 흐려진다. **(I4)(I5) 를 신설 대조로 세운 것이 이 흡수의 판단이다**: 현 스위트의 인용 커버리지는 `test parsing BLOCKQUOTE` 의 `>BLOCKQUOTE` 한 줄뿐이라 이중 처리도 줄 쪼개짐도 **관측 채널이 없다**. 그 둘이 이 축에서 구현 선택(재귀 적용 / 패스 순서 이동)을 가르는 유일한 계약면이므로 접속에 함께 넣었다. **(I5) 에 무게를 실은 근거는 실측 회귀 이력이다** — `:235-244` 주석이 줄마다 인용을 열던 구현의 화면 높이를 93.56 → 144.72 로 박제하고 있고, 블록 재귀는 그 회귀를 되살리기 쉬운 변경이다. baseline: 계약 이름 5건 0 hit · 이어짐 인용 대조 1 hit · 높이 근거 2 hit · 값 노드 확정 1 hit · 손상 4행/대조 3행 격리 사본 실측 · 파서 스위트 155 tests (HEAD=`25f6013` 재도출). unchecked 5 · checked 4. | all |
 
 ## 참고
 
