@@ -141,10 +141,29 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 	//
 	// 도출이 상수를 **이름으로 부르지 않는 이유**: 이 spec 의 (I1) 이 정책 모듈
 	// 밖에서의 정책 토큰 정의·소비를 0 으로 막고 있고, 이 파일은 그 밖이다.
-	// 이름 대신 **구조와 동작**으로 찾는다 — 소스에서 문자열 배열 상수를 전부
-	// 뽑은 뒤, 원소가 전부 *태그로서* sanitize 를 통과하는 배열을 고른다.
-	// 속성 목록은 태그로 넣으면 한 건도 살아남지 않으므로 이 판정으로 갈린다.
-	// 이름이 바뀌어도 따라가고, 상수를 옮기거나 지우면 도출이 비어 실패한다.
+	//
+	// **판정 모집단은 소스 표기가 아니라 효력면이다.** 종전 도출은 `const 이름 = [...]`
+	// 배열의 **모양**을 읽었고, 그 모양은 정책의 효력과 양방향으로 갈렸다:
+	//
+	//   - 표기는 그대로인데 효력이 넓어짐 → 게이트가 못 봄 (민감도 0)
+	//   - 효력은 그대로인데 표기가 바뀜   → 게이트가 붉음 (특이도 붕괴)
+	//
+	// 그래서 배열 이름·배열 개수·배열 존재에 기대지 않는다. 주석을 걷은 정책
+	// 소스의 **따옴표 문자열 전부**를 후보 우주로 삼고, 그중 *실제로 태그로서
+	// 살아남는 것* 을 효력 집합으로 확정한 뒤 corpus 와 교차 검증한다.
+
+	// **정상 변형 배터리** — 이 게이트를 고칠 때 무엇이 통과해야 하는지가 같은
+	// 자리에 있어야 한다. 아래 넷은 출처 spec 이 정한 구조 클래스이고,
+	// 마지막 하나만 방향이 반대다.
+	//
+	//   V2 — 배열의 분해·전개: 부분집합을 별 상수로 빼고 `...` 로 결합      → 통과해야 한다
+	//   V7 — 주석 잔존: 옛 정책 배열을 `//` 주석으로 남김                   → 통과해야 한다
+	//   V8 — 의미 단위 분해: BLOCK_TAGS + INLINE_TAGS 두 그룹으로 결합       → 통과해야 한다
+	//   V9 — 상수 소멸 + 확장: 호출에 인라인 + 주석 잔존 + 신규 태그 등재    → **붉어야 한다**
+	//
+	// V2 는 종전 게이트에서 rc=1 이었다 (배열이 둘이 되어 "정확히 하나" 가 깨짐).
+	// V9 는 종전 게이트에서 rc=0 이었다 (주석 잔존 배열을 후보로 잡고, 옛 태그는
+	// corpus 가 전부 통과시키므로 신규 태그가 어느 단언의 시야에도 없음).
 
 	const policySource = (): string => {
 		const path = resolve(process.cwd(), 'src/common/sanitizeHtml.ts');
@@ -154,62 +173,82 @@ describe('파서 산출 ↔ sanitizer 허용 정합', () => {
 		return src;
 	};
 
-	// 소스의 `const 이름 = [ '문자열', … ]` 배열을 전부 뽑는다 (이름은 보지 않는다).
-	const stringArrayConstants = (src: string): string[][] => {
-		const out: string[][] = [];
-		for (const m of src.matchAll(/const\s+[A-Za-z_$][\w$]*\s*=\s*\[([^\]]*)\]/g)) {
-			const items = [...(m[1] ?? '').matchAll(/'([^']*)'|"([^"]*)"/g)]
-				.map((q) => (q[1] ?? q[2] ?? ''))
-				.filter((x) => x.length > 0);
-			if (items.length > 0) out.push(items);
+	// 주석을 걷는다. V9 가 정확히 **주석 잔존**으로 들어온다 — 옛 정책을 `//` 로
+	// 남기면 주석을 걷지 않는 도출은 그것을 살아 있는 정책으로 읽는다.
+	// 줄 끝 주석에서 `[^:]` 를 요구해 URL 의 `//` 를 주석으로 오인하지 않는다.
+	const stripComments = (src: string): string => src
+		.replace(/\/\*[\s\S]*?\*\//g, ' ')
+		.replace(/^[ \t]*\/\/[^\n]*$/gm, '')
+		.replace(/([^:])\/\/[^\n]*$/gm, '$1');
+
+	// 후보 우주는 열거하지 않는다 (RULE-06 §열거 고정 금지). 주석을 걷은 정책
+	// 소스의 따옴표 문자열 **전부**다. 배열 이름·개수·존재에 기대지 않으므로
+	// V2·V8 이 배열을 쪼개도, V9 가 배열을 없애고 호출에 인라인해도 따라간다.
+	const quotedStrings = (src: string): string[] => {
+		const out: string[] = [];
+		for (const m of src.matchAll(/'([^'\n]*)'|"([^"\n]*)"/g)) {
+			const v = (m[1] ?? m[2] ?? '').trim();
+			if (v.length > 0) out.push(v.toLowerCase());
 		}
 		return out;
 	};
 
-	// 그 이름이 **태그 역할**인가 **속성 역할**인가를 동작으로 읽는다.
-	//
-	// 처음에는 "원소가 전부 태그로 살아남는가" 하나로 갈랐는데, 그 판별자는
-	// **문맥 의존 태그에서 무너진다** — `<td>probe</td>` 를 홀로 파싱하면 표 밖의
-	// `td` 는 HTML 파서 단계에서 사라지므로, 정책이 허용해도 "살아남지 않는" 것으로
-	// 읽힌다 (실측: thead·tbody·tr·th·td 전부 홀로는 소멸). 표 6 태그가 등재되는
-	// 순간 그 배열은 "전원 통과" 를 잃고 후보에서 탈락해 도출이 공집합이 됐다.
-	//
-	// 그래서 절대 기준 대신 **역할 비교**로 바꾼다. 태그 목록은 태그 자리에서
-	// 일부라도 살아남고 속성 자리에서는 전무하며, 속성 목록은 정확히 그 반대다.
-	// 문맥 의존 태그가 몇 개 섞여도 이 비교는 흔들리지 않는다.
-	const survivesAsTag = (tag: string): boolean =>
-		sanitizeHtml('<' + tag + '>probe</' + tag + '>').toLowerCase().includes('<' + tag);
+	// 태그 이름의 **모양** (열거가 아니라 형태 조건). 공백이 든 문자열이나
+	// 스킴·클래스명을 프로브에 넣지 않기 위한 최소 필터다.
+	const TAG_SHAPE = /^[a-z][a-z0-9]*$/;
 
-	const survivesAsAttr = (attr: string): boolean =>
-		sanitizeHtml('<a ' + attr + '="x">y</a>').toLowerCase().includes(attr.toLowerCase() + '=');
+	// **효력면은 부모 문맥을 갖춘 프로브로 읽는다.**
+	//
+	// 홀로 파싱하면 사라지는 태그가 있다 — thead·tbody·tr·th·td 는 <table>
+	// 조상이 없으면 HTML 파서 단계에서 소멸하므로, 정책이 허용해도 "살아남지
+	// 않는" 것으로 읽힌다 (실측: 다섯 태그 전부 홀로는 소멸, 문맥 안에서는 보존).
+	// 태그가 **자기 문맥 안에서** 살아남는지를 물어야 효력면이 된다.
+	const PARENT_CONTEXT: Record<string, [string, string]> = {
+		thead: ['<table>', '</table>'],
+		tbody: ['<table>', '</table>'],
+		tr: ['<table><tbody>', '</tbody></table>'],
+		th: ['<table><thead><tr>', '</tr></thead></table>'],
+		td: ['<table><tbody><tr>', '</tr></tbody></table>'],
+		li: ['<ul>', '</ul>'],
+	};
 
-	const countBy = (items: string[], f: (x: string) => boolean): number =>
-		items.filter(f).length;
+	// `<' + tag + '>` 를 **닫는 꺾쇠까지** 확인한다. 접두 일치로 재면 문맥이
+	// 답을 준다 — `th` 프로브의 문맥에 있는 `<thead` 가 `<th` 를 만족시킨다.
+	const survivesInContext = (tag: string): boolean => {
+		const [open, close] = PARENT_CONTEXT[tag] ?? ['', ''];
+		const probe = open + '<' + tag + '>probe</' + tag + '>' + close;
+		return sanitizeHtml(probe).toLowerCase().includes('<' + tag + '>');
+	};
 
 	it('허용 목록의 모든 태그가 sanitize 를 통과한다', () => {
 
-		const candidates = stringArrayConstants(policySource())
-			.filter((items) => countBy(items, survivesAsTag) > countBy(items, survivesAsAttr)
-				&& countBy(items, survivesAsTag) > 0);
+		const universe = [...new Set(quotedStrings(stripComments(policySource())))];
 
-		// 도출이 비거나 여럿이면 **통과가 아니라 무판정 실패**다. 공집합을 통과로
-		// 읽으면 "위반 0" 과 "측정 0" 이 구별되지 않는다.
-		expect(candidates.length,
-			'정책 태그 목록 도출이 유일하게 확정되지 않았다 (0 이면 도출 붕괴)').toBe(1);
+		// 우주가 비면 그 뒤 단언은 전부 공허하다 — 통과가 아니라 무판정 실패다.
+		expect(universe.length,
+			'정책 소스에서 문자열 후보를 하나도 뽑지 못했다 (도출 붕괴)').toBeGreaterThan(0);
 
-		const policyTags = candidates[0]!;
+		// 효력 집합 — 정책이 **실제로 살려 보내는** 태그.
+		const effectiveTags = universe.filter((s) => TAG_SHAPE.test(s))
+			.filter(survivesInContext)
+			.sort();
 
-		// 하한 — 도출이 한두 건으로 쪼그라드는 방향도 무판정이다.
-		expect(policyTags.length,
-			'도출된 정책 태그 수가 하한 미만이다').toBeGreaterThanOrEqual(10);
-		expect(new Set(policyTags).size, '도출 결과에 중복이 있다').toBe(policyTags.length);
+		// 하한. 효력 집합이 비거나 쪼그라들면 통과가 아니라 **무판정 실패**다 —
+		// "위반 0" 과 "측정 0" 은 다르다.
+		expect(effectiveTags.length,
+			'효력 집합이 하한 미만이다 (0 이면 도출 붕괴)').toBeGreaterThanOrEqual(10);
+		expect(new Set(effectiveTags).size,
+			'효력 집합에 중복이 있다 — 도출이 같은 태그를 두 번 셌다').toBe(effectiveTags.length);
 
 		// corpus 가 실제로 통과시켜 본 태그 — 파서 산출을 sanitize 에 태운 뒤 남은 것.
 		const exercised = new Set<string>();
 		for (const [, markdown] of corpus) {
 			for (const t of shapeOf(sanitizeHtml(markdownToHtml(markdown))).tags) exercised.add(t);
 		}
-		expect(missing(new Set(policyTags), exercised),
-			'정책에 등재됐으나 corpus 가 한 번도 통과시켜 보지 않는 태그 — 그 태그를 쓰는 글은 무측정이다').toEqual([]);
+
+		// 교차 검증. 효력면에 있는데 corpus 가 한 번도 통과시키지 않은 태그가
+		// 있으면 그 태그를 쓰는 글은 무측정이다 — V9 의 신규 태그가 여기서 걸린다.
+		expect(missing(new Set(effectiveTags), exercised),
+			'정책이 살려 보내지만 corpus 가 한 번도 통과시켜 보지 않는 태그 — 그 태그를 쓰는 글은 무측정이다').toEqual([]);
 	});
 });
