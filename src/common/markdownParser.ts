@@ -668,6 +668,11 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 렌더되던 것을 막는다 — 기술 글에서 곱셈 표기가 통째로 기울어졌다.
 	// `**` · `~~` 는 공백을 끼워 써도 의도가 분명하므로 그대로 둔다 (`** 굵게 **`).
 	parsed = inlineParsing(parsed, "*", "em", true); // emphasis
+	// 밑줄 강조. `*` 와 같은 `<em>` 을 내되 **낱말 안쪽 억제**를 함께 켠다 —
+	// `_` 는 `*` 와 달리 식별자에 흔히 쓰이므로(`foo_bar_baz` · `snake_case`)
+	// 억제 없이 등록하면 기술 글이 깨진다. CommonMark 가 두 구분자를 가르는
+	// 유일한 지점이 이것이라 억제는 `_` 계열에만 건다.
+	parsed = inlineParsing(parsed, "_", "em", true, true); // emphasis (underscore)
 
 	// 코드 스팬 복원. 내용은 이스케이프한다 — 코드는 보이는 그대로여야 하고,
 	// 이스케이프하지 않으면 `<String>` 같은 표기가 sanitize 에서 삭제돼 글자가
@@ -719,7 +724,19 @@ export const markdownToHtml = (rawInput: string): string => {
 	return str;
 }
 
-const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string, strictFlanking = false): ParsedNode[] => {
+// 낱말 안쪽 억제의 "단어 글자" 는 **유니코드 문자·숫자**다. `[A-Za-z0-9]` 로
+// 좁히면 `한글_강조_표기` 가 `한글<em>강조</em>표기` 가 된다 — 영문 식별자만
+// 지키고 한글 낱말은 깨뜨리는 상태이며, 예시가 한글뿐인 게이트에는 보이지
+// 않는다.
+const WORD_CHARACTER_PATTERN = /[\p{L}\p{N}]/u;
+
+// 억제는 구분자의 앞뒤가 **둘 다** 단어 글자일 때만 발동한다. "어느 한쪽" 으로
+// 보면 여는 구분자의 뒤는 정의상 언제나 강조하려는 낱말의 첫 글자이므로 모든
+// 강조가 죽는다 — 낱말 안쪽을 지키려다 강조 자체를 없애는 방향이다.
+const isIntraword = (before: string, after: string): boolean =>
+	WORD_CHARACTER_PATTERN.test(before) && WORD_CHARACTER_PATTERN.test(after);
+
+const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string, strictFlanking = false, intrawordSuppression = false): ParsedNode[] => {
 
 	let searchFrom = 0;
 	let start = -1;
@@ -756,6 +773,11 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 						searchFrom += delimeterLength;
 						continue;
 					}
+					// 낱말 안쪽이면 열지 않는다 (`foo_bar_baz`).
+					if(intrawordSuppression && isIntraword(beforeOpen, after)) {
+						searchFrom += delimeterLength;
+						continue;
+					}
 					start = searchFrom;
 					searchFrom += delimeterLength;
 				}
@@ -766,6 +788,11 @@ const inlineParsing = (parsed: ParsedNode[], delimeter: string, tagName: string,
 					const afterClose = node.text.charAt(searchFrom + delimeterLength);
 					if(strictFlanking && ("" === before || /\s/.test(before)
 						|| before === delimeter || afterClose === delimeter)) {
+						searchFrom += delimeterLength;
+						continue;
+					}
+					// 낱말 안쪽이면 닫지 않는다.
+					if(intrawordSuppression && isIntraword(before, afterClose)) {
 						searchFrom += delimeterLength;
 						continue;
 					}
