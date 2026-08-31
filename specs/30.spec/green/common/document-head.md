@@ -1,7 +1,7 @@
 # 문서 머리 계약
 
 > **위치**: `index.html` · `public/robots.txt` · `public/sitemap.xml` · `src/common/common.ts`(`DEFAULT_META_DESCRIPTION` · `getUrl`) · `src/Log/LogSingle.tsx`(런타임 description)
-> **게이트**: `src/__tests__/link-preview-coherence.test.ts` · `meta-description-token-coherence.test.ts` · `csp-origin-coverage.test.ts` · `scripts/check-*` 해당분
+> **게이트**: `src/__tests__/` 의 `link-preview-coherence` · `meta-description-token-coherence` · `csp-origin-coverage` · `sitemap-route-coherence` · `share-card-dimensions` (5파일 31 케이스)
 > **최종 업데이트**: 2026-09-01 (운영자 — 문서 머리·SEO 계약 8건 통합)
 
 ## 역할
@@ -54,9 +54,9 @@
 - [x] 요약문 토큰 정합: `bash -c 'npx vitest run src/__tests__/meta-description-token-coherence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0
 - [x] 로케일 선언 단일성: `bash -c 'test "$(grep -c "<html lang=" index.html)" -eq 1'` → rc=0
 - [x] 확대 차단 토큰 0: `bash -c '! grep -qE "user-scalable=no|maximum-scale=1" index.html'` → rc=0
-- [ ] 요약문 문자 체계 일치 (8) — 현재 `lang="ko"` 인데 요약문이 영어다.
-- [ ] 크롤러 진입점 실재 (4)(5) — `sitemap.xml` 부재.
-- [ ] 공유 카드 규격 (10) — 현재 192×192 로 최소치 미달.
+- [x] 요약문 문자 체계 일치 (8): `bash -c 'npx vitest run src/__tests__/meta-description-token-coherence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0
+- [x] 크롤러 진입점 실재 (4)(5): `bash -c 'npx vitest run src/__tests__/sitemap-route-coherence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0
+- [x] 공유 카드 규격 (10): `bash -c 'npx vitest run src/__tests__/share-card-dimensions.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0
 
 ## 참고
 
