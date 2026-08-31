@@ -73,6 +73,27 @@ const listMarkerDepth = (text: string): number | null => {
 	return null;
 }
 
+// 제목 마커 판정. `# ` ~ `###### ` 의 단계를 돌려주고, 제목이 아니면 0 이다.
+//
+// headers 패스 안에 있던 조건을 모듈 스코프로 올린다 — 인용 패스가 "이 줄이
+// 블록을 여는가" 를 물어야 하는데, 규칙을 그쪽에 다시 적으면 사본 둘이 갈라진다
+// (`THEMATIC_BREAK_PATTERN` 을 올린 것과 같은 이유다). 판정은 규칙을 아는 쪽이 한다.
+const headingMarkerLevel = (text: string): number => {
+
+	let sharps = "";
+
+	for(let i = 1; i < 7; i++) {
+
+		sharps += "#";
+
+		if(text.length > i && (sharps + " ") === text.substr(0, i + 1)) {
+			return i;
+		}
+	}
+
+	return 0;
+}
+
 // 수평선. `-`·`*`·`_` 중 하나를 **3개 이상** 반복한 줄이다.
 //
 // 함수 안에 있던 것을 모듈 스코프로 올려 내보낸다 — 변경 이력 강조(`Log/diffContents`)
@@ -252,6 +273,20 @@ export const markdownToHtml = (rawInput: string): string => {
 		&& node.text.length > 0
 		&& '>' === node.text.charAt(0);
 
+	// 인용 줄의 내용이 **블록을 여는 줄**인가.
+	//
+	// 인용 안에 쓴 목록·제목·중첩 인용이 글자로 보였다. 인용 패스가 줄들을 평탄한
+	// 값 노드로 확정해 버려서 뒤에 도는 블록 패스들이 그 안의 마커를 보지 못한
+	// 것이다. 인라인 패스는 값 노드의 **본문**에 적용되므로 정상 동작했고,
+	// 그 비대칭이 이 결함의 진단이었다.
+	//
+	// 규칙은 여기서 다시 쓰지 않는다. 목록은 `listMarkerDepth`, 제목은
+	// `headingMarkerLevel`, 중첩 인용은 `>` — 전부 최상위와 같은 판정이다.
+	const opensBlock = (text: string): boolean =>
+		'>' === text.charAt(0)
+		|| null !== listMarkerDepth(text)
+		|| headingMarkerLevel(text) > 0;
+
 	index = 0;
 	while(index < parsed.length) {
 
@@ -264,18 +299,35 @@ export const markdownToHtml = (rawInput: string): string => {
 		while(isQuoteLine(parsed[end + 1])) end++;
 
 		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
+		let previousWasPlain = false;
 
 		for(let i = index; i <= end; i++) {
 			let text = (parsed[i] as ParsedNode).text.substring(1);
 			if(' ' === text.charAt(0)) text = text.substring(1);
-			if(i > index) replacement.push({type: "tag", text: "<br />"});
-			replacement.push({type: "value", text, closure: "blockquote"});
+
+			if(opensBlock(text)) {
+				// 블록을 여는 줄은 **평범한 줄로 되돌려** 뒤따르는 최상위 패스
+				// (`ul` · `ol` · `bindListItem` · headers · 이 인용 패스 자신) 가
+				// 처리하게 한다. 인용 안에서만 도는 축소판 파서를 만들면 같은 표기가
+				// 인용 안팎에서 다르게 동작한다.
+				replacement.push({type: "value", text, closure: ""});
+				previousWasPlain = false;
+			}
+			else {
+				// 블록이 없는 줄들은 종전대로 한 덩어리 안에서 `<br />` 로 이어진다.
+				if(previousWasPlain) replacement.push({type: "tag", text: "<br />"});
+				replacement.push({type: "value", text, closure: "blockquote"});
+				previousWasPlain = true;
+			}
 		}
 
 		replacement.push({type: "tag", text: "</blockquote>"});
 
 		parsed.splice(index, end - index + 1, ...replacement);
-		index += replacement.length;
+
+		// 넣은 내용을 **다시 훑는다**. 중첩 인용(`> > 안쪽`) 이 그 자리에서 다시
+		// 열리는 것이 이 재훑기다 — `>` 가 한 겹씩 벗겨지므로 반드시 끝난다.
+		index += 1;
 	}
 
 	// 목록 항목에 이어지는 마커 없는 줄은 **그 항목의 내용**이다 (CommonMark 0.31.2
@@ -449,27 +501,19 @@ export const markdownToHtml = (rawInput: string): string => {
 		
 	// headers
 	index = 0;
-	let sharps = "";
 
 	for(let node of parsed) {
 
 		if("value" === node.type && "" === node.closure) {
 
-			sharps = "";
+			const level = headingMarkerLevel(node.text);
 
-			for(let i = 1; i < 7; i++) {
+			if(level > 0) {
 
-				sharps += "#";
-
-				if(node.text.length > i && (sharps + " ") === node.text.substr(0, i + 1)) {
-	
-					parsed.splice(index, 1, 
-						{type: "tag", text: "<h" + i + ">"}
-						, {type: "value", text: stripHeadingClosingSequence(node.text.substring(i + 1)), closure: "header"}
-						, {type: "tag", text: "</h" + i + ">"});
-
-					break;
-				}
+				parsed.splice(index, 1,
+					{type: "tag", text: "<h" + level + ">"}
+					, {type: "value", text: stripHeadingClosingSequence(node.text.substring(level + 1)), closure: "header"}
+					, {type: "tag", text: "</h" + level + ">"});
 			}
 		}
 

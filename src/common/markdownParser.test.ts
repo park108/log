@@ -387,6 +387,54 @@ describe('MD parsing — blockquote contrast axes', () => {
 	});
 });
 
+// 인용 안에 쓴 목록·제목·중첩 인용이 **글자로 보였다.** 인용 패스가 줄들을 평탄한
+// 값 노드로 확정해 버려 뒤에 도는 블록 패스가 마커를 보지 못했기 때문이다.
+//
+// 게이트는 산출 전체를 못 박지 않고 **구조와 개수**를 잰다. 특히 중첩 인용은
+// `&gt;` 0건과 `<blockquote>` 2개를 **함께** 잰다 — escape 만 푸는 해법은 앞의
+// 조건만 충족하고 독자에게는 여전히 인용이 하나로 보인다.
+describe('MD parsing — blockquote block recursion', () => {
+
+	it("인용 안에서도 목록은 목록이다", () => {
+
+		const ul = parser.markdownToHtml("> - 하나\n> - 둘");
+		expect(ul).toContain("<blockquote>");
+		expect(ul.match(/<ul>/g)?.length).toBe(1);
+		expect(ul.match(/<li>/g)?.length).toBe(2);
+		expect(ul).toMatch(/<blockquote>[^<]*<ul>/);
+		// 독자가 마커를 글자로 보지 않는다.
+		expect(ul).not.toContain("- 하나");
+
+		const ol = parser.markdownToHtml("> 1. 하나\n> 2. 둘");
+		expect(ol).toContain("<blockquote>");
+		expect(ol.match(/<ol>/g)?.length).toBe(1);
+		expect(ol.match(/<li>/g)?.length).toBe(2);
+		expect(ol).toMatch(/<blockquote>[^<]*<ol>/);
+		expect(ol).not.toContain("1. 하나");
+	});
+
+	it("인용 안에서도 제목은 제목이다", () => {
+
+		const heading = parser.markdownToHtml("> # 제목");
+		expect(heading).toContain("<blockquote>");
+		expect(heading).toMatch(/<blockquote>[^<]*<h1>/);
+		expect(heading).toContain("<h1>제목</h1>");
+		expect(heading).not.toContain("# 제목");
+	});
+
+	it("인용은 인용 안에서 다시 열린다", () => {
+
+		// **두 축을 함께 잰다.** escape 만 푸는 해법은 `&gt;` 0건은 만족시키지만
+		// 인용은 열리지 않아 독자에게는 여전히 한 덩어리로 보인다.
+		const nested = parser.markdownToHtml("> 바깥\n> > 안쪽");
+		expect(nested.match(/&gt;/g)?.length ?? 0).toBe(0);
+		expect(nested.match(/<blockquote>/g)?.length).toBe(2);
+		expect(nested.match(/<\/blockquote>/g)?.length).toBe(2);
+		expect(nested).toContain("바깥");
+		expect(nested).toContain("안쪽");
+	});
+});
+
 // 링크·이미지의 **제목 없는 표준 형식**이 렌더되지 않고 있었다 (2026-08-30 실측).
 //
 // 구 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해 제목이 있어야만

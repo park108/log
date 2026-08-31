@@ -56,40 +56,40 @@
 
 ## 테스트 현황
 
-- [ ] (I1 혼합 중첩) 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "종류가 달라도 깊게 들여쓴 목록은 중첩된다" "$f" && npx vitest run "$f" -t "종류가 달라도 깊게 들여쓴 목록은 중첩된다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 본 tick 실측 **rc=1 (미충족)**. 계약 이름 0 hit.
-- [ ] (I2 바깥 목록 개수) 번호 연속성 게이트가 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "종류가 바뀌어도 바깥 목록은 하나다" "$f"'` → HEAD=`8d030ce` 실측 **rc=1 (0 hit)**. **이 명령은 게이트의 실재만 잰다** — 개수 판정 자체는 그 게이트 본문과 아래 (접속) 이 닫는다.
-- [ ] (I4 모순 fixture 인계) 혼합 중첩을 금지하던 fixture 가 남아 있지 않다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; ! grep -qF "does NOT nest ol child inside ul parent" "$f"'` → HEAD=`25f6013` 재실측 **rc=1 (fixture 실재, `:257`)**. 이 fixture 는 `result.not.toMatch(/<li>[^<]*<ol>/)` 로 **중첩이 일어나지 않는 것**을 단언하므로 (I1) 과 동시에 참일 수 없다.
-- [ ] (I1·I2·I3·I4 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "종류가 달라도 깊게 들여쓴 목록은 중첩된다" "$f" && grep -qF "종류가 바뀌어도 바깥 목록은 하나다" "$f" && grep -qF "treats two leading spaces as equivalent to one tab for UL nesting" "$f" && grep -qF "nests a tab-indented OL child inside the parent <li>" "$f" && ! grep -qF "does NOT nest ol child inside ul parent" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 **rc=1 (계약 이름 0 hit 으로 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 개별 항은 서로의 공허 통과를 막지 못한다. 같은 종류 대조 2건을 접속에 **함께** 넣은 것이 요점이다 — 종류 판정을 없애는 과잉은 (I1)(I2) 쪽만 보면 초록이다.
-- [x] (I3 같은 종류 대조 현행 PASS) 같은 종류 중첩 게이트가 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "treats two leading spaces as equivalent to one tab for UL nesting" "$f" && grep -qF "nests a tab-indented OL child inside the parent <li>" "$f" && npx vitest run "$f" -t "treats two leading spaces as equivalent to one tab for UL nesting" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`8d030ce` 실측 rc=0. **구현 후에도 rc=0 이어야 한다** — 이 대조가 (I1) 확장의 과잉 방향을 잡는 유일한 채널이며, 지우거나 완화하는 방식의 해결은 불가하다. 소유 계약은 `markdownParser` (I2)~(I5) 이고 본 항목은 그 게이트의 **실재와 초록**만 잰다 (동작 명제를 다시 세우지 않는다 — 게이트 사본 방지).
-- [x] (NFR-03 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`25f6013` 재실측 rc=0 (**155 tests**). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다. 단 (I4) 가 지목한 fixture 1건은 인계 대상이며 그 교체는 완화가 아니다.
+- [x] (I1 혼합 중첩) 계약이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "종류가 달라도 깊게 들여쓴 목록은 중첩된다" "$f" && npx vitest run "$f" -t "종류가 달라도 깊게 들여쓴 목록은 중첩된다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`1112fe2` 254차 재실측 **rc=0**. `TSK-20260831-20-b`(`f3b3974`·`1112fe2`) 착지. 흡수 시점(`8d030ce`)에는 계약 이름 0 hit 으로 rc=1 이었다.
+- [x] (I2 바깥 목록 개수) 번호 연속성 게이트가 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "종류가 바뀌어도 바깥 목록은 하나다" "$f"'` → HEAD=`1112fe2` 254차 재실측 **rc=0**. **이 명령은 게이트의 실재만 잰다** — 개수 판정 자체는 그 게이트 본문과 아래 (접속) 이 닫는다.
+- [x] (I4 모순 fixture 인계) 혼합 중첩을 금지하던 fixture 가 남아 있지 않다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; ! grep -qF "does NOT nest ol child inside ul parent" "$f"'` → HEAD=`1112fe2` 254차 재실측 **rc=0** — `TSK-20260831-20-a`(`d75a571`)가 인계를 끝냈다 (it 이름을 `emits both ul and ol for a mixed-type indented list` 로 갱신하고 `not.toMatch(/<li>[^<]*<ol>/)` 한 줄만 걷어냈다; 입력과 나머지 두 단언은 그대로다). 흡수 시점 이 fixture 는 `result.not.toMatch(/<li>[^<]*<ol>/)` 로 **중첩이 일어나지 않는 것**을 단언하므로 (I1) 과 동시에 참일 수 없다.
+- [x] (I1·I2·I3·I4 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "종류가 달라도 깊게 들여쓴 목록은 중첩된다" "$f" && grep -qF "종류가 바뀌어도 바깥 목록은 하나다" "$f" && grep -qF "treats two leading spaces as equivalent to one tab for UL nesting" "$f" && grep -qF "nests a tab-indented OL child inside the parent <li>" "$f" && ! grep -qF "does NOT nest ol child inside ul parent" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`1112fe2` 254차 재실측 **rc=0** (파서 스위트 **157 tests** 전수 통과 · 같은 종류 대조 2건 실재 · 모순 fixture 부재). **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 개별 항은 서로의 공허 통과를 막지 못한다. 같은 종류 대조 2건을 접속에 **함께** 넣은 것이 요점이다 — 종류 판정을 없애는 과잉은 (I1)(I2) 쪽만 보면 초록이다.
+- [x] (I3 같은 종류 대조 현행 PASS) 같은 종류 중첩 게이트가 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF "treats two leading spaces as equivalent to one tab for UL nesting" "$f" && grep -qF "nests a tab-indented OL child inside the parent <li>" "$f" && npx vitest run "$f" -t "treats two leading spaces as equivalent to one tab for UL nesting" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`1112fe2` 254차 재실측 rc=0 — **착지 후에도 유지됐다**. **구현 후에도 rc=0 이어야 한다** — 이 대조가 (I1) 확장의 과잉 방향을 잡는 유일한 채널이며, 지우거나 완화하는 방식의 해결은 불가하다. 소유 계약은 `markdownParser` (I2)~(I5) 이고 본 항목은 그 게이트의 **실재와 초록**만 잰다 (동작 명제를 다시 세우지 않는다 — 게이트 사본 방지).
+- [x] (NFR-03 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`1112fe2` 254차 재실측 rc=0 (**157 tests** — 착지로 150→155→157). 구현 후에도 rc=0 — **기존 게이트를 완화하는 방식의 해결은 불가**하다. 단 (I4) 가 지목한 fixture 1건은 인계 대상이며 그 교체는 완화가 아니다.
 
 ## 수용 기준
 
-- [ ] (Must, FR-01·FR-03) 위 §테스트 현황 (I1 혼합 중첩) 명령 → rc=0.
-- [ ] (Must, FR-02) 위 §테스트 현황 (I2 바깥 목록 개수) 명령 → rc=0.
-- [ ] (Must, FR-05) 위 §테스트 현황 (I4 모순 fixture 인계) 명령 → rc=0.
-- [ ] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3·I4 접속) 명령 → rc=0.
-- [x] (Must, FR-04 같은 종류 대조) 위 §테스트 현황 (I3 같은 종류 대조 현행 PASS) 명령 → rc=0. HEAD=`8d030ce` 실측 rc=0. 구현 후에도 rc=0 — **이 대조를 지우거나 완화하는 방식의 해결은 불가**하다.
-- [x] (Must, NFR-03 비퇴행) 위 §테스트 현황 (NFR-03 비퇴행 baseline) 명령 → rc=0. HEAD=`25f6013` 재실측 rc=0 (155 tests).
+- [x] (Must, FR-01·FR-03) 위 §테스트 현황 (I1 혼합 중첩) 명령 → rc=0.
+- [x] (Must, FR-02) 위 §테스트 현황 (I2 바깥 목록 개수) 명령 → rc=0.
+- [x] (Must, FR-05) 위 §테스트 현황 (I4 모순 fixture 인계) 명령 → rc=0.
+- [x] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1·I2·I3·I4 접속) 명령 → rc=0.
+- [x] (Must, FR-04 같은 종류 대조) 위 §테스트 현황 (I3 같은 종류 대조 현행 PASS) 명령 → rc=0. HEAD=`1112fe2` 254차 재실측 rc=0 (착지 후 유지). 구현 후에도 rc=0 — **이 대조를 지우거나 완화하는 방식의 해결은 불가**하다.
+- [x] (Must, NFR-03 비퇴행) 위 §테스트 현황 (NFR-03 비퇴행 baseline) 명령 → rc=0. HEAD=`1112fe2` 254차 재실측 rc=0 (157 tests).
 - [x] (Must, 범위 제한) 3단계 이상 교대 중첩 · loose/tight · 체크박스 · `<li>` 선행 공백 · 들여쓰지 않은 이어짐 · 인용 안 블록 문법은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
 
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` 와 `src/common/markdownParser.test.ts` 2 파일이다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
-- **grep-baseline** (HEAD=`8d030ce`, `git archive` 격리 사본 실측):
-  - `grep -cF "종류가 달라도 깊게 들여쓴 목록은 중첩된다" src/common/markdownParser.test.ts` → **0** (신설 대상). `grep -cF "종류가 바뀌어도 바깥 목록은 하나다" …` → **0**.
-  - `grep -cF "does NOT nest ol child inside ul parent" src/common/markdownParser.test.ts` → **1** (`:257`). **인계 대상이며 삭제가 아니라 교체다** — 그 fixture 가 지키던 명제(같은 종류 그룹 경계가 무너지지 않는다)는 (I3) 대조가 이어받는다.
-  - `grep -cF "treats two leading spaces as equivalent to one tab for UL nesting" src/common/markdownParser.test.ts` → **1** · `grep -cF "nests a tab-indented OL child inside the parent <li>" …` → **1**. 두 건이 (I3) 대조의 실물이며 소유 계약은 `markdownParser` 다.
-  - `grep -cE "isListNode" src/common/markdownParser.ts` → **4** (`:918` 정의 + 사용 3). `grep -cE "flushAll\(\)" src/common/markdownParser.ts` → **4**.
-- **현 산출 (격리 사본 실측 — repo 트리 무변경)**. 왼쪽이 결함이고 오른쪽이 계약이다:
+- **grep-baseline** (HEAD=`1112fe2`, `git archive` 격리 사본 실측 — **착지 후 재도출**. 괄호 안은 흡수 시점 `8d030ce` 값이다):
+  - `grep -cF "종류가 달라도 깊게 들여쓴 목록은 중첩된다" src/common/markdownParser.test.ts` → **1** (흡수 시점 0, 신설 대상이었다). `grep -cF "종류가 바뀌어도 바깥 목록은 하나다" …` → **1** (흡수 시점 0).
+  - `grep -cF "does NOT nest ol child inside ul parent" src/common/markdownParser.test.ts` → **0** (흡수 시점 1 @ `:257`). **인계는 삭제가 아니라 교체였다** — 그 fixture 가 지키던 명제(같은 종류 그룹 경계가 무너지지 않는다)를 (I3) 대조가 이어받았고, 입력(`- a\n\t1. b`)과 나머지 두 단언은 이름만 갱신된 채 남아 있다.
+  - `grep -cF "treats two leading spaces as equivalent to one tab for UL nesting" src/common/markdownParser.test.ts` → **1** · `grep -cF "nests a tab-indented OL child inside the parent <li>" …` → **1** (둘 다 불변). 두 건이 (I3) 대조의 실물이며 소유 계약은 `markdownParser` 다. `TSK-20260831-20-a` 가 이름을 바꾸지 않고 단언 3개씩을 **가산**했다.
+  - `grep -cE "isListNode" src/common/markdownParser.ts` → **5** (흡수 시점 4). `grep -cE "flushAll\(\)" src/common/markdownParser.ts` → **9** (흡수 시점 4 — 주석 인용 3건 포함). **두 계수 모두 판정면이 아니다** — 구현 자유에 속하는 내부 구조 수치이며 여기에는 스냅샷으로만 적는다. 판정은 §테스트 현황 이 산출로 닫는다.
+- **산출 (격리 사본 실측 — repo 트리 무변경)**. **`착지 전` 열은 HEAD=`8d030ce` 이고 `착지 후` 열은 HEAD=`1112fe2` 실측이다** — 오른쪽이 계약이며 착지 후 산출이 그것과 일치한다:
 
-| 입력 | 현 산출 (결함) | 바깥 목록 수 | 계약 |
+| 입력 | 착지 전 산출 (`8d030ce`, 결함) | 착지 후 산출 (`1112fe2`) | 판정 |
 |---|---|---|---|
-| `- 준비\n  1. 설치\n  2. 설정\n- 실행` | `<ul><li>준비</li></ul><ol><li>설치</li><li>설정</li></ol><ul><li>실행</li></ul>` | `<ul>` **2** | `<ul>` 1 · `<ol>` 이 첫 항목 안 |
-| `1. 준비\n   - 설치\n   - 설정\n2. 실행` | `<ol><li>준비</li></ol><ul><li>설치</li><li>설정</li></ul><ol><li>실행</li></ol>` | `<ol>` **2** | `<ol>` 1 · `<ul>` 이 첫 항목 안 |
-| `- a\n\t1. b` (현 fixture 입력) | `<ul><li>a</li></ul><ol><li>b</li></ol>` | `<ul>` 1 · `<ol>` 1 (형제) | `<ul>` 1 · `<ol>` 이 `<li>` 안 |
-| `- 하나\n  - 안쪽\n- 둘` (대조) | `<ul><li>하나<ul><li>안쪽</li></ul></li><li>둘</li></ul>` | `<ul>` 2 (중첩) | **무변경** |
-| `1. 하나\n   1. 안쪽\n2. 둘` (대조) | `<ol><li>하나<ol><li>안쪽</li></ol></li><li>둘</li></ol>` | `<ol>` 2 (중첩) | **무변경** |
+| `- 준비\n  1. 설치\n  2. 설정\n- 실행` | `<ul><li>준비</li></ul><ol><li>설치</li><li>설정</li></ol><ul><li>실행</li></ul>` (`<ul>` **2**) | `<ul><li>준비<ol><li>설치</li><li>설정</li></ol></li><li>실행</li></ul>` (`<ul>` **1**) | (I1)(I2) 충족 |
+| `1. 준비\n   - 설치\n   - 설정\n2. 실행` | `<ol><li>준비</li></ol><ul><li>설치</li><li>설정</li></ul><ol><li>실행</li></ol>` (`<ol>` **2**) | `<ol><li>준비<ul><li>설치</li><li>설정</li></ul></li><li>실행</li></ol>` (`<ol>` **1**) | 양방향 충족 (FR-03) |
+| `- a\n\t1. b` (인계된 fixture 입력) | `<ul><li>a</li></ul><ol><li>b</li></ol>` (형제) | `<ul><li>a<ol><li>b</li></ol></li></ul>` | (I4) 인계 완료 |
+| `- 하나\n  - 안쪽\n- 둘` (대조) | `<ul><li>하나<ul><li>안쪽</li></ul></li><li>둘</li></ul>` | **동일 — 무변경** | (I3) 특이도 유지 |
+| `1. 하나\n   1. 안쪽\n2. 둘` (대조) | `<ol><li>하나<ol><li>안쪽</li></ol></li><li>둘</li></ol>` | **동일 — 무변경** | (I3) 특이도 유지 |
 
   - **계수 단위 주의**: 판정면은 **바깥** 목록의 여는 태그 개수다. 대조 2행은 중첩 때문에 같은 태그가 2개이므로, 전체 개수를 세는 게이트는 결함 행과 대조 행을 구분하지 못한다. 게이트는 중첩 구조(`<li>` 안쪽)와 바깥 개수를 **함께** 단언해야 한다.
 - **rationale**: 계약 이름 2건이 0 hit 이고 인계 대상 fixture 가 1 hit 으로 확정돼 baseline 은 열거로 닫힌다. 결함 3행과 대조 2행을 같은 표에 둔 이유는, 이 축의 실패가 "중첩이 안 된다" 가 아니라 **"중첩시키면서 바깥을 쪼갠다"** 또는 **"종류 판정을 없애 같은 종류까지 뭉갠다"** 쪽이기 때문이다.
@@ -98,6 +98,7 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-31 | inspector 254차 tick (Phase 1 drift reconcile) / `TSK-20260831-20-a`(`d75a571`) · `TSK-20260831-20-b`(`f3b3974`·`1112fe2`) @ HEAD=`1112fe2` | **마커 플립 8** (§테스트 현황 4 + §수용 기준 4) — §수용 기준 **7/7**. 판정 명령 6건 전수 격리 사본 재실행 rc=0. **착지가 대조를 손상시키지 않은 것이 이 재조정의 산출이다** — (I3) 같은 종류 중첩 2행의 산출이 착지 전후 문자열 단위로 동일하며, 그것이 §회귀 중점 이 지목한 "종류 판정을 없애는 과잉" 방향이 선택되지 않았다는 증거다. **baseline 전면 재도출**: 계약 이름 2건 0→1, 인계 fixture 1→0, 같은 종류 대조 2건 불변, 파서 스위트 150→155→**157**. `isListNode` 4→5 · `flushAll()` 4→9 는 판정면이 아니므로 스냅샷 표기임을 문면에 명시했다 — 구현 자유에 속하는 내부 수치를 baseline 에 수치로 적어 두면 다음 정상 리팩터가 문서를 낡게 만든다. 산출 표를 `착지 전 / 착지 후` 2열로 재구성 (초안의 "현 산출 (결함)" 열은 착지 순간 낡는 표기였다). | 테스트 현황 · 수용 기준 · 스코프 규칙 · 변경 이력 |
 | 2026-08-31 | inspector 253차 tick (Phase 3, REQ-20260831-069 흡수) / pending @ HEAD=`8d030ce` | 최초 박제 — 혼합 종류 중첩 목록 4 축 (I1~I4). **신규 spec 으로 세운 근거**: `markdownParser.md:74` 가 이 자리를 *"본 알고리즘 범위 밖 — 동작 미정의 (별 spec 후보)"* 로 **명시적으로 비워 두었다**. 재개봉해 그 spec 을 넓히는 것이 아니라, 그 spec 이 예고한 별 계약을 세우는 것이 문면대로다. **(I2) 를 (I1) 과 분리해 세운 것이 이 흡수의 판단이다** — 중첩 여부만 재는 게이트는 바깥 목록이 쪼개진 채로도 초록이고, 독자가 실제로 겪는 피해(번호 되감김)는 그 축에 있다. **(I4) 인계 축을 세운 것이 두 번째 판단이다**: 현 fixture(`:211`)가 중첩 부재를 단언하므로 조용히 양립시키면 승격된 두 계약이 서로를 부정한다 (REQ-069 FR-05). baseline: 계약 이름 2건 0 hit · 인계 fixture 1 hit · 같은 종류 대조 2 hit · 결함 3행/대조 2행 격리 사본 실측 · 파서 스위트 150 tests. unchecked 4 · checked 3. | all |
 
 ## 참고
@@ -110,7 +111,7 @@ REQ-069 FR-05 는 *"두 계약이 동시에 참일 수 없으니 인계를 명�
 2. **재개봉 비용을 실측했다** (tick 252 가 continuation 에 적용한 것과 같은 기준). `markdownParser.md` 는 **152줄** · §수용 기준 **10/10 `[x]`** 이고, 판정 명령 6건을 격리 사본에서 전수 재실행해 **rc≠0 은 1건**이다. rc=2 무판정 rot 은 없다 — 즉 재개봉이 다른 축의 미해결 부채를 함께 떠안지 않는다.
 3. **그 rc≠0 1건은 재개봉하지 않으면 고칠 사람이 없다.** (I1) 의 `test "$(grep -cE "bindListItem" src/common/markdownParser.ts)" -eq 3` 은 HEAD=`8d030ce` 에서 **5** 를 세어 rc=1 이다 — `TSK-20260831-15` 가 `:126`·`:288` 에 **주석으로** `bindListItem` 을 언급하면서 늘었다. 호출 3건(정의 `:856` · ul `:396` · ol `:442`)은 그대로다. **정합은 유지되는데 게이트만 거짓이며, 그 거짓이 승격된 `[x]` 아래에 있었다.** 주석을 제외하지 않는 계수기의 전형적 실패다.
 
-> 재개봉은 이 tick 에서 함께 수행했다. 그 문서의 변경은 그쪽 §변경 이력 에 있다.
+> 재개봉은 253차 tick 에서 함께 수행했고, 그 재개봉본은 `aef5412` 로 blue 에 재승격됐다 (254차 확인). 따라서 본 계약 착지 시점에 `markdownParser.md` 는 이미 same-type 한정 문면이었고, `TSK-20260831-20-b` 는 스코프 밖 문서에 걸리지 않았다 — `TSK-20260831-05-a` 가 멈춘 지점을 이 인계가 실제로 통과시켰다.
 
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 
@@ -121,7 +122,9 @@ REQ-069 FR-05 는 *"두 계약이 동시에 참일 수 없으니 인계를 명�
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 구현 task DoD 로)
 
-`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. **검출 방향 4 · 음성 대조 3 이며 이관처 task 는 아직 발행되지 않았다** — 발행 전까지 이 절이 그 박제다 (`RULE-07` 은 이관처 없는 강등을 금지하므로, 이관처가 발행되지 않은 채 승격이 시도되면 그 사실이 여기서 보여야 한다).
+`RULE-07 §수용 기준 문장 규약` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. **검출 방향 4 · 음성 대조 3 이며 이관처는 `TSK-20260831-20-a`(`d75a571`) · `TSK-20260831-20-b`(`f3b3974`·`1112fe2`) 로 발행돼 착지했다.**
+
+**Ctrl-3 이 실제로 발화한 것이 이 이관의 산출이다.** 초안이 그 방향을 *"가설이 아니라 실제로 일어났다"* 고 적었는데, 착지 왕복에서 그것이 다시 일어났다 — `<li>` 선행 공백 표기를 되돌리는 정상 변형에서 (I1) 게이트가 `rc=1` 로 붉었고, developer 는 `RULE-06 §음성 대조` 의 지시대로 **게이트를 좁혔다** (산출 전체 리터럴 `toBe` → 항목 본문 자리를 `[^<]*` 로 열고 중첩 구조를 `^`·`$` 로 닫는 정규식). 대조를 통과시키려고 정상 변형 쪽을 바꾸지 않았다. 그 좁힘이 `1112fe2` 이며, 좁히기 전 게이트는 **이 계약이 소유하지 않은 축**(내용 시작 표기)에 조건부였다.
 
 - **Dir-1 (민감도, 구조 축 — `ul > ol`)**: 중첩을 되돌려 `- 준비\n  1. 설치` 가 형제 목록을 내게 한다 → `rc≠0`.
 - **Dir-2 (민감도, 구조 축 — `ol > ul`)**: 반대 방향만 되돌린다 → `rc≠0`. **한 방향만 주입하면 대칭 회귀가 통과한다** (REQ-069 FR-03).
