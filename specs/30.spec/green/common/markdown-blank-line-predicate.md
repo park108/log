@@ -2,7 +2,7 @@
 
 > **위치**: `src/common/markdownParser.ts` — `isBlankLine` (`:871-872`, 정의 1건 · 호출 2곳), 목록 연속성 패스 (`:879` · `:967`), 문단 패스 (빈 줄 술어를 **쓰지 않는다** — §동작 (I4)). 게이트: `src/common/markdownParser.test.ts` + 교차 게이트 `src/__tests__/**` 8 파일 (§의존성).
 > **관련 요구사항**: REQ-20260831-061 FR-01~FR-06 · NFR-01~NFR-04 (출처: developer followup `20260831-1303`, `TSK-20260831-09-b` 산출)
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-061 흡수, HEAD=`ed64fb3`)
+> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 reconcile 8 플립, HEAD=`7fc39ba`)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`ed64fb3`).
 
@@ -59,10 +59,10 @@
 
 > 각 명령은 HEAD=`ed64fb3` 에서 **파일에서 추출해** 격리 사본(`git archive HEAD` + `node_modules` 심볼릭 링크)에서 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 워킹트리에 다른 writer 의 미커밋 변경이 있을 수 있으므로 이 축의 측정은 언제나 격리 사본에서 한다 (`RULE-02 §교차 작업 파괴`).
 
-- [ ] (I1·I2 목록 등식 채널) 공백만 있는 줄의 등식이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "1. 첫째\n   \n2. 둘째" "$f" && npx vitest run "$f" -t "빈 줄 술어는 공백만 있는 줄을 포함한다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit.
-- [ ] (I3 탭·중첩) 탭 줄과 중첩 보존이 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "- 첫째\n\t\n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **이 명령은 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다.
-- [ ] (I4 패스 간 비대칭) 문단 패스의 현행이 게이트로 판정돼 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "첫\n  \n둘" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **비대칭은 리터럴로 못 박는다** — 등식으로 쓸 수 없다 (그 자리에서 두 항이 다른 것이 요점이므로).
-- [ ] (I1~I4 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다.
+- [x] (I1·I2 목록 등식 채널) 공백만 있는 줄의 등식이 게이트로 실재하고 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "1. 첫째\n   \n2. 둘째" "$f" && npx vitest run "$f" -t "빈 줄 술어는 공백만 있는 줄을 포함한다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. 계약 이름 0 hit · 예시 2건 0 hit. **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
+- [x] (I3 탭·중첩) 탭 줄과 중첩 보존이 게이트에 실재한다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "- 첫째\n\t\n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **이 명령은 예시의 실재만 잰다** — 동작 판정은 (접속) 과 (NFR-01) 이 닫는다. **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
+- [x] (I4 패스 간 비대칭) 문단 패스의 현행이 게이트로 판정돼 있다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "첫\n  \n둘" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (2건 전수 0 hit)**. **비대칭은 리터럴로 못 박는다** — 등식으로 쓸 수 없다 (그 자리에서 두 항이 다른 것이 요점이므로). **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
+- [x] (I1~I4 접속) 네 축이 **동시에** 성립하고 파서 스위트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" "$f" && grep -qF -e "- 첫째\n  \n- 둘째" "$f" && grep -qF -e "- 하나\n  \n  - 중첩" "$f" && grep -qF -e "<p>첫</p><p>  </p><p>둘</p>" "$f" && npx vitest run "$f" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 **rc=1 (grep 단계에서 탈락)**. **접속으로 닫는 이유**: `-t` 는 이름 미매치 시 단독으로 rc=0 을 내고, 스위트 단독 실행은 게이트가 없는 현 상태에서도 rc=0 이다. 둘 다 공허 통과 경로다. **HEAD=`7fc39ba` 재실측 rc=0** (`TSK-20260831-14`/`1a887f5` 착지).
 - [x] (I5 술어 단일 정의) `isBlankLine` 정의가 하나뿐이다: `bash -c 'test "$(grep -cE "const isBlankLine" src/common/markdownParser.ts)" -eq 1 && test "$(grep -cE "isBlankLine\(" src/common/markdownParser.ts)" -ge 2'` → HEAD=`ed64fb3` 실측 rc=0 (정의 1 · 출현 2). 뒤쪽 하한이 **정의만 남고 호출이 사라진 상태**를 막는다. 구현 후에도 rc=0 이어야 한다.
 - [x] (I6 소유 계약 비퇴행) 소유 계약의 `\n\n` 게이트가 초록이다: `bash -c 'f=src/common/markdownParser.test.ts; test -f "$f" || exit 2; grep -qF -e "빈 줄은 같은 종류의 목록을 끊지 않는다" "$f" && npx vitest run "$f" -t "빈 줄은 같은 종류의 목록을 끊지 않는다" --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0. 구현 후에도 rc=0 이어야 한다.
 - [x] (NFR-01 비퇴행 baseline) 파서 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0 (**122 tests**). **기존 게이트를 완화하는 방식의 해결은 불가**하다.
@@ -70,10 +70,10 @@
 - [x] (NFR-03 특이도) 빈 줄이 인용을 끊는 축이 초록이다: `bash -c 'npx vitest run src/__tests__/blockquote-is-one-block.test.ts --coverage.enabled=false >/dev/null 2>&1'` → HEAD=`ed64fb3` 실측 rc=0. 빈 줄을 전역적으로 버리는 방향이 이 축에서 갈린다.
 
 ## 수용 기준
-- [ ] (Must, FR-01·FR-02) 위 §테스트 현황 (I1·I2 목록 등식 채널) 명령 → rc=0.
-- [ ] (Must, FR-03·FR-04) 위 §테스트 현황 (I3 탭·중첩) 명령 → rc=0.
-- [ ] (Must, FR-05 비대칭 판정) 위 §테스트 현황 (I4 패스 간 비대칭) 명령 → rc=0.
-- [ ] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1~I4 접속) 명령 → rc=0.
+- [x] (Must, FR-01·FR-02) 위 §테스트 현황 (I1·I2 목록 등식 채널) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
+- [x] (Must, FR-03·FR-04) 위 §테스트 현황 (I3 탭·중첩) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
+- [x] (Must, FR-05 비대칭 판정) 위 §테스트 현황 (I4 패스 간 비대칭) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
+- [x] (Must, FR-01~FR-05 접속) 위 §테스트 현황 (I1~I4 접속) 명령 → rc=0. HEAD=`7fc39ba` 재실측 rc=0.
 - [x] (Must, NFR-04 단일 모듈) 위 §테스트 현황 (I5 술어 단일 정의) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0.
 - [x] (Must, 범위 제한) 위 §테스트 현황 (I6 소유 계약 비퇴행) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0.
 - [x] (Must, NFR-01 비퇴행) 위 §테스트 현황 (NFR-01) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0 (122 tests).
@@ -111,6 +111,7 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-31 | inspector 251차 tick (Phase 3, REQ-20260831-061 흡수) / pending @ HEAD=`ed64fb3` | 최초 박제 — 빈 줄 술어 7 축 (I1~I7). **소유처 판정 (req 는 선택을 inspector 에 남겼다)**: req 는 blue `markdown-blank-line-list-continuity` 재개봉과 신규 spec 을 비용과 함께 제시했다. **신규로 세웠다** — (1) 그 spec 은 §수용 기준 10/10 승격 완료본이고 재개봉하면 promote 가 되돌아간다, (2) 본 축은 목록 연속성보다 **넓다** — (I4) 의 패스 간 비대칭은 문단 패스에 걸쳐 있어 목록 계약의 명제가 아니다, (3) **그 spec 자신이 §참고 §미측정 에서 이 축을 "계약면을 넓힐지는 별 축이다" 로 지목**했으므로 별 spec 이 소유처 판정에 어긋나지 않는다. 재개봉 대신 **입력 부류를 넓히는 방식**을 택해 소유 계약의 등식·대조를 (I6) 으로 비퇴행 잠금만 했다. **(I4) 를 계약 축으로 세운 것이 이 흡수의 판단**이다 — req FR-05 는 "판정된다" 만 요구했고 방향을 열어 두었는데, 문단 패스 정규화는 소유 계약 (I7) 이 잠근 축이라 **현행 보존**으로 확정하고 리터럴로 못 박았다 (등식으로 쓸 수 없다 — 두 항이 다른 것이 요점이므로). **자기 결함 1건 자체 발견·정정**: 1차 baseline 측정이 `-` 로 시작하는 패턴을 `-e` 없이 넘겨 `grep` 이 옵션으로 읽었고 `rc=2` 인데 출력이 비어 **0 hit 으로 오독**됐다 (대화형 zsh 에서는 `ugrep` 이 가로채 또 다른 오류를 냈다). `-e` 를 붙여 전건 재측정했다. baseline: 계약 이름·예시 7건 전수 0 hit / `isBlankLine` 정의 1 · 출현 2 / 소유 계약 `\n\n` 예시 1·2 hit / 결함 열 5행 · 비대칭 4행 격리 사본 실측. unchecked 4 · checked 5. | all |
+| 2026-08-31 | inspector 252차 tick (Phase 1 reconcile) / `1a887f5` | **§테스트 현황 4 + §수용 기준 4 = 8 마커 플립** — `TSK-20260831-14`(빈 줄 술어 게이트) 착지로 (I1·I2)·(I3)·(I4)·(접속) 이 전건 rc=0 이 됐다. 판정 명령 9건을 **파일에서 추출해** 격리 사본에서 전수 재실행했고 rc 를 박제한다 (손 전사 0). 본 tick 은 developer 커밋이 inspector 커밋 사이에 끼어들어 HEAD 가 두 번 움직였고, 두 번째 delta(`markdownParser.test.ts`)에 대해 green 8건 전수를 재측정해 이 spec 만 플립됨을 확인했다. 교차 게이트 `cross-gate-files=8` 유지. §수용 기준 **9/9 — promote 후보**. | 테스트 현황, 수용 기준 |
 
 ## 참고
 
