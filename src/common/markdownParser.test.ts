@@ -216,6 +216,15 @@ describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
 		// TSK-20260418-10 §7 case 3
 		const result = parser.markdownToHtml("1. a\n\t1. b");
 		expect(result).toBe("<ol><li>a<ol><li>b</li></ol></li></ol>");
+
+		// 같은 종류(OL>OL) 중첩의 그룹 경계 대조 — 위 UL 쪽과 대칭이다.
+		// 번호 목록은 바깥이 쪼개지면 번호가 1 로 되감기므로 개수 단언이 핵심이다.
+		const group = parser.markdownToHtml("1. 하나\n   1. 안쪽\n2. 둘");
+		expect(group).toBe(
+			"<ol><li>하나<ol><li>안쪽</li></ol></li><li>둘</li></ol>"
+		);
+		expect(group).toMatch(/<li>[^<]*<ol>/); // 중첩이 <li> 안쪽에서 열린다
+		expect(group.match(/<ol>/g)?.length).toBe(2); // 바깥 1 + 중첩 1 (바깥은 쪼개지지 않는다)
 	});
 
 	it("closes all nested lists before a trailing paragraph", () => {
@@ -236,6 +245,17 @@ describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
 		// TSK-20260418-10 §7 case 5
 		const result = parser.markdownToHtml("- a\n  - b");
 		expect(result).toBe("<ul><li>a<ul><li>b</li></ul></li></ul>");
+
+		// 같은 종류(UL>UL) 중첩의 그룹 경계 대조 — `does NOT nest ...` fixture 가
+		// 지키던 명제(같은 종류 그룹 경계가 무너지지 않는다) 를 여기서 이어받는다.
+		// 중첩 구조(<li> 안쪽)와 바깥 목록 개수를 **함께** 잰다: 둘 중 하나만 재면
+		// 중첩된 채 바깥이 쪼개진 산출(번호 되감김) 이 초록으로 통과한다.
+		const group = parser.markdownToHtml("- 하나\n  - 안쪽\n- 둘");
+		expect(group).toBe(
+			"<ul><li>하나<ul><li>안쪽</li></ul></li><li>둘</li></ul>"
+		);
+		expect(group).toMatch(/<li>[^<]*<ul>/); // 중첩이 <li> 안쪽에서 열린다
+		expect(group.match(/<ul>/g)?.length).toBe(2); // 바깥 1 + 중첩 1 (바깥은 쪼개지지 않는다)
 	});
 
 	it("keeps sibling children at the same depth inside one nested UL", () => {
@@ -250,16 +270,15 @@ describe('MD parsing — same-type nested lists (bindListItem stack)', () => {
 		);
 	});
 
-	// markdownParser.md §동작 (I6) "same-type 한정 계약" 박제:
-	// ul ↔ ol 혼합 중첩 (`- a\n  1. b`) 은 bindListItem 알고리즘 범위 밖.
-	// 본 fixture 는 의도적 out-of-scope 박제 — same-type 케이스가 아니므로 nested <ol> in <li>
-	// 구조로 결합되지 않고, 평탄한 sibling <ul> + <ol> (또는 동등 fail-safe 출력) 으로 분기.
-	it("does NOT nest ol child inside ul parent (mixed-type out-of-scope, REQ-076 FR-03 I6)", () => {
+	// 혼합 종류 중첩의 산출 형태는 `markdown-mixed-type-nested-list` 계약이 소유한다
+	// (TSK-20260831-20-b). 이 fixture 는 그 계약이 뒤집을 명제(중첩이 일어나지 않는다) 를
+	// 박제하고 있었으므로 그 단언 한 줄을 **인계**했다 — 그것이 지키던 명제(같은 종류
+	// 그룹 경계 보존) 는 위 두 대조 게이트로 옮겨 세웠다 (TSK-20260831-20-a).
+	// **입력은 바꾸지 않는다** (RULE-06 §(T3)) — 남은 두 단언은 계약 착지 후에도 참이다.
+	it("emits both ul and ol for a mixed-type indented list", () => {
 		const input = "- a\n\t1. b";
 		const result = parser.markdownToHtml(input);
-		// 핵심 평서문: <ul><li> a<ol> ... 형태 (same-type nested 결과) 가 나타나지 않는다.
-		expect(result).not.toMatch(/<li>[^<]*<ol>/);
-		// <ul> 과 <ol> 가 둘 다 출력에 등장 (mixed 입력의 평탄 출력 박제).
+		// <ul> 과 <ol> 가 둘 다 출력에 등장.
 		expect(result).toContain("<ul>");
 		expect(result).toContain("<ol>");
 	});
