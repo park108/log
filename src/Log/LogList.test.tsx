@@ -333,7 +333,8 @@ describe('LogList 마지막 페이지 뒤 커서', () => {
 
 		const { container } = renderLogList();
 		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
-		expect(sessionStorage.getItem('logListLastTimestamp')).not.toBeNull();
+		// 위와 같은 이유로 커서 쓰기를 기다린다 (목록 렌더와 다른 effect 다).
+		await waitFor(() => expect(sessionStorage.getItem('logListLastTimestamp')).not.toBeNull());
 
 		fireEvent.click(await screen.findByTestId('seeMoreButton'));
 		await flushAfterResponse();
@@ -391,8 +392,18 @@ describe('LogList 마지막 페이지 뒤 커서', () => {
 		const { container } = renderLogList();
 		await waitFor(() => expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0));
 
-		expect(sessionStorage.getItem('logListLastTimestamp')).not.toBeNull();
-		expect(container.querySelector('[data-testid="seeMoreButton"]')).not.toBeNull();
+		// 목록 렌더를 기다리는 것은 **커서 쓰기를 기다리는 것이 아니다.** 커서는
+		// `lastTimestamp` 를 deps 로 하는 별도 effect 가 저장소에 반영하므로, 부하가
+		// 걸린 실행기에서는 이 단언이 그 쓰기보다 먼저 돈다 — CI 에서 실제로 그렇게
+		// 붉었고(run 33399143440) 로컬에서는 재현되지 않았다. 커서 쓰기를 한 틱
+		// 늦추면 결정적으로 재현된다.
+		//
+		// 단언할 조건 **자체**를 기다린다. 쓰기가 끝내 일어나지 않으면 waitFor 는
+		// 시간 초과로 실패하므로 검출력은 그대로다.
+		await waitFor(() => {
+			expect(sessionStorage.getItem('logListLastTimestamp')).not.toBeNull();
+			expect(container.querySelector('[data-testid="seeMoreButton"]')).not.toBeNull();
+		});
 	});
 });
 
