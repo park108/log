@@ -340,6 +340,47 @@ describe('MD parsing — mixed-type nested lists', () => {
 	});
 });
 
+// 인용의 **대조 축** 두 가지. 인용 안 블록 재귀(TSK-20260831-21-b)가 들어올 때
+// 가장 흔한 두 실패 방향은 손상 축 게이트에 **초록으로 보인다**:
+//
+//   1. 인용 내용을 인라인 파이프라인에 두 번 태운다 -> <strong><strong>굵게</strong></strong>.
+//      렌더 결과가 굵은 글씨라 눈으로 구분되지 않는다.
+//   2. 인용 패스를 옮기면서 여러 줄 묶음을 잃는다 -> 줄마다 <blockquote>.
+//      세 줄짜리 인용 하나가 화면에서 서로 떨어진 인용 셋이 된다 (이 파일 위쪽
+//      `93.56 -> 144.72` 실측 주석이 그 회귀의 기록이다).
+//
+// 그래서 구현보다 **먼저** 채널을 세운다. 두 게이트 모두 표기 문자열이 아니라
+// **처리 횟수와 덩어리 개수**를 잰다 — 표기를 못 박으면 정당한 변경에서 붉어진다.
+describe('MD parsing — blockquote contrast axes', () => {
+
+	it("인용 안 인라인은 한 번만 처리된다", () => {
+
+		const bold = parser.markdownToHtml("> **굵게**");
+		expect(bold).toContain("<blockquote>");
+		expect(bold).toContain("<strong>굵게</strong>");
+		expect(bold.match(/<strong>/g)?.length).toBe(1);
+		expect(bold).not.toContain("<strong><strong>");
+
+		// 코드 스팬도 같은 부류다 — 두 번 태우면 <code><code> 가 된다.
+		const code = parser.markdownToHtml("> `코드`");
+		expect(code).toContain("<blockquote>");
+		expect(code).toContain("<code>코드</code>");
+		expect(code.match(/<code>/g)?.length).toBe(1);
+		expect(code).not.toContain("<code><code>");
+	});
+
+	it("블록이 없는 여러 줄 인용은 한 덩어리다", () => {
+
+		// 판정면은 **덩어리 개수**이지 `<br />` 의 유무가 아니다 — 줄 잇는 표기를
+		// 다른 것으로 바꾸면서 한 덩어리를 유지하는 구현도 계약을 만족한다.
+		const two = parser.markdownToHtml("> 한 줄\n> 두 줄");
+		expect(two.match(/<blockquote>/g)?.length).toBe(1);
+		expect(two.match(/<\/blockquote>/g)?.length).toBe(1);
+		expect(two).toContain("한 줄");
+		expect(two).toContain("두 줄");
+	});
+});
+
 // 링크·이미지의 **제목 없는 표준 형식**이 렌더되지 않고 있었다 (2026-08-30 실측).
 //
 // 구 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해 제목이 있어야만
