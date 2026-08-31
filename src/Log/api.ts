@@ -74,14 +74,26 @@ const decodeEntities = (s: string): string => s
 	.replace(/&#39;/g, "'")
 	.replace(/&amp;/g, '&');
 
-export const trimmedContents = (contents: string): string => {
+// 태그를 걷는 단계만 떼어 내보낸다. 규칙은 여전히 `BLOCK_TAGS` 한 곳에 있고
+// 동작도 그대로다 — 게이트가 **"이 태그가 낱말 경계를 공급하는가"** 를 마크다운을
+// 거치지 않고 직접 물을 수 있게 하려는 것이다.
+//
+// 마크다운으로는 물을 수 없는 태그가 있다. 파서가 내지 못하는 태그(`div` · 새로
+// 허용된 태그)는 입력을 만들 방법이 없고, 그런 태그가 경계 목록에서 빠지는 것이
+// 정확히 이 축의 회귀다. 목록끼리 비교하는 게이트는 정합이 맞는 동안 늘 초록이라
+// `h[1-6]` 이 빠져도 못 봤다 (요약 3스위트 45개가 전부 통과했다).
+export const stripTagsForSummary = (html: string): string => {
 	return decodeEntities(
-		markdownToHtml(contents)
+		html
 			.replace(new RegExp(`</?(?:${BLOCK_TAGS})(?:\\s[^>]*)?>`, 'gi'), ' ')
 			.replace(/(<([^>]+)>)/gi, '')
 	)
 		.replace(/\s+/g, ' ')
 		.trim();
+}
+
+export const trimmedContents = (contents: string): string => {
+	return stripTagsForSummary(markdownToHtml(contents));
 }
 
 export const postLog = async(now: number, contents: string, isTemporary: boolean): Promise<Response> => {
