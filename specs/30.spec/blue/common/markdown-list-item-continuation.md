@@ -1,10 +1,10 @@
 # 목록 항목에 이어지는 들여쓴 줄은 그 항목의 내용이며 목록을 끊지 않는다
 
 > **위치**: `src/common/markdownParser.ts` — `computeDepth` (`:29`), `listMarkerDepth` (`:55`), 인용 패스 (`isQuoteLine` `:248`, 줄 머리 판정 `:253`), **이어짐 패스** (`:281`~`:365` — `isContinuation` `:336`), `ul` 검출 (`:367`), `ol` 검출 (`:394`), `bindListItem` (`:797`), `flushAll` (`:817`) 과 비-list 노드에서의 호출 (`:889`). 게이트: `src/common/markdownParser.test.ts` — `:496` (이어짐 계약) · `:545` (번호 되감김 대조).
-> **관련 요구사항**: REQ-20260831-053 FR-01~FR-05 · NFR-01~NFR-03
-> **최종 업데이트**: 2026-08-31 (by inspector — Phase 1 drift reconcile, 계약 전 축 충족, HEAD=`7b43fa8`)
+> **관련 요구사항**: REQ-20260831-053 FR-01~FR-05 · NFR-01~NFR-03 · REQ-20260831-059 (§미측정 `<li>` 선행 공백 선언 해소 — 인수처 지목)
+> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-059 흡수에 따른 §미측정 순환 선언 해소, HEAD=`c64c946`)
 
-> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`7b43fa8`).
+> 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`c64c946`).
 
 ## 역할
 
@@ -42,18 +42,18 @@
 - 직교: `specs/30.spec/blue/common/markdownParser.md` — (I1)~(I7) `bindListItem` 중첩 알고리즘. 본 계약은 그 알고리즘의 **입력을 넓히는** 축이며 알고리즘 자체와 직교한다 ((I7) 이 그 경계다). `specs/30.spec/green/common/sanitizeHtml.md` — 산출 태그 `ul`·`ol`·`li`·`blockquote` 는 `ALLOWED_TAGS` 에 이미 있어 sanitize 변경을 요구하지 않는다.
 
 ## 테스트 현황
-- [x] (I1·I3·I4·I5) 이어짐 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "목록 항목에 이어지는 줄" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "목록 항목에 이어지는 줄" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=0** (`markdownParser.test.ts:496` describe). `grep -cF "목록 항목에 이어지는 줄" src/common/markdownParser.test.ts` → **1** (흡수 시점 0).
-- [x] (I2) 번호 되감김 대조가 게이트로 실재하고 초록이다: `bash -c 'grep -qF "번호가 되감기지 않는다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "번호가 되감기지 않는다" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 **rc=0** (`:545` describe). **이 대조를 분리한 값이 실측으로 확인됐다** — `TSK-20260831-06` 의 Dir-2 주입(ol 이어짐만 차단)에서 **(I1) 게이트는 통과하고 이 게이트만 붉어졌다**.
-- [x] (I6 대조 현행 PASS) 목록 밖의 들여쓴 줄은 문단이다: `bash -c 'grep -qF "does not treat a non-marker indented line as a list item" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "does not treat a non-marker indented line as a list item" >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 rc=0 (`markdownParser.test.ts:130`, 구현 전후 동일 라인). 구현이 이 대조를 완화하지 않았다.
-- [x] (구조 보존) 인용 패스는 여전히 줄 머리만 본다: `bash -c 'grep -qE "'\''>'\'' === node\.text\.charAt\(0\)" src/common/markdownParser.ts'` → HEAD=`7b43fa8` 재실측 rc=0 (`markdownParser.ts:253`). **흡수 시점에는 같은 명령이 (I3) 미충족의 원인 실재를 재고 있었다.** 구현이 이 판정을 느슨하게 하지 않고 이어짐 패스 쪽에서 해결했으므로 명령의 rc 는 같고 **의미가 뒤집혔다** — 지금 이 항목은 §회귀 중점 이 금지한 방향을 택하지 않았다는 보존 명제다.
-- [x] (I7·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`7b43fa8` 재실측 rc=0 (**96 tests**; 흡수 시점 80 → TSK-06 이 +9, TSK-07 이 +7).
+- [x] (I1·I3·I4·I5) 이어짐 계약이 게이트로 실재하고 초록이다: `bash -c 'grep -qF "목록 항목에 이어지는 줄" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "목록 항목에 이어지는 줄" >/dev/null 2>&1'` → HEAD=`c64c946` 재실측 **rc=0** (`markdownParser.test.ts:496` describe). `grep -cF "목록 항목에 이어지는 줄" src/common/markdownParser.test.ts` → **1** (흡수 시점 0).
+- [x] (I2) 번호 되감김 대조가 게이트로 실재하고 초록이다: `bash -c 'grep -qF "번호가 되감기지 않는다" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "번호가 되감기지 않는다" >/dev/null 2>&1'` → HEAD=`c64c946` 재실측 **rc=0** (`:545` describe). **이 대조를 분리한 값이 실측으로 확인됐다** — `TSK-20260831-06` 의 Dir-2 주입(ol 이어짐만 차단)에서 **(I1) 게이트는 통과하고 이 게이트만 붉어졌다**.
+- [x] (I6 대조 현행 PASS) 목록 밖의 들여쓴 줄은 문단이다: `bash -c 'grep -qF "does not treat a non-marker indented line as a list item" src/common/markdownParser.test.ts && npx vitest run src/common/markdownParser.test.ts -t "does not treat a non-marker indented line as a list item" >/dev/null 2>&1'` → HEAD=`c64c946` 재실측 rc=0 (`markdownParser.test.ts:130`, 구현 전후 동일 라인). 구현이 이 대조를 완화하지 않았다.
+- [x] (구조 보존) 인용 패스는 여전히 줄 머리만 본다: `bash -c 'grep -qE "'\''>'\'' === node\.text\.charAt\(0\)" src/common/markdownParser.ts'` → HEAD=`c64c946` 재실측 rc=0 (`markdownParser.ts:253`). **흡수 시점에는 같은 명령이 (I3) 미충족의 원인 실재를 재고 있었다.** 구현이 이 판정을 느슨하게 하지 않고 이어짐 패스 쪽에서 해결했으므로 명령의 rc 는 같고 **의미가 뒤집혔다** — 지금 이 항목은 §회귀 중점 이 금지한 방향을 택하지 않았다는 보존 명제다.
+- [x] (I7·비퇴행 baseline) 현 스위트가 초록이다: `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → HEAD=`c64c946` 재실측 rc=0 (**115 tests**; 흡수 시점 80 → TSK-06 +9 · TSK-07 +7 = 96 → TSK-08-a/-b +13 = 109 → TSK-09-a/-b +6 = 115. 08/09 계열은 강조·빈 줄 목록 축이라 본 계약과 무관하며 비퇴행 baseline 만 올린다).
 
 ## 수용 기준
-- [x] (Must, FR-01·FR-03) 위 §테스트 현황 (I1·I3·I4·I5) 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0 (`TSK-20260831-06` / `f885730`).
-- [x] (Must, FR-02) 위 §테스트 현황 (I2) 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0 (동 커밋).
-- [x] (Must, NFR-02 대조 보존) 위 §테스트 현황 (I6) 명령 → rc=0. HEAD=`7b43fa8` 재실측 rc=0. 구현 후에도 rc=0 — **이 대조를 지우거나 완화하는 방식의 해결은 불가**하다.
-- [x] (Must, NFR-03 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`7b43fa8` 재실측 rc=0 (96 tests). 특히 기존 게이트 `:120`(평탄 UL) · `:125`(평탄 OL — `<li> item1</li>` 선행 공백 포함) · `:130`(목록 밖 들여쓴 줄) · `:185`(혼합 중첩 범위 밖) 네 건이 그대로 통과했고, 구현이 넷 중 어느 것도 완화하지 않았다.
-- [x] (Must, NFR-01 중첩 알고리즘 보존) 중첩 게이트가 실재한다: `bash -c 'grep -qF "does NOT nest ol child inside ul parent" src/common/markdownParser.test.ts'` → HEAD=`7b43fa8` 재실측 rc=0 (`:185`). 중첩 산출은 §스코프 규칙 baseline 표의 보존 행과 동일하게 유지됐다 (현 산출 열 실측).
+- [x] (Must, FR-01·FR-03) 위 §테스트 현황 (I1·I3·I4·I5) 명령 → rc=0. HEAD=`c64c946` 재실측 rc=0 (`TSK-20260831-06` / `f885730`).
+- [x] (Must, FR-02) 위 §테스트 현황 (I2) 명령 → rc=0. HEAD=`c64c946` 재실측 rc=0 (동 커밋).
+- [x] (Must, NFR-02 대조 보존) 위 §테스트 현황 (I6) 명령 → rc=0. HEAD=`c64c946` 재실측 rc=0. 구현 후에도 rc=0 — **이 대조를 지우거나 완화하는 방식의 해결은 불가**하다.
+- [x] (Must, NFR-03 비퇴행) `bash -c 'npx vitest run src/common/markdownParser.test.ts >/dev/null 2>&1'` → rc=0. HEAD=`c64c946` 재실측 rc=0 (115 tests). 특히 기존 게이트 `:120`(평탄 UL) · `:125`(평탄 OL — 흡수 시점 `<li> item1</li>` 선행 공백 포함. **이 기대 문자열은 `markdown-list-item-content-start` 착지 시 `<li>item1</li>` 로 정정되며, 본 항목이 재는 것은 스위트 rc 이지 그 문자열이 아니다**) · `:130`(목록 밖 들여쓴 줄) · `:185`(혼합 중첩 범위 밖) 네 건이 그대로 통과했고, 구현이 넷 중 어느 것도 완화하지 않았다.
+- [x] (Must, NFR-01 중첩 알고리즘 보존) 중첩 게이트가 실재한다: `bash -c 'grep -qF "does NOT nest ol child inside ul parent" src/common/markdownParser.test.ts'` → HEAD=`c64c946` 재실측 rc=0 (`:185`). 중첩 산출은 §스코프 규칙 baseline 표의 보존 행과 동일하게 유지됐다 (현 산출 열 실측).
 - [x] (Must, 범위 제한) 혼합 중첩 · 항목 안 코드 펜스 · `<li>` 선행 공백 · loose/tight 구분은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
@@ -63,7 +63,7 @@
   - `grep -nE "'\''>'\'' === node\.text\.charAt\(0\)" src/common/markdownParser.ts` → 1 hit `:253` (`:187`). 흡수 시점에는 들여쓴 인용이 인용이 아닌 직접 원인이었고, 현 HEAD 에서는 **그대로 둔 채** 이어짐 패스가 앞에서 해결한다.
   - `grep -cE "^[[:space:]]*it\(" src/common/markdownParser.test.ts` → **82** (66). 흡수 시점에 목록 항목의 **이어지는 줄**을 다루는 것은 0건이었고 덮여 있던 것은 중첩(`describe` `:137`)과 비-마커 들여쓴 줄(`:130`)뿐이었다. 현재는 `:496`·`:545` 두 describe 가 그 자리를 채운다. 제외 규칙: `it(` 로 시작하는 줄만 계수.
 
-  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **82** 를 세지만 `npx vitest run` 은 **96 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `82` 는 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 96** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
+  > **`it(` 선언 수와 실행 테스트 수는 다르다.** 위 grep 은 정적 선언 **101** 을 세지만 `npx vitest run` 은 **115 tests** 를 보고한다 — 차이 14 는 루프 안에서 선언되는 `it` 때문이다 (예: `for (const src of ['---','***','___'])` 가 한 선언 줄로 3 테스트를 만든다). 두 수치는 서로 다른 것을 재며 어느 쪽도 틀리지 않다. 이 spec 에서 `82` 는 **선언 모집단**을 가리키고 비퇴행 판정의 대상은 **실행 96** 이다 (`RULE-06 §열거 고정 금지` 가 겨누는 부류 — 정적 계수는 루프 선언을 과소 보고한다).
   - 현 산출 실측 (격리 사본 `git archive HEAD` + `node_modules` 심볼릭 링크, repo 트리 무변경). **흡수 시점(`b1cbf5c`) 산출을 함께 둔다** — 위반 6행이 어떻게 닫혔고 보존 3행이 어떻게 그대로인지가 이 spec 의 감사 이력이다:
     | 입력 (`\n` 구분) | 흡수 시점 산출 (`b1cbf5c`) | 현 산출 (`7b43fa8`) | 판정 |
     |---|---|---|---|
@@ -83,6 +83,7 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-08-31 | inspector (Phase 3, REQ-20260831-059 흡수 — blue→green 복사) / pending @ HEAD=`c64c946` | **§참고 §미측정 의 `<li>` 선행 공백 선언 뒤집음 — 축 수·마커 불변.** 흡수 시점 문면은 그 공백을 "고치지 않는다" 고 선언하며 근거로 `markdownParser.test.ts:125` 를 인용했다. **그 인용이 순환이다** — 기대값이 결함 산출의 전사본이므로 게이트는 산출의 독립 근거가 될 수 없다. REQ-059 가 지적했고 본 tick 이 `markdown-list-item-content-start` 를 인수처로 세워 해소했다. 구조 명제·판정 명령·마커는 하나도 바뀌지 않았다 ([x]=6 [ ]=0 불변, 명령 5건 rc=0 재실측). NFR-03 항목의 `:125` 인용도 "이 문자열은 인수처 착지 시 정정되며 본 항목이 재는 것은 스위트 rc 다" 로 문면을 좁혔다. 라인 참조 drift 0 — `c64c946` 의 `markdownParser.ts` hunk 는 전부 `:863` 이후이고 본 spec 의 최대 참조는 `:438`. | 참고 §미측정 · 수용 기준 (NFR-03 문면) · 변경 이력 |
 | 2026-08-31 | inspector (Phase 1 drift reconcile) / `f885730` (`TSK-20260831-06`) @ HEAD=`7b43fa8` | **계약 전 축 충족 — unchecked 0.** (I1·I3·I4·I5)(I2) 게이트 2건이 신설되고 초록이라 §테스트 현황·§수용 기준 4 마커를 `[x]` 로 플립했다. 게이트 재실행 근거: 두 명령 모두 HEAD 에서 rc=0, 커밋 `f885730` 은 HEAD 의 조상, `result.md` 가 `injection: 3/3 detect` · `control: 2/2 pass` 를 박제. 함께 정정: (원인 실재) 항목의 **명령 rc 는 그대로 0 인데 의미가 뒤집혔다** — 구현이 인용 줄 머리 판정을 느슨하게 하는 대신 이어짐 패스를 앞에 두었으므로, 같은 명령이 이제 §회귀 중점 이 금지한 방향을 택하지 않았다는 (구조 보존) 명제다. 라인 drift 8건(`computeDepth :145`→`:29` · 인용 `:187`→`:253` · `ul :215`→`:367` · `ol :242`→`:394` · `bindListItem :638`→`:797` · `flushAll :658`→`:817` · 호출 `:730`→`:889` · 이어짐 패스 `:281`~ 신규), 계수 drift 2건(선언 66→82 · 실행 80→96), 평탄 OL 게이트 `:126`→`:125` (`it(` 줄 기준으로 교정), baseline 산출 표를 2열로 확장. | 테스트 현황 · 수용 기준 · 위치 · 역할 · 회귀 중점 · 스코프 규칙 · 참고 |
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-053 흡수) / `b1cbf5c` 시점 | 최초 박제 — 목록 항목 이어짐 7 축 (I1~I7). 신규 spec 으로 세운 근거: `markdownParser.md` §역할 이 "다른 단계 알고리즘 박제 (필요 시 별 spec)" 를 범위 밖으로 선언하며, 본 축은 그 spec 의 `bindListItem` 알고리즘을 대체하지 않고 **입력을 넓힌다** ((I7) 이 경계). baseline: 계약 이름 2건 0 hit / 선언 66 it(실행 80 tests) 중 이어짐 0건 / 인용 줄 머리 판정 `:187` 1 hit / 현 산출 9행 격리 사본 실측 (위반 6 · 보존 3). unchecked 2 · checked 4. | all |
 
@@ -102,7 +103,7 @@
 
 - **항목 안 코드 펜스의 기대 산출은 확정하지 않았다.** 실측상 `- 하나` 뒤의 들여쓴 코드 펜스는 `pre` 패스(`:102`)로 빠져나가 목록 밖에 놓인다. 이 조합의 기대값을 정하지 않았고 범위 밖으로 선언한다.
 - **loose/tight list 구분**(항목 사이 빈 줄에 따른 `<p>` 삽입)은 다루지 않는다.
-- **`<li>` 본문 앞의 한 칸 공백**(`<li> 하나</li>`)은 고치지 않는다. 기존 게이트 `markdownParser.test.ts:125` 가 이 표기를 잠그고 있고 HTML 렌더에서 보이지 않는다. 위 baseline 표의 `ol` 행에 그대로 나타나는 것은 현 표기의 사실이지 위반이 아니다.
+- **`<li>` 본문 앞의 한 칸 공백**(`<li> 하나</li>`)은 **본 계약의 판정 대상이 아니며, 이제 별 계약이 그것을 고친다.** 이 자리에 있던 흡수 시점 문면은 *"고치지 않는다"* 였고 그 근거로 기존 게이트 `markdownParser.test.ts:125` 가 표기를 잠근다는 것을 들었다. **그 논거는 순환이었다** — 그 기대값은 결함 있는 산출을 그대로 옮겨 적은 것이므로, 산출이 옳은 이유가 게이트이고 게이트가 그렇게 잠긴 이유가 산출이다. REQ-20260831-059 가 그 순환을 지적했고 `specs/30.spec/green/common/markdown-list-item-content-start.md` 가 이 축을 **인수했다**. 함께 들었던 두 번째 근거("HTML 렌더에서 보이지 않는다")는 참이며 인수처가 소비 경로 전수 확인으로 재현했으나, 그것은 **심각도**의 근거이지 **정당성**의 근거가 아니다. **아래 baseline 표의 `ol` 행에 나타나는 `<li> ` 는 현 표기의 사실이며, 인수처 계약이 착지하면 `<li>` 로 바뀐다** — 본 spec 의 판정 명령은 이어짐 **구조**만 재므로 그 변경에 붉어지지 않는다 (구조 명제 불변).
 - **저장 원문은 바뀌지 않는다.** 수리는 읽을 때 적용되므로 이미 게시된 글에도 파서 변경만으로 반영된다. 구현 방식에 대한 제약이지 판정 가능한 명제가 아니라 체크박스로 두지 않는다.
 - **원 req**: `specs/60.done/2026/08/31/req/20260831-list-item-continuation-line-belongs-to-item.md`.
 - **외부 근거**: CommonMark 0.31.2 §5.2 *List items* — continuation line 은 항목의 content column 만큼 들여쓰이면 그 항목에 속하며, 블록 구조(인용·문단)를 그 안에서 이어 간다.
