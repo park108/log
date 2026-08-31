@@ -100,7 +100,7 @@
 ## 의존성
 - 내부: `specs/30.spec/blue/**/*.md` (판정 대상 — **읽기 전용**), 신설 `scripts/check-blue-judgement-evaluable.sh`, `package.json` `scripts.check:*`.
 - 외부: 없음 (POSIX 셸 도구 + 저장소 표준 `bash`/`perl`/`grep`).
-- 역의존 (사용처): planner 의 `RULE-07 §promote 조건 2` 재실행 — 본 채널이 초록이면 그 재실행이 무판정 없이 끝난다는 것이 보장된다.
+- **역의존 (사용처) — 열거하지 않고 도출한다**: 본 채널의 소비처는 코드가 아니라 부착 지점이다. `bash -c 'grep -rln "check:blue-judgement\|check-blue-judgement" package.json scripts/ .husky/ .github/ 2>/dev/null'` → HEAD=`86ede5c` 실측 **2 hit** (`package.json` · `scripts/check-blue-judgement-evaluable.sh`). `.husky/` · `.github/` 부착은 **0 hit** 이며 그것이 이 채널이 아직 CI 에서 돌지 않는다는 뜻이다. 사람이 읽는 소비처는 planner 의 `RULE-07 §promote 조건 2` 재실행이고, 그 재실행은 위 2 hit 을 경유한다.
 - 직교: `specs/30.spec/blue/foundation/tooling.md` (`check:*` 채널 규약 — 본 채널은 그 규약을 따르며 새 규약을 만들지 않는다), `specs/30.spec/blue/foundation/build-artifact-gate-measurement-contract.md` ((I8) 의 빌드 전제 축과 인접).
 
 ## 테스트 현황

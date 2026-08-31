@@ -59,7 +59,7 @@
 ## 의존성
 - 내부: `src/common/markdownParser.ts` (표 블록 패스), `src/common/sanitizeHtml.ts` (허용 태그), `src/styles/` (표 규칙), `src/common/markdownParser.test.ts` · `src/common/sanitizeHtml.test.ts` · **`src/__tests__/parser-sanitizer-coherence.test.ts` (정합 게이트 — (I9)(I10) 의 대상)** (게이트).
 - 외부: `dompurify` (sanitize 구현 — 버전 정합은 `dependency-bump-gate.md` 영역).
-- 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log · Comment 본문 렌더).
+- **역의존 (사용처) — 열거하지 않고 도출한다**: `bash -c 'grep -rn "markdownToHtml(" src --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -v "common/markdownParser\.ts"'` → HEAD=`86ede5c` 실측 **4 hit**. 실제 호출 **3**건: `src/Log/Writer.tsx` (작성 미리보기 — 글쓴이가 저장 전 결과를 보는 유일한 화면) · `src/Log/LogItem.tsx` (본문 렌더, `sanitizeHtml` 경유) · `src/Log/api.ts` (요약 `trimmedContents`). **제외 규칙**: 나머지 1건 `src/Log/__fixtures__/logs.ts` 는 fixture 본문 안의 **글자열이지 호출이 아니다**. **Comment 는 이 파서를 쓰지 않는다** — `bash -c '! grep -rq "markdownToHtml\|markdownParser\|dangerouslySetInnerHTML" src/Comment'` → rc=0 (0 hit). 댓글 본문은 평문 렌더다 (`CommentItem.tsx` 가 `message.split("\n")` 을 `<p>` 로 그린다). **라인 번호는 인용하지 않는다** — 오늘 하루 파서 12+커밋이 이 파일들의 좌표를 전건 밀었다 (`spec-dependency-reverse-derivation` (I4)).
 - 직교: `specs/30.spec/green/common/sanitizeHtml.md` — 그 spec 의 **(I12)** 가 본 축의 (I2) 를 정책 쪽에서 받으며, (I1) 단일 모듈 정책과 (I6) 정책 변경 단일 진입점이 본 축의 (I2)(I8) 을 규율한다. 본 spec 은 **무엇이 허용돼야 하는가** 를 요구하고, 그 spec 은 **어디서 어떻게 바꾸는가** 를 규율한다. `specs/30.spec/blue/common/markdownParser.md` (`bindListItem` + 속성 escape 축 — 본 축과 무관).
 
 ## 테스트 현황

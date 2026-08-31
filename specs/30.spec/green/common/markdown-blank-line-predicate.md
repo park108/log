@@ -60,7 +60,7 @@
 - 내부: `src/common/markdownParser.ts` (단일 대상 — `isBlankLine` 술어), `src/common/markdownParser.test.ts` (게이트 1 파일).
 - **교차 게이트 (비퇴행 모집단)**: `markdownToHtml` 을 소비하는 `src/__tests__/**`. 모집단은 열거가 아니라 `bash -c 'grep -rl "markdownToHtml" src/__tests__/'` 로 **도출**한다 (`RULE-06 §열거 고정 금지`) — HEAD=`ed64fb3` 실측 **8 파일 / 106 tests**.
 - 외부: 없음 (순수 함수).
-- 역의존 (사용처): `markdownToHtml` 산출을 소비하는 모든 화면 (Log 본문 · Comment 본문 · 검색 미리보기).
+- **역의존 (사용처) — 열거하지 않고 도출한다**: `bash -c 'grep -rn "markdownToHtml(" src --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -v "common/markdownParser\.ts"'` → HEAD=`86ede5c` 실측 **4 hit**. 실제 호출 **3**건: `src/Log/Writer.tsx` (작성 미리보기 — 글쓴이가 저장 전 결과를 보는 유일한 화면) · `src/Log/LogItem.tsx` (본문 렌더, `sanitizeHtml` 경유) · `src/Log/api.ts` (요약 `trimmedContents`). **제외 규칙**: 나머지 1건 `src/Log/__fixtures__/logs.ts` 는 fixture 본문 안의 **글자열이지 호출이 아니다**. **Comment 는 이 파서를 쓰지 않는다** — `bash -c '! grep -rq "markdownToHtml\|markdownParser\|dangerouslySetInnerHTML" src/Comment'` → rc=0 (0 hit). 댓글 본문은 평문 렌더다 (`CommentItem.tsx` 가 `message.split("\n")` 을 `<p>` 로 그린다). **라인 번호는 인용하지 않는다** — 오늘 하루 파서 12+커밋이 이 파일들의 좌표를 전건 밀었다 (`spec-dependency-reverse-derivation` (I4)).
 - 직교: `specs/30.spec/blue/common/markdown-blank-line-list-continuity.md` — **소유 계약**이며 본 spec 은 그 등식의 입력 부류를 넓힌다. 그 spec §참고 §미측정 이 이 축을 *"계약면을 넓힐지는 별 축이다"* 로 **자기 이름이 아닌 별 축으로 지목**해 두었고 본 spec 이 그 별 축이다 (§변경 이력의 소유처 판정). `specs/30.spec/blue/common/markdown-list-item-continuation.md` · `specs/30.spec/green/common/markdown-list-item-content-start.md` (목록 항목 **내용** 축 — 본 계약은 항목 내용을 건드리지 않는다), `specs/30.spec/blue/common/markdownParser.md` (블록 패스 알고리즘).
 
 ## 테스트 현황
