@@ -1,8 +1,8 @@
-# 승격된 spec 의 판정 명령은 현 HEAD 에서 평가된다
+# 승격 경계를 넘는 spec 의 판정 명령은 현 HEAD 에서 평가된다
 
-> **위치**: 판정 대상 `specs/30.spec/blue/**/*.md` (HEAD=`c64c946` 실측 **69 파일**). 발화 채널 (**미부착 — §참고 §채널 부착**): `scripts/check-blue-judgement-evaluable.sh` + `package.json` `scripts.check:blue-judgement`. 기존 동류 채널 16건이 같은 규약을 따른다 (`scripts/check-*.sh` ↔ `check:*` — 예 `scripts/check-deps-coherence.sh`).
-> **관련 요구사항**: REQ-20260831-060 FR-01~FR-07 · NFR-01~NFR-03 (출처: 운영자 결함 신고 — `RULE-05 §결함 신고`)
-> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-060 흡수, HEAD=`c64c946`)
+> **위치**: 판정 대상 `specs/30.spec/blue/**/*.md` (HEAD=`ed64fb3` 실측 **69 파일**) + `specs/30.spec/green/**/*.md` 중 promote 후보 (§동작 (I10)). 발화 채널 (**부착 완료 — `TSK-20260831-12` / `ed64fb3`**): `scripts/check-blue-judgement-evaluable.sh` + `package.json` `scripts.check:blue-judgement`. 기존 동류 채널 16건이 같은 규약을 따른다 (`scripts/check-*.sh` ↔ `check:*` — 예 `scripts/check-deps-coherence.sh`).
+> **관련 요구사항**: REQ-20260831-060 FR-01~FR-07 · NFR-01~NFR-03 · REQ-20260831-063 FR-01~FR-06 · NFR-01~NFR-04 (출처: 운영자 결함 신고 2건 — `RULE-05 §결함 신고`)
+> **최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-063 흡수: 모집단·구획 축, HEAD=`ed64fb3`)
 
 > 참조 코드는 **식별자 우선**. 라인 번호는 스냅샷 (HEAD=`c64c946`).
 
@@ -18,7 +18,11 @@
 
 **계약면은 경로가 아니라 평가 가능성이다.** `.js` → `.ts` 이관은 이 불변식을 만족시키는 **수단**이며, 수단을 계약으로 쓰면 다음 이관 때 같은 일이 반복된다.
 
-의도적으로 하지 않는 것: **판정 명령이 내는 참/거짓** (본 계약은 `rc=0` 이냐 `rc=1` 이냐를 요구하지 않는다 — `rc=2` 가 아닐 것만 요구하며, 평가된 뒤의 위반은 각 spec 자신의 소관이다), `30.spec/green/**` (미승격 문서는 작성 중이며 자리표시자가 정당하다), `40.task/**` · `60.done/**` · `50.blocked/**` 의 명령 (감사 기록이며 재실행 대상이 아니다), `rules/`·`.claude/agents/` 문면 개정 (운영자 소관 — `RULE-01` writer 매트릭스), **timeout 명령의 실행 시간** (§참고 §미측정).
+**모집단을 blue 로만 두면 rot 이 green 을 거쳐 들어오는 경로가 열린 채로 남는다.** 최초 판단(*"미승격 문서는 작성 중이며 자리표시자가 정당하다"*)은 작성 자유를 지키려는 것이었으나, **promote 는 `mv` 다** — green 의 마지막 상태가 곧 blue 의 첫 상태이고 문서의 모든 바이트가 그대로 승격된다. 실측(HEAD=`ed64fb3`, green 9 파일): 무판정 **5건** 중 **3건이 `sanitizeHtml.md`** 에 있고 그 문서는 신규 spec 이 아니라 **blue 재개봉 사본**이다. 경로는 가설이 아니라 **현재 큐에 실재한다.**
+
+**그리고 무판정만 재는 것으로는 부족하다.** 본 흡수가 발견한 실물: `blue/foundation/npm-script-prefix-coherence.md:43` 은 `[x]` 로 잠긴 승격 계약이며 *"4 hit / 모두 키 set 포함"* 이라고 적었는데, 적힌 명령 `grep -rnE "npm run (lint\|check):" .husky .github/workflows` 를 실행하면 **`rc=1` · 0 hit** 이다. `-E` 에서 `\|` 는 교대가 아니라 **리터럴 파이프**라서다 (의도한 `(lint|check)` 로 고치면 **17 hit**). 즉 마커는 초록인데 그 마커를 떠받치는 명령은 **아무것도 세지 않는다.** 이 부류는 `rc=2` 가 아니라 `rc=1` 이므로 (I1) 의 그물을 그대로 통과한다 — 마크다운 표·인라인 이스케이프가 정규식 의미를 조용히 바꾸는 자리이며 (I12) 가 그것을 정적으로 잡는다.
+
+의도적으로 하지 않는 것: **판정 명령이 내는 참/거짓** (본 계약은 `rc=0` 이냐 `rc=1` 이냐를 요구하지 않는다 — `rc=2` 가 아닐 것만 요구하며, 평가된 뒤의 위반은 각 spec 자신의 소관이다), **작성 중인 green** (promote 후보가 아닌 문서 — 자리표시자가 정당하다. 다만 **보고는 한다**: §동작 (I10) 등급 2), `40.task/**` · `60.done/**` · `50.blocked/**` 의 명령 (감사 기록이며 재실행 대상이 아니다), `rules/`·`.claude/agents/` 문면 개정 (운영자 소관 — `RULE-01` writer 매트릭스), **timeout 명령의 실행 시간** (§참고 §미측정).
 
 ## 공개 인터페이스
 - 신설 채널: `scripts/check-blue-judgement-evaluable.sh` — 인자 없음, 종료 코드로 판정 (`0` 충족 / `1` 위반). `package.json` 의 `scripts.check:blue-judgement` 로 발화한다. 저장소의 기존 `check:*` 16건과 같은 규약이다.
@@ -48,12 +52,30 @@
 
 9. **(I9) 판정은 결정적이다**: 같은 HEAD·같은 전제에서 두 번 실행하면 같은 분류를 낸다. 격리 사본과 저장소 루트의 차이는 gitignored 경로·빌드 산출물로 전부 귀속되어야 한다.
 
+10. **(I10) 판정 모집단은 두 등급이다**: **등급 1(집행 — 채널 rc 에 반영)** = `30.spec/blue/**` 전부 **+ `30.spec/green/**` 중 §수용 기준 체크박스가 전수 `[x]` 인 문서**. **등급 2(보고만 — rc 무반영)** = 나머지 green. 등급 2 의 무판정은 출력에 나타나되 채널을 붉게 만들지 않는다.
+
+    > **왜 "promote 후보" 가 경계인가.** *"green 은 항상 평가 가능하다"* 는 작성 중 자유와 충돌한다. *"promote 경계를 넘는 문서는 평가 가능하다"* 는 충돌하지 않는다 — 그리고 후자가 정확히 rot 경로를 닫는 최소 조건이다. 결정적으로 **그 상태는 기계적으로 판정된다**: §수용 기준 체크박스를 세면 되며, 그것은 `RULE-07 §promote 조건 1` 이 이미 쓰는 계수와 **같은 계수**다. 채널은 planner 의 의도를 알 필요가 없다.
+    >
+    > 이 형태는 `RULE-07 §promote 조건 2`(승격 시점 재실행)를 **대체하지 않고 앞당긴다**. 그 조건은 §수용 기준만 보고 승격 시점에 한 번 보지만, 본 계약은 문서 전체를 **후보가 된 순간부터** 본다.
+
+11. **(I11) 판정 구획은 `## 테스트 현황` 과 `## 수용 기준` 이다**: 나머지 구획(`## 역할` · `## 동작` · `## 의존성` · `## 스코프 규칙` · `## 변경 이력` · `## 참고`)의 명령 모양 span 은 **인용 · 감사 기록 · 작성 시점 baseline** 이며 재실행 대상이 아니다.
+
+    > **이 구분은 편의가 아니라 필연이다.** 마크다운 표 칸 안에서는 `|` 를 `\|` 로 이스케이프해야 하므로, 파이프를 쓰는 명령은 표 안에 **실행 가능한 형태로 적을 수 없다.** "모든 명령 모양 span 이 실행 가능해야 한다" 는 계약은 표를 쓰는 순간 **충족 불가능**해진다.
+    >
+    > 그리고 `## 변경 이력` 은 그 시점의 사실을 적은 감사 기록이지 현 HEAD 에서 참이어야 하는 명제가 아니다. `## 스코프 규칙` 의 grep-baseline 도 같다 — `RULE-06` 이 요구하는 것은 **작성 시점 실행 결과의 박제**이며 그 수치는 트리가 움직이면 정당하게 낡는다. **본 계약이 `40.task/**` · `60.done/**` 를 "감사 기록이며 재실행 대상이 아니다" 로 제외한 것과 같은 논리이고, 그 논리가 spec 내부 구획에는 적용되지 않고 있었다.**
+
+12. **(I12) 판정 구획의 명령에는 이스케이프된 셸·정규식 메타문자가 없다** (Should): 판정 구획 span 에 `\|` · `\&` · `\;` 가 있으면 위반이다. `\|` 는 **세 가지 뜻**을 가질 수 있어 읽는 사람이 구별할 수 없다 — 마크다운 표 이스케이프 · ERE 의 리터럴 파이프 · BRE 의 교대. 실물 하나가 이미 승격돼 있다 (§역할 — `npm-script-prefix-coherence.md:43`, `[x]` 인데 `rc=1`·0 hit). 정정 방향은 **판정 명령을 표 칸 밖으로 빼는 것**이지 이스케이프를 더 다듬는 것이 아니다.
+
 ### 회귀 중점
 - **`rc≠0` 으로 뭉뚱그린 채널은 (I3) 을 깬다.** 78건이 각 spec 소관의 진짜 위반과 섞여, 채널이 붉기만 하고 무엇이 문제인지 말하지 못한다.
 - **모집단을 열거로 고정하면 (I4) 를 깬다.** 오늘 69 파일이 맞아도 다음 spec 이 스캔 밖에 숨는다. 이 저장소는 하드코딩된 5개 스크립트 목록이 이후 추가된 6개를 숨긴 실측을 이미 갖고 있다 (`RULE-06 §열거 고정 금지`).
 - **닫히지 않은 백틱을 빈 문자열로 넘기면 (I6) 을 깬다.** `bash -c ""` 가 `rc=0` 이라 미실행이 충족으로 계수된다 — 채널 자신이 겨누는 결함과 **같은 부류**의 결함이다.
 - **`>/dev/null` 을 쓰기로 오인하면 (I7) 을 만족시키면서 (I1) 의 계수를 과소 보고한다.** 본 흡수가 실제로 겪었고 정정했다.
 - **경로 이관 자체를 계약으로 삼는 방향은 다음 이관에서 되풀이된다.** 계약면은 평가 가능성이지 확장자가 아니다.
+- **모집단을 blue 로만 두는 방향은 (I10) 을 깬다.** 탐지는 되지만 **승격 이후에** 되고, 그때의 정정은 재개봉 왕복을 다시 요구한다. 현재 큐의 `sanitizeHtml.md` 가 그 경로 위에 있다.
+- **green 전체를 등급 1 로 올리는 방향도 (I10) 을 깬다.** 작성 중인 문서는 정의상 자리표시자를 갖는다. 그것을 위반으로 만들면 채널이 상시 붉어져 신호가 죽는다 — 등급 분리가 그 사이를 가른다.
+- **구획을 구분하지 않는 방향은 (I11) 을 깨고 충족 불가능해진다.** 표 칸 안의 명령은 이스케이프 없이 적을 수 없다.
+- **무판정(`rc=2`)만 재는 방향은 (I12) 를 놓친다.** 이스케이프가 정규식 의미를 바꾼 명령은 `rc=1` 로 조용히 통과하며, 그 위에 `[x]` 가 얹힌다.
 
 ## 의존성
 - 내부: `specs/30.spec/blue/**/*.md` (판정 대상 — **읽기 전용**), 신설 `scripts/check-blue-judgement-evaluable.sh`, `package.json` `scripts.check:*`.
@@ -65,12 +87,16 @@
 
 > 각 명령은 HEAD=`c64c946` 에서 **파일에서 추출해** 저장소 루트에서 **읽기 전용으로** 실제 실행했고 rc 를 박제한다 (손 전사 0 — `RULE-06 §추출 실패 검출`). 본 축의 판정 대상은 `specs/**` 라 `src/` 격리 사본이 판정면을 바꾸지 않으며, 실행은 전부 비파괴 조회다.
 
-- [ ] (I1 채널 실재) 채널이 실재하고 초록이다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qE "\"check:blue-judgement\"" package.json && "$f" >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**. 스크립트 0 hit · `check:blue-judgement` 0 hit.
+- [ ] (I1 채널 실재) 채널이 실재하고 초록이다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qE "\"check:blue-judgement\"" package.json && "$f" >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**. HEAD=`ed64fb3` 에서는 **채널이 실재하므로 rc=1 의 원인이 바뀌었다** — `test -x` 가 아니라 채널 자신이 blue 무판정을 보고하며 `1` 을 낸다. **본 흡수는 이 명령의 rc 를 스스로 완주시키지 못했다** (1회 실행 약 490초 · 본 tick 측정은 15분을 넘겨 미완). 따라서 여기 적는 rc=1 은 `TSK-20260831-12` 산출 followup `20260831-1712` 의 2회 실측(`rc=1 elapsed=489s` · `rc=1 elapsed=492s`)에 귀속되며 **본 tick 의 독립 측정이 아니다.** 마커는 어느 쪽이든 `[ ]` 이므로 판정은 바뀌지 않는다. 완주 비용은 §참고 §미측정 참조.
 - [ ] (I2 정적 zero-point) blue 문서에 사라진 `.js`/`.jsx` 경로 참조가 없다: `bash -c 'test "$(grep -rhoE "src/[A-Za-z0-9_./-]+\.(js|jsx)" specs/30.spec/blue --include="*.md" | wc -l | tr -d " ")" -eq 0'` → HEAD=`c64c946` 실측 **rc=1 (출현 438 · 고유 경로 67 · 32 파일)**. 계수 규칙은 §스코프 규칙 참조 — **명령 span 밖의 산문 언급까지 세는 보수적 상계**이며, 0 이면 명령 span 안에도 없다는 것이 함의된다.
-- [ ] (I3·I5·I6 채널 분류 어휘) 채널이 세 갈래 분류와 두 제외 규칙을 자기 정의에 갖는다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qF "unevaluable" "$f" && grep -qF "empty-extraction" "$f" && grep -qF "prose-excluded" "$f"'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**. 세 토큰은 각각 (I3) 무판정 갈래 · (I6) 빈 추출 실패 · (I5) 산문 제외의 **관측 가능한 이름**이다. 이름을 요구하는 것은 어휘 계약이지 알고리즘 지정이 아니다.
-- [ ] (I4 모집단 도출) 채널이 모집단을 도출하고 공집합에서 실패한다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qE "find .*30\.spec/blue" "$f" && grep -qF "population-empty" "$f"'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**.
-- [ ] (I7 읽기 전용·종료성) 채널이 쓰기 선별과 유한 타임아웃을 갖는다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qF "write-screened" "$f" && grep -qE "timeout" "$f" && grep -qE "/dev/null" "$f"'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**.
-- [ ] (I1·I2·I3 접속) 채널이 붙어 있고 초록이면서 정적 zero-point 도 0 이다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qE "\"check:blue-judgement\"" package.json && test "$(grep -rhoE "src/[A-Za-z0-9_./-]+\.(js|jsx)" specs/30.spec/blue --include="*.md" | wc -l | tr -d " ")" -eq 0 && "$f" >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1**. **접속으로 닫는 이유**: 정적 zero-point 만 0 이 되어도 자리표시자 13건은 남고, 채널만 붙어도 검출 대상이 남아 있을 수 있다. 두 축은 서로를 대체하지 않는다.
+- [x] (I3·I5·I6 채널 분류 어휘) 채널이 세 갈래 분류와 두 제외 규칙을 자기 정의에 갖는다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qF "unevaluable" "$f" && grep -qF "empty-extraction" "$f" && grep -qF "prose-excluded" "$f"'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**. 세 토큰은 각각 (I3) 무판정 갈래 · (I6) 빈 추출 실패 · (I5) 산문 제외의 **관측 가능한 이름**이다. 이름을 요구하는 것은 어휘 계약이지 알고리즘 지정이 아니다. **HEAD=`ed64fb3` 재실측 rc=0** — 채널이 `unevaluable`·`empty-extraction`·`prose` 어휘를 갖춘 채 착지했다.
+- [x] (I4 모집단 도출) 채널이 모집단을 도출하고 공집합에서 실패한다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qE "find .*30\.spec" "$f" && grep -qF "population-empty" "$f"'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**. **HEAD=`ed64fb3` 재실측 rc=0** (좁힌 패턴 — `/blue` 고정을 뺐다: 모집단이 `30.spec` 전체로 넓어져도 이 명제는 그대로여야 하므로 (I10) 의 도착과 동시에 참이다).
+- [x] (I7 읽기 전용·종료성) 채널이 쓰기 선별과 유한 타임아웃을 갖는다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qF "write-screened" "$f" && grep -qE "timeout" "$f" && grep -qE "/dev/null" "$f"'` → HEAD=`c64c946` 실측 **rc=1 (채널 미부착)**. **HEAD=`ed64fb3` 재실측 rc=0**.
+- [ ] (I1·I2·I3 접속) 채널이 붙어 있고 초록이면서 정적 zero-point 도 0 이다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qE "\"check:blue-judgement\"" package.json && test "$(grep -rhoE "src/[A-Za-z0-9_./-]+\.(js|jsx)" specs/30.spec/blue --include="*.md" | wc -l | tr -d " ")" -eq 0 && "$f" >/dev/null 2>&1'` → HEAD=`c64c946` 실측 **rc=1**. HEAD=`ed64fb3` 에서도 rc≠0 이다 — 정적 zero-point 가 `438` 이라 **채널을 돌리기 전에 이미 탈락**하며, 그 부분은 본 tick 이 독립 실측했다 (아래 (I2) 와 같은 명령). **접속으로 닫는 이유**: 정적 zero-point 만 0 이 되어도 자리표시자 13건은 남고, 채널만 붙어도 검출 대상이 남아 있을 수 있다. 두 축은 서로를 대체하지 않는다.
+- [ ] (I10 등급 분리) 채널이 판정 모집단을 두 등급으로 가른다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qE "grade-1|promote-candidate" "$f" && grep -qE "grade-2" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. `TSK-20260831-12` 는 모집단을 blue 로 못 박았고 그 task 는 rewrite 금지다 (`RULE-01`) — 채널 수정은 `supersedes:` 로 잇는 후속 task 소관이다 (§참고 §착지 순서).
+- [ ] (I11 판정 구획 한정) 채널이 판정 구획을 `## 테스트 현황` · `## 수용 기준` 으로 한정한다: `bash -c 'f=scripts/check-blue-judgement-evaluable.sh; test -x "$f" && grep -qF "테스트 현황" "$f" && grep -qF "수용 기준" "$f"'` → HEAD=`ed64fb3` 실측 **rc=1 (미충족)**. 현 채널은 구획을 구분하지 않아 `## 변경 이력` 의 감사 기록까지 재실행 대상으로 삼는다.
+- [ ] (I12 정적 zero-point) 판정 구획에 이스케이프된 파이프가 없다 — **모집단은 도출한다**: `bash -c 'n=$(find specs/30.spec -name "*.md" -exec awk "/^## (테스트 현황|수용 기준)\$/{f=1;next} /^## /{f=0} f&&/\\\\[|]/{print}" {} + | wc -l | tr -d " "); echo "escaped-pipe-in-judgement=$n"; test "$n" -eq 0'` → HEAD=`ed64fb3` 실측 **rc=1**, 출력 `escaped-pipe-in-judgement=11` (blue 11건 · green 0건). **정적이라 채널 없이도 판정된다** — (I10)(I11) 이 채널 수정을 기다리는 동안에도 이 축은 즉시 잰다. 대조: 같은 스캔을 **기록 구획**에 돌리면 **59건**이며 그것은 정상이다 (표 칸 이스케이프).
+- [x] (I10 등급 도출 baseline) promote 후보가 기계적으로 도출된다: `bash -c 'n=$(find specs/30.spec/green -name "*.md" -exec sh -c "awk \"/^## 수용 기준\$/{f=1;next} /^## /{f=0} f&&/^- \[ \]/{c++} END{exit (c>0)}\" \"\$1\" && echo \"\$1\"" _ {} \; | wc -l | tr -d " "); echo "promote-candidates=$n"; test "$n" -ge 1'` → HEAD=`ed64fb3` 실측 rc=0, 출력 `promote-candidates=1` (`markdown-star-emphasis-space-flanking.md` — §수용 기준 11/11). **planner 의 의도를 묻지 않고 `RULE-07 §promote 조건 1` 과 같은 계수만으로 등급 1 경계가 산출된다는 것**이 (I10) 의 실행 가능성 근거다. 하한이 **모집단 공동화를 막는다**.
 - [x] (전제 실측 — 이관 완료) `src` 에 `.js`/`.jsx` 가 없다: `bash -c 'test "$(git ls-tree -r --name-only HEAD -- src | grep -cE "\.(js|jsx)$")" -eq 0'` → HEAD=`c64c946` 실측 rc=0 (`src` 226 파일 중 `.ts`/`.tsx` 206 · `.js`/`.jsx` **0**). **`grep -c` 는 0 hit 에서 `rc=1` 을 내므로 `test` 로 감싸야 판정이 된다** — 감싸지 않으면 이 명령 자체가 본 계약의 위반 사례가 된다.
 - [x] (I4 모집단 비공허 baseline) 스캔 모집단이 공집합이 아니다: `bash -c 'test "$(find specs/30.spec/blue -name "*.md" | wc -l | tr -d " ")" -ge 1'` → HEAD=`c64c946` 실측 rc=0 (**69 파일**). 채널이 빈 목록을 돌고 통과하는 것을 막는 하한이다.
 - [x] (채널 규약 실재 baseline) 저장소에 `check:*` ↔ `scripts/check-*.sh` 규약이 이미 있다: `bash -c 'test "$(ls scripts/check-*.sh | wc -l | tr -d " ")" -ge 10 && grep -qE "\"check:deps\"" package.json'` → HEAD=`c64c946` 실측 rc=0 (`scripts/check-*.sh` **16건**). 본 채널은 새 규약을 만들지 않는다.
@@ -78,14 +104,18 @@
 ## 수용 기준
 - [ ] (Must, FR-01·FR-03) 위 §테스트 현황 (I1 채널 실재) 명령 → rc=0.
 - [ ] (Must, FR-02) 위 §테스트 현황 (I2 정적 zero-point) 명령 → rc=0.
-- [ ] (Must, FR-04·FR-05·FR-06) 위 §테스트 현황 (I3·I5·I6 채널 분류 어휘) 명령 → rc=0.
-- [ ] (Must, FR-03 모집단 도출) 위 §테스트 현황 (I4 모집단 도출) 명령 → rc=0.
-- [ ] (Must, NFR-01·NFR-02) 위 §테스트 현황 (I7 읽기 전용·종료성) 명령 → rc=0.
+- [x] (Must, FR-04·FR-05·FR-06) 위 §테스트 현황 (I3·I5·I6 채널 분류 어휘) 명령 → rc=0. **HEAD=`ed64fb3` 재실측 rc=0** (`TSK-20260831-12` / `ed64fb3` 착지).
+- [x] (Must, FR-03 모집단 도출) 위 §테스트 현황 (I4 모집단 도출) 명령 → rc=0. **HEAD=`ed64fb3` 재실측 rc=0** (`TSK-20260831-12` / `ed64fb3` 착지).
+- [x] (Must, NFR-01·NFR-02) 위 §테스트 현황 (I7 읽기 전용·종료성) 명령 → rc=0. **HEAD=`ed64fb3` 재실측 rc=0** (`TSK-20260831-12` / `ed64fb3` 착지).
 - [ ] (Must, FR-01~FR-06 접속) 위 §테스트 현황 (I1·I2·I3 접속) 명령 → rc=0.
+- [ ] (Must, REQ-063 FR-01·FR-02 모집단) 위 §테스트 현황 (I10 등급 분리) 명령 → rc=0.
+- [ ] (Must, REQ-063 FR-03 구획) 위 §테스트 현황 (I11 판정 구획 한정) 명령 → rc=0.
+- [ ] (Should, REQ-063 FR-05 메타문자) 위 §테스트 현황 (I12 정적 zero-point) 명령 → rc=0.
+- [x] (Must, REQ-063 FR-02 등급 도출 가능성) 위 §테스트 현황 (I10 등급 도출 baseline) 명령 → rc=0. HEAD=`ed64fb3` 실측 rc=0 (`promote-candidates=1`).
 - [x] (Must, 전제 실측) 위 §테스트 현황 (전제 실측) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0.
 - [x] (Must, FR-03 모집단 하한) 위 §테스트 현황 (I4 모집단 비공허 baseline) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0 (69 파일).
 - [x] (Must, 채널 규약 승계) 위 §테스트 현황 (채널 규약 실재 baseline) 명령 → rc=0. HEAD=`c64c946` 실측 rc=0 (16건).
-- [x] (Must, 범위 제한) 판정 명령의 참/거짓 · `30.spec/green/**` · `40.task/**` · `60.done/**` · `50.blocked/**` · `rules/` 문면 · timeout 명령의 실행 시간은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
+- [x] (Must, 범위 제한) 판정 명령의 참/거짓 · **작성 중인 green**(등급 2 — 보고하되 rc 무반영) · `40.task/**` · `60.done/**` · `50.blocked/**` · `rules/` 문면 · timeout 명령의 실행 시간은 본 계약의 요구 대상이 아니다 — §역할 · §참고 §미측정.
 
 ## 스코프 규칙
 - **expansion**: 허용 — 본 계약의 충족은 **여러 blue spec 의 판정 명령 정정**을 요구하며, 그 정정은 `30.spec/blue/**` 를 green 으로 받아 고치고 되돌리는 왕복(inspector → planner)으로만 가능하다 (`RULE-01` writer 매트릭스: blue 에 create/edit 권한을 가진 에이전트는 없다). 채널 신설 자체의 쓰기 대상은 `scripts/check-blue-judgement-evaluable.sh` · `package.json` 2 파일이다. **`specs/30.spec/blue/**` 는 채널에게 읽기 전용**이다.
@@ -108,12 +138,15 @@
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-060 흡수) / pending @ HEAD=`c64c946` | 최초 박제 — 승격 spec 판정 명령 평가 가능성 9 축 (I1~I9). **신규 spec 으로 세운 근거**: 이 축은 제품 축이 아니라 **검증 기층**에 대한 계약이고, 기존 `foundation/**` 중 어느 것도 "판정 명령이 평가되는가" 를 명제로 갖지 않는다 (`tooling.md` 는 `check:*` 채널 규약을, `build-artifact-gate-measurement-contract.md` 는 빌드 전제를 소유한다 — 둘 다 인접하나 다른 명제다). **계약면을 경로가 아니라 평가 가능성으로 세운 것이 이 흡수의 판단**이다: `.js` → `.ts` 는 수단이며 수단을 계약으로 쓰면 다음 이관 때 되풀이된다 (운영자 §보충 판정 승계). **정적 zero-point 를 상계로 둔 것이 두 번째 판단**이다 — 명령 span 한정 계수는 채널을 필요로 하므로 채널 부재 상태에서 rc 판정이 되지 않는다. baseline: 모집단 69 파일 / 명령 출현 933 고유 596 / `rc=2` 고유 78 출현 88 27 파일 / 원인 `.js`·`.jsx` 54 · 자리표시자 13 / 상위 3파일 44% / `src` 의 `.js`·`.jsx` 0 / `check:*` 규약 16건. 1차 측정의 쓰기 선별 결함(`>/dev/null` 오인 → 65 과소 보고)을 자체 발견·정정해 (I7) 과 baseline 에 박제. unchecked 6 · checked 4. | all |
+| 2026-08-31 | inspector 251차 tick (Phase 1 플립 + Phase 3, REQ-20260831-063 흡수) / `ed64fb3` @ HEAD=`ed64fb3` | **마커 플립 6 + 모집단·구획 축 3 신설 + (I4) 좁힘.** **플립**: `TSK-20260831-12`(`ed64fb3`, HEAD 조상)가 채널을 부착해 (I3·I5·I6)·(I4)·(I7) 과 대응 §수용 기준 3항이 재실측 rc=0 이 됐다. §참고 §채널 부착 의 '미부착' 선언도 해소로 갱신했다. **(I4) 좁힘**: 게이트가 `find .*30\.spec/blue` 로 **`/blue` 를 고정**하고 있었다 — (I10) 이 모집단을 넓히면 그 게이트가 거짓이 되므로 `/blue` 를 빼 두 상태에서 모두 참이 되게 했다 (같은 tick 에 star spec (I8) 에 적용한 것과 같은 처리). **모집단 판정 (req 가 선택을 inspector 에 남겼다)**: req 는 ①`30.spec/**` + green 등급 분리 ②blue 유지 + 구획 축만 을 제시했다. **①을 택하되 경계를 'promote 후보' 로 정밀화**했다 — *"green 은 항상 평가 가능하다"* 는 작성 자유와 충돌하지만 *"promote 경계를 넘는 문서는 평가 가능하다"* 는 충돌하지 않으며, promote 가 `mv` 인 이상 그 경계가 rot 경로를 닫는 최소 조건이다. 결정적으로 그 상태는 **기계적으로 도출된다** (§수용 기준 체크박스 계수 = `RULE-07 §promote 조건 1` 과 같은 계수) — 실측으로 확인했다: `promote-candidates=1`(`markdown-star-emphasis-space-flanking`), 손으로 센 결과와 일치. **(I12) 는 req 에 없던 발견이 축으로 승격된 것**이다: green 감사 중 `blue/foundation/npm-script-prefix-coherence.md:43` 이 `[x]` 로 잠긴 승격 계약인데 적힌 명령이 `rc=1`·**0 hit** 임을 발견했다 — `-E` 에서 `\|` 가 교대가 아니라 리터럴 파이프라서다 (의도한 형태로 고치면 17 hit). **`rc=2` 만 재는 (I1) 의 그물을 그대로 통과하는 부류**이며 정적으로 판정된다 (판정 구획 11건 · 기록 구획 59건은 정상). **green 독립 감사** (req 의 4건과 다르다): 모집단 9 파일 · 후보 span 191 · ok 112 · 위반 42 · **무판정 5** · 쓰기 선별 12 · 산문 제외 14 · timeout 3. 무판정 5 중 3건이 `sanitizeHtml.md`(blue 재개봉 사본)이고 그중 `:87` 은 **도출 공집합을 `exit 2` 로 정직하게 신고하는** 형태다. 자리표시자 2건(`markdown-blank-line-predicate.md` — **본 tick 에 내가 쓴 것** · `markdown-pipe-table.md`)과 경로 누락 1건은 같은 단위에서 정정했다. **정정 후 판정 구획 한정 재감사**(green 9 파일 · `## 테스트 현황`·`## 수용 기준` 만): 명령 **91건 · 무판정 1건** — 그 1건이 `sanitizeHtml.md:87` 의 **설계된 `exit 2`**(도출 공집합 신고)이며 우연한 무판정은 0 이다. 남은 무판정 5건은 전부 **기록 구획**((I11) 대상 밖)이거나 산문 인용이다. | 역할 · 동작 · 테스트 현황 · 수용 기준 · 참고 |
 
 ## 참고
 
 ### 채널 부착 (RULE-07 §promote 조건 4 — 선행 조건)
 
-본 spec 은 Must 측정 게이트를 선언하는데 **발화 채널이 현 HEAD 에 실재하지 않는다.** `scripts/check-blue-judgement-evaluable.sh` 부재 · `package.json` 의 `check:blue-judgement` 0 hit. `RULE-07 §promote 조건 4` 대로 이것은 promote **차단**이 아니라 **"채널 부착 task 발행"을 선행 조건**으로 한다.
+~~본 spec 은 Must 측정 게이트를 선언하는데 발화 채널이 현 HEAD 에 실재하지 않는다.~~ **2026-08-31 해소** — `TSK-20260831-12` 가 `ed64fb3` 로 착지해 `scripts/check-blue-judgement-evaluable.sh` 와 `package.json` 의 `check:blue-judgement` 가 실재한다. `RULE-07 §promote 조건 4` 의 선행 조건은 충족됐다.
+
+다만 **채널이 초록은 아니다**: (I1) 은 여전히 `rc=1` 이며 그것이 정상이다 — 채널은 blue 81건의 무판정을 보고하도록 붙었고 그 정정은 별 단위다. 그리고 채널은 (I10)(I11) 을 **아직 구현하지 않았다** (모집단 blue 한정 · 구획 무구분).
 
 - 부착 대상 경로 (기존 규약 승계): `scripts/check-blue-judgement-evaluable.sh` + `package.json` `scripts.check:blue-judgement`. 동류 16건이 같은 형태다.
 - CI 발화 여부(`.github/workflows/ci.yml` step 추가)는 본 계약이 요구하지 않는다 — 채널이 실재하고 `npm run` 으로 발화되면 (I1) 이 충족된다.
@@ -132,6 +165,12 @@
 
 > **Dir-2 가 이 spec 의 값어치다.** Dir-1 만 잡는 채널은 `rc≠0` 을 전부 위반으로 보고해도 통과하고, 그러면 78건이 각 spec 소관의 진짜 위반과 섞여 판별 불가가 된다. 무판정과 위반의 구별이 이 계약의 전부다.
 
+### 착지 순서 — `TSK-20260831-12` 와의 관계
+
+`TSK-20260831-12` 는 **채널 신설만** 했고 모집단을 blue 로 못 박았으며 그 DoD 가 그것을 게이트로 잡는다. `RULE-01` 상 발행된 `40.task/**` 는 rewrite 금지이므로 **본 계약은 그 task 를 대체하지 않는다.** 순서는 ①`TSK-12`(완료 — `ed64fb3`) → ②(I10)(I11) 채널 수정 task(`supersedes:` 로 잇는다) → ③(I12) 정정. **(I12) 는 ②를 기다리지 않는다** — 정적 스캔이라 채널 없이 판정된다.
+
+blue 정정은 `RULE-01` writer 매트릭스상 inspector 가 직접 할 수 없다. 재개봉 왕복(green 으로 받아 고치고 planner 가 재promote)이 유일한 경로이며 §스코프 규칙 의 "한 번에 한 spec" 이 그 부담을 나눈다.
+
 ### 미측정·비판정 항목
 
 - **`npx vitest` 계열 판정 명령의 실행 시간은 본 계약이 정하지 않는다.** 재측정에서 3건이 25초 타임아웃을 넘겼다. 평가 **가능**하므로 위반이 아니나 `RULE-07 §promote 조건 2` 의 전건 재실행 비용을 좌우한다. 시간 예산은 별 축이다.
@@ -140,5 +179,8 @@
 - **`60.done/**` 에 보존된 문서의 판정 명령**: 감사 기록이며 재실행 대상이 아니라고 보아 측정하지 않았다.
 - **경로 이관 54건 중 단순 개명이 아닌 것의 수**: 파일이 분할·삭제된 경우 대응 경로 판정이 건별로 필요하다. 표본 5건(`src/common/common.js` · `src/Log/LogList.jsx` · `src/reportWebVitals.test.js` · `src/Monitor/ContentMon.jsx` · `src/App.jsx`)에서 `.ts`/`.tsx` 대응 존재를 확인했을 뿐 전수는 확인하지 않았다.
 - **정적 zero-point 가 0 이 되어도 계약이 충족되는 것은 아니다.** 그것은 최대 원인(54/78 = 69%)만 닫으며 자리표시자 13건과 나머지 11건은 남는다. (I1) 의 채널만이 계약 전체를 판정한다 — 이 구분이 흐려지면 상계 0 을 충족으로 오독하게 된다.
+- **채널 1회 실행 비용은 본 계약이 판정하지 않는다.** `TSK-20260831-12` 산출 followup 실측 약 490초이며 `npx` 88건의 프로세스 기동이 지배적이다. `check:*` 규약상 수동 발화라 현재는 차단 요인이 아니지만, **CI·pre-push 에 붙이려는 시점에는 그것이 선행 과제**다 (증분 모드 등). 모집단을 green 까지 넓히면 그 비용은 더 는다 — **(I10) 이 등급 2 를 rc 에 반영하지 않는 이유 중 하나**이나, 등급 2 도 실행은 하므로 비용 자체는 줄지 않는다.
+- **`exit 2` 로 선언된 무판정과 우연한 `rc=2` 를 구별하지 않는다.** `test -f "$f" || exit 2` 처럼 **설계된** 무판정도 무판정으로 계수한다. 둘 다 "이 명제는 판정되지 않았다" 이기 때문이며, 그것이 이 계약이 겨누는 상태다.
+- **판정 구획 밖의 명령이 틀린 것은 본 계약의 위반이 아니다** (I11). 그러나 **틀린 것은 맞다** — 본 tick 이 green 에서 3건(자리표시자 2 · 경로 누락 1)을 정정했다. 계약이 요구하지 않는 정정도 하는 것과, 계약이 그것을 요구하는 것은 다르다.
 - **원 req**: `specs/60.done/2026/08/31/req/20260831-promoted-spec-judgement-commands-are-evaluable.md` (REQ-060). 출처 결함 신고: `20260831-1151-blue-judging-commands-point-at-deleted-paths.md` (운영자). 그 신고는 스스로 *"68 이라는 수는 근사치"* 라고 한계를 밝혔고 그 지적은 정확했다 — 산문 오탐이 실제로 10건 있었다.
 - **관련 커밋**: `b793703` (2026-08-29, TS 전환 완료 — 54건의 기원) · 그 이후 190 커밋 / 7 promote.

@@ -83,7 +83,7 @@
 ## 스코프 규칙
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` · `src/common/markdownParser.test.ts` **2 파일**이다. 게이트 위반이 이 밖에서 나오면 격리 대상이다. `src/common/sanitizeHtml.ts` 는 **읽기 대상**이며 본 축은 그것을 바꾸지 않는다.
 - **grep-baseline** (HEAD=`ed64fb3`, 2026-08-31 흡수 시점 격리 사본 실측):
-  - `grep -cE "const isBlankLine" src/common/markdownParser.ts` → **1** (`:871`). `grep -cE "isBlankLine\(" …` → **2** (`:879` · `:967`). (I5) 의 기준값이다.
+  - `grep -cE "const isBlankLine" src/common/markdownParser.ts` → **1** (`:871`). `grep -cE "isBlankLine\(" src/common/markdownParser.ts` → **2** (`:879` · `:967`). (I5) 의 기준값이다.
   - 계약 이름·예시 전수 0 hit — 전부 신설 대상이다. `grep -cF -e "빈 줄 술어는 공백만 있는 줄을 포함한다" src/common/markdownParser.test.ts` → **0** · `"- 첫째\n  \n- 둘째"` → **0** · `"1. 첫째\n   \n2. 둘째"` → **0** · `"- 첫째\n\t\n- 둘째"` → **0** · `"- 하나\n  \n  - 중첩"` → **0** · `"첫\n  \n둘"` → **0** · `"<p>첫</p><p>  </p><p>둘</p>"` → **0**.
   - 소유 계약의 `\n\n` 예시는 이미 있다: `"1. 첫째\n\n2. 둘째\n\n3. 셋째"` → **1** · `"- 하나\n\n  - 중첩"` → **2**. 본 계약의 예시가 그것과 **글자 하나 차이**(빈 줄에 공백이 들어간 것)라는 점이 baseline 의 요지다.
   - **패턴 주의 — 본 흡수가 실제로 밟은 함정**: 위 예시는 대부분 `-` 로 시작하므로 **`-e` 로 넘기지 않으면 `grep` 이 패턴을 옵션으로 읽는다**. 1차 측정이 정확히 그렇게 실패했고 `rc=2`(무판정)를 냈는데, `grep -c` 출력이 비어 있어 **0 hit 처럼 보였다.** `-e` 를 붙여 재측정한 값이 위 표다. 또 대화형 zsh 에서 `grep` 은 **`ugrep` 로 가로채여** 같은 입력에 다른 오류를 낸다 — `bash -c` 안에서는 `/usr/bin/grep` (BSD grep 2.6.0, GNU 호환) 이다. **두 이유 모두 `RULE-06` 이 `bash -c` 감싸기를 요구하는 근거이며, 여기서는 그것만으로 부족하고 `-e` 가 함께 필요했다.**

@@ -69,7 +69,7 @@
 - **expansion**: 불허 — 대상은 `src/common/markdownParser.ts` · `src/common/sanitizeHtml.ts` · `src/styles/` · 두 테스트 파일이다. 세 모듈 모두 본 축이 동시에 요구하는 대상이므로 baseline 도 셋 다 박제한다. 게이트 위반이 이 밖에서 나오면 격리 대상이다.
 - **grep-baseline** (HEAD=`7b43fa8`, 2026-08-31 Phase 1 재실측):
   - 블록 패스 열거 (HEAD=`7b43fa8` 재실측): `pre`(`:170`) · `hr`(`:216`) · `blockquote`(`:235`) · `이어짐`(`:281`) · `ul`(`:367`) · `ol`(`:394`) · `headers`(`:440`) **일곱**이며 표 패스는 여전히 **0건**이다. 흡수 시점(`b1cbf5c`)에는 여섯이었고, `f885730` 이 이어짐 패스를 더했다. **표 패스가 어디에 들어가야 하는지를 이 순서가 규정하므로**(§동작 (I4) 가 이스케이프 패스보다 앞임을 요구) 계수와 위치는 이 baseline 의 일부다.
-  - `grep -cF "파이프 표" src/common/markdownParser.test.ts` → **0**. `grep -cF "구분선 행이 없으면 표가 아니다" …` → **0**. 두 계약 이름 모두 미존재 — 신설 대상이다.
+  - `grep -cF "파이프 표" src/common/markdownParser.test.ts` → **0**. `grep -cF "구분선 행이 없으면 표가 아니다" src/common/markdownParser.test.ts` → **0**. 두 계약 이름 모두 미존재 — 신설 대상이다.
   - `grep -oE "'\''(table|thead|tbody|tr|th|td)'\''" src/common/sanitizeHtml.ts | wc -l` → **0**. `ALLOWED_TAGS`(`:7-15`) 는 **21 항목**이며 표 태그는 하나도 없다: `p` `br` `hr` `strong` `em` `del` `code` `pre` `blockquote` `h1` `h2` `h3` `h4` `h5` `h6` `ul` `ol` `li` `a` `img` `span`.
   - `grep -rhcE "^[[:space:]]*(table|thead|tbody|th|td)[[:space:],{]" src/styles/` 합 → **0**. 대조로 같은 형태의 기존 블록 규칙은 `typography.css:44`(`blockquote`) · `:65`(`pre`) · `:78`(`pre code`) 다. 제외 규칙: 줄 머리 선택자만 계수하며 결합자·중첩 표기는 세지 않는다.
   - `grep -rlE "ALLOWED_TAGS" src | grep -vE "^src/common/sanitizeHtml\.(ts|test\.ts)$"` → **0 hit**. 정책 단일 출처 현행 PASS.
