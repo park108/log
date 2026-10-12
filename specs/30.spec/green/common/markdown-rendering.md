@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -39,6 +39,11 @@
 
 20. **번호 목록은 글쓴이가 쓴 첫 번호부터 보인다.** 첫 항목 번호 N 이 1 이 아니면 정제를 거친 DOM 에서 그 `ol` 의 `start` 가 N 이다 (10진 정규화 — `003.` → `3`, `0.` → `0`). 첫 번호가 1 이면 `start` 를 내지 않는다 — `1. 하나\n2. 둘` 의 산출은 `<ol><li>하나</li><li>둘</li></ol>` 그대로다. 둘째 항목 이후의 번호는 매김에 영향이 없다 (`3. a\n7. b` → `start` 3, 항목 2). 중첩 번호 목록도 자기 첫 번호를 따른다. `start` 값은 숫자 문자만 담는다. 정제 쪽 조건은 `sanitizeHtml` (I15) 가 진다 — **한쪽만 고치면 독자에게는 아무 변화가 없다** (18).
 
+21. **펜스 코드 블록은 여는 펜스의 문자·길이로 닫히고, 펜스 줄의 글자를 삼키지 않는다.** 펜스는 백틱 또는 물결 **3개 이상**이고 0~3칸 들여쓸 수 있다 (4칸 이상이면 펜스가 아니다). 닫는 펜스는 여는 펜스와 **같은 문자**이고 **개수가 같거나 많다** — 그보다 짧거나 다른 문자의 펜스 줄은 코드 내용으로 보인다. 여는 펜스가 N칸 들여쓰여 있으면 내용 각 줄에서 최대 N칸 걷힌다. 물결 펜스의 언어 표기와 하이라이트는 백틱 펜스와 같다 (`~~~kotlin` 의 산출 ≡ `` ```kotlin `` 의 산출). 펜스 판정은 파서 안에 하나이고 인용(3)·목록 항목(19) 안에서도 같은 판정을 부른다.
+    - **펜스가 아닌 줄**: 백틱 펜스의 정보 문자열에 백틱이 있으면 그 줄은 문단이다 — `` ```인라인``` 문장\n다음 줄 `` → `pre` 0 · `code` 1(`인라인`) · `문장` 과 `다음 줄` 이 보인다. 물결 펜스는 정보 문자열이 비었거나 **언어 이름 꼴**(ASCII 영문으로 시작, 공백 없음)일 때만 펜스다 — `~~~ 그렇구나\n다음 줄` 은 문단이고 두 줄의 글자가 모두 보인다.
+    - **CommonMark 와 갈리는 지점이다.** 표준은 물결 펜스의 정보 문자열을 제한하지 않는다. 그런데 정보 문자열은 화면에 나가지 않으므로, 표준대로면 한국어 늘임 표기(`~~~`)로 시작하는 산문 줄이 통째로 사라지고 닫는 펜스가 없으면 문서 끝까지가 코드가 된다. 줄 가운데의 `아~~~ 그렇구나` (10·13) 는 무관하며 산출 불변이다.
+    - 예: `` ````\n```js\ncode\n```\n```` `` → `pre` 1 · 코드 내용 세 줄(`` ```js `` · `code` · `` ``` ``). `~~~\ncode\n~~~` → `pre` 1 · 렌더 텍스트에 `~` 0. `` ```\na\n```` `` → `pre` 1 · 텍스트 `a` · 백틱 0.
+
 ## 동작 — 인라인
 
 10. **다섯 구분자(`*` `**` `_` `__` `~~`) 는 공백 flanking 판정 아래 대등하다.** 여는 자리 뒤가 공백·줄끝이면 열지 않고, 닫는 자리 앞이 공백이면 닫지 않는다. `2 ** 10` · `와~~ 좋다 대박~~` · `값은 a _ b _ c 이다` 가 평문으로 남는다.
@@ -75,6 +80,7 @@
 - [ ] 목록 항목 안 블록 (19 · 3 의 인용 안 펜스): `bash -c 'npx vitest run src/__tests__/markdown-list-item-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 19 의 예 전부와 `> ```\n> code\n> ``` ` → `blockquote > pre` · 렌더 텍스트 백틱 0 을 `sanitizeHtml(markdownToHtml(x))` 의 DOM 에서 잰다.
 - [ ] 번호 목록 첫 번호 (20): `bash -c 'npx vitest run src/__tests__/markdown-ordered-list-start.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 판정은 정제를 거친 DOM 의 `ol.getAttribute("start")` 다.
 - [ ] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
+- [ ] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
 
 ## 변경 이력
 
@@ -82,6 +88,7 @@
 |------|-----------|------|------|
 | 2026-10-13 | REQ-20261013-090 / — | 19 신설 (항목 내용 열 블록) · 3 에 인용 안 펜스 · 6·9 에 19 예외 표기 · 낡은 문서 이름 인용 1건 정정 | 동작 3·6·9·19 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-091 / — | 20 신설 (첫 번호) · 18 을 속성까지 넓힘 (corpus 가 속성마다 그 속성이 나오는 행을 갖는다). 정제 쪽은 `sanitizeHtml` 재개봉 (I15) — 종전 `-eq 7` 을 집합 판정으로 교체 | 동작 18·20 · 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-092 / — | 21 신설 (펜스 문자·길이·정보 문자열). 물결 펜스 정보 문자열을 언어 이름 꼴로 제한 — req 가 위임한 수단 판정이며 CommonMark 와 갈린다 | 동작 21 · 수용 기준 |
 
 ## 참고
 
@@ -107,5 +114,6 @@
 
 - 저장된 요약과 현 파서 산출의 불일치 — 회복은 저장소 밖(재저장·서버 일괄 재계산)이며 `summary-derivation` (5)(6) 과 `check:summary-drift` 가 측정 채널을 소유한다. 19 이후 신설 항은 전부 파서 산출을 바꾸므로 그 채널의 소비자다.
 - 목록 항목 안 `<p>` 감싸기(tight/loose 구별)는 계약하지 않는다 — 이 파서는 줄=문단 모델이다. 항목 안의 표·제목도 19 의 대상이 아니다.
+- 백틱 펜스의 정보 문자열은 지금처럼 통째로 언어 이름이 되고 화면에 나가지 않는다 (`` ```js title `` 의 `title`). 21 이 막는 것은 정보 문자열에 백틱이 든 줄과 물결 펜스의 산문 줄뿐이다. 물결 하나만 있는 줄(`~~~`)은 표준대로 펜스를 연다.
 - 기존 글 중 목록 뒤 빈 줄 + 들여쓴 줄을 가진 글은 19 착지 후 그 줄이 항목 안으로 들어간다. 운영 글 분포는 저장소 안에서 잴 수 없다 (API 주소가 gitignored `.env` 에만 있다).
 - 참조 링크·들여쓴 코드 블록·각주는 미구현이다. 고장이 아니라 기능 부재이며 사용 빈도를 주장할 근거가 없다.
