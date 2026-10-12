@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-table-alignment.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-table-alignment.test.ts` · `markdown-entity-reference.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -63,6 +63,13 @@
 
 16. **링크 타깃**: 외부 URL 만 `target='_blank' rel='noreferrer'` 를 받는다. 내부·상대 링크는 같은 탭에서 연다.
 
+### 인라인 — 2026-10-13 흡수
+
+23. **코드 밖의 유효한 엔티티 참조는 그 문자로 보인다.** HTML5 이름 엔티티 · `&#`+10진 · `&#x`+16진이 대상이다 (`&copy;` → `©` · `&nbsp;` → U+00A0 · `&#35;` → `#` · `&amp;` → `&`). 무효한 코드 포인트와 `&#0;` 은 U+FFFD 다. 코드 스팬·코드 블록 안의 엔티티와 무효한 `&…;` (`AT&T` · `&없는이름;`) 는 지금처럼 글자다. `\&copy;` 는 글자 `&copy;` 다.
+    - **해석된 문자는 마크업이 되지 않고 구조에 참여하지 않는다.** `&lt;script&gt;alert(1)&lt;/script&gt;` 는 글자 `<script>alert(1)</script>` 로 보이고 `script` 요소는 생기지 않는다. `&#42;굵게 아님&#42;` 은 `em` 을 만들지 않는다.
+    - **파서 산출이 해석된 문자를 담는다** (필요한 escape 포함). 엔티티를 브라우저 해석에 맡기면 본문은 `©` 를, 요약은 `&copy;` 를 보인다 — `trimmedContents` 는 엔티티 다섯만 푼다. `trimmedContents("&copy; 2026")` 은 `"© 2026"` 이다.
+    - 링크·이미지의 주소와 제목 안 엔티티도 해석된다 — `[x](https://example.com/?a=1&amp;b=2)` 의 실효 `href` 는 `https://example.com/?a=1&b=2` 다. 속성값 escape(17)는 해석 뒤에 건다.
+
 ## 동작 — 안전
 
 17. **속성값은 보간 전에 escape 를 거친다.** `<img>`·`<a>` 의 속성값이 날것으로 들어가지 않는다. escape 함수의 정의는 `markdownParser.ts` 안에 있고 export 되지 않는다 — 사본이 갈라지지 않게.
@@ -85,6 +92,7 @@
 - [ ] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
 - [ ] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
 - [ ] 표 정렬 (22): `bash -c 'npx vitest run src/__tests__/markdown-table-alignment.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). `| 왼 | 가운데 | 오른 |\n|:--|:-:|--:|\n| a | b | c |` 의 셋째 열 `th`·`td` 계산값 `right` · 둘째 열 `center` · 정제 전후 `class` 집합 동일을 잰다.
+- [ ] 엔티티 참조 (23): `bash -c 'npx vitest run src/__tests__/markdown-entity-reference.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 23 의 예 전부를 정제를 거친 DOM 의 `textContent`·요소 수·`a.href` 와 `trimmedContents` 로 잰다.
 
 ## 변경 이력
 
@@ -94,6 +102,7 @@
 | 2026-10-13 | REQ-20261013-091 / — | 20 신설 (첫 번호) · 18 을 속성까지 넓힘 (corpus 가 속성마다 그 속성이 나오는 행을 갖는다). 정제 쪽은 `sanitizeHtml` 재개봉 (I15) — 종전 `-eq 7` 을 집합 판정으로 교체 | 동작 18·20 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-092 / — | 21 신설 (펜스 문자·길이·정보 문자열). 물결 펜스 정보 문자열을 언어 이름 꼴로 제한 — req 가 위임한 수단 판정이며 CommonMark 와 갈린다 | 동작 21 · 수용 기준 |
 | 2026-10-13 | REQ-20261013-093 / — | 22 신설 (표 정렬, 판정면 = 계산된 스타일). req FR-03 의 "`ALLOWED_ATTR` 출력이 현 HEAD 와 같다" 는 091 의 `start` 추가와 충돌하므로 취지(`style`·`align` 부재)로 재정식화해 `sanitizeHtml` (I15) 에 두었다 | 동작 22 · 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-094 / — | 23 신설 (엔티티 참조). **계약을 뒤집는다** — 충돌 단언 1건을 §참고 에 열거 | 동작 23 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -108,6 +117,11 @@
 ### 걷어낸 것
 
 `markdownParser` 의 `bindListItem` 알고리즘 내부 계약(triple emission · deferred `</li>` · depth stack)은 옮기지 않았다. **깨지면 렌더링 테스트가 즉시 붉어지므로** 계약으로 박제할 필요가 없다 (`RULE-07 §반려 시그널`).
+
+### 계약을 뒤집는 지점 (`RULE-06 §계약을 뒤집는 task`)
+
+- **23 ↔ `src/__tests__/markdown-no-character-loss.test.ts` `PLAIN_PROSE` 의 `'HTML 엔티티는 &amp; 로 쓴다'`** — `it.each` 가 렌더 텍스트 === 입력을 단언한다. 23 착지 후 렌더 텍스트는 `HTML 엔티티는 & 로 쓴다` 다. 그 파일 머리말은 corpus 를 *"마크다운 문법이 없는 평문만"* 으로 선언했고 `&amp;` 는 엔티티 문법이므로 이 항목이 그 전제를 어긴다 — 같은 파일이 `__dunder__` 를 같은 이유로 걷어낸 선례가 있다. 처리는 planner 가 발행 시점에 정한다.
+- **유지되는 단언**: `AT&T 와 R&D 와 Q&A` (유효 엔티티 아님) · `주소 https://example.com/a?b=1&c=2 를 본다` (`;` 없음) · 원문 `&b=2` → `href` 속성값 `&amp;b=2` (17 의 속성 경계 escape) · `backslash-escape.test.ts` 의 `\<` → `&lt;`.
 
 ### 주입 이관 (`RULE-06 §게이트 실효 검증` — 해당 게이트를 세우는 task 의 DoD)
 
@@ -124,6 +138,7 @@
 - 저장된 요약과 현 파서 산출의 불일치 — 회복은 저장소 밖(재저장·서버 일괄 재계산)이며 `summary-derivation` (5)(6) 과 `check:summary-drift` 가 측정 채널을 소유한다. 19 이후 신설 항은 전부 파서 산출을 바꾸므로 그 채널의 소비자다.
 - 목록 항목 안 `<p>` 감싸기(tight/loose 구별)는 계약하지 않는다 — 이 파서는 줄=문단 모델이다. 항목 안의 표·제목도 19 의 대상이 아니다.
 - 백틱 펜스의 정보 문자열은 지금처럼 통째로 언어 이름이 되고 화면에 나가지 않는다 (`` ```js title `` 의 `title`). 21 이 막는 것은 정보 문자열에 백틱이 든 줄과 물결 펜스의 산문 줄뿐이다. 물결 하나만 있는 줄(`~~~`)은 표준대로 펜스를 연다.
+- 23 의 이름 엔티티 표를 DOM 해석으로 얻을지 표로 둘지는 수단이다. 파서는 지금 DOM 을 쓰지 않는다. 코드 밖 산문에 `&nbsp;` 등을 글자로 적어 둔 기존 글은 23 착지 후 그 자리가 문자로 바뀐다 — 글자로 보이려면 `\&` 를 쓴다.
 - `:--` (명시적 왼쪽) 은 표기 없음과 화면상 같다. 산출에서 둘을 구별할지는 수단이다.
 - 기존 글 중 목록 뒤 빈 줄 + 들여쓴 줄을 가진 글은 19 착지 후 그 줄이 항목 안으로 들어간다. 운영 글 분포는 저장소 안에서 잴 수 없다 (API 주소가 gitignored `.env` 에만 있다).
 - 참조 링크·들여쓴 코드 블록·각주는 미구현이다. 고장이 아니라 기능 부재이며 사용 빈도를 주장할 근거가 없다.
