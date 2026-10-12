@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -37,6 +37,8 @@
     - 예: `1. 설치\n\n   ```\n   npm i\n   ```\n2. 실행` → `ol` 1 · `li` 2 · `pre` 는 첫 `li` 의 자손이고 `textContent` 가 `npm i` 로 시작한다. 빈 줄을 뺀 변형도 같다. `- 첫 문단\n\n  둘째 문단\n- 다음 항목` → `ul` 1 · `li` 2 · `둘째` 앞에 공백이 남지 않는다. `10. 열\n\n    본문\n11. 열하나` → `ol` 1 · `li` 2.
     - **마커 줄의 중첩 깊이(7)는 현 모델을 유지한다.** 내용 열은 마커 없는 블록의 귀속에만 쓴다. 두 판정을 하나로 합치면 `1. a\n  - b` (공백 2 < 내용 열 3) 처럼 지금 중첩되는 입력의 산출이 바뀐다.
 
+20. **번호 목록은 글쓴이가 쓴 첫 번호부터 보인다.** 첫 항목 번호 N 이 1 이 아니면 정제를 거친 DOM 에서 그 `ol` 의 `start` 가 N 이다 (10진 정규화 — `003.` → `3`, `0.` → `0`). 첫 번호가 1 이면 `start` 를 내지 않는다 — `1. 하나\n2. 둘` 의 산출은 `<ol><li>하나</li><li>둘</li></ol>` 그대로다. 둘째 항목 이후의 번호는 매김에 영향이 없다 (`3. a\n7. b` → `start` 3, 항목 2). 중첩 번호 목록도 자기 첫 번호를 따른다. `start` 값은 숫자 문자만 담는다. 정제 쪽 조건은 `sanitizeHtml` (I15) 가 진다 — **한쪽만 고치면 독자에게는 아무 변화가 없다** (18).
+
 ## 동작 — 인라인
 
 10. **다섯 구분자(`*` `**` `_` `__` `~~`) 는 공백 flanking 판정 아래 대등하다.** 여는 자리 뒤가 공백·줄끝이면 열지 않고, 닫는 자리 앞이 공백이면 닫지 않는다. `2 ** 10` · `와~~ 좋다 대박~~` · `값은 a _ b _ c 이다` 가 평문으로 남는다.
@@ -57,7 +59,7 @@
 
 17. **속성값은 보간 전에 escape 를 거친다.** `<img>`·`<a>` 의 속성값이 날것으로 들어가지 않는다. escape 함수의 정의는 `markdownParser.ts` 안에 있고 export 되지 않는다 — 사본이 갈라지지 않게.
 
-18. **파서가 내는 태그는 정제를 통과한다.** `sanitizeHtml` 의 `ALLOWED_TAGS` 에 없는 태그를 파서가 emit 하면 글자가 통째로 사라진다. 두 목록은 함께 움직인다.
+18. **파서가 내는 태그와 속성은 정제를 통과한다.** `sanitizeHtml` 의 `ALLOWED_TAGS` 에 없는 태그를 파서가 emit 하면 글자가 통째로 사라지고, `ALLOWED_ATTR` 에 없는 속성은 조용히 지워진다. 두 목록은 함께 움직인다. 파서↔정제 정합 게이트의 corpus 는 **파서가 내는 속성마다 그 속성이 실제로 나오는 행**을 갖는다 — 1 로 시작하는 번호 목록은 `start` 를 내지 않으므로 그 행만으로는 정제 쪽 누락이 보이지 않는다.
 
 ## 의존성
 
@@ -71,12 +73,15 @@
 - [x] 다섯 구분자 대등 등록: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"[^\"]+\", \"[^\"]+\"\)" src/common/markdownParser.ts)" -eq 0'` → rc=0 (3인자 형태 0건 = 전부 `strictFlanking`)
 - [x] escape 단일 출처: `bash -c 'test "$(grep -c "export const escapeHtmlQuotes" src/common/markdownParser.ts)" -eq 0'` → rc=0
 - [ ] 목록 항목 안 블록 (19 · 3 의 인용 안 펜스): `bash -c 'npx vitest run src/__tests__/markdown-list-item-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 19 의 예 전부와 `> ```\n> code\n> ``` ` → `blockquote > pre` · 렌더 텍스트 백틱 0 을 `sanitizeHtml(markdownToHtml(x))` 의 DOM 에서 잰다.
+- [ ] 번호 목록 첫 번호 (20): `bash -c 'npx vitest run src/__tests__/markdown-ordered-list-start.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 판정은 정제를 거친 DOM 의 `ol.getAttribute("start")` 다.
+- [ ] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
 
 ## 변경 이력
 
 | 일자 | req / 커밋 | 요약 | 영향 |
 |------|-----------|------|------|
 | 2026-10-13 | REQ-20261013-090 / — | 19 신설 (항목 내용 열 블록) · 3 에 인용 안 펜스 · 6·9 에 19 예외 표기 · 낡은 문서 이름 인용 1건 정정 | 동작 3·6·9·19 · 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-091 / — | 20 신설 (첫 번호) · 18 을 속성까지 넓힘 (corpus 가 속성마다 그 속성이 나오는 행을 갖는다). 정제 쪽은 `sanitizeHtml` 재개봉 (I15) — 종전 `-eq 7` 을 집합 판정으로 교체 | 동작 18·20 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -91,6 +96,12 @@
 ### 걷어낸 것
 
 `markdownParser` 의 `bindListItem` 알고리즘 내부 계약(triple emission · deferred `</li>` · depth stack)은 옮기지 않았다. **깨지면 렌더링 테스트가 즉시 붉어지므로** 계약으로 박제할 필요가 없다 (`RULE-07 §반려 시그널`).
+
+### 주입 이관 (`RULE-06 §게이트 실효 검증` — 해당 게이트를 세우는 task 의 DoD)
+
+`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처 task 는 미발행이다.
+
+- **(18·20) 정제 단 누락** — 파서 변경은 둔 채 `ALLOWED_ATTR` 에서 `start` 만 뺀 트리 → `npx vitest run src/__tests__/parser-sanitizer-coherence.test.ts` rc≠0. 대조: corpus 행 이름표만 바꾼 변형 → rc=0. 이 방향이 없으면 `start` 축은 `post-image-deferred-loading` 격리(`50.blocked/spec/common/`)와 같은 민감도 0 상태로 착지한다.
 
 ### 미측정·비판정 항목
 
