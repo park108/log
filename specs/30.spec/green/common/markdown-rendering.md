@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-table-alignment.test.ts` · `markdown-entity-reference.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-table-alignment.test.ts` · `markdown-entity-reference.test.ts` · `markdown-reference-link.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -70,6 +70,9 @@
     - **파서 산출이 해석된 문자를 담는다** (필요한 escape 포함). 엔티티를 브라우저 해석에 맡기면 본문은 `©` 를, 요약은 `&copy;` 를 보인다 — `trimmedContents` 는 엔티티 다섯만 푼다. `trimmedContents("&copy; 2026")` 은 `"© 2026"` 이다.
     - 링크·이미지의 주소와 제목 안 엔티티도 해석된다 — `[x](https://example.com/?a=1&amp;b=2)` 의 실효 `href` 는 `https://example.com/?a=1&b=2` 다. 속성값 escape(17)는 해석 뒤에 건다.
 
+24. **참조 링크는 정의된 주소로 연결된다.** `[텍스트][라벨]` · `[라벨][]` · `[라벨]` 은 문서 안에 `[라벨]: 주소` (선택적 제목 `"…"` · `'…'` · `(…)`) 정의가 있으면 그 주소·제목의 링크다. 정의는 사용 앞에 와도 뒤에 와도 된다. 라벨 대조는 대소문자 접기·앞뒤 공백 제거·내부 공백 연속 축약 뒤 같은지로 하고 (`[Foo  Bar]` ≡ `[foo bar]`), 같은 라벨의 정의가 여럿이면 첫 정의가 쓰인다. 정의가 없는 꼴은 지금처럼 글자다 (`대괄호 [메모] 와 느낌표 ![alt] 만 있다` 의 렌더 텍스트 === 입력). 링크 텍스트의 강조·`target`/`rel`·속성값 escape·정제는 인라인 링크와 같다 (15·16·17 — `[x]\n\n[x]: javascript:alert(1)` 에 `javascript:` 실효 `href` 0). 코드 스팬·블록 안의 정의 꼴과 참조 꼴은 링크가 아니며 그 안의 정의는 수집되지 않는다. 인라인 링크와 겹치면 인라인이 우선한다 (`[a](b)[c]` 에서 `[c]` 만 참조 후보).
+    - **참조된 라벨의 정의 줄만 출력에서 걷히고, 참조되지 않은 정의 줄은 글자로 남는다 — CommonMark §4.7 과 의도적으로 갈린다.** 표준은 참조 여부와 무관하게 정의를 걷는다. 그러면 출처를 `[1]: https://…` 꼴로 나열만 해 둔 기존 글의 줄이 통째로 사라진다 (§역할). `[참고]: https://example.com` 한 줄뿐인 문서의 산출은 `<p>[참고]: https://example.com</p>` 그대로다.
+
 ## 동작 — 안전
 
 17. **속성값은 보간 전에 escape 를 거친다.** `<img>`·`<a>` 의 속성값이 날것으로 들어가지 않는다. escape 함수의 정의는 `markdownParser.ts` 안에 있고 export 되지 않는다 — 사본이 갈라지지 않게.
@@ -93,6 +96,7 @@
 - [ ] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
 - [ ] 표 정렬 (22): `bash -c 'npx vitest run src/__tests__/markdown-table-alignment.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). `| 왼 | 가운데 | 오른 |\n|:--|:-:|--:|\n| a | b | c |` 의 셋째 열 `th`·`td` 계산값 `right` · 둘째 열 `center` · 정제 전후 `class` 집합 동일을 잰다.
 - [ ] 엔티티 참조 (23): `bash -c 'npx vitest run src/__tests__/markdown-entity-reference.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 23 의 예 전부를 정제를 거친 DOM 의 `textContent`·요소 수·`a.href` 와 `trimmedContents` 로 잰다.
+- [ ] 참조 링크 (24): `bash -c 'npx vitest run src/__tests__/markdown-reference-link.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 세 형태 · 라벨 정규화 · 참조되지 않은 정의 줄 보존 · 코드 안 비해석 · `javascript:` 정의 차단을 정제를 거친 DOM 에서 잰다.
 
 ## 변경 이력
 
@@ -103,6 +107,7 @@
 | 2026-10-13 | REQ-20261013-092 / — | 21 신설 (펜스 문자·길이·정보 문자열). 물결 펜스 정보 문자열을 언어 이름 꼴로 제한 — req 가 위임한 수단 판정이며 CommonMark 와 갈린다 | 동작 21 · 수용 기준 |
 | 2026-10-13 | REQ-20261013-093 / — | 22 신설 (표 정렬, 판정면 = 계산된 스타일). req FR-03 의 "`ALLOWED_ATTR` 출력이 현 HEAD 와 같다" 는 091 의 `start` 추가와 충돌하므로 취지(`style`·`align` 부재)로 재정식화해 `sanitizeHtml` (I15) 에 두었다 | 동작 22 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-094 / — | 23 신설 (엔티티 참조). **계약을 뒤집는다** — 충돌 단언 1건을 §참고 에 열거 | 동작 23 · 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-095 / — | 24 신설 (참조 링크 — 참조되지 않은 정의 줄 보존은 CommonMark 와 의도적으로 갈린다). §미측정 의 "참조 링크 미구현" 을 걷었다 — 근거였던 "사용 빈도를 주장할 근거가 없다" 를 2026-10-13 운영자 결정이 대체했다 (신고 `20261013-0739` 머리) | 동작 24 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -141,4 +146,4 @@
 - 23 의 이름 엔티티 표를 DOM 해석으로 얻을지 표로 둘지는 수단이다. 파서는 지금 DOM 을 쓰지 않는다. 코드 밖 산문에 `&nbsp;` 등을 글자로 적어 둔 기존 글은 23 착지 후 그 자리가 문자로 바뀐다 — 글자로 보이려면 `\&` 를 쓴다.
 - `:--` (명시적 왼쪽) 은 표기 없음과 화면상 같다. 산출에서 둘을 구별할지는 수단이다.
 - 기존 글 중 목록 뒤 빈 줄 + 들여쓴 줄을 가진 글은 19 착지 후 그 줄이 항목 안으로 들어간다. 운영 글 분포는 저장소 안에서 잴 수 없다 (API 주소가 gitignored `.env` 에만 있다).
-- 참조 링크·들여쓴 코드 블록·각주는 미구현이다. 고장이 아니라 기능 부재이며 사용 빈도를 주장할 근거가 없다.
+- 들여쓴 코드 블록·각주·참조 이미지(`![alt][라벨]`)·여러 줄에 걸친 참조 정의는 미구현이다. 고장이 아니라 기능 부재이며 사용 빈도를 주장할 근거가 없다.
