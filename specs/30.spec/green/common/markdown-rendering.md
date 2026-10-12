@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-table-alignment.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -44,6 +44,9 @@
     - **CommonMark 와 갈리는 지점이다.** 표준은 물결 펜스의 정보 문자열을 제한하지 않는다. 그런데 정보 문자열은 화면에 나가지 않으므로, 표준대로면 한국어 늘임 표기(`~~~`)로 시작하는 산문 줄이 통째로 사라지고 닫는 펜스가 없으면 문서 끝까지가 코드가 된다. 줄 가운데의 `아~~~ 그렇구나` (10·13) 는 무관하며 산출 불변이다.
     - 예: `` ````\n```js\ncode\n```\n```` `` → `pre` 1 · 코드 내용 세 줄(`` ```js `` · `code` · `` ``` ``). `~~~\ncode\n~~~` → `pre` 1 · 렌더 텍스트에 `~` 0. `` ```\na\n```` `` → `pre` 1 · 텍스트 `a` · 백틱 0.
 
+22. **표 구분선의 정렬 표기는 그 열의 정렬로 보인다.** 구분선 셀 `:--` → 왼쪽, `:-:` → 가운데, `--:` → 오른쪽이고, 그 열의 `th` 와 모든 `td` 가 **열 위치로** 대응한다 (본문 행의 셀 수가 머리 행과 달라도). 표기 없는 열(`---`)의 셀에는 속성이 없고, 정렬 표기가 하나도 없는 표의 산출은 바뀌지 않는다 — `| 이름 | 값 |\n|---|---|\n| a | 1 |` 그대로. **정제 정책은 넓히지 않는다** (`sanitizeHtml` (I15) — `style`·`align` 부재). 정렬 표지는 정제 전후 같은 `class` 로 남는다.
+    - **판정면은 계산된 스타일이다** — 전역 `th, td { text-align: left }` (`src/styles/typography.css`) 가 적용된 문서에서 `getComputedStyle(cell).textAlign`. class 문자열만 재면 CSS 쪽이 빠진 구현에서도 초록이다. `align` 속성은 그 작성자 CSS 에 져서 정제를 넓혀 통과시켜도 독자는 왼쪽 정렬을 본다.
+
 ## 동작 — 인라인
 
 10. **다섯 구분자(`*` `**` `_` `__` `~~`) 는 공백 flanking 판정 아래 대등하다.** 여는 자리 뒤가 공백·줄끝이면 열지 않고, 닫는 자리 앞이 공백이면 닫지 않는다. `2 ** 10` · `와~~ 좋다 대박~~` · `값은 a _ b _ c 이다` 가 평문으로 남는다.
@@ -81,6 +84,7 @@
 - [ ] 번호 목록 첫 번호 (20): `bash -c 'npx vitest run src/__tests__/markdown-ordered-list-start.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 판정은 정제를 거친 DOM 의 `ol.getAttribute("start")` 다.
 - [ ] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
 - [ ] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
+- [ ] 표 정렬 (22): `bash -c 'npx vitest run src/__tests__/markdown-table-alignment.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). `| 왼 | 가운데 | 오른 |\n|:--|:-:|--:|\n| a | b | c |` 의 셋째 열 `th`·`td` 계산값 `right` · 둘째 열 `center` · 정제 전후 `class` 집합 동일을 잰다.
 
 ## 변경 이력
 
@@ -89,6 +93,7 @@
 | 2026-10-13 | REQ-20261013-090 / — | 19 신설 (항목 내용 열 블록) · 3 에 인용 안 펜스 · 6·9 에 19 예외 표기 · 낡은 문서 이름 인용 1건 정정 | 동작 3·6·9·19 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-091 / — | 20 신설 (첫 번호) · 18 을 속성까지 넓힘 (corpus 가 속성마다 그 속성이 나오는 행을 갖는다). 정제 쪽은 `sanitizeHtml` 재개봉 (I15) — 종전 `-eq 7` 을 집합 판정으로 교체 | 동작 18·20 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-092 / — | 21 신설 (펜스 문자·길이·정보 문자열). 물결 펜스 정보 문자열을 언어 이름 꼴로 제한 — req 가 위임한 수단 판정이며 CommonMark 와 갈린다 | 동작 21 · 수용 기준 |
+| 2026-10-13 | REQ-20261013-093 / — | 22 신설 (표 정렬, 판정면 = 계산된 스타일). req FR-03 의 "`ALLOWED_ATTR` 출력이 현 HEAD 와 같다" 는 091 의 `start` 추가와 충돌하므로 취지(`style`·`align` 부재)로 재정식화해 `sanitizeHtml` (I15) 에 두었다 | 동작 22 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -110,10 +115,15 @@
 
 - **(18·20) 정제 단 누락** — 파서 변경은 둔 채 `ALLOWED_ATTR` 에서 `start` 만 뺀 트리 → `npx vitest run src/__tests__/parser-sanitizer-coherence.test.ts` rc≠0. 대조: corpus 행 이름표만 바꾼 변형 → rc=0. 이 방향이 없으면 `start` 축은 `post-image-deferred-loading` 격리(`50.blocked/spec/common/`)와 같은 민감도 0 상태로 착지한다.
 
+### 판정면 실측 (HEAD=`e1abfdd`, 격리 사본)
+
+- **22 의 계산된 스타일 판정은 jsdom 에서 성립한다.** `typography.css` 를 `<style>` 로 넣은 문서에서 `td` → `left`, `th, td` 보다 특이도가 높은 class 규칙 → `right`, `align="right"` → `left` (작성자 CSS 가 이긴다).
+
 ### 미측정·비판정 항목
 
 - 저장된 요약과 현 파서 산출의 불일치 — 회복은 저장소 밖(재저장·서버 일괄 재계산)이며 `summary-derivation` (5)(6) 과 `check:summary-drift` 가 측정 채널을 소유한다. 19 이후 신설 항은 전부 파서 산출을 바꾸므로 그 채널의 소비자다.
 - 목록 항목 안 `<p>` 감싸기(tight/loose 구별)는 계약하지 않는다 — 이 파서는 줄=문단 모델이다. 항목 안의 표·제목도 19 의 대상이 아니다.
 - 백틱 펜스의 정보 문자열은 지금처럼 통째로 언어 이름이 되고 화면에 나가지 않는다 (`` ```js title `` 의 `title`). 21 이 막는 것은 정보 문자열에 백틱이 든 줄과 물결 펜스의 산문 줄뿐이다. 물결 하나만 있는 줄(`~~~`)은 표준대로 펜스를 연다.
+- `:--` (명시적 왼쪽) 은 표기 없음과 화면상 같다. 산출에서 둘을 구별할지는 수단이다.
 - 기존 글 중 목록 뒤 빈 줄 + 들여쓴 줄을 가진 글은 19 착지 후 그 줄이 항목 안으로 들어간다. 운영 글 분포는 저장소 안에서 잴 수 없다 (API 주소가 gitignored `.env` 에만 있다).
 - 참조 링크·들여쓴 코드 블록·각주는 미구현이다. 고장이 아니라 기능 부재이며 사용 빈도를 주장할 근거가 없다.
