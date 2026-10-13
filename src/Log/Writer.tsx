@@ -17,10 +17,36 @@ import './Writer.css';
 const LogItem = lazy(() => import('./LogItem'));
 const ImageSelector = lazy(() => import('../Image/ImageSelector'));
 
+// 툴바 문법 템플릿. 버튼은 이 맵을 순회해 그린다 — 버튼과 템플릿을 따로 열거하면
+// 한쪽에만 더한 항목이 생긴다. 게이트: `Writer.syntax-templates.test.tsx`.
+//
+// - 자리표시자는 영문 대문자 낱말 하나의 관례를 따른다. 렌더된 글에 그 낱말만 남아야
+//   "파서가 소화했다" 를 잴 수 있다.
+// - 선택 항목(이미지·링크의 제목)에는 자리표시자를 넣지 않는다. 지우기를 잊으면
+//   그 글자가 발행된 글의 툴팁(`title`)이 된다. `ImageSelector` 타일 템플릿과 같은 원칙이다.
+// - 가로줄은 `***` 다. 문단 바로 아랫줄의 `---` 는 가로줄이 아니라 앞 문단을 제목으로
+//   만드는 밑줄이다 (`문단 줄\n---` → `<h2>문단 줄</h2>`).
+// - `img` · `a` 키는 `data-testid` (`img-button` · `a-button`) 로 쓰인다.
 const MARKDOWN_STRING_TEMPLATE = {
-	"img": "![ALT_TEXT](url \"OPTIONAL_TITLE\")",
-	"a": "[LinkText](https://example.com/ \"TITLE\")",
-};
+	heading: { label: "Heading", markdown: "## HEADING" },
+	bold: { label: "Bold", markdown: "**BOLD**" },
+	italic: { label: "Italic", markdown: "*ITALIC*" },
+	strike: { label: "Strikethrough", markdown: "~~STRIKE~~" },
+	code: { label: "Inline code", markdown: "`CODE`" },
+	a: { label: "Link", markdown: "[LINK_TEXT](https://example.com/)" },
+	img: { label: "Image", markdown: "![ALT_TEXT](IMAGE_URL)" },
+	quote: { label: "Quote", markdown: "> QUOTE" },
+	ul: { label: "List", markdown: "- ITEM\n- ITEM" },
+	ol: { label: "Numbered list", markdown: "1. ITEM\n2. ITEM" },
+	codeblock: { label: "Code block", markdown: "```LANGUAGE\nCODE\n```" },
+	table: { label: "Table", markdown: "| HEADER | HEADER |\n|---|---|\n| CELL | CELL |" },
+	hr: { label: "Horizontal rule", markdown: "***" },
+} as const;
+
+type MarkdownTemplateKey = keyof typeof MARKDOWN_STRING_TEMPLATE;
+
+const isMarkdownTemplateKey = (key: string): key is MarkdownTemplateKey =>
+	Object.prototype.hasOwnProperty.call(MARKDOWN_STRING_TEMPLATE, key);
 
 // `auto-expand` textarea 는 최초 scrollHeight 를 엘리먼트에 캐시해 둔다 (기존 동작 유지).
 interface AutoExpandTextArea extends HTMLElement {
@@ -321,11 +347,20 @@ const Writer = () => {
 
 	const copyMarkdownString = async (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.preventDefault();
-		const tag = (e.target as HTMLButtonElement).value as keyof typeof MARKDOWN_STRING_TEMPLATE;
 
-		const markdownString = MARKDOWN_STRING_TEMPLATE[tag];
+		// `target` 이 아니라 `currentTarget` 이다. 버튼 안의 자식(아이콘 등)을 누르면
+		// `target` 은 그 자식이라 `value` 가 없고, 빈 문자열이 복사된 채 성공 토스트가 떴다.
+		// `currentTarget` 은 await 뒤에 비워지므로 여기서 먼저 읽는다.
+		const key = e.currentTarget.value;
 
-		const ok = await copyToClipboard(markdownString);
+		if (!isMarkdownTemplateKey(key)) {
+			setToasterType("error");
+			setToasterMessage("Unknown markdown template.");
+			setIsShowToaster(1);
+			return;
+		}
+
+		const ok = await copyToClipboard(MARKDOWN_STRING_TEMPLATE[key].markdown);
 
 		if(cancelledCopyRef.current) return;
 
@@ -481,25 +516,18 @@ const Writer = () => {
 					{/* form 안의 button 은 type 이 없으면 submit 이 기본이다. 지금은 핸들러의
 					    preventDefault 가 막고 있지만, 그 방어는 핸들러가 기억해야 성립한다 —
 					    type 으로 구조적으로 못 박는다. */}
-					<button
-						type="button"
-						data-testid="img-button"
-						className="btn btn--secondary btn--sm"
-						value="img"
-						onClick={copyMarkdownString}
-					>
-						Markdown: image
-					</button>
-
-					<button
-						type="button"
-						data-testid="a-button"
-						className="btn btn--secondary btn--sm"
-						value="a"
-						onClick={copyMarkdownString}
-					>
-						Markdown: anchor
-					</button>
+					{Object.entries(MARKDOWN_STRING_TEMPLATE).map(([key, { label }]) => (
+						<button
+							key={key}
+							type="button"
+							data-testid={`${key}-button`}
+							className="btn btn--secondary btn--sm"
+							value={key}
+							onClick={copyMarkdownString}
+						>
+							{label}
+						</button>
+					))}
 				</div>
 					
 				<button
