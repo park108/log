@@ -1610,7 +1610,34 @@ export const markdownToHtml = (rawInput: string): string => {
 		}
 	}
 
-	// image
+	// 대괄호 짝 판정 (spec `markdown-rendering` §28 — CommonMark §6.3).
+	//
+	// 링크 텍스트와 이미지 설명은 짝이 맞는 대괄호를 품는다 — `[arr[0] 접근](…)` ·
+	// `![그림 [1]](…)`. 텍스트를 `[^\]]*` 로 잡던 동안 첫 `]` 에서 끝났다. 그 뒤에 `(` 가
+	// 없으면 링크가 서지 못해 `(…)` 안의 주소가 맨 URL 링크가 됐고 (링크 텍스트 자리에
+	// 주소가 보인다), 이미지 설명 안에 링크가 있으면 바깥 이미지가 안쪽 주소를 `src` 로
+	// 가져가고 `](…)` 가 글자로 샜다 (실측).
+	//
+	// 판정은 이것 하나다 — 이미지·인라인 링크·참조 링크가 같이 부른다. 왼쪽부터 훑어 `]` 를
+	// 가장 가까운 열린 `[` 와 짝짓고 여는 자리 → 닫는 자리로 돌려준다. 짝 없는 `[` · `]` 는
+	// 결과에 없다 — 글자로 남는다. 이스케이프된 대괄호와 코드 스팬 안 대괄호는 이미
+	// 자리표시자라 세지 않는다 (`[a \] b](…)` 의 텍스트는 `a ] b`).
+	const bracketPairs = (text: string): Map<number, number> => {
+		const pairs = new Map<number, number>();
+		const opens: number[] = [];
+		for(let i = 0; i < text.length; i++) {
+			if("[" === text.charAt(i)) {
+				opens.push(i);
+			}
+			else if("]" === text.charAt(i)) {
+				const open = opens.pop();
+				if(undefined !== open) pairs.set(open, i);
+			}
+		}
+		return pairs;
+	};
+
+	// 인라인 링크·이미지의 꼬리 — 닫는 `]` 바로 뒤의 `(주소)` · `(주소 "제목")`.
 	//
 	// 이전 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해, **제목이 있어야만**
 	// 매치했다. 그래서 표준 형식 `![alt](url)` 이 조용히 문자 그대로 남았다 (실측
@@ -1623,31 +1650,150 @@ export const markdownToHtml = (rawInput: string): string => {
 	// href='...C_(프로그래밍_언어' 로 잘리고 남은 `)` 가 본문에 샜다 (실측).
 	// (주석의 호스트도 csp-origin-coverage 게이트의 스캔 대상이라 example.com 을 쓴다.)
 	// 위키·MSDN 처럼 괄호가 든 주소는 흔하다.
-	const IMAGE_PATTERN = /!\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/g;
+	const INLINE_TAIL = /\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/y;
+
+	type Destination = { end: number; url: string; title: string | undefined };
+
+	const inlineTail = (text: string, at: number): Destination | undefined => {
+		INLINE_TAIL.lastIndex = at;
+		const match = INLINE_TAIL.exec(text);
+		return null === match ? undefined : { end: INLINE_TAIL.lastIndex, url: match[1] as string, title: match[2] };
+	};
+
+	// 이미지 — `![설명](꼬리)`. **바깥부터** 정한다. 설명 안의 링크·이미지는 바깥 이미지의
+	// 설명이고 (§28 — `![foo [bar](/url)](/url2)` → `src` `/url2` · `alt` `foo bar`) 그
+	// 평문은 `plainAlt` 가 낸다. 바깥이 서지 못하면 그 `![` 는 글자이고 안쪽에서 다시
+	// 찾는다 (`![a ![b](/u)` → 글자 `![a ` + 이미지).
+	const replaceImages = (text: string, render: (description: string, to: Destination) => string): string => {
+		const pairs = bracketPairs(text);
+		let out = "";
+		let done = 0;
+		let at = text.indexOf("![");
+		while(-1 !== at) {
+			const close = pairs.get(at + 1);
+			const to = undefined === close ? undefined : inlineTail(text, close + 1);
+			if(undefined === close || undefined === to) {
+				at = text.indexOf("![", at + 1);
+				continue;
+			}
+			out += text.slice(done, at) + render(text.slice(at + 2, close), to);
+			done = to.end;
+			at = text.indexOf("![", done);
+		}
+		return out + text.slice(done);
+	};
+
+	// 링크 — 인라인 `[텍스트](꼬리)` 와 참조 `[텍스트][라벨]` · `[라벨][]` · `[라벨]` (§24).
+	//
+	// **링크 안에 링크는 생기지 않는다** (§28 — CommonMark §6.3). 그래서 안쪽부터 정한다:
+	// 오른쪽 `[` 부터 거꾸로 훑어, 짝 안에 이미 선 링크가 있으면 바깥 `[` · `]` 는 글자다
+	// (`[foo [bar](/uri)](/uri)` → `[foo ` + 링크 `bar` + `](/uri)`). 짝만 보고 바깥부터
+	// 세우면 바깥 대괄호가 짝이 맞아 `a` 안에 `a` 가 생기고, 정제 뒤 DOM 에서 링크가 둘로
+	// 쪼개진다. 짝 없는 `[` 는 글자이고 링크는 짝이 맞는 `[` 부터다 (`[link [bar](/uri)`).
+	// 방출은 링크 텍스트 안의 링크도 그대로 내보낸다 — 이 금지가 판정 한 곳에만 있어야
+	// 빠졌을 때 숨지 않고 `a` 안의 `a` 로 드러난다.
+	//
+	// 한 자리에서는 인라인을 먼저 본다 — `[a](/b)\n\n[a]: /x` 는 `/b` 다 (§24). 참조는
+	// 정의가 있을 때만 본다. 단축·접힌 꼴은 텍스트가 곧 라벨이고 라벨에는 대괄호가 들 수
+	// 없으므로 (CommonMark §4.7), 짝 맞는 대괄호를 품을 수 있는 것은 온전한 꼴
+	// `[텍스트][라벨]` 의 텍스트뿐이다 (`[link [foo [bar]]][ref]`).
+	//
+	// `!` 바로 뒤의 `[` 는 링크를 열지 않는다 — 이미지 꼴이다. 인라인 꼬리면 이미지 패스가
+	// 이미 소비했고, 참조 꼴(`![alt][라벨]`)은 참조 이미지가 기능 부재라 글자로 남는다.
+	const LINK_LABEL = /\[([^[\]]*)\]/y;
+
+	type Link = Destination & { close: number; label: string | undefined };
+
+	const referenceLink = (text: string, at: number, close: number): Link | undefined => {
+		LINK_LABEL.lastIndex = close + 1;
+		const following = LINK_LABEL.exec(text);
+		const end = null === following ? close + 1 : LINK_LABEL.lastIndex;
+		const label = null === following || "" === following[1] ? undefined : following[1];
+
+		const content = text.slice(at + 1, close);
+		if("" === content || (undefined === label && /[[\]]/.test(content))) return undefined;
+
+		const key = normalizeLabel(label ?? content);
+		const definition = definitions.get(key);
+		if(undefined === definition) return undefined;
+
+		return { end, url: definition.url, title: definition.title, close, label: key };
+	};
+
+	const replaceLinks = (text: string, references: boolean, render: (content: string, link: Link) => string): string => {
+		const pairs = bracketPairs(text);
+		const links = new Map<number, Link>();
+		let leftmostLink = text.length;
+
+		for(let at = text.length - 1; at >= 0; at--) {
+			const close = pairs.get(at);
+			if(undefined === close || "!" === text.charAt(at - 1)) continue;
+
+			// 링크 안에 링크는 생기지 않는다 — 짝 안에 이미 선 링크가 있으면 바깥은 글자다.
+			if(leftmostLink < close) continue;
+
+			const to = inlineTail(text, close + 1);
+			let link: Link | undefined = undefined === to ? undefined : { ...to, close, label: undefined };
+			if(undefined === link && references) link = referenceLink(text, at, close);
+			if(undefined === link) continue;
+
+			links.set(at, link);
+			leftmostLink = at;
+		}
+
+		const emit = (from: number, to: number): string => {
+			let out = "";
+			let done = from;
+			for(let at = from; at < to; at++) {
+				const link = links.get(at);
+				if(undefined === link || at < done) continue;
+				out += text.slice(done, at) + render(emit(at + 1, link.close), link);
+				done = link.end;
+			}
+			return out + text.slice(done, to);
+		};
+
+		return emit(0, text.length);
+	};
+
+	// 참조된 라벨 — 아래 링크 패스와 이미지 설명의 평문화가 함께 모은다.
+	const referencedLabels = new Set<string>();
 
 	// 이미지 `alt` 는 설명의 **평문**이다 (spec `markdown-rendering` §27 — CommonMark
 	// §6.4 "plain string content"). 설명 원문을 그대로 넣던 동안 `![**굵게** 그림](…)`
 	// 의 `alt` 가 `**굵게** 그림`, `` ![`c`](…) `` 가 `` `c` `` 였다 — 화면 낭독기와
 	// 이미지가 안 뜰 때의 글자가 표기 문자를 읽는다.
 	//
-	// 설명을 본문과 **같은 강조 패스**(`applyEmphasis`)에 통과시킨 뒤 그 패스가 낸
-	// 태그를 걷는다. 설명은 이미 본문 escape 를 지났으므로 남은 꺾쇠는 그 태그뿐이다 —
-	// 걷지 않으면 속성값에 태그가 든다. 코드 스팬은 백틱 없이 내용만 남기되 강조 패스
-	// **뒤**에 푼다 — 먼저 풀면 내용 안의 `*` 가 구분자가 된다. 이스케이프·엔티티
+	// 설명 안의 이미지는 자기 `alt` 를, 링크는 자기 텍스트를 낸다 (§28) — 본문과 같은
+	// 판정으로 찾는다. 그다음 설명을 본문과 **같은 강조 패스**(`applyEmphasis`)에 통과시킨
+	// 뒤 그 패스가 낸 태그를 걷는다. 설명은 이미 본문 escape 를 지났으므로 남은 꺾쇠는 그
+	// 태그뿐이다 — 걷지 않으면 속성값에 태그가 든다. 코드 스팬은 백틱 없이 내용만 남기되
+	// 강조 패스 **뒤**에 푼다 — 먼저 풀면 내용 안의 `*` 가 구분자가 된다. 이스케이프·엔티티
 	// 자리표시자는 그대로 두면 아래 태그 조각 복원이 글자로 푼다.
-	const plainAlt = (description: string): string =>
-		applyEmphasis([{ type: "value", closure: "", text: description }])
+	const plainAlt = (description: string): string => {
+		const text = replaceLinks(
+			replaceImages(description, (inner) => plainAlt(inner)),
+			definitions.size > 0,
+			(content, link) => {
+				if(undefined !== link.label) referencedLabels.add(link.label);
+				return content;
+			}
+		);
+
+		return applyEmphasis([{ type: "value", closure: "", text }])
 			.map((node) => node.text)
 			.join("")
 			.replace(/<[^>]*>/g, "")
-			.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) => escapeHtmlText(codeSpans[Number(i)]));
+			.replace(/c(\d+)/g, (_m, i: string) => escapeHtmlText(codeSpans[Number(i)]));
+	};
 
+	// image
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
-			node.text = node.text.replace(IMAGE_PATTERN, (_m, alt, url, title) =>
+			node.text = replaceImages(node.text, (description, to) =>
 				stashTag(
-					"<img src='" + escapeHtmlQuotes(url) + "' alt='" + escapeHtmlQuotes(plainAlt(alt)) + "'"
-					+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
+					"<img src='" + escapeHtmlQuotes(to.url) + "' alt='" + escapeHtmlQuotes(plainAlt(description)) + "'"
+					+ (undefined === to.title ? "" : " title='" + escapeHtmlQuotes(to.title) + "'")
 					+ " />"
 				)
 			);
@@ -1692,64 +1838,33 @@ export const markdownToHtml = (rawInput: string): string => {
 		}
 	}
 
-	// anchor
+	// anchor — 인라인 링크와 참조 링크 (spec §24). 판정은 위 `replaceLinks` 다.
 	//
 	// image 와 동일한 결함이 있었다 — 제목이 없으면 매치하지 않아 표준 형식
 	// `[텍스트](url)` 이 문자 그대로 남았다. 블로그 본문에서 가장 흔한 형식이다.
 	//
-	// `!` 선행은 negative lookbehind 로 배제한다. 다만 이 가드는 **현재 도달하지
-	// 않는다** — 두 패턴이 `!` 접두만 다르므로, 앵커가 매치할 자리는 앞선 image
-	// 패스가 이미 소비한다 (실측: lookbehind 를 빼도 출력이 같다). 남겨 두는 것은
-	// 그 등가성이 두 패턴이 같은 모양일 때만 성립하기 때문이다 — 예컨대 image 쪽만
-	// URL 조건을 좁히면 그 순간부터 이 가드가 실제로 필요해진다.
-	//
-	// 도달하지 않으므로 테스트로 덮지 않았다. 커버리지가 이 분기를 못 덮는 것은
-	// 결함이 아니라 위 사실의 반영이다.
-	const ANCHOR_PATTERN = /(?<!!)\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/g;
-
-	for(const node of parsed) {
-		if("value" === node.type && "pre" !== node.closure) {
-			node.text = node.text.replace(ANCHOR_PATTERN, (_m, text, url, title) =>
-				stashTag(
-					"<a href='" + escapeHtmlQuotes(url) + "'"
-					+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
-					+ linkTarget(url) + ">"
-				) + text + "</a>"
-			);
-		}
-	}
-
-	// 참조 링크 — `[텍스트][라벨]` · `[라벨][]` · `[라벨]` (spec §24).
-	//
-	// 인라인 링크 패스 **뒤**에 둔다 — 인라인이 먼저 소비하므로 `[a](b)[c]` 에서
-	// 남는 참조 후보는 `[c]` 뿐이다. 출력 규칙은 anchor 패스와 같다: 여는 태그만
+	// 인라인과 참조를 한 패스에서 정한다. 따로 돌리면 한쪽이 세운 링크의 텍스트 안에서
+	// 다른 쪽이 또 링크를 세운다 (`[a [b] c](/u)` 에 `[b]` 정의가 있으면 `a` 안에 `a`).
+	// `[a](b)[c]` 에서 참조 후보는 `[c]` 뿐이다. 출력 규칙은 둘이 같다: 여는 태그만
 	// 조각으로 빼고 링크 텍스트는 강조를 받게 남긴다. 스킴 판정은 여기 두지 않는다 —
 	// `javascript:` 정의는 정제(`ALLOWED_URI_REGEXP`)가 막는다.
 	//
 	// 정의 줄 자신은 참조 후보가 아니다 — 보면 `[참고]: …` 한 줄이 자기 라벨을
 	// 참조한 셈이 되어 걷힌다. 정의가 없는 꼴(`[메모]` · `![alt]`)은 글자 그대로다.
-	const REFERENCE_PATTERN = /(?<!!)\[([^[\]]+)\](?:\[([^[\]]*)\])?/g;
-	const referencedLabels = new Set<string>();
+	for(const node of parsed) {
+		if("value" !== node.type || "pre" === node.closure) continue;
 
-	if(definitions.size > 0) {
-		for(const node of parsed) {
-			if("value" !== node.type || "pre" === node.closure || definitionLines.has(node)) continue;
+		const references = definitions.size > 0 && !definitionLines.has(node);
 
-			node.text = node.text.replace(REFERENCE_PATTERN, (whole: string, text: string, label: string | undefined) => {
+		node.text = replaceLinks(node.text, references, (content, link) => {
+			if(undefined !== link.label) referencedLabels.add(link.label);
 
-				const key = normalizeLabel(undefined === label || "" === label ? text : label);
-				const definition = definitions.get(key);
-				if(undefined === definition) return whole;
-
-				referencedLabels.add(key);
-
-				return stashTag(
-					"<a href='" + escapeHtmlQuotes(definition.url) + "'"
-					+ (undefined === definition.title ? "" : " title='" + escapeHtmlQuotes(definition.title) + "'")
-					+ linkTarget(definition.url) + ">"
-				) + text + "</a>";
-			});
-		}
+			return stashTag(
+				"<a href='" + escapeHtmlQuotes(link.url) + "'"
+				+ (undefined === link.title ? "" : " title='" + escapeHtmlQuotes(link.title) + "'")
+				+ linkTarget(link.url) + ">"
+			) + content + "</a>";
+		});
 	}
 
 	// 참조된 라벨의 정의 줄만 걷는다. **참조되지 않은 정의 줄은 글자로 남는다** —
