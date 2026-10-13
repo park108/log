@@ -124,9 +124,16 @@ describe('trimmedContents 엔티티', () => {
 		expect(trimmedContents('AT&T 와 R&D')).toBe('AT&T 와 R&D');
 	});
 
-	it('사용자가 쓴 엔티티 표기는 왜곡하지 않는다', () => {
-		// `&amp;lt;` 를 먼저 풀면 `<` 가 되어 사용자가 쓴 문자열이 바뀐다.
-		expect(trimmedContents('엔티티는 &lt; 이렇게 쓴다')).toBe('엔티티는 &lt; 이렇게 쓴다');
+	// 본문이 엔티티 참조를 문자로 보이므로 요약도 같은 문자를 보인다 (spec
+	// `markdown-rendering` §동작 23). 이전 기대값은 엔티티 표기 그대로였다.
+	it('사용자가 쓴 엔티티 참조는 본문과 같은 문자로 보인다', () => {
+		expect(trimmedContents('엔티티는 &lt; 이렇게 쓴다')).toBe('엔티티는 < 이렇게 쓴다');
+	});
+
+	// 해석은 한 번뿐이다. `&amp;lt;` 를 두 번 풀면 `<` 가 되어 사용자가 쓴 문자열이
+	// 바뀐다 — 요약 쪽 해제 순서(`&amp;` 를 마지막에)가 지키는 축이다.
+	it('엔티티 참조를 두 번 해석하지 않는다', () => {
+		expect(trimmedContents('엔티티는 &amp;lt; 이렇게 쓴다')).toBe('엔티티는 &lt; 이렇게 쓴다');
 	});
 
 	// 대조 — 평범한 본문은 그대로여야 한다.
