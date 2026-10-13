@@ -505,7 +505,13 @@ const reachedItemIndex = (items: readonly { marker: ListMarker }[], line: string
 //
 // 펜스 판정은 **내용 열을 걷은 줄**에 댄다 — 최상위와 같은 판정 함수다. 코드 줄도
 // 내용 열까지 걷히고 그 너머의 들여쓰기는 코드의 것이다 (§9). 닫는 펜스까지가
-// 블록이고 (`closed`), 닫는 펜스가 없으면 값 노드가 끊기는 자리까지다.
+// 블록이고 (`closed`) 그 사이 줄은 내용 열과 무관하게 코드다.
+//
+// 닫는 펜스가 없으면 **그 항목이 끝나는 자리**에서 끝난다 — 내용 열에 못 미치는 첫
+// 비공백 줄의 앞 (CommonMark §4.5 *"until the end of the containing block"*). 그 앞의
+// 빈 줄은 블록에 든다. 값 노드가 먼저 끊기면 거기까지다. 이 끝이 없던 동안 0~3칸
+// 펜스는 최상위 펜스 패스가 입력 끝까지 코드로 세워 다음 항목 마커를 삼켰고, 4칸
+// 이상 펜스는 뒤 패스가 그 안의 줄을 가져가 `---` 가 앞 줄을 제목으로 만들었다.
 //
 // **이 판정은 파서 안에 하나다.** 뒤 패스보다 먼저 블록을 세우는 `applyItemCodeFence`
 // 와 그 블록을 항목에 귀속시키는 이어짐 패스가 함께 부른다 — 둘이 갈리면 같은 입력이
@@ -539,6 +545,17 @@ const itemCodeFence = (nodes: ParsedNode[], index: number, marker: ListMarker)
 		}
 	}
 
+	if(!closed) {
+		const stop = inner.findIndex((_, i) => {
+			const original = nodes[index + i] as ParsedNode;
+			return i > 0 && !isBlankLine(original) && !reachesContentColumn(original.text, marker);
+		});
+		if(stop > 0) {
+			inner.length = stop;
+			end = index + stop - 1;
+		}
+	}
+
 	const blocks = applyCodeFence(inner).map((block, i): ParsedNode =>
 		(index + i <= end) ? {...block, source: (nodes[index + i] as ParsedNode).text} : block);
 
@@ -560,14 +577,30 @@ const isTableLine = (node: ParsedNode | undefined): boolean =>
 	&& "" === node.closure
 	&& node.text.includes("|");
 
-// 밑줄식 제목 · 가로줄 · 인용 · 표 패스가 가져갈 **수 있는** 줄. 각 패스의 판정을 그대로
-// 부른다. 밑줄식 제목과 표는 앞뒤 줄까지 보므로 이것은 실제로 가져가는 줄의 **상한**이다
-// (밑줄식 제목의 앞 줄은 밑줄 줄이 대신 센다 — 둘 사이에 다른 줄이 없다).
-const mayBeTakenByBlockPass = (node: ParsedNode): boolean =>
-	THEMATIC_BREAK_PATTERN.test(node.text.trim())
-	|| SETEXT_UNDERLINE_PATTERN.test(node.text.trim())
-	|| isQuoteLine(node)
-	|| isTableLine(node);
+// 밑줄식 제목 · 가로줄 · 인용 · 표 패스가 가져갈 **수 있는** 줄 (`nodes[index]`). 각 패스의
+// 판정을 그대로 부른다. 밑줄식 제목과 표는 앞뒤 줄까지 보므로 이것은 실제로 가져가는 줄의
+// **상한**이다 (밑줄식 제목의 앞 줄은 밑줄 줄이 대신 센다 — 둘 사이에 다른 줄이 없다).
+//
+// 표 행 후보는 **앞이나 뒤 줄도 표 행 후보일 때만** 센다. 표는 머리 행 바로 다음 줄이
+// 구분선 행일 때만 열리고 본문 행은 바로 앞 행에 이어 붙으므로, 앞뒤가 모두 후보가 아닌
+// 줄은 표가 되지 않는다 — `- a | b` 마커 줄 바로 다음이 펜스 줄인 자리다. 줄 하나만 보던
+// 동안 그 마커 줄에서 열이 닫혀 항목의 펜스가 보호받지 못했다.
+const mayBeTakenByBlockPass = (nodes: ParsedNode[], index: number): boolean => {
+	const node = nodes[index] as ParsedNode;
+	return THEMATIC_BREAK_PATTERN.test(node.text.trim())
+		|| SETEXT_UNDERLINE_PATTERN.test(node.text.trim())
+		|| isQuoteLine(node)
+		|| (isTableLine(node) && (isTableLine(nodes[index - 1]) || isTableLine(nodes[index + 1])));
+};
+
+// 최상위 펜스 패스(또는 항목 안 펜스 패스)가 세운 코드 블록의 여는 노드. 항목 안 펜스
+// 패스와 이어짐 패스가 함께 쓴다.
+const isFenceOpenNode = (n: ParsedNode | undefined): n is ParsedNode & { source: string } =>
+	undefined !== n
+	&& "tag" === n.type
+	&& "pre" === n.closure
+	&& "<pre>" === n.text
+	&& undefined !== n.source;
 
 // 목록 항목 안 펜스 코드 블록을 밑줄식 제목 · 가로줄 · 인용 · 표 패스보다 **먼저**
 // 세운다 (spec `markdown-rendering` §21 항목 안 하위 항목).
@@ -580,44 +613,106 @@ const mayBeTakenByBlockPass = (node: ParsedNode): boolean =>
 //
 // 세운 블록은 최상위 펜스 패스의 산출과 같은 꼴(`pre` 노드 · `source` 에 원래 줄)이다.
 // 항목에 귀속시키는 것은 이어짐 패스다 — 그 패스는 이 블록을 원래 줄로 되돌려 같은
-// 판정(`itemCodeFence`)을 다시 지난다. **닫힌 블록만** 세운다. 닫히지 않은 항목 안
-// 펜스의 끝은 이어짐 패스가 종전대로 정한다.
+// 판정(`itemCodeFence`)을 다시 지난다. 닫히지 않은 펜스도 세운다 — 그 끝(항목이 끝나는
+// 자리)은 `itemCodeFence` 가 내용 열로 정하므로 뒤 패스가 무엇을 가져가든 같다.
 //
-// 열린 항목은 이어짐 패스의 규칙(마커 줄 · 빈 줄 · 귀속 · 이어짐)을 따라가되
-// **보수적으로** 센다 — 뒤 패스가 가져갈 수 있는 줄과 이미 세워진 블록에서는 열을
-// 모두 닫는다. 이어짐 패스는 그 자리에서 열을 닫거나 유지하므로 여기서 센 열은 언제나
-// 그쪽 열의 안쪽 끝과 같다. 그래서 여기서 세운 블록은 이어짐 패스도 같은 항목의 펜스로
-// 본다. 여기서 놓친 펜스는 이어짐 패스가 종전대로 세운다 (보호만 받지 못한다).
+// 열린 항목은 이어짐 패스의 규칙(마커 줄 · 빈 줄 · 귀속 · 이어짐 · 코드 블록)을 따라가되
+// **보수적으로** 센다 — 뒤 패스가 가져갈 수 있는 줄에서는 열을 모두 닫는다. 이어짐 패스는
+// 그 자리에서 열을 닫거나 유지하므로 여기서 센 열은 언제나 그쪽 열의 안쪽 끝과 같다.
+// 그래서 여기서 세운 블록은 이어짐 패스도 같은 항목의 펜스로 본다. 여기서 놓친 펜스는
+// 이어짐 패스가 종전대로 세운다 (보호만 받지 못한다).
+//
+// 최상위 펜스 패스가 이미 세운 블록에서도 열을 닫지 않는다 (§21 *"보호는 항목 안 어느
+// 자리의 펜스에도 걸린다"*). 이어짐 패스처럼 원래 줄로 되돌려 같은 판정에 대고, 같은 항목의
+// 블록이면 그 뒤에서 열을 유지한다. 그 블록에서 열을 닫던 동안 같은 항목의 둘째 펜스
+// (`- a\n  ```\n  x\n  ```\n    ```\n    ---\n    ```` 의 4칸 펜스)가 보호받지 못했다.
 const applyItemCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 
 	// 열린 항목. `continued` 는 이어짐 패스의 `target` 이 있는가 — 바로 이어지는 문단
 	// 줄이 붙을 자리가 있는가다 (코드 블록 뒤 · 안쪽 항목을 닫고 귀속된 자리에는 없다).
 	const openItems: { marker: ListMarker; continued: boolean }[] = [];
 
-	const isPlainLine = (n: ParsedNode | undefined): n is ParsedNode =>
-		undefined !== n && "value" === n.type && "" === n.closure && !mayBeTakenByBlockPass(n);
+	const isPlainLine = (at: number): boolean => {
+		const n = nodes[at];
+		return undefined !== n && "value" === n.type && "" === n.closure && !mayBeTakenByBlockPass(nodes, at);
+	};
+
+	// 귀속 판정에 대는 줄 — 이어짐 패스의 `blockLine` 과 같다. 코드 블록이면 그 펜스 줄,
+	// 마커 없는 문단 줄이면 그 줄. 그 밖은 null.
+	const attachLine = (at: number): string | null => {
+		const n = nodes[at];
+		if(isFenceOpenNode(n)) return n.source;
+		return (undefined !== n && isPlainLine(at) && !isBlankLine(n) && null === itemListMarker(n.text)) ? n.text : null;
+	};
 
 	// 이어짐 패스의 `attachToReachedItem` — 닿는 가장 깊은 항목에 귀속하고 그보다 깊은
 	// 항목을 닫는다.
-	const attachToReachedItem = (n: ParsedNode | undefined): boolean => {
-		if(!isPlainLine(n) || isBlankLine(n) || null !== itemListMarker(n.text)) return false;
+	const attachToReachedItem = (at: number): boolean => {
+		const line = attachLine(at);
+		if(null === line) return false;
 
-		const at = reachedItemIndex(openItems, n.text);
-		const item = openItems[at];
+		const reached = reachedItemIndex(openItems, line);
+		const item = openItems[reached];
 		if(undefined === item) return false;
 
-		if(at < openItems.length - 1) {
-			openItems.length = at + 1;
+		if(reached < openItems.length - 1) {
+			openItems.length = reached + 1;
 			item.continued = false;
 		}
 		return true;
+	};
+
+	// 최상위 펜스 패스가 세운 블록(`nodes[at]` 이 여는 노드)을 원래 줄로 되돌려 그 항목의
+	// 판정(`itemCodeFence`)에 댄다 — 이어짐 패스가 같은 자리에서 하는 일이다. 항목 블록의
+	// 마지막 노드 위치를 돌려준다.
+	//
+	// 두 판정이 같은 줄에서 끝나면 블록은 그대로다. 최상위 블록이 입력 끝까지 열려 있었는데
+	// 항목 블록이 먼저 끝나면 (항목이 끝났다) 그 뒤 줄은 코드가 아니다 — 최상위 펜스
+	// 판정부터 다시 받는다. 다음 항목 마커를 코드로 삼키던 자리다. 최상위 블록이 닫는
+	// 펜스로 닫혔는데 항목 블록이 먼저 끝나는 경우는 종전대로 둔다 (-1 — 열을 닫는다).
+	const settleTopLevelBlock = (at: number, marker: ListMarker): number => {
+
+		let close = at + 1;
+		while(close < nodes.length
+			&& !("tag" === (nodes[close] as ParsedNode).type && "</pre>" === (nodes[close] as ParsedNode).text)) {
+			close++;
+		}
+
+		const lines: ParsedNode[] = [];
+		for(const n of nodes.slice(at, close + 1)) {
+			if(undefined !== n.source) lines.push({type: "value", text: n.source, closure: "", line: n.line});
+		}
+
+		const block = itemCodeFence(lines, 0, marker);
+		if(null === block) return -1;
+		if(block.end === lines.length - 1) return close;
+		if(undefined !== nodes[close]?.source) return -1;
+
+		const rest = applyCodeFence(lines.slice(block.end + 1));
+		nodes.splice(at, close - at + 1, ...block.blocks, ...rest);
+		return at + block.blocks.length - 1;
 	};
 
 	for(let index = 0; index < nodes.length; index++) {
 
 		const node = nodes[index] as ParsedNode;
 
-		if(!isPlainLine(node)) {
+		if(isFenceOpenNode(node)) {
+
+			if(false === openItems[openItems.length - 1]?.continued) attachToReachedItem(index);
+
+			const item = openItems[openItems.length - 1];
+			const end = (undefined !== item && reachesContentColumn(node.source, item.marker))
+				? settleTopLevelBlock(index, item.marker) : -1;
+
+			if(undefined !== item && end >= 0) {
+				index = end;
+				item.continued = false;
+				continue;
+			}
+		}
+
+		if(!isPlainLine(index)) {
 			openItems.length = 0;
 			continue;
 		}
@@ -627,7 +722,7 @@ const applyItemCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 			let next = index + 1;
 			while(next < nodes.length && isBlankLine(nodes[next] as ParsedNode)) next++;
 
-			if(attachToReachedItem(nodes[next])) {
+			if(attachToReachedItem(next)) {
 				index = next - 1;
 				continue;
 			}
@@ -641,20 +736,12 @@ const applyItemCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 			continue;
 		}
 
-		if(false === openItems[openItems.length - 1]?.continued) attachToReachedItem(node);
+		if(false === openItems[openItems.length - 1]?.continued) attachToReachedItem(index);
 
 		const item = openItems[openItems.length - 1];
 		const block = undefined === item ? null : itemCodeFence(nodes, index, item.marker);
 
 		if(undefined !== item && null !== block) {
-
-			if(!block.closed) {
-				// 닫히지 않은 펜스가 어디서 끝나는지는 뒤 패스가 가져가는 줄에 달렸다 —
-				// 여기서는 알 수 없으므로 그 범위에서 아무것도 세우지 않는다.
-				openItems.length = 0;
-				index = block.end;
-				continue;
-			}
 
 			nodes.splice(index, block.end - index + 1, ...block.blocks);
 			index += block.blocks.length - 1;
@@ -1129,13 +1216,8 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 			item.target = null;
 		};
 
-		// 최상위 펜스 패스(또는 항목 안 펜스 패스)가 세운 코드 블록의 여는 노드.
-		const isFenceOpenNode = (n: ParsedNode | undefined): n is ParsedNode & { source: string } =>
-			undefined !== n
-			&& "tag" === n.type
-			&& "pre" === n.closure
-			&& "<pre>" === n.text
-			&& undefined !== n.source;
+		// 코드 블록의 여는 노드 판정(`isFenceOpenNode`)은 모듈 스코프에 있다 — 항목 안
+		// 펜스 패스가 같은 판정으로 열을 센다.
 
 		// 귀속 판정에 대는 마커 없는 블록의 줄 — 펜스로 연 코드 블록이면 그 펜스 줄,
 		// 마커 없는 문단 줄이면 그 줄. 그 밖(빈 줄 · 마커 줄 · 다른 패스의 노드)은 null.
