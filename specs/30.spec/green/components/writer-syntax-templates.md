@@ -2,7 +2,7 @@
 
 > **위치**: `src/Log/Writer.tsx` 의 `MARKDOWN_STRING_TEMPLATE` · `copyMarkdownString` · 툴바(`div--writer-toolbar`) · 보조: `src/Image/ImageSelector.tsx` 의 타일 템플릿 · `src/common/common.ts` `copyToClipboard`
 > **관련 요구사항**: REQ-20261013-097 FR-01~FR-08 · NFR-01~NFR-03 (출처: 운영자 요청 `20261013-0741-writer-syntax-template-buttons`, 2026-10-13 사장님 지시)
-> **게이트**: 신설 예정(§수용 기준 `[ ]`): `src/Log/Writer.syntax-templates.test.tsx` · 기존: `src/Image/ImageSelector.copied-markdown.test.tsx`
+> **게이트**: `src/Log/Writer.syntax-templates.test.tsx` (TSK-20261013-04 `bea3a3b`) · `src/Image/ImageSelector.copied-markdown.test.tsx`
 > **최종 업데이트**: 2026-10-13 (inspector — 최초 등록)
 
 > 참조 코드는 식별자 우선. 줄 번호는 HEAD=`e1abfdd` 스냅샷이다.
@@ -42,7 +42,7 @@
 
 ## 수용 기준
 
-- [ ] 템플릿 계약 게이트 (동작 1~6): `bash -c 'npx vitest run src/Log/Writer.syntax-templates.test.tsx --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 렌더된 툴바에서 도출한 템플릿 버튼 13개 이상 · 각 `type="button"` · 접근 이름 비공백 · 동작 2·3·4 판정 · 자식 클릭 복사를 잰다.
+- [x] 템플릿 계약 게이트 (동작 1~6): `bash -c 'npx vitest run src/Log/Writer.syntax-templates.test.tsx --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-04 `bea3a3b`). HEAD=`e1abfdd` rc=1 (파일 부재). 렌더된 툴바에서 도출한 템플릿 버튼 13개 이상 · 각 `type="button"` · 접근 이름 비공백 · 동작 2·3·4 판정 · 자식 클릭 복사를 잰다.
 - [x] 타일 경로의 같은 원칙 유지 (동작 3): `bash -c 'npx vitest run src/Image/ImageSelector.copied-markdown.test.tsx --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=0.
 
 ## 변경 이력
@@ -50,12 +50,13 @@
 | 일자 | req / 커밋 | 요약 | 영향 |
 |------|-----------|------|------|
 | 2026-10-13 | REQ-20261013-097 / — | 최초 등록. 버튼 추가 요청을 템플릿↔파서 불변식으로 정식화했다. 현 두 템플릿의 제목 자리표시자 누출(동작 3)이 실측 위반이다 | all |
+| 2026-10-13 | inspector reconcile / `bea3a3b` | 템플릿 계약 게이트 `[x]` — HEAD=`bea3a3b` 격리 사본에서 파일 추출 명령 재실행 rc=0 2/2. 주입 이관 착지 박제 (TSK-04 result.md `injection: 6/6 detect` · `control: 2/2 pass`) | 수용 기준 · 참고 |
 
 ## 참고
 
 ### 주입 이관 (`RULE-06 §게이트 실효 검증` — 동작 2 게이트를 세우는 task 의 DoD)
 
-이관처 task 는 미발행이다.
+이관처: TSK-20261013-04 (`bea3a3b`) — 아래 주입을 D1 로, 대조를 함께 수행했다 (result.md).
 
 - **주입**: 템플릿 맵에 `- [ ] TODO` 를 넣는다 → rc≠0 (`[ ]` 가 글자로 남는다). 원복 → rc=0.
 - **대조**: 소화되는 템플릿(`**BOLD**`)을 다른 키로 하나 더 넣는다 → rc=0. 붉으면 게이트가 과잉 특정이다.

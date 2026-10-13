@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-table-alignment.test.ts` · `markdown-entity-reference.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-table-alignment.test.ts` · `markdown-entity-reference.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -94,10 +94,10 @@
 - [x] 교차 게이트 통과: `bash -c 'npx vitest run src/__tests__/ --coverage.enabled=false >/dev/null 2>&1'` → rc=0
 - [x] 다섯 구분자 대등 등록: `bash -c 'test "$(grep -cE "inlineParsing\(parsed, \"[^\"]+\", \"[^\"]+\"\)" src/common/markdownParser.ts)" -eq 0'` → rc=0 (3인자 형태 0건 = 전부 `strictFlanking`)
 - [x] escape 단일 출처: `bash -c 'test "$(grep -c "export const escapeHtmlQuotes" src/common/markdownParser.ts)" -eq 0'` → rc=0
-- [ ] 목록 항목 안 블록 (19 · 3 의 인용 안 펜스): `bash -c 'npx vitest run src/__tests__/markdown-list-item-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 19 의 예 전부와 `> ```\n> code\n> ``` ` → `blockquote > pre` · 렌더 텍스트 백틱 0 을 `sanitizeHtml(markdownToHtml(x))` 의 DOM 에서 잰다.
-- [ ] 번호 목록 첫 번호 (20): `bash -c 'npx vitest run src/__tests__/markdown-ordered-list-start.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 판정은 정제를 거친 DOM 의 `ol.getAttribute("start")` 다.
-- [ ] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
-- [ ] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
+- [x] 목록 항목 안 블록 (19 · 3 의 인용 안 펜스): `bash -c 'npx vitest run src/__tests__/markdown-list-item-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-02-a `7ae6cbb` · 02-b `c6773aa`). HEAD=`e1abfdd` rc=1 (파일 부재). 19 의 예 전부와 `> ```\n> code\n> ``` ` → `blockquote > pre` · 렌더 텍스트 백틱 0 을 `sanitizeHtml(markdownToHtml(x))` 의 DOM 에서 잰다.
+- [x] 번호 목록 첫 번호 (20): `bash -c 'npx vitest run src/__tests__/markdown-ordered-list-start.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (파일 부재). 판정은 정제를 거친 DOM 의 `ol.getAttribute("start")` 다.
+- [x] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
+- [x] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-01 `9d05900`). HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
 - [ ] 표 정렬 (22): `bash -c 'npx vitest run src/__tests__/markdown-table-alignment.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). `| 왼 | 가운데 | 오른 |\n|:--|:-:|--:|\n| a | b | c |` 의 셋째 열 `th`·`td` 계산값 `right` · 둘째 열 `center` · 정제 전후 `class` 집합 동일을 잰다.
 - [ ] 엔티티 참조 (23): `bash -c 'npx vitest run src/__tests__/markdown-entity-reference.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 23 의 예 전부를 정제를 거친 DOM 의 `textContent`·요소 수·`a.href` 와 `trimmedContents` 로 잰다.
 - [ ] 참조 링크 (24): `bash -c 'npx vitest run src/__tests__/markdown-reference-link.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 세 형태 · 라벨 정규화 · 참조되지 않은 정의 줄 보존 · 코드 안 비해석 · `javascript:` 정의 차단을 정제를 거친 DOM 에서 잰다.
@@ -114,6 +114,7 @@
 | 2026-10-13 | REQ-20261013-094 / — | 23 신설 (엔티티 참조). **계약을 뒤집는다** — 충돌 단언 1건을 §참고 에 열거 | 동작 23 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-095 / — | 24 신설 (참조 링크 — 참조되지 않은 정의 줄 보존은 CommonMark 와 의도적으로 갈린다). §미측정 의 "참조 링크 미구현" 을 걷었다 — 근거였던 "사용 빈도를 주장할 근거가 없다" 를 2026-10-13 운영자 결정이 대체했다 (신고 `20261013-0739` 머리) | 동작 24 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-096 / — | 25 신설 (맨 URL 링크). req 가 남긴 한국어 꼬리 판정은 (a) 안 채택 — 호스트 직후 한글은 링크 밖, 경로 안 한글은 링크 안 | 동작 25 · 수용 기준 · 참고 |
+| 2026-10-13 | inspector reconcile / `9d05900` `7ae6cbb` `c6773aa` `84fc6e1` | 수용 기준 4건 `[x]` (19·3 · 20 · 18 corpus · 21) — HEAD=`bea3a3b` 격리 사본에서 파일 추출 명령 재실행 rc=0 4/4. 주입 이관 (18·20) 착지 박제 | 수용 기준 · 참고 |
 
 ## 참고
 
@@ -136,7 +137,7 @@
 
 ### 주입 이관 (`RULE-06 §게이트 실효 검증` — 해당 게이트를 세우는 task 의 DoD)
 
-`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처 task 는 미발행이다.
+`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처: TSK-20261013-03 (`84fc6e1`) — 아래 방향을 D1 로 수행, result.md 에 `injection: 5/5 detect` · `control: 2/2 pass` 박제.
 
 - **(18·20) 정제 단 누락** — 파서 변경은 둔 채 `ALLOWED_ATTR` 에서 `start` 만 뺀 트리 → `npx vitest run src/__tests__/parser-sanitizer-coherence.test.ts` rc≠0. 대조: corpus 행 이름표만 바꾼 변형 → rc=0. 이 방향이 없으면 `start` 축은 `post-image-deferred-loading` 격리(`50.blocked/spec/common/`)와 같은 민감도 0 상태로 착지한다.
 

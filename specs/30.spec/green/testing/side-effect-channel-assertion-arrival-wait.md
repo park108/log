@@ -53,7 +53,7 @@
 - [x] (I4 모집단 도출 비공허 — 파일) 도출 모집단이 비어 있지 않다: `bash -c 'n=$(find src \( -name "*.test.ts" -o -name "*.test.tsx" \) | wc -l | tr -d " "); echo "src-test-files=$n"; test "$n" -ge 100'` → HEAD=`c82c629` 실측 **rc=0** (`src-test-files=117`). **하한으로 닫는 이유**: 정확한 수로 못 박으면 테스트가 하나 늘 때마다 계약이 거짓이 된다. 판정 대상은 모집단의 실재이지 크기가 아니다.
 - [x] (I4 모집단 도출 비공허 — 저장 채널) 저장 채널 단언이 실재한다: `bash -c 'n=$(grep -rlE "expect\(\s*(sessionStorage|localStorage|document\.title)" src --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d " "); echo "storage-assert-files=$n"; test "$n" -ge 1'` → HEAD=`c82c629` 실측 **rc=0** (`storage-assert-files=8`). 이 도출이 비면 (I1) 은 **공허 통과**한다.
 - [x] (실물 양성 표본 실재) 유일한 양성 표본이 히스토리에 남아 있다: `bash -c 'git cat-file -e 06425e7^:src/Log/LogList.test.tsx'` → HEAD=`c82c629` **저장소 루트에서** 실측 **rc=0** (격리 사본은 `.git` 이 없어 `rc=128` — 이 항목만 저장소 루트가 판정 환경이다). 그 블롭에서 저장 채널 불일치 **2 자리**(`:336` · `:394`, 둘 다 `sessionStorage.getItem('logListLastTimestamp')`)가 도출되고 현 HEAD 의 같은 파일에서는 **0** 이다 (§스코프 규칙 실측).
-- [ ] (I6 채널 실재) 게이트가 발화 채널에 등록돼 있다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; grep -qE "\"check:side-effect-wait-channel\"" package.json'` → HEAD=`c82c629` 실측 **rc=1 (채널 부재)**. 미착수이며 이관처 task 는 미발행이다.
+- [ ] (I6 채널 실재) 게이트가 발화 채널에 등록돼 있다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; grep -qE "\"check:side-effect-wait-channel\"" package.json'` → HEAD=`c82c629` 실측 **rc=1 (채널 부재)**. HEAD=`bea3a3b` 재실행 rc=1 불변. 이관처 task: `TSK-20261013-09` (`40.task/`, 미착수).
 - [ ] (I1 저장 채널 불일치 0) 게이트가 저장 채널 불일치를 0 으로 판정한다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; out=$("$f" 2>&1); rc=$?; echo "$out" | grep -qE "storage-mismatch=0" || exit 1; exit $rc'` → HEAD=`c82c629` 실측 **rc=1 (채널 부재)**. 게이트 착지 후 이 값은 **0** 이어야 한다 (현 트리 실측 0 — §스코프 규칙).
 - [ ] (I2 특이도 — SAME-CHANNEL 비계수) 게이트가 SAME-CHANNEL 자리를 위반으로 세지 않는다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; out=$("$f" 2>&1); echo "$out" | grep -qE "same-channel=[1-9]" || exit 1; echo "$out" | grep -qE "storage-mismatch=0"'` → HEAD=`c82c629` 실측 **rc=1 (채널 부재)**. **두 수를 함께 요구하는 이유**: `storage-mismatch=0` 만 요구하면 아무것도 도출하지 않는 게이트가 통과한다.
 - [ ] (I4·I6 무판정 닫기) 도출이 비면 게이트가 통과가 아니라 실패한다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; grep -qE "exit 2" "$f" && grep -qE "src-test-files|storage-assert-files" "$f"'` → HEAD=`c82c629` 실측 **rc=1 (채널 부재)**.
@@ -111,6 +111,7 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-10-13 | inspector reconcile / — @ HEAD=`bea3a3b` | 재실행 `[x]` 3 rc=0 (git 판정 1건은 저장소 루트) · `[ ]` 5 rc=1 불변 (채널 부재). 이관처 "미발행" 문면 2곳을 발행된 `TSK-20261013-09` 로 정정 | 테스트 현황 · 참고 |
 | 2026-10-13 | inspector tick (Phase 1) / — @ HEAD=`e1abfdd` | **삭제된 문서 인용 정리.** `d1002ec` 가 `foundation/` 을 삭제해 §테스트 현황 8 항의 인용과 역의존 줄이 없는 문서를 가리켰다 — 인용 제거 · 역의존 실측 2 → 1 갱신 · 개정된 규약 절 이름 2건 정정. 판정 명령은 바꾸지 않았다 (재실행 `[x]` 3 rc=0 · `[ ]` 5 rc=1 불변, 채널 부재). | 동작 · 의존성 · 테스트 현황 · 참고 |
 | 2026-09-01 | inspector 257차 tick (Phase 2) / — @ HEAD=`8fa6117` | **§역의존 도출 항 신설.** `foundation/spec-dependency-reverse-derivation` (I1) 의 모집단은 `§의존성` 의 `역의존` 줄이므로 **줄이 없는 문서는 모집단에서 통째로 빠진다** — 본 문서가 그 상태였고 (I1) 은 rc=0 을 유지했다. 과소 표집이며 (I8) 과 같은 형태다. 도출값은 **2 hit**(자기 언급 1 + `foundation/gate-effective-surface-and-variant-battery` 1) 이고, 하드코딩 열거였다면 그 1건이 보이지 않았을 것이다. | 의존성 · 변경 이력 |
 | 2026-09-01 | inspector 256차 tick (Phase 3, REQ-20260901-082 흡수) / pending @ HEAD=`c82c629` | **최초 박제 — 6 축.** 도달-대기 가족의 비-DOM 채널 판본. 모집단을 괄호 균형 도출로 직접 재산출해 **15 자리 / 9 파일**을 재현했고, 분류에서 **자체 오분류 1건을 검출·정정**했다 — 식별자 부분 문자열 매치가 `get` ↔ `getByTestId` 로 붙어 `same=12` 를 냈고 낱말 경계로 고쳐 `same=11` (discovery 산정과 일치). 판정값을 `storage-mismatch` 로 좁힌 것이 핵심 판단: 정적 패턴 계수는 11/15 오탐이고, spy 불일치 4건은 인과 함의라 **주입으로만 판정 가능**하다. 양성 표본은 `06425e7^` 블롭에서 **2 자리** 도출로 실증했고 현 HEAD 는 **0** 이다. 채널(`scripts/check-side-effect-wait-channel.sh`)은 부재이며 `RULE-07 §promote 조건 4` 에 따라 **채널 부착 task 발행이 선행 조건**이다. | all |
@@ -119,7 +120,7 @@
 
 ### 주입 이관 (RULE-06 §게이트 실효 검증 — 게이트 신설 task DoD 로)
 
-`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. **이관처 task 는 미발행**이며, `scripts/check-side-effect-wait-channel.sh` 를 세우는 task 의 DoD 가 아래를 왕복해야 한다.
+`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않고 이관한다. **이관처 task 는 `TSK-20261013-09`** (`40.task/`, 미착수)이며, `scripts/check-side-effect-wait-channel.sh` 를 세우는 그 task 의 DoD 가 아래를 왕복해야 한다.
 
 - **Dir-1 (민감도, I1 — 실물 표본)** — `git show 06425e7^:src/Log/LogList.test.tsx` 블롭을 판정 입력으로 넣는다 → `storage-mismatch≥1`, `rc≠0`. **고장을 낼 필요가 없는 주입이다** — 양성 표본이 히스토리에 이미 있다.
 - **Dir-2 (민감도, I1 — 합성)** — 임의 테스트에서 `await waitFor(() => expect(screen.getByText(...)).toBeInTheDocument());` 다음 줄에 `expect(sessionStorage.getItem('x')).not.toBeNull();` 를 넣는다 → `rc≠0`.
