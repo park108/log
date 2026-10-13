@@ -1625,11 +1625,28 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 위키·MSDN 처럼 괄호가 든 주소는 흔하다.
 	const IMAGE_PATTERN = /!\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/g;
 
+	// 이미지 `alt` 는 설명의 **평문**이다 (spec `markdown-rendering` §27 — CommonMark
+	// §6.4 "plain string content"). 설명 원문을 그대로 넣던 동안 `![**굵게** 그림](…)`
+	// 의 `alt` 가 `**굵게** 그림`, `` ![`c`](…) `` 가 `` `c` `` 였다 — 화면 낭독기와
+	// 이미지가 안 뜰 때의 글자가 표기 문자를 읽는다.
+	//
+	// 설명을 본문과 **같은 강조 패스**(`applyEmphasis`)에 통과시킨 뒤 그 패스가 낸
+	// 태그를 걷는다. 설명은 이미 본문 escape 를 지났으므로 남은 꺾쇠는 그 태그뿐이다 —
+	// 걷지 않으면 속성값에 태그가 든다. 코드 스팬은 백틱 없이 내용만 남기되 강조 패스
+	// **뒤**에 푼다 — 먼저 풀면 내용 안의 `*` 가 구분자가 된다. 이스케이프·엔티티
+	// 자리표시자는 그대로 두면 아래 태그 조각 복원이 글자로 푼다.
+	const plainAlt = (description: string): string =>
+		applyEmphasis([{ type: "value", closure: "", text: description }])
+			.map((node) => node.text)
+			.join("")
+			.replace(/<[^>]*>/g, "")
+			.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) => escapeHtmlText(codeSpans[Number(i)]));
+
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(IMAGE_PATTERN, (_m, alt, url, title) =>
 				stashTag(
-					"<img src='" + escapeHtmlQuotes(url) + "' alt='" + escapeHtmlQuotes(alt) + "'"
+					"<img src='" + escapeHtmlQuotes(url) + "' alt='" + escapeHtmlQuotes(plainAlt(alt)) + "'"
 					+ (undefined === title ? "" : " title='" + escapeHtmlQuotes(title) + "'")
 					+ " />"
 				)
@@ -1807,6 +1824,73 @@ export const markdownToHtml = (rawInput: string): string => {
 		});
 	}
 
+	parsed = applyEmphasis(parsed);
+
+	// 코드 스팬 복원. 내용은 이스케이프한다 — 코드는 보이는 그대로여야 하고,
+	// 이스케이프하지 않으면 `<String>` 같은 표기가 sanitize 에서 삭제돼 글자가
+	// 사라진다.
+	for(const node of parsed) {
+		if("value" === node.type && "pre" !== node.closure) {
+			node.text = node.text.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) =>
+				"<code>" + escapeHtmlText(codeSpans[Number(i)]) + "</code>"
+			);
+
+			// 이스케이프된 글자 복원. 마크업 패스가 전부 지나간 뒤이므로 이 글자는
+			// 어떤 문법에도 참여하지 않았다. 여기서 escape 해 화면에 글자로 남긴다.
+			node.text = node.text.replace(/\uE000e(\d+)\uE001/g, (_m, i: string) =>
+				escapeHtmlText(escapedChars[Number(i)])
+			);
+
+			// 태그 조각 복원. 이미 escape 를 마친 상태로 들어갔으므로 그대로 돌려놓는다.
+			// 인덱스는 바로 위 stashTag 가 만든 것이라 항상 존재한다. `?? ""` 는
+			// noUncheckedIndexedAccess 를 만족시키기 위한 것이며, 도달하면
+			// 자리표시자(보이지 않는 private-use 문자)를 화면에 남기는 대신
+			// 아무것도 남기지 않는 쪽을 고른 것이다.
+			//
+			// 조각 **안**의 자리표시자(주소·제목·alt 에 든 이스케이프 글자·엔티티와 주소·제목에
+			// 든 백틱 — alt 의 코드 스팬은 `plainAlt` 가 이미 풀었다)도
+			// 여기서 푼다. 위 두 복원은 조각을 넣기 전에 끝나므로 조각 안까지 닿지 않는다 —
+			// 닿지 않던 동안 `?a=1&amp;b=2` 의 `href` 가 `?a=1e0b=2` 가 됐다. 조각 안은
+			// 속성값이므로 따옴표까지 escape 한다 (해석 뒤에 escape 를 건다). 코드 스팬은
+			// 주소·제목 안에서 마크업이 아니므로 백틱째 글자로 되돌린다.
+			node.text = node.text.replace(/\uE000t(\d+)\uE001/g, (_m, i: string) =>
+				(tagChunks[Number(i)] ?? "")
+					.replace(/\uE000e(\d+)\uE001/g, (_e, j: string) =>
+						escapeHtmlQuotes(escapeHtmlText(escapedChars[Number(j)]))
+					)
+					.replace(/\uE000c(\d+)\uE001/g, (_c, j: string) =>
+						escapeHtmlQuotes(escapeHtmlText("`" + codeSpans[Number(j)] + "`"))
+					)
+			);
+
+			// 강조 표식 복원. escape 뒤에 되돌리므로 표식이 감싼 사용자 글자는
+			// 이미 안전하다.
+			node.text = node.text
+				.replace(/\uE002/g, "<span class=\"" + HIGHLIGHT_CLASS + "\">")
+				.replace(/\uE003/g, "</span>");
+
+			// 이어짐 표식 복원. 인라인 패스가 전부 지난 뒤라 이 태그는 어떤 문법에도
+			// 참여하지 않는다. `br` 은 sanitize 허용 목록에 이미 있다.
+			node.text = node.text.replace(/\uE004/g, "<br />");
+		}
+	}
+
+	for(let node of parsed) {
+		if("value" === node.type && "" === node.closure) {
+			node.text = "<p>" + node.text + "</p>";
+		}
+	}
+
+	return stringify(parsed);
+}
+
+// 강조 패스 — 본문과 이미지 `alt` 평문(spec `markdown-rendering` §27)이 **이 함수
+// 하나를 부른다**. 둘이 다른 강조 판정을 쓰면 `alt` 가 같은 설명을 본문으로 렌더한
+// 글자와 갈린다.
+const applyEmphasis = (input: ParsedNode[]): ParsedNode[] => {
+
+	let parsed = input;
+
 	parsed = inlineParsing(parsed, "**", "strong", true); // bold
 	parsed = inlineParsing(parsed, "~~", "del", true); // stroke
 	// 겹 `**` 도 홑 `*` 와 같은 공백 규칙 아래 둔다. 이전에는 `**` 가 규칙 밖이었고
@@ -1842,62 +1926,8 @@ export const markdownToHtml = (rawInput: string): string => {
 	parsed = inlineParsing(parsed, "__", "strong", true, true); // bold (underscore)
 	parsed = inlineParsing(parsed, "_", "em", true, true); // emphasis (underscore)
 
-	// 코드 스팬 복원. 내용은 이스케이프한다 — 코드는 보이는 그대로여야 하고,
-	// 이스케이프하지 않으면 `<String>` 같은 표기가 sanitize 에서 삭제돼 글자가
-	// 사라진다.
-	for(const node of parsed) {
-		if("value" === node.type && "pre" !== node.closure) {
-			node.text = node.text.replace(/\uE000c(\d+)\uE001/g, (_m, i: string) =>
-				"<code>" + escapeHtmlText(codeSpans[Number(i)]) + "</code>"
-			);
-
-			// 이스케이프된 글자 복원. 마크업 패스가 전부 지나간 뒤이므로 이 글자는
-			// 어떤 문법에도 참여하지 않았다. 여기서 escape 해 화면에 글자로 남긴다.
-			node.text = node.text.replace(/\uE000e(\d+)\uE001/g, (_m, i: string) =>
-				escapeHtmlText(escapedChars[Number(i)])
-			);
-
-			// 태그 조각 복원. 이미 escape 를 마친 상태로 들어갔으므로 그대로 돌려놓는다.
-			// 인덱스는 바로 위 stashTag 가 만든 것이라 항상 존재한다. `?? ""` 는
-			// noUncheckedIndexedAccess 를 만족시키기 위한 것이며, 도달하면
-			// 자리표시자(보이지 않는 private-use 문자)를 화면에 남기는 대신
-			// 아무것도 남기지 않는 쪽을 고른 것이다.
-			//
-			// 조각 **안**의 자리표시자(주소·제목·alt 에 든 이스케이프 글자·엔티티·백틱)도
-			// 여기서 푼다. 위 두 복원은 조각을 넣기 전에 끝나므로 조각 안까지 닿지 않는다 —
-			// 닿지 않던 동안 `?a=1&amp;b=2` 의 `href` 가 `?a=1e0b=2` 가 됐다. 조각 안은
-			// 속성값이므로 따옴표까지 escape 한다 (해석 뒤에 escape 를 건다). 코드 스팬은
-			// 주소·제목 안에서 마크업이 아니므로 백틱째 글자로 되돌린다.
-			node.text = node.text.replace(/\uE000t(\d+)\uE001/g, (_m, i: string) =>
-				(tagChunks[Number(i)] ?? "")
-					.replace(/\uE000e(\d+)\uE001/g, (_e, j: string) =>
-						escapeHtmlQuotes(escapeHtmlText(escapedChars[Number(j)]))
-					)
-					.replace(/\uE000c(\d+)\uE001/g, (_c, j: string) =>
-						escapeHtmlQuotes(escapeHtmlText("`" + codeSpans[Number(j)] + "`"))
-					)
-			);
-
-			// 강조 표식 복원. escape 뒤에 되돌리므로 표식이 감싼 사용자 글자는
-			// 이미 안전하다.
-			node.text = node.text
-				.replace(/\uE002/g, "<span class=\"" + HIGHLIGHT_CLASS + "\">")
-				.replace(/\uE003/g, "</span>");
-
-			// 이어짐 표식 복원. 인라인 패스가 전부 지난 뒤라 이 태그는 어떤 문법에도
-			// 참여하지 않는다. `br` 은 sanitize 허용 목록에 이미 있다.
-			node.text = node.text.replace(/\uE004/g, "<br />");
-		}
-	}
-
-	for(let node of parsed) {
-		if("value" === node.type && "" === node.closure) {
-			node.text = "<p>" + node.text + "</p>";
-		}
-	}
-
-	return stringify(parsed);
-}
+	return parsed;
+};
 
 // 낱말 안쪽 억제의 "단어 글자" 는 **유니코드 문자·숫자**다. `[A-Za-z0-9]` 로
 // 좁히면 `한글_강조_표기` 가 `한글<em>강조</em>표기` 가 된다 — 영문 식별자만
