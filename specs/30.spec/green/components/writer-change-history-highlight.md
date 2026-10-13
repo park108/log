@@ -1,8 +1,8 @@
 # 변경 이력 강조 계약
 
 > **위치**: `src/Log/diffContents.ts` 의 `markChangedLines` · 소비처 `src/Log/Writer.tsx` (변경 이력 → `LogItem`) · 보조: `src/common/markdownParser.ts` 의 표식 복원(`HIGHLIGHT_OPEN` · `HIGHLIGHT_CLOSE`)과 펜스 판정
-> **관련 요구사항**: REQ-20261013-099 FR-01~FR-04 · NFR-01 · NFR-02 (출처: developer followup `20261013-0934-diffcontents-fence-copy-diverges`, source_task TSK-20261013-01)
-> **게이트**: `src/Log/diffContents.test.ts` · `src/__tests__/change-highlight-preserves-rendering.test.ts` · `src/__tests__/change-highlight-follows-parser-code-blocks.test.ts`
+> **관련 요구사항**: REQ-20261013-099 FR-01~FR-04 · NFR-01 · NFR-02 (출처: developer followup `20261013-0934-diffcontents-fence-copy-diverges`, source_task TSK-20261013-01) · REQ-20261013-119 FR-01~FR-04 (출처: developer followup `20261013-1505-highlight-setext-underline-breaks-heading`, source_task TSK-20261013-15)
+> **게이트**: `src/Log/diffContents.test.ts` · `src/__tests__/change-highlight-preserves-rendering.test.ts` · `src/__tests__/change-highlight-follows-parser-code-blocks.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/change-highlight-setext-underline.test.ts`
 > **최종 업데이트**: 2026-10-13 (inspector — 최초 등록)
 
 > 참조 코드는 식별자 우선. 줄 번호는 HEAD=`e38a118` 스냅샷이다.
@@ -34,9 +34,11 @@
 
 5. **강조는 렌더 결과를 바꾸지 않는다** (기존 명제, `change-highlight-preserves-rendering.test.ts`) — 강조본에서 강조 span 만 걷어낸 것이 평소 렌더와 같다. 동작 1 의 세 입력은 이 명제의 위반이기도 하다. 그 게이트의 corpus 에 그 입력이 없을 뿐이다.
 
+6. **밑줄식 제목의 밑줄 줄은 감싸지 않는다 — 밑줄 판정은 파서의 것이다** (`markdown-rendering` 2 · 3). 감싼 줄은 밑줄 꼴이 아니어서 파서가 제목을 세우지 않는다. 바뀐 줄이 *강조 span 을 받지 않았다* ⇔ *파서가 그 줄을 밑줄로 썼다* — 동작 2 와 같은 방식이며 `diffContents` 에 밑줄 규칙 사본(정규식 + 앞 줄 조건)을 두지 않는다. `제목\n===` / `제목\n---` · `제목\n--` / `제목` · `제목\n-` / `제목` · `제목\n=` / `제목\n==` · `제목\n==\n본문` / `제목\n===\n본문` · `제목\n  ===` / `제목\n===` · `> 제목\n> ===` / `> 제목\n> ---` → 강조본에서 span 만 걷은 것이 평소 렌더와 같다 (동작 5). 바뀌지 않는 것: 제목 **글자**가 바뀐 줄은 강조된다 (`새 제목\n===` / `제목\n===` → `<h1>` 안 span) · 밑줄 꼴이 아닌 줄(`제목\n= =`) · 앞 줄이 문단이 아니어서 밑줄이 아닌 같은 꼴(`==\n본문` · `본문\n\n==` · `- a\n  ==`)은 강조된다 · `---` 이상은 지금처럼 가로줄 꼴로 감싸지 않는다.
+
 ## 의존성
 
-- 내부: `common/markdownParser` (`HIGHLIGHT_OPEN` · `HIGHLIGHT_CLOSE` · `HIGHLIGHT_CLASS` · `THEMATIC_BREAK_PATTERN` · `stripHeadingClosingSequence` — 규칙을 파서에서 받는 선례가 이미 있다) · `common/sanitizeHtml`.
+- 내부: `common/markdownParser` (`HIGHLIGHT_OPEN` · `HIGHLIGHT_CLOSE` · `HIGHLIGHT_CLASS` · `THEMATIC_BREAK_PATTERN` · `stripHeadingClosingSequence` · 코드 블록 줄 판정 — 규칙을 파서에서 받는 선례. 밑줄 판정(동작 6)도 같은 길로 받는다. `SETEXT_UNDERLINE_PATTERN` 정규식만 가져오면 앞 줄 조건이 빠진 사본이 된다) · `common/sanitizeHtml`.
 - 계약: `markdown-rendering` 21 (*"펜스 판정은 파서 안에 하나"*) · 3 · 19. 그 계약에 펜스가 놓이는 맥락이 늘면 동작 2 가 이 소비처를 함께 묶는다.
 - 역의존(소비처): `grep -rn "markChangedLines" src --include="*.ts" --include="*.tsx" | grep -v "\.test\."` → `Writer.tsx` (import 와 변경 이력 호출) 1 곳.
 
@@ -44,11 +46,13 @@
 
 - [x] 기존 두 게이트 (동작 4 대조 · 동작 5): `bash -c 'npx vitest run src/Log/diffContents.test.ts src/__tests__/change-highlight-preserves-rendering.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=0.
 - [x] 코드 블록 판정 정합 (동작 1~4): `bash -c 'npx vitest run src/__tests__/change-highlight-follows-parser-code-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`b1d1e4c` rc=0 (TSK-20261013-15 `b1d1e4c` — `injection: 1/1 detect` · `control: 1/1 pass`). HEAD=`e38a118` rc=1 (파일 부재). 동작 1 의 세 입력 표식 문자 0 · 동작 3 의 두 입력 span 1 · 동작 4 의 대조를 잰다. 동작 2 는 맥락(최상위 · 인용 · 항목) × 펜스 문자(백틱 · 물결) × 들여쓰기(0 · 3 · 4칸) 배터리에서, 바뀐 줄마다 *span 받음* ⇔ *`newer` 단독 렌더에서 그 줄이 `pre` 밖* 을 잰다.
+- [ ] 밑줄식 제목 보존 (동작 6): `bash -c 'npx vitest run src/__tests__/change-highlight-setext-underline.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`58775e1` rc=1 (파일 부재). REQ-20261013-119 의 결함 7행(U1·U2·U4·U5·U8·U11·U7 — span 걷은 강조본 === 평소 렌더), 대조 4행(U3·U6·U9·U10 — 강조 렌더 불변)과 앞 줄이 문단이 아닌 밑줄 꼴 3행(`==\n본문` / `=\n본문` · `본문\n\n==` / `본문\n\n=` · `- a\n  ==` / `- a\n  =` — span 1 · 보존)을 잰다. 판정면은 `change-highlight-preserves-rendering.test.ts` 와 같다. req FR-04 의 *"그 게이트 corpus 에 행"* 은 판정 명령이 한 파일을 지목해야 하므로 같은 판정면의 전용 파일로 재정식화했다 — 기존 corpus 에 같은 행을 더하는 것도 막지 않는다. HEAD=`58775e1` 실측(`b1d1e4c` 와 바이트 동일): 결함 7/7 다름 · 대조 4/4 기대값 · 밑줄 꼴 3행 span 1 · 보존.
 
 ## 변경 이력
 
 | 일자 | req / 커밋 | 요약 | 영향 |
 |------|-----------|------|------|
+| 2026-10-13 | REQ-20261013-119 / — | 동작 6 신설 — 밑줄식 제목의 밑줄 줄은 감싸지 않고 그 판정은 파서의 것이다 (FR-02 Should 채택, 동작 2 와 같은 방식). 대조에 앞 줄이 문단이 아닌 밑줄 꼴 3행을 더했다 — 정규식 사본으로 고친 구현을 가르는 행이며 HEAD 에서 이미 span 1 · 보존이다 (inspector 실측). FR-04 는 전용 게이트 파일로 재정식화. `markdown-rendering` §의존성 역의존에 2 의 밑줄 판정을 더했다. HEAD=`b1d1e4c` · `58775e1` 격리 사본에서 req 표 11행을 재현했다 | 동작 6 · 의존성 · 수용 기준 · 참고 · 머리 |
 | 2026-10-13 | inspector reconcile / `b1d1e4c` | 동작 1~4 `[x]` — HEAD=`b1d1e4c` `git archive` 사본에서 두 명령 재실행 rc=0 2/2 (TSK-20261013-15 result.md 실재). 머리 게이트 목록 갱신 | 수용 기준 · 머리 |
 | 2026-10-13 | inspector reconcile / — @ HEAD=`cb354da` | `[x]` 1 rc=0 · `[ ]` 1 rc=1 불변 (게이트 파일 부재 — TSK-20261013-15 미착지). 주입 이관처 "미발행" 문면을 발행된 TSK-20261013-15 로 정정 | 참고 |
 | 2026-10-13 | REQ-20261013-099 / — | 최초 등록. 소비처 펜스 사본 금지를 `markdown-rendering` 21 에 넣지 않고 별도 문서로 두었다 — 소비처는 파서 밖이고 판정면이 강조 경로다. HEAD=`bea3a3b` 격리 사본에서 req 의 여섯 행을 재현했다 (누출 2 · 2 · 2, 누락 span 0 · 0, 대조 표식 0) | all |
@@ -61,6 +65,10 @@
 
 - **주입**: 착지 후 트리에서 코드 블록 판정을 현 사본 `/^\s*```/` 토글로 되돌린다 → rc≠0 (물결 · 인용 · 항목 안 행이 붉다). 원복 → rc=0.
 - **대조**: 판정 함수의 이름이나 위치만 바꾼 변형 → rc=0. 붉으면 게이트가 텍스트를 재고 있는 것이다.
+
+### 주입 이관 (동작 6 게이트를 세우는 task 의 DoD)
+
+이관처는 `change-highlight-setext-underline` 게이트를 세우는 task (미발행). **주입**: 착지 후 트리에서 밑줄 판정을 `SETEXT_UNDERLINE_PATTERN` 정규식 사본으로 바꾼다 → rc≠0 (앞 줄이 문단이 아닌 밑줄 꼴 3행이 span 을 잃는다). 밑줄 제외를 지운 트리 → rc≠0 (결함 7행). **대조**: 판정 함수의 이름·위치만 바꾼 변형 → rc=0.
 
 ### 미측정·비판정 항목
 

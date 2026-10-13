@@ -130,7 +130,7 @@
 ## 의존성
 
 - 소비처 도출: `grep -rn "markdownToHtml(" src --include="*.ts" --include="*.tsx" | grep -v "\.test\."` → `Writer.tsx`(편집 미리보기) · `api.ts`(저장 요약) · `LogItem.tsx`(본문 렌더). **댓글은 파서를 쓰지 않는다.**
-- 역의존 계약: `components/writer-change-history-highlight` (21 의 펜스 판정을 강조 경로가 받는다 · 26 줄을 건너는 스팬 안 강조 span) · `styles/logitem-ordered-list-marker-visible` (20 이 낸 `start` 의 표지가 잘리지 않는다).
+- 역의존 계약: `components/writer-change-history-highlight` (21 의 펜스 판정과 2 의 밑줄 판정을 강조 경로가 받는다 · 26 줄을 건너는 스팬 안 강조 span) · `styles/logitem-ordered-list-marker-visible` (20 이 낸 `start` 의 표지가 잘리지 않는다).
 - 요약 경로는 `trimmedContents` 가 태그를 걷으므로 파서 산출의 변화가 목록·검색 미리보기에 전파된다 — 단, **저장된 요약은 저장 시점 파서에 고정된다.**
 
 ## 수용 기준
