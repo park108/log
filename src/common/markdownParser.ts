@@ -77,6 +77,37 @@ export const computeDepth = (line: unknown): { depth: number; prefixLength: numb
 	return { depth: Math.floor(spaces / 2), prefixLength: spaces };
 }
 
+// 탭 정지. 줄 머리 탭은 다음 4의 배수 열까지 센다 (CommonMark §2.2).
+const TAB_STOP = 4;
+
+// 줄 머리 들여쓰기를 **열**로 세며 `column` 열까지 걷는다. 공백은 1칸이고 탭은
+// 다음 탭 정지까지다. 들여쓰기가 `column` 에 못 미치면 있는 만큼만 걷는다.
+// 돌려주는 값은 닿은 열(`at`)과 걷고 남은 줄(`rest`)이다. 탭이 `column` 을
+// 넘어서면 넘친 칸은 공백으로 남는다 — 내용 열 너머의 들여쓰기는 코드의 것이다 (§9).
+//
+// **목록 항목의 열 셈은 이것 하나다.** 마커 줄의 내용 열(`listMarker`), 마커 없는
+// 블록의 귀속(`reachesContentColumn`), 항목 안 펜스 판정과 코드 줄 걷기가 이 셈을
+// 함께 쓴다. 공백만 세던 동안 탭으로 들여쓴 블록은 내용 열에 닿지 않은 것으로
+// 판정돼 항목 밖으로 떨어졌다 — `- 항목\n\t```js` 의 펜스가 글자로 남았다.
+//
+// 마커 줄의 중첩 깊이(`computeDepth` — 탭 1 = 깊이 1)와 최상위 펜스(`FENCE_LINE`
+// 의 0~3칸 공백)는 이 셈을 쓰지 않는다.
+const indentToColumn = (line: string, column: number): { at: number; rest: string } => {
+
+	let at = 0;
+	let index = 0;
+
+	while(at < column && index < line.length) {
+		const character = line.charAt(index);
+		if(' ' === character) at += 1;
+		else if('\t' === character) at += TAB_STOP - at % TAB_STOP;
+		else break;
+		index++;
+	}
+
+	return { at, rest: ' '.repeat(Math.max(0, at - column)) + line.substring(index) };
+}
+
 // 목록 마커 줄의 모양.
 //
 // `contentColumn` 은 **내용 열**이다 — 마커 줄 들여쓰기 + 마커 폭 + 뒤따르는 공백
@@ -124,7 +155,11 @@ const listMarker = (text: string): ListMarker | null => {
 	let spaces = 0;
 	while(' ' === stripped.charAt(width + spaces)) spaces++;
 
-	return { kind, depth, contentColumn: prefixLength + width + spaces };
+	// 마커 앞 들여쓰기도 열로 센다 — 마커 없는 줄의 들여쓰기와 같은 단위여야 둘을
+	// 비교할 수 있다. 공백으로 들여쓴 마커 줄은 열 == 문자 수다.
+	const indent = indentToColumn(text.substring(0, prefixLength), prefixLength * TAB_STOP).at;
+
+	return { kind, depth, contentColumn: indent + width + spaces };
 }
 
 // 마커면 그 줄의 깊이를, 아니면 null 을 돌려준다.
@@ -297,7 +332,8 @@ const closesCodeFence = (fence: CodeFence, line: string): boolean => {
 }
 
 // 줄 머리 공백을 **최대** `max` 칸 걷는다. 그보다 깊은 들여쓰기는 남는다.
-// 펜스 안 내용 줄(여는 펜스 들여쓰기)과 목록 항목 안 줄(내용 열)이 함께 쓴다.
+// 펜스 안 내용 줄(여는 펜스 들여쓰기)이 쓴다. 목록 항목 안 줄은 탭까지 열로 세는
+// `indentToColumn` 을 쓴다.
 const stripLeadingSpaces = (line: string, max: number): string => {
 
 	let strip = 0;
@@ -799,11 +835,12 @@ export const markdownToHtml = (rawInput: string): string => {
 			isQuoteOpen = false;
 		};
 
-		// 열린 항목의 내용 열까지 들여썼는가 — 마커 없는 블록의 귀속 판정.
+		// 열린 항목의 내용 열까지 들여썼는가 — 마커 없는 블록의 귀속 판정. 탭은
+		// 탭 정지까지 센다 (`indentToColumn`).
 		const reachesContentColumn = (text: string): boolean => {
 			if(null === openItem) return false;
 			const column = openItem.marker.contentColumn;
-			return text.length - stripLeadingSpaces(text, column).length === column;
+			return indentToColumn(text, column).at >= column;
 		};
 
 		// 최상위 펜스 패스가 세운 코드 블록의 여는 노드.
@@ -888,20 +925,20 @@ export const markdownToHtml = (rawInput: string): string => {
 			// 최상위와 같은 판정 함수다. 코드 줄도 내용 열까지 걷히고 그 너머의
 			// 들여쓰기는 코드의 것이다 (§9). 닫는 펜스까지가 블록이다.
 			const fence = (null !== item && reachesContentColumn(node.text))
-				? codeFenceOpening(stripLeadingSpaces(node.text, item.marker.contentColumn))
+				? codeFenceOpening(indentToColumn(node.text, item.marker.contentColumn).rest)
 				: null;
 
 			if(null !== item && null !== fence) {
 
 				const column = item.marker.contentColumn;
-				const inner: ParsedNode[] = [{type: "value", text: stripLeadingSpaces(node.text, column), closure: ""}];
+				const inner: ParsedNode[] = [{type: "value", text: indentToColumn(node.text, column).rest, closure: ""}];
 
 				while(index + 1 < parsed.length) {
 
 					const next = parsed[index + 1] as ParsedNode;
 					if("value" !== next.type || "" !== next.closure) break;
 
-					const text = stripLeadingSpaces(next.text, column);
+					const text = indentToColumn(next.text, column).rest;
 					inner.push({type: "value", text, closure: ""});
 					index++;
 
