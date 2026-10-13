@@ -75,26 +75,25 @@
 > **모집단은 이 축이 소유한 블록(`describe('File 첫 조회 실패 표면')`)으로 한정한다.** 파일 전체를 돌면 §동작 8 §범위 밖이 선언한 축(다음 페이지 실패 문구)의 정상 변경이 이 축의 판정을 붉게 만든다 — 실측은 §참고 §판정 명령 모집단 교정.
 
 ## 수용 기준 (현재 상태)
-- [x] (Must) non-admin 진입 시 `/log` 로 리다이렉트하고 네트워크 호출·`setHtmlTitle` 미발생.
-- [x] (Must) 1차 페치 성공 경로에서 `files` · `lastTimestamp` 모두 반영.
-- [x] (Must) `lastTimestamp` 존재 시만 `See more` 버튼 렌더.
-- [x] (Must) 모바일(`isMobile()=true`) 에서 `FileUpload`, 그 외 `FileDrop` 렌더.
-- [x] (Should) `getFiles` / `getNextFiles` 에러 시 하단 Toaster (position=bottom, type=error, duration=2000) 표시.
-- [x] (Should) `FileItem.deleted()` · 업로드 성공 콜백은 1차 목록 리페치를 일으킨다.
-- [x] (NFR) `isMobile()` 판정은 마운트 1회에 박제 (`useMemo(..., [])`).
-- [x] (REQ-092, Must, FR-01) `FileUpload` 가 등록한 모든 `setTimeout` 핸들은 effect cleanup 또는 unmount 시 `clearTimeout` 으로 취소된다. HEAD=`7b15126` 회복: `grep -nE "setTimeout\s*\(" src/File/FileUpload.tsx` → **2 hit** (G1) + `grep -nE "clearTimeout" src/File/FileUpload.tsx` → **1 hit** (G2 zero-point 회복). HEAD=`b1cbf5c` 재실측 setTimeout @line 78, 92 · clearTimeout @line 100. §변경 이력 hook-ack 박제.
-- [x] (REQ-092, Must, FR-02) 컴포넌트 unmount 후 `REFRESH_TIMEOUT` 경과 시점에 `setIsUploading` · `refreshFiles` 가 호출되지 않는다. `vi.useFakeTimers()` + `unmount()` 후 `vi.runAllTimers()` 호출 시 `refreshFiles` mock 호출 0회. HEAD=`7b15126` 회복: `unmount()` 2 hit + `useFakeTimers|runAllTimers` 8 hit (FileUpload.test.tsx, TSK-25 fixture). §변경 이력 hook-ack 박제.
-- [x] (REQ-092, Should, FR-03) `isUploading` 이 `COMPLETE` 또는 `FAILED` 로 전이된 직후 다시 다른 상태로 전환되면, 이전 분기에서 등록한 timer 는 재발화되지 않는다 (effect 재실행 시 cleanup 패턴 회수). HEAD=`7b15126` 회복: effect cleanup return `() => clearTimeout(refreshHandle)` 패턴 (HEAD=`b1cbf5c` 재실측 `FileUpload.tsx:100`) + test 시나리오 박제. §변경 이력 hook-ack 박제.
-- [x] (REQ-092, NFR-01) 테스트 결정성 — `vi.useFakeTimers()` + `unmount()` + `vi.runAllTimers()` + `refreshFiles` mock 호출 0회 검증 패턴 (Must FR-02 회복 task DoD 게이트 박제).
+> **inspector tick 263 명령 부착** (`RULE-07 §수용 기준 문장` · `§promote 조건 2`). 아래 첫 11항은 판정 명령 없이 `[x]` 였거나 수치만 내는 계수형이었다 (planner tick 394 승격 거부). 명령을 붙이고, 테스트가 단언하지 않는 갈래는 문면에서 떼어 §참고 §미측정·비판정 항목으로 내렸다. 블록 한정 원칙(REQ-050)대로 `File.test.tsx` 는 `-t` 로만 돈다. **명명 실행 형식** — `-t` 가 아무 테스트에도 맞지 않으면 vitest 는 rc=0 이므로 vitest rc=0 **과** `Tests N passed` 의 N ≥ K 를 함께 요구한다 (없는 이름이면 rc=1). HEAD=`94dc94e` `git archive` 사본 9/9 rc=0.
+
+- [x] (Must) non-admin 진입 시 `/log` 로 리다이렉트한다. 판정: `bash -c 'out=$(npx vitest run src/File/File.test.tsx -t "redirect to log when user is not admin" --coverage.enabled=false 2>&1) || exit 1; n=$(echo "$out" | sed -nE "s/^ +Tests +([0-9]+) passed.*/\1/p"); test "${n:-0}" -ge 1'` → rc=0. **문면을 좁혔다** — 종전의 *"네트워크 호출·`setHtmlTitle` 미발생"* 은 그 케이스가 단언하지 않는다 (§참고 §미측정).
+- [x] (Must) 1차 페치 성공 경로에서 `files` · `lastTimestamp` 모두 반영. 판정: `bash -c 'out=$(npx vitest run src/File/File.test.tsx -t "render files, next files, delete file and confirm on prod server" --coverage.enabled=false 2>&1) || exit 1; n=$(echo "$out" | sed -nE "s/^ +Tests +([0-9]+) passed.*/\1/p"); test "${n:-0}" -ge 1'` → rc=0 (목록 렌더 뒤 `lastTimestamp` 로 다음 페이지를 읽는다).
+- [x] (Must) `lastTimestamp` 존재 시만 `See more` 버튼 렌더. 판정 (양 갈래 — 노출 `findByTestId("seeMoreButton")` · 부재 `queryByTestId(…)).toBeNull()`): `bash -c 'out=$(npx vitest run src/File/File.test.tsx -t "render files but no data on prod server|render files, next files, delete file and confirm on prod server" --coverage.enabled=false 2>&1) || exit 1; n=$(echo "$out" | sed -nE "s/^ +Tests +([0-9]+) passed.*/\1/p"); test "${n:-0}" -ge 2'` → rc=0.
+- [x] (Must) 모바일(`isMobile()=true`) 에서 `FileUpload`, 그 외 `FileDrop` 렌더. 판정: `bash -c 'out=$(npx vitest run src/File/File.test.tsx -t "업로드 UI 분기" --coverage.enabled=false 2>&1) || exit 1; n=$(echo "$out" | sed -nE "s/^ +Tests +([0-9]+) passed.*/\1/p"); test "${n:-0}" -ge 2'` → rc=0.
+- [x] (Should) 첫 조회 에러 시 하단 Toaster (position=bottom, duration=2000) 에 실패 문구가 보인다. 판정 (문구는 동작, 위치·지속은 소스 표면): `bash -c 'grep -qF "position={ \"bottom\" }" src/File/File.tsx && grep -qF "duration={ 2000 }" src/File/File.tsx || exit 1; out=$(npx vitest run src/File/File.test.tsx -t "render failed when internal error on prod server|render failed when network error on prod server" --coverage.enabled=false 2>&1) || exit 1; n=$(echo "$out" | sed -nE "s/^ +Tests +([0-9]+) passed.*/\1/p"); test "${n:-0}" -ge 2'` → rc=0. 다음 페이지(`getNextFiles`) 실패 문구는 §동작 8 §범위 밖 축이라 이 판정에 넣지 않는다.
+- [x] (Should) `FileItem.deleted()` 는 1차 목록 리페치를 일으킨다. 판정: `bash -c 'out=$(npx vitest run src/File/File.test.tsx -t "삭제가 성공하면 목록을 다시 읽는다" --coverage.enabled=false 2>&1) || exit 1; n=$(echo "$out" | sed -nE "s/^ +Tests +([0-9]+) passed.*/\1/p"); test "${n:-0}" -ge 1'` → rc=0. 업로드 성공 콜백 갈래는 단언이 없어 §참고 §미측정 으로 내렸다.
+- [x] (NFR) `isMobile()` 판정은 마운트 1회에 박제 (`useMemo(..., [])`). 판정 (소스 표면): `bash -c 'grep -qF "useMemo(() => isMobile(), [])" src/File/File.tsx'` → rc=0.
+- [x] (REQ-092, Must, FR-01) `FileUpload` 가 등록한 모든 `setTimeout` 핸들은 effect cleanup 또는 unmount 시 `clearTimeout` 으로 취소된다. 판정 (모든 `setTimeout(` 이 cleanup 이 지우는 핸들에 담긴다): `bash -c 'f=src/File/FileUpload.tsx; a=$(grep -cE "setTimeout\(" "$f"); b=$(grep -cE "refreshHandle = setTimeout\(" "$f"); test "$a" -ge 1 && test "$a" -eq "$b" && grep -qE "clearTimeout\(refreshHandle\)" "$f"'` → rc=0 (2 = 2). HEAD=`7b15126` 회복 (TSK-25).
+- [x] (REQ-092, Must, FR-02) 컴포넌트 unmount 후 `REFRESH_TIMEOUT` 경과 시점에 `setIsUploading` · `refreshFiles` 가 호출되지 않는다. 판정 (COMPLETE · FAILED 두 분기): `bash -c 'out=$(npx vitest run src/File/FileUpload.test.tsx -t "FileUpload unmount race" --coverage.enabled=false 2>&1) || exit 1; n=$(echo "$out" | sed -nE "s/^ +Tests +([0-9]+) passed.*/\1/p"); test "${n:-0}" -ge 2'` → rc=0.
+- [x] (REQ-092, Should, FR-03) `isUploading` 이 `COMPLETE` 또는 `FAILED` 로 전이된 직후 다시 다른 상태로 전환되면, 이전 분기에서 등록한 timer 는 재발화되지 않는다 (effect 재실행 시 cleanup). 판정은 FR-01 과 같은 명령이다 — 두 분기의 핸들이 하나의 cleanup 에서 지워진다. 재실행 시나리오 자체를 단언하는 테스트는 없다.
+- [x] (REQ-092, NFR-01) 테스트 결정성 — `vi.useFakeTimers()` + `unmount()` + `vi.runAllTimers()` + `refreshFiles` mock 호출 0회 검증 패턴. 판정은 FR-02 와 같은 명령이다.
 - [x] (REQ-048, Must, FR-03·F2) `File` 의 첫 조회 실패는 하단 Toaster 의 `duration` 경과 후에도 화면에 남는 표면으로 관측된다. 판정: 위 §테스트 현황 (F2·F3) 명령 rc=0. HEAD=`b1cbf5c` 재실측 rc=0 — `8b95ae5`.
 - [x] (REQ-048, Should, FR-05·F3) 그 표면은 다시 시도할 경로를 포함한다 (`LogList` · `ImageSelector` 선례). 판정: 동일 명령 rc=0 + `bash -c 'test "$(grep -cE "Retry|retry" src/File/File.tsx)" -ge 1'` → HEAD=`b1cbf5c` 재실측 **rc=0 (3 hit)**.
 - [x] (REQ-048, Must, F5) 실패 갈래 둘(`errorType` · `catch`) 모두 같은 표면으로 전이한다. 판정: 위 §테스트 현황 (F5) 명령 rc=0. HEAD=`b1cbf5c` 재실측 rc=0 — `8b95ae5` 의 Dir-3 주입이 `1 failed | 25 passed` 로 이 비대칭을 실제로 잡음을 보였다.
 - [x] (REQ-048, Must, NFR-02 비퇴행) 세 목록 화면 스위트가 초록이다: `bash -c 'npx vitest run src/Log/LogList.test.tsx src/File/File.test.tsx src/Image/ImageSelector.test.tsx >/dev/null 2>&1'` → HEAD=`b1cbf5c` 재실측 rc=0 (3 files / 70 tests). 구현 후에도 rc=0 이어야 한다 — **안내를 없애는 방식의 해결은 불가**하며 기존 `'파일이 하나도 없으면 그렇다고 알린다'` 는 그대로 통과해야 한다.
 - [x] (REQ-048, Must, F1 현행 충족) 빈 안내의 선결 조건은 현 HEAD 에서 참이다: `bash -c 'grep -qF "조회가 실패하면 없다고 말하지 않는다" src/File/File.test.tsx && grep -qF "조회에 착수하기 전에는 없다고 말하지 않는다" src/File/File.test.tsx'` → HEAD=`b1cbf5c` 재실측 rc=0. 이 항목은 **게이트의 실재**를 재는 것이지 명제를 다시 재는 것이 아니다 (§참고 §REQ-048 부분 흡수 판정).
 - [x] (REQ-050, Must, FR-01·FR-03·NFR-01·NFR-03) 본 spec 의 판정 명령에 파일 전체 실행형이 남아 있지 않다: 위 §참고 §판정 명령 모집단 교정 의 도출형 명령 → HEAD=`b1cbf5c` 실측 rc=0 (`wholefile-runs=0`).
-- [x] (REQ-050, Must, FR-02) 좁힌 판정이 테스트 소멸에 민감하다: 격리 사본 Dir-1 (계약 이름 삭제) → 블록 한정형 rc=1. `-t` 단독형이 아니라 `grep -qF` 와의 논리곱이므로 소멸 민감도 0 함정을 피한다.
-- [x] (REQ-050, Should, FR-04) 교정 전후를 같은 트리에서 나란히 실행해 특이도 획득(Ctrl-1 rc=1→rc=0)과 민감도 보존(Dir-1·Dir-2 rc=1 유지)을 수치로 박제: 위 §참고 4방향 표.
-- [x] (REQ-092, NFR-02) 정적 검증 — 본 §회귀 중점 "(REQ-092) `FileUpload` timer cleanup" 절 + §스코프 규칙 G2 baseline (`grep -nE "setTimeout\s*\("` 모든 hit 의 cleanup 회수 흐름 포함 박제). 본 spec 본문 박제 자체로 회복 task 의 정적 검증 grep 채널 안내 surface 박제.
 
 > **RULE-07 자기 검증 재실측 (HEAD=`cac6fa2`)**: G4 시점 비의존 0 hit PASS. G5 수단 라벨 1 hit @line 5 (`default export` — React 표준 API 식별자, 수단 선호 라벨 0 — 면제 grep -vE 박제, 정합 PASS surface 유지).
 
@@ -111,6 +110,8 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-10-13 | inspector tick 263 (Phase 1 — planner tick 394 승격 거부 회수) / — @ HEAD=`94dc94e` | **판정 명령 부착.** 수용 기준 앞 11항 (기본 7 · REQ-092 4) 이 명령 없이 `[x]` 였거나 계수형이었다. 9종 명령(명명 실행 — vitest rc=0 ∧ `Tests N passed` N≥K · 소스 표면 grep)을 붙이고 2항은 같은 명령을 참조한다. 단언 없는 갈래(non-admin 의 네트워크·제목, 업로드 콜백 리페치)는 문면에서 떼어 §미측정 으로, REQ-050 FR-02 · FR-04 · REQ-092 NFR-02 는 주입·기록·문서 서술이라 §미측정 으로 내렸다. `File.test.tsx` 는 블록 한정 원칙대로 `-t` 로만 돈다 — 도출형 명령 `wholefile-runs=0` 유지. `git archive` 사본 9/9 rc=0 | 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-112 방향 1 (inspector — blue 재개봉) / — @ HEAD=`0b5d9cf` | **판정 명령 문면 정정.** §참고 REQ-048 부분 흡수 판정 표의 두 스팬(blue `:129`·`:130`)이 `…` 로 끝난 잘린 명령이었다 — 대상 파일(`src/Log/LogList.test.tsx` · `src/File/File.test.tsx`)을 채웠다. `git archive` 사본에서 재실행 rc=0 2/2 — 표의 `0 · 0` 과 같다. `check-blue-judgement-evaluable.sh` (scan root = 이 판본) `unevaluable(rc=2)=0` | 참고 |
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-048 **부분** 흡수) / pending (HEAD=`643be56`) | blue→green 복사 + §동작 8 (첫 조회 세 결과의 구별 · 실패의 지속 표면 · 재시도 경로 · 접근성 · 갈래 대칭 F1~F5) 추가. req 의 FR-01·02·04·06·07 은 `f8f9592` 로 이미 참이 됐고 그 커밋이 함께 부착한 게이트가 지키므로 **중복 게이트로 반려**(RULE-07 §반려 시그널) — 흡수분은 FR-03·FR-05·NFR-01 뿐이다. 근거는 §참고 §REQ-048 부분 흡수 판정. 신규 unchecked 3 (F2·F3·F5), 신규 checked 3 (F1 게이트 실재 · 커밋 관측 채널 · 회귀 baseline). | 동작·회귀 중점·테스트 현황·수용 기준·참고 |
 | 2026-08-31 | inspector (Phase 1 reconcile) / `8b95ae5` @ HEAD=`b1cbf5c` | 마커 플립 5 — REQ-048 분 §테스트 현황 (F2·F3)·(F5) 와 §수용 기준 (FR-03·F2)·(FR-05·F3)·(F5). `TSK-20260831-03` 이 `isError` 지속 표면 + `Retry` + `errorType` 갈래 케이스를 세웠다 (`Retry|retry` 0→3 hit, `File.test.tsx` 26 tests rc=0, 세 목록 스위트 70 tests rc=0). **REQ-048 흡수분 3/3 `[x]` → 본 spec 수용 기준 전수 `[x]`** (promote 후보). 동기화: §REQ-048 부분 흡수 판정 의 `Retry` 0 hit 서술을 해소 사실로 정정, §주입 이관 을 이관처 완료 결과표로 교체하고 **Ctrl-2 미통과의 원인(판정 명령 입도)과 그 followup 라우팅을 박제**, REQ-092 분 재실측 스탬프 갱신. | 테스트 현황·수용 기준·참고 |
 | 2026-08-31 | inspector (Phase 3, REQ-20260831-050 흡수) / pending @ HEAD=`b1cbf5c` | 판정 명령 모집단 한정 — §테스트 현황 (F2·F3)·(F5) 두 명령을 파일 전체 실행형에서 `-t "File 첫 조회 실패 표면"` 블록 한정형으로 교정 (`grep -qF <계약 이름>` 논리곱 유지 — `-t` 단독은 소멸 민감도 0). **계약(§동작 8)은 불변**이며 바뀐 것은 측정 장치뿐이다. 격리 사본 4방향 실측으로 특이도 획득(Ctrl-1 rc=1→rc=0) + 민감도 보존(Dir-1·Dir-2 rc=1 유지) 박제. 파일 전체 실행형 잔존 0. | 테스트 현황·참고 |
@@ -126,8 +127,8 @@ REQ-20260831-048 이 세운 명제는 하나다 — "'비어 있다' 는 첫 조
 
 | req 항목 | 판정 명령 | rc | 처리 |
 |---|---|---|---|
-| FR-01 · FR-06 (`LogList` D1 + 세션 캐시) | `grep -qF '조회에 착수하기 전에는 없다고 말하지 않는다' src/Log/LogList.test.tsx` · `grep -qF '세션 캐시에서 복원할 때도 없다고 말하지 않는다' …` | 0 · 0 | **반려 (중복 게이트)** |
-| FR-02 · FR-04 (`File` D1/D2) | `grep -qF '조회에 착수하기 전에는 없다고 말하지 않는다' src/File/File.test.tsx` · `grep -qF '조회가 실패하면 없다고 말하지 않는다' …` | 0 · 0 | **반려 (중복 게이트)** |
+| FR-01 · FR-06 (`LogList` D1 + 세션 캐시) | `grep -qF '조회에 착수하기 전에는 없다고 말하지 않는다' src/Log/LogList.test.tsx` · `grep -qF '세션 캐시에서 복원할 때도 없다고 말하지 않는다' src/Log/LogList.test.tsx` | 0 · 0 | **반려 (중복 게이트)** |
+| FR-02 · FR-04 (`File` D1/D2) | `grep -qF '조회에 착수하기 전에는 없다고 말하지 않는다' src/File/File.test.tsx` · `grep -qF '조회가 실패하면 없다고 말하지 않는다' src/File/File.test.tsx` | 0 · 0 | **반려 (중복 게이트)** |
 | FR-07 (커밋 단위 관측 채널) | `grep -rlq "Profiler" src --include="*.test.tsx"` | 0 | **반려 (중복 게이트)** — §테스트 현황에 실재만 박제 |
 | FR-08 (실패 문구 재사용 금지) | `grep -rnE "setToasterMessage\(" src/File --include="*.tsx"` → 첫 조회 `"Get files failed."` · 다음 페이지 `"Get more files failed…"` · 업로드 `"Upload failed."` (`FileUpload.tsx`) · 삭제 `"Delete file failed."` (`FileItem.tsx`) — 전건 구별 | — | **반려 (이미 참)** |
 | FR-03 · FR-05 · NFR-01 | 아래 §수용 기준 3 항목 | 1 | **흡수** |
@@ -180,6 +181,8 @@ HEAD=`b1cbf5c` 실측 **rc=0**, 출력 `spec=specs/30.spec/green/components/file
 
 ### 미측정·비판정 항목
 
+- **(inspector tick 263 강등 — 미단언 갈래)** non-admin 진입 시 네트워크 호출 0 · `setHtmlTitle` 미호출, 그리고 업로드 성공 콜백의 1차 목록 리페치는 `File.test.tsx` 어느 케이스도 단언하지 않는다. 리다이렉트와 삭제 뒤 리페치만 단언된다 (§수용 기준).
+- **(inspector tick 263 강등 — 가정 주입 · 측정 기록 · 문서 자기 서술)** REQ-050 FR-02 (계약 이름을 지운 사본에서 블록 한정형 rc=1) 는 위반 주입 부류이고 **이관 완료**다 — §판정 명령 모집단 교정 4방향 표 Dir-1 이 박제했다. REQ-050 FR-04 (교정 전후 나란히 실측) 는 그 표 자체다. REQ-092 NFR-02 (§회귀 중점 · §스코프 규칙 G2 에 정적 검증 경로 박제) 는 판정 대상이 문서다.
 - **브라우저 실페인트는 측정되지 않았다.** (F1) 이 재는 것은 "안내를 포함한 커밋이 존재하는가" 이고, 그 커밋이 실제로 페인트되는지는 React 가 passive effect 를 `MessageChannel` 스케줄러 콜백으로 미룬다는 기전으로부터의 추론이다. 불변식의 성립은 페인트와 무관하다 — 컴포넌트가 모르는 사실을 단언하는 커밋을 내보내지 않는 것이 계약이다.
 - **`src/Image/ImageSelector.tsx` 는 같은 조건식(`!isLoading && 0 === images.length`)을 그대로 쓰지만 창이 없다.** 루트 초기 클래스가 숨김이라 첫 커밋이 보이지 않을 뿐이다 (REQ-048 §참고 PROBE-7 — 가시 커밋 0). **우연한 배치에 기댄 안전**이므로 초기값이 바뀌면 같은 창이 열린다. 본 spec 의 모집단은 `src/File/` 이라 여기서는 사실만 박제하고 요구하지 않는다.
 - **레거시 자기 검증 baseline (G4)(G5) 의 경로 인용은 blue 를 가리킨다.** `awk … specs/30.spec/blue/components/file.md` 는 green 상태에서 blue 사본을 재므로 본 흡수분을 보지 않는다. REQ-092 흡수 시점 박제라 그대로 두되, 재작성 시 spec 자신의 green/blue 경로를 참조하지 않는 형태로 고친다 (RULE-07 §promote 조건 2).
