@@ -1255,8 +1255,17 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 
 			// 코드 블록 뒤에는 이어 붙일 문단이 없다 — 내용 열까지 들여쓴 줄만 그
 			// 항목에 새 문단을 연다. 게으른 이어짐은 문단 뒤에만 있다.
+			//
+			// 0칸 ATX 제목 줄은 이어짐이 아니라 블록을 연다 (spec `markdown-rendering`
+			// §5 하위 항목 — CommonMark §4.2, ATX 제목은 문단을 끊는다). 인용 · 펜스 ·
+			// 표 · 가로줄 패스는 이 패스보다 먼저 돌아 그 줄들이 이미 블록 노드로 오지만,
+			// headers 패스는 `bindListItem` 뒤에 돌므로 여기서 묻지 않으면 `# 제목` 이
+			// 앞 항목에 글자로 흡수된다. 판정은 인용 패스의 `opensBlock` 과 같은
+			// `headingMarkerLevel` 하나다 — 제목 규칙을 여기 다시 쓰지 않는다. 그래서
+			// `#제목` · `####### 일곱` · `\# 제목` · 들여쓴 `  # 제목` 은 종전대로 이어짐이다.
 			const isContinuation = null !== item
 				&& stripped.trim().length > 0
+				&& 0 === headingMarkerLevel(node.text)
 				&& (null !== item.target || reachesContentColumn(node.text, item.marker));
 
 			if(!isContinuation) {
