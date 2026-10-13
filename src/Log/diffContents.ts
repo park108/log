@@ -1,5 +1,5 @@
 import { HIGHLIGHT_OPEN, HIGHLIGHT_CLOSE, HIGHLIGHT_CLASS,
-	THEMATIC_BREAK_PATTERN, stripHeadingClosingSequence, codeBlockLines } from '../common/markdownParser';
+	THEMATIC_BREAK_PATTERN, stripHeadingClosingSequence, blockLines } from '../common/markdownParser';
 // 변경 이력에서 **바뀐 줄**을 표시용으로 표식한다.
 //
 // 이력은 각 판본을 그대로 렌더할 뿐이라, 무엇이 달라졌는지 눈으로 찾아야 했다.
@@ -62,11 +62,18 @@ export const markChangedLines = (contents: string, previous?: string): string =>
 	// 남는다. 여기에 펜스 규칙 사본(`/^\s*```/` 토글)을 두던 동안 물결 펜스 · 인용 안 ·
 	// 항목 안 펜스에서 표식이 코드에 섞였고, 4칸 들여쓴 펜스 꼴이나 정보 문자열에 백틱이
 	// 든 줄 뒤의 바뀐 줄은 강조를 잃었다. 판본당 한 번 판정한다.
-	const codeLines = codeBlockLines(source);
+	//
+	// **밑줄식 제목의 밑줄 판정도 파서의 것이다.** 밑줄 줄을 감싸면 밑줄 꼴이 아니게 되어
+	// 파서가 제목을 세우지 않는다 — 변경 이력에서만 제목이 문단으로 풀리고 `===` 가 글자로
+	// 보였다. 밑줄인지는 앞 줄이 문단인가에 달렸고 인용 접두 안에서도 같으므로, 밑줄 정규식만
+	// 가져오면 `==\n본문` 은 오인하고 `> 제목\n> ===` 는 놓치는 사본이 된다. 파서가 밑줄로
+	// 쓴 줄을 같은 파싱 한 번에서 받는다.
+	const { codeBlock: codeLines, setextUnderline: underlineLines } = blockLines(source);
 
 	return lines.map((line, index) => {
 
 		if (codeLines.has(index)) return line;
+		if (underlineLines.has(index)) return line;
 
 		if (kept.has(index)) return line;
 		if ('' === line.trim()) return line;

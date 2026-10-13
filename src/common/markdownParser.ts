@@ -257,7 +257,7 @@ const applySetextHeading = (nodes: ParsedNode[]): ParsedNode[] => {
 			const level = ('=' === underline.text.trim().charAt(0)) ? 1 : 2;
 
 			nodes.splice(index - 1, 2
-				, {type: "tag", text: "<h" + level + ">"}
+				, {type: "tag", text: "<h" + level + ">", underline: underline.line}
 				, {type: "value", text: heading.text, closure: "header"}
 				, {type: "tag", text: "</h" + level + ">"});
 
@@ -419,6 +419,10 @@ interface ParsedNode {
 	// 이 노드를 낸 원문 줄의 번호 (0부터, `\n` 기준). 줄 나누기가 달고 줄을 다시 세우는
 	// 패스가 넘겨준다. `codeBlockLines` 가 코드 블록 노드에서 이 값을 모은다.
 	line?: number;
+	// 밑줄식 제목의 여는 태그 노드에만 단다 — 그 제목의 밑줄로 쓴 원문 줄의 번호.
+	// 밑줄 노드는 `applySetextHeading` 이 그 자리에서 지우므로 결과에 남길 곳이 여기다.
+	// `blockLines` 가 이 값을 모은다.
+	underline?: number;
 }
 
 // 빈 줄 노드 — 공백·탭만 있는 줄을 포함한다. 코드 블록 안의 줄(`closure: "pre"`)은
@@ -1540,16 +1544,29 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 // 파서와 갈렸고, 코드 블록 안에 들어간 강조 표식이 태그로 복원되지 못해 화면에 남았다.
 // 규칙이나 정규식을 내보내 호출처가 다시 조립하게 하면 맥락(인용 · 항목)에서 같은 사본
 // 문제가 되풀이된다. 그래서 규칙이 아니라 결과를 내보낸다.
-export const codeBlockLines = (markdown: string): Set<number> => {
+//
+// 밑줄식 제목의 **밑줄로 쓴** 원문 줄도 같은 이유로 결과로 내보낸다 (`setextUnderline`).
+// 판정은 블록 패스가 실제로 세운 제목이다 — 최상위와 인용 안이 같은 `applySetextHeading`
+// 을 거친다. 호출처가 밑줄을 `SETEXT_UNDERLINE_PATTERN` 으로 다시 판정하면 앞 줄 조건
+// (문단 줄이어야 한다)이 빠지고 인용 접두를 못 본다 — `==\n본문` 의 `==` 를 밑줄로 오인하고
+// `> 제목\n> ===` 의 밑줄은 놓친다.
+//
+// 두 쓰임을 한 함수(`blockLines`)가 내는 것은 판본당 파싱을 한 번으로 두기 위해서다 (변경
+// 이력은 판본마다 부른다).
+export const blockLines = (markdown: string): { codeBlock: Set<number>; setextUnderline: Set<number> } => {
 
-	const lines = new Set<number>();
+	const codeBlock = new Set<number>();
+	const setextUnderline = new Set<number>();
 
 	for(const node of parseBlocks(markdown)) {
-		if("pre" === node.closure && undefined !== node.line) lines.add(node.line);
+		if("pre" === node.closure && undefined !== node.line) codeBlock.add(node.line);
+		if(undefined !== node.underline) setextUnderline.add(node.underline);
 	}
 
-	return lines;
+	return { codeBlock, setextUnderline };
 };
+
+export const codeBlockLines = (markdown: string): Set<number> => blockLines(markdown).codeBlock;
 
 export const markdownToHtml = (rawInput: string): string => {
 
