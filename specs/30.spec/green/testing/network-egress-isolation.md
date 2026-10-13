@@ -1,6 +1,6 @@
 # 테스트 실행의 네트워크 격리 — 미핸들 요청은 지연이 아니라 즉시 실패한다
 
-> **위치**: 횡단 테스트 런타임 계약. 경계는 `src/setupTests.js` (전역 setup) 과 `src/test-utils/msw.ts` (`useMockServer`). 관측 대상은 프로덕션 컴포넌트가 렌더 중 발생시키는 HTTP 요청 전부.
+> **위치**: 횡단 테스트 런타임 계약. 경계는 `src/setupTests.ts` (전역 setup) 과 `src/test-utils/msw.ts` (`useMockServer`). 관측 대상은 프로덕션 컴포넌트가 렌더 중 발생시키는 HTTP 요청 전부.
 > **관련 요구사항**: REQ-20260825-004 (test-network-egress-isolation)
 > **최종 업데이트**: 2026-08-25 (by inspector — tick 222 Phase 1 reconcile @ HEAD=`ff699f9`. TSK-20260825-14 착지 반영: (N-1)(N-1b)(N-3) **충족** — 수용 기준 **3/3**, unchecked 0. 동시에 tick 221 이 세운 세 판정 명령의 **민감도 0 결함을 실측 발견해 교체**했다 — §수용 기준 교정)
 
@@ -55,7 +55,7 @@ Error: Test timed out in 5000ms.
 
 ## 의존성
 
-- 내부: `src/setupTests.js` (전역 setup — `vite.config.js` `setupFiles`), `src/test-utils/msw.ts` (`useMockServer`), `.env.test` (`VITE_*_API_BASE` 6종이 `*.test.local` 호스트).
+- 내부: `src/setupTests.ts` (전역 setup — `vite.config.js` `setupFiles`), `src/test-utils/msw.ts` (`useMockServer`), `.env.test` (`VITE_*_API_BASE` 6종이 `*.test.local` 호스트).
 - 외부: `vitest` (`environment: 'jsdom'`), `msw` (`setupServer` · `onUnhandledRequest`), Node resolver (`getaddrinfo`).
 - 직교 spec: `runtime-fetch-unmount-safety` (testing) — 응답 도착 **이후**의 발화 억제 축. 본 계약은 요청이 **나가는지** 의 축이라 직교한다. 다만 두 축은 같은 증상(워커 teardown 경합)을 공유할 수 있다.
 
@@ -72,7 +72,7 @@ Error: Test timed out in 5000ms.
 
 | 게이트 | HEAD=`ff699f9` 채널 | 상태 |
 |---|---|---|
-| N-1 (전역 차단) | `src/setupTests.js` 의 `globalThis.fetch = blockUninterceptedEgress` (동기 rejected promise) + 채널의 `(N-1)` 케이스가 **주석 제거 후** 실행 코드 실재 + `vite.config.js` `setupFiles` 등재를 함께 단언 | 부착 완료 (TSK-20260825-14) |
+| N-1 (전역 차단) | `src/setupTests.ts` 의 `globalThis.fetch = blockUninterceptedEgress` (동기 rejected promise) + 채널의 `(N-1)` 케이스가 **주석 제거 후** 실행 코드 실재 + `vite.config.js` `setupFiles` 등재를 함께 단언 | 부착 완료 (TSK-20260825-14) |
 | N-2 (예산 비종속) | 채널의 `(N-2)` 케이스 — 실 요청 1건을 내고 거부를 단정, 나아가 **마이크로태스크 2회 안에 settle** 됨을 단언 | 부착 완료 |
 | N-1b (표면 열거) | 채널의 `(N-1b)` 케이스 — `render(` 보유 테스트 파일을 **glob 산출**로 열거하고 하한 `≥ 20` 을 단언 (공허 통과 차단) | 부착 완료 |
 | N-3 (환경 무관성) | 위 채널이 `npm test` 수집 경로에 등재 | 부착 완료 |
@@ -100,7 +100,7 @@ Error: Test timed out in 5000ms.
 ## 테스트 현황
 
 - [x] `useMockServer` 헬퍼가 `onUnhandledRequest: 'error'` 를 기본값으로 전달함이 단언돼 있다 — `src/test-utils/msw.test.ts:38`.
-- [x] 전역 차단 장치의 실재·검출력 — `src/setupTests.js` 가 `globalThis.fetch` 를 **동기 rejected promise** 반환 래퍼로 교체한다 (`TestEgressBlockedError`). 검출력은 tick 222 가 (Dir-2')(Dir-3') 주입으로 독립 확인했다 (§발화 채널).
+- [x] 전역 차단 장치의 실재·검출력 — `src/setupTests.ts` 가 `globalThis.fetch` 를 **동기 rejected promise** 반환 래퍼로 교체한다 (`TestEgressBlockedError`). 검출력은 tick 222 가 (Dir-2')(Dir-3') 주입으로 독립 확인했다 (§발화 채널).
 - [x] 인터셉터 미보유 렌더 파일이 **전역 차단으로 무해화**됐다 — 미보유 파일은 존재해도 되며 (파일별 opt-in 이 더 이상 격리의 전제가 아니다) 열거는 glob 산출 + 하한 `≥ 20` 으로 공허 통과를 차단한다. tick 221 시점 19 파일 미보유가 **유출 경로**였던 상태와 대비된다.
 
 ## 수용 기준
@@ -114,7 +114,7 @@ Error: Test timed out in 5000ms.
 - [x] (Must, N-1) 전역 fail-closed 차단의 실재 — 전역 setup 이 미인터셉트 요청을 거부하는 장치를 **실행 코드로** 보유하고, 그 거부가 등재된 판정 채널에서 실제로 관측된다. 판정:
   ```
   bash -c 'npx vitest run src/__tests__/network-egress-isolation.test.ts >/dev/null 2>&1 || exit 1;
-           sed "s://.*::" src/setupTests.js | grep -qE "globalThis\.fetch[[:space:]]*="'
+           sed "s://.*::" src/setupTests.ts | grep -qE "globalThis\.fetch[[:space:]]*="'
   ```
   **HEAD=`ff699f9` 실측 rc=0 → 충족** (tick 221 시점 rc=1). **민감도 실측** — 채널을 비우고 차단 장치를 삭제한 격리 사본에서 `rc=1`, 원복 후 `rc=0`. 두 절이 각각 필요하다: 앞 절은 **거부가 실제로 일어남**을, 뒤 절은 그 거부가 **주석이 아닌 실행 코드**에서 옴을 잰다.
   - **주석을 판정에서 제외한다 (tick 221 이 초안에서 실측한 오탐).** 주석 미제거 형태 `grep -qE "onUnhandledRequest|…" src/setupTests.ts` 는 현 HEAD 에서 **rc=0 을 낸다** — `src/setupTests.js:51` 의 이디엄 주석 `listen({ onUnhandledRequest: 'error' })` 이 걸리기 때문이다. 아무 장치도 없는 상태에서 통과하는 공허 기준이었고, `RULE-06 §게이트 실효 검증` 이 말하는 "주석 한 줄로 충족되는 배선 grep" 의 실물이다. `sed "s://.*::"` 로 행 주석을 제거한 뒤 판정한다.
@@ -125,7 +125,7 @@ Error: Test timed out in 5000ms.
            test "$(grep -rl "render(" src --include="*.test.jsx" --include="*.test.tsx" | wc -l)" -ge 20'
   ```
   **HEAD=`ff699f9` 실측 rc=0 / 열거 33 → 충족** (tick 221 시점 rc=1 / 미보유 19 파일). **민감도 실측** — 훼손 사본에서 `rc=1`, 원복 후 `rc=0`. **판정 형태를 바꾼 이유**: 전역 차단이 fail-closed 가 된 뒤로는 "미보유 파일 0" 이 더 이상 목표가 아니다 — 파일별 opt-in 이 격리의 전제에서 내려왔기 때문이다. 남는 요건은 (i) 무해화가 **실제로 성립**하고 (채널 실행), (ii) 열거가 **공허하지 않다** (하한 20) 두 가지다. 열거가 0 으로 무너지면 어떤 "미보유 0" 도 무조건 참이 된다.
-  - **전역 차단으로의 무해화는 `src/setupTests.js` grep 이 아니라 등재 채널 파일의 실재로 판정한다.** 초안은 루프 안에서 setupTests 토큰을 보고 `continue` 했는데, 그 grep 이 주석에 걸려 **19 파일이 전부 스킵되고 rc=0** 이 나왔다 (tick 221 실측). 파일 단위 escape 절은 그 자체가 공허 통과 경로였다.
+  - **전역 차단으로의 무해화는 `src/setupTests.ts` grep 이 아니라 등재 채널 파일의 실재로 판정한다.** 초안은 루프 안에서 setupTests 토큰을 보고 `continue` 했는데, 그 grep 이 주석에 걸려 **19 파일이 전부 스킵되고 rc=0** 이 나왔다 (tick 221 실측). 파일 단위 escape 절은 그 자체가 공허 통과 경로였다.
 - [x] (Must, N-3) 판정 채널의 저장소 등재 — 위 차단이 `npm test` 수집 경로 또는 `check:*` script 중 **최소 1개 실경로**에서 발화한다. 판정: `bash -c 'npx vitest list 2>/dev/null | grep -q "network-egress-isolation"'` → rc=0. **HEAD=`ff699f9` 실측 rc=0 / 수집 5 tests → 충족** (tick 221 시점 rc=1 — `src/__tests__/` 14 파일 중 egress 축 0, `check:*` 15종 중 0). **민감도 실측** — 채널을 비운 사본에서 `vitest list` 히트 **0** → `rc=1`. 파일 존재(`ls`) 가 아니라 **runner 의 수집 결과**로 판정하는 이유가 여기 있다: 이름만 맞는 빈 파일은 수집되지 않는다. `src/setupTests.js` grep 을 이 항목의 대안 경로에서 **제외했다** — 주석 오탐 경로다. `RULE-07 §promote 조건 4` 의 실경로 요건이며, 채널 부재는 promote 차단이 아니라 채널 부착 task 발행의 선행 조건이다.
 
 ## 참고
@@ -148,6 +148,7 @@ Error: Test timed out in 5000ms.
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-10-13 | inspector tick 263 (Phase 1 — planner tick 394 승격 거부 회수) / — @ HEAD=`94dc94e` | **판정 명령 부패 정정.** (N-1) 의 `sed … src/setupTests.js` 가 TS 전환(`b793703`) 뒤 rc=1 이었다 — `sed` 가 파일을 못 열어도 파이프라인 rc 는 `grep` 의 1 이라 `check:blue-judgement` (rc=2 탐지) 에 보이지 않았다. `src/setupTests.ts` 로 고쳤다 (같은 이름의 §위치 · §의존성 · §발화 채널 · §테스트 현황 인용 포함, tick 221 시점 서술은 그대로). `git archive` 사본 재실행 N-1 · N-1b · N-3 rc=0 3/3 | 수용 기준 · 위치 · 의존성 |
 | 2026-10-13 | REQ-20261013-112 방향 1 (inspector — blue 재개봉) / — @ HEAD=`0b5d9cf` | **판정 명령 평가 가능성 정정.** TS 전환(`b793703`) 전 경로 1건을 고쳤다 (blue `:120` `src/setupTests.js` → `.ts` — 경로만, 패턴의 `…` 는 인용한 초안 그대로). 재실행 rc=0 — 그 줄의 서술(*"rc=0 을 낸다"*)과 같다. `check-blue-judgement-evaluable.sh` (scan root = 이 판본) `unevaluable(rc=2)=0` | 수용 기준 |
 | 2026-08-25 | inspector tick 222 / HEAD=`ff699f9` (TSK-20260825-14 `ec5197f`) | **drift reconcile — (N-1)(N-1b)(N-3) 플립. 수용 기준 3/3, unchecked 0. 동시에 판정 명령 3건을 민감도 0 사유로 교체.** tick 221 판본의 세 명령은 전부 `ls src/__tests__/*egress*` 를 선두 escape 로 갖고 있어 **파일 이름만** 봤다 — 채널을 비우고 차단 장치까지 삭제한 격리 사본에서 세 명령이 전부 `rc=0` 을 유지했다 (실측). 세 Must 가 빈 파일 하나로 충족되는 상태였다. 교체본은 채널을 실제로 실행하고 (`npx vitest run` / `npx vitest list`) 같은 훼손 상태에서 전부 `rc=1` 로 떨어진다. 채널 자체의 검출력도 독립 재현했다 — 차단 장치 제거 시 2 failed, fail-open 화 시 1 failed. | 발화 채널, 테스트 현황, 수용 기준, 변경 이력 |
 | 2026-08-25 | REQ-20260825-004 (inspector tick 221) | 최초 등록. followup 1건을 흡수한 req 를 불변식으로 재정식화. **req 의 수용 기준 5항 중 3항을 그대로 쓰지 않았다** — `LogSingle.test.jsx` rc=0 · `EAI_AGAIN` 0회 · `--testTimeout=1500` rc=0 은 현 HEAD 에서 **이미 전부 통과**하므로(tick 221 실측) 불변식이 위반된 채 3/3 거짓 충족을 낸다. 판정을 증상에서 **차단 장치의 실재와 검출력**으로 옮기고, 통과하는 세 명령은 §미측정·비판정 항목에 근거와 함께 강등했다. 나머지 2항(`test.local` grep · 오프라인 대조) 중 전자는 현 HEAD 에서 `src/**` hit **0** 이라(호스트는 `.env.test` 에만 있다) 판정 대상이 아니고, 후자는 채널 부재로 강등했다. **신규 추가 (req 에 없던 항목)**: (a) (M-B) 인터셉터 미보유 렌더 파일 **19건** 실측 — req 가 지목하지 않은 구조적 원인이며 (N-1b) 의 판정 대상이다. (b) (N-4) 비용 귀속의 정확성 — 신고 지점(`LogSingle`)과 유출 호스트(`monitor-api`)가 다르다는 실측에서 도출했고, 개별 파일 패치로의 축소를 차단한다. (c) (Dir-3) fail-open 오답 방향 — 기존 테스트를 깨뜨리지 않고 도입 가능한 유일한 형태라 가장 실현 가능성이 높다. | all |
