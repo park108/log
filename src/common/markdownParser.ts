@@ -49,29 +49,59 @@ export const computeDepth = (line: unknown): { depth: number; prefixLength: numb
 	return { depth: Math.floor(spaces / 2), prefixLength: spaces };
 }
 
+// 목록 마커 줄의 모양.
+//
+// `contentColumn` 은 **내용 열**이다 — 마커 줄 들여쓰기 + 마커 폭 + 뒤따르는 공백
+// 수 (`- `→2 · `1. `→3 · `10. `→4). 마커 없는 블록이 이 항목에 속하는지를 이
+// 값으로 판정한다. 내용 열은 **여기서만** 센다 — 귀속 판정이 두 곳에서 갈리면
+// 같은 줄이 패스에 따라 항목 안팎을 오간다.
+//
+// 중첩 깊이(`depth`)는 내용 열과 **별개**다. 마커 줄의 중첩은 종전대로
+// `computeDepth` 가 판정한다 — 둘을 합치면 `1. a\n  - b` (2칸 < 내용 열 3) 처럼
+// 지금 중첩되는 입력이 평탄해진다.
+interface ListMarker {
+	kind: "ul" | "ol";
+	depth: number;
+	contentColumn: number;
+}
+
 // 목록 항목의 마커 판정. 검출 패스(`ul` · `ol`)가 쓰는 규칙과 **같은 규칙**이어야
 // 한다 — 여기서 마커로 보지 않는 줄을 검출 패스가 마커로 보면 그 줄이 이어짐으로
-// 흡수돼 항목이 사라진다. 마커면 그 줄의 깊이를, 아니면 null 을 돌려준다.
-const listMarkerDepth = (text: string): number | null => {
+// 흡수돼 항목이 사라진다. 마커면 그 모양을, 아니면 null 을 돌려준다.
+const listMarker = (text: string): ListMarker | null => {
 
 	const { depth, prefixLength } = computeDepth(text);
 	const stripped = text.substring(prefixLength);
 
-	// `- ` · `* ` (ul 검출 `:215` 와 같은 조건)
+	let kind: "ul" | "ol";
+	let width: number;
+
+	// `- ` · `* ` (ul 검출 패스와 같은 조건)
 	if(stripped.length > 1
 		&& ('*' === stripped.charAt(0) || '-' === stripped.charAt(0))
 		&& ' ' === stripped.charAt(1)) {
-		return depth;
+		kind = "ul";
+		width = 1;
 	}
-
-	// `1. ` (ol 검출 `:242` 와 같은 조건 — 숫자 뒤 점, 그 뒤에 공백 한 칸.
+	// `1. ` (ol 검출 패스와 같은 조건 — 숫자 뒤 점, 그 뒤에 공백 한 칸.
 	// 점 뒤에 공백이 없는 `1.5 초` 는 마커가 아니다.)
-	if(stripped.length > 2 && /^[0-9]+\. /.test(stripped)) {
-		return depth;
+	else if(stripped.length > 2 && /^[0-9]+\. /.test(stripped)) {
+		kind = "ol";
+		width = stripped.indexOf(".") + 1;
+	}
+	else {
+		return null;
 	}
 
-	return null;
+	let spaces = 0;
+	while(' ' === stripped.charAt(width + spaces)) spaces++;
+
+	return { kind, depth, contentColumn: prefixLength + width + spaces };
 }
+
+// 마커면 그 줄의 깊이를, 아니면 null 을 돌려준다.
+const listMarkerDepth = (text: string): number | null =>
+	listMarker(text)?.depth ?? null;
 
 // 제목 마커 판정. `# ` ~ `###### ` 의 단계를 돌려주고, 제목이 아니면 0 이다.
 //
@@ -238,15 +268,20 @@ const closesCodeFence = (fence: CodeFence, line: string): boolean => {
 		&& "" === (match[3] as string).trim();
 }
 
-// 펜스 안 내용 줄. 여는 펜스가 N칸 들여쓰여 있으면 각 줄에서 **최대** N칸 걷는다
-// — 그보다 깊은 들여쓰기는 코드의 것이다.
-const codeFenceContent = (fence: CodeFence, line: string): string => {
+// 줄 머리 공백을 **최대** `max` 칸 걷는다. 그보다 깊은 들여쓰기는 남는다.
+// 펜스 안 내용 줄(여는 펜스 들여쓰기)과 목록 항목 안 줄(내용 열)이 함께 쓴다.
+const stripLeadingSpaces = (line: string, max: number): string => {
 
 	let strip = 0;
-	while(strip < fence.indent && ' ' === line.charAt(strip)) strip++;
+	while(strip < max && ' ' === line.charAt(strip)) strip++;
 
 	return line.substring(strip);
 }
+
+// 펜스 안 내용 줄. 여는 펜스가 N칸 들여쓰여 있으면 각 줄에서 **최대** N칸 걷는다
+// — 그보다 깊은 들여쓰기는 코드의 것이다.
+const codeFenceContent = (fence: CodeFence, line: string): string =>
+	stripLeadingSpaces(line, fence.indent);
 
 interface ParsedNode {
 	type: string;
@@ -254,7 +289,17 @@ interface ParsedNode {
 	closure?: string;
 	itemOf?: string;
 	depth?: number;
+	// 펜스 패스가 세운 노드의 원래 줄. 목록 항목 안의 코드 블록은 그 항목의 내용
+	// 열을 걷은 줄로 다시 판정해야 하는데, 최상위 펜스 패스는 목록을 모른 채
+	// 먼저 돌므로 원래 줄을 들고 있어야 되돌릴 수 있다.
+	source?: string;
 }
+
+// 빈 줄 노드 — 공백·탭만 있는 줄을 포함한다. 코드 블록 안의 줄(`closure: "pre"`)은
+// 사용자 글자이므로 제외한다. **이 술어는 파서 안에 하나다** — 목록 결합 패스와
+// 항목 이어짐 패스가 함께 쓴다.
+const isBlankLine = (n: ParsedNode): boolean =>
+	n.type === "value" && n.closure === "" && n.text.trim() === "";
 
 // 펜스 코드 블록 패스 본체. **최상위와 인용 내용이 이 함수 하나를 공유한다.**
 //
@@ -280,7 +325,7 @@ const applyCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 
 		if(null !== opening) {
 
-			nodes.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre"});
+			nodes.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre", source: node.text});
 
 			fence = opening;
 		}
@@ -289,7 +334,7 @@ const applyCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 			&& "" === node.closure
 			&& closesCodeFence(fence, node.text)) {
 
-			nodes.splice(index, 1, {type: "tag", text: "</pre>", closure: "pre"});
+			nodes.splice(index, 1, {type: "tag", text: "</pre>", closure: "pre", source: node.text});
 
 			fence = null;
 		}
@@ -302,7 +347,7 @@ const applyCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 			const text = codeHighlighter(fence.info, escapeHtmlText(codeFenceContent(fence, node.text)));
 
 			nodes.splice(index, 1
-				, {type: "value", text: text + "<br />", closure: "pre"});
+				, {type: "value", text: text + "<br />", closure: "pre", source: node.text});
 		}
 	}
 
@@ -655,7 +700,8 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 같은 이유다 (그렇지 않으면 독자가 `1.` 을 두 번 본다).
 	//
 	// 들여쓰기는 표기이지 내용이 아니므로 걷어낸다 (`computeDepth` — 공백으로 쓰든
-	// 탭으로 쓰든 같은 결과). 걷어내기만 할 뿐 **판정에는 쓰지 않는다**.
+	// 탭으로 쓰든 같은 결과). 걷어내기만 할 뿐 **바로 이어지는 문단 줄의 판정에는
+	// 쓰지 않는다** (빈 줄 뒤 · 코드 블록 뒤의 귀속과 항목 안 펜스는 아래 예외).
 	//
 	// 남는 판정 조건은 둘뿐이다.
 	//   - **열린 항목이 있을 것.** 앞선 마커 줄이 없는 줄은 그대로 문단이다
@@ -664,21 +710,92 @@ export const markdownToHtml = (rawInput: string): string => {
 	//   - **줄이 비어 있지 않을 것.** 빈 줄은 이어짐이 아니라 목록의 경계다
 	//     (`1. 하나` / 빈 줄 / `문단` 은 한 항목이 아니다). lazy continuation 의
 	//     면제는 문단 계속에 한하며 빈 줄에는 적용되지 않는다.
+	//
+	// **내용 열까지 들여쓴 블록은 예외다** (spec `markdown-rendering` §19). 빈 줄
+	// 뒤에 와도 그 항목 안에 있다. 없던 동안 항목 사이에 코드 블록이나 둘째 문단을
+	// 넣으면 목록이 끊기고 번호가 되감겼다 — 독자는 `1.` 을 두 번 봤다. 들여쓰기는
+	// 여기서만 판정에 쓰인다: 기준은 `listMarker` 가 센 내용 열 하나다.
 	{
 		const merged: ParsedNode[] = [];
-		let openItem: ParsedNode | null = null;
+
+		// 열린 항목. `target` 은 이어지는 줄이 붙는 값 노드다 — 처음에는 마커 줄
+		// 자신이고, 항목 안 코드 블록 뒤에는 없다 (그 뒤 문단 줄이 새 노드를 연다).
+		let openItem: { marker: ListMarker; target: ParsedNode | null } | null = null;
 		let isQuoteOpen = false;
 
-		// 인용은 블록이라 열면 닫아야 한다. 이어짐이 끝나는 자리는 네 곳이다 —
-		// 인용 아닌 이어짐 · 다음 마커 줄 · 이어짐이 아닌 줄 · 입력의 끝.
+		// 인용은 블록이라 열면 닫아야 한다. 이어짐이 끝나는 자리는 다섯 곳이다 —
+		// 인용 아닌 이어짐 · 다음 마커 줄 · 이어짐이 아닌 줄 · 항목 안 블록 · 입력의 끝.
 		const closeQuote = (): void => {
-			if(isQuoteOpen && null !== openItem) {
-				openItem.text += ITEM_QUOTE_CLOSE;
+			if(isQuoteOpen && null !== openItem && null !== openItem.target) {
+				openItem.target.text += ITEM_QUOTE_CLOSE;
 			}
 			isQuoteOpen = false;
 		};
 
-		for(const node of parsed) {
+		// 열린 항목의 내용 열까지 들여썼는가 — 마커 없는 블록의 귀속 판정.
+		const reachesContentColumn = (text: string): boolean => {
+			if(null === openItem) return false;
+			const column = openItem.marker.contentColumn;
+			return text.length - stripLeadingSpaces(text, column).length === column;
+		};
+
+		// 최상위 펜스 패스가 세운 코드 블록의 여는 노드.
+		const isFenceOpenNode = (n: ParsedNode | undefined): n is ParsedNode & { source: string } =>
+			undefined !== n
+			&& "tag" === n.type
+			&& "pre" === n.closure
+			&& "<pre>" === n.text
+			&& undefined !== n.source;
+
+		// 열린 항목 안에 있는 블록인가 — 내용 열까지 들여쓴 펜스로 연 코드 블록,
+		// 또는 내용 열까지 들여쓴 마커 없는 줄. 빈 줄 뒤에서도 이 판정이 같다.
+		const belongsToOpenItem = (n: ParsedNode | undefined): boolean => {
+			if(isFenceOpenNode(n)) return reachesContentColumn(n.source);
+			return undefined !== n
+				&& "value" === n.type
+				&& "" === n.closure
+				&& !isBlankLine(n)
+				&& null === listMarker(n.text)
+				&& reachesContentColumn(n.text);
+		};
+
+		for(let index = 0; index < parsed.length; index++) {
+
+			// 항목 안 코드 블록을 원래 줄로 되돌린다. 최상위 펜스 패스는 목록을 모르고
+			// 먼저 돌았다 — 0~3칸 펜스는 이미 `pre` 노드로, 4칸 이상 펜스는 (최상위에선
+			// 펜스가 아니므로) 값 노드로 여기 도착한다. 되돌려 두면 두 경로가 아래의
+			// 같은 판정(내용 열을 걷은 줄에 대고 부르는 펜스 판정)을 지난다.
+			if(null !== openItem && isFenceOpenNode(parsed[index]) && belongsToOpenItem(parsed[index])) {
+
+				let end = index + 1;
+				while(end < parsed.length
+					&& !("tag" === (parsed[end] as ParsedNode).type && "</pre>" === (parsed[end] as ParsedNode).text)) {
+					end++;
+				}
+
+				const lines: ParsedNode[] = [];
+				for(const n of parsed.slice(index, end + 1)) {
+					if(undefined !== n.source) lines.push({type: "value", text: n.source, closure: ""});
+				}
+
+				parsed.splice(index, end - index + 1, ...lines);
+			}
+
+			const node = parsed[index] as ParsedNode;
+
+			// 빈 줄 뒤가 이 항목 안의 블록이면 빈 줄은 항목 안에서 투명하다 — 같은
+			// 종류 목록 사이의 빈 줄(§6)과 같다. 빈 줄은 항목 안 인용을 끝낸다.
+			if(null !== openItem && isBlankLine(node)) {
+
+				let next = index + 1;
+				while(next < parsed.length && isBlankLine(parsed[next] as ParsedNode)) next++;
+
+				if(belongsToOpenItem(parsed[next])) {
+					closeQuote();
+					index = next - 1;
+					continue;
+				}
+			}
 
 			// 이미 다른 패스가 가져간 줄(코드 블록 · 수평선 · 줄 머리 인용)은
 			// 이어짐의 대상도 시작점도 아니다.
@@ -689,20 +806,62 @@ export const markdownToHtml = (rawInput: string): string => {
 				continue;
 			}
 
-			const markerDepth = listMarkerDepth(node.text);
+			const marker = listMarker(node.text);
 
-			if(null !== markerDepth) {
+			if(null !== marker) {
 				closeQuote();
-				openItem = node;
+				openItem = { marker, target: node };
 				merged.push(node);
+				continue;
+			}
+
+			const item = openItem;
+
+			// 항목 안 펜스 코드 블록. 펜스 판정은 **내용 열을 걷은 줄**에 댄다 —
+			// 최상위와 같은 판정 함수다. 코드 줄도 내용 열까지 걷히고 그 너머의
+			// 들여쓰기는 코드의 것이다 (§9). 닫는 펜스까지가 블록이다.
+			const fence = (null !== item && reachesContentColumn(node.text))
+				? codeFenceOpening(stripLeadingSpaces(node.text, item.marker.contentColumn))
+				: null;
+
+			if(null !== item && null !== fence) {
+
+				const column = item.marker.contentColumn;
+				const inner: ParsedNode[] = [{type: "value", text: stripLeadingSpaces(node.text, column), closure: ""}];
+
+				while(index + 1 < parsed.length) {
+
+					const next = parsed[index + 1] as ParsedNode;
+					if("value" !== next.type || "" !== next.closure) break;
+
+					const text = stripLeadingSpaces(next.text, column);
+					inner.push({type: "value", text, closure: ""});
+					index++;
+
+					if(closesCodeFence(fence, text)) break;
+				}
+
+				closeQuote();
+
+				// 항목의 종류·깊이를 달아 두면 `bindListItem` 이 이 블록을 열린 `<li>`
+				// 안으로 흘려보낸다 — 비-list 노드로 도착해 `flushAll()` 로 목록을
+				// 닫던 것이 번호가 되감기던 원인이었다.
+				for(const block of applyCodeFence(inner)) {
+					merged.push({...block, itemOf: item.marker.kind, depth: item.marker.depth});
+				}
+
+				item.target = null;
 				continue;
 			}
 
 			const { prefixLength } = computeDepth(node.text);
 			const stripped = node.text.substring(prefixLength);
-			const item = openItem;
+
+			// 코드 블록 뒤에는 이어 붙일 문단이 없다 — 내용 열까지 들여쓴 줄만 그
+			// 항목에 새 문단을 연다. 게으른 이어짐은 문단 뒤에만 있다.
 			const isContinuation = null !== item
-				&& stripped.trim().length > 0;
+				&& stripped.trim().length > 0
+				&& (null !== item.target || reachesContentColumn(node.text));
 
 			if(!isContinuation) {
 				closeQuote();
@@ -711,6 +870,13 @@ export const markdownToHtml = (rawInput: string): string => {
 				continue;
 			}
 
+			if(null === item.target) {
+				item.target = {type: "value", text: "", itemOf: item.marker.kind, closure: "li", depth: item.marker.depth};
+				merged.push(item.target);
+			}
+
+			const target = item.target;
+
 			if('>' === stripped.charAt(0)) {
 
 				// `>` 뒤 공백 한 칸은 표기다 — 줄 머리 인용 패스와 같은 규칙.
@@ -718,12 +884,12 @@ export const markdownToHtml = (rawInput: string): string => {
 				if(' ' === quoted.charAt(0)) quoted = quoted.substring(1);
 
 				// 연달아 붙은 인용 줄은 한 덩어리다 (줄 머리 인용과 같다).
-				item.text += isQuoteOpen ? ITEM_BREAK + quoted : ITEM_QUOTE_OPEN + quoted;
+				target.text += isQuoteOpen ? ITEM_BREAK + quoted : ITEM_QUOTE_OPEN + quoted;
 				isQuoteOpen = true;
 			}
 			else {
 				closeQuote();
-				item.text += ITEM_BREAK + stripped;
+				target.text += ("" === target.text ? "" : ITEM_BREAK) + stripped;
 			}
 		}
 
@@ -1307,10 +1473,6 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 			}
 		}
 	};
-
-	// 빈 줄 노드 — 코드 블록 안의 줄(`closure: "pre"`)은 사용자 글자이므로 제외한다.
-	const isBlankLine = (n: ParsedNode): boolean =>
-		n.type === "value" && n.closure === "" && n.text.trim() === "";
 
 	// 빈 줄(들) **다음의 첫 유의미 노드가 같은 종류의 목록 항목인가.**
 	// `from` 은 빈 줄 노드의 위치다.
