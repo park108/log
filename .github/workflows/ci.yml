@@ -117,6 +117,14 @@ jobs:
       - name: Check declared branch discrimination
         run: npm run check:branch-discrimination
 
+      # 부수효과 채널 대기 정합 게이트 (side-effect-channel-assertion-arrival-wait §동작 (I1)~(I6)).
+      # 저장 채널(sessionStorage·localStorage·document.title)을 단언하는 자리는 그 채널의
+      # 도착을 기다린 뒤 단언해야 한다 — DOM 을 기다리고 저장소를 단언하면 순서 우연으로만 초록이다.
+      # **테스트는 이 축의 채널이 될 수 없다**: 위반은 오늘 초록이고 타이밍이 바뀌는 날 붉어진다.
+      # 대상 파일은 도출하며 도출이 0 이면 위반(1)이 아니라 무판정(2)으로 실패시킨다.
+      - name: Check side-effect wait channel
+        run: npm run check:side-effect-wait-channel
+
       # api base URL 도출 총성 게이트 (api-base-url-assembly-totality §동작 (A-1)(A-3)(A-4)).
       # 미정의 base 가 `undefined + "?limit=10"` → 문자열 `"undefined?limit=10"` 이라는
       # **상대 URL** 로 조립돼 자기 origin 에 요청이 나가고, SPA 폴백이 index.html 을 200 으로

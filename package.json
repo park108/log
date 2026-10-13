@@ -39,6 +39,7 @@
     "check:blue-judgement": "bash scripts/check-blue-judgement-evaluable.sh",
     "check:spec-classification": "bash scripts/check-spec-judgement-classification.sh",
     "check:summary-drift": "bash scripts/check-summary-drift.sh",
+    "check:side-effect-wait-channel": "bash scripts/check-side-effect-wait-channel.sh",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "pipeline:health": "bash scripts/pipeline-health.sh"
