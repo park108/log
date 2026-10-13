@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-table-alignment.test.ts` · `markdown-entity-reference.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-cross-clause.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -68,14 +68,15 @@
 23. **코드 밖의 유효한 엔티티 참조는 그 문자로 보인다.** HTML5 이름 엔티티 · `&#`+10진 · `&#x`+16진이 대상이다 (`&copy;` → `©` · `&nbsp;` → U+00A0 · `&#35;` → `#` · `&amp;` → `&`). 무효한 코드 포인트와 `&#0;` 은 U+FFFD 다. 코드 스팬·코드 블록 안의 엔티티와 무효한 `&…;` (`AT&T` · `&없는이름;`) 는 지금처럼 글자다. `\&copy;` 는 글자 `&copy;` 다.
     - **해석된 문자는 마크업이 되지 않고 구조에 참여하지 않는다.** `&lt;script&gt;alert(1)&lt;/script&gt;` 는 글자 `<script>alert(1)</script>` 로 보이고 `script` 요소는 생기지 않는다. `&#42;굵게 아님&#42;` 은 `em` 을 만들지 않는다.
     - **파서 산출이 해석된 문자를 담는다** (필요한 escape 포함). 엔티티를 브라우저 해석에 맡기면 본문은 `©` 를, 요약은 `&copy;` 를 보인다 — `trimmedContents` 는 엔티티 다섯만 푼다. `trimmedContents("&copy; 2026")` 은 `"© 2026"` 이다.
-    - 링크·이미지의 주소와 제목 안 엔티티도 해석된다 — `[x](https://example.com/?a=1&amp;b=2)` 의 실효 `href` 는 `https://example.com/?a=1&b=2` 다. 속성값 escape(17)는 해석 뒤에 건다.
+    - 링크·이미지의 주소와 제목 안 엔티티도 해석된다 — `[x](https://example.com/?a=1&amp;b=2)` 의 실효 `href` 는 `https://example.com/?a=1&b=2` 다. 속성값 escape(17)는 해석 뒤에 건다. **참조 정의(24)의 주소·제목과 맨 URL(25)도 여기서 말하는 주소다** — `[x]\n\n[x]: https://a.example/?a=1&amp;b=2` 의 실효 `href` 는 `https://a.example/?a=1&b=2` 다.
 
 24. **참조 링크는 정의된 주소로 연결된다.** `[텍스트][라벨]` · `[라벨][]` · `[라벨]` 은 문서 안에 `[라벨]: 주소` (선택적 제목 `"…"` · `'…'` · `(…)`) 정의가 있으면 그 주소·제목의 링크다. 정의는 사용 앞에 와도 뒤에 와도 된다. 라벨 대조는 대소문자 접기·앞뒤 공백 제거·내부 공백 연속 축약 뒤 같은지로 하고 (`[Foo  Bar]` ≡ `[foo bar]`), 같은 라벨의 정의가 여럿이면 첫 정의가 쓰인다. 정의가 없는 꼴은 지금처럼 글자다 (`대괄호 [메모] 와 느낌표 ![alt] 만 있다` 의 렌더 텍스트 === 입력). 링크 텍스트의 강조·`target`/`rel`·속성값 escape·정제는 인라인 링크와 같다 (15·16·17 — `[x]\n\n[x]: javascript:alert(1)` 에 `javascript:` 실효 `href` 0). 코드 스팬·블록 안의 정의 꼴과 참조 꼴은 링크가 아니며 그 안의 정의는 수집되지 않는다. 인라인 링크와 겹치면 인라인이 우선한다 (`[a](b)[c]` 에서 `[c]` 만 참조 후보).
-    - **참조된 라벨의 정의 줄만 출력에서 걷히고, 참조되지 않은 정의 줄은 글자로 남는다 — CommonMark §4.7 과 의도적으로 갈린다.** 표준은 참조 여부와 무관하게 정의를 걷는다. 그러면 출처를 `[1]: https://…` 꼴로 나열만 해 둔 기존 글의 줄이 통째로 사라진다 (§역할). `[참고]: https://example.com` 한 줄뿐인 문서의 산출은 `<p>[참고]: https://example.com</p>` 그대로다.
+    - **참조된 라벨의 정의 줄만 출력에서 걷히고, 참조되지 않은 정의 줄은 글자로 남는다 — CommonMark §4.7 과 의도적으로 갈린다.** 표준은 참조 여부와 무관하게 정의를 걷는다. 그러면 출처를 `[1]: https://…` 꼴로 나열만 해 둔 기존 글의 줄이 통째로 사라진다 (§역할). `[참고]: https://example.com` 한 줄뿐인 문서는 정의 줄이 `p` 하나로 남고 렌더 텍스트 === 입력이다. 그 줄 안의 주소가 링크가 되는지는 25 가 정한다 — 이 판정면은 25 착지 전후 모두 참이다.
 
-25. **산문에 그냥 쓴 주소는 링크가 된다.** 코드 밖에서 줄 머리·공백 뒤·`*` `_` `~` `(` 뒤에 시작하는 `http://` · `https://` · `www.` 주소는 링크다. `www.` 는 `http://` 를 붙인 주소로 연결되고 (`www.example.com` → `http://www.example.com/`), 보이는 글자는 원문 그대로다 — 렌더 텍스트는 입력과 같다.
+25. **산문에 그냥 쓴 주소는 링크가 된다.** 코드 밖에서 줄 머리·공백 뒤·`*` `_` `~` `(` 뒤에 시작하는 `http://` · `https://` · `www.` 주소는 링크다. `www.` 는 `http://` 를 붙인 주소로 연결되고 (`www.example.com` → `http://www.example.com/`), 보이는 글자는 원문 그대로다 — 렌더 텍스트는 입력과 같다 (엔티티만 예외 — 아래 셋째 하위 항목).
     - **링크 밖에 남는 것**: 끝의 `?` `!` `.` `,` `:` `*` `_` `~` 와 짝 없는 닫는 괄호 (`(https://example.com).` → `(` + 링크 + `).`). 그리고 **호스트 바로 뒤에 공백 없이 붙은 한글** (`https://example.com에서 봐` → 링크 `https://example.com` + `에서 봐`). 경로 안의 한글은 링크에 포함된다 (`https://ko.wikipedia.org/wiki/서울`). 경로 끝에 붙은 조사(`…/서울에서`)는 구별할 수 없으므로 글쓴이는 꺾쇠 형태(`<…>`)를 쓴다 — 이 계약의 한계다.
     - **이중 링크·재가공 금지**: 코드 스팬·블록 안과 이미 링크인 텍스트(`[https://…](…)` 의 텍스트 · `<https://…>`) 안의 주소는 다시 링크가 되지 않는다 — `a` 안에 `a` 가 생기지 않는다. 맨 URL 안의 `*` `_` `~` 는 강조가 아니고 `href` 와 보이는 글자 모두 원문 그대로다 (15 — `https://example.com/a**b**c` → `strong` 0). 외부 주소의 `target`/`rel` 은 16 과 한 벌이다.
+    - **맨 URL 안의 엔티티는 23 이 이긴다.** 링크의 범위는 원문 글자로 정한다 — 해석된 문자는 링크를 끊지도 늘리지도 않는다 (23 의 *"구조에 참여하지 않는다"*). `href` 와 보이는 글자는 23 의 해석을 거친다. `주소 https://example.com/?a=1&amp;b=2 를 본다` → `a` 1 · `href` 와 링크 `textContent` 모두 `https://example.com/?a=1&b=2` · 렌더 텍스트 `주소 https://example.com/?a=1&b=2 를 본다`. 같은 주소를 인라인 링크(23)로 쓴 것과 산출이 갈리지 않게 하려는 판정이다. markdown-it(`linkify`)은 원문 `&amp;` 를 그대로 두어 이 판정과 갈린다. GFM 은 주소 가운데의 유효 엔티티를 규정하지 않는다.
 
 ## 동작 — 안전
 
@@ -99,9 +100,10 @@
 - [x] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
 - [x] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-01 `9d05900`). HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
 - [ ] 표 정렬 (22): `bash -c 'npx vitest run src/__tests__/markdown-table-alignment.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). `| 왼 | 가운데 | 오른 |\n|:--|:-:|--:|\n| a | b | c |` 의 셋째 열 `th`·`td` 계산값 `right` · 둘째 열 `center` · 정제 전후 `class` 집합 동일을 잰다.
-- [ ] 엔티티 참조 (23): `bash -c 'npx vitest run src/__tests__/markdown-entity-reference.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 23 의 예 전부를 정제를 거친 DOM 의 `textContent`·요소 수·`a.href` 와 `trimmedContents` 로 잰다.
+- [x] 엔티티 참조 (23): `bash -c 'npx vitest run src/__tests__/markdown-entity-reference.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=0 (TSK-20261013-05 `e38a118`). HEAD=`e1abfdd` rc=1 (파일 부재). 23 의 예 전부를 정제를 거친 DOM 의 `textContent`·요소 수·`a.href` 와 `trimmedContents` 로 잰다.
 - [ ] 참조 링크 (24): `bash -c 'npx vitest run src/__tests__/markdown-reference-link.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 세 형태 · 라벨 정규화 · 참조되지 않은 정의 줄 보존 · 코드 안 비해석 · `javascript:` 정의 차단을 정제를 거친 DOM 에서 잰다.
 - [ ] 맨 URL 링크 (25): `bash -c 'npx vitest run src/__tests__/markdown-bare-url-autolink.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e1abfdd` rc=1 (파일 부재). 25 의 예 전부 · `a a` 0 · 렌더 텍스트 === 입력을 정제를 거친 DOM 에서 잰다.
+- [ ] 항 사이 교차 입력 (23×25 · 24×25 · 23×24): `bash -c 'npx vitest run src/__tests__/markdown-cross-clause.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=1 (파일 부재). 세 입력 — `주소 https://example.com/?a=1&amp;b=2 를 본다` (`a` 1 · `href`·링크 `textContent` `https://example.com/?a=1&b=2`) · `[참고]: https://example.com` (`p` 1 · 렌더 텍스트 === 입력) · `[x]\n\n[x]: https://a.example/?a=1&amp;b=2` (`href` `https://a.example/?a=1&b=2`) — 를 정제를 거친 DOM 의 `a.getAttribute("href")`·`textContent` 로 잰다. 23·24·25 가 모두 착지해야 초록이다.
 
 ## 변경 이력
 
@@ -115,6 +117,8 @@
 | 2026-10-13 | REQ-20261013-095 / — | 24 신설 (참조 링크 — 참조되지 않은 정의 줄 보존은 CommonMark 와 의도적으로 갈린다). §미측정 의 "참조 링크 미구현" 을 걷었다 — 근거였던 "사용 빈도를 주장할 근거가 없다" 를 2026-10-13 운영자 결정이 대체했다 (신고 `20261013-0739` 머리) | 동작 24 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-096 / — | 25 신설 (맨 URL 링크). req 가 남긴 한국어 꼬리 판정은 (a) 안 채택 — 호스트 직후 한글은 링크 밖, 경로 안 한글은 링크 안 | 동작 25 · 수용 기준 · 참고 |
 | 2026-10-13 | inspector reconcile / `9d05900` `7ae6cbb` `c6773aa` `84fc6e1` | 수용 기준 4건 `[x]` (19·3 · 20 · 18 corpus · 21) — HEAD=`bea3a3b` 격리 사본에서 파일 추출 명령 재실행 rc=0 4/4. 주입 이관 (18·20) 착지 박제 | 수용 기준 · 참고 |
+| 2026-10-13 | inspector reconcile (tick 중 HEAD 이동) / `e38a118` | 23 `[x]` — HEAD=`e38a118` 격리 사본에서 재실행 rc=0. 계약을 뒤집는 지점(23 ↔ `PLAIN_PROSE`) 처리됨 박제 | 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-098 / — | 23·24·25 교차 정합. 24 의 미참조 정의 예를 HTML 문자열에서 `p` 1 · 렌더 텍스트 === 입력 으로 옮겼다 (25 착지 전후 참). 맨 URL 안 엔티티는 23 이 이긴다 — 운영자 권장안, 범위는 원문·내용은 해석. 23 의 "주소" 에 참조 정의·맨 URL 을 넣었다. req FR-03 의 "나중에 착지하는 task 의 게이트에 행" 은 발행분을 고칠 수 없으므로 교차 전용 게이트 파일로 재정식화 | 동작 23·24·25 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -132,7 +136,7 @@
 
 ### 계약을 뒤집는 지점 (`RULE-06 §계약을 뒤집는 task`)
 
-- **23 ↔ `src/__tests__/markdown-no-character-loss.test.ts` `PLAIN_PROSE` 의 `'HTML 엔티티는 &amp; 로 쓴다'`** — `it.each` 가 렌더 텍스트 === 입력을 단언한다. 23 착지 후 렌더 텍스트는 `HTML 엔티티는 & 로 쓴다` 다. 그 파일 머리말은 corpus 를 *"마크다운 문법이 없는 평문만"* 으로 선언했고 `&amp;` 는 엔티티 문법이므로 이 항목이 그 전제를 어긴다 — 같은 파일이 `__dunder__` 를 같은 이유로 걷어낸 선례가 있다. 처리는 planner 가 발행 시점에 정한다.
+- **23 ↔ `src/__tests__/markdown-no-character-loss.test.ts` `PLAIN_PROSE` 의 `'HTML 엔티티는 &amp; 로 쓴다'`** — `it.each` 가 렌더 텍스트 === 입력을 단언한다. 23 착지 후 렌더 텍스트는 `HTML 엔티티는 & 로 쓴다` 다. 그 파일 머리말은 corpus 를 *"마크다운 문법이 없는 평문만"* 으로 선언했고 `&amp;` 는 엔티티 문법이므로 이 항목이 그 전제를 어긴다 — 같은 파일이 `__dunder__` 를 같은 이유로 걷어낸 선례가 있다. **처리됨** — TSK-20261013-05 (`e38a118`) 가 그 줄을 `markdown-entity-reference.test.ts` 로 옮겼다 (result.md).
 - **유지되는 단언**: `AT&T 와 R&D 와 Q&A` (유효 엔티티 아님) · `주소 https://example.com/a?b=1&c=2 를 본다` (`;` 없음) · 원문 `&b=2` → `href` 속성값 `&amp;b=2` (17 의 속성 경계 escape) · `backslash-escape.test.ts` 의 `\<` → `&lt;`.
 
 ### 주입 이관 (`RULE-06 §게이트 실효 검증` — 해당 게이트를 세우는 task 의 DoD)
@@ -151,6 +155,7 @@
 - 목록 항목 안 `<p>` 감싸기(tight/loose 구별)는 계약하지 않는다 — 이 파서는 줄=문단 모델이다. 항목 안의 표·제목도 19 의 대상이 아니다.
 - 백틱 펜스의 정보 문자열은 지금처럼 통째로 언어 이름이 되고 화면에 나가지 않는다 (`` ```js title `` 의 `title`). 21 이 막는 것은 정보 문자열에 백틱이 든 줄과 물결 펜스의 산문 줄뿐이다. 물결 하나만 있는 줄(`~~~`)은 표준대로 펜스를 연다.
 - 23 의 이름 엔티티 표를 DOM 해석으로 얻을지 표로 둘지는 수단이다. 파서는 지금 DOM 을 쓰지 않는다. 코드 밖 산문에 `&nbsp;` 등을 글자로 적어 둔 기존 글은 23 착지 후 그 자리가 문자로 바뀐다 — 글자로 보이려면 `\&` 를 쓴다.
+- 25 의 주소 **끝**에 붙은 엔티티(`…?a=1&amp;`)가 링크 안인지는 계약하지 않는다. GFM 은 엔티티 꼴 꼬리를 링크에서 뺀다 (§6.9 예제 627). 25 의 엔티티 판정이 정하는 것은 주소 가운데의 유효 엔티티뿐이다.
 - 25 의 호스트는 ASCII 도메인이다. 한글 도메인(`https://한글.kr`)과 맨 메일 주소는 링크가 되지 않으며 꺾쇠 형태를 쓴다. `markdown-render-invariants` 의 링크 입력 조립(`makeLinkInput`)은 세 형태만 만들므로 맨 URL 경로의 속성 오염은 그 게이트에 보이지 않는다 — 25 의 게이트가 대신 잰다.
 - `:--` (명시적 왼쪽) 은 표기 없음과 화면상 같다. 산출에서 둘을 구별할지는 수단이다.
 - 기존 글 중 목록 뒤 빈 줄 + 들여쓴 줄을 가진 글은 19 착지 후 그 줄이 항목 안으로 들어간다. 운영 글 분포는 저장소 안에서 잴 수 없다 (API 주소가 gitignored `.env` 에만 있다).
