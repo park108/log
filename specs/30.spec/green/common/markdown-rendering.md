@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · `markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-list-item-tab-indent.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-cross-clause.test.ts` · `markdown-list-item-open-items.test.ts` · `markdown-list-item-blockquote-blocks.test.ts` · `markdown-list-item-fence-lines.test.ts` · `markdown-code-span-backtick-run.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · `markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-list-item-tab-indent.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-cross-clause.test.ts` · `markdown-list-item-open-items.test.ts` · `markdown-list-item-blockquote-blocks.test.ts` · `markdown-list-item-fence-lines.test.ts` · `markdown-code-span-backtick-run.test.ts` · `markdown-attribute-inline-notation.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -85,6 +85,14 @@
 26. **코드 스팬은 백틱 N개 런으로 열고 바로 그 길이 N 의 백틱 런으로 닫는다** (CommonMark §6.1). 길이가 다른 백틱 런은 스팬 안의 글자이고, 여닫는 백틱은 렌더 텍스트에 남지 않는다 — ``` ``a ` b`` 끝 ``` → `code` 1 (텍스트 `` a ` b ``) · 렌더 텍스트 백틱 1. ```` ```인라인``` 문장 ```` → `code` 1 (`인라인`) · 백틱 0 (21 의 펜스가 아닌 줄). 스팬 내용이 공백으로 시작하고 공백으로 끝나며 공백만이 아니면 앞뒤 한 칸씩 걷는다 — ``` `` `x` `` ``` → `code` 1 · 텍스트 `` `x` ``. 같은 길이의 닫는 런이 없는 여는 런은 글자이고 스팬을 만들지 않는다 — ``` ``a` 끝 ``` → `code` 0 · 렌더 텍스트 === 입력. 겹 백틱 스팬 안의 구분자도 강조가 아니다 (15).
     - 바뀌지 않는 것: 홑 백틱 스팬 (`` `a` 끝 ``) · 스팬 안 백슬래시는 이스케이프가 아니다 (`` `a\` b `` → `code` 텍스트 `a\`) · 15 의 보호 축. 인용·목록 항목·표 칸 안에서도 같은 판정이고, 판정은 파서 안에 하나다.
 
+27. **링크·이미지의 속성값과 꺾쇠 autolink 의 글자에는 파서 내부 자리표시자가 남지 않고, 인라인 표기는 자리마다 정해진 대로 풀린다.** 판정면은 정제를 거친 DOM 의 `getAttribute` 와 `textContent` 다.
+    - **자리표시자 0**: 파서가 내는 어느 속성값(`a@href` · `a@title` · `img@src` · `img@alt` · `img@title`)에도, autolink 의 보이는 글자에도 파서 내부 자리표시자(U+E000–U+E006)가 없다. 자리표시자 집합과 속성 자리 목록은 파서 소스에서 도출하고 열거하지 않는다. 게이트 corpus 는 (자리표시자 종류 {백슬래시 이스케이프 · 엔티티 · 코드 스팬}) × (속성 자리) 의 **모든 칸**에 행을 갖는다 — 속성 안에 이스케이프·코드 스팬이 든 행이 없으면 조각 안 복원을 지운 트리가 초록이다 (§참고 실측).
+    - **주소·제목**: 백슬래시 이스케이프는 풀리고 (`[x](https://example.com/a\_b)` → `href` `https://example.com/a_b` · 이미지 `src` 도 같다), 엔티티는 해석되며 (23), 백틱은 글자다 (`` [x](https://example.com/?q=`v`) `` → `href` `` https://example.com/?q=`v` `` · 제목 `` "제목 `c` \_ &copy;" `` → `title` `` 제목 `c` _ © ``). CommonMark 과 같다.
+    - **이미지 `alt` 는 설명의 평문이다** — 설명을 본문으로 렌더한 결과의 글자이고, 설명 안 이미지는 자기 `alt` 를 글자로 낸다. 코드 스팬은 내용만 남고, 강조·취소선 구분자는 남지 않으며, 이스케이프·엔티티는 풀린다: `` ![`c`](…) `` → `c` · `![**굵게** 그림](…)` → `굵게 그림` · `![*기울임*](…)` → `기울임` · `![a ~~b~~ c](…)` → `a b c` · `![a\_b](…)` → `a_b` · `![a &copy; b](…)` → `a © b`. 화면 낭독기와 이미지가 안 뜰 때의 글자가 표기 문자를 읽지 않게 하려는 것이다 (§역할). CommonMark §6.4 의 *"plain string content"* 와 같다 — 취소선은 GFM 확장이지만 이 파서가 본문에서 `del` 로 내므로(10) `alt` 에서도 걷는다.
+    - **꺾쇠 autolink 의 `href` 와 보이는 글자는 같고, 같은 주소를 인라인 링크 `[u](주소)` 로 쓴 것의 실효 `href` 와 같다.** 엔티티는 해석되고 (`<https://example.com/?a=1&amp;b=2>` → 둘 다 `https://example.com/?a=1&b=2`) 백슬래시 이스케이프는 풀린다 (`<https://example.com/a\_b>` → 둘 다 `https://example.com/a_b`). 세 링크 형태의 실효 주소가 같아야 한다는 25 셋째 하위 항목의 원리와 한 벌이다.
+    - **백슬래시 쪽은 CommonMark 예제 603 과 의도적으로 갈린다.** 표준은 autolink 안 이스케이프를 풀지 않는다. 그러나 남긴 `\` 를 브라우저 URL 파서가 특수 스킴에서 `/` 로 읽고 (`new URL("https://example.com/a\\_b").href` → `https://example.com/a/_b`, WHATWG URL §path state), 이 파서에는 주소를 인코딩하는 단계가 없다. 엔티티 쪽은 cmark 와 §2.5 문면(*"including URLs"*)을 따르며 commonmark.js 와 갈린다.
+    - 바뀌지 않는 것: 속성값 escape 는 해석 뒤에 건다 (17). 강조는 속성값에 파고들지 않는다 (`markdown-attribute-integrity.test.ts`). 링크 텍스트의 강조는 유지된다. 구두점이 아닌 문자 앞의 백슬래시는 글자다 (`![C:\Users](x.png)` → `alt` `C:\Users`).
+
 ## 동작 — 안전
 
 17. **속성값은 보간 전에 escape 를 거친다.** `<img>`·`<a>` 의 속성값이 날것으로 들어가지 않는다. escape 함수의 정의는 `markdownParser.ts` 안에 있고 export 되지 않는다 — 사본이 갈라지지 않게.
@@ -117,6 +125,7 @@
 - [x] 참조 링크 (24): `bash -c 'npx vitest run src/__tests__/markdown-reference-link.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`cb354da` rc=0 (TSK-20261013-07 `a58a4ae`). HEAD=`e1abfdd` rc=1 (파일 부재). 세 형태 · 라벨 정규화 · 참조되지 않은 정의 줄 보존 · 코드 안 비해석 · `javascript:` 정의 차단을 정제를 거친 DOM 에서 잰다.
 - [x] 맨 URL 링크 (25): `bash -c 'npx vitest run src/__tests__/markdown-bare-url-autolink.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`cb354da` rc=0 (TSK-20261013-08 `78c8ddc`). HEAD=`e1abfdd` rc=1 (파일 부재). 25 의 예 전부 · `a a` 0 · 렌더 텍스트 === 입력을 정제를 거친 DOM 에서 잰다.
 - [ ] 항 사이 교차 입력 (23×25 · 24×25 · 23×24): `bash -c 'npx vitest run src/__tests__/markdown-cross-clause.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=1 (파일 부재). 세 입력 — `주소 https://example.com/?a=1&amp;b=2 를 본다` (`a` 1 · `href`·링크 `textContent` `https://example.com/?a=1&b=2`) · `[참고]: https://example.com` (`p` 1 · 렌더 텍스트 === 입력) · `[x]\n\n[x]: https://a.example/?a=1&amp;b=2` (`href` `https://a.example/?a=1&b=2`) — 를 정제를 거친 DOM 의 `a.getAttribute("href")`·`textContent` 로 잰다. 23·24·25 가 모두 착지해야 초록이다.
+- [ ] 속성값의 자리표시자·인라인 표기 (27): `bash -c 'npx vitest run src/__tests__/markdown-attribute-inline-notation.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`cb354da` rc=1 (파일 부재). (자리표시자 종류 × 속성 자리) 전 칸의 U+E000–U+E006 0 · 주소·제목 행 · `alt` 평문 넷 · autolink 두 행의 `href` === 글자 === 인라인 형태 `href` · 대조 `C:\Users` 를 정제를 거친 DOM 의 `getAttribute`·`textContent` 로 잰다. HEAD=`cb354da` 실측 `alt` 는 `` `c` `` · `**굵게** 그림` · `*기울임*` · `a ~~b~~ c` 이고, 자리표시자 0 · 주소·제목 · autolink 행은 이미 참이다 (게이트 부재가 결함이다).
 
 ## 변경 이력
 
@@ -138,6 +147,7 @@
 | 2026-10-13 | REQ-20261013-104 / — | 21 에 하위 항목 — 항목 안 펜스 코드 블록의 줄은 내용 열과 무관하게 밑줄식 제목·가로줄·표·인용·목록이 되지 않는다. FR-04 (최상위 4칸 들여쓴 밑줄·가로줄) 는 비채택 — §미측정 에 사유 | 동작 21 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-102 / — | 26 신설 (코드 스팬 백틱 런 길이 · 앞뒤 한 칸 걷기 · 짝 없는 런은 글자). 21 의 펜스가 아닌 줄 단언(`code` 1 · `인라인`)은 그대로 참이다 | 동작 26 · 수용 기준 |
 | 2026-10-13 | inspector reconcile / `2c66119` `a58a4ae` `78c8ddc` `cb354da` | 수용 기준 4건 `[x]` (22 · 24 · 25 · 19 탭) — HEAD=`cb354da` `git archive` 격리 사본에서 파일 추출 명령 재실행 rc=0 4/4. 기존 `[x]` 9건 재실행 rc=0 9/9. `[ ]` 5건 rc=1 불변 (게이트 파일 부재 — TSK-11~14·17 미착지). 머리 게이트 목록 갱신 | 수용 기준 · 머리 |
+| 2026-10-13 | REQ-20261013-106 / — | 27 신설 (속성값 자리표시자 0 · 주소·제목 표기 · `alt` 평문 · 꺾쇠 autolink 의 엔티티·백슬래시). `alt` 평문의 정의에 "설명 안 이미지는 자기 `alt` 를 글자로 낸다" 를 넣었다 — `textContent` 만으로는 REQ-107 FR-03 의 `![foo ![bar](/url)](/url2)` → `foo bar` 와 갈린다. autolink 백슬래시는 CommonMark 예제 603 과 의도적으로 갈린다. HEAD=`cb354da` 격리 사본에서 req 표 13행(+ 인라인 대조 2 · 링크 제목 1 · `C:\Users` 대조 1)과 I1 게이트 공백을 재현했다 | 동작 27 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -163,10 +173,16 @@
 `RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처: TSK-20261013-03 (`84fc6e1`) — 아래 방향을 D1 로 수행, result.md 에 `injection: 5/5 detect` · `control: 2/2 pass` 박제.
 
 - **(18·20) 정제 단 누락** — 파서 변경은 둔 채 `ALLOWED_ATTR` 에서 `start` 만 뺀 트리 → `npx vitest run src/__tests__/parser-sanitizer-coherence.test.ts` rc≠0. 대조: corpus 행 이름표만 바꾼 변형 → rc=0. 이 방향이 없으면 `start` 축은 `post-image-deferred-loading` 격리(`50.blocked/spec/common/`)와 같은 민감도 0 상태로 착지한다.
+- **(27) 조각 안 복원** — 이관처는 27 게이트를 세우는 task (미발행). 방향 둘: (I1) 태그 조각 안의 코드 스팬 자리표시자 복원(`stashTag` 조각을 되돌리는 자리의 `c` 치환)을 지운 트리 → 27 게이트 rc≠0. (I2) 같은 자리의 이스케이프·엔티티 복원(`e` 치환)을 지운 트리 → rc≠0 이어야 하고, **엔티티 없는 이스케이프 행만으로도** 붉어야 한다 (지금은 엔티티 행으로만 잡힌다 — REQ-20261013-106 실측). 대조 후보: 조각 안 두 복원의 순서를 바꾸거나 복원 함수를 추출하는 동치 변형 → rc=0.
 
 ### 판정면 실측 (HEAD=`e1abfdd`, 격리 사본)
 
 - **22 의 계산된 스타일 판정은 jsdom 에서 성립한다.** `typography.css` 를 `<style>` 로 넣은 문서에서 `td` → `left`, `th, td` 보다 특이도가 높은 class 규칙 → `right`, `align="right"` → `left` (작성자 CSS 가 이긴다).
+
+### 27 의 게이트 공백 실측 (HEAD=`cb354da`, `git archive` 격리 사본)
+
+- 조각 안 코드 스팬 복원(`markdownParser.ts` 의 `c` 치환 3줄)을 지운 트리에서 `npx vitest run src/common/ src/__tests__/ src/Log/ --coverage.enabled=false` → **rc=0** (91 files · 1057 passed · 12 skipped). 같은 트리에서 다섯 자리가 샌다 — `a@href` `…?q=<E000>c0<E001>` · `a@title` · `img@alt` `<E000>c0<E001>` · `img@title` `제목 <E000>c0<E001> _ ©` · `img@src` `…/<E000>c0<E001>.png`. REQ-20261013-106 의 `e61df4c` 실측(88 files)을 TSK-07·08·10 착지 뒤에도 재현했다.
+- 기존 자리표시자 게이트(`markdown-attribute-integrity.test.ts`)의 입력에는 속성 안 이스케이프·코드 스팬·엔티티가 없고, 판정 문자 집합이 `[-]` 이라 파서가 쓰는 U+E004–U+E006 을 세지 않는다.
 
 ### 미측정·비판정 항목
 
@@ -180,5 +196,6 @@
 - 25 의 주소 **끝**에 붙은 엔티티(`…?a=1&amp;`)가 링크 안인지는 계약하지 않는다. GFM 은 엔티티 꼴 꼬리를 링크에서 뺀다 (§6.9 예제 627). 25 의 엔티티 판정이 정하는 것은 주소 가운데의 유효 엔티티뿐이다.
 - 25 의 호스트는 ASCII 도메인이다. 한글 도메인(`https://한글.kr`)과 맨 메일 주소는 링크가 되지 않으며 꺾쇠 형태를 쓴다. `markdown-render-invariants` 의 링크 입력 조립(`makeLinkInput`)은 세 형태만 만들므로 맨 URL 경로의 속성 오염은 그 게이트에 보이지 않는다 — 25 의 게이트가 대신 잰다.
 - `:--` (명시적 왼쪽) 은 표기 없음과 화면상 같다. 산출에서 둘을 구별할지는 수단이다.
+- 27 의 귀결로 `<https://example.com/\[\>` (CommonMark 예제 603 원문) 은 링크가 되지 않는다 — `\>` 가 이스케이프로 먼저 소비돼 닫는 꺾쇠가 없고, 보이는 글자는 `<https://example.com/[>` 다. 주소의 퍼센트 인코딩은 이 파서에 없고 27 은 그것을 들이지 않는다.
 - 기존 글 중 목록 뒤 빈 줄 + 들여쓴 줄을 가진 글은 19 착지 후 그 줄이 항목 안으로 들어간다. 운영 글 분포는 저장소 안에서 잴 수 없다 (API 주소가 gitignored `.env` 에만 있다).
 - 들여쓴 코드 블록·각주·참조 이미지(`![alt][라벨]`)·여러 줄에 걸친 참조 정의는 미구현이다. 고장이 아니라 기능 부재이며 사용 빈도를 주장할 근거가 없다.
