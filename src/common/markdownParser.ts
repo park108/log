@@ -86,9 +86,10 @@ const TAB_STOP = 4;
 // 넘어서면 넘친 칸은 공백으로 남는다 — 내용 열 너머의 들여쓰기는 코드의 것이다 (§9).
 //
 // **목록 항목의 열 셈은 이것 하나다.** 마커 줄의 내용 열(`listMarker`), 마커 없는
-// 블록의 귀속(`reachesContentColumn`), 항목 안 펜스 판정과 코드 줄 걷기가 이 셈을
-// 함께 쓴다. 공백만 세던 동안 탭으로 들여쓴 블록은 내용 열에 닿지 않은 것으로
-// 판정돼 항목 밖으로 떨어졌다 — `- 항목\n\t```js` 의 펜스가 글자로 남았다.
+// 블록의 귀속(`reachesContentColumn`), 항목 안 펜스 판정과 코드 줄 걷기, 이어짐 줄의
+// 본문 걷기, 섞어 쓴 들여쓰기의 열(`mixedIndentAsSpaces`)이 이 셈을 함께 쓴다. 공백만
+// 세던 동안 탭으로 들여쓴 블록은 내용 열에 닿지 않은 것으로 판정돼 항목 밖으로
+// 떨어졌다 — `- 항목\n\t```js` 의 펜스가 글자로 남았다.
 //
 // 마커 줄의 중첩 깊이(`computeDepth` — 탭 1 = 깊이 1)와 최상위 펜스(`FENCE_LINE`
 // 의 0~3칸 공백)는 이 셈을 쓰지 않는다.
@@ -107,6 +108,20 @@ const indentToColumn = (line: string, column: number): { at: number; rest: strin
 
 	return { at, rest: ' '.repeat(Math.max(0, at - column)) + line.substring(index) };
 }
+
+// 줄 머리 들여쓰기를 **끝까지** 걷는다 — 끝 열 없이 부른 `indentToColumn` 이다.
+const ALL_INDENT = Number.POSITIVE_INFINITY;
+
+// 탭과 공백을 **섞어** 들여쓴 줄을 같은 열의 공백만 줄로 바꾼다 (spec
+// `markdown-rendering` §19 열 동치). 공백만·탭만 들여쓴 줄은 그대로다 — 그 줄의
+// 마커 깊이는 `computeDepth` 의 현 모델이고, 탭만 쓴 줄을 공백으로 바꾸면 깊이가
+// 바뀐다 (`\t- b` 는 1, `    - b` 는 2).
+const mixedIndentAsSpaces = (line: string): string => {
+	const indent = /^[ \t]*/.exec(line)?.[0] ?? "";
+	if(!indent.includes(" ") || !indent.includes("\t")) return line;
+	const { at, rest } = indentToColumn(line, ALL_INDENT);
+	return " ".repeat(at) + rest;
+};
 
 // 목록 마커 줄의 모양.
 //
@@ -165,6 +180,17 @@ const listMarker = (text: string): ListMarker | null => {
 // 마커면 그 줄의 깊이를, 아니면 null 을 돌려준다.
 const listMarkerDepth = (text: string): number | null =>
 	listMarker(text)?.depth ?? null;
+
+// **열린 항목 안** 줄의 마커 판정 (spec `markdown-rendering` §19 열 동치). 섞어 쓴
+// 마커 줄은 같은 열의 공백만 줄로 바꿔 기존 판정(`listMarker`)에 넣는다 — 깊이는 같은
+// 열의 공백만 마커 줄의 깊이다. 바꾸지 않던 동안 `1. a\n\t - c` 는 탭 하나를 걷고 남은
+// ` - c` 가 마커가 아니어서 표기가 글자로 보였다.
+//
+// 열린 항목을 세는 두 패스(항목 안 펜스 · 이어짐)가 함께 부른다 — 둘의 열이 갈리면
+// 같은 줄이 패스에 따라 마커였다가 이어짐이 된다. 이어짐 패스는 마커로 본 줄을 바꾼
+// 줄로 내보낸다 — 뒤 검출 패스(`listDepth`)가 같은 깊이를 세게.
+const itemListMarker = (text: string): ListMarker | null =>
+	listMarker(mixedIndentAsSpaces(text));
 
 // 제목 마커 판정. `# ` ~ `###### ` 의 단계를 돌려주고, 제목이 아니면 0 이다.
 //
@@ -544,7 +570,7 @@ const applyItemCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 	// 이어짐 패스의 `attachToReachedItem` — 닿는 가장 깊은 항목에 귀속하고 그보다 깊은
 	// 항목을 닫는다.
 	const attachToReachedItem = (n: ParsedNode | undefined): boolean => {
-		if(!isPlainLine(n) || isBlankLine(n) || null !== listMarker(n.text)) return false;
+		if(!isPlainLine(n) || isBlankLine(n) || null !== itemListMarker(n.text)) return false;
 
 		const at = reachedItemIndex(openItems, n.text);
 		const item = openItems[at];
@@ -577,7 +603,7 @@ const applyItemCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 			}
 		}
 
-		const marker = listMarker(node.text);
+		const marker = openItems.length > 0 ? itemListMarker(node.text) : listMarker(node.text);
 
 		if(null !== marker) {
 			while((openItems[openItems.length - 1]?.marker.depth ?? -1) >= marker.depth) openItems.pop();
@@ -1024,8 +1050,10 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 	// 목록이 끊길 이유 자체가 없어진다 — 번호 목록의 `<ol>` 이 다시 열리지 않는 것도
 	// 같은 이유다 (그렇지 않으면 독자가 `1.` 을 두 번 본다).
 	//
-	// 들여쓰기는 표기이지 내용이 아니므로 걷어낸다 (`computeDepth` — 공백으로 쓰든
-	// 탭으로 쓰든 같은 결과). 걷어내기만 할 뿐 **바로 이어지는 문단 줄의 판정에는
+	// 들여쓰기는 표기이지 내용이 아니므로 줄 머리 들여쓰기 전부를 걷어낸다 — 귀속
+	// 판정과 같은 열 셈(`indentToColumn`)이다 (§19 열 동치). 탭만 또는 공백만 세던
+	// 동안 섞어 쓴 줄(`- a\n\t  본문`)은 나머지가 본문 앞에 남았고, 남은 공백이 `>` 와
+	// 마커 판정을 가로막았다. 걷어내기만 할 뿐 **바로 이어지는 문단 줄의 판정에는
 	// 쓰지 않는다** (빈 줄 뒤 · 코드 블록 뒤의 귀속과 항목 안 펜스는 아래 예외).
 	//
 	// 남는 판정 조건은 둘뿐이다.
@@ -1103,7 +1131,7 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 				&& "value" === n.type
 				&& "" === n.closure
 				&& !isBlankLine(n)
-				&& null === listMarker(n.text)) ? n.text : null;
+				&& null === itemListMarker(n.text)) ? n.text : null;
 		};
 
 		// 빈 줄 · 코드 블록 뒤의 마커 없는 블록을 **내용 열에 닿는 가장 깊은 열린
@@ -1179,15 +1207,20 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 				continue;
 			}
 
-			const marker = listMarker(node.text);
+			const inItem = openItems.length > 0;
+			const marker = inItem ? itemListMarker(node.text) : listMarker(node.text);
 
 			if(null !== marker) {
 				closeQuote();
 				// 새 마커 줄의 깊이 이상인 항목은 닫힌다. 깊이 판정은 마커 줄의 중첩
 				// 판정(`computeDepth`) 그대로다 — 열은 그 결과를 따라갈 뿐이다.
 				while((innermostItem()?.marker.depth ?? -1) >= marker.depth) openItems.pop();
-				openItems.push({ marker, target: node });
-				merged.push(node);
+				// 섞어 쓴 마커 줄은 판정에 댄 줄(같은 열의 공백만 줄)로 내보낸다 — 뒤 검출
+				// 패스가 같은 깊이를 센다. 그 밖의 줄은 바뀌지 않는다.
+				const text = inItem ? mixedIndentAsSpaces(node.text) : node.text;
+				const line = text === node.text ? node : {...node, text};
+				openItems.push({ marker, target: line });
+				merged.push(line);
 				continue;
 			}
 
@@ -1218,8 +1251,7 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 				continue;
 			}
 
-			const { prefixLength } = computeDepth(node.text);
-			const stripped = node.text.substring(prefixLength);
+			const stripped = indentToColumn(node.text, ALL_INDENT).rest;
 
 			// 코드 블록 뒤에는 이어 붙일 문단이 없다 — 내용 열까지 들여쓴 줄만 그
 			// 항목에 새 문단을 연다. 게으른 이어짐은 문단 뒤에만 있다.
