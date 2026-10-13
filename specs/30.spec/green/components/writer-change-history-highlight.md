@@ -2,7 +2,7 @@
 
 > **위치**: `src/Log/diffContents.ts` 의 `markChangedLines` · 소비처 `src/Log/Writer.tsx` (변경 이력 → `LogItem`) · 보조: `src/common/markdownParser.ts` 의 표식 복원(`HIGHLIGHT_OPEN` · `HIGHLIGHT_CLOSE`)과 펜스 판정
 > **관련 요구사항**: REQ-20261013-099 FR-01~FR-04 · NFR-01 · NFR-02 (출처: developer followup `20261013-0934-diffcontents-fence-copy-diverges`, source_task TSK-20261013-01)
-> **게이트**: `src/Log/diffContents.test.ts` · `src/__tests__/change-highlight-preserves-rendering.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/change-highlight-follows-parser-code-blocks.test.ts`
+> **게이트**: `src/Log/diffContents.test.ts` · `src/__tests__/change-highlight-preserves-rendering.test.ts` · `src/__tests__/change-highlight-follows-parser-code-blocks.test.ts`
 > **최종 업데이트**: 2026-10-13 (inspector — 최초 등록)
 
 > 참조 코드는 식별자 우선. 줄 번호는 HEAD=`e38a118` 스냅샷이다.
@@ -43,12 +43,13 @@
 ## 수용 기준
 
 - [x] 기존 두 게이트 (동작 4 대조 · 동작 5): `bash -c 'npx vitest run src/Log/diffContents.test.ts src/__tests__/change-highlight-preserves-rendering.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=0.
-- [ ] 코드 블록 판정 정합 (동작 1~4): `bash -c 'npx vitest run src/__tests__/change-highlight-follows-parser-code-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 동작 1 의 세 입력 표식 문자 0 · 동작 3 의 두 입력 span 1 · 동작 4 의 대조를 잰다. 동작 2 는 맥락(최상위 · 인용 · 항목) × 펜스 문자(백틱 · 물결) × 들여쓰기(0 · 3 · 4칸) 배터리에서, 바뀐 줄마다 *span 받음* ⇔ *`newer` 단독 렌더에서 그 줄이 `pre` 밖* 을 잰다.
+- [x] 코드 블록 판정 정합 (동작 1~4): `bash -c 'npx vitest run src/__tests__/change-highlight-follows-parser-code-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`b1d1e4c` rc=0 (TSK-20261013-15 `b1d1e4c` — `injection: 1/1 detect` · `control: 1/1 pass`). HEAD=`e38a118` rc=1 (파일 부재). 동작 1 의 세 입력 표식 문자 0 · 동작 3 의 두 입력 span 1 · 동작 4 의 대조를 잰다. 동작 2 는 맥락(최상위 · 인용 · 항목) × 펜스 문자(백틱 · 물결) × 들여쓰기(0 · 3 · 4칸) 배터리에서, 바뀐 줄마다 *span 받음* ⇔ *`newer` 단독 렌더에서 그 줄이 `pre` 밖* 을 잰다.
 
 ## 변경 이력
 
 | 일자 | req / 커밋 | 요약 | 영향 |
 |------|-----------|------|------|
+| 2026-10-13 | inspector reconcile / `b1d1e4c` | 동작 1~4 `[x]` — HEAD=`b1d1e4c` `git archive` 사본에서 두 명령 재실행 rc=0 2/2 (TSK-20261013-15 result.md 실재). 머리 게이트 목록 갱신 | 수용 기준 · 머리 |
 | 2026-10-13 | inspector reconcile / — @ HEAD=`cb354da` | `[x]` 1 rc=0 · `[ ]` 1 rc=1 불변 (게이트 파일 부재 — TSK-20261013-15 미착지). 주입 이관처 "미발행" 문면을 발행된 TSK-20261013-15 로 정정 | 참고 |
 | 2026-10-13 | REQ-20261013-099 / — | 최초 등록. 소비처 펜스 사본 금지를 `markdown-rendering` 21 에 넣지 않고 별도 문서로 두었다 — 소비처는 파서 밖이고 판정면이 강조 경로다. HEAD=`bea3a3b` 격리 사본에서 req 의 여섯 행을 재현했다 (누출 2 · 2 · 2, 누락 span 0 · 0, 대조 표식 0) | all |
 
@@ -56,7 +57,7 @@
 
 ### 주입 이관 (`RULE-06 §게이트 실효 검증` — 동작 2 게이트를 세우는 task 의 DoD)
 
-`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처 task 는 `TSK-20261013-15` (`40.task/`, 미착수) — DoD 에 아래 주입 1 · 대조 1 이 실렸다.
+`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처 task 는 `TSK-20261013-15` — DoD 에 아래 주입 1 · 대조 1 이 실렸고 `b1d1e4c` 로 착지했다 (`injection: 1/1 detect` · `control: 1/1 pass`).
 
 - **주입**: 착지 후 트리에서 코드 블록 판정을 현 사본 `/^\s*```/` 토글로 되돌린다 → rc≠0 (물결 · 인용 · 항목 안 행이 붉다). 원복 → rc=0.
 - **대조**: 판정 함수의 이름이나 위치만 바꾼 변형 → rc=0. 붉으면 게이트가 텍스트를 재고 있는 것이다.
