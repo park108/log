@@ -818,28 +818,39 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 뒤에 와도 그 항목 안에 있다. 없던 동안 항목 사이에 코드 블록이나 둘째 문단을
 	// 넣으면 목록이 끊기고 번호가 되감겼다 — 독자는 `1.` 을 두 번 봤다. 들여쓰기는
 	// 여기서만 판정에 쓰인다: 기준은 `listMarker` 가 센 내용 열 하나다.
+	//
+	// **열린 항목은 현재 위치를 감싸는 마커 줄들의 열이다** (바깥 → 안쪽, §19 열린
+	// 항목). 가장 최근 마커 줄 하나만 들던 동안 중첩 항목 뒤 빈 줄을 두고 바깥 항목의
+	// 내용 열로 쓴 블록은 안쪽 항목의 열에 못 미쳐 목록 밖으로 떨어졌고, 번호 목록은
+	// 다시 열렸다. 빈 줄 · 코드 블록 뒤의 블록은 닿는 가장 깊은 항목에 귀속된다.
 	{
 		const merged: ParsedNode[] = [];
 
 		// 열린 항목. `target` 은 이어지는 줄이 붙는 값 노드다 — 처음에는 마커 줄
-		// 자신이고, 항목 안 코드 블록 뒤에는 없다 (그 뒤 문단 줄이 새 노드를 연다).
-		let openItem: { marker: ListMarker; target: ParsedNode | null } | null = null;
+		// 자신이고, 항목 안 코드 블록 뒤와 안쪽 항목을 닫고 귀속된 자리에는 없다
+		// (그 뒤 문단 줄이 새 노드를 연다).
+		type OpenItem = { marker: ListMarker; target: ParsedNode | null };
+
+		// 열린 항목의 열 — 마커 줄이 올 때 갱신한다. 마지막이 가장 안쪽 항목이다.
+		const openItems: OpenItem[] = [];
+		const innermostItem = (): OpenItem | null => openItems[openItems.length - 1] ?? null;
 		let isQuoteOpen = false;
 
 		// 인용은 블록이라 열면 닫아야 한다. 이어짐이 끝나는 자리는 다섯 곳이다 —
 		// 인용 아닌 이어짐 · 다음 마커 줄 · 이어짐이 아닌 줄 · 항목 안 블록 · 입력의 끝.
 		const closeQuote = (): void => {
-			if(isQuoteOpen && null !== openItem && null !== openItem.target) {
-				openItem.target.text += ITEM_QUOTE_CLOSE;
+			const item = innermostItem();
+			if(isQuoteOpen && null !== item && null !== item.target) {
+				item.target.text += ITEM_QUOTE_CLOSE;
 			}
 			isQuoteOpen = false;
 		};
 
-		// 열린 항목의 내용 열까지 들여썼는가 — 마커 없는 블록의 귀속 판정. 탭은
-		// 탭 정지까지 센다 (`indentToColumn`).
-		const reachesContentColumn = (text: string): boolean => {
-			if(null === openItem) return false;
-			const column = openItem.marker.contentColumn;
+		// 그 항목의 내용 열까지 들여썼는가 — 마커 없는 블록의 귀속 판정. 탭은
+		// 탭 정지까지 센다 (`indentToColumn`). 주지 않으면 가장 안쪽 항목에 댄다.
+		const reachesContentColumn = (text: string, item: OpenItem | null = innermostItem()): boolean => {
+			if(null === item) return false;
+			const column = item.marker.contentColumn;
 			return indentToColumn(text, column).at >= column;
 		};
 
@@ -851,16 +862,37 @@ export const markdownToHtml = (rawInput: string): string => {
 			&& "<pre>" === n.text
 			&& undefined !== n.source;
 
-		// 열린 항목 안에 있는 블록인가 — 내용 열까지 들여쓴 펜스로 연 코드 블록,
-		// 또는 내용 열까지 들여쓴 마커 없는 줄. 빈 줄 뒤에서도 이 판정이 같다.
-		const belongsToOpenItem = (n: ParsedNode | undefined): boolean => {
-			if(isFenceOpenNode(n)) return reachesContentColumn(n.source);
-			return undefined !== n
+		// 귀속 판정에 대는 마커 없는 블록의 줄 — 펜스로 연 코드 블록이면 그 펜스 줄,
+		// 마커 없는 문단 줄이면 그 줄. 그 밖(빈 줄 · 마커 줄 · 다른 패스의 노드)은 null.
+		const blockLine = (n: ParsedNode | undefined): string | null => {
+			if(isFenceOpenNode(n)) return n.source;
+			return (undefined !== n
 				&& "value" === n.type
 				&& "" === n.closure
 				&& !isBlankLine(n)
-				&& null === listMarker(n.text)
-				&& reachesContentColumn(n.text);
+				&& null === listMarker(n.text)) ? n.text : null;
+		};
+
+		// 빈 줄 · 코드 블록 뒤의 마커 없는 블록을 **내용 열에 닿는 가장 깊은 열린
+		// 항목**에 귀속한다. 그보다 깊은 항목은 닫는다 — 귀속된 항목은 안쪽 목록 뒤에
+		// 새 노드를 연다 (`target = null`). 블록이 아니거나 닿는 항목이 없으면 false
+		// 이고 열은 그대로다 (목록은 거기서 끝난다).
+		const attachToReachedItem = (n: ParsedNode | undefined): boolean => {
+			const line = blockLine(n);
+			if(null === line) return false;
+
+			let at = openItems.length - 1;
+			while(at >= 0 && !reachesContentColumn(line, openItems[at] ?? null)) at--;
+
+			const item = openItems[at];
+			if(undefined === item) return false;
+
+			if(at < openItems.length - 1) {
+				closeQuote();
+				openItems.length = at + 1;
+				item.target = null;
+			}
+			return true;
 		};
 
 		for(let index = 0; index < parsed.length; index++) {
@@ -869,7 +901,13 @@ export const markdownToHtml = (rawInput: string): string => {
 			// 먼저 돌았다 — 0~3칸 펜스는 이미 `pre` 노드로, 4칸 이상 펜스는 (최상위에선
 			// 펜스가 아니므로) 값 노드로 여기 도착한다. 되돌려 두면 두 경로가 아래의
 			// 같은 판정(내용 열을 걷은 줄에 대고 부르는 펜스 판정)을 지난다.
-			if(null !== openItem && isFenceOpenNode(parsed[index]) && belongsToOpenItem(parsed[index])) {
+			//
+			// 코드 블록 뒤에 곧바로 오는 펜스는 닿는 가장 깊은 항목에 귀속된다. 빈 줄
+			// 뒤의 펜스는 아래 빈 줄 판정이 이미 귀속해 두었다.
+			const opening = parsed[index];
+			if(null === innermostItem()?.target && isFenceOpenNode(opening)) attachToReachedItem(opening);
+
+			if(isFenceOpenNode(opening) && reachesContentColumn(opening.source)) {
 
 				let end = index + 1;
 				while(end < parsed.length
@@ -887,14 +925,14 @@ export const markdownToHtml = (rawInput: string): string => {
 
 			const node = parsed[index] as ParsedNode;
 
-			// 빈 줄 뒤가 이 항목 안의 블록이면 빈 줄은 항목 안에서 투명하다 — 같은
+			// 빈 줄 뒤가 열린 항목 안의 블록이면 빈 줄은 항목 안에서 투명하다 — 같은
 			// 종류 목록 사이의 빈 줄(§6)과 같다. 빈 줄은 항목 안 인용을 끝낸다.
-			if(null !== openItem && isBlankLine(node)) {
+			if(openItems.length > 0 && isBlankLine(node)) {
 
 				let next = index + 1;
 				while(next < parsed.length && isBlankLine(parsed[next] as ParsedNode)) next++;
 
-				if(belongsToOpenItem(parsed[next])) {
+				if(attachToReachedItem(parsed[next])) {
 					closeQuote();
 					index = next - 1;
 					continue;
@@ -905,7 +943,7 @@ export const markdownToHtml = (rawInput: string): string => {
 			// 이어짐의 대상도 시작점도 아니다.
 			if("value" !== node.type || "" !== node.closure) {
 				closeQuote();
-				openItem = null;
+				openItems.length = 0;
 				merged.push(node);
 				continue;
 			}
@@ -914,12 +952,19 @@ export const markdownToHtml = (rawInput: string): string => {
 
 			if(null !== marker) {
 				closeQuote();
-				openItem = { marker, target: node };
+				// 새 마커 줄의 깊이 이상인 항목은 닫힌다. 깊이 판정은 마커 줄의 중첩
+				// 판정(`computeDepth`) 그대로다 — 열은 그 결과를 따라갈 뿐이다.
+				while((innermostItem()?.marker.depth ?? -1) >= marker.depth) openItems.pop();
+				openItems.push({ marker, target: node });
 				merged.push(node);
 				continue;
 			}
 
-			const item = openItem;
+			// 코드 블록 뒤의 마커 없는 줄은 닿는 가장 깊은 항목에 귀속된다. 바로
+			// 이어지는 문단 줄은 귀속을 묻지 않고 가장 안쪽 항목에 붙는다 (§5).
+			if(null === innermostItem()?.target) attachToReachedItem(node);
+
+			const item = innermostItem();
 
 			// 항목 안 펜스 코드 블록. 펜스 판정은 **내용 열을 걷은 줄**에 댄다 —
 			// 최상위와 같은 판정 함수다. 코드 줄도 내용 열까지 걷히고 그 너머의
@@ -969,7 +1014,7 @@ export const markdownToHtml = (rawInput: string): string => {
 
 			if(!isContinuation) {
 				closeQuote();
-				openItem = null;
+				openItems.length = 0;
 				merged.push(node);
 				continue;
 			}
@@ -1849,6 +1894,24 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 		}
 		else if(isListNode) {
 			// value node inside the current list item — pass through.
+			//
+			// 바깥 항목에 귀속된 블록(이어짐 패스가 그 항목의 깊이를 단다)이 열린 안쪽
+			// 목록보다 얕으면, 안쪽 목록을 닫고 그 항목 **안에** 놓는다. 그 항목의
+			// `</li>` 는 미뤄 둔다 — 뒤따르는 형제 항목이 갚고, 더 깊은 항목은 그 안에
+			// 중첩된다 (spec `markdown-rendering` §19 열린 항목).
+			const d = node.depth;
+			if(typeof d === "number" && depthStack.length > 0 && d < top()) {
+				flushOwedCloseLi();
+				flushPendingCloseLi();
+				while(depthStack.length > 0 && d < top()) {
+					closeTopList();
+					if(depthStack.length > 0) {
+						const closeLi = {type: "tag", text: "</li>", itemOf: tagName, depth: top()};
+						if(d < top()) output.push(closeLi);
+						else pendingCloseLi = closeLi;
+					}
+				}
+			}
 			output.push(node);
 		}
 		else if(isOtherListNode) {
