@@ -1586,6 +1586,13 @@ export const markdownToHtml = (rawInput: string): string => {
 	// (no-control-regex) 는 것을 게이트가 잡았다.
 	const codeSpans: string[] = [];
 
+	// 스팬마다 **원문**(여는 런 · 내용 · 닫는 런 — 런 길이와 걷기 전 공백 그대로)도 둔다.
+	// 주소·제목·autolink 와 라벨 키에서 백틱은 코드 스팬이 아니라 글자다 (spec
+	// `markdown-rendering-links` §27 · §24). 걷은 내용에 백틱 하나씩을 다시 붙이던 동안
+	// 겹 백틱 런이 홑 백틱이 되고 런 안쪽 공백이 사라졌으며 (주소 `/a?``v``` → `/a?`v`` ·
+	// 제목 `제목 ` c ` 끝` → `제목 `c` 끝`), 런 길이가 다른 두 라벨이 같은 키였다.
+	const codeSpanSources: string[] = [];
+
 	// 링크·이미지가 만들어 낸 **태그 조각**도 자리표시자로 빼 둔다.
 	//
 	// 강조 패스는 노드의 text 를 문자열로 훑으므로, 앞선 패스가 이미 써 넣은
@@ -1689,6 +1696,7 @@ export const markdownToHtml = (rawInput: string): string => {
 
 					if(undefined !== code) {
 						codeSpans.push(codeSpanContent(code));
+						codeSpanSources.push(whole.replace(/\uE004/g, " "));
 						return "\uE000c" + (codeSpans.length - 1) + "\uE001";
 					}
 
@@ -1737,11 +1745,12 @@ export const markdownToHtml = (rawInput: string): string => {
 
 	// 라벨 대조 — 대소문자 접기 · 앞뒤 공백 제거 · 내부 공백 연속 축약. 이스케이프·
 	// 코드 스팬 자리표시자는 번호가 등장 순서라 같은 글자도 다른 표기가 되므로 그
-	// 내용으로 되돌린 뒤 비교한다.
+	// 내용으로 되돌린 뒤 비교한다. 코드 스팬은 **원문**으로 되돌린다 — 라벨은 문자열로
+	// 대조하므로 백틱 런 길이도 라벨의 글자다 (spec `markdown-rendering-links` §24).
 	const normalizeLabel = (label: string): string =>
 		label
 			.replace(/e(\d+)/g, (_m, i: string) => escapedChars[Number(i)] ?? "")
-			.replace(/c(\d+)/g, (_m, i: string) => "`" + (codeSpans[Number(i)] ?? "") + "`")
+			.replace(/c(\d+)/g, (_m, i: string) => codeSpanSources[Number(i)] ?? "")
 			.trim()
 			.replace(/\s+/g, " ")
 			.toLowerCase();
@@ -2121,14 +2130,19 @@ export const markdownToHtml = (rawInput: string): string => {
 			// 여기서 푼다. 위 두 복원은 조각을 넣기 전에 끝나므로 조각 안까지 닿지 않는다 —
 			// 닿지 않던 동안 `?a=1&amp;b=2` 의 `href` 가 `?a=1e0b=2` 가 됐다. 조각 안은
 			// 속성값이므로 따옴표까지 escape 한다 (해석 뒤에 escape 를 건다). 코드 스팬은
-			// 주소·제목 안에서 마크업이 아니므로 백틱째 글자로 되돌린다.
+			// 주소·제목 안에서 마크업이 아니므로 **원문** 그대로 글자로 되돌린다 — 런 길이와
+			// 런 안쪽 공백까지 (spec `markdown-rendering-links` §27). 스캔이 스팬 안이라 건너뛴
+			// 백슬래시 이스케이프는 이 자리에서 푼다 — 주소·제목에서 `\_` 는 `_` 다.
 			node.text = node.text.replace(/\uE000t(\d+)\uE001/g, (_m, i: string) =>
 				(tagChunks[Number(i)] ?? "")
 					.replace(/\uE000e(\d+)\uE001/g, (_e, j: string) =>
 						escapeHtmlQuotes(escapeHtmlText(escapedChars[Number(j)]))
 					)
 					.replace(/\uE000c(\d+)\uE001/g, (_c, j: string) =>
-						escapeHtmlQuotes(escapeHtmlText("`" + codeSpans[Number(j)] + "`"))
+						escapeHtmlQuotes(escapeHtmlText(
+							(codeSpanSources[Number(j)] ?? "")
+								.replace(/\\([\s\S])/g, (raw, ch: string) => ESCAPABLE.includes(ch) ? ch : raw)
+						))
 					)
 			);
 
