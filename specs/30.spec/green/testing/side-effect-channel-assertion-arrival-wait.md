@@ -60,7 +60,7 @@
 - [x] (I2 특이도 — SAME-CHANNEL 비계수) 게이트가 SAME-CHANNEL 자리를 위반으로 세지 않는다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; out=$("$f" 2>&1); echo "$out" | grep -qE "same-channel=[1-9]" || exit 1; echo "$out" | grep -qE "storage-mismatch=0"'` → HEAD=`cb354da` rc=0 (`same-channel=11` · `storage-mismatch=0` — §스코프 규칙 baseline 과 같다). HEAD=`c82c629` 실측 rc=1 (채널 부재). **두 수를 함께 요구하는 이유**: `storage-mismatch=0` 만 요구하면 아무것도 도출하지 않는 게이트가 통과한다.
 - [x] (I4·I6 무판정 닫기) 도출이 비면 게이트가 통과가 아니라 실패한다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; grep -qE "exit 2" "$f" && grep -qE "src-test-files|storage-assert-files" "$f"'` → HEAD=`cb354da` rc=0. HEAD=`c82c629` 실측 rc=1 (채널 부재). 동작 실효(공허 모집단 → rc=2)는 TSK-20261013-09 result.md 의 주입 Dir-3 이 박제했다.
 - [x] (I5 판정 표현 요건) 게이트가 괄호 균형과 낱말 경계로 판정한다: `bash -c 'f=scripts/check-side-effect-wait-channel.sh; test -x "$f" || exit 1; grep -qE "tr/\(/|balance|괄호" "$f" && grep -qF "\\b" "$f"'` → HEAD=`cb354da` rc=0. HEAD=`c82c629` 실측 rc=1 (채널 부재). 이 명령은 텍스트를 잰다 — `\b` 가 주석이 아니라 분류 코드에 있음은 TSK-20261013-09 result.md 의 보조 변이(낱말 경계 제거 → `same-channel=12` · 자가 확인 rc=2)가 동작으로 보였다. 부분 문자열 일치는 실측 오분류를 냈다 (§동작 (I5)).
-- [ ] (I1 연속 단언 — 판정 자리) 게이트가 대기 뒤 둘째 이후의 동기 단언도 자리로 센다 — 합성 입력(대기 → DOM 단언 → 저장 채널 단언)을 주입 seam 으로 넣으면 위반 1 로 판정한다: `bash -c 'd=$(mktemp -d) || exit 2; printf "%s\n" "it(\"x\", async () => {" "await waitFor(() => expect(screen.getByText(\"a\")).toBeTruthy());" "expect(screen.getByText(\"a\")).toBeTruthy();" "expect(sessionStorage.getItem(\"k\")).toBe(\"v\");" "});" > "$d/c1.test.ts"; out=$(SIDE_EFFECT_SCAN_ROOT="$d" bash scripts/check-side-effect-wait-channel.sh 2>&1); rc=$?; echo "$out" | grep -E "^(sites|storage-mismatch)="; test "$rc" -eq 1 && echo "$out" | grep -qE "^storage-mismatch=1$"'` → rc=0. HEAD=`0b5d9cf` rc=1 (`sites=0` · `storage-mismatch=0` · 게이트 rc=0 — 첫 단언이 DOM 이라 자리가 성립하지 않는다). 트리를 고치지 않는 동작 판정이다 — 입력은 임시 디렉터리에만 쓴다. 현 트리에 적용한 값은 §스코프 규칙 연속 단언 변이 실측(`sites=20` · `storage-mismatch=0`)이다.
+- [x] (I1 연속 단언 — 판정 자리) 게이트가 대기 뒤 둘째 이후의 동기 단언도 자리로 센다 — 합성 입력(대기 → DOM 단언 → 저장 채널 단언)을 주입 seam 으로 넣으면 위반 1 로 판정한다: `bash -c 'd=$(mktemp -d) || exit 2; printf "%s\n" "it(\"x\", async () => {" "await waitFor(() => expect(screen.getByText(\"a\")).toBeTruthy());" "expect(screen.getByText(\"a\")).toBeTruthy();" "expect(sessionStorage.getItem(\"k\")).toBe(\"v\");" "});" > "$d/c1.test.ts"; out=$(SIDE_EFFECT_SCAN_ROOT="$d" bash scripts/check-side-effect-wait-channel.sh 2>&1); rc=$?; echo "$out" | grep -E "^(sites|storage-mismatch)="; test "$rc" -eq 1 && echo "$out" | grep -qE "^storage-mismatch=1$"'` → rc=0. HEAD=`c1755bd` rc=0 (`sites=1` · `storage-mismatch=1` — TSK-20261013-23 `c1755bd`, `injection: 4/4 detect` · `control: 5/5 pass`). HEAD=`0b5d9cf` rc=1 (`sites=0` · `storage-mismatch=0` · 게이트 rc=0 — 첫 단언이 DOM 이라 자리가 성립하지 않는다). 트리를 고치지 않는 동작 판정이다 — 입력은 임시 디렉터리에만 쓴다. 현 트리에 적용한 값은 §스코프 규칙 연속 단언 변이 실측(`sites=20` · `storage-mismatch=0`)이다.
 
 ## 수용 기준
 
@@ -72,7 +72,7 @@
 - [x] (Must, FR-03) 위 §테스트 현황 (I4·I6 무판정 닫기) 명령 → rc=0. HEAD=`cb354da` 실측 rc=0.
 - [x] (Must, FR-03) 위 §테스트 현황 (I5 판정 표현 요건) 명령 → rc=0. HEAD=`cb354da` 실측 rc=0.
 - [x] (Must, RULE-07 §promote 조건 4) 위 §테스트 현황 (I6 채널 실재) 명령 → rc=0. HEAD=`cb354da` 실측 rc=0.
-- [ ] (REQ-20261013-112 FR-07 채택) 위 §테스트 현황 (I1 연속 단언 — 판정 자리) 명령 → rc=0. HEAD=`0b5d9cf` 실측 rc=1.
+- [x] (REQ-20261013-112 FR-07 채택) 위 §테스트 현황 (I1 연속 단언 — 판정 자리) 명령 → rc=0. HEAD=`c1755bd` 실측 rc=0. HEAD=`0b5d9cf` 실측 rc=1.
 - [x] (Must, 범위 제한) DOM 채널 도달 대기 · SAME-CHANNEL 자리의 재작성 · CI 러너 자원 · `vitest` 설정은 본 계약의 요구 대상이 아니다 — §역할 §이 계약이 하지 않는 것.
 
 ## 스코프 규칙
@@ -124,6 +124,7 @@
 
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-10-13 | inspector reconcile / `c1755bd` @ HEAD=`c1755bd` | `[ ]` 2건 `[x]` — §테스트 현황 (I1 연속 단언) 과 그를 가리키는 §수용 기준 (REQ-112 FR-07). `git archive c1755bd` 격리 사본에서 파일 추출 명령 9 재실행 rc=0 9/9 (`sites=1` · `storage-mismatch=1`; git 판정 1건은 저장소 `.git` 읽기). 이관처 "미발행" 문면을 TSK-20261013-23 착지로 정정하고 Dir-5 결과를 §미측정 첫 항에 1문장으로 남겼다. 체크박스 전수 `[x]` — promote 후보 | 테스트 현황 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-112 방향 2·3 / — @ HEAD=`0b5d9cf` | **(I1) 판정 자리 경계 선언 · C1 채택 · (I3) 이관처 지명.** (I1) 에 하위 항목 둘 — 판정 자리는 대기 뒤 연속하는 동기 단언 전부 (FR-06 · FR-07 Should 채택), 다른 대기 형태(C2)는 판정 자리 아님 (FR-08 Could 비채택 — `flushAfterResponse()` 는 도달이 아니라 한 틱 진행). `[ ]` 1건 신설 (합성 입력 seam 판정 — HEAD rc=1 · 연속 단언 변이 rc=0). (I3) 지연 주입을 §주입 이관 Dir-5 로 적고 이관처를 C1 게이트 수정 task 로 지명 (FR-05) — 종전 §미측정 첫 항은 이관처 없는 강등이었다. req 의 변이 실측(`sites` 15→20 · `storage-mismatch` 0 불변 · 늘어난 5 자리)을 `git archive` 사본에서 재현했다. 체크박스 미완 1 — promote 후보 해제 | 동작 · 테스트 현황 · 수용 기준 · 스코프 규칙 · 참고 |
 | 2026-10-13 | inspector reconcile / `52a130a` `b018cd7` @ HEAD=`cb354da` | `[ ]` 5건 `[x]` — §테스트 현황 (I6)(I1)(I2)(I4·I6)(I5) 와 그를 가리키는 §수용 기준 5줄. `git archive cb354da` 격리 사본에서 파일 추출 명령 재실행 rc=0 5/5 (`storage-mismatch=0` · `same-channel=11` · `src-test-files=128`). 기존 `[x]` 3건 재실행 rc=0 (git 판정 1건 저장소 루트). 역의존 도출 1 hit 불변. 주입 이관처 "미착수" 문면을 착지로 정정. 체크박스 전수 `[x]` — promote 후보 | 테스트 현황 · 수용 기준 · 참고 |
 | 2026-10-13 | inspector reconcile / — @ HEAD=`bea3a3b` | 재실행 `[x]` 3 rc=0 (git 판정 1건은 저장소 루트) · `[ ]` 5 rc=1 불변 (채널 부재). 이관처 "미발행" 문면 2곳을 발행된 `TSK-20261013-09` 로 정정 | 테스트 현황 · 참고 |
@@ -144,14 +145,14 @@
 - **Ctrl-2 (특이도, I3)** — spy 채널 불일치 자리를 하나 더 만든다 (DOM 대기 후 spy 호출 단언) → `rc=0`. 본 계약은 이 부류를 정적 위반으로 세지 않는다.
 - **Ctrl-3 (특이도)** — 본 계약이 범위 밖으로 선언한 축(DOM 부재·개수 도달 대기)의 정상 변경 → `rc=0`.
 
-**(I1) 연속 단언 · (I3) 지연 주입 — 이관처는 §테스트 현황 (I1 연속 단언 — 판정 자리) `[ ]` 를 닫는 게이트 수정 task** (미발행 — planner 가 발행하면 그 ID 를 이 줄에 박제한다). 게이트를 고치는 task 이므로 `RULE-06 §게이트 실효 검증` 이 붙는다. 위 Dir-1~3 · Ctrl-1~3 은 수정 뒤에도 같은 기대로 다시 선다.
+**(I1) 연속 단언 · (I3) 지연 주입 — 이관처는 §테스트 현황 (I1 연속 단언 — 판정 자리) `[ ]` 를 닫는 게이트 수정 task** — TSK-20261013-23 (`c1755bd` 착지 — `injection: 4/4 detect` · `control: 5/5 pass` · Dir-5 8 자리 뒤집힘 0, result.md). 게이트를 고치는 task 이므로 `RULE-06 §게이트 실효 검증` 이 붙는다. 위 Dir-1~3 · Ctrl-1~3 은 수정 뒤에도 같은 기대로 다시 선다.
 
 - **Dir-4 (민감도, I1 — 연속 단언)** — 임의 테스트의 `await waitFor(() => expect(screen.getByText(...)).toBeInTheDocument());` 뒤에 DOM 단언 하나를 거쳐 `expect(sessionStorage.getItem('x')).not.toBeNull();` 를 넣는다 → `storage-mismatch≥1`, `rc≠0`. 대조 Ctrl-4: 같은 자리의 둘째 단언이 SAME-CHANNEL 인 꼴(대기 본문이 그 저장 채널을 기다린다) → `rc=0`.
 - **Dir-5 (I3 — spy 채널 불일치 자리의 지연 주입)** — 대상 자리는 게이트 출력 `SPY-MISMATCH` 줄에서 도출한다 (열거하지 않는다 — HEAD=`0b5d9cf` 바로 다음 기준 4, 연속 기준 8). 자리마다 단언이 겨누는 호출의 부수효과를 `setTimeout(…, 0)` 만큼 늦춘 트리에서 그 테스트 파일을 단독 실행하고, 자리별 주입 명령과 rc 를 result.md 에 박제한다. rc 가 뒤집히는 자리는 대기 조건을 그 채널의 도달로 바꾼다 (`06425e7` 과 같은 처방). 뒤집히지 않는 자리는 그대로 둔다. 이 방향은 게이트의 민감도가 아니라 **자리의 안전성** 판정이며 `injection` 계수에 넣지 않는다.
 
 ### 미측정·비판정 항목
 
-- **spy 채널 불일치 자리가 실제로 안전한지는 판정하지 않았다.** 대기 조건이 단언 대상을 인과적으로 함의하는 형태로 **보이지만**, 확인은 부수효과 한 틱 지연 주입이며 §주입 이관 Dir-5 로 넘긴다. 정적으로 닫을 수 없는 예: `src/Log/LogItem.test.tsx:573-574` 는 mutation pending 렌더(`article--logitem-delete` 클래스)를 기다린 뒤 `deleteSpy` 호출 수를 단언한다 — 둘의 선후는 react-query 내부 순서에 달려 있다. 이 부류를 위반으로 세지 않는다는 것이 계약이고, 안전하다는 것은 계약이 아니다.
+- **spy 채널 불일치 자리가 실제로 안전한지는 판정하지 않았다.** 대기 조건이 단언 대상을 인과적으로 함의하는 형태로 **보이지만**, 확인은 부수효과 한 틱 지연 주입이며 §주입 이관 Dir-5 로 넘긴다. 정적으로 닫을 수 없는 예: `src/Log/LogItem.test.tsx:573-574` 는 mutation pending 렌더(`article--logitem-delete` 클래스)를 기다린 뒤 `deleteSpy` 호출 수를 단언한다 — 둘의 선후는 react-query 내부 순서에 달려 있다. 이 부류를 위반으로 세지 않는다는 것이 계약이고, 안전하다는 것은 계약이 아니다. TSK-20261013-23 의 Dir-5 (연속 기준 8 자리) 는 뒤집힘 0 이었다 (result.md) — 착지 시점 1회의 관측이다. 같은 주입에서 게이트가 재지 않는 `await act(…)` 뒤 단언(`src/Log/LogItem.test.tsx` 삭제 테스트)이 붉었고 followup `20261013-1940` 으로 나갔다.
 - **다른 대기 형태(C2) 뒤의 단언은 게이트가 재지 않는다** (§동작 (I1) 둘째 하위 항목). `vi.waitFor(` · `findBy*` 는 `waitFor` 와 같은 조건 대기라 명제가 그대로 걸리나, HEAD=`0b5d9cf` `src/**` 테스트의 `grep -rnE "await (vi\.waitFor|screen\.findBy|findBy)"` 줄이 360 이고 그 뒤 단언의 채널 분류는 재지 않았다. `flushAfterResponse()` 는 조건이 아니라 한 틱 진행이라 어느 채널의 "도달" 로도 보지 않는다 (REQ-20261013-112 FR-08 Could 비채택). 양성 표본 블롭 `06425e7^:src/Log/LogList.test.tsx` 의 `:338-343` · `:375-380` 이 그 형태(`flushAfterResponse()` → DOM 단언 → `sessionStorage` 단언)이며 위반 여부는 판정하지 않았다 — `06425e7` 이 고친 자리(`:336` · `:394`)가 아니다.
 - **CI 부하 재현은 측정 채널이 없다.** 플레이키는 정의상 로컬에서 재현되지 않으며(단독 3회·전체 1회 전부 초록), 본 계약이 재는 것은 실패의 발생이 아니라 **구조의 정합**이다.
 - **`06425e7` 이전 상태로 전 스위트를 되돌려 붉음을 관측하지 않았다** — 그 관측은 `setTimeout(…, 0)` 지연 주입으로 developer 가 이미 수행해 followup 에 박제했다. 본 계약은 그 결과를 인용하되 재현을 요구하지 않는다.
