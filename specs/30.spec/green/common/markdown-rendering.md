@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-cross-clause.test.ts` · `markdown-list-item-tab-indent.test.ts` · `markdown-list-item-open-items.test.ts` · `markdown-list-item-blockquote-blocks.test.ts` · `markdown-list-item-fence-lines.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-cross-clause.test.ts` · `markdown-list-item-tab-indent.test.ts` · `markdown-list-item-open-items.test.ts` · `markdown-list-item-blockquote-blocks.test.ts` · `markdown-list-item-fence-lines.test.ts` · `markdown-code-span-backtick-run.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -82,6 +82,9 @@
     - **이중 링크·재가공 금지**: 코드 스팬·블록 안과 이미 링크인 텍스트(`[https://…](…)` 의 텍스트 · `<https://…>`) 안의 주소는 다시 링크가 되지 않는다 — `a` 안에 `a` 가 생기지 않는다. 맨 URL 안의 `*` `_` `~` 는 강조가 아니고 `href` 와 보이는 글자 모두 원문 그대로다 (15 — `https://example.com/a**b**c` → `strong` 0). 외부 주소의 `target`/`rel` 은 16 과 한 벌이다.
     - **맨 URL 안의 엔티티는 23 이 이긴다.** 링크의 범위는 원문 글자로 정한다 — 해석된 문자는 링크를 끊지도 늘리지도 않는다 (23 의 *"구조에 참여하지 않는다"*). `href` 와 보이는 글자는 23 의 해석을 거친다. `주소 https://example.com/?a=1&amp;b=2 를 본다` → `a` 1 · `href` 와 링크 `textContent` 모두 `https://example.com/?a=1&b=2` · 렌더 텍스트 `주소 https://example.com/?a=1&b=2 를 본다`. 같은 주소를 인라인 링크(23)로 쓴 것과 산출이 갈리지 않게 하려는 판정이다. markdown-it(`linkify`)은 원문 `&amp;` 를 그대로 두어 이 판정과 갈린다. GFM 은 주소 가운데의 유효 엔티티를 규정하지 않는다.
 
+26. **코드 스팬은 백틱 N개 런으로 열고 바로 그 길이 N 의 백틱 런으로 닫는다** (CommonMark §6.1). 길이가 다른 백틱 런은 스팬 안의 글자이고, 여닫는 백틱은 렌더 텍스트에 남지 않는다 — ``` ``a ` b`` 끝 ``` → `code` 1 (텍스트 `` a ` b ``) · 렌더 텍스트 백틱 1. ```` ```인라인``` 문장 ```` → `code` 1 (`인라인`) · 백틱 0 (21 의 펜스가 아닌 줄). 스팬 내용이 공백으로 시작하고 공백으로 끝나며 공백만이 아니면 앞뒤 한 칸씩 걷는다 — ``` `` `x` `` ``` → `code` 1 · 텍스트 `` `x` ``. 같은 길이의 닫는 런이 없는 여는 런은 글자이고 스팬을 만들지 않는다 — ``` ``a` 끝 ``` → `code` 0 · 렌더 텍스트 === 입력. 겹 백틱 스팬 안의 구분자도 강조가 아니다 (15).
+    - 바뀌지 않는 것: 홑 백틱 스팬 (`` `a` 끝 ``) · 스팬 안 백슬래시는 이스케이프가 아니다 (`` `a\` b `` → `code` 텍스트 `a\`) · 15 의 보호 축. 인용·목록 항목·표 칸 안에서도 같은 판정이고, 판정은 파서 안에 하나다.
+
 ## 동작 — 안전
 
 17. **속성값은 보간 전에 escape 를 거친다.** `<img>`·`<a>` 의 속성값이 날것으로 들어가지 않는다. escape 함수의 정의는 `markdownParser.ts` 안에 있고 export 되지 않는다 — 사본이 갈라지지 않게.
@@ -104,6 +107,7 @@
 - [ ] 열린 항목의 열 (19 열린 항목 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-open-items.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 예 셋(문단 · 펜스 · 3단 복귀)과 대조 둘(`1. a\n\n   본문\n2. c` · 빈 줄 없는 이어짐 — 산출 불변)을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 첫 예 `ol` 2 · `   본문` 앞 공백 3.
 - [ ] 항목 안 인용의 블록 문법 (3 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-blockquote-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 세 예(펜스는 앞 빈 줄 유무 두 변형 — `- a\n\n  > ```\n  > x\n  > ```\n- b`)와 대조 둘(줄 머리 인용 펜스 · `- a\n  > 인용문` 산출 불변)을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 `li blockquote pre` 0 · 백틱 4 / `h1` 0 / `li` 0.
 - [ ] 항목 안 펜스 줄 보호 (21 항목 안 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-fence-lines.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 세 입력(`---` 를 담은 yaml · `---` 한 줄 · 표 꼴 두 줄)과 `1. ` 대조 둘, 최상위 `제목\n---` → `h2` 불변을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 첫 입력 `ol` 2 · `h2` 1.
+- [ ] 코드 스팬 백틱 런 길이 (26): `bash -c 'npx vitest run src/__tests__/markdown-code-span-backtick-run.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 26 의 예 전부(인용 안 겹 백틱 스팬 ``` > ``a ` b`` ``` → `code` 1 · 백틱 1 포함)와 대조 둘(홑 백틱 · 스팬 안 백슬래시 — 산출 불변)을 정제를 거친 DOM 의 `code` 수·텍스트와 렌더 텍스트 백틱 수로 잰다. HEAD=`bea3a3b` 실측은 렌더 텍스트 백틱 3 · 4 · 3 / `` `x` `` 예 `code` 2 / 짝 없는 런 `code` 1.
 - [x] 번호 목록 첫 번호 (20): `bash -c 'npx vitest run src/__tests__/markdown-ordered-list-start.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (파일 부재). 판정은 정제를 거친 DOM 의 `ol.getAttribute("start")` 다.
 - [x] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
 - [x] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-01 `9d05900`). HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
@@ -131,6 +135,7 @@
 | 2026-10-13 | REQ-20261013-103 / — | 19 에 열린 항목 하위 항목 — 열린 항목은 감싸는 마커 줄들의 열이고, 빈 줄·코드 블록 뒤 블록은 닿는 가장 깊은 항목에 귀속. 빈 줄 없는 이어짐(5)은 불변 | 동작 19 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-101 / — | 3 에 하위 항목 — 목록 항목 안 인용도 줄 머리 인용과 같은 블록 판정 함수를 부른다 (펜스·ATX 제목·목록) | 동작 3 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-104 / — | 21 에 하위 항목 — 항목 안 펜스 코드 블록의 줄은 내용 열과 무관하게 밑줄식 제목·가로줄·표·인용·목록이 되지 않는다. FR-04 (최상위 4칸 들여쓴 밑줄·가로줄) 는 비채택 — §미측정 에 사유 | 동작 21 · 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-102 / — | 26 신설 (코드 스팬 백틱 런 길이 · 앞뒤 한 칸 걷기 · 짝 없는 런은 글자). 21 의 펜스가 아닌 줄 단언(`code` 1 · `인라인`)은 그대로 참이다 | 동작 26 · 수용 기준 |
 
 ## 참고
 
