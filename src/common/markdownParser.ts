@@ -1186,6 +1186,47 @@ export const markdownToHtml = (rawInput: string): string => {
 		}
 	}
 
+	// 참조 정의 수집 (spec `markdown-rendering` §24). `[라벨]: 주소` 와 선택적 제목.
+	//
+	// 줄 단위이고 **문단 줄(`closure: ""`)에서만** 모은다 — 코드 블록 줄은 `pre` 라
+	// 대상 밖이고, 코드 스팬은 바로 위 스캔이 자리표시자로 뺐으므로 그 안의 정의 꼴은
+	// 이 패턴에 닿지 않는다. 본문 escape 뒤에 모으는 것은 주소·제목이 인라인 링크와
+	// **같은 표현**(자리표시자를 품은 escape 된 글자)이어야 하기 때문이다 — 그래야
+	// 주소 안 엔티티가 태그 조각 복원에서 인라인 링크와 같이 풀린다 (§23).
+	//
+	// 정의는 사용 앞에 와도 뒤에 와도 된다. 그래서 참조 해석(아래 anchor 패스 뒤)
+	// 보다 먼저 문서 전체를 훑는다. 같은 라벨이 여럿이면 첫 정의가 쓰인다.
+	const DEFINITION_PATTERN = /^ {0,3}\[([^[\]]+)\]:[ \t]*(\S+)(?:[ \t]+(?:"([^"]*)"|'([^']*)'|\(([^)]*)\)))?[ \t]*$/;
+
+	// 라벨 대조 — 대소문자 접기 · 앞뒤 공백 제거 · 내부 공백 연속 축약. 이스케이프·
+	// 코드 스팬 자리표시자는 번호가 등장 순서라 같은 글자도 다른 표기가 되므로 그
+	// 내용으로 되돌린 뒤 비교한다.
+	const normalizeLabel = (label: string): string =>
+		label
+			.replace(/e(\d+)/g, (_m, i: string) => escapedChars[Number(i)] ?? "")
+			.replace(/c(\d+)/g, (_m, i: string) => "`" + (codeSpans[Number(i)] ?? "") + "`")
+			.trim()
+			.replace(/\s+/g, " ")
+			.toLowerCase();
+
+	const definitions = new Map<string, { url: string; title: string | undefined }>();
+	const definitionLines = new Map<ParsedNode, string>();
+
+	for(const node of parsed) {
+		if("value" !== node.type || "" !== node.closure) continue;
+
+		const match = DEFINITION_PATTERN.exec(node.text);
+		if(null === match) continue;
+
+		const label = normalizeLabel(match[1] as string);
+		if("" === label) continue;
+
+		definitionLines.set(node, label);
+		if(!definitions.has(label)) {
+			definitions.set(label, { url: match[2] as string, title: match[3] ?? match[4] ?? match[5] });
+		}
+	}
+
 	// image
 	//
 	// 이전 구현은 `[`, `](`, ` "`, `")` 를 indexOf 로 순서 비교해, **제목이 있어야만**
@@ -1276,6 +1317,49 @@ export const markdownToHtml = (rawInput: string): string => {
 				) + text + "</a>"
 			);
 		}
+	}
+
+	// 참조 링크 — `[텍스트][라벨]` · `[라벨][]` · `[라벨]` (spec §24).
+	//
+	// 인라인 링크 패스 **뒤**에 둔다 — 인라인이 먼저 소비하므로 `[a](b)[c]` 에서
+	// 남는 참조 후보는 `[c]` 뿐이다. 출력 규칙은 anchor 패스와 같다: 여는 태그만
+	// 조각으로 빼고 링크 텍스트는 강조를 받게 남긴다. 스킴 판정은 여기 두지 않는다 —
+	// `javascript:` 정의는 정제(`ALLOWED_URI_REGEXP`)가 막는다.
+	//
+	// 정의 줄 자신은 참조 후보가 아니다 — 보면 `[참고]: …` 한 줄이 자기 라벨을
+	// 참조한 셈이 되어 걷힌다. 정의가 없는 꼴(`[메모]` · `![alt]`)은 글자 그대로다.
+	const REFERENCE_PATTERN = /(?<!!)\[([^[\]]+)\](?:\[([^[\]]*)\])?/g;
+	const referencedLabels = new Set<string>();
+
+	if(definitions.size > 0) {
+		for(const node of parsed) {
+			if("value" !== node.type || "pre" === node.closure || definitionLines.has(node)) continue;
+
+			node.text = node.text.replace(REFERENCE_PATTERN, (whole: string, text: string, label: string | undefined) => {
+
+				const key = normalizeLabel(undefined === label || "" === label ? text : label);
+				const definition = definitions.get(key);
+				if(undefined === definition) return whole;
+
+				referencedLabels.add(key);
+
+				return stashTag(
+					"<a href='" + escapeHtmlQuotes(definition.url) + "'"
+					+ (undefined === definition.title ? "" : " title='" + escapeHtmlQuotes(definition.title) + "'")
+					+ linkTarget(definition.url) + ">"
+				) + text + "</a>";
+			});
+		}
+	}
+
+	// 참조된 라벨의 정의 줄만 걷는다. **참조되지 않은 정의 줄은 글자로 남는다** —
+	// CommonMark §4.7 과 의도적으로 갈린다. 표준대로 전부 걷으면 출처를
+	// `[1]: https://…` 꼴로 나열만 해 둔 기존 글의 줄이 통째로 사라진다.
+	if(referencedLabels.size > 0) {
+		parsed = parsed.filter((node) => {
+			const label = definitionLines.get(node);
+			return undefined === label || !referencedLabels.has(label);
+		});
 	}
 
 	parsed = inlineParsing(parsed, "**", "strong", true); // bold
