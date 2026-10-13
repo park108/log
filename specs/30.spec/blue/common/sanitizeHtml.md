@@ -2,6 +2,7 @@
 
 > **위치**: `src/common/sanitizeHtml.ts` 의 `ALLOWED_TAGS`(`:7-15`) / `ALLOWED_ATTR`(`:17`) / `ALLOWED_URI_REGEXP`(`:31`) 정책 상수 + `sanitizeHtml` default export 진입점(`:48`) + `ensureHook` 멱등 가드 (`:36-45`) + `afterSanitizeAttributes` rel upgrade 본문(`:39-43`).
 > **관련 요구사항**: REQ-20260418-001 NFR-01, REQ-20260517-076 FR-02, REQ-20260518-018 (S2 단 sanitize 단일 모듈 + hook upgrade 양방향 + 멱등 + cross-surface defense-in-depth), REQ-20260831-052 FR-02·NFR-01·NFR-02 (파이프 표 태그 등재 — §동작 (I12)), **REQ-20260831-056 FR-01~FR-05·NFR-01~NFR-03** (정책 표면 ↔ fixture 모집단 정합 — §동작 (I13) + (I6)(b) 판정 채널)
+> **재개봉**: 2026-10-13 (inspector — REQ-20261013-091 흡수: 속성 판정면을 개수에서 선언 집합으로 옮기고 (I15) 신설, HEAD=`e1abfdd`)
 > **최종 업데이트 (257차)**: 2026-09-01 (by inspector — 정책 상수 판정면을 선언 앵커로 좁힘, HEAD=`8fa6117`)
 > **최종 업데이트 (254차 재개봉)**: 2026-08-31 (by inspector — REQ-20260831-077 FR-02 흡수 + 등가 pin 교체, HEAD=`4cdf474`)
 > **종전 최종 업데이트**: 2026-08-31 (by inspector — REQ-20260831-056 흡수: (I13) 신설 + (I6) 판정 채널 부여, HEAD=`7b43fa8`)
@@ -17,7 +18,7 @@
 - `sanitize(input: string): string` — markdownParser 산출 HTML 을 정제. `DOMPurify.sanitize(input, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOWED_URI_REGEXP, ... })` 호출.
 - 모듈 내부:
   - `ALLOWED_TAGS: string[]` — 허용 태그 enum (**21 항목** — `p` `br` `hr` `strong` `em` `del` `code` `pre` `blockquote` `h1` `h2` `h3` `h4` `h5` `h6` `ul` `ol` `li` `a` `img` `span`). 종전 문면의 "18 항목" 은 `h1`~`h6` 을 한 항목으로 세어 생긴 오기다 (§참고 §blue 문면 drift 정정 D1).
-  - `ALLOWED_ATTR: string[]` — 허용 속성 enum (7 항목 — `href` / `src` / `alt` / `title` / `target` / `rel` / `class`).
+  - `ALLOWED_ATTR: string[]` — 허용 속성 enum. **선언 집합 8** — `href` / `src` / `alt` / `title` / `target` / `rel` / `class` / `start` ((I15)). HEAD=`bea3a3b` 는 8 이다 (`84fc6e1` 착지 — `e1abfdd` 는 `start` 를 뺀 7).
   - `ALLOWED_URI_REGEXP: RegExp` — 허용 URI scheme. 현 값은 `/^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i` (`:31`) 이며 세 갈래다: (a) `https?:`·`mailto:` 스킴, (b) 글자로 시작하지 않아 스킴일 수 없는 것(`/a` `#a` `2024/a`), (c) 글자로 시작하되 `:` 가 뒤따르지 않는 것(`about` `a/b`). `javascript:` · `data:` · `vbscript:` 는 (c) 에서 `:` 때문에 탈락한다. 종전 문면의 `/^(https?:|mailto:|\/|#)/i` 는 **이전 패턴**이며, 그것은 `/` 로 시작하는 상대경로만 통과시켜 `[상대 경로](./other)` 의 `href` 가 통째로 지워졌다 (§참고 §blue 문면 drift 정정 D2).
   - `afterSanitizeAttributes` 훅 (`:39-43`) — `<a target="_blank">` 에 `rel="noopener noreferrer"` 자동 보정 (멱등 — 모듈 로드 시 1회 등록, `hookRegistered` 가드 `:35`·`:37`·`:44`).
 
@@ -34,9 +35,9 @@
 8. **(I8) hook upgrade `<a target='_blank'>` rel 양방향 단조 강화 계약**: `afterSanitizeAttributes` hook (`:39-43`) 이 `<a target="_blank">` 매치 시 `rel='noopener noreferrer'` 로 setAttribute. markdownParser 가 emit 한 `rel='noreferrer'` (`markdownParser.ts:471`) 는 본 hook 이 `rel='noopener noreferrer'` 로 덮어쓰는 **단조 강화 경로** — `noreferrer` 토큰은 양 단 모두 보존, `noopener` 토큰은 S2 단에서만 추가. fixture (`sanitizeHtml.test.ts:66` `"adds rel=noopener noreferrer to target=_blank anchor"`) 가 효능 잠금. markdownParser 단 fall-back `rel='noreferrer'` 부재 시에도 S2 hook 이 `<a target="_blank">` 발견 즉시 양방향 정합 유지.
 9. **(I9) hook 등록 멱등 + `removeHook` 부재 계약**: `ensureHook()` (`:36-45`) 가 `hookRegistered` boolean 가드로 다중 호출 시 hook 추가 등록 0 — `addHook('afterSanitizeAttributes', …)` 등록 = 1 hit (`:39`). **`removeHook` 호출 부재** — 판정은 주석을 걷어낸 뒤 센다. 현 코드의 `:34` 는 `removeHook 호출하지 않는다` 라는 **주석**이며 호출이 아니다 (§참고 §blue 문면 drift 정정 D4). 멱등 깨짐 시 (예: `hookRegistered` 가드 제거 또는 `removeHook` 후 재등록) `rel` 속성 중첩 (`"noopener noreferrer noopener noreferrer"`) 회귀 표면. 가드 수단 (`hookRegistered` boolean / Set / WeakMap) 은 수단 중립 — 멱등 효능만 박제.
 10. **(I10) sanitize 멱등 계약**: `sanitizeHtml(sanitizeHtml(x))` = `sanitizeHtml(x)` — 동일 입력 반복 sanitize 시 추가 escape / strip 0. fixture (`sanitizeHtml.test.ts:88` `"is idempotent (double sanitize equals single)"`) 가 효능 잠금. 본 효능은 sanitize 가 자체 출력을 재입력 받아도 새로 escape/strip 하지 않음을 보장 — caller 측 sanitize 중복 호출 (방어 코드) 안전성 baseline.
-11. **(I11) cross-surface 2단 방어 defense-in-depth 계약**: S1 단 (`markdownParser.md` (I8)~(I10)) escape + S2 단 (본 spec (I1)(I3)(I4)(I7)(I8)(I9)) sanitize 양 단이 **독립적으로** XSS 회귀를 차단 — 어느 한 단이 회피·우회 되어도 다른 단이 차단. (a) markdownParser escape 누락 → DOMPurify 가 single-quoted attribute context 손상 emit 을 fix-up + ALLOWED_URI_REGEXP 가 `javascript:` 차단; (b) sanitize 우회 raw HTML 주입 → markdownParser 단 escape 함수(`escapeHtmlText` · `escapeHtmlQuotes` — 종전 문면의 `escapeHtmlAttr` 은 현 코드에 없다) 가 entity 변환 + `<a>` `rel='noreferrer'` fall-back 가 referrer leak 방어. 양 단 동시 회귀 시에만 XSS 진입 — 단 한 단 회귀 시 fail-safe 활성.
+11. **(I11) cross-surface 2단 방어 defense-in-depth 계약**: S1 단 (`markdown-rendering` 17) escape + S2 단 (본 spec (I1)(I3)(I4)(I7)(I8)(I9)) sanitize 양 단이 **독립적으로** XSS 회귀를 차단 — 어느 한 단이 회피·우회 되어도 다른 단이 차단. (a) markdownParser escape 누락 → DOMPurify 가 single-quoted attribute context 손상 emit 을 fix-up + ALLOWED_URI_REGEXP 가 `javascript:` 차단; (b) sanitize 우회 raw HTML 주입 → markdownParser 단 escape 함수(`escapeHtmlText` · `escapeHtmlQuotes` — 종전 문면의 `escapeHtmlAttr` 은 현 코드에 없다) 가 entity 변환 + `<a>` `rel='noreferrer'` fall-back 가 referrer leak 방어. 양 단 동시 회귀 시에만 XSS 진입 — 단 한 단 회귀 시 fail-safe 활성.
 
-12. **(I12) 렌더 계약이 요구하는 태그는 정책에 등재된다 (REQ-20260831-052)**: 파서가 emit 하도록 계약된 태그가 `ALLOWED_TAGS` 에 없으면 그 구조는 DOM 주입 직전에 통째로 사라진다 — 파서 쪽 계약만으로는 화면에 닿지 않는다. 현재 그 상태에 있는 것이 **표 태그**다 (`table` `thead` `tbody` `tr` `th` `td` — 전부 0 hit). 등재는 (I1)(I6) 을 그대로 따른다: `src/common/sanitizeHtml.ts` 안에서만 바꾸고, 같은 변경에서 회귀 fixture 를 갱신하며, `ALLOWED_ATTR` 은 넓히지 않는다 (`style` 허용은 (I3) 계열 정책 확장이라 별 축). 무엇이 표로 렌더돼야 하는가는 본 spec 이 아니라 `common/markdown-pipe-table` 소관이며, 본 축은 **정책 쪽 조건**만 진다.
+12. **(I12) 렌더 계약이 요구하는 태그는 정책에 등재된다 (REQ-20260831-052)**: 파서가 emit 하도록 계약된 태그가 `ALLOWED_TAGS` 에 없으면 그 구조는 DOM 주입 직전에 통째로 사라진다 — 파서 쪽 계약만으로는 화면에 닿지 않는다. 현재 그 상태에 있는 것이 **표 태그**다 (`table` `thead` `tbody` `tr` `th` `td` — 전부 0 hit). 등재는 (I1)(I6) 을 그대로 따른다: `src/common/sanitizeHtml.ts` 안에서만 바꾸고, 같은 변경에서 회귀 fixture 를 갱신하며, 이 등재는 `ALLOWED_ATTR` 을 넓히지 않는다 (속성 표면은 (I15) 가 진다). 무엇이 표로 렌더돼야 하는가는 본 spec 이 아니라 `markdown-rendering` 8 소관이며, 본 축은 **정책 쪽 조건**만 진다.
 
 14. **(I14) 판정 모집단은 정책의 *효력면* 과 같다 (REQ-20260831-077 FR-01·FR-02)**: (I13) 이 커버리지를 재는 **모집단**은 `sanitize` 가 **실제로 통과시키는 태그 집합**과 동일해야 하며, 그 동일성이 게이트 안에서 판정된다. 도출 결과를 확인 없이 모집단으로 쓰면 **도출이 틀렸을 때와 맞았을 때가 구별되지 않는다.**
 
@@ -56,6 +57,10 @@
 
     **(I1) 과의 경계**: (I13) 의 도출은 (I1) 을 위반하지 않는다. 정책 상수를 다른 모듈에서 **재정의**하는 형태는 불가하며, 참조가 필요하면 (I1) 문면과 그 게이트를 함께 조정한다 — 현 (I1) 판정 명령이 `src/common/sanitizeHtml.*` 밖의 **정의·소비**를 0 으로 막고 있으므로, export 경로를 택하면 그 조정이 선행 조건이다. 도출 수단(상수 export · 소스 파싱 · 게이트 배치 파일)은 지정하지 않는다.
 
+15. **(I15) 속성 표면은 선언 집합과 같다 (REQ-20261013-091)**: `ALLOWED_ATTR` 은 `href` `src` `alt` `title` `target` `rel` `class` `start` 와 **집합으로** 같다. 속성을 더하거나 빼는 변경은 이 문면 갱신을 동반한다. **`style` · `align` · `on*` 은 어떤 갱신으로도 들어오지 않는다** — `style` 은 활성 표면이고, `align` 은 작성자 CSS(`th, td { text-align: left }`)에 져서 독자에게 닿지 않는다 (`markdown-rendering` 의 표 정렬 수단은 `class` 다).
+
+    **판정면을 개수에서 집합으로 옮긴 이유**: 종전 `-eq 7` 은 *"`style` 이 들어오지 않는다"* 를 재는 대리 표면이었다. 개수는 정수 값만 받는 `start` 의 추가와 `style` 의 추가를 구별하지 못하고, 같은 수의 교체(`class` → `style`)는 아예 못 본다. 집합 일치와 금지 목록 부재를 나란히 둔다.
+
 ### 회귀 중점
 - 외부 모듈이 `ALLOWED_TAGS` 등을 `export` 추가 후 import 하면 (I1) 위반 — 정책 분기 위험.
 - 파서가 표를 emit 하는데 `ALLOWED_TAGS` 등재가 없으면 (I12) 위반 — 통과하지 못하는 구조는 렌더된 것이 아니다. 실측상 머리 셀의 글자마저 남지 않는다 (§스코프 규칙).
@@ -74,9 +79,9 @@
 ## 의존성
 - 내부: `src/common/sanitizeHtml.ts` (단일 진입점), `src/common/markdownParser.ts` (입력), `src/common/sanitizeHtml.test.ts` (회귀 fixture).
 - **소유 게이트 (REQ-056 흡수로 확정)**: `src/__tests__/parser-sanitizer-coherence.test.ts` — 파서 산출과 sanitize 정책의 정합을 재는 교차 게이트다. 흡수 전까지 **어떤 spec 에도 소유되지 않았다** (`grep -rln "parser-sanitizer-coherence" specs/30.spec/` → 0 hit). 소유자가 없으면 그 게이트의 하드코딩 열거·검출력 0 을 아무도 재지 않으므로 본 spec 이 (I13) 과 함께 소유를 진다. 다만 **(I13) 의 게이트를 이 파일에 두어야 한다는 뜻은 아니다** — 배치는 수단이다.
-- 외부: `dompurify` (devDep / dep — `runtime-dep-version-coherence.md` 영역).
+- 외부: `dompurify` (dep — 버전 정합은 본 spec 범위 밖).
 - **역의존 (사용처) — 열거하지 않고 도출한다** (254차 재개봉 시 정정): `bash -c 'grep -rn "sanitizeHtml" src --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -v "common/sanitizeHtml\.ts" | grep -v "__fixtures__"'` → HEAD=`0974e46` 실측 **4 hit / 2 파일**: `src/Log/Writer.tsx`(작성 미리보기 — import + `dangerouslySetInnerHTML`) · `src/Log/LogItem.tsx`(본문 렌더 — import + `markdownToHtml` 경유). **Comment 는 이 모듈을 쓰지 않는다** — `bash -c '! grep -rq "sanitizeHtml\|dangerouslySetInnerHTML" src/Comment'` → rc=0 (0 hit). 댓글 본문은 평문 렌더다. **종전 문면은 *'Log / Comment 등 도메인 모듈'* 이라고 적었고 `Comment` 는 거짓, 작성 미리보기 `Writer.tsx` 는 누락이었다** — `foundation/spec-dependency-reverse-derivation` (I2) 가 겨누는 양방향 오류의 실물이며, 이 spec 의 판정 명령 16건이 전부 rc=0 인 채 blue 에 승격돼 있었다.
-- 직교: `markdownParser.md` (파싱 알고리즘 영역), `runtime-dep-version-coherence.md` (dompurify 버전 정합).
+- 직교: `markdown-rendering` (파서 산출 계약 — 18 이 "파서가 내는 태그·속성은 정제를 통과한다" 를 진다).
 
 ## 테스트 현황
 
@@ -115,7 +120,8 @@
 - [x] (Must, REQ-018 cross-surface) S1 단 (markdownParser) + S2 단 (본 spec) 2단 defense-in-depth — 위 §테스트 현황 (I11) 명령 → rc=0. HEAD=`8d030ce` 본 tick 실측 rc=0. **흡수 전 이 항목은 판정 명령 없이 `[x]` 였다** — (I11) 접속 명령을 세워 `RULE-07 §promote 조건 2` 를 채웠다.
 - [x] (Must, REQ-052 FR-02) 표 태그가 `ALLOWED_TAGS` 에 등재된다 — §동작 (I12). 판정: 위 §테스트 현황 (I12) 명령 → rc=0 (`table-tag-entries` ≥ 6). HEAD=`25f6013` 재실측 rc=0 (`table-tag-entries=6`, `TSK-20260831-17` / `d98815d`).
 - [x] (Must, REQ-052 NFR-01 정책 단일 출처) 표 태그 등재가 본 모듈 안에서만 이뤄진다 — 판정은 §테스트 현황 (I1) 명령이며 등재 후에도 rc=0 이어야 한다. HEAD=`7b43fa8` 재실측 rc=0.
-- [x] (Must, REQ-052 NFR-02 속성 표면 무확장) `ALLOWED_ATTR` 7 항목이 유지되고 `style` 이 들어오지 않는다: `bash -c 'test "$(perl -0777 -ne "print \$1 if /const ALLOWED_ATTR\s*=\s*\[(.*?)\]/s" src/common/sanitizeHtml.ts | grep -oE "'\''[a-z]+'\''" | wc -l | tr -d " ")" -eq 7'` → HEAD=`7b43fa8` 재실측 rc=0.
+- [x] (Must, REQ-052 NFR-02 · REQ-20261013-091 FR-04 — 속성 표면 = 선언 집합) (I15): `bash -c 'got=$(perl -0777 -ne "print \$1 if /const ALLOWED_ATTR\s*=\s*\[(.*?)\]/s" src/common/sanitizeHtml.ts | grep -oE "'\''[a-z]+'\''" | tr -d "'\''" | sort | tr "\n" " "); test -n "$got" || exit 2; echo "attrs=$got"; test "$got" = "alt class href rel src start target title "'` → HEAD=`bea3a3b` rc=0 (`attrs=alt class href rel src start target title` — TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (`attrs=alt class href rel src target title` — `start` 부재). 종전 `-eq 7` 판정은 (I15) 로 교체했다.
+- [x] (Must, REQ-052 NFR-02 · REQ-20261013-093 FR-03 — 금지 속성 부재) (I15): `bash -c 'got=$(perl -0777 -ne "print \$1 if /const ALLOWED_ATTR\s*=\s*\[(.*?)\]/s" src/common/sanitizeHtml.ts); test -n "$got" || exit 2; ! echo "$got" | grep -qE "'\''(style|align|on[a-z]+)'\''"'` → HEAD=`e1abfdd` rc=0.
 - [x] (Must, REQ-077 FR-01·FR-02) 위 §테스트 현황 (I14 효력면 동일성) 명령 → rc=0. HEAD=`891ccf4` 실측 rc=0.
 - [x] (Must, REQ-077 FR-03) 위 §테스트 현황 (I14 변형 배터리 박제) 명령 → rc=0. HEAD=`891ccf4` 실측 rc=0 (`battery-variants=4`).
 - [x] (Must, REQ-056 FR-01·FR-02) 정책 커버리지 계약이 게이트로 실재하고 초록이다 — 위 §테스트 현황 (I13) 명령 → rc=0. HEAD=`25f6013` 재실측 rc=0 (`gate-files=1`, `TSK-20260831-16` / `4537052`).
@@ -123,7 +129,7 @@
 - [x] (Must, REQ-056 FR-04 현행 PASS) (I13) 의 도출이 정책 단일 출처를 깨지 않는다 — 판정은 위 §테스트 현황 (I1) 명령이며 도출 도입 후에도 rc=0 이어야 한다. HEAD=`7b43fa8` 실측 rc=0. 정책 상수를 다른 모듈에서 **재정의**하는 형태는 불가하고, export 경로를 택하면 (I1) 문면과 그 게이트를 함께 조정해야 한다.
 - [x] (Must, REQ-056 NFR-01 비퇴행) 위 §테스트 현황 (I13 비퇴행 baseline) 명령 → rc=0. HEAD=`7b43fa8` 실측 rc=0 (15 + 17 tests). 기존 단언 완화로 해결하지 않는다.
 - [x] (Must, REQ-056 NFR-02 보존) 위 §테스트 현황 (I13 NFR-02 대조 보존) 명령 → rc=0. HEAD=`7b43fa8` 실측 rc=0.
-- [x] (Must, REQ-056 NFR-03 범위 제한) `ALLOWED_ATTR`(7항목) · `ALLOWED_URI_REGEXP` 무변경 — 판정은 위 §수용 기준 REQ-052 NFR-02 명령과 §테스트 현황 (I3) 명령이며 둘 다 HEAD=`7b43fa8` 실측 rc=0. **속성·스킴 축의 같은 부류 구멍은 재지 않았다** — 본 흡수는 태그 축 한정이며 두 축은 별 req 로 분리한다 (§참고 §미측정).
+- [x] (Must, REQ-056 NFR-03 범위 제한) REQ-056 은 `ALLOWED_ATTR` · `ALLOWED_URI_REGEXP` 를 바꾸지 않는다 — 판정은 위 §수용 기준 (금지 속성 부재) 명령과 §테스트 현황 (I3) 명령이며 (속성 표면 자체는 (I15) 가 진다) 둘 다 HEAD=`7b43fa8` 실측 rc=0. **속성·스킴 축의 같은 부류 구멍은 재지 않았다** — 본 흡수는 태그 축 한정이며 두 축은 별 req 로 분리한다 (§참고 §미측정).
 - [x] (Must, 문면 정합) 본 spec 이 인용하는 정책 값·라인·게이트 명령이 현 HEAD 에서 참이다 — §참고 §blue 문면 drift 정정 의 4건이 전부 정정됐고 §테스트 현황 전수 재실행 rc 가 그 근거다.
 
 ## 스코프 규칙
@@ -148,6 +154,8 @@
 ## 변경 이력
 | 일자 | TSK / 커밋 | 요약 | 영향 섹션 |
 |------|-----------|------|----------|
+| 2026-10-13 | inspector reconcile / `84fc6e1` @ HEAD=`bea3a3b` | (I15) 집합 판정 `[x]` — 격리 사본에서 파일 추출 명령 재실행 rc=0 (`attrs=… start …`). §테스트 현황·§수용 기준의 명령 동반 체크박스 20 재실행 rc=0 20/20 | 공개 인터페이스 · 수용 기준 |
+| 2026-10-13 | inspector tick (Phase 3, REQ-20261013-091 흡수 — blue 재개봉) / — @ HEAD=`e1abfdd` | **계약을 뒤집는 req.** `start` 허용이 종전 `-eq 7` 을 rc=0 → rc=1 로 뒤집는다. 판정면을 개수에서 **선언 집합 + 금지 속성 부재** 로 옮겼다 ((I15)). 문면 충돌 3곳(§공개 인터페이스 · (I12) · REQ-056 NFR-03) 정정 · 삭제된 문서 인용 4건 정정. 테스트 쪽 충돌 0 (`sanitizeHtml.test.ts` 에 `ALLOWED_ATTR`·`start` 단언 0). | 공개 인터페이스 · 동작 (I12)(I15) · 의존성 · 수용 기준 · 참고 |
 | 2026-09-01 | inspector 257차 tick (종료 전 큐 재확인) / `72e062a`·`eb81b2b`·`891ccf4` @ HEAD=`891ccf4` | **플립 4 — (I14) 두 축이 tick 중 착지했다.** 254차에 신설한 뒤 3 tick 동안 `battery-variants=0` 으로 붉던 두 항이 §테스트 현황 2 + §수용 기준 2 로 닫혔다. **종료 전 재측정이 없었으면 이 tick 도 "이관처 미착수" 로 기록됐다.** `891ccf4` 의 판단(**배터리 토큰을 자기 행에만 둔다**)이 특히 이 축의 것이다 — 한 행에 여러 토큰이 있으면 원소 하나가 사라져도 계수가 줄지 않아 배터리 축소가 보이지 않는다. **본 문서의 미충족 잔여는 §수용 기준 0 이며 promote 후보다.** | 테스트 현황 · 수용 기준 · 변경 이력 |
 | 2026-09-01 | inspector 257차 tick (Phase 1·2) / — @ HEAD=`8fa6117` | **드리프트 D4 — 대리 표면의 오탐으로 `[x]` 3항이 붉어졌고 게이트를 좁혀 되찾았다.** (I1)·(I6)·(I11) 이 공유하는 *"정책 상수는 소유 모듈 밖에 없다"* 절이 **이름 출현 계수**였고, `d19127a` 가 세운 정상 용법 1건(`src/Log/summaryBoundary.test.ts` 의 단언 **문자열**)에 붉어졌다. `RULE-06 §음성 대조` 대로 **정상 용법을 고치지 않고 판정면을 선언 앵커로 옮겼다**. **주입 2/2 detect · 대조 2/2 pass** (격리 `cp -R src` 실사본). 이 정정은 `REQ-20260901-084` 방향 B 의 실물이며 본 tick 흡수분 (I9) 의 참조 사례다. 함께 산문 상호참조 3건을 브랜치 무관 slug 형태로 전환(`7240666`), (I8) `실행 창 확인` 토큰 1건 부착 · 미확인 1건 사유 박제. | 테스트 현황 · 의존성 · 변경 이력 |
 | 2026-08-31 | inspector 254차 tick (**blue 재개봉** — Phase 3, REQ-20260831-077 FR-02 흡수 + planner 253차 이관분) / — @ HEAD=`4cdf474` | **(I14) 효력면 동일성 신설 + 등가 pin 교체.** 재개봉 근거: FR-02 가 (I13) 의 **판정 모집단 정의**를 바꾸므로 문면 이동이 필요하고 `30.spec/blue/**` 는 어떤 에이전트의 편집 영역도 아니다. **재개봉 비용 실측**: 192줄 · §수용 기준 unchecked **0** · 판정 명령 16건 격리 사본 전수 재실행 **rc≠0 0건** · rc=2 무판정 rot 0. **효력면 실측이 이 흡수의 근거다** — V9 변형에서 실효 태그 27 → 28(`kbd`)인데 게이트 17/17 초록(민감도 0), V2 정상 리팩터에서 실효 태그 불변인데 rc=1(특이도 붕괴). **두 줄이 서로 반대 방향으로 틀렸다.** 기전은 도출 정규식이 주석 줄을 걷지 않아 `// const LEGACY_TAGS = […]` 에 걸리는 것이다. **`-eq 27` 등가 pin 을 `-ge 20` 하한으로 교체했다** (planner 이관): 등가 pin 은 (a) 정당한 태그 추가를 항상 붉히고 (b) `RULE-06 §음성 대조` 개정이 요구하는 배터리의 필수 원소(정책 확장)에서 붉으며 (c) `-eq 21` 이 이미 한 번 낡았다. **크기가 아니라 집합이 옳은 판정면**이고 그것은 (I14) 가 진다. 판정 명령 18건 재실행: 16 rc=0 · (I14) 2건 rc=1(신설 대상). | 동작 · 테스트 현황 · 수용 기준 · 참고 · 변경 이력 |
@@ -230,14 +238,14 @@ blue 에 승격돼 있던 문면 4곳이 현 코드와 어긋났다. 전부 HEAD
 - **Dir-2 (민감도, I13 — 공허 차단 방향)** — 도출을 공집합으로 만든다 (정책 상수 이름 변경 · 도출 경로 차단) → 통과가 아니라 `rc≠0`. 이 방향이 침묵하면 게이트는 "측정 0" 을 "위반 0" 으로 보고한다.
 - **Dir-3 (민감도, I13 — 정책 축소 방향)** — corpus 가 내던 태그를 `ALLOWED_TAGS` 에서 뺀다 → `rc≠0`. 기존 단언이 이미 잡을 가능성이 높다 — **중복이면 그 사실을 `result.md` 에 박제**한다 (중복 자체는 결함이 아니지만, 신설 게이트의 고유 검출력을 Dir-1·2 로만 계산해야 하기 때문이다).
 - **Ctrl-1 (특이도)** — corpus 행 하나의 **이름표**만 바꾼다 (마크다운 본문 동일) → `rc=0`. **가산형·비파괴형으로 수행한다** — `TSK-20260831-07` 에서 교체형 대조가 같은 task 의 정적 문자열 핀 DoD 와 상충해 `rc=1` 을 낸 실측이 있다 (`specs/10.followups/20260831-1005-dod-static-string-pin-contradicts-its-own-control.md`).
-- **Ctrl-2 (특이도)** — 본 spec 이 범위 밖으로 선언한 축(`ALLOWED_ATTR` 항목 **순서** 재배열 · 허용 밖 태그 대조의 산문 주석)의 정상 변경 → `rc=0`. `ALLOWED_ATTR` 순서 재배열은 §수용 기준 REQ-052 NFR-02 의 항목 **수** 판정과 충돌하지 않는다 (수는 7 로 불변).
+- **Ctrl-2 (특이도)** — 본 spec 이 범위 밖으로 선언한 축(`ALLOWED_ATTR` 항목 **순서** 재배열 · 허용 밖 태그 대조의 산문 주석)의 정상 변경 → `rc=0`. `ALLOWED_ATTR` 순서 재배열은 (I15) 의 집합 판정과 충돌하지 않는다 (정렬 후 비교).
 
 > **Ctrl-2 를 고를 때 `iframe` 대조를 건드리지 않는다.** 그 예시는 `a13de9a` 가 `<table>` 에서 옮겨 온 것이고, (I12) 가 표를 등재하는 순간 `<table>` 은 "허용 밖" 이기를 그친다. 정상 변형으로 이 자리를 고르면 대조가 겨누는 축 자체를 흔든다.
 
 ### 미측정·비판정 항목 (RULE-07 §수용 기준 문장 규약)
 
 - **(I13 검출력) 정책을 넓히면 게이트가 붉어지는가 는 체크박스로 두지 않는다** (`RULE-07 §수용 기준 문장 규약` — '가정 주입 요구' 부류). 현 HEAD 실측 검출력 **0** (표 6 태그를 추가해도 전체 스위트 116 파일이 전수 초록). 검출 방향은 §주입 이관 **Dir-1** 로 보존돼 있으며 이관처 task DoD 에서 왕복 판정한다 — 강등이지 소멸이 아니다. 이관처 task 가 발행되지 않으면 이 문장이 곧 미이관 상태의 박제다.
-- **속성(`ALLOWED_ATTR`)·스킴(`ALLOWED_URI_REGEXP`) 축은 같은 부류의 구멍을 가질 수 있으나 재지 않았다** (REQ-056 §미측정). (I13) 은 **태그 축 한정**이다. 두 축의 실측은 별 req 로 분리한다 — 여기 적어 두는 이유는, 태그 축만 닫고 나면 같은 구멍이 남아 있다는 사실이 보이지 않게 되기 때문이다.
+- **속성(`ALLOWED_ATTR`) 축의 같은 부류 구멍은 실물이 나왔다** — REQ-20261013-091 의 `start` (파서가 내도 정제가 지운다; corpus 의 번호 목록 행이 1 로 시작해 게이트가 못 본다). 그 축은 `markdown-rendering` 18 (파서가 내는 속성마다 그 속성이 나오는 corpus 행) 이 진다. **스킴(`ALLOWED_URI_REGEXP`) 축은 여전히 재지 않았다** (REQ-056 §미측정). (I13) 은 **태그 축 한정**이다. 두 축의 실측은 별 req 로 분리한다 — 여기 적어 두는 이유는, 태그 축만 닫고 나면 같은 구멍이 남아 있다는 사실이 보이지 않게 되기 때문이다.
 - **(I13) 의 도출 수단·게이트 배치는 지정하지 않는다.** 정책 상수를 export 할지, 소스를 파싱할지, 게이트를 `sanitizeHtml.test.ts` 쪽에 둘지는 구현 재량이다. 다만 (I1) 의 판정 명령이 `src/common/sanitizeHtml.*` 밖의 **정의·소비**를 0 으로 막고 있으므로, export 경로를 택하면 (I1) 문면과 그 게이트를 함께 조정해야 한다 (§수용 기준 REQ-056 FR-04).
 - **fixture 가 "통과시켜 본다" 의 최소 형태는 정하지 않는다.** corpus 행 추가든 태그 단위 단언이든 (I13) 의 명제를 재면 충족이다.
 - **REQ-056 FR-05(Should) 는 (I12) 와 (I13) 이 함께 충족되는 시점에 자동으로 판정된다** — 표 6 태그가 등재되는 순간 도출된 모집단이 그 6 태그를 포함하므로 별도 항목을 두지 않는다. 손으로 corpus 행을 추가해야 충족된다면 그것은 (I13) 의 도출 요구를 만족하지 못한 것이다.
