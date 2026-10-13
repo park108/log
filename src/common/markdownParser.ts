@@ -438,9 +438,10 @@ export const HIGHLIGHT_CLASS = "span--logitem-changed";
 // 흡수된 자리에 태그를 바로 쓸 수는 없다 — 본문 escape 가 그 꺾쇠를 글자로 만든다.
 // 코드 스팬·강조 표식과 같은 수를 쓴다: 마크업 문자가 아닌 private-use 문자로
 // 표시했다가 모든 인라인 패스가 끝난 뒤 태그로 되돌린다.
+//
+// 항목 안 인용은 표식으로 잇지 않는다 — 블록 판정을 받아야 하므로 노드로 세운다
+// (이어짐 패스의 `quoteBlocks` 호출).
 const ITEM_BREAK = "\uE004";
-const ITEM_QUOTE_OPEN = "\uE005";
-const ITEM_QUOTE_CLOSE = "\uE006";
 
 export const markdownToHtml = (rawInput: string): string => {
 
@@ -537,8 +538,8 @@ export const markdownToHtml = (rawInput: string): string => {
 	//
 	// 빈 줄은 이 묶음을 끊는다 — CommonMark 에서도 그 자리가 인용의 경계다.
 	//
-	// `>` 뒤의 공백 한 칸은 표기이지 내용이 아니다. 남겨 두면 인용문만 한 칸씩
-	// 들여쓰인 것처럼 보인다.
+	// `>` 뒤의 공백 한 칸을 남겨 두면 인용문만 한 칸씩 들여쓰인 것처럼 보인다
+	// (`quoteContent`).
 	const isQuoteLine = (node: ParsedNode | undefined): boolean =>
 		undefined !== node
 		&& "value" === node.type
@@ -560,6 +561,73 @@ export const markdownToHtml = (rawInput: string): string => {
 		|| null !== listMarkerDepth(text)
 		|| headingMarkerLevel(text) > 0;
 
+	// `>` 뒤의 공백 한 칸은 표기이지 내용이 아니다.
+	const quoteContent = (line: string): string => {
+		const text = line.substring(1);
+		return ' ' === text.charAt(0) ? text.substring(1) : text;
+	};
+
+	// 인용 내용 → 블록 노드. **줄 머리 인용과 목록 항목 안 인용이 이 함수 하나를
+	// 부른다** (spec `markdown-rendering` §3). 항목 안 인용은 이어짐 패스가 표식
+	// 문자로 항목 본문에 이어 붙이기만 해서 블록 판정을 한 번도 받지 않았다 —
+	// `- a\n  > ```` 의 펜스 표기가 글자로 남고, 제목·목록 표기도 글자였다. 경로마다
+	// 판정을 따로 두면 그렇게 한쪽만 빠진다.
+	//
+	// 인용 내용을 먼저 **평범한 줄들로** 세운 뒤 펜스·밑줄식 제목 판정을 그 배열에
+	// 적용한다. 이 패스는 최상위 판정들보다 뒤에 돌므로, 여기서 부르지 않으면 인용
+	// 안의 밑줄은 볼 기회가 이미 지나 있다 — 실제로 `> 제목` 아래 `> ---` 이
+	// **글자 세 개로 독자에게 보였다.** ATX 제목(`> # 제목`)은 되던 자리라 표기에
+	// 따라 제목이 되기도 안 되기도 했다.
+	const quoteBlocks = (contents: string[]): ParsedNode[] => {
+
+		const inner: ParsedNode[] = contents.map((text): ParsedNode => ({type: "value", text, closure: ""}));
+
+		// 펜스 코드 블록을 밑줄식 제목보다 **먼저** 세운다 — 최상위 순서와 같다.
+		// 코드 안의 `---` 가 앞 줄을 제목으로 만들면 안 된다. 세워진 `pre` 노드는
+		// 아래 루프에서 블록 갈래로 그대로 실린다.
+		applyCodeFence(inner);
+		applySetextHeading(inner);
+
+		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
+		let previousWasPlain = false;
+
+		for(let i = 0; i < inner.length; i++) {
+
+			const node = inner[i] as ParsedNode;
+
+			if("value" === node.type && "" === node.closure && !opensBlock(node.text)) {
+				// 블록이 없는 줄들은 종전대로 한 덩어리 안에서 `<br />` 로 이어진다.
+				// **이 자리가 (I5) 다** — 줄마다 블록 판정을 붙이는 구현이 정확히
+				// 여기서 평탄 인용을 쪼갠다.
+				if(previousWasPlain) replacement.push({type: "tag", text: "<br />"});
+				replacement.push({type: "value", text: node.text, closure: "blockquote"});
+				previousWasPlain = true;
+			}
+			else if(isQuoteLine(node)) {
+				// 중첩 인용(`> > 안쪽`) 은 이 함수가 한 겹 벗겨 다시 부른다 — `>` 가
+				// 한 겹씩 벗겨지므로 반드시 끝난다. 항목 안 인용은 이 패스가 지난 뒤에
+				// 세워지므로 다시 훑을 기회가 없다. 그래서 재훑기가 아니라 여기서 연다.
+				let end = i;
+				while(isQuoteLine(inner[end + 1])) end++;
+				replacement.push(...quoteBlocks(inner.slice(i, end + 1).map((n) => quoteContent(n.text))));
+				i = end;
+				previousWasPlain = false;
+			}
+			else {
+				// 블록을 여는 줄은 **평범한 줄로 되돌려** 뒤따르는 최상위 패스
+				// (`ul` · `ol` · `bindListItem` · headers) 가 처리하게 한다. 인용
+				// 안에서만 도는 축소판 파서를 만들면 같은 표기가 인용 안팎에서 다르게
+				// 동작한다. 펜스·밑줄식 제목이 만들어 낸 노드도 이 갈래로 그대로 실린다.
+				replacement.push(node);
+				previousWasPlain = false;
+			}
+		}
+
+		replacement.push({type: "tag", text: "</blockquote>"});
+
+		return replacement;
+	};
+
 	index = 0;
 	while(index < parsed.length) {
 
@@ -571,55 +639,14 @@ export const markdownToHtml = (rawInput: string): string => {
 		let end = index;
 		while(isQuoteLine(parsed[end + 1])) end++;
 
-		// 인용 내용을 먼저 **평범한 줄들로** 세운 뒤 밑줄식 제목 판정을 그 배열에
-		// 적용한다. 이 패스는 최상위 setext 판정보다 뒤에 돌므로, 여기서 부르지
-		// 않으면 인용 안의 밑줄은 볼 기회가 이미 지나 있다 — 실제로 `> 제목`
-		// 아래 `> ---` 이 **글자 세 개로 독자에게 보였다.** ATX 제목(`> # 제목`)은
-		// 되던 자리라 표기에 따라 제목이 되기도 안 되기도 했다.
-		const inner: ParsedNode[] = [];
-		for(let i = index; i <= end; i++) {
-			let text = (parsed[i] as ParsedNode).text.substring(1);
-			if(' ' === text.charAt(0)) text = text.substring(1);
-			inner.push({type: "value", text, closure: ""});
-		}
+		const contents: string[] = [];
+		for(let i = index; i <= end; i++) contents.push(quoteContent((parsed[i] as ParsedNode).text));
 
-		// 펜스 코드 블록을 밑줄식 제목보다 **먼저** 세운다 — 최상위 순서와 같다.
-		// 코드 안의 `---` 가 앞 줄을 제목으로 만들면 안 된다. 세워진 `pre` 노드는
-		// 아래 루프에서 블록 갈래로 그대로 실린다.
-		applyCodeFence(inner);
-		applySetextHeading(inner);
-
-		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
-		let previousWasPlain = false;
-
-		for(const node of inner) {
-
-			if("value" === node.type && "" === node.closure && !opensBlock(node.text)) {
-				// 블록이 없는 줄들은 종전대로 한 덩어리 안에서 `<br />` 로 이어진다.
-				// **이 자리가 (I5) 다** — 줄마다 블록 판정을 붙이는 구현이 정확히
-				// 여기서 평탄 인용을 쪼갠다.
-				if(previousWasPlain) replacement.push({type: "tag", text: "<br />"});
-				replacement.push({type: "value", text: node.text, closure: "blockquote"});
-				previousWasPlain = true;
-			}
-			else {
-				// 블록을 여는 줄은 **평범한 줄로 되돌려** 뒤따르는 최상위 패스
-				// (`ul` · `ol` · `bindListItem` · headers · 이 인용 패스 자신) 가
-				// 처리하게 한다. 인용 안에서만 도는 축소판 파서를 만들면 같은 표기가
-				// 인용 안팎에서 다르게 동작한다. 밑줄식 제목이 만들어 낸 태그 노드도
-				// 이 갈래로 그대로 실린다.
-				replacement.push(node);
-				previousWasPlain = false;
-			}
-		}
-
-		replacement.push({type: "tag", text: "</blockquote>"});
+		const replacement = quoteBlocks(contents);
 
 		parsed.splice(index, end - index + 1, ...replacement);
 
-		// 넣은 내용을 **다시 훑는다**. 중첩 인용(`> > 안쪽`) 이 그 자리에서 다시
-		// 열리는 것이 이 재훑기다 — `>` 가 한 겹씩 벗겨지므로 반드시 끝난다.
-		index += 1;
+		index += replacement.length;
 	}
 
 	// 파이프 표.
@@ -834,16 +861,35 @@ export const markdownToHtml = (rawInput: string): string => {
 		// 열린 항목의 열 — 마커 줄이 올 때 갱신한다. 마지막이 가장 안쪽 항목이다.
 		const openItems: OpenItem[] = [];
 		const innermostItem = (): OpenItem | null => openItems[openItems.length - 1] ?? null;
-		let isQuoteOpen = false;
+
+		// 항목 안 인용. 연달아 붙은 인용 줄의 내용(`quoteContent`)을 모았다가 인용이
+		// 끝나는 자리에서 줄 머리 인용과 **같은 함수**(`quoteBlocks`)로 블록 노드를
+		// 세운다 — 펜스 · 밑줄식 제목 · 블록을 여는 줄(목록 · ATX 제목 · 중첩 인용)의
+		// 판정이 인용 안팎과 항목 안팎에서 하나다.
+		let quote: { item: OpenItem; contents: string[] } | null = null;
+
+		// 인용 뒤에 이어지는 문단 줄을 받는 노드. 표식 문자로 항목 본문에 이어 붙이던
+		// 동안 인용 뒤 문단은 `<br />` 로 이어졌다 — 블록 문법 없는 항목 안 인용의
+		// 산출은 바뀌지 않는다 (§3).
+		const afterQuote = new Set<ParsedNode>();
 
 		// 인용은 블록이라 열면 닫아야 한다. 이어짐이 끝나는 자리는 다섯 곳이다 —
 		// 인용 아닌 이어짐 · 다음 마커 줄 · 이어짐이 아닌 줄 · 항목 안 블록 · 입력의 끝.
 		const closeQuote = (): void => {
-			const item = innermostItem();
-			if(isQuoteOpen && null !== item && null !== item.target) {
-				item.target.text += ITEM_QUOTE_CLOSE;
+			if(null === quote) return;
+			const { item, contents } = quote;
+			quote = null;
+
+			// 항목의 종류·깊이를 달아 두면 `bindListItem` 이 이 블록을 열린 `<li>`
+			// 안으로 흘려보낸다 (항목 안 코드 블록과 같다). 인용 안의 목록 줄은 이
+			// 깊이보다 한 단 깊게 검출된다 — 바깥 목록의 항목이 아니다.
+			for(const block of quoteBlocks(contents)) {
+				merged.push({...block, itemOf: item.marker.kind, depth: item.marker.depth});
 			}
-			isQuoteOpen = false;
+
+			item.target = {type: "value", text: "", itemOf: item.marker.kind, closure: "li", depth: item.marker.depth};
+			afterQuote.add(item.target);
+			merged.push(item.target);
 		};
 
 		// 그 항목의 내용 열까지 들여썼는가 — 마커 없는 블록의 귀속 판정. 탭은
@@ -1024,27 +1070,32 @@ export const markdownToHtml = (rawInput: string): string => {
 				merged.push(item.target);
 			}
 
-			const target = item.target;
-
 			if('>' === stripped.charAt(0)) {
 
-				// `>` 뒤 공백 한 칸은 표기다 — 줄 머리 인용 패스와 같은 규칙.
-				let quoted = stripped.substring(1);
-				if(' ' === quoted.charAt(0)) quoted = quoted.substring(1);
-
 				// 연달아 붙은 인용 줄은 한 덩어리다 (줄 머리 인용과 같다).
-				target.text += isQuoteOpen ? ITEM_BREAK + quoted : ITEM_QUOTE_OPEN + quoted;
-				isQuoteOpen = true;
+				if(null === quote) quote = { item, contents: [] };
+				quote.contents.push(quoteContent(stripped));
+				continue;
 			}
-			else {
-				closeQuote();
-				target.text += ("" === target.text ? "" : ITEM_BREAK) + stripped;
-			}
+
+			closeQuote();
+
+			const target = item.target as ParsedNode;
+			const lead = "" === target.text && !afterQuote.has(target) ? "" : ITEM_BREAK;
+			target.text += lead + stripped;
 		}
 
 		closeQuote();
 		parsed = merged;
 	}
+
+	// 마커 줄의 중첩 깊이. 항목 안 인용이 세운 줄은 그 항목의 깊이(`depth`)를 달고
+	// 온다 — 인용 안의 목록은 그 인용 안의 목록이지 바깥 목록의 형제 항목이 아니므로
+	// 그 항목보다 한 단 깊다 (`bindListItem` 이 인용 안에 새 목록을 연다).
+	const listDepth = (node: ParsedNode): { depth: number; prefixLength: number } => {
+		const { depth, prefixLength } = computeDepth(node.text);
+		return { depth: undefined === node.depth ? depth : node.depth + 1 + depth, prefixLength };
+	};
 
 	// unordered list
 	index = 0;
@@ -1054,7 +1105,7 @@ export const markdownToHtml = (rawInput: string): string => {
 			&& "" === node.closure
 			&& node.text.length > 1) {
 
-			const { depth, prefixLength } = computeDepth(node.text);
+			const { depth, prefixLength } = listDepth(node);
 			const stripped = node.text.substring(prefixLength);
 
 			if(stripped.length > 1
@@ -1080,7 +1131,7 @@ export const markdownToHtml = (rawInput: string): string => {
 			&& "" === node.closure
 			&& node.text.length > 2) {
 
-			const { depth, prefixLength } = computeDepth(node.text);
+			const { depth, prefixLength } = listDepth(node);
 			const stripped = node.text.substring(prefixLength);
 
 			if(stripped.length > 2 && isNumeric(stripped.charAt(0))) {
@@ -1584,11 +1635,8 @@ export const markdownToHtml = (rawInput: string): string => {
 				.replace(/\uE003/g, "</span>");
 
 			// 이어짐 표식 복원. 인라인 패스가 전부 지난 뒤라 이 태그는 어떤 문법에도
-			// 참여하지 않는다. `br` · `blockquote` 는 sanitize 허용 목록에 이미 있다.
-			node.text = node.text
-				.replace(/\uE004/g, "<br />")
-				.replace(/\uE005/g, "<blockquote>")
-				.replace(/\uE006/g, "</blockquote>");
+			// 참여하지 않는다. `br` 은 sanitize 허용 목록에 이미 있다.
+			node.text = node.text.replace(/\uE004/g, "<br />");
 		}
 	}
 
