@@ -2045,10 +2045,23 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 	// (spec `markdown-rendering` §20). 1 이면 싣지 않는다 — 산출이 종전 그대로다.
 	// 둘째 항목 이후의 번호는 쓰지 않는다. 목록은 깊이마다 이 자리에서 열리므로
 	// 중첩 번호 목록도 자기 첫 번호를 따른다.
+	//
+	// 첫 번호가 세 자리 이상이면 그 자릿수를 표지 공간 class 로 함께 싣는다 (spec
+	// `logitem-ordered-list-marker-visible`). 바깥 표지는 `li` 왼쪽 바깥에 그려지는데
+	// 본문이 주는 자리(38.4px)보다 넓으면 `main` 의 왼쪽 끝에서 잘린다 — `2024.` 이
+	// `024.` 로 보였다. 공간은 `styles/typography.css` 가 class 마다 준다. `style` 이
+	// 아니라 `class` 인 것은 정제 정책(`sanitizeHtml`)을 넓히지 않기 위해서다.
+	// 1~2자리에는 싣지 않는다 — 대부분의 글의 산출이 종전 그대로다. 9자리를 넘는
+	// 번호는 9자리 공간을 받는다 (CommonMark 의 번호 표지는 1~9자리다).
+	const markerSpaceClass = (ordinal: string): string | null =>
+		(ordinal.length < 3) ? null : "ol--marker-digits-" + Math.min(ordinal.length, 9);
+
 	const openList = (d: number, first: ParsedNode) => {
 		const start = first.ordinal;
+		const spaceClass = (undefined === start) ? null : markerSpaceClass(start);
 		const text = (undefined !== start && "1" !== start)
-			? "<" + tagName + " start=\"" + start + "\">"
+			? "<" + tagName + " start=\"" + start + "\""
+				+ (null === spaceClass ? "" : " class=\"" + spaceClass + "\"") + ">"
 			: openTag;
 		output.push({type: "tag", text: text, itemOf: tagName, depth: d});
 		depthStack.push(d);

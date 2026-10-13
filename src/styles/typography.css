@@ -173,6 +173,48 @@ thead th {
 	padding-inline-start: 1.4em;
 }
 
+/* 번호 목록 표지 공간. 바깥 표지는 li 왼쪽 바깥에 그려지고, 그 자리는 article 패딩
+   1em + 위 1.4em = 38.4px 뿐이다. 첫 번호가 길면 표지가 그보다 넓어져 `overflow: auto`
+   인 main 의 왼쪽 끝에서 잘린다. 실측(Chrome, 16px — 표지 왼쪽 끝, main 기준):
+
+     2024.       −9.0px   `024.` 만 보인다
+     20241231.   −48.3px
+
+   첫 번호의 자릿수 N(3~9)을 파서가 ol 의 class 로 싣는다 (`common/markdownParser.ts`).
+   1~2자리 목록에는 싣지 않으므로 대부분의 글은 그대로다. 패딩은 표지 폭과 같게
+   숫자 N 개 + ". " 로 준다 — 표지 왼쪽 끝이 문단 왼쪽 끝 근처에 온다. `ch` 는 같은
+   글꼴의 숫자 폭이라 웹폰트가 실리든 아니든 함께 늘고 준다.
+
+   판정: `scripts/check-ordered-list-marker-visible.mjs` (실제 레이아웃).
+   규칙 고정: `__tests__/ordered-list-marker-not-clipped.test.ts`. */
+.section--logitem-contents ol.ol--marker-digits-3 {
+	padding-inline-start: calc(3ch + 0.5em);
+}
+
+.section--logitem-contents ol.ol--marker-digits-4 {
+	padding-inline-start: calc(4ch + 0.5em);
+}
+
+.section--logitem-contents ol.ol--marker-digits-5 {
+	padding-inline-start: calc(5ch + 0.5em);
+}
+
+.section--logitem-contents ol.ol--marker-digits-6 {
+	padding-inline-start: calc(6ch + 0.5em);
+}
+
+.section--logitem-contents ol.ol--marker-digits-7 {
+	padding-inline-start: calc(7ch + 0.5em);
+}
+
+.section--logitem-contents ol.ol--marker-digits-8 {
+	padding-inline-start: calc(8ch + 0.5em);
+}
+
+.section--logitem-contents ol.ol--marker-digits-9 {
+	padding-inline-start: calc(9ch + 0.5em);
+}
+
 .section--logitem-contents li {
 	margin-bottom: 0.3em;
 }
