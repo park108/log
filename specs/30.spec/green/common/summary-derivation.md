@@ -57,13 +57,14 @@
 - [ ] (Must, 8 — 산출 코드가 같은 쌍) `bash -c 'git cat-file -e e38a118^{commit} && git cat-file -e 5a669c7^{commit} || exit 2; out=$(SUMMARY_DRIFT_BASE=e38a118 SUMMARY_DRIFT_HEAD=5a669c7 bash scripts/check-summary-drift.sh 2>&1); rc=$?; echo "$out" | grep -q "영향 0" && exit 1; echo "$out" | grep -q "무판정" || exit 1; echo "$out" | grep -qE "producing-modules=[1-9]" || exit 1; test $rc -eq 2'` → rc=0. HEAD=`7b66885` (clone 사본) 실측 rc=1 — 스크립트 rc=0 · *"영향 0 — 이 리비전쌍은 저장된 요약을 낡게 만들지 않는다"* (src 차이 0 파일).
 - [ ] (Must, 8 — 신고 쌍) `bash -c 'git cat-file -e 2c66119^{commit} && git cat-file -e e39b546^{commit} || exit 2; SUMMARY_DRIFT_BASE=2c66119 SUMMARY_DRIFT_HEAD=e39b546 bash scripts/check-summary-drift.sh >/dev/null 2>&1; test $? -eq 2'` → rc=0. HEAD=`7b66885` (clone 사본) 실측 rc=1 — 스크립트 rc=0 · `diverged=0` (src 차이 0 파일).
 - [x] (Must, 8 바뀌지 않는 것 — 대조) `bash -c 'git cat-file -e bea3a3b^{commit} && git cat-file -e e38a118^{commit} || exit 2; out=$(SUMMARY_DRIFT_BASE=bea3a3b SUMMARY_DRIFT_HEAD=e38a118 bash scripts/check-summary-drift.sh 2>&1); rc=$?; test $rc -eq 0 && echo "$out" | grep -qE "diverged=1( |$)"'` → rc=0. HEAD=`7b66885` (clone 사본) 실측 rc=0 · `corpus=43 diverged=1` (엔티티 행 `"HTML 엔티티는 &amp; 로 쓴다"`).
-- [ ] (Should, 9 — 기본쌍) 리비전 미지정 실행이 산출 코드가 다른 쌍을 잰다: `bash -c 'out=$(bash scripts/check-summary-drift.sh 2>&1); rc=$?; test $rc -eq 0 || exit 1; b=$(echo "$out" | grep -oE "base=[0-9a-f]+" | head -1 | cut -d= -f2); h=$(echo "$out" | grep -oE "head=[0-9a-f]+" | head -1 | cut -d= -f2); test -n "$b" && test -n "$h" || exit 2; ! git diff --quiet "$b" "$h" -- src/'` → rc=0. HEAD=`7b66885` (clone 사본) 실측 rc=1 — 기본쌍이 `specs/` 커밋 둘이라 src 차이 0. HEAD 가 developer 커밋이든 다른 writer 의 커밋이든 같은 판정이다. `src/` 차이는 산출 코드 차이의 필요조건으로만 쓴다.
+- [ ] (Should, 9 — 기본쌍) 리비전 미지정 실행이 산출 코드가 다른 쌍을 잰다: `bash -c 'out=$(bash scripts/check-summary-drift.sh 2>&1); rc=$?; test $rc -eq 0 || exit 1; b=$(echo "$out" | grep -oE "base=[0-9a-f]+" | head -1 | cut -d= -f2); h=$(echo "$out" | grep -oE "head=[0-9a-f]+" | head -1 | cut -d= -f2); test -n "$b" && test -n "$h" || exit 2; ! git diff --quiet "$b" "$h" -- src/'` → rc=0. HEAD=`7b66885` (clone 사본) 실측 rc=1 — 기본쌍이 `specs/` 커밋 둘이라 src 차이 0. HEAD 가 developer 커밋이든 다른 writer 의 커밋이든 같은 판정이다. `src/` 차이는 산출 코드 차이의 필요조건으로만 쓴다. **HEAD 가 `src/` 를 바꾼 커밋이면 종전 스크립트도 이 명령에 rc=0 이다** — HEAD=`677a6d1` (clone 사본) 실측 기본쌍 `base=501db45 head=677a6d1` · rc=0. 그 HEAD 의 rc=0 은 ack 근거가 아니고, 9 를 세우는 task 는 `specs/` 만 바꾼 HEAD 에서 이 명령을 재야 한다.
 
 ## 변경 이력
 
 | 일자 | req / 커밋 | 요약 | 영향 |
 |------|-----------|------|------|
 | 2026-10-13 | REQ-20261013-109 / — | blue→green 재개봉. 8 신설 (산출 코드가 같은 쌍은 무판정 · 근거 박제 · seam 쌍 포함) · 9 신설 (기본쌍 도출, Should). §역할 의 방어 대상을 신선도 흡수 절 머리에 명시했다. req 수용 기준 셋을 명령으로 옮기고 리비전 실재 단언을 붙였다 · 9 의 판정을 HEAD 종류와 무관한 형태로 세웠다. `git clone --local` 사본(HEAD=`7b66885`)에서 req 의 세 쌍을 재현했다 | 동작 8·9 · 의존성 · 수용 기준 · 참고 |
+| 2026-10-13 | inspector reconcile (tick 중 HEAD 이동) / `677a6d1` | 9 기본쌍 명령이 HEAD=`677a6d1` (developer src 커밋) clone 사본에서 rc=0 — 소유 task 미착지인데 기본쌍 `HEAD^..HEAD` 가 우연히 src 차이를 가졌다. marker 유지, 그 줄에 HEAD 의존성 박제. `[x]` 4 rc=0 (git 판정 2 clone) · 8 `[ ]` 2 rc=1 불변 | 수용 기준 |
 
 ## 참고
 
