@@ -19,9 +19,13 @@
 # (I2) 입력은 **도출한다.** 고정 입력 목록을 새로 박는 것은 같은 결함을 한 겹 옮기는 것이다.
 # (I3) 도출이 공집합이면 통과가 아니라 **무판정 실패(`exit 2`)** 다.
 # (I4) 갈라진 부류는 내부 함수명이 아니라 **독자가 보는 글자**로 출력한다.
+# (8)  Spec: common/summary-derivation §동작 8 · Task: TSK-20261013-24 —
+#      두 리비전의 **요약 산출 코드가 같으면** "영향 0" 이 아니라 무판정(`exit 2`)이다.
+#      리비전이 달라도 산출 코드가 같으면 차집합은 정의상 공집합이다 (항진명제).
 #
 # §주입 seam — SUMMARY_DRIFT_BASE · SUMMARY_DRIFT_HEAD 로 비교쌍을 갈아끼운다.
 #   기본값은 HEAD~1..HEAD. 두 seam 은 판정 방식을 바꾸지 않고 **대상 리비전만** 바꾼다.
+#   seam 으로 지정한 쌍도 (8) 의 판정을 받는다.
 #
 # read-only: 저장소 워킹트리를 수정하지 않는다. 두 리비전은 `git archive` 로 임시 경로에
 #   꺼내며 `node_modules` 만 심볼릭 링크한다 (`src` 는 실사본 — 링크로 두면 도출이 어긋난다).
@@ -88,6 +92,185 @@ verify_tree_fidelity "$TMP_DIR/head" "$HEAD_SHA"
 
 if [ "$BASE_SHA" = "$HEAD_SHA" ]; then
 	echo "check-summary-drift: 무판정 — 같은 리비전끼리는 잴 것이 없다 (항진명제)" >&2
+	exit 2
+fi
+
+# ── (8) 산출 코드 동일 판정 — 같은 리비전 무판정을 한 단계 굵은 단위로 넓힌다 ──────
+# 다른 writer 가 `specs/` 만 바꾼 커밋을 developer 커밋 뒤에 얹으면 기본쌍의 두 리비전은
+# 다르지만 요약을 만드는 코드는 같다. 그 쌍의 "영향 0" 은 재서 얻은 것이 아니라 정의상 참이다.
+#
+# **산출 코드는 두 리비전 각각에서 도출한다.** 시작점은 그 리비전에서 `trimmedContents` 를
+# 정의한 모듈이고(경로를 박지 않는다 — 함수가 옮겨 갈 수 있다), 거기서 정적 import 폐포를
+# 따라간다. 동일 판정은 (경로, blob) 쌍 전체의 일치다 — 경로 이름 목록·`src/` diff·커밋 메시지
+# 접두로 하지 않는다. 패키지 import 는 따라가지 않는다 — 두 트리가 같은 `node_modules` 를 쓴다.
+PRODUCING="$TMP_DIR/producing-code.cjs"
+cat > "$PRODUCING" <<'CJS'
+'use strict';
+// 한 리비전의 요약 산출 코드 — 줄 = "<경로> <blob>" (정렬) · 풀지 못한 import = "? <importer> <spec>".
+// 정의 모듈을 못 찾으면 아무것도 쓰지 않는다. 판정(공집합·동일)은 bash 쪽 한 함수가 내린다.
+const { execFileSync } = require('node:child_process');
+const posix = require('node:path').posix;
+
+const sha = process.argv[2];
+const git = (args) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+
+const tree = new Map();
+for (const entry of git(['ls-tree', '-r', '-z', '--full-tree', sha]).split('\0')) {
+	const m = /^\d+ blob ([0-9a-f]+)\t([\s\S]+)$/.exec(entry);
+	if (m) tree.set(m[2], m[1]);
+}
+const read = (p) => git(['cat-file', 'blob', tree.get(p)]);
+
+// 시작점: `trimmedContents` 를 정의한 production 모듈 (테스트·선언 파일 제외).
+const SOURCE = /\.(?:ts|tsx|js|jsx|mjs|cjs|mts|cts)$/;
+const NOT_PRODUCTION = /(?:^|\/)__tests__\/|\.(?:test|spec)\.[^/]+$|\.d\.ts$/;
+let listed = '';
+try {
+	listed = git(['grep', '-l', '-z', '-E',
+		'export[[:space:]]+((async[[:space:]]+)?function|const|let|var)[[:space:]]+trimmedContents([^[:alnum:]_$]|$)',
+		sha, '--', 'src']);
+} catch (e) {
+	if (e.status !== 1) throw e;   // git grep rc=1 = 일치 없음
+}
+const starts = listed.split('\0').filter(Boolean)
+	.map((s) => s.slice(s.indexOf(':') + 1))
+	.filter((p) => SOURCE.test(p) && !NOT_PRODUCTION.test(p) && tree.has(p));
+
+// 경로 별칭은 그 리비전의 tsconfig `paths` 에서 도출한다.
+const aliases = [];
+if (tree.has('tsconfig.json')) {
+	try {
+		const opts = JSON.parse(read('tsconfig.json')).compilerOptions || {};
+		const baseDir = opts.baseUrl ? posix.normalize(opts.baseUrl) : '.';
+		for (const [key, targets] of Object.entries(opts.paths || {})) {
+			aliases.push({ key, star: key.indexOf('*'), targets: targets.map((t) => posix.join(baseDir, t)) });
+		}
+	} catch {
+		// 주석·꼬리 쉼표가 든 tsconfig — 별칭 없이 상대 import 만 따라간다.
+	}
+}
+const aliasTargets = (spec) => {
+	for (const a of aliases) {
+		if (a.star < 0) {
+			if (spec === a.key) return a.targets;
+			continue;
+		}
+		const pre = a.key.slice(0, a.star);
+		const suf = a.key.slice(a.star + 1);
+		if (spec.length >= pre.length + suf.length && spec.startsWith(pre) && spec.endsWith(suf)) {
+			const mid = spec.slice(pre.length, spec.length - suf.length);
+			return a.targets.map((t) => t.replace('*', mid));
+		}
+	}
+	return null;
+};
+
+const EXT = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.mts', '.cjs', '.cts', '.json'];
+const resolveFile = (p) => {
+	const cands = [p, ...EXT.map((e) => p + e)];
+	const js = /\.[cm]?jsx?$/.exec(p);
+	if (js) {
+		const stem = p.slice(0, -js[0].length);
+		cands.push(stem + '.ts', stem + '.tsx', stem + '.mts', stem + '.cts');
+	}
+	cands.push(...EXT.map((e) => p + '/index' + e));
+	return cands.find((c) => tree.has(c));
+};
+
+const IMPORT = /(?:\bfrom|\bimport|\brequire)\s*\(?\s*(['"])([^'"\n]+)\1/g;
+const seen = new Set(starts);
+const queue = [...starts];
+const unresolved = new Set();
+while (queue.length > 0) {
+	const file = queue.shift();
+	for (const m of read(file).matchAll(IMPORT)) {
+		const spec = m[2].replace(/[?#].*$/, '');
+		const relative = spec === '.' || spec === '..' || spec.startsWith('./') || spec.startsWith('../');
+		const cands = relative ? [posix.join(posix.dirname(file), spec)] : aliasTargets(spec);
+		if (!cands) continue;
+		const hit = cands.map(resolveFile).find(Boolean);
+		if (!hit) {
+			unresolved.add(`? ${file} ${m[2]}`);
+			continue;
+		}
+		if (!seen.has(hit)) {
+			seen.add(hit);
+			queue.push(hit);
+		}
+	}
+}
+const out = [...seen].sort().map((p) => `${p} ${tree.get(p)}`);
+out.push(...[...unresolved].sort());
+if (out.length > 0) process.stdout.write(out.join('\n') + '\n');
+CJS
+
+derive_producing_code() {   # $1 = sha · $2 = 출력 파일
+	node "$PRODUCING" "$1" > "$2" 2>"$2.err"
+}
+
+producing_modules() {   # 도출된 모듈 수 ("? " 줄 제외)
+	local n
+	n="$(grep -vc '^? ' "$1")"
+	echo "${n:-0}"
+}
+
+# **판정은 한 곳에서만 내린다** (`population_verdict` 와 같은 원칙). 아래 함수가 유일한
+# 산출 코드 판정이고 자가 확인과 실제 판정이 같은 함수를 부른다.
+producing_code_verdict() {   # rc 2 = 무판정(도출 공집합 · 산출 코드 동일) · rc 0 = 측정 가능
+	if [ "$(producing_modules "$1")" -lt 1 ] || [ "$(producing_modules "$2")" -lt 1 ]; then
+		return 2
+	fi
+	if cmp -s "$1" "$2"; then
+		return 2
+	fi
+	return 0
+}
+
+PC_BASE="$TMP_DIR/producing.base"
+PC_HEAD="$TMP_DIR/producing.head"
+PC_SELF="$TMP_DIR/producing.self"
+for pair in "$PC_BASE:$BASE_SHA" "$PC_HEAD:$HEAD_SHA" "$PC_SELF:$BASE_SHA"; do
+	if ! derive_producing_code "${pair##*:}" "${pair%:*}"; then
+		echo "check-summary-drift: 무판정 — ${pair##*:} 에서 요약 산출 코드를 도출하지 못했다" >&2
+		tail -3 "${pair%:*}.err" >&2 2>/dev/null
+		exit 2
+	fi
+done
+
+# ── (8 실효) 동일 판정 경로 자가 확인 ────────────────────────────────────────
+# 같은 리비전을 두 번 도출해 넣으면 rc=2, 산출 코드가 다르면 rc=0, 둘 다 비면 rc=2 여야 한다.
+# 이 확인이 없으면 판정 함수가 늘 0 을 돌려도 채널은 "영향 0" 을 계속 낸다.
+printf 'self-check/a.ts 1111111111111111111111111111111111111111\n' > "$TMP_DIR/producing.diff-a"
+printf 'self-check/a.ts 2222222222222222222222222222222222222222\n' > "$TMP_DIR/producing.diff-b"
+: > "$TMP_DIR/producing.empty"
+producing_code_verdict "$PC_BASE" "$PC_SELF"
+if [ "$?" -ne 2 ]; then
+	echo "check-summary-drift: 무판정 — 산출 코드 동일 판정이 살아 있지 않다 (같은 리비전을 두 번 넣었는데 통과했다)" >&2
+	exit 2
+fi
+producing_code_verdict "$TMP_DIR/producing.diff-a" "$TMP_DIR/producing.diff-b"
+if [ "$?" -ne 0 ]; then
+	echo "check-summary-drift: 무판정 — 산출 코드 동일 판정이 과잉이다 (다른 산출 코드를 넣었는데 막았다)" >&2
+	exit 2
+fi
+producing_code_verdict "$TMP_DIR/producing.empty" "$TMP_DIR/producing.empty"
+if [ "$?" -ne 2 ]; then
+	echo "check-summary-drift: 무판정 — 산출 코드 공집합 판정이 살아 있지 않다 (0 모듈을 같다로 읽었다)" >&2
+	exit 2
+fi
+
+PC_BASE_N="$(producing_modules "$PC_BASE")"
+PC_HEAD_N="$(producing_modules "$PC_HEAD")"
+producing_code_verdict "$PC_BASE" "$PC_HEAD"
+if [ "$?" -ne 0 ]; then
+	if [ "$PC_BASE_N" -lt 1 ] || [ "$PC_HEAD_N" -lt 1 ]; then
+		echo "check-summary-drift: 무판정 — 요약 산출 코드 도출이 공집합이다 (base=${BASE_SHA:0:7} head=${HEAD_SHA:0:7})" >&2
+		echo "  trimmedContents 를 정의한 모듈을 찾지 못했다 — base producing-modules=$PC_BASE_N · head producing-modules=$PC_HEAD_N" >&2
+	else
+		echo "check-summary-drift: 무판정 — 두 리비전의 요약 산출 코드가 같다 (base=${BASE_SHA:0:7} head=${HEAD_SHA:0:7})" >&2
+		echo "  산출 코드 동일: trimmedContents 정의 모듈과 정적 import 폐포의 (경로, blob) 전부 일치 · producing-modules=$PC_HEAD_N" >&2
+		echo "  리비전이 달라도 산출 코드가 같으면 차집합은 정의상 공집합이다 (항진명제) — 산출 코드를 바꾼 쌍을 지정하라." >&2
+	fi
 	exit 2
 fi
 
@@ -245,6 +428,7 @@ if [ "$DIVERGED" = "?" ]; then
 fi
 
 echo "check-summary-drift: base=${BASE_SHA:0:7} head=${HEAD_SHA:0:7} corpus=$CORPUS_N diverged=$DIVERGED"
+echo "  산출 코드 다름 (측정) — base producing-modules=$PC_BASE_N · head producing-modules=$PC_HEAD_N"
 
 if [ "$DIVERGED" -eq 0 ]; then
 	# 침묵과 구별되는 **명시적 영향 0**. 모집단 수가 함께 찍히므로 "잴 것이 없어서 0" 과
