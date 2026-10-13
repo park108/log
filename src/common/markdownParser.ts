@@ -177,6 +177,77 @@ export const stripHeadingClosingSequence = (content: string): string => {
 	return text;
 }
 
+// 펜스 코드 블록의 여는 펜스.
+interface CodeFence {
+	char: string;   // '`' 또는 '~'
+	length: number; // 펜스 문자 개수 (3 이상)
+	indent: number; // 여는 펜스 앞 공백 칸 수 (0~3)
+	info: string;   // 정보 문자열 (앞뒤 공백 제외) — 언어 표기로 쓴다
+}
+
+// 펜스 줄 하나. 앞 공백 0~3칸 · 같은 문자 3개 이상 · 나머지. 여는 줄과 닫는 줄이
+// **이 정규식 하나**를 공유한다 — 사본을 두면 여는 쪽과 닫는 쪽이 조용히 갈린다.
+// 나머지를 `.` 이 아니라 `[\s\S]` 로 받는 것은 줄 끝 `\r` 때문이다.
+const FENCE_LINE = /^( {0,3})(`{3,}|~{3,})([\s\S]*)$/;
+
+// 물결 펜스의 정보 문자열은 비었거나 **언어 이름 꼴**이어야 한다.
+//
+// CommonMark 는 제한하지 않는다. 그러나 정보 문자열은 화면에 나가지 않으므로,
+// 표준대로면 한국어 늘임 표기로 시작하는 산문 줄(`~~~ 그렇구나`)이 통째로 사라지고
+// 닫는 펜스가 없으면 문서 끝까지가 코드가 된다.
+const TILDE_FENCE_INFO = /^[A-Za-z]\S*$/;
+
+// 펜스 판정 — 여는 줄. 펜스면 그 모양을, 아니면 null 을 돌려준다.
+//
+// 이전 판정은 "trim 한 줄의 앞 3자가 백틱" 이었다. 그래서 들여쓰기 깊이와 무관하게
+// 열렸고, 닫는 줄은 여는 펜스 길이와 무관하게 정확히 백틱 3개였으며, 물결 펜스는
+// 인식하지 않았고, 정보 문자열에 백틱이 있어도 열렸다 — `` ```인라인``` 문장 `` 한
+// 줄이 문서 끝까지를 코드로 만들고 그 줄의 글자는 언어 자리라 화면에 나가지 않았다.
+//
+// **줄 문자열 하나만 받는다.** 인용·목록 항목 안에서도 같은 판정을 부르기 때문이다
+// — 최상위 패스의 상태(노드 배열 위치 등)에 묶이면 그쪽에서 사본을 만들게 된다.
+const codeFenceOpening = (line: string): CodeFence | null => {
+
+	const match = FENCE_LINE.exec(line);
+	if(null === match) return null;
+
+	const run = match[2] as string;
+	const char = run.charAt(0);
+	const info = (match[3] as string).trim();
+
+	// 백틱 펜스의 정보 문자열에 백틱이 있으면 펜스가 아니다 — 인라인 코드다.
+	if('`' === char && info.includes('`')) return null;
+
+	if('~' === char && "" !== info && !TILDE_FENCE_INFO.test(info)) return null;
+
+	return { char, length: run.length, indent: (match[1] as string).length, info };
+}
+
+// 펜스 판정 — 닫는 줄. 여는 펜스와 **같은 문자**이고 **개수가 같거나 많으며**
+// 뒤에 공백밖에 없는 펜스 줄만 닫는다. 그보다 짧거나 다른 문자의 펜스 줄은
+// 코드 내용이다 — 코드 블록 안에 펜스를 적어 보이려면 바깥 펜스를 길게 쓴다.
+const closesCodeFence = (fence: CodeFence, line: string): boolean => {
+
+	const match = FENCE_LINE.exec(line);
+	if(null === match) return false;
+
+	const run = match[2] as string;
+
+	return fence.char === run.charAt(0)
+		&& run.length >= fence.length
+		&& "" === (match[3] as string).trim();
+}
+
+// 펜스 안 내용 줄. 여는 펜스가 N칸 들여쓰여 있으면 각 줄에서 **최대** N칸 걷는다
+// — 그보다 깊은 들여쓰기는 코드의 것이다.
+const codeFenceContent = (fence: CodeFence, line: string): string => {
+
+	let strip = 0;
+	while(strip < fence.indent && ' ' === line.charAt(strip)) strip++;
+
+	return line.substring(strip);
+}
+
 interface ParsedNode {
 	type: string;
 	text: string;
@@ -238,51 +309,47 @@ export const markdownToHtml = (rawInput: string): string => {
 		parsed.push({type: "value", text: input.substring(prev, input.length), closure: ""});
 	}
 
-	// pre
+	// pre — 펜스 판정은 `codeFenceOpening` · `closesCodeFence` 가 진다.
 	let index = 0;
-	let isPreStarted = false;
-	let language = "";
+	let fence: CodeFence | null = null;
 	for(let node of parsed) {
 
-		if("value" === node.type
-			&& "" === node.closure
-			&& 2 < node.text.trim().length
-			&& "```" === node.text.trim().substr(0, 3)
-			&& !isPreStarted) {
+		const opening: CodeFence | null = (null === fence && "value" === node.type && "" === node.closure)
+			? codeFenceOpening(node.text) : null;
+
+		if(null !== opening) {
 
 			parsed.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre"});
-			
-			language = node.text.trim().substr(3).trim();
-			
-			isPreStarted = true;
+
+			fence = opening;
 		}
-		else if("value" === node.type
+		else if(null !== fence
+			&& "value" === node.type
 			&& "" === node.closure
-			&& 3 === node.text.trim().length
-			&& "```" === node.text.trim().substr(0, 3)
-			&& isPreStarted) {
+			&& closesCodeFence(fence, node.text)) {
 
 			parsed.splice(index, 1, {type: "tag", text: "</pre>", closure: "pre"});
-			
-			isPreStarted = false;
+
+			fence = null;
 		}
-		else if(isPreStarted) {
+		else if(null !== fence) {
 
 			// 코드 블록도 사용자 글자다. escape 하지 않으면 `List<String>` 이
 			// sanitize 단계에서 미지의 태그로 삭제돼 `List` 만 남았다 (실측).
 			// 강조기가 <span> 을 넣으므로 **넘기기 전에** escape 한다.
-			node.text = codeHighlighter(language, escapeHtmlText(node.text));
+			// 물결 펜스도 같은 강조기 경로를 탄다 — 언어 표기는 펜스 문자와 무관하다.
+			node.text = codeHighlighter(fence.info, escapeHtmlText(codeFenceContent(fence, node.text)));
 
 			parsed.splice(index, 1
 				, {type: "value", text: node.text + "<br />", closure: "pre"});
 		}
-		
+
 		index++;
 	}
-	if(isPreStarted) {
+	if(null !== fence) {
 		parsed.push({type: "tag", text: "</pre>", closure: "pre"});
 
-		isPreStarted = false;
+		fence = null;
 	}
 	// 밑줄식(setext) 제목. 문단 바로 밑에 `-` 또는 `=` 만으로 이뤄진 줄이 오면
 	// 그 문단이 제목이다 (CommonMark 0.31.2 §4.3).
