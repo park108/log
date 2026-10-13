@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-cross-clause.test.ts` · `markdown-list-item-tab-indent.test.ts` · `markdown-list-item-open-items.test.ts` · `markdown-list-item-blockquote-blocks.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-cross-clause.test.ts` · `markdown-list-item-tab-indent.test.ts` · `markdown-list-item-open-items.test.ts` · `markdown-list-item-blockquote-blocks.test.ts` · `markdown-list-item-fence-lines.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -45,6 +45,7 @@
 21. **펜스 코드 블록은 여는 펜스의 문자·길이로 닫히고, 펜스 줄의 글자를 삼키지 않는다.** 펜스는 백틱 또는 물결 **3개 이상**이고 0~3칸 들여쓸 수 있다 (4칸 이상이면 펜스가 아니다). 닫는 펜스는 여는 펜스와 **같은 문자**이고 **개수가 같거나 많다** — 그보다 짧거나 다른 문자의 펜스 줄은 코드 내용으로 보인다. 여는 펜스가 N칸 들여쓰여 있으면 내용 각 줄에서 최대 N칸 걷힌다. 물결 펜스의 언어 표기와 하이라이트는 백틱 펜스와 같다 (`~~~kotlin` 의 산출 ≡ `` ```kotlin `` 의 산출). 펜스 판정은 파서 안에 하나이고 인용(3)·목록 항목(19) 안에서도 같은 판정을 부른다.
     - **펜스가 아닌 줄**: 백틱 펜스의 정보 문자열에 백틱이 있으면 그 줄은 문단이다 — `` ```인라인``` 문장\n다음 줄 `` → `pre` 0 · `code` 1(`인라인`) · `문장` 과 `다음 줄` 이 보인다. 물결 펜스는 정보 문자열이 비었거나 **언어 이름 꼴**(ASCII 영문으로 시작, 공백 없음)일 때만 펜스다 — `~~~ 그렇구나\n다음 줄` 은 문단이고 두 줄의 글자가 모두 보인다.
     - **CommonMark 와 갈리는 지점이다.** 표준은 물결 펜스의 정보 문자열을 제한하지 않는다. 그런데 정보 문자열은 화면에 나가지 않으므로, 표준대로면 한국어 늘임 표기(`~~~`)로 시작하는 산문 줄이 통째로 사라지고 닫는 펜스가 없으면 문서 끝까지가 코드가 된다. 줄 가운데의 `아~~~ 그렇구나` (10·13) 는 무관하며 산출 불변이다.
+    - **목록 항목 안 펜스 코드 블록의 줄은 항목의 내용 열과 무관하게 다른 블록 판정을 받지 않는다** (9). 여는 펜스 줄부터 닫는 펜스 줄까지 밑줄식 제목·가로줄·표·인용·목록이 되지 않고, 하나의 `li > pre` 로 각 줄 텍스트가 보존되며, 그 뒤 같은 종류 마커는 같은 목록을 잇는다 (19). `10. 설정\n    ```yaml\n    a: 1\n    ---\n    b: 2\n    ```\n11. 다음` → `ol` 1 · `li pre` 1 · `h2` 0 · `pre` 텍스트 세 줄 `a: 1`·`---`·`b: 2`. 같은 자리에 `---` 한 줄만 두거나 `a | b\n--|--` 두 줄을 두어도 `hr` 0 · `table` 0 · `h2` 0 이다. 내용 열 3 이하 항목(`1. `)의 같은 입력은 지금도 그렇고 산출이 바뀌지 않는다.
     - 예: `` ````\n```js\ncode\n```\n```` `` → `pre` 1 · 코드 내용 세 줄(`` ```js `` · `code` · `` ``` ``). `~~~\ncode\n~~~` → `pre` 1 · 렌더 텍스트에 `~` 0. `` ```\na\n```` `` → `pre` 1 · 텍스트 `a` · 백틱 0.
 
 22. **표 구분선의 정렬 표기는 그 열의 정렬로 보인다.** 구분선 셀 `:--` → 왼쪽, `:-:` → 가운데, `--:` → 오른쪽이고, 그 열의 `th` 와 모든 `td` 가 **열 위치로** 대응한다 (본문 행의 셀 수가 머리 행과 달라도). 표기 없는 열(`---`)의 셀에는 속성이 없고, 정렬 표기가 하나도 없는 표의 산출은 바뀌지 않는다 — `| 이름 | 값 |\n|---|---|\n| a | 1 |` 그대로. **정제 정책은 넓히지 않는다** (`sanitizeHtml` (I15) — `style`·`align` 부재). 정렬 표지는 정제 전후 같은 `class` 로 남는다.
@@ -102,6 +103,7 @@
 - [ ] 탭 들여쓰기의 내용 열 (19 탭 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-tab-indent.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 두 예(`li pre` 1 · 백틱 0 / `ul` 1 · `li` 2)와 최상위 탭 펜스 `pre` 0 을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 `li pre` 0 · 백틱 4 / `ul` 2 / `pre` 0.
 - [ ] 열린 항목의 열 (19 열린 항목 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-open-items.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 예 셋(문단 · 펜스 · 3단 복귀)과 대조 둘(`1. a\n\n   본문\n2. c` · 빈 줄 없는 이어짐 — 산출 불변)을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 첫 예 `ol` 2 · `   본문` 앞 공백 3.
 - [ ] 항목 안 인용의 블록 문법 (3 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-blockquote-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 세 예(펜스는 앞 빈 줄 유무 두 변형 — `- a\n\n  > ```\n  > x\n  > ```\n- b`)와 대조 둘(줄 머리 인용 펜스 · `- a\n  > 인용문` 산출 불변)을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 `li blockquote pre` 0 · 백틱 4 / `h1` 0 / `li` 0.
+- [ ] 항목 안 펜스 줄 보호 (21 항목 안 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-fence-lines.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 세 입력(`---` 를 담은 yaml · `---` 한 줄 · 표 꼴 두 줄)과 `1. ` 대조 둘, 최상위 `제목\n---` → `h2` 불변을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 첫 입력 `ol` 2 · `h2` 1.
 - [x] 번호 목록 첫 번호 (20): `bash -c 'npx vitest run src/__tests__/markdown-ordered-list-start.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (파일 부재). 판정은 정제를 거친 DOM 의 `ol.getAttribute("start")` 다.
 - [x] 정합 corpus 에 첫 번호가 1 이 아닌 번호 목록 행 (18): `bash -c 'f=src/__tests__/parser-sanitizer-coherence.test.ts; rows=$(perl -0777 -ne "print \$1 if /const corpus[^=]*=\s*\[(.*?)\n\];/s" "$f"); test -n "$rows" || exit 2; echo "$rows" | grep -qE "[\"'\''](0|[2-9]|[1-9][0-9]+)\. "'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-03 `84fc6e1`). HEAD=`e1abfdd` rc=1 (번호 목록 행은 `1. 하나\n2. 둘` 하나뿐).
 - [x] 펜스 문자·길이·정보 문자열 (21): `bash -c 'npx vitest run src/__tests__/markdown-code-fence.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`bea3a3b` rc=0 (TSK-20261013-01 `9d05900`). HEAD=`e1abfdd` rc=1 (파일 부재). 21 의 예 전부 · 펜스가 아닌 줄 둘 · 물결 펜스 하이라이트 동치를 잰다.
@@ -128,6 +130,7 @@
 | 2026-10-13 | REQ-20261013-100 / — | 19 에 탭 하위 항목 — 줄 머리 탭은 4칸 탭 정지로 센다 (귀속 판정·코드 블록 걷기 한 셈). 마커 줄 중첩 깊이와 최상위 탭 펜스는 불변 | 동작 19 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-103 / — | 19 에 열린 항목 하위 항목 — 열린 항목은 감싸는 마커 줄들의 열이고, 빈 줄·코드 블록 뒤 블록은 닿는 가장 깊은 항목에 귀속. 빈 줄 없는 이어짐(5)은 불변 | 동작 19 · 수용 기준 · 참고 |
 | 2026-10-13 | REQ-20261013-101 / — | 3 에 하위 항목 — 목록 항목 안 인용도 줄 머리 인용과 같은 블록 판정 함수를 부른다 (펜스·ATX 제목·목록) | 동작 3 · 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-104 / — | 21 에 하위 항목 — 항목 안 펜스 코드 블록의 줄은 내용 열과 무관하게 밑줄식 제목·가로줄·표·인용·목록이 되지 않는다. FR-04 (최상위 4칸 들여쓴 밑줄·가로줄) 는 비채택 — §미측정 에 사유 | 동작 21 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -161,6 +164,7 @@
 ### 미측정·비판정 항목
 
 - 저장된 요약과 현 파서 산출의 불일치 — 회복은 저장소 밖(재저장·서버 일괄 재계산)이며 `summary-derivation` (5)(6) 과 `check:summary-drift` 가 측정 채널을 소유한다. 19 이후 신설 항은 전부 파서 산출을 바꾸므로 그 채널의 소비자다.
+- 최상위에서 4칸 이상 들여쓴 밑줄·가로줄(`a\n    ---` → `h2` · `    ---` → `hr`)은 지금 동작을 유지하고 계약하지 않는다. CommonMark 은 둘 다 밑줄·가로줄로 보지 않는다 (§4.1·§4.3). 그러나 들여쓴 코드 블록이 미구현인 이 파서에서 그 판정만 빼면 `    ---` 가 가로줄도 코드도 아닌 글자 문단이 된다 — 표준과도 현 동작과도 다른 제3의 산출이다 (REQ-20261013-104 FR-04 Could 비채택).
 - 19 의 열린 항목 규칙은 빈 줄 또는 코드 블록 **뒤**의 블록만 정한다. 빈 줄 없이 이어지는 펜스가 안쪽 항목의 내용 열에 못 미칠 때(`1. a\n   - b\n   ```…`) 어느 항목에 붙는지는 이 문면이 정하지 않는다 (CommonMark 은 바깥 항목).
 - 19 의 탭 셈에서 탭 정지 가운데에서 걷히는 탭(내용 열이 탭의 4칸 안에 떨어지는 경우)의 남은 칸이 코드 내용에 공백으로 남는지 탭으로 남는지는 계약하지 않는다. 계약은 내용 열까지가 걷히고 그 너머가 남는다는 것(9)이다.
 - 목록 항목 안 `<p>` 감싸기(tight/loose 구별)는 계약하지 않는다 — 이 파서는 줄=문단 모델이다. 항목 안의 표·제목도 19 의 대상이 아니다 (항목 안 **인용** 안의 제목·목록·펜스는 3 이 정한다). 인용 안 목록 항목 안 인용 같은 3단 이상 교차 중첩과 인용 안 표는 계약하지 않는다.
