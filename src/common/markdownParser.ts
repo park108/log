@@ -271,6 +271,36 @@ const applySetextHeading = (nodes: ParsedNode[]): ParsedNode[] => {
 	return nodes;
 };
 
+// 가로줄(hr) 판정 본체. **최상위와 인용 내용이 이 함수 하나를 공유한다.**
+//
+// 이전에는 정확히 3자인 `---` 만 인식했다. CommonMark 는 `-` · `*` · `_` 세 문자
+// 모두를 **3개 이상** 반복하면 수평선으로 규정한다. 그래서 `***` 는 수평선이
+// 되지 못한 채 emphasis 파서에 걸려 `<em></em>*` 라는 깨진 출력을 냈다
+// (실측 2026-08-30). `___` 도 같은 부류였다.
+//
+// 최상위 패스 안의 루프였던 동안 인용 안의 `> ***` 는 별표 세 개로 독자에게 보였다 —
+// 이 판정은 인용 패스보다 먼저 도는데 그때 인용 줄은 아직 `> ***` 라 맞지 않고,
+// 인용 패스가 내용을 다시 세울 때는 펜스·밑줄식 제목만 다시 불렀다. 그래서 같은
+// 함수로 올려 인용 패스가 한 번 더 부른다 (`applySetextHeading` 과 같은 원리).
+// 밑줄식 제목보다 **뒤에** 부른다 — 먼저 부르면 `제목\n---` 의 밑줄이 가로줄이 된다.
+const applyThematicBreak = (nodes: ParsedNode[]): ParsedNode[] => {
+
+	let index = 0;
+	for(const node of nodes) {
+
+		if("value" === node.type
+			&& "" === node.closure
+			&& THEMATIC_BREAK_PATTERN.test(node.text.trim())) {
+
+			nodes.splice(index, 1
+				, {type: "tag", text: "<hr />", closure: "hr"});
+		}
+		index++;
+	}
+
+	return nodes;
+};
+
 // 제목의 닫는 `#` 시퀀스는 표기이지 제목 글자가 아니다 (CommonMark 0.31.2 §4.2).
 //
 // 제목 패스가 여는 쪽만 보던 동안 `## 제목 ##` 은 `제목 ##` 을 화면에 남겼다 —
@@ -732,24 +762,8 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 	// 도는 축소판 판정을 만들면 그 둘이 조용히 갈린다.
 	parsed = applySetextHeading(parsed);
 
-	// hr
-	//
-	// 이전에는 정확히 3자인 `---` 만 인식했다. CommonMark 는 `-` · `*` · `_` 세 문자
-	// 모두를 **3개 이상** 반복하면 수평선으로 규정한다. 그래서 `***` 는 수평선이
-	// 되지 못한 채 emphasis 파서에 걸려 `<em></em>*` 라는 깨진 출력을 냈다
-	// (실측 2026-08-30). `___` 도 같은 부류였다.
-	index = 0;
-	for(const node of parsed) {
-
-		if("value" === node.type
-			&& "" === node.closure
-			&& THEMATIC_BREAK_PATTERN.test(node.text.trim())) {
-
-			parsed.splice(index, 1
-				, {type: "tag", text: "<hr />", closure: "hr"});
-		}
-		index++;
-	}
+	// hr — 판정 본체는 `applyThematicBreak` 다. 인용 내용이 같은 함수를 부른다.
+	parsed = applyThematicBreak(parsed);
 
 	// blockquote — **연달아 붙은 인용 줄은 한 덩어리다.**
 	//
@@ -806,9 +820,11 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 
 		// 펜스 코드 블록을 밑줄식 제목보다 **먼저** 세운다 — 최상위 순서와 같다.
 		// 코드 안의 `---` 가 앞 줄을 제목으로 만들면 안 된다. 세워진 `pre` 노드는
-		// 아래 루프에서 블록 갈래로 그대로 실린다.
+		// 아래 루프에서 블록 갈래로 그대로 실린다. 가로줄은 밑줄식 제목 **뒤**다 —
+		// `> 제목\n> ---` 는 제목이고, 코드 안의 `---` 는 가로줄이 아니다.
 		applyCodeFence(inner);
 		applySetextHeading(inner);
+		applyThematicBreak(inner);
 
 		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
 		let previousWasPlain = false;
