@@ -293,6 +293,9 @@ interface ParsedNode {
 	// 열을 걷은 줄로 다시 판정해야 하는데, 최상위 펜스 패스는 목록을 모른 채
 	// 먼저 돌므로 원래 줄을 들고 있어야 되돌릴 수 있다.
 	source?: string;
+	// 번호 목록 항목의 마커 번호 (10진 정규화한 숫자 문자 — `003.` → `3`).
+	// `bindListItem` 이 목록을 여는 자리에서 첫 항목의 이 값으로 `start` 를 정한다.
+	ordinal?: string;
 }
 
 // 빈 줄 노드 — 공백·탭만 있는 줄을 포함한다. 코드 블록 안의 줄(`closure: "pre"`)은
@@ -950,8 +953,13 @@ export const markdownToHtml = (rawInput: string): string => {
 					}
 					else if(isDot && ' ' === stripped.charAt(i)) {
 
+						// 마커 번호는 점 앞의 숫자들이다. 앞자리 0 은 걷는다 (`003` → `3` ·
+						// `0` → `0`). 수로 바꾸지 않고 문자로 걷는 것은 큰 번호가 지수
+						// 표기로 바뀌지 않게 하기 위해서다 — 값은 숫자 문자만 담는다.
+						const ordinal = stripped.substring(0, i - 1).replace(/^0+(?=[0-9])/, "");
+
 						parsed.splice(index, 1,
-							{type: "tag", text: "<li>", itemOf: "ol", depth: depth}
+							{type: "tag", text: "<li>", itemOf: "ol", depth: depth, ordinal: ordinal}
 							// `i` 는 마커 뒤 공백의 자리다. 그 공백은 **표기이지 내용이 아니므로**
 							// 건너뛴다 — `substring(i)` 로 두면 원문에 없는 공백 한 칸이 항목
 							// 본문 앞에 생긴다 (`1. 하나` → `<li> 하나`). 글머리 목록은 위
@@ -1450,8 +1458,18 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 
 	// 여닫는 태그에도 깊이를 박제한다 — 상대 종류 패스가 "이 목록이 내 항목보다
 	// 깊은가" 를 판정하는 유일한 단서다.
-	const openList = (d: number) => {
-		output.push({type: "tag", text: openTag, itemOf: tagName, depth: d});
+	//
+	// `first` 는 이 목록을 여는 항목(`<li>`)이다. 번호 목록은 **첫 항목의 번호**
+	// 부터 보여야 하므로 그 번호가 1 이 아니면 여는 태그에 `start` 를 싣는다
+	// (spec `markdown-rendering` §20). 1 이면 싣지 않는다 — 산출이 종전 그대로다.
+	// 둘째 항목 이후의 번호는 쓰지 않는다. 목록은 깊이마다 이 자리에서 열리므로
+	// 중첩 번호 목록도 자기 첫 번호를 따른다.
+	const openList = (d: number, first: ParsedNode) => {
+		const start = first.ordinal;
+		const text = (undefined !== start && "1" !== start)
+			? "<" + tagName + " start=\"" + start + "\">"
+			: openTag;
+		output.push({type: "tag", text: text, itemOf: tagName, depth: d});
 		depthStack.push(d);
 	};
 
@@ -1512,7 +1530,7 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 			if(depthStack.length === 0) {
 				// Starting a fresh list.
 				flushOwedCloseLi();
-				openList(d);
+				openList(d, node);
 			}
 			else if(d > top()) {
 				if(owedCloseLi) {
@@ -1520,13 +1538,13 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 					// 들어오는 3단계 교대 중첩은 어느 계약도 소유하지 않는다
 					// (범위 밖). 빚을 갚고 평탄하게 분기해 균형만 지킨다.
 					flushAll();
-					openList(d);
+					openList(d, node);
 				}
 				else {
 					// Nest deeper: keep the previous item's </li> suppressed so
 					// the new <tagName> lives inside that still-open <li>.
 					pendingCloseLi = null;
-					openList(d);
+					openList(d, node);
 				}
 			}
 			else if(d === top()) {
@@ -1547,7 +1565,7 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 				}
 				if(depthStack.length === 0) {
 					// Fell below the outermost: begin a new top-level list.
-					openList(d);
+					openList(d, node);
 				}
 			}
 

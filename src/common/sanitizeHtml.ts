@@ -15,7 +15,7 @@ const ALLOWED_TAGS = [
 	'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ];
 
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'target', 'rel', 'class'];
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'target', 'rel', 'class', 'start'];
 
 // http/https/mailto/상대경로/프래그먼트만 통과. javascript:/data:/vbscript: 차단.
 //
