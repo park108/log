@@ -776,7 +776,8 @@ export const HIGHLIGHT_CLASS = "span--logitem-changed";
 // 표시했다가 모든 인라인 패스가 끝난 뒤 태그로 되돌린다.
 //
 // 항목 안 인용은 표식으로 잇지 않는다 — 블록 판정을 받아야 하므로 노드로 세운다
-// (이어짐 패스의 `quoteBlocks` 호출).
+// (이어짐 패스의 `quoteBlocks` 호출). 인용 안의 블록 없는 줄들은 이 표식으로 잇는다 —
+// 줄을 건너는 인라인 판정이 항목 이어짐과 같아야 한다 (spec `markdown-rendering` §26).
 const ITEM_BREAK = "\uE004";
 
 // 블록 패스 — 원문을 줄로 나눠 코드 블록 · 밑줄식 제목 · 가로줄 · 인용 · 표 · 목록 ·
@@ -924,8 +925,16 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 				// 블록이 없는 줄들은 종전대로 한 덩어리 안에서 `<br />` 로 이어진다.
 				// **이 자리가 (I5) 다** — 줄마다 블록 판정을 붙이는 구현이 정확히
 				// 여기서 평탄 인용을 쪼갠다.
-				if(previousWasPlain) replacement.push({type: "tag", text: "<br />"});
-				replacement.push({type: "value", text: node.text, closure: "blockquote"});
+				//
+				// 줄은 항목 이어짐과 **같은 표식**(`ITEM_BREAK`)으로 한 값 노드에 잇는다
+				// (spec `markdown-rendering` §26). 인라인 패스는 노드마다 도므로 줄마다
+				// 노드를 두고 `<br />` 태그 노드를 끼우던 동안 줄을 건너는 스팬·강조·링크의
+				// 짝이 다른 노드에 있어 표기 글자가 남았다 (`> *b\n> c*` → `*b<br>c*`).
+				// 표식은 모든 인라인 패스 뒤에 `<br />` 로 되돌아가므로 줄 사이 `<br>` 은
+				// 그대로다.
+				const last = replacement[replacement.length - 1] as ParsedNode;
+				if(previousWasPlain) last.text += ITEM_BREAK + node.text;
+				else replacement.push({type: "value", text: node.text, closure: "blockquote"});
 				previousWasPlain = true;
 			}
 			else if(isQuoteLine(node)) {
@@ -1627,6 +1636,18 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 런이 없는 여는 런은 셋째 갈래가 런째 글자로 소비한다 — 그래야 다음 위치가 그
 	// 런의 둘째 백틱이 되지 않고 런 뒤 텍스트부터 다시 스캔된다. 내용이 공백으로
 	// 시작하고 끝나며 공백만이 아니면 앞뒤 한 칸씩 걷는다 (`` `` `x` `` `` → `` `x` ``).
+	//
+	// 줄을 건너는 스팬(항목 이어짐 · 인용 줄)의 줄 끝은 **걷기 전에** 공백 한 칸이 된다
+	// (spec `markdown-rendering` §26 · CommonMark §6.1). 줄 이음 표식은 모든 인라인 패스
+	// 뒤에 `<br />` 로 되돌아가므로 스팬 안에 남기면 `code` 안에 `br` 이 섰다
+	// (`- a\n  `b\n  c`` → `<code>b<br>c</code>`). 걷기 뒤에 바꾸면 내용이 표식으로
+	// 시작·끝나 걷기가 걸리지 않는다. 강조 구간 표식은 글자가 아니므로 걷기의 앞뒤
+	// 판정에서 건너뛴다 — 강조본과 평소 렌더의 스팬 텍스트가 같다.
+	const codeSpanContent = (code: string): string =>
+		code
+			.replace(/\uE004/g, " ")
+			.replace(/^([\uE002\uE003]*) (?=[\s\S]*[^ \uE002\uE003])([\s\S]*) ([\uE002\uE003]*)$/, "$1$2$3");
+
 	const ESCAPABLE = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 	const escapedChars: string[] = [];
 
@@ -1650,7 +1671,7 @@ export const markdownToHtml = (rawInput: string): string => {
 					}
 
 					if(undefined !== code) {
-						codeSpans.push(code.replace(/^ (?=[\s\S]*[^ ])([\s\S]*) $/, "$1"));
+						codeSpans.push(codeSpanContent(code));
 						return "\uE000c" + (codeSpans.length - 1) + "\uE001";
 					}
 
