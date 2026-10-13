@@ -1093,7 +1093,7 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 		const merged: ParsedNode[] = [];
 
 		// 열린 항목. `target` 은 이어지는 줄이 붙는 값 노드다 — 처음에는 마커 줄
-		// 자신이고, 항목 안 코드 블록 뒤와 안쪽 항목을 닫고 귀속된 자리에는 없다
+		// 자신이고, 항목 안 코드 블록 · 인용 뒤와 안쪽 항목을 닫고 귀속된 자리에는 없다
 		// (그 뒤 문단 줄이 새 노드를 연다).
 		type OpenItem = { marker: ListMarker; target: ParsedNode | null };
 
@@ -1107,13 +1107,10 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 		// 판정이 인용 안팎과 항목 안팎에서 하나다.
 		let quote: { item: OpenItem; contents: Pick<ParsedNode, "text" | "line">[] } | null = null;
 
-		// 인용 뒤에 이어지는 문단 줄을 받는 노드. 표식 문자로 항목 본문에 이어 붙이던
-		// 동안 인용 뒤 문단은 `<br />` 로 이어졌다 — 블록 문법 없는 항목 안 인용의
-		// 산출은 바뀌지 않는다 (§3).
-		const afterQuote = new Set<ParsedNode>();
-
-		// 인용은 블록이라 열면 닫아야 한다. 이어짐이 끝나는 자리는 다섯 곳이다 —
-		// 인용 아닌 이어짐 · 다음 마커 줄 · 이어짐이 아닌 줄 · 항목 안 블록 · 입력의 끝.
+		// 인용은 블록이라 열면 닫아야 한다. 닫는 자리는 인용을 잇지 않는 줄이 온 루프
+		// 머리 — 그 줄을 판정하기 **전** — 와 입력의 끝이다. 그래서 인용 뒤 줄은 코드
+		// 블록 뒤 줄과 같은 판정을 받는다 (spec `markdown-rendering` §3 둘째 하위 항목 ·
+		// §19 블록 뒤 귀속). 갈래마다 남은 호출은 멱등이다.
 		const closeQuote = (): void => {
 			if(null === quote) return;
 			const { item, contents } = quote;
@@ -1126,9 +1123,10 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 				merged.push({...block, itemOf: item.marker.kind, depth: item.marker.depth});
 			}
 
-			item.target = {type: "value", text: "", itemOf: item.marker.kind, closure: "li", depth: item.marker.depth};
-			afterQuote.add(item.target);
-			merged.push(item.target);
+			// 인용 뒤에는 이어 붙일 문단이 없다 — 항목 안 코드 블록 뒤와 같다. 뒤 줄은
+			// `</blockquote>` 바로 뒤에서 `<br>` 없이 새 노드를 열고, 내용 열에 닿지 않는
+			// 0칸 줄은 목록을 끝낸다. 블록 바로 뒤의 `<br>` 은 글쓴이가 쓰지 않은 빈 줄이다.
+			item.target = null;
 		};
 
 		// 최상위 펜스 패스(또는 항목 안 펜스 패스)가 세운 코드 블록의 여는 노드.
@@ -1170,7 +1168,18 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 			return true;
 		};
 
+		// 열린 항목 안 인용을 잇는 줄 — 마커 없는 값 줄이고 들여쓰기를 걷으면 `>` 로 시작한다.
+		const continuesQuote = (n: ParsedNode | undefined): boolean =>
+			undefined !== n
+			&& "value" === n.type
+			&& "" === n.closure
+			&& '>' === indentToColumn(n.text, ALL_INDENT).rest.charAt(0);
+
 		for(let index = 0; index < parsed.length; index++) {
+
+			// 인용을 잇지 않는 줄이 오면 인용은 거기서 끝난다 — 그 줄은 인용 뒤 줄로서
+			// 아래의 블록 뒤 판정(빈 줄 · 귀속 · 이어짐)을 받는다.
+			if(!continuesQuote(parsed[index])) closeQuote();
 
 			// 항목 안 코드 블록을 원래 줄로 되돌린다. 최상위 펜스 패스는 목록을 모르고
 			// 먼저 돌았다 — 0~3칸 펜스는 이미 `pre` 노드로, 4칸 이상 펜스는 (최상위에선
@@ -1307,7 +1316,7 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 			closeQuote();
 
 			const target = item.target as ParsedNode;
-			const lead = "" === target.text && !afterQuote.has(target) ? "" : ITEM_BREAK;
+			const lead = "" === target.text ? "" : ITEM_BREAK;
 			target.text += lead + stripped;
 		}
 
