@@ -40,6 +40,7 @@
     "check:spec-classification": "bash scripts/check-spec-judgement-classification.sh",
     "check:summary-drift": "bash scripts/check-summary-drift.sh",
     "check:side-effect-wait-channel": "bash scripts/check-side-effect-wait-channel.sh",
+    "check:ordered-list-marker-visible": "node scripts/check-ordered-list-marker-visible.mjs",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "pipeline:health": "bash scripts/pipeline-health.sh"
