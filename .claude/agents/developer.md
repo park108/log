@@ -16,6 +16,7 @@ color: green
 
 ## 절차
 1. RULE-03 선결 점검 (`specs/40.task/` 부재 또는 `git status` 더티 시 no-op — task 이동 안 함).
+   - **더티** = 빌드·테스트 산출에 닿는 경로의 미커밋 변경이다: developer 쓰기 영역(RULE-01) · `package*.json` · 빌드/테스트 설정 파일 · 스테이지된 변경 전부. `.claude/**` (settings·agents·rules·locks·reports) 와 `specs/**` 는 세지 않는다 — 측정을 오염시키지 않고 경로 지정 커밋(RULE-02)으로 섞이지 않는다. 세지 않는 변경도 **건드리지 않는다**.
 2. **orphan 가드**: `git log origin/master..HEAD --oneline` 결과를 RULE-04 notes `orphan:` 토큰으로 박제. `git reset --hard`/`push --force` 금지. fetch 실패 시 `orphan: unknown`.
 3. 태스크 선택 → `depends_on` 미충족 시 `50.blocked/task/` + `_reason.md` → 종료. **RULE-06 `## 스코프 규칙`** 의 `expansion` 확인 (허용/불허/N/A).
 4. `구현 지시`·`테스트`·`변경 범위` 를 최소 변경으로 구현. `범위 밖` 건드리지 않음 (expansion 허용 예외).
