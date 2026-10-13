@@ -213,13 +213,39 @@ const headingMarkerLevel = (text: string): number => {
 	return 0;
 }
 
-// 수평선. `-`·`*`·`_` 중 하나를 **3개 이상** 반복한 줄이다.
+// 수평선. `-`·`*`·`_` 중 한 문자가 **3번 이상** 나오고, 각 문자 뒤에 공백·탭이 몇 개든
+// 올 수 있는 줄이다 (spec `markdown-rendering` §29 · CommonMark §4.1 — `* * *` ·
+// `- - -` · `_ _ _`). 들여쓰기는 판정 전에 걷는다 (`isThematicBreakLine`).
+//
+// 같은 문자의 **연속**만 받던 동안 산문에서 장면 전환으로 흔히 쓰는 `* * *` 가 선 대신
+// 글머리표 하나와 글자 `* *` 로 보였고, 목록 바로 뒤에 쓰면 그 목록의 항목이 하나 더
+// 생겼다. `_ _ _` 는 글자 문단이었다.
 //
 // 함수 안에 있던 것을 모듈 스코프로 올려 내보낸다 — 변경 이력 강조(`Log/diffContents`)
 // 가 "이 줄에 강조할 내용이 있는가" 를 물어야 하는데, 규칙을 그쪽에 다시 적으면
 // 사본 둘이 갈라진다. 오늘 같은 부류를 두 번 봤다 (업로드 절차 사본, 게이트에
 // 박힌 예시 값). 판정은 규칙을 아는 쪽이 한다.
-export const THEMATIC_BREAK_PATTERN = /^(-{3,}|\*{3,}|_{3,})$/;
+export const THEMATIC_BREAK_PATTERN = /^(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})$/;
+
+// 줄이 가로줄 꼴인가. **파서 안의 가로줄 판정은 이것 하나다** (spec §29 — 최상위 · 인용
+// 안 · 목록 항목 안이 같은 판정을 부른다). 가로줄 패스 · 밑줄식 제목의 제목 줄 후보 ·
+// 항목 안 펜스 패스의 열 닫기 · 마커 줄의 내용 판정이 이것을 부른다. 줄 머리 들여쓰기는
+// 깊이와 무관하게 걷는다 — 4칸 이상 들여쓴 꼴도 종전대로 가로줄이다.
+const isThematicBreakLine = (text: string): boolean => THEMATIC_BREAK_PATTERN.test(text.trim());
+
+// 마커 줄의 내용이 가로줄 꼴이면 마커가 끝나는 자리를, 아니면 -1 을 돌려준다 (spec §29 둘째
+// 하위 항목 — `- ***` · `1. ***` · `- * * *`). 그 항목의 내용은 문단이 아니라 항목 안 `hr`
+// 이다. 마커 판정(`listMarker` · `itemListMarker`)이 마커로 본 줄에만 부른다 — 여기서는 마커
+// 앞 들여쓰기와 마커를 걷어 낼 뿐 마커인지 다시 묻지 않는다.
+//
+// 마커 줄을 세는 두 패스(항목 안 펜스 · 이어짐)가 함께 부른다. 내용이 가로줄인 항목에는 바로
+// 이어 붙을 문단이 없다 — 둘이 이것을 다르게 보면 같은 다음 줄이 패스에 따라 항목 안팎을 오간다.
+const LIST_MARKER_HEAD = /^[ \t]*(?:[-*]|[0-9]+\.)/;
+
+const thematicBreakContentAt = (markerLine: string): number => {
+	const at = LIST_MARKER_HEAD.exec(markerLine)?.[0].length ?? -1;
+	return (at >= 0 && isThematicBreakLine(markerLine.substring(at))) ? at : -1;
+};
 
 // 밑줄식 제목의 밑줄. 가로줄과 **하한이 다르다** — setext 밑줄은 1개 이상이고
 // (CommonMark 0.31.2 §4.3) 가로줄은 3개 이상이다. 그리고 `*` 와 `_` 는 밑줄이
@@ -252,7 +278,7 @@ const applySetextHeading = (nodes: ParsedNode[]): ParsedNode[] => {
 			&& heading.text.trim().length > 0
 			&& null === listMarkerDepth(heading.text)
 			&& 0 === headingMarkerLevel(heading.text)
-			&& !THEMATIC_BREAK_PATTERN.test(heading.text.trim())) {
+			&& !isThematicBreakLine(heading.text)) {
 
 			const level = ('=' === underline.text.trim().charAt(0)) ? 1 : 2;
 
@@ -283,6 +309,12 @@ const applySetextHeading = (nodes: ParsedNode[]): ParsedNode[] => {
 // 인용 패스가 내용을 다시 세울 때는 펜스·밑줄식 제목만 다시 불렀다. 그래서 같은
 // 함수로 올려 인용 패스가 한 번 더 부른다 (`applySetextHeading` 과 같은 원리).
 // 밑줄식 제목보다 **뒤에** 부른다 — 먼저 부르면 `제목\n---` 의 밑줄이 가로줄이 된다.
+//
+// 목록 패스보다 **먼저** 돈다 — 목록 마커로도 읽히는 가로줄 꼴 줄(`* * *` · `- - -` ·
+// `- ---`)은 가로줄이다 (spec §29 첫 하위 항목 · CommonMark §4.1).
+//
+// 세운 노드는 원래 줄(`source`)을 든다 — 이 패스는 목록을 모른 채 들여쓰기를 걷고 판정하므로,
+// 빈 줄 뒤 항목의 내용 열까지 들여쓴 가로줄을 그 항목에 귀속시키는 이어짐 패스가 열을 다시 잰다.
 const applyThematicBreak = (nodes: ParsedNode[]): ParsedNode[] => {
 
 	let index = 0;
@@ -290,10 +322,10 @@ const applyThematicBreak = (nodes: ParsedNode[]): ParsedNode[] => {
 
 		if("value" === node.type
 			&& "" === node.closure
-			&& THEMATIC_BREAK_PATTERN.test(node.text.trim())) {
+			&& isThematicBreakLine(node.text)) {
 
 			nodes.splice(index, 1
-				, {type: "tag", text: "<hr />", closure: "hr"});
+				, {type: "tag", text: "<hr />", closure: "hr", source: node.text});
 		}
 		index++;
 	}
@@ -591,7 +623,7 @@ const isTableLine = (node: ParsedNode | undefined): boolean =>
 // 동안 그 마커 줄에서 열이 닫혀 항목의 펜스가 보호받지 못했다.
 const mayBeTakenByBlockPass = (nodes: ParsedNode[], index: number): boolean => {
 	const node = nodes[index] as ParsedNode;
-	return THEMATIC_BREAK_PATTERN.test(node.text.trim())
+	return isThematicBreakLine(node.text)
 		|| SETEXT_UNDERLINE_PATTERN.test(node.text.trim())
 		|| isQuoteLine(node)
 		|| (isTableLine(node) && (isTableLine(nodes[index - 1]) || isTableLine(nodes[index + 1])));
@@ -604,6 +636,13 @@ const isFenceOpenNode = (n: ParsedNode | undefined): n is ParsedNode & { source:
 	&& "tag" === n.type
 	&& "pre" === n.closure
 	&& "<pre>" === n.text
+	&& undefined !== n.source;
+
+// 가로줄 패스가 세운 `hr` 노드 (원래 줄을 든다). 이어짐 패스가 항목 귀속을 잰다.
+const isThematicBreakNode = (n: ParsedNode | undefined): n is ParsedNode & { source: string } =>
+	undefined !== n
+	&& "tag" === n.type
+	&& "hr" === n.closure
 	&& undefined !== n.source;
 
 // 목록 항목 안 펜스 코드 블록을 밑줄식 제목 · 가로줄 · 인용 · 표 패스보다 **먼저**
@@ -736,7 +775,8 @@ const applyItemCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 
 		if(null !== marker) {
 			while((openItems[openItems.length - 1]?.marker.depth ?? -1) >= marker.depth) openItems.pop();
-			openItems.push({ marker, continued: true });
+			// 내용이 가로줄인 항목에는 바로 이어 붙을 문단이 없다 — 이어짐 패스의 `target: null`.
+			openItems.push({ marker, continued: thematicBreakContentAt(node.text) < 0 });
 			continue;
 		}
 
@@ -1236,6 +1276,7 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 		// 마커 없는 문단 줄이면 그 줄. 그 밖(빈 줄 · 마커 줄 · 다른 패스의 노드)은 null.
 		const blockLine = (n: ParsedNode | undefined): string | null => {
 			if(isFenceOpenNode(n)) return n.source;
+			if(isThematicBreakNode(n)) return n.source;
 			return (undefined !== n
 				&& "value" === n.type
 				&& "" === n.closure
@@ -1318,6 +1359,20 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 				}
 			}
 
+			// 빈 줄 · 블록 뒤에 항목의 내용 열까지 들여쓴 가로줄은 그 항목 안 `hr` 이다 (spec
+			// §29 둘째 하위 항목 · §19 귀속). 가로줄 패스는 목록을 모른 채 먼저 돌아 들여쓰기를
+			// 걷고 이 줄을 최상위 `hr` 로 세웠다 — 귀속은 마커 없는 블록과 같은 판정(원래 줄의
+			// 열)으로 여기서 정한다. 빈 줄 없이 바로 이어지는 줄은 종전대로다 (§미측정).
+			if(isThematicBreakNode(node)
+				&& (null === innermostItem()?.target || (index > 0 && isBlankLine(parsed[index - 1] as ParsedNode)))
+				&& attachToReachedItem(node)) {
+
+				const item = innermostItem() as OpenItem;
+				merged.push({...node, itemOf: item.marker.kind, depth: item.marker.depth});
+				item.target = null;
+				continue;
+			}
+
 			// 이미 다른 패스가 가져간 줄(코드 블록 · 수평선 · 줄 머리 인용)은
 			// 이어짐의 대상도 시작점도 아니다.
 			if("value" !== node.type || "" !== node.closure) {
@@ -1338,6 +1393,19 @@ const parseBlocks = (rawInput: string): ParsedNode[] => {
 				// 섞어 쓴 마커 줄은 판정에 댄 줄(같은 열의 공백만 줄)로 내보낸다 — 뒤 검출
 				// 패스가 같은 깊이를 센다. 그 밖의 줄은 바뀌지 않는다.
 				const text = inItem ? mixedIndentAsSpaces(node.text) : node.text;
+
+				// 내용이 가로줄 꼴인 마커 줄(`- ***` · `1. ***` · `- * * *`)은 마커만 남긴 줄과
+				// 그 항목 안 `hr` 로 가른다 (spec §29 둘째 하위 항목). 항목 안 코드 블록처럼
+				// 종류·깊이를 달아 `bindListItem` 이 열린 `<li>` 안으로 흘려보낸다. 그 항목에는
+				// 바로 이어 붙을 문단이 없다 — 코드 블록 뒤와 같다 (`target: null`).
+				const breakAt = thematicBreakContentAt(text);
+				if(breakAt >= 0) {
+					merged.push({...node, text: text.substring(0, breakAt) + " "});
+					merged.push({type: "tag", text: "<hr />", closure: "hr", itemOf: marker.kind, depth: marker.depth});
+					openItems.push({ marker, target: null });
+					continue;
+				}
+
 				const line = text === node.text ? node : {...node, text};
 				openItems.push({ marker, target: line });
 				merged.push(line);
