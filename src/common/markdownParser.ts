@@ -1362,6 +1362,68 @@ export const markdownToHtml = (rawInput: string): string => {
 		});
 	}
 
+	// 맨 URL — 꺾쇠 없이 쓴 `https://…` · `www.…` (spec `markdown-rendering` §25).
+	//
+	// 모든 링크 형성 패스 **뒤**, 강조 패스 **앞**에 둔다. 뒤여야 이미 링크인 것
+	// (이미지·꺾쇠 형태·인라인·참조 링크의 주소) 이 조각으로 빠져 있고, 앞이어야
+	// 주소 안의 `*` `_` `~` 가 강조가 되지 않는다 (`…/a**b**c` → `strong` 0).
+	// 링크는 꺾쇠 형태처럼 통째로 조각으로 뺀다 — 보이는 글자는 원문 그대로다.
+	//
+	// 본문이 escape 됐으므로 원문 `&` 는 `&amp;` 로, `<` `>` 는 `&lt;` `&gt;` 로 들어온다.
+	// 주소의 글자로 받는 것은 공백·`<`·`>`·자리표시자가 아닌 글자와 `&amp;`, 그리고
+	// 이스케이프·엔티티 자리표시자다 (범위는 원문 글자로 정한다 — §23·§25).
+	// 호스트에는 한글을 받지 않는다 — `https://example.com에서 봐` 의 `에서` 는 링크
+	// 밖이다. 경로(`/` `?` `#` 뒤)의 한글은 받는다.
+	//
+	// 시작 자리는 줄 머리 · 공백 · `*` `_` `~` `(` 뒤다 (항목 이어짐·인용 표식은 줄
+	// 머리로, 강조 구간 표식은 없는 것으로 본다). `xhttps://…` 는 링크가 아니다.
+	const URL_CHAR = "[^\\s<&\\uE000-\\uE006]|&amp;|\\uE000e\\d+\\uE001";
+	const HOST_CHAR = "[^\\s<&/?#\\p{Script=Hangul}\\uE000-\\uE006]|&amp;|\\uE000e\\d+\\uE001";
+	const BARE_URL_PATTERN = new RegExp(
+		"(?<=(?:^|[\\s*_~(\\uE004-\\uE006])[\\uE002\\uE003]*)"
+		+ "(https?:\\/\\/|www\\.)(?:" + HOST_CHAR + ")+(?:[/?#](?:" + URL_CHAR + ")*)?",
+		"gu"
+	);
+	const TRAILING_PUNCTUATION = "?!.,:*_~";
+	const countOf = (s: string, c: string): number => s.split(c).length - 1;
+
+	for(const node of parsed) {
+		if("value" !== node.type || "pre" === node.closure) continue;
+
+		// 인라인·참조 링크는 여는 태그만 조각으로 빼고 링크 텍스트는 본문에 남긴다
+		// (강조를 받게). 그 텍스트 안의 주소를 다시 링크로 만들면 `a` 안에 `a` 가 생겨
+		// 정제 뒤 DOM 에서 링크가 둘로 쪼개진다 — 여는 태그 조각부터 `</a>` 까지는 건너뛴다.
+		// 꺾쇠 형태 조각은 `</a>` 까지 품고 있어 대상이 아니다.
+		const linkTextSpans: [number, number][] = [];
+		for(const m of node.text.matchAll(/t(\d+)/g)) {
+			const chunk = tagChunks[Number(m[1])] ?? "";
+			if(!chunk.startsWith("<a ") || chunk.endsWith("</a>")) continue;
+			const close = node.text.indexOf("</a>", m.index);
+			linkTextSpans.push([m.index, -1 === close ? node.text.length : close]);
+		}
+
+		node.text = node.text.replace(BARE_URL_PATTERN, (whole: string, prefix: string, offset: number): string => {
+
+			if(linkTextSpans.some(([from, to]) => offset >= from && offset < to)) return whole;
+
+			// 끝의 문장부호와 짝 없는 닫는 괄호는 링크 밖이다 — `(https://example.com).`
+			let url = whole;
+			while(url.length > prefix.length) {
+				const last = url.charAt(url.length - 1);
+				const unmatchedParen = ")" === last && countOf(url, ")") > countOf(url, "(");
+				if(!TRAILING_PUNCTUATION.includes(last) && !unmatchedParen) break;
+				url = url.slice(0, -1);
+			}
+			if(url.length === prefix.length) return whole;
+
+			const href = "www." === prefix ? "http://" + url : url;
+
+			return stashTag(
+				"<a href='" + escapeHtmlQuotes(href) + "'" + linkTarget(href) + ">" + url + "</a>"
+			) + whole.slice(url.length);
+		});
+	}
+
 	parsed = inlineParsing(parsed, "**", "strong", true); // bold
 	parsed = inlineParsing(parsed, "~~", "del", true); // stroke
 	// 겹 `**` 도 홑 `*` 와 같은 공백 규칙 아래 둔다. 이전에는 `**` 가 규칙 밖이었고
