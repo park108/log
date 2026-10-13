@@ -2,7 +2,7 @@
 
 > **위치**: `src/styles/typography.css` (`.section--logitem-contents ol` 의 `padding-inline-start`) · `src/styles/utilities.css` (`.main--main-contents` 의 `overflow: auto` · `.article--main-item` 의 패딩) · 렌더 경로 `src/Log/LogItem.tsx` (`section.section--logitem-contents`) · 파서 `src/common/markdownParser.ts` (`<ol start>`)
 > **관련 요구사항**: REQ-20261013-105 FR-01~FR-04 · NFR-01 · NFR-02 (출처: developer followup `20261013-1045-ordered-list-wide-start-marker-padding`, source_task TSK-20261013-03)
-> **게이트**: 신설 예정(§수용 기준 `[ ]`): `npm run check:ordered-list-marker-visible` (실제 레이아웃) · `src/__tests__/ordered-list-marker-not-clipped.test.ts` (CI 정적 대리)
+> **게이트**: `npm run check:ordered-list-marker-visible` (실제 레이아웃 — `1bacc61` 등록) · `src/__tests__/ordered-list-marker-not-clipped.test.ts` (CI 정적 대리)
 > **최종 업데이트**: 2026-10-13 (inspector — 최초 등록)
 
 > 참조 코드는 식별자 우선. 줄 번호는 HEAD=`e38a118` 스냅샷이다.
@@ -32,13 +32,14 @@
 
 ## 수용 기준
 
-- [ ] (동작 1·2 — 판정면: 실제 레이아웃) `bash -c 'npm run --silent check:ordered-list-marker-visible'` → rc=0. HEAD=`e38a118` rc=1 (스크립트 부재). 입력 `2024. 회고\n2025. 계획` · `20241231. x` · `1. 하나\n2. 둘` · `10. 열\n11. 열하나` 를 `sanitizeHtml(markdownToHtml(x))` 로 만들어 실제 CSS(`src/styles/index.css`)와 래퍼 체인 `main.main--main-contents > div > article.article--main-item > section.section--logitem-contents` 에 싣고 375px · 데스크톱 폭에서 잰다. Chrome 이 없으면 rc=2 다 — 통과가 아니라 무판정이다.
-- [ ] (CI 대리 — 동작 1 의 수단 고정) `bash -c 'npx vitest run src/__tests__/ordered-list-marker-not-clipped.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 착지한 수단의 CSS 규칙 실재를 정적으로 못 박는다 (`toaster-message-not-clipped.test.ts` 선례). 수치 근거는 위 레이아웃 판정이며 그 출력을 파일 머리말에 박제한다.
+- [x] (동작 1·2 — 판정면: 실제 레이아웃) `bash -c 'npm run --silent check:ordered-list-marker-visible'` → rc=0. HEAD=`94dc94e` rc=0 (`clipped=0 moved=0 measured=16/16` — TSK-20261013-16 `ca4b334` · 등록 `1bacc61`). HEAD=`e38a118` rc=1 (스크립트 부재). 입력 `2024. 회고\n2025. 계획` · `20241231. x` · `1. 하나\n2. 둘` · `10. 열\n11. 열하나` 를 `sanitizeHtml(markdownToHtml(x))` 로 만들어 실제 CSS(`src/styles/index.css`)와 래퍼 체인 `main.main--main-contents > div > article.article--main-item > section.section--logitem-contents` 에 싣고 375px · 데스크톱 폭에서 잰다. Chrome 이 없으면 rc=2 다 — 통과가 아니라 무판정이다.
+- [x] (CI 대리 — 동작 1 의 수단 고정) `bash -c 'npx vitest run src/__tests__/ordered-list-marker-not-clipped.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`94dc94e` rc=0 (TSK-20261013-16 `ca4b334`). HEAD=`e38a118` rc=1 (파일 부재). 착지한 수단의 CSS 규칙 실재를 정적으로 못 박는다 (`toaster-message-not-clipped.test.ts` 선례). 수치 근거는 위 레이아웃 판정이며 그 출력을 파일 머리말에 박제한다.
 
 ## 변경 이력
 
 | 일자 | req / 커밋 | 요약 | 영향 |
 |------|-----------|------|------|
+| 2026-10-13 | inspector reconcile / `ca4b334` `1bacc61` | 동작 1·2 레이아웃 · CI 대리 `[x]` — HEAD=`94dc94e` `git archive` 사본에서 두 명령 재실행 rc=0 2/2 (TSK-20261013-16 result.md 실재 · 운영자 `check:*` 등록). 머리 게이트 갱신 | 수용 기준 · 머리 · 참고 |
 | 2026-10-13 | inspector reconcile / — @ HEAD=`cb354da` | `[ ]` 2 rc=1 불변 (스크립트 · 대리 게이트 부재 — TSK-20261013-16 미착지). 주입 이관처 "미발행" 문면을 발행된 TSK-20261013-16 으로 정정. §수용 기준 1 의 `package.json` `check:*` 등록은 operator 쓰기 영역이다 (`RULE-01 §쓰기 권한`) — TSK-16 이 §범위 밖으로 두고 스크립트 직접 실행을 DoD 로 삼았다 | 참고 · 의존성 |
 | 2026-10-13 | REQ-20261013-105 / — | 최초 등록. 판정면은 실제 레이아웃(로컬 `check:*` 채널), CI 방어는 정적 대리 게이트 — req NFR-02 가 위임한 채널 결정이다 (§참고). 8자리 표지(req FR-02 Should)도 동작 1 에 넣었다. inspector 는 DOM(`<ol start="2024">`)만 격리 사본에서 재확인했고 레이아웃 수치는 req 의 실측을 옮겼다 | all |
 
@@ -66,7 +67,7 @@
 
 ### 주입 이관 (`RULE-06 §게이트 실효 검증` — 두 게이트를 세우는 task 의 DoD)
 
-`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처 task 는 `TSK-20261013-16` (`40.task/`, 미착수) — DoD 에 아래 두 주입 · 대조와 무판정 경로(Chrome 부재 → rc=2)가 실렸다.
+`RULE-07 §수용 기준 문장` 의 '가정 주입 요구' 부류라 체크박스로 두지 않는다. 이관처 task 는 `TSK-20261013-16` — DoD 에 아래 두 주입 · 대조와 무판정 경로(Chrome 부재 → rc=2)가 실렸고 `ca4b334` 로 착지했다 (`injection: 3/3 detect` · `control: 1/1 pass`).
 
 - **주입 (레이아웃)**: 착지한 수단의 파일(CSS · 파서 class 중 바꾼 쪽)을 `bea3a3b` 판본으로 되돌린 트리 → rc=1 (`2024` · `20241231` 잘림). 원복 → rc=0.
 - **주입 (대리)**: 착지한 표지 공간 규칙을 지운 트리 → rc≠0. 원복 → rc=0.
