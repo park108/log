@@ -256,6 +256,63 @@ interface ParsedNode {
 	depth?: number;
 }
 
+// 펜스 코드 블록 패스 본체. **최상위와 인용 내용이 이 함수 하나를 공유한다.**
+//
+// 최상위 패스는 인용 패스보다 먼저 돌고 `>` 로 시작하는 줄은 펜스가 아니므로,
+// 인용 안의 펜스는 최상위에서 볼 기회가 없다. 그래서 인용 패스가 자기 내용에
+// 대해 이 함수를 한 번 더 부른다 — `applySetextHeading` 과 같은 원리다. 인용 안에서
+// 펜스 판정을 다시 쓰면 판정이 둘로 갈라진다 (`` ```인라인``` `` 이 인용 안에서만
+// 코드 블록을 여는 식으로).
+//
+// 코드 줄은 `closure: "pre"` 로 세운다 — 뒤따르는 escape·인라인 패스가 모두 이
+// 값을 건너뛰므로 코드 줄은 escape 와 하이라이트만 거친다. 닫히지 않은 펜스는
+// 배열 끝에서 닫는다 (인용 안이면 인용이 끝나는 자리다).
+const applyCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
+
+	let fence: CodeFence | null = null;
+
+	for(let index = 0; index < nodes.length; index++) {
+
+		const node = nodes[index] as ParsedNode;
+
+		const opening: CodeFence | null = (null === fence && "value" === node.type && "" === node.closure)
+			? codeFenceOpening(node.text) : null;
+
+		if(null !== opening) {
+
+			nodes.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre"});
+
+			fence = opening;
+		}
+		else if(null !== fence
+			&& "value" === node.type
+			&& "" === node.closure
+			&& closesCodeFence(fence, node.text)) {
+
+			nodes.splice(index, 1, {type: "tag", text: "</pre>", closure: "pre"});
+
+			fence = null;
+		}
+		else if(null !== fence) {
+
+			// 코드 블록도 사용자 글자다. escape 하지 않으면 `List<String>` 이
+			// sanitize 단계에서 미지의 태그로 삭제돼 `List` 만 남았다 (실측).
+			// 강조기가 <span> 을 넣으므로 **넘기기 전에** escape 한다.
+			// 물결 펜스도 같은 강조기 경로를 탄다 — 언어 표기는 펜스 문자와 무관하다.
+			const text = codeHighlighter(fence.info, escapeHtmlText(codeFenceContent(fence, node.text)));
+
+			nodes.splice(index, 1
+				, {type: "value", text: text + "<br />", closure: "pre"});
+		}
+	}
+
+	if(null !== fence) {
+		nodes.push({type: "tag", text: "</pre>", closure: "pre"});
+	}
+
+	return nodes;
+};
+
 // 강조 구간 표식 — 호출처(`Log/diffContents`)가 끼우고 이 파서가 태그로 되돌린다.
 // 마크업 문자를 쓰지 않으므로 본문 escape 를 통과한다.
 export const HIGHLIGHT_OPEN = "\uE002";
@@ -310,47 +367,10 @@ export const markdownToHtml = (rawInput: string): string => {
 	}
 
 	// pre — 펜스 판정은 `codeFenceOpening` · `closesCodeFence` 가 진다.
+	parsed = applyCodeFence(parsed);
+
 	let index = 0;
-	let fence: CodeFence | null = null;
-	for(let node of parsed) {
 
-		const opening: CodeFence | null = (null === fence && "value" === node.type && "" === node.closure)
-			? codeFenceOpening(node.text) : null;
-
-		if(null !== opening) {
-
-			parsed.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre"});
-
-			fence = opening;
-		}
-		else if(null !== fence
-			&& "value" === node.type
-			&& "" === node.closure
-			&& closesCodeFence(fence, node.text)) {
-
-			parsed.splice(index, 1, {type: "tag", text: "</pre>", closure: "pre"});
-
-			fence = null;
-		}
-		else if(null !== fence) {
-
-			// 코드 블록도 사용자 글자다. escape 하지 않으면 `List<String>` 이
-			// sanitize 단계에서 미지의 태그로 삭제돼 `List` 만 남았다 (실측).
-			// 강조기가 <span> 을 넣으므로 **넘기기 전에** escape 한다.
-			// 물결 펜스도 같은 강조기 경로를 탄다 — 언어 표기는 펜스 문자와 무관하다.
-			node.text = codeHighlighter(fence.info, escapeHtmlText(codeFenceContent(fence, node.text)));
-
-			parsed.splice(index, 1
-				, {type: "value", text: node.text + "<br />", closure: "pre"});
-		}
-
-		index++;
-	}
-	if(null !== fence) {
-		parsed.push({type: "tag", text: "</pre>", closure: "pre"});
-
-		fence = null;
-	}
 	// 밑줄식(setext) 제목. 문단 바로 밑에 `-` 또는 `=` 만으로 이뤄진 줄이 오면
 	// 그 문단이 제목이다 (CommonMark 0.31.2 §4.3).
 	//
@@ -451,6 +471,10 @@ export const markdownToHtml = (rawInput: string): string => {
 			inner.push({type: "value", text, closure: ""});
 		}
 
+		// 펜스 코드 블록을 밑줄식 제목보다 **먼저** 세운다 — 최상위 순서와 같다.
+		// 코드 안의 `---` 가 앞 줄을 제목으로 만들면 안 된다. 세워진 `pre` 노드는
+		// 아래 루프에서 블록 갈래로 그대로 실린다.
+		applyCodeFence(inner);
 		applySetextHeading(inner);
 
 		const replacement: ParsedNode[] = [{type: "tag", text: "<blockquote>"}];
