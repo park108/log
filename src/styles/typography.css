@@ -116,6 +116,21 @@ td {
 	vertical-align: top;
 }
 
+/* 열 정렬 — 구분선의 정렬 표기(`:--` · `:-:` · `--:`)를 파서가 셀의 class 로
+ * 싣는다 (`common/markdownParser.ts`). 위 `th, td` 보다 특이도가 높아야 이긴다.
+ * 파서 산출은 `dangerouslySetInnerHTML` 로 들어가므로 전역 이름이다. */
+.cell--align-left {
+	text-align: left;
+}
+
+.cell--align-center {
+	text-align: center;
+}
+
+.cell--align-right {
+	text-align: right;
+}
+
 /* 머리 행은 본문 셀과 구별돼야 한다 — 굵기만으로는 스캔할 때 눈에 잡히지
  * 않는다. 코드 블록과 같은 면 색을 써 새 색을 만들지 않는다. */
 thead th {

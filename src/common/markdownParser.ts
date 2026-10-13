@@ -656,6 +656,35 @@ export const markdownToHtml = (rawInput: string): string => {
 			&& cells.every((cell) => DELIMITER_CELL_PATTERN.test(cell));
 	};
 
+	// 구분선 셀의 정렬 표기가 그 열의 정렬이다 — `:--` 왼쪽 · `:-:` 가운데 · `--:` 오른쪽.
+	//
+	// 구분선으로 인정만 하고 셀에 아무것도 싣지 않았을 때는 전역 `th, td` 규칙
+	// (`text-align: left`) 아래에서 모든 열이 왼쪽으로 보였다.
+	//
+	// 표지는 `class` 다. `style`·`align` 은 정제 정책(`sanitizeHtml`)을 넓혀야 하고,
+	// `align` 은 넣어도 작성자 CSS 가 이겨 여전히 왼쪽이다. 규칙은
+	// `styles/typography.css` 의 표 절에 있다 — 파서 산출은 CSS 모듈의 해시 이름이
+	// 닿지 않으므로 전역 이름이다.
+	//
+	// 표기 없는 열(`---`)은 null — 속성을 내지 않는다. 정렬 표기가 없는 표의 산출은
+	// 종전과 같다.
+	const delimiterAlignClass = (cell: string): string | null => {
+
+		const left = ':' === cell.charAt(0);
+		const right = ':' === cell.charAt(cell.length - 1);
+
+		if(left && right) return "cell--align-center";
+		if(right) return "cell--align-right";
+		if(left) return "cell--align-left";
+
+		return null;
+	};
+
+	const openCellTag = (tagName: string, alignClass: string | null | undefined): string =>
+		(null === alignClass || undefined === alignClass)
+			? "<" + tagName + ">"
+			: "<" + tagName + " class=\"" + alignClass + "\">";
+
 	index = 0;
 	while(index < parsed.length) {
 
@@ -676,15 +705,20 @@ export const markdownToHtml = (rawInput: string): string => {
 		let end = index + 1;
 		while(isTableLine(parsed[end + 1])) end++;
 
+		// 열 대응은 **위치**다 — 본문 행의 셀 수가 머리 행과 달라도 k 번째 셀은 구분선
+		// k 번째 셀의 정렬을 받는다. 구분선보다 많은 셀은 정렬이 없다.
+		const alignClasses = splitTableCells((parsed[index + 1] as ParsedNode).text)
+			.map(delimiterAlignClass);
+
 		const replacement: ParsedNode[] = [
 			{type: "tag", text: "<table>"}
 			, {type: "tag", text: "<thead>"}
 			, {type: "tag", text: "<tr>"}
 		];
 
-		for(const cell of headerCells) {
-			replacement.push({type: "tag", text: "<th>"});
-			replacement.push({type: "value", text: cell, closure: "cell"});
+		for(let column = 0; column < headerCells.length; column++) {
+			replacement.push({type: "tag", text: openCellTag("th", alignClasses[column])});
+			replacement.push({type: "value", text: headerCells[column] as string, closure: "cell"});
 			replacement.push({type: "tag", text: "</th>"});
 		}
 
@@ -699,9 +733,11 @@ export const markdownToHtml = (rawInput: string): string => {
 
 				replacement.push({type: "tag", text: "<tr>"});
 
-				for(const cell of splitTableCells((parsed[i] as ParsedNode).text)) {
-					replacement.push({type: "tag", text: "<td>"});
-					replacement.push({type: "value", text: cell, closure: "cell"});
+				const rowCells = splitTableCells((parsed[i] as ParsedNode).text);
+
+				for(let column = 0; column < rowCells.length; column++) {
+					replacement.push({type: "tag", text: openCellTag("td", alignClasses[column])});
+					replacement.push({type: "value", text: rowCells[column] as string, closure: "cell"});
 					replacement.push({type: "tag", text: "</td>"});
 				}
 
