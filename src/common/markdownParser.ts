@@ -1428,14 +1428,33 @@ export const markdownToHtml = (rawInput: string): string => {
 	// `\&copy;` 는 백슬래시가 `&` 를 먼저 소비해 글자로 남고, 코드 스팬 안은 해석되지
 	// 않는다. 해석된 문자는 이스케이프된 글자와 같은 자리표시자로 보관한다 — 그래야
 	// `&#42;` 가 강조를 열지 않고 `&lt;script&gt;` 가 요소가 되지 않는다.
+	//
+	// 코드 스팬은 백틱 N개 런으로 열고 **정확히 N개** 런으로 닫는다 (spec
+	// `markdown-rendering` §26 · CommonMark §6.1). 홑 백틱 한 쌍만 알던 동안에는
+	// 겹 백틱 스팬의 바깥 백틱이 글자로 남고 안의 백틱에서 스팬이 닫혔다 (실측):
+	//
+	//   ``a ` b`` 끝   →  <p>`<code>a </code> b`` 끝</p>   기대: <code>a ` b</code> 끝
+	//   ``a` 끝        →  `<code>a</code> 끝                기대: 글자 그대로
+	//
+	// 런은 **최대 길이**로 끊는다 — 여는 런 뒤 `(?!`)` 가 런 가운데에서 짧은 스팬이
+	// 열리는 것을 막고, 닫는 런은 앞(내용의 끝 글자)과 뒤 모두 백틱이 아니다. 닫는
+	// 런이 없는 여는 런은 셋째 갈래가 런째 글자로 소비한다 — 그래야 다음 위치가 그
+	// 런의 둘째 백틱이 되지 않고 런 뒤 텍스트부터 다시 스캔된다. 내용이 공백으로
+	// 시작하고 끝나며 공백만이 아니면 앞뒤 한 칸씩 걷는다 (`` `` `x` `` `` → `` `x` ``).
 	const ESCAPABLE = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 	const escapedChars: string[] = [];
 
 	for(const node of parsed) {
 		if("value" === node.type && "pre" !== node.closure) {
 			node.text = node.text.replace(
-				/\\([\s\S])|`([^`]+)`|&(?:#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{0,30});/g,
-				(whole: string, escaped: string | undefined, code: string | undefined): string => {
+				/\\([\s\S])|(`+)(?!`)([\s\S]*?[^`])\2(?!`)|(`+)|&(?:#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{0,30});/g,
+				(
+					whole: string,
+					escaped: string | undefined,
+					_open: string | undefined,
+					code: string | undefined,
+					unmatchedRun: string | undefined,
+				): string => {
 
 					if(undefined !== escaped) {
 						// 구두점이 아니면 백슬래시는 그냥 글자다 (`C:\Users`, `\d+`).
@@ -1445,9 +1464,12 @@ export const markdownToHtml = (rawInput: string): string => {
 					}
 
 					if(undefined !== code) {
-						codeSpans.push(code);
+						codeSpans.push(code.replace(/^ (?=[\s\S]*[^ ])([\s\S]*) $/, "$1"));
 						return "\uE000c" + (codeSpans.length - 1) + "\uE001";
 					}
+
+					// 같은 길이의 닫는 런이 없는 여는 런은 글자다.
+					if(undefined !== unmatchedRun) return whole;
 
 					// 무효한 `&…;` (`&없는이름;` 은 패턴 밖, `&nosuch;` 는 표 밖) 는 글자다.
 					const decoded = decodeEntityReference(whole);
