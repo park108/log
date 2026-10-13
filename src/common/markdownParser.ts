@@ -2047,7 +2047,12 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 	// 그 목록이 끝나는 자리(같은 종류 항목이 같거나 얕은 깊이로 돌아오는 자리 ·
 	// 입력 끝)에서 갚는다. 이 패스에는 다른 종류의 여닫는 태그가 아직 없으므로
 	// 그 태그는 상대 패스의 `flushAll()` 이 이 `</li>` 앞에 끼워 넣는다.
-	let owedCloseLi: ParsedNode | null = null;
+	//
+	// 빚은 **단마다** 하나다 — `depthStack` 과 나란히 쌓이고 k 번째가 k 번째 단의 열린
+	// 항목의 빚이다. 종류가 두 번 이상 바뀌는 중첩(`- a\n  1. b\n     - c`)에서는 `a` 의
+	// 빚을 든 채 `c` 의 목록이 상대 종류 항목 `b` 안에 열린다. 빚을 한 겹만 들던 동안은
+	// 그 자리에서 빚을 갚고 새 최상위 목록으로 끊었다 (spec `markdown-rendering` §7).
+	const owedCloseLi: (ParsedNode | null)[] = [];
 
 	const openTag = "<" + tagName + ">";
 	const closeTag = "</" + tagName + ">";
@@ -2062,10 +2067,13 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 		}
 	};
 
+	// 맨 안쪽 단의 빚을 갚는다.
 	const flushOwedCloseLi = () => {
-		if(owedCloseLi) {
-			output.push(owedCloseLi);
-			owedCloseLi = null;
+		const k = owedCloseLi.length - 1;
+		const owed = owedCloseLi[k];
+		if(owed) {
+			output.push(owed);
+			owedCloseLi[k] = null;
 		}
 	};
 
@@ -2097,11 +2105,27 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 			: openTag;
 		output.push({type: "tag", text: text, itemOf: tagName, depth: d});
 		depthStack.push(d);
+		owedCloseLi.push(null);
 	};
 
 	const closeTopList = () => {
 		const d = depthStack.pop();
+		owedCloseLi.pop();
 		output.push({type: "tag", text: closeTag, itemOf: tagName, depth: d});
+	};
+
+	// 방금 닫은 안쪽 목록을 담던 바깥 항목을 닫는다. 그 항목이 다른 종류 목록을 담느라
+	// 빚을 졌으면 빚으로 갚는다. 새로 내는 `</li>` 에도 깊이를 단다 — 상대 종류 패스는
+	// 깊이 없는 노드를 경계로 보고 열린 목록을 다 닫는다. 이 항목이 상대 종류 항목 안에
+	// 있으면(`1. a\n   - b\n     - c` 의 `b`) 그 경계가 `b` 의 `</li>` 앞에 상대 종류의
+	// `</li></ol>` 를 끼워 넣어 닫는 태그 이름이 어긋났다 — 원시 꼬리 `…</li></ol></li></ul>`.
+	const closeEnclosingItem = () => {
+		if(owedCloseLi[owedCloseLi.length - 1]) {
+			flushOwedCloseLi();
+		}
+		else {
+			output.push({type: "tag", text: "</li>", itemOf: tagName, depth: top()});
+		}
 	};
 
 	// Close every currently open list. Used on non-list nodes and at EOF.
@@ -2113,7 +2137,7 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 			if(depthStack.length > 0) {
 				// The enclosing <li> that held the just-closed inner list
 				// is still open; close it before moving further out.
-				output.push({type: "tag", text: "</li>", itemOf: tagName});
+				closeEnclosingItem();
 			}
 		}
 	};
@@ -2159,19 +2183,15 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 				openList(d, node);
 			}
 			else if(d > top()) {
-				if(owedCloseLi) {
-					// 다른 종류 중첩이 진행 중인 자리에서 같은 종류가 **더 깊이**
-					// 들어오는 3단계 교대 중첩은 어느 계약도 소유하지 않는다
-					// (범위 밖). 빚을 갚고 평탄하게 분기해 균형만 지킨다.
-					flushAll();
-					openList(d, node);
-				}
-				else {
-					// Nest deeper: keep the previous item's </li> suppressed so
-					// the new <tagName> lives inside that still-open <li>.
-					pendingCloseLi = null;
-					openList(d, node);
-				}
+				// Nest deeper: keep the previous item's </li> suppressed so
+				// the new <tagName> lives inside that still-open <li>.
+				//
+				// 바깥 항목이 다른 종류 목록을 담느라 빚을 졌으면(종류가 두 번 이상
+				// 바뀌는 중첩) 새 목록은 그 다른 종류 항목 안에 든다. 빚은 그 단에
+				// 남겨 두고 새 단을 연다 — 이 목록이 닫힌 뒤 바깥 항목을 닫을 때
+				// 갚는다 (spec `markdown-rendering` §7 교대 중첩).
+				pendingCloseLi = null;
+				openList(d, node);
 			}
 			else if(d === top()) {
 				// Sibling at the same depth — flush the previous </li>.
@@ -2186,7 +2206,7 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 				while(depthStack.length > 0 && d < top()) {
 					closeTopList();
 					if(depthStack.length > 0) {
-						output.push({type: "tag", text: "</li>", itemOf: tagName});
+						closeEnclosingItem();
 					}
 				}
 				if(depthStack.length === 0) {
@@ -2199,7 +2219,14 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 		}
 		else if(isCloseLi) {
 			// Defer until we know whether the next item nests deeper.
-			pendingCloseLi = node;
+			//
+			// 깊이는 항목이 실제로 든 단의 깊이로 단다. 열린 단 사이 깊이의 마커는 얕은
+			// 단의 형제가 되는데(`- a\n    - c\n  - x` 의 `x`), 마커 줄 깊이를 그대로 두면
+			// 상대 종류 패스가 이 `</li>` 를 그 단보다 깊은 노드로 읽어 이 항목 안에 든
+			// 상대 종류 목록보다 안쪽으로 넣는다 — 닫는 태그 이름이 어긋난다.
+			pendingCloseLi = (depthStack.length > 0 && node.depth !== top())
+				? {...node, depth: top()}
+				: node;
 		}
 		else if(isListNode) {
 			// value node inside the current list item — pass through.
@@ -2215,9 +2242,18 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 				while(depthStack.length > 0 && d < top()) {
 					closeTopList();
 					if(depthStack.length > 0) {
-						const closeLi = {type: "tag", text: "</li>", itemOf: tagName, depth: top()};
-						if(d < top()) output.push(closeLi);
-						else pendingCloseLi = closeLi;
+						if(d < top()) {
+							closeEnclosingItem();
+						}
+						else {
+							// 블록이 들 항목. 다른 종류 목록을 담느라 진 빚이 있으면 그 빚이
+							// 곧 이 항목의 `</li>` 다 — 그 목록은 상대 종류 패스가 이 블록
+							// 앞에서 닫는다 (블록이 그 목록보다 얕다).
+							const k = owedCloseLi.length - 1;
+							pendingCloseLi = owedCloseLi[k]
+								?? {type: "tag", text: "</li>", itemOf: tagName, depth: top()};
+							owedCloseLi[k] = null;
+						}
 					}
 				}
 			}
@@ -2235,12 +2271,35 @@ const bindListItem = (parsed: ParsedNode[], tagName: string): ParsedNode[] => {
 			// 같거나 얕으면 형제이므로 경계다 — 열린 목록을 닫고 흘려보낸다.
 			const d = (typeof node.depth === "number") ? node.depth : null;
 
+			// 이 노드보다 얕아 남는 단의 수 (`depthStack` 은 깊이 오름차순이다).
+			const keep = (null === d) ? 0 : depthStack.filter((x) => x < d).length;
+
 			if(depthStack.length > 0 && null !== d && d > top()) {
 
 				if(pendingCloseLi) {
-					owedCloseLi = pendingCloseLi;
+					owedCloseLi[owedCloseLi.length - 1] = pendingCloseLi;
 					pendingCloseLi = null;
 				}
+				output.push(node);
+			}
+			else if(owedCloseLi.slice(0, keep).some((owed) => null !== owed)) {
+				// 남는 단 중에 다른 종류 목록을 담느라 빚을 진 단이 있다 — 교대 중첩의
+				// 안쪽 단이 열린 채 이 노드가 돌아왔고, 이 노드는 아직 열린 그 다른 종류
+				// 목록 안에 있다 (`1. a\n   - b\n     1. c\n2. d` 의 `b` 의 `</li>` 가 `ol`
+				// 패스에 올 때). 이 노드 깊이 이상의 단만 닫고 남는 단은 열어 둔다 — 다
+				// 닫으면 빚이 그 목록이 끝나기 전에 갚아져 닫는 태그 이름이 어긋난다.
+				// 남는 맨 안쪽 항목이 이 노드를 담으므로 빚이 없으면 진다.
+				flushOwedCloseLi();
+				flushPendingCloseLi();
+				while(depthStack.length > keep) {
+					closeTopList();
+					if(depthStack.length > keep) {
+						closeEnclosingItem();
+					}
+				}
+				const k = owedCloseLi.length - 1;
+				owedCloseLi[k] = owedCloseLi[k]
+					?? {type: "tag", text: "</li>", itemOf: tagName, depth: top()};
 				output.push(node);
 			}
 			else {
