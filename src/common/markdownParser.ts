@@ -360,6 +360,9 @@ interface ParsedNode {
 	// 번호 목록 항목의 마커 번호 (10진 정규화한 숫자 문자 — `003.` → `3`).
 	// `bindListItem` 이 목록을 여는 자리에서 첫 항목의 이 값으로 `start` 를 정한다.
 	ordinal?: string;
+	// 이 노드를 낸 원문 줄의 번호 (0부터, `\n` 기준). 줄 나누기가 달고 줄을 다시 세우는
+	// 패스가 넘겨준다. `codeBlockLines` 가 코드 블록 노드에서 이 값을 모은다.
+	line?: number;
 }
 
 // 빈 줄 노드 — 공백·탭만 있는 줄을 포함한다. 코드 블록 안의 줄(`closure: "pre"`)은
@@ -392,7 +395,7 @@ const applyCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 
 		if(null !== opening) {
 
-			nodes.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre", source: node.text});
+			nodes.splice(index, 1, {type: "tag", text: "<pre>", closure: "pre", source: node.text, line: node.line});
 
 			fence = opening;
 		}
@@ -401,7 +404,7 @@ const applyCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 			&& "" === node.closure
 			&& closesCodeFence(fence, node.text)) {
 
-			nodes.splice(index, 1, {type: "tag", text: "</pre>", closure: "pre", source: node.text});
+			nodes.splice(index, 1, {type: "tag", text: "</pre>", closure: "pre", source: node.text, line: node.line});
 
 			fence = null;
 		}
@@ -414,7 +417,7 @@ const applyCodeFence = (nodes: ParsedNode[]): ParsedNode[] => {
 			const text = codeHighlighter(fence.info, escapeHtmlText(codeFenceContent(fence, node.text)));
 
 			nodes.splice(index, 1
-				, {type: "value", text: text + "<br />", closure: "pre", source: node.text});
+				, {type: "value", text: text + "<br />", closure: "pre", source: node.text, line: node.line});
 		}
 	}
 
@@ -461,7 +464,7 @@ const itemCodeFence = (nodes: ParsedNode[], index: number, marker: ListMarker)
 	const fence = codeFenceOpening(indentToColumn(node.text, column).rest);
 	if(null === fence) return null;
 
-	const inner: ParsedNode[] = [{type: "value", text: indentToColumn(node.text, column).rest, closure: ""}];
+	const inner: ParsedNode[] = [{type: "value", text: indentToColumn(node.text, column).rest, closure: "", line: node.line}];
 	let end = index;
 	let closed = false;
 
@@ -471,7 +474,7 @@ const itemCodeFence = (nodes: ParsedNode[], index: number, marker: ListMarker)
 		if("value" !== next.type || "" !== next.closure) break;
 
 		const text = indentToColumn(next.text, column).rest;
-		inner.push({type: "value", text, closure: ""});
+		inner.push({type: "value", text, closure: "", line: next.line});
 		end++;
 
 		if(closesCodeFence(fence, text)) {
@@ -633,7 +636,10 @@ export const HIGHLIGHT_CLASS = "span--logitem-changed";
 // (이어짐 패스의 `quoteBlocks` 호출).
 const ITEM_BREAK = "\uE004";
 
-export const markdownToHtml = (rawInput: string): string => {
+// 블록 패스 — 원문을 줄로 나눠 코드 블록 · 밑줄식 제목 · 가로줄 · 인용 · 표 · 목록 ·
+// 제목 노드를 세운다. 렌더(`markdownToHtml`)와 코드 블록 줄 판정(`codeBlockLines`)이
+// **이 함수 하나를 부른다** — 둘이 다른 블록 판정을 쓰면 갈린다.
+const parseBlocks = (rawInput: string): ParsedNode[] => {
 
 	// inline code 보호에 쓰는 자리표시자와 같은 문자가 입력에 있으면 복원 단계가
 	// 사용자 글자를 코드 스팬으로 오치환한다 (실측: `\uE000c9\uE001` → `<code></code>`).
@@ -652,21 +658,20 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 태그로 되돌린다. 클래스 이름은 그쪽 CSS 와 같은 문자열이다.
 
 	let parsed: ParsedNode[] = [];
-	let str = input;
 	let prev = 0;
 
-	// Separate line by line
+	// Separate line by line — 노드마다 원문 줄 번호(`line`)를 단다.
 	for(let i = 0; i < input.length; i++) {
 
 		if('\n' === input.charAt(i)) {
 
-			parsed.push({type: "value", text: input.substring(prev, i), closure: ""});
+			parsed.push({type: "value", text: input.substring(prev, i), closure: "", line: parsed.length});
 			prev = i + 1;
 		}
 	}
 	if(prev < input.length) {
-		
-		parsed.push({type: "value", text: input.substring(prev, input.length), closure: ""});
+
+		parsed.push({type: "value", text: input.substring(prev, input.length), closure: "", line: parsed.length});
 	}
 
 	// pre — 펜스 판정은 `codeFenceOpening` · `closesCodeFence` 가 진다.
@@ -766,9 +771,12 @@ export const markdownToHtml = (rawInput: string): string => {
 	// 안의 밑줄은 볼 기회가 이미 지나 있다 — 실제로 `> 제목` 아래 `> ---` 이
 	// **글자 세 개로 독자에게 보였다.** ATX 제목(`> # 제목`)은 되던 자리라 표기에
 	// 따라 제목이 되기도 안 되기도 했다.
-	const quoteBlocks = (contents: string[]): ParsedNode[] => {
+	//
+	// 내용 줄은 원문 줄 번호(`line`)를 함께 받는다 — 인용 안 코드 블록도 `codeBlockLines`
+	// 가 원문 줄로 돌려준다.
+	const quoteBlocks = (contents: Pick<ParsedNode, "text" | "line">[]): ParsedNode[] => {
 
-		const inner: ParsedNode[] = contents.map((text): ParsedNode => ({type: "value", text, closure: ""}));
+		const inner: ParsedNode[] = contents.map(({text, line}): ParsedNode => ({type: "value", text, closure: "", line}));
 
 		// 펜스 코드 블록을 밑줄식 제목보다 **먼저** 세운다 — 최상위 순서와 같다.
 		// 코드 안의 `---` 가 앞 줄을 제목으로 만들면 안 된다. 세워진 `pre` 노드는
@@ -797,7 +805,7 @@ export const markdownToHtml = (rawInput: string): string => {
 				// 세워지므로 다시 훑을 기회가 없다. 그래서 재훑기가 아니라 여기서 연다.
 				let end = i;
 				while(isQuoteLine(inner[end + 1])) end++;
-				replacement.push(...quoteBlocks(inner.slice(i, end + 1).map((n) => quoteContent(n.text))));
+				replacement.push(...quoteBlocks(inner.slice(i, end + 1).map((n) => ({text: quoteContent(n.text), line: n.line}))));
 				i = end;
 				previousWasPlain = false;
 			}
@@ -827,8 +835,11 @@ export const markdownToHtml = (rawInput: string): string => {
 		let end = index;
 		while(isQuoteLine(parsed[end + 1])) end++;
 
-		const contents: string[] = [];
-		for(let i = index; i <= end; i++) contents.push(quoteContent((parsed[i] as ParsedNode).text));
+		const contents: Pick<ParsedNode, "text" | "line">[] = [];
+		for(let i = index; i <= end; i++) {
+			const n = parsed[i] as ParsedNode;
+			contents.push({text: quoteContent(n.text), line: n.line});
+		}
 
 		const replacement = quoteBlocks(contents);
 
@@ -1050,7 +1061,7 @@ export const markdownToHtml = (rawInput: string): string => {
 		// 끝나는 자리에서 줄 머리 인용과 **같은 함수**(`quoteBlocks`)로 블록 노드를
 		// 세운다 — 펜스 · 밑줄식 제목 · 블록을 여는 줄(목록 · ATX 제목 · 중첩 인용)의
 		// 판정이 인용 안팎과 항목 안팎에서 하나다.
-		let quote: { item: OpenItem; contents: string[] } | null = null;
+		let quote: { item: OpenItem; contents: Pick<ParsedNode, "text" | "line">[] } | null = null;
 
 		// 인용 뒤에 이어지는 문단 줄을 받는 노드. 표식 문자로 항목 본문에 이어 붙이던
 		// 동안 인용 뒤 문단은 `<br />` 로 이어졌다 — 블록 문법 없는 항목 안 인용의
@@ -1137,7 +1148,7 @@ export const markdownToHtml = (rawInput: string): string => {
 
 				const lines: ParsedNode[] = [];
 				for(const n of parsed.slice(index, end + 1)) {
-					if(undefined !== n.source) lines.push({type: "value", text: n.source, closure: ""});
+					if(undefined !== n.source) lines.push({type: "value", text: n.source, closure: "", line: n.line});
 				}
 
 				parsed.splice(index, end - index + 1, ...lines);
@@ -1232,7 +1243,7 @@ export const markdownToHtml = (rawInput: string): string => {
 
 				// 연달아 붙은 인용 줄은 한 덩어리다 (줄 머리 인용과 같다).
 				if(null === quote) quote = { item, contents: [] };
-				quote.contents.push(quoteContent(stripped));
+				quote.contents.push({text: quoteContent(stripped), line: node.line});
 				continue;
 			}
 
@@ -1359,6 +1370,33 @@ export const markdownToHtml = (rawInput: string): string => {
 
 		index++;
 	}
+
+	return parsed;
+};
+
+// 이 파서가 **코드 블록으로 그리는** 원문 줄의 번호 (0부터, `\n` 으로 나눈 줄). 여는 ·
+// 닫는 펜스 줄도 든다.
+//
+// 판정은 블록 패스가 실제로 세운 코드 블록 노드다 — 최상위 펜스 · 인용 안 펜스 · 목록
+// 항목 안 펜스가 모두 같은 경로로 들어온다. 호출처(`Log/diffContents`)가 "이 줄은 코드
+// 블록 안인가" 를 펜스 규칙 사본으로 판정하던 동안 물결 펜스 · 인용 안 · 항목 안 펜스에서
+// 파서와 갈렸고, 코드 블록 안에 들어간 강조 표식이 태그로 복원되지 못해 화면에 남았다.
+// 규칙이나 정규식을 내보내 호출처가 다시 조립하게 하면 맥락(인용 · 항목)에서 같은 사본
+// 문제가 되풀이된다. 그래서 규칙이 아니라 결과를 내보낸다.
+export const codeBlockLines = (markdown: string): Set<number> => {
+
+	const lines = new Set<number>();
+
+	for(const node of parseBlocks(markdown)) {
+		if("pre" === node.closure && undefined !== node.line) lines.add(node.line);
+	}
+
+	return lines;
+};
+
+export const markdownToHtml = (rawInput: string): string => {
+
+	let parsed = parseBlocks(rawInput);
 
 	// inline code 는 **리터럴**이다 — 안의 `*` · `_` · `[](...)` 는 마크업이 아니다.
 	//
@@ -1825,10 +1863,8 @@ export const markdownToHtml = (rawInput: string): string => {
 			node.text = "<p>" + node.text + "</p>";
 		}
 	}
-	
-	str = stringify(parsed);
 
-	return str;
+	return stringify(parsed);
 }
 
 // 낱말 안쪽 억제의 "단어 글자" 는 **유니코드 문자·숫자**다. `[A-Za-z0-9]` 로

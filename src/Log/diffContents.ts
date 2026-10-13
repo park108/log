@@ -1,5 +1,5 @@
 import { HIGHLIGHT_OPEN, HIGHLIGHT_CLOSE, HIGHLIGHT_CLASS,
-	THEMATIC_BREAK_PATTERN, stripHeadingClosingSequence } from '../common/markdownParser';
+	THEMATIC_BREAK_PATTERN, stripHeadingClosingSequence, codeBlockLines } from '../common/markdownParser';
 // 변경 이력에서 **바뀐 줄**을 표시용으로 표식한다.
 //
 // 이력은 각 판본을 그대로 렌더할 뿐이라, 무엇이 달라졌는지 눈으로 찾아야 했다.
@@ -17,8 +17,6 @@ export const CHANGED_CLASS = HIGHLIGHT_CLASS;
 
 /** 줄 앞의 마크다운 표기(제목·목록·인용)와 본문을 가른다. 표기 안쪽만 감싼다. */
 const LINE_PREFIX = /^(\s*(?:#{1,6}\s+|[-*+]\s+|\d+\.\s+|>\s*)?)([\s\S]*)$/;
-
-const isFence = (line: string): boolean => /^\s*```/.test(line);
 
 /** 최장 공통 부분수열 — 어느 줄이 그대로 남았는지 판정한다. */
 const commonLineSet = (a: string[], b: string[]): Set<number> => {
@@ -55,16 +53,20 @@ export const markChangedLines = (contents: string, previous?: string): string =>
 
 	if (undefined === previous) return strip(contents);
 
-	const lines = strip(contents).split('\n');
+	const source = strip(contents);
+	const lines = source.split('\n');
 	const kept = commonLineSet(lines, strip(previous).split('\n'));
 
-	let inFence = false;
+	// **코드 블록 판정은 파서의 것이다.** 파서가 코드 블록으로 그리는 줄(펜스 줄 포함)
+	// 에는 표식을 넣지 않는다 — 코드 블록 안에서는 표식이 태그로 복원되지 않아 글자로
+	// 남는다. 여기에 펜스 규칙 사본(`/^\s*```/` 토글)을 두던 동안 물결 펜스 · 인용 안 ·
+	// 항목 안 펜스에서 표식이 코드에 섞였고, 4칸 들여쓴 펜스 꼴이나 정보 문자열에 백틱이
+	// 든 줄 뒤의 바뀐 줄은 강조를 잃었다. 판본당 한 번 판정한다.
+	const codeLines = codeBlockLines(source);
 
 	return lines.map((line, index) => {
 
-		// 코드 블록 안에는 표식을 넣지 않는다 — 태그가 글자로 보인다.
-		if (isFence(line)) { inFence = !inFence; return line; }
-		if (inFence) return line;
+		if (codeLines.has(index)) return line;
 
 		if (kept.has(index)) return line;
 		if ('' === line.trim()) return line;
