@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 # check-side-effect-wait-channel.sh
 # Spec: testing/side-effect-channel-assertion-arrival-wait §동작 (I1)(I2)(I3)(I4)(I5)(I6)
-# Task: TSK-20261013-09
+# Task: TSK-20261013-09 · TSK-20261013-23 (연속 단언)
 #
 # `await waitFor(...)` 로 렌더/DOM 을 기다린 뒤 **다른 채널**(sessionStorage · localStorage ·
 # document.title)을 바로 단언하면, 그 채널을 쓰는 것이 별도 effect 일 때 로컬은 초록이고
 # CI 부하에서만 붉다. 렌더를 기다리는 것은 그 effect 를 기다리는 것이 아니다.
 # 실물 표본: `git show 06425e7^:src/Log/LogList.test.tsx` (:336 · :394).
 #
-# 판정 단위 = **자리(site)**: `await waitFor(` 문 하나와 그 문 바로 뒤의 `expect(` 단언 한 쌍.
+# 판정 단위 = **자리(site)**: `await waitFor(` 문 하나와 그 뒤에 이어지는 동기 `expect(` 문
+# 각각의 쌍 (I1). 대기 → DOM 단언 → 저장 채널 단언의 셋째 문도 자리다.
+#   - 연속은 `expect(` 가 아닌 첫 문에서 끊긴다 (`await …` · 변수 선언 · 다른 호출).
+#   - `expect(` 문의 끝은 인자의 닫는 괄호 뒤 매처 체인(`.not` · `.resolves` · `.toBe(…)`)까지다.
+#     체인의 호출 괄호도 같은 괄호 균형으로 닫는다.
+#   - 연속 전체가 같은 대기 본문을 쓴다 — SAME-CHANNEL 은 "그 대기가 이 채널을 기다렸는가" 다.
 #   - 대기 본문은 여는 괄호에서 **괄호 균형(paren balance)** 으로 닫는 괄호까지 읽는다.
 #     한 줄 정규식은 여러 줄 `waitFor` 를 통째로 놓친다 (spec (I5)).
 #   - 균형 계수는 주석·문자열·정규식 리터럴을 공백으로 가린 사본(mask) 위에서 한다.
@@ -40,13 +45,15 @@
 #      합치지 않는다 (I4)(I6) — 도출이 비면 통과가 아니라 실패다.
 #
 # 자가 확인: 실판정과 **같은 분류 함수**에 내장 표본을 통과시켜 기대 분류가 나오는지 매 실행
-# 확인한다 (여러 줄 대기 · 같은 채널 · 낱말 경계 · 주석 속 채널 이름 · 문자열 속 괄호).
+# 확인한다 (여러 줄 대기 · 같은 채널 · 낱말 경계 · 주석 속 채널 이름 · 문자열 속 괄호 ·
+# 연속 단언 — 분류기가 바로 다음 하나로 돌아가면 그 표본이 sites=0 으로 어긋난다).
 # 분류기가 조용히 무감해지면 여기서 exit 2 로 드러난다.
 #
 # 검출 경계 (과신 금지):
-#   - 자리는 `await waitFor(` 문 **바로 다음 문**이 `expect(` 일 때만 성립한다. 그 뒤로 이어지는
-#     둘째·셋째 동기 단언은 보지 않는다. `vi.waitFor` · `findBy*` · `flushAfterResponse()` 같은
-#     다른 대기 형태 뒤의 단언도 보지 않는다 (표본 :343 · :380 이 그 형태다).
+#   - 자리는 `await waitFor(` 문 뒤에 **끊김 없이 이어지는** 동기 `expect(` 문들이다. 연속이
+#     끊긴 뒤(`await flushAfterResponse();` · `await act(…)` · 변수 선언 등)의 단언은 보지 않는다.
+#     `vi.waitFor` · `findBy*` · `flushAfterResponse()` 같은 다른 대기 형태 뒤의 단언도 보지
+#     않는다 (표본 :343 · :380 이 그 형태다). `await expect(…)` 는 동기 단언이 아니라 연속을 끊는다.
 #   - 채널 일치는 채널 수준이다 (`sessionStorage` 의 키는 구별하지 않는다).
 #   - 정규식 리터럴 판별은 직전 유효 문자 휴리스틱이다. 나눗셈과 오인되는 표기는 마스크가
 #     어긋날 수 있다 — 그때 균형이 깨지면 exit 2 로 드러난다.
@@ -152,6 +159,22 @@ sub balance_close {
 	return undef;
 }
 
+# `expect(...)` 문의 끝 — 인자의 닫는 괄호($eclose) 뒤 매처 체인(`.not` · `.resolves` ·
+# `.toBe(…)` …)의 마지막 문자 위치. 체인의 호출 괄호도 괄호 균형으로 닫는다. 못 닫으면 undef.
+sub expect_end {
+	my ($m, $pos) = @_;
+	while (substr($m, $pos + 1) =~ /\A\s*\.\s*\w+/) {
+		$pos += $+[0];
+		if (substr($m, $pos + 1) =~ /\A\s*\(/) {
+			my $popen = $pos + $+[0];
+			my $pclose = balance_close($m, $popen);
+			return undef unless defined $pclose;
+			$pos = $pclose;
+		}
+	}
+	return $pos;
+}
+
 sub word_re {
 	my ($id) = @_;
 	my $re = join '\s*\.\s*', map { quotemeta } split /\s*\.\s*/, $id;
@@ -184,11 +207,13 @@ sub classify {
 		my $close = balance_close($m, $open);
 		if (!defined $close) { $unbalanced++; pos($m) = $resume; next; }
 		my $body = substr($m, $open + 1, $close - $open - 1);
-		my $after = substr($m, $close + 1);
-		if ($after =~ /\A\s*;?\s*expect\s*\(/) {
-			my $eopen = $close + 1 + $+[0] - 1;
+		# 대기 뒤에 이어지는 동기 `expect(` 문 전부가 자리다 (I1). 연속은 `expect(` 가 아닌
+		# 첫 문에서 끊긴다. 대기 본문($body)은 연속 전체에 같은 것을 쓴다.
+		my $cur = $close;    # 연속에서 마지막으로 소비한 위치
+		while (substr($m, $cur + 1) =~ /\A\s*;?\s*expect\s*\(/) {
+			my $eopen = $cur + 1 + $+[0] - 1;
 			my $eclose = balance_close($m, $eopen);
-			if (!defined $eclose) { $unbalanced++; pos($m) = $resume; next; }
+			if (!defined $eclose) { $unbalanced++; last; }
 			my $arg = substr($m, $eopen + 1, $eclose - $eopen - 1);
 			my $tail = substr($m, $eclose + 1, 200);
 			my ($matcher) = $tail =~ /\A\s*(?:\.\s*(?:not|resolves|rejects)\s*)*\.\s*(\w+)/;
@@ -199,6 +224,9 @@ sub classify {
 				my $cls = $same ? 'SAME-CHANNEL' : ($kind eq 'storage' ? 'STORAGE-MISMATCH' : 'SPY-MISMATCH');
 				push @sites, { kind => $kind, chan => $chan, line => $line, cls => $cls };
 			}
+			my $end = expect_end($m, $eclose);
+			if (!defined $end) { $unbalanced++; last; }
+			$cur = $end;
 		}
 		pos($m) = $resume;
 	}
@@ -222,6 +250,8 @@ my @self = (
 	  "await waitFor(() => expect(screen.getByText('a')).toBeTruthy() /* localStorage */);\n// localStorage\nexpect(localStorage.getItem('k')).toBe('v');\n" ],
 	[ 'paren in string', 'STORAGE-MISMATCH',
 	  "await waitFor(() => expect(screen.getByText(')')).toBeTruthy());\nexpect(sessionStorage.getItem('k')).toBe('v');\n" ],
+	[ 'continuous asserts: wait(DOM) -> DOM assert -> storage assert', 'STORAGE-MISMATCH',
+	  "await waitFor(() => expect(screen.getByText('a')).toBeTruthy());\nexpect(screen.getByText('a')).not.toBeNull();\nexpect(sessionStorage.getItem('k')).toBe('v');\n" ],
 );
 my $self_fail = 0;
 for my $t (@self) {
