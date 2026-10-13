@@ -1,7 +1,7 @@
 # 마크다운 렌더링 계약
 
 > **위치**: `src/common/markdownParser.ts` (파서) · `src/common/sanitizeHtml.ts` (정제) · 소비처 `src/Log/LogItem.tsx` · `src/Log/Writer.tsx` · `src/Log/api.ts`
-> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · `markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-list-item-tab-indent.test.ts` · `markdown-list-item-open-items.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-cross-clause.test.ts` · `markdown-list-item-blockquote-blocks.test.ts` · `markdown-list-item-fence-lines.test.ts` · `markdown-code-span-backtick-run.test.ts` · `markdown-attribute-inline-notation.test.ts` · `markdown-link-text-brackets.test.ts` · `markdown-reference-link-scope.test.ts` · `markdown-list-item-mixed-indent.test.ts`
+> **게이트**: `src/common/markdownParser.test.ts` · `src/__tests__/markdown-render-invariants.test.ts` · `markdown-no-character-loss.test.ts` · `markdown-attribute-integrity.test.ts` · `parser-sanitizer-coherence.test.ts` · `markdown-list-item-blocks.test.ts` · `markdown-ordered-list-start.test.ts` · `markdown-code-fence.test.ts` · `markdown-entity-reference.test.ts` · `markdown-table-alignment.test.ts` · `markdown-reference-link.test.ts` · `markdown-bare-url-autolink.test.ts` · `markdown-list-item-tab-indent.test.ts` · `markdown-list-item-open-items.test.ts` · 신설 예정(§수용 기준 `[ ]`): `src/__tests__/markdown-cross-clause.test.ts` · `markdown-list-item-blockquote-blocks.test.ts` · `markdown-list-item-fence-lines.test.ts` · `markdown-code-span-backtick-run.test.ts` · `markdown-attribute-inline-notation.test.ts` · `markdown-link-text-brackets.test.ts` · `markdown-reference-link-scope.test.ts` · `markdown-list-item-mixed-indent.test.ts` · `markdown-list-alternating-kind-nesting.test.ts`
 > **최종 업데이트**: 2026-09-01 (운영자 — 마크다운 계약 14건 통합)
 > **재개봉**: 2026-10-13 (inspector — 결함 신고 req 흡수, §변경 이력). blue 본문 1~18 의 번호는 바꾸지 않는다 — 신설 항은 19 부터 붙인다.
 
@@ -27,6 +27,10 @@
 6. **빈 줄은 같은 종류의 목록을 끊지 않는다.** 산출이 그 줄을 걷어낸 입력과 문자열로 같다. 빈 줄 판정은 **공백·탭만 있는 줄을 포함**하며 그 술어는 파서 안에 하나뿐이다. 빈 줄 뒤가 목록이 아니거나 종류가 다르면 목록은 끝난다 — **단 내용 열까지 들여쓴 블록은 예외다 (19).**
 
 7. **종류가 달라도 중첩된다.** 더 깊게 들여쓴 마커는 종류와 무관하게 그 항목 안에 중첩되고 바깥 목록의 여는 태그는 1개다. **같은 종류 중첩의 현 산출은 불변이다** — 종류 판정을 통째로 없애는 구현이 여기서 갈린다.
+    - **중첩 단수와 종류가 바뀌는 횟수에 제한이 없다.** 종류가 두 번 이상 바뀌는 중첩(`ul → ol → ul` · `ol → ul → ol` · 4단 교대)에서도 더 깊게 들여쓴 마커는 바로 위 항목 안에 중첩되고, 최상위 목록은 1개이며, 번호는 되감기지 않는다 (5). `- a\n  1. b\n     - c` → 최상위 `ul` 1 · `c` 의 `li` 는 `b` 의 `li` 자손이고 `b` 는 `a` 의 자손이다. `1. a\n   - b\n     1. c\n2. d` → 최상위 `ol` 1 · 그 직계 `li` 2 (`a` · `d`) · `start` 없음. `- a\n  1. b\n     - c\n       1. e` → 최상위 `ul` 1.
+    - **교대 중첩 자리에 귀속된 블록도 19 열린 항목 하위 항목을 따르고, 맨 글자로 남지 않는다.** `- a\n  1. b\n     - c\n\n  본문\n- d` → `본문` 은 `a` 의 `li` 자손 · 최상위 `ul` 1. 같은 입력에서 `본문` 을 5칸 들여쓰면 `b` 의 `li` 자손이다. `1. a\n   - b\n     1. c\n\n   본문\n2. d` → `a` 의 `li` 자손 · 최상위 `ol` 1. 정제를 거친 DOM 최상위에 비공백 텍스트 노드가 없다.
+    - **파서 산출의 목록 태그는 정제 전에 짝이 맞는다.** `markdownToHtml` 원시 문자열의 `ul`·`ol`·`li` 여는 태그를 스택에 쌓고 닫는 태그마다 꺼내면 이름이 같고 남는 것이 없다. HTML 파서의 오류 복구는 구조를 보존하지 않는다 — 원시 `<ol><li>a<ul><li>b</li></ol><ol><li>c</li></ol></li></ul>` (`1. a\n   - b\n     1. c`) 는 복구 뒤 최상위 `ol` 2 다. 복구 덕에 DOM 이 맞는 `1. a\n   - b\n     - c` (원시 꼬리 `…</li></ol></li></ul>`) 도 같은 판정을 받는다 — DOM 만 재면 보이지 않는 축이다.
+    - 바뀌지 않는 것: 같은 종류 3단 (`- a\n  - b\n    - c` · `1. a\n   1. b\n      1. c`) · 2단 교대 (`- a\n  1. b` · `1. a\n   - b` · `1. a\n   - b\n2. c`) · 셋째 단이 둘째와 같은 종류인 꼴 (`- a\n  1. b\n     1. c` · `1. a\n   - b\n     - c`) 의 정제를 거친 DOM.
 
 8. **파이프 표는 표로 렌더된다.**
 
@@ -131,6 +135,7 @@
 - [x] 탭 들여쓰기의 내용 열 (19 탭 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-tab-indent.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`cb354da` rc=0 (TSK-20261013-10 `cb354da`). HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 두 예(`li pre` 1 · 백틱 0 / `ul` 1 · `li` 2)와 최상위 탭 펜스 `pre` 0 을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 `li pre` 0 · 백틱 4 / `ul` 2 / `pre` 0.
 - [x] 열린 항목의 열 (19 열린 항목 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-open-items.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`210a314` rc=0 (TSK-20261013-11 `39c6968`). HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 예 셋(문단 · 펜스 · 3단 복귀)과 대조 둘(`1. a\n\n   본문\n2. c` · 빈 줄 없는 이어짐 — 산출 불변)을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 첫 예 `ol` 2 · `   본문` 앞 공백 3.
 - [ ] 섞어 쓴 들여쓰기의 열 동치 (19 열 동치 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-mixed-indent.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`210a314` rc=1 (파일 부재). 섞어 쓴 줄 14 입력(REQ-20261013-111 P01–P06·P11·P13·P14·P16–P18 + 바깥 항목 귀속 `1. a\n   - b\n\n \t본문\n2. c` · `1. a\n   - b\n\n\t > 인용\n2. c`)마다 같은 열의 공백만 입력을 **변환 함수로 도출해**(탭 4칸 탭 정지 — 짝을 열거하지 않는다) 정제를 거친 `innerHTML` 의 문자열 동치를 재고, 본문 텍스트 노드 머리 공백·탭 0 · `li blockquote` 1 · 렌더 텍스트 `>` 0 · `- c` 0 과 대조 9행 산출 불변을 잰다. HEAD=`210a314` 실측: 동치 0/14 · 본문 앞 공백·탭 7/7 · `>` 5/5 · `- c` 2/2 남음 · 대조 9/9 기대 산출.
+- [ ] 종류 교대 중첩 (7 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-alternating-kind-nesting.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`0b5d9cf` rc=1 (파일 부재). 교대 입력 8행(REQ-20261013-113 A1–A7 + 4단 `- a\n  1. b\n     - c\n       1. e`)의 최상위 목록 1 · `c` 의 `li` 가 `b` 의 `li` 자손 · A7 직계 `li` 2 · `start` 0 · 귀속 블록 3행의 귀속 `li` 와 최상위 비공백 텍스트 노드 0 을 정제를 거친 DOM 에서, 전 행과 대조 행의 원시 `markdownToHtml` 문자열 목록 태그 짝 어긋남 0 을 정제 전 문자열에서, 대조 7행(같은 종류 3단 둘 · 2단 교대 셋 · 셋째 단 같은 종류 둘)의 정제 DOM 산출 불변을 잰다. HEAD=`0b5d9cf` 실측: 최상위 목록 A1·A2·4단 2 · A3–A7 3 · 최상위 맨 글자 `본문` 3/3 · 원시 어긋남 A2·A5·A7·`1. a\n   - b\n     - c` 각 2 · 대조 7/7 기대 DOM.
 - [ ] 항목 안 인용의 블록 문법 (3 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-blockquote-blocks.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 세 예(펜스는 앞 빈 줄 유무 두 변형 — `- a\n\n  > ```\n  > x\n  > ```\n- b`)와 대조 둘(줄 머리 인용 펜스 · `- a\n  > 인용문` 산출 불변)을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 `li blockquote pre` 0 · 백틱 4 / `h1` 0 / `li` 0.
 - [ ] 항목 안 펜스 줄 보호 (21 항목 안 하위 항목): `bash -c 'npx vitest run src/__tests__/markdown-list-item-fence-lines.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 하위 항목의 세 입력(`---` 를 담은 yaml · `---` 한 줄 · 표 꼴 두 줄)과 `1. ` 대조 둘, 최상위 `제목\n---` → `h2` 불변을 정제를 거친 DOM 에서 잰다. HEAD=`bea3a3b` 실측은 첫 입력 `ol` 2 · `h2` 1.
 - [ ] 코드 스팬 백틱 런 길이 (26): `bash -c 'npx vitest run src/__tests__/markdown-code-span-backtick-run.test.ts --coverage.enabled=false >/dev/null 2>&1'` → rc=0. HEAD=`e38a118` rc=1 (파일 부재). 26 의 예 전부(인용 안 겹 백틱 스팬 ``` > ``a ` b`` ``` → `code` 1 · 백틱 1 포함)와 대조 둘(홑 백틱 · 스팬 안 백슬래시 — 산출 불변)을 정제를 거친 DOM 의 `code` 수·텍스트와 렌더 텍스트 백틱 수로 잰다. HEAD=`bea3a3b` 실측은 렌더 텍스트 백틱 3 · 4 · 3 / `` `x` `` 예 `code` 2 / 짝 없는 런 `code` 1.
@@ -171,6 +176,7 @@
 | 2026-10-13 | REQ-20261013-110 / — | 24 의 인라인 우선 예시를 라벨이 겹치는 입력으로 바꿨다 (종전 예는 순서를 증언하지 못한다 — TSK-07 D6 실측). 하위 항목 둘 신설: 인라인에 밀린 라벨의 정의 줄은 글자로 남는다 · 정의는 최상위 문단 줄에서만 수집된다 (컨테이너 안 넷과 게으른 이어짐 산출 박제). FR-04 (같은 컨테이너만 수집, Could) 비채택 — §미측정 에 사유. HEAD=`cb354da` 격리 사본에서 req 표 6행과 FR-05 의 게으른 이어짐 1행을 재현했다 | 동작 24 · 수용 기준 · 참고 |
 | 2026-10-13 | inspector reconcile (tick 중 HEAD 이동) / `39c6968` | 19 열린 항목 `[x]` — HEAD=`210a314` `git archive` 사본에서 파일 추출 명령 21건 재실행: 기존 `[x]` 13 rc=0 · 열린 항목 rc=0 (TSK-20261013-11 result.md 실재) · 나머지 `[ ]` 7 rc=1 (TSK-12~14·17 미착지, 이번 tick 신설 3). 머리 게이트 목록 갱신 | 수용 기준 · 머리 |
 | 2026-10-13 | REQ-20261013-111 / — | 19 에 열 동치 하위 항목 — 열린 항목 안의 줄은 같은 열의 공백만 입력과 산출이 같다 (섞어 쓴 탭·공백 포함). 본문 걷기가 귀속 판정의 열 셈을 쓴다 (FR-06 채택). FR-04 (Could, 섞어 쓴 마커 줄) 채택 — 깊이는 같은 열의 공백만 마커 줄의 깊이이고, 둘째 하위 항목의 깊이 모델은 공백만·탭만 줄에 한정해 그대로 둔다. HEAD=`cb354da` 와 `210a314` (TSK-11 `39c6968` 착지 뒤) 격리 사본에서 req 표 21행을 재현했고, TSK-11 의 바깥 항목 귀속 경로가 같은 결함을 물려받았음을 두 입력으로 확인했다 | 동작 19 · 수용 기준 · 참고 |
+| 2026-10-13 | REQ-20261013-113 / — | 7 에 하위 항목 — 중첩 단수·종류 교대 횟수 무제한 (FR-06 Should 채택, 4단 포함) · 교대 중첩 자리 귀속 블록은 19 를 따르고 맨 글자 0 · 원시 산출 목록 태그 짝 (FR-04 Should 채택 — 복구 덕에 DOM 이 맞는 꼴도 판정). 파서 `bindListItem` 의 3단 교대 갈래 주석 *"어느 계약도 소유하지 않는다"* 는 이제 7 이 소유한다. HEAD=`0b5d9cf` `git archive` 사본에서 req 표 14행을 재현했고 4단 교대도 최상위 `ul` 2 임을 더했다 | 동작 7 · 수용 기준 · 참고 |
 
 ## 참고
 
@@ -184,7 +190,7 @@
 
 ### 걷어낸 것
 
-`markdownParser` 의 `bindListItem` 알고리즘 내부 계약(triple emission · deferred `</li>` · depth stack)은 옮기지 않았다. **깨지면 렌더링 테스트가 즉시 붉어지므로** 계약으로 박제할 필요가 없다 (`RULE-07 §반려 시그널`).
+`markdownParser` 의 `bindListItem` 알고리즘 내부 계약(triple emission · deferred `</li>` · depth stack)은 옮기지 않았다. **깨지면 렌더링 테스트가 즉시 붉어지므로** 계약으로 박제할 필요가 없다 (`RULE-07 §반려 시그널`). 7 의 태그 짝 하위 항목은 알고리즘이 아니라 **산출**의 불변식이다 — HEAD=`0b5d9cf` 에서 `1. a\n   - b\n     - c` 의 원시 태그가 어긋나 있는데 위 `[x]` 게이트는 전부 rc=0 이다 (직전 재실행 HEAD=`210a314` — 파서는 `0b5d9cf` 와 같다).
 
 ### 계약을 뒤집는 지점 (`RULE-06 §계약을 뒤집는 task`)
 
@@ -200,6 +206,7 @@
 - **(24 둘째 하위 항목) 밀린 정의 줄** — 이관처는 `markdown-reference-link-scope` 게이트를 세우는 task (미발행). 인라인 링크 텍스트와 같은 라벨을 "참조됨" 으로 표시하는 변형 → 정의 줄이 걷히고 게이트 rc≠0. 같은 변형에서 `markdown-reference-link.test.ts` R12b 는 초록이다 (`href` 만 잰다). 처리 순서 축(참조 패스를 인라인 앞으로)은 TSK-20261013-07 의 D6 가 R12b 로 이미 검출했다.
 - **(19 열 동치) 본문 걷기의 셈** — 이관처는 `markdown-list-item-mixed-indent` 게이트를 세우는 task (미발행). 방향 셋: 본문 걷기를 탭만·공백만 세는 셈으로 되돌린 트리 → rc≠0 (본문 앞 공백·탭 · 동치). 걷은 뒤 `>` 판정 앞에 남은 공백을 다시 넣은 트리 → rc≠0 (`li blockquote`). 섞어 쓴 마커 줄을 마커로 보지 않는 트리 → rc≠0 (`- c`). 대조 후보: 열 셈 함수의 이름·위치만 바꾼 변형 → rc=0.
 - **(28) 대괄호 짝 판정** — 이관처는 28 게이트를 세우는 task (미발행). 방향 셋: 이미지 패턴만 첫 `]` 에서 끝나는 판본으로 되돌린 트리 → rc≠0 (`그림 [1]` · 574·575). 링크 패턴만 되돌린 트리 → rc≠0 (링크 텍스트 셋). 링크 텍스트 안의 링크를 허용한 트리 → rc≠0 (518 `a a`). 대조 후보: 짝 판정 함수의 이름·위치만 바꾼 변형 → rc=0.
+- **(7 교대 중첩)** — 이관처는 `markdown-list-alternating-kind-nesting` 게이트를 세우는 task (미발행). 방향 둘: 셋째 단 교대를 평탄 분기(열린 목록을 닫고 새 최상위 목록)로 되돌린 트리 → rc≠0 (최상위 목록 수 · 맨 글자). 닫는 목록 태그 이름을 그 목록을 연 종류가 아니라 바깥 종류로 내는 트리 (HEAD 의 `1. a\n   - b\n     - c` 산출 방식) → rc≠0 — 정제 DOM 만 재는 판정은 이 방향에서 복구 덕에 초록이므로 원시 문자열 판정이 잡아야 한다. 대조 후보: 교대 판정 갈래의 이름·위치만 바꾼 변형 → rc=0.
 
 ### 판정면 실측 (HEAD=`e1abfdd`, 격리 사본)
 
@@ -212,12 +219,12 @@
 
 ### 미측정·비판정 항목
 
-- 저장된 요약과 현 파서 산출의 불일치 — 회복은 저장소 밖(재저장·서버 일괄 재계산)이며 `summary-derivation` (5)(6) 과 `check:summary-drift` 가 측정 채널을 소유한다. 19 이후 신설 항은 전부 파서 산출을 바꾸므로 그 채널의 소비자다.
+- 저장된 요약과 현 파서 산출의 불일치 — 회복은 저장소 밖(재저장·서버 일괄 재계산)이며 `summary-derivation` (5)(6) 과 `check:summary-drift` 가 측정 채널을 소유한다. 19 이후 신설 항과 7 의 교대 중첩 하위 항목은 전부 파서 산출을 바꾸므로 그 채널의 소비자다.
 - 최상위에서 4칸 이상 들여쓴 밑줄·가로줄(`a\n    ---` → `h2` · `    ---` → `hr`)은 지금 동작을 유지하고 계약하지 않는다. CommonMark 은 둘 다 밑줄·가로줄로 보지 않는다 (§4.1·§4.3). 그러나 들여쓴 코드 블록이 미구현인 이 파서에서 그 판정만 빼면 `    ---` 가 가로줄도 코드도 아닌 글자 문단이 된다 — 표준과도 현 동작과도 다른 제3의 산출이다 (REQ-20261013-104 FR-04 Could 비채택).
 - 19 의 열린 항목 규칙은 빈 줄 또는 코드 블록 **뒤**의 블록만 정한다. 빈 줄 없이 이어지는 펜스가 안쪽 항목의 내용 열에 못 미칠 때(`1. a\n   - b\n   ```…`) 어느 항목에 붙는지는 이 문면이 정하지 않는다 (CommonMark 은 바깥 항목).
 - 19 의 열 동치는 목록 항목 안의 줄만 정한다. 인용 컨테이너 안(`> - a\n>  \t본문`)의 섞어 쓴 들여쓰기는 계약하지 않는다 (REQ-20261013-111 범위 밖). 혼합 들여쓰기가 운영 글에 몇 번 나오는지는 저장소 안에서 잴 수 없다.
 - 19 의 탭 셈에서 탭 정지 가운데에서 걷히는 탭(내용 열이 탭의 4칸 안에 떨어지는 경우)의 남은 칸이 코드 내용에 공백으로 남는지 탭으로 남는지는 계약하지 않는다. 계약은 내용 열까지가 걷히고 그 너머가 남는다는 것(9)이다.
-- 목록 항목 안 `<p>` 감싸기(tight/loose 구별)는 계약하지 않는다 — 이 파서는 줄=문단 모델이다. 항목 안의 표·제목도 19 의 대상이 아니다 (항목 안 **인용** 안의 제목·목록·펜스는 3 이 정한다). 인용 안 목록 항목 안 인용 같은 3단 이상 교차 중첩과 인용 안 표는 계약하지 않는다.
+- 목록 항목 안 `<p>` 감싸기(tight/loose 구별)는 계약하지 않는다 — 이 파서는 줄=문단 모델이다. 항목 안의 표·제목도 19 의 대상이 아니다 (항목 안 **인용** 안의 제목·목록·펜스는 3 이 정한다). 인용 안 목록 항목 안 인용 같은 3단 이상 **컨테이너** 교차 중첩과 인용 안 표는 계약하지 않는다 — 목록끼리의 종류 교대는 7 이 정한다.
 - 백틱 펜스의 정보 문자열은 지금처럼 통째로 언어 이름이 되고 화면에 나가지 않는다 (`` ```js title `` 의 `title`). 21 이 막는 것은 정보 문자열에 백틱이 든 줄과 물결 펜스의 산문 줄뿐이다. 물결 하나만 있는 줄(`~~~`)은 표준대로 펜스를 연다.
 - 23 의 이름 엔티티 표를 DOM 해석으로 얻을지 표로 둘지는 수단이다. 파서는 지금 DOM 을 쓰지 않는다. 코드 밖 산문에 `&nbsp;` 등을 글자로 적어 둔 기존 글은 23 착지 후 그 자리가 문자로 바뀐다 — 글자로 보이려면 `\&` 를 쓴다.
 - 25 의 주소 **끝**에 붙은 엔티티(`…?a=1&amp;`)가 링크 안인지는 계약하지 않는다. GFM 은 엔티티 꼴 꼬리를 링크에서 뺀다 (§6.9 예제 627). 25 의 엔티티 판정이 정하는 것은 주소 가운데의 유효 엔티티뿐이다.
