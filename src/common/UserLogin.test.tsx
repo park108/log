@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import UserLogin, { getLoginUrl, getLogoutUrl } from './UserLogin';
 import * as common from './common';
 import * as errorReporter from './errorReporter';
@@ -22,7 +23,7 @@ describe('reder UserLogin by stage', () => {
   it("render test stage login menu correctly", () => {
     setEnv(true, false);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const menu = screen.getByText("Jongkil Park");
 
     expect(menu).toBeInTheDocument();
@@ -31,7 +32,7 @@ describe('reder UserLogin by stage', () => {
   it("render prod stage login menu correctly", () => {
     setEnv(false, true);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const menu = screen.getByText("Jongkil Park");
 
     expect(menu).toBeInTheDocument();
@@ -43,7 +44,7 @@ describe('reder UserLogin by stage', () => {
     vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
     vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const menu = screen.getByText("👨‍💻 Jongkil Park");
 
     expect(menu).toBeInTheDocument();
@@ -55,7 +56,7 @@ describe('reder UserLogin by stage', () => {
     vi.spyOn(common, "isLoggedIn").mockReturnValue(true);
     vi.spyOn(common, "isAdmin").mockReturnValue(true);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const menu = screen.getByText("👨‍💻 Jongkil Park");
 
     expect(menu).toBeInTheDocument();
@@ -115,7 +116,7 @@ describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
   it('login 은 네이티브 button 이 아니다 — 눈에 띄지 않게 두는 것이 의도다', () => {
     setEnv(true, false);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const el = screen.getByTestId('login-button');
 
     // 운영자 지시 (2026-08-29): 이 진입점은 푸터의 이름처럼 보여야 한다.
@@ -135,7 +136,7 @@ describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
     setEnv(true, false);
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     fireEvent.keyDown(screen.getByTestId('login-button'), { key: 'Enter' });
 
     expect(window.location.href).toContain('localhost:3000');
@@ -145,7 +146,7 @@ describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
     setEnv(true, false);
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     fireEvent.click(screen.getByTestId('login-button'));
 
     expect(window.location.href).toContain('localhost:3000');
@@ -157,7 +158,7 @@ describe('UserLogin a11y 패턴 B (REQ-20260421-033 FR-03)', () => {
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
     vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const el = screen.getByTestId('login-button');
     fireEvent.click(el);
 
@@ -195,7 +196,7 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
     const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const el = screen.getByTestId('login-button');
     fireEvent.click(el);
 
@@ -214,7 +215,7 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     vi.spyOn(common, 'deleteCookie').mockImplementation(() => {});
     const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const el = screen.getByTestId('login-button');
     fireEvent.click(el);
 
@@ -230,7 +231,7 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
     const reportErrorSpy = vi.spyOn(errorReporter, 'reportError').mockImplementation(() => {});
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const el = screen.getByTestId('login-button');
     fireEvent.click(el);
 
@@ -248,7 +249,7 @@ describe('리디렉트 URL 공란 조건 (REQ-20260825-022 §동작 (U-0)(U-3))'
     setEnv(true, false);
     vi.spyOn(common, 'isLoggedIn').mockReturnValue(false);
 
-    render(<UserLogin />);
+    render(<MemoryRouter><UserLogin /></MemoryRouter>);
     const el = screen.getByTestId('login-button');
     fireEvent.click(el);
 

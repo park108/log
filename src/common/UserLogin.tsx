@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { SyntheticEvent } from "react";
+import { useLocation } from "react-router-dom";
 import * as common from '../common/common';
 import { activateOnKey } from './a11y';
 import { isDev, isProd } from './env';
@@ -18,6 +19,14 @@ export const getLogoutUrl = (): string | undefined => {
 }
 
 const UserLogin = () => {
+
+	// **경로가 바뀌면 다시 그린다.** 아래 로그인 표시는 렌더할 때 판정하는데,
+	// 이 컴포넌트는 푸터에 있어 경로가 바뀌어도 다시 그려지지 않았다. 토큰 쿠키는
+	// 한 시간이면 만료되고(`common.auth` — `max-age: 3600`), 그 뒤에도 "👨‍💻" 가
+	// 남았다. 새로 그려지는 글 화면은 그 사이 Edit·Delete 를 걷었으므로, 화면은
+	// 로그인돼 있다고 말하는데 글을 고칠 수 없었다 (2026-10-28 운영 사이트 재현).
+	// `Navigation` 과 같은 이디엄이다 — 위치 구독이 재판정의 계기다.
+	useLocation();
 
 	// 진입 실패는 reportError 로 보고되지만 그 도달처는 개발자 콘솔이고, 배포 빌드의
 	// 관측자 집합에 개발자는 없다. 사용자에게는 "눌리는데 아무 일도 안 일어남" 으로

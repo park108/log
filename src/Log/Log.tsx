@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { isAdmin } from '../common/common';
 
 import './Log.css';
@@ -23,6 +23,12 @@ interface LogProps {
 // `<main>` 은 그 자체로 main 랜드마크다. 명시 role 이 그것을 덮으면 랜드마크로
 // 건너뛰는 길까지 사라진다.
 const Log = (props: LogProps) => {
+
+	// **경로가 바뀌면 다시 판정한다.** 이 컴포넌트는 라우트 요소라 하위 경로가
+	// 바뀌어도 다시 그려지지 않았고, 세션이 만료된 뒤에도 글쓰기 버튼과 관리자
+	// 경로를 그대로 두었다. 그 사이 글 화면은 Edit·Delete 를 걷었다 — 쓸 수는
+	// 있는데 고칠 수는 없는 화면이 됐다. `Navigation` 과 같은 이디엄이다.
+	useLocation();
 
 	if(isAdmin()) {
 		return (

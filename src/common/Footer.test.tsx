@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -55,7 +56,7 @@ describe('Footer 브랜드 아이콘 자산 가용성', () => {
 	describe('(G-B) LinkedIn 아이콘 self-origin 발화', () => {
 
 		it('아이콘 src 가 self-origin 절대 경로이고 public/ 에 실재한다', () => {
-			render(<Footer />);
+			render(<MemoryRouter><Footer /></MemoryRouter>);
 
 			const icon = screen.getByAltText('LinkedIn Profile') as HTMLImageElement;
 			const src = icon.getAttribute('src') ?? '';
@@ -79,7 +80,7 @@ describe('Footer 브랜드 아이콘 자산 가용성', () => {
 	describe('(G-D) 종횡비 보존', () => {
 
 		it('선언 width/height 비율이 자산 intrinsic 종횡비와 일치한다', () => {
-			render(<Footer />);
+			render(<MemoryRouter><Footer /></MemoryRouter>);
 
 			const icon = screen.getByAltText('LinkedIn Profile') as HTMLImageElement;
 			const declaredW = Number(icon.getAttribute('width'));
@@ -128,7 +129,7 @@ describe('Footer 브랜드 아이콘 자산 가용성', () => {
 	describe('(G-F) 접근성 · 링크 계약 보존', () => {
 
 		it('LinkedIn 앵커의 링크 대상과 보안 속성이 보존된다', () => {
-			render(<Footer />);
+			render(<MemoryRouter><Footer /></MemoryRouter>);
 
 			const anchor = screen.getByTitle('LinkedIn Profile');
 
@@ -138,7 +139,7 @@ describe('Footer 브랜드 아이콘 자산 가용성', () => {
 		});
 
 		it('아이콘이 비어있지 않은 접근 가능 이름을 제공한다', () => {
-			render(<Footer />);
+			render(<MemoryRouter><Footer /></MemoryRouter>);
 
 			const icon = screen.getByAltText('LinkedIn Profile');
 			expect(icon.getAttribute('alt')?.trim()).toBeTruthy();
